@@ -1,22 +1,35 @@
 // src/screens/ChatScreen.js
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { doc, setDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
 import { getSocket, BACKEND_URL, startCall, endCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
 
 export default function ChatScreen({ user }) {
-  const [conversations, setConversations] = useState([]);
-  const [activeConv,    setActiveConv]    = useState(null);
-  const [messages,      setMessages]      = useState([]);
-  const [text,          setText]          = useState('');
-  const [typing,        setTyping]        = useState(false);
-  const [typingName,    setTypingName]    = useState('');
-  const [searchEmail,   setSearchEmail]   = useState('');
-  const [searchResult,  setSearchResult]  = useState(null);
-  const [searchErr,     setSearchErr]     = useState('');
-  const [activeCall,    setActiveCall]    = useState(null);  // { toUid, isVideo, name, localStream, remoteStream }
-  const [showNewChat,   setShowNewChat]   = useState(false);
+  const [conversations,  setConversations]  = useState([]);
+  const [activeConv,     setActiveConv]     = useState(null);
+  const [messages,       setMessages]       = useState([]);
+  const [text,           setText]           = useState('');
+  const [typing,         setTyping]         = useState(false);
+  const [typingName,     setTypingName]     = useState('');
+  const [activeCall,     setActiveCall]     = useState(null);
+
+  // Schermen: 'chats' | 'contacts'
+  const [activeTab,      setActiveTab]      = useState('chats');
+
+  // Contacten
+  const [contacts,       setContacts]       = useState([]);
+  const [showAddContact, setShowAddContact] = useState(false);
+  const [contactEmail,   setContactEmail]   = useState('');
+  const [contactErr,     setContactErr]     = useState('');
+  const [contactLoading, setContactLoading] = useState(false);
+
+  // Nieuw gesprek
+  const [showNewChat,    setShowNewChat]    = useState(false);
+  const [searchEmail,    setSearchEmail]    = useState('');
+  const [searchResult,   setSearchResult]  = useState(null);
+  const [searchErr,      setSearchErr]     = useState('');
 
   const msgEndRef   = useRef(null);
   const typingTimer = useRef(null);
@@ -27,45 +40,39 @@ export default function ChatScreen({ user }) {
     try {
       const res  = await fetch(`${BACKEND_URL}/api/conversations/${user.uid}`);
       const data = await res.json();
-setConversations(Array.isArray(data) ? data : []);
+      setConversations(Array.isArray(data) ? data : []);
     } catch (e) { console.error(e); }
   }, [user.uid]);
 
-  useEffect(() => { loadConversations(); }, [loadConversations]);
+  // ── Contacten laden uit Firestore ─────────────────────────────────────────
+  const loadContacts = useCallback(async () => {
+    try {
+      const snap = await getDocs(collection(db, 'users', user.uid, 'contacts'));
+      setContacts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch (e) { console.error(e); }
+  }, [user.uid]);
+
+  useEffect(() => { loadConversations(); loadContacts(); }, [loadConversations, loadContacts]);
 
   // ── Socket events ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!socket) return;
-
     socket.on('message:received', (msg) => {
       setMessages(prev => [...prev, msg]);
       loadConversations();
       msgEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     });
-
     socket.on('typing:update', ({ uid, name, typing }) => {
       if (typing) { setTyping(true); setTypingName(name || 'Iemand'); }
-      else        { setTyping(false); }
+      else setTyping(false);
     });
-
-    socket.on('user:status', ({ uid, online }) => {
-      setConversations(prev => prev.map(c => {
-        const updated = { ...c };
-        if (c.members?.includes(uid)) updated.memberOnline = online;
-        return updated;
-      }));
-    });
-
-    return () => {
-      socket.off('message:received');
-      socket.off('typing:update');
-      socket.off('user:status');
-    };
+    return () => { socket.off('message:received'); socket.off('typing:update'); };
   }, [socket, loadConversations]);
 
   // ── Gesprek openen ────────────────────────────────────────────────────────
   async function openConversation(conv) {
     setActiveConv(conv);
+    setActiveTab('chats');
     socket?.emit('conversation:join', { convId: conv.id });
     try {
       const res  = await fetch(`${BACKEND_URL}/api/messages/${conv.id}`);
@@ -79,11 +86,11 @@ setConversations(Array.isArray(data) ? data : []);
   function sendMessage() {
     if (!text.trim() || !activeConv) return;
     const msg = {
-      convId:      activeConv.id,
-      senderId:    user.uid,
-      senderName:  user.displayName || user.email,
-      text:        text.trim(),
-      createdAt:   new Date().toISOString(),
+      convId:     activeConv.id,
+      senderId:   user.uid,
+      senderName: user.displayName || user.email,
+      text:       text.trim(),
+      createdAt:  new Date().toISOString(),
     };
     socket?.emit('message:send', { convId: activeConv.id, message: msg });
     setText('');
@@ -94,7 +101,6 @@ setConversations(Array.isArray(data) ? data : []);
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   }
 
-  // ── Typen ─────────────────────────────────────────────────────────────────
   function handleTyping(val) {
     setText(val);
     if (!activeConv) return;
@@ -108,7 +114,52 @@ setConversations(Array.isArray(data) ? data : []);
     if (activeConv) socket?.emit('typing:stop', { convId: activeConv.id, uid: user.uid });
   }
 
-  // ── Gebruiker zoeken + gesprek starten ───────────────────────────────────
+  // ── Contact toevoegen ─────────────────────────────────────────────────────
+  async function addContact() {
+    setContactErr(''); setContactLoading(true);
+    try {
+      const res  = await fetch(`${BACKEND_URL}/api/users/search?email=${encodeURIComponent(contactEmail.trim())}`);
+      const data = await res.json();
+      if (!res.ok) { setContactErr(data.error || 'Gebruiker niet gevonden'); return; }
+      if (data.uid === user.uid) { setContactErr('Je kunt jezelf niet toevoegen'); return; }
+
+      // Opslaan in Firestore onder users/{uid}/contacts
+      await setDoc(doc(db, 'users', user.uid, 'contacts', data.uid), {
+        uid:         data.uid,
+        displayName: data.displayName,
+        email:       data.email,
+        addedAt:     new Date().toISOString(),
+      });
+
+      setContacts(prev => [...prev.filter(c => c.uid !== data.uid), { uid: data.uid, displayName: data.displayName, email: data.email }]);
+      setContactEmail('');
+      setShowAddContact(false);
+    } catch (e) { setContactErr('Verbindingsfout'); }
+    finally { setContactLoading(false); }
+  }
+
+  // ── Contact verwijderen ───────────────────────────────────────────────────
+  async function removeContact(uid) {
+    await deleteDoc(doc(db, 'users', user.uid, 'contacts', uid));
+    setContacts(prev => prev.filter(c => c.uid !== uid));
+  }
+
+  // ── Gesprek starten vanuit contacten ──────────────────────────────────────
+  function startChatWithContact(contact) {
+    if (!socket) return;
+    socket.emit('conversation:create', {
+      members:     [user.uid, contact.uid],
+      memberNames: { [user.uid]: user.displayName || user.email, [contact.uid]: contact.displayName },
+      isGroup: false,
+    }, ({ convId, error }) => {
+      if (error) return alert(error);
+      const conv = { id: convId, members: [user.uid, contact.uid], memberNames: { [user.uid]: user.displayName, [contact.uid]: contact.displayName }, isGroup: false };
+      openConversation(conv);
+      loadConversations();
+    });
+  }
+
+  // ── Gebruiker zoeken ──────────────────────────────────────────────────────
   async function searchUser() {
     setSearchErr(''); setSearchResult(null);
     if (!searchEmail.trim()) return;
@@ -141,20 +192,20 @@ setConversations(Array.isArray(data) ? data : []);
     const toUid = activeConv.members.find(m => m !== user.uid);
     const name  = activeConv.memberNames?.[toUid] || 'Contactpersoon';
     try {
-      const localStream = await startCall({
+      await startCall({
         toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
         onStream: (remoteStream, localStream) => {
           setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
         },
-        onEnd: (reason) => { setActiveCall(null); },
+        onEnd: () => setActiveCall(null),
       });
-      setActiveCall({ toUid, isVideo, name, localStream, remoteStream: null });
+      setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
     } catch (e) {
-      alert('Kan geen toegang krijgen tot microfoon/camera. Controleer je browserinstellingen.');
+      alert('Kan geen toegang krijgen tot microfoon/camera.');
     }
   }
 
-  // ── Hulpfuncties ─────────────────────────────────────────────────────────
+  // ── Hulpfuncties ──────────────────────────────────────────────────────────
   function getConvName(conv) {
     if (conv.isGroup) return conv.groupName || 'Groepsgesprek';
     const otherUid = conv.members?.find(m => m !== user.uid);
@@ -181,33 +232,66 @@ setConversations(Array.isArray(data) ? data : []);
             <div className="app-brand"><span className="brand-dot" />Pulse</div>
             <button className="icon-btn" onClick={() => setShowNewChat(true)} title="Nieuw gesprek">✏️</button>
           </div>
-          <div className="search-box">
-            <span>🔍</span>
-            <input placeholder="Zoek gesprekken…" readOnly />
-          </div>
         </div>
 
-        <div className="conv-list">
-          {conversations.length === 0 && (
-            <div className="empty-convs">
-              <p>Nog geen gesprekken.</p>
-              <p>Klik op ✏️ om iemand te vinden.</p>
-            </div>
-          )}
-          {conversations.map(conv => (
-            <div
-              key={conv.id}
-              className={`conv-item ${activeConv?.id === conv.id ? 'active' : ''}`}
-              onClick={() => openConversation(conv)}
-            >
-              <div className="avatar-circle">{getInitials(getConvName(conv))}</div>
-              <div className="conv-info">
-                <div className="conv-name">{getConvName(conv)}</div>
-                <div className="conv-preview">{conv.lastMessage || 'Start een gesprek…'}</div>
-              </div>
-            </div>
-          ))}
+        {/* Tabs: Chats / Contacten */}
+        <div className="sidebar-tabs">
+          <button className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} onClick={() => setActiveTab('chats')}>💬 Chats</button>
+          <button className={`sidebar-tab ${activeTab === 'contacts' ? 'active' : ''}`} onClick={() => setActiveTab('contacts')}>👥 Contacten</button>
         </div>
+
+        {/* ── CHATS TAB ── */}
+        {activeTab === 'chats' && (
+          <div className="conv-list">
+            {conversations.length === 0 && (
+              <div className="empty-convs">
+                <p>Nog geen gesprekken.</p>
+                <p>Klik op ✏️ om iemand te vinden.</p>
+              </div>
+            )}
+            {conversations.map(conv => (
+              <div key={conv.id} className={`conv-item ${activeConv?.id === conv.id ? 'active' : ''}`} onClick={() => openConversation(conv)}>
+                <div className="avatar-circle">{getInitials(getConvName(conv))}</div>
+                <div className="conv-info">
+                  <div className="conv-name">{getConvName(conv)}</div>
+                  <div className="conv-preview">{conv.lastMessage || 'Start een gesprek…'}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── CONTACTEN TAB ── */}
+        {activeTab === 'contacts' && (
+          <div className="conv-list">
+            <div style={{ padding: '12px 18px' }}>
+              <button className="btn-primary" style={{ padding: '10px', fontSize: '13px' }} onClick={() => setShowAddContact(true)}>
+                + Contact toevoegen
+              </button>
+            </div>
+
+            {contacts.length === 0 && (
+              <div className="empty-convs">
+                <p>Nog geen contacten.</p>
+                <p>Voeg iemand toe via e-mailadres.</p>
+              </div>
+            )}
+
+            {contacts.map(contact => (
+              <div key={contact.uid} className="conv-item">
+                <div className="avatar-circle">{getInitials(contact.displayName)}</div>
+                <div className="conv-info">
+                  <div className="conv-name">{contact.displayName}</div>
+                  <div className="conv-preview">{contact.email}</div>
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                  <button className="call-btn voice" onClick={() => startChatWithContact(contact)} title="Stuur bericht" style={{ fontSize: '14px' }}>💬</button>
+                  <button className="icon-btn" onClick={() => removeContact(contact.uid)} title="Verwijderen" style={{ color: 'var(--danger)' }}>🗑️</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="sidebar-footer">
           <div className="user-chip">
@@ -221,7 +305,7 @@ setConversations(Array.isArray(data) ? data : []);
         </div>
       </aside>
 
-      {/* ── CHAT ── */}
+      {/* ── CHAT MAIN ── */}
       <main className="chat-main">
         {!activeConv ? (
           <div className="empty-state">
@@ -239,7 +323,7 @@ setConversations(Array.isArray(data) ? data : []);
               </div>
               <div className="chat-header-actions">
                 <button className="call-btn voice" onClick={() => initiateCall(false)} title="Bellen">📞</button>
-                <button className="call-btn video" onClick={() => initiateCall(true)}  title="Videobellen">🎥</button>
+                <button className="call-btn video" onClick={() => initiateCall(true)} title="Videobellen">🎥</button>
               </div>
             </div>
 
@@ -259,8 +343,7 @@ setConversations(Array.isArray(data) ? data : []);
             <div className="chat-input-area">
               <div className="input-row">
                 <textarea
-                  className="chat-textarea"
-                  rows={1}
+                  className="chat-textarea" rows={1}
                   placeholder="Stuur een bericht…"
                   value={text}
                   onChange={e => handleTyping(e.target.value)}
@@ -273,16 +356,60 @@ setConversations(Array.isArray(data) ? data : []);
         )}
       </main>
 
+      {/* ── CONTACT TOEVOEGEN MODAL ── */}
+      {showAddContact && (
+        <div className="modal-overlay" onClick={() => setShowAddContact(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <h3 className="modal-title">👥 Contact toevoegen</h3>
+            <p className="modal-sub">Zoek iemand op e-mailadres</p>
+            <div className="form-group">
+              <input
+                className="form-input" type="email"
+                placeholder="naam@voorbeeld.nl"
+                value={contactEmail}
+                onChange={e => setContactEmail(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addContact()}
+              />
+            </div>
+            {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactErr(''); }}>Annuleren</button>
+              <button className="btn-primary" style={{ flex: 1 }} onClick={addContact} disabled={contactLoading}>
+                {contactLoading ? 'Zoeken…' : 'Toevoegen →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── NIEUW GESPREK MODAL ── */}
       {showNewChat && (
         <div className="modal-overlay" onClick={() => setShowNewChat(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <h3 className="modal-title">✏️ Nieuwe chat</h3>
-            <p className="modal-sub">Zoek iemand op e-mailadres</p>
+
+            {/* Contacten als snelkoppeling */}
+            {contacts.length > 0 && (
+              <>
+                <p className="modal-sub">Kies uit je contacten</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+                  {contacts.map(c => (
+                    <div key={c.uid} className="search-result" onClick={() => startConversationWith(c)}>
+                      <div className="avatar-circle sm">{getInitials(c.displayName)}</div>
+                      <div>
+                        <div className="conv-name">{c.displayName}</div>
+                        <div className="conv-preview">{c.email}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <p className="modal-sub">Of zoek op e-mailadres</p>
             <div className="search-row">
               <input
-                className="form-input"
-                type="email"
+                className="form-input" type="email"
                 placeholder="naam@voorbeeld.nl"
                 value={searchEmail}
                 onChange={e => setSearchEmail(e.target.value)}

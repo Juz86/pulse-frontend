@@ -33,7 +33,28 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   // Microfoon + eventueel camera ophalen
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isVideo });
 
-  peer = new SimplePeer({ initiator: true, trickle: true, stream });
+  peer = new SimplePeer({
+    initiator: true,
+    trickle: true,
+    stream,
+    config: {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun2.l.google.com:19302" },
+        {
+          urls: "turn:openrelay.metered.ca:80",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        }
+      ]
+    }
+  });
 
   peer.on('signal', (offer) => {
     socket.emit('call:offer', { to: toUid, from: fromUid, offer, isVideo, callerName });
@@ -65,7 +86,28 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
 export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd }) {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isVideo });
 
-  peer = new SimplePeer({ initiator: false, trickle: true, stream });
+  peer = new SimplePeer({
+    initiator: false,
+    trickle: true,
+    stream,
+    config: {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun2.l.google.com:19302" },
+        {
+          urls: "turn:openrelay.metered.ca:80",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        },
+        {
+          urls: "turn:openrelay.metered.ca:443",
+          username: "openrelayproject",
+          credential: "openrelayproject"
+        }
+      ]
+    }
+  });
   peer.signal(offer);
 
   peer.on('signal', (answer) => {

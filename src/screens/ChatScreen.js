@@ -27,7 +27,7 @@ export default function ChatScreen({ user }) {
     try {
       const res  = await fetch(`${BACKEND_URL}/api/conversations/${user.uid}`);
       const data = await res.json();
-      setConversations(data);
+setConversations(Array.isArray(data) ? data : []);
     } catch (e) { console.error(e); }
   }, [user.uid]);
 

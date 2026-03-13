@@ -148,8 +148,11 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
       else setTyping(false);
     };
 
-    const onMessageStatus = ({ convId, status }) => {
+    const onMessageStatus = ({ convId, msgId, status }) => {
       if (status === 'read') setReadConvs(prev => new Set([...prev, convId]));
+      if (status === 'delivered' && msgId) {
+        setMessages(prev => prev.map(m => m.id === msgId && m.status !== 'read' ? { ...m, status: 'delivered' } : m));
+      }
     };
 
     const onFriendRequest = (req) => {
@@ -633,11 +636,16 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
           <div className="msg-bubble">{msg.text}</div>
           <div className="msg-time">
             {formatTime(msg.createdAt)}
-            {isOwn && (
-              <span className={`msg-ticks ${isConvRead ? 'read' : ''}`}>
-                {isConvRead ? '✓✓' : '✓'}
-              </span>
-            )}
+            {isOwn && (() => {
+              const isRead      = readConvs.has(activeConv?.id);
+              const isDelivered = isRead || msg.status === 'delivered';
+              const isPending   = msg.pending;
+              return (
+                <span className={`msg-ticks ${isRead ? 'read' : ''}`}>
+                  {isPending ? '🕐' : isRead ? '✓✓' : isDelivered ? '✓✓' : '✓'}
+                </span>
+              );
+            })()}
           </div>
         </div>
       );

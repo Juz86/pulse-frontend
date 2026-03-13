@@ -9,7 +9,7 @@ import CallOverlay from '../components/CallOverlay';
 
 const MSG_LIMIT = 30;
 
-export default function ChatScreen({ user, onlineUsers = new Set() }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, onToggleTheme }) {
   const [conversations,  setConversations]  = useState([]);
   const [activeConv,     setActiveConv]     = useState(null);
   const [messages,       setMessages]       = useState([]);
@@ -832,6 +832,7 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
               <div className="user-chip-status">Online</div>
             </div>
           </div>
+          <button className="icon-btn" onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>{lightMode ? '🌙' : '☀️'}</button>
           <button className="icon-btn danger" onClick={() => signOut(auth)} title="Uitloggen">↩</button>
         </div>
       </aside>

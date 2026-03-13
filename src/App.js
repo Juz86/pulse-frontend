@@ -21,6 +21,12 @@ export default function App() {
   const [loading,      setLoading]      = useState(!auth.currentUser && !wasLoggedIn);
   const [incomingCall, setIncomingCall] = useState(null);
   const [onlineUsers,  setOnlineUsers]  = useState(new Set());
+  const [lightMode,    setLightMode]    = useState(localStorage.getItem('pulse_theme') === 'light');
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', lightMode);
+    localStorage.setItem('pulse_theme', lightMode ? 'light' : 'dark');
+  }, [lightMode]);
 
   useEffect(() => {
     const loadingTimeout = setTimeout(() => setLoading(false), 5000);
@@ -94,7 +100,7 @@ export default function App() {
     <div className="app-root">
       {!user
         ? <AuthScreen />
-        : <ChatScreen user={user} onlineUsers={onlineUsers} />
+        : <ChatScreen user={user} onlineUsers={onlineUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} />
       }
       {incomingCall && (
         <CallOverlay

@@ -4,16 +4,21 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { auth } from '../firebase';
 
 export default function AuthScreen() {
-  const [tab,      setTab]      = useState('login');   // 'login' | 'register'
-  const [name,     setName]     = useState('');
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [error,    setError]    = useState('');
-  const [loading,  setLoading]  = useState(false);
+  const [tab,          setTab]         = useState('login');   // 'login' | 'register'
+  const [name,         setName]        = useState('');
+  const [email,        setEmail]       = useState('');
+  const [password,     setPassword]    = useState('');
+  const [error,        setError]       = useState('');
+  const [loading,      setLoading]     = useState(false);
+  const [showReset,    setShowReset]   = useState(false);
+  const [resetEmail,   setResetEmail]  = useState('');
+  const [resetMsg,     setResetMsg]    = useState('');
+  const [resetLoading, setResetLoading]= useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -39,6 +44,24 @@ export default function AuthScreen() {
       setError(msg);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handlePasswordReset(e) {
+    e.preventDefault();
+    setResetMsg('');
+    setResetLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, resetEmail.trim());
+      setResetMsg('E-mail verstuurd! Controleer je inbox.');
+    } catch (err) {
+      const msg = {
+        'auth/user-not-found': 'Geen account gevonden met dit e-mailadres.',
+        'auth/invalid-email':  'Ongeldig e-mailadres.',
+      }[err.code] || err.message;
+      setResetMsg('⚠️ ' + msg);
+    } finally {
+      setResetLoading(false);
     }
   }
 
@@ -74,7 +97,14 @@ export default function AuthScreen() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Wachtwoord</label>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <label className="form-label">Wachtwoord</label>
+              {tab === 'login' && (
+                <button type="button" className="forgot-link" onClick={() => { setShowReset(true); setResetEmail(email); setResetMsg(''); }}>
+                  Wachtwoord vergeten?
+                </button>
+              )}
+            </div>
             <input className="form-input" type="password" placeholder="Minimaal 6 tekens" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
           </div>
 
@@ -91,6 +121,38 @@ export default function AuthScreen() {
           <div className="auth-feature"><div>📶</div><div>Wifi & mobiel</div></div>
         </div>
       </div>
+
+      {/* ── WACHTWOORD VERGETEN MODAL ── */}
+      {showReset && (
+        <div className="modal-overlay" onClick={() => setShowReset(false)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <h3 className="modal-title">🔑 Wachtwoord vergeten</h3>
+            <p className="modal-sub">Vul je e-mailadres in en we sturen je een resetlink.</p>
+            <form onSubmit={handlePasswordReset}>
+              <div className="form-group">
+                <input
+                  className="form-input" type="email"
+                  placeholder="jij@voorbeeld.nl"
+                  value={resetEmail}
+                  onChange={e => setResetEmail(e.target.value)}
+                  required
+                />
+              </div>
+              {resetMsg && (
+                <div className={resetMsg.startsWith('⚠️') ? 'auth-error' : 'auth-success'}>
+                  {resetMsg}
+                </div>
+              )}
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowReset(false)}>Annuleren</button>
+                <button type="submit" className="btn-primary" style={{ flex:1 }} disabled={resetLoading}>
+                  {resetLoading ? 'Versturen…' : 'Stuur resetlink →'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -145,15 +145,47 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
 
     const onFriendRequest = (req) => {
       setFriendRequests(prev => [req, ...prev.filter(r => r.id !== req.id)]);
+      // Uitnodigingsgeluid: twee oplopende tonen
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [[600, 0], [900, 0.18]].forEach(([freq, delay]) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+          gain.gain.setValueAtTime(0.18, ctx.currentTime + delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25);
+          osc.start(ctx.currentTime + delay);
+          osc.stop(ctx.currentTime + delay + 0.25);
+          osc.onended = () => { try { ctx.close(); } catch {} };
+        });
+      } catch {}
       if (Notification.permission === 'granted') {
-        new Notification('Nieuw vriendschapsverzoek', { body: `${req.fromName} wil je toevoegen`, icon: '/logo192.png' });
+        new Notification('Nieuwe uitnodiging', { body: `${req.fromName} wil je toevoegen`, icon: '/logo192.png' });
       }
     };
 
     const onFriendAccepted = ({ byName }) => {
       loadContacts();
-      setContactSuccess(`${byName} heeft je vriendschapsverzoek geaccepteerd!`);
+      setContactSuccess(`${byName} heeft je uitnodiging geaccepteerd!`);
       setTimeout(() => setContactSuccess(''), 4000);
+      // Acceptatiegeluid: drie oplopende tonen
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [[500, 0], [700, 0.15], [1000, 0.30]].forEach(([freq, delay]) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+          gain.gain.setValueAtTime(0.18, ctx.currentTime + delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.22);
+          osc.start(ctx.currentTime + delay);
+          osc.stop(ctx.currentTime + delay + 0.22);
+          osc.onended = () => { try { ctx.close(); } catch {} };
+        });
+      } catch {}
     };
 
     socket.on('connect',          onConnect);
@@ -716,16 +748,19 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
               c.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
               c.email?.toLowerCase().includes(searchQuery.toLowerCase())
             ).map(contact => (
-              <div key={contact.uid} className="conv-item">
-                <div className="avatar-wrap">
-                  <div className="avatar-circle">{getInitials(contact.displayName)}</div>
-                  {onlineUsers.has(contact.uid) && <span className="online-dot" />}
+              <div key={contact.uid} style={{ margin: '0 12px 10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div className="avatar-wrap">
+                    <div className="avatar-circle">{getInitials(contact.displayName)}</div>
+                    {onlineUsers.has(contact.uid) && <span className="online-dot" />}
+                  </div>
+                  <div className="conv-info">
+                    <div className="conv-name">{contact.displayName}</div>
+                    <div className="conv-preview">{contact.email}</div>
+                  </div>
                 </div>
-                <div className="conv-info">
-                  <div className="conv-name">{contact.displayName}</div>
-                  <div className="conv-preview">{contact.email}</div>
-                </div>
-                <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+                <div style={{ display: 'flex', gap: '6px', paddingLeft: '50px' }}>
                   <button className="call-btn voice" onClick={() => startChatWithContact(contact)} title="Stuur bericht" style={{ fontSize: '14px' }}>💬</button>
                   <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen">📞</button>
                   <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen">🎥</button>
@@ -822,8 +857,8 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
       {showAddContact && (
         <div className="modal-overlay" onClick={() => setShowAddContact(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">👥 Vriendschapsverzoek sturen</h3>
-            <p className="modal-sub">Voer het e-mailadres in van de persoon die je wilt toevoegen</p>
+            <h3 className="modal-title">👥 Vriend uitnodigen</h3>
+            <p className="modal-sub">Voer het e-mailadres in van de persoon die je wilt uitnodigen</p>
             <div className="form-group">
               <input className="form-input" type="email" placeholder="naam@voorbeeld.nl" value={contactEmail} onChange={e => setContactEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && addContact()} />
             </div>

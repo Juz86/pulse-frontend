@@ -10,6 +10,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
 
   const localVideoRef  = useRef(null);
   const remoteVideoRef = useRef(null);
+  const remoteAudioRef = useRef(null);
   const timerRef       = useRef(null);
   const localStreamRef = useRef(null);
 
@@ -25,6 +26,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
           localStreamRef.current = localStream;
           if (localVideoRef.current)  localVideoRef.current.srcObject  = localStream;
           if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream;
+          if (remoteAudioRef.current) remoteAudioRef.current.srcObject = remoteStream;
           setCallState('active');
           startTimer();
         },
@@ -77,14 +79,43 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
     return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
   }
 
-  // Actief gesprek: koppel streams
+  // Actief gesprek: koppel streams en activeer zodra remoteStream beschikbaar is
   useEffect(() => {
-    if (active?.localStream  && localVideoRef.current)  localVideoRef.current.srcObject  = active.localStream;
+    if (active?.localStream) {
+      localStreamRef.current = active.localStream;
+      if (localVideoRef.current) localVideoRef.current.srcObject = active.localStream;
+    }
     if (active?.remoteStream && remoteVideoRef.current) remoteVideoRef.current.srcObject = active.remoteStream;
-    if (active && callState === 'calling') {
-      setTimeout(() => { setCallState('active'); startTimer(); }, 2000);
+    if (active?.remoteStream && remoteAudioRef.current) remoteAudioRef.current.srcObject = active.remoteStream;
+    if (active?.remoteStream && callState === 'calling') {
+      setCallState('active');
+      startTimer();
     }
   }, [active]);
+
+  // ── Beltoon bij inkomend gesprek ─────────────────────────────────────────
+  useEffect(() => {
+    if (callState !== 'incoming') return;
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    let active = true;
+
+    function ring() {
+      if (!active) return;
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.6);
+      setTimeout(() => { if (active) ring(); }, 1400);
+    }
+    ring();
+    return () => { active = false; ctx.close(); };
+  }, [callState]);
 
   useEffect(() => () => cleanup(), []);
 
@@ -93,6 +124,9 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
 
   return (
     <div className={`call-overlay ${isVideo && callState === 'active' ? 'video-mode' : ''}`}>
+
+      {/* Verborgen audio element voor spraakgesprekken */}
+      <audio ref={remoteAudioRef} autoPlay />
 
       {/* ── VIDEO STREAMS ── */}
       {isVideo && (

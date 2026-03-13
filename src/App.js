@@ -2,40 +2,56 @@
 import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
-import { connectSocket, disconnectSocket, getSocket } from './services/socket';
-import AuthScreen   from './screens/AuthScreen';
-import ChatScreen   from './screens/ChatScreen';
-import CallOverlay  from './components/CallOverlay';
+import { connectSocket, disconnectSocket } from './services/socket';
+import AuthScreen  from './screens/AuthScreen';
+import ChatScreen  from './screens/ChatScreen';
+import CallOverlay from './components/CallOverlay';
 import './App.css';
 
 export default function App() {
-  const [user,        setUser]        = useState(null);
-  const [loading,     setLoading]     = useState(true);
-  const [incomingCall, setIncomingCall] = useState(null); // { fromUid, callerName, offer, isVideo }
+  const [user,         setUser]         = useState(null);
+  const [loading,      setLoading]      = useState(true);
+  const [incomingCall, setIncomingCall] = useState(null);
+  const [onlineUsers,  setOnlineUsers]  = useState(new Set());
 
-  // ── Firebase auth listener ──────────────────────────────────────────────────
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
         const socket = connectSocket(firebaseUser.uid);
 
+        // Notificatie-toestemming vragen
+        if (Notification.permission === 'default') Notification.requestPermission();
+
         // Profiel opslaan in backend
         fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/api/users`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            uid: firebaseUser.uid,
+            uid:         firebaseUser.uid,
             displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-            email: firebaseUser.email,
-            photoURL: firebaseUser.photoURL || '',
+            email:       firebaseUser.email,
+            photoURL:    firebaseUser.photoURL || '',
           }),
         }).catch(console.error);
 
-        // Luister naar inkomende gesprekken
+        // Online status
+        socket.off('user:status');
+        socket.off('users:online');
+        socket.on('user:status', ({ uid, online }) => {
+          if (online) setOnlineUsers(prev => new Set([...prev, uid]));
+          else setOnlineUsers(prev => { const s = new Set(prev); s.delete(uid); return s; });
+        });
+        socket.on('users:online', (uids) => {
+          setOnlineUsers(new Set(uids));
+        });
+
+        // Inkomende oproepen
+        socket.off('call:incoming');
         socket.on('call:incoming', (data) => setIncomingCall(data));
       } else {
         setUser(null);
+        setOnlineUsers(new Set());
         disconnectSocket();
       }
       setLoading(false);
@@ -54,10 +70,8 @@ export default function App() {
     <div className="app-root">
       {!user
         ? <AuthScreen />
-        : <ChatScreen user={user} />
+        : <ChatScreen user={user} onlineUsers={onlineUsers} />
       }
-
-      {/* Inkomend gesprek */}
       {incomingCall && (
         <CallOverlay
           incoming={incomingCall}

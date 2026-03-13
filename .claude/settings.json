@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://pulse-backend-production-cb00.up.railway.app/api/conversations/test)",
+      "Read(//home/yushuaabdulkadir/**)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)"
+    ],
+    "additionalDirectories": [
+      "/home/yushuaabdulkadir/pulse-backend"
+    ]
+  }
+}

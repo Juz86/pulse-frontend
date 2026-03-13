@@ -13,3 +13,10 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+// Service worker registreren voor PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(() => {});
+  });
+}

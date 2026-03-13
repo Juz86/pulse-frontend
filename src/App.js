@@ -14,8 +14,8 @@ const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 fetch(`${BACKEND}/`).catch(() => {});
 
 export default function App() {
-  const [user,         setUser]         = useState(null);
-  const [loading,      setLoading]      = useState(true);
+  const [user,         setUser]         = useState(auth.currentUser);
+  const [loading,      setLoading]      = useState(!auth.currentUser);
   const [incomingCall, setIncomingCall] = useState(null);
   const [onlineUsers,  setOnlineUsers]  = useState(new Set());
 

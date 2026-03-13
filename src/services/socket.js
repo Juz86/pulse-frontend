@@ -7,6 +7,18 @@ import SimplePeer from 'simple-peer';
 // ─── Pas dit aan naar jouw SiteGround domein / IP ───────────────────────────
 export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  { urls: 'turn:openrelay.metered.ca:80',  username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+  { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+];
+
 let socket     = null;
 let peer       = null;
 let iceHandler = null;
@@ -17,7 +29,14 @@ export function connectSocket(uid) {
     socket.emit('user:online', { uid });
     return socket;
   }
-  socket = io(BACKEND_URL, { transports: ['websocket'] });
+  socket = io(BACKEND_URL, {
+    transports: ['websocket'],
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 500,
+    reconnectionDelayMax: 2000,
+    timeout: 10000,
+  });
   socket.on('connect', () => {
     console.log('✅ Socket verbonden');
     socket.emit('user:online', { uid });
@@ -36,7 +55,10 @@ export function disconnectSocket() {
 export async function startCall({ toUid, fromUid, callerName, isVideo, onStream, onEnd }) {
   let stream;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isVideo });
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 48000 },
+      video: isVideo ? { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } : false,
+    });
   } catch (e) {
     const msg = e.name === 'NotAllowedError'
       ? 'Toegang tot microfoon/camera geweigerd. Geef toestemming in je browser.'
@@ -50,23 +72,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
     initiator: true,
     trickle: true,
     stream,
-    config: {
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun1.l.google.com:19302" },
-        { urls: "stun:stun2.l.google.com:19302" },
-        {
-          urls: "turn:openrelay.metered.ca:80",
-          username: "openrelayproject",
-          credential: "openrelayproject"
-        },
-        {
-          urls: "turn:openrelay.metered.ca:443",
-          username: "openrelayproject",
-          credential: "openrelayproject"
-        }
-      ]
-    }
+    config: { iceServers: ICE_SERVERS }
   });
 
   peer.on('signal', (data) => {
@@ -112,7 +118,10 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
 export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd }) {
   let stream;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isVideo });
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 48000 },
+      video: isVideo ? { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } : false,
+    });
   } catch (e) {
     const msg = e.name === 'NotAllowedError'
       ? 'Toegang tot microfoon/camera geweigerd. Geef toestemming in je browser.'
@@ -126,23 +135,7 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd }) {
     initiator: false,
     trickle: true,
     stream,
-    config: {
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun1.l.google.com:19302" },
-        { urls: "stun:stun2.l.google.com:19302" },
-        {
-          urls: "turn:openrelay.metered.ca:80",
-          username: "openrelayproject",
-          credential: "openrelayproject"
-        },
-        {
-          urls: "turn:openrelay.metered.ca:443",
-          username: "openrelayproject",
-          credential: "openrelayproject"
-        }
-      ]
-    }
+    config: { iceServers: ICE_SERVERS }
   });
   peer.signal(offer);
 

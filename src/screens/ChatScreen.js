@@ -121,7 +121,13 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
       const current = activeConvRef.current;
       if (current?.id === msg.convId) {
         setMessages(prev => {
-          // Voorkom duplicaten als bericht al aanwezig is
+          // Vervang pending (optimistic) bericht als het van onszelf komt
+          const pendingIdx = prev.findIndex(m => m.pending && m.senderId === msg.senderId && m.text === msg.text);
+          if (pendingIdx !== -1) {
+            const next = [...prev];
+            next[pendingIdx] = { ...msg, pending: false };
+            return next;
+          }
           if (prev.some(m => m.id && m.id === msg.id)) return prev;
           return [...prev, msg];
         });
@@ -310,6 +316,7 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
       alert('Geen verbinding. Controleer je internet en probeer opnieuw.');
       return;
     }
+    const tempId = `temp-${Date.now()}`;
     const msg = {
       convId:     activeConv.id,
       senderId:   user.uid,
@@ -317,7 +324,14 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
       text:       text.trim(),
       createdAt:  new Date().toISOString(),
     };
-    socket.emit('message:send', { convId: activeConv.id, message: msg });
+    // Optimistic UI: toon bericht direct zonder te wachten op server
+    setMessages(prev => [...prev, { ...msg, id: tempId, pending: true }]);
+    socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
+      // Vervang tijdelijk bericht met bevestigd bericht van server
+      if (savedMsg?.id) {
+        setMessages(prev => prev.map(m => m.id === tempId ? { ...savedMsg, pending: false } : m));
+      }
+    });
     setText('');
     if (textareaRef.current) { textareaRef.current.style.height = 'auto'; }
     stopTyping();

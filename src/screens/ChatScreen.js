@@ -53,6 +53,9 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
   // Contactprofiel
   const [showContactProfile, setShowContactProfile] = useState(false);
 
+  // Bevestigingsdialoog
+  const [confirmDialog, setConfirmDialog] = useState(null); // { message, onConfirm }
+
   // Groep aanmaken
   const [showNewGroup,   setShowNewGroup]   = useState(false);
   const [groupName,      setGroupName]      = useState('');
@@ -243,12 +246,16 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
   // ── Gesprek verwijderen ───────────────────────────────────────────────────
   async function deleteConversation(e, convId) {
     e.stopPropagation();
-    if (!window.confirm('Weet je zeker dat je dit gesprek wilt verwijderen?')) return;
-    try {
-      await fetch(`${BACKEND_URL}/api/conversations/${convId}?uid=${user.uid}`, { method: 'DELETE' });
-    } catch (e) { console.error(e); }
-    setConversations(prev => prev.filter(c => c.id !== convId));
-    if (activeConv?.id === convId) { setActiveConv(null); setMessages([]); }
+    setConfirmDialog({
+      message: 'Weet je zeker dat je dit gesprek wilt verwijderen?',
+      onConfirm: async () => {
+        try {
+          await fetch(`${BACKEND_URL}/api/conversations/${convId}?uid=${user.uid}`, { method: 'DELETE' });
+        } catch (e) { console.error(e); }
+        setConversations(prev => prev.filter(c => c.id !== convId));
+        if (activeConv?.id === convId) { setActiveConv(null); setMessages([]); }
+      },
+    });
   }
 
   // ── Gesprek openen ────────────────────────────────────────────────────────
@@ -448,15 +455,19 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
   // ── Groepslid verwijderen ─────────────────────────────────────────────────
   function removeMemberFromGroup(uid) {
     if (!socket || !activeConv) return;
-    if (!window.confirm('Weet je zeker dat je deze persoon wilt verwijderen uit de groep?')) return;
-    socket.emit('conversation:removeMember', { convId: activeConv.id, uid }, (res = {}) => {
-      if (res.error) return alert(res.error);
-      setActiveConv(prev => {
-        const members     = prev.members.filter(m => m !== uid);
-        const memberNames = { ...prev.memberNames };
-        delete memberNames[uid];
-        return { ...prev, members, memberNames };
-      });
+    setConfirmDialog({
+      message: 'Weet je zeker dat je deze persoon wilt verwijderen uit de groep?',
+      onConfirm: () => {
+        socket.emit('conversation:removeMember', { convId: activeConv.id, uid }, (res = {}) => {
+          if (res.error) return alert(res.error);
+          setActiveConv(prev => {
+            const members     = prev.members.filter(m => m !== uid);
+            const memberNames = { ...prev.memberNames };
+            delete memberNames[uid];
+            return { ...prev, members, memberNames };
+          });
+        });
+      },
     });
   }
 
@@ -852,6 +863,19 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
           </>
         )}
       </main>
+
+      {/* ── BEVESTIGINGSDIALOOG ── */}
+      {confirmDialog && (
+        <div className="modal-overlay" onClick={() => setConfirmDialog(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
+            <p style={{ color: 'var(--text)', fontSize: '15px', marginBottom: '24px', lineHeight: '1.5' }}>{confirmDialog.message}</p>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setConfirmDialog(null)}>Annuleren</button>
+              <button className="btn-primary" style={{ flex: 1, background: 'linear-gradient(135deg, #ef4444, #dc2626)' }} onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}>Verwijderen</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── CONTACT TOEVOEGEN MODAL ── */}
       {showAddContact && (

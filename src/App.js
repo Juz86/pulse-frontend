@@ -20,7 +20,9 @@ export default function App() {
   const [onlineUsers,  setOnlineUsers]  = useState(new Set());
 
   useEffect(() => {
+    const loadingTimeout = setTimeout(() => setLoading(false), 5000);
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      clearTimeout(loadingTimeout);
       if (firebaseUser) {
         setUser(firebaseUser);
         const socket = connectSocket(firebaseUser.uid);
@@ -61,7 +63,7 @@ export default function App() {
       }
       setLoading(false);
     });
-    return unsub;
+    return () => { unsub(); clearTimeout(loadingTimeout); };
   }, []);
 
   if (loading) return (

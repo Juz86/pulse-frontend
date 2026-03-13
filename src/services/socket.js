@@ -7,12 +7,16 @@ import SimplePeer from 'simple-peer';
 // ─── Pas dit aan naar jouw SiteGround domein / IP ───────────────────────────
 export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
-const ICE_SERVERS = [
+const METERED_KEY = process.env.REACT_APP_METERED_KEY;
+
+const ICE_SERVERS = METERED_KEY ? [
+  { urls: `stun:eu-turn1.xirsys.com` },
+  { urls: `turn:eu-turn1.metered.ca:80`,           username: METERED_KEY, credential: METERED_KEY },
+  { urls: `turn:eu-turn1.metered.ca:443`,          username: METERED_KEY, credential: METERED_KEY },
+  { urls: `turn:eu-turn1.metered.ca:443?transport=tcp`, username: METERED_KEY, credential: METERED_KEY },
+] : [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun2.l.google.com:19302' },
-  { urls: 'stun:stun3.l.google.com:19302' },
-  { urls: 'stun:stun4.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
   { urls: 'turn:openrelay.metered.ca:80',  username: 'openrelayproject', credential: 'openrelayproject' },
   { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },

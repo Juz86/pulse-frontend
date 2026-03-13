@@ -14,8 +14,9 @@ const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 fetch(`${BACKEND}/`).catch(() => {});
 
 export default function App() {
+  const wasLoggedIn = localStorage.getItem('pulse_user') === '1';
   const [user,         setUser]         = useState(auth.currentUser);
-  const [loading,      setLoading]      = useState(!auth.currentUser);
+  const [loading,      setLoading]      = useState(!auth.currentUser && !wasLoggedIn);
   const [incomingCall, setIncomingCall] = useState(null);
   const [onlineUsers,  setOnlineUsers]  = useState(new Set());
 
@@ -24,6 +25,7 @@ export default function App() {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       clearTimeout(loadingTimeout);
       if (firebaseUser) {
+        localStorage.setItem('pulse_user', '1');
         setUser(firebaseUser);
         const socket = connectSocket(firebaseUser.uid);
 
@@ -57,6 +59,7 @@ export default function App() {
         socket.off('call:incoming');
         socket.on('call:incoming', (data) => setIncomingCall(data));
       } else {
+        localStorage.removeItem('pulse_user');
         setUser(null);
         setOnlineUsers(new Set());
         disconnectSocket();

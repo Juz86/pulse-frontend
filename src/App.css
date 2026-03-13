@@ -439,7 +439,7 @@ body {
 }
 
 .msg-bubble {
-  max-width:68%; padding:11px 16px; border-radius:18px;
+  max-width:100%; padding:11px 16px; border-radius:18px;
   font-size:14px; line-height:1.55; word-wrap:break-word;
   transition:.15s;
 }
@@ -465,9 +465,10 @@ body {
 .msg-ticks.read { color:#4fc3f7; }
 
 /* ── Reply ── */
-.msg-bubble-wrap { position:relative; display:flex; flex-direction:column; }
+.msg-bubble-wrap { position:relative; display:flex; flex-direction:column; max-width:72%; }
 .msg-group.out .msg-bubble-wrap { align-items:flex-end; }
 .msg-group.in  .msg-bubble-wrap { align-items:flex-start; }
+.msg-bubble-wrap .msg-bubble { max-width:100%; }
 
 .msg-reply-btn {
   display:none; position:absolute; top:50%; transform:translateY(-50%);

@@ -1,7 +1,9 @@
 // src/App.js
 import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase';
+import { auth, messaging, getToken } from './firebase';
+
+const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 import { connectSocket, disconnectSocket } from './services/socket';
 import AuthScreen  from './screens/AuthScreen';
 import ChatScreen  from './screens/ChatScreen';
@@ -29,8 +31,20 @@ export default function App() {
         setUser(firebaseUser);
         const socket = connectSocket(firebaseUser.uid);
 
-        // Notificatie-toestemming vragen
-        if (Notification.permission === 'default') Notification.requestPermission();
+        // Notificatie-toestemming + FCM token
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted' && VAPID_KEY) {
+            const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+            if (token) {
+              fetch(`${BACKEND}/api/fcm-token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ uid: firebaseUser.uid, token }),
+              }).catch(() => {});
+            }
+          }
+        } catch {}
 
         // Profiel opslaan in backend
         fetch(`${BACKEND}/api/users`, {

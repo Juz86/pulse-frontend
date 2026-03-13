@@ -453,6 +453,39 @@ body {
 }
 .msg-ticks.read { color:#4fc3f7; }
 
+/* ── Reply ── */
+.msg-bubble-wrap { position:relative; display:flex; flex-direction:column; }
+.msg-group.out .msg-bubble-wrap { align-items:flex-end; }
+.msg-group.in  .msg-bubble-wrap { align-items:flex-start; }
+
+.msg-reply-btn {
+  display:none; position:absolute; top:50%; transform:translateY(-50%);
+  background:var(--surface2); border:none; border-radius:50%;
+  width:26px; height:26px; font-size:13px; cursor:pointer; color:var(--text2);
+  align-items:center; justify-content:center;
+}
+.msg-group.out .msg-reply-btn { left:-32px; }
+.msg-group.in  .msg-reply-btn { right:-32px; }
+.msg-bubble-wrap:hover .msg-reply-btn { display:flex; }
+
+.msg-reply-quote {
+  background:rgba(108,99,255,.15); border-left:3px solid var(--accent);
+  border-radius:6px; padding:4px 8px; margin-bottom:4px;
+  max-width:100%; overflow:hidden;
+}
+.msg-reply-name { font-size:11px; font-weight:600; color:var(--accent); display:block; }
+.msg-reply-text { font-size:12px; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; max-width:220px; }
+
+.reply-preview {
+  display:flex; align-items:center; gap:8px;
+  background:var(--surface2); border-left:3px solid var(--accent);
+  border-radius:6px; padding:6px 10px; margin-bottom:6px;
+}
+.reply-preview-inner { flex:1; min-width:0; }
+.reply-preview-name  { font-size:11px; font-weight:600; color:var(--accent); display:block; }
+.reply-preview-text  { font-size:12px; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
+.reply-preview-close { background:none; border:none; color:var(--text3); cursor:pointer; font-size:14px; padding:0 4px; }
+
 .chat-input-area {
   padding:7px 22px; padding-bottom:max(7px, env(safe-area-inset-bottom));
   background:var(--surface);

@@ -56,6 +56,9 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
   // Bevestigingsdialoog
   const [confirmDialog, setConfirmDialog] = useState(null); // { message, onConfirm }
 
+  // Reply
+  const [replyTo, setReplyTo] = useState(null); // { id, text, senderName }
+
   // Groep aanmaken
   const [showNewGroup,   setShowNewGroup]   = useState(false);
   const [groupName,      setGroupName]      = useState('');
@@ -326,7 +329,9 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
       senderName: user.displayName || user.email,
       text:       text.trim(),
       createdAt:  new Date().toISOString(),
+      ...(replyTo ? { replyTo } : {}),
     };
+    setReplyTo(null);
     // Optimistic UI: toon bericht direct zonder te wachten op server
     setMessages(prev => [...prev, { ...msg, id: tempId, pending: true }]);
     socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
@@ -633,7 +638,16 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
       items.push(
         <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}>
           {!isOwn && activeConv.isGroup && <div className="msg-sender">{msg.senderName}</div>}
-          <div className="msg-bubble">{msg.text}</div>
+          <div className="msg-bubble-wrap">
+            {msg.replyTo && (
+              <div className="msg-reply-quote">
+                <span className="msg-reply-name">{msg.replyTo.senderName}</span>
+                <span className="msg-reply-text">{msg.replyTo.text}</span>
+              </div>
+            )}
+            <div className="msg-bubble">{msg.text}</div>
+            <button className="msg-reply-btn" onClick={() => { setReplyTo({ id: msg.id, text: msg.text, senderName: msg.senderName }); textareaRef.current?.focus(); }}>↩</button>
+          </div>
           <div className="msg-time">
             {formatTime(msg.createdAt)}
             {isOwn && (() => {
@@ -870,6 +884,15 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
             </div>
 
             <div className="chat-input-area">
+              {replyTo && (
+                <div className="reply-preview">
+                  <div className="reply-preview-inner">
+                    <span className="reply-preview-name">{replyTo.senderName}</span>
+                    <span className="reply-preview-text">{replyTo.text}</span>
+                  </div>
+                  <button className="reply-preview-close" onClick={() => setReplyTo(null)}>✕</button>
+                </div>
+              )}
               <div className="input-row">
                 <textarea
                   ref={textareaRef}

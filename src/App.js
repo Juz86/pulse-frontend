@@ -8,6 +8,11 @@ import ChatScreen  from './screens/ChatScreen';
 import CallOverlay from './components/CallOverlay';
 import './App.css';
 
+const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+
+// Backend alvast wakker maken
+fetch(`${BACKEND}/`).catch(() => {});
+
 export default function App() {
   const [user,         setUser]         = useState(null);
   const [loading,      setLoading]      = useState(true);
@@ -24,7 +29,7 @@ export default function App() {
         if (Notification.permission === 'default') Notification.requestPermission();
 
         // Profiel opslaan in backend
-        fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/api/users`, {
+        fetch(`${BACKEND}/api/users`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

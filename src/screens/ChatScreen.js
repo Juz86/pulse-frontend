@@ -240,18 +240,22 @@ export default function ChatScreen({ user, onlineUsers = new Set() }) {
   // ── Berichtengeluid (4) ───────────────────────────────────────────────────
   function playMessageSound() {
     try {
-      const ctx  = new (window.AudioContext || window.webkitAudioContext)();
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(1200, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.12);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.2);
-      osc.onended = () => ctx.close();
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const t = ctx.currentTime;
+      // Twee zachte tonen — WhatsApp-achtig
+      [[880, 0, 0.08], [1100, 0.09, 0.14]].forEach(([freq, start, end]) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t + start);
+        gain.gain.setValueAtTime(0, t + start);
+        gain.gain.linearRampToValueAtTime(0.18, t + start + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + end);
+        osc.start(t + start);
+        osc.stop(t + end);
+      });
+      setTimeout(() => ctx.close(), 400);
     } catch {}
   }
 

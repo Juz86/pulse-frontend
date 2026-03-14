@@ -31,7 +31,8 @@ let callPeer   = null; // bewaar de remote uid voor renegotiatie
 // ── Socket verbinden ──────────────────────────────────────────────────────────
 export function connectSocket(uid) {
   if (socket?.connected) {
-    socket.emit('user:online', { uid });
+    // setTimeout zodat App.js tijd heeft om listeners te registreren vóór het event aankomt
+    setTimeout(() => socket.emit('user:online', { uid }), 0);
     return socket;
   }
   socket = io(BACKEND_URL, {

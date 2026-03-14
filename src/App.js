@@ -70,7 +70,7 @@ export default function App() {
             uid:         firebaseUser.uid,
             displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
             email:       firebaseUser.email,
-            photoURL:    firebaseUser.photoURL || '',
+            photoURL:    localStorage.getItem(`pulse_photo_${firebaseUser.uid}`) || firebaseUser.photoURL || '',
           }),
         }).catch(console.error);
 

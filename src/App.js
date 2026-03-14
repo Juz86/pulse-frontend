@@ -97,9 +97,12 @@ export default function App() {
             if (prev) {
               const key = `pulse_calls_${firebaseUser.uid}`;
               const log = JSON.parse(localStorage.getItem(key) || '[]');
-              log.unshift({ uid: prev.from, name: prev.callerName, photoURL: '', isVideo: prev.isVideo, direction: 'missed', ts: Date.now() });
-              localStorage.setItem(key, JSON.stringify(log.slice(0, 50)));
-              setMissedCallAlert(true);
+              const alreadyLogged = log[0]?.uid === prev.from && Date.now() - log[0]?.ts < 3000;
+              if (!alreadyLogged) {
+                log.unshift({ uid: prev.from, name: prev.callerName, photoURL: '', isVideo: prev.isVideo, direction: 'missed', ts: Date.now() });
+                localStorage.setItem(key, JSON.stringify(log.slice(0, 50)));
+                setMissedCallAlert(true);
+              }
             }
             return null;
           });

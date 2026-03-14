@@ -15,6 +15,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   const remoteVideoRef = useRef(null);
   const remoteAudioRef = useRef(null);
   const timerRef       = useRef(null);
+  const closeTimeoutRef = useRef(null);
   const localStreamRef = useRef(null);
 
   // ── Inkomend gesprek beantwoorden ────────────────────────────────────────
@@ -66,6 +67,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
 
   function cleanup() {
     clearInterval(timerRef.current);
+    clearTimeout(closeTimeoutRef.current);
     localStreamRef.current?.getTracks().forEach(t => t.stop());
   }
 
@@ -124,7 +126,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
       setCallMsg(msgs[active.endReason] || 'Gesprek beëindigd.');
       setCallState('ended');
       cleanup();
-      setTimeout(() => onClose?.(), 3000);
+      closeTimeoutRef.current = setTimeout(() => onClose?.(), 3000);
     }
   }, [active]);
 

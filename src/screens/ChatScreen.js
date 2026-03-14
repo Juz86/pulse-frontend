@@ -9,7 +9,7 @@ import CallOverlay from '../components/CallOverlay';
 
 const MSG_LIMIT = 30;
 
-export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, onToggleTheme }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead }) {
   const [conversations,  setConversations]  = useState([]);
   const [activeConv,     setActiveConv]     = useState(null);
   const [messages,       setMessages]       = useState([]);
@@ -46,6 +46,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
 
   // Oproepen modal
   const [showCallModal,  setShowCallModal]  = useState(false);
+  const [callLogRead,    setCallLogRead]    = useState(false);
 
   // Groepsinformatie
   const [showGroupInfo,  setShowGroupInfo]  = useState(false);
@@ -871,7 +872,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
           <div className="sidebar-top">
             <div className="app-brand"><span className="brand-dot" />Pulse</div>
             <div style={{ display:'flex', gap:'6px' }}>
-              <button className="icon-btn" onClick={() => setShowCallModal(true)} title="Oproepen">📞</button>
+              <button className="icon-btn" onClick={() => { setShowCallModal(true); setCallLogRead(true); onCallLogRead?.(); }} title="Oproepen" style={{ position:'relative' }}>
+                📞
+                {(!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert ? (
+                  <span style={{ position:'absolute', top:'4px', right:'4px', width:'8px', height:'8px', borderRadius:'50%', background:'var(--danger)', border:'2px solid var(--surface)' }} />
+                ) : null}
+              </button>
               <button className="icon-btn" onClick={() => setShowNewGroup(true)} title="Nieuwe groep">👥</button>
               <button className="icon-btn" onClick={() => setShowNewChat(true)} title="Nieuw gesprek">
 💬

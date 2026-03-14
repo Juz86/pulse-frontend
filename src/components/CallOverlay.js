@@ -31,7 +31,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
           setCallState('active');
           startTimer();
         },
-        onEnd: () => { cleanup(); onClose?.(); },
+        onEnd: () => { cleanup(); onClose?.(true); },
       });
       localStreamRef.current = localStream;
       if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
@@ -45,7 +45,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   function handleDecline() {
     declineCall(incoming?.from);
     cleanup();
-    onClose?.();
+    onClose?.(); // geen argument → gemiste oproep loggen
   }
 
   // ── Ophangen ─────────────────────────────────────────────────────────────

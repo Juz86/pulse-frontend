@@ -28,7 +28,8 @@ export default function App() {
   const wasLoggedIn = localStorage.getItem('pulse_user') === '1';
   const [user,         setUser]         = useState(auth.currentUser);
   const [loading,      setLoading]      = useState(!auth.currentUser);
-  const [incomingCall, setIncomingCall] = useState(null);
+  const [incomingCall,    setIncomingCall]    = useState(null);
+  const [missedCallAlert, setMissedCallAlert] = useState(false);
   const [onlineUsers,  setOnlineUsers]  = useState(new Set());
   const [lightMode,    setLightMode]    = useState(localStorage.getItem('pulse_theme') === 'light');
 
@@ -86,7 +87,23 @@ export default function App() {
 
         // Inkomende oproepen
         socket.off('call:incoming');
-        socket.on('call:incoming', (data) => setIncomingCall(data));
+        socket.off('call:ended');
+        socket.on('call:incoming', (data) => {
+          setIncomingCall(data);
+        });
+        // Beller hangt op voor de ontvanger opneemt → gemiste oproep loggen + overlay sluiten
+        socket.on('call:ended', () => {
+          setIncomingCall(prev => {
+            if (prev) {
+              const key = `pulse_calls_${firebaseUser.uid}`;
+              const log = JSON.parse(localStorage.getItem(key) || '[]');
+              log.unshift({ uid: prev.from, name: prev.callerName, photoURL: '', isVideo: prev.isVideo, direction: 'missed', ts: Date.now() });
+              localStorage.setItem(key, JSON.stringify(log.slice(0, 50)));
+              setMissedCallAlert(true);
+            }
+            return null;
+          });
+        });
       } else {
         localStorage.removeItem('pulse_user');
         setUser(null);
@@ -109,13 +126,25 @@ export default function App() {
     <div className="app-root">
       {!user
         ? <AuthScreen />
-        : <ChatScreen user={user} onlineUsers={onlineUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} />
+        : <ChatScreen user={user} onlineUsers={onlineUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} />
       }
       {incomingCall && (
         <CallOverlay
           incoming={incomingCall}
           user={user}
-          onClose={() => setIncomingCall(null)}
+          onClose={(answered) => {
+            if (!answered && user) {
+              const key = `pulse_calls_${user.uid}`;
+              const log = JSON.parse(localStorage.getItem(key) || '[]');
+              const alreadyLogged = log[0]?.uid === incomingCall.from && Date.now() - log[0]?.ts < 3000;
+              if (!alreadyLogged) {
+                log.unshift({ uid: incomingCall.from, name: incomingCall.callerName, photoURL: '', isVideo: incomingCall.isVideo, direction: 'missed', ts: Date.now() });
+                localStorage.setItem(key, JSON.stringify(log.slice(0, 50)));
+                setMissedCallAlert(true);
+              }
+            }
+            setIncomingCall(null);
+          }}
         />
       )}
     </div>

@@ -828,8 +828,8 @@ body {
 .call-ctrl-btn span { font-size:10px; font-weight:500; font-family:'DM Sans',sans-serif; letter-spacing:.2px; }
 .call-ctrl-btn.decline { background:linear-gradient(135deg, var(--danger), #ff6b7a); box-shadow:0 4px 14px rgba(255,71,87,.4); width:100px; }
 .call-ctrl-btn.accept  { background:linear-gradient(135deg, var(--success), #6efaaa); box-shadow:0 4px 14px rgba(67,233,123,.4); width:100px; }
-.call-ctrl-btn.end     { background:linear-gradient(135deg, var(--danger), #ff6b7a); box-shadow:0 4px 14px rgba(255,71,87,.4); }
-.call-ctrl-btn.mute    { background:var(--surface3); border:1px solid var(--border); color:var(--text2); }
+.call-ctrl-btn.end     { background:linear-gradient(135deg, var(--danger), #ff6b7a); box-shadow:0 4px 14px rgba(255,71,87,.4); width:100px; }
+.call-ctrl-btn.mute    { background:var(--surface3); border:1px solid var(--border); color:var(--text2); width:100px; }
 .call-ctrl-btn.mute.on { background:rgba(255,71,87,.15); color:var(--danger); border-color:rgba(255,71,87,.4); box-shadow:0 4px 14px rgba(255,71,87,.2); }
 .call-ctrl-btn.cam     { background:var(--surface3); border:1px solid var(--border); color:var(--text2); }
 .call-ctrl-btn.cam.on  { background:rgba(255,71,87,.15); color:var(--danger); border-color:rgba(255,71,87,.4); box-shadow:0 4px 14px rgba(255,71,87,.2); }

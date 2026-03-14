@@ -102,13 +102,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg,     setProfileMsg]     = useState('');
 
-  const msgEndRef     = useRef(null);
-  const msgsAreaRef   = useRef(null);
-  const textareaRef   = useRef(null);
-  const typingTimer   = useRef(null);
-  const activeConvRef = useRef(null);
-  const photoInputRef = useRef(null);
-  const socket        = getSocket();
+  const msgEndRef      = useRef(null);
+  const msgsAreaRef    = useRef(null);
+  const textareaRef    = useRef(null);
+  const typingTimer    = useRef(null);
+  const activeConvRef  = useRef(null);
+  const photoInputRef  = useRef(null);
+  const callStartTimeRef = useRef(null);
+  const callIsVideoRef   = useRef(false);
+  const callConvIdRef    = useRef(null);
+  const socket         = getSocket();
 
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv]);
 
@@ -695,18 +698,38 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     return JSON.parse(localStorage.getItem(`pulse_calls_${user.uid}`) || '[]');
   }
 
+  function findConvWithUid(uid) {
+    return conversations.find(conv => !conv.isGroup && conv.members?.includes(uid) && conv.members?.includes(user.uid));
+  }
+
+  function sendCallMessage({ isVideo, direction, duration }) {
+    const convId = callConvIdRef.current;
+    if (!socket || !convId) return;
+    socket.emit('call:log', {
+      convId, isVideo, direction, duration: duration || 0,
+      senderId: user.uid, senderName: user.displayName || user.email,
+    });
+  }
+
   // ── Bellen vanuit oproepen-modal ─────────────────────────────────────────
   async function callContact(contact, isVideo) {
     setShowCallModal(false);
     const toUid = contact.uid;
     const name  = contact.displayName;
     logCall({ uid: toUid, name, photoURL: contact.photoURL, isVideo, direction: 'outgoing' });
+    callConvIdRef.current    = findConvWithUid(toUid)?.id || null;
+    callStartTimeRef.current = null;
+    callIsVideoRef.current   = isVideo;
     const stream = await startCall({
       toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
       onStream: (remoteStream, localStream) => {
+        callStartTimeRef.current = Date.now();
         setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
       },
       onEnd: (reason) => {
+        const duration  = callStartTimeRef.current ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
+        callStartTimeRef.current = null;
+        sendCallMessage({ isVideo: callIsVideoRef.current, direction: !reason ? 'completed' : reason === 'declined' ? 'declined' : 'no-answer', duration });
         if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
           setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
         } else {
@@ -714,6 +737,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         }
       },
       onVideoUpgrade: (localStream) => {
+        callIsVideoRef.current = true;
         setActiveCall(prev => ({ ...prev, localStream, isVideo: true }));
       },
       onVideoUpgradeRequest: () => {
@@ -731,12 +755,19 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     const name  = activeConv.memberNames?.[toUid] || 'Contactpersoon';
     const photo = contacts.find(c => c.uid === toUid)?.photoURL || '';
     logCall({ uid: toUid, name, photoURL: photo, isVideo, direction: 'outgoing' });
+    callConvIdRef.current    = activeConv.id;
+    callStartTimeRef.current = null;
+    callIsVideoRef.current   = isVideo;
     const stream = await startCall({
       toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
       onStream: (remoteStream, localStream) => {
+        callStartTimeRef.current = Date.now();
         setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
       },
       onEnd: (reason) => {
+        const duration  = callStartTimeRef.current ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
+        callStartTimeRef.current = null;
+        sendCallMessage({ isVideo: callIsVideoRef.current, direction: !reason ? 'completed' : reason === 'declined' ? 'declined' : 'no-answer', duration });
         if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
           setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
         } else {
@@ -744,6 +775,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         }
       },
       onVideoUpgrade: (localStream) => {
+        callIsVideoRef.current = true;
         setActiveCall(prev => ({ ...prev, localStream, isVideo: true }));
       },
       onVideoUpgradeRequest: () => {
@@ -761,12 +793,19 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
     const photo = contacts.find(c => c.uid === toUid)?.photoURL || '';
     logCall({ uid: toUid, name, photoURL: photo, isVideo, direction: 'outgoing' });
+    callConvIdRef.current    = conv.id;
+    callStartTimeRef.current = null;
+    callIsVideoRef.current   = isVideo;
     const stream = await startCall({
       toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
       onStream: (remoteStream, localStream) => {
+        callStartTimeRef.current = Date.now();
         setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
       },
       onEnd: (reason) => {
+        const duration  = callStartTimeRef.current ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
+        callStartTimeRef.current = null;
+        sendCallMessage({ isVideo: callIsVideoRef.current, direction: !reason ? 'completed' : reason === 'declined' ? 'declined' : 'no-answer', duration });
         if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
           setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
         } else {
@@ -774,6 +813,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         }
       },
       onVideoUpgrade: (localStream) => {
+        callIsVideoRef.current = true;
         setActiveCall(prev => ({ ...prev, localStream, isVideo: true }));
       },
       onVideoUpgradeRequest: () => {
@@ -857,6 +897,35 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       }
       const isOwn = msg.senderId === user.uid;
       const isFocused = msg.id === focusedMsgId;
+
+      // ── Call berichten ──
+      if (msg.type === 'call') {
+        const isMissed   = !isOwn && (msg.direction === 'no-answer' || msg.direction === 'declined');
+        const durSec     = msg.duration || 0;
+        const durationStr = durSec > 0 ? (durSec >= 60 ? `${Math.floor(durSec / 60)} min` : `${durSec} sec`) : '';
+        const callLabel  = isOwn
+          ? (msg.direction === 'completed' ? (msg.isVideo ? 'Video-oproep' : 'Spraakoproep') : msg.direction === 'declined' ? 'Geweigerd' : 'Geen antwoord')
+          : (isMissed ? (msg.isVideo ? 'Gemiste video-oproep' : 'Gemiste spraakoproep') : (msg.isVideo ? 'Video-oproep' : 'Spraakoproep'));
+        const callSub    = durationStr || (isMissed ? 'Tik om terug te bellen' : '');
+        const iconType   = isMissed ? 'missed' : isOwn ? 'outgoing' : 'incoming';
+        items.push(
+          <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}
+            ref={isFocused ? el => el?.scrollIntoView({ behavior:'smooth', block:'center' }) : null}>
+            <div className={`msg-call-card ${isOwn ? 'out' : 'in'}${isMissed ? ' missed' : ''}`}>
+              <div className={`msg-call-icon ${iconType}`}>
+                {msg.isVideo ? <Video size={20} /> : <Phone size={20} />}
+              </div>
+              <div className="msg-call-info">
+                <div className="msg-call-label">{callLabel}</div>
+                {callSub && <div className="msg-call-sub">{callSub}</div>}
+              </div>
+              <div className="msg-call-time">{formatTime(msg.createdAt)}</div>
+            </div>
+          </div>
+        );
+        return;
+      }
+
       items.push(
         <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}
           ref={isFocused ? el => el?.scrollIntoView({ behavior:'smooth', block:'center' }) : null}>
@@ -1236,7 +1305,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             </div>
             <div className="form-group">
               <label className="form-label">Status</label>
-              <input className="form-input" value={onlineUsers.has(viewingContact.uid) ? '● Online' : '○ Offline'} disabled style={{ opacity:.7 }} />
+              <div className={`profile-status-badge ${onlineUsers.has(viewingContact.uid) ? 'online' : 'offline'}`}>
+                <span className="profile-status-dot" />
+                {onlineUsers.has(viewingContact.uid) ? 'Online' : 'Offline'}
+              </div>
             </div>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setViewingContact(null)}>Sluiten</button>
@@ -1425,7 +1497,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
               )}
               <div className="form-group">
                 <label className="form-label">Status</label>
-                <input className="form-input" value={isOnline ? '● Online' : '○ Offline'} disabled style={{ opacity:.7 }} />
+                <div className={`profile-status-badge ${isOnline ? 'online' : 'offline'}`}>
+                  <span className="profile-status-dot" />
+                  {isOnline ? 'Online' : 'Offline'}
+                </div>
               </div>
               <div className="modal-actions">
                 <button className="btn-secondary" onClick={() => setShowContactProfile(false)}>Sluiten</button>

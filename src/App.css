@@ -351,6 +351,27 @@ body {
   animation:pulse-dot 2s infinite;
 }
 
+/* ── PROFILE STATUS BADGE ── */
+.profile-status-badge {
+  display:flex; align-items:center; gap:8px;
+  padding:10px 14px; border-radius:12px;
+  background:var(--surface2); border:1px solid var(--border);
+  font-size:14px; font-weight:500;
+}
+.profile-status-badge.online  { color:var(--success); }
+.profile-status-badge.offline { color:var(--text2); }
+.profile-status-dot {
+  width:8px; height:8px; border-radius:50%; flex-shrink:0;
+}
+.profile-status-badge.online  .profile-status-dot {
+  background:var(--success);
+  box-shadow:0 0 6px rgba(67,233,123,.6);
+  animation:pulse-dot 2s infinite;
+}
+.profile-status-badge.offline .profile-status-dot {
+  background:var(--text2);
+}
+
 .icon-btn {
   width:40px; height:40px; border-radius:12px;
   border:1px solid rgba(255,255,255,.1);
@@ -610,6 +631,50 @@ body {
   padding:0 5px; flex-shrink:0;
   box-shadow:0 2px 8px rgba(108,99,255,.4);
 }
+
+/* ── CALL MESSAGE CARD ── */
+.msg-call-card {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 16px; border-radius:16px;
+  min-width:220px; max-width:280px;
+  cursor:default;
+}
+.msg-group.out .msg-call-card {
+  background:linear-gradient(135deg, var(--accent), #8b7cf6);
+  border-bottom-right-radius:5px;
+  box-shadow:0 4px 14px rgba(108,99,255,.3);
+}
+.msg-group.in .msg-call-card {
+  background:var(--surface2); border:1px solid var(--border);
+  border-bottom-left-radius:5px;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+.msg-call-icon {
+  width:40px; height:40px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.msg-group.out .msg-call-icon         { background:rgba(255,255,255,.2); color:#fff; }
+.msg-group.in  .msg-call-icon.incoming { background:rgba(67,233,123,.15); color:var(--success); }
+.msg-group.in  .msg-call-icon.missed   { background:rgba(255,95,95,.15);  color:var(--danger); }
+.msg-call-info  { flex:1; min-width:0; }
+.msg-call-label {
+  font-size:14px; font-weight:600; line-height:1.3;
+}
+.msg-group.out .msg-call-label { color:#fff; }
+.msg-group.in  .msg-call-label { color:var(--text); }
+.msg-group.in  .msg-call-card.missed .msg-call-label { color:var(--danger); }
+.msg-call-sub {
+  font-size:12px; margin-top:2px;
+}
+.msg-group.out .msg-call-sub { color:rgba(255,255,255,.75); }
+.msg-group.in  .msg-call-sub { color:var(--text2); }
+.msg-call-time {
+  font-size:10px; letter-spacing:.3px; font-family:'DM Sans',sans-serif;
+  align-self:flex-end; white-space:nowrap;
+}
+.msg-group.out .msg-call-time { color:rgba(255,255,255,.7); }
+.msg-group.in  .msg-call-time { color:var(--text3); }
 
 /* ── DATE SEPARATOR ── */
 .msg-date-sep {

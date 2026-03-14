@@ -92,13 +92,20 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
     onStream?.(remoteStream, stream);
   });
 
-  peer.on('close', () => { onEnd?.(); cleanupCall(stream); });
-  peer.on('error', (e) => { console.error('WebRTC error:', e); onEnd?.(); cleanupCall(stream); });
+  let callEnded = false;
+  function fireOnEnd(reason) {
+    if (callEnded) return;
+    callEnded = true;
+    onEnd?.(reason);
+  }
+
+  peer.on('close', () => { fireOnEnd(); cleanupCall(stream); });
+  peer.on('error', (e) => { console.error('WebRTC error:', e); fireOnEnd(); cleanupCall(stream); });
 
   // Time-out: als na 30s geen antwoord, gesprek beëindigen
   const callTimeout = setTimeout(() => {
     socket.emit('call:end', { to: toUid });
-    onEnd?.('timeout');
+    fireOnEnd('timeout');
     cleanupCall(stream);
   }, 30000);
 
@@ -112,9 +119,9 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   iceHandler = ({ candidate }) => { peer?.signal(candidate); };
   socket.on('call:ice-candidate', iceHandler);
 
-  socket.once('call:ended',    () => { clearTimeout(callTimeout); onEnd?.(); cleanupCall(stream); });
-  socket.once('call:declined', () => { clearTimeout(callTimeout); onEnd?.('declined'); cleanupCall(stream); });
-  socket.once('call:unavailable', () => { clearTimeout(callTimeout); onEnd?.('unavailable'); cleanupCall(stream); });
+  socket.once('call:ended',    () => { clearTimeout(callTimeout); fireOnEnd(); cleanupCall(stream); });
+  socket.once('call:declined', () => { clearTimeout(callTimeout); fireOnEnd('declined'); cleanupCall(stream); });
+  socket.once('call:unavailable', () => { clearTimeout(callTimeout); fireOnEnd('unavailable'); cleanupCall(stream); });
 
   return stream;
 }

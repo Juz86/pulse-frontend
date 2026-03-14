@@ -637,6 +637,23 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     finally { setProfileLoading(false); }
   }
 
+  // ── Account verwijderen ───────────────────────────────────────────────────
+  function handleDeleteAccount() {
+    setConfirmDialog({
+      message: 'Weet je zeker dat je je account wilt verwijderen? Al je chats en gegevens worden permanent verwijderd.',
+      onConfirm: async () => {
+        try {
+          await fetch(`${BACKEND_URL}/api/account/${user.uid}`, { method: 'DELETE' });
+          localStorage.removeItem(`pulse_photo_${user.uid}`);
+          localStorage.removeItem(`pulse_calls_${user.uid}`);
+          await signOut(auth);
+        } catch (err) {
+          alert('Verwijderen mislukt: ' + err.message);
+        }
+      },
+    });
+  }
+
   // ── Oproeplog helpers ─────────────────────────────────────────────────────
   function logCall({ uid, name, photoURL, isVideo, direction }) {
     const key = `pulse_calls_${user.uid}`;
@@ -677,6 +694,30 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     const toUid = activeConv.members.find(m => m !== user.uid);
     if (!toUid) return;
     const name  = activeConv.memberNames?.[toUid] || 'Contactpersoon';
+    const photo = contacts.find(c => c.uid === toUid)?.photoURL || '';
+    logCall({ uid: toUid, name, photoURL: photo, isVideo, direction: 'outgoing' });
+    const stream = await startCall({
+      toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
+      onStream: (remoteStream, localStream) => {
+        setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
+      },
+      onEnd: (reason) => {
+        if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
+          setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
+        } else {
+          setActiveCall(null);
+        }
+      },
+    });
+    if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
+  }
+
+  // ── Bellen vanuit conv-lijst (zonder chat openen) ────────────────────────
+  async function initiateCallFromConv(conv, isVideo) {
+    if (!Array.isArray(conv.members)) return;
+    const toUid = conv.members.find(m => m !== user.uid);
+    if (!toUid) return;
+    const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
     const photo = contacts.find(c => c.uid === toUid)?.photoURL || '';
     logCall({ uid: toUid, name, photoURL: photo, isVideo, direction: 'outgoing' });
     const stream = await startCall({
@@ -886,8 +927,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                       <button className="conv-action-btn" onClick={e => { e.stopPropagation(); setCallDropdown(callDropdown === conv.id ? null : conv.id); }} title="Oproepen">📞</button>
                       {callDropdown === conv.id && (
                         <div className="conv-call-dropdown">
-                          <button onClick={() => { setCallDropdown(null); openConversation(conv); setTimeout(() => initiateCall(false), 100); }}>📞 Bellen</button>
-                          <button onClick={() => { setCallDropdown(null); openConversation(conv); setTimeout(() => initiateCall(true), 100); }}>📹 Videobellen</button>
+                          <button onClick={() => { setCallDropdown(null); initiateCallFromConv(conv, false); }}>📞 Bellen</button>
+                          <button onClick={() => { setCallDropdown(null); initiateCallFromConv(conv, true); }}>📹 Videobellen</button>
                         </div>
                       )}
                     </div>
@@ -1057,11 +1098,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                   )}
                   {total > 1 && (
                     <>
-                      <button className="icon-btn" style={{ width:'30px', height:'30px' }} onClick={() => setChatSearchIdx(i => (i - 1 + total) % total)}>↑</button>
-                      <button className="icon-btn" style={{ width:'30px', height:'30px' }} onClick={() => setChatSearchIdx(i => (i + 1) % total)}>↓</button>
+                      <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setChatSearchIdx(i => (i - 1 + total) % total)}>↑</button>
+                      <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setChatSearchIdx(i => (i + 1) % total)}>↓</button>
                     </>
                   )}
-                  <button className="icon-btn" style={{ width:'30px', height:'30px' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}>✕</button>
+                  <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}>✕</button>
                 </div>
               );
             })()}
@@ -1297,6 +1338,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                 <button type="submit" className="btn-primary" style={{ flex:1 }} disabled={profileLoading}>{profileLoading ? 'Opslaan…' : 'Opslaan →'}</button>
               </div>
             </form>
+            <div style={{ marginTop:'16px', borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
+              <button
+                className="btn-danger"
+                style={{ width:'100%' }}
+                onClick={() => { setShowProfile(false); handleDeleteAccount(); }}
+              >
+                🗑️ Account verwijderen
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1469,6 +1519,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         <CallOverlay
           active={activeCall}
           user={user}
+          onClose={() => setActiveCall(null)}
           onEnd={() => setActiveCall(null)}
         />
       )}

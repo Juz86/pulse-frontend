@@ -101,7 +101,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
       setCallMsg(msgs[active.endReason] || 'Gesprek beëindigd.');
       setCallState('ended');
       cleanup();
-      setTimeout(() => onClose?.(), 2000);
+      setTimeout(() => onClose?.(), 3000);
     }
   }, [active]);
 
@@ -150,6 +150,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
 
       {/* ── CALL CARD ── */}
       <div className={`call-card ${isVideo && callState === 'active' ? 'transparent' : ''}`}>
+        <button className="call-close-btn" onClick={() => { cleanup(); onClose?.(); }} title="Sluiten">✕</button>
         <div className="call-avatar-big">{callName.slice(0,2).toUpperCase()}</div>
         <div className="call-name">{callName}</div>
 

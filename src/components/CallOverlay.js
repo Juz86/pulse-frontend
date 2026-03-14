@@ -150,7 +150,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
 
       {/* ── CALL CARD ── */}
       <div className={`call-card ${isVideo && callState === 'active' ? 'transparent' : ''}`}>
-        {callState !== 'incoming' && (
+        {callState !== 'incoming' && callState !== 'calling' && callState !== 'connecting' && (
           <button className="call-close-btn" onClick={() => { cleanup(); onClose?.(); }} title="Sluiten">✕</button>
         )}
         <div className="call-avatar-big">{callName.slice(0,2).toUpperCase()}</div>

@@ -186,9 +186,12 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         {callState === 'connecting'  && <div className="call-status blink">Camera aanzetten…</div>}
         {callState === 'active'      && <div className="call-timer">{formatTimer(timer)}</div>}
         {videoUpgradeRequest && callState === 'active' && (
-          <div className="call-status" style={{ fontSize:'13px', marginBottom:'6px' }}>
-            📹 {callName} wil videobellen
-            <button className="call-ctrl-btn accept" style={{ marginLeft:'10px', padding:'4px 12px', fontSize:'12px' }} onClick={handleAcceptVideoUpgrade}>Accepteren</button>
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'12px', margin:'10px 0' }}>
+            <div style={{ fontSize:'13px', color:'#ccc' }}>📹 {callName} wil videobellen</div>
+            <div style={{ display:'flex', gap:'10px' }}>
+              <button className="call-ctrl-btn decline" onClick={() => setVideoUpgradeRequest(false)}>📵<span>Weigeren</span></button>
+              <button className="call-ctrl-btn accept" onClick={handleAcceptVideoUpgrade}>📹<span>Accepteren</span></button>
+            </div>
           </div>
         )}
         {callState === 'ended'       && <div className="call-status call-status-error">{callMsg}</div>}

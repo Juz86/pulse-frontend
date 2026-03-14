@@ -57,7 +57,7 @@ export function disconnectSocket() {
 }
 
 // ── WebRTC Bellen ─────────────────────────────────────────────────────────────
-export async function startCall({ toUid, fromUid, callerName, isVideo, onStream, onEnd, onVideoUpgrade }) {
+export async function startCall({ toUid, fromUid, callerName, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest }) {
   let stream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({
@@ -108,14 +108,8 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
     if (streams?.[0]) { callActive = true; onStream?.(streams[0], stream); }
   });
 
-  // Remote vraagt video upgrade: eigen camera starten
-  socket.on('call:video-upgrade', async () => {
-    try {
-      const vs = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } });
-      peer.addTrack(vs.getVideoTracks()[0], vs);
-      onVideoUpgrade?.(vs);
-    } catch {}
-  });
+  // Remote vraagt video upgrade: laat de gebruiker zelf beslissen
+  socket.on('call:video-upgrade', () => { onVideoUpgradeRequest?.(); });
 
   let callEnded = false;
   function fireOnEnd(reason) {
@@ -155,7 +149,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   return stream;
 }
 
-export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onVideoUpgrade }) {
+export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest }) {
   let stream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({
@@ -200,14 +194,8 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onV
     if (streams?.[0]) onStream?.(streams[0], stream);
   });
 
-  // Remote vraagt video upgrade: eigen camera starten
-  socket.on('call:video-upgrade', async () => {
-    try {
-      const vs = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } });
-      peer.addTrack(vs.getVideoTracks()[0], vs);
-      onVideoUpgrade?.(vs);
-    } catch {}
-  });
+  // Remote vraagt video upgrade: laat de gebruiker zelf beslissen
+  socket.on('call:video-upgrade', () => { onVideoUpgradeRequest?.(); });
 
   peer.on('close', () => { onEnd?.(); cleanupCall(stream); });
   peer.on('error', (e) => { console.error('WebRTC error:', e); onEnd?.(); cleanupCall(stream); });
@@ -233,6 +221,20 @@ export function declineCall(fromUid) {
 }
 
 // ── Video upgraden tijdens actief gesprek ─────────────────────────────────────
+export async function acceptVideoUpgrade() {
+  if (!peer) return null;
+  try {
+    const vs = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+    });
+    peer.addTrack(vs.getVideoTracks()[0], vs);
+    return vs;
+  } catch (e) {
+    console.error('Video upgrade accepteren mislukt:', e);
+    return null;
+  }
+}
+
 export async function upgradeToVideo() {
   if (!peer) return null;
   try {

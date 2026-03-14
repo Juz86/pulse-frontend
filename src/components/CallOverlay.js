@@ -1,6 +1,6 @@
 // src/components/CallOverlay.js
 import React, { useEffect, useRef, useState } from 'react';
-import { answerCall, declineCall, endCall, upgradeToVideo } from '../services/socket';
+import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade } from '../services/socket';
 
 export default function CallOverlay({ incoming, active, user, onClose, onEnd }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
@@ -9,6 +9,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   const [muted,        setMuted]        = useState(false);
   const [camOff,       setCamOff]       = useState(false);
   const [videoUpgraded, setVideoUpgraded] = useState(false);
+  const [videoUpgradeRequest, setVideoUpgradeRequest] = useState(false);
 
   const localVideoRef  = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -33,11 +34,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
           startTimer();
         },
         onEnd: () => { cleanup(); onClose?.(true); },
-        onVideoUpgrade: (vs) => {
-          localStreamRef.current = vs;
-          if (localVideoRef.current) localVideoRef.current.srcObject = vs;
-          setVideoUpgraded(true);
-        },
+        onVideoUpgradeRequest: () => setVideoUpgradeRequest(true),
       });
       localStreamRef.current = localStream;
       if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
@@ -82,6 +79,16 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
     if (videoTrack) { videoTrack.enabled = camOff; setCamOff(!camOff); }
   }
 
+  async function handleAcceptVideoUpgrade() {
+    setVideoUpgradeRequest(false);
+    const vs = await acceptVideoUpgrade();
+    if (vs) {
+      localStreamRef.current = vs;
+      if (localVideoRef.current) localVideoRef.current.srcObject = vs;
+      setVideoUpgraded(true);
+    }
+  }
+
   async function handleUpgradeToVideo() {
     const videoStream = await upgradeToVideo();
     if (videoStream) {
@@ -107,6 +114,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
       setCallState('active');
       startTimer();
     }
+    if (active?.videoUpgradeRequest) setVideoUpgradeRequest(true);
     if (active?.endReason) {
       const msgs = {
         unavailable: 'Gebruiker is niet beschikbaar of offline.',
@@ -177,6 +185,12 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         {callState === 'calling'     && <div className="call-status blink">Verbinden…</div>}
         {callState === 'connecting'  && <div className="call-status blink">Camera aanzetten…</div>}
         {callState === 'active'      && <div className="call-timer">{formatTimer(timer)}</div>}
+        {videoUpgradeRequest && callState === 'active' && (
+          <div className="call-status" style={{ fontSize:'13px', marginBottom:'6px' }}>
+            📹 {callName} wil videobellen
+            <button className="call-ctrl-btn accept" style={{ marginLeft:'10px', padding:'4px 12px', fontSize:'12px' }} onClick={handleAcceptVideoUpgrade}>Accepteren</button>
+          </div>
+        )}
         {callState === 'ended'       && <div className="call-status call-status-error">{callMsg}</div>}
 
         {/* ── KNOPPEN ── */}

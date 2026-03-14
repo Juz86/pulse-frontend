@@ -561,11 +561,24 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     finally { setProfileLoading(false); }
   }
 
+  // ── Oproeplog helpers ─────────────────────────────────────────────────────
+  function logCall({ uid, name, photoURL, isVideo, direction }) {
+    const key = `pulse_calls_${user.uid}`;
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    const entry = { uid, name, photoURL: photoURL || '', isVideo, direction, ts: Date.now() };
+    localStorage.setItem(key, JSON.stringify([entry, ...existing].slice(0, 50)));
+  }
+
+  function getCallLog() {
+    return JSON.parse(localStorage.getItem(`pulse_calls_${user.uid}`) || '[]');
+  }
+
   // ── Bellen vanuit oproepen-modal ─────────────────────────────────────────
   async function callContact(contact, isVideo) {
     setShowCallModal(false);
     const toUid = contact.uid;
     const name  = contact.displayName;
+    logCall({ uid: toUid, name, photoURL: contact.photoURL, isVideo, direction: 'outgoing' });
     const stream = await startCall({
       toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
       onStream: (remoteStream, localStream) => {
@@ -582,6 +595,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     const toUid = activeConv.members.find(m => m !== user.uid);
     if (!toUid) return;
     const name  = activeConv.memberNames?.[toUid] || 'Contactpersoon';
+    const photo = contacts.find(c => c.uid === toUid)?.photoURL || '';
+    logCall({ uid: toUid, name, photoURL: photo, isVideo, direction: 'outgoing' });
     const stream = await startCall({
       toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
       onStream: (remoteStream, localStream) => {
@@ -757,7 +772,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                   {unread > 0 && <span className="unread-badge">{unread}</span>}
                   {!conv.isGroup && (
                     <div className="conv-call-wrap" onClick={e => e.stopPropagation()}>
-                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); setCallDropdown(callDropdown === conv.id ? null : conv.id); }} title="Bellen">📞</button>
+                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); setCallDropdown(callDropdown === conv.id ? null : conv.id); }} title="Oproepen">📞</button>
                       {callDropdown === conv.id && (
                         <div className="conv-call-dropdown">
                           <button onClick={() => { setCallDropdown(null); openConversation(conv); setTimeout(() => initiateCall(false), 100); }}>📞 Bellen</button>
@@ -1113,38 +1128,63 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       })()}
 
       {/* ── OPROEPEN MODAL ── */}
-      {showCallModal && (
-        <div className="modal-overlay" onClick={() => setShowCallModal(false)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">📞 Oproepen</h3>
-            <p className="modal-sub">Kies een contact om te bellen</p>
-            {contacts.length === 0 && (
-              <div className="auth-error">⚠️ Geen contacten. Voeg eerst iemand toe.</div>
-            )}
-            <div style={{ display:'flex', flexDirection:'column', gap:'10px', marginBottom:'16px' }}>
-              {contacts.map(contact => (
-                <div key={contact.uid} className="call-contact-row">
-                  <div className="avatar-wrap">
-                    <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} className="sm" />
-                    {onlineUsers.has(contact.uid) && <span className="online-dot sm" />}
-                  </div>
-                  <div style={{ flex:1 }}>
-                    <div className="conv-name">{contact.displayName}</div>
-                    <div className="conv-preview">
-                      {onlineUsers.has(contact.uid) ? '🟢 Online' : contact.email}
-                    </div>
-                  </div>
-                  <div style={{ display:'flex', gap:'8px' }}>
-                    <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen">📞</button>
-                    <button className="call-btn video" onClick={() => callContact(contact, true)}  title="Videobellen">🎥</button>
-                  </div>
+      {showCallModal && (() => {
+        const callLog = getCallLog();
+        return (
+          <div className="modal-overlay" onClick={() => setShowCallModal(false)}>
+            <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:420 }}>
+              <h3 className="modal-title">📞 Recente oproepen</h3>
+              {callLog.length === 0 ? (
+                <div style={{ textAlign:'center', padding:'24px 0', color:'var(--text3)' }}>
+                  <div style={{ fontSize:40, marginBottom:8 }}>📵</div>
+                  <div>Nog geen oproepen</div>
                 </div>
-              ))}
+              ) : (
+                <div style={{ display:'flex', flexDirection:'column', gap:'6px', marginBottom:'16px', maxHeight:360, overflowY:'auto' }}>
+                  {callLog.map((entry, i) => {
+                    const contact = contacts.find(c => c.uid === entry.uid);
+                    const dirIcon = entry.direction === 'outgoing' ? '↗' : entry.direction === 'missed' ? '✕' : '↙';
+                    const dirColor = entry.direction === 'missed' ? 'var(--danger)' : entry.direction === 'outgoing' ? 'var(--accent)' : 'var(--success)';
+                    const ago = (() => {
+                      const diff = (Date.now() - entry.ts) / 1000;
+                      if (diff < 60) return 'Zojuist';
+                      if (diff < 3600) return `${Math.floor(diff/60)} min geleden`;
+                      if (diff < 86400) return `${Math.floor(diff/3600)} uur geleden`;
+                      return new Date(entry.ts).toLocaleDateString('nl-NL');
+                    })();
+                    return (
+                      <div key={i} className="call-log-row">
+                        <div className="avatar-wrap">
+                          <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" />
+                          {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
+                        </div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                            <span style={{ color:dirColor, fontWeight:700, fontSize:13 }}>{dirIcon}</span>
+                            <span className="conv-name">{entry.name}</span>
+                            <span style={{ fontSize:11, color:'var(--text3)', marginLeft:'auto' }}>{ago}</span>
+                          </div>
+                          <div className="conv-preview">{entry.isVideo ? '📹 Videogesprek' : '📞 Gesprek'}</div>
+                        </div>
+                        {contact && (
+                          <div style={{ display:'flex', gap:6 }}>
+                            <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen">📞</button>
+                            <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen">🎥</button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <div style={{ display:'flex', gap:8 }}>
+                <button className="btn-secondary" style={{ flex:1 }} onClick={() => setShowCallModal(false)}>Sluiten</button>
+                {callLog.length > 0 && <button className="btn-secondary" style={{ flex:1, color:'var(--danger)' }} onClick={() => { localStorage.removeItem(`pulse_calls_${user.uid}`); setShowCallModal(false); }}>Wissen</button>}
+              </div>
             </div>
-            <button className="btn-secondary" onClick={() => setShowCallModal(false)}>Sluiten</button>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── GROEPSINFORMATIE MODAL ── */}
       {showGroupInfo && activeConv?.isGroup && (

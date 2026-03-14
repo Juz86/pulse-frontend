@@ -828,6 +828,12 @@ body {
   border-color:rgba(108,99,255,.3);
   background:rgba(108,99,255,.05);
 }
+.call-log-row {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px; border:1px solid var(--border); border-radius:14px;
+  background:var(--surface2); transition:.2s;
+}
+.call-log-row:hover { border-color:rgba(108,99,255,.3); background:rgba(108,99,255,.05); }
 
 /* ── BACK BUTTON (mobile only) ── */
 .back-btn {

@@ -61,6 +61,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   const [renamingContact, setRenamingContact] = useState(null); // { uid, name }
   const [renameValue,     setRenameValue]     = useState('');
 
+  // Contact profiel bekijken (vanuit contactenlijst)
+  const [viewingContact,  setViewingContact]  = useState(null);
+
   function getContactNickname(uid) {
     return localStorage.getItem(`pulse_nick_${uid}`) || null;
   }
@@ -87,7 +90,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   const [showProfile,    setShowProfile]    = useState(false);
   const [newName,        setNewName]        = useState(user.displayName || '');
   const [photoFile,      setPhotoFile]      = useState(null);
-  const [photoPreview,   setPhotoPreview]   = useState(user.photoURL || null);
+  const [photoPreview,   setPhotoPreview]   = useState(localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg,     setProfileMsg]     = useState('');
 
@@ -414,13 +417,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       });
       const data = await res.json();
       if (!res.ok) { setContactErr(data.error || 'Fout bij verzenden'); return; }
-      // Sla bijnaam op zodat die zichtbaar is zodra verzoek geaccepteerd wordt
       if (contactNickname.trim() && data.toUid) {
         saveContactNickname(data.toUid, contactNickname.trim());
       }
       setContactEmail(''); setContactNickname('');
       setShowAddContact(false);
-      setContactSuccess('Uitnodiging verzonden!');
+      if (data.restored) {
+        // Ander had ons nog → direct hersteld, geen verzoek nodig
+        await loadContacts();
+        setContactSuccess('Contact hersteld!');
+      } else {
+        setContactSuccess('Uitnodiging verzonden!');
+      }
       setTimeout(() => setContactSuccess(''), 4000);
     } catch (e) { console.error('addContact fout:', e); setContactErr('Verbindingsfout'); }
     finally { setContactLoading(false); }
@@ -444,9 +452,21 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   }
 
   // ── Contact verwijderen ───────────────────────────────────────────────────
-  async function removeContact(uid) {
-    await deleteDoc(doc(db, 'users', user.uid, 'contacts', uid));
-    setContacts(prev => prev.filter(c => c.uid !== uid));
+  function removeContact(uid) {
+    setConfirmDialog({
+      message: 'Weet je zeker dat je dit contact wilt verwijderen?',
+      onConfirm: async () => {
+        await deleteDoc(doc(db, 'users', user.uid, 'contacts', uid));
+        setContacts(prev => prev.filter(c => c.uid !== uid));
+        // Ook het gesprek met dit contact verwijderen
+        const conv = conversations.find(c => !c.isGroup && c.members?.includes(uid));
+        if (conv) {
+          try { await fetch(`${BACKEND_URL}/api/conversations/${conv.id}?uid=${user.uid}`, { method: 'DELETE' }); } catch {}
+          setConversations(prev => prev.filter(c => c.id !== conv.id));
+          if (activeConv?.id === conv.id) { setActiveConv(null); setMessages([]); }
+        }
+      },
+    });
   }
 
   // ── Gesprek starten vanuit contacten ──────────────────────────────────────
@@ -553,31 +573,61 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     );
   }
 
-  // ── Profielfoto selecteren (6) ────────────────────────────────────────────
+  // ── Profielfoto resizen naar base64 (geen externe opslag nodig) ──────────
+  function resizeImageToBase64(file, size = 200) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        // Vierkant bijsnijden
+        const min = Math.min(img.width, img.height);
+        const sx = (img.width - min) / 2;
+        const sy = (img.height - min) / 2;
+        ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
   function handlePhotoChange(e) {
     const file = e.target.files[0];
     if (!file) return;
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
-    e.target.value = ''; // reset zodat hetzelfde bestand opnieuw gekozen kan worden
+    e.target.value = '';
   }
 
-  // ── Profiel opslaan (6) ───────────────────────────────────────────────────
+  // ── Profiel opslaan ───────────────────────────────────────────────────────
   async function saveProfile(e) {
     e.preventDefault();
     if (!newName.trim()) return;
     setProfileLoading(true); setProfileMsg('');
     try {
-      let photoURL = user.photoURL || null;
+      let photoURL = localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null;
       if (photoFile) {
-        const fileRef = storageRef(storage, `avatars/${user.uid}`);
-        await uploadBytes(fileRef, photoFile);
-        photoURL = await getDownloadURL(fileRef);
+        photoURL = await resizeImageToBase64(photoFile, 200);
+        // base64 lokaal opslaan (Firebase Auth staat geen base64 toe)
+        localStorage.setItem(`pulse_photo_${user.uid}`, photoURL);
       }
-      await fbUpdateProfile(auth.currentUser, { displayName: newName.trim(), photoURL });
+      // Firebase Auth alleen naam updaten (geen base64 URL)
+      const authPhotoURL = photoURL?.startsWith('data:') ? (user.photoURL || null) : photoURL;
+      await fbUpdateProfile(auth.currentUser, { displayName: newName.trim(), photoURL: authPhotoURL });
+      // Sync naar backend zodat anderen de nieuwe foto/naam zien
+      fetch(`${BACKEND_URL}/api/users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: user.uid, displayName: newName.trim(), email: user.email, photoURL: photoURL || '' }),
+      }).catch(() => {});
       setPhotoFile(null);
+      setPhotoPreview(photoURL);
       setProfileMsg('Opgeslagen!');
-    } catch { setProfileMsg('Fout bij opslaan.'); }
+    } catch (err) { setProfileMsg('Fout bij opslaan: ' + (err.message || err.code)); }
     finally { setProfileLoading(false); }
   }
 
@@ -631,7 +681,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   function getConvName(conv) {
     if (conv.isGroup) return conv.groupName || 'Groepsgesprek';
     const otherUid = conv.members?.find(m => m !== user.uid);
-    return conv.memberNames?.[otherUid] || 'Contactpersoon';
+    return getContactNickname(otherUid) || conv.memberNames?.[otherUid] || 'Contactpersoon';
   }
 
   function getOtherUid(conv) {
@@ -741,7 +791,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             <div style={{ display:'flex', gap:'6px' }}>
               <button className="icon-btn" onClick={() => setShowCallModal(true)} title="Oproepen">📞</button>
               <button className="icon-btn" onClick={() => setShowNewGroup(true)} title="Nieuwe groep">👥</button>
-              <button className="icon-btn" onClick={() => setShowNewChat(true)} title="Nieuw gesprek">✏️</button>
+              <button className="icon-btn" onClick={() => setShowNewChat(true)} title="Nieuw gesprek">
+💬
+              </button>
             </div>
           </div>
           <div className="search-box">
@@ -768,7 +820,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             {conversations.length === 0 && (
               <div className="empty-convs">
                 <p>Nog geen gesprekken.</p>
-                <p>Klik op ✏️ om iemand te vinden.</p>
+                <p>Klik op 💬 om een nieuwe chat te starten.</p>
               </div>
             )}
             {conversations.filter(conv =>
@@ -859,21 +911,24 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
               <div key={contact.uid} style={{ margin: '0 12px 10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div className="avatar-wrap">
-                    <div className="avatar-circle">{getInitials(contact.displayName)}</div>
+                    <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} />
                     {onlineUsers.has(contact.uid) && <span className="online-dot" />}
                   </div>
                   <div className="conv-info">
                     <div className="conv-name">{getContactDisplayName(contact)}</div>
                     <div className="conv-preview">{contact.email}</div>
                   </div>
-                  <button className="icon-btn" onClick={() => { setRenamingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName); }} title="Naam wijzigen">✏️</button>
                 </div>
                 <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)' }} />
-                <div style={{ display: 'flex', gap: '6px', paddingLeft: '50px' }}>
-                  <button className="call-btn voice" onClick={() => startChatWithContact(contact)} title="Stuur bericht" style={{ fontSize: '14px' }}>💬</button>
-                  <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen">📞</button>
-                  <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen">🎥</button>
-                  <button className="icon-btn" onClick={() => removeContact(contact.uid)} title="Verwijderen" style={{ color: 'var(--danger)' }}>🗑️</button>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button className="icon-btn" onClick={() => setViewingContact(contact)} title="Profiel bekijken" style={{ flex:1, justifyContent:'center' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z"/></svg>
+                  </button>
+                  <button className="icon-btn" onClick={() => { setRenamingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName); }} title="Naam wijzigen" style={{ flex:1, justifyContent:'center' }}>✏️</button>
+                  <button className="call-btn voice" onClick={() => startChatWithContact(contact)} title="Stuur bericht" style={{ flex:1, fontSize:'14px' }}>💬</button>
+                  <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen" style={{ flex:1 }}>📞</button>
+                  <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen" style={{ flex:1 }}>🎥</button>
+                  <button className="icon-btn" onClick={() => removeContact(contact.uid)} title="Verwijderen" style={{ flex:1, justifyContent:'center', color: 'var(--danger)' }}>🗑️</button>
                 </div>
               </div>
             ))}
@@ -881,9 +936,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         )}
 
         <div className="sidebar-footer">
-          <div className="user-chip" style={{ cursor:'pointer' }} onClick={() => { setShowProfile(true); setProfileMsg(''); setNewName(user.displayName || ''); setPhotoPreview(user.photoURL || null); setPhotoFile(null); }}>
+          <div className="user-chip" style={{ cursor:'pointer' }} onClick={() => { setShowProfile(true); setProfileMsg(''); setNewName(user.displayName || ''); setPhotoPreview(localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null); setPhotoFile(null); }}>
             <div className="avatar-wrap" style={{ flexShrink:0 }}>
-              <UserAvatar photoURL={user.photoURL} displayName={user.displayName || user.email} className="sm" />
+              <UserAvatar photoURL={localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL} displayName={user.displayName || user.email} className="sm" />
             </div>
             <div className="user-chip-info">
               <div className="user-chip-name">{user.displayName || user.email.split('@')[0]}</div>
@@ -891,7 +946,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             </div>
           </div>
           <button className="icon-btn" onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>{lightMode ? '🌙' : '☀️'}</button>
-          <button className="icon-btn danger" onClick={() => signOut(auth)} title="Uitloggen">↩</button>
+          <button className="icon-btn danger" onClick={() => signOut(auth)} title="Uitloggen">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{transform:'scaleX(-1)'}}><path d="M16 13v-2H7V8l-5 4 5 4v-3z"/><path d="M20 3H10a2 2 0 0 0-2 2v4h2V5h10v14H10v-4H8v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>
+          </button>
         </div>
       </aside>
 
@@ -901,14 +958,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
           <div className="empty-state">
             <div className="empty-icon">💬</div>
             <div className="empty-title">Kies een gesprek</div>
-            <p>Of klik op ✏️ om een nieuwe chat te beginnen.</p>
+            <p>Of klik op 💬 om een nieuwe chat te beginnen.</p>
           </div>
         ) : (
           <>
             <div className="chat-header">
               <button className="back-btn" onClick={() => setActiveConv(null)} title="Terug">←</button>
               <div className="avatar-wrap" style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }} onClick={() => { if (!activeConv.isGroup) setShowContactProfile(true); }}>
-                <div className="avatar-circle sm">{getInitials(getConvName(activeConv))}</div>
+                <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm" />
                 {getOtherUid(activeConv) && onlineUsers.has(getOtherUid(activeConv)) && <span className="online-dot sm" />}
               </div>
               <div className="chat-header-info" style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }} onClick={() => { if (!activeConv.isGroup) setShowContactProfile(true); }}>
@@ -991,6 +1048,36 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setRenamingContact(null)}>Annuleren</button>
               <button className="btn-primary" onClick={() => { saveContactNickname(renamingContact.uid, renameValue); setRenamingContact(null); setContacts(prev => [...prev]); }}>Opslaan</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CONTACT PROFIEL ── */}
+      {viewingContact && (
+        <div className="modal-overlay" onClick={() => setViewingContact(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:360 }}>
+            <h3 className="modal-title">👤 Profiel</h3>
+            <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
+              {viewingContact.photoURL
+                ? <img src={viewingContact.photoURL} alt="" className="profile-avatar-big" style={{ objectFit:'cover' }} />
+                : <div className="profile-avatar-big">{getInitials(getContactDisplayName(viewingContact))}</div>
+              }
+            </div>
+            <div className="form-group">
+              <label className="form-label">Naam</label>
+              <input className="form-input" value={getContactDisplayName(viewingContact)} disabled style={{ opacity:.7 }} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">E-mailadres</label>
+              <input className="form-input" value={viewingContact.email || ''} disabled style={{ opacity:.7 }} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Status</label>
+              <input className="form-input" value={onlineUsers.has(viewingContact.uid) ? '🟢 Online' : '⚫ Offline'} disabled style={{ opacity:.7 }} />
+            </div>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setViewingContact(null)}>Sluiten</button>
             </div>
           </div>
         </div>

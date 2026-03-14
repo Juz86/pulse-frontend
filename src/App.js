@@ -18,7 +18,7 @@ fetch(`${BACKEND}/`).catch(() => {});
 export default function App() {
   const wasLoggedIn = localStorage.getItem('pulse_user') === '1';
   const [user,         setUser]         = useState(auth.currentUser);
-  const [loading,      setLoading]      = useState(!auth.currentUser && !wasLoggedIn);
+  const [loading,      setLoading]      = useState(!auth.currentUser);
   const [incomingCall, setIncomingCall] = useState(null);
   const [onlineUsers,  setOnlineUsers]  = useState(new Set());
   const [lightMode,    setLightMode]    = useState(localStorage.getItem('pulse_theme') === 'light');

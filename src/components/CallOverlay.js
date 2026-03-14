@@ -213,8 +213,8 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         {callState !== 'ended' && <div className="call-controls">
           {callState === 'incoming' ? (
             <>
-              <button className="call-ctrl-btn decline" onClick={handleDecline}><Cancel size={18} /><span>Weigeren</span></button>
               <button className="call-ctrl-btn accept"  onClick={handleAccept}><Phone size={18} /><span>Opnemen</span></button>
+              <button className="call-ctrl-btn decline" onClick={handleDecline}><Cancel size={18} /><span>Weigeren</span></button>
             </>
           ) : (
             <>

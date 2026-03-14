@@ -243,6 +243,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       } catch {}
     };
 
+    const onUserUpdated = ({ uid, displayName, photoURL }) => {
+      setContacts(prev => prev.map(c => c.uid === uid ? { ...c, displayName: displayName || c.displayName, photoURL: photoURL || c.photoURL } : c));
+    };
+
     socket.on('connect',          onConnect);
     socket.on('disconnect',       onDisconnect);
     socket.on('message:received', onMessageReceived);
@@ -250,6 +254,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     socket.on('message:status',   onMessageStatus);
     socket.on('friend:request',   onFriendRequest);
     socket.on('friend:accepted',  onFriendAccepted);
+    socket.on('user:updated',     onUserUpdated);
 
     return () => {
       socket.off('connect',          onConnect);
@@ -259,6 +264,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       socket.off('message:status',   onMessageStatus);
       socket.off('friend:request',   onFriendRequest);
       socket.off('friend:accepted',  onFriendAccepted);
+      socket.off('user:updated',     onUserUpdated);
     };
   }, [socket, loadConversations, loadContacts]);
 
@@ -644,6 +650,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid: user.uid, displayName: newName.trim(), email: user.email, photoURL: photoURL || '' }),
       }).catch(() => {});
+      // Broadcast profielupdate zodat contacten live worden bijgewerkt
+      socket?.emit('user:updated', { uid: user.uid, displayName: newName.trim(), photoURL: photoURL || '' });
       setPhotoFile(null);
       setPhotoPreview(photoURL);
       setProfileMsg('Opgeslagen!');

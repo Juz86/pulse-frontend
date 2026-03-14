@@ -4,6 +4,7 @@ import { answerCall, declineCall, endCall } from '../services/socket';
 
 export default function CallOverlay({ incoming, active, user, onClose, onEnd }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
+  const [callMsg,      setCallMsg]      = useState('');
   const [timer,        setTimer]        = useState(0);
   const [muted,        setMuted]        = useState(false);
   const [camOff,       setCamOff]       = useState(false);
@@ -91,6 +92,17 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
       setCallState('active');
       startTimer();
     }
+    if (active?.endReason) {
+      const msgs = {
+        unavailable: 'Gebruiker is niet beschikbaar of offline.',
+        declined:    'Oproep geweigerd.',
+        timeout:     'Geen antwoord.',
+      };
+      setCallMsg(msgs[active.endReason] || 'Gesprek beëindigd.');
+      setCallState('ended');
+      cleanup();
+      setTimeout(() => onClose?.(), 2000);
+    }
   }, [active]);
 
   // ── Beltoon bij inkomend gesprek ─────────────────────────────────────────
@@ -147,9 +159,10 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         {callState === 'calling'     && <div className="call-status blink">Verbinden…</div>}
         {callState === 'connecting'  && <div className="call-status blink">Camera aanzetten…</div>}
         {callState === 'active'      && <div className="call-timer">{formatTimer(timer)}</div>}
+        {callState === 'ended'       && <div className="call-status call-status-error">{callMsg}</div>}
 
         {/* ── KNOPPEN ── */}
-        <div className="call-controls">
+        {callState !== 'ended' && <div className="call-controls">
           {callState === 'incoming' ? (
             <>
               <button className="call-ctrl-btn decline" onClick={handleDecline}>📵<span>Weigeren</span></button>
@@ -168,7 +181,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
               <button className="call-ctrl-btn end" onClick={handleEnd}>📵<span>Ophangen</span></button>
             </>
           )}
-        </div>
+        </div>}
       </div>
     </div>
   );

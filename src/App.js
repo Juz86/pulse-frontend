@@ -5,9 +5,10 @@ import { auth, messaging, getToken } from './firebase';
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 import { connectSocket, disconnectSocket } from './services/socket';
-import AuthScreen  from './screens/AuthScreen';
-import ChatScreen  from './screens/ChatScreen';
-import CallOverlay from './components/CallOverlay';
+import AuthScreen         from './screens/AuthScreen';
+import ChatScreen         from './screens/ChatScreen';
+import CallOverlay        from './components/CallOverlay';
+import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import './App.css';
 
 const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
@@ -16,6 +17,14 @@ const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 fetch(`${BACKEND}/`).catch(() => {});
 
 export default function App() {
+  // Wachtwoord reset via Firebase link
+  const urlParams = new URLSearchParams(window.location.search);
+  const oobCode   = urlParams.get('oobCode');
+  const mode      = urlParams.get('mode');
+  if (mode === 'resetPassword' && oobCode) {
+    return <ResetPasswordScreen oobCode={oobCode} />;
+  }
+
   const wasLoggedIn = localStorage.getItem('pulse_user') === '1';
   const [user,         setUser]         = useState(auth.currentUser);
   const [loading,      setLoading]      = useState(!auth.currentUser);

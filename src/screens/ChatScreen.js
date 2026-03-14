@@ -78,6 +78,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   // Reply
   const [replyTo, setReplyTo] = useState(null); // { id, text, senderName }
 
+  // Zoeken in gesprek
+  const [showChatSearch,  setShowChatSearch]  = useState(false);
+  const [chatSearch,      setChatSearch]      = useState('');
+  const [chatSearchIdx,   setChatSearchIdx]   = useState(0);
+  const chatSearchRef = useRef(null);
+
   // Bel-dropdown in conv-list
   const [callDropdown, setCallDropdown] = useState(null); // convId
 
@@ -654,7 +660,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       onStream: (remoteStream, localStream) => {
         setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
       },
-      onEnd: () => setActiveCall(null),
+      onEnd: (reason) => {
+        if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
+          setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
+        } else {
+          setActiveCall(null);
+        }
+      },
     });
     if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
   }
@@ -672,7 +684,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       onStream: (remoteStream, localStream) => {
         setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
       },
-      onEnd: () => setActiveCall(null),
+      onEnd: (reason) => {
+        if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
+          setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
+        } else {
+          setActiveCall(null);
+        }
+      },
     });
     if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
   }
@@ -724,10 +742,25 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
+  function highlightText(text, query) {
+    if (!query.trim()) return text;
+    const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+    return parts.map((p, i) =>
+      p.toLowerCase() === query.toLowerCase()
+        ? <mark key={i} style={{ background:'#f59e0b', color:'#000', borderRadius:'2px', padding:'0 1px' }}>{p}</mark>
+        : p
+    );
+  }
+
   function renderMessages() {
     const items = [];
     let lastDate = null;
     const isConvRead = readConvs.has(activeConv?.id);
+    const searchMatches = chatSearch.trim()
+      ? messages.filter(m => m.text?.toLowerCase().includes(chatSearch.toLowerCase()))
+      : [];
+    const focusedMsgId = searchMatches[chatSearchIdx % (searchMatches.length || 1)]?.id;
+
     messages.forEach((msg, i) => {
       const label = formatDateLabel(msg.createdAt);
       if (label !== lastDate) {
@@ -735,8 +768,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         items.push(<div key={`date-${i}`} className="msg-date-sep"><span>{label}</span></div>);
       }
       const isOwn = msg.senderId === user.uid;
+      const isFocused = msg.id === focusedMsgId;
       items.push(
-        <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}>
+        <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}
+          ref={isFocused ? el => el?.scrollIntoView({ behavior:'smooth', block:'center' }) : null}>
           {!isOwn && activeConv.isGroup && <div className="msg-sender">{msg.senderName}</div>}
           <div className="msg-bubble-wrap">
             {msg.replyTo && (
@@ -745,8 +780,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                 <span className="msg-reply-text">{msg.replyTo.text}</span>
               </div>
             )}
-            <div className="msg-bubble">{msg.text}</div>
-            <button className="msg-reply-btn" onClick={() => { setReplyTo({ id: msg.id, text: msg.text, senderName: msg.senderName }); textareaRef.current?.focus(); }}>↩</button>
+            <div className="msg-bubble" style={isFocused ? { outline:'2px solid #f59e0b', outlineOffset:'2px' } : {}}>
+              {chatSearch.trim() ? highlightText(msg.text || '', chatSearch) : msg.text}
+            </div>
+            <button className="msg-reply-btn" onClick={() => { setReplyTo({ id: msg.id, text: msg.text, senderName: msg.senderName }); textareaRef.current?.focus(); }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+            </button>
           </div>
           <div className="msg-time">
             {formatTime(msg.createdAt)}
@@ -987,8 +1026,45 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                 {activeConv.isGroup && (
                   <button className="icon-btn" onClick={() => setShowGroupInfo(true)} title="Groepsinformatie">👥</button>
                 )}
+                <button className="icon-btn" onClick={() => { setShowChatSearch(s => !s); setChatSearch(''); setChatSearchIdx(0); setTimeout(() => chatSearchRef.current?.focus(), 50); }} title="Zoeken">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                </button>
               </div>
             </div>
+
+            {/* ── ZOEKBALK IN GESPREK ── */}
+            {showChatSearch && (() => {
+              const matches = messages.filter(m => m.text?.toLowerCase().includes(chatSearch.toLowerCase()) && chatSearch.trim());
+              const total   = matches.length;
+              const current = total > 0 ? chatSearchIdx % total : 0;
+              return (
+                <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'8px 16px', background:'var(--surface)', borderBottom:'1px solid var(--border)' }}>
+                  <input
+                    ref={chatSearchRef}
+                    value={chatSearch}
+                    onChange={e => { setChatSearch(e.target.value); setChatSearchIdx(0); }}
+                    placeholder="Zoeken in gesprek…"
+                    style={{ flex:1, background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:'8px', padding:'7px 12px', color:'var(--text)', fontSize:'14px', outline:'none' }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') setChatSearchIdx(i => (i + 1) % (total || 1));
+                      if (e.key === 'Escape') { setShowChatSearch(false); setChatSearch(''); }
+                    }}
+                  />
+                  {chatSearch.trim() && (
+                    <span style={{ fontSize:'13px', color:'var(--text3)', whiteSpace:'nowrap' }}>
+                      {total === 0 ? 'Geen resultaten' : `${current + 1} / ${total}`}
+                    </span>
+                  )}
+                  {total > 1 && (
+                    <>
+                      <button className="icon-btn" style={{ width:'30px', height:'30px' }} onClick={() => setChatSearchIdx(i => (i - 1 + total) % total)}>↑</button>
+                      <button className="icon-btn" style={{ width:'30px', height:'30px' }} onClick={() => setChatSearchIdx(i => (i + 1) % total)}>↓</button>
+                    </>
+                  )}
+                  <button className="icon-btn" style={{ width:'30px', height:'30px' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}>✕</button>
+                </div>
+              );
+            })()}
 
             <div className="messages-area" ref={msgsAreaRef}>
               {/* Meer berichten laden (5) */}

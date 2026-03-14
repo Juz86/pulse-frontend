@@ -69,14 +69,16 @@ export default function AuthScreen() {
     setResetMsg('');
     setResetLoading(true);
     try {
-      await sendPasswordResetEmail(auth, resetEmail.trim());
+      const res = await fetch(`${BACKEND}/api/send-reset`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail.trim(), actionUrl: window.location.origin }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Versturen mislukt.');
       setResetMsg('E-mail verstuurd! Controleer je inbox.');
     } catch (err) {
-      const msg = {
-        'auth/user-not-found': 'Geen account gevonden met dit e-mailadres.',
-        'auth/invalid-email':  'Ongeldig e-mailadres.',
-      }[err.code] || err.message;
-      setResetMsg('⚠️ ' + msg);
+      setResetMsg('⚠️ ' + err.message);
     } finally {
       setResetLoading(false);
     }

@@ -114,7 +114,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
 
   socket.once('call:ended',    () => { clearTimeout(callTimeout); onEnd?.(); cleanupCall(stream); });
   socket.once('call:declined', () => { clearTimeout(callTimeout); onEnd?.('declined'); cleanupCall(stream); });
-  socket.once('call:unavailable', () => { clearTimeout(callTimeout); alert('Gebruiker is niet beschikbaar of offline.'); onEnd?.(); cleanupCall(stream); });
+  socket.once('call:unavailable', () => { clearTimeout(callTimeout); onEnd?.('unavailable'); cleanupCall(stream); });
 
   return stream;
 }

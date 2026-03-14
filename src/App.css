@@ -94,7 +94,7 @@ body {
 .auth-title {
   font-family:'Syne',sans-serif; font-size:18px; font-weight:800; margin-bottom:6px; white-space:nowrap;
   color: var(--text);
-  letter-spacing:-.3px; line-height:1.4;
+  letter-spacing:-.3px; line-height:1.5; padding-bottom:2px;
 }
 .auth-sub {
   font-size:13px; color:var(--text3); margin-bottom:28px;
@@ -155,7 +155,7 @@ body {
   font-family:'Syne',sans-serif; font-size:15px; font-weight:700;
   cursor:pointer; transition:.22s; margin-top:6px;
   box-shadow:0 6px 20px rgba(108,99,255,.5), 0 0 0 1px rgba(168,85,247,.2);
-  position:relative; overflow:hidden; letter-spacing:.3px;
+  position:relative; overflow:visible; letter-spacing:.3px; line-height:1.4;
 }
 .btn-primary::after {
   content:''; position:absolute; top:0; left:0; right:0; height:50%;
@@ -284,7 +284,7 @@ body {
 
 .conv-call-wrap { position:relative; flex-shrink:0; }
 .conv-action-btn {
-  width:38px; height:38px; border-radius:11px;
+  width:40px; height:40px; border-radius:12px;
   border:1px solid rgba(108,99,255,.35); background:rgba(108,99,255,.14);
   color:var(--accent); font-size:17px; cursor:pointer;
   display:flex; align-items:center; justify-content:center;
@@ -344,7 +344,7 @@ body {
 }
 
 .icon-btn {
-  width:38px; height:38px; border-radius:11px;
+  width:40px; height:40px; border-radius:12px;
   border:1px solid rgba(255,255,255,.1);
   background:var(--surface2); color:var(--text);
   display:flex; align-items:center; justify-content:center;
@@ -499,7 +499,7 @@ body {
 }
 .msg-group.out .msg-reply-btn { left:-32px; }
 .msg-group.in  .msg-reply-btn { right:-32px; }
-.msg-bubble-wrap:hover .msg-reply-btn { display:flex; }
+.msg-group:hover .msg-reply-btn { display:flex; }
 
 .msg-reply-quote {
   background:rgba(108,99,255,.15); border-left:3px solid var(--accent);
@@ -689,8 +689,7 @@ body {
 }
 .modal-title {
   font-family:'Syne',sans-serif; font-size:22px; font-weight:800; margin-bottom:20px;
-  background:linear-gradient(135deg,var(--text),var(--text2));
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  color: var(--text); line-height:1.4; padding-bottom:2px;
 }
 .modal-sub {
   font-size:13px; color:var(--text3); margin-bottom:20px;
@@ -787,6 +786,7 @@ body {
   letter-spacing:.3px; font-family:'DM Sans',sans-serif;
 }
 .blink { animation:blink 1.5s infinite; }
+.call-status-error { color:#ff5f5f; font-weight:500; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
 
 .call-controls {
@@ -903,3 +903,6 @@ body {
   .modal-box  { padding:24px 16px; }
   .call-card  { width:calc(100vw - 32px); padding:36px 28px; }
 }
+
+/* ── Zoeken in gesprek ── */
+.chat-search-bar input:focus { border-color: var(--accent) !important; }

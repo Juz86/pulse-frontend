@@ -1,6 +1,6 @@
 // src/components/CallOverlay.js
 import React, { useEffect, useRef, useState } from 'react';
-import { answerCall, declineCall, endCall } from '../services/socket';
+import { answerCall, declineCall, endCall, upgradeToVideo } from '../services/socket';
 
 export default function CallOverlay({ incoming, active, user, onClose, onEnd }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
@@ -8,6 +8,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   const [timer,        setTimer]        = useState(0);
   const [muted,        setMuted]        = useState(false);
   const [camOff,       setCamOff]       = useState(false);
+  const [videoUpgraded, setVideoUpgraded] = useState(false);
 
   const localVideoRef  = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -76,6 +77,15 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
     if (videoTrack) { videoTrack.enabled = camOff; setCamOff(!camOff); }
   }
 
+  async function handleUpgradeToVideo() {
+    const videoStream = await upgradeToVideo();
+    if (videoStream) {
+      localStreamRef.current = videoStream;
+      if (localVideoRef.current) localVideoRef.current.srcObject = videoStream;
+      setVideoUpgraded(true);
+    }
+  }
+
   function formatTimer(s) {
     return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
   }
@@ -131,7 +141,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
 
   useEffect(() => () => cleanup(), []);
 
-  const isVideo   = incoming?.isVideo || active?.isVideo;
+  const isVideo   = incoming?.isVideo || active?.isVideo || videoUpgraded;
   const callName  = incoming?.callerName || active?.name || 'Contactpersoon';
 
   return (
@@ -179,6 +189,11 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
               {isVideo && (
                 <button className={`call-ctrl-btn cam ${camOff ? 'on' : ''}`} onClick={toggleCam}>
                   {camOff ? '📵' : '📷'}<span>Camera</span>
+                </button>
+              )}
+              {!isVideo && callState === 'active' && (
+                <button className="call-ctrl-btn cam" onClick={handleUpgradeToVideo}>
+                  📹<span>Video</span>
                 </button>
               )}
               <button className="call-ctrl-btn end" onClick={handleEnd}>📵<span>Ophangen</span></button>

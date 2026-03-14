@@ -26,6 +26,7 @@ const ICE_SERVERS = METERED_KEY ? [
 let socket     = null;
 let peer       = null;
 let iceHandler = null;
+let callPeer   = null; // bewaar de remote uid voor renegotiatie
 
 // ── Socket verbinden ──────────────────────────────────────────────────────────
 export function connectSocket(uid) {
@@ -72,6 +73,8 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
     return null;
   }
 
+  callPeer = toUid;
+
   peer = new SimplePeer({
     initiator: true,
     trickle: true,
@@ -79,16 +82,24 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
     config: { iceServers: ICE_SERVERS }
   });
 
+  let callActive = false;
+
   peer.on('signal', (data) => {
-    if (data.type === 'offer') {
+    if (data.type === 'offer' && !callActive) {
       console.log('📞 call:offer → toUid:', toUid, '| fromUid:', fromUid);
       socket.emit('call:offer', { to: toUid, from: fromUid, offer: data, isVideo, callerName });
+    } else if (data.type === 'offer' && callActive) {
+      // Renegotiatie (bijv. video upgraden)
+      socket.emit('call:renegotiate', { to: toUid, signal: data });
+    } else if (data.type === 'answer') {
+      socket.emit('call:renegotiate', { to: toUid, signal: data });
     } else {
       socket.emit('call:ice-candidate', { to: toUid, candidate: data });
     }
   });
 
   peer.on('stream', (remoteStream) => {
+    callActive = true;
     onStream?.(remoteStream, stream);
   });
 
@@ -112,12 +123,16 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   // Ontvang het antwoord
   socket.once('call:answer', ({ answer }) => {
     clearTimeout(callTimeout);
+    callActive = true;
     peer?.signal(answer);
   });
 
   // ICE candidates ontvangen
   iceHandler = ({ candidate }) => { peer?.signal(candidate); };
   socket.on('call:ice-candidate', iceHandler);
+
+  // Renegotiatie ontvangen
+  socket.on('call:renegotiate', ({ signal }) => { peer?.signal(signal); });
 
   socket.once('call:ended',    () => { clearTimeout(callTimeout); fireOnEnd(); cleanupCall(stream); });
   socket.once('call:declined', () => { clearTimeout(callTimeout); fireOnEnd('declined'); cleanupCall(stream); });
@@ -142,6 +157,8 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd }) {
     return null;
   }
 
+  callPeer = fromUid;
+
   peer = new SimplePeer({
     initiator: false,
     trickle: true,
@@ -153,6 +170,8 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd }) {
   peer.on('signal', (data) => {
     if (data.type === 'answer') {
       socket.emit('call:answer', { to: fromUid, answer: data });
+    } else if (data.type === 'offer') {
+      socket.emit('call:renegotiate', { to: fromUid, signal: data });
     } else {
       socket.emit('call:ice-candidate', { to: fromUid, candidate: data });
     }
@@ -168,6 +187,9 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd }) {
   iceHandler = ({ candidate }) => { peer?.signal(candidate); };
   socket.on('call:ice-candidate', iceHandler);
 
+  // Renegotiatie ontvangen
+  socket.on('call:renegotiate', ({ signal }) => { peer?.signal(signal); });
+
   socket.once('call:ended', () => { onEnd?.(); cleanupCall(stream); });
 
   return stream;
@@ -182,9 +204,27 @@ export function declineCall(fromUid) {
   socket?.emit('call:decline', { to: fromUid });
 }
 
+// ── Video upgraden tijdens actief gesprek ─────────────────────────────────────
+export async function upgradeToVideo() {
+  if (!peer) return null;
+  try {
+    const videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+    });
+    const videoTrack = videoStream.getVideoTracks()[0];
+    peer.addTrack(videoTrack, videoStream);
+    return videoStream;
+  } catch (e) {
+    console.error('Video upgraden mislukt:', e);
+    return null;
+  }
+}
+
 function cleanupCall(stream) {
   peer?.destroy();
   peer = null;
+  callPeer = null;
   stream?.getTracks().forEach(t => t.stop());
   if (iceHandler) { socket?.off('call:ice-candidate', iceHandler); iceHandler = null; }
+  socket?.off('call:renegotiate');
 }

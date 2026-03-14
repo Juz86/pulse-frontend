@@ -316,6 +316,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     setActiveConv(conv);
     activeConvRef.current = conv; // direct updaten zodat socket events meteen de juiste conv kennen
     setActiveTab('chats');
+    setShowChatSearch(false);
+    setChatSearch('');
     setMessages([]);
     setMsgOffset(0);
     setHasMore(false);
@@ -1074,12 +1076,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             </div>
 
             {/* ── ZOEKBALK IN GESPREK ── */}
-            {showChatSearch && (() => {
+            {(() => {
               const matches = messages.filter(m => m.text?.toLowerCase().includes(chatSearch.toLowerCase()) && chatSearch.trim());
               const total   = matches.length;
               const current = total > 0 ? chatSearchIdx % total : 0;
               return (
-                <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'8px 16px', background:'var(--surface)', borderBottom:'1px solid var(--border)' }}>
+                <div className={`chat-search-bar${showChatSearch ? ' visible' : ''}`}>
                   <input
                     ref={chatSearchRef}
                     value={chatSearch}
@@ -1102,12 +1104,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                       <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setChatSearchIdx(i => (i + 1) % total)}>↓</button>
                     </>
                   )}
-                  <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}>✕</button>
+                  <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', paddingTop:'5px' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}>✕</button>
                 </div>
               );
             })()}
 
-            <div className="messages-area" ref={msgsAreaRef}>
+            <div className="messages-area" ref={msgsAreaRef} onClick={() => { if (showChatSearch) { setShowChatSearch(false); setChatSearch(''); } }}>
               {/* Meer berichten laden (5) */}
               {hasMore && (
                 <div style={{ textAlign:'center', padding:'8px 0' }}>

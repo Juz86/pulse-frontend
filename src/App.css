@@ -923,4 +923,16 @@ body {
 }
 
 /* ── Zoeken in gesprek ── */
+.chat-search-bar {
+  display:flex; align-items:center; gap:8px;
+  padding:0 16px; background:var(--surface); borderBottom:1px solid var(--border);
+  max-height:0; opacity:0; overflow:hidden;
+  transition: max-height .25s ease, opacity .25s ease, padding .25s ease;
+  pointer-events:none;
+}
+.chat-search-bar.visible {
+  max-height:60px; opacity:1; padding:8px 16px;
+  border-bottom:1px solid var(--border);
+  pointer-events:all;
+}
 .chat-search-bar input:focus { border-color: var(--accent) !important; }

@@ -59,6 +59,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   // Reply
   const [replyTo, setReplyTo] = useState(null); // { id, text, senderName }
 
+  // Bel-dropdown in conv-list
+  const [callDropdown, setCallDropdown] = useState(null); // convId
+
   // Groep aanmaken
   const [showNewGroup,   setShowNewGroup]   = useState(false);
   const [groupName,      setGroupName]      = useState('');
@@ -221,6 +224,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       socket.off('friend:accepted',  onFriendAccepted);
     };
   }, [socket, loadConversations, loadContacts]);
+
+  // Sluit call dropdown bij klik buiten
+  useEffect(() => {
+    if (!callDropdown) return;
+    const close = () => setCallDropdown(null);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [callDropdown]);
 
   // ── Escape sluit modals ───────────────────────────────────────────────────
   useEffect(() => {
@@ -744,6 +755,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                     <div className="conv-preview">{conv.lastMessage || 'Start een gesprek…'}</div>
                   </div>
                   {unread > 0 && <span className="unread-badge">{unread}</span>}
+                  {!conv.isGroup && (
+                    <div className="conv-call-wrap" onClick={e => e.stopPropagation()}>
+                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); setCallDropdown(callDropdown === conv.id ? null : conv.id); }} title="Bellen">📞</button>
+                      {callDropdown === conv.id && (
+                        <div className="conv-call-dropdown">
+                          <button onClick={() => { setCallDropdown(null); openConversation(conv); setTimeout(() => initiateCall(false), 100); }}>📞 Bellen</button>
+                          <button onClick={() => { setCallDropdown(null); openConversation(conv); setTimeout(() => initiateCall(true), 100); }}>📹 Videobellen</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <button className="conv-delete-btn" onClick={e => deleteConversation(e, conv.id)} title="Verwijderen">🗑️</button>
                 </div>
               );

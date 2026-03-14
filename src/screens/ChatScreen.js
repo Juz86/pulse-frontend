@@ -168,6 +168,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       const current = activeConvRef.current;
       if (current?.id === msg.convId) {
         setMessages(prev => {
+          // Vervang pending call bericht met het bevestigde bericht
+          if (msg.type === 'call') {
+            const callPendingIdx = prev.findIndex(m => m.pending && m.type === 'call' && m.senderId === msg.senderId);
+            if (callPendingIdx !== -1) {
+              const next = [...prev];
+              next[callPendingIdx] = { ...msg, pending: false };
+              return next;
+            }
+            if (prev.some(m => m.id && m.id === msg.id)) return prev;
+            return [...prev, msg];
+          }
           // Vervang pending (optimistic) bericht als het van onszelf komt
           const pendingIdx = prev.findIndex(m => m.pending && m.senderId === msg.senderId && m.text === msg.text);
           if (pendingIdx !== -1) {
@@ -705,10 +716,26 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   function sendCallMessage({ isVideo, direction, duration }) {
     const convId = callConvIdRef.current;
     if (!socket || !convId) return;
+    // Zorg dat socket in de kamer zit zodat message:received terugkomt
+    socket.emit('conversation:join', { convId });
+    // Voeg bericht optimistisch toe zodat de beller het direct ziet
+    if (activeConvRef.current?.id === convId) {
+      const optimistic = {
+        id: `call-pending-${Date.now()}`,
+        convId, type: 'call', isVideo, direction, duration: duration || 0,
+        senderId: user.uid, senderName: user.displayName || user.email,
+        createdAt: new Date().toISOString(), pending: true,
+      };
+      setMessages(prev => [...prev, optimistic]);
+      setTimeout(() => {
+        if (msgsAreaRef.current) msgsAreaRef.current.scrollTo({ top: msgsAreaRef.current.scrollHeight, behavior: 'smooth' });
+      }, 50);
+    }
     socket.emit('call:log', {
       convId, isVideo, direction, duration: duration || 0,
       senderId: user.uid, senderName: user.displayName || user.email,
     });
+    loadConversations();
   }
 
   // ── Bellen vanuit oproepen-modal ─────────────────────────────────────────

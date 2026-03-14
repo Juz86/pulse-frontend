@@ -6,7 +6,7 @@ import { doc, setDoc, getDoc, collection, getDocs, deleteDoc } from 'firebase/fi
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
-import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, User, PhoneCall, PhoneOutgoing } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, User, PhoneCall, PhoneOutgoing, Share } from '../components/Icons';
 
 const MSG_LIMIT = 30;
 
@@ -61,6 +61,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
 
   // Contact hernoemen
   const [renamingContact, setRenamingContact] = useState(null); // { uid, name }
+  const [sharingContact,  setSharingContact]  = useState(null); // contact to share
   const [renameValue,     setRenameValue]     = useState('');
 
   // Contact profiel bekijken (vanuit contactenlijst)
@@ -713,6 +714,22 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     return conversations.find(conv => !conv.isGroup && conv.members?.includes(uid) && conv.members?.includes(user.uid));
   }
 
+  function sendContactCard(toContact, sharedContact) {
+    const conv = findConvWithUid(toContact.uid);
+    if (!conv || !socket) return;
+    socket.emit('conversation:join', { convId: conv.id });
+    const msg = {
+      convId:        conv.id,
+      senderId:      user.uid,
+      senderName:    user.displayName || user.email,
+      type:          'contact',
+      sharedContact: { uid: sharedContact.uid, name: getContactDisplayName(sharedContact), email: sharedContact.email || '' },
+      createdAt:     new Date().toISOString(),
+    };
+    socket.emit('message:send', { convId: conv.id, message: msg });
+    setSharingContact(null);
+  }
+
   function sendCallMessage({ isVideo, direction, duration }) {
     const convId = callConvIdRef.current;
     if (!socket || !convId) return;
@@ -938,6 +955,25 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       const isFocused = msg.id === focusedMsgId;
 
       // ── Call berichten ──
+      if (msg.type === 'contact') {
+        const sc = msg.sharedContact || {};
+        items.push(
+          <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}>
+            <div className="msg-call-card" style={{ cursor:'default' }}>
+              <div className="msg-call-icon incoming">
+                <User size={20} />
+              </div>
+              <div className="msg-call-info">
+                <div className="msg-call-label">{sc.name || 'Contactpersoon'}</div>
+                {sc.email && <div className="msg-call-sub">{sc.email}</div>}
+              </div>
+              <div className="msg-call-time">{formatTime(msg.createdAt)}</div>
+            </div>
+          </div>
+        );
+        return;
+      }
+
       if (msg.type === 'call') {
         const isMissed   = !isOwn && (msg.direction === 'no-answer' || msg.direction === 'declined');
         const durSec     = msg.duration || 0;
@@ -1154,10 +1190,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                 </div>
                 <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)' }} />
                 <div style={{ display: 'flex', gap: '6px' }}>
-                  <button className="icon-btn" onClick={() => setViewingContact(contact)} title="Profiel bekijken" style={{ flex:1, justifyContent:'center' }}>
+                  <button className="icon-btn" onClick={() => { setViewingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName); }} title="Profiel bekijken" style={{ flex:1, justifyContent:'center' }}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z"/></svg>
                   </button>
-                  <button className="icon-btn" onClick={() => { setRenamingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName); }} title="Naam wijzigen" style={{ flex:1, justifyContent:'center' }}><MagicEdit size={18} /></button>
+                  <button className="icon-btn" onClick={() => setSharingContact(contact)} title="Contactpersoon delen" style={{ flex:1, justifyContent:'center' }}><Share size={18} /></button>
                   <button className="icon-btn" onClick={() => startChatWithContact(contact)} title="Stuur bericht" style={{ flex:1, justifyContent:'center' }}><Message size={16} /></button>
                   <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen" style={{ flex:1 }}><Phone size={16} /></button>
                   <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen" style={{ flex:1 }}><Video size={16} /></button>
@@ -1197,11 +1233,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
           <>
             <div className="chat-header">
               <button className="back-btn" onClick={() => setActiveConv(null)} title="Terug">←</button>
-              <div className="avatar-wrap" style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }} onClick={() => { if (!activeConv.isGroup) setShowContactProfile(true); }}>
+              <div className="avatar-wrap" style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }} onClick={() => { if (!activeConv.isGroup) { const otherUid = getOtherUid(activeConv); setRenameValue(getContactNickname(otherUid) || getConvName(activeConv)); setShowContactProfile(true); } }}>
                 <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm" />
                 {getOtherUid(activeConv) && onlineUsers.has(getOtherUid(activeConv)) && <span className="online-dot sm" />}
               </div>
-              <div className="chat-header-info" style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }} onClick={() => { if (!activeConv.isGroup) setShowContactProfile(true); }}>
+              <div className="chat-header-info" style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }} onClick={() => { if (!activeConv.isGroup) { const otherUid = getOtherUid(activeConv); setRenameValue(getContactNickname(otherUid) || getConvName(activeConv)); setShowContactProfile(true); } }}>
                 <div className="chat-header-name">{getConvName(activeConv)}</div>
                 {typing
                   ? <div className="chat-header-typing">● {typingName} typt…</div>
@@ -1323,6 +1359,38 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         </div>
       )}
 
+      {/* ── CONTACTPERSOON DELEN ── */}
+      {sharingContact && (
+        <div className="modal-overlay" onClick={() => setSharingContact(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:360 }}>
+            <h3 className="modal-title"><Share size={18} /> Contactpersoon delen</h3>
+            <div style={{ marginBottom:'12px', padding:'10px 14px', borderRadius:'10px', background:'var(--surface2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', gap:'10px' }}>
+              <div className="avatar sm">{getInitials(getContactDisplayName(sharingContact))}</div>
+              <div>
+                <div style={{ fontWeight:600, fontSize:'14px' }}>{getContactDisplayName(sharingContact)}</div>
+                <div style={{ fontSize:'12px', color:'var(--text3)' }}>{sharingContact.email}</div>
+              </div>
+            </div>
+            <div style={{ fontSize:'13px', color:'var(--text3)', marginBottom:'10px' }}>Stuur naar:</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:'6px', maxHeight:'260px', overflowY:'auto' }}>
+              {contacts.filter(c => c.uid !== sharingContact.uid).map(c => (
+                <button key={c.uid} className="contact-row" style={{ background:'none', border:'1px solid var(--border)', borderRadius:'10px', padding:'10px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'10px', color:'var(--text)', textAlign:'left' }}
+                  onClick={() => sendContactCard(c, sharingContact)}>
+                  <div className="avatar sm">{getInitials(getContactDisplayName(c))}</div>
+                  <div>
+                    <div style={{ fontWeight:500, fontSize:'14px' }}>{getContactDisplayName(c)}</div>
+                    <div style={{ fontSize:'12px', color:'var(--text3)' }}>{c.email}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="modal-actions" style={{ marginTop:'14px' }}>
+              <button className="btn-secondary" onClick={() => setSharingContact(null)}>Annuleren</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── CONTACT PROFIEL ── */}
       {viewingContact && (
         <div className="modal-overlay" onClick={() => setViewingContact(null)}>
@@ -1336,7 +1404,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             </div>
             <div className="form-group">
               <label className="form-label">Naam</label>
-              <input className="form-input" value={getContactDisplayName(viewingContact)} disabled style={{ opacity:.7 }} />
+              <div style={{ position:'relative' }}>
+                <input className="form-input" value={renameValue} onChange={e => setRenameValue(e.target.value)} placeholder={viewingContact.displayName} style={{ paddingRight:'36px' }} />
+                <span style={{ position:'absolute', right:'10px', top:'50%', transform:'translateY(-50%)', color:'var(--text3)', pointerEvents:'none' }}><MagicEdit size={22} /></span>
+              </div>
             </div>
             <div className="form-group">
               <label className="form-label">E-mailadres</label>
@@ -1351,6 +1422,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             </div>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setViewingContact(null)}>Sluiten</button>
+              <button className="btn-primary" style={{ flex:1 }} onClick={() => { saveContactNickname(viewingContact.uid, renameValue); setContacts(prev => [...prev]); setViewingContact(null); }}>Opslaan</button>
             </div>
           </div>
         </div>
@@ -1526,7 +1598,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
               </div>
               <div className="form-group">
                 <label className="form-label">Naam</label>
-                <input className="form-input" value={name} disabled style={{ opacity:.7 }} />
+                <div style={{ position:'relative' }}>
+                  <input className="form-input" value={renameValue} onChange={e => setRenameValue(e.target.value)} placeholder={name} style={{ paddingRight:'36px' }} />
+                  <span style={{ position:'absolute', right:'10px', top:'50%', transform:'translateY(-50%)', color:'var(--text3)', pointerEvents:'none' }}><MagicEdit size={22} /></span>
+                </div>
               </div>
               {email && (
                 <div className="form-group">
@@ -1543,6 +1618,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
               </div>
               <div className="modal-actions">
                 <button className="btn-secondary" onClick={() => setShowContactProfile(false)}>Sluiten</button>
+                <button className="btn-primary" style={{ flex:1 }} onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
               </div>
             </div>
           </div>

@@ -25,3 +25,4 @@ export { MdDelete        as Delete }        from 'react-icons/md';
 export { MdClose         as Cancel }        from 'react-icons/md';
 export { MdEdit          as MagicEdit }     from 'react-icons/md';
 export { MdLogout        as Logout }        from 'react-icons/md';
+export { MdShare         as Share }         from 'react-icons/md';

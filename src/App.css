@@ -236,7 +236,7 @@ body {
 .search-box input::placeholder { color:var(--text3); }
 
 .sidebar-tabs { display:flex; background:var(--surface2); border-radius:14px; padding:5px; margin:12px 18px; gap:5px; border:1px solid var(--border); }
-.sidebar-tab  { flex:1; padding:10px 8px; border-radius:10px; border:none; background:transparent; color:var(--text2); font-size:13px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; transition:all .2s ease; letter-spacing:0.2px; }
+.sidebar-tab  { flex:1; padding:10px 8px; border-radius:10px; border:none; background:transparent; color:var(--text2); font-size:13px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; transition:all .2s ease; letter-spacing:0.2px; display:flex; align-items:center; justify-content:center; gap:6px; }
 .sidebar-tab:hover  { color:var(--text); background:rgba(108,99,255,0.08); }
 .sidebar-tab.active { background:linear-gradient(135deg, #7c6fff, #a855f7); color:#fff; font-weight:700; box-shadow:0 4px 16px rgba(108,99,255,.5), 0 0 0 1px rgba(168,85,247,.2); }
 

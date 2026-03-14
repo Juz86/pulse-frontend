@@ -974,8 +974,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                   {unread > 0 && <span className="unread-badge">{unread}</span>}
                   {!conv.isGroup && (
                     <>
-                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, false); }} title="Bellen"><Phone size={16} /></button>
-                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, true); }} title="Videobellen"><Video size={16} /></button>
+                      <button className="call-btn voice" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, false); }} title="Bellen"><Phone size={16} /></button>
+                      <button className="call-btn video" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, true); }} title="Videobellen"><Video size={16} /></button>
                     </>
                   )}
                   <button className="conv-delete-btn" onClick={e => deleteConversation(e, conv.id)} title="Verwijderen"><Delete size={16} /></button>
@@ -1050,7 +1050,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z"/></svg>
                   </button>
                   <button className="icon-btn" onClick={() => { setRenamingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName); }} title="Naam wijzigen" style={{ flex:1, justifyContent:'center' }}><MagicEdit size={18} /></button>
-                  <button className="call-btn voice" onClick={() => startChatWithContact(contact)} title="Stuur bericht" style={{ flex:1 }}><Message size={16} /></button>
+                  <button className="icon-btn" onClick={() => startChatWithContact(contact)} title="Stuur bericht" style={{ flex:1, justifyContent:'center' }}><Message size={16} /></button>
                   <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen" style={{ flex:1 }}><Phone size={16} /></button>
                   <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen" style={{ flex:1 }}><Video size={16} /></button>
                   <button className="icon-btn" onClick={() => removeContact(contact.uid)} title="Verwijderen" style={{ flex:1, justifyContent:'center', color: 'var(--danger)' }}><Delete size={18} /></button>

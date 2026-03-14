@@ -32,6 +32,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   const [contacts,         setContacts]         = useState([]);
   const [showAddContact,   setShowAddContact]   = useState(false);
   const [contactEmail,     setContactEmail]     = useState('');
+  const [contactNickname,  setContactNickname]  = useState('');
   const [contactErr,       setContactErr]       = useState('');
   const [contactLoading,   setContactLoading]   = useState(false);
   const [friendRequests,   setFriendRequests]   = useState([]);
@@ -55,6 +56,21 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
 
   // Bevestigingsdialoog
   const [confirmDialog, setConfirmDialog] = useState(null); // { message, onConfirm }
+
+  // Contact hernoemen
+  const [renamingContact, setRenamingContact] = useState(null); // { uid, name }
+  const [renameValue,     setRenameValue]     = useState('');
+
+  function getContactNickname(uid) {
+    return localStorage.getItem(`pulse_nick_${uid}`) || null;
+  }
+  function saveContactNickname(uid, name) {
+    if (name.trim()) localStorage.setItem(`pulse_nick_${uid}`, name.trim());
+    else localStorage.removeItem(`pulse_nick_${uid}`);
+  }
+  function getContactDisplayName(contact) {
+    return getContactNickname(contact.uid) || contact.displayName;
+  }
 
   // Reply
   const [replyTo, setReplyTo] = useState(null); // { id, text, senderName }
@@ -398,9 +414,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       });
       const data = await res.json();
       if (!res.ok) { setContactErr(data.error || 'Fout bij verzenden'); return; }
-      setContactEmail('');
+      // Sla bijnaam op zodat die zichtbaar is zodra verzoek geaccepteerd wordt
+      if (contactNickname.trim() && data.toUid) {
+        saveContactNickname(data.toUid, contactNickname.trim());
+      }
+      setContactEmail(''); setContactNickname('');
       setShowAddContact(false);
-      setContactSuccess('Vriendschapsverzoek verzonden!');
+      setContactSuccess('Uitnodiging verzonden!');
       setTimeout(() => setContactSuccess(''), 4000);
     } catch (e) { console.error('addContact fout:', e); setContactErr('Verbindingsfout'); }
     finally { setContactLoading(false); }
@@ -843,9 +863,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                     {onlineUsers.has(contact.uid) && <span className="online-dot" />}
                   </div>
                   <div className="conv-info">
-                    <div className="conv-name">{contact.displayName}</div>
+                    <div className="conv-name">{getContactDisplayName(contact)}</div>
                     <div className="conv-preview">{contact.email}</div>
                   </div>
+                  <button className="icon-btn" onClick={() => { setRenamingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName); }} title="Naam wijzigen">✏️</button>
                 </div>
                 <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)' }} />
                 <div style={{ display: 'flex', gap: '6px', paddingLeft: '50px' }}>
@@ -951,6 +972,30 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         )}
       </main>
 
+      {/* ── CONTACT HERNOEMEN ── */}
+      {renamingContact && (
+        <div className="modal-overlay" onClick={() => setRenamingContact(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:360 }}>
+            <h3 className="modal-title">✏️ Naam wijzigen</h3>
+            <div className="form-group">
+              <label className="form-label">Bijnaam</label>
+              <input
+                className="form-input"
+                value={renameValue}
+                onChange={e => setRenameValue(e.target.value)}
+                placeholder={renamingContact.displayName}
+                autoFocus
+                onKeyDown={e => { if (e.key === 'Enter') { saveContactNickname(renamingContact.uid, renameValue); setRenamingContact(null); setContacts(prev => [...prev]); } }}
+              />
+            </div>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setRenamingContact(null)}>Annuleren</button>
+              <button className="btn-primary" onClick={() => { saveContactNickname(renamingContact.uid, renameValue); setRenamingContact(null); setContacts(prev => [...prev]); }}>Opslaan</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── BEVESTIGINGSDIALOOG ── */}
       {confirmDialog && (
         <div className="modal-overlay" onClick={() => setConfirmDialog(null)}>
@@ -971,11 +1016,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             <h3 className="modal-title">👥 Vriend uitnodigen</h3>
             <p className="modal-sub">Voer het e-mailadres in van de persoon die je wilt uitnodigen</p>
             <div className="form-group">
+              <label className="form-label">E-mailadres</label>
               <input className="form-input" type="email" placeholder="naam@voorbeeld.nl" value={contactEmail} onChange={e => setContactEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && addContact()} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Bijnaam (optioneel)</label>
+              <input className="form-input" placeholder="Bijv. Papa, Mama, Werk…" value={contactNickname} onChange={e => setContactNickname(e.target.value)} onKeyDown={e => e.key === 'Enter' && addContact()} />
             </div>
             {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactErr(''); }}>Annuleren</button>
+              <button className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactErr(''); }}>Annuleren</button>
               <button className="btn-primary" style={{ flex: 1 }} onClick={addContact} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>
             </div>
           </div>
@@ -1133,7 +1183,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         return (
           <div className="modal-overlay" onClick={() => setShowCallModal(false)}>
             <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:420 }}>
-              <h3 className="modal-title">📞 Recente oproepen</h3>
+              <h3 className="modal-title">📞 Recent</h3>
               {callLog.length === 0 ? (
                 <div style={{ textAlign:'center', padding:'24px 0', color:'var(--text3)' }}>
                   <div style={{ fontSize:40, marginBottom:8 }}>📵</div>

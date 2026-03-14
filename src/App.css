@@ -200,7 +200,7 @@ body {
 
 /* ── SIDEBAR ── */
 .sidebar {
-  width:310px; min-width:310px;
+  width:360px; min-width:360px;
   background:var(--surface);
   border-right:1px solid var(--border);
   box-shadow:4px 0 24px rgba(0,0,0,.25);

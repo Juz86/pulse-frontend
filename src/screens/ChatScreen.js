@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { signOut, updateProfile as fbUpdateProfile } from 'firebase/auth';
 import { auth, db, storage } from '../firebase';
-import { doc, setDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
@@ -124,7 +124,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   const loadContacts = useCallback(async () => {
     try {
       const snap = await getDocs(collection(db, 'users', user.uid, 'contacts'));
-      setContacts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const raw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Haal actuele foto op uit het user-document van elk contact
+      const enriched = await Promise.all(raw.map(async (c) => {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', c.uid));
+          if (userDoc.exists() && userDoc.data().photoURL) {
+            return { ...c, photoURL: userDoc.data().photoURL };
+          }
+        } catch {}
+        return c;
+      }));
+      setContacts(enriched);
     } catch (e) { console.error(e); }
   }, [user.uid]);
 
@@ -872,6 +883,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
           <div className="sidebar-top">
             <div className="app-brand"><span className="brand-dot" />Pulse</div>
             <div style={{ display:'flex', gap:'6px' }}>
+              <button className="icon-btn" onClick={() => setShowNewChat(true)} title="Nieuw gesprek">💬</button>
               <button className="icon-btn" onClick={() => { setShowCallModal(true); setCallLogRead(true); onCallLogRead?.(); }} title="Oproepen" style={{ position:'relative' }}>
                 📞
                 {(!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert ? (
@@ -879,9 +891,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                 ) : null}
               </button>
               <button className="icon-btn" onClick={() => setShowNewGroup(true)} title="Nieuwe groep">👥</button>
-              <button className="icon-btn" onClick={() => setShowNewChat(true)} title="Nieuw gesprek">
-💬
-              </button>
             </div>
           </div>
           <div className="search-box">
@@ -931,15 +940,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                   </div>
                   {unread > 0 && <span className="unread-badge">{unread}</span>}
                   {!conv.isGroup && (
-                    <div className="conv-call-wrap" onClick={e => e.stopPropagation()}>
-                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); setCallDropdown(callDropdown === conv.id ? null : conv.id); }} title="Oproepen">📞</button>
-                      {callDropdown === conv.id && (
-                        <div className="conv-call-dropdown">
-                          <button onClick={() => { setCallDropdown(null); initiateCallFromConv(conv, false); }}>📞 Bellen</button>
-                          <button onClick={() => { setCallDropdown(null); initiateCallFromConv(conv, true); }}>📹 Videobellen</button>
-                        </div>
-                      )}
-                    </div>
+                    <>
+                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, false); }} title="Bellen">📞</button>
+                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, true); }} title="Videobellen">📹</button>
+                    </>
                   )}
                   <button className="conv-delete-btn" onClick={e => deleteConversation(e, conv.id)} title="Verwijderen">🗑️</button>
                 </div>
@@ -1069,7 +1073,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                 {!activeConv.isGroup && (
                   <>
                     <button className="call-btn voice" onClick={() => initiateCall(false)} title="Bellen">📞</button>
-                    <button className="call-btn video" onClick={() => initiateCall(true)} title="Videobellen">🎥</button>
+                    <button className="call-btn video" onClick={() => initiateCall(true)} title="Videobellen">📹</button>
                   </>
                 )}
                 {activeConv.isGroup && (

@@ -754,9 +754,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
       },
       onEnd: (reason) => {
-        const duration  = callStartTimeRef.current ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
+        const wasConnected = callStartTimeRef.current !== null;
+        const duration  = wasConnected ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
         callStartTimeRef.current = null;
-        sendCallMessage({ isVideo: callIsVideoRef.current, direction: !reason ? 'completed' : reason === 'declined' ? 'declined' : 'no-answer', duration });
+        const callDir = reason === 'declined' ? 'declined'
+          : (!wasConnected || reason === 'timeout' || reason === 'unavailable') ? 'no-answer'
+          : 'completed';
+        sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
         if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
           setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
         } else {
@@ -792,9 +796,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
       },
       onEnd: (reason) => {
-        const duration  = callStartTimeRef.current ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
+        const wasConnected = callStartTimeRef.current !== null;
+        const duration  = wasConnected ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
         callStartTimeRef.current = null;
-        sendCallMessage({ isVideo: callIsVideoRef.current, direction: !reason ? 'completed' : reason === 'declined' ? 'declined' : 'no-answer', duration });
+        const callDir = reason === 'declined' ? 'declined'
+          : (!wasConnected || reason === 'timeout' || reason === 'unavailable') ? 'no-answer'
+          : 'completed';
+        sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
         if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
           setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
         } else {
@@ -830,9 +838,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
       },
       onEnd: (reason) => {
-        const duration  = callStartTimeRef.current ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
+        const wasConnected = callStartTimeRef.current !== null;
+        const duration  = wasConnected ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
         callStartTimeRef.current = null;
-        sendCallMessage({ isVideo: callIsVideoRef.current, direction: !reason ? 'completed' : reason === 'declined' ? 'declined' : 'no-answer', duration });
+        const callDir = reason === 'declined' ? 'declined'
+          : (!wasConnected || reason === 'timeout' || reason === 'unavailable') ? 'no-answer'
+          : 'completed';
+        sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
         if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
           setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
         } else {

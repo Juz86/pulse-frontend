@@ -245,6 +245,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
 
     const onUserUpdated = ({ uid, displayName, photoURL }) => {
       setContacts(prev => prev.map(c => c.uid === uid ? { ...c, displayName: displayName || c.displayName, photoURL: photoURL || c.photoURL } : c));
+      if (displayName) {
+        setConversations(prev => prev.map(conv =>
+          conv.memberNames?.[uid] ? { ...conv, memberNames: { ...conv.memberNames, [uid]: displayName } } : conv
+        ));
+        setActiveConv(prev => prev?.memberNames?.[uid] ? { ...prev, memberNames: { ...prev.memberNames, [uid]: displayName } } : prev);
+      }
     };
 
     socket.on('connect',          onConnect);

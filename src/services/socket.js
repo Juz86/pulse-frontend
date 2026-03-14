@@ -57,7 +57,7 @@ export function disconnectSocket() {
 }
 
 // ── WebRTC Bellen ─────────────────────────────────────────────────────────────
-export async function startCall({ toUid, fromUid, callerName, isVideo, onStream, onEnd }) {
+export async function startCall({ toUid, fromUid, callerName, isVideo, onStream, onEnd, onVideoUpgrade }) {
   let stream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({
@@ -103,6 +103,20 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
     onStream?.(remoteStream, stream);
   });
 
+  // Nieuwe tracks na renegotiatie (video upgrade)
+  peer.on('track', (track, streams) => {
+    if (streams?.[0]) { callActive = true; onStream?.(streams[0], stream); }
+  });
+
+  // Remote vraagt video upgrade: eigen camera starten
+  socket.on('call:video-upgrade', async () => {
+    try {
+      const vs = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } });
+      peer.addTrack(vs.getVideoTracks()[0], vs);
+      onVideoUpgrade?.(vs);
+    } catch {}
+  });
+
   let callEnded = false;
   function fireOnEnd(reason) {
     if (callEnded) return;
@@ -141,7 +155,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   return stream;
 }
 
-export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd }) {
+export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onVideoUpgrade }) {
   let stream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({
@@ -181,6 +195,20 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd }) {
     onStream?.(remoteStream, stream);
   });
 
+  // Nieuwe tracks na renegotiatie (video upgrade)
+  peer.on('track', (track, streams) => {
+    if (streams?.[0]) onStream?.(streams[0], stream);
+  });
+
+  // Remote vraagt video upgrade: eigen camera starten
+  socket.on('call:video-upgrade', async () => {
+    try {
+      const vs = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } });
+      peer.addTrack(vs.getVideoTracks()[0], vs);
+      onVideoUpgrade?.(vs);
+    } catch {}
+  });
+
   peer.on('close', () => { onEnd?.(); cleanupCall(stream); });
   peer.on('error', (e) => { console.error('WebRTC error:', e); onEnd?.(); cleanupCall(stream); });
 
@@ -213,6 +241,8 @@ export async function upgradeToVideo() {
     });
     const videoTrack = videoStream.getVideoTracks()[0];
     peer.addTrack(videoTrack, videoStream);
+    // Vertel remote kant ook camera te starten
+    socket.emit('call:video-upgrade', { to: callPeer });
     return videoStream;
   } catch (e) {
     console.error('Video upgraden mislukt:', e);
@@ -227,4 +257,5 @@ function cleanupCall(stream) {
   stream?.getTracks().forEach(t => t.stop());
   if (iceHandler) { socket?.off('call:ice-candidate', iceHandler); iceHandler = null; }
   socket?.off('call:renegotiate');
+  socket?.off('call:video-upgrade');
 }

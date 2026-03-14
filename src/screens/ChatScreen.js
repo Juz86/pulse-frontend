@@ -6,6 +6,7 @@ import { doc, setDoc, getDoc, collection, getDocs, deleteDoc } from 'firebase/fi
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
+import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, User, PhoneCall, PhoneOutgoing } from '../components/Icons';
 
 const MSG_LIMIT = 30;
 
@@ -882,7 +883,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
               const isPending   = msg.pending;
               return (
                 <span className={`msg-ticks ${isRead ? 'read' : ''}`}>
-                  {isPending ? '🕐' : isRead ? '✓✓' : isDelivered ? '✓✓' : '✓'}
+                  {isPending ? <Clock size={12} /> : isRead ? <CheckDouble size={12} /> : isDelivered ? <CheckDouble size={12} /> : <Check size={12} />}
                 </span>
               );
             })()}
@@ -915,18 +916,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
           <div className="sidebar-top">
             <div className="app-brand"><span className="brand-dot" />Pulse</div>
             <div style={{ display:'flex', gap:'6px' }}>
-              <button className="icon-btn" onClick={() => setShowNewChat(true)} title="Nieuw gesprek">💬</button>
+              <button className="icon-btn" onClick={() => setShowNewChat(true)} title="Nieuw gesprek"><Message size={18} /></button>
               <button className="icon-btn" onClick={() => { setShowCallModal(true); setCallLogRead(true); onCallLogRead?.(); }} title="Oproepen" style={{ position:'relative' }}>
-                📞
+                <Phone size={18} />
                 {(!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert ? (
                   <span style={{ position:'absolute', top:'4px', right:'4px', width:'8px', height:'8px', borderRadius:'50%', background:'var(--danger)', border:'2px solid var(--surface)' }} />
                 ) : null}
               </button>
-              <button className="icon-btn" onClick={() => setShowNewGroup(true)} title="Nieuwe groep">👥</button>
+              <button className="icon-btn" onClick={() => setShowNewGroup(true)} title="Nieuwe groep"><Users size={18} /></button>
             </div>
           </div>
           <div className="search-box">
-            <span style={{ color:'var(--text3)', fontSize:'14px' }}>🔍</span>
+            <Search size={16} style={{ color:'var(--text3)', flexShrink:0 }} />
             <input
               placeholder="Zoeken…"
               value={searchQuery}
@@ -937,9 +938,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
 
         {/* Tabs */}
         <div className="sidebar-tabs">
-          <button className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}>💬 Chats</button>
+          <button className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}><Message size={15} /> Chats</button>
           <button className={`sidebar-tab ${activeTab === 'contacts' ? 'active' : ''}`} onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}>
-            👥 Contacten{friendRequests.length > 0 && <span className="unread-badge" style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{friendRequests.length}</span>}
+            <Users size={15} /> Contacten{friendRequests.length > 0 && <span className="unread-badge" style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{friendRequests.length}</span>}
           </button>
         </div>
 
@@ -949,7 +950,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             {conversations.length === 0 && (
               <div className="empty-convs">
                 <p>Nog geen gesprekken.</p>
-                <p>Klik op 💬 om een nieuwe chat te starten.</p>
+                <p>Klik op het chat-icoon om een nieuwe chat te starten.</p>
               </div>
             )}
             {conversations.filter(conv =>
@@ -973,11 +974,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                   {unread > 0 && <span className="unread-badge">{unread}</span>}
                   {!conv.isGroup && (
                     <>
-                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, false); }} title="Bellen">📞</button>
-                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, true); }} title="Videobellen">📹</button>
+                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, false); }} title="Bellen"><Phone size={16} /></button>
+                      <button className="conv-action-btn" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, true); }} title="Videobellen"><Video size={16} /></button>
                     </>
                   )}
-                  <button className="conv-delete-btn" onClick={e => deleteConversation(e, conv.id)} title="Verwijderen">🗑️</button>
+                  <button className="conv-delete-btn" onClick={e => deleteConversation(e, conv.id)} title="Verwijderen"><Delete size={16} /></button>
                 </div>
               );
             })}
@@ -1048,11 +1049,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                   <button className="icon-btn" onClick={() => setViewingContact(contact)} title="Profiel bekijken" style={{ flex:1, justifyContent:'center' }}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z"/></svg>
                   </button>
-                  <button className="icon-btn" onClick={() => { setRenamingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName); }} title="Naam wijzigen" style={{ flex:1, justifyContent:'center' }}>✏️</button>
-                  <button className="call-btn voice" onClick={() => startChatWithContact(contact)} title="Stuur bericht" style={{ flex:1, fontSize:'14px' }}>💬</button>
-                  <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen" style={{ flex:1 }}>📞</button>
-                  <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen" style={{ flex:1 }}>🎥</button>
-                  <button className="icon-btn" onClick={() => removeContact(contact.uid)} title="Verwijderen" style={{ flex:1, justifyContent:'center', color: 'var(--danger)' }}>🗑️</button>
+                  <button className="icon-btn" onClick={() => { setRenamingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName); }} title="Naam wijzigen" style={{ flex:1, justifyContent:'center' }}><MagicEdit size={18} /></button>
+                  <button className="call-btn voice" onClick={() => startChatWithContact(contact)} title="Stuur bericht" style={{ flex:1 }}><Message size={16} /></button>
+                  <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen" style={{ flex:1 }}><Phone size={16} /></button>
+                  <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen" style={{ flex:1 }}><Video size={16} /></button>
+                  <button className="icon-btn" onClick={() => removeContact(contact.uid)} title="Verwijderen" style={{ flex:1, justifyContent:'center', color: 'var(--danger)' }}><Delete size={18} /></button>
                 </div>
               </div>
             ))}
@@ -1069,7 +1070,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
               <div className="user-chip-status">Online</div>
             </div>
           </div>
-          <button className="icon-btn" onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>{lightMode ? '🌙' : '☀️'}</button>
+          <button className="icon-btn" onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>{lightMode ? <Moon size={18} /> : <Lightbulb size={18} />}</button>
           <button className="icon-btn danger" onClick={() => signOut(auth)} title="Uitloggen">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{transform:'scaleX(-1)'}}><path d="M16 13v-2H7V8l-5 4 5 4v-3z"/><path d="M20 3H10a2 2 0 0 0-2 2v4h2V5h10v14H10v-4H8v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>
           </button>
@@ -1080,9 +1081,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       <main className="chat-main">
         {!activeConv ? (
           <div className="empty-state">
-            <div className="empty-icon">💬</div>
+            <div className="empty-icon"><Message size={48} /></div>
             <div className="empty-title">Kies een gesprek</div>
-            <p>Of klik op 💬 om een nieuwe chat te beginnen.</p>
+            <p>Of klik op het chat-icoon om een nieuwe chat te beginnen.</p>
           </div>
         ) : (
           <>
@@ -1104,12 +1105,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
               <div className="chat-header-actions">
                 {!activeConv.isGroup && (
                   <>
-                    <button className="call-btn voice" onClick={() => initiateCall(false)} title="Bellen">📞</button>
-                    <button className="call-btn video" onClick={() => initiateCall(true)} title="Videobellen">📹</button>
+                    <button className="call-btn voice" onClick={() => initiateCall(false)} title="Bellen"><Phone size={18} /></button>
+                    <button className="call-btn video" onClick={() => initiateCall(true)} title="Videobellen"><Video size={18} /></button>
                   </>
                 )}
                 {activeConv.isGroup && (
-                  <button className="icon-btn" onClick={() => setShowGroupInfo(true)} title="Groepsinformatie">👥</button>
+                  <button className="icon-btn" onClick={() => setShowGroupInfo(true)} title="Groepsinformatie"><Users size={18} /></button>
                 )}
                 <button className="icon-btn" onClick={() => { setShowChatSearch(s => !s); setChatSearch(''); setChatSearchIdx(0); setTimeout(() => chatSearchRef.current?.focus(), 50); }} title="Zoeken">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
@@ -1183,7 +1184,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                   onChange={e => handleTyping(e.target.value)}
                   onKeyDown={handleKeyDown}
                 />
-                <button className="send-btn" onClick={sendMessage}>➤</button>
+                <button className="send-btn" onClick={sendMessage}><Send size={18} /></button>
               </div>
             </div>
           </>
@@ -1194,7 +1195,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       {renamingContact && (
         <div className="modal-overlay" onClick={() => setRenamingContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:360 }}>
-            <h3 className="modal-title">✏️ Naam wijzigen</h3>
+            <h3 className="modal-title"><MagicEdit size={18} /> Naam wijzigen</h3>
             <div className="form-group">
               <label className="form-label">Bijnaam</label>
               <input
@@ -1218,7 +1219,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       {viewingContact && (
         <div className="modal-overlay" onClick={() => setViewingContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:360 }}>
-            <h3 className="modal-title">👤 Profiel</h3>
+            <h3 className="modal-title"><User size={18} /> Profiel</h3>
             <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
               {viewingContact.photoURL
                 ? <img src={viewingContact.photoURL} alt="" className="profile-avatar-big" style={{ objectFit:'cover' }} />
@@ -1235,7 +1236,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             </div>
             <div className="form-group">
               <label className="form-label">Status</label>
-              <input className="form-input" value={onlineUsers.has(viewingContact.uid) ? '🟢 Online' : '⚫ Offline'} disabled style={{ opacity:.7 }} />
+              <input className="form-input" value={onlineUsers.has(viewingContact.uid) ? '● Online' : '○ Offline'} disabled style={{ opacity:.7 }} />
             </div>
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setViewingContact(null)}>Sluiten</button>
@@ -1261,7 +1262,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       {showAddContact && (
         <div className="modal-overlay" onClick={() => setShowAddContact(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">👥 Vriend uitnodigen</h3>
+            <h3 className="modal-title"><Users size={18} /> Vriend uitnodigen</h3>
             <p className="modal-sub">Voer het e-mailadres in van de persoon die je wilt uitnodigen</p>
             <div className="form-group">
               <label className="form-label">E-mailadres</label>
@@ -1284,7 +1285,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       {showNewChat && (
         <div className="modal-overlay" onClick={() => setShowNewChat(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">✏️ Nieuwe chat</h3>
+            <h3 className="modal-title"><MagicEdit size={18} /> Nieuwe chat</h3>
             {contacts.length > 0 && (
               <>
                 <p className="modal-sub">Kies uit je contacten</p>
@@ -1319,7 +1320,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       {showNewGroup && (
         <div className="modal-overlay" onClick={() => setShowNewGroup(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">👥 Nieuwe groep</h3>
+            <h3 className="modal-title"><Users size={18} /> Nieuwe groep</h3>
             <div className="form-group">
               <label className="form-label">Groepsnaam</label>
               <input className="form-input" placeholder="Bijv. Familie, Werk…" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={50} />
@@ -1360,7 +1361,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                   ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit:'cover' }} />
                   : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
                 }
-                <div className="profile-photo-overlay">📷</div>
+                <div className="profile-photo-overlay"><Camera size={16} /></div>
               </div>
               <input ref={photoInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handlePhotoChange} />
             </div>
@@ -1388,7 +1389,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                 style={{ width:'100%' }}
                 onClick={() => { setShowProfile(false); handleDeleteAccount(); }}
               >
-                🗑️ Account verwijderen
+                <Delete size={16} style={{ marginRight:6 }} /> Account verwijderen
               </button>
             </div>
           </div>
@@ -1405,7 +1406,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         return (
           <div className="modal-overlay" onClick={() => setShowContactProfile(false)}>
             <div className="modal-box" onClick={e => e.stopPropagation()}>
-              <h3 className="modal-title">👤 Profiel</h3>
+              <h3 className="modal-title"><User size={18} /> Profiel</h3>
               <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
                 {photo
                   ? <img src={photo} alt="" className="profile-avatar-big" style={{ objectFit:'cover' }} />
@@ -1424,7 +1425,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
               )}
               <div className="form-group">
                 <label className="form-label">Status</label>
-                <input className="form-input" value={isOnline ? '🟢 Online' : '⚫ Offline'} disabled style={{ opacity:.7 }} />
+                <input className="form-input" value={isOnline ? '● Online' : '○ Offline'} disabled style={{ opacity:.7 }} />
               </div>
               <div className="modal-actions">
                 <button className="btn-secondary" onClick={() => setShowContactProfile(false)}>Sluiten</button>
@@ -1440,17 +1441,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         return (
           <div className="modal-overlay" onClick={() => setShowCallModal(false)}>
             <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:420 }}>
-              <h3 className="modal-title">📞 Recent</h3>
+              <h3 className="modal-title"><Phone size={18} /> Recent</h3>
               {callLog.length === 0 ? (
                 <div style={{ textAlign:'center', padding:'24px 0', color:'var(--text3)' }}>
-                  <div style={{ fontSize:40, marginBottom:8 }}>📵</div>
+                  <div style={{ fontSize:40, marginBottom:8 }}><Cancel size={40} /></div>
                   <div>Nog geen oproepen</div>
                 </div>
               ) : (
                 <div style={{ display:'flex', flexDirection:'column', gap:'6px', marginBottom:'16px', maxHeight:360, overflowY:'auto' }}>
                   {callLog.map((entry, i) => {
                     const contact = contacts.find(c => c.uid === entry.uid);
-                    const dirIcon = entry.direction === 'outgoing' ? '↗' : entry.direction === 'missed' ? '✕' : '↙';
+                    const dirIcon = entry.direction === 'outgoing' ? <PhoneOutgoing size={13} /> : entry.direction === 'missed' ? <Cancel size={13} /> : <PhoneCall size={13} />;
                     const dirColor = entry.direction === 'missed' ? 'var(--danger)' : entry.direction === 'outgoing' ? 'var(--accent)' : 'var(--success)';
                     const ago = (() => {
                       const diff = (Date.now() - entry.ts) / 1000;
@@ -1471,12 +1472,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                             <span className="conv-name">{entry.name}</span>
                             <span style={{ fontSize:11, color:'var(--text3)', marginLeft:'auto' }}>{ago}</span>
                           </div>
-                          <div className="conv-preview">{entry.isVideo ? '📹 Videogesprek' : '📞 Gesprek'}</div>
+                          <div className="conv-preview" style={{ display:'flex', alignItems:'center', gap:4 }}>{entry.isVideo ? <><Video size={12} /> Videogesprek</> : <><Phone size={12} /> Gesprek</>}</div>
                         </div>
                         {contact && (
                           <div style={{ display:'flex', gap:6 }}>
-                            <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen">📞</button>
-                            <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen">🎥</button>
+                            <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen"><Phone size={16} /></button>
+                            <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen"><Video size={16} /></button>
                           </div>
                         )}
                       </div>
@@ -1497,7 +1498,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       {showGroupInfo && activeConv?.isGroup && (
         <div className="modal-overlay" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">👥 {getConvName(activeConv)}</h3>
+            <h3 className="modal-title"><Users size={18} /> {getConvName(activeConv)}</h3>
             <p className="modal-sub">{activeConv.members.length} deelnemers</p>
 
             <div style={{ display:'flex', flexDirection:'column', gap:'8px', marginBottom:'16px' }}>
@@ -1521,7 +1522,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                     {!isMe && (
                       <button className="icon-btn" title="Verwijderen uit groep"
                         onClick={() => removeMemberFromGroup(uid)}
-                        style={{ color:'var(--danger)', flexShrink:0 }}>🗑️</button>
+                        style={{ color:'var(--danger)', flexShrink:0 }}><Delete size={18} /></button>
                     )}
                   </div>
                 );

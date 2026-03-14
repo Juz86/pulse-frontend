@@ -1,6 +1,7 @@
 // src/components/CallOverlay.js
 import React, { useEffect, useRef, useState } from 'react';
 import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade } from '../services/socket';
+import { Phone, Video, Mic, MicOff, Camera, Cancel } from './Icons';
 
 export default function CallOverlay({ incoming, active, user, onClose, onEnd }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
@@ -192,17 +193,17 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         <div className="call-name">{callName}</div>
 
         {callState === 'incoming' && (
-          <div className="call-status blink">{isVideo ? '📹 Inkomend videogesprek' : '📞 Inkomende oproep'}</div>
+          <div className="call-status blink">{isVideo ? <><Video size={14} /> Inkomend videogesprek</> : <><Phone size={14} /> Inkomende oproep</>}</div>
         )}
         {callState === 'calling'     && <div className="call-status blink">Verbinden…</div>}
         {callState === 'connecting'  && <div className="call-status blink">Camera aanzetten…</div>}
         {callState === 'active'      && <div className="call-timer">{formatTimer(timer)}</div>}
         {videoUpgradeRequest && callState === 'active' && (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'12px', margin:'10px 0' }}>
-            <div style={{ fontSize:'13px', color:'#ccc' }}>📹 {callName} wil videobellen</div>
+            <div style={{ fontSize:'13px', color:'#ccc', display:'flex', alignItems:'center', gap:6 }}><Video size={14} /> {callName} wil videobellen</div>
             <div style={{ display:'flex', gap:'10px' }}>
-              <button className="call-ctrl-btn decline" onClick={() => setVideoUpgradeRequest(false)}>📵<span>Weigeren</span></button>
-              <button className="call-ctrl-btn accept" onClick={handleAcceptVideoUpgrade}>📹<span>Accepteren</span></button>
+              <button className="call-ctrl-btn decline" onClick={() => setVideoUpgradeRequest(false)}><Cancel size={18} /><span>Weigeren</span></button>
+              <button className="call-ctrl-btn accept" onClick={handleAcceptVideoUpgrade}><Video size={18} /><span>Accepteren</span></button>
             </div>
           </div>
         )}
@@ -212,25 +213,25 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         {callState !== 'ended' && <div className="call-controls">
           {callState === 'incoming' ? (
             <>
-              <button className="call-ctrl-btn decline" onClick={handleDecline}>📵<span>Weigeren</span></button>
-              <button className="call-ctrl-btn accept"  onClick={handleAccept}>📞<span>Opnemen</span></button>
+              <button className="call-ctrl-btn decline" onClick={handleDecline}><Cancel size={18} /><span>Weigeren</span></button>
+              <button className="call-ctrl-btn accept"  onClick={handleAccept}><Phone size={18} /><span>Opnemen</span></button>
             </>
           ) : (
             <>
               <button className={`call-ctrl-btn mute ${muted ? 'on' : ''}`} onClick={toggleMute}>
-                {muted ? '🔇' : '🎤'}<span>{muted ? 'Dempen uit' : 'Dempen'}</span>
+                {muted ? <MicOff size={18} /> : <Mic size={18} />}<span>{muted ? 'Dempen uit' : 'Dempen'}</span>
               </button>
               {isVideo && (
                 <button className={`call-ctrl-btn cam ${camOff ? 'on' : ''}`} onClick={toggleCam}>
-                  {camOff ? '📵' : '📷'}<span>Camera</span>
+                  {camOff ? <Cancel size={18} /> : <Camera size={18} />}<span>Camera</span>
                 </button>
               )}
               {!isVideo && callState === 'active' && (
                 <button className="call-ctrl-btn cam" onClick={handleUpgradeToVideo}>
-                  📹<span>Video</span>
+                  <Video size={18} /><span>Video</span>
                 </button>
               )}
-              <button className="call-ctrl-btn end" onClick={handleEnd}>📵<span>Ophangen</span></button>
+              <button className="call-ctrl-btn end" onClick={handleEnd}><Cancel size={18} /><span>Ophangen</span></button>
             </>
           )}
         </div>}

@@ -11,12 +11,13 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   const [videoUpgraded, setVideoUpgraded] = useState(false);
   const [videoUpgradeRequest, setVideoUpgradeRequest] = useState(false);
 
-  const localVideoRef  = useRef(null);
-  const remoteVideoRef = useRef(null);
-  const remoteAudioRef = useRef(null);
-  const timerRef       = useRef(null);
+  const localVideoRef   = useRef(null);
+  const remoteVideoRef  = useRef(null);
+  const remoteAudioRef  = useRef(null);
+  const timerRef        = useRef(null);
   const closeTimeoutRef = useRef(null);
-  const localStreamRef = useRef(null);
+  const localStreamRef  = useRef(null);
+  const remoteStreamRef = useRef(null);
 
   // ── Inkomend gesprek beantwoorden ────────────────────────────────────────
   async function handleAccept() {
@@ -27,7 +28,8 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         offer:    incoming.offer,
         isVideo:  incoming.isVideo,
         onStream: (remoteStream, localStream) => {
-          localStreamRef.current = localStream;
+          localStreamRef.current  = localStream;
+          remoteStreamRef.current = remoteStream;
           if (localVideoRef.current)  localVideoRef.current.srcObject  = localStream;
           if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream;
           if (remoteAudioRef.current) remoteAudioRef.current.srcObject = remoteStream;
@@ -110,8 +112,11 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
       localStreamRef.current = active.localStream;
       if (localVideoRef.current) localVideoRef.current.srcObject = active.localStream;
     }
-    if (active?.remoteStream && remoteVideoRef.current) remoteVideoRef.current.srcObject = active.remoteStream;
-    if (active?.remoteStream && remoteAudioRef.current) remoteAudioRef.current.srcObject = active.remoteStream;
+    if (active?.remoteStream) {
+      remoteStreamRef.current = active.remoteStream;
+      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = active.remoteStream;
+      if (remoteAudioRef.current) remoteAudioRef.current.srcObject = active.remoteStream;
+    }
     if (active?.remoteStream && callState === 'calling') {
       setCallState('active');
       startTimer();
@@ -155,6 +160,14 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   }, [callState]);
 
   useEffect(() => () => cleanup(), []);
+
+  // Zodra video-upgrade actief is, zet streams opnieuw op de nieuw-gemounte video-elementen
+  useEffect(() => {
+    if (!videoUpgraded) return;
+    if (localStreamRef.current  && localVideoRef.current)  localVideoRef.current.srcObject  = localStreamRef.current;
+    if (remoteStreamRef.current && remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStreamRef.current;
+    if (remoteStreamRef.current && remoteAudioRef.current) remoteAudioRef.current.srcObject = remoteStreamRef.current;
+  }, [videoUpgraded]);
 
   const isVideo   = incoming?.isVideo || active?.isVideo || videoUpgraded;
   const callName  = incoming?.callerName || active?.name || 'Contactpersoon';

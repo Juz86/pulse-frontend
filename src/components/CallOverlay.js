@@ -33,6 +33,11 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
           startTimer();
         },
         onEnd: () => { cleanup(); onClose?.(true); },
+        onVideoUpgrade: (vs) => {
+          localStreamRef.current = vs;
+          if (localVideoRef.current) localVideoRef.current.srcObject = vs;
+          setVideoUpgraded(true);
+        },
       });
       localStreamRef.current = localStream;
       if (localVideoRef.current) localVideoRef.current.srcObject = localStream;

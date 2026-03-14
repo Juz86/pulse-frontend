@@ -712,6 +712,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
           setActiveCall(null);
         }
       },
+      onVideoUpgrade: (localStream) => {
+        setActiveCall(prev => ({ ...prev, localStream, isVideo: true }));
+      },
     });
     if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
   }
@@ -736,6 +739,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
           setActiveCall(null);
         }
       },
+      onVideoUpgrade: (localStream) => {
+        setActiveCall(prev => ({ ...prev, localStream, isVideo: true }));
+      },
     });
     if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
   }
@@ -759,6 +765,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         } else {
           setActiveCall(null);
         }
+      },
+      onVideoUpgrade: (localStream) => {
+        setActiveCall(prev => ({ ...prev, localStream, isVideo: true }));
       },
     });
     if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });

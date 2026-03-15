@@ -214,6 +214,9 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         )}
+        <button className="call-close-btn" onClick={() => onClose?.()} title="Sluiten">
+          <Cancel size={14} />
+        </button>
         <div className="call-avatar-big">{callName.slice(0,2).toUpperCase()}</div>
         <div className="call-name">{callName}</div>
 

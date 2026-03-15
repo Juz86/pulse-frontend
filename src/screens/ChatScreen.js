@@ -959,9 +959,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
 
     messages.forEach((msg, i) => {
       const label = formatDateLabel(msg.createdAt);
-      if (label && label !== lastDate) {
+      if (label && label !== lastDate && msg.type !== 'call' && msg.type !== 'contact') {
         lastDate = label;
         items.push(<div key={`date-${i}`} className="msg-date-sep"><span>{label}</span></div>);
+      } else if (label && label !== lastDate) {
+        lastDate = label;
       }
       const isOwn = msg.senderId === user.uid;
       const isFocused = msg.id === focusedMsgId;
@@ -1254,7 +1256,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
           <div className="empty-state">
             <div className="empty-icon"><Message size={48} /></div>
             <div className="empty-title">Kies een gesprek</div>
-            <p>Of klik op het <Message size={14} style={{ verticalAlign: 'middle', margin: '0 2px' }} /> icoon om een nieuwe chat te beginnen.</p>
+            <p>Of klik op het <Message size={14} style={{ verticalAlign: 'middle', margin: '0 2px', color: '#fff' }} /> om een nieuwe chat te beginnen.</p>
           </div>
         ) : (
           <>

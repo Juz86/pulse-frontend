@@ -792,12 +792,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     setDeleteMenuMsgId(null);
     try {
       await authFetch(`${BACKEND_URL}/api/messages/${activeConv.id}/${msgId}?scope=${scope}`, { method: 'DELETE' });
-      if (scope === 'all') {
-        setMessages(prev => prev.filter(m => m.id !== msgId));
-        socket?.emit('message:deleted', { convId: activeConv.id, msgId });
-      } else {
-        setMessages(prev => prev.filter(m => m.id !== msgId));
-      }
+      setMessages(prev => prev.filter(m => m.id !== msgId));
     } catch (e) { console.error('Verwijderen mislukt:', e); }
   }
 

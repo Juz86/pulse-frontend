@@ -62,6 +62,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   // Contact hernoemen
   const [renamingContact, setRenamingContact] = useState(null); // { uid, name }
   const [sharingContact,  setSharingContact]  = useState(null); // contact to share
+  const [shareRecipients, setShareRecipients] = useState([]);   // selected recipients
   const [renameValue,     setRenameValue]     = useState('');
 
   // Contact profiel bekijken (vanuit contactenlijst)
@@ -1251,6 +1252,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                   <>
                     <button className="call-btn voice" onClick={() => initiateCall(false)} title="Bellen"><Phone size={18} /></button>
                     <button className="call-btn video" onClick={() => initiateCall(true)} title="Videobellen"><Video size={18} /></button>
+                    {(() => { const otherContact = contacts.find(c => c.uid === getOtherUid(activeConv)); return otherContact ? <button className="icon-btn" onClick={() => setSharingContact(otherContact)} title="Contactpersoon delen"><Share size={18} /></button> : null; })()}
                   </>
                 )}
                 {activeConv.isGroup && (
@@ -1361,9 +1363,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
 
       {/* ── CONTACTPERSOON DELEN ── */}
       {sharingContact && (
-        <div className="modal-overlay" onClick={() => setSharingContact(null)}>
+        <div className="modal-overlay" onClick={() => { setSharingContact(null); setShareRecipients([]); }}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:360 }}>
-            <h3 className="modal-title"><Share size={18} /> Contactpersoon delen</h3>
+            <h3 className="modal-title" style={{ whiteSpace:'nowrap', fontSize:'16px', display:'flex', alignItems:'center', gap:'8px' }}><Share size={18} /> Contactpersoon delen</h3>
             <div style={{ marginBottom:'12px', padding:'10px 14px', borderRadius:'10px', background:'var(--surface2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', gap:'10px' }}>
               <div className="avatar sm">{getInitials(getContactDisplayName(sharingContact))}</div>
               <div>
@@ -1373,19 +1375,27 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             </div>
             <div style={{ fontSize:'13px', color:'var(--text3)', marginBottom:'10px' }}>Stuur naar:</div>
             <div style={{ display:'flex', flexDirection:'column', gap:'6px', maxHeight:'260px', overflowY:'auto' }}>
-              {contacts.filter(c => c.uid !== sharingContact.uid).map(c => (
-                <button key={c.uid} className="contact-row" style={{ background:'none', border:'1px solid var(--border)', borderRadius:'10px', padding:'10px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'10px', color:'var(--text)', textAlign:'left' }}
-                  onClick={() => sendContactCard(c, sharingContact)}>
-                  <div className="avatar sm">{getInitials(getContactDisplayName(c))}</div>
-                  <div>
-                    <div style={{ fontWeight:500, fontSize:'14px' }}>{getContactDisplayName(c)}</div>
-                    <div style={{ fontSize:'12px', color:'var(--text3)' }}>{c.email}</div>
-                  </div>
-                </button>
-              ))}
+              {contacts.filter(c => c.uid !== sharingContact.uid).map(c => {
+                const selected = shareRecipients.includes(c.uid);
+                return (
+                  <button key={c.uid} className="contact-row" style={{ background: selected ? 'var(--accent-soft, rgba(108,99,255,.15))' : 'none', border: selected ? '1px solid var(--accent)' : '1px solid var(--border)', borderRadius:'10px', padding:'10px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'10px', color:'var(--text)', textAlign:'left' }}
+                    onClick={() => setShareRecipients(prev => prev.includes(c.uid) ? prev.filter(id => id !== c.uid) : [...prev, c.uid])}>
+                    <div className="avatar sm">{getInitials(getContactDisplayName(c))}</div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontWeight:500, fontSize:'14px' }}>{getContactDisplayName(c)}</div>
+                      <div style={{ fontSize:'12px', color:'var(--text3)' }}>{c.email}</div>
+                    </div>
+                    {selected && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </button>
+                );
+              })}
             </div>
             <div className="modal-actions" style={{ marginTop:'14px' }}>
-              <button className="btn-secondary" onClick={() => setSharingContact(null)}>Annuleren</button>
+              <button className="btn-secondary" onClick={() => { setSharingContact(null); setShareRecipients([]); }}>Annuleren</button>
+              <button className="btn-primary" disabled={shareRecipients.length === 0}
+                onClick={() => { shareRecipients.forEach(uid => { const c = contacts.find(x => x.uid === uid); if (c) sendContactCard(c, sharingContact); }); setSharingContact(null); setShareRecipients([]); }}>
+                Versturen{shareRecipients.length > 1 ? ` (${shareRecipients.length})` : ''}
+              </button>
             </div>
           </div>
         </div>

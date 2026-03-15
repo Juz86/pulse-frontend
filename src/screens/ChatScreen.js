@@ -456,7 +456,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     setReplyTo(null);
     // Optimistic UI: toon bericht direct zonder te wachten op server
     setMessages(prev => [...prev, { ...msg, id: tempId, pending: true }]);
-    setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
+    setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTo({ top: msgsAreaRef.current.scrollHeight, behavior: 'smooth' }); }, 50);
     // Preview in conversatielijst direct bijwerken
     setConversations(prev => {
       const updated = prev.map(c => c.id === activeConv.id ? { ...c, lastMessage: msg.text, updatedAt: msg.createdAt } : c);

@@ -1421,7 +1421,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       {viewingSharedContact && (
         <div className="modal-overlay" onClick={() => setViewingSharedContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:340 }}>
-            <h3 className="modal-title" style={{ display:'flex', alignItems:'center', gap:'8px' }}><User size={18} /> Contactpersoon</h3>
+            <h3 className="modal-title" style={{ display:'flex', alignItems:'center', gap:'10px' }}><User size={24} /> Contactpersoon</h3>
             <div style={{ display:'flex', alignItems:'center', gap:'14px', padding:'16px 0 20px' }}>
               <div className="avatar-circle" style={{ width:52, height:52, fontSize:20, borderRadius:14, flexShrink:0 }}>{getInitials(viewingSharedContact.name || '')}</div>
               <div>

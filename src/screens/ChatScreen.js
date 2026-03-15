@@ -688,7 +688,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       const authPhotoURL = photoURL?.startsWith('data:') ? (user.photoURL || null) : photoURL;
       await fbUpdateProfile(auth.currentUser, { displayName: newName.trim(), photoURL: authPhotoURL });
       // Sync naar backend zodat anderen de nieuwe foto/naam zien
-      fetch(`${BACKEND_URL}/api/users`, {
+      authFetch(`${BACKEND_URL}/api/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid: user.uid, displayName: newName.trim(), email: user.email, photoURL: photoURL || '' }),

@@ -61,8 +61,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
 
   // Contact hernoemen
   const [renamingContact, setRenamingContact] = useState(null); // { uid, name }
-  const [sharingContact,  setSharingContact]  = useState(null); // contact to share
-  const [shareRecipients, setShareRecipients] = useState([]);   // selected recipients
+  const [sharingContact,       setSharingContact]       = useState(null); // contact to share
+  const [shareRecipients,      setShareRecipients]      = useState([]);   // selected recipients
+  const [viewingSharedContact, setViewingSharedContact] = useState(null); // shared contact profile
+  const [friendReqSent,        setFriendReqSent]        = useState(false);
+  const [friendReqLoading,     setFriendReqLoading]     = useState(false);
   const [renameValue,     setRenameValue]     = useState('');
 
   // Contact profiel bekijken (vanuit contactenlijst)
@@ -481,6 +484,19 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       setTimeout(() => setContactSuccess(''), 4000);
     } catch (e) { console.error('addContact fout:', e); setContactErr('Verbindingsfout'); }
     finally { setContactLoading(false); }
+  }
+
+  async function sendFriendRequestToEmail(email) {
+    setFriendReqLoading(true);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/friend-requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fromUid: user.uid, fromName: user.displayName || user.email, fromEmail: user.email, fromPhoto: user.photoURL || null, toEmail: email }),
+      });
+      if (res.ok) setFriendReqSent(true);
+    } catch (e) { console.error('sendFriendRequestToEmail fout:', e); }
+    finally { setFriendReqLoading(false); }
   }
 
   // ── Vriendschapsverzoek accepteren ────────────────────────────────────────
@@ -958,9 +974,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       // ── Call berichten ──
       if (msg.type === 'contact') {
         const sc = msg.sharedContact || {};
+        const isAlreadyContact = contacts.some(c => c.uid === sc.uid);
         items.push(
           <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}>
-            <div className="msg-call-card" style={{ cursor:'default' }}>
+            <div className="msg-call-card" style={{ cursor: isOwn ? 'default' : 'pointer' }}
+              onClick={!isOwn ? () => { setFriendReqSent(false); setViewingSharedContact({ ...sc, isAlreadyContact }); } : undefined}>
               <div className="msg-call-icon incoming">
                 <User size={20} />
               </div>
@@ -1396,6 +1414,30 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                 onClick={() => { shareRecipients.forEach(uid => { const c = contacts.find(x => x.uid === uid); if (c) sendContactCard(c, sharingContact); }); setSharingContact(null); setShareRecipients([]); }}>
                 Versturen{shareRecipients.length > 1 ? ` (${shareRecipients.length})` : ''}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── GEDEELD CONTACT PROFIEL ── */}
+      {viewingSharedContact && (
+        <div className="modal-overlay" onClick={() => setViewingSharedContact(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:340 }}>
+            <h3 className="modal-title" style={{ display:'flex', alignItems:'center', gap:'8px' }}><User size={18} /> Contactpersoon</h3>
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'8px', padding:'16px 0 20px' }}>
+              <div className="avatar lg" style={{ width:64, height:64, fontSize:24 }}>{getInitials(viewingSharedContact.name || '')}</div>
+              <div style={{ fontWeight:700, fontSize:'17px' }}>{viewingSharedContact.name || 'Onbekend'}</div>
+              {viewingSharedContact.email && <div style={{ fontSize:'13px', color:'var(--text3)' }}>{viewingSharedContact.email}</div>}
+            </div>
+            <div className="modal-actions" style={{ justifyContent:'space-between' }}>
+              <button className="btn-secondary" onClick={() => setViewingSharedContact(null)}>Sluiten</button>
+              {viewingSharedContact.isAlreadyContact
+                ? <span style={{ fontSize:'13px', color:'var(--success)', display:'flex', alignItems:'center', gap:'5px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Al in contacten</span>
+                : <button className="btn-primary" disabled={friendReqLoading || friendReqSent}
+                    onClick={() => sendFriendRequestToEmail(viewingSharedContact.email)}>
+                    {friendReqSent ? '✓ Verzoek verzonden' : friendReqLoading ? 'Verzenden…' : 'Vriendschapsverzoek'}
+                  </button>
+              }
             </div>
           </div>
         </div>

@@ -965,7 +965,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         items.push(
           <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}
             ref={isFocused ? el => el?.scrollIntoView({ behavior:'smooth', block:'center' }) : null}>
-            <div className={`msg-call-card ${isOwn ? 'out' : 'in'}${isMissed ? ' missed' : ''}`}>
+            <div
+              className={`msg-call-card ${isOwn ? 'out' : 'in'}${isMissed ? ' missed' : ''}`}
+              onClick={isMissed ? () => startCallTo({ toUid: msg.senderId, convId: activeConv.id, name: msg.senderName, isVideo: msg.isVideo }) : undefined}
+              style={isMissed ? { cursor: 'pointer' } : undefined}
+            >
               <div className={`msg-call-icon ${iconType}`}>
                 {msg.isVideo ? <Video size={20} /> : <Phone size={20} />}
               </div>

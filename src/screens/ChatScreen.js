@@ -136,9 +136,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       const data = await res.json();
       setConversations(Array.isArray(data) ? data : []);
       // Auto-join alle kamer-rooms zodat berichten altijd real-time aankomen
+      // + online status opnieuw opvragen zodat groene stippen kloppen
       const sock = getSocket();
       if (sock && Array.isArray(data)) {
         data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
+        sock.emit('users:online:request');
       }
     } catch (e) { console.error(e); }
   }, [user.uid]);
@@ -182,8 +184,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
     const onConnect = () => {
       setConnected(true);
-      // Re-join alle kamers bij (her)verbinding zodat real-time berichten werken
+      // Re-join alle kamers + online status opvragen bij (her)verbinding
       conversationsRef.current.forEach(conv => socket.emit('conversation:join', { convId: conv.id }));
+      socket.emit('users:online:request');
     };
     const onDisconnect = () => setConnected(false);
 

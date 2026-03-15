@@ -117,6 +117,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   // Bericht verwijderen dropdown
   const [deleteMenuMsgId, setDeleteMenuMsgId] = useState(null); // msgId
+  const [supervisionRequest, setSupervisionRequest] = useState(null); // { requestId, parentName }
+  const [isPaused,            setIsPaused]            = useState(false);
 
   // Groep aanmaken
   const [showNewGroup,   setShowNewGroup]   = useState(false);
@@ -337,6 +339,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setMessages(prev => prev.filter(m => m.id !== msgId));
     };
 
+    const onAccountPaused  = () => setIsPaused(true);
+    const onAccountResumed = () => setIsPaused(false);
+    const onSupervisionReq = (data) => setSupervisionRequest(data);
+
     socket.on('connect',          onConnect);
     socket.on('disconnect',       onDisconnect);
     socket.on('message:received', onMessageReceived);
@@ -346,6 +352,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     socket.on('friend:accepted',  onFriendAccepted);
     socket.on('user:updated',     onUserUpdated);
     socket.on('message:deleted',  onMessageDeleted);
+    socket.on('account:paused',   onAccountPaused);
+    socket.on('account:resumed',  onAccountResumed);
+    socket.on('supervision:request', onSupervisionReq);
 
     return () => {
       socket.off('connect',          onConnect);
@@ -356,6 +365,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       socket.off('friend:request',   onFriendRequest);
       socket.off('friend:accepted',  onFriendAccepted);
       socket.off('message:deleted',  onMessageDeleted);
+      socket.off('account:paused',   onAccountPaused);
+      socket.off('account:resumed',  onAccountResumed);
+      socket.off('supervision:request', onSupervisionReq);
       socket.off('user:updated',     onUserUpdated);
     };
   }, [socket, loadConversations, loadContacts]);
@@ -849,6 +861,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       await authFetch(`${BACKEND_URL}/api/messages/${activeConv.id}/${msgId}?scope=${scope}`, { method: 'DELETE' });
       setMessages(prev => prev.filter(m => m.id !== msgId));
     } catch (e) { console.error('Verwijderen mislukt:', e); }
+  }
+
+  async function respondSupervision(accept) {
+    if (!supervisionRequest) return;
+    try {
+      await authFetch(`${BACKEND_URL}/api/parent/supervision-response/${supervisionRequest.requestId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accept }),
+      });
+    } catch (e) { console.error(e); }
+    setSupervisionRequest(null);
   }
 
   function sendCallMessage({ isVideo, direction, duration }) {
@@ -1897,6 +1921,35 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           onClose={() => setActiveCall(null)}
           onEnd={() => setActiveCall(null)}
         />
+      )}
+
+      {/* ── ACCOUNT GEPAUZEERD OVERLAY ── */}
+      {isPaused && (
+        <div className="paused-overlay">
+          <div className="paused-box">
+            <div style={{ fontSize:48, marginBottom:16 }}>⏸️</div>
+            <h2 className="paused-title">Account gepauzeerd</h2>
+            <p className="paused-sub">Je account is tijdelijk gepauzeerd door je ouder.<br />Neem contact op met je ouder om door te gaan.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── OUDERLIJK TOEZICHT VERZOEK MODAL ── */}
+      {supervisionRequest && (
+        <div className="modal-overlay" onClick={e => e.stopPropagation()}>
+          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:380 }}>
+            <div style={{ fontSize:40, textAlign:'center', marginBottom:8 }}>👨‍👩‍👧</div>
+            <h3 className="modal-title" style={{ textAlign:'center' }}>Ouderlijk toezicht verzoek</h3>
+            <p style={{ color:'var(--text2)', fontSize:'14px', textAlign:'center', margin:'12px 0 24px', lineHeight:1.6 }}>
+              <strong>{supervisionRequest.parentName}</strong> wil jouw toezichthouder worden.<br />
+              Als je accepteert, kan deze persoon je account bekijken en pauzeren.
+            </p>
+            <div className="modal-actions">
+              <button className="btn-secondary" style={{ flex:1 }} onClick={() => respondSupervision(false)}>Weigeren</button>
+              <button className="btn-primary" style={{ flex:1 }} onClick={() => respondSupervision(true)}>Accepteren</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

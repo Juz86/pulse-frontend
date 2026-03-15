@@ -1,12 +1,15 @@
 // src/App.js
 import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, messaging, getToken } from './firebase';
+import { auth, db, messaging, getToken } from './firebase';
+import { doc, getDoc } from 'firebase/firestore';
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 import { connectSocket, disconnectSocket } from './services/socket';
 import AuthScreen         from './screens/AuthScreen';
 import ChatScreen         from './screens/ChatScreen';
+import ParentAuthScreen    from './screens/ParentAuthScreen';
+import ParentDashboard     from './screens/ParentDashboard';
 import CallOverlay        from './components/CallOverlay';
 import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import './App.css';
@@ -33,6 +36,8 @@ export default function App() {
   const [onlineUsers,   setOnlineUsers]   = useState(new Set());
   const [inactiveUsers, setInactiveUsers] = useState(new Set());
   const [lightMode,    setLightMode]    = useState(localStorage.getItem('pulse_theme') === 'light');
+  const [userRole,       setUserRole]       = useState(null);
+  const [showParentAuth, setShowParentAuth] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', lightMode);
@@ -46,6 +51,14 @@ export default function App() {
       if (firebaseUser) {
         localStorage.setItem('pulse_user', '1');
         setUser(firebaseUser);
+        // Controleer ouder-rol
+        let role = 'user';
+        try {
+          const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (snap.exists()) role = snap.data()?.role || 'user';
+        } catch {}
+        setUserRole(role);
+        if (role === 'parent') { setLoading(false); return; }
         const idToken = await firebaseUser.getIdToken();
         const socket = connectSocket(firebaseUser.uid, idToken);
         const authHeader = { 'Authorization': `Bearer ${idToken}` };
@@ -141,6 +154,8 @@ export default function App() {
         setUser(null);
         setOnlineUsers(new Set());
         setInactiveUsers(new Set());
+        setUserRole(null);
+        setShowParentAuth(false);
         if (window._pulseVisibilityHandler) {
           document.removeEventListener('visibilitychange', window._pulseVisibilityHandler);
           window._pulseVisibilityHandler = null;
@@ -162,8 +177,12 @@ export default function App() {
   return (
     <div className="app-root">
       {!user
-        ? <AuthScreen />
-        : <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} />
+        ? showParentAuth
+          ? <ParentAuthScreen onBack={() => setShowParentAuth(false)} />
+          : <AuthScreen onParentClick={() => setShowParentAuth(true)} />
+        : userRole === 'parent'
+          ? <ParentDashboard user={user} />
+          : <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} />
       }
       {incomingCall && (
         <CallOverlay

@@ -468,16 +468,16 @@ body {
 .messages-area::-webkit-scrollbar { width:4px; }
 .messages-area::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:4px; }
 
-.msg-group    { display:flex; flex-direction:column; margin-bottom:6px; animation:msg-in .18s ease; }
+.msg-group    { display:flex; flex-direction:column; margin-bottom:6px; animation:msg-in .15s ease-out both; }
 .msg-group.out { align-items:flex-end;   animation-name:msg-in-out; }
 .msg-group.in  { align-items:flex-start; animation-name:msg-in-in;  }
 
 @keyframes msg-in-out {
-  from { opacity:0; transform:translateY(16px) scale(.97); }
+  from { opacity:0; transform:translateY(12px) scale(.98); }
   to   { opacity:1; transform:translateY(0)    scale(1);   }
 }
 @keyframes msg-in-in {
-  from { opacity:0; transform:translateY(16px) scale(.97); }
+  from { opacity:0; transform:translateY(12px) scale(.98); }
   to   { opacity:1; transform:translateY(0)    scale(1);   }
 }
 

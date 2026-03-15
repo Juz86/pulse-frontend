@@ -455,7 +455,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     };
     setReplyTo(null);
     // Optimistic UI: toon bericht direct zonder te wachten op server
-    setMessages(prev => [...prev, { ...msg, id: tempId, pending: true }]);
+    setMessages(prev => [...prev, { ...msg, id: tempId, _key: tempId, pending: true }]);
     setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
     // Preview in conversatielijst direct bijwerken
     setConversations(prev => {
@@ -465,7 +465,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
       // Vervang tijdelijk bericht met bevestigd bericht van server
       if (savedMsg?.id) {
-        setMessages(prev => prev.map(m => m.id === tempId ? { ...savedMsg, pending: false } : m));
+        setMessages(prev => prev.map(m => m.id === tempId ? { ...savedMsg, _key: tempId, pending: false } : m));
       }
     });
     setText('');
@@ -969,7 +969,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         const sc = msg.sharedContact || {};
         const isAlreadyContact = contacts.some(c => c.uid === sc.uid);
         items.push(
-          <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}>
+          <div key={msg._key || msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}>
             <div className="msg-contact-card" style={{ cursor: isOwn ? 'default' : 'pointer' }}
               onClick={!isOwn ? () => { setFriendReqSent(false); setViewingSharedContact({ ...sc, isAlreadyContact }); } : undefined}>
               <div className="avatar-circle sm" style={{ borderRadius:12, flexShrink:0 }}>{getInitials(sc.name || '')}</div>
@@ -994,7 +994,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         const callSub    = durationStr || (isMissed ? 'Tik om terug te bellen' : '');
         const iconType   = isMissed ? 'missed' : isOwn ? 'outgoing' : 'incoming';
         items.push(
-          <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}
+          <div key={msg._key || msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}
             ref={isFocused ? el => el?.scrollIntoView({ behavior:'smooth', block:'center' }) : null}>
             <div
               className={`msg-call-card ${isOwn ? 'out' : 'in'}${isMissed ? ' missed' : ''}`}
@@ -1016,7 +1016,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       }
 
       items.push(
-        <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}
+        <div key={msg._key || msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}
           ref={isFocused ? el => el?.scrollIntoView({ behavior:'smooth', block:'center' }) : null}>
           {!isOwn && activeConv.isGroup && <div className="msg-sender">{msg.senderName}</div>}
           <div className="msg-bubble-wrap">

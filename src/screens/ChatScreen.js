@@ -98,6 +98,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   // Bel-dropdown in conv-list
   const [callDropdown, setCallDropdown] = useState(null); // convId
 
+  // Bericht verwijderen dropdown
+  const [deleteMenuMsgId, setDeleteMenuMsgId] = useState(null); // msgId
+
   // Groep aanmaken
   const [showNewGroup,   setShowNewGroup]   = useState(false);
   const [groupName,      setGroupName]      = useState('');
@@ -292,6 +295,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       }
     };
 
+    const onMessageDeleted = ({ msgId }) => {
+      setMessages(prev => prev.filter(m => m.id !== msgId));
+    };
+
     socket.on('connect',          onConnect);
     socket.on('disconnect',       onDisconnect);
     socket.on('message:received', onMessageReceived);
@@ -300,6 +307,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     socket.on('friend:request',   onFriendRequest);
     socket.on('friend:accepted',  onFriendAccepted);
     socket.on('user:updated',     onUserUpdated);
+    socket.on('message:deleted',  onMessageDeleted);
 
     return () => {
       socket.off('connect',          onConnect);
@@ -309,9 +317,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       socket.off('message:status',   onMessageStatus);
       socket.off('friend:request',   onFriendRequest);
       socket.off('friend:accepted',  onFriendAccepted);
+      socket.off('message:deleted',  onMessageDeleted);
       socket.off('user:updated',     onUserUpdated);
     };
   }, [socket, loadConversations, loadContacts]);
+
+  // Sluit delete menu bij klik buiten
+  useEffect(() => {
+    if (!deleteMenuMsgId) return;
+    const close = () => setDeleteMenuMsgId(null);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [deleteMenuMsgId]);
 
   // Sluit call dropdown bij klik buiten
   useEffect(() => {
@@ -771,6 +788,19 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     setSharingContact(null);
   }
 
+  async function deleteMessage(msgId, scope) {
+    setDeleteMenuMsgId(null);
+    try {
+      await authFetch(`${BACKEND_URL}/api/messages/${activeConv.id}/${msgId}?scope=${scope}`, { method: 'DELETE' });
+      if (scope === 'all') {
+        setMessages(prev => prev.filter(m => m.id !== msgId));
+        socket?.emit('message:deleted', { convId: activeConv.id, msgId });
+      } else {
+        setMessages(prev => prev.filter(m => m.id !== msgId));
+      }
+    } catch (e) { console.error('Verwijderen mislukt:', e); }
+  }
+
   function sendCallMessage({ isVideo, direction, duration }) {
     const convId = callConvIdRef.current;
     if (!socket || !convId) return;
@@ -1006,6 +1036,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             <button className="msg-reply-btn" onClick={() => { setReplyTo({ id: msg.id, text: msg.text, senderName: msg.senderName }); textareaRef.current?.focus(); }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
             </button>
+            <div className="msg-delete-wrap">
+              <button className="msg-reply-btn" onClick={(e) => { e.stopPropagation(); setDeleteMenuMsgId(deleteMenuMsgId === msg.id ? null : msg.id); }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+              </button>
+              {deleteMenuMsgId === msg.id && (
+                <div className="msg-delete-menu" onClick={e => e.stopPropagation()}>
+                  <button onClick={() => deleteMessage(msg.id, 'self')}>Voor mezelf</button>
+                  {isOwn && <button onClick={() => deleteMessage(msg.id, 'all')}>Voor iedereen</button>}
+                </div>
+              )}
+            </div>
           </div>
           <div className="msg-time">
             {formatTime(msg.createdAt)}

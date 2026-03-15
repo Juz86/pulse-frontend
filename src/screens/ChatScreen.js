@@ -957,7 +957,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
 
     messages.forEach((msg, i) => {
       const label = formatDateLabel(msg.createdAt);
-      if (label !== lastDate) {
+      if (label && label !== lastDate) {
         lastDate = label;
         items.push(<div key={`date-${i}`} className="msg-date-sep"><span>{label}</span></div>);
       }

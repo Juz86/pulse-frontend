@@ -217,7 +217,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         const updated = prev.map(c => c.id === msg.convId ? { ...c, lastMessage: previewText, updatedAt: msg.createdAt || new Date().toISOString() } : c);
         return [...updated].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
       });
-      loadConversations();
     };
 
     const onTypingUpdate = ({ typing, name }) => {

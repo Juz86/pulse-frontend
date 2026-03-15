@@ -11,6 +11,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   const [camOff,       setCamOff]       = useState(false);
   const [videoUpgraded, setVideoUpgraded] = useState(false);
   const [videoUpgradeRequest, setVideoUpgradeRequest] = useState(false);
+  const [minimized,    setMinimized]    = useState(false);
 
   const localVideoRef   = useRef(null);
   const remoteVideoRef  = useRef(null);
@@ -173,6 +174,25 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   const isVideo   = incoming?.isVideo || active?.isVideo || videoUpgraded;
   const callName  = incoming?.callerName || active?.name || 'Contactpersoon';
 
+  const canMinimize = callState === 'calling' || callState === 'active' || callState === 'connecting';
+
+  if (minimized) return (
+    <div className="call-mini-bar" onClick={() => setMinimized(false)}>
+      <div className="call-mini-avatar">{callName.slice(0,2).toUpperCase()}</div>
+      <div className="call-mini-info">
+        <span className="call-mini-name">{callName}</span>
+        <span className="call-mini-status">
+          {callState === 'active' ? formatTimer(timer) : 'Verbinden…'}
+        </span>
+      </div>
+      {callState === 'active' && <div className="call-mini-pulse" />}
+      <button className="call-mini-end" onClick={e => { e.stopPropagation(); handleEnd(); }}
+        title="Ophangen">
+        <Cancel size={16} />
+      </button>
+    </div>
+  );
+
   return (
     <div className={`call-overlay ${isVideo && callState === 'active' ? 'video-mode' : ''}`}>
 
@@ -189,6 +209,11 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
 
       {/* ── CALL CARD ── */}
       <div className={`call-card ${isVideo && callState === 'active' ? 'transparent' : ''}`}>
+        {canMinimize && (
+          <button className="call-minimize-btn" onClick={() => setMinimized(true)} title="Minimaliseren">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        )}
         <div className="call-avatar-big">{callName.slice(0,2).toUpperCase()}</div>
         <div className="call-name">{callName}</div>
 

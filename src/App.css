@@ -823,6 +823,50 @@ body {
   border:2px solid rgba(255,255,255,.2); box-shadow:0 10px 30px rgba(0,0,0,.5);
 }
 
+/* ── MINIMIZE BUTTON ── */
+.call-minimize-btn {
+  position:absolute; top:14px; left:14px;
+  width:28px; height:28px; border-radius:50%;
+  border:none; background:rgba(255,255,255,.1);
+  color:var(--text3); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:.2s; z-index:2;
+}
+.call-minimize-btn:hover { background:rgba(255,255,255,.2); color:var(--text); }
+
+/* ── MINI CALL BAR ── */
+.call-mini-bar {
+  position:fixed; top:16px; left:50%; transform:translateX(-50%);
+  z-index:9999; display:flex; align-items:center; gap:12px;
+  padding:10px 14px 10px 10px; border-radius:50px;
+  background:var(--surface); border:1px solid var(--border);
+  box-shadow:0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(108,99,255,.12);
+  cursor:pointer; transition:.2s; user-select:none;
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  min-width:220px;
+}
+.call-mini-bar:hover { box-shadow:0 12px 40px rgba(0,0,0,.6), 0 0 0 1px rgba(108,99,255,.25); }
+.call-mini-avatar {
+  width:36px; height:36px; border-radius:12px; flex-shrink:0;
+  background:linear-gradient(135deg, var(--accent), var(--accent2));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-weight:800; font-size:13px; color:#fff;
+}
+.call-mini-info { display:flex; flex-direction:column; flex:1; min-width:0; }
+.call-mini-name { font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.call-mini-status { font-size:11px; color:var(--success); font-family:'DM Sans',sans-serif; }
+.call-mini-pulse {
+  width:8px; height:8px; border-radius:50%; background:var(--success); flex-shrink:0;
+  box-shadow:0 0 6px rgba(67,233,123,.6); animation:pulse-dot 2s infinite;
+}
+.call-mini-end {
+  width:32px; height:32px; border-radius:50%; border:none; flex-shrink:0;
+  background:linear-gradient(135deg, var(--danger), #ff6b7a);
+  color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 12px rgba(255,71,87,.4); transition:.2s;
+}
+.call-mini-end:hover { filter:brightness(1.15); transform:scale(1.08); }
+
 .call-close-btn {
   position:absolute; top:14px; right:14px;
   width:28px; height:28px; border-radius:50%;

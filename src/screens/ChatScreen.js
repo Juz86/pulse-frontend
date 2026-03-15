@@ -1420,7 +1420,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       {/* ── GEDEELD CONTACT PROFIEL ── */}
       {viewingSharedContact && (
         <div className="modal-overlay" onClick={() => setViewingSharedContact(null)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:340 }}>
+          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:340, width:'100%' }}>
             <h3 className="modal-title" style={{ display:'flex', alignItems:'center', gap:'10px', fontSize:'18px' }}><User size={20} style={{ flexShrink:0 }} /> Contactpersoon</h3>
             <div style={{ display:'flex', alignItems:'center', gap:'14px', padding:'16px 0 20px' }}>
               <div className="avatar-wrap" style={{ flexShrink:0 }}>

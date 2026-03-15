@@ -839,10 +839,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         const duration  = wasConnected ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
         callStartTimeRef.current = null;
         const callDir = reason === 'declined' ? 'declined'
-          : (!wasConnected || reason === 'timeout' || reason === 'unavailable') ? 'no-answer'
+          : (!wasConnected || reason === 'timeout' || reason === 'unavailable' || reason === 'busy') ? 'no-answer'
           : 'completed';
-        sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
-        if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
+        if (reason !== 'busy') {
+          sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
+        }
+        if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout' || reason === 'busy') {
           setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
         } else {
           setActiveCall(null);

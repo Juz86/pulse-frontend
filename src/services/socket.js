@@ -143,9 +143,10 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   // Renegotiatie ontvangen
   socket.on('call:renegotiate', ({ signal }) => { peer?.signal(signal); });
 
-  socket.once('call:ended',    () => { clearTimeout(callTimeout); fireOnEnd(); cleanupCall(stream); });
-  socket.once('call:declined', () => { clearTimeout(callTimeout); fireOnEnd('declined'); cleanupCall(stream); });
-  socket.once('call:unavailable', () => { clearTimeout(callTimeout); fireOnEnd('unavailable'); cleanupCall(stream); });
+  socket.once('call:ended',      () => { clearTimeout(callTimeout); fireOnEnd(); cleanupCall(stream); });
+  socket.once('call:declined',   () => { clearTimeout(callTimeout); fireOnEnd('declined'); cleanupCall(stream); });
+  socket.once('call:unavailable',() => { clearTimeout(callTimeout); fireOnEnd('unavailable'); cleanupCall(stream); });
+  socket.once('call:busy',       () => { clearTimeout(callTimeout); fireOnEnd('busy'); cleanupCall(stream); });
 
   return stream;
 }

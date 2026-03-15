@@ -129,6 +129,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         unavailable: 'Gebruiker is niet beschikbaar of offline.',
         declined:    'Oproep geweigerd.',
         timeout:     'Geen antwoord.',
+        busy:        'Contactpersoon is in gesprek.',
       };
       setCallMsg(msgs[active.endReason] || 'Gesprek beëindigd.');
       setCallState('ended');

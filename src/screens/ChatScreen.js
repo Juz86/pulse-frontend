@@ -11,6 +11,10 @@ import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, 
 const MSG_LIMIT = 30;
 
 export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead }) {
+  async function authFetch(url, options = {}) {
+    const token = await user.getIdToken();
+    return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
+  }
   const [conversations,  setConversations]  = useState([]);
   const [activeConv,     setActiveConv]     = useState(null);
   const [messages,       setMessages]       = useState([]);
@@ -123,7 +127,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   // ── Gesprekken laden ──────────────────────────────────────────────────────
   const loadConversations = useCallback(async () => {
     try {
-      const res  = await fetch(`${BACKEND_URL}/api/conversations/${user.uid}`);
+      const res  = await authFetch(`${BACKEND_URL}/api/conversations/${user.uid}`);
       const data = await res.json();
       setConversations(Array.isArray(data) ? data : []);
     } catch (e) { console.error(e); }
@@ -151,7 +155,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   // ── Vriendschapsverzoeken laden ───────────────────────────────────────────
   const loadFriendRequests = useCallback(async () => {
     try {
-      const res  = await fetch(`${BACKEND_URL}/api/friend-requests/${user.uid}`);
+      const res  = await authFetch(`${BACKEND_URL}/api/friend-requests/${user.uid}`);
       const data = await res.json();
       setFriendRequests(Array.isArray(data) ? data : []);
     } catch (e) { console.error(e); }
@@ -346,7 +350,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       message: 'Weet je zeker dat je dit gesprek wilt verwijderen?',
       onConfirm: async () => {
         try {
-          await fetch(`${BACKEND_URL}/api/conversations/${convId}?uid=${user.uid}`, { method: 'DELETE' });
+          await authFetch(`${BACKEND_URL}/api/conversations/${convId}`, { method: 'DELETE' });
         } catch (e) { console.error(e); }
         setConversations(prev => prev.filter(c => c.id !== convId));
         if (activeConv?.id === convId) { setActiveConv(null); setMessages([]); }
@@ -367,9 +371,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     setHasMore(false);
     setUnreadCounts(prev => { const n = { ...prev }; delete n[conv.id]; return n; });
     socket?.emit('conversation:join', { convId: conv.id });
-    socket?.emit('messages:read', { convId: conv.id, uid: user.uid });
+    socket?.emit('messages:read', { convId: conv.id });
     try {
-      const res  = await fetch(`${BACKEND_URL}/api/messages/${conv.id}?limit=${MSG_LIMIT}&offset=0&uid=${user.uid}`);
+      const res  = await authFetch(`${BACKEND_URL}/api/messages/${conv.id}?limit=${MSG_LIMIT}&offset=0`);
       const data = await res.json();
       const arr  = Array.isArray(data) ? data : [];
       // Alleen updaten als gebruiker nog in hetzelfde gesprek zit
@@ -391,7 +395,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     if (!activeConv || loadingMore) return;
     setLoadingMore(true);
     try {
-      const res  = await fetch(`${BACKEND_URL}/api/messages/${activeConv.id}?limit=${MSG_LIMIT}&offset=${msgOffset}`);
+      const res  = await authFetch(`${BACKEND_URL}/api/messages/${activeConv.id}?limit=${MSG_LIMIT}&offset=${msgOffset}`);
       const data = await res.json();
       const arr  = Array.isArray(data) ? data : [];
       setMessages(prev => [...arr, ...prev]);
@@ -442,21 +446,21 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
     }
     if (!activeConv) return;
-    socket?.emit('typing:start', { convId: activeConv.id, uid: user.uid, name: user.displayName });
+    socket?.emit('typing:start', { convId: activeConv.id, name: user.displayName });
     clearTimeout(typingTimer.current);
     typingTimer.current = setTimeout(stopTyping, 2000);
   }
 
   function stopTyping() {
     clearTimeout(typingTimer.current);
-    if (activeConv) socket?.emit('typing:stop', { convId: activeConv.id, uid: user.uid });
+    if (activeConv) socket?.emit('typing:stop', { convId: activeConv.id });
   }
 
   // ── Vriendschapsverzoek sturen ────────────────────────────────────────────
   async function addContact() {
     setContactErr(''); setContactLoading(true);
     try {
-      const res  = await fetch(`${BACKEND_URL}/api/friend-requests`, {
+      const res  = await authFetch(`${BACKEND_URL}/api/friend-requests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -489,7 +493,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   async function sendFriendRequestToEmail(email) {
     setFriendReqLoading(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/friend-requests`, {
+      const res = await authFetch(`${BACKEND_URL}/api/friend-requests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fromUid: user.uid, fromName: user.displayName || user.email, fromEmail: user.email, fromPhoto: user.photoURL || null, toEmail: email }),
@@ -502,7 +506,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   // ── Vriendschapsverzoek accepteren ────────────────────────────────────────
   async function acceptFriendRequest(requestId) {
     try {
-      await fetch(`${BACKEND_URL}/api/friend-requests/${requestId}/accept`, { method: 'POST' });
+      await authFetch(`${BACKEND_URL}/api/friend-requests/${requestId}/accept`, { method: 'POST' });
       setFriendRequests(prev => prev.filter(r => r.id !== requestId));
       loadContacts();
     } catch (e) { console.error(e); }
@@ -511,7 +515,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   // ── Vriendschapsverzoek weigeren ──────────────────────────────────────────
   async function declineFriendRequest(requestId) {
     try {
-      await fetch(`${BACKEND_URL}/api/friend-requests/${requestId}/decline`, { method: 'POST' });
+      await authFetch(`${BACKEND_URL}/api/friend-requests/${requestId}/decline`, { method: 'POST' });
       setFriendRequests(prev => prev.filter(r => r.id !== requestId));
     } catch (e) { console.error(e); }
   }
@@ -526,7 +530,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         // Ook het gesprek met dit contact verwijderen
         const conv = conversations.find(c => !c.isGroup && c.members?.includes(uid));
         if (conv) {
-          try { await fetch(`${BACKEND_URL}/api/conversations/${conv.id}?uid=${user.uid}`, { method: 'DELETE' }); } catch {}
+          try { await authFetch(`${BACKEND_URL}/api/conversations/${conv.id}`, { method: 'DELETE' }); } catch {}
           setConversations(prev => prev.filter(c => c.id !== conv.id));
           if (activeConv?.id === conv.id) { setActiveConv(null); setMessages([]); }
         }
@@ -555,7 +559,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     setSearchErr(''); setSearchResult(null);
     if (!searchEmail.trim()) return;
     try {
-      const res  = await fetch(`${BACKEND_URL}/api/users/search?email=${encodeURIComponent(searchEmail.trim())}`);
+      const res  = await authFetch(`${BACKEND_URL}/api/users/search?email=${encodeURIComponent(searchEmail.trim())}`);
       const data = await res.json();
       if (res.ok) setSearchResult(data);
       else        setSearchErr(data.error || 'Niet gevonden');
@@ -704,7 +708,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       message: 'Weet je zeker dat je je account wilt verwijderen? Al je chats en gegevens worden permanent verwijderd.',
       onConfirm: async () => {
         try {
-          await fetch(`${BACKEND_URL}/api/account/${user.uid}`, { method: 'DELETE' });
+          await authFetch(`${BACKEND_URL}/api/account/${user.uid}`, { method: 'DELETE' });
           localStorage.removeItem(`pulse_photo_${user.uid}`);
           localStorage.removeItem(`pulse_calls_${user.uid}`);
           await signOut(auth);

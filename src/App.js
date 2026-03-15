@@ -45,7 +45,9 @@ export default function App() {
       if (firebaseUser) {
         localStorage.setItem('pulse_user', '1');
         setUser(firebaseUser);
-        const socket = connectSocket(firebaseUser.uid);
+        const idToken = await firebaseUser.getIdToken();
+        const socket = connectSocket(firebaseUser.uid, idToken);
+        const authHeader = { 'Authorization': `Bearer ${idToken}` };
 
         // Notificatie-toestemming + FCM token
         try {
@@ -55,7 +57,7 @@ export default function App() {
             if (token) {
               fetch(`${BACKEND}/api/fcm-token`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', ...authHeader },
                 body: JSON.stringify({ uid: firebaseUser.uid, token }),
               }).catch(() => {});
             }
@@ -65,7 +67,7 @@ export default function App() {
         // Profiel opslaan in backend
         fetch(`${BACKEND}/api/users`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeader },
           body: JSON.stringify({
             uid:         firebaseUser.uid,
             displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
@@ -88,7 +90,7 @@ export default function App() {
         // Herverbinding: herregistreer als online en haal actuele lijst op
         socket.off('reconnect');
         socket.on('reconnect', () => {
-          socket.emit('user:online', { uid: firebaseUser.uid });
+          socket.emit('user:online');
         });
 
         // Tab-focus: haal actuele online lijst opnieuw op

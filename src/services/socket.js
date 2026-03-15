@@ -29,13 +29,13 @@ let iceHandler = null;
 let callPeer   = null; // bewaar de remote uid voor renegotiatie
 
 // ── Socket verbinden ──────────────────────────────────────────────────────────
-export function connectSocket(uid) {
+export function connectSocket(uid, token) {
   if (socket?.connected) {
-    // setTimeout zodat App.js tijd heeft om listeners te registreren vóór het event aankomt
-    setTimeout(() => socket.emit('user:online', { uid }), 0);
+    setTimeout(() => socket.emit('user:online'), 0);
     return socket;
   }
   socket = io(BACKEND_URL, {
+    auth: { token },
     transports: ['websocket'],
     reconnection: true,
     reconnectionAttempts: Infinity,
@@ -45,7 +45,7 @@ export function connectSocket(uid) {
   });
   socket.on('connect', () => {
     console.log('✅ Socket verbonden');
-    socket.emit('user:online', { uid });
+    socket.emit('user:online');
   });
   return socket;
 }

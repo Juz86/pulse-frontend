@@ -10,6 +10,13 @@ import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, 
 
 const MSG_LIMIT = 30;
 
+function toMs(t) {
+  if (!t) return 0;
+  if (typeof t === 'number') return t;
+  if (t._seconds) return t._seconds * 1000 + (t._nanoseconds || 0) / 1e6;
+  return new Date(t).getTime() || 0;
+}
+
 export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead }) {
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
@@ -238,7 +245,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           return prev;
         }
         const updated = prev.map(c => c.id === msg.convId ? { ...c, lastMessage: previewText, updatedAt: msg.createdAt || new Date().toISOString() } : c);
-        return [...updated].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+        return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
       });
     };
 
@@ -490,7 +497,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     // Preview in conversatielijst direct bijwerken
     setConversations(prev => {
       const updated = prev.map(c => c.id === activeConv.id ? { ...c, lastMessage: msg.text, updatedAt: msg.createdAt } : c);
-      return [...updated].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+      return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
     });
     socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
       // Vervang tijdelijk bericht met bevestigd bericht van server

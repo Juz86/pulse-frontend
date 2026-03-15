@@ -1421,12 +1421,21 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       {viewingSharedContact && (
         <div className="modal-overlay" onClick={() => setViewingSharedContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:340 }}>
-            <h3 className="modal-title" style={{ display:'flex', alignItems:'center', gap:'10px' }}><User size={24} /> Contactpersoon</h3>
+            <h3 className="modal-title" style={{ display:'flex', alignItems:'center', gap:'10px', fontSize:'18px' }}><User size={20} style={{ flexShrink:0 }} /> Contactpersoon</h3>
             <div style={{ display:'flex', alignItems:'center', gap:'14px', padding:'16px 0 20px' }}>
-              <div className="avatar-circle" style={{ width:52, height:52, fontSize:20, borderRadius:14, flexShrink:0 }}>{getInitials(viewingSharedContact.name || '')}</div>
+              <div className="avatar-wrap" style={{ flexShrink:0 }}>
+                <div className="avatar-circle" style={{ width:52, height:52, fontSize:20, borderRadius:14 }}>{getInitials(viewingSharedContact.name || '')}</div>
+                {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid) && <span className="online-dot" />}
+              </div>
               <div>
                 <div style={{ fontWeight:700, fontSize:'16px' }}>{viewingSharedContact.name || 'Onbekend'}</div>
                 {viewingSharedContact.email && <div style={{ fontSize:'13px', color:'var(--text3)', marginTop:2 }}>{viewingSharedContact.email}</div>}
+                <div style={{ fontSize:'12px', marginTop:4, display:'flex', alignItems:'center', gap:5 }}>
+                  {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid)
+                    ? <><span style={{ width:7, height:7, borderRadius:'50%', background:'var(--success)', display:'inline-block' }} /> <span style={{ color:'var(--success)' }}>Online</span></>
+                    : <><span style={{ width:7, height:7, borderRadius:'50%', background:'var(--text3)', display:'inline-block' }} /> <span style={{ color:'var(--text3)' }}>Offline</span></>
+                  }
+                </div>
               </div>
             </div>
             <div className="modal-actions" style={{ justifyContent:'space-between' }}>

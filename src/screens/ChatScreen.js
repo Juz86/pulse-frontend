@@ -977,16 +977,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         const isAlreadyContact = contacts.some(c => c.uid === sc.uid);
         items.push(
           <div key={msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}>
-            <div className="msg-call-card" style={{ cursor: isOwn ? 'default' : 'pointer' }}
+            <div className="msg-contact-card" style={{ cursor: isOwn ? 'default' : 'pointer' }}
               onClick={!isOwn ? () => { setFriendReqSent(false); setViewingSharedContact({ ...sc, isAlreadyContact }); } : undefined}>
-              <div className="msg-call-icon incoming">
-                <User size={20} />
+              <div className="avatar-circle sm" style={{ borderRadius:12, flexShrink:0 }}>{getInitials(sc.name || '')}</div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontWeight:600, fontSize:'14px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{sc.name || 'Contactpersoon'}</div>
+                {sc.email && <div style={{ fontSize:'12px', color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{sc.email}</div>}
               </div>
-              <div className="msg-call-info">
-                <div className="msg-call-label">{sc.name || 'Contactpersoon'}</div>
-                {sc.email && <div className="msg-call-sub">{sc.email}</div>}
-              </div>
-              <div className="msg-call-time">{formatTime(msg.createdAt)}</div>
+              <div style={{ fontSize:'11px', color: isOwn ? 'rgba(255,255,255,.5)' : 'var(--text3)', flexShrink:0, alignSelf:'flex-end' }}>{formatTime(msg.createdAt)}</div>
             </div>
           </div>
         );
@@ -1424,10 +1422,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         <div className="modal-overlay" onClick={() => setViewingSharedContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:340 }}>
             <h3 className="modal-title" style={{ display:'flex', alignItems:'center', gap:'8px' }}><User size={18} /> Contactpersoon</h3>
-            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'8px', padding:'16px 0 20px' }}>
-              <div className="avatar lg" style={{ width:64, height:64, fontSize:24 }}>{getInitials(viewingSharedContact.name || '')}</div>
-              <div style={{ fontWeight:700, fontSize:'17px' }}>{viewingSharedContact.name || 'Onbekend'}</div>
-              {viewingSharedContact.email && <div style={{ fontSize:'13px', color:'var(--text3)' }}>{viewingSharedContact.email}</div>}
+            <div style={{ display:'flex', alignItems:'center', gap:'14px', padding:'16px 0 20px' }}>
+              <div className="avatar-circle" style={{ width:52, height:52, fontSize:20, borderRadius:14, flexShrink:0 }}>{getInitials(viewingSharedContact.name || '')}</div>
+              <div>
+                <div style={{ fontWeight:700, fontSize:'16px' }}>{viewingSharedContact.name || 'Onbekend'}</div>
+                {viewingSharedContact.email && <div style={{ fontSize:'13px', color:'var(--text3)', marginTop:2 }}>{viewingSharedContact.email}</div>}
+              </div>
             </div>
             <div className="modal-actions" style={{ justifyContent:'space-between' }}>
               <button className="btn-secondary" onClick={() => setViewingSharedContact(null)}>Sluiten</button>

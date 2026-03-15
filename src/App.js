@@ -30,7 +30,8 @@ export default function App() {
   const [loading,      setLoading]      = useState(!auth.currentUser);
   const [incomingCall,    setIncomingCall]    = useState(null);
   const [missedCallAlert, setMissedCallAlert] = useState(false);
-  const [onlineUsers,  setOnlineUsers]  = useState(new Set());
+  const [onlineUsers,   setOnlineUsers]   = useState(new Set());
+  const [inactiveUsers, setInactiveUsers] = useState(new Set());
   const [lightMode,    setLightMode]    = useState(localStorage.getItem('pulse_theme') === 'light');
 
   useEffect(() => {
@@ -79,12 +80,21 @@ export default function App() {
         // Online status
         socket.off('user:status');
         socket.off('users:online');
-        socket.on('user:status', ({ uid, online }) => {
-          if (online) setOnlineUsers(prev => new Set([...prev, uid]));
-          else setOnlineUsers(prev => { const s = new Set(prev); s.delete(uid); return s; });
+        socket.off('users:inactive');
+        socket.on('user:status', ({ uid, online, inactive }) => {
+          if (online) {
+            setOnlineUsers(prev => new Set([...prev, uid]));
+            setInactiveUsers(prev => { const s = new Set(prev); if (inactive) s.add(uid); else s.delete(uid); return s; });
+          } else {
+            setOnlineUsers(prev => { const s = new Set(prev); s.delete(uid); return s; });
+            setInactiveUsers(prev => { const s = new Set(prev); s.delete(uid); return s; });
+          }
         });
         socket.on('users:online', (uids) => {
           setOnlineUsers(new Set(uids));
+        });
+        socket.on('users:inactive', (uids) => {
+          setInactiveUsers(new Set(uids));
         });
 
         // Herverbinding: herregistreer als online en haal actuele lijst op
@@ -129,6 +139,7 @@ export default function App() {
         localStorage.removeItem('pulse_user');
         setUser(null);
         setOnlineUsers(new Set());
+        setInactiveUsers(new Set());
         if (window._pulseVisibilityHandler) {
           document.removeEventListener('visibilitychange', window._pulseVisibilityHandler);
           window._pulseVisibilityHandler = null;
@@ -151,7 +162,7 @@ export default function App() {
     <div className="app-root">
       {!user
         ? <AuthScreen />
-        : <ChatScreen user={user} onlineUsers={onlineUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} />
+        : <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} />
       }
       {incomingCall && (
         <CallOverlay

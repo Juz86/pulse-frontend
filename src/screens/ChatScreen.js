@@ -10,7 +10,7 @@ import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, 
 
 const MSG_LIMIT = 30;
 
-export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead }) {
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
@@ -114,18 +114,20 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg,     setProfileMsg]     = useState('');
 
-  const msgEndRef      = useRef(null);
-  const msgsAreaRef    = useRef(null);
-  const textareaRef    = useRef(null);
-  const typingTimer    = useRef(null);
-  const activeConvRef  = useRef(null);
-  const photoInputRef  = useRef(null);
+  const msgEndRef        = useRef(null);
+  const msgsAreaRef      = useRef(null);
+  const textareaRef      = useRef(null);
+  const typingTimer      = useRef(null);
+  const activeConvRef    = useRef(null);
+  const conversationsRef = useRef([]);
+  const photoInputRef    = useRef(null);
   const callStartTimeRef = useRef(null);
   const callIsVideoRef   = useRef(false);
   const callConvIdRef    = useRef(null);
-  const socket         = getSocket();
+  const socket           = getSocket();
 
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv]);
+  useEffect(() => { conversationsRef.current = conversations; }, [conversations]);
 
   // ── Gesprekken laden ──────────────────────────────────────────────────────
   const loadConversations = useCallback(async () => {
@@ -133,6 +135,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       const res  = await authFetch(`${BACKEND_URL}/api/conversations/${user.uid}`);
       const data = await res.json();
       setConversations(Array.isArray(data) ? data : []);
+      // Auto-join alle kamer-rooms zodat berichten altijd real-time aankomen
+      const sock = getSocket();
+      if (sock && Array.isArray(data)) {
+        data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
+      }
     } catch (e) { console.error(e); }
   }, [user.uid]);
 
@@ -299,8 +306,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       setMessages(prev => prev.filter(m => m.id !== msgId));
     };
 
+    // Re-join alle kamers bij herverbinding (zodat real-time berichten blijven werken)
+    const onReconnect = () => {
+      const sock = getSocket();
+      if (sock) conversationsRef.current.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
+    };
+
     socket.on('connect',          onConnect);
     socket.on('disconnect',       onDisconnect);
+    socket.on('reconnect',        onReconnect);
     socket.on('message:received', onMessageReceived);
     socket.on('typing:update',    onTypingUpdate);
     socket.on('message:status',   onMessageStatus);
@@ -312,6 +326,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     return () => {
       socket.off('connect',          onConnect);
       socket.off('disconnect',       onDisconnect);
+      socket.off('reconnect',        onReconnect);
       socket.off('message:received', onMessageReceived);
       socket.off('typing:update',    onTypingUpdate);
       socket.off('message:status',   onMessageStatus);
@@ -321,6 +336,22 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       socket.off('user:updated',     onUserUpdated);
     };
   }, [socket, loadConversations, loadContacts]);
+
+  // ── Inactiviteitsdetectie: na 1 minuut geen activiteit → user:inactive ──────
+  useEffect(() => {
+    if (!socket) return;
+    let isInactive = false;
+    let timer = null;
+    const onActivity = () => {
+      clearTimeout(timer);
+      if (isInactive) { isInactive = false; socket.emit('user:active'); }
+      timer = setTimeout(() => { isInactive = true; socket.emit('user:inactive'); }, 60_000);
+    };
+    const events = ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'];
+    events.forEach(e => document.addEventListener(e, onActivity, { passive: true }));
+    onActivity(); // start timer direct
+    return () => { clearTimeout(timer); events.forEach(e => document.removeEventListener(e, onActivity)); };
+  }, [socket]);
 
   // Sluit delete menu bij klik buiten
   useEffect(() => {
@@ -1131,14 +1162,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
               getConvName(conv).toLowerCase().includes(searchQuery.toLowerCase()) ||
               (conv.lastMessage || '').toLowerCase().includes(searchQuery.toLowerCase())
             ).map(conv => {
-              const otherUid   = getOtherUid(conv);
-              const isOnline   = otherUid && onlineUsers.has(otherUid);
-              const unread     = unreadCounts[conv.id] || 0;
+              const otherUid        = getOtherUid(conv);
+              const isOnline        = otherUid && onlineUsers.has(otherUid);
+              const isActivelyOnline = isOnline && !inactiveUsers.has(otherUid);
+              const unread          = unreadCounts[conv.id] || 0;
               return (
                 <div key={conv.id} className={`conv-item ${activeConv?.id === conv.id ? 'active' : ''}`} onClick={() => openConversation(conv)}>
                   <div className="avatar-wrap">
                     <UserAvatar photoURL={getConvPhoto(conv)} displayName={getConvName(conv)} />
-                    {isOnline && <span className="online-dot" />}
+                    {isOnline && <span className={`online-dot${inactiveUsers.has(otherUid) ? ' inactive' : ''}`} />}
                   </div>
                   <div className="conv-info">
                     <div className="conv-name">{getConvName(conv)}</div>
@@ -1210,7 +1242,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div className="avatar-wrap">
                     <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} />
-                    {onlineUsers.has(contact.uid) && <span className="online-dot" />}
+                    {onlineUsers.has(contact.uid) && <span className={`online-dot${inactiveUsers.has(contact.uid) ? ' inactive' : ''}`} />}
                   </div>
                   <div className="conv-info">
                     <div className="conv-name">{getContactDisplayName(contact)}</div>
@@ -1262,34 +1294,43 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
           <>
             <div className="chat-header">
               <button className="back-btn" onClick={() => setActiveConv(null)} title="Terug">←</button>
-              <div className="avatar-wrap" style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }} onClick={() => { if (!activeConv.isGroup) { const otherUid = getOtherUid(activeConv); setRenameValue(getContactNickname(otherUid) || getConvName(activeConv)); setShowContactProfile(true); } }}>
-                <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm" />
-                {getOtherUid(activeConv) && onlineUsers.has(getOtherUid(activeConv)) && <span className="online-dot sm" />}
-              </div>
-              <div className="chat-header-info" style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }} onClick={() => { if (!activeConv.isGroup) { const otherUid = getOtherUid(activeConv); setRenameValue(getContactNickname(otherUid) || getConvName(activeConv)); setShowContactProfile(true); } }}>
-                <div className="chat-header-name">{getConvName(activeConv)}</div>
-                {typing
-                  ? <div className="chat-header-typing">● {typingName} typt…</div>
-                  : getOtherUid(activeConv) && onlineUsers.has(getOtherUid(activeConv))
-                    ? <div className="chat-header-online">Online</div>
-                    : null
-                }
-              </div>
-              <div className="chat-header-actions">
-                {!activeConv.isGroup && (
+              {(() => {
+                const hOtherUid = getOtherUid(activeConv);
+                const hIsOnline = hOtherUid && onlineUsers.has(hOtherUid);
+                const hIsActive = hIsOnline && !inactiveUsers.has(hOtherUid);
+                return (
                   <>
-                    <button className="call-btn voice" onClick={() => initiateCall(false)} title="Bellen"><Phone size={18} /></button>
-                    <button className="call-btn video" onClick={() => initiateCall(true)} title="Videobellen"><Video size={18} /></button>
-                    {(() => { const otherContact = contacts.find(c => c.uid === getOtherUid(activeConv)); return otherContact ? <button className="icon-btn" onClick={() => setSharingContact(otherContact)} title="Contactpersoon delen"><Share size={18} /></button> : null; })()}
+                    <div className="avatar-wrap" style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }} onClick={() => { if (!activeConv.isGroup) { setRenameValue(getContactNickname(hOtherUid) || getConvName(activeConv)); setShowContactProfile(true); } }}>
+                      <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm" />
+                      {hIsOnline && <span className={`online-dot sm${inactiveUsers.has(hOtherUid) ? ' inactive' : ''}`} />}
+                    </div>
+                    <div className="chat-header-info" style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }} onClick={() => { if (!activeConv.isGroup) { setRenameValue(getContactNickname(hOtherUid) || getConvName(activeConv)); setShowContactProfile(true); } }}>
+                      <div className="chat-header-name">{getConvName(activeConv)}</div>
+                      {typing
+                        ? <div className="chat-header-typing">● {typingName} typt…</div>
+                        : hIsOnline
+                          ? <div className="chat-header-online">{hIsActive ? 'Online' : 'Inactief'}</div>
+                          : null
+                      }
+                    </div>
+                    <div className="chat-header-actions">
+                      {!activeConv.isGroup && (
+                        <>
+                          <button className="call-btn voice" onClick={() => initiateCall(false)} title="Bellen"><Phone size={18} /></button>
+                          <button className="call-btn video" onClick={() => initiateCall(true)} title="Videobellen"><Video size={18} /></button>
+                          {(() => { const otherContact = contacts.find(c => c.uid === hOtherUid); return otherContact ? <button className="icon-btn" onClick={() => setSharingContact(otherContact)} title="Contactpersoon delen"><Share size={18} /></button> : null; })()}
+                        </>
+                      )}
+                      {activeConv.isGroup && (
+                        <button className="icon-btn" onClick={() => setShowGroupInfo(true)} title="Groepsinformatie"><Users size={18} /></button>
+                      )}
+                      <button className="icon-btn" onClick={() => { setShowChatSearch(s => !s); setChatSearch(''); setChatSearchIdx(0); setTimeout(() => chatSearchRef.current?.focus(), 50); }} title="Zoeken">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                      </button>
+                    </div>
                   </>
-                )}
-                {activeConv.isGroup && (
-                  <button className="icon-btn" onClick={() => setShowGroupInfo(true)} title="Groepsinformatie"><Users size={18} /></button>
-                )}
-                <button className="icon-btn" onClick={() => { setShowChatSearch(s => !s); setChatSearch(''); setChatSearchIdx(0); setTimeout(() => chatSearchRef.current?.focus(), 50); }} title="Zoeken">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                </button>
-              </div>
+                );
+              })()}
             </div>
 
             {/* ── ZOEKBALK IN GESPREK ── */}
@@ -1437,14 +1478,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             <div style={{ display:'flex', alignItems:'center', gap:'14px', padding:'16px 0 20px' }}>
               <div className="avatar-wrap" style={{ flexShrink:0 }}>
                 <div className="avatar-circle" style={{ width:52, height:52, fontSize:20, borderRadius:14 }}>{getInitials(viewingSharedContact.name || '')}</div>
-                {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid) && <span className="online-dot" />}
+                {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid) && <span className={`online-dot${inactiveUsers.has(viewingSharedContact.uid) ? ' inactive' : ''}`} />}
               </div>
               <div>
                 <div style={{ fontWeight:700, fontSize:'16px' }}>{viewingSharedContact.name || 'Onbekend'}</div>
                 {viewingSharedContact.email && <div style={{ fontSize:'13px', color:'var(--text3)', marginTop:2 }}>{viewingSharedContact.email}</div>}
                 <div style={{ fontSize:'12px', marginTop:4, display:'flex', alignItems:'center', gap:5 }}>
                   {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid)
-                    ? <><span style={{ width:7, height:7, borderRadius:'50%', background:'var(--success)', display:'inline-block' }} /> <span style={{ color:'var(--success)' }}>Online</span></>
+                    ? inactiveUsers.has(viewingSharedContact.uid)
+                      ? <><span style={{ width:7, height:7, borderRadius:'50%', background:'#f59e0b', display:'inline-block' }} /> <span style={{ color:'#f59e0b' }}>Inactief</span></>
+                      : <><span style={{ width:7, height:7, borderRadius:'50%', background:'var(--success)', display:'inline-block' }} /> <span style={{ color:'var(--success)' }}>Online</span></>
                     : <><span style={{ width:7, height:7, borderRadius:'50%', background:'var(--text3)', display:'inline-block' }} /> <span style={{ color:'var(--text3)' }}>Offline</span></>
                   }
                 </div>
@@ -1488,9 +1531,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             </div>
             <div className="form-group">
               <label className="form-label">Status</label>
-              <div className={`profile-status-badge ${onlineUsers.has(viewingContact.uid) ? 'online' : 'offline'}`}>
+              <div className={`profile-status-badge ${onlineUsers.has(viewingContact.uid) && !inactiveUsers.has(viewingContact.uid) ? 'online' : onlineUsers.has(viewingContact.uid) ? 'inactive' : 'offline'}`}>
                 <span className="profile-status-dot" />
-                {onlineUsers.has(viewingContact.uid) ? 'Online' : 'Offline'}
+                {onlineUsers.has(viewingContact.uid) && !inactiveUsers.has(viewingContact.uid) ? 'Online' : onlineUsers.has(viewingContact.uid) ? 'Inactief' : 'Offline'}
               </div>
             </div>
             <div className="modal-actions">
@@ -1658,7 +1701,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         const name      = getConvName(activeConv);
         const email     = activeConv.memberEmails?.[uid] || contacts.find(c => c.uid === uid)?.email || '';
         const photo     = getConvPhoto(activeConv);
-        const isOnline  = uid && onlineUsers.has(uid);
+        const isOnline   = uid && onlineUsers.has(uid);
+        const isInactive = uid && inactiveUsers.has(uid);
         return (
           <div className="modal-overlay" onClick={() => setShowContactProfile(false)}>
             <div className="modal-box" onClick={e => e.stopPropagation()}>
@@ -1684,9 +1728,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
               )}
               <div className="form-group">
                 <label className="form-label">Status</label>
-                <div className={`profile-status-badge ${isOnline ? 'online' : 'offline'}`}>
+                <div className={`profile-status-badge ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
                   <span className="profile-status-dot" />
-                  {isOnline ? 'Online' : 'Offline'}
+                  {isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Inactief' : 'Offline'}
                 </div>
               </div>
               <div className="modal-actions">

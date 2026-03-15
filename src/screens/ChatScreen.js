@@ -207,6 +207,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
         }
         playMessageSound();
       }
+      // Direct de preview bijwerken zonder te wachten op HTTP-verzoek
+      const previewText = msg.type === 'contact'
+        ? `Contactpersoon: ${msg.sharedContact?.name || ''}`
+        : msg.type === 'call'
+          ? (msg.isVideo ? 'Video-oproep' : 'Spraakoproep')
+          : (msg.text || '');
+      setConversations(prev => {
+        const updated = prev.map(c => c.id === msg.convId ? { ...c, lastMessage: previewText, updatedAt: msg.createdAt || new Date().toISOString() } : c);
+        return [...updated].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+      });
       loadConversations();
     };
 
@@ -424,6 +434,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     setReplyTo(null);
     // Optimistic UI: toon bericht direct zonder te wachten op server
     setMessages(prev => [...prev, { ...msg, id: tempId, pending: true }]);
+    // Preview in conversatielijst direct bijwerken
+    setConversations(prev => {
+      const updated = prev.map(c => c.id === activeConv.id ? { ...c, lastMessage: msg.text, updatedAt: msg.createdAt } : c);
+      return [...updated].sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+    });
     socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
       // Vervang tijdelijk bericht met bevestigd bericht van server
       if (savedMsg?.id) {

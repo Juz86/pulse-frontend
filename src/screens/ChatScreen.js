@@ -1194,7 +1194,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
               c.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
               c.email?.toLowerCase().includes(searchQuery.toLowerCase())
             ).map(contact => (
-              <div key={contact.uid} style={{ margin: '0 12px 10px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div key={contact.uid} style={{ margin: '0 12px 10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div className="avatar-wrap">
                     <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} />

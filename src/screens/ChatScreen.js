@@ -10,6 +10,16 @@ import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, 
 
 const MSG_LIMIT = 30;
 
+function callPreview(conv, currentUid) {
+  const { lastCallSenderId, lastCallDirection, lastCallIsVideo } = conv;
+  if (!lastCallDirection) return conv.lastMessage || '';
+  const isOwn = lastCallSenderId === currentUid;
+  const iv = lastCallIsVideo;
+  if (lastCallDirection === 'completed') return iv ? 'Video-oproep' : 'Spraakoproep';
+  if (lastCallDirection === 'declined')  return isOwn ? 'Geweigerd' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
+  return isOwn ? 'Spraakoproep' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
+}
+
 function toMs(t) {
   if (!t) return 0;
   if (typeof t === 'number') return t;
@@ -235,7 +245,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       const previewText = msg.type === 'contact'
         ? `Contactpersoon: ${msg.sharedContact?.name || ''}`
         : msg.type === 'call'
-          ? (msg.isVideo ? 'Video-oproep' : 'Spraakoproep')
+          ? (() => {
+              const isOwn = msg.senderId === user.uid;
+              const iv = msg.isVideo;
+              if (msg.direction === 'completed') return iv ? 'Video-oproep' : 'Spraakoproep';
+              if (msg.direction === 'declined')  return isOwn ? 'Geweigerd' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
+              return isOwn ? 'Geen antwoord' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
+            })()
           : (msg.text || '');
       setConversations(prev => {
         const exists = prev.some(c => c.id === msg.convId);
@@ -244,7 +260,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           loadConversations();
           return prev;
         }
-        const updated = prev.map(c => c.id === msg.convId ? { ...c, lastMessage: previewText, updatedAt: msg.createdAt || new Date().toISOString() } : c);
+        const callMeta = msg.type === 'call' ? { lastCallSenderId: msg.senderId, lastCallDirection: msg.direction, lastCallIsVideo: !!msg.isVideo } : {};
+        const updated = prev.map(c => c.id === msg.convId ? { ...c, lastMessage: previewText, updatedAt: msg.createdAt || new Date().toISOString(), ...callMeta } : c);
         return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
       });
     };
@@ -1180,7 +1197,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   </div>
                   <div className="conv-info">
                     <div className="conv-name">{getConvName(conv)}</div>
-                    <div className="conv-preview">{conv.lastMessage || 'Start een gesprek…'}</div>
+                    <div className="conv-preview">{conv.lastCallDirection ? callPreview(conv, user.uid) : (conv.lastMessage || 'Start een gesprek…')}</div>
                   </div>
                   {unread > 0 && <span className="unread-badge">{unread}</span>}
                   {!conv.isGroup && (

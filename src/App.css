@@ -534,9 +534,15 @@ body {
   position:absolute; top:50%; transform:translateY(-50%);
   display:none; align-items:center;
 }
-.msg-group.out .msg-delete-wrap { left:-62px; }
-.msg-group.in  .msg-delete-wrap { right:-62px; }
+.msg-group.out .msg-delete-wrap { left:-60px; }
+.msg-group.in  .msg-delete-wrap { right:-60px; }
 .msg-group:hover .msg-delete-wrap { display:flex; }
+
+.msg-delete-btn {
+  position:static; display:flex; align-items:center; justify-content:center;
+  background:var(--surface2); border:none; border-radius:50%;
+  width:26px; height:26px; cursor:pointer; color:var(--text2);
+}
 
 .msg-delete-menu {
   position:absolute; top:calc(100% + 4px);

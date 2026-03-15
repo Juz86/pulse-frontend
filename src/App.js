@@ -85,6 +85,21 @@ export default function App() {
           setOnlineUsers(new Set(uids));
         });
 
+        // Herverbinding: herregistreer als online en haal actuele lijst op
+        socket.off('reconnect');
+        socket.on('reconnect', () => {
+          socket.emit('user:online', { uid: firebaseUser.uid });
+        });
+
+        // Tab-focus: haal actuele online lijst opnieuw op
+        const onVisibility = () => {
+          if (document.visibilityState === 'visible') {
+            socket.emit('users:online:request');
+          }
+        };
+        document.removeEventListener('visibilitychange', onVisibility);
+        document.addEventListener('visibilitychange', onVisibility);
+
         // Inkomende oproepen
         socket.off('call:incoming');
         socket.off('call:ended');

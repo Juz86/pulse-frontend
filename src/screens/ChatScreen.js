@@ -773,12 +773,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
   }
 
   // ── Bellen vanuit oproepen-modal ─────────────────────────────────────────
-  async function callContact(contact, isVideo) {
-    setShowCallModal(false);
-    const toUid = contact.uid;
-    const name  = contact.displayName;
-    logCall({ uid: toUid, name, photoURL: contact.photoURL, isVideo, direction: 'outgoing' });
-    callConvIdRef.current    = findConvWithUid(toUid)?.id || null;
+  // ── Gedeelde bel-logica ───────────────────────────────────────────────────
+  async function startCallTo({ toUid, convId, name, isVideo }) {
+    callConvIdRef.current    = convId;
     callStartTimeRef.current = null;
     callIsVideoRef.current   = isVideo;
     const stream = await startCall({
@@ -810,6 +807,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
       },
     });
     if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
+  }
+
+  async function callContact(contact, isVideo) {
+    setShowCallModal(false);
+    const toUid = contact.uid;
+    const name  = contact.displayName;
+    logCall({ uid: toUid, name, photoURL: contact.photoURL, isVideo, direction: 'outgoing' });
+    await startCallTo({ toUid, convId: findConvWithUid(toUid)?.id || null, name, isVideo });
   }
 
   // ── Bellen ────────────────────────────────────────────────────────────────
@@ -820,38 +825,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     const name  = activeConv.memberNames?.[toUid] || 'Contactpersoon';
     const photo = contacts.find(c => c.uid === toUid)?.photoURL || '';
     logCall({ uid: toUid, name, photoURL: photo, isVideo, direction: 'outgoing' });
-    callConvIdRef.current    = activeConv.id;
-    callStartTimeRef.current = null;
-    callIsVideoRef.current   = isVideo;
-    const stream = await startCall({
-      toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
-      onStream: (remoteStream, localStream) => {
-        callStartTimeRef.current = Date.now();
-        setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
-      },
-      onEnd: (reason) => {
-        const wasConnected = callStartTimeRef.current !== null;
-        const duration  = wasConnected ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
-        callStartTimeRef.current = null;
-        const callDir = reason === 'declined' ? 'declined'
-          : (!wasConnected || reason === 'timeout' || reason === 'unavailable') ? 'no-answer'
-          : 'completed';
-        sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
-        if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
-          setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
-        } else {
-          setActiveCall(null);
-        }
-      },
-      onVideoUpgrade: (localStream) => {
-        callIsVideoRef.current = true;
-        setActiveCall(prev => ({ ...prev, localStream, isVideo: true }));
-      },
-      onVideoUpgradeRequest: () => {
-        setActiveCall(prev => prev ? { ...prev, videoUpgradeRequest: true } : prev);
-      },
-    });
-    if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
+    await startCallTo({ toUid, convId: activeConv.id, name, isVideo });
   }
 
   // ── Bellen vanuit conv-lijst (zonder chat openen) ────────────────────────
@@ -862,38 +836,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
     const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
     const photo = contacts.find(c => c.uid === toUid)?.photoURL || '';
     logCall({ uid: toUid, name, photoURL: photo, isVideo, direction: 'outgoing' });
-    callConvIdRef.current    = conv.id;
-    callStartTimeRef.current = null;
-    callIsVideoRef.current   = isVideo;
-    const stream = await startCall({
-      toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
-      onStream: (remoteStream, localStream) => {
-        callStartTimeRef.current = Date.now();
-        setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
-      },
-      onEnd: (reason) => {
-        const wasConnected = callStartTimeRef.current !== null;
-        const duration  = wasConnected ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
-        callStartTimeRef.current = null;
-        const callDir = reason === 'declined' ? 'declined'
-          : (!wasConnected || reason === 'timeout' || reason === 'unavailable') ? 'no-answer'
-          : 'completed';
-        sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
-        if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout') {
-          setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
-        } else {
-          setActiveCall(null);
-        }
-      },
-      onVideoUpgrade: (localStream) => {
-        callIsVideoRef.current = true;
-        setActiveCall(prev => ({ ...prev, localStream, isVideo: true }));
-      },
-      onVideoUpgradeRequest: () => {
-        setActiveCall(prev => prev ? { ...prev, videoUpgradeRequest: true } : prev);
-      },
-    });
-    if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
+    await startCallTo({ toUid, convId: conv.id, name, isVideo });
   }
 
   // ── Hulpfuncties ──────────────────────────────────────────────────────────

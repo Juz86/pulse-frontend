@@ -92,13 +92,14 @@ export default function App() {
         });
 
         // Tab-focus: haal actuele online lijst opnieuw op
-        const onVisibility = () => {
-          if (document.visibilityState === 'visible') {
-            socket.emit('users:online:request');
-          }
+        // Verwijder eventuele vorige listener via een stabiele referentie
+        if (window._pulseVisibilityHandler) {
+          document.removeEventListener('visibilitychange', window._pulseVisibilityHandler);
+        }
+        window._pulseVisibilityHandler = () => {
+          if (document.visibilityState === 'visible') socket.emit('users:online:request');
         };
-        document.removeEventListener('visibilitychange', onVisibility);
-        document.addEventListener('visibilitychange', onVisibility);
+        document.addEventListener('visibilitychange', window._pulseVisibilityHandler);
 
         // Inkomende oproepen
         socket.off('call:incoming');
@@ -126,6 +127,10 @@ export default function App() {
         localStorage.removeItem('pulse_user');
         setUser(null);
         setOnlineUsers(new Set());
+        if (window._pulseVisibilityHandler) {
+          document.removeEventListener('visibilitychange', window._pulseVisibilityHandler);
+          window._pulseVisibilityHandler = null;
+        }
         disconnectSocket();
       }
       setLoading(false);

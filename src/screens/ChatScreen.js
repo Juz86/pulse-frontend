@@ -1205,7 +1205,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
                     <div className="conv-preview">{contact.email}</div>
                   </div>
                 </div>
-                <div style={{ height: '1px', background: 'rgba(255,255,255,0.07)' }} />
+                <div style={{ height: '1px', background: 'var(--border)' }} />
                 <div style={{ display: 'flex', gap: '6px' }}>
                   <button className="icon-btn" onClick={() => { setViewingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName); }} title="Profiel bekijken" style={{ flex:1, justifyContent:'center' }}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z"/></svg>

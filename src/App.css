@@ -403,6 +403,7 @@ body {
 }
 .empty-icon {
   font-size:56px;
+  color:#fff;
   filter:drop-shadow(0 0 18px rgba(108,99,255,.4));
   animation:float 3s ease-in-out infinite;
 }

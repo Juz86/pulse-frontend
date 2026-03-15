@@ -1058,7 +1058,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
             {conversations.length === 0 && (
               <div className="empty-convs">
                 <p>Nog geen gesprekken.</p>
-                <p>Klik op het chat-icoon om een nieuwe chat te starten.</p>
+                <p>Klik op het <Message size={14} style={{ verticalAlign: 'middle', margin: '0 2px' }} /> icoon om een nieuwe chat te starten.</p>
               </div>
             )}
             {conversations.filter(conv =>
@@ -1191,7 +1191,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), lightMode, o
           <div className="empty-state">
             <div className="empty-icon"><Message size={48} /></div>
             <div className="empty-title">Kies een gesprek</div>
-            <p>Of klik op het chat-icoon om een nieuwe chat te beginnen.</p>
+            <p>Of klik op het <Message size={14} style={{ verticalAlign: 'middle', margin: '0 2px' }} /> icoon om een nieuwe chat te beginnen.</p>
           </div>
         ) : (
           <>

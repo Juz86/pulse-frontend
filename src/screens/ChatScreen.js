@@ -180,7 +180,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   useEffect(() => {
     if (!socket) return;
 
-    const onConnect    = () => setConnected(true);
+    const onConnect = () => {
+      setConnected(true);
+      // Re-join alle kamers bij (her)verbinding zodat real-time berichten werken
+      conversationsRef.current.forEach(conv => socket.emit('conversation:join', { convId: conv.id }));
+    };
     const onDisconnect = () => setConnected(false);
 
     const onMessageReceived = (msg) => {
@@ -306,15 +310,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setMessages(prev => prev.filter(m => m.id !== msgId));
     };
 
-    // Re-join alle kamers bij herverbinding (zodat real-time berichten blijven werken)
-    const onReconnect = () => {
-      const sock = getSocket();
-      if (sock) conversationsRef.current.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
-    };
-
     socket.on('connect',          onConnect);
     socket.on('disconnect',       onDisconnect);
-    socket.on('reconnect',        onReconnect);
     socket.on('message:received', onMessageReceived);
     socket.on('typing:update',    onTypingUpdate);
     socket.on('message:status',   onMessageStatus);
@@ -326,7 +323,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     return () => {
       socket.off('connect',          onConnect);
       socket.off('disconnect',       onDisconnect);
-      socket.off('reconnect',        onReconnect);
       socket.off('message:received', onMessageReceived);
       socket.off('typing:update',    onTypingUpdate);
       socket.off('message:status',   onMessageStatus);

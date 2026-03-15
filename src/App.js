@@ -97,10 +97,11 @@ export default function App() {
           setInactiveUsers(new Set(uids));
         });
 
-        // Herverbinding: herregistreer als online en haal actuele lijst op
-        socket.off('reconnect');
-        socket.on('reconnect', () => {
+        // Herverbinding via connect event (reconnect event werkt niet in Socket.IO v4)
+        socket.off('connect');
+        socket.on('connect', () => {
           socket.emit('user:online');
+          socket.emit('users:online:request');
         });
 
         // Tab-focus: haal actuele online lijst opnieuw op

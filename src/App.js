@@ -36,8 +36,9 @@ export default function App() {
   const [onlineUsers,   setOnlineUsers]   = useState(new Set());
   const [inactiveUsers, setInactiveUsers] = useState(new Set());
   const [lightMode,    setLightMode]    = useState(localStorage.getItem('pulse_theme') === 'light');
-  const [userRole,       setUserRole]       = useState(null);
-  const [showParentAuth, setShowParentAuth] = useState(false);
+  const [userRole,            setUserRole]            = useState(null);
+  const [showParentAuth,      setShowParentAuth]      = useState(false);
+  const [showParentDashboard, setShowParentDashboard] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', lightMode);
@@ -58,7 +59,6 @@ export default function App() {
           if (snap.exists()) role = snap.data()?.role || 'user';
         } catch {}
         setUserRole(role);
-        if (role === 'parent') { setLoading(false); return; }
         const idToken = await firebaseUser.getIdToken();
         const socket = connectSocket(firebaseUser.uid, idToken);
         const authHeader = { 'Authorization': `Bearer ${idToken}` };
@@ -156,6 +156,7 @@ export default function App() {
         setInactiveUsers(new Set());
         setUserRole(null);
         setShowParentAuth(false);
+        setShowParentDashboard(false);
         if (window._pulseVisibilityHandler) {
           document.removeEventListener('visibilitychange', window._pulseVisibilityHandler);
           window._pulseVisibilityHandler = null;
@@ -180,9 +181,14 @@ export default function App() {
         ? showParentAuth
           ? <ParentAuthScreen onBack={() => setShowParentAuth(false)} />
           : <AuthScreen onParentClick={() => setShowParentAuth(true)} />
-        : userRole === 'parent'
-          ? <ParentDashboard user={user} />
-          : <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} />
+        : <>
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} onOpenDashboard={() => setShowParentDashboard(true)} />
+            {userRole === 'parent' && showParentDashboard && (
+              <div className="parent-dashboard-overlay" onClick={e => { if (e.target === e.currentTarget) setShowParentDashboard(false); }}>
+                <ParentDashboard user={user} onClose={() => setShowParentDashboard(false)} />
+              </div>
+            )}
+          </>
       }
       {incomingCall && (
         <CallOverlay

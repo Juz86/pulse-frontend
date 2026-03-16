@@ -27,7 +27,7 @@ function toMs(t) {
   return new Date(t).getTime() || 0;
 }
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, onOpenDashboard }) {
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
@@ -1322,6 +1322,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               <div className="user-chip-status">Online</div>
             </div>
           </div>
+          {isParent && (
+            <button className="icon-btn parent-dashboard-btn" onClick={onOpenDashboard} title="Ouderlijk toezicht">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+            </button>
+          )}
           <button className="icon-btn" onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>{lightMode ? <Moon size={18} /> : <Lightbulb size={18} />}</button>
           <button className="icon-btn danger" onClick={() => signOut(auth)} title="Uitloggen">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{transform:'scaleX(-1)'}}><path d="M16 13v-2H7V8l-5 4 5 4v-3z"/><path d="M20 3H10a2 2 0 0 0-2 2v4h2V5h10v14H10v-4H8v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>

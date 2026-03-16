@@ -5,7 +5,7 @@ import { auth } from '../firebase';
 
 const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
-export default function ParentDashboard({ user }) {
+export default function ParentDashboard({ user, onClose }) {
   const [children,    setChildren]    = useState([]);
   const [childEmail,  setChildEmail]  = useState('');
   const [reqError,    setReqError]    = useState('');
@@ -87,6 +87,9 @@ export default function ParentDashboard({ user }) {
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <span style={{ fontSize:13, color:'#666' }}>{user.displayName || user.email}</span>
             <button className="parent-btn-outline" onClick={() => signOut(auth)}>Uitloggen</button>
+            {onClose && (
+              <button className="parent-btn-outline" onClick={onClose} style={{ padding:'8px 10px' }} title="Sluiten">✕</button>
+            )}
           </div>
         </div>
 

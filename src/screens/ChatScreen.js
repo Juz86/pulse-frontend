@@ -1301,7 +1301,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   <button className="icon-btn" onClick={() => { setViewingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName); }} title="Profiel bekijken" style={{ flex:1, justifyContent:'center' }}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z"/></svg>
                   </button>
-                  <button className="icon-btn" onClick={() => setSharingContact(contact)} title="Contactpersoon delen" style={{ flex:1, justifyContent:'center' }}><Share size={18} /></button>
                   <button className="icon-btn" onClick={() => startChatWithContact(contact)} title="Stuur bericht" style={{ flex:1, justifyContent:'center' }}><Message size={16} /></button>
                   <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen" style={{ flex:1 }}><Phone size={16} /></button>
                   <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen" style={{ flex:1 }}><Video size={16} /></button>
@@ -1370,7 +1369,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                         <>
                           <button className="call-btn voice" onClick={() => initiateCall(false)} title="Bellen"><Phone size={18} /></button>
                           <button className="call-btn video" onClick={() => initiateCall(true)} title="Videobellen"><Video size={18} /></button>
-                          {(() => { const otherContact = contacts.find(c => c.uid === hOtherUid); return otherContact ? <button className="icon-btn" onClick={() => setSharingContact(otherContact)} title="Contactpersoon delen"><Share size={18} /></button> : null; })()}
                         </>
                       )}
                       {activeConv.isGroup && (
@@ -1414,7 +1412,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                       <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setChatSearchIdx(i => (i + 1) % total)}>↓</button>
                     </>
                   )}
-                  <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center', paddingTop:'5px' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}>✕</button>
+                  <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}>✕</button>
                 </div>
               );
             })()}
@@ -1563,7 +1561,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {viewingContact && (
         <div className="modal-overlay" onClick={() => setViewingContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:360 }}>
-            <h3 className="modal-title"><User size={18} /> Profiel</h3>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
+              <h3 className="modal-title" style={{ margin:0 }}><User size={18} /> Profiel</h3>
+              <button className="icon-btn" onClick={() => { setSharingContact(viewingContact); setViewingContact(null); }} title="Contactpersoon delen"><Share size={18} /></button>
+            </div>
             <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
               {viewingContact.photoURL
                 ? <img src={viewingContact.photoURL} alt="" className="profile-avatar-big" style={{ objectFit:'cover' }} />

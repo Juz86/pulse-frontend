@@ -21,3 +21,25 @@ messaging.onBackgroundMessage((payload) => {
     data:  payload.data,
   });
 });
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const data    = event.notification.data || {};
+  const convId  = data.convId;
+  const origin  = self.location.origin;
+  const url     = convId ? `${origin}/?convId=${convId}` : origin;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Als Pulse al open is in een tab → focus die tab en stuur postMessage
+      for (const client of clientList) {
+        if (client.url.startsWith(origin) && 'focus' in client) {
+          if (convId) client.postMessage({ type: 'notification_click', convId });
+          return client.focus();
+        }
+      }
+      // Pulse is gesloten → open nieuwe tab op het juiste gesprek
+      return clients.openWindow(url);
+    })
+  );
+});

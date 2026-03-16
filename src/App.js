@@ -41,6 +41,7 @@ export default function App() {
   const [showParentDashboard, setShowParentDashboard] = useState(false);
   const [parentActivityBadge, setParentActivityBadge] = useState(0);
   const [parentToast,         setParentToast]         = useState(null);
+  const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', lightMode);
@@ -160,6 +161,15 @@ export default function App() {
         };
         document.addEventListener('visibilitychange', window._pulseVisibilityHandler);
 
+        // Service worker → deep-link naar gesprek via notificatie-tik
+        if (navigator.serviceWorker) {
+          navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data?.type === 'notification_click' && event.data.convId) {
+              setPendingConvId(event.data.convId);
+            }
+          });
+        }
+
         // Inkomende oproepen
         socket.off('call:incoming');
         socket.off('call:ended');
@@ -215,7 +225,7 @@ export default function App() {
           ? <ParentAuthScreen onBack={() => setShowParentAuth(false)} />
           : <AuthScreen onParentClick={() => setShowParentAuth(true)} />
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setShowParentDashboard(true); setParentActivityBadge(0); }} />
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setShowParentDashboard(true); setParentActivityBadge(0); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} />
             {userRole === 'parent' && showParentDashboard && (
               <div className="parent-dashboard-overlay" onClick={e => { if (e.target === e.currentTarget) setShowParentDashboard(false); }}>
                 <ParentDashboard user={user} onClose={() => setShowParentDashboard(false)} />

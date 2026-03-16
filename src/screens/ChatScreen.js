@@ -22,7 +22,7 @@ function callPreview(conv, currentUid) {
 }
 
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled }) {
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
@@ -188,6 +188,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }, [user.uid]);
 
   useEffect(() => { loadConversations(); loadContacts(); loadFriendRequests(); }, [loadConversations, loadContacts, loadFriendRequests]);
+
+  // Deep-link via notificatie-tik: open het juiste gesprek zodra conversations geladen zijn
+  useEffect(() => {
+    if (!initialConvId || !conversations.length) return;
+    const conv = conversations.find(c => c.id === initialConvId);
+    if (conv) { openConversation(conv); onConvIdHandled?.(); }
+  }, [initialConvId, conversations.length]);
 
   // Typing timer opruimen bij unmount
   useEffect(() => () => clearTimeout(typingTimer.current), []);

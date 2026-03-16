@@ -262,7 +262,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           loadConversations();
           return prev;
         }
-        const callMeta = msg.type === 'call' ? { lastCallSenderId: msg.senderId, lastCallDirection: msg.direction, lastCallIsVideo: !!msg.isVideo } : {};
+        const callMeta = msg.type === 'call'
+          ? { lastCallSenderId: msg.senderId, lastCallDirection: msg.direction, lastCallIsVideo: !!msg.isVideo }
+          : { lastCallDirection: null, lastCallSenderId: null, lastCallIsVideo: null };
         const updated = prev.map(c => c.id === msg.convId ? { ...c, lastMessage: previewText, updatedAt: msg.createdAt || new Date().toISOString(), ...callMeta } : c);
         return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
       });
@@ -525,7 +527,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
     // Preview in conversatielijst direct bijwerken
     setConversations(prev => {
-      const updated = prev.map(c => c.id === activeConv.id ? { ...c, lastMessage: msg.text, updatedAt: msg.createdAt } : c);
+      const updated = prev.map(c => c.id === activeConv.id ? { ...c, lastMessage: msg.text, updatedAt: msg.createdAt, lastCallDirection: null, lastCallSenderId: null, lastCallIsVideo: null } : c);
       return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
     });
     socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {

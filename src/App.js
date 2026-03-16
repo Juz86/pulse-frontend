@@ -87,6 +87,7 @@ export default function App() {
             displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
             email:       firebaseUser.email,
             photoURL:    localStorage.getItem(`pulse_photo_${firebaseUser.uid}`) || firebaseUser.photoURL || '',
+            role,
           }),
         }).catch(console.error);
 

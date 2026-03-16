@@ -104,8 +104,8 @@ export default function ParentDashboard({ user, onClose }) {
             <span style={{ fontSize:28 }}>❤️</span>
             <span className="parent-logo-name">Ouderlijk toezicht</span>
           </div>
-          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <span style={{ fontSize:13, color:'#666' }}>{user.displayName || user.email}</span>
+          <div className="parent-header-actions">
+            <span className="parent-header-name">{user.displayName || user.email}</span>
             <button className="parent-btn-outline" onClick={() => signOut(auth)}>Uitloggen</button>
             {onClose && (
               <button className="parent-btn-outline" onClick={onClose} style={{ padding:'8px 10px' }} title="Sluiten">✕</button>
@@ -117,7 +117,7 @@ export default function ParentDashboard({ user, onClose }) {
         <div className="parent-card">
           <h2 className="parent-section-title">Kind toevoegen</h2>
           <p className="parent-section-sub">Vul het e-mailadres in van uw kind. Het kind ontvangt een verzoek in de Pulse-app.</p>
-          <form onSubmit={sendSupervisionRequest} style={{ display:'flex', gap:10, marginTop:12 }}>
+          <form onSubmit={sendSupervisionRequest} className="parent-add-form">
             <input
               className="parent-input"
               type="email"

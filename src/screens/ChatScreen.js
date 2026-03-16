@@ -873,9 +873,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     } catch (e) { console.error('Verwijderen mislukt:', e); }
   }
 
-  // respondSupervision verwijderd — kinderen worden direct aangemaakt door ouder
-  }
-
   function sendCallMessage({ isVideo, direction, duration }) {
     const convId = callConvIdRef.current;
     if (!socket || !convId) return;

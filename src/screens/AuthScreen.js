@@ -167,7 +167,7 @@ export default function AuthScreen({ onParentClick }) {
             onClick={onParentClick}
             style={{ position:'absolute', top:16, right:16, background:'rgba(108,99,255,0.15)', border:'1px solid rgba(108,99,255,0.4)', color:'var(--accent)', borderRadius:'10px', padding:'6px 14px', fontSize:'12px', fontWeight:600, cursor:'pointer', letterSpacing:'0.3px' }}
           >
-            👨‍👩‍👧 Ouder
+            ❤️ Ouder
           </button>
         )}
         <div className="auth-logo">

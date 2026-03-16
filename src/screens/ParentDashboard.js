@@ -12,6 +12,7 @@ export default function ParentDashboard({ user, onClose }) {
   const [reqSuccess,  setReqSuccess]  = useState('');
   const [reqLoading,  setReqLoading]  = useState(false);
   const [loading,     setLoading]     = useState(true);
+  const [activities,  setActivities]  = useState([]);
 
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
@@ -27,7 +28,15 @@ export default function ParentDashboard({ user, onClose }) {
     setLoading(false);
   }, [user]);
 
-  useEffect(() => { loadChildren(); }, [loadChildren]);
+  const loadActivities = useCallback(async () => {
+    try {
+      const res = await authFetch(`${BACKEND}/api/parent/activities`);
+      const data = await res.json();
+      setActivities(Array.isArray(data) ? data : []);
+    } catch {}
+  }, [user]);
+
+  useEffect(() => { loadChildren(); loadActivities(); }, [loadChildren, loadActivities]);
 
   async function sendSupervisionRequest(e) {
     e.preventDefault();
@@ -63,6 +72,17 @@ export default function ParentDashboard({ user, onClose }) {
     return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
   }
 
+  function activityTime(ts) {
+    if (!ts) return '';
+    const secs = ts._seconds || ts.seconds;
+    if (!secs) return '';
+    const diff = (Date.now() / 1000) - secs;
+    if (diff < 60) return 'Zojuist';
+    if (diff < 3600) return `${Math.floor(diff / 60)} min geleden`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} uur geleden`;
+    return `${Math.floor(diff / 86400)} dagen geleden`;
+  }
+
   function lastSeenText(lastSeen) {
     if (!lastSeen) return 'Onbekend';
     const secs = lastSeen._seconds || (lastSeen.seconds);
@@ -81,7 +101,7 @@ export default function ParentDashboard({ user, onClose }) {
         {/* Header */}
         <div className="parent-header">
           <div className="parent-logo">
-            <span style={{ fontSize:28 }}>👨‍👩‍👧</span>
+            <span style={{ fontSize:28 }}>❤️</span>
             <span className="parent-logo-name">Ouderlijk toezicht</span>
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
@@ -146,6 +166,30 @@ export default function ParentDashboard({ user, onClose }) {
                 ) : (
                   <button className="parent-btn-orange" onClick={() => pauseChild(child.uid)}>⏸ Pauzeren</button>
                 )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Activiteiten */}
+        <div className="parent-card">
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+            <h2 className="parent-section-title" style={{ marginBottom:0 }}>Pulse activiteiten</h2>
+            <button className="parent-btn-outline" onClick={loadActivities} style={{ fontSize:12, padding:'6px 12px' }}>↻ Vernieuwen</button>
+          </div>
+          {activities.length === 0 ? (
+            <div style={{ textAlign:'center', padding:'24px 0', color:'#999' }}>
+              <div style={{ fontSize:32, marginBottom:8 }}>📋</div>
+              <p style={{ fontSize:13 }}>Nog geen activiteiten.</p>
+            </div>
+          ) : activities.map(a => (
+            <div key={a.id} className="parent-activity-row">
+              <div className="parent-activity-icon">
+                {a.type === 'friend_request_sent' ? '📤' : '✅'}
+              </div>
+              <div style={{ flex:1 }}>
+                <div className="parent-activity-text">{a.description}</div>
+                <div className="parent-activity-time">{activityTime(a.createdAt)}</div>
               </div>
             </div>
           ))}

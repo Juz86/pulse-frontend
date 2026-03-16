@@ -1943,7 +1943,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {supervisionRequest && (
         <div className="modal-overlay" onClick={e => e.stopPropagation()}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:380 }}>
-            <div style={{ fontSize:40, textAlign:'center', marginBottom:8 }}>👨‍👩‍👧</div>
+            <div style={{ fontSize:40, textAlign:'center', marginBottom:8 }}>❤️</div>
             <h3 className="modal-title" style={{ textAlign:'center' }}>Ouderlijk toezicht verzoek</h3>
             <p style={{ color:'var(--text2)', fontSize:'14px', textAlign:'center', margin:'12px 0 24px', lineHeight:1.6 }}>
               <strong>{supervisionRequest.parentName}</strong> wil jouw toezichthouder worden.

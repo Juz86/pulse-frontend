@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
+import { getInitials, timeAgo } from '../utils';
 
 const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
@@ -68,31 +69,6 @@ export default function ParentDashboard({ user, onClose }) {
     } catch { alert('Hervatten mislukt.'); }
   }
 
-  function getInitials(name = '') {
-    return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
-  }
-
-  function activityTime(ts) {
-    if (!ts) return '';
-    const secs = ts._seconds || ts.seconds;
-    if (!secs) return '';
-    const diff = (Date.now() / 1000) - secs;
-    if (diff < 60) return 'Zojuist';
-    if (diff < 3600) return `${Math.floor(diff / 60)} min geleden`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} uur geleden`;
-    return `${Math.floor(diff / 86400)} dagen geleden`;
-  }
-
-  function lastSeenText(lastSeen) {
-    if (!lastSeen) return 'Onbekend';
-    const secs = lastSeen._seconds || (lastSeen.seconds);
-    if (!secs) return 'Onbekend';
-    const diff = (Date.now() / 1000) - secs;
-    if (diff < 60) return 'Zojuist';
-    if (diff < 3600) return `${Math.floor(diff / 60)} min geleden`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} uur geleden`;
-    return `${Math.floor(diff / 86400)} dagen geleden`;
-  }
 
   return (
     <div className="parent-root">
@@ -154,7 +130,7 @@ export default function ParentDashboard({ user, onClose }) {
                 <div className="parent-child-name">{child.displayName || child.email}</div>
                 <div className="parent-child-meta">
                   <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
-                  <span>{child.online ? 'Online' : `Offline · ${lastSeenText(child.lastSeen)}`}</span>
+                  <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
                   {child.paused && <span className="parent-paused-badge">Gepauzeerd</span>}
                 </div>
               </div>
@@ -187,7 +163,7 @@ export default function ParentDashboard({ user, onClose }) {
               </div>
               <div style={{ flex:1 }}>
                 <div className="parent-activity-text">{a.description}</div>
-                <div className="parent-activity-time">{activityTime(a.createdAt)}</div>
+                <div className="parent-activity-time">{timeAgo(a.createdAt)}</div>
               </div>
             </div>
           ))}

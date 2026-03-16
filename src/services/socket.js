@@ -44,7 +44,6 @@ export function connectSocket(uid, token) {
     timeout: 10000,
   });
   socket.on('connect', () => {
-    console.log('✅ Socket verbonden');
     socket.emit('user:online');
   });
   return socket;
@@ -87,7 +86,6 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
 
   peer.on('signal', (data) => {
     if (data.type === 'offer' && !callActive) {
-      console.log('📞 call:offer → toUid:', toUid, '| fromUid:', fromUid);
       socket.emit('call:offer', { to: toUid, from: fromUid, offer: data, isVideo, callerName });
     } else if (data.type === 'offer' && callActive) {
       // Renegotiatie (bijv. video upgraden)
@@ -110,6 +108,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   });
 
   // Remote vraagt video upgrade: laat de gebruiker zelf beslissen
+  socket.off('call:video-upgrade');
   socket.on('call:video-upgrade', () => { onVideoUpgradeRequest?.(); });
 
   let callEnded = false;
@@ -197,6 +196,7 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onV
   });
 
   // Remote vraagt video upgrade: laat de gebruiker zelf beslissen
+  socket.off('call:video-upgrade');
   socket.on('call:video-upgrade', () => { onVideoUpgradeRequest?.(); });
 
   peer.on('close', () => { onEnd?.(); cleanupCall(stream); });

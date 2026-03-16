@@ -6,7 +6,8 @@ import { doc, setDoc, getDoc, collection, getDocs, deleteDoc } from 'firebase/fi
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
-import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, User, PhoneCall, PhoneOutgoing, Share } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share } from '../components/Icons';
+import { getInitials, toMs } from '../utils';
 
 const MSG_LIMIT = 30;
 
@@ -20,12 +21,6 @@ function callPreview(conv, currentUid) {
   return isOwn ? 'Spraakoproep' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
 }
 
-function toMs(t) {
-  if (!t) return 0;
-  if (typeof t === 'number') return t;
-  if (t._seconds) return t._seconds * 1000 + (t._nanoseconds || 0) / 1e6;
-  return new Date(t).getTime() || 0;
-}
 
 export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard }) {
   async function authFetch(url, options = {}) {
@@ -994,9 +989,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     return contacts.find(c => c.uid === otherUid)?.photoURL || null;
   }
 
-  function getInitials(name) {
-    return (name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  }
 
   function parseDate(val) {
     if (!val) return null;

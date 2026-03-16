@@ -386,7 +386,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     };
   }, [socket, loadConversations, loadContacts]);
 
-  // ── Inactiviteitsdetectie: na 3 minuten geen activiteit → user:inactive ─────
+  // ── Inactiviteitsdetectie: na 1 minuut geen activiteit → user:inactive ──────
   useEffect(() => {
     if (!socket) return;
     let isInactive = false;
@@ -394,7 +394,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const onActivity = () => {
       clearTimeout(timer);
       if (isInactive) { isInactive = false; socket.emit('user:active'); }
-      timer = setTimeout(() => { isInactive = true; socket.emit('user:inactive'); }, 180_000);
+      timer = setTimeout(() => { isInactive = true; socket.emit('user:inactive'); }, 60_000);
     };
     const events = ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'];
     events.forEach(e => document.addEventListener(e, onActivity, { passive: true }));

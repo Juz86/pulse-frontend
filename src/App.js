@@ -49,6 +49,18 @@ export default function App() {
   }, [lightMode]);
 
   // Fix iOS Safari keyboard: sync visual viewport height to CSS variable
+  // Service worker → deep-link naar gesprek via notificatie-tik (één keer registreren)
+  useEffect(() => {
+    if (!navigator.serviceWorker) return;
+    const handler = (event) => {
+      if (event.data?.type === 'notification_click' && event.data.convId) {
+        setPendingConvId(event.data.convId);
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', handler);
+    return () => navigator.serviceWorker.removeEventListener('message', handler);
+  }, []);
+
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
@@ -160,15 +172,6 @@ export default function App() {
           if (document.visibilityState === 'visible') socket.emit('users:online:request');
         };
         document.addEventListener('visibilitychange', window._pulseVisibilityHandler);
-
-        // Service worker → deep-link naar gesprek via notificatie-tik
-        if (navigator.serviceWorker) {
-          navigator.serviceWorker.addEventListener('message', (event) => {
-            if (event.data?.type === 'notification_click' && event.data.convId) {
-              setPendingConvId(event.data.convId);
-            }
-          });
-        }
 
         // Inkomende oproepen
         socket.off('call:incoming');

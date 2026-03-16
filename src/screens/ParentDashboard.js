@@ -105,8 +105,6 @@ export default function ParentDashboard({ user, onClose }) {
             <span className="parent-logo-name">Ouderlijk toezicht</span>
           </div>
           <div className="parent-header-actions">
-            <span className="parent-header-name">{user.displayName || user.email}</span>
-            <button className="parent-btn-outline" onClick={() => signOut(auth)}>Uitloggen</button>
             {onClose && (
               <button className="parent-btn-outline" onClick={onClose} style={{ padding:'8px 10px' }} title="Sluiten">✕</button>
             )}

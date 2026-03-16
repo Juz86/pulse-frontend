@@ -39,6 +39,8 @@ export default function App() {
   const [userRole,            setUserRole]            = useState(null);
   const [showParentAuth,      setShowParentAuth]      = useState(false);
   const [showParentDashboard, setShowParentDashboard] = useState(false);
+  const [parentActivityBadge, setParentActivityBadge] = useState(0);
+  const [parentToast,         setParentToast]         = useState(null);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', lightMode);
@@ -133,6 +135,13 @@ export default function App() {
           socket.emit('users:online:request');
         });
 
+        // Ouder realtime activiteitsnotificaties
+        socket.on('parent:activity', (data) => {
+          setParentActivityBadge(prev => prev + 1);
+          setParentToast(data);
+          setTimeout(() => setParentToast(null), 4000);
+        });
+
         // Firebase token verloopt na 1 uur — refresh bij connect_error
         socket.on('connect_error', async () => {
           try {
@@ -206,7 +215,7 @@ export default function App() {
           ? <ParentAuthScreen onBack={() => setShowParentAuth(false)} />
           : <AuthScreen onParentClick={() => setShowParentAuth(true)} />
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} onOpenDashboard={() => setShowParentDashboard(true)} />
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setShowParentDashboard(true); setParentActivityBadge(0); }} />
             {userRole === 'parent' && showParentDashboard && (
               <div className="parent-dashboard-overlay" onClick={e => { if (e.target === e.currentTarget) setShowParentDashboard(false); }}>
                 <ParentDashboard user={user} onClose={() => setShowParentDashboard(false)} />

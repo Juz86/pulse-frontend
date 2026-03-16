@@ -27,7 +27,7 @@ function toMs(t) {
   return new Date(t).getTime() || 0;
 }
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, onOpenDashboard }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard }) {
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
@@ -1329,8 +1329,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             </div>
           </div>
           {isParent && (
-            <button className="icon-btn parent-dashboard-btn" onClick={onOpenDashboard} title="Ouderlijk toezicht">
+            <button className="icon-btn parent-dashboard-btn" onClick={onOpenDashboard} title="Ouderlijk toezicht" style={{ position:'relative' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+              {parentActivityBadge > 0 && (
+                <span className="parent-badge">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>
+              )}
             </button>
           )}
           <button className="icon-btn" onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>{lightMode ? <Moon size={18} /> : <Lightbulb size={18} />}</button>
@@ -1937,6 +1940,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       )}
 
       {/* ── ACCOUNT GEPAUZEERD OVERLAY ── */}
+      {/* ── OUDER ACTIVITEIT TOAST ── */}
+      {parentToast && (
+        <div className="parent-toast">
+          <span style={{ fontSize:18 }}>❤️</span>
+          <span>{parentToast.description}</span>
+        </div>
+      )}
+
       {isPaused && (
         <div className="paused-overlay">
           <div className="paused-box">

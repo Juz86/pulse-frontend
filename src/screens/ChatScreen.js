@@ -39,7 +39,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [hasMore,        setHasMore]        = useState(false);
   const [loadingMore,    setLoadingMore]    = useState(false);
   const [msgOffset,      setMsgOffset]      = useState(0);
-  const [readConvs,      setReadConvs]      = useState(new Set()); // convIds die de ontvanger heeft gelezen
 
   // Schermen: 'chats' | 'contacts'
   const [activeTab,      setActiveTab]      = useState('chats');
@@ -276,9 +275,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     };
 
     const onMessageStatus = ({ convId, msgId, status }) => {
-      if (status === 'read') setReadConvs(prev => new Set([...prev, convId]));
-      if (status === 'delivered' && msgId) {
-        setMessages(prev => prev.map(m => m.id === msgId && m.status !== 'read' ? { ...m, status: 'delivered' } : m));
+      if (status === 'gelezen') {
+        // Markeer alle eigen berichten in dit gesprek als gelezen
+        setMessages(prev => prev.map(m =>
+          m.convId === convId && m.senderId === user.uid ? { ...m, status: 'gelezen' } : m
+        ));
+      } else if (status === 'bezorgd' && msgId) {
+        setMessages(prev => prev.map(m =>
+          m.id === msgId && m.status !== 'gelezen' ? { ...m, status: 'bezorgd' } : m
+        ));
       }
     };
 
@@ -1028,7 +1033,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   function renderMessages() {
     const items = [];
     let lastDate = null;
-    const isConvRead = readConvs.has(activeConv?.id);
     const searchMatches = chatSearch.trim()
       ? messages.filter(m => m.text?.toLowerCase().includes(chatSearch.toLowerCase()))
       : [];
@@ -1128,9 +1132,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           <div className="msg-time">
             {formatTime(msg.createdAt)}
             {isOwn && (() => {
-              const isRead      = readConvs.has(activeConv?.id);
-              const isDelivered = isRead || msg.status === 'delivered';
               const isPending   = msg.pending;
+              const isRead      = msg.status === 'gelezen';
+              const isDelivered = isRead || msg.status === 'bezorgd';
               return (
                 <span className={`msg-ticks ${isRead ? 'read' : ''}`}>
                   {isPending ? <Clock size={12} /> : isRead ? <CheckDouble size={12} /> : isDelivered ? <CheckDouble size={12} /> : <Check size={12} />}

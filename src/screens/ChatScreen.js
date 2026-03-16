@@ -139,8 +139,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const typingTimer      = useRef(null);
   const activeConvRef    = useRef(null);
   const conversationsRef = useRef([]);
-  const photoInputRef    = useRef(null);
-  const callStartTimeRef = useRef(null);
+  const photoInputRef       = useRef(null);
+  const callStartTimeRef    = useRef(null);
+  const disconnectTimerRef  = useRef(null);
   const callIsVideoRef   = useRef(false);
   const callConvIdRef    = useRef(null);
   const socket           = getSocket();
@@ -202,12 +203,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     if (!socket) return;
 
     const onConnect = () => {
+      clearTimeout(disconnectTimerRef.current);
       setConnected(true);
       // Re-join alle kamers + online status opvragen bij (her)verbinding
       conversationsRef.current.forEach(conv => socket.emit('conversation:join', { convId: conv.id }));
       socket.emit('users:online:request');
     };
-    const onDisconnect = () => setConnected(false);
+    const onDisconnect = () => {
+      // Wacht 3 seconden voor banner tonen — korte onderbrekingen negeren
+      disconnectTimerRef.current = setTimeout(() => setConnected(false), 3000);
+    };
 
     const onMessageReceived = (msg) => {
       const current = activeConvRef.current;

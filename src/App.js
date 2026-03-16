@@ -133,6 +133,14 @@ export default function App() {
           socket.emit('users:online:request');
         });
 
+        // Firebase token verloopt na 1 uur — refresh bij connect_error
+        socket.on('connect_error', async () => {
+          try {
+            const newToken = await firebaseUser.getIdToken(true);
+            socket.auth.token = newToken;
+          } catch {}
+        });
+
         // Tab-focus: haal actuele online lijst opnieuw op
         // Verwijder eventuele vorige listener via een stabiele referentie
         if (window._pulseVisibilityHandler) {

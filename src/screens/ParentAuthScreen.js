@@ -19,6 +19,8 @@ export default function ParentAuthScreen({ onBack }) {
     setError('');
     setLoading(true);
     try {
+      // Zet flag vóór auth zodat App.js de role direct correct zet
+      localStorage.setItem('pulse_pending_role', 'parent');
       if (tab === 'register') {
         if (!name.trim()) throw new Error('Vul uw naam in.');
         const cred = await createUserWithEmailAndPassword(auth, email, password);

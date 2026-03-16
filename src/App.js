@@ -52,11 +52,12 @@ export default function App() {
       if (firebaseUser) {
         localStorage.setItem('pulse_user', '1');
         setUser(firebaseUser);
-        // Controleer ouder-rol
-        let role = 'user';
+        // Controleer ouder-rol (localStorage flag heeft prioriteit bij ouder-login)
+        let role = localStorage.getItem('pulse_pending_role') || 'user';
+        localStorage.removeItem('pulse_pending_role');
         try {
           const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
-          if (snap.exists()) role = snap.data()?.role || 'user';
+          if (snap.exists()) role = snap.data()?.role || role;
         } catch {}
         setUserRole(role);
         const idToken = await firebaseUser.getIdToken();

@@ -1041,13 +1041,17 @@ body {
 
   .sidebar {
     width:100%; min-width:100%;
-    position:absolute; inset:0; z-index:10;
+    position:absolute; top:0; left:0; right:0;
+    height: var(--vvh, 100dvh);
+    z-index:10;
     transition:transform .25s ease;
   }
 
   .chat-main {
     width:100%;
-    position:absolute; inset:0; z-index:10;
+    position:absolute; top:0; left:0; right:0;
+    height: var(--vvh, 100dvh);
+    z-index:10;
     transform:translateX(100%);
     transition:transform .25s ease;
   }

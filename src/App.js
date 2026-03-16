@@ -45,6 +45,18 @@ export default function App() {
     localStorage.setItem('pulse_theme', lightMode ? 'light' : 'dark');
   }, [lightMode]);
 
+  // Fix iOS Safari keyboard: sync visual viewport height to CSS variable
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      document.documentElement.style.setProperty('--vvh', `${vv.height}px`);
+    };
+    update();
+    vv.addEventListener('resize', update);
+    return () => vv.removeEventListener('resize', update);
+  }, []);
+
   useEffect(() => {
     const loadingTimeout = setTimeout(() => setLoading(false), 5000);
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {

@@ -26,3 +26,7 @@ export { MdClose         as Cancel }        from 'react-icons/md';
 export { MdEdit          as MagicEdit }     from 'react-icons/md';
 export { MdLogout        as Logout }        from 'react-icons/md';
 export { MdShare         as Share }         from 'react-icons/md';
+export { MdPalette       as Palette }       from 'react-icons/md';
+export { MdImage         as ImageIcon }     from 'react-icons/md';
+export { MdCircle        as ColorCircle }   from 'react-icons/md';
+export { MdGridView      as LayoutTemplate } from 'react-icons/md';

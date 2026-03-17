@@ -6,7 +6,7 @@ import { doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from '
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
-import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
 import { getInitials, toMs } from '../utils';
 
 const MSG_LIMIT = 30;
@@ -1846,16 +1846,25 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         <div className="modal-overlay" onClick={() => setShowProfile(false)}>
           <div className="profile-modal-box" onClick={e => e.stopPropagation()}>
 
-            {/* Sluitknop */}
-            <button className="profile-modal-close" onClick={() => setShowProfile(false)}>✕</button>
+            {/* Header over volledige breedte */}
+            <div className="profile-modal-header">
+              <span className="profile-modal-header-title">Instellingen</span>
+              <button className="profile-modal-close" onClick={() => setShowProfile(false)}>✕</button>
+            </div>
+
+            {/* Sidebar + Content (flex row) */}
+            <div className="profile-modal-body">
 
             {/* Sidebar */}
             <div className="profile-sidebar">
-              <div className="profile-sidebar-title">Instellingen</div>
-              {[['account','👤','Mijn account'],['styling','🎨','Styling'],['verwijderen','🗑️','Verwijderen']].map(([id, icon, label]) => (
+              {[
+                ['account',    <User size={16} />,           'Mijn account'],
+                ['styling',    <Palette size={16} />,        'Styling'],
+                ['verwijderen',<Delete size={16} />,         'Verwijderen'],
+              ].map(([id, icon, label]) => (
                 <button key={id} className={`profile-sidebar-tab${profileTab === id ? ' active' : ''}${id === 'verwijderen' ? ' danger' : ''}`}
                   onClick={() => setProfileTab(id)}>
-                  <span>{icon}</span><span>{label}</span>
+                  {icon}<span>{label}</span>
                 </button>
               ))}
             </div>
@@ -1969,12 +1978,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
                     {/* Achtergrond tabs */}
                     <div style={{ display:'flex', background:'var(--surface2)', borderRadius:'10px', padding:'4px', gap:'4px', marginBottom:'14px' }}>
-                      {[['foto','📷 Foto'],['kleur','🎨 Kleur'],['standaard','Standaard']].map(([id, label]) => (
+                      {[
+                        ['foto',      <ImageIcon size={14} />,      'Foto'],
+                        ['kleur',     <ColorCircle size={14} />,    'Kleur'],
+                        ['standaard', <LayoutTemplate size={14} />, 'Standaard'],
+                      ].map(([id, icon, label]) => (
                         <button key={id} type="button" onClick={() => { setChatBgTab(id); setChatBgMsg(''); }}
-                          style={{ flex:1, padding:'7px 4px', border:'none', borderRadius:'7px', fontSize:'12px', fontWeight:600, cursor:'pointer', transition:'all .15s',
+                          style={{ flex:1, padding:'7px 4px', border:'none', borderRadius:'7px', fontSize:'12px', fontWeight:600, cursor:'pointer', transition:'all .15s', display:'flex', alignItems:'center', justifyContent:'center', gap:'5px',
                             background: chatBgTab === id ? 'linear-gradient(135deg,#7c6fff,#a855f7)' : 'transparent',
                             color: chatBgTab === id ? '#fff' : 'var(--text2)' }}>
-                          {label}
+                          {icon}{label}
                         </button>
                       ))}
                     </div>
@@ -2037,7 +2050,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 </div>
               )}
 
-            </div>
+            </div>{/* /profile-content */}
+            </div>{/* /profile-modal-body */}
           </div>
         </div>
       )}

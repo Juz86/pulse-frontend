@@ -854,7 +854,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   // ── Profiel opslaan ───────────────────────────────────────────────────────
   async function saveProfile(e) {
-    e.preventDefault();
+    e?.preventDefault();
     if (!newName.trim()) return;
     setProfileLoading(true); setProfileMsg('');
     try {
@@ -1852,8 +1852,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             {/* Sidebar */}
             <div className="profile-sidebar">
               <div className="profile-sidebar-title">Instellingen</div>
-              {[['account','👤','Mijn account'],['styling','🎨','Styling']].map(([id, icon, label]) => (
-                <button key={id} className={`profile-sidebar-tab${profileTab === id ? ' active' : ''}`}
+              {[['account','👤','Mijn account'],['styling','🎨','Styling'],['verwijderen','🗑️','Verwijderen']].map(([id, icon, label]) => (
+                <button key={id} className={`profile-sidebar-tab${profileTab === id ? ' active' : ''}${id === 'verwijderen' ? ' danger' : ''}`}
                   onClick={() => setProfileTab(id)}>
                   <span>{icon}</span><span>{label}</span>
                 </button>
@@ -1879,32 +1879,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   </div>
 
                   {/* Weergavenaam */}
-                  <form onSubmit={saveProfile}>
-                    <div className="form-group">
-                      <label className="form-label">Weergavenaam</label>
-                      <div style={{ display:'flex', gap:'8px' }}>
-                        <input className="form-input" style={{ flex:1 }} placeholder="Jouw naam" value={newName} onChange={e => setNewName(e.target.value)} required />
-                        <button type="submit" className="btn-primary" style={{ whiteSpace:'nowrap', padding:'0 16px' }} disabled={profileLoading}>
-                          {profileLoading ? '…' : 'Opslaan'}
-                        </button>
-                      </div>
-                    </div>
-                    {profileMsg && <div style={{ fontSize:'12px', marginBottom:'8px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
-                  </form>
+                  <div className="form-group">
+                    <label className="form-label">Weergavenaam</label>
+                    <input className="form-input" placeholder="Jouw naam" value={newName} onChange={e => setNewName(e.target.value)} />
+                  </div>
 
                   {/* Gebruikersnaam */}
                   <div className="form-group" style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
                     <label className="form-label">Gebruikersnaam</label>
-                    <div style={{ display:'flex', gap:'8px' }}>
-                      <input className="form-input" style={{ flex:1 }} placeholder="jouw_naam" value={newUsername}
-                        onChange={e => setNewUsername(e.target.value)} autoCapitalize="none" autoCorrect="off" />
-                      <button type="button" className="btn-primary" style={{ whiteSpace:'nowrap', padding:'0 16px' }}
-                        disabled={usernameLoading} onClick={saveUsername}>
-                        {usernameLoading ? '…' : 'Opslaan'}
-                      </button>
-                    </div>
+                    <input className="form-input" placeholder="jouw_naam" value={newUsername}
+                      onChange={e => setNewUsername(e.target.value)} autoCapitalize="none" autoCorrect="off" />
                     <div style={{ fontSize:'11px', color:'var(--text3)', marginTop:'4px' }}>3–20 tekens · letters, cijfers en _</div>
-                    {usernameMsg && <div style={{ fontSize:'12px', marginTop:'4px', color: usernameMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{usernameMsg}</div>}
                   </div>
 
                   {/* E-mail (alleen ouders) */}
@@ -1916,7 +1901,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   )}
 
                   {/* Wachtwoord wijzigen */}
-                  <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px', marginBottom:'8px' }}>
+                  <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
                     <label className="form-label" style={{ marginBottom:'10px', display:'block' }}>Wachtwoord wijzigen</label>
                     <div className="form-group">
                       <div style={{ position:'relative' }}>
@@ -1940,13 +1925,39 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                     {passwordMsg && <div style={{ fontSize:'12px', marginTop:'6px', color: passwordMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{passwordMsg}</div>}
                   </div>
 
-                  {/* Account verwijderen */}
-                  <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
-                    <button className="btn-danger" style={{ width:'100%' }}
-                      onClick={() => { setShowProfile(false); handleDeleteAccount(); }}>
-                      <Delete size={16} style={{ marginRight:6 }} /> Account verwijderen
+                  {/* Opslaan onderaan */}
+                  <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px', marginTop:'8px' }}>
+                    {profileMsg && <div style={{ fontSize:'12px', marginBottom:'10px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
+                    {usernameMsg && <div style={{ fontSize:'12px', marginBottom:'10px', color: usernameMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{usernameMsg}</div>}
+                    <button type="button" className="btn-primary" style={{ width:'100%' }}
+                      disabled={profileLoading || usernameLoading}
+                      onClick={async () => { await saveProfile(); if (newUsername.trim()) await saveUsername(); }}>
+                      {(profileLoading || usernameLoading) ? 'Opslaan…' : 'Opslaan →'}
                     </button>
                   </div>
+                </div>
+              )}
+
+              {/* ── TAB: ACCOUNT VERWIJDEREN ── */}
+              {profileTab === 'verwijderen' && (
+                <div>
+                  <div style={{ marginBottom:'20px' }}>
+                    <h4 style={{ fontFamily:"'Syne',sans-serif", fontSize:'18px', fontWeight:800, color:'var(--danger)', marginBottom:'10px' }}>Account verwijderen</h4>
+                    <p style={{ fontSize:'13px', color:'var(--text2)', lineHeight:1.6 }}>
+                      Als je je account verwijdert worden <strong>al je chats, berichten en gegevens permanent verwijderd</strong>. Dit kan niet ongedaan worden gemaakt.
+                    </p>
+                  </div>
+                  <div style={{ background:'rgba(255,71,87,.06)', border:'1px solid rgba(255,71,87,.2)', borderRadius:'14px', padding:'16px', marginBottom:'20px' }}>
+                    <div style={{ fontSize:'13px', color:'var(--text2)', display:'flex', flexDirection:'column', gap:'6px' }}>
+                      <div>🗑️ Alle berichten worden verwijderd</div>
+                      <div>👥 Je wordt uit alle gesprekken verwijderd</div>
+                      <div>🔐 Je account wordt permanent afgesloten</div>
+                    </div>
+                  </div>
+                  <button className="btn-danger" style={{ width:'100%' }}
+                    onClick={() => { setShowProfile(false); handleDeleteAccount(); }}>
+                    <Delete size={16} style={{ marginRight:6 }} /> Account definitief verwijderen
+                  </button>
                 </div>
               )}
 

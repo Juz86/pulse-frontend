@@ -785,7 +785,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const file = e.target.files[0];
     if (!file) return;
     setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
+    setPhotoPreview(prev => {
+      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
     e.target.value = '';
   }
 

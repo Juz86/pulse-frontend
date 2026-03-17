@@ -199,6 +199,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // Typing timer opruimen bij unmount
   useEffect(() => () => clearTimeout(typingTimer.current), []);
 
+  // Herstel profielfoto uit Firestore als localStorage leeg is
+  useEffect(() => {
+    if (localStorage.getItem(`pulse_photo_${user.uid}`)) return;
+    getDoc(doc(db, 'users', user.uid)).then(d => {
+      if (d.exists() && d.data().photoURL) {
+        localStorage.setItem(`pulse_photo_${user.uid}`, d.data().photoURL);
+        setPhotoPreview(d.data().photoURL);
+      }
+    }).catch(() => {});
+  }, [user.uid]);
+
   // ── Socket events ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!socket) return;

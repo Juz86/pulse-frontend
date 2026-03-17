@@ -1,5 +1,5 @@
 // src/App.js
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, messaging, getToken } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -50,7 +50,7 @@ export default function App() {
     localStorage.setItem('pulse_theme', lightMode ? 'light' : 'dark');
   }, [lightMode]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const body = document.body;
     if (bgImage) {
       body.style.backgroundImage = `url(${bgImage})`;

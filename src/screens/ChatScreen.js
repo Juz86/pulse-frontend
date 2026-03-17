@@ -163,16 +163,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     try {
       const snap = await getDocs(collection(db, 'users', user.uid, 'contacts'));
       const raw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      // Haal actuele foto op uit het user-document van elk contact
-      const enriched = await Promise.all(raw.map(async (c) => {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', c.uid));
-          if (userDoc.exists() && userDoc.data().photoURL) {
-            return { ...c, photoURL: userDoc.data().photoURL };
-          }
-        } catch {}
-        return c;
-      }));
+      // Haal alleen foto op voor contacten die er nog geen hebben
+      const needsPhoto = raw.filter(c => !c.photoURL);
+      const photoMap = {};
+      if (needsPhoto.length > 0) {
+        const docs = await Promise.all(needsPhoto.map(c => getDoc(doc(db, 'users', c.uid))));
+        docs.forEach((d, i) => {
+          if (d.exists() && d.data().photoURL) photoMap[needsPhoto[i].uid] = d.data().photoURL;
+        });
+      }
+      const enriched = raw.map(c => ({ ...c, photoURL: c.photoURL || photoMap[c.uid] || null }));
       setContacts(enriched);
     } catch (e) { console.error(e); }
   }, [user.uid]);
@@ -270,8 +270,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         const callMeta = msg.type === 'call'
           ? { lastCallSenderId: msg.senderId, lastCallDirection: msg.direction, lastCallIsVideo: !!msg.isVideo }
           : { lastCallDirection: null, lastCallSenderId: null, lastCallIsVideo: null };
-        const updated = prev.map(c => c.id === msg.convId ? { ...c, lastMessage: previewText, updatedAt: msg.createdAt || new Date().toISOString(), ...callMeta } : c);
-        return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
+        const target = prev.find(c => c.id === msg.convId);
+        const rest = prev.filter(c => c.id !== msg.convId);
+        return [{ ...target, lastMessage: previewText, updatedAt: msg.createdAt || new Date().toISOString(), ...callMeta }, ...rest];
       });
     };
 

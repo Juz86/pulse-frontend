@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { signOut, updateProfile as fbUpdateProfile } from 'firebase/auth';
 import { auth, db, storage } from '../firebase';
-import { doc, setDoc, getDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
+import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
 import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share } from '../components/Icons';
@@ -22,7 +22,7 @@ function callPreview(conv, currentUid) {
 }
 
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, bgImage = null, onChangeBgImage, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled }) {
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
@@ -126,6 +126,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg,     setProfileMsg]     = useState('');
 
+  // Chat achtergrond
+  const [chatBg,        setChatBg]        = useState(null); // { type: 'photo', url } | { type: 'color', value } | null
+  const [chatBgLoading, setChatBgLoading] = useState(false);
+  const [chatBgTab,     setChatBgTab]     = useState('foto'); // 'foto' | 'kleur' | 'standaard'
+  const [chatBgMsg,     setChatBgMsg]     = useState('');
+
   const msgEndRef        = useRef(null);
   const msgsAreaRef      = useRef(null);
   const textareaRef      = useRef(null);
@@ -207,6 +213,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         localStorage.setItem(`pulse_photo_${user.uid}`, d.data().photoURL);
         setPhotoPreview(d.data().photoURL);
       }
+    }).catch(() => {});
+  }, [user.uid]);
+
+  // Laad chat achtergrond uit Firestore bij mount
+  useEffect(() => {
+    getDoc(doc(db, 'users', user.uid)).then(d => {
+      if (!d.exists()) return;
+      const { chatBackgroundURL, chatBackgroundColor } = d.data();
+      if (chatBackgroundURL)   setChatBg({ type: 'photo', url: chatBackgroundURL });
+      else if (chatBackgroundColor) setChatBg({ type: 'color', value: chatBackgroundColor });
     }).catch(() => {});
   }, [user.uid]);
 
@@ -852,6 +868,48 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     finally { setProfileLoading(false); }
   }
 
+  // ── Chat achtergrond functies ─────────────────────────────────────────────
+  async function uploadChatBgPhoto(file) {
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!ALLOWED.includes(file.type)) { setChatBgMsg('Fout: alleen JPG, PNG of WEBP toegestaan.'); return; }
+    if (file.size > 5 * 1024 * 1024)  { setChatBgMsg('Fout: bestand te groot (max 5 MB).'); return; }
+    setChatBgLoading(true); setChatBgMsg('');
+    try {
+      // Verwijder oude foto als die bestaat
+      await deleteObject(storageRef(storage, `users/${user.uid}/chatBackground`)).catch(() => {});
+      // Upload nieuwe foto
+      const ref = storageRef(storage, `users/${user.uid}/chatBackground`);
+      await uploadBytes(ref, file);
+      const url = await getDownloadURL(ref);
+      // Sla URL op in Firestore
+      await updateDoc(doc(db, 'users', user.uid), { chatBackgroundURL: url, chatBackgroundColor: null });
+      setChatBg({ type: 'photo', url });
+      setChatBgMsg('Achtergrond opgeslagen!');
+    } catch (err) { setChatBgMsg('Fout bij uploaden: ' + err.message); }
+    finally { setChatBgLoading(false); }
+  }
+
+  async function saveChatBgColor(color) {
+    setChatBgLoading(true); setChatBgMsg('');
+    try {
+      // Verwijder eventuele foto
+      await deleteObject(storageRef(storage, `users/${user.uid}/chatBackground`)).catch(() => {});
+      await updateDoc(doc(db, 'users', user.uid), { chatBackgroundURL: null, chatBackgroundColor: color });
+      setChatBg({ type: 'color', value: color });
+    } catch (err) { setChatBgMsg('Fout bij opslaan: ' + err.message); }
+    finally { setChatBgLoading(false); }
+  }
+
+  async function removeChatBg() {
+    setChatBgLoading(true); setChatBgMsg('');
+    try {
+      await deleteObject(storageRef(storage, `users/${user.uid}/chatBackground`)).catch(() => {});
+      await updateDoc(doc(db, 'users', user.uid), { chatBackgroundURL: null, chatBackgroundColor: null });
+      setChatBg(null);
+    } catch (err) { setChatBgMsg('Fout bij verwijderen: ' + err.message); }
+    finally { setChatBgLoading(false); }
+  }
+
   // ── Account verwijderen ───────────────────────────────────────────────────
   function handleDeleteAccount() {
     setConfirmDialog({
@@ -1450,7 +1508,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               );
             })()}
 
-            <div className="messages-area" ref={msgsAreaRef} onClick={() => { if (showChatSearch) { setShowChatSearch(false); setChatSearch(''); } }}>
+            <div className={`messages-area${chatBg ? ' has-chat-bg' : ''}`} ref={msgsAreaRef}
+              style={chatBg?.type === 'photo' ? { backgroundImage:`url(${chatBg.url})`, backgroundSize:'cover', backgroundPosition:'center', backgroundAttachment:'local' }
+                   : chatBg?.type === 'color' ? { background: chatBg.value } : {}}
+              onClick={() => { if (showChatSearch) { setShowChatSearch(false); setChatSearch(''); } }}>
               {/* Meer berichten laden (5) */}
               {hasMore && (
                 <div style={{ textAlign:'center', padding:'8px 0' }}>
@@ -1768,41 +1829,85 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 <button type="submit" className="btn-primary" style={{ flex:1 }} disabled={profileLoading}>{profileLoading ? 'Opslaan…' : 'Opslaan →'}</button>
               </div>
             </form>
+            {/* ── CHAT ACHTERGROND ── */}
             <div style={{ marginTop:'16px', borderTop:'1px solid var(--border)', paddingTop:'16px', marginBottom:'16px' }}>
-              <label className="form-label" style={{ marginBottom:'10px', display:'block' }}>Achtergrond foto</label>
-              {bgImage && (
-                <div style={{ position:'relative', marginBottom:'10px', borderRadius:'10px', overflow:'hidden', height:'80px' }}>
-                  <img src={bgImage} alt="achtergrond" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
-                  <button
-                    type="button"
-                    onClick={() => onChangeBgImage?.(null)}
-                    style={{ position:'absolute', top:'6px', right:'6px', background:'rgba(0,0,0,.6)', border:'none', borderRadius:'6px', color:'#fff', fontSize:'11px', padding:'3px 8px', cursor:'pointer' }}
-                  >
-                    Verwijderen
+              <label className="form-label" style={{ marginBottom:'12px', display:'block' }}>Chat achtergrond</label>
+
+              {/* Tabs */}
+              <div style={{ display:'flex', background:'var(--surface2)', borderRadius:'10px', padding:'4px', gap:'4px', marginBottom:'14px' }}>
+                {[['foto','📷 Foto'],['kleur','🎨 Kleur'],['standaard','Standaard']].map(([id, label]) => (
+                  <button key={id} type="button" onClick={() => { setChatBgTab(id); setChatBgMsg(''); }}
+                    style={{ flex:1, padding:'7px 4px', border:'none', borderRadius:'7px', fontSize:'12px', fontWeight:600, cursor:'pointer', transition:'all .15s',
+                      background: chatBgTab === id ? 'linear-gradient(135deg,#7c6fff,#a855f7)' : 'transparent',
+                      color: chatBgTab === id ? '#fff' : 'var(--text2)' }}>
+                    {label}
                   </button>
+                ))}
+              </div>
+
+              {/* Voorvertoning */}
+              <div style={{ borderRadius:'12px', overflow:'hidden', marginBottom:'12px', height:'90px', position:'relative',
+                background: chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : 'var(--bg)',
+                border:'1px solid var(--border)' }}>
+                {chatBg?.type === 'photo' && <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,.15)' }} />}
+                <div style={{ position:'absolute', bottom:'8px', left:'10px' }}>
+                  <div style={{ background: chatBg ? 'rgba(26,26,36,0.85)' : 'var(--surface2)', border:'1px solid rgba(255,255,255,.12)', borderRadius:'12px 12px 12px 3px', padding:'5px 10px', fontSize:'11px', color:'#fff', backdropFilter:'blur(6px)' }}>Hallo! 👋</div>
+                </div>
+                <div style={{ position:'absolute', bottom:'8px', right:'10px' }}>
+                  <div style={{ background:'linear-gradient(135deg,#7c6fff,#a855f7)', borderRadius:'12px 12px 3px 12px', padding:'5px 10px', fontSize:'11px', color:'#fff' }}>Hey!</div>
+                </div>
+              </div>
+
+              {/* Foto tab */}
+              {chatBgTab === 'foto' && (
+                <div>
+                  {chatBg?.type === 'photo' && (
+                    <div style={{ fontSize:'12px', color:'var(--success)', marginBottom:'8px' }}>✓ Foto achtergrond actief</div>
+                  )}
+                  <button type="button" className="btn-secondary" style={{ width:'100%' }} disabled={chatBgLoading}
+                    onClick={() => bgInputRef.current?.click()}>
+                    {chatBgLoading ? 'Uploaden…' : chatBg?.type === 'photo' ? 'Andere foto kiezen' : 'Foto kiezen'}
+                  </button>
+                  <div style={{ fontSize:'11px', color:'var(--text3)', marginTop:'6px', textAlign:'center' }}>JPG, PNG of WEBP · max 5 MB</div>
+                  <input ref={bgInputRef} type="file" accept=".jpg,.jpeg,.png,.webp" style={{ display:'none' }}
+                    onChange={e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadChatBgPhoto(f); }} />
                 </div>
               )}
-              <button
-                type="button"
-                className="btn-secondary"
-                style={{ width:'100%' }}
-                onClick={() => bgInputRef.current?.click()}
-              >
-                {bgImage ? 'Andere foto kiezen' : 'Foto kiezen'}
-              </button>
-              <input
-                ref={bgInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display:'none' }}
-                onChange={async e => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-                  e.target.value = '';
-                  const base64 = await resizeBgImage(file, 1920);
-                  onChangeBgImage?.(base64);
-                }}
-              />
+
+              {/* Kleur tab */}
+              {chatBgTab === 'kleur' && (
+                <div>
+                  <div style={{ display:'flex', gap:'10px', flexWrap:'wrap', justifyContent:'center' }}>
+                    {['#1e0a3c','#051236','#0a1f0e','#1f0a10','#0f1923','#1a1206','#000000','#1c1a18'].map(color => (
+                      <button key={color} type="button" disabled={chatBgLoading}
+                        onClick={() => saveChatBgColor(color)}
+                        style={{ width:'36px', height:'36px', borderRadius:'50%', background:color, border: chatBg?.type==='color' && chatBg.value===color ? '3px solid var(--accent)' : '2px solid var(--border)',
+                          cursor:'pointer', boxShadow: chatBg?.type==='color' && chatBg.value===color ? '0 0 0 2px var(--bg),0 0 0 4px var(--accent)' : 'none',
+                          transition:'all .15s', position:'relative' }}>
+                        {chatBg?.type === 'color' && chatBg.value === color && (
+                          <span style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:'14px' }}>✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Standaard tab */}
+              {chatBgTab === 'standaard' && (
+                <div>
+                  {chatBg
+                    ? <button type="button" className="btn-secondary" style={{ width:'100%' }} disabled={chatBgLoading} onClick={removeChatBg}>
+                        {chatBgLoading ? 'Bezig…' : 'Standaard achtergrond herstellen'}
+                      </button>
+                    : <div style={{ textAlign:'center', color:'var(--text3)', fontSize:'13px', padding:'8px 0' }}>Standaard achtergrond is actief</div>
+                  }
+                </div>
+              )}
+
+              {chatBgMsg && (
+                <div style={{ marginTop:'8px', fontSize:'12px', color: chatBgMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{chatBgMsg}</div>
+              )}
             </div>
             <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
               <button

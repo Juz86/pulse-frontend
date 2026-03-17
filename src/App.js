@@ -1,5 +1,5 @@
 // src/App.js
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, messaging, getToken } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -36,7 +36,6 @@ export default function App() {
   const [onlineUsers,   setOnlineUsers]   = useState(new Set());
   const [inactiveUsers, setInactiveUsers] = useState(new Set());
   const [lightMode,    setLightMode]    = useState(localStorage.getItem('pulse_theme') === 'light');
-  const [bgImage,      setBgImage]      = useState(localStorage.getItem('pulse_bg_image') || null);
   const [userRole,            setUserRole]            = useState(null);
   const [showParentAuth,      setShowParentAuth]      = useState(false);
   const [showParentDashboard, setShowParentDashboard] = useState(false);
@@ -50,17 +49,6 @@ export default function App() {
     localStorage.setItem('pulse_theme', lightMode ? 'light' : 'dark');
   }, [lightMode]);
 
-  useLayoutEffect(() => {
-    const body = document.body;
-    if (bgImage) {
-      body.style.backgroundImage = `url(${bgImage})`;
-      body.style.backgroundSize = 'cover';
-      body.style.backgroundPosition = 'center';
-      body.style.backgroundAttachment = 'fixed';
-    } else {
-      body.style.backgroundImage = '';
-    }
-  }, [bgImage]);
 
   // Fix iOS Safari keyboard: sync visual viewport height to CSS variable
   // Service worker → deep-link naar gesprek via notificatie-tik (één keer registreren)
@@ -243,7 +231,7 @@ export default function App() {
           ? <ParentAuthScreen onBack={() => setShowParentAuth(false)} />
           : <AuthScreen onParentClick={() => setShowParentAuth(true)} />
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} bgImage={bgImage} onChangeBgImage={img => { setBgImage(img); if (img) localStorage.setItem('pulse_bg_image', img); else localStorage.removeItem('pulse_bg_image'); }} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setShowParentDashboard(true); setParentActivityBadge(0); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} />
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setShowParentDashboard(true); setParentActivityBadge(0); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} />
             {userRole === 'parent' && showParentDashboard && (
               <div className="parent-dashboard-overlay" onClick={e => { if (e.target === e.currentTarget) setShowParentDashboard(false); }}>
                 <ParentDashboard user={user} onClose={() => setShowParentDashboard(false)} />

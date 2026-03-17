@@ -22,7 +22,7 @@ function callPreview(conv, currentUid) {
 }
 
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, bgImage = null, onChangeBgImage, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled }) {
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
@@ -133,6 +133,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const activeConvRef    = useRef(null);
   const conversationsRef = useRef([]);
   const photoInputRef       = useRef(null);
+  const bgInputRef          = useRef(null);
   const callStartTimeRef    = useRef(null);
   const disconnectTimerRef  = useRef(null);
   const callIsVideoRef   = useRef(false);
@@ -760,6 +761,24 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }
 
   // ── Profielfoto resizen naar base64 (geen externe opslag nodig) ──────────
+  function resizeBgImage(file, maxWidth = 1920) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement('canvas');
+        canvas.width  = Math.round(img.width  * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.onerror = reject;
+      img.src = url;
+    });
+  }
+
   function resizeImageToBase64(file, size = 200) {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -1738,7 +1757,43 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 <button type="submit" className="btn-primary" style={{ flex:1 }} disabled={profileLoading}>{profileLoading ? 'Opslaan…' : 'Opslaan →'}</button>
               </div>
             </form>
-            <div style={{ marginTop:'16px', borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
+            <div style={{ marginTop:'16px', borderTop:'1px solid var(--border)', paddingTop:'16px', marginBottom:'16px' }}>
+              <label className="form-label" style={{ marginBottom:'10px', display:'block' }}>Achtergrond foto</label>
+              {bgImage && (
+                <div style={{ position:'relative', marginBottom:'10px', borderRadius:'10px', overflow:'hidden', height:'80px' }}>
+                  <img src={bgImage} alt="achtergrond" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+                  <button
+                    type="button"
+                    onClick={() => onChangeBgImage?.(null)}
+                    style={{ position:'absolute', top:'6px', right:'6px', background:'rgba(0,0,0,.6)', border:'none', borderRadius:'6px', color:'#fff', fontSize:'11px', padding:'3px 8px', cursor:'pointer' }}
+                  >
+                    Verwijderen
+                  </button>
+                </div>
+              )}
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ width:'100%' }}
+                onClick={() => bgInputRef.current?.click()}
+              >
+                {bgImage ? 'Andere foto kiezen' : 'Foto kiezen'}
+              </button>
+              <input
+                ref={bgInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display:'none' }}
+                onChange={async e => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  e.target.value = '';
+                  const base64 = await resizeBgImage(file, 1920);
+                  onChangeBgImage?.(base64);
+                }}
+              />
+            </div>
+            <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
               <button
                 className="btn-danger"
                 style={{ width:'100%' }}

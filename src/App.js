@@ -1,5 +1,5 @@
 // src/App.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, messaging, getToken } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -42,6 +42,7 @@ export default function App() {
   const [parentActivityBadge, setParentActivityBadge] = useState(0);
   const [parentToast,         setParentToast]         = useState(null);
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
+  const toastTimerRef = useRef(null);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', lightMode);
@@ -152,7 +153,8 @@ export default function App() {
         socket.on('parent:activity', (data) => {
           setParentActivityBadge(prev => prev + 1);
           setParentToast(data);
-          setTimeout(() => setParentToast(null), 4000);
+          clearTimeout(toastTimerRef.current);
+          toastTimerRef.current = setTimeout(() => setParentToast(null), 4000);
         });
 
         // Firebase token verloopt na 1 uur — refresh bij connect_error

@@ -299,7 +299,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       // Uitnodigingsgeluid: twee oplopende tonen
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        [[600, 0], [900, 0.18]].forEach(([freq, delay]) => {
+        const tones = [[600, 0], [900, 0.18]];
+        let ended = 0;
+        tones.forEach(([freq, delay]) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.connect(gain); gain.connect(ctx.destination);
@@ -309,7 +311,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25);
           osc.start(ctx.currentTime + delay);
           osc.stop(ctx.currentTime + delay + 0.25);
-          osc.onended = () => { try { ctx.close(); } catch {} };
+          osc.onended = () => { if (++ended === tones.length) { try { ctx.close(); } catch {} } };
         });
       } catch {}
       if (Notification.permission === 'granted') {

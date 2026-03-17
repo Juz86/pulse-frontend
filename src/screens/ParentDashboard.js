@@ -27,8 +27,12 @@ export default function ParentDashboard({ user, onClose }) {
   const [pwLoading,      setPwLoading]      = useState(false);
   const [showNewPw,      setShowNewPw]      = useState(false);
 
+  // Inline fouten voor pauzeren/hervatten/verwijderen
+  const [childError,     setChildError]     = useState(''); // { uid, msg }
+
   // Kind verwijderen
   const [confirmDelete,  setConfirmDelete]  = useState(null); // { uid, displayName }
+  const [deleteError,    setDeleteError]    = useState('');
 
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
@@ -72,17 +76,21 @@ export default function ParentDashboard({ user, onClose }) {
   }
 
   async function pauseChild(childUid) {
+    setChildError('');
     try {
-      await authFetch(`${BACKEND}/api/parent/pause/${childUid}`, { method: 'POST' });
+      const res = await authFetch(`${BACKEND}/api/parent/pause/${childUid}`, { method: 'POST' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Pauzeren mislukt.'); }
       setChildren(prev => prev.map(c => c.uid === childUid ? { ...c, paused: true } : c));
-    } catch { alert('Pauzeren mislukt.'); }
+    } catch (err) { setChildError(err.message); }
   }
 
   async function resumeChild(childUid) {
+    setChildError('');
     try {
-      await authFetch(`${BACKEND}/api/parent/resume/${childUid}`, { method: 'POST' });
+      const res = await authFetch(`${BACKEND}/api/parent/resume/${childUid}`, { method: 'POST' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Hervatten mislukt.'); }
       setChildren(prev => prev.map(c => c.uid === childUid ? { ...c, paused: false } : c));
-    } catch { alert('Hervatten mislukt.'); }
+    } catch (err) { setChildError(err.message); }
   }
 
   async function changePassword(childUid) {
@@ -100,12 +108,13 @@ export default function ParentDashboard({ user, onClose }) {
   }
 
   async function deleteChild(childUid) {
+    setDeleteError('');
     try {
       const res = await authFetch(`${BACKEND}/api/parent/delete-child/${childUid}`, { method: 'DELETE' });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Verwijderen mislukt.'); }
       setChildren(prev => prev.filter(c => c.uid !== childUid));
       setConfirmDelete(null);
-    } catch (err) { alert(err.message); }
+    } catch (err) { setDeleteError(err.message); }
   }
 
   const TABS = [
@@ -202,6 +211,7 @@ export default function ParentDashboard({ user, onClose }) {
                   <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Gekoppelde kinderen</h2>
                   <button className="parent-btn-outline" onClick={loadChildren} style={{ fontSize: 12, padding: '6px 12px' }}>↻ Vernieuwen</button>
                 </div>
+                {childError && <div className="parent-error" style={{ marginBottom: 12 }}>⚠️ {childError}</div>}
 
                 {loading ? (
                   <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Laden…</div>
@@ -317,15 +327,16 @@ export default function ParentDashboard({ user, onClose }) {
 
       {/* Bevestigingsdialoog verwijderen */}
       {confirmDelete && (
-        <div className="modal-overlay" onClick={() => setConfirmDelete(null)}>
+        <div className="modal-overlay" onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
             <h3 className="modal-title">Account verwijderen</h3>
             <p style={{ color: 'var(--text2)', fontSize: 14, margin: '12px 0 24px', lineHeight: 1.6 }}>
               Weet u zeker dat u het account van <strong>{confirmDelete.displayName}</strong> wilt verwijderen?
               Dit kan niet ongedaan worden gemaakt.
             </p>
+            {deleteError && <div className="parent-error" style={{ marginBottom: 12 }}>⚠️ {deleteError}</div>}
             <div className="modal-actions">
-              <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setConfirmDelete(null)}>Annuleren</button>
+              <button className="btn-secondary" style={{ flex: 1 }} onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>Annuleren</button>
               <button className="btn-primary" style={{ flex: 1, background: '#ef4444' }} onClick={() => deleteChild(confirmDelete.uid)}>Verwijderen</button>
             </div>
           </div>

@@ -860,13 +860,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     try {
       let photoURL = localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null;
       if (photoFile) {
-        photoURL = await resizeImageToBase64(photoFile, 200);
-        // base64 lokaal opslaan (Firebase Auth staat geen base64 toe)
+        // Verwijder oude foto uit Storage (als die er is)
+        try { await deleteObject(storageRef(storage, `users/${user.uid}/profilePhoto`)); } catch {}
+        // Upload nieuwe foto naar Storage
+        const ref = storageRef(storage, `users/${user.uid}/profilePhoto`);
+        const resized = await resizeImageToBase64(photoFile, 200);
+        const blob = await fetch(resized).then(r => r.blob());
+        await uploadBytes(ref, blob, { contentType: 'image/jpeg' });
+        photoURL = await getDownloadURL(ref);
         localStorage.setItem(`pulse_photo_${user.uid}`, photoURL);
       }
-      // Firebase Auth alleen naam updaten (geen base64 URL)
-      const authPhotoURL = photoURL?.startsWith('data:') ? (user.photoURL || null) : photoURL;
-      await fbUpdateProfile(auth.currentUser, { displayName: newName.trim(), photoURL: authPhotoURL });
+      await fbUpdateProfile(auth.currentUser, { displayName: newName.trim(), photoURL: photoURL || null });
       // Sync naar backend zodat anderen de nieuwe foto/naam zien
       authFetch(`${BACKEND_URL}/api/users`, {
         method: 'POST',

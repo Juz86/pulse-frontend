@@ -833,6 +833,65 @@ body {
   font-family:'Syne',sans-serif; font-size:22px; font-weight:800; margin-bottom:20px;
   color: var(--text); line-height:1.4; padding-bottom:2px;
 }
+
+/* ── PROFIEL MODAL (sidebar layout) ── */
+.profile-modal-box {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:28px; width:640px; height:540px;
+  display:flex; overflow:hidden; position:relative;
+  box-shadow:0 40px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(108,99,255,.08);
+  animation:modal-up .22s cubic-bezier(.34,1.3,.64,1);
+}
+.profile-modal-box::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(108,99,255,.4), transparent); z-index:1;
+}
+.profile-modal-close {
+  position:absolute; top:14px; right:14px; z-index:10;
+  width:30px; height:30px; border-radius:50%; border:none;
+  background:var(--surface3); color:var(--text2); font-size:13px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all .15s;
+}
+.profile-modal-close:hover { background:var(--danger); color:#fff; }
+
+.profile-sidebar {
+  width:160px; flex-shrink:0;
+  background:var(--surface2); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; padding-top:24px;
+}
+.profile-sidebar-title {
+  font-family:'Syne',sans-serif; font-size:13px; font-weight:800;
+  color:var(--text3); letter-spacing:.5px; text-transform:uppercase;
+  padding:0 18px 14px; border-bottom:1px solid var(--border); margin-bottom:8px;
+}
+.profile-sidebar-tab {
+  display:flex; align-items:center; gap:10px;
+  padding:12px 18px; border:none; border-left:3px solid transparent;
+  background:transparent; color:var(--text2); font-size:13px;
+  font-weight:500; font-family:'DM Sans',sans-serif;
+  cursor:pointer; transition:all .15s; text-align:left; width:100%;
+}
+.profile-sidebar-tab:hover { background:rgba(108,99,255,.08); color:var(--text); }
+.profile-sidebar-tab.active {
+  background:rgba(108,99,255,.12); color:var(--text);
+  border-left-color:var(--accent); font-weight:600;
+}
+
+.profile-content {
+  flex:1; overflow-y:auto; padding:28px 28px 24px;
+}
+.profile-content::-webkit-scrollbar { width:4px; }
+.profile-content::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:4px; }
+
+/* Mobiel: sidebar wordt een rij bovenaan */
+@media (max-width:620px) {
+  .profile-modal-box { width:calc(100vw - 24px); height:calc(100dvh - 60px); flex-direction:column; }
+  .profile-sidebar { width:100%; flex-direction:row; padding:8px 8px 0; border-right:none; border-bottom:1px solid var(--border); overflow-x:auto; }
+  .profile-sidebar-title { display:none; }
+  .profile-sidebar-tab { border-left:none; border-bottom:3px solid transparent; padding:10px 16px; white-space:nowrap; flex-shrink:0; }
+  .profile-sidebar-tab.active { border-bottom-color:var(--accent); border-left-color:transparent; background:transparent; }
+}
 .modal-sub {
   font-size:13px; color:var(--text3); margin-bottom:20px;
   padding-bottom:16px; border-bottom:1px solid var(--border);

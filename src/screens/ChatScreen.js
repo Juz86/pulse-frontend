@@ -1,6 +1,6 @@
 // src/screens/ChatScreen.js
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { signOut, updateProfile as fbUpdateProfile } from 'firebase/auth';
+import { signOut, updateProfile as fbUpdateProfile, updatePassword } from 'firebase/auth';
 import { auth, db, storage } from '../firebase';
 import { doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -120,11 +120,24 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   // Profiel
   const [showProfile,    setShowProfile]    = useState(false);
+  const [profileTab,     setProfileTab]     = useState('account'); // 'account' | 'styling'
   const [newName,        setNewName]        = useState(user.displayName || '');
   const [photoFile,      setPhotoFile]      = useState(null);
   const [photoPreview,   setPhotoPreview]   = useState(localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg,     setProfileMsg]     = useState('');
+
+  // Gebruikersnaam
+  const [newUsername,      setNewUsername]      = useState('');
+  const [usernameLoading,  setUsernameLoading]  = useState(false);
+  const [usernameMsg,      setUsernameMsg]      = useState('');
+
+  // Wachtwoord
+  const [newPassword,      setNewPassword]      = useState('');
+  const [confirmPassword,  setConfirmPassword]  = useState('');
+  const [showNewPassword,  setShowNewPassword]  = useState(false);
+  const [passwordLoading,  setPasswordLoading]  = useState(false);
+  const [passwordMsg,      setPasswordMsg]      = useState('');
 
   // Chat achtergrond
   const [chatBg,        setChatBg]        = useState(null); // { type: 'photo', url } | { type: 'color', value } | null
@@ -216,13 +229,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     }).catch(() => {});
   }, [user.uid]);
 
-  // Laad chat achtergrond uit Firestore bij mount
+  // Laad chat achtergrond + gebruikersnaam uit Firestore bij mount
   useEffect(() => {
     getDoc(doc(db, 'users', user.uid)).then(d => {
       if (!d.exists()) return;
-      const { chatBackgroundURL, chatBackgroundColor } = d.data();
-      if (chatBackgroundURL)   setChatBg({ type: 'photo', url: chatBackgroundURL });
+      const { chatBackgroundURL, chatBackgroundColor, username } = d.data();
+      if (chatBackgroundURL)        setChatBg({ type: 'photo', url: chatBackgroundURL });
       else if (chatBackgroundColor) setChatBg({ type: 'color', value: chatBackgroundColor });
+      if (username) setNewUsername(username);
     }).catch(() => {});
   }, [user.uid]);
 
@@ -866,6 +880,39 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setProfileMsg('Opgeslagen!');
     } catch (err) { setProfileMsg('Fout bij opslaan: ' + (err.message || err.code)); }
     finally { setProfileLoading(false); }
+  }
+
+  // ── Gebruikersnaam opslaan ────────────────────────────────────────────────
+  async function saveUsername() {
+    const clean = newUsername.trim().toLowerCase();
+    if (!clean) { setUsernameMsg('Fout: Gebruikersnaam mag niet leeg zijn.'); return; }
+    if (!/^[a-z0-9_]{3,20}$/.test(clean)) { setUsernameMsg('Fout: 3–20 tekens, alleen letters, cijfers en _.'); return; }
+    setUsernameLoading(true); setUsernameMsg('');
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/users/lookup-username?username=${encodeURIComponent(clean)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.email !== user.email) { setUsernameMsg('Fout: Gebruikersnaam is al in gebruik.'); return; }
+      }
+      await updateDoc(doc(db, 'users', user.uid), { username: clean });
+      setUsernameMsg('Gebruikersnaam opgeslagen!');
+    } catch (err) { setUsernameMsg('Fout: ' + err.message); }
+    finally { setUsernameLoading(false); }
+  }
+
+  // ── Wachtwoord wijzigen ───────────────────────────────────────────────────
+  async function changePassword() {
+    if (newPassword.length < 6)          { setPasswordMsg('Fout: Minimaal 6 tekens.'); return; }
+    if (newPassword !== confirmPassword) { setPasswordMsg('Fout: Wachtwoorden komen niet overeen.'); return; }
+    setPasswordLoading(true); setPasswordMsg('');
+    try {
+      await updatePassword(auth.currentUser, newPassword);
+      setNewPassword(''); setConfirmPassword('');
+      setPasswordMsg('Wachtwoord gewijzigd!');
+    } catch (err) {
+      if (err.code === 'auth/requires-recent-login') setPasswordMsg('Fout: Log opnieuw in om je wachtwoord te wijzigen.');
+      else setPasswordMsg('Fout: ' + err.message);
+    } finally { setPasswordLoading(false); }
   }
 
   // ── Chat achtergrond functies ─────────────────────────────────────────────
@@ -1797,126 +1844,188 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {/* ── PROFIEL MODAL ── */}
       {showProfile && (
         <div className="modal-overlay" onClick={() => setShowProfile(false)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">⚙️ Mijn profiel</h3>
+          <div className="profile-modal-box" onClick={e => e.stopPropagation()}>
 
-            {/* Profielfoto (6) */}
-            <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
-              <div className="profile-photo-wrap" onClick={() => photoInputRef.current?.click()}>
-                {photoPreview
-                  ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit:'cover' }} />
-                  : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
-                }
-                <div className="profile-photo-overlay"><Camera size={16} /></div>
-              </div>
-              <input ref={photoInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handlePhotoChange} />
+            {/* Sluitknop */}
+            <button className="profile-modal-close" onClick={() => setShowProfile(false)}>✕</button>
+
+            {/* Sidebar */}
+            <div className="profile-sidebar">
+              <div className="profile-sidebar-title">Instellingen</div>
+              {[['account','👤','Mijn account'],['styling','🎨','Styling']].map(([id, icon, label]) => (
+                <button key={id} className={`profile-sidebar-tab${profileTab === id ? ' active' : ''}`}
+                  onClick={() => setProfileTab(id)}>
+                  <span>{icon}</span><span>{label}</span>
+                </button>
+              ))}
             </div>
 
-            <form id="profile-form" onSubmit={saveProfile}>
-              <div className="form-group">
-                <label className="form-label">Weergavenaam</label>
-                <input className="form-input" placeholder="Jouw naam" value={newName} onChange={e => setNewName(e.target.value)} required />
-              </div>
-              <div className="form-group">
-                <label className="form-label">E-mailadres</label>
-                <input className="form-input" type="email" value={user.email} disabled style={{ opacity:.5 }} />
-              </div>
-              {profileMsg && (
-                <div className={profileMsg.startsWith('Fout') ? 'auth-error' : 'auth-success'}>{profileMsg}</div>
-              )}
-            </form>
-            {/* ── CHAT ACHTERGROND ── */}
-            <div style={{ marginTop:'16px', borderTop:'1px solid var(--border)', paddingTop:'16px', marginBottom:'16px' }}>
-              <label className="form-label" style={{ marginBottom:'12px', display:'block' }}>Chat achtergrond</label>
+            {/* Inhoud */}
+            <div className="profile-content">
 
-              {/* Tabs */}
-              <div style={{ display:'flex', background:'var(--surface2)', borderRadius:'10px', padding:'4px', gap:'4px', marginBottom:'14px' }}>
-                {[['foto','📷 Foto'],['kleur','🎨 Kleur'],['standaard','Standaard']].map(([id, label]) => (
-                  <button key={id} type="button" onClick={() => { setChatBgTab(id); setChatBgMsg(''); }}
-                    style={{ flex:1, padding:'7px 4px', border:'none', borderRadius:'7px', fontSize:'12px', fontWeight:600, cursor:'pointer', transition:'all .15s',
-                      background: chatBgTab === id ? 'linear-gradient(135deg,#7c6fff,#a855f7)' : 'transparent',
-                      color: chatBgTab === id ? '#fff' : 'var(--text2)' }}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Voorvertoning */}
-              <div style={{ borderRadius:'12px', overflow:'hidden', marginBottom:'12px', height:'90px', position:'relative',
-                background: chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : 'var(--bg)',
-                border:'1px solid var(--border)' }}>
-                {chatBg?.type === 'photo' && <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,.15)' }} />}
-                <div style={{ position:'absolute', bottom:'8px', left:'10px' }}>
-                  <div style={{ background: chatBg ? 'rgba(26,26,36,0.85)' : 'var(--surface2)', border:'1px solid rgba(255,255,255,.12)', borderRadius:'12px 12px 12px 3px', padding:'5px 10px', fontSize:'11px', color:'#fff', backdropFilter:'blur(6px)' }}>Hallo! 👋</div>
-                </div>
-                <div style={{ position:'absolute', bottom:'8px', right:'10px' }}>
-                  <div style={{ background:'linear-gradient(135deg,#7c6fff,#a855f7)', borderRadius:'12px 12px 3px 12px', padding:'5px 10px', fontSize:'11px', color:'#fff' }}>Hey!</div>
-                </div>
-              </div>
-
-              {/* Foto tab */}
-              {chatBgTab === 'foto' && (
+              {/* ── TAB: MIJN ACCOUNT ── */}
+              {profileTab === 'account' && (
                 <div>
-                  {chatBg?.type === 'photo' && (
-                    <div style={{ fontSize:'12px', color:'var(--success)', marginBottom:'8px' }}>✓ Foto achtergrond actief</div>
-                  )}
-                  <button type="button" className="btn-secondary" style={{ width:'100%' }} disabled={chatBgLoading}
-                    onClick={() => bgInputRef.current?.click()}>
-                    {chatBgLoading ? 'Uploaden…' : chatBg?.type === 'photo' ? 'Andere foto kiezen' : 'Foto kiezen'}
-                  </button>
-                  <div style={{ fontSize:'11px', color:'var(--text3)', marginTop:'6px', textAlign:'center' }}>JPG, PNG of WEBP · max 5 MB</div>
-                  <input ref={bgInputRef} type="file" accept=".jpg,.jpeg,.png,.webp" style={{ display:'none' }}
-                    onChange={e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadChatBgPhoto(f); }} />
-                </div>
-              )}
+                  {/* Profielfoto */}
+                  <div style={{ display:'flex', justifyContent:'center', marginBottom:'24px' }}>
+                    <div className="profile-photo-wrap" onClick={() => photoInputRef.current?.click()}>
+                      {photoPreview
+                        ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit:'cover' }} />
+                        : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
+                      }
+                      <div className="profile-photo-overlay"><Camera size={16} /></div>
+                    </div>
+                    <input ref={photoInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handlePhotoChange} />
+                  </div>
 
-              {/* Kleur tab */}
-              {chatBgTab === 'kleur' && (
-                <div>
-                  <div style={{ display:'flex', gap:'10px', flexWrap:'wrap', justifyContent:'center' }}>
-                    {['#1e0a3c','#051236','#0a1f0e','#1f0a10','#0f1923','#1a1206','#000000','#1c1a18'].map(color => (
-                      <button key={color} type="button" disabled={chatBgLoading}
-                        onClick={() => saveChatBgColor(color)}
-                        style={{ width:'36px', height:'36px', borderRadius:'50%', background:color, border: chatBg?.type==='color' && chatBg.value===color ? '3px solid var(--accent)' : '2px solid var(--border)',
-                          cursor:'pointer', boxShadow: chatBg?.type==='color' && chatBg.value===color ? '0 0 0 2px var(--bg),0 0 0 4px var(--accent)' : 'none',
-                          transition:'all .15s', position:'relative' }}>
-                        {chatBg?.type === 'color' && chatBg.value === color && (
-                          <span style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:'14px' }}>✓</span>
-                        )}
+                  {/* Weergavenaam */}
+                  <form onSubmit={saveProfile}>
+                    <div className="form-group">
+                      <label className="form-label">Weergavenaam</label>
+                      <div style={{ display:'flex', gap:'8px' }}>
+                        <input className="form-input" style={{ flex:1 }} placeholder="Jouw naam" value={newName} onChange={e => setNewName(e.target.value)} required />
+                        <button type="submit" className="btn-primary" style={{ whiteSpace:'nowrap', padding:'0 16px' }} disabled={profileLoading}>
+                          {profileLoading ? '…' : 'Opslaan'}
+                        </button>
+                      </div>
+                    </div>
+                    {profileMsg && <div style={{ fontSize:'12px', marginBottom:'8px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
+                  </form>
+
+                  {/* Gebruikersnaam */}
+                  <div className="form-group" style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
+                    <label className="form-label">Gebruikersnaam</label>
+                    <div style={{ display:'flex', gap:'8px' }}>
+                      <input className="form-input" style={{ flex:1 }} placeholder="jouw_naam" value={newUsername}
+                        onChange={e => setNewUsername(e.target.value)} autoCapitalize="none" autoCorrect="off" />
+                      <button type="button" className="btn-primary" style={{ whiteSpace:'nowrap', padding:'0 16px' }}
+                        disabled={usernameLoading} onClick={saveUsername}>
+                        {usernameLoading ? '…' : 'Opslaan'}
                       </button>
-                    ))}
+                    </div>
+                    <div style={{ fontSize:'11px', color:'var(--text3)', marginTop:'4px' }}>3–20 tekens · letters, cijfers en _</div>
+                    {usernameMsg && <div style={{ fontSize:'12px', marginTop:'4px', color: usernameMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{usernameMsg}</div>}
+                  </div>
+
+                  {/* E-mail (alleen ouders) */}
+                  {isParent && (
+                    <div className="form-group" style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
+                      <label className="form-label">E-mailadres</label>
+                      <input className="form-input" type="email" value={user.email} disabled style={{ opacity:.5 }} />
+                    </div>
+                  )}
+
+                  {/* Wachtwoord wijzigen */}
+                  <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px', marginBottom:'8px' }}>
+                    <label className="form-label" style={{ marginBottom:'10px', display:'block' }}>Wachtwoord wijzigen</label>
+                    <div className="form-group">
+                      <div style={{ position:'relative' }}>
+                        <input className="form-input" type={showNewPassword ? 'text' : 'password'}
+                          placeholder="Nieuw wachtwoord" value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                          style={{ paddingRight:'42px' }} />
+                        <button type="button" onClick={() => setShowNewPassword(p => !p)}
+                          style={{ position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--text3)', padding:0 }}>
+                          {showNewPassword ? '🙈' : '👁️'}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <input className="form-input" type={showNewPassword ? 'text' : 'password'}
+                        placeholder="Bevestig wachtwoord" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+                    </div>
+                    <button type="button" className="btn-secondary" style={{ width:'100%' }}
+                      disabled={passwordLoading || !newPassword} onClick={changePassword}>
+                      {passwordLoading ? 'Bezig…' : 'Wachtwoord wijzigen'}
+                    </button>
+                    {passwordMsg && <div style={{ fontSize:'12px', marginTop:'6px', color: passwordMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{passwordMsg}</div>}
+                  </div>
+
+                  {/* Account verwijderen */}
+                  <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
+                    <button className="btn-danger" style={{ width:'100%' }}
+                      onClick={() => { setShowProfile(false); handleDeleteAccount(); }}>
+                      <Delete size={16} style={{ marginRight:6 }} /> Account verwijderen
+                    </button>
                   </div>
                 </div>
               )}
 
-              {/* Standaard tab */}
-              {chatBgTab === 'standaard' && (
+              {/* ── TAB: STYLING ── */}
+              {profileTab === 'styling' && (
                 <div>
-                  {chatBg
-                    ? <button type="button" className="btn-secondary" style={{ width:'100%' }} disabled={chatBgLoading} onClick={removeChatBg}>
-                        {chatBgLoading ? 'Bezig…' : 'Standaard achtergrond herstellen'}
-                      </button>
-                    : <div style={{ textAlign:'center', color:'var(--text3)', fontSize:'13px', padding:'8px 0' }}>Standaard achtergrond is actief</div>
-                  }
+                  <div style={{ marginBottom:'16px' }}>
+                    <label className="form-label" style={{ marginBottom:'12px', display:'block' }}>Chat achtergrond</label>
+
+                    {/* Achtergrond tabs */}
+                    <div style={{ display:'flex', background:'var(--surface2)', borderRadius:'10px', padding:'4px', gap:'4px', marginBottom:'14px' }}>
+                      {[['foto','📷 Foto'],['kleur','🎨 Kleur'],['standaard','Standaard']].map(([id, label]) => (
+                        <button key={id} type="button" onClick={() => { setChatBgTab(id); setChatBgMsg(''); }}
+                          style={{ flex:1, padding:'7px 4px', border:'none', borderRadius:'7px', fontSize:'12px', fontWeight:600, cursor:'pointer', transition:'all .15s',
+                            background: chatBgTab === id ? 'linear-gradient(135deg,#7c6fff,#a855f7)' : 'transparent',
+                            color: chatBgTab === id ? '#fff' : 'var(--text2)' }}>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Voorvertoning */}
+                    <div style={{ borderRadius:'12px', overflow:'hidden', marginBottom:'14px', height:'110px', position:'relative',
+                      background: chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : 'var(--bg)',
+                      border:'1px solid var(--border)' }}>
+                      {chatBg?.type === 'photo' && <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,.15)' }} />}
+                      <div style={{ position:'absolute', bottom:'8px', left:'10px' }}>
+                        <div style={{ background: chatBg ? 'rgba(26,26,36,0.85)' : 'var(--surface2)', border:'1px solid rgba(255,255,255,.12)', borderRadius:'12px 12px 12px 3px', padding:'6px 12px', fontSize:'12px', color:'#fff', backdropFilter:'blur(6px)' }}>Hallo! 👋</div>
+                      </div>
+                      <div style={{ position:'absolute', bottom:'8px', right:'10px' }}>
+                        <div style={{ background:'linear-gradient(135deg,#7c6fff,#a855f7)', borderRadius:'12px 12px 3px 12px', padding:'6px 12px', fontSize:'12px', color:'#fff' }}>Hey!</div>
+                      </div>
+                    </div>
+
+                    {/* Foto tab */}
+                    {chatBgTab === 'foto' && (
+                      <div>
+                        {chatBg?.type === 'photo' && <div style={{ fontSize:'12px', color:'var(--success)', marginBottom:'8px' }}>✓ Foto achtergrond actief</div>}
+                        <button type="button" className="btn-secondary" style={{ width:'100%' }} disabled={chatBgLoading}
+                          onClick={() => bgInputRef.current?.click()}>
+                          {chatBgLoading ? 'Uploaden…' : chatBg?.type === 'photo' ? 'Andere foto kiezen' : 'Foto kiezen'}
+                        </button>
+                        <div style={{ fontSize:'11px', color:'var(--text3)', marginTop:'6px', textAlign:'center' }}>JPG, PNG of WEBP · max 5 MB</div>
+                        <input ref={bgInputRef} type="file" accept=".jpg,.jpeg,.png,.webp" style={{ display:'none' }}
+                          onChange={e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadChatBgPhoto(f); }} />
+                      </div>
+                    )}
+
+                    {/* Kleur tab */}
+                    {chatBgTab === 'kleur' && (
+                      <div style={{ display:'flex', gap:'10px', flexWrap:'wrap', justifyContent:'center' }}>
+                        {['#1e0a3c','#051236','#0a1f0e','#1f0a10','#0f1923','#1a1206','#000000','#1c1a18'].map(color => (
+                          <button key={color} type="button" disabled={chatBgLoading} onClick={() => saveChatBgColor(color)}
+                            style={{ width:'36px', height:'36px', borderRadius:'50%', background:color,
+                              border: chatBg?.type==='color' && chatBg.value===color ? '3px solid var(--accent)' : '2px solid var(--border)',
+                              cursor:'pointer', position:'relative', transition:'all .15s',
+                              boxShadow: chatBg?.type==='color' && chatBg.value===color ? '0 0 0 2px var(--bg),0 0 0 4px var(--accent)' : 'none' }}>
+                            {chatBg?.type === 'color' && chatBg.value === color && (
+                              <span style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:'14px' }}>✓</span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Standaard tab */}
+                    {chatBgTab === 'standaard' && (
+                      chatBg
+                        ? <button type="button" className="btn-secondary" style={{ width:'100%' }} disabled={chatBgLoading} onClick={removeChatBg}>
+                            {chatBgLoading ? 'Bezig…' : 'Standaard achtergrond herstellen'}
+                          </button>
+                        : <div style={{ textAlign:'center', color:'var(--text3)', fontSize:'13px', padding:'8px 0' }}>Standaard achtergrond is actief</div>
+                    )}
+
+                    {chatBgMsg && <div style={{ marginTop:'8px', fontSize:'12px', color: chatBgMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{chatBgMsg}</div>}
+                  </div>
                 </div>
               )}
 
-              {chatBgMsg && (
-                <div style={{ marginTop:'8px', fontSize:'12px', color: chatBgMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{chatBgMsg}</div>
-              )}
-            </div>
-            <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
-              <button
-                className="btn-danger"
-                style={{ width:'100%', marginBottom:'12px' }}
-                onClick={() => { setShowProfile(false); handleDeleteAccount(); }}
-              >
-                <Delete size={16} style={{ marginRight:6 }} /> Account verwijderen
-              </button>
-              <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowProfile(false)}>Sluiten</button>
-                <button type="submit" form="profile-form" className="btn-primary" style={{ flex:1 }} disabled={profileLoading}>{profileLoading ? 'Opslaan…' : 'Opslaan →'}</button>
-              </div>
             </div>
           </div>
         </div>

@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ── Profielfoto's — alleen eigen map ──────────────────────────────────────
+    match /users/{uid}/profilePhoto/{fileName} {
+      // Iedereen ingelogd mag profielfoto's lezen (nodig voor weergave in chat)
+      allow read: if request.auth != null;
+
+      // Alleen eigen foto schrijven, max 5 MB, alleen afbeeldingen
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ── Chat achtergronden — alleen eigen map ─────────────────────────────────
+    match /users/{uid}/chatBackground/{fileName} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      allow write: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ── Alles anders: geblokkeerd ─────────────────────────────────────────────
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

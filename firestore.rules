@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Gebruikers ────────────────────────────────────────────────────────────
+    match /users/{uid} {
+      // Iedereen ingelogd mag basisinfo lezen (displayName, photoURL, online)
+      allow read: if request.auth != null;
+
+      // Alleen eigen document aanmaken bij registratie
+      allow create: if request.auth != null && request.auth.uid == uid
+        && !('role' in request.resource.data)        // role alleen via backend
+        && !('parentId' in request.resource.data);   // parentId alleen via backend
+
+      // Eigen document bijwerken — maar NIET role, parentId of paused
+      allow update: if request.auth != null && request.auth.uid == uid
+        && !('role'     in request.resource.data.diff(resource.data).affectedKeys())
+        && !('parentId' in request.resource.data.diff(resource.data).affectedKeys())
+        && !('paused'   in request.resource.data.diff(resource.data).affectedKeys());
+
+      // Verwijderen alleen via backend (Admin SDK)
+      allow delete: if false;
+
+      // Contacten subcollectie — alleen eigen contacten lezen/schrijven
+      match /contacts/{contactId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // ── Gesprekken ────────────────────────────────────────────────────────────
+    match /conversations/{convId} {
+      // Alleen leden mogen lezen
+      allow read: if request.auth != null
+        && request.auth.uid in resource.data.members;
+
+      // Aanmaken via backend (socket conversation:create)
+      allow create: if false;
+
+      // Bijwerken alleen via backend
+      allow update: if false;
+      allow delete: if false;
+
+      // Berichten — alleen leden mogen lezen
+      match /messages/{msgId} {
+        allow read: if request.auth != null
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.members;
+
+        // Schrijven via backend
+        allow write: if false;
+      }
+    }
+
+    // ── Ouder activiteiten ────────────────────────────────────────────────────
+    match /parentActivities/{docId} {
+      allow read: if request.auth != null
+        && request.auth.uid == resource.data.parentId;
+      allow write: if false;
+    }
+
+    // ── Alles anders: geblokkeerd ─────────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1257,14 +1257,17 @@ body {
 .parent-error   { margin-top:10px; padding:8px 12px; background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); border-radius:8px; color:#dc2626; font-size:13px; }
 .parent-success { margin-top:10px; padding:8px 12px; background:rgba(34,197,94,.1);  border:1px solid rgba(34,197,94,.3);  border-radius:8px; color:#16a34a; font-size:13px; }
 .parent-child-row {
-  display:flex; align-items:flex-start; flex-wrap:wrap; gap:10px; padding:14px 0;
-  border-bottom:1px solid #f0f0f5;
+  display:flex; align-items:flex-start; gap:12px; padding:14px 16px;
+  border:1.5px solid #e5e7eb; border-radius:12px; margin-bottom:10px; background:#fff;
 }
-.parent-child-row .pd-child-actions {
-  display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; margin-left:auto;
+.pd-child-meta-row {
+  display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:3px;
 }
-.parent-child-row:last-child { border-bottom:none; }
-.parent-child-row.paused { background:rgba(249,115,22,.04); border-radius:10px; padding:14px 10px; }
+.pd-child-actions {
+  display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+}
+.parent-child-row:last-child { margin-bottom:0; }
+.parent-child-row.paused { background:rgba(249,115,22,.04); border-color:rgba(249,115,22,.3); }
 .parent-child-avatar {
   width:44px; height:44px; border-radius:12px; flex-shrink:0;
   background:linear-gradient(135deg,#6c63ff,#a855f7);
@@ -1272,7 +1275,7 @@ body {
   font-weight:700; font-size:16px;
 }
 .parent-child-name { font-weight:600; font-size:15px; color:#1a1a2e; }
-.parent-child-meta { display:flex; align-items:center; gap:6px; font-size:12px; color:#888; margin-top:3px; }
+.parent-child-meta { display:flex; align-items:center; gap:6px; font-size:12px; color:#888; }
 .parent-status-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
 .parent-status-dot.online  { background:#22c55e; }
 .parent-status-dot.offline { background:#ccc; }

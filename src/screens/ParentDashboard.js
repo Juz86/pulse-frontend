@@ -215,29 +215,31 @@ export default function ParentDashboard({ user, onClose }) {
                   <div key={child.uid}>
                     <div className={`parent-child-row${child.paused ? ' paused' : ''}`}>
                       <div className="parent-child-avatar">{getInitials(child.displayName)}</div>
-                      <div style={{ flex: 1, minWidth: 120 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="parent-child-name">{child.displayName}</div>
-                        <div className="parent-child-meta">
-                          <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
-                          <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
-                          {child.username && <span style={{ marginLeft: 6, color: '#888', fontSize: 12 }}>@{child.username}</span>}
-                          {child.paused && <span className="parent-paused-badge">Gepauzeerd</span>}
+                        <div className="pd-child-meta-row">
+                          <div className="parent-child-meta">
+                            <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
+                            <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
+                            {child.username && <span style={{ marginLeft: 6, color: '#888', fontSize: 12 }}>@{child.username}</span>}
+                            {child.paused && <span className="parent-paused-badge">Gepauzeerd</span>}
+                          </div>
+                          <div className="pd-child-actions">
+                            {child.paused ? (
+                              <button className="parent-btn-green" onClick={() => resumeChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PlayCircle size={16}/> Hervatten</button>
+                            ) : (
+                              <button className="parent-btn-orange" onClick={() => pauseChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PauseCircle size={16}/> Pauzeren</button>
+                            )}
+                            <button className="parent-btn-outline" style={{ fontSize: 12, display:'flex', alignItems:'center', gap:5 }}
+                              onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
+                              <KeyRound size={16} color="#6b7280"/> Wachtwoord
+                            </button>
+                            <button className="parent-btn-outline" style={{ fontSize: 12, color: '#ef4444', borderColor: '#ef4444', display:'flex', alignItems:'center', gap:5 }}
+                              onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
+                              <Trash2 size={16} color="#ef4444"/> Verwijderen
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="pd-child-actions">
-                        {child.paused ? (
-                          <button className="parent-btn-green" onClick={() => resumeChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PlayCircle size={16}/> Hervatten</button>
-                        ) : (
-                          <button className="parent-btn-orange" onClick={() => pauseChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PauseCircle size={16}/> Pauzeren</button>
-                        )}
-                        <button className="parent-btn-outline" style={{ fontSize: 12, display:'flex', alignItems:'center', gap:5 }}
-                          onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
-                          <KeyRound size={16} color="#6b7280"/> Wachtwoord
-                        </button>
-                        <button className="parent-btn-outline" style={{ fontSize: 12, color: '#ef4444', borderColor: '#ef4444', display:'flex', alignItems:'center', gap:5 }}
-                          onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
-                          <Trash2 size={16} color="#ef4444"/> Verwijderen
-                        </button>
                       </div>
                     </div>
 

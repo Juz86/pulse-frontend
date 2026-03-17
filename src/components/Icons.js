@@ -39,3 +39,4 @@ export { MdPauseCircle   as PauseCircle }    from 'react-icons/md';
 export { MdPlayCircle    as PlayCircle }     from 'react-icons/md';
 export { MdKey           as KeyRound }       from 'react-icons/md';
 export { MdDeleteForever as Trash2 }         from 'react-icons/md';
+export { MdTimeline      as Activity }       from 'react-icons/md';

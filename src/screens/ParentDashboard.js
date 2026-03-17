@@ -1,11 +1,12 @@
 // src/screens/ParentDashboard.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { getInitials, timeAgo } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2 } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff } from '../components/Icons';
 
 const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
 export default function ParentDashboard({ user, onClose }) {
+  const [activeTab,      setActiveTab]      = useState('add');
   const [children,       setChildren]       = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [activities,     setActivities]     = useState([]);
@@ -107,6 +108,12 @@ export default function ParentDashboard({ user, onClose }) {
     } catch (err) { alert(err.message); }
   }
 
+  const TABS = [
+    { id: 'add',        icon: <UserPlus  size={16}/>, label: 'Kind toevoegen'       },
+    { id: 'children',   icon: <Users     size={16}/>, label: 'Gekoppelde kinderen'  },
+    { id: 'activities', icon: <Activity  size={16}/>, label: 'Pulse activiteiten'   },
+  ];
+
   return (
     <div className="parent-root">
       <div className="parent-container">
@@ -124,168 +131,184 @@ export default function ParentDashboard({ user, onClose }) {
           </div>
         </div>
 
-        {/* Kindaccount aanmaken */}
-        <div className="parent-card">
-          <h2 className="parent-section-title">Kind toevoegen</h2>
-          <p className="parent-section-sub">Maak een account aan voor uw kind. Het kind logt in met gebruikersnaam en wachtwoord.</p>
-          <form onSubmit={createChild} className="parent-add-form" style={{ flexDirection: 'column', gap: 10 }}>
-            <input
-              className="parent-input"
-              type="text"
-              placeholder="Naam van het kind"
-              value={childName}
-              onChange={e => setChildName(e.target.value)}
-              required
-            />
-            <input
-              className="parent-input"
-              type="text"
-              placeholder="Gebruikersnaam (bijv. jan_2014)"
-              value={childUsername}
-              onChange={e => setChildUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-              autoCapitalize="none"
-              autoCorrect="off"
-              required
-              minLength={2}
-              maxLength={30}
-            />
-            <div style={{ position: 'relative' }}>
-              <input
-                className="parent-input"
-                type={showCreatePw ? 'text' : 'password'}
-                placeholder="Wachtwoord (minimaal 6 tekens)"
-                value={childPassword}
-                onChange={e => setChildPassword(e.target.value)}
-                required
-                minLength={6}
-                style={{ paddingRight: 42, width: '100%', boxSizing: 'border-box' }}
-              />
-              <button type="button" onClick={() => setShowCreatePw(p => !p)}
-                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
-                {showCreatePw
-                  ? <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M2 2l20 20-1.4 1.4L.6 3.4z" opacity=".7"/></svg>
-                  : <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
-                }
+        {/* Sidebar + content */}
+        <div className="pd-layout">
+          <div className="pd-sidebar">
+            {TABS.map(t => (
+              <button key={t.id} className={`pd-sidebar-tab${activeTab === t.id ? ' active' : ''}`} onClick={() => setActiveTab(t.id)}>
+                {t.icon}
+                <span>{t.label}</span>
               </button>
-            </div>
-            <button className="parent-btn-primary" type="submit" disabled={createLoading}>
-              {createLoading ? 'Aanmaken…' : 'Kindaccount aanmaken →'}
-            </button>
-          </form>
-          {createError   && <div className="parent-error" style={{ marginTop: 10 }}>⚠️ {createError}</div>}
-          {createSuccess && <div className="parent-success" style={{ marginTop: 10 }}>✅ {createSuccess}</div>}
-        </div>
-
-        {/* Kinderen */}
-        <div className="parent-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Gekoppelde kinderen</h2>
-            <button className="parent-btn-outline" onClick={loadChildren} style={{ fontSize: 12, padding: '6px 12px' }}>↻ Vernieuwen</button>
+            ))}
           </div>
 
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Laden…</div>
-          ) : children.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>
-              <div style={{ fontSize: 40, marginBottom: 8 }}>👦</div>
-              <p>Nog geen kinderen toegevoegd.</p>
-              <p style={{ fontSize: 13, marginTop: 4 }}>Maak een account aan via het formulier hierboven.</p>
-            </div>
-          ) : children.map(child => (
-            <div key={child.uid}>
-              <div className={`parent-child-row${child.paused ? ' paused' : ''}`}>
-                <div className="parent-child-avatar">{getInitials(child.displayName)}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div className="parent-child-name">{child.displayName}</div>
-                  <div className="parent-child-meta">
-                    <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
-                    <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
-                    {child.username && <span style={{ marginLeft: 6, color: '#888', fontSize: 12 }}>@{child.username}</span>}
-                    {child.paused && <span className="parent-paused-badge">Gepauzeerd</span>}
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                  {child.paused ? (
-                    <button className="parent-btn-green" onClick={() => resumeChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PlayCircle size={16}/> Hervatten</button>
-                  ) : (
-                    <button className="parent-btn-orange" onClick={() => pauseChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PauseCircle size={16}/> Pauzeren</button>
-                  )}
-                  <button className="parent-btn-outline" style={{ fontSize: 12, display:'flex', alignItems:'center', gap:5 }}
-                    onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
-                    <KeyRound size={16} color="#6b7280"/> Wachtwoord
-                  </button>
-                  <button className="parent-btn-outline" style={{ fontSize: 12, color: '#ef4444', borderColor: '#ef4444', display:'flex', alignItems:'center', gap:5 }}
-                    onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
-                    <Trash2 size={16} color="#ef4444"/> Verwijderen
-                  </button>
-                </div>
-              </div>
+          <div className="pd-content">
 
-              {/* Wachtwoord wijzigen inline */}
-              {changingPwUid === child.uid && (
-                <div style={{ background: 'var(--bg2)', borderRadius: 10, padding: '12px 16px', marginBottom: 8 }}>
-                  <p style={{ fontSize: 13, marginBottom: 8, color: 'var(--text2)' }}>Nieuw wachtwoord voor <strong>{child.displayName}</strong>:</p>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <div style={{ position: 'relative', flex: 1 }}>
-                      <input
-                        className="parent-input"
-                        type={showNewPw ? 'text' : 'password'}
-                        placeholder="Minimaal 6 tekens"
-                        value={newPassword}
-                        onChange={e => setNewPassword(e.target.value)}
-                        minLength={6}
-                        style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
-                        autoFocus
-                      />
-                      <button type="button" onClick={() => setShowNewPw(p => !p)}
-                        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
-                        {showNewPw
-                          ? <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M2 2l20 20-1.4 1.4L.6 3.4z" opacity=".7"/></svg>
-                          : <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
-                        }
-                      </button>
+            {/* Tab 1 — Kind toevoegen */}
+            {activeTab === 'add' && (
+              <div>
+                <h2 className="parent-section-title">Kind toevoegen</h2>
+                <p className="parent-section-sub" style={{ marginBottom: 16 }}>Maak een account aan voor uw kind. Het kind logt in met gebruikersnaam en wachtwoord.</p>
+                <form onSubmit={createChild} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <input
+                    className="parent-input"
+                    type="text"
+                    placeholder="Naam van het kind"
+                    value={childName}
+                    onChange={e => setChildName(e.target.value)}
+                    required
+                  />
+                  <input
+                    className="parent-input"
+                    type="text"
+                    placeholder="Gebruikersnaam (bijv. jan_2014)"
+                    value={childUsername}
+                    onChange={e => setChildUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    required
+                    minLength={2}
+                    maxLength={30}
+                  />
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      className="parent-input"
+                      type={showCreatePw ? 'text' : 'password'}
+                      placeholder="Wachtwoord (minimaal 6 tekens)"
+                      value={childPassword}
+                      onChange={e => setChildPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      style={{ paddingRight: 42, width: '100%', boxSizing: 'border-box' }}
+                    />
+                    <button type="button" onClick={() => setShowCreatePw(p => !p)}
+                      style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
+                      {showCreatePw ? <EyeOff size={18}/> : <EyeOn size={18}/>}
+                    </button>
+                  </div>
+                  <button className="parent-btn-primary" type="submit" disabled={createLoading}>
+                    {createLoading ? 'Aanmaken…' : 'Kindaccount aanmaken →'}
+                  </button>
+                </form>
+                {createError   && <div className="parent-error"   style={{ marginTop: 10 }}>⚠️ {createError}</div>}
+                {createSuccess && <div className="parent-success" style={{ marginTop: 10 }}>✓ {createSuccess}</div>}
+              </div>
+            )}
+
+            {/* Tab 2 — Gekoppelde kinderen */}
+            {activeTab === 'children' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Gekoppelde kinderen</h2>
+                  <button className="parent-btn-outline" onClick={loadChildren} style={{ fontSize: 12, padding: '6px 12px' }}>↻ Vernieuwen</button>
+                </div>
+
+                {loading ? (
+                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Laden…</div>
+                ) : children.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>
+                    <Users size={40} color="#ccc" style={{ marginBottom: 8 }}/>
+                    <p>Nog geen kinderen toegevoegd.</p>
+                    <p style={{ fontSize: 13, marginTop: 4 }}>Voeg een kind toe via het tabblad "Kind toevoegen".</p>
+                  </div>
+                ) : children.map(child => (
+                  <div key={child.uid}>
+                    <div className={`parent-child-row${child.paused ? ' paused' : ''}`}>
+                      <div className="parent-child-avatar">{getInitials(child.displayName)}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="parent-child-name">{child.displayName}</div>
+                        <div className="parent-child-meta">
+                          <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
+                          <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
+                          {child.username && <span style={{ marginLeft: 6, color: '#888', fontSize: 12 }}>@{child.username}</span>}
+                          {child.paused && <span className="parent-paused-badge">Gepauzeerd</span>}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        {child.paused ? (
+                          <button className="parent-btn-green" onClick={() => resumeChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PlayCircle size={16}/> Hervatten</button>
+                        ) : (
+                          <button className="parent-btn-orange" onClick={() => pauseChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PauseCircle size={16}/> Pauzeren</button>
+                        )}
+                        <button className="parent-btn-outline" style={{ fontSize: 12, display:'flex', alignItems:'center', gap:5 }}
+                          onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
+                          <KeyRound size={16} color="#6b7280"/> Wachtwoord
+                        </button>
+                        <button className="parent-btn-outline" style={{ fontSize: 12, color: '#ef4444', borderColor: '#ef4444', display:'flex', alignItems:'center', gap:5 }}
+                          onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
+                          <Trash2 size={16} color="#ef4444"/> Verwijderen
+                        </button>
+                      </div>
                     </div>
-                    <button className="parent-btn-primary" style={{ fontSize: 13 }}
-                      onClick={() => changePassword(child.uid)} disabled={pwLoading || newPassword.length < 6}>
-                      {pwLoading ? '…' : 'Opslaan'}
-                    </button>
-                    <button className="parent-btn-outline" style={{ fontSize: 13 }}
-                      onClick={() => { setChangingPwUid(null); setNewPassword(''); setPwError(''); }}>
-                      Annuleren
-                    </button>
-                  </div>
-                  {pwError && <div className="parent-error" style={{ marginTop: 6, fontSize: 13 }}>⚠️ {pwError}</div>}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
 
-        {/* Activiteiten */}
-        <div className="parent-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Pulse activiteiten</h2>
-            <button className="parent-btn-outline" onClick={loadActivities} style={{ fontSize: 12, padding: '6px 12px' }}>↻ Vernieuwen</button>
+                    {/* Wachtwoord wijzigen inline */}
+                    {changingPwUid === child.uid && (
+                      <div style={{ background: '#f9f9fc', borderRadius: 10, padding: '12px 16px', marginBottom: 8, border: '1px solid #e0e0e8' }}>
+                        <p style={{ fontSize: 13, marginBottom: 8, color: '#555' }}>Nieuw wachtwoord voor <strong>{child.displayName}</strong>:</p>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <div style={{ position: 'relative', flex: 1 }}>
+                            <input
+                              className="parent-input"
+                              type={showNewPw ? 'text' : 'password'}
+                              placeholder="Minimaal 6 tekens"
+                              value={newPassword}
+                              onChange={e => setNewPassword(e.target.value)}
+                              minLength={6}
+                              style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
+                              autoFocus
+                            />
+                            <button type="button" onClick={() => setShowNewPw(p => !p)}
+                              style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
+                              {showNewPw ? <EyeOff size={16}/> : <EyeOn size={16}/>}
+                            </button>
+                          </div>
+                          <button className="parent-btn-primary" style={{ fontSize: 13 }}
+                            onClick={() => changePassword(child.uid)} disabled={pwLoading || newPassword.length < 6}>
+                            {pwLoading ? '…' : 'Opslaan'}
+                          </button>
+                          <button className="parent-btn-outline" style={{ fontSize: 13 }}
+                            onClick={() => { setChangingPwUid(null); setNewPassword(''); setPwError(''); }}>
+                            Annuleren
+                          </button>
+                        </div>
+                        {pwError && <div className="parent-error" style={{ marginTop: 6, fontSize: 13 }}>⚠️ {pwError}</div>}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Tab 3 — Pulse activiteiten */}
+            {activeTab === 'activities' && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Pulse activiteiten</h2>
+                  <button className="parent-btn-outline" onClick={loadActivities} style={{ fontSize: 12, padding: '6px 12px' }}>↻ Vernieuwen</button>
+                </div>
+                {activities.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>
+                    <Activity size={32} color="#ccc" style={{ marginBottom: 8 }}/>
+                    <p style={{ fontSize: 13 }}>Nog geen activiteiten.</p>
+                  </div>
+                ) : activities.map(a => (
+                  <div key={a.id} className="parent-activity-row">
+                    <div className="parent-activity-icon">
+                      {a.type === 'friend_request_sent'     && <UserPlus2 size={18} color="#3b82f6" />}
+                      {a.type === 'friend_request_accepted' && <UserCheck size={18} color="#22c55e" />}
+                      {a.type === 'friend_request_rejected' && <UserX     size={18} color="#ef4444" />}
+                      {a.type !== 'friend_request_sent' && a.type !== 'friend_request_accepted' && a.type !== 'friend_request_rejected' && <UserCheck size={18} color="#22c55e" />}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div className="parent-activity-text">{a.description}</div>
+                      <div className="parent-activity-time">{timeAgo(a.createdAt)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
           </div>
-          {activities.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
-              <p style={{ fontSize: 13 }}>Nog geen activiteiten.</p>
-            </div>
-          ) : activities.map(a => (
-            <div key={a.id} className="parent-activity-row">
-              <div className="parent-activity-icon">
-                {a.type === 'friend_request_sent'     && <UserPlus2  size={18} color="#3b82f6" />}
-                {a.type === 'friend_request_accepted' && <UserCheck  size={18} color="#22c55e" />}
-                {a.type === 'friend_request_rejected' && <UserX      size={18} color="#ef4444" />}
-                {a.type !== 'friend_request_sent' && a.type !== 'friend_request_accepted' && a.type !== 'friend_request_rejected' && <UserCheck size={18} color="#22c55e" />}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div className="parent-activity-text">{a.description}</div>
-                <div className="parent-activity-time">{timeAgo(a.createdAt)}</div>
-              </div>
-            </div>
-          ))}
         </div>
 
       </div>

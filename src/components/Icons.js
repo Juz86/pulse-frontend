@@ -30,3 +30,5 @@ export { MdPalette       as Palette }       from 'react-icons/md';
 export { MdImage         as ImageIcon }     from 'react-icons/md';
 export { MdCircle        as ColorCircle }   from 'react-icons/md';
 export { MdGridView      as LayoutTemplate } from 'react-icons/md';
+export { MdVisibility    as EyeOn }          from 'react-icons/md';
+export { MdVisibilityOff as EyeOff }         from 'react-icons/md';

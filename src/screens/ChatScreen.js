@@ -6,7 +6,7 @@ import { doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from '
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
-import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff } from '../components/Icons';
 import { getInitials, toMs } from '../utils';
 
 const MSG_LIMIT = 30;
@@ -1919,7 +1919,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                           style={{ paddingRight:'42px' }} />
                         <button type="button" onClick={() => setShowNewPassword(p => !p)}
                           style={{ position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--text3)', padding:0 }}>
-                          {showNewPassword ? '🙈' : '👁️'}
+                          {showNewPassword ? <EyeOff size={18}/> : <EyeOn size={18}/>}
                         </button>
                       </div>
                     </div>

@@ -1812,7 +1812,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               <input ref={photoInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handlePhotoChange} />
             </div>
 
-            <form onSubmit={saveProfile}>
+            <form id="profile-form" onSubmit={saveProfile}>
               <div className="form-group">
                 <label className="form-label">Weergavenaam</label>
                 <input className="form-input" placeholder="Jouw naam" value={newName} onChange={e => setNewName(e.target.value)} required />
@@ -1824,10 +1824,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               {profileMsg && (
                 <div className={profileMsg.startsWith('Fout') ? 'auth-error' : 'auth-success'}>{profileMsg}</div>
               )}
-              <div className="modal-actions">
-                <button type="button" className="btn-secondary" onClick={() => setShowProfile(false)}>Sluiten</button>
-                <button type="submit" className="btn-primary" style={{ flex:1 }} disabled={profileLoading}>{profileLoading ? 'Opslaan…' : 'Opslaan →'}</button>
-              </div>
             </form>
             {/* ── CHAT ACHTERGROND ── */}
             <div style={{ marginTop:'16px', borderTop:'1px solid var(--border)', paddingTop:'16px', marginBottom:'16px' }}>
@@ -1912,11 +1908,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
               <button
                 className="btn-danger"
-                style={{ width:'100%' }}
+                style={{ width:'100%', marginBottom:'12px' }}
                 onClick={() => { setShowProfile(false); handleDeleteAccount(); }}
               >
                 <Delete size={16} style={{ marginRight:6 }} /> Account verwijderen
               </button>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowProfile(false)}>Sluiten</button>
+                <button type="submit" form="profile-form" className="btn-primary" style={{ flex:1 }} disabled={profileLoading}>{profileLoading ? 'Opslaan…' : 'Opslaan →'}</button>
+              </div>
             </div>
           </div>
         </div>

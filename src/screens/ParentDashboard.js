@@ -215,7 +215,7 @@ export default function ParentDashboard({ user, onClose }) {
                   <div key={child.uid}>
                     <div className={`parent-child-row${child.paused ? ' paused' : ''}`}>
                       <div className="parent-child-avatar">{getInitials(child.displayName)}</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ flex: 1, minWidth: 120 }}>
                         <div className="parent-child-name">{child.displayName}</div>
                         <div className="parent-child-meta">
                           <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
@@ -224,7 +224,7 @@ export default function ParentDashboard({ user, onClose }) {
                           {child.paused && <span className="parent-paused-badge">Gepauzeerd</span>}
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      <div className="pd-child-actions">
                         {child.paused ? (
                           <button className="parent-btn-green" onClick={() => resumeChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PlayCircle size={16}/> Hervatten</button>
                         ) : (

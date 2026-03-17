@@ -1,6 +1,7 @@
 // src/screens/ParentDashboard.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { getInitials, timeAgo } from '../utils';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2 } from '../components/Icons';
 
 const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
@@ -205,17 +206,17 @@ export default function ParentDashboard({ user, onClose }) {
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                   {child.paused ? (
-                    <button className="parent-btn-green" onClick={() => resumeChild(child.uid)}>▶ Hervatten</button>
+                    <button className="parent-btn-green" onClick={() => resumeChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PlayCircle size={16}/> Hervatten</button>
                   ) : (
-                    <button className="parent-btn-orange" onClick={() => pauseChild(child.uid)}>⏸ Pauzeren</button>
+                    <button className="parent-btn-orange" onClick={() => pauseChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PauseCircle size={16}/> Pauzeren</button>
                   )}
-                  <button className="parent-btn-outline" style={{ fontSize: 12 }}
+                  <button className="parent-btn-outline" style={{ fontSize: 12, display:'flex', alignItems:'center', gap:5 }}
                     onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
-                    🔑 Wachtwoord
+                    <KeyRound size={16} color="#6b7280"/> Wachtwoord
                   </button>
-                  <button className="parent-btn-outline" style={{ fontSize: 12, color: '#ef4444', borderColor: '#ef4444' }}
+                  <button className="parent-btn-outline" style={{ fontSize: 12, color: '#ef4444', borderColor: '#ef4444', display:'flex', alignItems:'center', gap:5 }}
                     onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
-                    🗑 Verwijderen
+                    <Trash2 size={16} color="#ef4444"/> Verwijderen
                   </button>
                 </div>
               </div>
@@ -274,7 +275,10 @@ export default function ParentDashboard({ user, onClose }) {
           ) : activities.map(a => (
             <div key={a.id} className="parent-activity-row">
               <div className="parent-activity-icon">
-                {a.type === 'friend_request_sent' ? '📤' : '✅'}
+                {a.type === 'friend_request_sent'     && <UserPlus2  size={18} color="#3b82f6" />}
+                {a.type === 'friend_request_accepted' && <UserCheck  size={18} color="#22c55e" />}
+                {a.type === 'friend_request_rejected' && <UserX      size={18} color="#ef4444" />}
+                {a.type !== 'friend_request_sent' && a.type !== 'friend_request_accepted' && a.type !== 'friend_request_rejected' && <UserCheck size={18} color="#22c55e" />}
               </div>
               <div style={{ flex: 1 }}>
                 <div className="parent-activity-text">{a.description}</div>

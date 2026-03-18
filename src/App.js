@@ -1,18 +1,19 @@
 // src/App.js
-import React, { useEffect, useRef, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, messaging, getToken } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { connectSocket, disconnectSocket } from './services/socket';
+import './App.css';
+
+const AuthScreen         = lazy(() => import('./screens/AuthScreen'));
+const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
+const ParentAuthScreen   = lazy(() => import('./screens/ParentAuthScreen'));
+const ParentDashboard    = lazy(() => import('./screens/ParentDashboard'));
+const CallOverlay        = lazy(() => import('./components/CallOverlay'));
+const ResetPasswordScreen = lazy(() => import('./screens/ResetPasswordScreen'));
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
-import { connectSocket, disconnectSocket } from './services/socket';
-import AuthScreen         from './screens/AuthScreen';
-import ChatScreen         from './screens/ChatScreen';
-import ParentAuthScreen    from './screens/ParentAuthScreen';
-import ParentDashboard     from './screens/ParentDashboard';
-import CallOverlay        from './components/CallOverlay';
-import ResetPasswordScreen from './screens/ResetPasswordScreen';
-import './App.css';
 
 const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
@@ -25,7 +26,7 @@ export default function App() {
   const oobCode   = urlParams.get('oobCode');
   const mode      = urlParams.get('mode');
   if (mode === 'resetPassword' && oobCode) {
-    return <ResetPasswordScreen oobCode={oobCode} />;
+    return <Suspense fallback={null}><ResetPasswordScreen oobCode={oobCode} /></Suspense>;
   }
 
   const wasLoggedIn = localStorage.getItem('pulse_user') === '1';
@@ -225,6 +226,7 @@ export default function App() {
   );
 
   return (
+    <Suspense fallback={<div className="splash"><div className="splash-logo">💬 Pulse</div><div className="splash-spinner" /></div>}>
     <div className="app-root">
       {!user
         ? showParentAuth
@@ -259,5 +261,6 @@ export default function App() {
         />
       )}
     </div>
+    </Suspense>
   );
 }

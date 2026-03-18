@@ -1361,7 +1361,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   // ── Avatar helper ─────────────────────────────────────────────────────────
   function UserAvatar({ photoURL, displayName, className = '' }) {
-    if (photoURL) return <img src={photoURL} alt="" className={`avatar-circle ${className}`} style={{ objectFit:'cover' }} />;
+    if (photoURL) return <img src={photoURL} alt="" className={`avatar-circle ${className}`} style={{ objectFit:'cover' }} loading="lazy" />;
     return <div className={`avatar-circle ${className}`}>{getInitials(displayName)}</div>;
   }
 
@@ -1670,7 +1670,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                     >
                       <div className="mention-avatar">
                         {m.photoURL
-                          ? <img src={m.photoURL} alt={m.displayName} style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }} />
+                          ? <img src={m.photoURL} alt={m.displayName} style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }} loading="lazy" />
                           : <span>{m.displayName?.[0]?.toUpperCase() || '?'}</span>
                         }
                       </div>
@@ -1806,7 +1806,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             </div>
             <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
               {viewingContact.photoURL
-                ? <img src={viewingContact.photoURL} alt="" className="profile-avatar-big" style={{ objectFit:'cover' }} />
+                ? <img src={viewingContact.photoURL} alt="" className="profile-avatar-big" style={{ objectFit:'cover' }} loading="lazy" />
                 : <div className="profile-avatar-big">{getInitials(getContactDisplayName(viewingContact))}</div>
               }
             </div>
@@ -1977,7 +1977,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   <div style={{ display:'flex', justifyContent:'center', marginBottom:'24px' }}>
                     <div className="profile-photo-wrap" onClick={() => photoInputRef.current?.click()}>
                       {photoPreview
-                        ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit:'cover' }} />
+                        ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit:'cover' }} loading="lazy" />
                         : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
                       }
                       <div className="profile-photo-overlay"><Camera size={16} /></div>
@@ -2168,7 +2168,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               <h3 className="modal-title"><User size={18} /> Profiel</h3>
               <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
                 {photo
-                  ? <img src={photo} alt="" className="profile-avatar-big" style={{ objectFit:'cover' }} />
+                  ? <img src={photo} alt="" className="profile-avatar-big" style={{ objectFit:'cover' }} loading="lazy" />
                   : <div className="profile-avatar-big">{getInitials(name)}</div>
                 }
               </div>

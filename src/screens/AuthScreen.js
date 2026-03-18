@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
+import { User, Lock, EyeOn, EyeOff, Shield, PhoneIcon, Wifi, Heart } from '../components/Icons';
 
 const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
@@ -51,14 +52,18 @@ export default function AuthScreen({ onParentClick }) {
         {onParentClick && (
           <button
             onClick={onParentClick}
-            style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.4)', color: 'var(--accent)', borderRadius: '10px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.3px' }}
+            style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.4)', color: 'var(--accent)', borderRadius: '10px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: 5 }}
           >
-            ❤️ Ouder
+            <Heart size={14} color="#ef4444" /> Ouder
           </button>
         )}
 
         <div className="auth-logo">
-          <span className="auth-logo-icon">💬</span>
+          <span className="auth-logo-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style={{ color: 'var(--accent)' }}>
+              <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+            </svg>
+          </span>
           <span className="auth-logo-name">Pulse</span>
         </div>
 
@@ -68,21 +73,30 @@ export default function AuthScreen({ onParentClick }) {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label">Gebruikersnaam</label>
-            <input
-              className="form-input"
-              type="text"
-              placeholder="jouw_naam"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              autoCapitalize="none"
-              autoCorrect="off"
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', display: 'flex', pointerEvents: 'none' }}>
+                <User size={16} />
+              </span>
+              <input
+                className="form-input"
+                type="text"
+                placeholder="jouw_naam"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                autoCapitalize="none"
+                autoCorrect="off"
+                required
+                style={{ paddingLeft: 38 }}
+              />
+            </div>
           </div>
 
           <div className="form-group">
             <label className="form-label">Wachtwoord</label>
             <div style={{ position: 'relative' }}>
+              <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', display: 'flex', pointerEvents: 'none' }}>
+                <Lock size={16} />
+              </span>
               <input
                 className="form-input"
                 type={showPassword ? 'text' : 'password'}
@@ -91,17 +105,14 @@ export default function AuthScreen({ onParentClick }) {
                 onChange={e => setPassword(e.target.value)}
                 required
                 minLength={6}
-                style={{ paddingRight: '42px' }}
+                style={{ paddingLeft: 38, paddingRight: 42 }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(p => !p)}
-                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 0, display: 'flex' }}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 0, display: 'flex' }}
               >
-                {showPassword
-                  ? <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/><path d="M2 2l20 20-1.4 1.4L.6 3.4z" opacity=".7"/></svg>
-                  : <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
-                }
+                {showPassword ? <EyeOff size={18} /> : <EyeOn size={18} />}
               </button>
             </div>
           </div>
@@ -114,9 +125,9 @@ export default function AuthScreen({ onParentClick }) {
         </form>
 
         <div className="auth-features">
-          <div className="auth-feature"><div>🔒</div><div>E2E versleuteld</div></div>
-          <div className="auth-feature"><div>📞</div><div>Bellen & video</div></div>
-          <div className="auth-feature"><div>📶</div><div>Wifi & mobiel</div></div>
+          <div className="auth-feature"><Shield size={18} color="var(--text3)" /><div>E2E versleuteld</div></div>
+          <div className="auth-feature"><PhoneIcon size={18} color="var(--text3)" /><div>Bellen &amp; video</div></div>
+          <div className="auth-feature"><Wifi size={18} color="var(--text3)" /><div>Wifi &amp; mobiel</div></div>
         </div>
       </div>
     </div>

@@ -1381,6 +1381,27 @@ body {
   font-size:11px; color:#9ca3af; font-weight:500;
 }
 
+/* ── VERIFICATIESCHERM ── */
+.parent-verify-boxes {
+  display:flex; gap:10px; justify-content:center; margin:24px 0 16px;
+}
+.parent-verify-box {
+  width:48px; height:56px; border:2px solid #e5e7eb; border-radius:12px;
+  font-size:24px; font-weight:700; text-align:center; color:#111827;
+  background:#f9fafb; outline:none; transition:border-color .15s;
+}
+.parent-verify-box:focus { border-color:#6c63ff; background:#fff; }
+.parent-verify-resend {
+  display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:16px;
+}
+.parent-verify-resend-btn {
+  background:none; border:none; cursor:pointer; color:#6c63ff;
+  font-size:14px; font-weight:600; padding:4px 0; text-decoration:underline;
+}
+.parent-verify-resend-btn:disabled { color:#9ca3af; cursor:not-allowed; text-decoration:none; }
+.parent-verify-resend-ok  { font-size:13px; color:#16a34a; }
+.parent-verify-resend-err { font-size:13px; color:#dc2626; }
+
 /* ── OUDER DASHBOARD OVERLAY (vanuit ChatScreen) ── */
 .parent-dashboard-overlay {
   position:fixed; inset:0; z-index:500;

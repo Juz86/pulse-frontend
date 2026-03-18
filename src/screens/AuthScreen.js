@@ -60,9 +60,7 @@ export default function AuthScreen({ onParentClick }) {
 
         <div className="auth-logo">
           <span className="auth-logo-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style={{ color: 'var(--accent)' }}>
-              <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
-            </svg>
+            <img src="/logo192.png" alt="Pulse logo" width="28" height="28" style={{ borderRadius: 8 }} />
           </span>
           <h1 className="auth-logo-name">Pulse</h1>
         </div>

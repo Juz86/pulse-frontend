@@ -1,5 +1,6 @@
 // src/App.js
 import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import ErrorBoundary from './components/ErrorBoundary';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, messaging, getToken } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -226,6 +227,7 @@ export default function App() {
   );
 
   return (
+    <ErrorBoundary>
     <Suspense fallback={<div className="splash"><div className="splash-logo">💬 Pulse</div><div className="splash-spinner" /></div>}>
     <div className="app-root">
       {!user
@@ -262,5 +264,6 @@ export default function App() {
       )}
     </div>
     </Suspense>
+    </ErrorBoundary>
   );
 }

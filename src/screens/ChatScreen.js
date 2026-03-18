@@ -145,6 +145,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [chatBgTab,     setChatBgTab]     = useState('foto'); // 'foto' | 'kleur' | 'standaard'
   const [chatBgMsg,     setChatBgMsg]     = useState('');
 
+  // @mentions
+  const [mentionSuggestions,  setMentionSuggestions]  = useState([]); // [{ uid, displayName, photoURL }]
+  const [mentionSelIdx,       setMentionSelIdx]       = useState(0);
+  const [pendingMentions,     setPendingMentions]     = useState([]); // [{ uid, displayName }]
+  const [mentionToast,        setMentionToast]        = useState(null); // { senderName, groupName }
+
   const msgEndRef        = useRef(null);
   const msgsAreaRef      = useRef(null);
   const textareaRef      = useRef(null);
@@ -400,6 +406,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const onAccountPaused  = () => setIsPaused(true);
     const onAccountResumed = () => setIsPaused(false);
 
+    const onMentionNotify = ({ senderName, groupName, convId: mConvId }) => {
+      setMentionToast({ senderName, groupName });
+      setTimeout(() => setMentionToast(null), 4000);
+    };
+
     socket.on('connect',          onConnect);
     socket.on('disconnect',       onDisconnect);
     socket.on('message:received', onMessageReceived);
@@ -411,6 +422,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     socket.on('message:deleted',  onMessageDeleted);
     socket.on('account:paused',   onAccountPaused);
     socket.on('account:resumed',  onAccountResumed);
+    socket.on('mention:notify',   onMentionNotify);
 
     return () => {
       socket.off('connect',          onConnect);
@@ -424,6 +436,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       socket.off('account:paused',   onAccountPaused);
       socket.off('account:resumed',  onAccountResumed);
       socket.off('user:updated',     onUserUpdated);
+      socket.off('mention:notify',   onMentionNotify);
     };
   }, [socket, loadConversations, loadContacts]);
 
@@ -566,13 +579,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       return;
     }
     const tempId = `temp-${Date.now()}`;
+    const trimmedText = text.trim();
+    const mentions = pendingMentions
+      .filter(m => trimmedText.includes(`@${m.displayName}`))
+      .map(m => m.uid);
     const msg = {
       convId:     activeConv.id,
       senderId:   user.uid,
       senderName: user.displayName || user.email,
-      text:       text.trim(),
+      text:       trimmedText,
       createdAt:  new Date().toISOString(),
-      ...(replyTo ? { replyTo } : {}),
+      ...(replyTo   ? { replyTo }          : {}),
+      ...(mentions.length > 0 ? { mentions } : {}),
     };
     setReplyTo(null);
     // Optimistic UI: toon bericht direct zonder te wachten op server
@@ -590,16 +608,58 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       }
     });
     setText('');
+    setPendingMentions([]);
+    setMentionSuggestions([]);
     if (textareaRef.current) { textareaRef.current.style.height = 'auto'; }
     stopTyping();
   }
 
+  function insertMention(member) {
+    const cursorPos = textareaRef.current?.selectionStart ?? text.length;
+    const textBefore = text.slice(0, cursorPos);
+    const atMatch = textBefore.match(/@([^\s@]*)$/);
+    if (!atMatch) return;
+    const start = cursorPos - atMatch[0].length;
+    const newText = text.slice(0, start) + `@${member.displayName} ` + text.slice(cursorPos);
+    setText(newText);
+    setPendingMentions(prev => prev.find(m => m.uid === member.uid) ? prev : [...prev, { uid: member.uid, displayName: member.displayName }]);
+    setMentionSuggestions([]);
+    setTimeout(() => textareaRef.current?.focus(), 0);
+  }
+
   function handleKeyDown(e) {
+    if (mentionSuggestions.length > 0) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setMentionSelIdx(i => Math.min(i + 1, mentionSuggestions.length - 1)); return; }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); setMentionSelIdx(i => Math.max(i - 1, 0)); return; }
+      if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); insertMention(mentionSuggestions[mentionSelIdx]); return; }
+      if (e.key === 'Escape')    { setMentionSuggestions([]); return; }
+    }
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   }
 
   function handleTyping(val) {
     setText(val);
+    // @mention detectie
+    if (activeConv?.isGroup) {
+      const cursorPos = textareaRef.current?.selectionStart ?? val.length;
+      const textBefore = val.slice(0, cursorPos);
+      const atMatch = textBefore.match(/@([^\s@]*)$/);
+      if (atMatch) {
+        const query = atMatch[1].toLowerCase();
+        const suggestions = (activeConv.members || [])
+          .filter(uid => uid !== user.uid)
+          .map(uid => {
+            const displayName = activeConv.memberNames?.[uid] || uid;
+            const contact = contacts.find(c => c.uid === uid);
+            return { uid, displayName, photoURL: contact?.photoURL || null };
+          })
+          .filter(m => m.displayName.toLowerCase().includes(query));
+        setMentionSuggestions(suggestions);
+        setMentionSelIdx(0);
+      } else {
+        setMentionSuggestions([]);
+      }
+    }
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
@@ -1156,6 +1216,19 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
+  function renderMsgText(text, mentions, memberNames) {
+    // Split on @word boundaries; highlight if uid in mentions array
+    const parts = text.split(/(@\S+)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('@') && mentions?.length) {
+        const name = part.slice(1).replace(/[^\w\s]/g, '');
+        const matched = mentions.find(uid => (memberNames?.[uid] || '').toLowerCase() === name.toLowerCase());
+        if (matched) return <span key={i} className="mention-tag">{part}</span>;
+      }
+      return part;
+    });
+  }
+
   function highlightText(text, query) {
     if (!query.trim()) return text;
     const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
@@ -1248,7 +1321,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               </div>
             )}
             <div className="msg-bubble" style={isFocused ? { outline:'2px solid #f59e0b', outlineOffset:'2px' } : {}}>
-              {chatSearch.trim() ? highlightText(msg.text || '', chatSearch) : msg.text}
+              {chatSearch.trim()
+                ? highlightText(msg.text || '', chatSearch)
+                : renderMsgText(msg.text || '', msg.mentions, activeConv?.memberNames)}
             </div>
             <button className="msg-reply-btn" onClick={() => { setReplyTo({ id: msg.id, text: msg.text, senderName: msg.senderName }); textareaRef.current?.focus(); }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
@@ -1583,6 +1658,25 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                     <span className="reply-preview-text">{replyTo.text}</span>
                   </div>
                   <button className="reply-preview-close" onClick={() => setReplyTo(null)}>✕</button>
+                </div>
+              )}
+              {mentionSuggestions.length > 0 && (
+                <div className="mention-popup">
+                  {mentionSuggestions.map((m, i) => (
+                    <button
+                      key={m.uid}
+                      className={`mention-item${i === mentionSelIdx ? ' selected' : ''}`}
+                      onMouseDown={e => { e.preventDefault(); insertMention(m); }}
+                    >
+                      <div className="mention-avatar">
+                        {m.photoURL
+                          ? <img src={m.photoURL} alt={m.displayName} style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }} />
+                          : <span>{m.displayName?.[0]?.toUpperCase() || '?'}</span>
+                        }
+                      </div>
+                      <span className="mention-name">{m.displayName}</span>
+                    </button>
+                  ))}
                 </div>
               )}
               <div className="input-row">
@@ -2239,6 +2333,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           onClose={() => setActiveCall(null)}
           onEnd={() => setActiveCall(null)}
         />
+      )}
+
+      {/* ── MENTION TOAST ── */}
+      {mentionToast && (
+        <div className="mention-toast">
+          <span className="mention-toast-icon">@</span>
+          <span><strong>{mentionToast.senderName}</strong> heeft je vermeld in <strong>{mentionToast.groupName}</strong></span>
+        </div>
       )}
 
       {/* ── ACCOUNT GEPAUZEERD OVERLAY ── */}

@@ -311,6 +311,7 @@ export default function ParentAuthScreen({ onBack }) {
               />
               <button
                 type="button"
+                aria-label={showPassword ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'}
                 onClick={() => setShowPassword(p => !p)}
                 style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#9ca3af', padding:0, display:'flex' }}
               >

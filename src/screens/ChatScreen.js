@@ -1361,8 +1361,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   // ── Avatar helper ─────────────────────────────────────────────────────────
   function UserAvatar({ photoURL, displayName, className = '' }) {
-    if (photoURL) return <img src={photoURL} alt="" className={`avatar-circle ${className}`} style={{ objectFit:'cover' }} loading="lazy" />;
-    return <div className={`avatar-circle ${className}`}>{getInitials(displayName)}</div>;
+    if (photoURL) return <img src={photoURL} alt={displayName || ''} className={`avatar-circle ${className}`} style={{ objectFit:'cover' }} loading="lazy" />;
+    return <div className={`avatar-circle ${className}`} aria-label={displayName}>{getInitials(displayName)}</div>;
   }
 
   return (
@@ -1625,11 +1625,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   )}
                   {total > 1 && (
                     <>
-                      <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setChatSearchIdx(i => (i - 1 + total) % total)}>↑</button>
-                      <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setChatSearchIdx(i => (i + 1) % total)}>↓</button>
+                      <button aria-label="Vorig resultaat" className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setChatSearchIdx(i => (i - 1 + total) % total)}>↑</button>
+                      <button aria-label="Volgend resultaat" className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setChatSearchIdx(i => (i + 1) % total)}>↓</button>
                     </>
                   )}
-                  <button className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}>✕</button>
+                  <button aria-label="Zoeken sluiten" className="icon-btn" style={{ width:'30px', height:'30px', display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}>✕</button>
                 </div>
               );
             })()}
@@ -1806,7 +1806,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             </div>
             <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
               {viewingContact.photoURL
-                ? <img src={viewingContact.photoURL} alt="" className="profile-avatar-big" style={{ objectFit:'cover' }} loading="lazy" />
+                ? <img src={viewingContact.photoURL} alt={getContactDisplayName(viewingContact)} className="profile-avatar-big" style={{ objectFit:'cover' }} loading="lazy" />
                 : <div className="profile-avatar-big">{getInitials(getContactDisplayName(viewingContact))}</div>
               }
             </div>
@@ -2013,9 +2013,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                     <div className="form-group">
                       <div style={{ position:'relative' }}>
                         <input className="form-input" type={showNewPassword ? 'text' : 'password'}
-                          placeholder="Nieuw wachtwoord" value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                          placeholder="Nieuw wachtwoord" aria-label="Nieuw wachtwoord" value={newPassword} onChange={e => setNewPassword(e.target.value)}
                           style={{ paddingRight:'42px' }} />
-                        <button type="button" onClick={() => setShowNewPassword(p => !p)}
+                        <button type="button" aria-label={showNewPassword ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'} onClick={() => setShowNewPassword(p => !p)}
                           style={{ position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'var(--text3)', padding:0 }}>
                           {showNewPassword ? <EyeOff size={18}/> : <EyeOn size={18}/>}
                         </button>
@@ -2023,7 +2023,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                     </div>
                     <div className="form-group">
                       <input className="form-input" type={showNewPassword ? 'text' : 'password'}
-                        placeholder="Bevestig wachtwoord" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+                        placeholder="Bevestig wachtwoord" aria-label="Bevestig wachtwoord" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
                     </div>
                     <button type="button" className="btn-secondary" style={{ width:'100%' }}
                       disabled={passwordLoading || !newPassword} onClick={changePassword}>
@@ -2168,7 +2168,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               <h3 className="modal-title"><User size={18} /> Profiel</h3>
               <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
                 {photo
-                  ? <img src={photo} alt="" className="profile-avatar-big" style={{ objectFit:'cover' }} loading="lazy" />
+                  ? <img src={photo} alt={name || 'Profielfoto'} className="profile-avatar-big" style={{ objectFit:'cover' }} loading="lazy" />
                   : <div className="profile-avatar-big">{getInitials(name)}</div>
                 }
               </div>

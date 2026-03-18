@@ -163,6 +163,7 @@ export default function ParentDashboard({ user, onClose }) {
                     className="parent-input"
                     type="text"
                     placeholder="Naam van het kind"
+                    aria-label="Naam van het kind"
                     value={childName}
                     onChange={e => setChildName(e.target.value)}
                     required
@@ -171,6 +172,7 @@ export default function ParentDashboard({ user, onClose }) {
                     className="parent-input"
                     type="text"
                     placeholder="Gebruikersnaam (bijv. jan_2014)"
+                    aria-label="Gebruikersnaam"
                     value={childUsername}
                     onChange={e => setChildUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                     autoCapitalize="none"
@@ -184,13 +186,14 @@ export default function ParentDashboard({ user, onClose }) {
                       className="parent-input"
                       type={showCreatePw ? 'text' : 'password'}
                       placeholder="Wachtwoord (minimaal 6 tekens)"
+                      aria-label="Wachtwoord"
                       value={childPassword}
                       onChange={e => setChildPassword(e.target.value)}
                       required
                       minLength={6}
                       style={{ paddingRight: 42, width: '100%', boxSizing: 'border-box' }}
                     />
-                    <button type="button" onClick={() => setShowCreatePw(p => !p)}
+                    <button type="button" aria-label={showCreatePw ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'} onClick={() => setShowCreatePw(p => !p)}
                       style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
                       {showCreatePw ? <EyeOff size={18}/> : <EyeOn size={18}/>}
                     </button>
@@ -263,13 +266,14 @@ export default function ParentDashboard({ user, onClose }) {
                               className="parent-input"
                               type={showNewPw ? 'text' : 'password'}
                               placeholder="Minimaal 6 tekens"
+                              aria-label="Nieuw wachtwoord"
                               value={newPassword}
                               onChange={e => setNewPassword(e.target.value)}
                               minLength={6}
                               style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
                               autoFocus
                             />
-                            <button type="button" onClick={() => setShowNewPw(p => !p)}
+                            <button type="button" aria-label={showNewPw ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'} onClick={() => setShowNewPw(p => !p)}
                               style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
                               {showNewPw ? <EyeOff size={16}/> : <EyeOn size={16}/>}
                             </button>

@@ -76,6 +76,8 @@ export default function AuthScreen({ onParentClick }) {
                 <User size={16} />
               </span>
               <input
+                id="username"
+                name="username"
                 className="form-input"
                 type="text"
                 placeholder="jouw_naam"
@@ -83,6 +85,7 @@ export default function AuthScreen({ onParentClick }) {
                 onChange={e => setUsername(e.target.value)}
                 autoCapitalize="none"
                 autoCorrect="off"
+                autoComplete="username"
                 required
                 style={{ paddingLeft: 38 }}
               />
@@ -96,11 +99,14 @@ export default function AuthScreen({ onParentClick }) {
                 <Lock size={16} />
               </span>
               <input
+                id="password"
+                name="password"
                 className="form-input"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Wachtwoord"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                autoComplete="current-password"
                 required
                 minLength={6}
                 style={{ paddingLeft: 38, paddingRight: 42 }}

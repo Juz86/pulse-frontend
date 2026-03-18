@@ -274,11 +274,14 @@ export default function ParentAuthScreen({ onBack }) {
             <div className="parent-auth-field">
               <label className="parent-auth-label">Uw naam</label>
               <input
+                id="parent-name"
+                name="name"
                 className="parent-auth-input"
                 type="text"
                 placeholder="Jan de Vries"
                 value={name}
                 onChange={e => setName(e.target.value)}
+                autoComplete="name"
                 required
               />
             </div>
@@ -287,11 +290,14 @@ export default function ParentAuthScreen({ onBack }) {
           <div className="parent-auth-field">
             <label className="parent-auth-label">E-mailadres</label>
             <input
+              id="parent-email"
+              name="email"
               className="parent-auth-input"
               type="email"
               placeholder="ouder@voorbeeld.nl"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              autoComplete="email"
               required
             />
           </div>
@@ -300,9 +306,12 @@ export default function ParentAuthScreen({ onBack }) {
             <label className="parent-auth-label">Wachtwoord</label>
             <div style={{ position: 'relative' }}>
               <input
+                id="parent-password"
+                name="password"
                 className="parent-auth-input"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Wachtwoord"
+                autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required

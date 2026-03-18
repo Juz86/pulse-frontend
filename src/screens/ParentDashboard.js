@@ -160,19 +160,25 @@ export default function ParentDashboard({ user, onClose }) {
                 <p className="parent-section-sub" style={{ marginBottom: 16 }}>Maak een account aan voor uw kind. Het kind logt in met gebruikersnaam en wachtwoord.</p>
                 <form onSubmit={createChild} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <input
+                    id="child-name"
+                    name="childName"
                     className="parent-input"
                     type="text"
                     placeholder="Naam van het kind"
                     aria-label="Naam van het kind"
+                    autoComplete="off"
                     value={childName}
                     onChange={e => setChildName(e.target.value)}
                     required
                   />
                   <input
+                    id="child-username"
+                    name="childUsername"
                     className="parent-input"
                     type="text"
                     placeholder="Gebruikersnaam (bijv. jan_2014)"
                     aria-label="Gebruikersnaam"
+                    autoComplete="off"
                     value={childUsername}
                     onChange={e => setChildUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                     autoCapitalize="none"
@@ -183,10 +189,13 @@ export default function ParentDashboard({ user, onClose }) {
                   />
                   <div style={{ position: 'relative' }}>
                     <input
+                      id="child-password"
+                      name="childPassword"
                       className="parent-input"
                       type={showCreatePw ? 'text' : 'password'}
                       placeholder="Wachtwoord (minimaal 6 tekens)"
                       aria-label="Wachtwoord"
+                      autoComplete="new-password"
                       value={childPassword}
                       onChange={e => setChildPassword(e.target.value)}
                       required

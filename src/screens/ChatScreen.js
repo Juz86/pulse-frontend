@@ -1415,7 +1415,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             {conversations.length === 0 && (
               <div className="empty-convs">
                 <p>Nog geen gesprekken.</p>
-                <p>Klik op het <Message size={14} style={{ verticalAlign: 'middle', margin: '0 2px' }} /> icoon om een nieuwe chat te starten.</p>
+                <p>Klik op het <Message size={14} color="#ffffff" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> om een nieuwe chat te starten.</p>
               </div>
             )}
             {conversations.filter(conv =>

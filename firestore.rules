@@ -9,19 +9,19 @@ service cloud.firestore {
 
       // Alleen eigen document aanmaken bij registratie
       allow create: if request.auth != null && request.auth.uid == uid
-        && !('role' in request.resource.data)        // role alleen via backend
-        && !('parentId' in request.resource.data);   // parentId alleen via backend
+        && !('role'            in request.resource.data)
+        && !('parentId'        in request.resource.data)
+        && !('pausedFeatures'  in request.resource.data);
 
-      // Eigen document bijwerken — maar NIET role, parentId of paused
+      // Eigen document bijwerken — beschermde velden alleen via backend (Admin SDK)
       allow update: if request.auth != null && request.auth.uid == uid
-        && !('role'     in request.resource.data.diff(resource.data).affectedKeys())
-        && !('parentId' in request.resource.data.diff(resource.data).affectedKeys())
-        && !('paused'   in request.resource.data.diff(resource.data).affectedKeys());
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['role', 'parentId', 'paused', 'pausedFeatures', 'online', 'inactive', 'lastSeen']);
 
-      // Verwijderen alleen via backend (Admin SDK)
+      // Verwijderen alleen via backend
       allow delete: if false;
 
-      // Contacten subcollectie — alleen eigen contacten lezen/schrijven
+      // Contacten subcollectie — alleen eigen contacten
       match /contacts/{contactId} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
@@ -29,25 +29,37 @@ service cloud.firestore {
 
     // ── Gesprekken ────────────────────────────────────────────────────────────
     match /conversations/{convId} {
-      // Alleen leden mogen lezen
       allow read: if request.auth != null
         && request.auth.uid in resource.data.members;
 
-      // Aanmaken via backend (socket conversation:create)
-      allow create: if false;
-
-      // Bijwerken alleen via backend
-      allow update: if false;
-      allow delete: if false;
+      // Aanmaken/bijwerken/verwijderen alleen via backend
+      allow create, update, delete: if false;
 
       // Berichten — alleen leden mogen lezen
       match /messages/{msgId} {
         allow read: if request.auth != null
           && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convId)).data.members;
-
-        // Schrijven via backend
         allow write: if false;
       }
+    }
+
+    // ── Sessies (ouderlijk toezicht) ──────────────────────────────────────────
+    match /userSessions/{sessionId} {
+      // Kind mag eigen sessies lezen, ouder mag sessies van zijn kind lezen
+      allow read: if request.auth != null
+        && (request.auth.uid == resource.data.uid
+          || request.auth.uid == resource.data.parentId);
+      allow write: if false;
+    }
+
+    // ── Vriendverzoeken ───────────────────────────────────────────────────────
+    match /friendRequests/{requestId} {
+      // Alleen verzender of ontvanger mag lezen
+      allow read: if request.auth != null
+        && (request.auth.uid == resource.data.fromUid
+          || request.auth.uid == resource.data.toUid);
+      // Schrijven alleen via backend
+      allow write: if false;
     }
 
     // ── Ouder activiteiten ────────────────────────────────────────────────────

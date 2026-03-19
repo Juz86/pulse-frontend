@@ -389,8 +389,7 @@ export default function ParentDashboard({ user, onClose }) {
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     {children.length > 0 && (
                       <select
-                        className="parent-input"
-                        style={{ fontSize: 13, padding: '6px 10px', width: 'auto', cursor: 'pointer' }}
+                        style={{ fontSize: 13, padding: '6px 28px 6px 12px', cursor: 'pointer', border: '1.5px solid #d0d0e0', borderRadius: 10, background: 'var(--surface,#fff)', color: 'var(--text1,#1a1a2e)', outline: 'none', appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'%23888\'%3E%3Cpath d=\'M7 10l5 5 5-5z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', maxWidth: 160, minWidth: 80, fontFamily: 'inherit' }}
                         value={selectedChildUid || ''}
                         onChange={e => setSelectedChildUid(e.target.value || null)}
                       >

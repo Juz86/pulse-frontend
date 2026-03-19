@@ -314,9 +314,9 @@ export default function ParentDashboard({ user, onClose }) {
                           {pf.video && <span className="parent-paused-badge" style={{ background:'rgba(139,92,246,.12)', color:'#7c3aed' }}>Video</span>}
                         </div>
                         {/* Acties */}
-                        <div className="pd-child-actions" style={{ flexDirection:'column', alignItems:'flex-start' }}>
+                        <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:8 }}>
                           {/* Rij 1: Pauzeren + Hervatten (+ Wachtwoord als niets gepauzeerd) */}
-                          <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                          <div style={{ display:'flex', gap:8 }}>
                             {!allPaused && (
                               <button className="parent-btn-orange" onClick={e => { e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}>
                                 <PauseCircle size={16}/> Pauzeren <ChevronDown size={14}/>
@@ -354,7 +354,7 @@ export default function ParentDashboard({ user, onClose }) {
                           )}
                           {/* Wachtwoord op eigen rij als hervatten zichtbaar is */}
                           {anyPaused && (
-                            <button className="parent-btn-outline" style={{ fontSize:12, marginTop:4 }}
+                            <button className="parent-btn-outline" style={{ fontSize:12 }}
                               onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
                               <KeyRound size={16} color="#6b7280"/> Wachtwoord
                             </button>

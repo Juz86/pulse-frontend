@@ -288,7 +288,11 @@ export default function ParentDashboard({ user, onClose }) {
                       const menuItemStyle = { display:'flex', alignItems:'center', gap:8, width:'100%', textAlign:'left', background:'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' };
                       return (
                     <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
-                      <div className="parent-child-avatar">{getInitials(child.displayName)}</div>
+                      <div className="parent-child-avatar">
+                        {child.photoURL
+                          ? <img src={child.photoURL} alt={child.displayName} style={{ width:'100%', height:'100%', borderRadius:12, objectFit:'cover' }} />
+                          : getInitials(child.displayName)}
+                      </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="parent-child-name">{child.displayName}</div>
                         <div className="pd-child-meta-row">

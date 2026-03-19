@@ -1310,10 +1310,15 @@ body {
   border:1.5px solid #e5e7eb; border-radius:12px; margin-bottom:10px; background:#fff;
 }
 .pd-child-meta-row {
-  display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:3px;
+  display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:6px;
 }
 .pd-child-actions {
   display:flex; gap:6px; flex-wrap:nowrap; align-items:center;
+}
+.pd-child-actions .parent-btn-orange,
+.pd-child-actions .parent-btn-green,
+.pd-child-actions .parent-btn-outline {
+  height:36px; box-sizing:border-box;
 }
 .parent-child-row:last-child { margin-bottom:0; }
 .parent-child-row.paused { background:rgba(249,115,22,.04); border-color:rgba(249,115,22,.3); }

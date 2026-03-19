@@ -1,5 +1,5 @@
 // src/screens/ParentDashboard.js
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getInitials, timeAgo } from '../utils';
 import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
@@ -68,6 +68,13 @@ export default function ParentDashboard({ user, onClose }) {
   }, [user]);
 
   useEffect(() => { loadChildren(); loadActivities(); }, [loadChildren, loadActivities]);
+
+  useEffect(() => {
+    if (!pauseMenuUid && !resumeMenuUid) return;
+    const close = () => { setPauseMenuUid(null); setResumeMenuUid(null); };
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [pauseMenuUid, resumeMenuUid]);
 
   // eslint-disable-next-line
   useEffect(() => { if (selectedChildUid) loadAnalytics(selectedChildUid); }, [selectedChildUid]);
@@ -297,7 +304,7 @@ export default function ParentDashboard({ user, onClose }) {
                             {/* Pauzeren knop + submenu */}
                             {!allPaused && (
                               <div style={{ position:'relative' }}>
-                                <button className="parent-btn-orange" onClick={() => { setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }} style={{ display:'flex', alignItems:'center', gap:5 }}>
+                                <button className="parent-btn-orange" onClick={e => { e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }} style={{ display:'flex', alignItems:'center', gap:5 }}>
                                   <PauseCircle size={16}/> Pauzeren ▾
                                 </button>
                                 {pauseMenuUid === child.uid && (
@@ -313,7 +320,7 @@ export default function ParentDashboard({ user, onClose }) {
                             {/* Hervatten knop + submenu */}
                             {anyPaused && (
                               <div style={{ position:'relative' }}>
-                                <button className="parent-btn-green" onClick={() => { setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }} style={{ display:'flex', alignItems:'center', gap:5 }}>
+                                <button className="parent-btn-green" onClick={e => { e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }} style={{ display:'flex', alignItems:'center', gap:5 }}>
                                   <PlayCircle size={16}/> Hervatten ▾
                                 </button>
                                 {resumeMenuUid === child.uid && (

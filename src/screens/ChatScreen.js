@@ -1204,7 +1204,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // ── Gedeelde bel-logica ───────────────────────────────────────────────────
   async function startCallTo({ toUid, convId, name, isVideo }) {
     if (isVideo ? pausedFeatures.video : pausedFeatures.call) {
-      showErrToast(`${isVideo ? 'Videobellen' : 'Bellen'} is gepauzeerd door je ouder.`);
+      const canChat  = !pausedFeatures.chat;
+      const canCall  = !pausedFeatures.call;
+      const canVideo = !pausedFeatures.video;
+      const available = [canChat && 'chatten', canCall && 'bellen', canVideo && 'videobellen'].filter(Boolean).join(' en ');
+      showErrToast(`⏸ ${isVideo ? 'Videobellen' : 'Bellen'} is gepauzeerd door je ouder${available ? `, maar je kan nog wel ${available}` : ''}.`);
       return;
     }
     callConvIdRef.current    = convId;
@@ -1804,7 +1808,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               )}
               {pausedFeatures.chat ? (
                 <div className="chat-paused-notice">
-                  ⏸ Chatten is gepauzeerd door je ouder
+                  ⏸ Chatten is gepauzeerd door je ouder{(!pausedFeatures.call || !pausedFeatures.video) ? `, maar je kan nog wel ${[!pausedFeatures.call && 'bellen', !pausedFeatures.video && 'videobellen'].filter(Boolean).join(' en ')}` : ''}.
                 </div>
               ) : (
                 <div className="input-row">

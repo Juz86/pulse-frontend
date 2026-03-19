@@ -288,7 +288,11 @@ export default function ParentDashboard({ user, onClose }) {
                       const menuStyle = { position:'absolute', top:'calc(100% + 4px)', left:0, background:'var(--bg1,#fff)', border:'1px solid #e0e0e8', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.12)', zIndex:200, minWidth:190, padding:4 };
                       const menuItemStyle = { display:'flex', alignItems:'center', gap:8, width:'100%', textAlign:'left', background:'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' };
                       return (
-                    <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
+                    <div className={`parent-child-row${anyPaused ? ' paused' : ''}`} style={{ position:'relative' }}>
+                      <button className="parent-btn-outline" style={{ position:'absolute', top:10, right:10, fontSize:12, color:'#ef4444', borderColor:'#ef4444', display:'flex', alignItems:'center', padding:'4px 6px' }}
+                        onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
+                        <Trash2 size={15} color="#ef4444"/>
+                      </button>
                       <div className="parent-child-avatar">
                         {child.photoURL
                           ? <img src={child.photoURL} alt={child.displayName} style={{ width:'100%', height:'100%', borderRadius:12, objectFit:'cover' }} />
@@ -341,10 +345,6 @@ export default function ParentDashboard({ user, onClose }) {
                             <button className="parent-btn-outline" style={{ fontSize: 12, display:'flex', alignItems:'center', gap:5 }}
                               onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
                               <KeyRound size={16} color="#6b7280"/> Wachtwoord
-                            </button>
-                            <button className="parent-btn-outline" style={{ fontSize: 12, color: '#ef4444', borderColor: '#ef4444', display:'flex', alignItems:'center', gap:5 }}
-                              onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
-                              <Trash2 size={16} color="#ef4444"/>
                             </button>
                           </div>
                         </div>

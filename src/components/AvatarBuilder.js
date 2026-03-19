@@ -1,5 +1,5 @@
 // src/components/AvatarBuilder.js
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { createAvatar } from '@dicebear/core';
 import { adventurer } from '@dicebear/collection';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -51,7 +51,7 @@ function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function buildAvatarSvg(opts) {
   return createAvatar(adventurer, {
-    seed: 'pulse-custom',
+    seed: 'pulse',
     hair:              opts.hair    === 'none' ? [] : [opts.hair],
     hairColor:         [opts.hairColor],
     skinColor:         [opts.skinColor],
@@ -91,7 +91,7 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
   const [saving, setSaving] = useState(false);
   const [error,  setError]  = useState('');
 
-  const svgString = buildAvatarSvg(opts);
+  const svgString = useMemo(() => buildAvatarSvg(opts), [opts]);
 
   const randomize = useCallback(() => {
     setOpts({
@@ -161,16 +161,15 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
 
         {/* Preview */}
         <div style={{ display:'flex', justifyContent:'center', padding:'20px 20px 12px', flexShrink:0 }}>
-          <div style={{ width:130, height:130, borderRadius:'50%', overflow:'hidden', border:`3px solid ${accent}`, background:surface }}
+          <div style={{ width:100, height:100, borderRadius:'50%', overflow:'hidden', border:`3px solid ${accent}`, background:surface }}
             dangerouslySetInnerHTML={{ __html: svgString }} />
         </div>
 
         {/* Category tabs */}
-        <div style={{ display:'flex', overflowX:'auto', gap:6, padding:'0 16px 12px', flexShrink:0, scrollbarWidth:'none', WebkitOverflowScrolling:'touch', msOverflowStyle:'none' }}>
-          <style>{`.ab-tabs::-webkit-scrollbar{display:none}`}</style>
+        <div style={{ display:'flex', flexWrap:'wrap', gap:6, padding:'0 16px 12px', flexShrink:0 }}>
           {CATEGORIES.map(c => (
             <button key={c.id} onClick={() => setActiveCategory(c.id)} style={{
-              flexShrink:0, padding:'7px 14px', borderRadius:20, border:'none', cursor:'pointer',
+              padding:'6px 13px', borderRadius:20, border:'none', cursor:'pointer',
               fontSize:12, fontWeight:600, transition:'.15s', whiteSpace:'nowrap',
               background: activeCategory === c.id ? accent : surface,
               color:      activeCategory === c.id ? '#fff'  : text2,

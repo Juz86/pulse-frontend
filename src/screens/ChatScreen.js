@@ -1985,6 +1985,19 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 {onlineUsers.has(viewingContact.uid) && !inactiveUsers.has(viewingContact.uid) ? 'Online' : onlineUsers.has(viewingContact.uid) ? 'Inactief' : 'Offline'}
               </div>
             </div>
+            {(() => { const dmConv = findConvWithUid(viewingContact.uid); if (!dmConv) return null; return (
+            <div className="form-group">
+              <label className="form-label">Relatie</label>
+              <div style={{ display:'flex', gap:8 }}>
+                {['familie', 'vrienden'].map(lbl => (
+                  <button key={lbl} onClick={() => setConvLabel(dmConv.id, convLabels[dmConv.id] === lbl ? null : lbl)}
+                    style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:20, border:`1.5px solid ${convLabels[dmConv.id] === lbl ? '#6c63ff' : 'var(--border)'}`, background: convLabels[dmConv.id] === lbl ? '#6c63ff' : 'transparent', color: convLabels[dmConv.id] === lbl ? '#fff' : 'var(--text2)', fontSize:13, cursor:'pointer', fontFamily:'Inter,sans-serif' }}>
+                    {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
+                  </button>
+                ))}
+              </div>
+            </div>
+            ); })()}
             <div className="modal-actions">
               <button className="btn-secondary" onClick={() => setViewingContact(null)}>Sluiten</button>
               <button className="btn-primary" style={{ flex:1 }} onClick={() => { saveContactNickname(viewingContact.uid, renameValue); setContacts(prev => [...prev]); setViewingContact(null); }}>Opslaan</button>

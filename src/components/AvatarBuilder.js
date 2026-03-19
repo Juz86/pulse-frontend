@@ -49,9 +49,10 @@ const DEFAULT_OPTS = {
 
 function randomFrom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-function buildAvatarSvg(opts) {
+function buildAvatarSvg(opts, size = 100) {
   return createAvatar(adventurer, {
     seed: 'pulse',
+    size,
     hair:              opts.hair    === 'none' ? [] : [opts.hair],
     hairColor:         [opts.hairColor],
     skinColor:         [opts.skinColor],
@@ -111,7 +112,8 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
     setSaving(true);
     setError('');
     try {
-      const pngBlob = await svgToPng(svgString, 256);
+      const highResSvg = buildAvatarSvg(opts, 256);
+    const pngBlob = await svgToPng(highResSvg, 256);
       if (pngBlob.size > 1_000_000) throw new Error('Afbeelding te groot (max 1MB)');
 
       if (currentPhotoURL && currentPhotoURL.includes('firebasestorage')) {

@@ -1461,6 +1461,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     return items;
   }
 
+  // eslint-disable-next-line
+  const renderedMessages = useMemo(() => renderMessages(), [messages, chatSearch, chatSearchIdx, activeConv?.id, activeConv?.isGroup, activeConv?.memberNames, deleteMenuMsgId, editingMsg, reactionPickerMsgId, contacts]);
+
   return (
     <div className="app-screen">
 
@@ -1745,10 +1748,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   </button>
                 </div>
               )}
-              {
-                // eslint-disable-next-line
-                useMemo(() => renderMessages(), [messages, chatSearch, chatSearchIdx, activeConv?.id, activeConv?.isGroup, activeConv?.memberNames, deleteMenuMsgId, editingMsg, reactionPickerMsgId, contacts])
-              }
+              {renderedMessages}
               <div ref={msgEndRef} />
             </div>
 

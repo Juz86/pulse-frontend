@@ -2365,7 +2365,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   {['familie', 'vrienden'].map(lbl => (
                     <button key={lbl} onClick={() => setConvLabel(activeConv.id, convLabels[activeConv.id] === lbl ? null : lbl)}
                       style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:20, border:`1.5px solid ${convLabels[activeConv.id] === lbl ? '#6c63ff' : 'var(--border)'}`, background: convLabels[activeConv.id] === lbl ? '#6c63ff' : 'transparent', color: convLabels[activeConv.id] === lbl ? '#fff' : 'var(--text2)', fontSize:13, cursor:'pointer', fontFamily:'Inter,sans-serif' }}>
-                      {lbl === 'familie' ? <><Users size={15} /> Familie</> : <><Heart size={15} /> Vrienden</>}
+                      {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
                     </button>
                   ))}
                 </div>

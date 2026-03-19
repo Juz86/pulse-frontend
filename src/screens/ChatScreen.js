@@ -2553,7 +2553,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {/* ── ERROR / INFO TOAST ── */}
       {errToast && (
         <div className="mention-toast" style={{ background: errToast.startsWith('📋') ? 'rgba(34,197,94,0.92)' : 'rgba(255,71,87,0.92)' }}>
-          {!errToast.startsWith('📋') && <span className="mention-toast-icon">⚠️</span>}
           <span>{errToast}</span>
         </div>
       )}

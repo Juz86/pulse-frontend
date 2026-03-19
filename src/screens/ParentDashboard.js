@@ -532,11 +532,11 @@ export default function ParentDashboard({ user, onClose }) {
                               </div>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{fmtSecs(messaging.totalCallSecs)}</div>
-                                <div className="analytics-stat-label" style={{ display:'flex', alignItems:'center', gap:4 }}><Phone size={13} /> Bellen</div>
+                                <div className="analytics-stat-label"><Phone size={13} /> Bellen</div>
                               </div>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{fmtSecs(messaging.totalVideoSecs)}</div>
-                                <div className="analytics-stat-label" style={{ display:'flex', alignItems:'center', gap:4 }}><Video size={13} /> Videobellen</div>
+                                <div className="analytics-stat-label"><Video size={13} /> Videobellen</div>
                               </div>
                             </div>
                           </div>
@@ -603,7 +603,7 @@ export default function ParentDashboard({ user, onClose }) {
                           {/* Contactenlijst */}
                           {contacts.list.length > 0 && (
                             <div className="analytics-section">
-                              <div className="analytics-section-title">📋 Contacten ({contacts.total})</div>
+                              <div className="analytics-section-title"><Users size={15} /> Contacten ({contacts.total})</div>
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                                 {contacts.list.map(c => (
                                   <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8f8fc', borderRadius: 20, padding: '4px 10px 4px 4px', fontSize: 13 }}>

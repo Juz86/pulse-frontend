@@ -563,7 +563,7 @@ body {
   width:26px; height:26px; font-size:13px; cursor:pointer; color:var(--text2);
   align-items:center; justify-content:center;
 }
-.msg-group.out .msg-reply-btn { left:-32px; }
+.msg-group.out .msg-reply-btn { left:-62px; }
 .msg-group.in  .msg-reply-btn { right:-32px; }
 .msg-group:hover .msg-reply-btn { display:flex; }
 
@@ -571,8 +571,8 @@ body {
   position:absolute; top:50%; transform:translateY(-50%);
   display:none; align-items:center;
 }
-.msg-group.out .msg-react-wrap { right:-32px; }
-.msg-group.in  .msg-react-wrap { left:-32px; }
+.msg-group.out .msg-react-wrap { left:-32px; }
+.msg-group.in  .msg-react-wrap { right:-62px; }
 .msg-group:hover .msg-react-wrap { display:flex; }
 
 .msg-react-btn {
@@ -613,8 +613,8 @@ body {
   position:absolute; top:50%; transform:translateY(-50%);
   display:none; align-items:center;
 }
-.msg-group.out .msg-delete-wrap { left:-60px; }
-.msg-group.in  .msg-delete-wrap { right:-60px; }
+.msg-group.out .msg-delete-wrap { left:-90px; }
+.msg-group.in  .msg-delete-wrap { right:-90px; }
 .msg-group:hover .msg-delete-wrap { display:flex; }
 
 .msg-delete-btn {

@@ -1336,6 +1336,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }
 
   function renderMessages() {
+    if (!activeConv) return [];
     const items = [];
     let lastDate = null;
     const searchMatches = chatSearch.trim()

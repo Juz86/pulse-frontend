@@ -948,6 +948,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     );
   }
 
+  function dataURLtoBlob(dataURL) {
+    const [header, data] = dataURL.split(',');
+    const mime = header.match(/:(.*?);/)[1];
+    const bstr = atob(data);
+    const u8arr = new Uint8Array(bstr.length);
+    for (let i = 0; i < bstr.length; i++) u8arr[i] = bstr.charCodeAt(i);
+    return new Blob([u8arr], { type: mime });
+  }
+
   // ── Profielfoto resizen naar base64 (geen externe opslag nodig) ──────────
   function resizeBgImage(file, maxWidth = 1920) {
     return new Promise((resolve, reject) => {
@@ -1012,7 +1021,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         // Upload nieuwe foto naar Storage
         const ref = storageRef(storage, `users/${user.uid}/profilePhoto`);
         const resized = await resizeImageToBase64(photoFile, 200);
-        const blob = await fetch(resized).then(r => r.blob());
+        const blob = dataURLtoBlob(resized);
         await uploadBytes(ref, blob, { contentType: 'image/jpeg' });
         photoURL = await getDownloadURL(ref);
         localStorage.setItem(`pulse_photo_${user.uid}`, photoURL);

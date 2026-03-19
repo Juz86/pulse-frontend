@@ -7,6 +7,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'fi
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
 import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff } from '../components/Icons';
+import AvatarBuilder from '../components/AvatarBuilder';
 import { getInitials, toMs } from '../utils';
 
 const MSG_LIMIT = 30;
@@ -144,6 +145,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [chatBgLoading, setChatBgLoading] = useState(false);
   const [chatBgTab,     setChatBgTab]     = useState('foto'); // 'foto' | 'kleur' | 'standaard'
   const [chatBgMsg,     setChatBgMsg]     = useState('');
+
+  // Avatar builder
+  const [showAvatarBuilder, setShowAvatarBuilder] = useState(false);
+  const [avatarOptions,     setAvatarOptions]     = useState(null);
 
   // @mentions
   const [mentionSuggestions,  setMentionSuggestions]  = useState([]); // [{ uid, displayName, photoURL }]
@@ -1526,7 +1531,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         )}
 
         <div className="sidebar-footer">
-          <div className="user-chip" style={{ cursor:'pointer' }} onClick={() => { setShowProfile(true); setProfileMsg(''); setNewName(user.displayName || ''); setPhotoPreview(localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null); setPhotoFile(null); }}>
+          <div className="user-chip" style={{ cursor:'pointer' }} onClick={async () => { setShowProfile(true); setProfileMsg(''); setNewName(user.displayName || ''); setPhotoPreview(localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null); setPhotoFile(null); try { const snap = await getDoc(doc(db,'users',user.uid)); if(snap.exists() && snap.data().avatarOptions) setAvatarOptions(snap.data().avatarOptions); } catch {} }}>
             <div className="avatar-wrap" style={{ flexShrink:0 }}>
               <UserAvatar photoURL={localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL} displayName={user.displayName || user.email} className="sm" />
             </div>
@@ -1975,12 +1980,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 <div>
                   {/* Profielfoto */}
                   <div style={{ display:'flex', justifyContent:'center', marginBottom:'24px' }}>
-                    <div className="profile-photo-wrap" onClick={() => photoInputRef.current?.click()}>
-                      {photoPreview
-                        ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit:'cover' }} loading="lazy" />
-                        : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
-                      }
-                      <div className="profile-photo-overlay"><Camera size={16} /></div>
+                    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+                      <div className="profile-photo-wrap" onClick={() => photoInputRef.current?.click()}>
+                        {photoPreview
+                          ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit:'cover' }} loading="lazy" />
+                          : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
+                        }
+                        <div className="profile-photo-overlay"><Camera size={16} /></div>
+                      </div>
+                      <button type="button" onClick={() => setShowAvatarBuilder(true)}
+                        style={{ padding:'7px 16px', borderRadius:10, border:'1px solid rgba(108,99,255,0.4)', background:'rgba(108,99,255,0.1)', color:'var(--accent)', fontSize:12, fontWeight:600, cursor:'pointer' }}>
+                        🎨 Avatar maken
+                      </button>
                     </div>
                     <input ref={photoInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handlePhotoChange} />
                   </div>
@@ -2350,6 +2361,23 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           <span style={{ fontSize:18 }}>❤️</span>
           <span>{parentToast.description}</span>
         </div>
+      )}
+
+      {/* ── AVATAR BUILDER ── */}
+      {showAvatarBuilder && (
+        <AvatarBuilder
+          uid={user.uid}
+          currentOptions={avatarOptions}
+          currentPhotoURL={photoPreview}
+          darkMode={!lightMode}
+          onClose={() => setShowAvatarBuilder(false)}
+          onSave={(photoURL, opts) => {
+            setAvatarOptions(opts);
+            setPhotoPreview(photoURL);
+            localStorage.setItem(`pulse_photo_${user.uid}`, photoURL);
+            setShowAvatarBuilder(false);
+          }}
+        />
       )}
 
       {isPaused && (

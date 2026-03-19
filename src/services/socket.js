@@ -68,9 +68,8 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
     const msg = e.name === 'NotAllowedError'
       ? 'Toegang tot microfoon/camera geweigerd. Geef toestemming in je browser.'
       : 'Kan microfoon/camera niet starten: ' + e.message;
-    alert(msg);
     onEnd?.();
-    return null;
+    throw new Error(msg);
   }
 
   callPeer = toUid;
@@ -161,9 +160,8 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onV
     const msg = e.name === 'NotAllowedError'
       ? 'Toegang tot microfoon/camera geweigerd. Geef toestemming in je browser.'
       : 'Kan microfoon/camera niet starten: ' + e.message;
-    alert(msg);
     onEnd?.();
-    return null;
+    throw new Error(msg);
   }
 
   callPeer = fromUid;

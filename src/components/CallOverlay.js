@@ -44,8 +44,9 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
       localStreamRef.current = localStream;
       if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
     } catch (e) {
-      alert('Kan geen toegang krijgen tot microfoon/camera.');
-      onClose?.();
+      setCallMsg(e.message || 'Kan geen toegang krijgen tot microfoon/camera.');
+      setCallState('ended');
+      closeTimeoutRef.current = setTimeout(() => onClose?.(), 3000);
     }
   }
 

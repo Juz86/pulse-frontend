@@ -155,6 +155,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [mentionSelIdx,       setMentionSelIdx]       = useState(0);
   const [pendingMentions,     setPendingMentions]     = useState([]); // [{ uid, displayName }]
   const [mentionToast,        setMentionToast]        = useState(null); // { senderName, groupName }
+  const [errToast,            setErrToast]            = useState('');
+  const errToastTimer = useRef(null);
+  function showErrToast(msg) {
+    setErrToast(msg);
+    clearTimeout(errToastTimer.current);
+    errToastTimer.current = setTimeout(() => setErrToast(''), 4000);
+  }
 
   const msgEndRef        = useRef(null);
   const msgsAreaRef      = useRef(null);
@@ -580,7 +587,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   function sendMessage() {
     if (!text.trim() || !activeConv) return;
     if (!socket?.connected) {
-      alert('Geen verbinding. Controleer je internet en probeer opnieuw.');
+      showErrToast('Geen verbinding. Controleer je internet en probeer opnieuw.');
       return;
     }
     const tempId = `temp-${Date.now()}`;
@@ -771,7 +778,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       memberEmails: { [user.uid]: user.email, [contact.uid]: contact.email },
       isGroup: false,
     }, ({ convId, error }) => {
-      if (error) return alert(error);
+      if (error) return showErrToast(error);
       const conv = { id: convId, members: [user.uid, contact.uid], memberNames: { [user.uid]: user.displayName, [contact.uid]: contact.displayName }, memberEmails: { [user.uid]: user.email, [contact.uid]: contact.email }, isGroup: false };
       openConversation(conv);
       loadConversations();
@@ -798,7 +805,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       memberEmails: { [user.uid]: user.email, [contact.uid]: contact.email },
       isGroup: false,
     }, ({ convId, error }) => {
-      if (error) return alert(error);
+      if (error) return showErrToast(error);
       const conv = { id: convId, members: [user.uid, contact.uid], memberNames: { [user.uid]: user.displayName, [contact.uid]: contact.displayName }, memberEmails: { [user.uid]: user.email, [contact.uid]: contact.email }, isGroup: false };
       setShowNewChat(false); setSearchEmail(''); setSearchResult(null);
       openConversation(conv);
@@ -812,7 +819,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     socket.emit('conversation:addMember', {
       convId: activeConv.id, uid: contact.uid, displayName: contact.displayName,
     }, (res = {}) => {
-      if (res.error) return alert(res.error);
+      if (res.error) return showErrToast(res.error);
       setActiveConv(prev => ({
         ...prev,
         members:     [...prev.members, contact.uid],
@@ -829,7 +836,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       message: 'Weet je zeker dat je deze persoon wilt verwijderen uit de groep?',
       onConfirm: () => {
         socket.emit('conversation:removeMember', { convId: activeConv.id, uid }, (res = {}) => {
-          if (res.error) return alert(res.error);
+          if (res.error) return showErrToast(res.error);
           setActiveConv(prev => {
             const members     = prev.members.filter(m => m !== uid);
             const memberNames = { ...prev.memberNames };
@@ -850,7 +857,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     socket.emit('conversation:create', {
       members: memberUids, memberNames, isGroup: true, groupName: groupName.trim(),
     }, ({ convId, error }) => {
-      if (error) return alert(error);
+      if (error) return showErrToast(error);
       const conv = { id: convId, members: memberUids, memberNames, isGroup: true, groupName: groupName.trim() };
       setShowNewGroup(false); setGroupName(''); setGroupMembers([]);
       openConversation(conv);
@@ -1037,7 +1044,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           localStorage.removeItem(`pulse_calls_${user.uid}`);
           await signOut(auth);
         } catch (err) {
-          alert('Verwijderen mislukt: ' + err.message);
+          showErrToast('Verwijderen mislukt: ' + err.message);
         }
       },
     });
@@ -1114,37 +1121,41 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     callConvIdRef.current    = convId;
     callStartTimeRef.current = null;
     callIsVideoRef.current   = isVideo;
-    const stream = await startCall({
-      toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
-      onStream: (remoteStream, localStream) => {
-        callStartTimeRef.current = Date.now();
-        setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
-      },
-      onEnd: (reason) => {
-        const wasConnected = callStartTimeRef.current !== null;
-        const duration  = wasConnected ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
-        callStartTimeRef.current = null;
-        const callDir = reason === 'declined' ? 'declined'
-          : (!wasConnected || reason === 'timeout' || reason === 'unavailable' || reason === 'busy') ? 'no-answer'
-          : 'completed';
-        if (reason !== 'busy') {
-          sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
-        }
-        if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout' || reason === 'busy') {
-          setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
-        } else {
-          setActiveCall(null);
-        }
-      },
-      onVideoUpgrade: (localStream) => {
-        callIsVideoRef.current = true;
-        setActiveCall(prev => ({ ...prev, localStream, isVideo: true }));
-      },
-      onVideoUpgradeRequest: () => {
-        setActiveCall(prev => prev ? { ...prev, videoUpgradeRequest: true } : prev);
-      },
-    });
-    if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
+    try {
+      const stream = await startCall({
+        toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
+        onStream: (remoteStream, localStream) => {
+          callStartTimeRef.current = Date.now();
+          setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
+        },
+        onEnd: (reason) => {
+          const wasConnected = callStartTimeRef.current !== null;
+          const duration  = wasConnected ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
+          callStartTimeRef.current = null;
+          const callDir = reason === 'declined' ? 'declined'
+            : (!wasConnected || reason === 'timeout' || reason === 'unavailable' || reason === 'busy') ? 'no-answer'
+            : 'completed';
+          if (reason !== 'busy') {
+            sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
+          }
+          if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout' || reason === 'busy') {
+            setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
+          } else {
+            setActiveCall(null);
+          }
+        },
+        onVideoUpgrade: (localStream) => {
+          callIsVideoRef.current = true;
+          setActiveCall(prev => ({ ...prev, localStream, isVideo: true }));
+        },
+        onVideoUpgradeRequest: () => {
+          setActiveCall(prev => prev ? { ...prev, videoUpgradeRequest: true } : prev);
+        },
+      });
+      if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
+    } catch (err) {
+      showErrToast(err.message);
+    }
   }
 
   async function callContact(contact, isVideo) {
@@ -2344,6 +2355,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           onClose={() => setActiveCall(null)}
           onEnd={() => setActiveCall(null)}
         />
+      )}
+
+      {/* ── ERROR TOAST ── */}
+      {errToast && (
+        <div className="mention-toast" style={{ background: 'rgba(255,71,87,0.92)' }}>
+          <span className="mention-toast-icon">⚠️</span>
+          <span>{errToast}</span>
+        </div>
       )}
 
       {/* ── MENTION TOAST ── */}

@@ -37,6 +37,12 @@ export default function ParentDashboard({ user, onClose }) {
   const [confirmDelete,  setConfirmDelete]  = useState(null); // { uid, displayName }
   const [deleteError,    setDeleteError]    = useState('');
 
+  // Analytics rapportage
+  const [selectedChildUid, setSelectedChildUid] = useState(null);
+  const [analytics,        setAnalytics]        = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError,   setAnalyticsError]   = useState('');
+
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
@@ -128,6 +134,20 @@ export default function ParentDashboard({ user, onClose }) {
       setChildren(prev => prev.filter(c => c.uid !== childUid));
       setConfirmDelete(null);
     } catch (err) { setDeleteError(err.message); }
+  }
+
+  async function loadAnalytics(childUid) {
+    if (!childUid) { setAnalytics(null); setSelectedChildUid(null); return; }
+    setSelectedChildUid(childUid);
+    setAnalyticsLoading(true);
+    setAnalyticsError('');
+    try {
+      const res = await authFetch(`${BACKEND}/api/parent/analytics/${childUid}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Ophalen mislukt.');
+      setAnalytics(data);
+    } catch (err) { setAnalyticsError(err.message); setAnalytics(null); }
+    setAnalyticsLoading(false);
   }
 
   const TABS = [
@@ -358,29 +378,245 @@ export default function ParentDashboard({ user, onClose }) {
             {/* Tab 3 — Pulse activiteiten */}
             {activeTab === 'activities' && (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                {/* Header met kind-selector */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 8, flexWrap: 'wrap' }}>
                   <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Pulse activiteiten</h2>
-                  <button className="parent-btn-outline" onClick={loadActivities} style={{ fontSize: 12, padding: '6px 12px' }}>↻ Vernieuwen</button>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {children.length > 0 && (
+                      <select
+                        className="parent-input"
+                        style={{ fontSize: 13, padding: '6px 10px', width: 'auto', cursor: 'pointer' }}
+                        value={selectedChildUid || ''}
+                        onChange={e => loadAnalytics(e.target.value || null)}
+                      >
+                        <option value="">— Selecteer kind —</option>
+                        {children.map(c => <option key={c.uid} value={c.uid}>{c.displayName}</option>)}
+                      </select>
+                    )}
+                    <button className="parent-btn-outline" onClick={loadActivities} style={{ fontSize: 12, padding: '6px 12px' }}>↻ Vernieuwen</button>
+                  </div>
                 </div>
-                {activities.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>
-                    <Activity size={32} color="#ccc" style={{ marginBottom: 8 }}/>
-                    <p style={{ fontSize: 13 }}>Nog geen activiteiten.</p>
+
+                {/* Analyserapport voor geselecteerd kind */}
+                {selectedChildUid && (
+                  <div style={{ marginBottom: 24 }}>
+                    {analyticsLoading && <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Rapport laden…</div>}
+                    {analyticsError && <div className="parent-error" style={{ marginBottom: 12 }}>⚠️ {analyticsError}</div>}
+                    {analytics && !analyticsLoading && (() => {
+                      const { profile, contacts, friendRequests, sessions, messaging } = analytics;
+                      const fmtSecs = s => { if (!s) return '0m'; const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h > 0 ? `${h}u ${m}m` : `${m}m`; };
+                      const maxBar = Math.max(...sessions.daily.map(d => d.seconds), 1);
+                      const dayLabels = { 0:'Zo', 1:'Ma', 2:'Di', 3:'Wo', 4:'Do', 5:'Vr', 6:'Za' };
+                      const statusDot = profile.online
+                        ? { background: '#22c55e', boxShadow: '0 0 0 2px #dcfce7' }
+                        : { background: '#9ca3af' };
+                      return (
+                        <div className="analytics-report">
+
+                          {/* Profiel */}
+                          <div className="analytics-profile-card">
+                            <div style={{ position: 'relative', flexShrink: 0 }}>
+                              {profile.photoURL
+                                ? <img src={profile.photoURL} alt={profile.displayName} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '3px solid #e9e9f5' }} />
+                                : <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 22, fontWeight: 700, border: '3px solid #e9e9f5' }}>{getInitials(profile.displayName)}</div>
+                              }
+                              <span style={{ position: 'absolute', bottom: 2, right: 2, width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', ...statusDot }} />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--text1,#1a1a1a)' }}>{profile.displayName}</div>
+                              {profile.username && <div style={{ fontSize: 13, color: '#888' }}>@{profile.username}</div>}
+                              <div style={{ fontSize: 12, color: profile.online ? '#22c55e' : '#9ca3af', marginTop: 2 }}>{profile.online ? '● Online' : `Offline · ${timeAgo(profile.lastSeen, 'Onbekend')}`}</div>
+                            </div>
+                            <div style={{ marginLeft: 'auto', display: 'flex', gap: 12 }}>
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontWeight: 700, fontSize: 20, color: 'var(--text1,#1a1a1a)' }}>{contacts.total}</div>
+                                <div style={{ fontSize: 11, color: '#888' }}>Contacten</div>
+                              </div>
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontWeight: 700, fontSize: 20, color: 'var(--text1,#1a1a1a)' }}>{messaging.topContacts.length}</div>
+                                <div style={{ fontSize: 11, color: '#888' }}>Chats</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Gebruik - sessies */}
+                          <div className="analytics-section">
+                            <div className="analytics-section-title">📱 App-gebruik (afgelopen 7 dagen)</div>
+                            <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
+                              <div className="analytics-stat-box">
+                                <div className="analytics-stat-value">{fmtSecs(sessions.totalSecondsLast7Days)}</div>
+                                <div className="analytics-stat-label">Totale schermtijd</div>
+                              </div>
+                              <div className="analytics-stat-box">
+                                <div className="analytics-stat-value">{sessions.daily.filter(d => d.seconds > 0).length} / 7</div>
+                                <div className="analytics-stat-label">Actieve dagen</div>
+                              </div>
+                              <div className="analytics-stat-box">
+                                <div className="analytics-stat-value">{fmtSecs(sessions.daily.filter(d=>d.seconds>0).length ? Math.round(sessions.totalSecondsLast7Days / Math.max(sessions.daily.filter(d=>d.seconds>0).length,1)) : 0)}</div>
+                                <div className="analytics-stat-label">Gem. per dag</div>
+                              </div>
+                            </div>
+                            {/* 7-daagse staafgrafiek */}
+                            <div className="analytics-bar-chart">
+                              {sessions.daily.map((day, i) => {
+                                const dt = new Date(day.date + 'T12:00:00');
+                                const label = dayLabels[dt.getDay()];
+                                const pct = Math.round((day.seconds / maxBar) * 100);
+                                return (
+                                  <div key={day.date} className="analytics-bar-col">
+                                    <div className="analytics-bar-wrap">
+                                      {day.seconds > 0 && <div className="analytics-bar-tooltip">{fmtSecs(day.seconds)}</div>}
+                                      <div className="analytics-bar" style={{ height: `${Math.max(pct, day.seconds > 0 ? 4 : 0)}%`, opacity: day.seconds > 0 ? 1 : 0.15 }} />
+                                    </div>
+                                    <div className="analytics-bar-label">{label}</div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            {/* Piekuren */}
+                            {Object.keys(sessions.hourlyPattern).length > 0 && (
+                              <div style={{ marginTop: 12 }}>
+                                <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Piekuren</div>
+                                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                                  {Array.from({length: 24}, (_, h) => {
+                                    const mins = sessions.hourlyPattern[h] || 0;
+                                    const maxMins = Math.max(...Object.values(sessions.hourlyPattern), 1);
+                                    const intensity = Math.round((mins / maxMins) * 100);
+                                    return (
+                                      <div key={h} title={`${h}:00 — ${mins}m`} style={{ width: 20, height: 20, borderRadius: 4, background: mins > 0 ? `rgba(124,58,237,${0.15 + intensity * 0.0085})` : '#f3f4f6', fontSize: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', color: intensity > 60 ? '#7c3aed' : '#aaa', cursor: 'default' }}>{h}</div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Communicatie */}
+                          <div className="analytics-section">
+                            <div className="analytics-section-title">💬 Communicatie (afgelopen 30 dagen)</div>
+                            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+                              <div className="analytics-stat-box">
+                                <div className="analytics-stat-value">{messaging.totalMessagesSent}</div>
+                                <div className="analytics-stat-label">Berichten verstuurd</div>
+                              </div>
+                              <div className="analytics-stat-box">
+                                <div className="analytics-stat-value">{fmtSecs(messaging.totalCallSecs)}</div>
+                                <div className="analytics-stat-label">📞 Bellen</div>
+                              </div>
+                              <div className="analytics-stat-box">
+                                <div className="analytics-stat-value">{fmtSecs(messaging.totalVideoSecs)}</div>
+                                <div className="analytics-stat-label">📹 Videobellen</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Top contacten */}
+                          {messaging.topContacts.length > 0 && (
+                            <div className="analytics-section">
+                              <div className="analytics-section-title">👥 Meest contact mee</div>
+                              {messaging.topContacts.map((c, i) => (
+                                <div key={c.uid || i} className="analytics-contact-row">
+                                  <div className="analytics-contact-rank">#{i + 1}</div>
+                                  <div className="analytics-contact-avatar">{getInitials(c.name)}</div>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text1,#1a1a1a)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}{c.isGroup && <span style={{ fontSize: 11, color: '#888', marginLeft: 4 }}>(groep)</span>}</div>
+                                    <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
+                                      {c.messagesSent > 0 && <span style={{ marginRight: 8 }}>💬 {c.messagesSent} berichten</span>}
+                                      {c.callCount > 0 && <span style={{ marginRight: 8 }}>📞 {c.callCount}× ({fmtSecs(c.totalCallSecs)})</span>}
+                                    </div>
+                                  </div>
+                                  <div style={{ fontSize: 12, color: '#7c3aed', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                    {fmtSecs(c.totalCallSecs + c.messagesSent * 0)}
+                                    {c.totalCallSecs > 0 ? fmtSecs(c.totalCallSecs) : `${c.messagesSent} msg`}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Vriendschapsverzoeken */}
+                          {(friendRequests.sent.length > 0 || friendRequests.received.length > 0) && (
+                            <div className="analytics-section">
+                              <div className="analytics-section-title">🤝 Vriendschapsverzoeken</div>
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                <div>
+                                  <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Verstuurd naar</div>
+                                  {friendRequests.sent.length === 0
+                                    ? <div style={{ fontSize: 13, color: '#bbb' }}>Geen</div>
+                                    : friendRequests.sent.map((r, i) => (
+                                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 13 }}>
+                                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: r.status === 'accepted' ? '#22c55e' : r.status === 'declined' ? '#ef4444' : '#f59e0b', flexShrink: 0 }} />
+                                        <span style={{ color: 'var(--text1,#1a1a1a)' }}>{r.toName}</span>
+                                        <span style={{ fontSize: 11, color: '#aaa', marginLeft: 'auto' }}>{r.status === 'accepted' ? '✓ Geaccepteerd' : r.status === 'declined' ? '✗ Geweigerd' : '⏳ In behandeling'}</span>
+                                      </div>
+                                    ))
+                                  }
+                                </div>
+                                <div>
+                                  <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ontvangen van</div>
+                                  {friendRequests.received.length === 0
+                                    ? <div style={{ fontSize: 13, color: '#bbb' }}>Geen</div>
+                                    : friendRequests.received.map((r, i) => (
+                                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 13 }}>
+                                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: r.status === 'accepted' ? '#22c55e' : r.status === 'declined' ? '#ef4444' : '#f59e0b', flexShrink: 0 }} />
+                                        <span style={{ color: 'var(--text1,#1a1a1a)' }}>{r.fromName}</span>
+                                        <span style={{ fontSize: 11, color: '#aaa', marginLeft: 'auto' }}>{r.status === 'accepted' ? '✓ Geaccepteerd' : r.status === 'declined' ? '✗ Geweigerd' : '⏳ In behandeling'}</span>
+                                      </div>
+                                    ))
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Contactenlijst */}
+                          {contacts.list.length > 0 && (
+                            <div className="analytics-section">
+                              <div className="analytics-section-title">📋 Contacten ({contacts.total})</div>
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                {contacts.list.map(c => (
+                                  <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8f8fc', borderRadius: 20, padding: '4px 10px 4px 4px', fontSize: 13 }}>
+                                    {c.photoURL
+                                      ? <img src={c.photoURL} alt={c.displayName} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                                      : <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#e0e0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#7c3aed' }}>{getInitials(c.displayName)}</div>
+                                    }
+                                    <span style={{ color: 'var(--text1,#1a1a1a)' }}>{c.displayName}</span>
+                                  </div>
+                                ))}
+                                {contacts.total > contacts.list.length && <div style={{ fontSize: 12, color: '#aaa', display: 'flex', alignItems: 'center' }}>+{contacts.total - contacts.list.length} meer</div>}
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+                      );
+                    })()}
                   </div>
-                ) : activities.map(a => (
-                  <div key={a.id} className="parent-activity-row">
-                    <div className="parent-activity-icon">
-                      {a.type === 'friend_request_sent'     && <UserPlus2 size={18} color="#3b82f6" />}
-                      {a.type === 'friend_request_accepted' && <UserCheck size={18} color="#22c55e" />}
-                      {a.type === 'friend_request_rejected' && <UserX     size={18} color="#ef4444" />}
-                      {a.type !== 'friend_request_sent' && a.type !== 'friend_request_accepted' && a.type !== 'friend_request_rejected' && <UserCheck size={18} color="#22c55e" />}
+                )}
+
+                {/* Activiteitenlogboek */}
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#888', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activiteitenlog</div>
+                  {activities.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>
+                      <Activity size={32} color="#ccc" style={{ marginBottom: 8 }}/>
+                      <p style={{ fontSize: 13 }}>Nog geen activiteiten.</p>
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div className="parent-activity-text">{a.description}</div>
-                      <div className="parent-activity-time">{timeAgo(a.createdAt)}</div>
+                  ) : activities.map(a => (
+                    <div key={a.id} className="parent-activity-row">
+                      <div className="parent-activity-icon">
+                        {a.type === 'friend_request_sent'     && <UserPlus2 size={18} color="#3b82f6" />}
+                        {a.type === 'friend_request_accepted' && <UserCheck size={18} color="#22c55e" />}
+                        {a.type === 'friend_request_rejected' && <UserX     size={18} color="#ef4444" />}
+                        {a.type !== 'friend_request_sent' && a.type !== 'friend_request_accepted' && a.type !== 'friend_request_rejected' && <UserCheck size={18} color="#22c55e" />}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div className="parent-activity-text">{a.description}</div>
+                        <div className="parent-activity-time">{timeAgo(a.createdAt)}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
 

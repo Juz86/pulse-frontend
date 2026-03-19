@@ -149,7 +149,7 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
     }} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={{
         background:bg, borderRadius:20, width:'min(480px, 100vw)',
-        maxHeight:'90dvh', display:'flex', flexDirection:'column',
+        height:'min(680px, 95dvh)', display:'flex', flexDirection:'column',
         overflow:'hidden', boxShadow:'0 20px 60px rgba(0,0,0,0.5)',
       }}>
 
@@ -166,11 +166,12 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
         </div>
 
         {/* Category tabs */}
-        <div style={{ display:'flex', overflowX:'auto', gap:6, padding:'0 16px 12px', flexShrink:0, scrollbarWidth:'none' }}>
+        <div style={{ display:'flex', overflowX:'auto', gap:6, padding:'0 16px 12px', flexShrink:0, scrollbarWidth:'none', WebkitOverflowScrolling:'touch', msOverflowStyle:'none' }}>
+          <style>{`.ab-tabs::-webkit-scrollbar{display:none}`}</style>
           {CATEGORIES.map(c => (
             <button key={c.id} onClick={() => setActiveCategory(c.id)} style={{
-              flexShrink:0, padding:'6px 14px', borderRadius:20, border:'none', cursor:'pointer',
-              fontSize:12, fontWeight:600, transition:'.15s',
+              flexShrink:0, padding:'7px 14px', borderRadius:20, border:'none', cursor:'pointer',
+              fontSize:12, fontWeight:600, transition:'.15s', whiteSpace:'nowrap',
               background: activeCategory === c.id ? accent : surface,
               color:      activeCategory === c.id ? '#fff'  : text2,
             }}>{c.label}</button>

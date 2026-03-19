@@ -472,7 +472,7 @@ export default function ParentDashboard({ user, onClose }) {
 
                           {/* Gebruik - sessies */}
                           <div className="analytics-section">
-                            <div className="analytics-section-title">📱 App-gebruik (afgelopen 7 dagen)</div>
+                            <div className="analytics-section-title"><Activity size={15} /> App-gebruik (afgelopen 7 dagen)</div>
                             <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{fmtSecs(sessions.totalSecondsLast7Days)}</div>
@@ -524,7 +524,7 @@ export default function ParentDashboard({ user, onClose }) {
 
                           {/* Communicatie */}
                           <div className="analytics-section">
-                            <div className="analytics-section-title">💬 Communicatie (afgelopen 30 dagen)</div>
+                            <div className="analytics-section-title"><Message size={15} /> Communicatie (afgelopen 30 dagen)</div>
                             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{messaging.totalMessagesSent}</div>
@@ -532,11 +532,11 @@ export default function ParentDashboard({ user, onClose }) {
                               </div>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{fmtSecs(messaging.totalCallSecs)}</div>
-                                <div className="analytics-stat-label">📞 Bellen</div>
+                                <div className="analytics-stat-label" style={{ display:'flex', alignItems:'center', gap:4 }}><Phone size={13} /> Bellen</div>
                               </div>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{fmtSecs(messaging.totalVideoSecs)}</div>
-                                <div className="analytics-stat-label">📹 Videobellen</div>
+                                <div className="analytics-stat-label" style={{ display:'flex', alignItems:'center', gap:4 }}><Video size={13} /> Videobellen</div>
                               </div>
                             </div>
                           </div>
@@ -544,7 +544,7 @@ export default function ParentDashboard({ user, onClose }) {
                           {/* Top contacten */}
                           {messaging.topContacts.length > 0 && (
                             <div className="analytics-section">
-                              <div className="analytics-section-title">👥 Meest contact mee</div>
+                              <div className="analytics-section-title"><Users size={15} /> Meest contact mee</div>
                               {messaging.topContacts.map((c, i) => (
                                 <div key={c.uid || i} className="analytics-contact-row">
                                   <div className="analytics-contact-rank">#{i + 1}</div>
@@ -552,8 +552,8 @@ export default function ParentDashboard({ user, onClose }) {
                                   <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text1,#1a1a1a)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}{c.isGroup && <span style={{ fontSize: 11, color: '#888', marginLeft: 4 }}>(groep)</span>}</div>
                                     <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
-                                      {c.messagesSent > 0 && <span style={{ marginRight: 8 }}>💬 {c.messagesSent} berichten</span>}
-                                      {c.callCount > 0 && <span style={{ marginRight: 8 }}>📞 {c.callCount}× ({fmtSecs(c.totalCallSecs)})</span>}
+                                      {c.messagesSent > 0 && <span style={{ marginRight: 8, display:'inline-flex', alignItems:'center', gap:3 }}><Message size={12} /> {c.messagesSent} berichten</span>}
+                                      {c.callCount > 0 && <span style={{ marginRight: 8, display:'inline-flex', alignItems:'center', gap:3 }}><Phone size={12} /> {c.callCount}× ({fmtSecs(c.totalCallSecs)})</span>}
                                     </div>
                                   </div>
                                   <div style={{ fontSize: 12, color: '#7c3aed', fontWeight: 600, whiteSpace: 'nowrap' }}>

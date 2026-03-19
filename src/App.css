@@ -898,7 +898,7 @@ body {
   display:inline-flex; align-items:center; justify-content:center;
   width:36px; height:36px; border-radius:10px;
   background:var(--surface2); border:1px solid rgba(255,255,255,.1);
-  color:var(--accent); flex-shrink:0;
+  color:#fff; flex-shrink:0;
   box-shadow:0 2px 8px rgba(0,0,0,.2);
 }
 

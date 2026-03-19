@@ -537,6 +537,7 @@ body {
   transition:color .2s;
 }
 .msg-ticks.read { color:#4fc3f7; }
+.msg-ticks-label { font-size:10px; opacity:.75; margin-left:1px; }
 .msg-edited { font-size:11px; opacity:.55; margin-left:5px; font-style:italic; }
 .admin-badge { display:inline-flex; align-items:center; gap:2px; font-size:11px; font-weight:600; color:var(--accent); background:rgba(108,99,255,.15); border-radius:6px; padding:1px 6px; }
 

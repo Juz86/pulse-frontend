@@ -1458,9 +1458,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               const isPending   = msg.pending;
               const isRead      = msg.status === 'gelezen';
               const isDelivered = isRead || msg.status === 'bezorgd';
+              const label = isPending ? 'verstuurd' : isRead ? 'gelezen' : isDelivered ? 'bezorgd' : 'verstuurd';
               return (
                 <span className={`msg-ticks ${isRead ? 'read' : ''}`}>
                   {isPending ? <Clock size={12} /> : isRead ? <CheckDouble size={12} /> : isDelivered ? <CheckDouble size={12} /> : <Check size={12} />}
+                  <span className="msg-ticks-label">{label}</span>
                 </span>
               );
             })()}

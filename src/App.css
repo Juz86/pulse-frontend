@@ -1313,7 +1313,7 @@ body {
   display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:3px;
 }
 .pd-child-actions {
-  display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+  display:flex; gap:6px; flex-wrap:nowrap; align-items:center;
 }
 .parent-child-row:last-child { margin-bottom:0; }
 .parent-child-row.paused { background:rgba(249,115,22,.04); border-color:rgba(249,115,22,.3); }

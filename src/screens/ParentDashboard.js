@@ -1,7 +1,7 @@
 // src/screens/ParentDashboard.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { getInitials, timeAgo } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 
 export default function ParentDashboard({ user, onClose }) {
@@ -52,7 +52,9 @@ export default function ParentDashboard({ user, onClose }) {
     try {
       const res = await authFetch(`${BACKEND}/api/parent/children`);
       const data = await res.json();
-      setChildren(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      setChildren(list);
+      setSelectedChildUid(prev => prev || (list[0]?.uid ?? null));
     } catch {}
     setLoading(false);
   }, [user]);
@@ -66,6 +68,9 @@ export default function ParentDashboard({ user, onClose }) {
   }, [user]);
 
   useEffect(() => { loadChildren(); loadActivities(); }, [loadChildren, loadActivities]);
+
+  // eslint-disable-next-line
+  useEffect(() => { if (selectedChildUid) loadAnalytics(selectedChildUid); }, [selectedChildUid]);
 
   async function createChild(e) {
     e.preventDefault();
@@ -273,7 +278,7 @@ export default function ParentDashboard({ user, onClose }) {
                       const anyPaused = pf.chat || pf.call || pf.video;
                       const allPaused = pf.chat && pf.call && pf.video;
                       const menuStyle = { position:'absolute', top:'calc(100% + 4px)', left:0, background:'var(--bg1,#fff)', border:'1px solid #e0e0e8', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.12)', zIndex:200, minWidth:190, padding:4 };
-                      const menuItemStyle = { display:'block', width:'100%', textAlign:'left', background:'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' };
+                      const menuItemStyle = { display:'flex', alignItems:'center', gap:8, width:'100%', textAlign:'left', background:'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' };
                       return (
                     <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
                       <div className="parent-child-avatar">{getInitials(child.displayName)}</div>
@@ -297,10 +302,10 @@ export default function ParentDashboard({ user, onClose }) {
                                 </button>
                                 {pauseMenuUid === child.uid && (
                                   <div style={menuStyle}>
-                                    {!pf.chat  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'chat')}>💬 Chatten</button>}
-                                    {!pf.call  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'call')}>📞 Bellen</button>}
-                                    {!pf.video && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'video')}>📹 Videobellen</button>}
-                                    {(!pf.chat || !pf.call || !pf.video) && <button style={{ ...menuItemStyle, borderTop:'1px solid #f0f0f0', marginTop:2 }} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'all')}>⏸ Alles pauzeren</button>}
+                                    {!pf.chat  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'chat')}><Message size={15}/> Chatten</button>}
+                                    {!pf.call  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'call')}><Phone size={15}/> Bellen</button>}
+                                    {!pf.video && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'video')}><Video size={15}/> Videobellen</button>}
+                                    {(!pf.chat || !pf.call || !pf.video) && <button style={{ ...menuItemStyle, borderTop:'1px solid #f0f0f0', marginTop:2 }} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'all')}><PauseCircle size={15}/> Alles pauzeren</button>}
                                   </div>
                                 )}
                               </div>
@@ -313,10 +318,10 @@ export default function ParentDashboard({ user, onClose }) {
                                 </button>
                                 {resumeMenuUid === child.uid && (
                                   <div style={menuStyle}>
-                                    {pf.chat  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'chat')}>💬 Chatten</button>}
-                                    {pf.call  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'call')}>📞 Bellen</button>}
-                                    {pf.video && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'video')}>📹 Videobellen</button>}
-                                    {(pf.chat || pf.call || pf.video) && <button style={{ ...menuItemStyle, borderTop:'1px solid #f0f0f0', marginTop:2 }} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'all')}>▶ Alles hervatten</button>}
+                                    {pf.chat  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'chat')}><Message size={15}/> Chatten</button>}
+                                    {pf.call  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'call')}><Phone size={15}/> Bellen</button>}
+                                    {pf.video && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'video')}><Video size={15}/> Videobellen</button>}
+                                    {(pf.chat || pf.call || pf.video) && <button style={{ ...menuItemStyle, borderTop:'1px solid #f0f0f0', marginTop:2 }} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'all')}><PlayCircle size={15}/> Alles hervatten</button>}
                                   </div>
                                 )}
                               </div>
@@ -387,9 +392,8 @@ export default function ParentDashboard({ user, onClose }) {
                         className="parent-input"
                         style={{ fontSize: 13, padding: '6px 10px', width: 'auto', cursor: 'pointer' }}
                         value={selectedChildUid || ''}
-                        onChange={e => loadAnalytics(e.target.value || null)}
+                        onChange={e => setSelectedChildUid(e.target.value || null)}
                       >
-                        <option value="">— Selecteer kind —</option>
                         {children.map(c => <option key={c.uid} value={c.uid}>{c.displayName}</option>)}
                       </select>
                     )}

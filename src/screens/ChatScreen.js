@@ -1856,7 +1856,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {renamingContact && (
         <div className="modal-overlay" onClick={() => setRenamingContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:360 }}>
-            <h3 className="modal-title"><MagicEdit size={18} /> Naam wijzigen</h3>
+            <h3 className="modal-title"><span className="modal-title-icon"><MagicEdit size={18} /></span> Naam wijzigen</h3>
             <div className="form-group">
               <label className="form-label">Bijnaam</label>
               <input
@@ -1880,7 +1880,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {sharingContact && (
         <div className="modal-overlay" onClick={() => { setSharingContact(null); setShareRecipients([]); }}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:360 }}>
-            <h3 className="modal-title" style={{ whiteSpace:'nowrap', fontSize:'16px', display:'flex', alignItems:'center', gap:'8px' }}><Share size={18} /> Contactpersoon delen</h3>
+            <h3 className="modal-title" style={{ whiteSpace:'nowrap', fontSize:'16px' }}><span className="modal-title-icon"><Share size={18} /></span> Contactpersoon delen</h3>
             <div style={{ marginBottom:'12px', padding:'10px 14px', borderRadius:'10px', background:'var(--surface2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', gap:'10px' }}>
               <div className="avatar sm">{getInitials(getContactDisplayName(sharingContact))}</div>
               <div>
@@ -1920,7 +1920,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {viewingSharedContact && (
         <div className="modal-overlay" onClick={() => setViewingSharedContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:400, width:'100%' }}>
-            <h3 className="modal-title" style={{ display:'flex', alignItems:'center', gap:'10px', fontSize:'18px' }}><User size={20} style={{ flexShrink:0 }} /> Contactpersoon</h3>
+            <h3 className="modal-title" style={{ fontSize:'18px' }}><span className="modal-title-icon"><User size={18} /></span> Contactpersoon</h3>
             <div style={{ display:'flex', alignItems:'center', gap:'14px', padding:'16px 0 20px' }}>
               <div className="avatar-wrap" style={{ flexShrink:0 }}>
                 <div className="avatar-circle" style={{ width:52, height:52, fontSize:20, borderRadius:14 }}>{getInitials(viewingSharedContact.name || '')}</div>
@@ -1958,7 +1958,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         <div className="modal-overlay" onClick={() => setViewingContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:360 }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
-              <h3 className="modal-title" style={{ margin:0 }}><User size={18} /> Profiel</h3>
+              <h3 className="modal-title" style={{ margin:0 }}><span className="modal-title-icon"><User size={18} /></span> Profiel</h3>
               <button className="icon-btn" onClick={() => { setSharingContact(viewingContact); setViewingContact(null); }} title="Contactpersoon delen"><Share size={18} /></button>
             </div>
             <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
@@ -2023,7 +2023,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {showAddContact && (
         <div className="modal-overlay" onClick={() => setShowAddContact(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title"><Users size={18} /> Vriend uitnodigen</h3>
+            <h3 className="modal-title"><span className="modal-title-icon"><Users size={18} /></span> Vriend uitnodigen</h3>
             <p className="modal-sub">Voer het e-mailadres in van de persoon die je wilt uitnodigen</p>
             <div className="form-group">
               <label className="form-label">E-mailadres</label>
@@ -2046,14 +2046,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {showNewChat && (
         <div className="modal-overlay" onClick={() => setShowNewChat(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title"><MagicEdit size={18} /> Nieuwe chat</h3>
+            <h3 className="modal-title"><span className="modal-title-icon"><MagicEdit size={18} /></span> Nieuwe chat</h3>
             {contacts.length > 0 && (
               <>
                 <p className="modal-sub">Kies uit je contacten</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
                   {contacts.map(c => (
                     <div key={c.uid} className="search-result" onClick={() => startConversationWith(c)}>
-                      <div className="avatar-circle sm">{getInitials(c.displayName)}</div>
+                      <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" />
                       <div><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
                     </div>
                   ))}
@@ -2068,7 +2068,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             {searchErr && <div className="auth-error">⚠️ {searchErr}</div>}
             {searchResult && (
               <div className="search-result" onClick={() => startConversationWith(searchResult)}>
-                <div className="avatar-circle sm">{getInitials(searchResult.displayName)}</div>
+                <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" />
                 <div><div className="conv-name">{searchResult.displayName}</div><div className="conv-preview">{searchResult.email}</div></div>
               </div>
             )}
@@ -2081,7 +2081,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {showNewGroup && (
         <div className="modal-overlay" onClick={() => setShowNewGroup(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title"><Users size={18} /> Nieuwe groep</h3>
+            <h3 className="modal-title"><span className="modal-title-icon"><Users size={18} /></span> Nieuwe groep</h3>
             <div className="form-group">
               <label className="form-label">Groepsnaam</label>
               <input className="form-input" placeholder="Bijv. Familie, Werk…" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={50} />
@@ -2093,7 +2093,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 const selected = groupMembers.find(m => m.uid === c.uid);
                 return (
                   <div key={c.uid} className={`search-result ${selected ? 'selected' : ''}`} onClick={() => toggleGroupMember(c)}>
-                    <div className="avatar-circle sm">{getInitials(c.displayName)}</div>
+                    <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" />
                     <div style={{ flex:1 }}><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
                     <span style={{ fontSize:'18px' }}>{selected ? '✅' : '○'}</span>
                   </div>
@@ -2342,7 +2342,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           <div className="modal-overlay" onClick={() => setShowContactProfile(false)}>
             <div className="modal-box" onClick={e => e.stopPropagation()}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
-                <h3 className="modal-title" style={{ margin:0 }}><User size={18} /> Profiel</h3>
+                <h3 className="modal-title" style={{ margin:0 }}><span className="modal-title-icon"><User size={18} /></span> Profiel</h3>
                 <button className="icon-btn" onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen"><Share size={18} /></button>
               </div>
               <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
@@ -2397,7 +2397,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         return (
           <div className="modal-overlay" onClick={() => setShowCallModal(false)}>
             <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:420 }}>
-              <h3 className="modal-title"><Phone size={18} /> Recent</h3>
+              <h3 className="modal-title"><span className="modal-title-icon"><Phone size={18} /></span> Recent</h3>
               {callLog.length === 0 ? (
                 <div style={{ textAlign:'center', padding:'24px 0', color:'var(--text3)' }}>
                   <div style={{ fontSize:40, marginBottom:8 }}><Cancel size={40} /></div>
@@ -2454,7 +2454,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {showGroupInfo && activeConv?.isGroup && (
         <div className="modal-overlay" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title"><Users size={18} /> {getConvName(activeConv)}</h3>
+            <h3 className="modal-title"><span className="modal-title-icon"><Users size={18} /></span> {getConvName(activeConv)}</h3>
             <p className="modal-sub">{activeConv.members.length} deelnemers</p>
 
             {(() => {

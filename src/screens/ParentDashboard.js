@@ -332,7 +332,7 @@ export default function ParentDashboard({ user, onClose }) {
                             </button>
                             <button className="parent-btn-outline" style={{ fontSize: 12, color: '#ef4444', borderColor: '#ef4444', display:'flex', alignItems:'center', gap:5 }}
                               onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
-                              <Trash2 size={16} color="#ef4444"/> Verwijderen
+                              <Trash2 size={16} color="#ef4444"/>
                             </button>
                           </div>
                         </div>

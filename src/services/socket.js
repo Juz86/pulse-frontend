@@ -255,7 +255,7 @@ export async function upgradeToVideo() {
     const videoTrack = videoStream.getVideoTracks()[0];
     peer.addTrack(videoTrack, videoStream);
     // Vertel remote kant ook camera te starten
-    socket.emit('call:video-upgrade', { to: callPeer });
+    if (callPeer) socket.emit('call:video-upgrade', { to: callPeer });
     return videoStream;
   } catch (e) {
     console.error('Video upgraden mislukt:', e);

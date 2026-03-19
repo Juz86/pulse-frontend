@@ -964,7 +964,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   function dataURLtoBlob(dataURL) {
     const [header, data] = dataURL.split(',');
-    const mime = header.match(/:(.*?);/)[1];
+    const mime = (header.match(/:(.*?);/) || [])[1] || 'image/jpeg';
     const bstr = atob(data);
     const u8arr = new Uint8Array(bstr.length);
     for (let i = 0; i < bstr.length; i++) u8arr[i] = bstr.charCodeAt(i);
@@ -1677,7 +1677,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               <UserAvatar photoURL={localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL} displayName={user.displayName || user.email} className="sm" />
             </div>
             <div className="user-chip-info">
-              <div className="user-chip-name">{user.displayName || user.email.split('@')[0]}</div>
+              <div className="user-chip-name">{user.displayName || user.email?.split('@')[0] || 'Gebruiker'}</div>
               <div className="user-chip-status">Online</div>
             </div>
           </div>

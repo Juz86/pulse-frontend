@@ -1290,9 +1290,9 @@ body {
 }
 .parent-btn-outline:hover { border-color:#6c63ff; color:#6c63ff; }
 .parent-btn-orange {
-  padding:8px 16px; border-radius:10px; border:none; cursor:pointer;
+  padding:8px 18px; border-radius:10px; border:none; cursor:pointer;
   background:rgba(249,115,22,.15); color:#f97316;
-  font-weight:600; font-size:13px;
+  font-weight:600; font-size:13px; white-space:nowrap;
   transition:background .2s;
 }
 .parent-btn-orange:hover { background:rgba(249,115,22,.25); }

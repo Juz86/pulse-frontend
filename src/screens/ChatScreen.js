@@ -6,7 +6,7 @@ import { doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from '
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
-import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Bell, BellOff, Forward, AdminIcon, Label, Heart } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Bell, BellOff, Forward, AdminIcon, Label, Heart, Shield, Logout } from '../components/Icons';
 import AvatarBuilder from '../components/AvatarBuilder';
 import { getInitials, toMs, formatTime, formatDateLabel } from '../utils';
 import UserAvatar from '../components/UserAvatar';
@@ -1681,16 +1681,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           </div>
           {isParent && (
             <button className="icon-btn parent-dashboard-btn" onClick={onOpenDashboard} title="Ouderlijk toezicht" style={{ position:'relative' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+              <Shield size={18} />
               {parentActivityBadge > 0 && (
                 <span className="parent-badge">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>
               )}
             </button>
           )}
           <button className="icon-btn" onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>{lightMode ? <Moon size={18} /> : <Lightbulb size={18} />}</button>
-          <button className="icon-btn danger" onClick={() => signOut(auth)} title="Uitloggen">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{transform:'scaleX(-1)'}}><path d="M16 13v-2H7V8l-5 4 5 4v-3z"/><path d="M20 3H10a2 2 0 0 0-2 2v4h2V5h10v14H10v-4H8v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>
-          </button>
+          <button className="icon-btn danger" onClick={() => signOut(auth)} title="Uitloggen"><Logout size={18} /></button>
         </div>
       </aside>
 

@@ -166,7 +166,7 @@ export default function ParentDashboard({ user, onClose }) {
   const TABS = [
     { id: 'add',        icon: <UserPlus  size={16}/>, label: 'Kind toevoegen'       },
     { id: 'children',   icon: <Users     size={16}/>, label: 'Gekoppelde kinderen'  },
-    { id: 'activities', icon: <Activity  size={16}/>, label: 'Pulse activiteiten'   },
+    { id: 'activities', icon: <Activity  size={16}/>, label: 'Activiteiten'          },
   ];
 
   return (

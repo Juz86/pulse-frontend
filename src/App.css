@@ -1294,7 +1294,7 @@ body {
   padding:8px 18px; border-radius:10px; border:none; cursor:pointer;
   background:rgba(249,115,22,.15); color:#f97316;
   font-weight:600; font-size:13px; white-space:nowrap;
-  transition:background .2s;
+  transition:background .2s; position:relative; top:3px;
 }
 .parent-btn-orange:hover { background:rgba(249,115,22,.25); }
 .parent-btn-green {

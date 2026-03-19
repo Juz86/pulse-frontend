@@ -1,14 +1,15 @@
 // src/screens/ChatScreen.js
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { signOut, updateProfile as fbUpdateProfile, updatePassword } from 'firebase/auth';
 import { auth, db, storage } from '../firebase';
 import { doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
-import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Bell, BellOff, Forward, AdminIcon } from '../components/Icons';
 import AvatarBuilder from '../components/AvatarBuilder';
-import { getInitials, toMs } from '../utils';
+import { getInitials, toMs, formatTime, formatDateLabel } from '../utils';
+import UserAvatar from '../components/UserAvatar';
 
 const MSG_LIMIT = 30;
 
@@ -114,6 +115,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [deleteMenuMsgId, setDeleteMenuMsgId] = useState(null); // msgId
   const [editingMsg,          setEditingMsg]          = useState(null); // { id, text }
   const [reactionPickerMsgId, setReactionPickerMsgId] = useState(null);
+  const [forwardMsg,          setForwardMsg]          = useState(null); // { text }
+
+  // Niet-gestoord modus
+  const [dnd, setDnd] = useState(() => localStorage.getItem('pulse_dnd') === '1');
+  const dndRef = useRef(dnd);
+  function toggleDnd() {
+    const next = !dndRef.current;
+    dndRef.current = next;
+    setDnd(next);
+    localStorage.setItem('pulse_dnd', next ? '1' : '0');
+    showErrToast(next ? '🔕 Niet gestoord ingeschakeld' : '🔔 Meldingen ingeschakeld');
+  }
   const [isPaused, setIsPaused] = useState(false);
 
   // Groep aanmaken
@@ -358,6 +371,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
     const onFriendRequest = (req) => {
       setFriendRequests(prev => [req, ...prev.filter(r => r.id !== req.id)]);
+      if (dndRef.current) return;
       // Uitnodigingsgeluid: twee oplopende tonen
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -429,6 +443,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const onAccountResumed = () => setIsPaused(false);
 
     const onMentionNotify = ({ senderName, groupName, convId: mConvId }) => {
+      if (dndRef.current) return;
       setMentionToast({ senderName, groupName });
       setTimeout(() => setMentionToast(null), 4000);
     };
@@ -523,6 +538,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   // ── Berichtengeluid (4) ───────────────────────────────────────────────────
   function playMessageSound() {
+    if (dndRef.current) return;
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const t = ctx.currentTime;
@@ -603,6 +619,21 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setHasMore(arr.length === MSG_LIMIT);
     } catch (e) { console.error(e); }
     finally { setLoadingMore(false); }
+  }
+
+  // ── Bericht doorsturen ────────────────────────────────────────────────────
+  function forwardToConv(conv) {
+    if (!socket?.connected || !forwardMsg) return;
+    const msg = {
+      convId:     conv.id,
+      senderId:   user.uid,
+      senderName: user.displayName || user.email,
+      text:       `↪️ ${forwardMsg.text}`,
+      createdAt:  new Date().toISOString(),
+    };
+    socket.emit('message:send', { convId: conv.id, message: msg });
+    setForwardMsg(null);
+    showErrToast('📋 Bericht doorgestuurd');
   }
 
   // ── Emoji-reactie ─────────────────────────────────────────────────────────
@@ -902,7 +933,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       members: memberUids, memberNames, isGroup: true, groupName: groupName.trim(),
     }, ({ convId, error }) => {
       if (error) return showErrToast(error);
-      const conv = { id: convId, members: memberUids, memberNames, isGroup: true, groupName: groupName.trim() };
+      const conv = { id: convId, members: memberUids, memberNames, isGroup: true, groupName: groupName.trim(), creatorId: user.uid };
       setShowNewGroup(false); setGroupName(''); setGroupMembers([]);
       openConversation(conv);
       loadConversations();
@@ -1251,31 +1282,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }
 
 
-  function parseDate(val) {
-    if (!val) return null;
-    if (val._seconds) return new Date(val._seconds * 1000);
-    const d = new Date(val);
-    return isNaN(d) ? null : d;
-  }
-
-  function formatTime(val) {
-    const d = parseDate(val);
-    if (!d) return '';
-    return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-  }
-
-  function formatDateLabel(val) {
-    const d = parseDate(val);
-    if (!d) return '';
-    const now       = new Date();
-    const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today - 86400000);
-    const msgDay    = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    if (msgDay.getTime() === today.getTime())     return 'Vandaag';
-    if (msgDay.getTime() === yesterday.getTime()) return 'Gisteren';
-    return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
-  }
-
   function renderMsgText(text, mentions, memberNames) {
     // Split on @word boundaries; highlight if uid in mentions array
     const parts = text.split(/(@\S+)/g);
@@ -1405,6 +1411,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               </button>
               {deleteMenuMsgId === msg.id && (
                 <div className="msg-delete-menu" onClick={e => e.stopPropagation()}>
+                  {!msg.type && (
+                    <button onClick={() => { navigator.clipboard.writeText(msg.text || '').then(() => showErrToast('📋 Bericht gekopieerd')).catch(() => {}); setDeleteMenuMsgId(null); }}>📋 Kopiëren</button>
+                  )}
+                  {!msg.type && (
+                    <button onClick={() => { setForwardMsg({ text: msg.text }); setDeleteMenuMsgId(null); }}>↪️ Doorsturen</button>
+                  )}
                   {isOwn && !msg.type && (
                     <button onClick={() => { setEditingMsg({ id: msg.id, text: msg.text }); setText(msg.text); setDeleteMenuMsgId(null); setTimeout(() => textareaRef.current?.focus(), 0); }}>✏️ Bewerken</button>
                   )}
@@ -1445,12 +1457,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     return items;
   }
 
-  // ── Avatar helper ─────────────────────────────────────────────────────────
-  function UserAvatar({ photoURL, displayName, className = '' }) {
-    if (photoURL) return <img src={photoURL} alt={displayName || ''} className={`avatar-circle ${className}`} style={{ objectFit:'cover' }} loading="lazy" />;
-    return <div className={`avatar-circle ${className}`} aria-label={displayName}>{getInitials(displayName)}</div>;
-  }
-
   return (
     <div className="app-screen">
 
@@ -1475,6 +1481,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 ) : null}
               </button>
               <button className="icon-btn" onClick={() => setShowNewGroup(true)} title="Nieuwe groep"><Users size={18} /></button>
+              <button className={`icon-btn${dnd ? ' dnd-active' : ''}`} onClick={toggleDnd} title={dnd ? 'Meldingen inschakelen' : 'Niet gestoord'}>
+                {dnd ? <BellOff size={18} /> : <Bell size={18} />}
+              </button>
             </div>
           </div>
           <div className="search-box">
@@ -1732,7 +1741,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   </button>
                 </div>
               )}
-              {renderMessages()}
+              {
+                // eslint-disable-next-line react-hooks/exhaustive-deps
+                useMemo(() => renderMessages(), [messages, chatSearch, chatSearchIdx, activeConv?.id, activeConv?.isGroup, activeConv?.memberNames, deleteMenuMsgId, editingMsg, reactionPickerMsgId, contacts])
+              }
               <div ref={msgEndRef} />
             </div>
 
@@ -2368,56 +2380,66 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             <h3 className="modal-title"><Users size={18} /> {getConvName(activeConv)}</h3>
             <p className="modal-sub">{activeConv.members.length} deelnemers</p>
 
-            <div style={{ display:'flex', flexDirection:'column', gap:'8px', marginBottom:'16px' }}>
-              {activeConv.members.map(uid => {
-                const name     = activeConv.memberNames?.[uid] || uid;
-                const isMe     = uid === user.uid;
-                const isOnline = onlineUsers.has(uid);
-                const photo    = contacts.find(c => c.uid === uid)?.photoURL || null;
-                return (
-                  <div key={uid} className="search-result" style={{ cursor:'default' }}>
-                    <div className="avatar-wrap">
-                      <UserAvatar photoURL={photo} displayName={name} className="sm" />
-                      {isOnline && <span className="online-dot sm" />}
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <div className="conv-name">{name}{isMe ? ' (jij)' : ''}</div>
-                      <div className="conv-preview" style={isOnline ? { color:'var(--success)' } : {}}>
-                        {isOnline ? 'Online' : 'Offline'}
-                      </div>
-                    </div>
-                    {!isMe && (
-                      <button className="icon-btn" title="Verwijderen uit groep"
-                        onClick={() => removeMemberFromGroup(uid)}
-                        style={{ color:'var(--danger)', flexShrink:0 }}><Delete size={18} /></button>
-                    )}
+            {(() => {
+              const isAdmin = activeConv.creatorId === user.uid;
+              return (
+                <>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'8px', marginBottom:'16px' }}>
+                    {activeConv.members.map(memberId => {
+                      const name      = activeConv.memberNames?.[memberId] || memberId;
+                      const isMe      = memberId === user.uid;
+                      const isOnline  = onlineUsers.has(memberId);
+                      const isCreator = memberId === activeConv.creatorId;
+                      const photo     = contacts.find(c => c.uid === memberId)?.photoURL || null;
+                      return (
+                        <div key={memberId} className="search-result" style={{ cursor:'default' }}>
+                          <div className="avatar-wrap">
+                            <UserAvatar photoURL={photo} displayName={name} className="sm" />
+                            {isOnline && <span className="online-dot sm" />}
+                          </div>
+                          <div style={{ flex:1 }}>
+                            <div className="conv-name" style={{ display:'flex', alignItems:'center', gap:6 }}>
+                              {name}{isMe ? ' (jij)' : ''}
+                              {isCreator && <span className="admin-badge"><AdminIcon size={11} /> Beheerder</span>}
+                            </div>
+                            <div className="conv-preview" style={isOnline ? { color:'var(--success)' } : {}}>
+                              {isOnline ? 'Online' : 'Offline'}
+                            </div>
+                          </div>
+                          {!isMe && isAdmin && (
+                            <button className="icon-btn" title="Verwijderen uit groep"
+                              onClick={() => removeMemberFromGroup(memberId)}
+                              style={{ color:'var(--danger)', flexShrink:0 }}><Delete size={18} /></button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
 
-            {!addingMember ? (
-              <button className="btn-secondary" onClick={() => setAddingMember(true)}>+ Lid toevoegen</button>
-            ) : (
+                  {isAdmin && !addingMember ? (
+                    <button className="btn-secondary" onClick={() => setAddingMember(true)}>+ Lid toevoegen</button>
+                  ) : isAdmin && addingMember ? (
               <>
                 <p className="modal-sub">Kies een contact om toe te voegen</p>
                 <div style={{ display:'flex', flexDirection:'column', gap:'8px', marginBottom:'12px' }}>
-                  {contacts.filter(c => !activeConv.members.includes(c.uid)).length === 0 && (
-                    <div className="auth-error">⚠️ Alle contacten zijn al lid van deze groep.</div>
-                  )}
-                  {contacts.filter(c => !activeConv.members.includes(c.uid)).map(c => (
-                    <div key={c.uid} className="search-result" onClick={() => addMemberToGroup(c)}>
-                      <div className="avatar-circle sm">{getInitials(c.displayName)}</div>
-                      <div>
-                        <div className="conv-name">{c.displayName}</div>
-                        <div className="conv-preview">{c.email}</div>
+                    {contacts.filter(c => !activeConv.members.includes(c.uid)).length === 0 && (
+                      <div className="auth-error">⚠️ Alle contacten zijn al lid van deze groep.</div>
+                    )}
+                    {contacts.filter(c => !activeConv.members.includes(c.uid)).map(c => (
+                      <div key={c.uid} className="search-result" onClick={() => addMemberToGroup(c)}>
+                        <div className="avatar-circle sm">{getInitials(c.displayName)}</div>
+                        <div>
+                          <div className="conv-name">{c.displayName}</div>
+                          <div className="conv-preview">{c.email}</div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-                <button className="btn-secondary" onClick={() => setAddingMember(false)}>Annuleren</button>
-              </>
-            )}
+                    ))}
+                  </div>
+                  <button className="btn-secondary" onClick={() => setAddingMember(false)}>Annuleren</button>
+                </> ) : null}
+                </>
+              );
+            })()}
 
             <div className="modal-actions" style={{ marginTop:'16px' }}>
               <button className="btn-secondary" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>Sluiten</button>
@@ -2436,10 +2458,37 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         />
       )}
 
-      {/* ── ERROR TOAST ── */}
+      {/* ── DOORSTUREN MODAL ── */}
+      {forwardMsg && (
+        <div className="modal-overlay" onClick={() => setForwardMsg(null)}>
+          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth:380 }}>
+            <h3 className="modal-title">↪️ Doorsturen naar…</h3>
+            <div style={{ fontSize:13, color:'var(--text3)', marginBottom:12, padding:'8px 12px', background:'var(--surface2)', borderRadius:8, maxHeight:60, overflow:'hidden', textOverflow:'ellipsis' }}>
+              {forwardMsg.text}
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:4, maxHeight:320, overflowY:'auto' }}>
+              {conversations.filter(c => c.id !== activeConv?.id).map(conv => (
+                <button key={conv.id} onClick={() => forwardToConv(conv)} style={{
+                  display:'flex', alignItems:'center', gap:10, padding:'10px 12px',
+                  background:'var(--surface2)', border:'1px solid var(--border)',
+                  borderRadius:10, cursor:'pointer', textAlign:'left', color:'var(--text)',
+                }}>
+                  <div className="avatar-circle sm">{getInitials(getConvName(conv))}</div>
+                  <span style={{ fontSize:14, fontWeight:500 }}>{getConvName(conv)}</span>
+                </button>
+              ))}
+            </div>
+            <div className="modal-actions" style={{ marginTop:12 }}>
+              <button className="btn-secondary" onClick={() => setForwardMsg(null)}>Annuleren</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── ERROR / INFO TOAST ── */}
       {errToast && (
-        <div className="mention-toast" style={{ background: 'rgba(255,71,87,0.92)' }}>
-          <span className="mention-toast-icon">⚠️</span>
+        <div className="mention-toast" style={{ background: errToast.startsWith('📋') ? 'rgba(34,197,94,0.92)' : 'rgba(255,71,87,0.92)' }}>
+          {!errToast.startsWith('📋') && <span className="mention-toast-icon">⚠️</span>}
           <span>{errToast}</span>
         </div>
       )}

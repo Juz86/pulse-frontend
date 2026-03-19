@@ -4,7 +4,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, messaging, getToken } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { connectSocket, disconnectSocket } from './services/socket';
+import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket';
 import './App.css';
 
 const AuthScreen         = lazy(() => import('./screens/AuthScreen'));
@@ -16,7 +16,7 @@ const ResetPasswordScreen = lazy(() => import('./screens/ResetPasswordScreen'));
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 
-const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+const BACKEND = BACKEND_URL;
 
 // Backend alvast wakker maken
 fetch(`${BACKEND}/`).catch(() => {});

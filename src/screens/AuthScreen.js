@@ -3,8 +3,7 @@ import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { User, Lock, EyeOn, EyeOff, Shield, PhoneIcon, Wifi, Heart } from '../components/Icons';
-
-const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+import { BACKEND_URL as BACKEND } from '../services/socket';
 
 export default function AuthScreen({ onParentClick }) {
   const [username,     setUsername]     = useState('');

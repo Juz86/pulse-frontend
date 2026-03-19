@@ -398,6 +398,10 @@ body {
   border-color:rgba(255,71,87,.45);
   box-shadow:0 6px 16px rgba(255,71,87,.25);
 }
+.icon-btn.dnd-active {
+  color:#f59e0b; border-color:rgba(245,158,11,.4);
+  background:rgba(245,158,11,.12);
+}
 
 /* ── CHAT MAIN ── */
 .chat-main { flex:1; display:flex; flex-direction:column; height:100%; background:var(--bg); }
@@ -534,6 +538,7 @@ body {
 }
 .msg-ticks.read { color:#4fc3f7; }
 .msg-edited { font-size:11px; opacity:.55; margin-left:5px; font-style:italic; }
+.admin-badge { display:inline-flex; align-items:center; gap:2px; font-size:11px; font-weight:600; color:var(--accent); background:rgba(108,99,255,.15); border-radius:6px; padding:1px 6px; }
 
 /* ── Reply ── */
 .msg-bubble-wrap { position:relative; display:flex; flex-direction:column; max-width:72%; }

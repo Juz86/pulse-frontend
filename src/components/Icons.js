@@ -46,3 +46,7 @@ export { MdWifi          as Wifi }           from 'react-icons/md';
 export { MdPhone         as PhoneIcon }      from 'react-icons/md';
 export { MdSecurity      as Shield }         from 'react-icons/md';
 export { MdFavorite      as Heart }          from 'react-icons/md';
+export { MdNotifications    as Bell }        from 'react-icons/md';
+export { MdNotificationsOff as BellOff }     from 'react-icons/md';
+export { MdForward          as Forward }     from 'react-icons/md';
+export { MdAdminPanelSettings as AdminIcon } from 'react-icons/md';

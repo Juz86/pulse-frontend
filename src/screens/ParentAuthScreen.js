@@ -2,8 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../firebase';
-
-const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+import { BACKEND_URL as BACKEND } from '../services/socket';
 
 export default function ParentAuthScreen({ onBack }) {
   const [tab,          setTab]          = useState('login');

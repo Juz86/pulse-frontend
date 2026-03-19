@@ -14,6 +14,34 @@ export function toMs(v) {
   return isNaN(ms) ? 0 : ms;
 }
 
+/** Chat: Firestore Timestamp of ISO-string → Date object */
+export function parseDate(val) {
+  if (!val) return null;
+  if (val._seconds) return new Date(val._seconds * 1000);
+  const d = new Date(val);
+  return isNaN(d) ? null : d;
+}
+
+/** Chat: datum → 'HH:MM' string */
+export function formatTime(val) {
+  const d = parseDate(val);
+  if (!d) return '';
+  return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+}
+
+/** Chat: datum → 'Vandaag' / 'Gisteren' / '12 januari 2025' */
+export function formatDateLabel(val) {
+  const d = parseDate(val);
+  if (!d) return '';
+  const now       = new Date();
+  const today     = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today - 86400000);
+  const msgDay    = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  if (msgDay.getTime() === today.getTime())     return 'Vandaag';
+  if (msgDay.getTime() === yesterday.getTime()) return 'Gisteren';
+  return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 /** Relatieve tijdweergave vanuit een Firestore Timestamp */
 export function timeAgo(ts, fallback = '') {
   if (!ts) return fallback;

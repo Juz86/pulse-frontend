@@ -2,8 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getInitials, timeAgo } from '../utils';
 import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff } from '../components/Icons';
-
-const BACKEND = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+import { BACKEND_URL as BACKEND } from '../services/socket';
 
 export default function ParentDashboard({ user, onClose }) {
   const [activeTab,      setActiveTab]      = useState('add');

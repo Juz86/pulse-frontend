@@ -112,6 +112,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   // Bericht verwijderen dropdown
   const [deleteMenuMsgId, setDeleteMenuMsgId] = useState(null); // msgId
+  const [editingMsg,      setEditingMsg]      = useState(null); // { id, text }
   const [isPaused, setIsPaused] = useState(false);
 
   // Groep aanmaken
@@ -415,6 +416,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setMessages(prev => prev.filter(m => m.id !== msgId));
     };
 
+    const onMessageEdited = ({ msgId, text, editedAt }) => {
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text, editedAt } : m));
+    };
+
     const onAccountPaused  = () => setIsPaused(true);
     const onAccountResumed = () => setIsPaused(false);
 
@@ -432,6 +437,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     socket.on('friend:accepted',  onFriendAccepted);
     socket.on('user:updated',     onUserUpdated);
     socket.on('message:deleted',  onMessageDeleted);
+    socket.on('message:edited',   onMessageEdited);
     socket.on('account:paused',   onAccountPaused);
     socket.on('account:resumed',  onAccountResumed);
     socket.on('mention:notify',   onMentionNotify);
@@ -445,6 +451,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       socket.off('friend:request',   onFriendRequest);
       socket.off('friend:accepted',  onFriendAccepted);
       socket.off('message:deleted',  onMessageDeleted);
+      socket.off('message:edited',   onMessageEdited);
       socket.off('account:paused',   onAccountPaused);
       socket.off('account:resumed',  onAccountResumed);
       socket.off('user:updated',     onUserUpdated);
@@ -583,8 +590,22 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     finally { setLoadingMore(false); }
   }
 
+  // ── Bericht bewerken ──────────────────────────────────────────────────────
+  function sendEditedMessage() {
+    if (!editingMsg || !text.trim() || !socket?.connected) return;
+    const trimmed = text.trim();
+    socket.emit('message:edit', { convId: activeConv.id, msgId: editingMsg.id, newText: trimmed }, (res) => {
+      if (res?.error) return showErrToast(res.error);
+      setMessages(prev => prev.map(m => m.id === editingMsg.id ? { ...m, text: trimmed, editedAt: new Date().toISOString() } : m));
+    });
+    setEditingMsg(null);
+    setText('');
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+  }
+
   // ── Bericht versturen ─────────────────────────────────────────────────────
   function sendMessage() {
+    if (editingMsg) return sendEditedMessage();
     if (!text.trim() || !activeConv) return;
     if (!socket?.connected) {
       showErrToast('Geen verbinding. Controleer je internet en probeer opnieuw.');
@@ -646,6 +667,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); insertMention(mentionSuggestions[mentionSelIdx]); return; }
       if (e.key === 'Escape')    { setMentionSuggestions([]); return; }
     }
+    if (e.key === 'Escape' && editingMsg) { setEditingMsg(null); setText(''); return; }
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   }
 
@@ -1340,6 +1362,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               {chatSearch.trim()
                 ? highlightText(msg.text || '', chatSearch)
                 : renderMsgText(msg.text || '', msg.mentions, activeConv?.memberNames)}
+              {msg.editedAt && <span className="msg-edited">(bewerkt)</span>}
             </div>
             <button className="msg-reply-btn" onClick={() => { setReplyTo({ id: msg.id, text: msg.text, senderName: msg.senderName }); textareaRef.current?.focus(); }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
@@ -1350,6 +1373,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               </button>
               {deleteMenuMsgId === msg.id && (
                 <div className="msg-delete-menu" onClick={e => e.stopPropagation()}>
+                  {isOwn && !msg.type && (
+                    <button onClick={() => { setEditingMsg({ id: msg.id, text: msg.text }); setText(msg.text); setDeleteMenuMsgId(null); setTimeout(() => textareaRef.current?.focus(), 0); }}>✏️ Bewerken</button>
+                  )}
                   <button onClick={() => deleteMessage(msg.id, 'self')}>Voor mezelf</button>
                   {isOwn && <button onClick={() => deleteMessage(msg.id, 'all')}>Voor iedereen</button>}
                 </div>
@@ -1667,6 +1693,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             </div>
 
             <div className="chat-input-area">
+              {editingMsg && (
+                <div className="reply-preview">
+                  <div className="reply-preview-inner">
+                    <span className="reply-preview-name">✏️ Bewerken</span>
+                    <span className="reply-preview-text">{editingMsg.text}</span>
+                  </div>
+                  <button className="reply-preview-close" onClick={() => { setEditingMsg(null); setText(''); }}>✕</button>
+                </div>
+              )}
               {replyTo && (
                 <div className="reply-preview">
                   <div className="reply-preview-inner">

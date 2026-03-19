@@ -533,6 +533,7 @@ body {
   transition:color .2s;
 }
 .msg-ticks.read { color:#4fc3f7; }
+.msg-edited { font-size:11px; opacity:.55; margin-left:5px; font-style:italic; }
 
 /* ── Reply ── */
 .msg-bubble-wrap { position:relative; display:flex; flex-direction:column; max-width:72%; }

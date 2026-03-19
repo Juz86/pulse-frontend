@@ -98,19 +98,40 @@ export default function App() {
         const authHeader = { 'Authorization': `Bearer ${idToken}` };
 
         // Notificatie-toestemming + FCM token
-        try {
-          const permission = await Notification.requestPermission();
-          if (permission === 'granted' && VAPID_KEY) {
+        const registerFcmToken = async (authHdr) => {
+          try {
+            if (Notification.permission !== 'granted' && Notification.permission !== 'default') return;
+            const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+            if (permission !== 'granted' || !VAPID_KEY) return;
             const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-            if (token) {
-              fetch(`${BACKEND}/api/fcm-token`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', ...authHeader },
-                body: JSON.stringify({ uid: firebaseUser.uid, token }),
-              }).catch(() => {});
+            if (!token) return;
+            let retries = 0;
+            while (retries < 3) {
+              try {
+                const res = await fetch(`${BACKEND}/api/fcm-token`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', ...authHdr },
+                  body: JSON.stringify({ uid: firebaseUser.uid, token }),
+                });
+                if (res.ok) break;
+              } catch {}
+              retries++;
+              await new Promise(r => setTimeout(r, 1000 * retries));
             }
+          } catch {}
+        };
+        await registerFcmToken(authHeader);
+        // Herregistreer token wanneer app focus krijgt na lange afwezigheid
+        let lastTokenRefresh = Date.now();
+        const onVisibilityChange = () => {
+          if (document.visibilityState === 'visible' && Date.now() - lastTokenRefresh > 3_600_000) {
+            lastTokenRefresh = Date.now();
+            firebaseUser.getIdToken().then(t => registerFcmToken({ 'Authorization': `Bearer ${t}` })).catch(() => {});
           }
-        } catch {}
+        };
+        if (window._pulseFcmVisibilityHandler) document.removeEventListener('visibilitychange', window._pulseFcmVisibilityHandler);
+        window._pulseFcmVisibilityHandler = onVisibilityChange;
+        document.addEventListener('visibilitychange', onVisibilityChange);
 
         // Profiel opslaan in backend
         fetch(`${BACKEND}/api/users`, {
@@ -211,6 +232,10 @@ export default function App() {
         if (window._pulseVisibilityHandler) {
           document.removeEventListener('visibilitychange', window._pulseVisibilityHandler);
           window._pulseVisibilityHandler = null;
+        }
+        if (window._pulseFcmVisibilityHandler) {
+          document.removeEventListener('visibilitychange', window._pulseFcmVisibilityHandler);
+          window._pulseFcmVisibilityHandler = null;
         }
         disconnectSocket();
       }

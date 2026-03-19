@@ -6,7 +6,7 @@ import { doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from '
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
-import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Bell, BellOff, Forward, AdminIcon, Label } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Bell, BellOff, Forward, AdminIcon, Label, Heart } from '../components/Icons';
 import AvatarBuilder from '../components/AvatarBuilder';
 import { getInitials, toMs, formatTime, formatDateLabel } from '../utils';
 import UserAvatar from '../components/UserAvatar';
@@ -2364,8 +2364,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 <div style={{ display:'flex', gap:8 }}>
                   {['familie', 'vrienden'].map(lbl => (
                     <button key={lbl} onClick={() => setConvLabel(activeConv.id, convLabels[activeConv.id] === lbl ? null : lbl)}
-                      style={{ padding:'6px 14px', borderRadius:20, border:`1.5px solid ${convLabels[activeConv.id] === lbl ? '#6c63ff' : 'var(--border)'}`, background: convLabels[activeConv.id] === lbl ? '#6c63ff' : 'transparent', color: convLabels[activeConv.id] === lbl ? '#fff' : 'var(--text2)', fontSize:13, cursor:'pointer', fontFamily:'Inter,sans-serif' }}>
-                      {lbl === 'familie' ? '👨‍👩‍👧 Familie' : '👫 Vrienden'}
+                      style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:20, border:`1.5px solid ${convLabels[activeConv.id] === lbl ? '#6c63ff' : 'var(--border)'}`, background: convLabels[activeConv.id] === lbl ? '#6c63ff' : 'transparent', color: convLabels[activeConv.id] === lbl ? '#fff' : 'var(--text2)', fontSize:13, cursor:'pointer', fontFamily:'Inter,sans-serif' }}>
+                      {lbl === 'familie' ? <><Users size={15} /> Familie</> : <><Heart size={15} /> Vrienden</>}
                     </button>
                   ))}
                 </div>

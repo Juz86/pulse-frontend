@@ -1230,9 +1230,9 @@ body {
   /* Sidebar header */
   .sidebar-header { padding:16px 14px 12px; }
 
-  /* Ouder dashboard overlay: sidebar is hidden, overlay vult scherm */
-  .parent-dashboard-overlay { left:0; padding:20px 0 0; }
-  .parent-dashboard-overlay .parent-root { border-radius:16px 16px 0 0; min-height:calc(100vh - 20px); }
+  /* Ouder dashboard overlay: sidebar footer blijft zichtbaar onderaan */
+  .parent-dashboard-overlay { left:0; padding:20px 0 0; bottom:62px; }
+  .parent-dashboard-overlay .parent-root { border-radius:16px 16px 0 0; min-height:calc(100vh - 82px); }
 
   /* Berichtbubbel iets breder op mobiel */
   .msg-bubble-wrap { max-width:82%; }
@@ -1679,6 +1679,6 @@ body {
   .parent-add-form  { flex-direction:column; }
   .parent-btn-primary { width:100%; text-align:center; }
   .parent-child-row { flex-wrap:wrap; gap:8px; }
-  .parent-dashboard-overlay { padding:20px 0 0; left:0; }
-  .parent-dashboard-overlay .parent-root { border-radius:16px 16px 0 0; min-height:calc(100vh - 20px); }
+  .parent-dashboard-overlay { padding:20px 0 0; left:0; bottom:62px; }
+  .parent-dashboard-overlay .parent-root { border-radius:16px 16px 0 0; min-height:calc(100vh - 82px); }
 }

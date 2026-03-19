@@ -93,7 +93,7 @@ body {
   letter-spacing:-.3px; margin:0; padding:0;
 }
 .auth-title {
-  font-family:'Inter',sans-serif; font-size:18px; font-weight:800; margin-bottom:6px; white-space:nowrap;
+  font-family:'Inter',sans-serif; font-size:18px; font-weight:800; margin-bottom:6px;
   color: var(--text);
   letter-spacing:-.3px; line-height:1.5; padding-bottom:2px;
 }
@@ -645,7 +645,7 @@ body {
   max-width:100%; overflow:hidden;
 }
 .msg-reply-name { font-size:11px; font-weight:600; color:var(--accent); display:block; }
-.msg-reply-text { font-size:12px; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; max-width:220px; }
+.msg-reply-text { font-size:12px; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; max-width:100%; }
 
 .reply-preview {
   display:flex; align-items:center; gap:8px;
@@ -685,7 +685,7 @@ body {
 }
 .chat-textarea::placeholder { color:var(--text3); }
 .send-btn {
-  width:42px; height:42px; border-radius:13px;
+  width:44px; height:44px; border-radius:13px;
   background:linear-gradient(135deg, #7c6fff, #a855f7);
   color:#fff; cursor:pointer; font-size:17px;
   display:flex; align-items:center; justify-content:center;
@@ -1229,12 +1229,31 @@ body {
 
   /* Sidebar header */
   .sidebar-header { padding:16px 14px 12px; }
+
+  /* Ouder dashboard overlay: sidebar is hidden, overlay fills screen */
+  .parent-dashboard-overlay { left:0; padding:0; }
+  .parent-dashboard-overlay .parent-root { border-radius:0; min-height:100vh; }
+
+  /* Berichtbubbel iets breder op mobiel */
+  .msg-bubble-wrap { max-width:82%; }
+
+  /* Modal acties: stapel op mobiel */
+  .modal-actions { flex-wrap:wrap; }
+
+  /* Gespreksbesturing knoppen kleiner */
+  .call-ctrl-btn.decline,
+  .call-ctrl-btn.accept,
+  .call-ctrl-btn.end,
+  .call-ctrl-btn.mute { width:78px; }
+
+  /* Lokale video kleiner */
+  .video-local { width:90px; height:120px; bottom:90px; right:14px; }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 480px) {
   .auth-card  { padding:28px 18px; }
   .modal-box  { padding:24px 16px; }
-  .call-card  { width:calc(100vw - 32px); padding:36px 28px; }
+  .call-card  { width:calc(100vw - 32px); padding:36px 24px; }
 }
 
 /* ── Zoeken in gesprek ── */

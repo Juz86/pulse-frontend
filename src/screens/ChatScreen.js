@@ -1013,6 +1013,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     e?.preventDefault();
     if (!newName.trim()) return;
     setProfileLoading(true); setProfileMsg('');
+    const hadPhoto = !!photoFile;
     try {
       let photoURL = localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null;
       if (photoFile) {
@@ -1037,7 +1038,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       socket?.emit('user:updated', { uid: user.uid, displayName: newName.trim(), photoURL: photoURL || '' });
       setPhotoFile(null);
       setPhotoPreview(photoURL);
-      setProfileMsg('Opgeslagen!');
+      setProfileMsg(hadPhoto ? 'Profielfoto opgeslagen!' : 'Opgeslagen!');
     } catch (err) { setProfileMsg('Fout bij opslaan: ' + (err.message || err.code)); }
     finally { setProfileLoading(false); }
   }

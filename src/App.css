@@ -1249,11 +1249,13 @@ body {
   color:#1a1a2e;
   font-family:'Inter',sans-serif;
   overflow-y:auto;
+  display:flex; flex-direction:column;
 }
 .parent-container {
   max-width:720px;
   margin:0 auto;
   padding:24px 20px 48px;
+  display:flex; flex-direction:column;
 }
 .parent-header {
   display:flex; justify-content:space-between; align-items:center;
@@ -1592,7 +1594,7 @@ body {
 .pd-layout {
   display:flex; background:#fff; border-radius:16px;
   box-shadow:0 2px 12px rgba(0,0,0,.08);
-  overflow:hidden; min-height:420px;
+  overflow:hidden; min-height:420px; flex:1;
 }
 .pd-sidebar {
   width:180px; flex-shrink:0;

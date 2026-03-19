@@ -2376,6 +2376,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             setPhotoPreview(photoURL);
             localStorage.setItem(`pulse_photo_${user.uid}`, photoURL);
             setShowAvatarBuilder(false);
+            setProfileMsg('Avatar opgeslagen!');
+            setUsernameMsg('');
           }}
         />
       )}

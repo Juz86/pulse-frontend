@@ -2018,8 +2018,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                     </div>
                   )}
 
-                  {/* Wachtwoord wijzigen */}
-                  <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
+                  {/* Wachtwoord wijzigen — niet voor kindaccounts */}
+                  {!user.email?.endsWith('@pulse.internal') && <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px' }}>
                     <label className="form-label" style={{ marginBottom:'10px', display:'block' }}>Wachtwoord wijzigen</label>
                     <div className="form-group">
                       <div style={{ position:'relative' }}>
@@ -2041,7 +2041,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                       {passwordLoading ? 'Bezig…' : 'Wachtwoord wijzigen'}
                     </button>
                     {passwordMsg && <div style={{ fontSize:'12px', marginTop:'6px', color: passwordMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{passwordMsg}</div>}
-                  </div>
+                  </div>}
 
                   {/* Opslaan onderaan */}
                   <div style={{ borderTop:'1px solid var(--border)', paddingTop:'16px', marginTop:'8px' }}>

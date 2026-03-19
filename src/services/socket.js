@@ -7,21 +7,30 @@ import SimplePeer from 'simple-peer';
 // ─── Pas dit aan naar jouw SiteGround domein / IP ───────────────────────────
 export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
 
-const METERED_KEY = process.env.REACT_APP_METERED_KEY;
+// ICE servers worden opgehaald van de backend (credentials nooit in de bundle)
+let _iceServers = null;
+let _iceServersExpiry = 0;
 
-const ICE_SERVERS = METERED_KEY ? [
-  { urls: `stun:eu-turn1.xirsys.com` },
-  { urls: `turn:eu-turn1.metered.ca:80`,           username: METERED_KEY, credential: METERED_KEY },
-  { urls: `turn:eu-turn1.metered.ca:443`,          username: METERED_KEY, credential: METERED_KEY },
-  { urls: `turn:eu-turn1.metered.ca:443?transport=tcp`, username: METERED_KEY, credential: METERED_KEY },
-] : [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'stun:stun.cloudflare.com:3478' },
-  { urls: 'turn:openrelay.metered.ca:80',  username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-  { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
-];
+async function getIceServers() {
+  if (_iceServers && Date.now() < _iceServersExpiry) return _iceServers;
+  try {
+    const token = socket?.auth?.token;
+    const res = await fetch(`${BACKEND_URL}/api/turn-credentials`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (res.ok) {
+      const { iceServers } = await res.json();
+      _iceServers = iceServers;
+      _iceServersExpiry = Date.now() + 3600_000; // 1 uur cache
+      return iceServers;
+    }
+  } catch {}
+  // Fallback: alleen STUN als backend niet bereikbaar
+  return [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun.cloudflare.com:3478' },
+  ];
+}
 
 let socket     = null;
 let peer       = null;
@@ -73,12 +82,13 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   }
 
   callPeer = toUid;
+  const iceServers = await getIceServers();
 
   peer = new SimplePeer({
     initiator: true,
     trickle: true,
     stream,
-    config: { iceServers: ICE_SERVERS }
+    config: { iceServers }
   });
 
   let callActive = false;
@@ -165,12 +175,13 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onV
   }
 
   callPeer = fromUid;
+  const iceServers = await getIceServers();
 
   peer = new SimplePeer({
     initiator: false,
     trickle: true,
     stream,
-    config: { iceServers: ICE_SERVERS }
+    config: { iceServers }
   });
   peer.signal(offer);
 

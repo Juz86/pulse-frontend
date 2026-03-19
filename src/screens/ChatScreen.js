@@ -6,7 +6,7 @@ import { doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from '
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
-import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Bell, BellOff, Forward, AdminIcon } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Bell, BellOff, Forward, AdminIcon, Label } from '../components/Icons';
 import AvatarBuilder from '../components/AvatarBuilder';
 import { getInitials, toMs, formatTime, formatDateLabel } from '../utils';
 import UserAvatar from '../components/UserAvatar';
@@ -45,6 +45,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // Schermen: 'chats' | 'contacts'
   const [activeTab,      setActiveTab]      = useState('chats');
   const [searchQuery,    setSearchQuery]    = useState('');
+  const [chatFilter,     setChatFilter]     = useState('all'); // 'all' | 'familie' | 'vrienden'
+  const [convLabels,     setConvLabels]     = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`pulse_labels_${user.uid}`) || '{}'); } catch { return {}; }
+  });
+  const [labelMenuConvId, setLabelMenuConvId] = useState(null);
+
+  const setConvLabel = (convId, label) => {
+    const next = label ? { ...convLabels, [convId]: label } : Object.fromEntries(Object.entries(convLabels).filter(([k]) => k !== convId));
+    setConvLabels(next);
+    localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(next));
+    setLabelMenuConvId(null);
+  };
 
   // Contacten
   const [contacts,         setContacts]         = useState([]);
@@ -1527,20 +1539,33 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           </button>
         </div>
 
+        {/* ── CHAT FILTERS ── */}
+        {activeTab === 'chats' && (
+          <div className="chat-filters">
+            {['all', 'familie', 'vrienden'].map(f => (
+              <button key={f} className={`chat-filter-chip${chatFilter === f ? ' active' : ''}`} onClick={() => setChatFilter(f)}>
+                {f === 'all' ? 'Alles' : f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* ── CHATS TAB ── */}
         {activeTab === 'chats' && (
-          <div className="conv-list">
+          <div className="conv-list" onClick={() => setLabelMenuConvId(null)}>
             {conversations.length === 0 && (
               <div className="empty-convs">
                 <p>Nog geen gesprekken.</p>
                 <p>Klik op het <Message size={14} color="#ffffff" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> om een nieuwe chat te starten.</p>
               </div>
             )}
-            {conversations.filter(conv =>
-              !searchQuery.trim() ||
-              getConvName(conv).toLowerCase().includes(searchQuery.toLowerCase()) ||
-              (conv.lastMessage || '').toLowerCase().includes(searchQuery.toLowerCase())
-            ).map(conv => {
+            {conversations.filter(conv => {
+              const matchSearch = !searchQuery.trim() ||
+                getConvName(conv).toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (conv.lastMessage || '').toLowerCase().includes(searchQuery.toLowerCase());
+              const matchFilter = chatFilter === 'all' || convLabels[conv.id] === chatFilter;
+              return matchSearch && matchFilter;
+            }).map(conv => {
               const otherUid        = getOtherUid(conv);
               const isOnline        = otherUid && onlineUsers.has(otherUid);
               const isActivelyOnline = isOnline && !inactiveUsers.has(otherUid);
@@ -1562,6 +1587,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                       <button className="call-btn video" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, true); }} title="Videobellen"><Video size={16} /></button>
                     </>
                   )}
+                  <div style={{ position:'relative' }}>
+                    <button className="conv-delete-btn" style={{ color: convLabels[conv.id] ? '#6c63ff' : undefined }} onClick={e => { e.stopPropagation(); setLabelMenuConvId(labelMenuConvId === conv.id ? null : conv.id); }} title="Label"><Label size={15} /></button>
+                    {labelMenuConvId === conv.id && (
+                      <div className="conv-label-menu" onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setConvLabel(conv.id, 'familie')}>👨‍👩‍👧 Familie</button>
+                        <button onClick={() => setConvLabel(conv.id, 'vrienden')}>👫 Vrienden</button>
+                        {convLabels[conv.id] && <button onClick={() => setConvLabel(conv.id, null)} style={{ color:'#ef4444' }}>✕ Verwijder label</button>}
+                      </div>
+                    )}
+                  </div>
                   <button className="conv-delete-btn" onClick={e => deleteConversation(e, conv.id)} title="Verwijderen"><Delete size={16} /></button>
                 </div>
               );

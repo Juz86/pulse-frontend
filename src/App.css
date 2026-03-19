@@ -237,6 +237,16 @@ body {
 .search-box input::placeholder { color:var(--text3); }
 
 .sidebar-tabs { display:flex; background:var(--surface2); border-radius:14px; padding:5px; margin:12px 18px; gap:5px; border:1px solid var(--border); }
+
+.chat-filters { display:flex; gap:6px; padding:0 18px 10px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
+.chat-filters::-webkit-scrollbar { display:none; }
+.chat-filter-chip { padding:5px 14px; border-radius:20px; border:1.5px solid var(--border); background:transparent; color:var(--text2); font-size:12px; font-weight:500; cursor:pointer; white-space:nowrap; transition:all .15s; font-family:'Inter',sans-serif; }
+.chat-filter-chip:hover { border-color:#6c63ff; color:#6c63ff; }
+.chat-filter-chip.active { background:#6c63ff; border-color:#6c63ff; color:#fff; font-weight:600; }
+
+.conv-label-menu { position:absolute; right:0; top:calc(100% + 4px); background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:0 4px 16px rgba(0,0,0,.15); z-index:100; min-width:160px; padding:4px; }
+.conv-label-menu button { display:block; width:100%; text-align:left; background:none; border:none; padding:8px 12px; font-size:13px; cursor:pointer; border-radius:6px; color:var(--text); font-family:'Inter',sans-serif; }
+.conv-label-menu button:hover { background:var(--surface2); }
 .sidebar-tab  { flex:1; padding:10px 8px; border-radius:10px; border:none; background:transparent; color:var(--text2); font-size:13px; font-family:'Inter',sans-serif; font-weight:500; cursor:pointer; transition:all .2s ease; letter-spacing:0.2px; display:flex; align-items:center; justify-content:center; gap:6px; }
 .sidebar-tab:hover  { color:var(--text); background:rgba(108,99,255,0.08); }
 .sidebar-tab.active { background:linear-gradient(135deg, #7c6fff, #a855f7); color:#fff; font-weight:700; box-shadow:0 4px 16px rgba(108,99,255,.5), 0 0 0 1px rgba(168,85,247,.2); }

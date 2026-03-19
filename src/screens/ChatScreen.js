@@ -1587,16 +1587,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                       <button className="call-btn video" onClick={e => { e.stopPropagation(); initiateCallFromConv(conv, true); }} title="Videobellen"><Video size={16} /></button>
                     </>
                   )}
-                  <div style={{ position:'relative' }}>
-                    <button className="conv-delete-btn" style={{ color: convLabels[conv.id] ? '#6c63ff' : undefined }} onClick={e => { e.stopPropagation(); setLabelMenuConvId(labelMenuConvId === conv.id ? null : conv.id); }} title="Label"><Label size={15} /></button>
-                    {labelMenuConvId === conv.id && (
-                      <div className="conv-label-menu" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => setConvLabel(conv.id, 'familie')}>👨‍👩‍👧 Familie</button>
-                        <button onClick={() => setConvLabel(conv.id, 'vrienden')}>👫 Vrienden</button>
-                        {convLabels[conv.id] && <button onClick={() => setConvLabel(conv.id, null)} style={{ color:'#ef4444' }}>✕ Verwijder label</button>}
-                      </div>
-                    )}
-                  </div>
                   <button className="conv-delete-btn" onClick={e => deleteConversation(e, conv.id)} title="Verwijderen"><Delete size={16} /></button>
                 </div>
               );
@@ -2339,7 +2329,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         return (
           <div className="modal-overlay" onClick={() => setShowContactProfile(false)}>
             <div className="modal-box" onClick={e => e.stopPropagation()}>
-              <h3 className="modal-title"><User size={18} /> Profiel</h3>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
+                <h3 className="modal-title" style={{ margin:0 }}><User size={18} /> Profiel</h3>
+                <button className="icon-btn" onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen"><Share size={18} /></button>
+              </div>
               <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
                 {photo
                   ? <img src={photo} alt={name || 'Profielfoto'} className="profile-avatar-big" style={{ objectFit:'cover' }} loading="lazy" />
@@ -2364,6 +2357,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 <div className={`profile-status-badge ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
                   <span className="profile-status-dot" />
                   {isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Inactief' : 'Offline'}
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Label</label>
+                <div style={{ display:'flex', gap:8 }}>
+                  {['familie', 'vrienden'].map(lbl => (
+                    <button key={lbl} onClick={() => setConvLabel(activeConv.id, convLabels[activeConv.id] === lbl ? null : lbl)}
+                      style={{ padding:'6px 14px', borderRadius:20, border:`1.5px solid ${convLabels[activeConv.id] === lbl ? '#6c63ff' : 'var(--border)'}`, background: convLabels[activeConv.id] === lbl ? '#6c63ff' : 'transparent', color: convLabels[activeConv.id] === lbl ? '#fff' : 'var(--text2)', fontSize:13, cursor:'pointer', fontFamily:'Inter,sans-serif' }}>
+                      {lbl === 'familie' ? '👨‍👩‍👧 Familie' : '👫 Vrienden'}
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="modal-actions">

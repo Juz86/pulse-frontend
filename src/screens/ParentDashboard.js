@@ -285,8 +285,9 @@ export default function ParentDashboard({ user, onClose }) {
                       const pf = child.pausedFeatures || { chat: false, call: false, video: false };
                       const anyPaused = pf.chat || pf.call || pf.video;
                       const allPaused = pf.chat && pf.call && pf.video;
-                      const menuStyle = { position:'absolute', top:'calc(100% + 4px)', left:0, background:'var(--bg1,#fff)', border:'1px solid #e0e0e8', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.12)', zIndex:200, minWidth:190, padding:4 };
-                      const menuItemStyle = { display:'flex', alignItems:'center', gap:8, width:'100%', textAlign:'left', background:'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' };
+                      const chipBase = { display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:20, border:'none', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:'Inter,sans-serif' };
+                      const chipPause  = { ...chipBase, background:'rgba(249,115,22,.15)', color:'#f97316' };
+                      const chipResume = { ...chipBase, background:'rgba(34,197,94,.15)',  color:'#16a34a' };
                       return (
                     <div className={`parent-child-row${anyPaused ? ' paused' : ''}`} style={{ position:'relative' }}>
                       <button className="parent-btn-outline" style={{ position:'absolute', top:10, right:10, fontSize:12, color:'#ef4444', borderColor:'#ef4444', display:'flex', alignItems:'center', padding:'4px 6px' }}
@@ -299,54 +300,65 @@ export default function ParentDashboard({ user, onClose }) {
                           : getInitials(child.displayName)}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="parent-child-name">{child.displayName}</div>
-                        <div className="pd-child-meta-row">
-                          <div className="parent-child-meta">
-                            <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
-                            <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
-                            {child.username && <span style={{ marginLeft: 6, color: '#888', fontSize: 12 }}>@{child.username}</span>}
-                            {pf.chat  && <span className="parent-paused-badge">Chat</span>}
-                            {pf.call  && <span className="parent-paused-badge" style={{ background:'rgba(245,158,11,.12)', color:'#d97706' }}>Bellen</span>}
-                            {pf.video && <span className="parent-paused-badge" style={{ background:'rgba(139,92,246,.12)', color:'#7c3aed' }}>Video</span>}
-                          </div>
-                          <div className="pd-child-actions">
-                            {/* Pauzeren knop + submenu */}
+                        {/* Naam + @gebruikersnaam */}
+                        <div className="parent-child-name" style={{ display:'flex', alignItems:'baseline', gap:6, flexWrap:'wrap' }}>
+                          {child.displayName}
+                          {child.username && <span style={{ color:'#888', fontWeight:400, fontSize:12 }}>@{child.username}</span>}
+                        </div>
+                        {/* Status + pauzeer-badges */}
+                        <div className="parent-child-meta" style={{ marginBottom:10 }}>
+                          <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
+                          <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
+                          {pf.chat  && <span className="parent-paused-badge">Chat</span>}
+                          {pf.call  && <span className="parent-paused-badge" style={{ background:'rgba(245,158,11,.12)', color:'#d97706' }}>Bellen</span>}
+                          {pf.video && <span className="parent-paused-badge" style={{ background:'rgba(139,92,246,.12)', color:'#7c3aed' }}>Video</span>}
+                        </div>
+                        {/* Acties */}
+                        <div className="pd-child-actions" style={{ flexDirection:'column', alignItems:'flex-start' }}>
+                          {/* Rij 1: Pauzeren + Hervatten (+ Wachtwoord als niets gepauzeerd) */}
+                          <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
                             {!allPaused && (
-                              <div style={{ position:'relative' }}>
-                                <button className="parent-btn-orange" onClick={e => { e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }} style={{ display:'flex', alignItems:'center', gap:5 }}>
-                                  <PauseCircle size={16}/> Pauzeren <ChevronDown size={14}/>
-                                </button>
-                                {pauseMenuUid === child.uid && (
-                                  <div style={menuStyle}>
-                                    {!pf.chat  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'chat')}><Message size={15}/> Chatten</button>}
-                                    {!pf.call  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'call')}><Phone size={15}/> Bellen</button>}
-                                    {!pf.video && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'video')}><Video size={15}/> Videobellen</button>}
-                                    {(!pf.chat || !pf.call || !pf.video) && <button style={{ ...menuItemStyle, borderTop:'1px solid #f0f0f0', marginTop:2 }} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'all')}><PauseCircle size={15}/> Alles pauzeren</button>}
-                                  </div>
-                                )}
-                              </div>
+                              <button className="parent-btn-orange" onClick={e => { e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}>
+                                <PauseCircle size={16}/> Pauzeren <ChevronDown size={14}/>
+                              </button>
                             )}
-                            {/* Hervatten knop + submenu */}
                             {anyPaused && (
-                              <div style={{ position:'relative' }}>
-                                <button className="parent-btn-green" onClick={e => { e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }} style={{ display:'flex', alignItems:'center', gap:5 }}>
-                                  <PlayCircle size={16}/> Hervatten <ChevronDown size={14}/>
-                                </button>
-                                {resumeMenuUid === child.uid && (
-                                  <div style={menuStyle}>
-                                    {pf.chat  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'chat')}><Message size={15}/> Chatten</button>}
-                                    {pf.call  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'call')}><Phone size={15}/> Bellen</button>}
-                                    {pf.video && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'video')}><Video size={15}/> Videobellen</button>}
-                                    {(pf.chat || pf.call || pf.video) && <button style={{ ...menuItemStyle, borderTop:'1px solid #f0f0f0', marginTop:2 }} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'all')}><PlayCircle size={15}/> Alles hervatten</button>}
-                                  </div>
-                                )}
-                              </div>
+                              <button className="parent-btn-green" onClick={e => { e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }}>
+                                <PlayCircle size={16}/> Hervatten <ChevronDown size={14}/>
+                              </button>
                             )}
-                            <button className="parent-btn-outline" style={{ fontSize: 12, display:'flex', alignItems:'center', gap:5 }}
+                            {!anyPaused && (
+                              <button className="parent-btn-outline" style={{ fontSize:12 }}
+                                onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
+                                <KeyRound size={16} color="#6b7280"/> Wachtwoord
+                              </button>
+                            )}
+                          </div>
+                          {/* Pauzeer-chips (inline onder Pauzeren) */}
+                          {pauseMenuUid === child.uid && (
+                            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:6 }}>
+                              {!pf.chat  && <button style={chipPause} onClick={() => pauseChild(child.uid, 'chat')}><Message size={13}/> Chat</button>}
+                              {!pf.call  && <button style={chipPause} onClick={() => pauseChild(child.uid, 'call')}><Phone size={13}/> Bellen</button>}
+                              {!pf.video && <button style={chipPause} onClick={() => pauseChild(child.uid, 'video')}><Video size={13}/> Video</button>}
+                              {(!pf.chat || !pf.call || !pf.video) && <button style={{ ...chipPause, opacity:.75 }} onClick={() => pauseChild(child.uid, 'all')}><PauseCircle size={13}/> Alles</button>}
+                            </div>
+                          )}
+                          {/* Hervat-chips (inline onder Hervatten) */}
+                          {resumeMenuUid === child.uid && (
+                            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:6 }}>
+                              {pf.chat  && <button style={chipResume} onClick={() => resumeChild(child.uid, 'chat')}><Message size={13}/> Chat</button>}
+                              {pf.call  && <button style={chipResume} onClick={() => resumeChild(child.uid, 'call')}><Phone size={13}/> Bellen</button>}
+                              {pf.video && <button style={chipResume} onClick={() => resumeChild(child.uid, 'video')}><Video size={13}/> Video</button>}
+                              {(pf.chat || pf.call || pf.video) && <button style={{ ...chipResume, opacity:.75 }} onClick={() => resumeChild(child.uid, 'all')}><PlayCircle size={13}/> Alles</button>}
+                            </div>
+                          )}
+                          {/* Wachtwoord op eigen rij als hervatten zichtbaar is */}
+                          {anyPaused && (
+                            <button className="parent-btn-outline" style={{ fontSize:12, marginTop:4 }}
                               onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
                               <KeyRound size={16} color="#6b7280"/> Wachtwoord
                             </button>
-                          </div>
+                          )}
                         </div>
                       </div>
                     </div>

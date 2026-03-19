@@ -408,6 +408,7 @@ export default function ParentDashboard({ user, onClose }) {
                     {analyticsError && <div className="parent-error" style={{ marginBottom: 12 }}>⚠️ {analyticsError}</div>}
                     {analytics && !analyticsLoading && (() => {
                       const { profile, contacts, friendRequests, sessions, messaging } = analytics;
+                      if (!profile || !sessions?.daily || !messaging?.topContacts || !contacts?.list || !friendRequests) return null;
                       const fmtSecs = s => { if (!s) return '0m'; const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h > 0 ? `${h}u ${m}m` : `${m}m`; };
                       const maxBar = Math.max(...sessions.daily.map(d => d.seconds), 1);
                       const dayLabels = { 0:'Zo', 1:'Ma', 2:'Di', 3:'Wo', 4:'Do', 5:'Vr', 6:'Za' };

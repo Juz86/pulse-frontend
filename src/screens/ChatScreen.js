@@ -2360,7 +2360,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 </div>
               </div>
               <div className="form-group">
-                <label className="form-label">Label</label>
+                <label className="form-label">Relatie</label>
                 <div style={{ display:'flex', gap:8 }}>
                   {['familie', 'vrienden'].map(lbl => (
                     <button key={lbl} onClick={() => setConvLabel(activeConv.id, convLabels[activeConv.id] === lbl ? null : lbl)}

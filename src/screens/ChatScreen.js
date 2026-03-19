@@ -858,7 +858,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   // ── Gesprek starten vanuit contacten ──────────────────────────────────────
   function startChatWithContact(contact) {
-    if (!socket) return;
+    const existing = findConvWithUid(contact.uid);
+    if (existing) { openConversation(existing); return; }
+    if (!socket?.connected) { showErrToast('Geen verbinding met server'); return; }
     socket.emit('conversation:create', {
       members:      [user.uid, contact.uid],
       memberNames:  { [user.uid]: user.displayName || user.email, [contact.uid]: contact.displayName },

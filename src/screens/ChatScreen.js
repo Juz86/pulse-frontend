@@ -1802,17 +1802,23 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   ))}
                 </div>
               )}
-              <div className="input-row">
-                <textarea
-                  ref={textareaRef}
-                  className="chat-textarea" rows={1}
-                  placeholder="Stuur een bericht…"
-                  value={text}
-                  onChange={e => handleTyping(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                />
-                <button className="send-btn" onClick={sendMessage}><Send size={18} /></button>
-              </div>
+              {pausedFeatures.chat ? (
+                <div className="chat-paused-notice">
+                  ⏸ Chatten is gepauzeerd door je ouder
+                </div>
+              ) : (
+                <div className="input-row">
+                  <textarea
+                    ref={textareaRef}
+                    className="chat-textarea" rows={1}
+                    placeholder="Stuur een bericht…"
+                    value={text}
+                    onChange={e => handleTyping(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                  />
+                  <button className="send-btn" onClick={sendMessage}><Send size={18} /></button>
+                </div>
+              )}
             </div>
           </>
         )}
@@ -2545,15 +2551,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         />
       )}
 
-      {pausedFeatures.chat && (
-        <div className="paused-overlay">
-          <div className="paused-box">
-            <div style={{ fontSize:48, marginBottom:16 }}>⏸️</div>
-            <h2 className="paused-title">Chatten gepauzeerd</h2>
-            <p className="paused-sub">Chatten is tijdelijk gepauzeerd door je ouder.<br />Neem contact op met je ouder om door te gaan.</p>
-          </div>
-        </div>
-      )}
 
     </div>
   );

@@ -1,7 +1,7 @@
 // src/screens/ParentDashboard.js
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getInitials, timeAgo } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 
 export default function ParentDashboard({ user, onClose }) {
@@ -42,6 +42,7 @@ export default function ParentDashboard({ user, onClose }) {
   const [analytics,        setAnalytics]        = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError,   setAnalyticsError]   = useState('');
+  const [childDropdownOpen, setChildDropdownOpen] = useState(false);
 
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
@@ -70,11 +71,11 @@ export default function ParentDashboard({ user, onClose }) {
   useEffect(() => { loadChildren(); loadActivities(); }, [loadChildren, loadActivities]);
 
   useEffect(() => {
-    if (!pauseMenuUid && !resumeMenuUid) return;
-    const close = () => { setPauseMenuUid(null); setResumeMenuUid(null); };
+    if (!pauseMenuUid && !resumeMenuUid && !childDropdownOpen) return;
+    const close = () => { setPauseMenuUid(null); setResumeMenuUid(null); setChildDropdownOpen(false); };
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
-  }, [pauseMenuUid, resumeMenuUid]);
+  }, [pauseMenuUid, resumeMenuUid, childDropdownOpen]);
 
   // eslint-disable-next-line
   useEffect(() => { if (selectedChildUid) loadAnalytics(selectedChildUid); }, [selectedChildUid]);
@@ -266,7 +267,7 @@ export default function ParentDashboard({ user, onClose }) {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                   <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Gekoppelde kinderen</h2>
-                  <button className="parent-btn-outline" onClick={loadChildren} style={{ fontSize: 12, padding: '6px 12px' }}>↻ Vernieuwen</button>
+                  <button className="parent-btn-outline" onClick={loadChildren} style={{ fontSize: 12, padding: '6px 12px', display:'flex', alignItems:'center', gap:4 }}><Refresh size={14}/> Vernieuwen</button>
                 </div>
                 {childError && <div className="parent-error" style={{ marginBottom: 12 }}>⚠️ {childError}</div>}
 
@@ -309,7 +310,7 @@ export default function ParentDashboard({ user, onClose }) {
                             {!allPaused && (
                               <div style={{ position:'relative' }}>
                                 <button className="parent-btn-orange" onClick={e => { e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }} style={{ display:'flex', alignItems:'center', gap:5 }}>
-                                  <PauseCircle size={16}/> Pauzeren ▾
+                                  <PauseCircle size={16}/> Pauzeren <ChevronDown size={14}/>
                                 </button>
                                 {pauseMenuUid === child.uid && (
                                   <div style={menuStyle}>
@@ -325,7 +326,7 @@ export default function ParentDashboard({ user, onClose }) {
                             {anyPaused && (
                               <div style={{ position:'relative' }}>
                                 <button className="parent-btn-green" onClick={e => { e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }} style={{ display:'flex', alignItems:'center', gap:5 }}>
-                                  <PlayCircle size={16}/> Hervatten ▾
+                                  <PlayCircle size={16}/> Hervatten <ChevronDown size={14}/>
                                 </button>
                                 {resumeMenuUid === child.uid && (
                                   <div style={menuStyle}>
@@ -399,15 +400,30 @@ export default function ParentDashboard({ user, onClose }) {
                   <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Pulse activiteiten</h2>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     {children.length > 0 && (
-                      <select
-                        style={{ fontSize: 13, padding: '6px 28px 6px 12px', cursor: 'pointer', border: '1.5px solid #d0d0e0', borderRadius: 10, background: 'var(--surface,#fff)', color: 'var(--text1,#1a1a2e)', outline: 'none', appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'%23888\'%3E%3Cpath d=\'M7 10l5 5 5-5z\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center', maxWidth: 160, minWidth: 80, fontFamily: 'inherit' }}
-                        value={selectedChildUid || ''}
-                        onChange={e => setSelectedChildUid(e.target.value || null)}
-                      >
-                        {children.map(c => <option key={c.uid} value={c.uid}>{c.displayName}</option>)}
-                      </select>
+                      <div style={{ position:'relative' }}>
+                        <button
+                          className="parent-btn-outline"
+                          style={{ fontSize:13, padding:'6px 10px 6px 12px', display:'flex', alignItems:'center', gap:4, minWidth:80, maxWidth:160 }}
+                          onClick={e => { e.stopPropagation(); setChildDropdownOpen(o => !o); }}
+                        >
+                          <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                            {children.find(c => c.uid === selectedChildUid)?.displayName || 'Kind'}
+                          </span>
+                          <ChevronDown size={16}/>
+                        </button>
+                        {childDropdownOpen && (
+                          <div style={{ position:'absolute', top:'calc(100% + 4px)', right:0, background:'var(--bg1,#fff)', border:'1px solid #e0e0e8', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.12)', zIndex:200, minWidth:140, padding:4 }}>
+                            {children.map(c => (
+                              <button key={c.uid} style={{ display:'block', width:'100%', textAlign:'left', background: c.uid === selectedChildUid ? 'rgba(108,99,255,.08)' : 'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' }}
+                                onClick={() => { setSelectedChildUid(c.uid); setChildDropdownOpen(false); }}>
+                                {c.displayName}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     )}
-                    <button className="parent-btn-outline" onClick={loadActivities} style={{ fontSize: 12, padding: '6px 12px' }}>↻ Vernieuwen</button>
+                    <button className="parent-btn-outline" onClick={() => { loadActivities(); if (selectedChildUid) loadAnalytics(selectedChildUid); }} style={{ fontSize: 12, padding: '6px 12px', display:'flex', alignItems:'center', gap:4 }}><Refresh size={14}/> Vernieuwen</button>
                   </div>
                 </div>
 

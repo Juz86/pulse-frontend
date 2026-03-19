@@ -112,7 +112,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   // Bericht verwijderen dropdown
   const [deleteMenuMsgId, setDeleteMenuMsgId] = useState(null); // msgId
-  const [editingMsg,      setEditingMsg]      = useState(null); // { id, text }
+  const [editingMsg,          setEditingMsg]          = useState(null); // { id, text }
+  const [reactionPickerMsgId, setReactionPickerMsgId] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
 
   // Groep aanmaken
@@ -420,6 +421,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text, editedAt } : m));
     };
 
+    const onMessageReaction = ({ msgId, reactions }) => {
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, reactions } : m));
+    };
+
     const onAccountPaused  = () => setIsPaused(true);
     const onAccountResumed = () => setIsPaused(false);
 
@@ -438,6 +443,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     socket.on('user:updated',     onUserUpdated);
     socket.on('message:deleted',  onMessageDeleted);
     socket.on('message:edited',   onMessageEdited);
+    socket.on('message:reaction', onMessageReaction);
     socket.on('account:paused',   onAccountPaused);
     socket.on('account:resumed',  onAccountResumed);
     socket.on('mention:notify',   onMentionNotify);
@@ -452,6 +458,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       socket.off('friend:accepted',  onFriendAccepted);
       socket.off('message:deleted',  onMessageDeleted);
       socket.off('message:edited',   onMessageEdited);
+      socket.off('message:reaction', onMessageReaction);
       socket.off('account:paused',   onAccountPaused);
       socket.off('account:resumed',  onAccountResumed);
       socket.off('user:updated',     onUserUpdated);
@@ -482,6 +489,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   }, [deleteMenuMsgId]);
+
+  // Sluit reactie-picker bij klik buiten
+  useEffect(() => {
+    if (!reactionPickerMsgId) return;
+    const close = () => setReactionPickerMsgId(null);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [reactionPickerMsgId]);
 
   // Sluit call dropdown bij klik buiten
   useEffect(() => {
@@ -588,6 +603,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setHasMore(arr.length === MSG_LIMIT);
     } catch (e) { console.error(e); }
     finally { setLoadingMore(false); }
+  }
+
+  // ── Emoji-reactie ─────────────────────────────────────────────────────────
+  function toggleReaction(msgId, emoji) {
+    if (!socket?.connected || !activeConv) return;
+    socket.emit('message:react', { convId: activeConv.id, msgId, emoji });
+    setReactionPickerMsgId(null);
   }
 
   // ── Bericht bewerken ──────────────────────────────────────────────────────
@@ -1367,6 +1389,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             <button className="msg-reply-btn" onClick={() => { setReplyTo({ id: msg.id, text: msg.text, senderName: msg.senderName }); textareaRef.current?.focus(); }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
             </button>
+            <div className="msg-react-wrap">
+              <button className="msg-react-btn" onClick={(e) => { e.stopPropagation(); setReactionPickerMsgId(reactionPickerMsgId === msg.id ? null : msg.id); }}>😊</button>
+              {reactionPickerMsgId === msg.id && (
+                <div className="msg-react-picker" onClick={e => e.stopPropagation()}>
+                  {['❤️','👍','😂','😮','😢','👎'].map(emoji => (
+                    <button key={emoji} onClick={() => toggleReaction(msg.id, emoji)}>{emoji}</button>
+                  ))}
+                </div>
+              )}
+            </div>
             <div className="msg-delete-wrap">
               <button className="msg-delete-btn" onClick={(e) => { e.stopPropagation(); setDeleteMenuMsgId(deleteMenuMsgId === msg.id ? null : msg.id); }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
@@ -1382,6 +1414,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               )}
             </div>
           </div>
+          {msg.reactions && Object.entries(msg.reactions).some(([, uids]) => uids?.length > 0) && (
+            <div className="msg-reactions">
+              {Object.entries(msg.reactions)
+                .filter(([, uids]) => uids?.length > 0)
+                .map(([emoji, uids]) => (
+                  <button key={emoji} className={`msg-reaction-pill${uids.includes(user.uid) ? ' mine' : ''}`}
+                    onClick={() => toggleReaction(msg.id, emoji)}>
+                    {emoji}{uids.length > 1 && <span>{uids.length}</span>}
+                  </button>
+                ))}
+            </div>
+          )}
           <div className="msg-time">
             {formatTime(msg.createdAt)}
             {isOwn && (() => {

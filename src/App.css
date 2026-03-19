@@ -551,6 +551,48 @@ body {
 .msg-group.in  .msg-reply-btn { right:-32px; }
 .msg-group:hover .msg-reply-btn { display:flex; }
 
+.msg-react-wrap {
+  position:absolute; top:50%; transform:translateY(-50%);
+  display:none; align-items:center;
+}
+.msg-group.out .msg-react-wrap { right:-32px; }
+.msg-group.in  .msg-react-wrap { left:-32px; }
+.msg-group:hover .msg-react-wrap { display:flex; }
+
+.msg-react-btn {
+  background:var(--surface2); border:none; border-radius:50%;
+  width:26px; height:26px; font-size:13px; cursor:pointer; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+}
+
+.msg-react-picker {
+  position:absolute; bottom:calc(100% + 6px);
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:24px; padding:4px 6px;
+  box-shadow:0 4px 20px rgba(0,0,0,.3); z-index:100;
+  display:flex; gap:2px; white-space:nowrap;
+}
+.msg-group.out .msg-react-picker { right:0; }
+.msg-group.in  .msg-react-picker { left:0; }
+.msg-react-picker button {
+  background:none; border:none; font-size:20px; cursor:pointer;
+  border-radius:50%; width:36px; height:36px;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .1s;
+}
+.msg-react-picker button:hover { background:var(--surface3); transform:scale(1.25); }
+
+.msg-reactions { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+.msg-reaction-pill {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:20px; padding:2px 8px; font-size:14px; cursor:pointer;
+  display:flex; align-items:center; gap:4px; color:var(--text);
+  transition:.1s; line-height:1.4;
+}
+.msg-reaction-pill.mine { background:rgba(108,99,255,.2); border-color:var(--accent); }
+.msg-reaction-pill:hover { background:var(--surface3); }
+.msg-reaction-pill span { font-size:12px; font-weight:600; }
+
 .msg-delete-wrap {
   position:absolute; top:50%; transform:translateY(-50%);
   display:none; align-items:center;

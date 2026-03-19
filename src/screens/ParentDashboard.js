@@ -29,6 +29,10 @@ export default function ParentDashboard({ user, onClose }) {
   // Inline fouten voor pauzeren/hervatten/verwijderen
   const [childError,     setChildError]     = useState(''); // { uid, msg }
 
+  // Submenu voor pauzeren/hervatten
+  const [pauseMenuUid,   setPauseMenuUid]   = useState(null);
+  const [resumeMenuUid,  setResumeMenuUid]  = useState(null);
+
   // Kind verwijderen
   const [confirmDelete,  setConfirmDelete]  = useState(null); // { uid, displayName }
   const [deleteError,    setDeleteError]    = useState('');
@@ -67,28 +71,38 @@ export default function ParentDashboard({ user, onClose }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Aanmaken mislukt.');
-      setChildren(prev => [...prev, { uid: data.uid, displayName: data.displayName, username: data.username, online: false, paused: false }]);
+      setChildren(prev => [...prev, { uid: data.uid, displayName: data.displayName, username: data.username, online: false, pausedFeatures: { chat: false, call: false, video: false } }]);
       setCreateSuccess(`Account voor ${data.displayName} aangemaakt.`);
       setChildName(''); setChildUsername(''); setChildPassword('');
     } catch (err) { setCreateError(err.message); }
     setCreateLoading(false);
   }
 
-  async function pauseChild(childUid) {
+  async function pauseChild(childUid, feature) {
     setChildError('');
+    setPauseMenuUid(null);
     try {
-      const res = await authFetch(`${BACKEND}/api/parent/pause/${childUid}`, { method: 'POST' });
+      const res = await authFetch(`${BACKEND}/api/parent/pause/${childUid}`, {
+        method: 'POST',
+        body: JSON.stringify({ feature }),
+      });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Pauzeren mislukt.'); }
-      setChildren(prev => prev.map(c => c.uid === childUid ? { ...c, paused: true } : c));
+      const data = await res.json();
+      setChildren(prev => prev.map(c => c.uid === childUid ? { ...c, pausedFeatures: data.pausedFeatures } : c));
     } catch (err) { setChildError(err.message); }
   }
 
-  async function resumeChild(childUid) {
+  async function resumeChild(childUid, feature) {
     setChildError('');
+    setResumeMenuUid(null);
     try {
-      const res = await authFetch(`${BACKEND}/api/parent/resume/${childUid}`, { method: 'POST' });
+      const res = await authFetch(`${BACKEND}/api/parent/resume/${childUid}`, {
+        method: 'POST',
+        body: JSON.stringify({ feature }),
+      });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Hervatten mislukt.'); }
-      setChildren(prev => prev.map(c => c.uid === childUid ? { ...c, paused: false } : c));
+      const data = await res.json();
+      setChildren(prev => prev.map(c => c.uid === childUid ? { ...c, pausedFeatures: data.pausedFeatures } : c));
     } catch (err) { setChildError(err.message); }
   }
 
@@ -234,7 +248,14 @@ export default function ParentDashboard({ user, onClose }) {
                   </div>
                 ) : children.map(child => (
                   <div key={child.uid}>
-                    <div className={`parent-child-row${child.paused ? ' paused' : ''}`}>
+                    {(() => {
+                      const pf = child.pausedFeatures || { chat: false, call: false, video: false };
+                      const anyPaused = pf.chat || pf.call || pf.video;
+                      const allPaused = pf.chat && pf.call && pf.video;
+                      const menuStyle = { position:'absolute', top:'calc(100% + 4px)', left:0, background:'var(--bg1,#fff)', border:'1px solid #e0e0e8', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.12)', zIndex:200, minWidth:190, padding:4 };
+                      const menuItemStyle = { display:'block', width:'100%', textAlign:'left', background:'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' };
+                      return (
+                    <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
                       <div className="parent-child-avatar">{getInitials(child.displayName)}</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="parent-child-name">{child.displayName}</div>
@@ -243,13 +264,42 @@ export default function ParentDashboard({ user, onClose }) {
                             <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
                             <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
                             {child.username && <span style={{ marginLeft: 6, color: '#888', fontSize: 12 }}>@{child.username}</span>}
-                            {child.paused && <span className="parent-paused-badge">Gepauzeerd</span>}
+                            {pf.chat  && <span className="parent-paused-badge">Chat</span>}
+                            {pf.call  && <span className="parent-paused-badge" style={{ background:'rgba(245,158,11,.12)', color:'#d97706' }}>Bellen</span>}
+                            {pf.video && <span className="parent-paused-badge" style={{ background:'rgba(139,92,246,.12)', color:'#7c3aed' }}>Video</span>}
                           </div>
                           <div className="pd-child-actions">
-                            {child.paused ? (
-                              <button className="parent-btn-green" onClick={() => resumeChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PlayCircle size={16}/> Hervatten</button>
-                            ) : (
-                              <button className="parent-btn-orange" onClick={() => pauseChild(child.uid)} style={{ display:'flex', alignItems:'center', gap:5 }}><PauseCircle size={16}/> Pauzeren</button>
+                            {/* Pauzeren knop + submenu */}
+                            {!allPaused && (
+                              <div style={{ position:'relative' }}>
+                                <button className="parent-btn-orange" onClick={() => { setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }} style={{ display:'flex', alignItems:'center', gap:5 }}>
+                                  <PauseCircle size={16}/> Pauzeren ▾
+                                </button>
+                                {pauseMenuUid === child.uid && (
+                                  <div style={menuStyle}>
+                                    {!pf.chat  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'chat')}>💬 Chatten</button>}
+                                    {!pf.call  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'call')}>📞 Bellen</button>}
+                                    {!pf.video && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'video')}>📹 Videobellen</button>}
+                                    {(!pf.chat || !pf.call || !pf.video) && <button style={{ ...menuItemStyle, borderTop:'1px solid #f0f0f0', marginTop:2 }} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => pauseChild(child.uid, 'all')}>⏸ Alles pauzeren</button>}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {/* Hervatten knop + submenu */}
+                            {anyPaused && (
+                              <div style={{ position:'relative' }}>
+                                <button className="parent-btn-green" onClick={() => { setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }} style={{ display:'flex', alignItems:'center', gap:5 }}>
+                                  <PlayCircle size={16}/> Hervatten ▾
+                                </button>
+                                {resumeMenuUid === child.uid && (
+                                  <div style={menuStyle}>
+                                    {pf.chat  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'chat')}>💬 Chatten</button>}
+                                    {pf.call  && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'call')}>📞 Bellen</button>}
+                                    {pf.video && <button style={menuItemStyle} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'video')}>📹 Videobellen</button>}
+                                    {(pf.chat || pf.call || pf.video) && <button style={{ ...menuItemStyle, borderTop:'1px solid #f0f0f0', marginTop:2 }} onMouseEnter={e=>e.target.style.background='#f3f4f6'} onMouseLeave={e=>e.target.style.background='none'} onClick={() => resumeChild(child.uid, 'all')}>▶ Alles hervatten</button>}
+                                  </div>
+                                )}
+                              </div>
                             )}
                             <button className="parent-btn-outline" style={{ fontSize: 12, display:'flex', alignItems:'center', gap:5 }}
                               onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
@@ -263,6 +313,8 @@ export default function ParentDashboard({ user, onClose }) {
                         </div>
                       </div>
                     </div>
+                    );
+                  })()}
 
                     {/* Wachtwoord wijzigen inline */}
                     {changingPwUid === child.uid && (

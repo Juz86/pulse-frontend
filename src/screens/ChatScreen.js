@@ -127,7 +127,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     localStorage.setItem('pulse_dnd', next ? '1' : '0');
     showErrToast(next ? '🔕 Niet gestoord ingeschakeld' : '🔔 Meldingen ingeschakeld');
   }
-  const [isPaused, setIsPaused] = useState(false);
+  const [pausedFeatures, setPausedFeatures] = useState({ chat: false, call: false, video: false });
 
   // Groep aanmaken
   const [showNewGroup,   setShowNewGroup]   = useState(false);
@@ -439,8 +439,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setMessages(prev => prev.map(m => m.id === msgId ? { ...m, reactions } : m));
     };
 
-    const onAccountPaused  = () => setIsPaused(true);
-    const onAccountResumed = () => setIsPaused(false);
+    const onAccountPaused  = ({ features } = {}) => setPausedFeatures(features || { chat: true, call: true, video: true });
+    const onAccountResumed = ({ features } = {}) => setPausedFeatures(features || { chat: false, call: false, video: false });
 
     const onMentionNotify = ({ senderName, groupName, convId: mConvId }) => {
       if (dndRef.current) return;
@@ -1193,6 +1193,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // ── Bellen vanuit oproepen-modal ─────────────────────────────────────────
   // ── Gedeelde bel-logica ───────────────────────────────────────────────────
   async function startCallTo({ toUid, convId, name, isVideo }) {
+    if (isVideo ? pausedFeatures.video : pausedFeatures.call) {
+      showErrToast(`${isVideo ? 'Videobellen' : 'Bellen'} is gepauzeerd door je ouder.`);
+      return;
+    }
     callConvIdRef.current    = convId;
     callStartTimeRef.current = null;
     callIsVideoRef.current   = isVideo;
@@ -1742,7 +1746,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 </div>
               )}
               {
-                // eslint-disable-next-line react-hooks/exhaustive-deps
+                // eslint-disable-next-line
                 useMemo(() => renderMessages(), [messages, chatSearch, chatSearchIdx, activeConv?.id, activeConv?.isGroup, activeConv?.memberNames, deleteMenuMsgId, editingMsg, reactionPickerMsgId, contacts])
               }
               <div ref={msgEndRef} />
@@ -2529,12 +2533,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         />
       )}
 
-      {isPaused && (
+      {pausedFeatures.chat && (
         <div className="paused-overlay">
           <div className="paused-box">
             <div style={{ fontSize:48, marginBottom:16 }}>⏸️</div>
-            <h2 className="paused-title">Account gepauzeerd</h2>
-            <p className="paused-sub">Je account is tijdelijk gepauzeerd door je ouder.<br />Neem contact op met je ouder om door te gaan.</p>
+            <h2 className="paused-title">Chatten gepauzeerd</h2>
+            <p className="paused-sub">Chatten is tijdelijk gepauzeerd door je ouder.<br />Neem contact op met je ouder om door te gaan.</p>
           </div>
         </div>
       )}

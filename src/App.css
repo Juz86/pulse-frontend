@@ -566,7 +566,7 @@ body {
   align-items:center; justify-content:center;
 }
 .msg-group.out .msg-reply-btn { left:-62px; }
-.msg-group.in  .msg-reply-btn { right:-32px; }
+.msg-group.in  .msg-reply-btn { right:-62px; }
 .msg-group:hover .msg-reply-btn { display:flex; }
 
 .msg-react-wrap {
@@ -574,7 +574,7 @@ body {
   display:none; align-items:center;
 }
 .msg-group.out .msg-react-wrap { left:-32px; }
-.msg-group.in  .msg-react-wrap { right:-62px; }
+.msg-group.in  .msg-react-wrap { right:-32px; }
 .msg-group:hover .msg-react-wrap { display:flex; }
 
 .msg-react-btn {

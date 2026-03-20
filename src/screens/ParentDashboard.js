@@ -77,8 +77,7 @@ export default function ParentDashboard({ user, onClose }) {
     return () => document.removeEventListener('click', close);
   }, [pauseMenuUid, resumeMenuUid, childDropdownOpen]);
 
-  // eslint-disable-next-line
-  useEffect(() => { if (selectedChildUid) loadAnalytics(selectedChildUid); }, [selectedChildUid]);
+  useEffect(() => { if (selectedChildUid) loadAnalytics(selectedChildUid); }, [selectedChildUid, loadAnalytics]);
 
   async function createChild(e) {
     e.preventDefault();
@@ -149,7 +148,7 @@ export default function ParentDashboard({ user, onClose }) {
     } catch (err) { setDeleteError(err.message); }
   }
 
-  async function loadAnalytics(childUid) {
+  const loadAnalytics = useCallback(async (childUid) => {
     if (!childUid) { setAnalytics(null); setSelectedChildUid(null); return; }
     setSelectedChildUid(childUid);
     setAnalyticsLoading(true);
@@ -161,7 +160,7 @@ export default function ParentDashboard({ user, onClose }) {
       setAnalytics(data);
     } catch (err) { setAnalyticsError(err.message); setAnalytics(null); }
     setAnalyticsLoading(false);
-  }
+  }, []);
 
   const TABS = [
     { id: 'add',        icon: <UserPlus  size={16}/>, label: 'Kind toevoegen'       },

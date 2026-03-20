@@ -227,6 +227,8 @@ body {
 }
 .brand-dot      { width:8px; height:8px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:50%; animation:pulse-dot 2s infinite; }
 @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(.8)} }
+/* Gedeelde utility — alle pulse animaties gebruiken dezelfde keyframe */
+.anim-pulse { animation:pulse-dot 2s infinite; }
 
 .search-box {
   display:flex; align-items:center; gap:9px;
@@ -457,8 +459,10 @@ body {
 .call-btn {
   width:44px; height:44px; border-radius:12px;
   display:flex; align-items:center; justify-content:center;
-  font-size:18px; cursor:pointer; transition:.22s;
-  box-shadow:0 4px 12px rgba(0,0,0,.25);
+  font-size:18px; cursor:pointer;
+  transition:transform .22s, background .22s;
+  /* box-shadow via will-change zodat het niet layout triggert */
+  will-change:transform;
 }
 .call-btn.voice {
   background:rgba(67,233,123,.18); color:var(--success);
@@ -470,12 +474,10 @@ body {
 }
 .call-btn.voice:hover {
   background:rgba(67,233,123,.3);
-  box-shadow:0 6px 20px rgba(67,233,123,.35);
   transform:translateY(-2px) scale(1.08);
 }
 .call-btn.video:hover {
   background:rgba(108,99,255,.3);
-  box-shadow:0 6px 20px rgba(108,99,255,.4);
   transform:translateY(-2px) scale(1.08);
 }
 .call-btn:active { transform:scale(1); }
@@ -915,10 +917,16 @@ body {
 /* ── MODAL ── */
 .modal-overlay {
   position:fixed; inset:0; z-index:1000;
-  background:radial-gradient(ellipse at center, rgba(108,99,255,.06) 0%, rgba(0,0,0,.75) 100%);
-  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  background:radial-gradient(ellipse at center, rgba(108,99,255,.06) 0%, rgba(0,0,0,.85) 100%);
   display:flex; align-items:center; justify-content:center;
   animation:overlay-in .2s ease;
+}
+@supports (backdrop-filter: blur(1px)) {
+  .modal-overlay {
+    background:radial-gradient(ellipse at center, rgba(108,99,255,.06) 0%, rgba(0,0,0,.75) 100%);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+  }
 }
 @keyframes overlay-in { from { opacity:0; } to { opacity:1; } }
 @keyframes modal-up   {
@@ -1738,3 +1746,24 @@ body {
   .parent-dashboard-overlay { padding:20px 0 0; left:0; bottom:62px; }
   .parent-dashboard-overlay .parent-root { border-radius:16px 16px 0 0; min-height:calc(100vh - 82px); }
 }
+
+/* ── Utility classes (vervangen inline styles voor betere render prestaties) ── */
+.u-flex        { display:flex; }
+.u-flex-col    { display:flex; flex-direction:column; }
+.u-flex-1      { flex:1; }
+.u-flex-shrink { flex-shrink:0; }
+.u-min-w-0     { min-width:0; }
+.u-gap-4       { gap:4px; }
+.u-gap-6       { gap:6px; }
+.u-gap-8       { gap:8px; }
+.u-gap-10      { gap:10px; }
+.u-gap-12      { gap:12px; }
+.u-align-center { align-items:center; }
+.u-justify-between { justify-content:space-between; }
+.u-w-full      { width:100%; }
+.u-fw-600      { font-weight:600; }
+.u-fs-12       { font-size:12px; }
+.u-fs-13       { font-size:13px; }
+.u-fs-14       { font-size:14px; }
+.u-ellipsis    { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.u-pointer     { cursor:pointer; }

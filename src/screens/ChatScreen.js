@@ -24,6 +24,15 @@ function callPreview(conv, currentUid) {
 }
 
 
+// ── Berichtstatus helper (buiten component voor stabiele referentie) ──────────
+function getMsgStatusInfo(msg) {
+  if (msg.failed)   return { icon: 'cancel', label: 'Mislukt', failed: true };
+  if (msg.pending)  return { icon: 'clock',  label: 'verstuurd', failed: false };
+  if (msg.status === 'gelezen')  return { icon: 'double', label: 'gelezen',  read: true };
+  if (msg.status === 'bezorgd') return { icon: 'double', label: 'bezorgd',  read: false };
+  return { icon: 'check', label: 'verstuurd', failed: false };
+}
+
 export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled }) {
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
@@ -104,15 +113,32 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // Contact profiel bekijken (vanuit contactenlijst)
   const [viewingContact,  setViewingContact]  = useState(null);
 
+  // Nickname cache — voorkomt localStorage.getItem() bij elke render
+  const [nicknameCache, setNicknameCache] = useState(() => {
+    const cache = {};
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k?.startsWith('pulse_nick_')) cache[k.replace('pulse_nick_', '')] = localStorage.getItem(k);
+      }
+    } catch {}
+    return cache;
+  });
+
   function getContactNickname(uid) {
-    return localStorage.getItem(`pulse_nick_${uid}`) || null;
+    return nicknameCache[uid] || null;
   }
   function saveContactNickname(uid, name) {
-    if (name.trim()) localStorage.setItem(`pulse_nick_${uid}`, name.trim());
-    else localStorage.removeItem(`pulse_nick_${uid}`);
+    if (name.trim()) {
+      localStorage.setItem(`pulse_nick_${uid}`, name.trim());
+      setNicknameCache(prev => ({ ...prev, [uid]: name.trim() }));
+    } else {
+      localStorage.removeItem(`pulse_nick_${uid}`);
+      setNicknameCache(prev => { const n = { ...prev }; delete n[uid]; return n; });
+    }
   }
   function getContactDisplayName(contact) {
-    return getContactNickname(contact.uid) || contact.displayName;
+    return nicknameCache[contact.uid] || contact.displayName;
   }
 
   // Reply
@@ -206,6 +232,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const disconnectTimerRef  = useRef(null);
   const callIsVideoRef   = useRef(false);
   const callConvIdRef    = useRef(null);
+  const audioCtxRef      = useRef(null);
   const socket           = getSocket();
 
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv]);
@@ -304,16 +331,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const onDisconnect = () => {
       disconnectTimerRef.current = setTimeout(() => {
         setConnected(false);
-        let secs = 10;
-        setReconnectIn(secs);
+        setReconnectIn(10);
+        clearInterval(reconnectIntervalRef.current);
         reconnectIntervalRef.current = setInterval(() => {
-          secs -= 1;
-          if (secs <= 0) {
-            clearInterval(reconnectIntervalRef.current);
-            setReconnectIn(null);
-          } else {
-            setReconnectIn(secs);
-          }
+          setReconnectIn(prev => {
+            if (prev <= 1) {
+              clearInterval(reconnectIntervalRef.current);
+              return null;
+            }
+            return prev - 1;
+          });
         }, 1000);
       }, 3000);
     };
@@ -507,6 +534,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       socket.off('account:resumed',  onAccountResumed);
       socket.off('user:updated',     onUserUpdated);
       socket.off('mention:notify',   onMentionNotify);
+      clearTimeout(disconnectTimerRef.current);
+      clearInterval(reconnectIntervalRef.current);
     };
   }, [socket, loadConversations, loadContacts]);
 
@@ -565,13 +594,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [showAddContact, showNewChat, showNewGroup, showProfile, showCallModal, showGroupInfo]);
 
-  // ── Berichtengeluid (4) ───────────────────────────────────────────────────
+  // ── Berichtengeluid ───────────────────────────────────────────────────────
+  // AudioContext wordt hergebruikt (max ~50 per browser-tab)
   function playMessageSound() {
     if (dndRef.current) return;
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') ctx.resume();
       const t = ctx.currentTime;
-      // Twee zachte tonen — WhatsApp-achtig
       [[880, 0, 0.08], [1100, 0.09, 0.14]].forEach(([freq, start, end]) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -584,9 +617,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         osc.start(t + start);
         osc.stop(t + end);
       });
-      setTimeout(() => ctx.close(), 400);
     } catch {}
   }
+
+  useEffect(() => () => { audioCtxRef.current?.close(); }, []);
 
   // ── Gesprek verwijderen ───────────────────────────────────────────────────
   async function deleteConversation(e, convId) {
@@ -1426,12 +1460,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           <div key={msg._key || msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}>
             <div className="msg-contact-card" style={{ cursor: isOwn ? 'default' : 'pointer' }}
               onClick={!isOwn ? () => { setFriendReqSent(false); setViewingSharedContact({ ...sc, isAlreadyContact }); } : undefined}>
-              <div className="avatar-circle sm" style={{ borderRadius:12, flexShrink:0 }}>{getInitials(sc?.name || '')}</div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontWeight:600, fontSize:'14px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{sc?.name || 'Contactpersoon'}</div>
-                {sc?.email && <div style={{ fontSize:'12px', color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{sc.email}</div>}
+              <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius:12 }}>{getInitials(sc?.name || '')}</div>
+              <div className="u-flex-1 u-min-w-0">
+                <div className="u-fw-600 u-fs-14 u-ellipsis">{sc?.name || 'Contactpersoon'}</div>
+                {sc?.email && <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>{sc.email}</div>}
               </div>
-              <div style={{ fontSize:'11px', color: isOwn ? 'rgba(255,255,255,.5)' : 'var(--text3)', flexShrink:0, alignSelf:'flex-end' }}>{formatTime(msg.createdAt)}</div>
+              <div className="u-flex-shrink" style={{ fontSize:'11px', color: isOwn ? 'rgba(255,255,255,.5)' : 'var(--text3)', alignSelf:'flex-end' }}>{formatTime(msg.createdAt)}</div>
             </div>
           </div>
         );
@@ -1535,20 +1569,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           <div className="msg-time">
             {formatTime(msg.createdAt)}
             {isOwn && (() => {
-              if (msg.failed) return (
+              const s = getMsgStatusInfo(msg);
+              if (s.failed) return (
                 <span className="msg-ticks failed" onClick={() => retryMessage(msg)} title="Opnieuw versturen">
-                  <Cancel size={12} />
-                  <span className="msg-ticks-label">Mislukt · Opnieuw</span>
+                  <Cancel size={12} /><span className="msg-ticks-label">Mislukt · Opnieuw</span>
                 </span>
               );
-              const isPending   = msg.pending;
-              const isRead      = msg.status === 'gelezen';
-              const isDelivered = isRead || msg.status === 'bezorgd';
-              const label = isPending ? 'verstuurd' : isRead ? 'gelezen' : isDelivered ? 'bezorgd' : 'verstuurd';
               return (
-                <span className={`msg-ticks ${isRead ? 'read' : ''}`}>
-                  {isPending ? <Clock size={12} /> : isRead ? <CheckDouble size={12} /> : isDelivered ? <CheckDouble size={12} /> : <Check size={12} />}
-                  <span className="msg-ticks-label">{label}</span>
+                <span className={`msg-ticks${s.read ? ' read' : ''}`}>
+                  {s.icon === 'clock'  ? <Clock size={12} /> : s.icon === 'double' ? <CheckDouble size={12} /> : <Check size={12} />}
+                  <span className="msg-ticks-label">{s.label}</span>
                 </span>
               );
             })()}
@@ -1560,7 +1590,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }
 
   // eslint-disable-next-line
-  const renderedMessages = useMemo(() => renderMessages(), [messages, chatSearch, chatSearchIdx, activeConv?.id, activeConv?.isGroup, activeConv?.memberNames, deleteMenuMsgId, editingMsg, reactionPickerMsgId, contacts]);
+  const renderedMessages = useMemo(() => renderMessages(), [messages, chatSearch, chatSearchIdx, activeConv?.id, activeConv?.isGroup, activeConv?.memberNames, deleteMenuMsgId, editingMsg, reactionPickerMsgId, contacts, user.uid, nicknameCache]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="app-screen">

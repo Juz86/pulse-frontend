@@ -220,6 +220,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     errToastTimer.current = setTimeout(() => setErrToast(''), 4000);
   }
 
+  const [chatFading,     setChatFading]     = useState(false);
+  const msgCache         = useRef({});      // convId → berichten array
   const msgEndRef        = useRef(null);
   const msgsAreaRef      = useRef(null);
   const textareaRef      = useRef(null);
@@ -650,15 +652,28 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     activeConvRef.current = conv;
     // Draft herstellen voor het nieuwe gesprek
     const draft = localStorage.getItem(`pulse_draft_${user.uid}_${convId}`) || '';
-    setText(draft); // direct updaten zodat socket events meteen de juiste conv kennen
+    setText(draft);
     setActiveTab('chats');
     setShowChatSearch(false);
     setChatSearch('');
-    setMessages([]);
     setMsgOffset(0);
     setHasMore(false);
-    setLoadingMsgs(true);
     setUnreadCounts(prev => { const n = { ...prev }; delete n[conv.id]; return n; });
+
+    // Toon gecachte berichten direct, geen skeleton bij terugkeren
+    const cached = msgCache.current[convId];
+    if (cached) {
+      setMessages(cached);
+      setLoadingMsgs(false);
+    } else {
+      setMessages([]);
+      setLoadingMsgs(true);
+    }
+
+    // Fade overgang
+    setChatFading(true);
+    setTimeout(() => setChatFading(false), 150);
+
     const liveSocket = getSocket();
     liveSocket?.emit('conversation:join', { convId: conv.id });
     liveSocket?.emit('messages:read', { convId: conv.id });
@@ -667,6 +682,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       const data = await res.json();
       const arr  = Array.isArray(data) ? data : [];
       if (activeConvRef.current?.id !== convId) return; // gebruiker wisselde alweer
+      msgCache.current[convId] = arr;
       setMessages(prev => {
         // Behoud live berichten die tijdens de fetch binnenkwamen en nog niet in de fetch zitten
         const fetchedIds = new Set(arr.map(m => m.id).filter(Boolean));
@@ -1887,7 +1903,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               );
             })()}
 
-            <div className={`messages-area${chatBg ? ' has-chat-bg' : ''}`} ref={msgsAreaRef}
+            <div className={`messages-area${chatBg ? ' has-chat-bg' : ''}${chatFading ? ' chat-fading' : ''}`} ref={msgsAreaRef}
               style={chatBg?.type === 'photo' ? { backgroundImage:`url(${chatBg.url})`, backgroundSize:'cover', backgroundPosition:'center', backgroundAttachment:'local' }
                    : chatBg?.type === 'color' ? { background: chatBg.value } : {}}
               onClick={() => { if (showChatSearch) { setShowChatSearch(false); setChatSearch(''); } }}>

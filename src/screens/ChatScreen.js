@@ -1572,13 +1572,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               const s = getMsgStatusInfo(msg);
               if (s.failed) return (
                 <span className="msg-ticks failed" onClick={() => retryMessage(msg)} title="Opnieuw versturen">
-                  <Cancel size={12} /><span className="msg-ticks-label">Mislukt · Opnieuw</span>
+                  <span className="msg-ticks-label">Mislukt · Opnieuw</span><Cancel size={12} />
                 </span>
               );
               return (
                 <span className={`msg-ticks${s.read ? ' read' : ''}`}>
-                  {s.icon === 'clock'  ? <Clock size={12} /> : s.icon === 'double' ? <CheckDouble size={12} /> : <Check size={12} />}
                   <span className="msg-ticks-label">{s.label}</span>
+                  {s.icon === 'clock'  ? <Clock size={12} /> : s.icon === 'double' ? <CheckDouble size={12} /> : <Check size={12} />}
                 </span>
               );
             })()}

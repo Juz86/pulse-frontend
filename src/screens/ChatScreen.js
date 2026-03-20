@@ -1520,9 +1520,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 : renderMsgText(msg.text || '', msg.mentions, activeConv?.memberNames)}
               {msg.editedAt && <span className="msg-edited">(bewerkt)</span>}
             </div>
-            <button className="msg-reply-btn" onClick={() => { setReplyTo({ id: msg.id, text: msg.text, senderName: msg.senderName }); textareaRef.current?.focus(); }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
-            </button>
             <div className="msg-react-wrap">
               <button className="msg-react-btn" onClick={(e) => { e.stopPropagation(); setReactionPickerMsgId(reactionPickerMsgId === msg.id ? null : msg.id); }}>😊</button>
               {reactionPickerMsgId === msg.id && (
@@ -1533,6 +1530,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 </div>
               )}
             </div>
+            <button className="msg-reply-btn" onClick={() => { setReplyTo({ id: msg.id, text: msg.text, senderName: msg.senderName }); textareaRef.current?.focus(); }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{transform:'scaleX(-1)'}}><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+            </button>
             <div className="msg-delete-wrap">
               <button className="msg-delete-btn" onClick={(e) => { e.stopPropagation(); setDeleteMenuMsgId(deleteMenuMsgId === msg.id ? null : msg.id); }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>

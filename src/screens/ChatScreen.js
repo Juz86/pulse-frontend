@@ -38,6 +38,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [activeCall,     setActiveCall]     = useState(null);
   const [unreadCounts,   setUnreadCounts]   = useState({});
   const [connected,      setConnected]      = useState(true);
+  const [loadingConvs,   setLoadingConvs]   = useState(true);
+  const [loadingMsgs,    setLoadingMsgs]    = useState(false);
+  const [reconnectIn,    setReconnectIn]    = useState(null); // countdown seconden
+  const reconnectIntervalRef = useRef(null);
   const [hasMore,        setHasMore]        = useState(false);
   const [loadingMore,    setLoadingMore]    = useState(false);
   const [msgOffset,      setMsgOffset]      = useState(0);
@@ -213,14 +217,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       const res  = await authFetch(`${BACKEND_URL}/api/conversations/${user.uid}`);
       const data = await res.json();
       setConversations(Array.isArray(data) ? data : []);
-      // Auto-join alle kamer-rooms zodat berichten altijd real-time aankomen
-      // + online status opnieuw opvragen zodat groene stippen kloppen
       const sock = getSocket();
       if (sock && Array.isArray(data)) {
         data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
         sock.emit('users:online:request');
       }
     } catch (e) { console.error(e); }
+    finally { setLoadingConvs(false); }
   }, [user.uid]);
 
   // ── Contacten laden uit Firestore ─────────────────────────────────────────
@@ -291,14 +294,28 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
     const onConnect = () => {
       clearTimeout(disconnectTimerRef.current);
+      clearInterval(reconnectIntervalRef.current);
       setConnected(true);
+      setReconnectIn(null);
       // Re-join alle kamers + online status opvragen bij (her)verbinding
       conversationsRef.current.forEach(conv => socket.emit('conversation:join', { convId: conv.id }));
       socket.emit('users:online:request');
     };
     const onDisconnect = () => {
-      // Wacht 3 seconden voor banner tonen — korte onderbrekingen negeren
-      disconnectTimerRef.current = setTimeout(() => setConnected(false), 3000);
+      disconnectTimerRef.current = setTimeout(() => {
+        setConnected(false);
+        let secs = 10;
+        setReconnectIn(secs);
+        reconnectIntervalRef.current = setInterval(() => {
+          secs -= 1;
+          if (secs <= 0) {
+            clearInterval(reconnectIntervalRef.current);
+            setReconnectIn(null);
+          } else {
+            setReconnectIn(secs);
+          }
+        }, 1000);
+      }, 3000);
     };
 
     const onMessageReceived = (msg) => {
@@ -589,14 +606,24 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // ── Gesprek openen ────────────────────────────────────────────────────────
   async function openConversation(conv) {
     const convId = conv.id;
+    // Draft huidig gesprek opslaan voordat we wisselen
+    if (activeConvRef.current?.id && text.trim()) {
+      localStorage.setItem(`pulse_draft_${user.uid}_${activeConvRef.current.id}`, text.trim());
+    } else if (activeConvRef.current?.id) {
+      localStorage.removeItem(`pulse_draft_${user.uid}_${activeConvRef.current.id}`);
+    }
     setActiveConv(conv);
-    activeConvRef.current = conv; // direct updaten zodat socket events meteen de juiste conv kennen
+    activeConvRef.current = conv;
+    // Draft herstellen voor het nieuwe gesprek
+    const draft = localStorage.getItem(`pulse_draft_${user.uid}_${convId}`) || '';
+    setText(draft); // direct updaten zodat socket events meteen de juiste conv kennen
     setActiveTab('chats');
     setShowChatSearch(false);
     setChatSearch('');
     setMessages([]);
     setMsgOffset(0);
     setHasMore(false);
+    setLoadingMsgs(true);
     setUnreadCounts(prev => { const n = { ...prev }; delete n[conv.id]; return n; });
     socket?.emit('conversation:join', { convId: conv.id });
     socket?.emit('messages:read', { convId: conv.id });
@@ -604,10 +631,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       const res  = await authFetch(`${BACKEND_URL}/api/messages/${conv.id}?limit=${MSG_LIMIT}&offset=0`);
       const data = await res.json();
       const arr  = Array.isArray(data) ? data : [];
-      // Alleen updaten als gebruiker nog in hetzelfde gesprek zit
       if (activeConvRef.current?.id !== convId) return;
       setMessages(prev => {
-        // Bewaar berichten die tijdens de fetch binnenkwamen (niet in DB-resultaat)
         const fetchedIds = new Set(arr.map(m => m.id).filter(Boolean));
         const live = prev.filter(m => m.id && !fetchedIds.has(m.id));
         return [...arr, ...live];
@@ -616,6 +641,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setHasMore(arr.length === MSG_LIMIT);
       setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 100);
     } catch (e) { console.error(e); }
+    finally { setLoadingMsgs(false); }
   }
 
   // ── Meer berichten laden (5) ──────────────────────────────────────────────
@@ -646,6 +672,21 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     socket.emit('message:send', { convId: conv.id, message: msg });
     setForwardMsg(null);
     showErrToast('📋 Bericht doorgestuurd');
+  }
+
+  // ── Bericht opnieuw versturen ─────────────────────────────────────────────
+  function retryMessage(failedMsg) {
+    if (!socket?.connected || !activeConv) return;
+    setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...m, pending: true, failed: false } : m));
+    const failTimer = setTimeout(() => {
+      setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...m, pending: false, failed: true } : m));
+    }, 8000);
+    socket.emit('message:send', { convId: activeConv.id, message: { ...failedMsg, createdAt: new Date().toISOString() } }, (savedMsg) => {
+      clearTimeout(failTimer);
+      if (savedMsg?.id) {
+        setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...savedMsg, _key: failedMsg.id, pending: false, failed: false } : m));
+      }
+    });
   }
 
   // ── Emoji-reactie ─────────────────────────────────────────────────────────
@@ -699,13 +740,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       const updated = prev.map(c => c.id === activeConv.id ? { ...c, lastMessage: msg.text, updatedAt: msg.createdAt, lastCallDirection: null, lastCallSenderId: null, lastCallIsVideo: null } : c);
       return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
     });
+    const failTimer = setTimeout(() => {
+      setMessages(prev => prev.map(m => m.id === tempId ? { ...m, pending: false, failed: true } : m));
+    }, 8000);
     socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
-      // Vervang tijdelijk bericht met bevestigd bericht van server
+      clearTimeout(failTimer);
       if (savedMsg?.id) {
-        setMessages(prev => prev.map(m => m.id === tempId ? { ...savedMsg, _key: tempId, pending: false } : m));
+        setMessages(prev => prev.map(m => m.id === tempId ? { ...savedMsg, _key: tempId, pending: false, failed: false } : m));
       }
     });
     setText('');
+    // Draft wissen na versturen
+    localStorage.removeItem(`pulse_draft_${user.uid}_${activeConv.id}`);
     setPendingMentions([]);
     setMentionSuggestions([]);
     if (textareaRef.current) { textareaRef.current.style.height = 'auto'; }
@@ -1474,6 +1520,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           <div className="msg-time">
             {formatTime(msg.createdAt)}
             {isOwn && (() => {
+              if (msg.failed) return (
+                <span className="msg-ticks failed" onClick={() => retryMessage(msg)} title="Opnieuw versturen">
+                  <Cancel size={12} />
+                  <span className="msg-ticks-label">Mislukt · Opnieuw</span>
+                </span>
+              );
               const isPending   = msg.pending;
               const isRead      = msg.status === 'gelezen';
               const isDelivered = isRead || msg.status === 'bezorgd';
@@ -1498,10 +1550,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   return (
     <div className="app-screen">
 
-      {/* ── VERBINDINGSBANNER (10) ── */}
+      {/* ── VERBINDINGSBANNER ── */}
       {!connected && (
         <div className="connection-banner">
-          Verbinding verbroken — opnieuw verbinden…
+          <span>Verbinding verbroken{reconnectIn ? ` — opnieuw verbinden in ${reconnectIn}s` : ' — verbinden…'}</span>
+          <button className="connection-retry-btn" onClick={() => { const s = getSocket(); s?.connect(); }}>
+            Nu verbinden
+          </button>
         </div>
       )}
 
@@ -1556,7 +1611,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         {/* ── CHATS TAB ── */}
         {activeTab === 'chats' && (
           <div className="conv-list" onClick={() => setLabelMenuConvId(null)}>
-            {conversations.length === 0 && (
+            {loadingConvs && [0,1,2,3].map(i => (
+              <div key={i} className="conv-item skeleton-item">
+                <div className="skeleton-avatar" />
+                <div className="skeleton-lines">
+                  <div className="skeleton-line wide" />
+                  <div className="skeleton-line narrow" />
+                </div>
+              </div>
+            ))}
+            {!loadingConvs && conversations.length === 0 && (
               <div className="empty-convs">
                 <p>Nog geen gesprekken.</p>
                 <p>Klik op het <Message size={14} color="#ffffff" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> om een nieuwe chat te starten.</p>
@@ -1790,7 +1854,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   </button>
                 </div>
               )}
-              {renderedMessages}
+              {loadingMsgs ? (
+                <div className="msg-skeleton-wrap">
+                  {[80,55,70,40,65].map((w,i) => (
+                    <div key={i} className={`msg-skeleton ${i%2===0?'out':'in'}`}>
+                      <div className="skeleton-bubble" style={{ width:`${w}%` }} />
+                    </div>
+                  ))}
+                </div>
+              ) : renderedMessages}
               <div ref={msgEndRef} />
             </div>
 

@@ -856,12 +856,59 @@ body {
 .load-more-btn:hover:not(:disabled) { background:var(--surface3); color:var(--text); }
 .load-more-btn:disabled { opacity:.5; cursor:default; }
 
-/* ── VERBINDINGSBANNER (10) ── */
+/* ── VERBINDINGSBANNER ── */
 .connection-banner {
   position:fixed; top:0; left:0; right:0; z-index:9999;
-  background:var(--danger); color:#fff; text-align:center;
-  font-size:13px; font-weight:600; padding:8px;
+  background:var(--danger); color:#fff;
+  font-size:13px; font-weight:600; padding:8px 16px;
+  display:flex; align-items:center; justify-content:center; gap:12px;
   animation:slide-down .3s ease;
+}
+.connection-retry-btn {
+  background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.4);
+  color:#fff; border-radius:6px; padding:3px 10px;
+  font-size:12px; font-weight:600; cursor:pointer;
+  transition:background .15s;
+}
+.connection-retry-btn:hover { background:rgba(255,255,255,.35); }
+
+/* ── MISLUKT BERICHT ── */
+.msg-ticks.failed {
+  color:#f87171; cursor:pointer; gap:3px;
+}
+.msg-ticks.failed:hover { opacity:.8; }
+
+/* ── SKELETON LOADERS ── */
+@keyframes shimmer {
+  0%   { background-position:-400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton-item { pointer-events:none; gap:10px; }
+.skeleton-avatar {
+  width:46px; height:46px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+  background-size:800px 100%;
+  animation:shimmer 1.4s infinite;
+}
+.skeleton-lines { display:flex; flex-direction:column; gap:8px; flex:1; justify-content:center; }
+.skeleton-line {
+  height:11px; border-radius:6px;
+  background:linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+  background-size:800px 100%;
+  animation:shimmer 1.4s infinite;
+}
+.skeleton-line.wide  { width:60%; }
+.skeleton-line.narrow { width:40%; }
+
+.msg-skeleton-wrap { display:flex; flex-direction:column; gap:10px; padding:16px; }
+.msg-skeleton { display:flex; }
+.msg-skeleton.out { justify-content:flex-end; }
+.msg-skeleton.in  { justify-content:flex-start; }
+.skeleton-bubble {
+  height:38px; border-radius:18px; min-width:80px;
+  background:linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+  background-size:800px 100%;
+  animation:shimmer 1.4s infinite;
 }
 @keyframes slide-down { from { transform:translateY(-100%); } to { transform:translateY(0); } }
 

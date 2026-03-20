@@ -546,6 +546,7 @@ body {
 }
 .msg-ticks {
   font-size:11px; color:var(--text3); line-height:1;
+  display:inline-flex; align-items:center; gap:2px;
   transition:color .2s;
 }
 .msg-ticks.read { color:#4fc3f7; }

@@ -1,7 +1,7 @@
 // src/screens/ParentDashboard.js
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getInitials, timeAgo } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 
 export default function ParentDashboard({ user, onClose }) {
@@ -289,81 +289,83 @@ export default function ParentDashboard({ user, onClose }) {
                       const chipPause  = { ...chipBase, background:'rgba(249,115,22,.15)', color:'#f97316' };
                       const chipResume = { ...chipBase, background:'rgba(34,197,94,.15)',  color:'#16a34a' };
                       return (
-                    <div className={`parent-child-row${anyPaused ? ' paused' : ''}`} style={{ position:'relative' }}>
+                    <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
+                      {/* Delete knop */}
                       <button className="parent-btn-outline" style={{ position:'absolute', top:10, right:10, fontSize:12, color:'#ef4444', borderColor:'#ef4444', display:'flex', alignItems:'center', padding:'4px 6px' }}
                         onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
                         <Trash2 size={15} color="#ef4444"/>
                       </button>
+
+                      {/* Kolom 1: Avatar */}
                       <div className="parent-child-avatar">
                         {child.photoURL
                           ? <img src={child.photoURL} alt={child.displayName} style={{ width:'100%', height:'100%', borderRadius:12, objectFit:'cover' }} />
                           : getInitials(child.displayName)}
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        {/* Naam + @gebruikersnaam */}
-                        <div className="parent-child-name" style={{ display:'flex', alignItems:'baseline', gap:6, flexWrap:'wrap' }}>
+
+                      {/* Kolom 2: Naam + status */}
+                      <div style={{ minWidth:0 }}>
+                        <div className="parent-child-name" style={{ display:'flex', alignItems:'baseline', gap:6, flexWrap:'wrap', paddingRight:36 }}>
                           {child.displayName}
                           {child.username && <span style={{ color:'#888', fontWeight:400, fontSize:12 }}>@{child.username}</span>}
                         </div>
-                        {/* Status + pauzeer-badges */}
-                        <div className="parent-child-meta" style={{ marginBottom:10 }}>
+                        <div className="parent-child-meta">
                           <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
                           <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
-                          {pf.chat  && <span className="parent-paused-badge">Chat</span>}
-                          {pf.call  && <span className="parent-paused-badge" style={{ background:'rgba(245,158,11,.12)', color:'#d97706' }}>Bellen</span>}
-                          {pf.video && <span className="parent-paused-badge" style={{ background:'rgba(139,92,246,.12)', color:'#7c3aed' }}>Video</span>}
-                        </div>
-                        {/* Acties */}
-                        <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:8 }}>
-                          {/* Rij 1: Pauzeren + Hervatten (+ Wachtwoord als niets gepauzeerd) */}
-                          <div style={{ display:'flex', gap:8 }}>
-                            {!allPaused && (
-                              <button className="parent-btn-orange" onClick={e => { e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}>
-                                <PauseCircle size={16}/> Pauzeren <ChevronDown size={14}/>
-                              </button>
-                            )}
-                            {anyPaused && (
-                              <button className="parent-btn-green" onClick={e => { e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }}>
-                                <PlayCircle size={16}/> Hervatten <ChevronDown size={14}/>
-                              </button>
-                            )}
-                            {!anyPaused && (
-                              <button className="parent-btn-outline" style={{ fontSize:12 }}
-                                onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
-                                <KeyRound size={16} color="#6b7280"/> Wachtwoord
-                              </button>
-                            )}
-                          </div>
-                          {/* Pauzeer-chips (inline onder Pauzeren) */}
-                          {pauseMenuUid === child.uid && (
-                            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:6 }}>
-                              {!pf.chat  && <button style={chipPause} onClick={() => pauseChild(child.uid, 'chat')}><Message size={13}/> Chat</button>}
-                              {!pf.call  && <button style={chipPause} onClick={() => pauseChild(child.uid, 'call')}><Phone size={13}/> Bellen</button>}
-                              {!pf.video && <button style={chipPause} onClick={() => pauseChild(child.uid, 'video')}><Video size={13}/> Video</button>}
-                              {(!pf.chat || !pf.call || !pf.video) && <button style={{ ...chipPause, opacity:.75 }} onClick={() => pauseChild(child.uid, 'all')}><PauseCircle size={13}/> Alles</button>}
-                            </div>
-                          )}
-                          {/* Hervat-chips (inline onder Hervatten) */}
-                          {resumeMenuUid === child.uid && (
-                            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginTop:6 }}>
-                              {pf.chat  && <button style={chipResume} onClick={() => resumeChild(child.uid, 'chat')}><Message size={13}/> Chat</button>}
-                              {pf.call  && <button style={chipResume} onClick={() => resumeChild(child.uid, 'call')}><Phone size={13}/> Bellen</button>}
-                              {pf.video && <button style={chipResume} onClick={() => resumeChild(child.uid, 'video')}><Video size={13}/> Video</button>}
-                              {(pf.chat || pf.call || pf.video) && <button style={{ ...chipResume, opacity:.75 }} onClick={() => resumeChild(child.uid, 'all')}><PlayCircle size={13}/> Alles</button>}
-                            </div>
-                          )}
-                          {/* Wachtwoord op eigen rij als hervatten zichtbaar is */}
-                          {anyPaused && (
-                            <button className="parent-btn-outline" style={{ fontSize:12 }}
-                              onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
-                              <KeyRound size={16} color="#6b7280"/> Wachtwoord
-                            </button>
-                          )}
                         </div>
                       </div>
+
+                      {/* Rij 2 (span 2 kolommen): Acties */}
+                      <div style={{ gridColumn:'1 / -1', display:'flex', flexDirection:'column', gap:6 }}>
+                        {/* Knoppen */}
+                        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                          {!allPaused && (
+                            <button className="parent-btn-orange" onClick={e => { e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}>
+                              <PauseCircle size={16}/> Pauzeren <ChevronDown size={14}/>
+                            </button>
+                          )}
+                          {anyPaused && (
+                            <button className="parent-btn-green" onClick={e => { e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }}>
+                              <PlayCircle size={16}/> Hervatten <ChevronDown size={14}/>
+                            </button>
+                          )}
+                          <button className="parent-btn-outline" style={{ fontSize:12, display:'flex', alignItems:'center', gap:5 }}
+                            onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
+                            <KeyRound size={16} color="#6b7280"/> Wachtwoord wijzigen
+                          </button>
+                        </div>
+
+                        {/* Pauzeer-chips (dropdown) */}
+                        {pauseMenuUid === child.uid && (
+                          <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                            {!pf.chat  && <button style={chipPause} onClick={() => pauseChild(child.uid, 'chat')}><Message size={13}/> Chat</button>}
+                            {!pf.call  && <button style={chipPause} onClick={() => pauseChild(child.uid, 'call')}><Phone size={13}/> Bellen</button>}
+                            {!pf.video && <button style={chipPause} onClick={() => pauseChild(child.uid, 'video')}><Video size={13}/> Videobellen</button>}
+                          </div>
+                        )}
+
+                        {/* Hervat-chips (dropdown) */}
+                        {resumeMenuUid === child.uid && (
+                          <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                            {pf.chat  && <button style={chipResume} onClick={() => resumeChild(child.uid, 'chat')}><Message size={13}/> Chat</button>}
+                            {pf.call  && <button style={chipResume} onClick={() => resumeChild(child.uid, 'call')}><Phone size={13}/> Bellen</button>}
+                            {pf.video && <button style={chipResume} onClick={() => resumeChild(child.uid, 'video')}><Video size={13}/> Videobellen</button>}
+                            {(pf.chat || pf.call || pf.video) && <button style={{ ...chipResume, opacity:.75 }} onClick={() => resumeChild(child.uid, 'all')}><PlayCircle size={13}/> Alles</button>}
+                          </div>
+                        )}
+
+                        {/* Gepauzeerde labels — klikbaar om te hervatten */}
+                        {anyPaused && pauseMenuUid !== child.uid && resumeMenuUid !== child.uid && (
+                          <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                            {pf.chat  && <button style={chipPause} onClick={() => resumeChild(child.uid, 'chat')}  title="Klik om te hervatten"><Message size={12}/> Chat</button>}
+                            {pf.call  && <button style={{ ...chipPause, background:'rgba(245,158,11,.15)', color:'#d97706' }} onClick={() => resumeChild(child.uid, 'call')}  title="Klik om te hervatten"><Phone size={12}/> Bellen</button>}
+                            {pf.video && <button style={{ ...chipPause, background:'rgba(139,92,246,.12)', color:'#7c3aed' }} onClick={() => resumeChild(child.uid, 'video')} title="Klik om te hervatten"><Video size={12}/> Video</button>}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    );
-                  })()}
+                      );
+                    })()}
 
                     {/* Wachtwoord wijzigen inline */}
                     {changingPwUid === child.uid && (
@@ -379,7 +381,7 @@ export default function ParentDashboard({ user, onClose }) {
                               value={newPassword}
                               onChange={e => setNewPassword(e.target.value)}
                               minLength={6}
-                              style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box' }}
+                              style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box', minHeight: 44 }}
                               autoFocus
                             />
                             <button type="button" aria-label={showNewPw ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'} onClick={() => setShowNewPw(p => !p)}
@@ -387,13 +389,17 @@ export default function ParentDashboard({ user, onClose }) {
                               {showNewPw ? <EyeOff size={16}/> : <EyeOn size={16}/>}
                             </button>
                           </div>
-                          <button className="parent-btn-primary" style={{ fontSize: 13 }}
-                            onClick={() => changePassword(child.uid)} disabled={pwLoading || newPassword.length < 6}>
-                            {pwLoading ? '…' : 'Opslaan'}
+                          <button
+                            style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(34,197,94,.18)', color:'#16a34a', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, opacity: (pwLoading || newPassword.length < 6) ? .45 : 1 }}
+                            onClick={() => changePassword(child.uid)} disabled={pwLoading || newPassword.length < 6}
+                            title="Opslaan">
+                            <Check size={22}/>
                           </button>
-                          <button className="parent-btn-outline" style={{ fontSize: 13 }}
-                            onClick={() => { setChangingPwUid(null); setNewPassword(''); setPwError(''); }}>
-                            Annuleren
+                          <button
+                            style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(239,68,68,.12)', color:'#ef4444', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}
+                            onClick={() => { setChangingPwUid(null); setNewPassword(''); setPwError(''); }}
+                            title="Annuleren">
+                            <Cancel size={22}/>
                           </button>
                         </div>
                         {pwError && <div className="parent-error" style={{ marginTop: 6, fontSize: 13 }}>⚠️ {pwError}</div>}

@@ -938,8 +938,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }
 
   function startConversationWith(contact) {
-    if (!socket) return;
-    socket.emit('conversation:create', {
+    const existing = findConvWithUid(contact.uid);
+    if (existing) { setShowNewChat(false); openConversation(existing); return; }
+    const liveSocket = getSocket();
+    if (!liveSocket?.connected) { showErrToast('Geen verbinding. Probeer opnieuw.'); return; }
+    liveSocket.emit('conversation:create', {
       members:      [user.uid, contact.uid],
       memberNames:  { [user.uid]: user.displayName || user.email, [contact.uid]: contact.displayName },
       memberEmails: { [user.uid]: user.email, [contact.uid]: contact.email },

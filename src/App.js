@@ -176,6 +176,7 @@ export default function App() {
         });
 
         // Ouder realtime activiteitsnotificaties
+        socket.off('parent:activity');
         socket.on('parent:activity', (data) => {
           setParentActivityBadge(prev => prev + 1);
           setParentToast(data);
@@ -184,6 +185,7 @@ export default function App() {
         });
 
         // Firebase token verloopt na 1 uur — refresh bij connect_error
+        socket.off('connect_error');
         socket.on('connect_error', async () => {
           try {
             const newToken = await firebaseUser.getIdToken(true);

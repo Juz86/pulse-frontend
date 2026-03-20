@@ -11,10 +11,10 @@ export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhos
 let _iceServers = null;
 let _iceServersExpiry = 0;
 
-async function getIceServers() {
+async function getIceServers(authToken) {
   if (_iceServers && Date.now() < _iceServersExpiry) return _iceServers;
   try {
-    const token = socket?.auth?.token;
+    const token = authToken || socket?.auth?.token;
     const res = await fetch(`${BACKEND_URL}/api/turn-credentials`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
@@ -32,10 +32,12 @@ async function getIceServers() {
   ];
 }
 
-let socket     = null;
-let peer       = null;
-let iceHandler = null;
-let callPeer   = null; // bewaar de remote uid voor renegotiatie
+let socket            = null;
+let peer              = null;
+let iceHandler        = null;
+let renegotiateHandler = null;
+let videoUpgradeHandler = null;
+let callPeer          = null; // bewaar de remote uid voor renegotiatie
 
 // ── Socket verbinden ──────────────────────────────────────────────────────────
 export function connectSocket(uid, token) {
@@ -117,8 +119,9 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   });
 
   // Remote vraagt video upgrade: laat de gebruiker zelf beslissen
-  socket.off('call:video-upgrade');
-  socket.on('call:video-upgrade', () => { onVideoUpgradeRequest?.(); });
+  if (videoUpgradeHandler) { socket.off('call:video-upgrade', videoUpgradeHandler); }
+  videoUpgradeHandler = () => { onVideoUpgradeRequest?.(); };
+  socket.on('call:video-upgrade', videoUpgradeHandler);
 
   let callEnded = false;
   function fireOnEnd(reason) {
@@ -130,26 +133,31 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   peer.on('close', () => { fireOnEnd(); cleanupCall(stream); });
   peer.on('error', (e) => { console.error('WebRTC error:', e); fireOnEnd(); cleanupCall(stream); });
 
+  // ICE candidates ontvangen — oude handler eerst verwijderen
+  if (iceHandler) { socket.off('call:ice-candidate', iceHandler); }
+  iceHandler = ({ candidate }) => { peer?.signal(candidate); };
+  socket.on('call:ice-candidate', iceHandler);
+
+  // Renegotiatie ontvangen — opgeslagen referentie zodat cleanup specifiek kan verwijderen
+  if (renegotiateHandler) { socket.off('call:renegotiate', renegotiateHandler); }
+  renegotiateHandler = ({ signal }) => { peer?.signal(signal); };
+  socket.on('call:renegotiate', renegotiateHandler);
+
   // Time-out: als na 30s geen antwoord, gesprek beëindigen
+  // onCallAnswer bewaren zodat we de once-listener kunnen verwijderen bij timeout
+  const onCallAnswer = ({ answer }) => {
+    clearTimeout(callTimeout);
+    callActive = true;
+    peer?.signal(answer);
+  };
+  socket.once('call:answer', onCallAnswer);
+
   const callTimeout = setTimeout(() => {
+    socket.off('call:answer', onCallAnswer); // cleanup stale once-listener
     socket.emit('call:end', { to: toUid });
     fireOnEnd('timeout');
     cleanupCall(stream);
   }, 30000);
-
-  // Ontvang het antwoord
-  socket.once('call:answer', ({ answer }) => {
-    clearTimeout(callTimeout);
-    callActive = true;
-    peer?.signal(answer);
-  });
-
-  // ICE candidates ontvangen
-  iceHandler = ({ candidate }) => { peer?.signal(candidate); };
-  socket.on('call:ice-candidate', iceHandler);
-
-  // Renegotiatie ontvangen
-  socket.on('call:renegotiate', ({ signal }) => { peer?.signal(signal); });
 
   socket.once('call:ended',      () => { clearTimeout(callTimeout); fireOnEnd(); cleanupCall(stream); });
   socket.once('call:declined',   () => { clearTimeout(callTimeout); fireOnEnd('declined'); cleanupCall(stream); });
@@ -205,17 +213,22 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onV
   });
 
   // Remote vraagt video upgrade: laat de gebruiker zelf beslissen
-  socket.off('call:video-upgrade');
-  socket.on('call:video-upgrade', () => { onVideoUpgradeRequest?.(); });
+  if (videoUpgradeHandler) { socket.off('call:video-upgrade', videoUpgradeHandler); }
+  videoUpgradeHandler = () => { onVideoUpgradeRequest?.(); };
+  socket.on('call:video-upgrade', videoUpgradeHandler);
 
   peer.on('close', () => { onEnd?.(); cleanupCall(stream); });
   peer.on('error', (e) => { console.error('WebRTC error:', e); onEnd?.(); cleanupCall(stream); });
 
+  // ICE candidates ontvangen — oude handler eerst verwijderen
+  if (iceHandler) { socket.off('call:ice-candidate', iceHandler); }
   iceHandler = ({ candidate }) => { peer?.signal(candidate); };
   socket.on('call:ice-candidate', iceHandler);
 
-  // Renegotiatie ontvangen
-  socket.on('call:renegotiate', ({ signal }) => { peer?.signal(signal); });
+  // Renegotiatie ontvangen — opgeslagen referentie
+  if (renegotiateHandler) { socket.off('call:renegotiate', renegotiateHandler); }
+  renegotiateHandler = ({ signal }) => { peer?.signal(signal); };
+  socket.on('call:renegotiate', renegotiateHandler);
 
   socket.once('call:ended', () => { onEnd?.(); cleanupCall(stream); });
 
@@ -268,7 +281,7 @@ function cleanupCall(stream) {
   peer = null;
   callPeer = null;
   stream?.getTracks().forEach(t => t.stop());
-  if (iceHandler) { socket?.off('call:ice-candidate', iceHandler); iceHandler = null; }
-  socket?.off('call:renegotiate');
-  socket?.off('call:video-upgrade');
+  if (iceHandler)         { socket?.off('call:ice-candidate', iceHandler);   iceHandler = null; }
+  if (renegotiateHandler) { socket?.off('call:renegotiate',   renegotiateHandler); renegotiateHandler = null; }
+  if (videoUpgradeHandler){ socket?.off('call:video-upgrade', videoUpgradeHandler); videoUpgradeHandler = null; }
 }

@@ -222,7 +222,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
         sock.emit('users:online:request');
       }
-    } catch (e) { console.error(e); }
+    } catch { showErrToast('Gesprekken laden mislukt'); }
     finally { setLoadingConvs(false); }
   }, [user.uid]);
 
@@ -242,7 +242,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       }
       const enriched = raw.map(c => ({ ...c, photoURL: c.photoURL || photoMap[c.uid] || null }));
       setContacts(enriched);
-    } catch (e) { console.error(e); }
+    } catch { /* stil falen — contacten zijn niet kritiek */ }
   }, [user.uid]);
 
   // ── Vriendschapsverzoeken laden ───────────────────────────────────────────
@@ -251,7 +251,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       const res  = await authFetch(`${BACKEND_URL}/api/friend-requests/${user.uid}`);
       const data = await res.json();
       setFriendRequests(Array.isArray(data) ? data : []);
-    } catch (e) { console.error(e); }
+    } catch { /* stil falen */ }
   }, [user.uid]);
 
   useEffect(() => { loadConversations(); loadContacts(); loadFriendRequests(); }, [loadConversations, loadContacts, loadFriendRequests]);
@@ -596,7 +596,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       onConfirm: async () => {
         try {
           await authFetch(`${BACKEND_URL}/api/conversations/${convId}`, { method: 'DELETE' });
-        } catch (e) { console.error(e); }
+        } catch { showErrToast('Verwijderen mislukt'); }
         setConversations(prev => prev.filter(c => c.id !== convId));
         if (activeConv?.id === convId) { setActiveConv(null); setMessages([]); }
       },
@@ -625,14 +625,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     setHasMore(false);
     setLoadingMsgs(true);
     setUnreadCounts(prev => { const n = { ...prev }; delete n[conv.id]; return n; });
-    socket?.emit('conversation:join', { convId: conv.id });
-    socket?.emit('messages:read', { convId: conv.id });
+    const liveSocket = getSocket();
+    liveSocket?.emit('conversation:join', { convId: conv.id });
+    liveSocket?.emit('messages:read', { convId: conv.id });
     try {
       const res  = await authFetch(`${BACKEND_URL}/api/messages/${conv.id}?limit=${MSG_LIMIT}&offset=0`);
       const data = await res.json();
       const arr  = Array.isArray(data) ? data : [];
-      if (activeConvRef.current?.id !== convId) return;
+      if (activeConvRef.current?.id !== convId) return; // gebruiker wisselde alweer
       setMessages(prev => {
+        // Behoud live berichten die tijdens de fetch binnenkwamen en nog niet in de fetch zitten
         const fetchedIds = new Set(arr.map(m => m.id).filter(Boolean));
         const live = prev.filter(m => m.id && !fetchedIds.has(m.id));
         return [...arr, ...live];
@@ -640,7 +642,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setMsgOffset(arr.length);
       setHasMore(arr.length === MSG_LIMIT);
       setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 100);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      if (activeConvRef.current?.id === convId) showErrToast('Berichten laden mislukt');
+    }
     finally { setLoadingMsgs(false); }
   }
 
@@ -655,7 +659,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setMessages(prev => [...arr, ...prev]);
       setMsgOffset(prev => prev + arr.length);
       setHasMore(arr.length === MSG_LIMIT);
-    } catch (e) { console.error(e); }
+    } catch { showErrToast('Meer berichten laden mislukt'); }
     finally { setLoadingMore(false); }
   }
 
@@ -809,15 +813,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
     }
-    if (!activeConv) return;
-    socket?.emit('typing:start', { convId: activeConv.id, name: user.displayName });
+    const conv = activeConvRef.current;
+    if (!conv) return;
+    getSocket()?.emit('typing:start', { convId: conv.id, name: user.displayName });
     clearTimeout(typingTimer.current);
     typingTimer.current = setTimeout(stopTyping, 2000);
   }
 
   function stopTyping() {
     clearTimeout(typingTimer.current);
-    if (activeConv) socket?.emit('typing:stop', { convId: activeConv.id });
+    const conv = activeConvRef.current;
+    if (conv) getSocket()?.emit('typing:stop', { convId: conv.id });
   }
 
   // ── Vriendschapsverzoek sturen ────────────────────────────────────────────
@@ -1413,16 +1419,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
       // ── Call berichten ──
       if (msg.type === 'contact') {
-        const sc = msg.sharedContact || {};
-        const isAlreadyContact = contacts.some(c => c.uid === sc.uid);
+        const sc = msg.sharedContact;
+        if (!sc?.uid && !sc?.name) return; // corrupt bericht, niet renderen
+        const isAlreadyContact = contacts.some(c => c.uid === sc?.uid);
         items.push(
           <div key={msg._key || msg.id || i} className={`msg-group ${isOwn ? 'out' : 'in'}`}>
             <div className="msg-contact-card" style={{ cursor: isOwn ? 'default' : 'pointer' }}
               onClick={!isOwn ? () => { setFriendReqSent(false); setViewingSharedContact({ ...sc, isAlreadyContact }); } : undefined}>
-              <div className="avatar-circle sm" style={{ borderRadius:12, flexShrink:0 }}>{getInitials(sc.name || '')}</div>
+              <div className="avatar-circle sm" style={{ borderRadius:12, flexShrink:0 }}>{getInitials(sc?.name || '')}</div>
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontWeight:600, fontSize:'14px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{sc.name || 'Contactpersoon'}</div>
-                {sc.email && <div style={{ fontSize:'12px', color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{sc.email}</div>}
+                <div style={{ fontWeight:600, fontSize:'14px', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{sc?.name || 'Contactpersoon'}</div>
+                {sc?.email && <div style={{ fontSize:'12px', color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{sc.email}</div>}
               </div>
               <div style={{ fontSize:'11px', color: isOwn ? 'rgba(255,255,255,.5)' : 'var(--text3)', flexShrink:0, alignSelf:'flex-end' }}>{formatTime(msg.createdAt)}</div>
             </div>
@@ -1746,7 +1753,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         <div className="sidebar-footer">
           <div className="user-chip" style={{ cursor:'pointer' }} onClick={async () => { setShowProfile(true); setProfileMsg(''); setNewName(user.displayName || ''); setPhotoPreview(localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null); setPhotoFile(null); try { const snap = await getDoc(doc(db,'users',user.uid)); if(snap.exists() && snap.data().avatarOptions) setAvatarOptions(snap.data().avatarOptions); } catch {} }}>
             <div className="avatar-wrap" style={{ flexShrink:0 }}>
-              <UserAvatar photoURL={localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL} displayName={user.displayName || user.email} className="sm" />
+              <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" />
             </div>
             <div className="user-chip-info">
               <div className="user-chip-name">{user.displayName || user.email?.split('@')[0] || 'Gebruiker'}</div>

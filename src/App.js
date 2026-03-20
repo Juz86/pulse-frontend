@@ -44,7 +44,9 @@ export default function App() {
   const [parentActivityBadge, setParentActivityBadge] = useState(0);
   const [parentToast,         setParentToast]         = useState(null);
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
-  const toastTimerRef = useRef(null);
+  const toastTimerRef          = useRef(null);
+  const fcmVisibilityRef       = useRef(null);
+  const onlineVisibilityRef    = useRef(null);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', lightMode);
@@ -129,8 +131,8 @@ export default function App() {
             firebaseUser.getIdToken().then(t => registerFcmToken({ 'Authorization': `Bearer ${t}` })).catch(() => {});
           }
         };
-        if (window._pulseFcmVisibilityHandler) document.removeEventListener('visibilitychange', window._pulseFcmVisibilityHandler);
-        window._pulseFcmVisibilityHandler = onVisibilityChange;
+        if (fcmVisibilityRef.current) document.removeEventListener('visibilitychange', fcmVisibilityRef.current);
+        fcmVisibilityRef.current = onVisibilityChange;
         document.addEventListener('visibilitychange', onVisibilityChange);
 
         // Profiel opslaan in backend
@@ -191,13 +193,11 @@ export default function App() {
 
         // Tab-focus: haal actuele online lijst opnieuw op
         // Verwijder eventuele vorige listener via een stabiele referentie
-        if (window._pulseVisibilityHandler) {
-          document.removeEventListener('visibilitychange', window._pulseVisibilityHandler);
-        }
-        window._pulseVisibilityHandler = () => {
+        if (onlineVisibilityRef.current) document.removeEventListener('visibilitychange', onlineVisibilityRef.current);
+        onlineVisibilityRef.current = () => {
           if (document.visibilityState === 'visible') socket.emit('users:online:request');
         };
-        document.addEventListener('visibilitychange', window._pulseVisibilityHandler);
+        document.addEventListener('visibilitychange', onlineVisibilityRef.current);
 
         // Inkomende oproepen
         socket.off('call:incoming');
@@ -229,19 +229,18 @@ export default function App() {
         setUserRole(null);
         setShowParentAuth(false);
         setShowParentDashboard(false);
-        if (window._pulseVisibilityHandler) {
-          document.removeEventListener('visibilitychange', window._pulseVisibilityHandler);
-          window._pulseVisibilityHandler = null;
-        }
-        if (window._pulseFcmVisibilityHandler) {
-          document.removeEventListener('visibilitychange', window._pulseFcmVisibilityHandler);
-          window._pulseFcmVisibilityHandler = null;
-        }
+        if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }
+        if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
         disconnectSocket();
       }
       setLoading(false);
     });
-    return () => { unsub(); clearTimeout(loadingTimeout); };
+    return () => {
+      unsub();
+      clearTimeout(loadingTimeout);
+      if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }
+      if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
+    };
   }, []);
 
   if (loading) return (

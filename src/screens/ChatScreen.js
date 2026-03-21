@@ -442,7 +442,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         });
         setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTo({ top: msgsAreaRef.current.scrollHeight, behavior: 'smooth' }); }, 50);
         playMessageSound();
-      } else {
+      } else if (msg.senderId !== user.uid) {
         setUnreadCounts(prev => ({ ...prev, [msg.convId]: (prev[msg.convId] || 0) + 1 }));
         if (Notification.permission === 'granted' && document.hidden) {
           new Notification(msg.senderName || 'Nieuw bericht', { body: msg.text, icon: '/logo192.png' });

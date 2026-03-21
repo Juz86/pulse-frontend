@@ -601,28 +601,28 @@ export default function ParentDashboard({ user, onClose }) {
                                         : getInitials(c.name)}
                                     </div>
 
-                                    {/* Naam + stats + email */}
-                                    <div style={{ minWidth:0, flex:1 }}>
-                                      {/* Naam + stats op zelfde rij */}
-                                      <div style={{ display:'flex', alignItems:'baseline', gap:16, flexWrap:'wrap' }}>
-                                        <div style={{ fontWeight:600, fontSize:14, color:'var(--text1,#1a1a1a)', whiteSpace:'nowrap' }}>
+                                    {/* Naam + email links, stats rechts */}
+                                    <div style={{ minWidth:0, flex:1, display:'flex', alignItems:'center', gap:12 }}>
+                                      {/* Naam + email */}
+                                      <div style={{ minWidth:0, flex:1 }}>
+                                        <div style={{ fontWeight:600, fontSize:14, color:'var(--text1,#1a1a1a)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                                           {c.name}{c.isGroup && <span style={{ fontSize:11, color:'#888', marginLeft:4 }}>(groep)</span>}
                                         </div>
-                                        <div className="analytics-contact-stats" style={{ display:'flex', gap:12 }}>
-                                          {[
-                                            { value: c.messagesSent || 0,           icon: <Message size={11}/>, label: 'Chatberichten' },
-                                            { value: fmtSecs(c.totalCallSecs || 0), icon: <Phone size={11}/>,   label: 'Bellen' },
-                                            { value: fmtSecs(c.totalVideoSecs || 0),icon: <Video size={11}/>,   label: 'Videobellen' },
-                                          ].map(({ value, icon, label }) => (
-                                            <div key={label} style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:1 }}>
-                                              <div style={{ fontWeight:700, fontSize:14, color:'#7c3aed' }}>{value}</div>
-                                              <div style={{ fontSize:10, color:'#888', display:'flex', alignItems:'center', gap:2 }}>{icon} {label}</div>
-                                            </div>
-                                          ))}
-                                        </div>
+                                        {displayEmail && <div style={{ fontSize:11, color:'#aaa', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{displayEmail}</div>}
                                       </div>
-                                      {/* Email onder naam */}
-                                      {displayEmail && <div style={{ fontSize:11, color:'#aaa', marginTop:3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{displayEmail}</div>}
+                                      {/* Stats rechts */}
+                                      <div className="analytics-contact-stats" style={{ display:'flex', gap:12, flexShrink:0 }}>
+                                        {[
+                                          { value: c.messagesSent || 0,           icon: <Message size={11}/>, label: 'Chatberichten' },
+                                          { value: fmtSecs(c.totalCallSecs || 0), icon: <Phone size={11}/>,   label: 'Bellen' },
+                                          { value: fmtSecs(c.totalVideoSecs || 0),icon: <Video size={11}/>,   label: 'Videobellen' },
+                                        ].map(({ value, icon, label }) => (
+                                          <div key={label} style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:1 }}>
+                                            <div style={{ fontWeight:700, fontSize:14, color:'#7c3aed' }}>{value}</div>
+                                            <div style={{ fontSize:10, color:'#888', display:'flex', alignItems:'center', gap:2 }}>{icon} {label}</div>
+                                          </div>
+                                        ))}
+                                      </div>
                                     </div>
                                   </div>
                                 );

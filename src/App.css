@@ -1581,9 +1581,7 @@ body {
 @media (max-width:520px) {
   .analytics-contact-row { flex-wrap:wrap; }
 }
-.analytics-contact-row:last-child { border-bottom:none; }
-.analytics-contact-stats { margin-left:130px; }
-.analytics-contact-rank { font-size:11px; font-weight:700; color:#aaa; width:20px; text-align:center; }
+.analytics-contact-row:last-child { border-bottom:none; }.analytics-contact-rank { font-size:11px; font-weight:700; color:#aaa; width:20px; text-align:center; }
 .analytics-contact-avatar {
   width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#a78bfa);
   color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;

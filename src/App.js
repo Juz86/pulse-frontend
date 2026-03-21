@@ -6,8 +6,9 @@ import { auth, db, messaging, getToken } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket';
 import './App.css';
+import PulseLogo from './components/PulseLogo';
 
-const AuthScreen         = lazy(() => import('./screens/AuthScreen'));
+const Homepage           = lazy(() => import('./screens/Homepage'));
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const ParentAuthScreen   = lazy(() => import('./screens/ParentAuthScreen'));
 const ParentDashboard    = lazy(() => import('./screens/ParentDashboard'));
@@ -41,6 +42,7 @@ export default function App() {
   const [userRole,            setUserRole]            = useState(null);
   const [showParentAuth,      setShowParentAuth]      = useState(false);
   const [showParentDashboard, setShowParentDashboard] = useState(false);
+  const [dashboardFading,     setDashboardFading]     = useState(false);
   const [parentActivityBadge, setParentActivityBadge] = useState(0);
   const [parentToast,         setParentToast]         = useState(null);
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
@@ -247,24 +249,24 @@ export default function App() {
 
   if (loading) return (
     <div className="splash">
-      <div className="splash-logo">💬 Pulse</div>
+      <div className="splash-logo"><PulseLogo size={40} textSize={28} /></div>
       <div className="splash-spinner" />
     </div>
   );
 
   return (
     <ErrorBoundary>
-    <Suspense fallback={<div className="splash"><div className="splash-logo">💬 Pulse</div><div className="splash-spinner" /></div>}>
+    <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
     <div className="app-root">
       {!user
         ? showParentAuth
           ? <ParentAuthScreen onBack={() => setShowParentAuth(false)} />
-          : <AuthScreen onParentClick={() => setShowParentAuth(true)} />
+          : <Homepage onParentClick={() => setShowParentAuth(true)} />
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setShowParentDashboard(true); setParentActivityBadge(0); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} />
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setParentActivityBadge(0); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} />
             {userRole === 'parent' && showParentDashboard && (
-              <div className="parent-dashboard-overlay" onClick={e => { if (e.target === e.currentTarget) setShowParentDashboard(false); }}>
-                <ParentDashboard user={user} onClose={() => setShowParentDashboard(false)} />
+              <div className={`parent-dashboard-overlay${dashboardFading ? ' fading' : ''}`} onClick={e => { if (e.target === e.currentTarget) { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); } }}>
+                <ParentDashboard user={user} onClose={() => { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); }} />
               </div>
             )}
           </>

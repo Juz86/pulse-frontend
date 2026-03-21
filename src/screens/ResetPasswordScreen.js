@@ -1,5 +1,6 @@
 // src/screens/ResetPasswordScreen.js
 import React, { useState } from 'react';
+import PulseLogo from '../components/PulseLogo';
 import { confirmPasswordReset } from 'firebase/auth';
 import { auth } from '../firebase';
 
@@ -32,8 +33,7 @@ export default function ResetPasswordScreen({ oobCode }) {
       <div className="auth-bg" />
       <div className="auth-card">
         <div className="auth-logo">
-          <span className="auth-logo-icon">💬</span>
-          <span className="auth-logo-name">Pulse</span>
+          <PulseLogo size={34} textSize={26} />
         </div>
 
         {done ? (

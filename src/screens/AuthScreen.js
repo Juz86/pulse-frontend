@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { User, Lock, EyeOn, EyeOff, Shield, PhoneIcon, Wifi, Heart } from '../components/Icons';
+import PulseLogo from '../components/PulseLogo';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 
 export default function AuthScreen({ onParentClick }) {
@@ -58,10 +59,7 @@ export default function AuthScreen({ onParentClick }) {
         )}
 
         <div className="auth-logo">
-          <span className="auth-logo-icon">
-            <img src="/logo192.png" alt="Pulse logo" width="28" height="28" style={{ borderRadius: 8 }} />
-          </span>
-          <h1 className="auth-logo-name">Pulse</h1>
+          <PulseLogo size={34} textSize={26} />
         </div>
 
         <h2 className="auth-title">Welkom terug</h2>

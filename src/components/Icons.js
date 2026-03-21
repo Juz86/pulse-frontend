@@ -53,3 +53,4 @@ export { MdAdminPanelSettings as AdminIcon }   from 'react-icons/md';
 export { MdRefresh            as Refresh }     from 'react-icons/md';
 export { MdExpandMore         as ChevronDown } from 'react-icons/md';
 export { MdLabel              as Label }       from 'react-icons/md';
+export { MdPushPin            as Pin }         from 'react-icons/md';

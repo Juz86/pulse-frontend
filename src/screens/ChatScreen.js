@@ -6,8 +6,9 @@ import { doc, setDoc, getDoc, updateDoc, collection, getDocs, deleteDoc } from '
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getSocket, BACKEND_URL, startCall } from '../services/socket';
 import CallOverlay from '../components/CallOverlay';
-import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Bell, BellOff, Forward, AdminIcon, Label, Heart, Shield, Logout } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Search, Message, Users, Moon, Lightbulb, Send, Check, CheckDouble, Clock, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Bell, BellOff, Forward, AdminIcon, Label, Heart, Shield, Logout, PauseCircle, Pin } from '../components/Icons';
 import AvatarBuilder from '../components/AvatarBuilder';
+import PulseLogo from '../components/PulseLogo';
 import { getInitials, toMs, formatTime, formatDateLabel } from '../utils';
 import UserAvatar from '../components/UserAvatar';
 
@@ -58,7 +59,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // Schermen: 'chats' | 'contacts'
   const [activeTab,      setActiveTab]      = useState('chats');
   const [searchQuery,    setSearchQuery]    = useState('');
-  const [chatFilter,     setChatFilter]     = useState('all'); // 'all' | 'familie' | 'vrienden'
+  const [chatFilter,     setChatFilter]     = useState('all'); // 'all' | 'familie' | 'vrienden' | 'groepen'
+  const [groepDropdownOpen, setGroepDropdownOpen] = useState(false);
+  const [selectedGroupId,   setSelectedGroupId]   = useState(null);
   const [convLabels,     setConvLabels]     = useState(() => {
     try { return JSON.parse(localStorage.getItem(`pulse_labels_${user.uid}`) || '{}'); } catch { return {}; }
   });
@@ -73,9 +76,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   // Contacten
   const [contacts,         setContacts]         = useState([]);
+  const [pinnedContacts,   setPinnedContacts]   = useState(() => { try { return JSON.parse(localStorage.getItem(`pulse_pinned_${user.uid}`) || '[]'); } catch { return []; } });
   const [showAddContact,   setShowAddContact]   = useState(false);
   const [contactEmail,     setContactEmail]     = useState('');
   const [contactNickname,  setContactNickname]  = useState('');
+  const [contactRelation,  setContactRelation]  = useState(null); // 'familie' | 'vrienden' | null
   const [contactErr,       setContactErr]       = useState('');
   const [contactLoading,   setContactLoading]   = useState(false);
   const [friendRequests,   setFriendRequests]   = useState([]);
@@ -94,6 +99,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // Groepsinformatie
   const [showGroupInfo,  setShowGroupInfo]  = useState(false);
   const [addingMember,   setAddingMember]   = useState(false);
+  const [groupPhotoLoading, setGroupPhotoLoading] = useState(false);
 
   // Contactprofiel
   const [showContactProfile, setShowContactProfile] = useState(false);
@@ -167,7 +173,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     dndRef.current = next;
     setDnd(next);
     localStorage.setItem('pulse_dnd', next ? '1' : '0');
-    showErrToast(next ? '🔕 Niet gestoord ingeschakeld' : '🔔 Meldingen ingeschakeld');
+    showErrToast(next
+      ? { icon: <BellOff size={15}/>, text: 'Meldingen uitgeschakeld', bg: 'rgba(80,80,100,0.92)' }
+      : { icon: <Bell size={15}/>,    text: 'Meldingen ingeschakeld',  bg: 'rgba(34,197,94,0.92)' });
   }
   const [pausedFeatures, setPausedFeatures] = useState({ chat: false, call: false, video: false });
 
@@ -245,6 +253,25 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     try {
       const res  = await authFetch(`${BACKEND_URL}/api/conversations/${user.uid}`);
       const data = await res.json();
+      if (Array.isArray(data)) {
+        // Auto-label kinderen (pulse.internal) als 'familie' als er nog geen label is
+        const stored = (() => { try { return JSON.parse(localStorage.getItem(`pulse_labels_${user.uid}`) || '{}'); } catch { return {}; } })();
+        let updated = false;
+        data.forEach(conv => {
+          if (!conv.isGroup && !stored[conv.id]) {
+            const otherUid = (conv.members || []).find(m => m !== user.uid);
+            const otherEmail = conv.memberEmails?.[otherUid] || '';
+            if (otherEmail.endsWith('@pulse.internal')) {
+              stored[conv.id] = 'familie';
+              updated = true;
+            }
+          }
+        });
+        if (updated) {
+          localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(stored));
+          setConvLabels(stored);
+        }
+      }
       setConversations(Array.isArray(data) ? data : []);
       const sock = getSocket();
       if (sock && Array.isArray(data)) {
@@ -284,6 +311,47 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }, [user.uid]);
 
   useEffect(() => { loadConversations(); loadContacts(); loadFriendRequests(); }, [loadConversations, loadContacts, loadFriendRequests]);
+
+  useEffect(() => {
+    const handler = () => { loadContacts(); loadConversations(); };
+    window.addEventListener('pulse:child-added', handler);
+    window.addEventListener('pulse:child-removed', handler);
+    return () => { window.removeEventListener('pulse:child-added', handler); window.removeEventListener('pulse:child-removed', handler); };
+  }, [loadContacts, loadConversations]);
+
+  // Auto-label op basis van relation-veld in contactdocument (bijv. 'familie' voor ouder-kind)
+  useEffect(() => {
+    if (!conversations.length || !contacts.length) return;
+    const stored = (() => { try { return JSON.parse(localStorage.getItem(`pulse_labels_${user.uid}`) || '{}'); } catch { return {}; } })();
+    let updated = false;
+    contacts.forEach(contact => {
+      const rel = contact.relation;
+      if (rel !== 'familie' && rel !== 'vrienden') return;
+      const contactUid = contact.id || contact.uid;
+      const conv = conversations.find(c => !c.isGroup && c.members?.includes(contactUid));
+      if (conv && !stored[conv.id]) {
+        stored[conv.id] = rel;
+        updated = true;
+      }
+    });
+    // Verwerk pending labels (ingesteld bij uitnodigen)
+    const pending = (() => { try { return JSON.parse(localStorage.getItem(`pulse_pending_labels_${user.uid}`) || '{}'); } catch { return {}; } })();
+    let pendingChanged = false;
+    Object.entries(pending).forEach(([uid, rel]) => {
+      const conv = conversations.find(c => !c.isGroup && c.members?.includes(uid));
+      if (conv && !stored[conv.id]) {
+        stored[conv.id] = rel;
+        updated = true;
+        delete pending[uid];
+        pendingChanged = true;
+      }
+    });
+    if (pendingChanged) localStorage.setItem(`pulse_pending_labels_${user.uid}`, JSON.stringify(pending));
+    if (updated) {
+      localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(stored));
+      setConvLabels(stored);
+    }
+  }, [conversations, contacts, user.uid]);
 
   // Deep-link via notificatie-tik: open het juiste gesprek zodra conversations geladen zijn
   useEffect(() => {
@@ -896,7 +964,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       if (contactNickname.trim() && data.toUid) {
         saveContactNickname(data.toUid, contactNickname.trim());
       }
-      setContactEmail(''); setContactNickname('');
+      if (contactRelation && data.toUid) {
+        const pending = (() => { try { return JSON.parse(localStorage.getItem(`pulse_pending_labels_${user.uid}`) || '{}'); } catch { return {}; } })();
+        pending[data.toUid] = contactRelation;
+        localStorage.setItem(`pulse_pending_labels_${user.uid}`, JSON.stringify(pending));
+      }
+      setContactEmail(''); setContactNickname(''); setContactRelation(null);
       setShowAddContact(false);
       if (data.restored) {
         // Ander had ons nog → direct hersteld, geen verzoek nodig
@@ -955,6 +1028,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           if (activeConv?.id === conv.id) { setActiveConv(null); setMessages([]); }
         }
       },
+    });
+  }
+
+  // ── Contact vastzetten ────────────────────────────────────────────────────
+  function togglePin(contactUid) {
+    setPinnedContacts(prev => {
+      const next = prev.includes(contactUid) ? prev.filter(id => id !== contactUid) : [...prev, contactUid];
+      localStorage.setItem(`pulse_pinned_${user.uid}`, JSON.stringify(next));
+      return next;
     });
   }
 
@@ -1045,6 +1127,21 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         });
       },
     });
+  }
+
+  // ── Groepsfoto uploaden ───────────────────────────────────────────────────
+  async function uploadGroupPhoto(file) {
+    if (!file || !activeConv?.id) return;
+    setGroupPhotoLoading(true);
+    try {
+      const ref = storageRef(storage, `groups/${activeConv.id}/photo`);
+      await uploadBytes(ref, file, { contentType: file.type });
+      const url = await getDownloadURL(ref);
+      await updateDoc(doc(db, 'conversations', activeConv.id), { photoURL: url });
+      setActiveConv(prev => ({ ...prev, photoURL: url }));
+      setConversations(prev => prev.map(c => c.id === activeConv.id ? { ...c, photoURL: url } : c));
+    } catch (e) { showErrToast('Foto uploaden mislukt'); }
+    finally { setGroupPhotoLoading(false); }
   }
 
   // ── Groep aanmaken ────────────────────────────────────────────────────────
@@ -1625,7 +1722,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="sidebar-top">
-            <div className="app-brand"><span className="brand-dot" />Pulse</div>
+            <PulseLogo size={30} textSize={20} />
             <div style={{ display:'flex', gap:'6px' }}>
               <button className="icon-btn" onClick={() => setShowNewChat(true)} title="Nieuw gesprek"><Message size={18} /></button>
               <button className="icon-btn" onClick={() => { setShowCallModal(true); setCallLogRead(true); onCallLogRead?.(); }} title="Oproepen" style={{ position:'relative' }}>
@@ -1660,12 +1757,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
         {/* ── CHAT FILTERS ── */}
         {activeTab === 'chats' && (
-          <div className="chat-filters">
+          <div className="chat-filters" onClick={() => setGroepDropdownOpen(false)}>
             {['all', 'familie', 'vrienden'].map(f => (
-              <button key={f} className={`chat-filter-chip${chatFilter === f ? ' active' : ''}`} onClick={() => setChatFilter(f)}>
+              <button key={f} className={`chat-filter-chip${chatFilter === f ? ' active' : ''}`} onClick={() => { setChatFilter(f); setSelectedGroupId(null); }}>
                 {f === 'all' ? 'Alles' : f.charAt(0).toUpperCase() + f.slice(1)}
               </button>
             ))}
+            <button
+              className={`chat-filter-chip${chatFilter === 'groepen' ? ' active' : ''}`}
+              onClick={() => { setChatFilter('groepen'); setSelectedGroupId(null); }}
+            >
+              Groepen
+            </button>
           </div>
         )}
 
@@ -1691,8 +1794,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               const matchSearch = !searchQuery.trim() ||
                 getConvName(conv).toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (conv.lastMessage || '').toLowerCase().includes(searchQuery.toLowerCase());
-              const matchFilter = chatFilter === 'all' || convLabels[conv.id] === chatFilter;
+              const matchFilter = chatFilter === 'all'
+                || (chatFilter === 'groepen' && conv.isGroup && (!selectedGroupId || conv.id === selectedGroupId))
+                || convLabels[conv.id] === chatFilter;
               return matchSearch && matchFilter;
+            }).sort((a, b) => {
+              const aPinned = pinnedContacts.includes(getOtherUid(a));
+              const bPinned = pinnedContacts.includes(getOtherUid(b));
+              return bPinned - aPinned;
             }).map(conv => {
               const otherUid        = getOtherUid(conv);
               const isOnline        = otherUid && onlineUsers.has(otherUid);
@@ -1705,7 +1814,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                     {isOnline && <span className={`online-dot${inactiveUsers.has(otherUid) ? ' inactive' : ''}`} />}
                   </div>
                   <div className="conv-info">
-                    <div className="conv-name">{getConvName(conv)}</div>
+                    <div className="conv-name" style={{ display:'flex', alignItems:'center', gap:4 }}>
+                      {getConvName(conv)}
+                      {pinnedContacts.includes(otherUid) && <Pin size={11} style={{ color:'var(--accent,#7c3aed)', flexShrink:0, opacity:0.7 }} />}
+                    </div>
                     <div className="conv-preview">{conv.lastCallDirection ? callPreview(conv, user.uid) : (conv.lastMessage || 'Start een gesprek…')}</div>
                   </div>
                   {unread > 0 && <span className="unread-badge">{unread}</span>}
@@ -1776,10 +1888,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                     <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} />
                     {onlineUsers.has(contact.uid) && <span className={`online-dot${inactiveUsers.has(contact.uid) ? ' inactive' : ''}`} />}
                   </div>
-                  <div className="conv-info">
+                  <div className="conv-info" style={{ flex: 1, minWidth: 0 }}>
                     <div className="conv-name">{getContactDisplayName(contact)}</div>
                     <div className="conv-preview">{contact.email}</div>
                   </div>
+                  <button
+                    className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`}
+                    onClick={() => togglePin(contact.uid)}
+                    title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}
+                  >
+                    <Pin size={17} />
+                  </button>
                 </div>
                 <div style={{ height: '1px', background: 'var(--border)' }} />
                 <div style={{ display: 'flex', gap: '6px' }}>
@@ -1830,7 +1949,24 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         ) : (
           <>
             <div className="chat-header">
-              <button className="back-btn" onClick={() => setActiveConv(null)} title="Terug">←</button>
+              <button className="back-btn" onClick={() => setActiveConv(null)} title="Terug" style={{ position:'relative' }}>
+                ←
+                {(() => {
+                  const totalUnread = Object.entries(unreadCounts)
+                    .filter(([id]) => id !== activeConv?.id)
+                    .reduce((sum, [, n]) => sum + n, 0);
+                  return totalUnread > 0 ? (
+                    <span style={{
+                      position:'absolute', top:-6, right:-6,
+                      background:'#25d366', color:'#fff',
+                      fontSize:10, fontWeight:700, lineHeight:1,
+                      minWidth:16, height:16, borderRadius:8,
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      padding:'0 4px', pointerEvents:'none',
+                    }}>{totalUnread > 99 ? '99+' : totalUnread}</span>
+                  ) : null;
+                })()}
+              </button>
               {(() => {
                 const hOtherUid = getOtherUid(activeConv);
                 const hIsOnline = hOtherUid && onlineUsers.has(hOtherUid);
@@ -1967,7 +2103,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               )}
               {pausedFeatures.chat ? (
                 <div className="chat-paused-notice">
-                  ⏸ Chatten is gepauzeerd door je ouder{(!pausedFeatures.call || !pausedFeatures.video) ? `, maar je kan nog wel ${[!pausedFeatures.call && 'bellen', !pausedFeatures.video && 'videobellen'].filter(Boolean).join(' en ')}` : ''}.
+                  <PauseCircle size={16} style={{ flexShrink:0 }}/> Chatten is gepauzeerd door je ouder{(!pausedFeatures.call || !pausedFeatures.video) ? `, maar je kan nog wel ${[!pausedFeatures.call && 'bellen', !pausedFeatures.video && 'videobellen'].filter(Boolean).join(' en ')}` : ''}.
                 </div>
               ) : (
                 <div className="input-row">
@@ -2168,9 +2304,20 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               <label className="form-label">Bijnaam (optioneel)</label>
               <input className="form-input" placeholder="Bijv. Papa, Mama, Werk…" value={contactNickname} onChange={e => setContactNickname(e.target.value)} onKeyDown={e => e.key === 'Enter' && addContact()} />
             </div>
+            <div className="form-group">
+              <label className="form-label">Relatie</label>
+              <div style={{ display:'flex', gap:8 }}>
+                {['familie', 'vrienden'].map(lbl => (
+                  <button key={lbl} onClick={() => setContactRelation(contactRelation === lbl ? null : lbl)}
+                    style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:20, border:`1.5px solid ${contactRelation === lbl ? '#6c63ff' : 'var(--border)'}`, background: contactRelation === lbl ? '#6c63ff' : 'transparent', color: contactRelation === lbl ? '#fff' : 'var(--text2)', fontSize:13, cursor:'pointer', fontFamily:'Inter,sans-serif' }}>
+                    {lbl === 'familie' ? <><Heart size={15}/> Familie</> : <><Users size={15}/> Vrienden</>}
+                  </button>
+                ))}
+              </div>
+            </div>
             {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactErr(''); }}>Annuleren</button>
+              <button className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); setContactErr(''); }}>Annuleren</button>
               <button className="btn-primary" style={{ flex: 1 }} onClick={addContact} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>
             </div>
           </div>
@@ -2230,7 +2377,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   <div key={c.uid} className={`search-result ${selected ? 'selected' : ''}`} onClick={() => toggleGroupMember(c)}>
                     <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" />
                     <div style={{ flex:1 }}><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
-                    <span style={{ fontSize:'18px' }}>{selected ? '✅' : '○'}</span>
+                    {selected
+                      ? <span style={{ width:22, height:22, borderRadius:'50%', background:'#6c63ff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><Check size={14} color="#fff" /></span>
+                      : <span style={{ width:22, height:22, borderRadius:'50%', border:'1.5px solid var(--border)', display:'inline-block', flexShrink:0 }} />
+                    }
                   </div>
                 );
               })}
@@ -2589,8 +2739,31 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {showGroupInfo && activeConv?.isGroup && (
         <div className="modal-overlay" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title"><span className="modal-title-icon"><Users size={18} /></span> {getConvName(activeConv)}</h3>
-            <p className="modal-sub">{activeConv.members.length} deelnemers</p>
+            {/* Groepsavatar */}
+            {(() => {
+              const isAdmin = activeConv.creatorId === user.uid;
+              return (
+                <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, marginBottom:16 }}>
+                  <label style={{ position:'relative', cursor: isAdmin ? 'pointer' : 'default' }}>
+                    {activeConv.photoURL
+                      ? <img src={activeConv.photoURL} alt="groep" style={{ width:72, height:72, borderRadius:'50%', objectFit:'cover', border:'3px solid var(--accent,#7c3aed)' }} />
+                      : <div style={{ width:72, height:72, borderRadius:'50%', background:'linear-gradient(135deg,#7c3aed,#a78bfa)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:28, fontWeight:700, color:'#fff', border:'3px solid var(--accent,#7c3aed)' }}>
+                          {getConvName(activeConv)?.[0]?.toUpperCase() || '?'}
+                        </div>}
+                    {isAdmin && (
+                      <>
+                        <div style={{ position:'absolute', bottom:2, right:2, width:22, height:22, borderRadius:'50%', background:'var(--accent,#7c3aed)', display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid #fff' }}>
+                          {groupPhotoLoading ? <div className="splash-spinner" style={{ width:12, height:12 }}/> : <Camera size={12} color="#fff"/>}
+                        </div>
+                        <input type="file" accept="image/*" style={{ display:'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadGroupPhoto(f); e.target.value=''; }} />
+                      </>
+                    )}
+                  </label>
+                  <h3 className="modal-title" style={{ margin:0 }}>{getConvName(activeConv)}</h3>
+                  <p className="modal-sub" style={{ margin:0 }}>{activeConv.members.length} deelnemers</p>
+                </div>
+              );
+            })()}
 
             {(() => {
               const isAdmin = activeConv.creatorId === user.uid;
@@ -2699,8 +2872,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
       {/* ── ERROR / INFO TOAST ── */}
       {errToast && (
-        <div className="mention-toast" style={{ background: errToast.startsWith('📋') ? 'rgba(34,197,94,0.92)' : 'rgba(255,71,87,0.92)' }}>
-          <span>{errToast}</span>
+        <div className="mention-toast" style={{ background: typeof errToast === 'object' ? errToast.bg : errToast.startsWith('📋') ? 'rgba(34,197,94,0.92)' : 'rgba(255,71,87,0.92)', display:'flex', alignItems:'center', gap:7 }}>
+          {typeof errToast === 'object' ? <>{errToast.icon}<span>{errToast.text}</span></> : <span>{errToast}</span>}
         </div>
       )}
 

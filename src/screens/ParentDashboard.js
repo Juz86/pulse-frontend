@@ -42,6 +42,7 @@ export default function ParentDashboard({ user, onClose }) {
   const [analytics,        setAnalytics]        = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError,   setAnalyticsError]   = useState('');
+  const [contactFilter,    setContactFilter]    = useState('alles');
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
 
   async function authFetch(url, options = {}) {
@@ -68,6 +69,20 @@ export default function ParentDashboard({ user, onClose }) {
     } catch {}
   }, [user]);
 
+  const loadAnalytics = useCallback(async (childUid) => {
+    if (!childUid) { setAnalytics(null); setSelectedChildUid(null); return; }
+    setSelectedChildUid(childUid);
+    setAnalyticsLoading(true);
+    setAnalyticsError('');
+    try {
+      const res = await authFetch(`${BACKEND}/api/parent/analytics/${childUid}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Ophalen mislukt.');
+      setAnalytics(data);
+    } catch (err) { setAnalyticsError(err.message); setAnalytics(null); }
+    setAnalyticsLoading(false);
+  }, []);
+
   useEffect(() => { loadChildren(); loadActivities(); }, [loadChildren, loadActivities]);
 
   useEffect(() => {
@@ -78,6 +93,13 @@ export default function ParentDashboard({ user, onClose }) {
   }, [pauseMenuUid, resumeMenuUid, childDropdownOpen]);
 
   useEffect(() => { if (selectedChildUid) loadAnalytics(selectedChildUid); }, [selectedChildUid, loadAnalytics]);
+
+  // Auto-refresh analytics elke 30 seconden als Activiteiten-tab open is
+  useEffect(() => {
+    if (activeTab !== 'activities' || !selectedChildUid) return;
+    const interval = setInterval(() => loadAnalytics(selectedChildUid), 30000);
+    return () => clearInterval(interval);
+  }, [activeTab, selectedChildUid, loadAnalytics]);
 
   async function createChild(e) {
     e.preventDefault();
@@ -92,6 +114,7 @@ export default function ParentDashboard({ user, onClose }) {
       setChildren(prev => [...prev, { uid: data.uid, displayName: data.displayName, username: data.username, online: false, pausedFeatures: { chat: false, call: false, video: false } }]);
       setCreateSuccess(`Account voor ${data.displayName} aangemaakt.`);
       setChildName(''); setChildUsername(''); setChildPassword('');
+      window.dispatchEvent(new CustomEvent('pulse:child-added'));
     } catch (err) { setCreateError(err.message); }
     setCreateLoading(false);
   }
@@ -145,22 +168,9 @@ export default function ParentDashboard({ user, onClose }) {
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Verwijderen mislukt.'); }
       setChildren(prev => prev.filter(c => c.uid !== childUid));
       setConfirmDelete(null);
+      window.dispatchEvent(new CustomEvent('pulse:child-removed'));
     } catch (err) { setDeleteError(err.message); }
   }
-
-  const loadAnalytics = useCallback(async (childUid) => {
-    if (!childUid) { setAnalytics(null); setSelectedChildUid(null); return; }
-    setSelectedChildUid(childUid);
-    setAnalyticsLoading(true);
-    setAnalyticsError('');
-    try {
-      const res = await authFetch(`${BACKEND}/api/parent/analytics/${childUid}`);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Ophalen mislukt.');
-      setAnalytics(data);
-    } catch (err) { setAnalyticsError(err.message); setAnalytics(null); }
-    setAnalyticsLoading(false);
-  }, []);
 
   const TABS = [
     { id: 'add',        icon: <UserPlus  size={16}/>, label: 'Kind toevoegen'       },
@@ -187,13 +197,22 @@ export default function ParentDashboard({ user, onClose }) {
 
         {/* Sidebar + content */}
         <div className="pd-layout">
-          <div className="pd-sidebar">
+          <div className="pd-sidebar-wrap">
+          <div className="pd-sidebar" ref={el => { if (el) el._sidebarEl = el; }}>
             {TABS.map(t => (
-              <button key={t.id} className={`pd-sidebar-tab${activeTab === t.id ? ' active' : ''}`} onClick={() => setActiveTab(t.id)}>
+              <button
+                key={t.id}
+                className={`pd-sidebar-tab${activeTab === t.id ? ' active' : ''}`}
+                onClick={e => {
+                  setActiveTab(t.id);
+                  e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }}
+              >
                 {t.icon}
                 <span>{t.label}</span>
               </button>
             ))}
+          </div>
           </div>
 
           <div className="pd-content">
@@ -279,7 +298,7 @@ export default function ParentDashboard({ user, onClose }) {
                     <p style={{ fontSize: 13, marginTop: 4 }}>Voeg een kind toe via het tabblad "Kind toevoegen".</p>
                   </div>
                 ) : children.map(child => (
-                  <div key={child.uid}>
+                  <div key={child.uid} style={{ marginBottom: 16 }}>
                     {(() => {
                       const pf = child.pausedFeatures || { chat: false, call: false, video: false };
                       const anyPaused = pf.chat || pf.call || pf.video;
@@ -289,77 +308,81 @@ export default function ParentDashboard({ user, onClose }) {
                       const chipResume = { ...chipBase, background:'rgba(34,197,94,.15)',  color:'#16a34a' };
                       return (
                     <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
-                      {/* Delete knop */}
-                      <button className="parent-btn-outline" style={{ position:'absolute', top:10, right:10, fontSize:12, color:'#ef4444', borderColor:'#ef4444', display:'flex', alignItems:'center', padding:'4px 6px' }}
-                        onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
-                        <Trash2 size={15} color="#ef4444"/>
-                      </button>
-
-                      {/* Kolom 1: Avatar */}
-                      <div className="parent-child-avatar">
-                        {child.photoURL
-                          ? <img src={child.photoURL} alt={child.displayName} style={{ width:'100%', height:'100%', borderRadius:12, objectFit:'cover' }} />
-                          : getInitials(child.displayName)}
+                      {/* Sleutel + Delete knoppen */}
+                      <div style={{ position:'absolute', top:10, right:10, display:'flex', gap:4 }}>
+                        <button className="parent-btn-outline" title="Wachtwoord wijzigen"
+                          onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
+                          style={{ padding:'4px 6px' }}>
+                          <KeyRound size={15}/>
+                        </button>
+                        <button className="parent-btn-outline" style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
+                          onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
+                          <Trash2 size={15} color="#ef4444"/>
+                        </button>
                       </div>
 
-                      {/* Kolom 2: Naam + status */}
-                      <div style={{ minWidth:0 }}>
-                        <div className="parent-child-name" style={{ display:'flex', alignItems:'baseline', gap:6, flexWrap:'wrap', paddingRight:36 }}>
-                          {child.displayName}
-                          {child.username && <span style={{ color:'#888', fontWeight:400, fontSize:12 }}>@{child.username}</span>}
+                      {/* Rij 1: Avatar + naam */}
+                      <div style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
+                        <div className="parent-child-avatar" style={{ flexShrink:0 }}>
+                          {child.photoURL
+                            ? <img src={child.photoURL} alt={child.displayName} style={{ width:'100%', height:'100%', borderRadius:12, objectFit:'cover' }} />
+                            : getInitials(child.displayName)}
                         </div>
-                        <div className="parent-child-meta">
-                          <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
-                          <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
+                        <div style={{ minWidth:0, flex:1 }}>
+                          <div className="parent-child-name" style={{ display:'flex', alignItems:'baseline', gap:6 }}>
+                            {child.displayName}
+                            {child.username && <span style={{ color:'#888', fontWeight:400, fontSize:12 }}>@{child.username}</span>}
+                          </div>
+                          <div className="parent-child-meta" style={{ whiteSpace:'nowrap', marginTop:5 }}>
+                            <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
+                            <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Rij 2 (span 2 kolommen): Acties */}
-                      <div style={{ gridColumn:'1 / -1', display:'flex', flexDirection:'column', gap:6 }}>
-                        {/* Knoppen */}
-                        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-                          {!allPaused && (
+                      {/* Rij 2: Knoppen uitgelijnd met avatar */}
+                      <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap', marginTop:10 }}>
+                        {/* Pauze dropdown */}
+                        {!allPaused && (
+                          <div style={{ position:'relative' }}>
                             <button className="parent-btn-orange" onClick={e => { e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}>
-                              <PauseCircle size={16}/> Pauzeren <ChevronDown size={14}/>
+                              <PauseCircle size={16}/> Pauze <ChevronDown size={14}/>
                             </button>
-                          )}
-                          {anyPaused && (
+                            {pauseMenuUid === child.uid && (
+                              <div className="pcd-dropdown">
+                                {!pf.chat  && <button className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'chat')}><Message size={14}/> Chat</button>}
+                                {!pf.call  && <button className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'call')}><Phone size={14}/> Bellen</button>}
+                                {!pf.video && <button className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'video')}><Video size={14}/> Videobellen</button>}
+                                {(!pf.chat || !pf.call || !pf.video) && <button className="pcd-dropdown-item pcd-dropdown-item--all" onClick={() => pauseChild(child.uid, 'all')}><PauseCircle size={14}/> Alles pauzeren</button>}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Hervat dropdown */}
+                        {anyPaused && (
+                          <div style={{ position:'relative' }}>
                             <button className="parent-btn-green" onClick={e => { e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }}>
-                              <PlayCircle size={16}/> Hervatten <ChevronDown size={14}/>
+                              <PlayCircle size={16}/> Hervat <ChevronDown size={14}/>
                             </button>
-                          )}
-                          <button className="parent-btn-outline" style={{ fontSize:12, display:'flex', alignItems:'center', gap:5 }}
-                            onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}>
-                            <KeyRound size={16} color="#6b7280"/> Wachtwoord wijzigen
-                          </button>
-                        </div>
-
-                        {/* Pauzeer-chips (dropdown) */}
-                        {pauseMenuUid === child.uid && (
-                          <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                            {!pf.chat  && <button style={chipPause} onClick={() => pauseChild(child.uid, 'chat')}><Message size={13}/> Chat</button>}
-                            {!pf.call  && <button style={chipPause} onClick={() => pauseChild(child.uid, 'call')}><Phone size={13}/> Bellen</button>}
-                            {!pf.video && <button style={chipPause} onClick={() => pauseChild(child.uid, 'video')}><Video size={13}/> Videobellen</button>}
+                            {resumeMenuUid === child.uid && (
+                              <div className="pcd-dropdown">
+                                {pf.chat  && <button className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'chat')}><Message size={14}/> Chat</button>}
+                                {pf.call  && <button className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'call')}><Phone size={14}/> Bellen</button>}
+                                {pf.video && <button className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'video')}><Video size={14}/> Videobellen</button>}
+                                {(pf.chat || pf.call || pf.video) && <button className="pcd-dropdown-item pcd-dropdown-item--all" onClick={() => resumeChild(child.uid, 'all')}><PlayCircle size={14}/> Alles hervatten</button>}
+                              </div>
+                            )}
                           </div>
                         )}
 
-                        {/* Hervat-chips (dropdown) */}
-                        {resumeMenuUid === child.uid && (
-                          <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                            {pf.chat  && <button style={chipResume} onClick={() => resumeChild(child.uid, 'chat')}><Message size={13}/> Chat</button>}
-                            {pf.call  && <button style={chipResume} onClick={() => resumeChild(child.uid, 'call')}><Phone size={13}/> Bellen</button>}
-                            {pf.video && <button style={chipResume} onClick={() => resumeChild(child.uid, 'video')}><Video size={13}/> Videobellen</button>}
-                            {(pf.chat || pf.call || pf.video) && <button style={{ ...chipResume, opacity:.75 }} onClick={() => resumeChild(child.uid, 'all')}><PlayCircle size={13}/> Alles</button>}
-                          </div>
-                        )}
-
-                        {/* Gepauzeerde labels — klikbaar om te hervatten */}
-                        {anyPaused && pauseMenuUid !== child.uid && resumeMenuUid !== child.uid && (
-                          <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                            {pf.chat  && <button style={chipPause} onClick={() => resumeChild(child.uid, 'chat')}  title="Klik om te hervatten"><Message size={12}/> Chat</button>}
-                            {pf.call  && <button style={{ ...chipPause, background:'rgba(245,158,11,.15)', color:'#d97706' }} onClick={() => resumeChild(child.uid, 'call')}  title="Klik om te hervatten"><Phone size={12}/> Bellen</button>}
-                            {pf.video && <button style={{ ...chipPause, background:'rgba(139,92,246,.12)', color:'#7c3aed' }} onClick={() => resumeChild(child.uid, 'video')} title="Klik om te hervatten"><Video size={12}/> Video</button>}
-                          </div>
+                        {/* Gepauzeerde labels */}
+                        {anyPaused && (
+                          <>
+                            {pf.chat  && <span style={chipPause}><Message size={12}/> Chat</span>}
+                            {pf.call  && <span style={{ ...chipPause, background:'rgba(245,158,11,.15)', color:'#d97706' }}><Phone size={12}/> Bellen</span>}
+                            {pf.video && <span style={{ ...chipPause, background:'rgba(139,92,246,.12)', color:'#7c3aed' }}><Video size={12}/> Video</span>}
+                          </>
                         )}
                       </div>
                     </div>
@@ -413,7 +436,7 @@ export default function ParentDashboard({ user, onClose }) {
             {activeTab === 'activities' && (
               <div>
                 {/* Header met kind-selector */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 8, flexWrap: 'wrap' }}>
+                <div className="activities-header">
                   <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Pulse activiteiten</h2>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     {children.length > 0 && (
@@ -440,7 +463,10 @@ export default function ParentDashboard({ user, onClose }) {
                         )}
                       </div>
                     )}
-                    <button className="parent-btn-outline" onClick={() => { loadActivities(); if (selectedChildUid) loadAnalytics(selectedChildUid); }} style={{ fontSize: 12, padding: '6px 12px', display:'flex', alignItems:'center', gap:4 }}><Refresh size={14}/> Vernieuwen</button>
+                    <button className="parent-btn-outline activities-refresh-btn" onClick={() => { loadActivities(); if (selectedChildUid) loadAnalytics(selectedChildUid); }}>
+                      <Refresh size={14}/>
+                      <span className="activities-refresh-label">Vernieuwen</span>
+                    </button>
                   </div>
                 </div>
 
@@ -470,20 +496,12 @@ export default function ParentDashboard({ user, onClose }) {
                               }
                               <span style={{ position: 'absolute', bottom: 2, right: 2, width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', ...statusDot }} />
                             </div>
-                            <div>
-                              <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--text1,#1a1a1a)' }}>{profile.displayName}</div>
-                              {profile.username && <div style={{ fontSize: 13, color: '#888' }}>@{profile.username}</div>}
-                              <div style={{ fontSize: 12, color: profile.online ? '#22c55e' : '#9ca3af', marginTop: 2 }}>{profile.online ? '● Online' : `Offline · ${timeAgo(profile.lastSeen, 'Onbekend')}`}</div>
-                            </div>
-                            <div style={{ marginLeft: 'auto', display: 'flex', gap: 12 }}>
-                              <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontWeight: 700, fontSize: 20, color: 'var(--text1,#1a1a1a)' }}>{contacts.total}</div>
-                                <div style={{ fontSize: 11, color: '#888' }}>Contacten</div>
+                            <div className="analytics-profile-info">
+                              <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
+                                <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--text1,#1a1a1a)' }}>{profile.displayName}</span>
+                                {profile.username && <span style={{ fontSize: 13, color: '#888' }}>@{profile.username}</span>}
                               </div>
-                              <div style={{ textAlign: 'center' }}>
-                                <div style={{ fontWeight: 700, fontSize: 20, color: 'var(--text1,#1a1a1a)' }}>{messaging.topContacts.length}</div>
-                                <div style={{ fontSize: 11, color: '#888' }}>Chats</div>
-                              </div>
+                              <div style={{ fontSize: 12, color: profile.online ? '#22c55e' : '#9ca3af', marginTop:4, whiteSpace:'nowrap' }}>{profile.online ? '● Online' : `Offline · ${timeAgo(profile.lastSeen, 'Onbekend')}`}</div>
                             </div>
                           </div>
 
@@ -505,38 +523,43 @@ export default function ParentDashboard({ user, onClose }) {
                               </div>
                             </div>
                             {/* 7-daagse staafgrafiek */}
-                            <div className="analytics-bar-chart">
-                              {sessions.daily.map((day, i) => {
-                                const dt = new Date(day.date + 'T12:00:00');
-                                const label = dayLabels[dt.getDay()];
-                                const pct = Math.round((day.seconds / maxBar) * 100);
-                                return (
-                                  <div key={day.date} className="analytics-bar-col">
-                                    <div className="analytics-bar-wrap">
-                                      {day.seconds > 0 && <div className="analytics-bar-tooltip">{fmtSecs(day.seconds)}</div>}
-                                      <div className="analytics-bar" style={{ height: `${Math.max(pct, day.seconds > 0 ? 4 : 0)}%`, opacity: day.seconds > 0 ? 1 : 0.15 }} />
-                                    </div>
-                                    <div className="analytics-bar-label">{label}</div>
+                            {(() => {
+                              const avgSeconds = sessions.totalSecondsLast7Days / 7;
+                              const avgPct = maxBar > 0 ? (avgSeconds / maxBar) * 100 : 0;
+                              return (
+                                <div className="analytics-bar-chart-wrap">
+                                  {/* Y-as */}
+                                  <div className="analytics-bar-yaxis">
+                                    <span>{fmtSecs(maxBar)}</span>
+                                    <span>0</span>
                                   </div>
-                                );
-                              })}
-                            </div>
-                            {/* Piekuren */}
-                            {Object.keys(sessions.hourlyPattern).length > 0 && (
-                              <div style={{ marginTop: 12 }}>
-                                <div style={{ fontSize: 12, color: '#888', marginBottom: 6 }}>Piekuren</div>
-                                <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                                  {Array.from({length: 24}, (_, h) => {
-                                    const mins = sessions.hourlyPattern[h] || 0;
-                                    const maxMins = Math.max(...Object.values(sessions.hourlyPattern), 1);
-                                    const intensity = Math.round((mins / maxMins) * 100);
-                                    return (
-                                      <div key={h} title={`${h}:00 — ${mins}m`} style={{ width: 20, height: 20, borderRadius: 4, background: mins > 0 ? `rgba(124,58,237,${0.15 + intensity * 0.0085})` : '#f3f4f6', fontSize: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', color: intensity > 60 ? '#7c3aed' : '#aaa', cursor: 'default' }}>{h}</div>
-                                    );
-                                  })}
+                                  {/* Grafiek */}
+                                  <div className="analytics-bar-chart-inner">
+                                    {/* Gemiddeldenlijn */}
+                                    {avgSeconds > 0 && (
+                                      <div className="analytics-avg-line" style={{ bottom: `${avgPct}%` }}>
+                                        <span className="analytics-avg-label">gemid.</span>
+                                      </div>
+                                    )}
+                                    {/* Staven */}
+                                    {sessions.daily.map((day) => {
+                                      const dt = new Date(day.date + 'T12:00:00');
+                                      const label = dayLabels[dt.getDay()];
+                                      const pct = maxBar > 0 ? Math.round((day.seconds / maxBar) * 100) : 0;
+                                      return (
+                                        <div key={day.date} className="analytics-bar-col">
+                                          <div className="analytics-bar-wrap">
+                                            {day.seconds > 0 && <div className="analytics-bar-tooltip">{fmtSecs(day.seconds)}</div>}
+                                            <div className="analytics-bar" style={{ height: `${Math.max(pct, day.seconds > 0 ? 3 : 0)}%`, opacity: day.seconds > 0 ? 1 : 0.15 }} />
+                                          </div>
+                                          <div className="analytics-bar-label">{label}</div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                              </div>
-                            )}
+                              );
+                            })()}
                           </div>
 
                           {/* Communicatie */}
@@ -545,7 +568,7 @@ export default function ParentDashboard({ user, onClose }) {
                             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{messaging.totalMessagesSent}</div>
-                                <div className="analytics-stat-label">Berichten verstuurd</div>
+                                <div className="analytics-stat-label"><Message size={13} /> Chatten</div>
                               </div>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{fmtSecs(messaging.totalCallSecs)}</div>
@@ -562,79 +585,93 @@ export default function ParentDashboard({ user, onClose }) {
                           {messaging.topContacts.length > 0 && (
                             <div className="analytics-section">
                               <div className="analytics-section-title"><Users size={15} /> Meest contact mee</div>
-                              {messaging.topContacts.map((c, i) => (
-                                <div key={c.uid || i} className="analytics-contact-row">
-                                  <div className="analytics-contact-rank">#{i + 1}</div>
-                                  <div className="analytics-contact-avatar">{getInitials(c.name)}</div>
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text1,#1a1a1a)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}{c.isGroup && <span style={{ fontSize: 11, color: '#888', marginLeft: 4 }}>(groep)</span>}</div>
-                                    <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
-                                      {c.messagesSent > 0 && <span style={{ marginRight: 8, display:'inline-flex', alignItems:'center', gap:3 }}><Message size={12} /> {c.messagesSent} berichten</span>}
-                                      {c.callCount > 0 && <span style={{ marginRight: 8, display:'inline-flex', alignItems:'center', gap:3 }}><Phone size={12} /> {c.callCount}× ({fmtSecs(c.totalCallSecs)})</span>}
+                              {messaging.topContacts.map((c, i) => {
+                                const info = contacts.list.find(l => l.uid === c.uid) || {};
+                                const photoURL = info.photoURL || null;
+                                const displayEmail = info.email || c.email || null;
+                                return (
+                                  <div key={c.uid || i} className="analytics-contact-row" style={{ alignItems:'center', gap:12, flexWrap:'nowrap', borderTop: i > 0 ? '1px solid #f0f0f8' : 'none', paddingTop: i > 0 ? 12 : 0 }}>
+                                    {/* Rang */}
+                                    <div className="analytics-contact-rank" style={{ alignSelf:'center', flexShrink:0 }}>#{i + 1}</div>
+
+                                    {/* Avatar */}
+                                    <div className="analytics-contact-avatar" style={{ flexShrink:0 }}>
+                                      {photoURL
+                                        ? <img src={photoURL} alt={c.name} style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }}/>
+                                        : getInitials(c.name)}
+                                    </div>
+
+                                    {/* Naam + stats + email */}
+                                    <div style={{ minWidth:0, flex:1 }}>
+                                      {/* Naam + stats op zelfde rij */}
+                                      <div style={{ display:'flex', alignItems:'baseline', gap:16, flexWrap:'wrap' }}>
+                                        <div style={{ fontWeight:600, fontSize:14, color:'var(--text1,#1a1a1a)', whiteSpace:'nowrap' }}>
+                                          {c.name}{c.isGroup && <span style={{ fontSize:11, color:'#888', marginLeft:4 }}>(groep)</span>}
+                                        </div>
+                                        <div className="analytics-contact-stats" style={{ display:'flex', gap:12 }}>
+                                          {[
+                                            { value: c.messagesSent || 0,           icon: <Message size={11}/>, label: 'Chatberichten' },
+                                            { value: fmtSecs(c.totalCallSecs || 0), icon: <Phone size={11}/>,   label: 'Bellen' },
+                                            { value: fmtSecs(c.totalVideoSecs || 0),icon: <Video size={11}/>,   label: 'Videobellen' },
+                                          ].map(({ value, icon, label }) => (
+                                            <div key={label} style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:1 }}>
+                                              <div style={{ fontWeight:700, fontSize:14, color:'#7c3aed' }}>{value}</div>
+                                              <div style={{ fontSize:10, color:'#888', display:'flex', alignItems:'center', gap:2 }}>{icon} {label}</div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      {/* Email onder naam */}
+                                      {displayEmail && <div style={{ fontSize:11, color:'#aaa', marginTop:3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{displayEmail}</div>}
                                     </div>
                                   </div>
-                                  <div style={{ fontSize: 12, color: '#7c3aed', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                                    {fmtSecs(c.totalCallSecs + c.messagesSent * 0)}
-                                    {c.totalCallSecs > 0 ? fmtSecs(c.totalCallSecs) : `${c.messagesSent} msg`}
-                                  </div>
-                                </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           )}
 
-                          {/* Vriendschapsverzoeken */}
-                          {(friendRequests.sent.length > 0 || friendRequests.received.length > 0) && (
-                            <div className="analytics-section">
-                              <div className="analytics-section-title">🤝 Vriendschapsverzoeken</div>
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                <div>
-                                  <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Verstuurd naar</div>
-                                  {friendRequests.sent.length === 0
-                                    ? <div style={{ fontSize: 13, color: '#bbb' }}>Geen</div>
-                                    : friendRequests.sent.map((r, i) => (
-                                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 13 }}>
-                                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: r.status === 'accepted' ? '#22c55e' : r.status === 'declined' ? '#ef4444' : '#f59e0b', flexShrink: 0 }} />
-                                        <span style={{ color: 'var(--text1,#1a1a1a)' }}>{r.toName}</span>
-                                        <span style={{ fontSize: 11, color: '#aaa', marginLeft: 'auto' }}>{r.status === 'accepted' ? '✓ Geaccepteerd' : r.status === 'declined' ? '✗ Geweigerd' : '⏳ In behandeling'}</span>
-                                      </div>
-                                    ))
-                                  }
-                                </div>
-                                <div>
-                                  <div style={{ fontSize: 12, fontWeight: 600, color: '#888', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ontvangen van</div>
-                                  {friendRequests.received.length === 0
-                                    ? <div style={{ fontSize: 13, color: '#bbb' }}>Geen</div>
-                                    : friendRequests.received.map((r, i) => (
-                                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 13 }}>
-                                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: r.status === 'accepted' ? '#22c55e' : r.status === 'declined' ? '#ef4444' : '#f59e0b', flexShrink: 0 }} />
-                                        <span style={{ color: 'var(--text1,#1a1a1a)' }}>{r.fromName}</span>
-                                        <span style={{ fontSize: 11, color: '#aaa', marginLeft: 'auto' }}>{r.status === 'accepted' ? '✓ Geaccepteerd' : r.status === 'declined' ? '✗ Geweigerd' : '⏳ In behandeling'}</span>
-                                      </div>
-                                    ))
-                                  }
-                                </div>
-                              </div>
-                            </div>
-                          )}
 
                           {/* Contactenlijst */}
-                          {contacts.list.length > 0 && (
-                            <div className="analytics-section">
-                              <div className="analytics-section-title"><Users size={15} /> Contacten ({contacts.total})</div>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                                {contacts.list.map(c => (
-                                  <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8f8fc', borderRadius: 20, padding: '4px 10px 4px 4px', fontSize: 13 }}>
-                                    {c.photoURL
-                                      ? <img src={c.photoURL} alt={c.displayName} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
-                                      : <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#e0e0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#7c3aed' }}>{getInitials(c.displayName)}</div>
-                                    }
-                                    <span style={{ color: 'var(--text1,#1a1a1a)' }}>{c.displayName}</span>
+                          {contacts.list.length > 0 && (() => {
+                            const filtered = contactFilter === 'alles'
+                              ? contacts.list
+                              : contacts.list.filter(c => c.relation === contactFilter);
+                            return (
+                              <div className="analytics-section">
+                                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10, flexWrap:'wrap', gap:8 }}>
+                                  <div className="analytics-section-title" style={{ margin:0 }}><Users size={15} /> Contacten ({contacts.total})</div>
+                                  <div style={{ display:'flex', gap:6 }}>
+                                    {['alles','familie','vrienden'].map(f => (
+                                      <button key={f} onClick={() => setContactFilter(f)}
+                                        style={{ padding:'4px 10px', borderRadius:20, border:'1.5px solid', fontSize:12, fontWeight:600, cursor:'pointer', transition:'all .15s',
+                                          borderColor: contactFilter === f ? '#7c3aed' : '#e5e7eb',
+                                          background: contactFilter === f ? '#7c3aed' : 'transparent',
+                                          color: contactFilter === f ? '#fff' : '#6b7280' }}>
+                                        {f.charAt(0).toUpperCase() + f.slice(1)}
+                                      </button>
+                                    ))}
                                   </div>
-                                ))}
-                                {contacts.total > contacts.list.length && <div style={{ fontSize: 12, color: '#aaa', display: 'flex', alignItems: 'center' }}>+{contacts.total - contacts.list.length} meer</div>}
+                                </div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                  {filtered.length === 0
+                                    ? <div style={{ fontSize:13, color:'#aaa' }}>Geen contacten in deze categorie.</div>
+                                    : filtered.map(c => (
+                                      <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8f8fc', borderRadius: 20, padding: '4px 10px 4px 4px', fontSize: 13 }}>
+                                        {c.photoURL
+                                          ? <img src={c.photoURL} alt={c.displayName} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
+                                          : <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#e0e0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#7c3aed' }}>{getInitials(c.displayName)}</div>
+                                        }
+                                        <span style={{ color: 'var(--text1,#1a1a1a)' }}>{c.displayName}</span>
+                                      </div>
+                                    ))
+                                  }
+                                  {contactFilter === 'alles' && contacts.total > contacts.list.length && (
+                                    <div style={{ fontSize: 12, color: '#aaa', display: 'flex', alignItems: 'center' }}>+{contacts.total - contacts.list.length} meer</div>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            );
+                          })()}
 
                         </div>
                       );
@@ -643,8 +680,8 @@ export default function ParentDashboard({ user, onClose }) {
                 )}
 
                 {/* Activiteitenlogboek */}
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: '#888', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Activiteitenlog</div>
+                <div className="analytics-section">
+                  <div className="analytics-section-title"><Activity size={15}/> Activiteitenlog</div>
                   {activities.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>
                       <Activity size={32} color="#ccc" style={{ marginBottom: 8 }}/>

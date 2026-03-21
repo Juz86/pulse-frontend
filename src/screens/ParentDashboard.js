@@ -601,17 +601,15 @@ export default function ParentDashboard({ user, onClose }) {
                                         : getInitials(c.name)}
                                     </div>
 
-                                    {/* Naam + email links, stats rechts */}
-                                    <div style={{ minWidth:0, flex:1, display:'flex', alignItems:'center', gap:12 }}>
-                                      {/* Naam + email */}
-                                      <div style={{ minWidth:0, flex:1 }}>
-                                        <div style={{ fontWeight:600, fontSize:14, color:'var(--text1,#1a1a1a)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                                    {/* Naam+email links, stats rechts (mobiel: gestapeld) */}
+                                    <div className="analytics-contact-info">
+                                      <div className="analytics-contact-name-col">
+                                        <div className="analytics-contact-name">
                                           {c.name}{c.isGroup && <span style={{ fontSize:11, color:'#888', marginLeft:4 }}>(groep)</span>}
                                         </div>
-                                        {displayEmail && <div style={{ fontSize:11, color:'#aaa', marginTop:2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{displayEmail}</div>}
+                                        {displayEmail && <div className="analytics-contact-email">{displayEmail}</div>}
                                       </div>
-                                      {/* Stats rechts */}
-                                      <div className="analytics-contact-stats" style={{ display:'flex', gap:12, flexShrink:0 }}>
+                                      <div className="analytics-contact-stats">
                                         {[
                                           { value: c.messagesSent || 0,           icon: <Message size={11}/>, label: 'Chatberichten' },
                                           { value: fmtSecs(c.totalCallSecs || 0), icon: <Phone size={11}/>,   label: 'Bellen' },

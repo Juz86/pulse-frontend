@@ -1575,13 +1575,45 @@ body {
 
 /* Contacten */
 .analytics-contact-row {
-  display:flex; align-items:center; gap:10px; padding:8px 0;
+  display:flex; align-items:flex-start; gap:10px; padding:8px 0;
   border-bottom:1px solid #f3f3f8; flex-wrap:nowrap;
 }
 @media (max-width:520px) {
   .analytics-contact-row { flex-wrap:wrap; }
 }
-.analytics-contact-row:last-child { border-bottom:none; }.analytics-contact-rank { font-size:11px; font-weight:700; color:#aaa; width:20px; text-align:center; }
+.analytics-contact-row:last-child { border-bottom:none; }
+
+/* Info-blok: 2 kolommen — kolom 1: naam+email, kolom 2: stats */
+.analytics-contact-info {
+  flex:1; min-width:0;
+  display:flex; align-items:center; gap:24px; justify-content:flex-start;
+}
+.analytics-contact-name-col {
+  min-width:120px; max-width:200px;
+}
+.analytics-contact-name {
+  font-weight:600; font-size:14px; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+  color:var(--text1,#1a1a1a);
+}
+.analytics-contact-email {
+  font-size:11px; color:#aaa; margin-top:2px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.analytics-contact-stats {
+  display:flex; gap:12px; flex-shrink:0; align-items:flex-start;
+  border-left:1px solid #e5e7eb; padding-left:16px;
+}
+.analytics-contact-rank { padding-top:2px; }
+.analytics-contact-avatar { margin-top:1px; }
+@media (max-width:600px) {
+  .analytics-contact-info { flex-direction:column; align-items:flex-start; gap:6px; }
+  .analytics-contact-name-col { min-width:unset; max-width:unset; width:100%; }
+  .analytics-contact-stats {
+    width:100%; border-left:none; padding-left:0;
+    border-top:1px solid #e5e7eb; padding-top:6px;
+  }
+}.analytics-contact-rank { font-size:11px; font-weight:700; color:#aaa; width:20px; text-align:center; }
 .analytics-contact-avatar {
   width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#a78bfa);
   color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;

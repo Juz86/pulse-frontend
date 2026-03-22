@@ -44,6 +44,12 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
 
   const photoInputRef = useRef(null);
   const bgInputRef    = useRef(null);
+  const blobUrlRef    = useRef(null);
+
+  // Ruim blob URL op bij unmount
+  useEffect(() => {
+    return () => { if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current); };
+  }, []);
 
   // ── Herstel profielfoto + laad chat achtergrond bij mount ────────────────
   useEffect(() => {
@@ -119,10 +125,9 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
     const file = e.target.files[0];
     if (!file) return;
     setPhotoFile(file);
-    setPhotoPreview(prev => {
-      if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(file);
-    });
+    if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    blobUrlRef.current = URL.createObjectURL(file);
+    setPhotoPreview(blobUrlRef.current);
     e.target.value = '';
   }
 
@@ -267,7 +272,16 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
     setPhotoPreview(localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null);
     setPhotoFile(null);
     getDoc(doc(db, 'users', user.uid)).then(snap => {
-      if (snap.exists() && snap.data().avatarOptions) setAvatarOptions(snap.data().avatarOptions);
+      if (!snap.exists()) return;
+      const { photoURL, avatarOptions } = snap.data();
+      if (avatarOptions) setAvatarOptions(avatarOptions);
+      if (photoURL) {
+        setPhotoPreview(photoURL);
+        localStorage.setItem(`pulse_photo_${user.uid}`, photoURL);
+      } else {
+        setPhotoPreview(null);
+        localStorage.removeItem(`pulse_photo_${user.uid}`);
+      }
     }).catch(e => { console.warn('[Pulse] Fout:', e.message); });
   }
 

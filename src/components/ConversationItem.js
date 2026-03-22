@@ -4,7 +4,7 @@ import { Phone, Video, Delete, Pin } from '../components/Icons';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview } from '../utils';
 
-const ConversationItem = React.memo(function ConversationItem({
+function ConversationItemBase({
   conv,
   isActive,
   otherUid,
@@ -46,6 +46,18 @@ const ConversationItem = React.memo(function ConversationItem({
       <button className="conv-delete-btn" onClick={onDelete} title="Verwijderen"><Delete size={16} /></button>
     </div>
   );
-});
+}
+
+const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
+  prev.conv.id          === next.conv.id          &&
+  prev.conv.lastMessage === next.conv.lastMessage  &&
+  prev.conv.updatedAt   === next.conv.updatedAt    &&
+  prev.conv.photoURL    === next.conv.photoURL     &&
+  prev.isActive         === next.isActive          &&
+  prev.isOnline         === next.isOnline          &&
+  prev.isInactive       === next.isInactive        &&
+  prev.unread           === next.unread            &&
+  prev.isPinned         === next.isPinned
+);
 
 export default ConversationItem;

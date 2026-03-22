@@ -1,5 +1,5 @@
 // src/hooks/useConversations.js
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getSocket, BACKEND_URL } from '../services/socket';
 import { toMs } from '../utils';
 
@@ -29,6 +29,8 @@ export default function useConversations({
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
   }
+
+  const pendingTempIds = useRef(new Set());
 
   const [conversations,  setConversations]  = useState([]);
   const [activeConv,     setActiveConv]     = useState(null);
@@ -104,7 +106,13 @@ export default function useConversations({
       msgCache.current[convId] = arr;
       setMessages(prev => {
         const fetchedIds = new Set(arr.map(m => m.id).filter(Boolean));
-        const live = prev.filter(m => m.id && !fetchedIds.has(m.id));
+        const live = prev.filter(m => {
+          if (!m.id) return false;
+          if (fetchedIds.has(m.id)) return false;
+          // Stale tempId: al bevestigd door server maar state nog niet bijgewerkt
+          if (m.id.startsWith('temp-') && !pendingTempIds.current.has(m.id)) return false;
+          return true;
+        });
         return [...arr, ...live];
       });
       setMsgOffset(arr.length);
@@ -198,6 +206,7 @@ export default function useConversations({
       ...(mentions.length > 0 ? { mentions } : {}),
     };
     setReplyTo(null);
+    pendingTempIds.current.add(tempId);
     setMessages(prev => [...prev, { ...msg, id: tempId, _key: tempId, pending: true, _retryCount: 0 }]);
     savePending(tempId, activeConv.id, msg);
     setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
@@ -211,6 +220,7 @@ export default function useConversations({
     socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
       clearTimeout(failTimer);
       if (savedMsg?.id) {
+        pendingTempIds.current.delete(tempId);
         setMessages(prev => prev.map(m => m.id === tempId ? { ...savedMsg, _key: tempId, pending: false, failed: false } : m));
         removePending(tempId);
       }
@@ -240,6 +250,7 @@ export default function useConversations({
     socket.emit('message:send', { convId: activeConv.id, message: { ...failedMsg, createdAt: new Date().toISOString() } }, (savedMsg) => {
       clearTimeout(failTimer);
       if (savedMsg?.id) {
+        pendingTempIds.current.delete(failedMsg.id);
         setMessages(prev => prev.map(m => m.id === failedMsg.id
           ? { ...savedMsg, _key: failedMsg.id, pending: false, failed: false, _retrying: false }
           : m

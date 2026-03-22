@@ -1140,7 +1140,7 @@ body {
   background:rgba(108,99,255,.12); color:var(--accent);
   border-left-color:var(--accent); font-weight:600;
 }
-.profile-sidebar-tab.danger { color:var(--danger); }
+.profile-sidebar-tab.danger { color:var(--danger); margin-top:auto; }
 .profile-sidebar-tab.danger:hover { background:rgba(255,71,87,.08); }
 .profile-sidebar-tab.danger.active { background:rgba(255,71,87,.1); border-left-color:var(--danger); color:var(--danger); }
 

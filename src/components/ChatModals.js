@@ -628,7 +628,7 @@ export default function ChatModals({
                             </button>
                           : <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '13px', padding: '8px 0' }}>Standaard achtergrond is actief</div>
                       )}
-                      {chatBgMsg && <div style={{ marginTop: '8px', fontSize: '12px', color: chatBgMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{chatBgMsg}</div>}
+                      {chatBgMsg && chatBgMsg.startsWith('Fout') && <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--danger)' }}>{chatBgMsg}</div>}
                     </div>
                   </div>
                 )}

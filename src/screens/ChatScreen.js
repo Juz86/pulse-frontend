@@ -172,6 +172,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     user, activeConvRef, conversationsRef, msgsAreaRef, dndRef, audioCtxRef,
     loadConversations, loadContacts, setMessages, setConversations, setUnreadCounts,
     setFriendRequests, setContactSuccess, setContacts, setActiveConv,
+    onReconnect: retryAllFailed,
   });
 
   const { activeCall, setActiveCall, getCallLog, callContact, initiateCall, initiateCallFromConv } = useCalling({
@@ -193,7 +194,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   // ── Effects ───────────────────────────────────────────────────────────────
   useEffect(() => {
-    const handleOnline  = () => { setIsOnline(true);  retryAllFailed(); };
+    const handleOnline  = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     window.addEventListener('online',  handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -201,7 +202,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       window.removeEventListener('online',  handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [retryAllFailed]);
+  }, []);
   useEffect(() => () => clearTimeout(typingTimer.current), []);
   useEffect(() => {
     if (!initialConvId || !conversations.length) return;

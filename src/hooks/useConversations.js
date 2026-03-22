@@ -207,7 +207,7 @@ export default function useConversations({
     });
     const failTimer = setTimeout(() => {
       setMessages(prev => prev.map(m => m.id === tempId ? { ...m, pending: false, failed: true } : m));
-    }, 10000);
+    }, 20000);
     socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
       clearTimeout(failTimer);
       if (savedMsg?.id) {
@@ -236,7 +236,7 @@ export default function useConversations({
         ? { ...m, pending: false, failed: true, _retrying: false }
         : m
       ));
-    }, 10000);
+    }, 20000);
     socket.emit('message:send', { convId: activeConv.id, message: { ...failedMsg, createdAt: new Date().toISOString() } }, (savedMsg) => {
       clearTimeout(failTimer);
       if (savedMsg?.id) {

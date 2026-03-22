@@ -18,6 +18,7 @@ export default function useChat({
   setContactSuccess,
   setContacts,
   setActiveConv,
+  onReconnect,
 }) {
   const disconnectTimerRef   = useRef(null);
   const reconnectIntervalRef = useRef(null);
@@ -65,6 +66,8 @@ export default function useChat({
       setReconnectIn(null);
       conversationsRef.current.forEach(conv => socket.emit('conversation:join', { convId: conv.id }));
       socket.emit('users:online:request');
+      // Herverstuurd mislukte berichten zodra socket daadwerkelijk connected is
+      onReconnect?.();
     };
 
     const onDisconnect = () => {

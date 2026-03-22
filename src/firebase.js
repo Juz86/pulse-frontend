@@ -8,7 +8,7 @@
 
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { initializeFirestore, persistentLocalCache, persistentSingleTabManager } from 'firebase/firestore';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
@@ -24,7 +24,7 @@ const firebaseConfig = {
 const app      = initializeApp(firebaseConfig);
 export const auth      = getAuth(app);
 export const db        = initializeFirestore(app, {
-  localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }),
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
 });
 export const storage   = getStorage(app);
 export const messaging = getMessaging(app);

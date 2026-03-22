@@ -1,7 +1,7 @@
 // src/hooks/useContacts.js
 import { useState, useCallback } from 'react';
 import { db } from '../firebase';
-import { doc, getDoc, getDocs, deleteDoc, collection } from 'firebase/firestore';
+import { doc, getDoc, getDocs, deleteDoc, collection, setDoc } from 'firebase/firestore';
 import { getSocket, BACKEND_URL } from '../services/socket';
 
 export default function useContacts({
@@ -65,14 +65,21 @@ export default function useContacts({
   // ── Nickname helpers ──────────────────────────────────────────────────────
   function getContactNickname(uid) { return nicknameCache[uid] || null; }
 
-  function saveContactNickname(uid, name) {
-    if (name.trim()) {
-      localStorage.setItem(`pulse_nick_${uid}`, name.trim());
-      setNicknameCache(prev => ({ ...prev, [uid]: name.trim() }));
+  async function saveContactNickname(contactUid, name) {
+    const trimmed = name.trim();
+    // localStorage (snelle lokale cache)
+    if (trimmed) {
+      localStorage.setItem(`pulse_nick_${contactUid}`, trimmed);
+      setNicknameCache(prev => ({ ...prev, [contactUid]: trimmed }));
     } else {
-      localStorage.removeItem(`pulse_nick_${uid}`);
-      setNicknameCache(prev => { const n = { ...prev }; delete n[uid]; return n; });
+      localStorage.removeItem(`pulse_nick_${contactUid}`);
+      setNicknameCache(prev => { const n = { ...prev }; delete n[contactUid]; return n; });
     }
+    // Firestore (sync tussen apparaten)
+    try {
+      const nickRef = doc(db, 'users', user.uid, 'nicknames', contactUid);
+      await setDoc(nickRef, { nickname: trimmed || null, updatedAt: new Date().toISOString() });
+    } catch (e) { console.warn('[Pulse] Nickname opslaan in Firestore mislukt:', e.message); }
   }
 
   function getContactDisplayName(contact) {
@@ -87,8 +94,27 @@ export default function useContacts({
   // ── Data laden ───────────────────────────────────────────────────────────
   const loadContacts = useCallback(async () => {
     try {
-      const snap = await getDocs(collection(db, 'users', user.uid, 'contacts'));
-      const raw  = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const [contactsSnap, nicknamesSnap] = await Promise.all([
+        getDocs(collection(db, 'users', user.uid, 'contacts')),
+        getDocs(collection(db, 'users', user.uid, 'nicknames')),
+      ]);
+      const raw = contactsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Laad nicknames uit Firestore en sync naar localStorage
+      const firestoreNicknames = {};
+      nicknamesSnap.docs.forEach(d => {
+        const nick = d.data().nickname;
+        if (nick) {
+          firestoreNicknames[d.id] = nick;
+          localStorage.setItem(`pulse_nick_${d.id}`, nick);
+        } else {
+          localStorage.removeItem(`pulse_nick_${d.id}`);
+        }
+      });
+      if (Object.keys(firestoreNicknames).length > 0) {
+        setNicknameCache(prev => ({ ...prev, ...firestoreNicknames }));
+      }
+
       const needsPhoto = raw.filter(c => !c.photoURL);
       const photoMap   = {};
       if (needsPhoto.length > 0) {

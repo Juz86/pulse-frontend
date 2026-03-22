@@ -42,6 +42,17 @@ export function formatDateLabel(val) {
   return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
+/** Chat: preview-tekst voor oproepen in de gesprekkenlijst */
+export function callPreview(conv, currentUid) {
+  const { lastCallSenderId, lastCallDirection, lastCallIsVideo } = conv;
+  if (!lastCallDirection) return conv.lastMessage || '';
+  const isOwn = lastCallSenderId === currentUid;
+  const iv = lastCallIsVideo;
+  if (lastCallDirection === 'completed') return iv ? 'Video-oproep' : 'Spraakoproep';
+  if (lastCallDirection === 'declined')  return isOwn ? 'Geweigerd' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
+  return isOwn ? 'Spraakoproep' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
+}
+
 /** Relatieve tijdweergave vanuit een Firestore Timestamp */
 export function timeAgo(ts, fallback = '') {
   if (!ts) return fallback;

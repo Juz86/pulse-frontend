@@ -1,6 +1,6 @@
 // src/components/MessageBubble.js
 import React, { useRef, useState, useEffect } from 'react';
-import { Phone, Video, Check, CheckDouble, Clock, Cancel } from '../components/Icons';
+import { Phone, Video, Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
 import { getInitials, formatTime } from '../utils';
 
 // ── Helpers (pure, buiten component voor stabiele referentie) ─────────────────
@@ -220,12 +220,17 @@ const MessageBubble = React.memo(function MessageBubble({
           status.failed
             ? (
               <span className="msg-ticks failed" onClick={onRetry} title="Opnieuw versturen">
-                <span className="msg-ticks-label">Mislukt · Opnieuw</span><Cancel size={12} />
+                <span className="msg-ticks-label">Niet verzonden. Tik om opnieuw te proberen.</span>
+                <ErrorIcon size={14} />
               </span>
             ) : (
               <span className={`msg-ticks${status.read ? ' read' : ''}`}>
                 <span className="msg-ticks-label">{status.label}</span>
-                {status.icon === 'clock' ? <Clock size={12} /> : status.icon === 'double' ? <CheckDouble size={12} /> : <Check size={12} />}
+                {status.icon === 'clock'
+                  ? <span className={msg._retrying ? 'msg-clock-spin' : ''}><Clock size={12} /></span>
+                  : status.icon === 'double'
+                    ? <CheckDouble size={12} />
+                    : <Check size={12} />}
               </span>
             )
         )}

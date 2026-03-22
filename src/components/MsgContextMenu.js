@@ -2,13 +2,13 @@
 import React from 'react';
 import {
   Reply, Copy, Share, Pin, StarFilled, StarOutline,
-  MagicEdit, Delete,
+  MagicEdit, Delete, Refresh, ErrorIcon,
 } from './Icons';
 
 export default function MsgContextMenu({
   msg, isOwn, position, starred, pinned,
   onClose, onReply, onCopy, onForward, onPin, onStar, onEdit,
-  onDeleteRequest,
+  onDeleteRequest, onRetry,
 }) {
   const menuWidth     = 234;
   const menuEstHeight = 290;
@@ -29,6 +29,13 @@ export default function MsgContextMenu({
     <>
       <div className="msg-ctx-backdrop" onClick={e => { e.stopPropagation(); onClose(); }} />
       <div className="msg-ctx-menu" style={{ left, top }} onClick={e => e.stopPropagation()}>
+
+        {isOwn && msg.failed && (
+          <button className="msg-ctx-item" onClick={doAndClose(onRetry)}>
+            <Refresh size={18} className="msg-ctx-icon" style={{ color: '#f87171' }} />
+            <span>Opnieuw versturen</span>
+          </button>
+        )}
 
         <button className="msg-ctx-item" onClick={doAndClose(onReply)}>
           <Reply size={18} className="msg-ctx-icon" />

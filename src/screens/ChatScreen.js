@@ -56,6 +56,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [deleteConfirm,  setDeleteConfirm]  = useState(null); // { msgId, isOwn }
   const [showStarredMsgs, setShowStarredMsgs] = useState(false);
   const [jumpToMsgId,     setJumpToMsgId]     = useState(null);
+  const [isOnline,        setIsOnline]        = useState(navigator.onLine);
   const jumpTimer = useRef(null);
 
   function handleJumpToMsg(msgId) {
@@ -132,7 +133,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     conversations, setConversations, activeConv, setActiveConv,
     messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore,
     loadConversations, openConversation, deleteConversation, loadMoreMessages,
-    sendMessage, sendEditedMessage, stopTyping, retryMessage, toggleReaction,
+    sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     forwardToConv, deleteMessage,
     toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
   } = useConversations({
@@ -191,6 +192,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   } = useProfile({ user, activeConv, setActiveConv, setConversations, showErrToast, setConfirmDialog });
 
   // ── Effects ───────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const handleOnline  = () => { setIsOnline(true);  retryAllFailed(); };
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online',  handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online',  handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [retryAllFailed]);
   useEffect(() => () => clearTimeout(typingTimer.current), []);
   useEffect(() => {
     if (!initialConvId || !conversations.length) return;
@@ -344,6 +355,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               chatSearchIdx={chatSearchIdx} setChatSearchIdx={setChatSearchIdx}
               messages={messages} chatSearchRef={chatSearchRef}
             />
+            {!isOnline && (
+              <div className="offline-banner">
+                Je bent offline. Berichten worden verstuurd zodra je weer verbinding hebt.
+              </div>
+            )}
             {pinnedMsgs[activeConv?.id] && (
               <div className="pinned-msg-bar">
                 <span className="pinned-msg-icon">📌</span>
@@ -482,6 +498,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           onStar={() => handleStar(contextMenu.msg.id)}
           onEdit={() => { setEditingMsg({ id: contextMenu.msg.id, text: contextMenu.msg.text }); setText(contextMenu.msg.text); setTimeout(() => textareaRef.current?.focus(), 0); }}
           onDeleteRequest={() => handleDeleteRequest(contextMenu.msg)}
+          onRetry={() => retryMessage(contextMenu.msg)}
         />
       )}
     </div>

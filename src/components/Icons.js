@@ -59,3 +59,5 @@ export { MdReply              as Reply }       from 'react-icons/md';
 export { MdContentCopy        as Copy }        from 'react-icons/md';
 export { MdStar               as StarFilled }  from 'react-icons/md';
 export { MdStarBorder         as StarOutline } from 'react-icons/md';
+export { MdError              as ErrorIcon }   from 'react-icons/md';
+export { MdWifiOff            as WifiOff }     from 'react-icons/md';

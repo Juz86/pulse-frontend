@@ -146,6 +146,23 @@ export default function useConversations({
     finally { setLoadingMore(false); }
   }
 
+  // ── Lokale pending-berichten backup ──────────────────────────────────────
+  function savePending(tempId, convId, msg) {
+    try {
+      const key  = `pulse_pending_${user.uid}`;
+      const list = JSON.parse(localStorage.getItem(key) || '[]');
+      list.push({ tempId, convId, msg });
+      localStorage.setItem(key, JSON.stringify(list));
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+  }
+  function removePending(tempId) {
+    try {
+      const key  = `pulse_pending_${user.uid}`;
+      const list = JSON.parse(localStorage.getItem(key) || '[]');
+      localStorage.setItem(key, JSON.stringify(list.filter(m => m.tempId !== tempId)));
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+  }
+
   // ── Berichten ─────────────────────────────────────────────────────────────
   function stopTyping() {
     clearTimeout(typingTimer.current);
@@ -181,7 +198,8 @@ export default function useConversations({
       ...(mentions.length > 0 ? { mentions } : {}),
     };
     setReplyTo(null);
-    setMessages(prev => [...prev, { ...msg, id: tempId, _key: tempId, pending: true }]);
+    setMessages(prev => [...prev, { ...msg, id: tempId, _key: tempId, pending: true, _retryCount: 0 }]);
+    savePending(tempId, activeConv.id, msg);
     setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
     setConversations(prev => {
       const updated = prev.map(c => c.id === activeConv.id ? { ...c, lastMessage: msg.text, updatedAt: msg.createdAt, lastCallDirection: null, lastCallSenderId: null, lastCallIsVideo: null } : c);
@@ -189,11 +207,12 @@ export default function useConversations({
     });
     const failTimer = setTimeout(() => {
       setMessages(prev => prev.map(m => m.id === tempId ? { ...m, pending: false, failed: true } : m));
-    }, 8000);
+    }, 10000);
     socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
       clearTimeout(failTimer);
       if (savedMsg?.id) {
         setMessages(prev => prev.map(m => m.id === tempId ? { ...savedMsg, _key: tempId, pending: false, failed: false } : m));
+        removePending(tempId);
       }
     });
     setText('');
@@ -207,16 +226,35 @@ export default function useConversations({
   function retryMessage(failedMsg) {
     const socket = getSocket();
     if (!socket?.connected || !activeConv) return;
-    setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...m, pending: true, failed: false } : m));
+    const retryCount = (failedMsg._retryCount || 0) + 1;
+    setMessages(prev => prev.map(m => m.id === failedMsg.id
+      ? { ...m, pending: true, failed: false, _retryCount: retryCount, _retrying: true }
+      : m
+    ));
     const failTimer = setTimeout(() => {
-      setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...m, pending: false, failed: true } : m));
-    }, 8000);
+      setMessages(prev => prev.map(m => m.id === failedMsg.id
+        ? { ...m, pending: false, failed: true, _retrying: false }
+        : m
+      ));
+    }, 10000);
     socket.emit('message:send', { convId: activeConv.id, message: { ...failedMsg, createdAt: new Date().toISOString() } }, (savedMsg) => {
       clearTimeout(failTimer);
       if (savedMsg?.id) {
-        setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...savedMsg, _key: failedMsg.id, pending: false, failed: false } : m));
+        setMessages(prev => prev.map(m => m.id === failedMsg.id
+          ? { ...savedMsg, _key: failedMsg.id, pending: false, failed: false, _retrying: false }
+          : m
+        ));
+        removePending(failedMsg.id);
       }
     });
+  }
+
+  function retryAllFailed() {
+    const conv = activeConvRef.current;
+    if (!conv) return;
+    messages
+      .filter(m => m.failed && (m._retryCount || 0) < 3)
+      .forEach(msg => retryMessage(msg));
   }
 
   function toggleReaction(msgId, emoji) {
@@ -302,7 +340,7 @@ export default function useConversations({
     messages, setMessages,
     loadingConvs, loadingMsgs, hasMore, loadingMore, msgOffset, setMsgOffset,
     loadConversations, openConversation, deleteConversation, loadMoreMessages,
-    sendMessage, sendEditedMessage, stopTyping, retryMessage, toggleReaction,
+    sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     forwardToConv, deleteMessage,
     toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
   };

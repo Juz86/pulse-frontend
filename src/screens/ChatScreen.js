@@ -1,11 +1,12 @@
 // src/screens/ChatScreen.js
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { getSocket } from '../services/socket';
-import { Bell, BellOff, Message } from '../components/Icons';
+import { Bell, BellOff, Message, Delete, Trash2 } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
 import ChatHeader from '../components/ChatHeader';
 import ChatSidebar from '../components/ChatSidebar';
 import MessageList from '../components/MessageList';
+import MsgContextMenu from '../components/MsgContextMenu';
 import useConversations from '../hooks/useConversations';
 import useChat from '../hooks/useChat';
 import useCalling from '../hooks/useCalling';
@@ -49,6 +50,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [pendingMentions, setPendingMentions] = useState([]);
   const [errToast,       setErrToast]       = useState('');
   const [chatFading,     setChatFading]     = useState(false);
+  const [contextMenu,    setContextMenu]    = useState(null); // { msg, isOwn, x, y }
+  const [starredMsgs,    setStarredMsgs]    = useState(() => { try { return JSON.parse(localStorage.getItem(`pulse_starred_${user.uid}`) || '[]'); } catch { return []; } });
+  const [pinnedMsgs,     setPinnedMsgs]     = useState(() => { try { return JSON.parse(localStorage.getItem(`pulse_pinned_msgs_${user.uid}`) || '{}'); } catch { return {}; } });
+  const [deleteConfirm,  setDeleteConfirm]  = useState(null); // { msgId, isOwn }
+  const [showStarredMsgs, setShowStarredMsgs] = useState(false);
 
   const errToastTimer  = useRef(null);
   const msgCache       = useRef({});
@@ -74,6 +80,38 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       ? { icon: <BellOff size={15}/>, text: 'Meldingen uitgeschakeld', bg: 'rgba(80,80,100,0.92)' }
       : { icon: <Bell size={15}/>,    text: 'Meldingen ingeschakeld',  bg: 'rgba(34,197,94,0.92)' });
   }
+  function handleShowContextMenu(e, msg) {
+    e.preventDefault?.();
+    setContextMenu({ msg, isOwn: msg.senderId === user.uid, x: e.clientX, y: e.clientY });
+  }
+  function handleStar(msgId) {
+    setStarredMsgs(prev => {
+      const next = prev.includes(msgId) ? prev.filter(id => id !== msgId) : [...prev, msgId];
+      localStorage.setItem(`pulse_starred_${user.uid}`, JSON.stringify(next));
+      return next;
+    });
+  }
+  function handlePin(msg) {
+    const convId = activeConv?.id;
+    if (!convId) return;
+    setPinnedMsgs(prev => {
+      const next = { ...prev };
+      if (next[convId]?.id === msg.id) delete next[convId];
+      else next[convId] = { id: msg.id, text: msg.text };
+      localStorage.setItem(`pulse_pinned_msgs_${user.uid}`, JSON.stringify(next));
+      return next;
+    });
+  }
+  function handleDeleteRequest(msg) {
+    setDeleteConfirm({ msgId: msg.id, isOwn: msg.senderId === user.uid });
+  }
+  function handleMsgInfo(msg) {
+    const time    = new Date(msg.createdAt).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = new Date(msg.createdAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+    const status  = msg.status === 'gelezen' ? 'Gelezen' : msg.status === 'bezorgd' ? 'Bezorgd' : 'Verstuurd';
+    showErrToast(`📋 ${status} · ${dateStr} ${time}${msg.editedAt ? ' · Bewerkt' : ''}`);
+  }
+
   const setConvLabel = (convId, label) => {
     const next = label ? { ...convLabels, [convId]: label } : Object.fromEntries(Object.entries(convLabels).filter(([k]) => k !== convId));
     setConvLabels(next);
@@ -298,24 +336,23 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               chatSearchIdx={chatSearchIdx} setChatSearchIdx={setChatSearchIdx}
               messages={messages} chatSearchRef={chatSearchRef}
             />
+            {pinnedMsgs[activeConv?.id] && (
+              <div className="pinned-msg-bar">
+                <span className="pinned-msg-icon">📌</span>
+                <div className="pinned-msg-text">{pinnedMsgs[activeConv.id].text}</div>
+                <button className="pinned-msg-close" aria-label="Losmaken" onClick={() => handlePin(pinnedMsgs[activeConv.id])}>✕</button>
+              </div>
+            )}
             <MessageList
               messages={messages} activeConv={activeConv} currentUid={user.uid}
               chatSearch={chatSearch} chatSearchIdx={chatSearchIdx}
               chatBg={chatBg} chatFading={chatFading}
               hasMore={hasMore} loadingMore={loadingMore} loadingMsgs={loadingMsgs}
-              deleteMenuMsgId={deleteMenuMsgId} reactionPickerMsgId={reactionPickerMsgId}
               showChatSearch={showChatSearch} msgsAreaRef={msgsAreaRef} msgEndRef={msgEndRef}
               onLoadMore={loadMoreMessages}
               onCloseSearch={() => { setShowChatSearch(false); setChatSearch(''); }}
-              onToggleDeleteMenu={id => setDeleteMenuMsgId(prev => prev === id ? null : id)}
-              onToggleReactionPicker={id => setReactionPickerMsgId(prev => prev === id ? null : id)}
               onReact={(msgId, emoji) => toggleReaction(msgId, emoji)}
-              onReply={msg => { setReplyTo({ id: msg.id, text: msg.text, senderName: msg.senderName }); textareaRef.current?.focus(); }}
-              onEdit={msg => { setEditingMsg({ id: msg.id, text: msg.text }); setText(msg.text); setDeleteMenuMsgId(null); setTimeout(() => textareaRef.current?.focus(), 0); }}
-              onForward={msg => { setForwardMsg({ text: msg.text }); setDeleteMenuMsgId(null); }}
-              onCopy={msg => { navigator.clipboard.writeText(msg.text || '').then(() => showErrToast('\uD83D\uDCCB Bericht gekopieerd')).catch(e => { console.warn('[Pulse] Fout:', e.message); }); setDeleteMenuMsgId(null); }}
-              onDeleteSelf={msgId => deleteMessage(msgId, 'self')}
-              onDeleteAll={msgId => deleteMessage(msgId, 'all')}
+              onShowContextMenu={handleShowContextMenu}
               onRetry={msg => retryMessage(msg)}
               onViewContact={sc => { setFriendReqSent(false); setViewingSharedContact({ ...sc, isAlreadyContact: contacts.some(c => c.uid === sc?.uid) }); }}
             />
@@ -385,6 +422,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         avatarOptions={avatarOptions} setAvatarOptions={setAvatarOptions}
         showAvatarBuilder={showAvatarBuilder} setShowAvatarBuilder={setShowAvatarBuilder}
         showContactProfile={showContactProfile} setShowContactProfile={setShowContactProfile}
+        showStarredMsgs={showStarredMsgs} setShowStarredMsgs={setShowStarredMsgs}
+        starredMsgs={starredMsgs} messages={messages}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         showCallModal={showCallModal} setShowCallModal={setShowCallModal}
         callContact={callContact} getCallLog={getCallLog}
@@ -399,6 +438,42 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         lightMode={lightMode}
       />
       </Suspense>
+
+      {deleteConfirm && (
+        <div className="delete-popup-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="delete-popup" onClick={e => e.stopPropagation()}>
+            <div className="delete-popup-title">Bericht verwijderen</div>
+            <button className="delete-popup-btn" onClick={() => { deleteMessage(deleteConfirm.msgId, 'self'); setDeleteConfirm(null); }}>
+              <Delete size={18} /> Voor mezelf verwijderen
+            </button>
+            {deleteConfirm.isOwn && (
+              <button className="delete-popup-btn danger" onClick={() => { deleteMessage(deleteConfirm.msgId, 'all'); setDeleteConfirm(null); }}>
+                <Trash2 size={18} /> Voor iedereen verwijderen
+              </button>
+            )}
+            <button className="delete-popup-cancel" onClick={() => setDeleteConfirm(null)}>Annuleren</button>
+          </div>
+        </div>
+      )}
+
+      {contextMenu && (
+        <MsgContextMenu
+          msg={contextMenu.msg}
+          isOwn={contextMenu.isOwn}
+          position={{ x: contextMenu.x, y: contextMenu.y }}
+          starred={starredMsgs.includes(contextMenu.msg.id)}
+          pinned={pinnedMsgs[activeConv?.id]?.id === contextMenu.msg.id}
+          onClose={() => setContextMenu(null)}
+          onReply={() => { setReplyTo({ id: contextMenu.msg.id, text: contextMenu.msg.text, senderName: contextMenu.msg.senderName }); textareaRef.current?.focus(); }}
+          onCopy={() => { navigator.clipboard.writeText(contextMenu.msg.text || '').then(() => showErrToast('📋 Bericht gekopieerd')).catch(e => { console.warn('[Pulse] Fout:', e.message); }); }}
+          onReact={emoji => toggleReaction(contextMenu.msg.id, emoji)}
+          onForward={() => setForwardMsg({ text: contextMenu.msg.text })}
+          onPin={() => handlePin(contextMenu.msg)}
+          onStar={() => handleStar(contextMenu.msg.id)}
+          onEdit={() => { setEditingMsg({ id: contextMenu.msg.id, text: contextMenu.msg.text }); setText(contextMenu.msg.text); setTimeout(() => textareaRef.current?.focus(), 0); }}
+          onDeleteRequest={() => handleDeleteRequest(contextMenu.msg)}
+        />
+      )}
     </div>
   );
 }

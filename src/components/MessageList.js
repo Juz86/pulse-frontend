@@ -14,22 +14,13 @@ const MessageList = React.memo(function MessageList({
   hasMore,
   loadingMore,
   loadingMsgs,
-  deleteMenuMsgId,
-  reactionPickerMsgId,
   showChatSearch,
   msgsAreaRef,
   msgEndRef,
   onLoadMore,
   onCloseSearch,
-  onToggleDeleteMenu,
-  onToggleReactionPicker,
   onReact,
-  onReply,
-  onEdit,
-  onForward,
-  onCopy,
-  onDeleteSelf,
-  onDeleteAll,
+  onShowContextMenu,
   onRetry,
   onStartCall,
   onViewContact,
@@ -67,28 +58,18 @@ const MessageList = React.memo(function MessageList({
           memberNames={activeConv.memberNames}
           currentUid={currentUid}
           chatSearch={chatSearch}
-          deleteMenuOpen={deleteMenuMsgId === msg.id}
-          reactionPickerOpen={reactionPickerMsgId === msg.id}
-          onToggleDeleteMenu={() => onToggleDeleteMenu(msg.id)}
-          onToggleReactionPicker={() => onToggleReactionPicker(msg.id)}
           onReact={emoji => onReact(msg.id, emoji)}
-          onReply={() => onReply(msg)}
-          onEdit={() => onEdit(msg)}
-          onForward={() => onForward(msg)}
-          onCopy={() => onCopy(msg)}
-          onDeleteSelf={() => onDeleteSelf(msg.id)}
-          onDeleteAll={() => onDeleteAll(msg.id)}
+          onShowContextMenu={e => onShowContextMenu(e, msg)}
           onRetry={() => onRetry(msg)}
-          onStartCall={isVideo => onStartCall({ toUid: msg.senderId, convId: activeConv.id, name: msg.senderName, isVideo })}
+          onStartCall={isVideo => onStartCall?.({ toUid: msg.senderId, convId: activeConv.id, name: msg.senderName, isVideo })}
           onViewContact={sc => onViewContact(sc)}
         />
       );
     });
 
     return result;
-  }, [messages, activeConv, currentUid, chatSearch, focusedMsgId, deleteMenuMsgId, reactionPickerMsgId,
-      onToggleDeleteMenu, onToggleReactionPicker, onReact, onReply, onEdit, onForward,
-      onCopy, onDeleteSelf, onDeleteAll, onRetry, onStartCall, onViewContact]);
+  }, [messages, activeConv, currentUid, chatSearch, focusedMsgId,
+      onReact, onShowContextMenu, onRetry, onStartCall, onViewContact]);
 
   const bgStyle = useMemo(() => {
     if (chatBg?.type === 'photo') return { backgroundImage: `url(${chatBg.url})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'local' };

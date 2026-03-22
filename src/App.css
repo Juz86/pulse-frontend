@@ -569,46 +569,73 @@ body {
 .msg-group.in  .msg-bubble-wrap { align-items:flex-start; }
 .msg-bubble-wrap .msg-bubble { max-width:100%; }
 
-.msg-reply-btn {
+/* ── Bericht acties (😊 + ▾, zichtbaar bij hover) ── */
+.msg-actions {
   display:none; position:absolute; top:50%; transform:translateY(-50%);
+  align-items:center; gap:4px; left:-54px;
+}
+.msg-group:hover .msg-actions { display:flex; }
+.msg-action-btn {
   background:var(--surface2); border:none; border-radius:50%;
-  width:26px; height:26px; font-size:13px; cursor:pointer; color:var(--text2);
-  align-items:center; justify-content:center;
+  width:24px; height:24px; cursor:pointer; color:var(--text2); font-size:13px;
+  display:flex; align-items:center; justify-content:center; padding:0;
+  box-shadow:0 1px 4px rgba(0,0,0,.2); flex-shrink:0;
 }
-.msg-group.out .msg-reply-btn { left:-62px; }
-.msg-group.in  .msg-reply-btn { right:-62px; }
-.msg-group:hover .msg-reply-btn { display:flex; }
-
-.msg-react-wrap {
-  position:absolute; top:50%; transform:translateY(-50%);
-  display:none; align-items:center;
-}
-.msg-group.out .msg-react-wrap { left:-32px; }
-.msg-group.in  .msg-react-wrap { right:-32px; }
-.msg-group:hover .msg-react-wrap { display:flex; }
-
-.msg-react-btn {
-  background:var(--surface2); border:none; border-radius:50%;
-  width:26px; height:26px; font-size:13px; cursor:pointer; line-height:1;
-  display:flex; align-items:center; justify-content:center;
-}
-
-.msg-react-picker {
-  position:absolute; bottom:calc(100% + 6px);
+.msg-action-btn:hover { background:var(--surface3); }
+.msg-emoji-picker {
+  position:absolute; bottom:calc(100% + 6px); left:0;
   background:var(--surface2); border:1px solid var(--border);
   border-radius:24px; padding:4px 6px;
-  box-shadow:0 4px 20px rgba(0,0,0,.3); z-index:100;
+  box-shadow:0 4px 20px rgba(0,0,0,.3); z-index:202;
   display:flex; gap:2px; white-space:nowrap;
 }
-.msg-group.out .msg-react-picker { right:0; }
-.msg-group.in  .msg-react-picker { left:0; }
-.msg-react-picker button {
+.msg-emoji-picker button {
   background:none; border:none; font-size:20px; cursor:pointer;
   border-radius:50%; width:36px; height:36px;
   display:flex; align-items:center; justify-content:center;
   transition:transform .1s;
 }
-.msg-react-picker button:hover { background:var(--surface3); transform:scale(1.25); }
+.msg-emoji-picker button:hover { background:var(--surface3); transform:scale(1.25); }
+
+/* ── Context menu ── */
+.msg-ctx-backdrop {
+  position:fixed; inset:0; z-index:200;
+}
+.msg-ctx-menu {
+  position:fixed; z-index:201;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:14px; padding:6px 0;
+  min-width:230px; max-width:260px;
+  box-shadow:0 8px 32px rgba(0,0,0,.35);
+  animation:ctx-pop .12s ease;
+}
+@keyframes ctx-pop {
+  from { opacity:0; transform:scale(.94); }
+  to   { opacity:1; transform:scale(1); }
+}
+.msg-ctx-emoji-row {
+  display:flex; align-items:center; justify-content:space-around;
+  padding:8px 12px 6px;
+}
+.msg-ctx-emoji {
+  background:none; border:none; font-size:22px; cursor:pointer;
+  border-radius:50%; width:38px; height:38px;
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .1s, background .1s;
+}
+.msg-ctx-emoji:hover { background:var(--surface3); transform:scale(1.2); }
+.msg-ctx-divider {
+  height:1px; background:var(--border); margin:4px 0;
+}
+.msg-ctx-item {
+  display:flex; align-items:center; gap:10px;
+  width:100%; background:none; border:none;
+  padding:10px 16px; color:var(--text); font-size:14px;
+  cursor:pointer; text-align:left; transition:background .1s;
+}
+.msg-ctx-item:hover { background:var(--surface3); }
+.msg-ctx-item.danger { color:#f87171; }
+.msg-ctx-icon { flex-shrink:0; width:20px; display:flex; align-items:center; justify-content:center; opacity:.8; }
 
 .msg-reactions { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
 .msg-reaction-pill {
@@ -621,35 +648,92 @@ body {
 .msg-reaction-pill:hover { background:var(--surface3); }
 .msg-reaction-pill span { font-size:12px; font-weight:600; }
 
-.msg-delete-wrap {
-  position:absolute; top:50%; transform:translateY(-50%);
-  display:none; align-items:center;
+/* ── Berichten met ster ── */
+.starred-msgs-row {
+  display:flex; align-items:center; gap:10px;
+  width:100%; background:none; border:none; border-radius:10px;
+  padding:10px 12px; margin-bottom:8px;
+  color:var(--text); font-size:14px; cursor:pointer;
+  border:1px solid var(--border); text-align:left;
+  transition:background .1s;
 }
-.msg-group.out .msg-delete-wrap { left:-90px; }
-.msg-group.in  .msg-delete-wrap { right:-90px; }
-.msg-group:hover .msg-delete-wrap { display:flex; }
+.starred-msgs-row:hover { background:var(--surface3); }
+.starred-search-wrap {
+  display:flex; align-items:center; gap:8px;
+  background:var(--surface3); border-radius:10px;
+  padding:7px 10px; margin-bottom:12px;
+}
+.starred-search-input {
+  flex:1; background:none; border:none; outline:none;
+  color:var(--text); font-size:14px; font-family:inherit;
+}
+.starred-search-input::placeholder { color:var(--text3); }
+.starred-search-clear {
+  background:none; border:none; cursor:pointer;
+  color:var(--text3); display:flex; align-items:center; padding:0;
+}
+.starred-search-clear:hover { color:var(--text); }
+.starred-msg-item {
+  padding:10px 12px; border-radius:10px; background:var(--surface3);
+}
+.starred-msg-meta {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:4px;
+}
+.starred-msg-name { font-size:12px; font-weight:600; color:var(--accent); }
+.starred-msg-time { font-size:11px; color:var(--text3); }
+.starred-msg-text { font-size:14px; color:var(--text); word-break:break-word; }
 
-.msg-delete-btn {
-  position:static; display:flex; align-items:center; justify-content:center;
-  background:var(--surface2); border:none; border-radius:50%;
-  width:26px; height:26px; cursor:pointer; color:var(--text2);
+/* ── Vastgezet bericht balk ── */
+.pinned-msg-bar {
+  display:flex; align-items:center; gap:8px;
+  padding:6px 14px; background:var(--surface2);
+  border-bottom:1px solid var(--border);
+  font-size:13px; color:var(--text2);
+  flex-shrink:0;
 }
+.pinned-msg-icon { flex-shrink:0; }
+.pinned-msg-text { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pinned-msg-close {
+  background:none; border:none; cursor:pointer; color:var(--text3);
+  font-size:14px; line-height:1; padding:2px 4px; flex-shrink:0;
+}
+.pinned-msg-close:hover { color:var(--text); }
 
-.msg-delete-menu {
-  position:absolute; top:calc(100% + 4px);
-  background:var(--surface2); border:1px solid var(--border);
-  border-radius:10px; padding:4px; min-width:150px;
-  box-shadow:0 4px 16px rgba(0,0,0,.3); z-index:100;
-  display:flex; flex-direction:column; gap:2px;
+/* ── Verwijder bevestigingspop-up ── */
+.delete-popup-overlay {
+  position:fixed; inset:0; z-index:300;
+  background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center;
+  animation:fade-in .12s ease;
 }
-.msg-group.out .msg-delete-menu { right:0; }
-.msg-group.in  .msg-delete-menu { left:0; }
-.msg-delete-menu button {
-  background:none; border:none; padding:8px 12px; border-radius:7px;
-  color:var(--text); font-size:13px; cursor:pointer; text-align:left; white-space:nowrap;
+@keyframes fade-in { from { opacity:0; } to { opacity:1; } }
+.delete-popup {
+  background:var(--surface2); border-radius:14px;
+  padding:6px 0 0; width:220px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  animation:ctx-pop .14s ease;
+  overflow:hidden;
 }
-.msg-delete-menu button:hover { background:var(--surface3); }
-.msg-delete-menu button:last-child { color:#f87171; }
+.delete-popup-title {
+  font-size:11px; font-weight:600; color:var(--text3);
+  text-align:center; padding:6px 16px 4px;
+  text-transform:uppercase; letter-spacing:.04em;
+}
+.delete-popup-btn {
+  display:flex; align-items:center; gap:10px;
+  width:100%; background:none; border:none;
+  padding:10px 16px; color:var(--text); font-size:13px;
+  cursor:pointer; text-align:left; transition:background .1s;
+}
+.delete-popup-btn:hover { background:var(--surface3); }
+.delete-popup-btn.danger { color:#f87171; }
+.delete-popup-cancel {
+  display:block; width:100%; background:none; border:none;
+  border-top:1px solid var(--border);
+  padding:10px 16px; color:var(--text2); font-size:13px;
+  cursor:pointer; text-align:center;
+}
+.delete-popup-cancel:hover { background:var(--surface3); }
 
 .msg-reply-quote {
   background:rgba(108,99,255,.15); border-left:3px solid var(--accent);

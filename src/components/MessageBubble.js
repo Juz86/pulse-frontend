@@ -1,5 +1,5 @@
 // src/components/MessageBubble.js
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Phone, Video, Check, CheckDouble, Clock, Cancel } from '../components/Icons';
 import { getInitials, formatTime } from '../utils';
 
@@ -35,6 +35,8 @@ function highlightText(text, query) {
   );
 }
 
+const QUICK_EMOJI = ['❤️', '👍', '😂', '😮', '😢', '👎'];
+
 // ── MessageBubble ─────────────────────────────────────────────────────────────
 
 const MessageBubble = React.memo(function MessageBubble({
@@ -45,21 +47,39 @@ const MessageBubble = React.memo(function MessageBubble({
   memberNames,
   currentUid,
   chatSearch,
-  deleteMenuOpen,
-  reactionPickerOpen,
-  onToggleDeleteMenu,
-  onToggleReactionPicker,
   onReact,
-  onReply,
-  onEdit,
-  onForward,
-  onCopy,
-  onDeleteSelf,
-  onDeleteAll,
+  onShowContextMenu,
   onRetry,
   onStartCall,
   onViewContact,
 }) {
+  const longPressTimer    = useRef(null);
+  const longPressFired    = useRef(false);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!emojiPickerOpen) return;
+    const close = () => setEmojiPickerOpen(false);
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [emojiPickerOpen]);
+
+  function handleTouchStart(e) {
+    longPressFired.current = false;
+    longPressTimer.current = setTimeout(() => {
+      longPressFired.current = true;
+      const touch = e.touches[0];
+      onShowContextMenu({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => {} });
+    }, 500);
+  }
+  function handleTouchEnd(e) {
+    clearTimeout(longPressTimer.current);
+    if (longPressFired.current) e.preventDefault();
+  }
+  function handleContextMenu(e) {
+    e.preventDefault();
+    onShowContextMenu(e);
+  }
   // ── Gedeeld contactkaart bericht ─────────────────────────────────────────
   if (msg.type === 'contact') {
     const sc = msg.sharedContact;
@@ -128,6 +148,10 @@ const MessageBubble = React.memo(function MessageBubble({
     <div
       className={`msg-group ${isOwn ? 'out' : 'in'}`}
       ref={isFocused ? el => el?.scrollIntoView({ behavior: 'smooth', block: 'center' }) : null}
+      onContextMenu={handleContextMenu}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchMove={() => clearTimeout(longPressTimer.current)}
     >
       {!isOwn && isGroup && <div className="msg-sender">{msg.senderName}</div>}
       <div className="msg-bubble-wrap">
@@ -144,41 +168,31 @@ const MessageBubble = React.memo(function MessageBubble({
           {msg.editedAt && <span className="msg-edited">(bewerkt)</span>}
         </div>
 
-        {/* Reactie-knop */}
-        <div className="msg-react-wrap">
-          <button className="msg-react-btn" onClick={e => { e.stopPropagation(); onToggleReactionPicker(); }}>😊</button>
-          {reactionPickerOpen && (
-            <div className="msg-react-picker" onClick={e => e.stopPropagation()}>
-              {['❤️', '👍', '😂', '😮', '😢', '👎'].map(emoji => (
-                <button key={emoji} onClick={() => onReact(emoji)}>{emoji}</button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Beantwoorden */}
-        <button className="msg-reply-btn" onClick={onReply}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ transform: isOwn ? 'none' : 'scaleX(-1)' }}>
-            <path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z" />
-          </svg>
-        </button>
-
-        {/* Context menu (delete/edit/forward/copy) */}
-        <div className="msg-delete-wrap">
-          <button className="msg-delete-btn" onClick={e => { e.stopPropagation(); onToggleDeleteMenu(); }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+        {/* Acties (zichtbaar bij hover) */}
+        <div className="msg-actions" onClick={e => e.stopPropagation()}>
+          <div style={{ position: 'relative' }}>
+            <button
+              className="msg-action-btn"
+              aria-label="Reageren"
+              onClick={e => { e.stopPropagation(); setEmojiPickerOpen(v => !v); }}
+            >😊</button>
+            {emojiPickerOpen && (
+              <div className="msg-emoji-picker">
+                {QUICK_EMOJI.map(emoji => (
+                  <button key={emoji} onClick={() => { onReact(emoji); setEmojiPickerOpen(false); }}>{emoji}</button>
+                ))}
+              </div>
+            )}
+          </div>
+          <button
+            className="msg-action-btn"
+            aria-label="Berichtopties"
+            onClick={e => { e.stopPropagation(); onShowContextMenu(e); }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 10l5 5 5-5z"/>
             </svg>
           </button>
-          {deleteMenuOpen && (
-            <div className="msg-delete-menu" onClick={e => e.stopPropagation()}>
-              {!msg.type && <button onClick={onCopy}>📋 Kopiëren</button>}
-              {!msg.type && <button onClick={onForward}>↪️ Doorsturen</button>}
-              {isOwn && !msg.type && <button onClick={onEdit}>✏️ Bewerken</button>}
-              <button onClick={onDeleteSelf}>Voor mezelf</button>
-              {isOwn && <button onClick={onDeleteAll}>Voor iedereen</button>}
-            </div>
-          )}
         </div>
       </div>
 

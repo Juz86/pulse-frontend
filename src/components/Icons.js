@@ -54,3 +54,8 @@ export { MdRefresh            as Refresh }     from 'react-icons/md';
 export { MdExpandMore         as ChevronDown } from 'react-icons/md';
 export { MdLabel              as Label }       from 'react-icons/md';
 export { MdPushPin            as Pin }         from 'react-icons/md';
+export { MdInfo               as InfoIcon }    from 'react-icons/md';
+export { MdReply              as Reply }       from 'react-icons/md';
+export { MdContentCopy        as Copy }        from 'react-icons/md';
+export { MdStar               as StarFilled }  from 'react-icons/md';
+export { MdStarBorder         as StarOutline } from 'react-icons/md';

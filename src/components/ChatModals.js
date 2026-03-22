@@ -109,6 +109,8 @@ export default function ChatModals({
   const [starredSearch,   setStarredSearch]   = useState('');
   const [profileClosing,  setProfileClosing]  = useState(false);
   const [pendingColor,    setPendingColor]    = useState(null);
+  const [pendingPhoto,    setPendingPhoto]    = useState(null);   // { file, url }
+
 
   function openStarredFromProfile() {
     setProfileClosing(true);
@@ -554,9 +556,14 @@ export default function ChatModals({
                         ))}
                       </div>
                       <div style={{ borderRadius: '12px', overflow: 'hidden', marginBottom: '14px', height: '110px', position: 'relative',
-                        background: pendingColor ? pendingColor : chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : 'var(--bg)',
+                        background: pendingPhoto ? `url(${pendingPhoto.url}) center/cover` : pendingColor ? pendingColor : chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : 'var(--bg)',
                         border: '1px solid var(--border)' }}>
-                        {chatBg?.type === 'photo' && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.15)' }} />}
+                        {(pendingPhoto || chatBg?.type === 'photo') && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.15)' }} />}
+                        {chatBg?.type === 'photo' && !pendingPhoto && (
+                          <button type="button" disabled={chatBgLoading} onClick={removeChatBg}
+                            style={{ position: 'absolute', top: '8px', right: '8px', width: '26px', height: '26px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)', zIndex: 1 }}
+                            title="Achtergrond verwijderen">×</button>
+                        )}}
                         <div style={{ position: 'absolute', bottom: '8px', left: '10px' }}>
                           <div style={{ background: chatBg ? 'rgba(26,26,36,0.85)' : 'var(--surface2)', border: '1px solid rgba(255,255,255,.12)', borderRadius: '12px 12px 12px 3px', padding: '6px 12px', fontSize: '12px', color: '#fff', backdropFilter: 'blur(6px)' }}>Hallo! 👋</div>
                         </div>
@@ -566,14 +573,27 @@ export default function ChatModals({
                       </div>
                       {chatBgTab === 'foto' && (
                         <div>
-                          {chatBg?.type === 'photo' && <div style={{ fontSize: '12px', color: 'var(--success)', marginBottom: '8px' }}>✓ Foto achtergrond actief</div>}
-                          <button type="button" className="btn-secondary" style={{ width: '100%' }} disabled={chatBgLoading}
-                            onClick={() => bgInputRef.current?.click()}>
-                            {chatBgLoading ? 'Uploaden…' : chatBg?.type === 'photo' ? 'Andere foto kiezen' : 'Foto kiezen'}
-                          </button>
+                          {pendingPhoto
+                            ? <div style={{ fontSize: '12px', color: 'var(--accent)', marginBottom: '8px' }}>📎 {pendingPhoto.file.name}</div>
+                            : chatBg?.type === 'photo' && <div style={{ fontSize: '12px', color: 'var(--success)', marginBottom: '8px' }}>✓ Foto achtergrond actief</div>
+                          }
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button type="button" className="btn-secondary" style={{ flex: 1 }} disabled={chatBgLoading}
+                              onClick={() => bgInputRef.current?.click()}>
+                              {chatBg?.type === 'photo' || pendingPhoto ? 'Andere foto kiezen' : 'Foto kiezen'}
+                            </button>
+                            <button type="button" className="btn-primary" style={{ flex: 1 }}
+                              disabled={chatBgLoading || !pendingPhoto}
+                              onClick={() => { uploadChatBgPhoto(pendingPhoto.file); setPendingPhoto(null); }}>
+                              {chatBgLoading ? 'Uploaden…' : 'Opslaan'}
+                            </button>
+                          </div>
                           <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '6px', textAlign: 'center' }}>JPG, PNG of WEBP · max 5 MB</div>
                           <input ref={bgInputRef} type="file" accept=".jpg,.jpeg,.png,.webp" style={{ display: 'none' }}
-                            onChange={e => { const f = e.target.files[0]; e.target.value = ''; if (f) uploadChatBgPhoto(f); }} />
+                            onChange={e => {
+                              const f = e.target.files[0]; e.target.value = '';
+                              if (f) setPendingPhoto({ file: f, url: URL.createObjectURL(f) });
+                            }} />
                         </div>
                       )}
                       {chatBgTab === 'kleur' && (

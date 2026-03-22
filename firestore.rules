@@ -25,6 +25,11 @@ service cloud.firestore {
       match /contacts/{contactId} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
+
+      // Nicknames subcollectie — alleen eigen nicknames
+      match /nicknames/{contactUid} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
     }
 
     // ── Gesprekken ────────────────────────────────────────────────────────────

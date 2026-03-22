@@ -109,7 +109,8 @@ export default function App() {
             if (Notification.permission !== 'granted' && Notification.permission !== 'default') return;
             const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
             if (permission !== 'granted' || !VAPID_KEY) return;
-            const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+            const swReg = navigator.serviceWorker ? await navigator.serviceWorker.ready : undefined;
+            const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
             if (!token) return;
             let retries = 0;
             while (retries < 3) {

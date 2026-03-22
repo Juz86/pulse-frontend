@@ -108,8 +108,19 @@ export default function App() {
           try {
             if (Notification.permission !== 'granted' && Notification.permission !== 'default') return;
             const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
-            if (permission !== 'granted' || !VAPID_KEY) return;
-            const swReg = navigator.serviceWorker ? await navigator.serviceWorker.ready : undefined;
+            if (permission !== 'granted' || !VAPID_KEY || !navigator.serviceWorker) return;
+            // Registreer de firebase messaging SW expliciet en wacht tot hij actief is
+            const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            if (!swReg.active) {
+              await new Promise((resolve, reject) => {
+                const sw = swReg.installing ?? swReg.waiting;
+                if (!sw) { resolve(); return; }
+                sw.addEventListener('statechange', function handler(e) {
+                  if (e.target.state === 'activated') { sw.removeEventListener('statechange', handler); resolve(); }
+                  else if (e.target.state === 'redundant') { sw.removeEventListener('statechange', handler); reject(new Error('SW kon niet activeren')); }
+                });
+              });
+            }
             const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
             if (!token) return;
             let retries = 0;

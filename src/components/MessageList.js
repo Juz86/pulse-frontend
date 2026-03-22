@@ -24,12 +24,14 @@ const MessageList = React.memo(function MessageList({
   onRetry,
   onStartCall,
   onViewContact,
+  jumpToMsgId,
 }) {
   const focusedMsgId = useMemo(() => {
+    if (jumpToMsgId) return jumpToMsgId;
     if (!chatSearch.trim()) return null;
     const matches = messages.filter(m => m.text?.toLowerCase().includes(chatSearch.toLowerCase()));
     return matches[chatSearchIdx % (matches.length || 1)]?.id ?? null;
-  }, [messages, chatSearch, chatSearchIdx]);
+  }, [messages, chatSearch, chatSearchIdx, jumpToMsgId]);
 
   const items = useMemo(() => {
     if (!activeConv) return [];
@@ -69,7 +71,7 @@ const MessageList = React.memo(function MessageList({
 
     return result;
   }, [messages, activeConv, currentUid, chatSearch, focusedMsgId,
-      onReact, onShowContextMenu, onRetry, onStartCall, onViewContact]);
+      onReact, onShowContextMenu, onRetry, onStartCall, onViewContact, jumpToMsgId]);
 
   const bgStyle = useMemo(() => {
     if (chatBg?.type === 'photo') return { backgroundImage: `url(${chatBg.url})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'local' };

@@ -55,6 +55,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [pinnedMsgs,     setPinnedMsgs]     = useState(() => { try { return JSON.parse(localStorage.getItem(`pulse_pinned_msgs_${user.uid}`) || '{}'); } catch { return {}; } });
   const [deleteConfirm,  setDeleteConfirm]  = useState(null); // { msgId, isOwn }
   const [showStarredMsgs, setShowStarredMsgs] = useState(false);
+  const [jumpToMsgId,     setJumpToMsgId]     = useState(null);
+  const jumpTimer = useRef(null);
+
+  function handleJumpToMsg(msgId) {
+    clearTimeout(jumpTimer.current);
+    setJumpToMsgId(msgId);
+    jumpTimer.current = setTimeout(() => setJumpToMsgId(null), 2500);
+  }
 
   const errToastTimer  = useRef(null);
   const msgCache       = useRef({});
@@ -353,6 +361,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onCloseSearch={() => { setShowChatSearch(false); setChatSearch(''); }}
               onReact={(msgId, emoji) => toggleReaction(msgId, emoji)}
               onShowContextMenu={handleShowContextMenu}
+              jumpToMsgId={jumpToMsgId}
               onRetry={msg => retryMessage(msg)}
               onViewContact={sc => { setFriendReqSent(false); setViewingSharedContact({ ...sc, isAlreadyContact: contacts.some(c => c.uid === sc?.uid) }); }}
             />
@@ -424,6 +433,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         showContactProfile={showContactProfile} setShowContactProfile={setShowContactProfile}
         showStarredMsgs={showStarredMsgs} setShowStarredMsgs={setShowStarredMsgs}
         starredMsgs={starredMsgs} messages={messages}
+        onJumpToMsg={handleJumpToMsg}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         showCallModal={showCallModal} setShowCallModal={setShowCallModal}
         callContact={callContact} getCallLog={getCallLog}

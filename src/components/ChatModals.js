@@ -81,7 +81,7 @@ export default function ChatModals({
   activeConv, getConvName, getOtherUid, getConvPhoto,
   setSharingContact: _sc,
   showStarredMsgs, setShowStarredMsgs,
-  starredMsgs, messages,
+  starredMsgs, messages, onJumpToMsg,
 
   // call modal
   showCallModal, setShowCallModal,
@@ -106,7 +106,13 @@ export default function ChatModals({
   // helpers
   lightMode,
 }) {
-  const [starredSearch, setStarredSearch] = useState('');
+  const [starredSearch,   setStarredSearch]   = useState('');
+  const [profileClosing,  setProfileClosing]  = useState(false);
+
+  function openStarredFromProfile() {
+    setProfileClosing(true);
+    setTimeout(() => { setProfileClosing(false); setShowContactProfile(false); setShowStarredMsgs(true); }, 180);
+  }
 
   const anyModalOpen = !!(renamingContact || sharingContact || viewingSharedContact || viewingContact ||
     confirmDialog || showAddContact || showNewChat || showNewGroup || showProfile ||
@@ -610,12 +616,12 @@ export default function ChatModals({
         const isOnline  = uid && onlineUsers.has(uid);
         const isInactive = uid && inactiveUsers.has(uid);
         return (
-          <div className="modal-overlay" onClick={() => setShowContactProfile(false)}>
+          <div className={`modal-overlay${profileClosing ? ' closing' : ''}`} onClick={() => setShowContactProfile(false)}>
             <div className="modal-box" onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon"><User size={18} /></span> Profiel</h3>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="icon-btn" title="Berichten met ster" onClick={() => { setShowContactProfile(false); setShowStarredMsgs(true); }}>
+                  <button className="icon-btn" title="Berichten met ster" onClick={openStarredFromProfile}>
                     <StarFilled size={18} style={{ color: '#f59e0b' }} />
                   </button>
                   <button className="icon-btn" onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen"><Share size={18} /></button>
@@ -677,10 +683,15 @@ export default function ChatModals({
         return (
           <div className="modal-overlay" onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); }}>
             <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
-              <h3 className="modal-title" style={{ marginBottom: 10 }}>
-                <span className="modal-title-icon"><StarFilled size={18} style={{ color: '#f59e0b' }} /></span>
-                Berichten met ster
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <h3 className="modal-title" style={{ margin: 0 }}>
+                  <span className="modal-title-icon"><StarFilled size={18} style={{ color: '#f59e0b' }} /></span>
+                  Berichten met ster
+                </h3>
+                <button className="icon-btn" aria-label="Sluiten" onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); }}>
+                  <Cancel size={18} />
+                </button>
+              </div>
               <div className="starred-search-wrap">
                 <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} />
                 <input
@@ -704,7 +715,10 @@ export default function ChatModals({
               ) : (
                 <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {starred.map(msg => (
-                    <div key={msg.id} className="starred-msg-item">
+                    <div key={msg.id} className="starred-msg-item" role="button" tabIndex={0}
+                      onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); onJumpToMsg(msg.id); }}
+                      onKeyDown={e => e.key === 'Enter' && (setShowStarredMsgs(false), setStarredSearch(''), onJumpToMsg(msg.id))}
+                    >
                       <div className="starred-msg-meta">
                         <span className="starred-msg-name">{msg.senderName}</span>
                         <span className="starred-msg-time">{formatTime(msg.createdAt)}</span>
@@ -714,9 +728,6 @@ export default function ChatModals({
                   ))}
                 </div>
               )}
-              <div className="modal-actions" style={{ marginTop: 12 }}>
-                <button className="btn-secondary" style={{ flex: 1 }} onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); }}>Sluiten</button>
-              </div>
             </div>
           </div>
         );

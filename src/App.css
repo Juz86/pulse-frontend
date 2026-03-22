@@ -675,7 +675,9 @@ body {
 .starred-search-clear:hover { color:var(--text); }
 .starred-msg-item {
   padding:10px 12px; border-radius:10px; background:var(--surface3);
+  cursor:pointer; transition:background .1s;
 }
+.starred-msg-item:hover { background:var(--surface2); }
 .starred-msg-meta {
   display:flex; justify-content:space-between; align-items:center;
   margin-bottom:4px;
@@ -1024,7 +1026,9 @@ body {
     -webkit-backdrop-filter:blur(8px);
   }
 }
-@keyframes overlay-in { from { opacity:0; } to { opacity:1; } }
+@keyframes overlay-in  { from { opacity:0; } to { opacity:1; } }
+@keyframes overlay-out { from { opacity:1; } to { opacity:0; } }
+.modal-overlay.closing { animation:overlay-out .18s ease forwards; pointer-events:none; }
 @keyframes modal-up   {
   from { opacity:0; transform:translateY(20px) scale(.97); }
   to   { opacity:1; transform:translateY(0)    scale(1);   }

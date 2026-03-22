@@ -1,5 +1,6 @@
 // src/App.js
 import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import * as Sentry from '@sentry/react';
 import ErrorBoundary from './components/ErrorBoundary';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, messaging, getToken } from './firebase';
@@ -87,6 +88,7 @@ export default function App() {
       if (firebaseUser) {
         localStorage.setItem('pulse_user', '1');
         setUser(firebaseUser);
+        Sentry.setUser({ id: firebaseUser.uid, email: firebaseUser.email });
         // Controleer ouder-rol — localStorage flag heeft prioriteit over Firestore
         const pendingRole = localStorage.getItem('pulse_pending_role');
         localStorage.removeItem('pulse_pending_role');
@@ -228,6 +230,7 @@ export default function App() {
       } else {
         localStorage.removeItem('pulse_user');
         setUser(null);
+        Sentry.setUser(null);
         setOnlineUsers(new Set());
         setInactiveUsers(new Set());
         setUserRole(null);

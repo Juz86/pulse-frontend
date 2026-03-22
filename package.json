@@ -5,6 +5,7 @@
   "dependencies": {
     "@dicebear/collection": "^9.4.1",
     "@dicebear/core": "^9.4.1",
+    "@sentry/react": "^10.45.0",
     "firebase": "^10.8.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

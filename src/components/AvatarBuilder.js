@@ -65,7 +65,6 @@ function buildAvatarSvg(opts, size = 100) {
     features:          opts.features === 'none' ? [] : [opts.features],
     featuresProbability: opts.features === 'none' ? 0 : 100,
     backgroundColor:   opts.bgColor === 'transparent' ? ['transparent'] : [opts.bgColor],
-    backgroundType:    ['circle'],
   }).toString();
 }
 

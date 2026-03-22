@@ -108,6 +108,7 @@ export default function ChatModals({
 }) {
   const [starredSearch,   setStarredSearch]   = useState('');
   const [profileClosing,  setProfileClosing]  = useState(false);
+  const [pendingColor,    setPendingColor]    = useState(null);
 
   function openStarredFromProfile() {
     setProfileClosing(true);
@@ -553,7 +554,7 @@ export default function ChatModals({
                         ))}
                       </div>
                       <div style={{ borderRadius: '12px', overflow: 'hidden', marginBottom: '14px', height: '110px', position: 'relative',
-                        background: chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : 'var(--bg)',
+                        background: pendingColor ? pendingColor : chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : 'var(--bg)',
                         border: '1px solid var(--border)' }}>
                         {chatBg?.type === 'photo' && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.15)' }} />}
                         <div style={{ position: 'absolute', bottom: '8px', left: '10px' }}>
@@ -576,18 +577,26 @@ export default function ChatModals({
                         </div>
                       )}
                       {chatBgTab === 'kleur' && (
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                          {['#1e0a3c', '#051236', '#0a1f0e', '#1f0a10', '#0f1923', '#1a1206', '#000000', '#1c1a18'].map(color => (
-                            <button key={color} type="button" disabled={chatBgLoading} onClick={() => saveChatBgColor(color)}
-                              style={{ width: '36px', height: '36px', borderRadius: '50%', background: color,
-                                border: chatBg?.type === 'color' && chatBg.value === color ? '3px solid var(--accent)' : '2px solid var(--border)',
-                                cursor: 'pointer', position: 'relative', transition: 'all .15s',
-                                boxShadow: chatBg?.type === 'color' && chatBg.value === color ? '0 0 0 2px var(--bg),0 0 0 4px var(--accent)' : 'none' }}>
-                              {chatBg?.type === 'color' && chatBg.value === color && (
-                                <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px' }}>✓</span>
-                              )}
-                            </button>
-                          ))}
+                        <div>
+                          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '12px' }}>
+                            {['#1e0a3c', '#051236', '#0a1f0e', '#1f0a10', '#0f1923', '#1a1206', '#000000', '#1c1a18'].map(color => {
+                              const isActive = (pendingColor ?? (chatBg?.type === 'color' ? chatBg.value : null)) === color;
+                              return (
+                                <button key={color} type="button" disabled={chatBgLoading} onClick={() => setPendingColor(color)}
+                                  style={{ width: '36px', height: '36px', borderRadius: '50%', background: color,
+                                    border: isActive ? '3px solid var(--accent)' : '2px solid var(--border)',
+                                    cursor: 'pointer', position: 'relative', transition: 'all .15s',
+                                    boxShadow: isActive ? '0 0 0 2px var(--bg),0 0 0 4px var(--accent)' : 'none' }}>
+                                  {isActive && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px' }}>✓</span>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <button type="button" className="btn-primary" style={{ width: '100%' }}
+                            disabled={chatBgLoading || !pendingColor}
+                            onClick={() => { saveChatBgColor(pendingColor); setPendingColor(null); }}>
+                            {chatBgLoading ? 'Opslaan…' : 'Opslaan'}
+                          </button>
                         </div>
                       )}
                       {chatBgTab === 'standaard' && (

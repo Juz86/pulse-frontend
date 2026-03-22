@@ -440,8 +440,8 @@ export default function ChatModals({
                   ['verwijderen', <Delete size={16} />, 'Verwijderen'],
                 ].map(([id, icon, label]) => (
                   <button key={id} className={`profile-sidebar-tab${profileTab === id ? ' active' : ''}${id === 'verwijderen' ? ' danger' : ''}`}
-                    onClick={() => setProfileTab(id)}>
-                    {icon}<span>{label}</span>
+                    onClick={() => setProfileTab(id)} title={id === 'verwijderen' ? label : undefined}>
+                    {icon}{id !== 'verwijderen' && <span>{label}</span>}
                   </button>
                 ))}
               </div>

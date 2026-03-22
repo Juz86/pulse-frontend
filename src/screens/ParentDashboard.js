@@ -57,7 +57,7 @@ export default function ParentDashboard({ user, onClose }) {
       const list = Array.isArray(data) ? data : [];
       setChildren(list);
       setSelectedChildUid(prev => prev || (list[0]?.uid ?? null));
-    } catch {}
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
     setLoading(false);
   }, [user]);
 
@@ -66,7 +66,7 @@ export default function ParentDashboard({ user, onClose }) {
       const res = await authFetch(`${BACKEND}/api/parent/activities`);
       const data = await res.json();
       setActivities(Array.isArray(data) ? data : []);
-    } catch {}
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }, [user]);
 
   const loadAnalytics = useCallback(async (childUid) => {

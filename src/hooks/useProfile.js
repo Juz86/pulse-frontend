@@ -53,7 +53,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
           localStorage.setItem(`pulse_photo_${user.uid}`, d.data().photoURL);
           setPhotoPreview(d.data().photoURL);
         }
-      }).catch(() => {});
+      }).catch(e => { console.warn('[Pulse] Fout:', e.message); });
     }
   }, [user.uid]);
 
@@ -64,7 +64,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
       if (chatBackgroundURL)        setChatBg({ type: 'photo', url: chatBackgroundURL });
       else if (chatBackgroundColor) setChatBg({ type: 'color', value: chatBackgroundColor });
       if (username) setNewUsername(username);
-    }).catch(() => {});
+    }).catch(e => { console.warn('[Pulse] Fout:', e.message); });
   }, [user.uid]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -135,7 +135,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
     try {
       let photoURL = localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null;
       if (photoFile) {
-        try { await deleteObject(storageRef(storage, `users/${user.uid}/profilePhoto`)); } catch {}
+        try { await deleteObject(storageRef(storage, `users/${user.uid}/profilePhoto`)); } catch (e) { console.warn('[Pulse] Fout:', e.message); }
         const ref    = storageRef(storage, `users/${user.uid}/profilePhoto`);
         const resized = await resizeImageToBase64(photoFile, 200);
         const blob   = dataURLtoBlob(resized);
@@ -148,7 +148,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uid: user.uid, displayName: newName.trim(), email: user.email, photoURL: photoURL || '' }),
-      }).catch(() => {});
+      }).catch(e => { console.warn('[Pulse] Fout:', e.message); });
       socket?.emit('user:updated', { uid: user.uid, displayName: newName.trim(), photoURL: photoURL || '' });
       setPhotoFile(null);
       setPhotoPreview(photoURL);
@@ -197,7 +197,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
     if (file.size > 5 * 1024 * 1024)  { setChatBgMsg('Fout: bestand te groot (max 5 MB).'); return; }
     setChatBgLoading(true); setChatBgMsg('');
     try {
-      await deleteObject(storageRef(storage, `users/${user.uid}/chatBackground`)).catch(() => {});
+      await deleteObject(storageRef(storage, `users/${user.uid}/chatBackground`)).catch(e => { console.warn('[Pulse] Fout:', e.message); });
       const ref = storageRef(storage, `users/${user.uid}/chatBackground`);
       await uploadBytes(ref, file);
       const url = await getDownloadURL(ref);
@@ -211,7 +211,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
   async function saveChatBgColor(color) {
     setChatBgLoading(true); setChatBgMsg('');
     try {
-      await deleteObject(storageRef(storage, `users/${user.uid}/chatBackground`)).catch(() => {});
+      await deleteObject(storageRef(storage, `users/${user.uid}/chatBackground`)).catch(e => { console.warn('[Pulse] Fout:', e.message); });
       await updateDoc(doc(db, 'users', user.uid), { chatBackgroundURL: null, chatBackgroundColor: color });
       setChatBg({ type: 'color', value: color });
     } catch (err) { setChatBgMsg('Fout bij opslaan: ' + err.message); }
@@ -221,7 +221,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
   async function removeChatBg() {
     setChatBgLoading(true); setChatBgMsg('');
     try {
-      await deleteObject(storageRef(storage, `users/${user.uid}/chatBackground`)).catch(() => {});
+      await deleteObject(storageRef(storage, `users/${user.uid}/chatBackground`)).catch(e => { console.warn('[Pulse] Fout:', e.message); });
       await updateDoc(doc(db, 'users', user.uid), { chatBackgroundURL: null, chatBackgroundColor: null });
       setChatBg(null);
     } catch (err) { setChatBgMsg('Fout bij verwijderen: ' + err.message); }
@@ -265,7 +265,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
     setPhotoFile(null);
     getDoc(doc(db, 'users', user.uid)).then(snap => {
       if (snap.exists() && snap.data().avatarOptions) setAvatarOptions(snap.data().avatarOptions);
-    }).catch(() => {});
+    }).catch(e => { console.warn('[Pulse] Fout:', e.message); });
   }
 
   return {

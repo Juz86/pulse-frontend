@@ -312,7 +312,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onReply={msg => { setReplyTo({ id: msg.id, text: msg.text, senderName: msg.senderName }); textareaRef.current?.focus(); }}
               onEdit={msg => { setEditingMsg({ id: msg.id, text: msg.text }); setText(msg.text); setDeleteMenuMsgId(null); setTimeout(() => textareaRef.current?.focus(), 0); }}
               onForward={msg => { setForwardMsg({ text: msg.text }); setDeleteMenuMsgId(null); }}
-              onCopy={msg => { navigator.clipboard.writeText(msg.text || '').then(() => showErrToast('\uD83D\uDCCB Bericht gekopieerd')).catch(() => {}); setDeleteMenuMsgId(null); }}
+              onCopy={msg => { navigator.clipboard.writeText(msg.text || '').then(() => showErrToast('\uD83D\uDCCB Bericht gekopieerd')).catch(e => { console.warn('[Pulse] Fout:', e.message); }); setDeleteMenuMsgId(null); }}
               onDeleteSelf={msgId => deleteMessage(msgId, 'self')}
               onDeleteAll={msgId => deleteMessage(msgId, 'all')}
               onRetry={msg => retryMessage(msg)}

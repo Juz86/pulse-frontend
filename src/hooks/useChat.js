@@ -51,7 +51,7 @@ export default function useChat({
         osc.start(t + start);
         osc.stop(t + end);
       });
-    } catch {}
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }
 
   // ── Socket events ─────────────────────────────────────────────────────────
@@ -174,9 +174,9 @@ export default function useChat({
           gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.25);
           osc.start(ctx.currentTime + delay);
           osc.stop(ctx.currentTime + delay + 0.25);
-          osc.onended = () => { if (++ended === tones.length) { try { ctx.close(); } catch {} } };
+          osc.onended = () => { if (++ended === tones.length) { try { ctx.close(); } catch (e) { console.warn('[Pulse] Fout:', e.message); } } };
         });
-      } catch {}
+      } catch (e) { console.warn('[Pulse] Fout:', e.message); }
       if (Notification.permission === 'granted') {
         new Notification('Nieuwe uitnodiging', { body: `${req.fromName} wil je toevoegen`, icon: '/logo192.png' });
       }
@@ -198,9 +198,9 @@ export default function useChat({
           gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.22);
           osc.start(ctx.currentTime + delay);
           osc.stop(ctx.currentTime + delay + 0.22);
-          osc.onended = () => { try { ctx.close(); } catch {} };
+          osc.onended = () => { try { ctx.close(); } catch (e) { console.warn('[Pulse] Fout:', e.message); } };
         });
-      } catch {}
+      } catch (e) { console.warn('[Pulse] Fout:', e.message); }
     };
 
     const onUserUpdated = ({ uid, displayName, photoURL }) => {

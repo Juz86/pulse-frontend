@@ -24,7 +24,7 @@ async function getIceServers(authToken) {
       _iceServersExpiry = Date.now() + 3600_000; // 1 uur cache
       return iceServers;
     }
-  } catch {}
+  } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   // Fallback: alleen STUN als backend niet bereikbaar
   return [
     { urls: 'stun:stun.l.google.com:19302' },

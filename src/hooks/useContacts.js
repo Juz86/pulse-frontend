@@ -58,7 +58,7 @@ export default function useContacts({
         const k = localStorage.key(i);
         if (k?.startsWith('pulse_nick_')) cache[k.replace('pulse_nick_', '')] = localStorage.getItem(k);
       }
-    } catch {}
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
     return cache;
   });
 
@@ -98,7 +98,7 @@ export default function useContacts({
         });
       }
       setContacts(raw.map(c => ({ ...c, photoURL: c.photoURL || photoMap[c.uid] || null })));
-    } catch {}
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }, [user.uid]);
 
   const loadFriendRequests = useCallback(async () => {
@@ -106,7 +106,7 @@ export default function useContacts({
       const res  = await authFetch(`${BACKEND_URL}/api/friend-requests/${user.uid}`);
       const data = await res.json();
       setFriendRequests(Array.isArray(data) ? data : []);
-    } catch {}
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }, [user.uid]);
 
   // ── Contact toevoegen ─────────────────────────────────────────────────────
@@ -152,7 +152,7 @@ export default function useContacts({
         body: JSON.stringify({ fromUid: user.uid, fromName: user.displayName || user.email, fromEmail: user.email, fromPhoto: user.photoURL || null, toEmail: email }),
       });
       if (res.ok) setFriendReqSent(true);
-    } catch {}
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
     finally { setFriendReqLoading(false); }
   }
 
@@ -161,14 +161,14 @@ export default function useContacts({
       await authFetch(`${BACKEND_URL}/api/friend-requests/${requestId}/accept`, { method: 'POST' });
       setFriendRequests(prev => prev.filter(r => r.id !== requestId));
       loadContacts();
-    } catch {}
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }
 
   async function declineFriendRequest(requestId) {
     try {
       await authFetch(`${BACKEND_URL}/api/friend-requests/${requestId}/decline`, { method: 'POST' });
       setFriendRequests(prev => prev.filter(r => r.id !== requestId));
-    } catch {}
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }
 
   function removeContact(uid) {
@@ -179,7 +179,7 @@ export default function useContacts({
         setContacts(prev => prev.filter(c => c.uid !== uid));
         const conv = conversations.find(c => !c.isGroup && c.members?.includes(uid));
         if (conv) {
-          try { await authFetch(`${BACKEND_URL}/api/conversations/${conv.id}`, { method: 'DELETE' }); } catch {}
+          try { await authFetch(`${BACKEND_URL}/api/conversations/${conv.id}`, { method: 'DELETE' }); } catch (e) { console.warn('[Pulse] Fout:', e.message); }
           setConversations(prev => prev.filter(c => c.id !== conv.id));
           if (activeConv?.id === conv.id) { setActiveConv(null); setMessages([]); }
         }

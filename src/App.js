@@ -20,7 +20,7 @@ const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 const BACKEND = BACKEND_URL;
 
 // Backend alvast wakker maken
-fetch(`${BACKEND}/`).catch(() => {});
+fetch(`${BACKEND}/`).catch(e => { console.warn('[Pulse] Backend fout:', e.message); });
 
 export default function App() {
   // Wachtwoord reset via Firebase link
@@ -94,7 +94,7 @@ export default function App() {
         try {
           const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (snap.exists()) role = snap.data()?.role || 'user';
-        } catch {}
+        } catch (e) { console.warn('[Pulse] Fout:', e.message); }
         if (pendingRole) role = pendingRole; // ouder-login overschrijft Firestore
         setUserRole(role);
         const idToken = await firebaseUser.getIdToken();
@@ -118,11 +118,11 @@ export default function App() {
                   body: JSON.stringify({ uid: firebaseUser.uid, token }),
                 });
                 if (res.ok) break;
-              } catch {}
+              } catch (e) { console.warn('[Pulse] Fout:', e.message); }
               retries++;
               await new Promise(r => setTimeout(r, 1000 * retries));
             }
-          } catch {}
+          } catch (e) { console.warn('[Pulse] Fout:', e.message); }
         };
         await registerFcmToken(authHeader);
         // Herregistreer token wanneer app focus krijgt na lange afwezigheid
@@ -130,7 +130,7 @@ export default function App() {
         const onVisibilityChange = () => {
           if (document.visibilityState === 'visible' && Date.now() - lastTokenRefresh > 3_600_000) {
             lastTokenRefresh = Date.now();
-            firebaseUser.getIdToken().then(t => registerFcmToken({ 'Authorization': `Bearer ${t}` })).catch(() => {});
+            firebaseUser.getIdToken().then(t => registerFcmToken({ 'Authorization': `Bearer ${t}` })).catch(e => { console.warn('[Pulse] Fout:', e.message); });
           }
         };
         if (fcmVisibilityRef.current) document.removeEventListener('visibilitychange', fcmVisibilityRef.current);
@@ -192,7 +192,7 @@ export default function App() {
           try {
             const newToken = await firebaseUser.getIdToken(true);
             socket.auth.token = newToken;
-          } catch {}
+          } catch (e) { console.warn('[Pulse] Fout:', e.message); }
         });
 
         // Tab-focus: haal actuele online lijst opnieuw op

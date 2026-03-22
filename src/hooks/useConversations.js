@@ -242,7 +242,7 @@ export default function useConversations({
     try {
       await authFetch(`${BACKEND_URL}/api/messages/${activeConv.id}/${msgId}?scope=${scope}`, { method: 'DELETE' });
       setMessages(prev => prev.filter(m => m.id !== msgId));
-    } catch {}
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }
 
   // ── Groepen ───────────────────────────────────────────────────────────────

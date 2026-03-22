@@ -117,7 +117,7 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
       if (pngBlob.size > 1_000_000) throw new Error('Afbeelding te groot (max 1MB)');
 
       if (currentPhotoURL && currentPhotoURL.includes('firebasestorage')) {
-        try { await deleteObject(storageRef(storage, `users/${uid}/profilePhoto`)); } catch {}
+        try { await deleteObject(storageRef(storage, `users/${uid}/profilePhoto`)); } catch (e) { console.warn('[Pulse] Fout:', e.message); }
       }
 
       const newRef = storageRef(storage, `users/${uid}/profilePhoto`);

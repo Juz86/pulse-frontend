@@ -17,6 +17,6 @@ root.render(
 // Service worker registreren voor PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(() => {});
+    navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(e => { console.warn('[Pulse] Fout:', e.message); });
   });
 }

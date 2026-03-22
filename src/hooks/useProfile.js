@@ -144,6 +144,9 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
         localStorage.setItem(`pulse_photo_${user.uid}`, photoURL);
       }
       await fbUpdateProfile(auth.currentUser, { displayName: newName.trim(), photoURL: photoURL || null });
+      if (photoFile) {
+        await updateDoc(doc(db, 'users', user.uid), { photoURL: photoURL || null, avatarOptions: null });
+      }
       authFetch(`${BACKEND_URL}/api/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

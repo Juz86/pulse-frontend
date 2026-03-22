@@ -452,7 +452,7 @@ export default function ChatModals({
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                         <div className="profile-photo-wrap" onClick={() => photoInputRef.current?.click()}>
                           {photoPreview
-                            ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" />
+                            ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
                             : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
                           }
                           <div className="profile-photo-overlay"><Camera size={16} /></div>

@@ -1,5 +1,5 @@
 // src/components/ChatModals.js
-import React from 'react';
+import React, { useEffect } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { Phone, Video, Camera, Delete, Search, Message, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon } from '../components/Icons';
@@ -104,6 +104,35 @@ export default function ChatModals({
   // helpers
   lightMode,
 }) {
+  const anyModalOpen = !!(renamingContact || sharingContact || viewingSharedContact || viewingContact ||
+    confirmDialog || showAddContact || showNewChat || showNewGroup || showProfile ||
+    showCallModal || showGroupInfo || forwardMsg || showContactProfile || showAvatarBuilder);
+
+  useEffect(() => {
+    if (!anyModalOpen) return;
+    const overlays = document.querySelectorAll('.modal-overlay');
+    const overlay = overlays[overlays.length - 1];
+    if (!overlay) return;
+    const box = overlay.querySelector('.modal-box') || overlay;
+    const getFocusable = (el) => [...el.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )];
+    function onKeyDown(e) {
+      if (e.key !== 'Tab') return;
+      const focusable = getFocusable(box);
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last  = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last)  { e.preventDefault(); first.focus(); }
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [anyModalOpen]);
+
   return (
     <>
       {/* ── CONTACT HERNOEMEN ── */}

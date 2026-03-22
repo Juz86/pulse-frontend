@@ -131,7 +131,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   }
 
   peer.on('close', () => { fireOnEnd(); cleanupCall(stream); });
-  peer.on('error', (e) => { console.error('WebRTC error:', e); fireOnEnd(); cleanupCall(stream); });
+  peer.on('error', (e) => { console.warn('[Pulse] Fout: WebRTC error:', e.message); fireOnEnd(); cleanupCall(stream); });
 
   // ICE candidates ontvangen — oude handler eerst verwijderen
   if (iceHandler) { socket.off('call:ice-candidate', iceHandler); }
@@ -218,7 +218,7 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onV
   socket.on('call:video-upgrade', videoUpgradeHandler);
 
   peer.on('close', () => { onEnd?.(); cleanupCall(stream); });
-  peer.on('error', (e) => { console.error('WebRTC error:', e); onEnd?.(); cleanupCall(stream); });
+  peer.on('error', (e) => { console.warn('[Pulse] Fout: WebRTC error:', e.message); onEnd?.(); cleanupCall(stream); });
 
   // ICE candidates ontvangen — oude handler eerst verwijderen
   if (iceHandler) { socket.off('call:ice-candidate', iceHandler); }
@@ -254,7 +254,7 @@ export async function acceptVideoUpgrade() {
     peer.addTrack(vs.getVideoTracks()[0], vs);
     return vs;
   } catch (e) {
-    console.error('Video upgrade accepteren mislukt:', e);
+    console.warn('[Pulse] Fout: Video upgrade accepteren mislukt:', e.message);
     return null;
   }
 }
@@ -271,7 +271,7 @@ export async function upgradeToVideo() {
     if (callPeer) socket.emit('call:video-upgrade', { to: callPeer });
     return videoStream;
   } catch (e) {
-    console.error('Video upgraden mislukt:', e);
+    console.warn('[Pulse] Fout: Video upgraden mislukt:', e.message);
     return null;
   }
 }

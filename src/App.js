@@ -148,7 +148,7 @@ export default function App() {
             photoURL:    localStorage.getItem(`pulse_photo_${firebaseUser.uid}`) || firebaseUser.photoURL || '',
             role,
           }),
-        }).catch(console.error);
+        }).catch(e => { console.warn('[Pulse] Fout:', e.message); });
 
         // Online status
         socket.off('user:status');

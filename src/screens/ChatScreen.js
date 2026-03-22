@@ -1,17 +1,18 @@
 // src/screens/ChatScreen.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { getSocket } from '../services/socket';
 import { Bell, BellOff, Message } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
 import ChatHeader from '../components/ChatHeader';
 import ChatSidebar from '../components/ChatSidebar';
-import ChatModals from '../components/ChatModals';
 import MessageList from '../components/MessageList';
 import useConversations from '../hooks/useConversations';
 import useChat from '../hooks/useChat';
 import useCalling from '../hooks/useCalling';
 import useProfile from '../hooks/useProfile';
 import useContacts from '../hooks/useContacts';
+
+const ChatModals = lazy(() => import('../components/ChatModals'));
 
 export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled }) {
   // ── UI state ──────────────────────────────────────────────────────────────
@@ -334,6 +335,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         )}
       </main>
 
+      <Suspense fallback={null}>
       <ChatModals
         renamingContact={renamingContact} setRenamingContact={setRenamingContact}
         renameValue={renameValue} setRenameValue={setRenameValue}
@@ -396,6 +398,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         errToast={errToast} mentionToast={mentionToast} parentToast={parentToast}
         lightMode={lightMode}
       />
+      </Suspense>
     </div>
   );
 }

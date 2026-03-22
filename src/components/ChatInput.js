@@ -92,7 +92,7 @@ const ChatInput = React.memo(function ChatInput({
             <span className="reply-preview-name">✏️ Bewerken</span>
             <span className="reply-preview-text">{editingMsg.text}</span>
           </div>
-          <button className="reply-preview-close" onClick={() => { setEditingMsg(null); setText(''); }}>✕</button>
+          <button className="reply-preview-close" aria-label="Bewerken annuleren" onClick={() => { setEditingMsg(null); setText(''); }}>✕</button>
         </div>
       )}
       {replyTo && (
@@ -101,7 +101,7 @@ const ChatInput = React.memo(function ChatInput({
             <span className="reply-preview-name">{replyTo.senderName}</span>
             <span className="reply-preview-text">{replyTo.text}</span>
           </div>
-          <button className="reply-preview-close" onClick={() => setReplyTo(null)}>✕</button>
+          <button className="reply-preview-close" aria-label="Antwoord annuleren" onClick={() => setReplyTo(null)}>✕</button>
         </div>
       )}
       {mentionSuggestions.length > 0 && (
@@ -142,7 +142,7 @@ const ChatInput = React.memo(function ChatInput({
             onChange={e => handleTyping(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          <button className="send-btn" onClick={onSend}><Send size={18} /></button>
+          <button className="send-btn" aria-label="Bericht versturen" onClick={onSend}><Send size={18} /></button>
         </div>
       )}
     </div>

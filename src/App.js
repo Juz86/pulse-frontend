@@ -15,6 +15,7 @@ const ParentAuthScreen   = lazy(() => import('./screens/ParentAuthScreen'));
 const ParentDashboard    = lazy(() => import('./screens/ParentDashboard'));
 const CallOverlay        = lazy(() => import('./components/CallOverlay'));
 const ResetPasswordScreen = lazy(() => import('./screens/ResetPasswordScreen'));
+const FunctiePagina       = lazy(() => import('./screens/FunctiePagina'));
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 
@@ -30,6 +31,15 @@ export default function App() {
   const mode      = urlParams.get('mode');
   if (mode === 'resetPassword' && oobCode) {
     return <Suspense fallback={null}><ResetPasswordScreen oobCode={oobCode} /></Suspense>;
+  }
+
+  // /functies route
+  if (window.location.pathname === '/functies') {
+    return (
+      <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
+        <FunctiePagina onParentClick={() => { localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+      </Suspense>
+    );
   }
 
   const wasLoggedIn = localStorage.getItem('pulse_user') === '1';

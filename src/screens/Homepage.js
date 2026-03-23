@@ -69,7 +69,7 @@ export default function Homepage({ onParentClick }) {
         </button>
 
         <div className={`hp-nav-links${menuOpen ? ' hp-nav-links--open' : ''}`}>
-          <button onClick={() => scrollTo('waarom')}>Functies</button>
+          <a href="/functies" className="fp-nav-link">Functies</a>
           <button onClick={() => scrollTo('veiligheid')}>Veiligheid</button>
           <button onClick={() => scrollTo('toezicht')}>Ouderlijk toezicht</button>
           <button onClick={() => scrollTo('footer')}>Over Pulse</button>

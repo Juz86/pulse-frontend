@@ -2520,8 +2520,23 @@ body {
 .fp-feature-icon { color: #7c3aed; display: flex; flex-shrink: 0; }
 
 /* Phone frame */
-.fp-phone { width: 200px; }
-.fp-phone-screen { min-height: 340px; }
+.fp-phone {
+  width: 210px;
+  background: linear-gradient(160deg, #23203d, #181630) !important;
+  border-color: rgba(124,58,237,0.45) !important;
+}
+.fp-phone--tall .fp-phone-screen { min-height: 420px; }
+.fp-phone-screen {
+  background: #1a1830 !important;
+  min-height: 340px;
+}
+
+/* Footer icon knoppen in mockup */
+.fp-footer-icon-btn {
+  width: 26px; height: 26px; border-radius: 8px;
+  background: rgba(255,255,255,0.07); display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+}
 
 /* Chat mockup extras */
 .fp-ticks { font-size: 10px; color: rgba(255,255,255,0.4); margin-left: 4px; }

@@ -2,10 +2,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PulseLogo from '../components/PulseLogo';
 import {
-  MessageSquare, Users, AtSign, Star, Pin, Search, ArrowRight,
-  Mic, Image, Phone, PhoneCall, PhoneMissed, Video, VideoOff,
-  Bell, Timer, CheckCheck, Wifi, Clock, Repeat,
-} from 'lucide-react';
+  Phone, Video, VideoOff, Mic, MicOff,
+  Message, Users, User, Search, Bell,
+  Pin, StarFilled, CheckDouble, Check,
+  Forward, Reply, ImageIcon, Palette,
+  Refresh, Clock, Wifi, Logout,
+  Lightbulb, Delete, PhoneCall, PhoneMissed, PhoneEnd,
+} from '../components/Icons';
+import { MdAlternateEmail, MdSend } from 'react-icons/md';
 
 // ── Scroll-in animatie hook ──────────────────────────────────────────────────
 function useFadeIn() {
@@ -16,7 +20,7 @@ function useFadeIn() {
     if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold: 0.12 }
+      { threshold: 0.1 }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -24,10 +28,10 @@ function useFadeIn() {
   return [ref, visible];
 }
 
-// ── Kleine CSS phone mockup helpers ─────────────────────────────────────────
-function PhoneMockup({ children }) {
+// ── Phone frame ──────────────────────────────────────────────────────────────
+function PhoneMockup({ children, tall }) {
   return (
-    <div className="hp-phone fp-phone">
+    <div className={`hp-phone fp-phone${tall ? ' fp-phone--tall' : ''}`}>
       <div className="hp-phone-notch" />
       <div className="hp-phone-screen fp-phone-screen">
         {children}
@@ -36,203 +40,364 @@ function PhoneMockup({ children }) {
   );
 }
 
+// ── Avatar helper ────────────────────────────────────────────────────────────
+function MockAvatar({ letter, gradient = 'linear-gradient(135deg,#7c3aed,#a78bfa)', size = 28, online }) {
+  return (
+    <div style={{ position: 'relative', flexShrink: 0 }}>
+      <div style={{
+        width: size, height: size, borderRadius: '50%',
+        background: gradient, display: 'flex', alignItems: 'center',
+        justifyContent: 'center', color: '#fff',
+        fontSize: size * 0.38, fontWeight: 700,
+      }}>{letter}</div>
+      {online && (
+        <div style={{
+          position: 'absolute', bottom: 0, right: 0,
+          width: size * 0.34, height: size * 0.34,
+          borderRadius: '50%', background: '#22c55e',
+          border: '1.5px solid #1a1830',
+        }} />
+      )}
+    </div>
+  );
+}
+
+// ── Gedeelde chat-header (terug + avatar + naam + bel/video/zoek knoppen) ────
+function ChatHeader({ letter, name, gradient = 'linear-gradient(135deg,#7c3aed,#a78bfa)', online, isGroup }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
+      {/* Terug */}
+      <div style={{ width: 22, height: 22, borderRadius: 7, background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>←</span>
+      </div>
+      {/* Avatar */}
+      <MockAvatar letter={letter} gradient={gradient} size={26} online={online} />
+      {/* Naam */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</div>
+        {online && !isGroup && <div style={{ fontSize: 8, color: '#22c55e' }}>Online</div>}
+        {isGroup && <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)' }}>Groep</div>}
+      </div>
+      {/* Actieknoppen */}
+      <div style={{ width: 24, height: 24, borderRadius: 8, background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Phone size={12} color="#fff" />
+      </div>
+      <div style={{ width: 24, height: 24, borderRadius: 8, background: '#3730a3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Video size={12} color="#fff" />
+      </div>
+      <div style={{ width: 24, height: 24, borderRadius: 8, background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Search size={12} color="rgba(255,255,255,0.6)" />
+      </div>
+    </div>
+  );
+}
+
+// ── Mockup 1: Sidebar (hoofd chatscherm) ─────────────────────────────────────
+function SidebarMockup() {
+  return (
+    <PhoneMockup tall>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <PulseLogo size={16} textSize={12} color="#fff" />
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 7 }}>
+          <Message size={14} color="rgba(255,255,255,0.5)" />
+          <Phone size={14} color="rgba(255,255,255,0.5)" />
+          <Users size={14} color="rgba(255,255,255,0.5)" />
+          <Bell size={14} color="rgba(255,255,255,0.5)" />
+        </div>
+      </div>
+      {/* Zoekbalk */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '5px 8px', margin: '6px 0' }}>
+        <Search size={11} color="rgba(255,255,255,0.3)" />
+        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>Zoeken…</span>
+      </div>
+      {/* Tabs */}
+      <div style={{ display: 'flex', borderRadius: 10, background: 'rgba(255,255,255,0.06)', padding: 2, marginBottom: 6 }}>
+        <div style={{ flex: 1, textAlign: 'center', padding: '4px 0', borderRadius: 8, background: '#7c3aed', fontSize: 9, fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+          <Message size={10} color="#fff" />Chats
+        </div>
+        <div style={{ flex: 1, textAlign: 'center', padding: '4px 0', fontSize: 9, color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+          <Users size={10} color="rgba(255,255,255,0.4)" />Contacten
+        </div>
+      </div>
+      {/* Filter pills */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+        {['Alles', 'Familie', 'Vrienden', 'Groepen'].map((f, i) => (
+          <div key={f} style={{
+            padding: '2px 7px', borderRadius: 20, fontSize: 8, fontWeight: 600,
+            background: i === 0 ? '#7c3aed' : 'rgba(255,255,255,0.07)',
+            color: i === 0 ? '#fff' : 'rgba(255,255,255,0.5)',
+          }}>{f}</div>
+        ))}
+      </div>
+      {/* Contact rij */}
+      {[
+        { letter: 'Y', name: 'Yousef', sub: 'Spraakoproep', gradient: 'linear-gradient(135deg,#ec4899,#8b5cf6)', online: true, unread: null },
+        { letter: 'S', name: 'Sara', sub: 'Goedemorgen! ☀️', gradient: 'linear-gradient(135deg,#7c3aed,#a78bfa)', online: true, unread: 2 },
+        { letter: 'GR', name: 'Groep Familie', sub: 'Papa: Wij zijn er!', gradient: 'linear-gradient(135deg,#059669,#34d399)', online: false, unread: null },
+      ].map(c => (
+        <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <MockAvatar letter={c.letter} gradient={c.gradient} size={28} online={c.online} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.sub}</div>
+          </div>
+          {c.unread && (
+            <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#7c3aed', color: '#fff', fontSize: 8, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{c.unread}</div>
+          )}
+        </div>
+      ))}
+      <div style={{ flex: 1 }} />
+      {/* Footer met gebruiker + knoppen */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 8, marginTop: 4 }}>
+        <MockAvatar letter="K" gradient="linear-gradient(135deg,#ec4899,#8b5cf6)" size={26} online />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>Kamilah</div>
+          <div style={{ fontSize: 9, color: '#22c55e', fontWeight: 600 }}>● Online</div>
+        </div>
+        <div className="fp-footer-icon-btn"><Lightbulb size={12} color="rgba(255,255,255,0.6)" /></div>
+        <div className="fp-footer-icon-btn"><Logout size={12} color="rgba(255,255,255,0.6)" /></div>
+      </div>
+    </PhoneMockup>
+  );
+}
+
+// ── Mockup 2: Chat berichten ─────────────────────────────────────────────────
 function ChatMockup() {
   return (
     <PhoneMockup>
-      <div className="hp-mock-topbar">
-        <div className="hp-mock-avatar-sm" style={{ background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', color: '#fff' }}>S</div>
-        <span>Sara</span>
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-          <Phone size={12} color="rgba(255,255,255,0.5)" />
-          <Video size={12} color="rgba(255,255,255,0.5)" />
-        </div>
-      </div>
+      <ChatHeader letter="S" name="Sara" online />
       <div className="hp-mock-msgs">
         <div className="hp-mock-msg hp-mock-msg--in">Hoi! Alles goed? 👋</div>
-        <div className="hp-mock-msg hp-mock-msg--out">Ja super! Jij?<span className="fp-ticks">✓✓</span></div>
+        <div className="hp-mock-msg hp-mock-msg--out" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          Ja super! Jij?
+          <CheckDouble size={11} color="#60a5fa" />
+        </div>
         <div className="hp-mock-msg hp-mock-msg--in">Heel goed 😊</div>
-        <div className="hp-mock-msg hp-mock-msg--out fp-msg-replied">
-          <div className="fp-reply-quote">Heel goed 😊</div>
+        <div className="hp-mock-msg hp-mock-msg--out">
+          <div style={{ fontSize: 9, color: 'rgba(167,139,250,0.8)', borderLeft: '2px solid #7c3aed', paddingLeft: 5, marginBottom: 3 }}>Heel goed 😊</div>
           Fijn! 🎉
-          <span className="fp-ticks fp-ticks--blue">✓✓</span>
+          <CheckDouble size={11} color="#60a5fa" style={{ marginLeft: 4 }} />
         </div>
       </div>
       <div className="hp-mock-inputbar" style={{ gap: 6 }}>
-        <Mic size={11} color="rgba(255,255,255,0.4)" />
+        <Mic size={12} color="rgba(255,255,255,0.4)" />
         <span style={{ flex: 1 }}>Bericht…</span>
-        <ArrowRight size={11} color="#7c3aed" />
+        <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <MdSend size={11} color="#fff" />
+        </div>
       </div>
     </PhoneMockup>
   );
 }
 
+// ── Mockup 3: Groep ──────────────────────────────────────────────────────────
 function GroupMockup() {
   return (
     <PhoneMockup>
-      <div className="hp-mock-topbar">
-        <div className="hp-mock-avatar-sm" style={{ background: 'linear-gradient(135deg,#059669,#34d399)', color: '#fff', fontSize: 10 }}>GR</div>
-        <span>Groep Familie</span>
-        <div className="fp-badge-sm" style={{ marginLeft: 'auto' }}>3</div>
-      </div>
+      <ChatHeader letter="GR" name="Groep Familie" gradient="linear-gradient(135deg,#059669,#34d399)" isGroup />
       <div className="hp-mock-msgs">
-        <div className="hp-mock-msg hp-mock-msg--in"><span style={{ fontSize: 9, color: '#a78bfa', fontWeight: 700 }}>Sara</span><br />Wie komt er zondag? 🗓️</div>
-        <div className="hp-mock-msg hp-mock-msg--in"><span style={{ fontSize: 9, color: '#34d399', fontWeight: 700 }}>Papa</span><br />Wij zijn er!</div>
-        <div className="hp-mock-msg hp-mock-msg--out"><span className="fp-mention">@Sara</span> wij ook!</div>
-      </div>
-      <div className="hp-mock-inputbar"><span>Bericht…</span></div>
-    </PhoneMockup>
-  );
-}
-
-function ManageMockup() {
-  return (
-    <PhoneMockup>
-      <div className="hp-mock-topbar">
-        <div className="hp-mock-avatar-sm" style={{ background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', color: '#fff' }}>S</div>
-        <span>Sara</span>
-      </div>
-      <div className="hp-mock-msgs">
-        <div className="hp-mock-msg hp-mock-msg--out" style={{ position: 'relative' }}>
-          Goedemorgen! ☀️
-          <span className="fp-star">★</span>
-        </div>
-        <div className="hp-mock-msg hp-mock-msg--in">Morgen! Klaar voor school?</div>
-        <div className="hp-mock-msg hp-mock-msg--out fp-pinned-msg">
-          <Pin size={9} color="#a78bfa" style={{ marginRight: 3 }} />
-          Vergeet je boek niet!
-        </div>
-      </div>
-      <div className="hp-mock-inputbar"><span>Bericht zoeken…</span><Search size={11} color="rgba(255,255,255,0.3)" /></div>
-    </PhoneMockup>
-  );
-}
-
-function VoiceMockup() {
-  return (
-    <PhoneMockup>
-      <div className="hp-mock-topbar">
-        <div className="hp-mock-avatar-sm" style={{ background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', color: '#fff' }}>S</div>
-        <span>Sara</span>
-      </div>
-      <div className="hp-mock-msgs">
-        <div className="hp-mock-msg hp-mock-msg--out">
-          <Mic size={10} color="#a78bfa" style={{ marginRight: 4 }} />
-          <div className="fp-voice-bar"><span /><span /><span /><span /><span /></div>
-          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', marginLeft: 4 }}>0:12</span>
+        <div className="hp-mock-msg hp-mock-msg--in">
+          <span style={{ fontSize: 9, color: '#a78bfa', fontWeight: 700, display: 'block', marginBottom: 2 }}>Sara</span>
+          Wie komt er zondag? 🗓️
         </div>
         <div className="hp-mock-msg hp-mock-msg--in">
-          <Mic size={10} color="#34d399" style={{ marginRight: 4 }} />
-          <div className="fp-voice-bar fp-voice-bar--in"><span /><span /><span /><span /><span /></div>
-          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', marginLeft: 4 }}>0:08</span>
+          <span style={{ fontSize: 9, color: '#34d399', fontWeight: 700, display: 'block', marginBottom: 2 }}>Papa</span>
+          Wij zijn er!
+        </div>
+        <div className="hp-mock-msg hp-mock-msg--out">
+          <span style={{ color: '#a78bfa', fontWeight: 600 }}>@Sara</span> wij ook!
+          <CheckDouble size={11} color="#60a5fa" style={{ marginLeft: 4 }} />
         </div>
       </div>
       <div className="hp-mock-inputbar">
-        <div className="fp-record-btn"><Mic size={11} color="#fff" /></div>
-        <span>Ingedrukt houden…</span>
+        <MdAlternateEmail size={12} color="rgba(255,255,255,0.4)" />
+        <span style={{ flex: 1 }}>Bericht…</span>
+        <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <MdSend size={11} color="#fff" />
+        </div>
       </div>
     </PhoneMockup>
   );
 }
 
+// ── Mockup 4: Berichten beheren ──────────────────────────────────────────────
+function ManageMockup() {
+  return (
+    <PhoneMockup>
+      <ChatHeader letter="S" name="Sara" online />
+      <div className="hp-mock-msgs">
+        <div className="hp-mock-msg hp-mock-msg--out" style={{ position: 'relative' }}>
+          Goedemorgen! ☀️
+          <StarFilled size={10} color="#fbbf24" style={{ position: 'absolute', top: 4, right: 6 }} />
+        </div>
+        <div className="hp-mock-msg hp-mock-msg--in">Morgen! Klaar voor school?</div>
+        <div className="hp-mock-msg hp-mock-msg--out" style={{ borderLeft: '2px solid #7c3aed', paddingLeft: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Pin size={10} color="#a78bfa" />
+          Vergeet je boek niet!
+        </div>
+        <div className="hp-mock-msg hp-mock-msg--in" style={{ display: 'flex', alignItems: 'center', gap: 4, opacity: 0.6, fontStyle: 'italic' }}>
+          <Reply size={10} color="rgba(255,255,255,0.4)" />
+          bericht verwijderd
+        </div>
+      </div>
+      <div className="hp-mock-inputbar"><span style={{ flex: 1 }}>Doorzoek berichten…</span><Search size={11} color="rgba(255,255,255,0.3)" /></div>
+    </PhoneMockup>
+  );
+}
+
+// ── Mockup 5: Spraakberichten ────────────────────────────────────────────────
+function VoiceMockup() {
+  return (
+    <PhoneMockup>
+      <ChatHeader letter="S" name="Sara" online />
+      <div className="hp-mock-msgs">
+        <div className="hp-mock-msg hp-mock-msg--out" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Mic size={12} color="#a78bfa" />
+          <div className="fp-voice-bar"><span /><span /><span /><span /><span /></div>
+          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', marginLeft: 2 }}>0:12</span>
+          <CheckDouble size={10} color="#60a5fa" />
+        </div>
+        <div className="hp-mock-msg hp-mock-msg--in" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <Mic size={12} color="#34d399" />
+          <div className="fp-voice-bar fp-voice-bar--in"><span /><span /><span /><span /><span /></div>
+          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', marginLeft: 2 }}>0:08</span>
+        </div>
+      </div>
+      <div className="hp-mock-inputbar">
+        <div className="fp-record-btn"><Mic size={12} color="#fff" /></div>
+        <span style={{ flex: 1, fontSize: 9, color: 'rgba(255,255,255,0.4)' }}>Houd ingedrukt om op te nemen…</span>
+      </div>
+    </PhoneMockup>
+  );
+}
+
+// ── Mockup 6: Chatachtergrond ────────────────────────────────────────────────
 function BgMockup() {
   return (
     <PhoneMockup>
-      <div style={{ flex: 1, background: 'linear-gradient(135deg,#4c1d95,#7c3aed)', borderRadius: 8, display: 'flex', flexDirection: 'column', padding: 8, gap: 6 }}>
-        <div className="hp-mock-msg hp-mock-msg--in" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(4px)' }}>Mooie achtergrond! 🎨</div>
+      <ChatHeader letter="S" name="Sara" online />
+      <div style={{ flex: 1, background: 'linear-gradient(135deg,#4c1d95,#7c3aed)', borderRadius: 8, display: 'flex', flexDirection: 'column', padding: 8, gap: 6, margin: '4px 0' }}>
+        <div className="hp-mock-msg hp-mock-msg--in" style={{ background: 'rgba(255,255,255,0.18)' }}>Mooie achtergrond! 🎨</div>
         <div className="hp-mock-msg hp-mock-msg--out" style={{ background: 'rgba(108,99,255,0.7)' }}>Dankjewel 😊</div>
-        <div className="hp-mock-msg hp-mock-msg--in" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(4px)' }}>Hoe stel je dat in?</div>
+        <div className="hp-mock-msg hp-mock-msg--in" style={{ background: 'rgba(255,255,255,0.18)' }}>Hoe stel je dat in?</div>
       </div>
-      <div className="hp-mock-inputbar"><span>Bericht…</span></div>
+      <div className="hp-mock-inputbar"><span style={{ flex: 1 }}>Bericht…</span></div>
     </PhoneMockup>
   );
 }
 
+// ── Mockup 7: Spraakoproep ───────────────────────────────────────────────────
 function CallMockup() {
   return (
     <PhoneMockup>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-        <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#fff' }}>S</div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>Sara</div>
+        <MockAvatar letter="S" size={56} online />
+        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Sara</div>
         <div style={{ fontSize: 10, color: '#22c55e', fontWeight: 600 }}>02:47</div>
         <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-          <div className="fp-call-btn fp-call-btn--mute"><Mic size={13} color="#fff" /></div>
-          <div className="fp-call-btn fp-call-btn--end"><Phone size={13} color="#fff" style={{ transform: 'rotate(135deg)' }} /></div>
+          <div className="fp-call-btn"><Mic size={14} color="#fff" /></div>
+          <div className="fp-call-btn fp-call-btn--end"><PhoneEnd size={14} color="#fff" /></div>
         </div>
       </div>
     </PhoneMockup>
   );
 }
 
+// ── Mockup 8: Belgeschiedenis ────────────────────────────────────────────────
 function CallHistoryMockup() {
+  const items = [
+    { letter: 'S', name: 'Sara', gradient: 'linear-gradient(135deg,#7c3aed,#a78bfa)', Icon: PhoneCall, iconColor: '#22c55e', time: 'Vandaag 14:02', dur: '3m 12s' },
+    { letter: 'P', name: 'Papa', gradient: 'linear-gradient(135deg,#059669,#34d399)', Icon: PhoneMissed, iconColor: '#ef4444', time: 'Gisteren', dur: 'Gemist' },
+    { letter: 'S', name: 'Sara', gradient: 'linear-gradient(135deg,#7c3aed,#a78bfa)', Icon: PhoneCall, iconColor: '#22c55e', time: 'Ma 10:00', dur: '8m 55s' },
+  ];
   return (
     <PhoneMockup>
-      <div style={{ padding: '4px 0', display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.4)', padding: '2px 4px', marginBottom: 2 }}>Belgeschiedenis</div>
-        {[
-          { name: 'Sara', icon: <PhoneCall size={10} color="#22c55e" />, time: 'Vandaag 14:02', dur: '3m 12s' },
-          { name: 'Papa', icon: <PhoneMissed size={10} color="#ef4444" />, time: 'Gisteren', dur: 'Gemist' },
-          { name: 'Sara', icon: <PhoneCall size={10} color="#22c55e" />, time: 'Ma 10:00', dur: '8m 55s' },
-        ].map((c, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 4px', borderRadius: 6, background: 'rgba(255,255,255,0.04)' }}>
-            <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: '#fff', flexShrink: 0 }}>{c.name[0]}</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: '#fff' }}>{c.name}</div>
-              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: 3 }}>{c.icon}{c.time}</div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Belgeschiedenis</div>
+      {items.map((c, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <MockAvatar letter={c.letter} gradient={c.gradient} size={26} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>{c.name}</div>
+            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <c.Icon size={10} color={c.iconColor} />{c.time}
             </div>
-            <div style={{ fontSize: 9, color: c.dur === 'Gemist' ? '#ef4444' : 'rgba(255,255,255,0.4)' }}>{c.dur}</div>
           </div>
-        ))}
-      </div>
+          <div style={{ fontSize: 9, color: c.dur === 'Gemist' ? '#ef4444' : 'rgba(255,255,255,0.4)' }}>{c.dur}</div>
+        </div>
+      ))}
     </PhoneMockup>
   );
 }
 
+// ── Mockup 9: Videogesprek ───────────────────────────────────────────────────
 function VideoMockup() {
   return (
     <PhoneMockup>
-      <div style={{ flex: 1, background: '#1a1a2e', borderRadius: 8, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ fontSize: 32 }}>👩</div>
-        <div style={{ position: 'absolute', bottom: 8, right: 8, width: 36, height: 50, background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🧒</div>
-        <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(0,0,0,0.5)', borderRadius: 6, padding: '2px 6px', fontSize: 9, color: '#fff', display: 'flex', alignItems: 'center', gap: 4 }}>
+      {/* Volledig scherm: remote persoon */}
+      <div style={{ flex: 1, background: 'linear-gradient(180deg,#1a0a2e 0%,#0d0820 100%)', borderRadius: 8, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 260 }}>
+        {/* Remote: grote emoji + naam */}
+        <div style={{ fontSize: 56, lineHeight: 1, filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.5))' }}>👩</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Sara</div>
+
+        {/* Timer linksboven */}
+        <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(0,0,0,0.55)', borderRadius: 6, padding: '2px 8px', fontSize: 9, color: '#fff', display: 'flex', alignItems: 'center', gap: 4 }}>
           <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e' }} />05:33
         </div>
-        <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
-          <div className="fp-call-btn fp-call-btn--sm"><Mic size={10} color="#fff" /></div>
-          <div className="fp-call-btn fp-call-btn--end fp-call-btn--sm"><Phone size={10} color="#fff" style={{ transform: 'rotate(135deg)' }} /></div>
-          <div className="fp-call-btn fp-call-btn--sm"><VideoOff size={10} color="#fff" /></div>
+
+        {/* PiP: lokale camera rechtsonder */}
+        <div style={{ position: 'absolute', bottom: 44, right: 8, width: 44, height: 60, background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', borderRadius: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, border: '2px solid rgba(255,255,255,0.2)', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+          <div style={{ fontSize: 22, lineHeight: 1 }}>🧒</div>
+          <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Jij</div>
+        </div>
+
+        {/* Bediening onderaan */}
+        <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div className="fp-call-btn fp-call-btn--sm"><Mic size={11} color="#fff" /></div>
+          <div className="fp-call-btn fp-call-btn--end fp-call-btn--sm"><PhoneEnd size={11} color="#fff" /></div>
+          <div className="fp-call-btn fp-call-btn--sm"><VideoOff size={11} color="#fff" /></div>
         </div>
       </div>
     </PhoneMockup>
   );
 }
 
+// ── Mockup 10: Camera privacy ────────────────────────────────────────────────
 function PrivacyVideoMockup() {
   return (
     <PhoneMockup>
-      <div style={{ flex: 1, background: '#1a1a2e', borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-        <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <VideoOff size={20} color="rgba(255,255,255,0.4)" />
+      <div style={{ flex: 1, background: 'linear-gradient(180deg,#1a0a2e 0%,#0d0820 100%)', borderRadius: 8, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 260 }}>
+        {/* Remote: grote emoji + naam */}
+        <div style={{ fontSize: 56, lineHeight: 1 }}>👩</div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Sara</div>
+
+        {/* PiP: camera uit */}
+        <div style={{ position: 'absolute', bottom: 44, right: 8, width: 44, height: 60, background: 'rgba(255,255,255,0.06)', borderRadius: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, border: '2px solid rgba(255,255,255,0.1)' }}>
+          <VideoOff size={16} color="rgba(255,255,255,0.4)" />
+          <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>Jij</div>
         </div>
-        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>Camera uitgeschakeld</div>
-        <div style={{ fontSize: 20, marginTop: 4 }}>👩</div>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>Sara</div>
-        <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-          <div className="fp-call-btn fp-call-btn--sm"><Mic size={10} color="#fff" /></div>
-          <div className="fp-call-btn fp-call-btn--end fp-call-btn--sm"><Phone size={10} color="#fff" style={{ transform: 'rotate(135deg)' }} /></div>
-          <div className="fp-call-btn fp-call-btn--sm fp-call-btn--active"><Video size={10} color="#fff" /></div>
+
+        {/* Timer */}
+        <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(0,0,0,0.55)', borderRadius: 6, padding: '2px 8px', fontSize: 9, color: '#fff', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e' }} />03:21
+        </div>
+
+        {/* Bediening */}
+        <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
+          <div className="fp-call-btn fp-call-btn--sm"><Mic size={11} color="#fff" /></div>
+          <div className="fp-call-btn fp-call-btn--end fp-call-btn--sm"><PhoneEnd size={11} color="#fff" /></div>
+          <div className="fp-call-btn fp-call-btn--sm fp-call-btn--active"><Video size={11} color="#fff" /></div>
         </div>
       </div>
     </PhoneMockup>
   );
 }
 
-// ── Feature rij ─────────────────────────────────────────────────────────────
+// ── Feature rij ──────────────────────────────────────────────────────────────
 function FeatureRow({ reverse, mockup, title, text, features, id }) {
   const [ref, visible] = useFadeIn();
   return (
-    <div
-      ref={ref}
-      id={id}
+    <div ref={ref} id={id}
       className={`hp-feature-row${reverse ? ' hp-feature-row--reverse' : ''} fp-feature-row${visible ? ' fp-visible' : ''}`}
     >
       <div className="hp-feature-mockup">{mockup}</div>
@@ -252,7 +417,7 @@ function FeatureRow({ reverse, mockup, title, text, features, id }) {
   );
 }
 
-// ── Feature grid kaart ───────────────────────────────────────────────────────
+// ── Feature grid kaart ────────────────────────────────────────────────────────
 function GridCard({ icon, title, desc }) {
   const [ref, visible] = useFadeIn();
   return (
@@ -264,31 +429,28 @@ function GridCard({ icon, title, desc }) {
   );
 }
 
-// ── Sectie koptekst ──────────────────────────────────────────────────────────
 function SectionHeader({ title, sub }) {
   const [ref, visible] = useFadeIn();
   return (
     <div ref={ref} className={`hp-section-header fp-section-header${visible ? ' fp-visible' : ''}`}>
       <h2>{title}</h2>
-      <p>{sub}</p>
+      {sub && <p>{sub}</p>}
     </div>
   );
 }
 
-// ── Hoofdcomponent ───────────────────────────────────────────────────────────
+// ── Hoofdcomponent ────────────────────────────────────────────────────────────
 export default function FunctiePagina({ onParentClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeTab, setActiveTab] = useState('chatten');
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handler, { passive: true });
-    return () => window.removeEventListener('scroll', handler);
+    const h = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', h, { passive: true });
+    return () => window.removeEventListener('scroll', h);
   }, []);
 
   const scrollTo = (id) => {
@@ -296,24 +458,17 @@ export default function FunctiePagina({ onParentClick }) {
     setMenuOpen(false);
   };
 
-  const handleTabClick = (tab) => {
-    setActiveTab(tab);
-    scrollTo(tab);
-  };
-
   return (
     <div className="hp-root">
 
       {/* ── NAVIGATIE ── */}
       <nav className={`hp-nav${scrolled ? ' hp-nav--scrolled' : ''}`}>
-        <a className="hp-nav-logo" href="/">
-          <PulseLogo size={30} textSize={20} color="#fff" />
-        </a>
+        <a className="hp-nav-logo" href="/"><PulseLogo size={30} textSize={20} color="#fff" /></a>
         <div className={`hp-nav-links${menuOpen ? ' hp-nav-links--open' : ''}`}>
           <a href="/functies" className="fp-nav-active">Functies</a>
-          <button onClick={() => { window.location.href = '/'; setMenuOpen(false); }}>Veiligheid</button>
-          <button onClick={() => { window.location.href = '/'; setMenuOpen(false); }}>Ouderlijk toezicht</button>
-          <button onClick={() => { window.location.href = '/'; setMenuOpen(false); }}>Over Pulse</button>
+          <button onClick={() => { window.location.href = '/'; }}>Veiligheid</button>
+          <button onClick={() => { window.location.href = '/'; }}>Ouderlijk toezicht</button>
+          <button onClick={() => { window.location.href = '/'; }}>Over Pulse</button>
         </div>
         <button className="hp-nav-ouder" onClick={onParentClick}>❤️ Ouder</button>
         <button className="hp-nav-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Menu">
@@ -338,46 +493,40 @@ export default function FunctiePagina({ onParentClick }) {
               { id: 'bellen', label: '📞 Bellen' },
               { id: 'videobellen', label: '🎥 Videobellen' },
             ].map(t => (
-              <button
-                key={t.id}
+              <button key={t.id}
                 className={`fp-tab${activeTab === t.id ? ' fp-tab--active' : ''}`}
-                onClick={() => handleTabClick(t.id)}
-              >
-                {t.label}
-              </button>
+                onClick={() => { setActiveTab(t.id); scrollTo(t.id); }}
+              >{t.label}</button>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── SECTIE: CHATTEN ── */}
+      {/* ── CHATTEN ── */}
       <section className="hp-section" id="chatten">
         <div className="hp-section-inner">
-          <SectionHeader
-            title="Chatten"
-            sub="Snel en veilig berichten sturen zonder telefoonnummer."
-          />
+          <SectionHeader title="Chatten" sub="Snel en veilig berichten sturen zonder telefoonnummer." />
+
           <FeatureRow
-            mockup={<ChatMockup />}
+            mockup={<SidebarMockup />}
             title="Real-time berichten"
             text="Berichten komen instant aan via Socket.IO — net als WhatsApp. Met bezorgstatus ✓ ✓✓ en leesbevestiging in blauw."
             features={[
-              { icon: <MessageSquare size={14} />, label: '1-op-1 en groepsgesprekken' },
-              { icon: <CheckCheck size={14} />, label: 'Bezorgd- en leesbevestiging' },
-              { icon: <Clock size={14} />, label: 'Typ-indicator' },
-              { icon: <Wifi size={14} />, label: 'Offline berichten via Redis' },
+              { icon: <Message size={15} />, label: '1-op-1 en groepsgesprekken' },
+              { icon: <CheckDouble size={15} />, label: 'Bezorgd- en leesbevestiging' },
+              { icon: <Clock size={15} />, label: 'Typ-indicator' },
+              { icon: <Wifi size={15} />, label: 'Offline berichten via Redis' },
             ]}
           />
-          <FeatureRow
-            reverse
+          <FeatureRow reverse
             mockup={<GroupMockup />}
             title="Groepen en @ vermeldingen"
             text="Maak groepen aan voor familie of vrienden. Vermeld iemand direct met @naam voor een directe melding."
             features={[
-              { icon: <Users size={14} />, label: 'Groep aanmaken met naam en foto' },
-              { icon: <AtSign size={14} />, label: '@ vermeldingen met melding' },
-              { icon: <Users size={14} />, label: 'Groepsleden beheren' },
-              { icon: <Bell size={14} />, label: 'Ongelezen badge per gesprek' },
+              { icon: <Users size={15} />, label: 'Groep aanmaken met naam en foto' },
+              { icon: <MdAlternateEmail size={15} />, label: '@ vermeldingen met melding' },
+              { icon: <Users size={15} />, label: 'Groepsleden beheren' },
+              { icon: <Bell size={15} />, label: 'Ongelezen badge per gesprek' },
             ]}
           />
           <FeatureRow
@@ -385,22 +534,21 @@ export default function FunctiePagina({ onParentClick }) {
             title="Volledige berichtencontrole"
             text="Beantwoord, bewerk, verwijder of stuur berichten door. Sla belangrijke berichten op met een ster."
             features={[
-              { icon: <ArrowRight size={14} />, label: 'Reply, bewerken, verwijderen' },
-              { icon: <Repeat size={14} />, label: 'Berichten doorsturen' },
-              { icon: <Star size={14} />, label: 'Berichten sterren & overzicht' },
-              { icon: <Pin size={14} />, label: 'Berichten vastzetten' },
-              { icon: <Search size={14} />, label: 'Berichten zoeken in gesprek' },
+              { icon: <Reply size={15} />, label: 'Reply, bewerken, verwijderen' },
+              { icon: <Forward size={15} />, label: 'Berichten doorsturen' },
+              { icon: <StarFilled size={15} />, label: 'Berichten sterren & overzicht' },
+              { icon: <Pin size={15} />, label: 'Berichten vastzetten' },
+              { icon: <Search size={15} />, label: 'Berichten zoeken in gesprek' },
             ]}
           />
-          <FeatureRow
-            reverse
+          <FeatureRow reverse
             mockup={<VoiceMockup />}
             title="Spraakberichten"
             text="Neem een spraakbericht op met één druk op de microfoonknop. Berichten worden na 30 dagen automatisch verwijderd."
             features={[
-              { icon: <Mic size={14} />, label: 'Ingedrukt houden om op te nemen' },
-              { icon: <Timer size={14} />, label: 'Afspelen met voortgangsbalk' },
-              { icon: <Clock size={14} />, label: 'Automatisch verwijderd na 30 dagen' },
+              { icon: <Mic size={15} />, label: 'Ingedrukt houden om op te nemen' },
+              { icon: <Clock size={15} />, label: 'Afspelen met voortgangsbalk' },
+              { icon: <Clock size={15} />, label: 'Automatisch verwijderd na 30 dagen' },
             ]}
           />
           <FeatureRow
@@ -408,114 +556,103 @@ export default function FunctiePagina({ onParentClick }) {
             title="Persoonlijke chatachtergrond"
             text="Maak je chat persoonlijk met een eigen foto of kleur als achtergrond. Alleen jij ziet je eigen achtergrond."
             features={[
-              { icon: <Image size={14} />, label: "Foto uploaden als achtergrond" },
-              { icon: <span style={{ fontSize: 14 }}>🎨</span>, label: 'Kleur kiezen' },
-              { icon: <span style={{ fontSize: 14 }}>✦</span>, label: 'Standaard achtergrond' },
+              { icon: <ImageIcon size={15} />, label: 'Foto uploaden als achtergrond' },
+              { icon: <Palette size={15} />, label: 'Kleur kiezen' },
+              { icon: <Palette size={15} />, label: 'Standaard achtergrond' },
             ]}
           />
         </div>
       </section>
 
-      {/* ── SECTIE: BELLEN ── */}
+      {/* ── BELLEN ── */}
       <section className="hp-section hp-section--gray" id="bellen">
         <div className="hp-section-inner">
-          <SectionHeader
-            title="Bellen"
-            sub="Bel gratis met vrienden en familie — zonder telefoonnummer, zonder tijdslimiet."
-          />
+          <SectionHeader title="Bellen" sub="Bel gratis met vrienden en familie — zonder telefoonnummer, zonder tijdslimiet." />
           <FeatureRow
             mockup={<CallMockup />}
             title="HD spraakoproepen"
             text="Bel met heldere geluidskwaliteit via WebRTC. Werkt op wifi en mobiel data, ook bij trage verbinding."
             features={[
-              { icon: <Phone size={14} />, label: '1-op-1 spraakoproepen' },
-              { icon: <Mic size={14} />, label: 'Microfoon dempen / activeren' },
-              { icon: <Timer size={14} />, label: 'Gespreksduur timer' },
-              { icon: <PhoneMissed size={14} />, label: 'Gemiste oproepen badge' },
+              { icon: <Phone size={15} />, label: '1-op-1 spraakoproepen' },
+              { icon: <Mic size={15} />, label: 'Microfoon dempen / activeren' },
+              { icon: <Clock size={15} />, label: 'Gespreksduur timer' },
+              { icon: <PhoneMissed size={15} />, label: 'Gemiste oproepen badge' },
             ]}
           />
-          <FeatureRow
-            reverse
+          <FeatureRow reverse
             mockup={<CallHistoryMockup />}
             title="Belgeschiedenis"
             text="Zie al je gesprekken terug in de chat en in het belgeschiedenisoverzicht. Mis nooit een oproep."
             features={[
-              { icon: <PhoneCall size={14} />, label: 'Belgeschiedenis in gesprek' },
-              { icon: <PhoneMissed size={14} />, label: 'Gemiste oproepen melding' },
-              { icon: <Bell size={14} />, label: 'Push notificatie bij gemiste oproep' },
-              { icon: <Phone size={14} />, label: 'Bezet-status bij dubbele oproep' },
+              { icon: <PhoneCall size={15} />, label: 'Belgeschiedenis in gesprek' },
+              { icon: <PhoneMissed size={15} />, label: 'Gemiste oproepen melding' },
+              { icon: <Bell size={15} />, label: 'Push notificatie bij gemiste oproep' },
+              { icon: <Phone size={15} />, label: 'Bezet-status bij dubbele oproep' },
             ]}
           />
         </div>
       </section>
 
-      {/* ── SECTIE: VIDEOBELLEN ── */}
+      {/* ── VIDEOBELLEN ── */}
       <section className="hp-section" id="videobellen">
         <div className="hp-section-inner">
-          <SectionHeader
-            title="Videobellen"
-            sub="Zie wie je belt in HD kwaliteit — alsof je samen in dezelfde kamer bent."
-          />
+          <SectionHeader title="Videobellen" sub="Zie wie je belt in HD kwaliteit — alsof je samen in dezelfde kamer bent." />
           <FeatureRow
             mockup={<VideoMockup />}
             title="HD videogesprekken"
             text="Videobel met scherpe kwaliteit via WebRTC. Wissel eenvoudig van spraak naar video tijdens een gesprek."
             features={[
-              { icon: <Video size={14} />, label: '1-op-1 videogesprekken' },
-              { icon: <VideoOff size={14} />, label: 'Camera aan/uit' },
-              { icon: <Mic size={14} />, label: 'Microfoon dempen' },
-              { icon: <ArrowRight size={14} />, label: 'Spraak upgraden naar video' },
-              { icon: <span style={{ fontSize: 14 }}>⊡</span>, label: 'Gesprek minimaliseren (overlay)' },
+              { icon: <Video size={15} />, label: '1-op-1 videogesprekken' },
+              { icon: <VideoOff size={15} />, label: 'Camera aan/uit' },
+              { icon: <Mic size={15} />, label: 'Microfoon dempen' },
+              { icon: <Phone size={15} />, label: 'Spraak upgraden naar video' },
+              { icon: <Message size={15} />, label: 'Gesprek minimaliseren (overlay)' },
             ]}
           />
-          <FeatureRow
-            reverse
+          <FeatureRow reverse
             mockup={<PrivacyVideoMockup />}
             title="Jij bepaalt wat zichtbaar is"
             text="Schakel je camera uit wanneer je wilt. Je gesprekken zijn beveiligd en alleen jij en je gesprekspartner kunnen meedoen."
             features={[
-              { icon: <VideoOff size={14} />, label: 'Camera aan/uit tijdens gesprek' },
-              { icon: <Bell size={14} />, label: 'Beltoon bij inkomend gesprek' },
-              { icon: <Bell size={14} />, label: 'Push notificatie bij gemiste video' },
+              { icon: <VideoOff size={15} />, label: 'Camera aan/uit tijdens gesprek' },
+              { icon: <Bell size={15} />, label: 'Beltoon bij inkomend gesprek' },
+              { icon: <Bell size={15} />, label: 'Push notificatie bij gemiste video' },
             ]}
           />
         </div>
       </section>
 
       {/* ── FEATURE GRID ── */}
-      <section className="hp-section hp-section--gray fp-grid-section">
+      <section className="hp-section hp-section--gray">
         <div className="hp-section-inner">
-          <SectionHeader title="Alles in één overzicht" sub="" />
+          <SectionHeader title="Alles in één overzicht" />
           <div className="fp-grid">
-            {/* Chatten */}
             <div className="fp-grid-col">
               <div className="fp-grid-col-header">💬 Chatten</div>
-              <GridCard icon={<MessageSquare size={18} />} title="Real-time berichten" desc="Socket.IO voor instant delivery" />
-              <GridCard icon={<AtSign size={18} />} title="Groepen & @mentions" desc="Vermeld iemand direct" />
+              <GridCard icon={<Message size={18} />} title="Real-time berichten" desc="Socket.IO voor instant delivery" />
+              <GridCard icon={<MdAlternateEmail size={18} />} title="Groepen & @mentions" desc="Vermeld iemand direct" />
               <GridCard icon={<Mic size={18} />} title="Spraakberichten" desc="Opnemen & afspelen" />
-              <GridCard icon={<Image size={18} />} title="Chatachtergrond" desc="Foto of kleur naar keuze" />
-              <GridCard icon={<Star size={18} />} title="Berichten sterren" desc="Sla belangrijke berichten op" />
-              <GridCard icon={<MessageSquare size={18} />} title="Conceptberichten" desc="Bewaard per gesprek" />
+              <GridCard icon={<ImageIcon size={18} />} title="Chatachtergrond" desc="Foto of kleur naar keuze" />
+              <GridCard icon={<StarFilled size={18} />} title="Berichten sterren" desc="Sla belangrijke berichten op" />
+              <GridCard icon={<Message size={18} />} title="Conceptberichten" desc="Bewaard per gesprek" />
             </div>
-            {/* Bellen */}
             <div className="fp-grid-col">
               <div className="fp-grid-col-header">📞 Bellen</div>
               <GridCard icon={<Phone size={18} />} title="HD Spraakoproepen" desc="Helder geluid via WebRTC" />
               <GridCard icon={<PhoneCall size={18} />} title="Belgeschiedenis" desc="Overzicht in chat & logboek" />
               <GridCard icon={<PhoneMissed size={18} />} title="Gemiste oproepen melding" desc="Badge & notificatie" />
               <GridCard icon={<Bell size={18} />} title="Push notificaties" desc="Ook als app op achtergrond" />
-              <GridCard icon={<Timer size={18} />} title="Gespreksduur timer" desc="Altijd zichtbaar tijdens gesprek" />
+              <GridCard icon={<Clock size={18} />} title="Gespreksduur timer" desc="Altijd zichtbaar tijdens gesprek" />
               <GridCard icon={<Phone size={18} />} title="Bezet-status" desc="Automatisch bij dubbele oproep" />
             </div>
-            {/* Videobellen */}
             <div className="fp-grid-col">
               <div className="fp-grid-col-header">🎥 Videobellen</div>
               <GridCard icon={<Video size={18} />} title="HD Videogesprekken" desc="Scherp beeld via WebRTC" />
               <GridCard icon={<VideoOff size={18} />} title="Camera aan/uit" desc="Jij bepaalt wat zichtbaar is" />
-              <GridCard icon={<ArrowRight size={18} />} title="Spraak → Video upgrade" desc="Wissel tijdens gesprek" />
-              <GridCard icon={<span style={{ fontSize: 18 }}>⊡</span>} title="Gesprek minimaliseren" desc="Overlay terwijl je chat" />
+              <GridCard icon={<Phone size={18} />} title="Spraak → Video upgrade" desc="Wissel tijdens gesprek" />
+              <GridCard icon={<Message size={18} />} title="Gesprek minimaliseren" desc="Overlay terwijl je chat" />
               <GridCard icon={<Bell size={18} />} title="Beltoon inkomend gesprek" desc="Nooit een oproep missen" />
-              <GridCard icon={<CheckCheck size={18} />} title="WebRTC end-to-end" desc="Beveiligde verbinding" />
+              <GridCard icon={<CheckDouble size={18} />} title="WebRTC end-to-end" desc="Beveiligde verbinding" />
             </div>
           </div>
         </div>
@@ -526,9 +663,7 @@ export default function FunctiePagina({ onParentClick }) {
         <div className="hp-cta-inner">
           <h2>Klaar om te starten?</h2>
           <p>Maak gratis een account aan.</p>
-          <button className="hp-cta-btn" onClick={() => window.location.href = '/'}>
-            Gratis registreren
-          </button>
+          <button className="hp-cta-btn" onClick={() => window.location.href = '/'}>Gratis registreren</button>
         </div>
       </section>
 
@@ -551,16 +686,11 @@ export default function FunctiePagina({ onParentClick }) {
           </div>
           <div className="hp-footer-col">
             <h4>Over Pulse</h4>
-            <span>Over ons</span>
-            <span>Privacy</span>
-            <span>AVG-beleid</span>
-            <span>Contact</span>
+            <span>Over ons</span><span>Privacy</span><span>AVG-beleid</span><span>Contact</span>
           </div>
           <div className="hp-footer-col">
             <h4>Downloaden</h4>
-            <span>Web app</span>
-            <span>iOS</span>
-            <span>Android</span>
+            <span>Web app</span><span>iOS</span><span>Android</span>
           </div>
         </div>
         <div className="hp-footer-copy">© 2025 Pulse — Echt Nederlands. Echt veilig.</div>

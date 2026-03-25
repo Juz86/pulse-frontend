@@ -1,10 +1,10 @@
 // src/screens/ParentDashboard.js
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getInitials, timeAgo } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 
-export default function ParentDashboard({ user, onClose }) {
+export default function ParentDashboard({ user, onClose, parentActivityBadge = 0, onActivitiesViewed }) {
   const [activeTab,      setActiveTab]      = useState('add');
   const [children,       setChildren]       = useState([]);
   const [loading,        setLoading]        = useState(true);
@@ -18,6 +18,8 @@ export default function ParentDashboard({ user, onClose }) {
   const [createSuccess,  setCreateSuccess]  = useState('');
   const [createLoading,  setCreateLoading]  = useState(false);
   const [showCreatePw,   setShowCreatePw]   = useState(false);
+  const [createUsernameStatus,  setCreateUsernameStatus]  = useState('');
+  const [createUsernameLoading, setCreateUsernameLoading] = useState(false);
 
   // Wachtwoord wijzigen per kind
   const [changingPwUid,  setChangingPwUid]  = useState(null);
@@ -25,6 +27,11 @@ export default function ParentDashboard({ user, onClose }) {
   const [pwError,        setPwError]        = useState('');
   const [pwLoading,      setPwLoading]      = useState(false);
   const [showNewPw,      setShowNewPw]      = useState(false);
+  const [editingUsernameUid, setEditingUsernameUid] = useState(null);
+  const [editingUsername,    setEditingUsername]    = useState('');
+  const [usernameError,      setUsernameError]      = useState('');
+  const [usernameSuccess,    setUsernameSuccess]    = useState('');
+  const [usernameSaving,     setUsernameSaving]     = useState(false);
 
   // Inline fouten voor pauzeren/hervatten/verwijderen
   const [childError,     setChildError]     = useState(''); // { uid, msg }
@@ -45,9 +52,29 @@ export default function ParentDashboard({ user, onClose }) {
   const [contactFilter,    setContactFilter]    = useState('alles');
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
 
+  const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
+
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+  }
+
+  async function checkUsernameAvailability(username, excludeUsername = null) {
+    const clean = username.trim().toLowerCase();
+    if (!clean) return { ok: false, message: 'Gebruikersnaam is verplicht.' };
+    if (!USERNAME_RE.test(clean)) {
+      return { ok: false, message: 'Gebruik 3–20 tekens met alleen letters, cijfers en _.' };
+    }
+    if (excludeUsername && clean === excludeUsername.trim().toLowerCase()) {
+      return { ok: true, clean };
+    }
+    const res = await fetch(`${BACKEND}/api/users/lookup-username?username=${encodeURIComponent(clean)}`);
+    if (res.status === 404) return { ok: true, clean };
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return { ok: false, message: data.error || 'Controleren van gebruikersnaam mislukt.' };
+    }
+    return { ok: false, message: 'Deze gebruikersnaam is al in gebruik.' };
   }
 
   const loadChildren = useCallback(async () => {
@@ -94,6 +121,23 @@ export default function ParentDashboard({ user, onClose }) {
 
   useEffect(() => { if (selectedChildUid) loadAnalytics(selectedChildUid); }, [selectedChildUid, loadAnalytics]);
 
+  useEffect(() => {
+    setCreateSuccess('');
+    setCreateError('');
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (!createSuccess) return undefined;
+    const timeout = setTimeout(() => setCreateSuccess(''), 4000);
+    return () => clearTimeout(timeout);
+  }, [createSuccess]);
+
+  useEffect(() => {
+    if (activeTab === 'activities' && parentActivityBadge > 0) {
+      onActivitiesViewed?.();
+    }
+  }, [activeTab, parentActivityBadge, onActivitiesViewed]);
+
   // Auto-refresh analytics elke 30 seconden als Activiteiten-tab open is
   useEffect(() => {
     if (activeTab !== 'activities' || !selectedChildUid) return;
@@ -105,18 +149,36 @@ export default function ParentDashboard({ user, onClose }) {
     e.preventDefault();
     setCreateError(''); setCreateSuccess(''); setCreateLoading(true);
     try {
+      const check = await checkUsernameAvailability(childUsername);
+      if (!check.ok) throw new Error(check.message);
       const res = await authFetch(`${BACKEND}/api/parent/create-child`, {
         method: 'POST',
-        body: JSON.stringify({ name: childName.trim(), username: childUsername.trim(), password: childPassword }),
+        body: JSON.stringify({ name: childName.trim(), username: check.clean, password: childPassword }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Aanmaken mislukt.');
       setChildren(prev => [...prev, { uid: data.uid, displayName: data.displayName, username: data.username, online: false, pausedFeatures: { chat: false, call: false, video: false } }]);
       setCreateSuccess(`Account voor ${data.displayName} aangemaakt.`);
       setChildName(''); setChildUsername(''); setChildPassword('');
+      setCreateUsernameStatus('');
       window.dispatchEvent(new CustomEvent('pulse:child-added'));
     } catch (err) { setCreateError(err.message); }
     setCreateLoading(false);
+  }
+
+  async function validateCreateUsername(value = childUsername) {
+    setCreateUsernameStatus('');
+    const clean = value.trim().toLowerCase();
+    if (!clean) return;
+    setCreateUsernameLoading(true);
+    try {
+      const result = await checkUsernameAvailability(clean);
+      setCreateUsernameStatus(result.ok ? 'Beschikbaar' : result.message);
+    } catch {
+      setCreateUsernameStatus('Controleren van gebruikersnaam mislukt.');
+    } finally {
+      setCreateUsernameLoading(false);
+    }
   }
 
   async function pauseChild(childUid, feature) {
@@ -161,6 +223,29 @@ export default function ParentDashboard({ user, onClose }) {
     setPwLoading(false);
   }
 
+  async function changeChildUsername(childUid) {
+    setUsernameError(''); setUsernameSuccess(''); setUsernameSaving(true);
+    try {
+      const currentChild = children.find(c => c.uid === childUid);
+      const check = await checkUsernameAvailability(editingUsername, currentChild?.username || '');
+      if (!check.ok) throw new Error(check.message);
+      const res = await authFetch(`${BACKEND}/api/parent/change-child-username/${childUid}`, {
+        method: 'POST',
+        body: JSON.stringify({ username: check.clean }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Wijzigen mislukt.');
+      setChildren(prev => prev.map(c => c.uid === childUid ? { ...c, username: data.username, email: data.email || c.email } : c));
+      setUsernameSuccess('Gebruikersnaam bijgewerkt.');
+      setEditingUsernameUid(null);
+      setEditingUsername('');
+    } catch (err) {
+      setUsernameError(err.message);
+    } finally {
+      setUsernameSaving(false);
+    }
+  }
+
   async function deleteChild(childUid) {
     setDeleteError('');
     try {
@@ -172,11 +257,19 @@ export default function ParentDashboard({ user, onClose }) {
     } catch (err) { setDeleteError(err.message); }
   }
 
+  const activityTabBadge = parentActivityBadge > 9 ? '9+' : parentActivityBadge;
+
   const TABS = [
     { id: 'add',        icon: <UserPlus  size={16}/>, label: 'Kind toevoegen'       },
-    { id: 'children',   icon: <Users     size={16}/>, label: 'Gekoppelde kinderen'  },
-    { id: 'activities', icon: <Activity  size={16}/>, label: 'Activiteiten'          },
+    { id: 'children',   icon: <Users     size={16}/>, label: 'Mijn kinderen'         },
+    { id: 'activities', icon: <Activity  size={16}/>, label: 'Activiteiten', badge: parentActivityBadge > 0 ? activityTabBadge : null },
   ];
+
+  const createUsernameReady = createUsernameStatus === 'Beschikbaar';
+  const canCreateChild = !createLoading && !!childName.trim() && !!childPassword && childPassword.length >= 6 && createUsernameReady;
+  const filteredActivities = selectedChildUid
+    ? activities.filter(a => a.childUid === selectedChildUid)
+    : activities;
 
   return (
     <div className="parent-root">
@@ -210,6 +303,11 @@ export default function ParentDashboard({ user, onClose }) {
               >
                 {t.icon}
                 <span>{t.label}</span>
+                {t.badge && (
+                  <span className="parent-badge" style={{ marginLeft: '6px', position: 'static', transform: 'none', flexShrink: 0 }}>
+                    {t.badge}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -244,13 +342,31 @@ export default function ParentDashboard({ user, onClose }) {
                     aria-label="Gebruikersnaam"
                     autoComplete="off"
                     value={childUsername}
-                    onChange={e => setChildUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                    onChange={e => {
+                      setChildUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+                      setCreateUsernameStatus('');
+                      setCreateError('');
+                    }}
+                    onBlur={() => validateCreateUsername()}
                     autoCapitalize="none"
                     autoCorrect="off"
                     required
-                    minLength={2}
-                    maxLength={30}
+                    minLength={3}
+                    maxLength={20}
                   />
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: createUsernameStatus === 'Beschikbaar'
+                        ? '#16a34a'
+                        : (createUsernameStatus ? '#dc2626' : '#6b7280'),
+                      marginTop: -2,
+                    }}
+                  >
+                    {createUsernameLoading
+                      ? 'Gebruikersnaam controleren…'
+                      : createUsernameStatus || '3–20 tekens · alleen letters, cijfers en _. Deze loginnaam is uniek binnen Pulse.'}
+                  </div>
                   <div style={{ position: 'relative' }}>
                     <input
                       id="child-password"
@@ -271,7 +387,7 @@ export default function ParentDashboard({ user, onClose }) {
                       {showCreatePw ? <EyeOff size={18}/> : <EyeOn size={18}/>}
                     </button>
                   </div>
-                  <button className="parent-btn-primary" type="submit" disabled={createLoading}>
+                  <button className="parent-btn-primary" type="submit" disabled={!canCreateChild}>
                     {createLoading ? 'Aanmaken…' : 'Kindaccount aanmaken →'}
                   </button>
                 </form>
@@ -280,11 +396,11 @@ export default function ParentDashboard({ user, onClose }) {
               </div>
             )}
 
-            {/* Tab 2 — Gekoppelde kinderen */}
+            {/* Tab 2 — Mijn kinderen */}
             {activeTab === 'children' && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Gekoppelde kinderen</h2>
+                  <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Mijn kinderen</h2>
                   <button className="parent-btn-outline" onClick={loadChildren} style={{ fontSize: 12, padding: '6px 12px', display:'flex', alignItems:'center', gap:4 }}><Refresh size={14}/> Vernieuwen</button>
                 </div>
                 {childError && <div className="parent-error" style={{ marginBottom: 12 }}>⚠️ {childError}</div>}
@@ -315,6 +431,19 @@ export default function ParentDashboard({ user, onClose }) {
                           style={{ padding:'4px 6px' }}>
                           <KeyRound size={15}/>
                         </button>
+                        <button
+                          className="parent-btn-outline"
+                          title="Gebruikersnaam beheren"
+                          onClick={() => {
+                            setEditingUsernameUid(child.uid);
+                            setEditingUsername(child.username || '');
+                            setUsernameError('');
+                            setUsernameSuccess('');
+                          }}
+                          style={{ padding:'4px 6px' }}
+                        >
+                          <MagicEdit size={15}/>
+                        </button>
                         <button className="parent-btn-outline" style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
                           onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
                           <Trash2 size={15} color="#ef4444"/>
@@ -331,7 +460,7 @@ export default function ParentDashboard({ user, onClose }) {
                         <div style={{ minWidth:0, flex:1 }}>
                           <div className="parent-child-name" style={{ display:'flex', alignItems:'baseline', gap:6 }}>
                             {child.displayName}
-                            {child.username && <span style={{ color:'#888', fontWeight:400, fontSize:12 }}>@{child.username}</span>}
+                            {child.username && <span style={{ color:'#888', fontWeight:400, fontSize:12 }}>Loginnaam: @{child.username}</span>}
                           </div>
                           <div className="parent-child-meta" style={{ whiteSpace:'nowrap', marginTop:5 }}>
                             <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
@@ -390,6 +519,50 @@ export default function ParentDashboard({ user, onClose }) {
                     })()}
 
                     {/* Wachtwoord wijzigen inline */}
+                    {editingUsernameUid === child.uid && (
+                      <div style={{ background: '#f9f9fc', borderRadius: 10, padding: '12px 16px', marginBottom: 8, border: '1px solid #e0e0e8' }}>
+                        <p style={{ fontSize: 13, marginBottom: 8, color: '#555' }}>
+                          Gebruikersnaam voor <strong>{child.displayName}</strong>. Deze loginnaam is uniek binnen Pulse en alleen door de ouder te wijzigen.
+                        </p>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <input
+                            className="parent-input"
+                            type="text"
+                            placeholder="Gebruikersnaam"
+                            aria-label="Gebruikersnaam van kind"
+                            value={editingUsername}
+                            onChange={e => {
+                              setEditingUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+                              setUsernameError('');
+                              setUsernameSuccess('');
+                            }}
+                            minLength={3}
+                            maxLength={20}
+                            style={{ width: '100%', boxSizing: 'border-box', minHeight: 44 }}
+                            autoFocus
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                          />
+                          <button
+                            style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(34,197,94,.18)', color:'#16a34a', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, opacity: (usernameSaving || !editingUsername.trim()) ? .45 : 1 }}
+                            onClick={() => changeChildUsername(child.uid)}
+                            disabled={usernameSaving || !editingUsername.trim()}
+                            title="Gebruikersnaam opslaan">
+                            <Check size={22}/>
+                          </button>
+                          <button
+                            style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(239,68,68,.12)', color:'#ef4444', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}
+                            onClick={() => { setEditingUsernameUid(null); setEditingUsername(''); setUsernameError(''); setUsernameSuccess(''); }}
+                            title="Annuleren">
+                            <Cancel size={22}/>
+                          </button>
+                        </div>
+                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>3–20 tekens · alleen letters, cijfers en _</div>
+                        {usernameError && <div className="parent-error" style={{ marginTop: 6, fontSize: 13 }}>⚠️ {usernameError}</div>}
+                        {usernameSuccess && <div className="parent-success" style={{ marginTop: 6, fontSize: 13 }}>✓ {usernameSuccess}</div>}
+                      </div>
+                    )}
+
                     {changingPwUid === child.uid && (
                       <div style={{ background: '#f9f9fc', borderRadius: 10, padding: '12px 16px', marginBottom: 8, border: '1px solid #e0e0e8' }}>
                         <p style={{ fontSize: 13, marginBottom: 8, color: '#555' }}>Nieuw wachtwoord voor <strong>{child.displayName}</strong>:</p>
@@ -680,12 +853,12 @@ export default function ParentDashboard({ user, onClose }) {
                 {/* Activiteitenlogboek */}
                 <div className="analytics-section">
                   <div className="analytics-section-title"><Activity size={15}/> Activiteitenlog</div>
-                  {activities.length === 0 ? (
+                  {filteredActivities.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>
                       <Activity size={32} color="#ccc" style={{ marginBottom: 8 }}/>
-                      <p style={{ fontSize: 13 }}>Nog geen activiteiten.</p>
+                      <p style={{ fontSize: 13 }}>Nog geen activiteiten voor dit kind.</p>
                     </div>
-                  ) : activities.map(a => (
+                  ) : filteredActivities.map(a => (
                     <div key={a.id} className="parent-activity-row">
                       <div className="parent-activity-icon">
                         {a.type === 'friend_request_sent'     && <UserPlus2 size={18} color="#3b82f6" />}

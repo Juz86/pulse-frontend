@@ -1,15 +1,101 @@
 // src/screens/FunctiePagina.js
 import React, { useState, useEffect, useRef } from 'react';
+import { createAvatar } from '@dicebear/core';
+import { adventurer } from '@dicebear/collection';
 import PulseLogo from '../components/PulseLogo';
+import MarketingNavbar from '../components/MarketingNavbar';
+import MarketingFooter from '../components/MarketingFooter';
 import {
-  Phone, Video, VideoOff, Mic, MicOff,
+  Phone, Video, VideoOff, Mic,
   Message, Users, User, Search, Bell,
   Pin, StarFilled, CheckDouble, Check,
   Forward, Reply, ImageIcon, Palette,
   Refresh, Clock, Wifi, Logout,
   Lightbulb, Delete, PhoneCall, PhoneMissed, PhoneEnd,
 } from '../components/Icons';
-import { MdAlternateEmail, MdSend } from 'react-icons/md';
+import { MdAlternateEmail, MdSend, MdSmartphone } from 'react-icons/md';
+
+function makeAdventurerAvatar(options) {
+  return createAvatar(adventurer, {
+    size: 64,
+    backgroundColor: ['transparent'],
+    features: [],
+    featuresProbability: 0,
+    ...options,
+  }).toString();
+}
+
+const bgAvatarSvg = createAvatar(adventurer, {
+  seed: 'yousef-pulse',
+  size: 64,
+  hair: ['short19'],
+  hairColor: ['ab2a18'],
+  skinColor: ['d8a96a'],
+  eyes: ['variant24'],
+  eyebrows: ['variant12'],
+  mouth: ['variant23'],
+  glasses: ['variant05'],
+  glassesProbability: 100,
+  hairProbability: 100,
+  features: [],
+  featuresProbability: 0,
+  backgroundColor: ['transparent'],
+}).toString();
+
+const decorativeAvatars = {
+  heroTop: makeAdventurerAvatar({
+    seed: 'pulse-hero-top',
+    hair: ['short12'],
+    hairColor: ['e03fd8'],
+    skinColor: ['ecad80'],
+    eyes: ['variant09'],
+    eyebrows: ['variant07'],
+    mouth: ['variant12'],
+    glasses: ['none'],
+    glassesProbability: 0,
+    hairProbability: 100,
+  }),
+  heroBottom: makeAdventurerAvatar({
+    seed: 'pulse-hero-bottom',
+    hair: ['long11'],
+    hairColor: ['6a4e35'],
+    skinColor: ['f2d3b1'],
+    eyes: ['variant20'],
+    eyebrows: ['variant10'],
+    mouth: ['variant18'],
+    glasses: ['variant01'],
+    glassesProbability: 100,
+    hairProbability: 100,
+  }),
+  chatSide: makeAdventurerAvatar({
+    seed: 'pulse-chat-side',
+    hair: ['short06'],
+    hairColor: ['cb6820'],
+    skinColor: ['c68642'],
+    eyes: ['variant05'],
+    eyebrows: ['variant04'],
+    mouth: ['variant25'],
+    glasses: ['none'],
+    glassesProbability: 0,
+    hairProbability: 100,
+  }),
+  gridCorner: makeAdventurerAvatar({
+    seed: 'pulse-grid-corner',
+    hair: ['long20'],
+    hairColor: ['0e0e0e'],
+    skinColor: ['d8a96a'],
+    eyes: ['variant14'],
+    eyebrows: ['variant09'],
+    mouth: ['variant27'],
+    glasses: ['variant03'],
+    glassesProbability: 100,
+    hairProbability: 100,
+  }),
+};
+
+function DecorativeAvatar({ svg, className = '' }) {
+  return <div className={`fp-deco-avatar ${className}`.trim()} dangerouslySetInnerHTML={{ __html: svg }} />;
+}
 
 // ── Scroll-in animatie hook ──────────────────────────────────────────────────
 function useFadeIn() {
@@ -246,38 +332,22 @@ function ManageMockup() {
   );
 }
 
-// ── Mockup 5: Spraakberichten ────────────────────────────────────────────────
-function VoiceMockup() {
-  return (
-    <PhoneMockup>
-      <ChatHeader letter="S" name="Sara" online />
-      <div className="hp-mock-msgs">
-        <div className="hp-mock-msg hp-mock-msg--out" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <Mic size={12} color="#a78bfa" />
-          <div className="fp-voice-bar"><span /><span /><span /><span /><span /></div>
-          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', marginLeft: 2 }}>0:12</span>
-          <CheckDouble size={10} color="#60a5fa" />
-        </div>
-        <div className="hp-mock-msg hp-mock-msg--in" style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <Mic size={12} color="#34d399" />
-          <div className="fp-voice-bar fp-voice-bar--in"><span /><span /><span /><span /><span /></div>
-          <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', marginLeft: 2 }}>0:08</span>
-        </div>
-      </div>
-      <div className="hp-mock-inputbar">
-        <div className="fp-record-btn"><Mic size={12} color="#fff" /></div>
-        <span style={{ flex: 1, fontSize: 9, color: 'rgba(255,255,255,0.4)' }}>Houd ingedrukt om op te nemen…</span>
-      </div>
-    </PhoneMockup>
-  );
-}
-
-// ── Mockup 6: Chatachtergrond ────────────────────────────────────────────────
+// ── Mockup 5: Chatachtergrond ────────────────────────────────────────────────
 function BgMockup() {
   return (
     <PhoneMockup>
       <ChatHeader letter="S" name="Sara" online />
-      <div style={{ flex: 1, background: 'linear-gradient(135deg,#4c1d95,#7c3aed)', borderRadius: 8, display: 'flex', flexDirection: 'column', padding: 8, gap: 6, margin: '4px 0' }}>
+      <div style={{ flex: 1, background: 'linear-gradient(135deg,#4c1d95,#7c3aed)', borderRadius: 8, display: 'flex', flexDirection: 'column', padding: 8, gap: 6, margin: '4px 0', position: 'relative', overflow: 'hidden' }}>
+        <div
+          style={{
+            position: 'absolute',
+            right: 18,
+            bottom: 18,
+            opacity: 0.22,
+            transform: 'scale(1.7)',
+          }}
+          dangerouslySetInnerHTML={{ __html: bgAvatarSvg }}
+        />
         <div className="hp-mock-msg hp-mock-msg--in" style={{ background: 'rgba(255,255,255,0.18)' }}>Mooie achtergrond! 🎨</div>
         <div className="hp-mock-msg hp-mock-msg--out" style={{ background: 'rgba(108,99,255,0.7)' }}>Dankjewel 😊</div>
         <div className="hp-mock-msg hp-mock-msg--in" style={{ background: 'rgba(255,255,255,0.18)' }}>Hoe stel je dat in?</div>
@@ -287,7 +357,7 @@ function BgMockup() {
   );
 }
 
-// ── Mockup 7: Spraakoproep ───────────────────────────────────────────────────
+// ── Mockup 6: Spraakoproep ───────────────────────────────────────────────────
 function CallMockup() {
   return (
     <PhoneMockup>
@@ -304,7 +374,7 @@ function CallMockup() {
   );
 }
 
-// ── Mockup 8: Belgeschiedenis ────────────────────────────────────────────────
+// ── Mockup 7: Belgeschiedenis ────────────────────────────────────────────────
 function CallHistoryMockup() {
   const items = [
     { letter: 'S', name: 'Sara', gradient: 'linear-gradient(135deg,#7c3aed,#a78bfa)', Icon: PhoneCall, iconColor: '#22c55e', time: 'Vandaag 14:02', dur: '3m 12s' },
@@ -330,7 +400,7 @@ function CallHistoryMockup() {
   );
 }
 
-// ── Mockup 9: Videogesprek ───────────────────────────────────────────────────
+// ── Mockup 8: Videogesprek ───────────────────────────────────────────────────
 function VideoMockup() {
   return (
     <PhoneMockup>
@@ -362,7 +432,7 @@ function VideoMockup() {
   );
 }
 
-// ── Mockup 10: Camera privacy ────────────────────────────────────────────────
+// ── Mockup 9: Camera privacy ────────────────────────────────────────────────
 function PrivacyVideoMockup() {
   return (
     <PhoneMockup>
@@ -443,7 +513,8 @@ function SectionHeader({ title, sub }) {
 export default function FunctiePagina({ onParentClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [activeTab, setActiveTab] = useState('chatten');
+  const [chatSlide, setChatSlide] = useState(0);
+  const [callVideoSlide, setCallVideoSlide] = useState(0);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -458,46 +529,177 @@ export default function FunctiePagina({ onParentClick }) {
     setMenuOpen(false);
   };
 
+  const navItems = [
+    { key: 'functies', label: 'Functies', href: '/functies' },
+    { key: 'hoe-werkt-het', label: 'Hoe werkt het', href: '/hoe-werkt-het' },
+    { key: 'veiligheid', label: 'Veiligheid', href: '/' },
+    { key: 'ouderlijk-toezicht', label: 'Ouderlijk toezicht', href: '/ouderlijk-toezicht' },
+    { key: 'over-pulse', label: 'Over Pulse', href: '/' },
+  ];
+
+  const chatSlides = [
+    {
+      key: 'real-time-berichten',
+      label: 'Real-time berichten',
+      mockup: <SidebarMockup />,
+      title: 'Real-time berichten',
+      text: 'Berichten komen instant aan — net als WhatsApp. Met bezorgstatus en leesbevestiging in blauw.',
+      features: [
+        { icon: <Message size={15} />, label: '1-op-1 en groepsgesprekken' },
+        { icon: <CheckDouble size={15} />, label: 'Bezorgd- en leesbevestiging' },
+        { icon: <Clock size={15} />, label: 'Typ-indicator' },
+        { icon: <Wifi size={15} />, label: 'Offline berichten via Redis' },
+      ],
+    },
+    {
+      key: 'groepen-en-vermeldingen',
+      label: 'Groepen en @ vermeldingen',
+      reverse: true,
+      mockup: <GroupMockup />,
+      title: 'Groepen en @ vermeldingen',
+      text: 'Maak groepen aan voor familie of vrienden. Vermeld iemand direct met @naam voor een directe melding.',
+      features: [
+        { icon: <Users size={15} />, label: 'Groep aanmaken met naam en foto' },
+        { icon: <MdAlternateEmail size={15} />, label: '@ vermeldingen met melding' },
+        { icon: <Users size={15} />, label: 'Groepsleden beheren' },
+        { icon: <Bell size={15} />, label: 'Ongelezen badge per gesprek' },
+      ],
+    },
+    {
+      key: 'volledige-berichtencontrole',
+      label: 'Volledige berichtencontrole',
+      mockup: <ManageMockup />,
+      title: 'Volledige berichtencontrole',
+      text: 'Beantwoord, bewerk, verwijder of stuur berichten door. Sla belangrijke berichten op met een ster.',
+      features: [
+        { icon: <Reply size={15} />, label: 'Reply, bewerken, verwijderen' },
+        { icon: <Forward size={15} />, label: 'Berichten doorsturen' },
+        { icon: <StarFilled size={15} />, label: 'Berichten sterren & overzicht' },
+        { icon: <Pin size={15} />, label: 'Berichten vastzetten' },
+        { icon: <Search size={15} />, label: 'Berichten zoeken in gesprek' },
+      ],
+    },
+    {
+      key: 'persoonlijk-chatachtergrond',
+      label: 'Persoonlijk',
+      reverse: true,
+      mockup: <BgMockup />,
+      title: 'Persoonlijk',
+      text: 'Geef je chat een persoonlijke uitstraling met een eigen foto, avatar of kleur als achtergrond. Alleen jij ziet deze achtergrond.',
+      features: [
+        { icon: <MdSmartphone size={15} />, label: 'Foto op chatachtergrond' },
+        { icon: <ImageIcon size={15} />, label: 'Profielfoto uploaden' },
+        { icon: <User size={15} />, label: 'Avatar kiezen' },
+        
+        { icon: <Palette size={15} />, label: 'Achtergrondkleur kiezen' },
+      ],
+    },
+  ];
+
+  const currentChatSlide = chatSlides[chatSlide];
+
+  const callVideoSlides = [
+    {
+      key: 'hd-spraakoproepen',
+      label: 'HD spraakoproepen',
+      mockup: <CallMockup />,
+      title: 'HD spraakoproepen',
+      text: 'Bel met heldere geluidskwaliteit. Werkt op wifi en mobiel data, ook bij trage verbinding.',
+      features: [
+        { icon: <Phone size={15} />, label: '1-op-1 spraakoproepen' },
+        { icon: <Mic size={15} />, label: 'Microfoon dempen / activeren' },
+        { icon: <Clock size={15} />, label: 'Gespreksduur timer' },
+        { icon: <PhoneMissed size={15} />, label: 'Gemiste oproepen badge' },
+      ],
+    },
+    {
+      key: 'belgeschiedenis',
+      label: 'Belgeschiedenis',
+      reverse: true,
+      mockup: <CallHistoryMockup />,
+      title: 'Belgeschiedenis',
+      text: 'Zie al je gesprekken terug in de chat en in het belgeschiedenisoverzicht. Mis nooit een oproep.',
+      features: [
+        { icon: <PhoneCall size={15} />, label: 'Belgeschiedenis in gesprek' },
+        { icon: <PhoneMissed size={15} />, label: 'Gemiste oproepen melding' },
+        { icon: <Bell size={15} />, label: 'Push notificatie bij gemiste oproep' },
+        { icon: <Phone size={15} />, label: 'Bezet-status bij dubbele oproep' },
+      ],
+    },
+    {
+      key: 'hd-videogesprekken',
+      label: 'HD videogesprekken',
+      mockup: <VideoMockup />,
+      title: 'HD videogesprekken',
+      text: 'Videobel met scherpe HD-kwaliteit. Wissel eenvoudig van spraak naar video tijdens een gesprek.',
+      features: [
+        { icon: <Video size={15} />, label: '1-op-1 videogesprekken' },
+        { icon: <VideoOff size={15} />, label: 'Camera aan/uit' },
+        { icon: <Mic size={15} />, label: 'Microfoon dempen' },
+        { icon: <Phone size={15} />, label: 'Spraak upgraden naar video' },
+        { icon: <Message size={15} />, label: 'Gesprek minimaliseren (overlay)' },
+      ],
+    },
+    {
+      key: 'jij-bepaalt-wat-zichtbaar-is',
+      label: 'Jij bepaalt wat zichtbaar is',
+      reverse: true,
+      mockup: <PrivacyVideoMockup />,
+      title: 'Jij bepaalt wat zichtbaar is',
+      text: 'Schakel je camera uit wanneer je wilt. Je gesprekken zijn beveiligd en alleen jij en je gesprekspartner kunnen meedoen.',
+      features: [
+        { icon: <VideoOff size={15} />, label: 'Camera aan/uit tijdens gesprek' },
+        { icon: <PhoneCall size={15} />, label: 'Beltoon bij inkomend gesprek' },
+        { icon: <Bell size={15} />, label: 'Push notificatie bij gemiste video' },
+      ],
+    },
+  ];
+
+  const currentCallVideoSlide = callVideoSlides[callVideoSlide];
+
   return (
     <div className="hp-root">
 
       {/* ── NAVIGATIE ── */}
-      <nav className={`hp-nav${scrolled ? ' hp-nav--scrolled' : ''}`}>
-        <a className="hp-nav-logo" href="/"><PulseLogo size={30} textSize={20} color="#fff" /></a>
-        <div className={`hp-nav-links${menuOpen ? ' hp-nav-links--open' : ''}`}>
-          <a href="/functies" className="fp-nav-active">Functies</a>
-          <button onClick={() => { window.location.href = '/'; }}>Veiligheid</button>
-          <button onClick={() => { window.location.href = '/'; }}>Ouderlijk toezicht</button>
-          <button onClick={() => { window.location.href = '/'; }}>Over Pulse</button>
-        </div>
-        <button className="hp-nav-ouder" onClick={onParentClick}>❤️ Ouder</button>
-        <button className="hp-nav-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Menu">
-          {menuOpen ? '✕' : '☰'}
-        </button>
-      </nav>
+      <MarketingNavbar
+        items={navItems}
+        activeKey="functies"
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
+        scrolled={scrolled}
+        onParentClick={onParentClick}
+      />
 
       {/* ── HERO ── */}
-      <section className="hp-hero fp-hero">
-        <div className="fp-hero-inner">
-          <div className="fp-hero-badge">✨ Alles wat je nodig hebt</div>
-          <h1 className="fp-hero-title">
-            Alles wat je nodig hebt om<br />verbonden te blijven
-          </h1>
-          <p className="fp-hero-sub">
-            Pulse biedt alle communicatiefuncties die kinderen en ouders nodig hebben —
-            veilig, afleidingsvrij en by design zonder pesterij.
-          </p>
-          <div className="fp-tabs">
-            {[
-              { id: 'chatten', label: '💬 Chatten' },
-              { id: 'bellen', label: '📞 Bellen' },
-              { id: 'videobellen', label: '🎥 Videobellen' },
-            ].map(t => (
-              <button key={t.id}
-                className={`fp-tab${activeTab === t.id ? ' fp-tab--active' : ''}`}
-                onClick={() => { setActiveTab(t.id); scrollTo(t.id); }}
-              >{t.label}</button>
-            ))}
+      <section className="ot-hero">
+        <div className="ot-hero-inner">
+          <DecorativeAvatar svg={decorativeAvatars.heroTop} className="fp-deco-avatar--hero-top" />
+          <DecorativeAvatar svg={decorativeAvatars.heroBottom} className="fp-deco-avatar--hero-bottom" />
+          <div>
+            <div className="fp-hero-badge">Functies</div>
+            <h1 className="ot-hero-title fp-hero-title-compact">
+              Alles wat je nodig hebt om
+              veilig verbonden te blijven
+            </h1>
+            <p className="ot-hero-sub">
+              Pulse brengt chatten, bellen en videobellen samen in één rustige omgeving
+              voor gezinnen. Duidelijk, veilig en zonder afleiding.
+            </p>
+            <div className="ot-hero-actions">
+              <button className="hp-cta-btn" onClick={() => scrollTo('chatten')}>
+                Bekijk functies
+              </button>
+              <button
+                className="ot-secondary-btn"
+                onClick={() => { window.location.href = '/ouderlijk-toezicht'; }}
+              >
+                Ouderlijk toezicht
+              </button>
+            </div>
+          </div>
+
+          <div className="ot-hero-visual">
+            <SidebarMockup />
           </div>
         </div>
       </section>
@@ -505,133 +707,124 @@ export default function FunctiePagina({ onParentClick }) {
       {/* ── CHATTEN ── */}
       <section className="hp-section" id="chatten">
         <div className="hp-section-inner">
+          <DecorativeAvatar svg={decorativeAvatars.chatSide} className="fp-deco-avatar--chat" />
           <SectionHeader title="Chatten" sub="Snel en veilig berichten sturen zonder telefoonnummer." />
+          <div className="fp-slider">
+            <div className="fp-slider-tabs" role="tablist" aria-label="Chatfuncties">
+              {chatSlides.map((slide, index) => (
+                <button
+                  key={slide.key}
+                  type="button"
+                  className={`fp-slider-tab${index === chatSlide ? ' fp-slider-tab--active' : ''}`}
+                  onClick={() => setChatSlide(index)}
+                >
+                  {slide.label}
+                </button>
+              ))}
+            </div>
 
-          <FeatureRow
-            mockup={<SidebarMockup />}
-            title="Real-time berichten"
-            text="Berichten komen instant aan via Socket.IO — net als WhatsApp. Met bezorgstatus ✓ ✓✓ en leesbevestiging in blauw."
-            features={[
-              { icon: <Message size={15} />, label: '1-op-1 en groepsgesprekken' },
-              { icon: <CheckDouble size={15} />, label: 'Bezorgd- en leesbevestiging' },
-              { icon: <Clock size={15} />, label: 'Typ-indicator' },
-              { icon: <Wifi size={15} />, label: 'Offline berichten via Redis' },
-            ]}
-          />
-          <FeatureRow reverse
-            mockup={<GroupMockup />}
-            title="Groepen en @ vermeldingen"
-            text="Maak groepen aan voor familie of vrienden. Vermeld iemand direct met @naam voor een directe melding."
-            features={[
-              { icon: <Users size={15} />, label: 'Groep aanmaken met naam en foto' },
-              { icon: <MdAlternateEmail size={15} />, label: '@ vermeldingen met melding' },
-              { icon: <Users size={15} />, label: 'Groepsleden beheren' },
-              { icon: <Bell size={15} />, label: 'Ongelezen badge per gesprek' },
-            ]}
-          />
-          <FeatureRow
-            mockup={<ManageMockup />}
-            title="Volledige berichtencontrole"
-            text="Beantwoord, bewerk, verwijder of stuur berichten door. Sla belangrijke berichten op met een ster."
-            features={[
-              { icon: <Reply size={15} />, label: 'Reply, bewerken, verwijderen' },
-              { icon: <Forward size={15} />, label: 'Berichten doorsturen' },
-              { icon: <StarFilled size={15} />, label: 'Berichten sterren & overzicht' },
-              { icon: <Pin size={15} />, label: 'Berichten vastzetten' },
-              { icon: <Search size={15} />, label: 'Berichten zoeken in gesprek' },
-            ]}
-          />
-          <FeatureRow reverse
-            mockup={<VoiceMockup />}
-            title="Spraakberichten"
-            text="Neem een spraakbericht op met één druk op de microfoonknop. Berichten worden na 30 dagen automatisch verwijderd."
-            features={[
-              { icon: <Mic size={15} />, label: 'Ingedrukt houden om op te nemen' },
-              { icon: <Clock size={15} />, label: 'Afspelen met voortgangsbalk' },
-              { icon: <Clock size={15} />, label: 'Automatisch verwijderd na 30 dagen' },
-            ]}
-          />
-          <FeatureRow
-            mockup={<BgMockup />}
-            title="Persoonlijke chatachtergrond"
-            text="Maak je chat persoonlijk met een eigen foto of kleur als achtergrond. Alleen jij ziet je eigen achtergrond."
-            features={[
-              { icon: <ImageIcon size={15} />, label: 'Foto uploaden als achtergrond' },
-              { icon: <Palette size={15} />, label: 'Kleur kiezen' },
-              { icon: <Palette size={15} />, label: 'Standaard achtergrond' },
-            ]}
-          />
+            <FeatureRow
+              key={currentChatSlide.key}
+              reverse={currentChatSlide.reverse}
+              mockup={currentChatSlide.mockup}
+              title={currentChatSlide.title}
+              text={currentChatSlide.text}
+              features={currentChatSlide.features}
+            />
+
+            <div className="fp-slider-controls">
+              <button
+                type="button"
+                className="fp-slider-arrow"
+                onClick={() => setChatSlide((prev) => (prev === 0 ? chatSlides.length - 1 : prev - 1))}
+              >
+                ← Vorige
+              </button>
+              <div className="fp-slider-dots" aria-hidden="true">
+                {chatSlides.map((slide, index) => (
+                  <span
+                    key={slide.key}
+                    className={`fp-slider-dot${index === chatSlide ? ' fp-slider-dot--active' : ''}`}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                className="fp-slider-arrow"
+                onClick={() => setChatSlide((prev) => (prev === chatSlides.length - 1 ? 0 : prev + 1))}
+              >
+                Volgende →
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ── BELLEN ── */}
       <section className="hp-section hp-section--gray" id="bellen">
         <div className="hp-section-inner">
-          <SectionHeader title="Bellen" sub="Bel gratis met vrienden en familie — zonder telefoonnummer, zonder tijdslimiet." />
-          <FeatureRow
-            mockup={<CallMockup />}
-            title="HD spraakoproepen"
-            text="Bel met heldere geluidskwaliteit via WebRTC. Werkt op wifi en mobiel data, ook bij trage verbinding."
-            features={[
-              { icon: <Phone size={15} />, label: '1-op-1 spraakoproepen' },
-              { icon: <Mic size={15} />, label: 'Microfoon dempen / activeren' },
-              { icon: <Clock size={15} />, label: 'Gespreksduur timer' },
-              { icon: <PhoneMissed size={15} />, label: 'Gemiste oproepen badge' },
-            ]}
-          />
-          <FeatureRow reverse
-            mockup={<CallHistoryMockup />}
-            title="Belgeschiedenis"
-            text="Zie al je gesprekken terug in de chat en in het belgeschiedenisoverzicht. Mis nooit een oproep."
-            features={[
-              { icon: <PhoneCall size={15} />, label: 'Belgeschiedenis in gesprek' },
-              { icon: <PhoneMissed size={15} />, label: 'Gemiste oproepen melding' },
-              { icon: <Bell size={15} />, label: 'Push notificatie bij gemiste oproep' },
-              { icon: <Phone size={15} />, label: 'Bezet-status bij dubbele oproep' },
-            ]}
-          />
-        </div>
-      </section>
+          <SectionHeader title="Bellen & videobellen" sub="Bel of videobel gratis met vrienden en familie — zonder telefoonnummer, zonder tijdslimiet." />
+          <div className="fp-slider">
+            <div className="fp-slider-tabs" role="tablist" aria-label="Bel- en videofuncties">
+              {callVideoSlides.map((slide, index) => (
+                <button
+                  key={slide.key}
+                  type="button"
+                  className={`fp-slider-tab${index === callVideoSlide ? ' fp-slider-tab--active' : ''}`}
+                  onClick={() => setCallVideoSlide(index)}
+                >
+                  {slide.label}
+                </button>
+              ))}
+            </div>
 
-      {/* ── VIDEOBELLEN ── */}
-      <section className="hp-section" id="videobellen">
-        <div className="hp-section-inner">
-          <SectionHeader title="Videobellen" sub="Zie wie je belt in HD kwaliteit — alsof je samen in dezelfde kamer bent." />
-          <FeatureRow
-            mockup={<VideoMockup />}
-            title="HD videogesprekken"
-            text="Videobel met scherpe kwaliteit via WebRTC. Wissel eenvoudig van spraak naar video tijdens een gesprek."
-            features={[
-              { icon: <Video size={15} />, label: '1-op-1 videogesprekken' },
-              { icon: <VideoOff size={15} />, label: 'Camera aan/uit' },
-              { icon: <Mic size={15} />, label: 'Microfoon dempen' },
-              { icon: <Phone size={15} />, label: 'Spraak upgraden naar video' },
-              { icon: <Message size={15} />, label: 'Gesprek minimaliseren (overlay)' },
-            ]}
-          />
-          <FeatureRow reverse
-            mockup={<PrivacyVideoMockup />}
-            title="Jij bepaalt wat zichtbaar is"
-            text="Schakel je camera uit wanneer je wilt. Je gesprekken zijn beveiligd en alleen jij en je gesprekspartner kunnen meedoen."
-            features={[
-              { icon: <VideoOff size={15} />, label: 'Camera aan/uit tijdens gesprek' },
-              { icon: <Bell size={15} />, label: 'Beltoon bij inkomend gesprek' },
-              { icon: <Bell size={15} />, label: 'Push notificatie bij gemiste video' },
-            ]}
-          />
+            <FeatureRow
+              key={currentCallVideoSlide.key}
+              reverse={currentCallVideoSlide.reverse}
+              mockup={currentCallVideoSlide.mockup}
+              title={currentCallVideoSlide.title}
+              text={currentCallVideoSlide.text}
+              features={currentCallVideoSlide.features}
+            />
+
+            <div className="fp-slider-controls">
+              <button
+                type="button"
+                className="fp-slider-arrow"
+                onClick={() => setCallVideoSlide((prev) => (prev === 0 ? callVideoSlides.length - 1 : prev - 1))}
+              >
+                ← Vorige
+              </button>
+              <div className="fp-slider-dots" aria-hidden="true">
+                {callVideoSlides.map((slide, index) => (
+                  <span
+                    key={slide.key}
+                    className={`fp-slider-dot${index === callVideoSlide ? ' fp-slider-dot--active' : ''}`}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                className="fp-slider-arrow"
+                onClick={() => setCallVideoSlide((prev) => (prev === callVideoSlides.length - 1 ? 0 : prev + 1))}
+              >
+                Volgende →
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ── FEATURE GRID ── */}
-      <section className="hp-section hp-section--gray">
+      <section className="hp-section">
         <div className="hp-section-inner">
+          <DecorativeAvatar svg={decorativeAvatars.gridCorner} className="fp-deco-avatar--grid" />
           <SectionHeader title="Alles in één overzicht" />
           <div className="fp-grid">
             <div className="fp-grid-col">
               <div className="fp-grid-col-header">💬 Chatten</div>
-              <GridCard icon={<Message size={18} />} title="Real-time berichten" desc="Socket.IO voor instant delivery" />
-              <GridCard icon={<MdAlternateEmail size={18} />} title="Groepen & @mentions" desc="Vermeld iemand direct" />
-              <GridCard icon={<Mic size={18} />} title="Spraakberichten" desc="Opnemen & afspelen" />
+              <GridCard icon={<Message size={18} />} title="Real-time berichten" desc="Real-time delivery van chatberichten" />
+              <GridCard icon={<MdAlternateEmail size={18} />} title="Groepen & @mentions" desc="Chatgroep maken en met @ iemand direct vermelden" />
               <GridCard icon={<ImageIcon size={18} />} title="Chatachtergrond" desc="Foto of kleur naar keuze" />
               <GridCard icon={<StarFilled size={18} />} title="Berichten sterren" desc="Sla belangrijke berichten op" />
               <GridCard icon={<Message size={18} />} title="Conceptberichten" desc="Bewaard per gesprek" />
@@ -668,33 +861,7 @@ export default function FunctiePagina({ onParentClick }) {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="hp-footer" id="footer">
-        <div className="hp-footer-inner">
-          <div className="hp-footer-brand">
-            <div className="hp-footer-logo">
-              <img src="/logo192.png" alt="Pulse" width={28} height={28} />
-              <span>Pulse</span>
-            </div>
-            <p>Veilig communiceren voor elk kind.</p>
-          </div>
-          <div className="hp-footer-col">
-            <h4>Functies</h4>
-            <span onClick={() => scrollTo('chatten')}>Chatten</span>
-            <span onClick={() => scrollTo('bellen')}>Bellen</span>
-            <span onClick={() => scrollTo('videobellen')}>Videobellen</span>
-            <span>Ouderlijk toezicht</span>
-          </div>
-          <div className="hp-footer-col">
-            <h4>Over Pulse</h4>
-            <span>Over ons</span><span>Privacy</span><span>AVG-beleid</span><span>Contact</span>
-          </div>
-          <div className="hp-footer-col">
-            <h4>Downloaden</h4>
-            <span>Web app</span><span>iOS</span><span>Android</span>
-          </div>
-        </div>
-        <div className="hp-footer-copy">© 2025 Pulse — Echt Nederlands. Echt veilig.</div>
-      </footer>
+      <MarketingFooter />
 
     </div>
   );

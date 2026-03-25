@@ -167,6 +167,10 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
 
   // ── Gebruikersnaam opslaan ────────────────────────────────────────────────
   async function saveUsername() {
+    if (user.email?.endsWith('@pulse.internal')) {
+      setUsernameMsg('Deze gebruikersnaam wordt beheerd door je ouder.');
+      return;
+    }
     const clean = newUsername.trim().toLowerCase();
     if (!clean) { setUsernameMsg('Fout: Gebruikersnaam mag niet leeg zijn.'); return; }
     if (!/^[a-z0-9_]{3,20}$/.test(clean)) { setUsernameMsg('Fout: 3–20 tekens, alleen letters, cijfers en _.'); return; }

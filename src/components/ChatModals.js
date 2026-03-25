@@ -65,10 +65,10 @@ export default function ChatModals({
   confirmPassword, setConfirmPassword,
   passwordLoading, passwordMsg,
   profileMsg, profileLoading,
-  usernameLoading, usernameMsg,
+  usernameLoading: _usernameLoading, usernameMsg: _usernameMsg,
   chatBgTab, setChatBgTab,
   chatBgMsg, chatBg, chatBgLoading,
-  saveProfile, saveUsername, changePassword,
+  saveProfile, saveUsername: _saveUsername, changePassword,
   uploadChatBgPhoto, saveChatBgColor, removeChatBg,
   handlePhotoChange, handleDeleteAccount,
   photoInputRef, bgInputRef,
@@ -110,6 +110,7 @@ export default function ChatModals({
   const [profileClosing,  setProfileClosing]  = useState(false);
   const [pendingColor,    setPendingColor]    = useState(null);
   const [pendingPhoto,    setPendingPhoto]    = useState(null);   // { file, url }
+  const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
 
 
   function openStarredFromProfile() {
@@ -145,6 +146,16 @@ export default function ChatModals({
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [anyModalOpen]);
+
+  const normalizedNewChatQuery = searchEmail.trim().toLowerCase();
+  const filteredNewChatContacts = normalizedNewChatQuery
+    ? contacts.filter(c => {
+        const displayName = (getContactDisplayName(c) || c.displayName || '').toLowerCase();
+        const email = (c.email || '').toLowerCase();
+        const username = (c.username || '').toLowerCase();
+        return displayName.includes(normalizedNewChatQuery) || email.includes(normalizedNewChatQuery) || username.includes(normalizedNewChatQuery);
+      })
+    : contacts;
 
   return (
     <>
@@ -325,14 +336,10 @@ export default function ChatModals({
         <div className="modal-overlay" onClick={() => setShowAddContact(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <h3 className="modal-title"><span className="modal-title-icon"><Users size={18} /></span> Vriend uitnodigen</h3>
-            <p className="modal-sub">Voer het e-mailadres in van de persoon die je wilt uitnodigen</p>
+            <p className="modal-sub">Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam</p>
             <div className="form-group">
-              <label className="form-label">E-mailadres</label>
-              <input className="form-input" type="email" placeholder="naam@voorbeeld.nl" value={contactEmail} onChange={e => setContactEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && addContact()} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Bijnaam (optioneel)</label>
-              <input className="form-input" placeholder="Bijv. Papa, Mama, Werk…" value={contactNickname} onChange={e => setContactNickname(e.target.value)} onKeyDown={e => e.key === 'Enter' && addContact()} />
+              <label className="form-label">E-mailadres of gebruikersnaam</label>
+              <input className="form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={contactEmail} onChange={e => setContactEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && addContact()} />
             </div>
             <div className="form-group">
               <label className="form-label">Relatie</label>
@@ -357,34 +364,42 @@ export default function ChatModals({
       {/* ── NIEUW GESPREK MODAL ── */}
       {showNewChat && (
         <div className="modal-overlay" onClick={() => setShowNewChat(false)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 460, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
             <h3 className="modal-title"><span className="modal-title-icon"><MagicEdit size={18} /></span> Nieuwe chat</h3>
+            <p className="modal-sub">Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam</p>
+            <div className="search-row" style={{ marginBottom: searchErr || searchResult ? 10 : 18 }}>
+              <input className="form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={searchEmail} onChange={e => setSearchEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && searchUser()} />
+              <button className="btn-primary sm" onClick={searchUser}>Zoeken</button>
+            </div>
+            {searchErr && <div className="auth-error" style={{ marginBottom: 14 }}>⚠️ {searchErr}</div>}
+            {searchResult && (
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Zoekresultaat</div>
+                <div className="search-result" onClick={() => startConversationWith(searchResult)}>
+                  <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" />
+                  <div><div className="conv-name">{searchResult.displayName}</div><div className="conv-preview">{searchResult.email}</div></div>
+                </div>
+              </div>
+            )}
             {contacts.length > 0 && (
               <>
                 <p className="modal-sub">Kies uit je contacten</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-                  {contacts.map(c => (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', overflowY: 'auto', maxHeight: '32vh', paddingRight: 4 }}>
+                  {filteredNewChatContacts.map(c => (
                     <div key={c.uid} className="search-result" onClick={() => startConversationWith(c)}>
                       <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" />
-                      <div><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
+                      <div><div className="conv-name">{getContactDisplayName(c)}</div><div className="conv-preview">{c.email}</div></div>
                     </div>
                   ))}
+                  {filteredNewChatContacts.length === 0 && (
+                    <div style={{ fontSize: 13, color: 'var(--text3)', padding: '8px 2px' }}>
+                      Geen contacten die overeenkomen met je zoekopdracht.
+                    </div>
+                  )}
                 </div>
               </>
             )}
-            <p className="modal-sub">Of zoek op e-mailadres</p>
-            <div className="search-row">
-              <input className="form-input" type="email" placeholder="naam@voorbeeld.nl" value={searchEmail} onChange={e => setSearchEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && searchUser()} />
-              <button className="btn-primary sm" onClick={searchUser}>Zoeken</button>
-            </div>
-            {searchErr && <div className="auth-error">⚠️ {searchErr}</div>}
-            {searchResult && (
-              <div className="search-result" onClick={() => startConversationWith(searchResult)}>
-                <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" />
-                <div><div className="conv-name">{searchResult.displayName}</div><div className="conv-preview">{searchResult.email}</div></div>
-              </div>
-            )}
-            <button className="btn-secondary" onClick={() => setShowNewChat(false)}>Sluiten</button>
+            <button className="btn-secondary" style={{ marginTop: 'auto' }} onClick={() => setShowNewChat(false)}>Sluiten</button>
           </div>
         </div>
       )}
@@ -468,12 +483,22 @@ export default function ChatModals({
                       <label className="form-label">Weergavenaam</label>
                       <input className="form-input" placeholder="Jouw naam" value={newName} onChange={e => setNewName(e.target.value)} />
                     </div>
-                    <div className="form-group" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                      <label className="form-label">Gebruikersnaam</label>
-                      <input className="form-input" placeholder="jouw_naam" value={newUsername}
-                        onChange={e => setNewUsername(e.target.value)} autoCapitalize="none" autoCorrect="off" />
-                      <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>3–20 tekens · letters, cijfers en _</div>
-                    </div>
+                    {isChildAccount && (
+                      <div className="form-group" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                        <label className="form-label">Gebruikersnaam</label>
+                        <input
+                          className="form-input"
+                          value={newUsername}
+                          readOnly
+                          disabled
+                          aria-readonly="true"
+                          style={{ opacity: 0.72, cursor: 'not-allowed' }}
+                        />
+                        <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>
+                          Deze loginnaam is ingesteld door je ouder en kan alleen in het ouderportaal worden gewijzigd.
+                        </div>
+                      </div>
+                    )}
                     {isParent && (
                       <div className="form-group" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
                         <label className="form-label">E-mailadres</label>
@@ -507,11 +532,10 @@ export default function ChatModals({
                     )}
                     <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '8px' }}>
                       {profileMsg && <div style={{ fontSize: '12px', marginBottom: '10px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
-                      {usernameMsg && <div style={{ fontSize: '12px', marginBottom: '10px', color: usernameMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{usernameMsg}</div>}
                       <button type="button" className="btn-primary" style={{ width: '100%' }}
-                        disabled={profileLoading || usernameLoading}
-                        onClick={async () => { await saveProfile(); if (newUsername.trim()) await saveUsername(); }}>
-                        {(profileLoading || usernameLoading) ? 'Opslaan…' : 'Opslaan →'}
+                        disabled={profileLoading}
+                        onClick={saveProfile}>
+                        {profileLoading ? 'Opslaan…' : 'Opslaan →'}
                       </button>
                     </div>
                   </div>

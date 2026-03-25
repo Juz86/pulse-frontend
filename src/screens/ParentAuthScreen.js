@@ -5,6 +5,50 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfi
 import { auth } from '../firebase';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 
+const API_BASE = (BACKEND || '').replace(/\/+$/, '');
+
+async function postJson(path, body, options = {}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), options.timeoutMs || 15000);
+
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    const text = await res.text();
+    let data = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { error: text };
+      }
+    }
+
+    if (!res.ok) {
+      const err = new Error(data.error || 'Er ging iets mis. Probeer het opnieuw.');
+      err.status = res.status;
+      throw err;
+    }
+
+    return data;
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('De Pulse-server reageert niet op tijd. Probeer het zo opnieuw.');
+    }
+    if (err instanceof TypeError && /failed to fetch/i.test(err.message)) {
+      throw new Error('Kan geen verbinding maken met de Pulse-server. Controleer je internetverbinding of probeer het later opnieuw.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 export default function ParentAuthScreen({ onBack }) {
   const [tab,          setTab]          = useState('login');
   const [name,         setName]         = useState('');
@@ -33,13 +77,7 @@ export default function ParentAuthScreen({ onBack }) {
       if (tab === 'register') {
         if (!name.trim()) throw new Error('Vul uw naam in.');
         // Stuur verificatiecode, maak account nog NIET aan
-        const res = await fetch(`${BACKEND}/api/send-code`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'E-mail versturen mislukt.');
+        await postJson('/api/send-code', { email });
         setStep('verify');
       } else {
         await signInWithEmailAndPassword(auth, email, password);
@@ -91,24 +129,18 @@ export default function ParentAuthScreen({ onBack }) {
     setVerifyLoading(true);
     try {
       // Verifieer code bij backend
-      const res = await fetch(`${BACKEND}/api/verify-code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Verificatie mislukt.');
+      await postJson('/api/verify-code', { email, code });
 
       // Code klopt → maak account aan
       localStorage.setItem('pulse_pending_role', 'parent');
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(cred.user, { displayName: name.trim() });
       const idToken = await cred.user.getIdToken();
-      await fetch(`${BACKEND}/api/users`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-        body: JSON.stringify({ uid: cred.user.uid, displayName: name.trim(), email, photoURL: '', role: 'parent' }),
-      });
+      await postJson(
+        '/api/users',
+        { uid: cred.user.uid, displayName: name.trim(), email, photoURL: '', role: 'parent' },
+        { headers: { Authorization: `Bearer ${idToken}` } }
+      );
       // App.js pikt de auth state change automatisch op
     } catch (err) {
       const msg = {
@@ -126,13 +158,7 @@ export default function ParentAuthScreen({ onBack }) {
     setResendLoading(true);
     setResendMsg('');
     try {
-      const res = await fetch(`${BACKEND}/api/send-code`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Versturen mislukt.');
+      await postJson('/api/send-code', { email });
       setResendCount(c => c + 1);
       setVerifyCode(['', '', '', '', '', '']);
       setResendMsg('Nieuwe code verstuurd.');

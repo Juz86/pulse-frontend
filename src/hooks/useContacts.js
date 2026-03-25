@@ -4,6 +4,9 @@ import { db } from '../firebase';
 import { doc, getDoc, getDocs, deleteDoc, collection, setDoc } from 'firebase/firestore';
 import { getSocket, BACKEND_URL } from '../services/socket';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
+
 export default function useContacts({
   user,
   conversations,
@@ -20,6 +23,24 @@ export default function useContacts({
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
+  }
+
+  async function resolveIdentifierToEmail(identifier) {
+    const clean = identifier.trim().toLowerCase();
+    if (!clean) return { ok: false, error: 'Voer een e-mailadres of gebruikersnaam in.' };
+    if (EMAIL_RE.test(clean)) return { ok: true, email: clean, identifier: clean };
+    if (!USERNAME_RE.test(clean)) {
+      return { ok: false, error: 'Gebruik een geldig e-mailadres of gebruikersnaam.' };
+    }
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/users/lookup-username?username=${encodeURIComponent(clean)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return { ok: false, error: data.error || 'Gebruikersnaam niet gevonden.' };
+      return { ok: true, email: data.email || `${clean}@pulse.internal`, identifier: clean };
+    } catch {
+      return { ok: false, error: 'Gebruikersnaam kon niet worden gecontroleerd.' };
+    }
   }
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -139,13 +160,16 @@ export default function useContacts({
   async function addContact() {
     setContactErr(''); setContactLoading(true);
     try {
+      const resolved = await resolveIdentifierToEmail(contactEmail);
+      if (!resolved.ok) { setContactErr(resolved.error); return; }
       const res  = await authFetch(`${BACKEND_URL}/api/friend-requests`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fromUid: user.uid, fromName: user.displayName || user.email,
           fromEmail: user.email, fromPhoto: user.photoURL || null,
-          toEmail: contactEmail.trim(),
+          toEmail: resolved.email,
+          toIdentifier: resolved.identifier,
         }),
       });
       const data = await res.json();
@@ -241,9 +265,10 @@ export default function useContacts({
 
   async function searchUser() {
     setSearchErr(''); setSearchResult(null);
-    if (!searchEmail.trim()) return;
+    const resolved = await resolveIdentifierToEmail(searchEmail);
+    if (!resolved.ok) { setSearchErr(resolved.error); return; }
     try {
-      const res  = await authFetch(`${BACKEND_URL}/api/users/search?email=${encodeURIComponent(searchEmail.trim())}`);
+      const res  = await authFetch(`${BACKEND_URL}/api/users/search?q=${encodeURIComponent(resolved.identifier)}&email=${encodeURIComponent(resolved.email)}`);
       const data = await res.json();
       if (res.ok) setSearchResult(data);
       else        setSearchErr(data.error || 'Niet gevonden');

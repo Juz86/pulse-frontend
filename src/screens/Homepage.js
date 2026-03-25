@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import AuthScreen from './AuthScreen';
 import { Shield, PhoneIcon, Wifi } from '../components/Icons';
-import PulseLogo from '../components/PulseLogo';
+import MarketingNavbar from '../components/MarketingNavbar';
+import MarketingFooter from '../components/MarketingFooter';
 
 function ParentDashboardMockup() {
   const [imgOk, setImgOk] = useState(true);
@@ -59,34 +60,26 @@ export default function Homepage({ onParentClick }) {
     setMenuOpen(false);
   };
 
+  const navItems = [
+    { key: 'functies', label: 'Functies', href: '/functies' },
+    { key: 'hoe-werkt-het', label: 'Hoe werkt het', href: '/hoe-werkt-het' },
+    { key: 'veiligheid', label: 'Veiligheid', onClick: () => scrollTo('veiligheid') },
+    { key: 'ouderlijk-toezicht', label: 'Ouderlijk toezicht', href: '/ouderlijk-toezicht' },
+    { key: 'over-pulse', label: 'Over Pulse', onClick: () => scrollTo('footer') },
+  ];
+
   return (
     <div className="hp-root">
 
       {/* ── NAVIGATIE ── */}
-      <nav className={`hp-nav${scrolled ? ' hp-nav--scrolled' : ''}`}>
-        <button className="hp-nav-logo" onClick={() => scrollTo('hero')}>
-          <PulseLogo size={30} textSize={20} color="#fff" />
-        </button>
-
-        <div className={`hp-nav-links${menuOpen ? ' hp-nav-links--open' : ''}`}>
-          <a href="/functies" className="fp-nav-link">Functies</a>
-          <button onClick={() => scrollTo('veiligheid')}>Veiligheid</button>
-          <button onClick={() => scrollTo('toezicht')}>Ouderlijk toezicht</button>
-          <button onClick={() => scrollTo('footer')}>Over Pulse</button>
-        </div>
-
-        <button className="hp-nav-ouder" onClick={onParentClick}>
-          ❤️ Ouder
-        </button>
-
-        <button
-          className="hp-nav-hamburger"
-          onClick={() => setMenuOpen(o => !o)}
-          aria-label="Menu"
-        >
-          {menuOpen ? '✕' : '☰'}
-        </button>
-      </nav>
+      <MarketingNavbar
+        items={navItems}
+        activeKey={null}
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
+        scrolled={scrolled}
+        onParentClick={onParentClick}
+      />
 
       {/* ── HERO ── */}
       <section className="hp-hero" id="hero">
@@ -296,38 +289,7 @@ export default function Homepage({ onParentClick }) {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer className="hp-footer" id="footer">
-        <div className="hp-footer-inner">
-          <div className="hp-footer-brand">
-            <div className="hp-footer-logo">
-              <img src="/logo192.png" alt="Pulse" width={28} height={28} />
-              <span>Pulse</span>
-            </div>
-            <p>Veilig communiceren voor elk kind.</p>
-          </div>
-          <div className="hp-footer-col">
-            <h4>Functies</h4>
-            <span>Chatten</span>
-            <span>Bellen</span>
-            <span>Videobellen</span>
-            <span>Ouderlijk toezicht</span>
-          </div>
-          <div className="hp-footer-col">
-            <h4>Over Pulse</h4>
-            <span>Over ons</span>
-            <span>Privacy</span>
-            <span>AVG-beleid</span>
-            <span>Contact</span>
-          </div>
-          <div className="hp-footer-col">
-            <h4>Downloaden</h4>
-            <span>Web app</span>
-            <span>iOS</span>
-            <span>Android</span>
-          </div>
-        </div>
-        <div className="hp-footer-copy">© 2025 Pulse — Echt Nederlands. Echt veilig.</div>
-      </footer>
+      <MarketingFooter />
 
     </div>
   );

@@ -1,8 +1,8 @@
 // src/components/ChatSidebar.js
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Delete, Search, Message, Users, Moon, Lightbulb, Bell, BellOff, Shield, Logout, Pin } from '../components/Icons';
+import { Phone, Video, Delete, Search, Message, Users, Moon, Lightbulb, Bell, BellOff, Shield, Logout, Pin, InfoIcon } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
@@ -66,14 +66,52 @@ export default function ChatSidebar({
   getConvPhoto,
   getContactDisplayName,
 }) {
+  const [contactMenu, setContactMenu] = useState(null); // { uid, direction }
+  const closeMenuTimerRef = useRef(null);
   const hasMissedCall = (!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert;
+
+  function openContactMenu(contactUid, anchorEl) {
+    if (closeMenuTimerRef.current) {
+      clearTimeout(closeMenuTimerRef.current);
+      closeMenuTimerRef.current = null;
+    }
+    const rect = anchorEl?.getBoundingClientRect?.();
+    if (!rect) return;
+    const menuWidth = 188;
+    const menuHeight = 320;
+    const spacing = 8;
+    const direction = rect.top < 420 ? 'down' : 'up';
+    const left = Math.max(12, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 12));
+    const top = direction === 'down'
+      ? Math.min(rect.bottom + spacing, window.innerHeight - menuHeight - 12)
+      : Math.max(12, rect.top - menuHeight - spacing);
+    setContactMenu({ uid: contactUid, direction, top, left });
+  }
+
+  function scheduleCloseContactMenu(contactUid) {
+    if (closeMenuTimerRef.current) clearTimeout(closeMenuTimerRef.current);
+    closeMenuTimerRef.current = setTimeout(() => {
+      setContactMenu(prev => prev?.uid === contactUid ? null : prev);
+    }, 180);
+  }
+
+  function keepContactMenuOpen() {
+    if (closeMenuTimerRef.current) {
+      clearTimeout(closeMenuTimerRef.current);
+      closeMenuTimerRef.current = null;
+    }
+  }
+
+  useEffect(() => () => {
+    if (closeMenuTimerRef.current) clearTimeout(closeMenuTimerRef.current);
+  }, []);
 
   return (
     <aside className="sidebar">
       {/* Header */}
       <div className="sidebar-header">
         <div className="sidebar-top">
-          <PulseLogo size={30} textSize={20} />
+          <PulseLogo size={30} textSize={20} color={lightMode ? '#2b2448' : '#fff'} />
           <div style={{ display: 'flex', gap: '6px' }}>
             <button className="icon-btn" onClick={onNewChat} title="Nieuw gesprek"><Message size={18} /></button>
             <button className="icon-btn" onClick={onShowCallModal} title="Oproepen" style={{ position: 'relative' }}>
@@ -206,26 +244,77 @@ export default function ChatSidebar({
                   <div className="conv-name">{getContactDisplayName(contact)}</div>
                   <div className="conv-preview">{contact.email}</div>
                 </div>
-                <button className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`}
-                  onClick={() => onTogglePin(contact.uid)}
-                  title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
-                  <Pin size={17} />
-                </button>
-              </div>
-              <div style={{ height: '1px', background: 'var(--border)' }} />
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button className="icon-btn" onClick={() => onViewContact(contact)} title="Profiel bekijken" style={{ flex: 1, justifyContent: 'center' }}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
-                </button>
-                <button className="icon-btn" onClick={() => onStartChat(contact)} title="Stuur bericht" style={{ flex: 1, justifyContent: 'center' }}><Message size={16} /></button>
-                <button className="call-btn voice" onClick={() => onCallContact(contact, false)} title="Bellen" style={{ flex: 1 }}><Phone size={16} /></button>
-                <button className="call-btn video" onClick={() => onCallContact(contact, true)} title="Videobellen" style={{ flex: 1 }}><Video size={16} /></button>
-                <button className="icon-btn" onClick={() => onRemoveContact(contact.uid)} title="Verwijderen" style={{ flex: 1, justifyContent: 'center', color: 'var(--danger)' }}><Delete size={18} /></button>
+                <div
+                  style={{ position: 'relative' }}
+                  onMouseEnter={(e) => openContactMenu(contact.uid, e.currentTarget)}
+                  onMouseLeave={() => scheduleCloseContactMenu(contact.uid)}
+                >
+                  <button
+                    className="icon-btn"
+                    onMouseEnter={(e) => openContactMenu(contact.uid, e.currentTarget)}
+                    onFocus={(e) => openContactMenu(contact.uid, e.currentTarget)}
+                    title="Meer acties"
+                  >
+                    <InfoIcon size={18} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {contactMenu && (() => {
+        const contact = contacts.find(c => c.uid === contactMenu.uid);
+        if (!contact) return null;
+        return (
+          <div
+            onMouseEnter={keepContactMenuOpen}
+            onMouseLeave={() => scheduleCloseContactMenu(contact.uid)}
+            onClick={e => e.stopPropagation()}
+            style={{
+              position: 'fixed',
+              top: contactMenu.top,
+              left: contactMenu.left,
+              width: 188,
+              background: 'var(--surface2)',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              boxShadow: '0 14px 30px rgba(0,0,0,0.18)',
+              padding: 8,
+              zIndex: 400,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+            }}
+          >
+            <button className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onViewContact(contact); setContactMenu(null); }} title="Profiel">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
+              <span>Profiel</span>
+            </button>
+            <button className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onStartChat(contact); setContactMenu(null); }} title="Bericht sturen">
+              <Message size={16} />
+              <span>Bericht sturen</span>
+            </button>
+            <button className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
+              <Phone size={16} />
+              <span>Bellen</span>
+            </button>
+            <button className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
+              <Video size={16} />
+              <span>Videobellen</span>
+            </button>
+            <button className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
+              <Pin size={17} />
+              <span>{pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}</span>
+            </button>
+            <button className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }} onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
+              <Delete size={18} />
+              <span>Prullenbak</span>
+            </button>
+          </div>
+        );
+      })()}
 
       {/* Footer */}
       <div className="sidebar-footer">

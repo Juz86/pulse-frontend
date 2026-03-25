@@ -16,6 +16,8 @@ const ParentDashboard    = lazy(() => import('./screens/ParentDashboard'));
 const CallOverlay        = lazy(() => import('./components/CallOverlay'));
 const ResetPasswordScreen = lazy(() => import('./screens/ResetPasswordScreen'));
 const FunctiePagina       = lazy(() => import('./screens/FunctiePagina'));
+const OuderlijkToezichtPagina = lazy(() => import('./screens/OuderlijkToezichtPagina'));
+const HoeWerktHetPagina = lazy(() => import('./screens/HoeWerktHetPagina'));
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 
@@ -38,6 +40,22 @@ export default function App() {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
         <FunctiePagina onParentClick={() => { localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+      </Suspense>
+    );
+  }
+
+  if (window.location.pathname === '/ouderlijk-toezicht') {
+    return (
+      <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
+        <OuderlijkToezichtPagina onParentClick={() => { localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+      </Suspense>
+    );
+  }
+
+  if (window.location.pathname === '/hoe-werkt-het') {
+    return (
+      <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
+        <HoeWerktHetPagina onParentClick={() => { localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
       </Suspense>
     );
   }
@@ -288,10 +306,10 @@ export default function App() {
           ? <ParentAuthScreen onBack={() => setShowParentAuth(false)} />
           : <Homepage onParentClick={() => setShowParentAuth(true)} />
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setParentActivityBadge(0); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} />
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} />
             {userRole === 'parent' && showParentDashboard && (
               <div className={`parent-dashboard-overlay${dashboardFading ? ' fading' : ''}`} onClick={e => { if (e.target === e.currentTarget) { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); } }}>
-                <ParentDashboard user={user} onClose={() => { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); }} />
+                <ParentDashboard user={user} parentActivityBadge={parentActivityBadge} onActivitiesViewed={() => setParentActivityBadge(0)} onClose={() => { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); }} />
               </div>
             )}
           </>

@@ -286,7 +286,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
     { key: 'functies', label: 'Functies', href: '/functies' },
     { key: 'hoe-werkt-het', label: 'Hoe werkt het', href: '/hoe-werkt-het' },
     { key: 'ouderlijk-toezicht', label: 'Ouderlijk toezicht', href: '/ouderlijk-toezicht' },
-    { key: 'over-pulse', label: 'Over Pulse', onClick: () => scrollTo('footer') },
+    { key: 'over-pulse', label: 'Over Pulse', href: '/over-pulse' },
   ];
 
   return (

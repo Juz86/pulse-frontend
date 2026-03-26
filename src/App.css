@@ -1063,33 +1063,6 @@ body {
   from { opacity:0; transform:translateY(20px) scale(.97); }
   to   { opacity:1; transform:translateY(0)    scale(1);   }
 }
-.marketing-auth-overlay {
-  z-index: 1400;
-  padding: 24px;
-}
-.marketing-auth-shell {
-  width: min(100%, 440px);
-}
-.marketing-auth-shell .auth-screen,
-.marketing-auth-shell .parent-auth-screen {
-  min-height: auto;
-  padding: 0;
-  background: none;
-}
-.marketing-auth-shell .auth-bg,
-.marketing-auth-shell .parent-auth-screen::before,
-.marketing-auth-shell .parent-auth-screen::after {
-  display: none;
-}
-.marketing-auth-shell .auth-card {
-  margin: 0;
-  width: 100%;
-  box-shadow: 0 24px 72px rgba(15,10,30,0.18), 0 0 0 1px rgba(108,99,255,0.08);
-}
-.marketing-auth-shell .parent-auth-card {
-  max-width: none;
-  box-shadow: 0 24px 72px rgba(15,10,30,0.18), 0 0 0 1px rgba(108,99,255,0.08);
-}
 .modal-box {
   background:var(--surface); border:1px solid var(--border);
   border-radius:28px; padding:36px; width:420px;

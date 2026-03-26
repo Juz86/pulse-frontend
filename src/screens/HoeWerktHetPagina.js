@@ -261,7 +261,7 @@ function SearchContactMockup() {
   );
 }
 
-export default function HoeWerktHetPagina({ onParentClick, onOpenAuth }) {
+export default function HoeWerktHetPagina({ onParentClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -395,7 +395,7 @@ export default function HoeWerktHetPagina({ onParentClick, onOpenAuth }) {
       <section className="ot-final-cta">
         <h2>Blijf veilig verbonden met wie echt telt</h2>
         <p>Pulse helpt ouders en kinderen om rustig en overzichtelijk in contact te blijven.</p>
-        <button className="hp-cta-btn" onClick={onOpenAuth}>Account aanmaken</button>
+        <button className="hp-cta-btn" onClick={onParentClick}>Account aanmaken</button>
       </section>
 
       <MarketingFooter />

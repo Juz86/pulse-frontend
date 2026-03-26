@@ -178,13 +178,13 @@ function ContactsOverviewMockup() {
   return (
     <BrowserMockup>
       <div className="hw-contacts-top">
+        <div className="hw-contacts-tabs">
+          <span className="hw-portal-tab">Chats</span>
+          <span className="hw-portal-tab hw-portal-tab--active">Contacten</span>
+        </div>
         <div className="hw-search-light">
           <Search size={14} />
           <span>Zoeken…</span>
-        </div>
-        <div className="hw-contacts-tabs">
-          <span>Chats</span>
-          <span className="hw-portal-tab hw-portal-tab--active">Contacten</span>
         </div>
       </div>
       <div className="hw-contact-card">
@@ -209,19 +209,25 @@ function AddContactButtonMockup() {
   return (
     <BrowserMockup>
       <div className="hw-contacts-top">
+        <div className="hw-contacts-tabs">
+          <span className="hw-portal-tab">Chats</span>
+          <span className="hw-portal-tab hw-portal-tab--active">Contacten</span>
+        </div>
         <div className="hw-search-light">
           <Search size={14} />
-          <span>Zoeken…</span>
+          <span>nick@pulse...</span>
         </div>
       </div>
-      <button className="hw-primary-btn hw-primary-btn--wide">
-        <UserPlus size={15} /> Contact toevoegen
-      </button>
+      <div className="hw-choice-row">
+        <span>E-mailadres</span>
+        <span>@pulse.internal</span>
+        <span>Gebruikersnaam</span>
+      </div>
       <div className="hw-contact-card hw-contact-card--muted">
         <div className="hw-contact-avatar">N</div>
         <div>
-          <strong>Nick</strong>
-          <span>nick@pulse.internal</span>
+          <strong>Stephan</strong>
+          <span>stephan@pulse.internal</span>
         </div>
       </div>
     </BrowserMockup>
@@ -232,32 +238,30 @@ function SearchContactMockup() {
   return (
     <BrowserMockup>
       <div className="hw-form-shell hw-form-shell--compact">
-        <div className="hw-form-head">
-          <div className="hw-modal-title">
-            <Users size={16} />
-            <span>Vriend uitnodigen</span>
+        <div className="hw-contacts-top">
+          <div className="hw-contacts-tabs">
+            <span className="hw-portal-tab">Chats</span>
+            <span className="hw-portal-tab hw-portal-tab--active">Contacten</span>
+          </div>
+          <div className="hw-search-light">
+            <Search size={14} />
+            <span>Zoeken…</span>
           </div>
         </div>
-        <div className="hw-field">naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam</div>
-        <div className="hw-choice-row">
-          <span>E-mailadres</span>
-          <span>@pulse.internal</span>
-          <span>Gebruikersnaam</span>
+        <div className="hw-result-card">
+          <div className="hw-contact-avatar">N</div>
+          <div>
+            <strong>Nick</strong>
+            <span>nick@pulse.internal</span>
+          </div>
         </div>
         <button className="hw-primary-btn hw-primary-btn--wide">Verzoek sturen</button>
-        <div className="hw-result-card">
-          <div className="hw-contact-avatar hw-contact-avatar--soft">K</div>
-          <div>
-            <strong>Kamilah</strong>
-            <span>kamilah@pulse.internal</span>
-          </div>
-        </div>
       </div>
     </BrowserMockup>
   );
 }
 
-export default function HoeWerktHetPagina({ onParentClick }) {
+export default function HoeWerktHetPagina({ onParentClick, onOpenAuth }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -309,11 +313,10 @@ export default function HoeWerktHetPagina({ onParentClick }) {
             </div>
           </div>
           <div className="hw-hero-visual">
-        <div className="hw-hero-preview">
-          <RegistrationMockup />
-          <AddChildMockup />
-        </div>
-      </div>
+            <div className="hw-hero-preview hw-hero-preview--single">
+              <ConnectedMockup />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -358,37 +361,41 @@ export default function HoeWerktHetPagina({ onParentClick }) {
           <SectionIntro
             badge="Contact toevoegen"
             title="In contact met familie en vrienden"
-            text="Met Pulse blijven ouder en kind dichtbij de mensen die echt tellen, zoals opa en oma, ooms en tantes, buren en vertrouwde vrienden van school. Contact toevoegen blijft rustig, eenvoudig en vertrouwd."
+            text="Met Pulse blijven ouder en kind dichtbij de mensen die echt tellen, zoals opa en oma, ooms en tantes, buren en vertrouwde vrienden van school. Ouders houden regie over de contacten van hun kind."
           />
 
-          <StepRow
-            step="1"
-            title="Klik op Contacten"
-            text="Ga in de app naar het tabblad Contacten om bestaande contacten te bekijken en nieuwe contacten toe te voegen."
-            mockup={<ContactsOverviewMockup />}
-          />
+          <div className="hw-steps-grid">
+            <StepRow
+              step="1"
+              stacked
+              title="Klik op Contacten"
+              text="Ga in de app naar het tabblad Contacten om bestaande contacten te bekijken en nieuwe contacten toe te voegen."
+              mockup={<ContactsOverviewMockup />}
+            />
 
-          <StepRow
-            step="2"
-            reverse
-            title="Klik op Contact toevoegen"
-            text="Bovenaan het contactoverzicht staat de duidelijke actieknop om een nieuw contact toe te voegen."
-            mockup={<AddContactButtonMockup />}
-          />
+            <StepRow
+              step="2"
+              stacked
+              title="Zoek een contactpersoon"
+              text="Voeg familie en vrienden via gewoon e-mailadres, naam@pulse.nl of gebruikersnaam toe."
+              mockup={<AddContactButtonMockup />}
+            />
 
-          <StepRow
-            step="3"
-            title="Zoek op e-mailadres, …@pulse.internal of gebruikersnaam"
-            text="Zoek later iemand op de manier die het beste past: via een gewoon e-mailadres, een Pulse-intern adres of direct op gebruikersnaam."
-            mockup={<SearchContactMockup />}
-          />
+            <StepRow
+              step="3"
+              stacked
+              title="Contactpersoon toevoegen"
+              text="Zie je de juiste contactpersoon? Klik dan op ‘Verzoek sturen’."
+              mockup={<SearchContactMockup />}
+            />
+          </div>
         </div>
       </section>
 
       <section className="ot-final-cta">
-        <h2>Start eenvoudig en houd alles overzichtelijk</h2>
-        <p>Pulse is gemaakt om ouders en kinderen rustig en veilig met elkaar te verbinden.</p>
-        <button className="hp-cta-btn" onClick={onParentClick}>Start met Pulse</button>
+        <h2>Blijf veilig verbonden met wie echt telt</h2>
+        <p>Pulse helpt ouders en kinderen om rustig en overzichtelijk in contact te blijven.</p>
+        <button className="hp-cta-btn" onClick={onOpenAuth}>Account aanmaken</button>
       </section>
 
       <MarketingFooter />

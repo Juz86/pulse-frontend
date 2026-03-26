@@ -510,7 +510,7 @@ function SectionHeader({ title, sub }) {
 }
 
 // ── Hoofdcomponent ────────────────────────────────────────────────────────────
-export default function FunctiePagina({ onParentClick }) {
+export default function FunctiePagina({ onParentClick, onOpenAuth }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [chatSlide, setChatSlide] = useState(0);
@@ -854,9 +854,9 @@ export default function FunctiePagina({ onParentClick }) {
       {/* ── CTA ── */}
       <section className="hp-cta">
         <div className="hp-cta-inner">
-          <h2>Klaar om te starten?</h2>
-          <p>Maak gratis een account aan.</p>
-          <button className="hp-cta-btn" onClick={() => window.location.href = '/'}>Gratis registreren</button>
+          <h2>Blijf veilig verbonden met wie echt telt</h2>
+          <p>Pulse helpt ouders en kinderen om rustig en overzichtelijk in contact te blijven.</p>
+          <button className="hp-cta-btn" onClick={onOpenAuth}>Account aanmaken</button>
         </div>
       </section>
 

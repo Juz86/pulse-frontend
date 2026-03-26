@@ -381,7 +381,8 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
 
       <section className="ot-final-cta">
         <div className="hp-cta-inner">
-          <h2>Geef je kind de vrijheid om te communiceren — met jouw toezicht.</h2>
+          <h2>Jij houdt overzicht, je kind ervaart vrijheid</h2>
+          <p>Pulse laat je kind in contact blijven met de mensen die echt belangrijk zijn, binnen een veilige omgeving onder ouderlijk toezicht.</p>
           <button className="hp-cta-btn" onClick={onParentClick}>Ouderaccount aanmaken</button>
         </div>
       </section>

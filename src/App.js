@@ -23,6 +23,49 @@ const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 
 const BACKEND = BACKEND_URL;
 
+function MarketingRoute({ PageComponent }) {
+  const [authModal, setAuthModal] = useState(null); // 'login' | 'parent' | null
+
+  useEffect(() => {
+    if (!authModal) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setAuthModal(null);
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [authModal]);
+
+  return (
+    <>
+      <PageComponent
+        onOpenAuth={() => setAuthModal('login')}
+        onParentClick={() => setAuthModal('parent')}
+      />
+
+      {authModal && (
+        <div className="modal-overlay marketing-auth-overlay" onClick={() => setAuthModal(null)}>
+          <div className="marketing-auth-shell" onClick={(event) => event.stopPropagation()}>
+            {authModal === 'parent' ? (
+              <div className="marketing-auth-parent">
+                <ParentAuthScreen onBack={() => setAuthModal('login')} />
+              </div>
+            ) : (
+              <div className="marketing-auth-login">
+                <AuthScreen onParentClick={() => setAuthModal('parent')} />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 // Backend alvast wakker maken
 fetch(`${BACKEND}/`).catch(e => { console.warn('[Pulse] Backend fout:', e.message); });
 
@@ -39,7 +82,7 @@ export default function App() {
   if (window.location.pathname === '/functies') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <FunctiePagina onParentClick={() => { localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <MarketingRoute PageComponent={FunctiePagina} />
       </Suspense>
     );
   }
@@ -47,7 +90,7 @@ export default function App() {
   if (window.location.pathname === '/ouderlijk-toezicht') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <OuderlijkToezichtPagina onParentClick={() => { localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <MarketingRoute PageComponent={OuderlijkToezichtPagina} />
       </Suspense>
     );
   }
@@ -55,7 +98,7 @@ export default function App() {
   if (window.location.pathname === '/hoe-werkt-het') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <HoeWerktHetPagina onParentClick={() => { localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <MarketingRoute PageComponent={HoeWerktHetPagina} />
       </Suspense>
     );
   }

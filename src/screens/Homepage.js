@@ -280,10 +280,10 @@ export default function Homepage({ onParentClick }) {
       {/* ── CTA ── */}
       <section className="hp-cta">
         <div className="hp-cta-inner">
-          <h2>Klaar om te beginnen?</h2>
+          <h2>Blijf veilig verbonden met wie echt telt</h2>
           <p>Gratis account aanmaken. Beschikbaar op web, iOS en Android.</p>
           <button className="hp-cta-btn" onClick={() => scrollTo('login')}>
-            Gratis registreren
+            Account aanmaken
           </button>
         </div>
       </section>

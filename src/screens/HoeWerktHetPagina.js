@@ -321,7 +321,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
         <div className="hp-section-inner">
           <SectionIntro
             badge="Hoe werkt Pulse?"
-            title="In 3 stappen veilig contact met je geliefden."
+            title="In 3 stappen veilig contact met je geliefden"
           />
 
           <div className="hw-steps-grid">

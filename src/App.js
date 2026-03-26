@@ -39,7 +39,7 @@ export default function App() {
   if (window.location.pathname === '/functies') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <FunctiePagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <FunctiePagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/functies'); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
       </Suspense>
     );
   }
@@ -47,7 +47,7 @@ export default function App() {
   if (window.location.pathname === '/ouderlijk-toezicht') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <OuderlijkToezichtPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <OuderlijkToezichtPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/ouderlijk-toezicht'); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
       </Suspense>
     );
   }
@@ -55,7 +55,7 @@ export default function App() {
   if (window.location.pathname === '/hoe-werkt-het') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <HoeWerktHetPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <HoeWerktHetPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/hoe-werkt-het'); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
       </Suspense>
     );
   }
@@ -71,6 +71,7 @@ export default function App() {
   const [userRole,            setUserRole]            = useState(null);
   const [showParentAuth,      setShowParentAuth]      = useState(false);
   const [parentAuthDefaultTab, setParentAuthDefaultTab] = useState('login');
+  const [parentAuthReferrer,   setParentAuthReferrer]   = useState(null);
   const [showParentDashboard, setShowParentDashboard] = useState(false);
   const [dashboardFading,     setDashboardFading]     = useState(false);
   const [parentActivityBadge, setParentActivityBadge] = useState(0);
@@ -279,12 +280,16 @@ export default function App() {
         setShowParentDashboard(false);
         // Controleer of we direct ouder-auth moeten openen na redirect
         const pendingParentTab = localStorage.getItem('pulse_parent_default_tab');
+        const pendingReferrer  = localStorage.getItem('pulse_parent_referrer');
         if (pendingParentTab) {
           localStorage.removeItem('pulse_parent_default_tab');
+          localStorage.removeItem('pulse_parent_referrer');
           setParentAuthDefaultTab(pendingParentTab);
+          setParentAuthReferrer(pendingReferrer || null);
           setShowParentAuth(true);
         } else {
           setShowParentAuth(false);
+          setParentAuthReferrer(null);
         }
         if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }
         if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
@@ -313,7 +318,7 @@ export default function App() {
     <div className="app-root">
       {!user
         ? showParentAuth
-          ? <ParentAuthScreen defaultTab={parentAuthDefaultTab} onBack={() => { setShowParentAuth(false); setParentAuthDefaultTab('login'); }} />
+          ? <ParentAuthScreen defaultTab={parentAuthDefaultTab} onBack={() => { if (parentAuthReferrer) { window.location.href = parentAuthReferrer; } else { setShowParentAuth(false); setParentAuthDefaultTab('login'); setParentAuthReferrer(null); } }} />
           : <Homepage onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
         : <>
             <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} />

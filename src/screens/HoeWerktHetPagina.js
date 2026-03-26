@@ -306,7 +306,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
             <div className="fp-hero-badge">Hoe werkt het</div>
             <h1 className="ot-hero-title">Van ouderaccount tot veilig contact</h1>
             <p className="ot-hero-sub">
-              Pulse is eenvoudig opgezet: een ouder maakt eerst een account aan, voegt daarna een kind toe en beheert later ook het contact toevoegen in de app.
+              Met Pulse ontdekt je kind op een veilige en eenvoudige manier hoe contact houden werkt, terwijl jij als ouder toezicht en controle houdt.
             </p>
             <div className="ot-hero-actions">
               <button className="hp-cta-btn" onClick={() => onParentClick('register')}>Ouderaccount aanmaken</button>
@@ -326,6 +326,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
           <SectionIntro
             badge="Hoe werkt Pulse?"
             title="In 3 stappen veilig contact met je geliefden"
+            text="Veilig contact hoeft niet ingewikkeld te zijn. Met Pulse stel je in drie overzichtelijke stappen een vertrouwde omgeving in waarin je kind kan chatten, bellen en videobellen met de mensen die ertoe doen."
           />
 
           <div className="hw-steps-grid">

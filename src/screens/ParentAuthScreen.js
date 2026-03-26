@@ -49,8 +49,8 @@ async function postJson(path, body, options = {}) {
   }
 }
 
-export default function ParentAuthScreen({ onBack }) {
-  const [tab,          setTab]          = useState('login');
+export default function ParentAuthScreen({ onBack, defaultTab = 'login' }) {
+  const [tab,          setTab]          = useState(defaultTab);
   const [name,         setName]         = useState('');
   const [email,        setEmail]        = useState('');
   const [password,     setPassword]     = useState('');

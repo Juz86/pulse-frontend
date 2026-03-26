@@ -39,7 +39,7 @@ export default function App() {
   if (window.location.pathname === '/functies') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <FunctiePagina onParentClick={() => { localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <FunctiePagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
       </Suspense>
     );
   }
@@ -47,7 +47,7 @@ export default function App() {
   if (window.location.pathname === '/ouderlijk-toezicht') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <OuderlijkToezichtPagina onParentClick={() => { localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <OuderlijkToezichtPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
       </Suspense>
     );
   }
@@ -55,7 +55,7 @@ export default function App() {
   if (window.location.pathname === '/hoe-werkt-het') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <HoeWerktHetPagina onParentClick={() => { localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <HoeWerktHetPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
       </Suspense>
     );
   }
@@ -70,6 +70,7 @@ export default function App() {
   const [lightMode,    setLightMode]    = useState(localStorage.getItem('pulse_theme') === 'light');
   const [userRole,            setUserRole]            = useState(null);
   const [showParentAuth,      setShowParentAuth]      = useState(false);
+  const [parentAuthDefaultTab, setParentAuthDefaultTab] = useState('login');
   const [showParentDashboard, setShowParentDashboard] = useState(false);
   const [dashboardFading,     setDashboardFading]     = useState(false);
   const [parentActivityBadge, setParentActivityBadge] = useState(0);
@@ -83,6 +84,7 @@ export default function App() {
     document.documentElement.classList.toggle('light', lightMode);
     localStorage.setItem('pulse_theme', lightMode ? 'light' : 'dark');
   }, [lightMode]);
+
 
 
   // Fix iOS Safari keyboard: sync visual viewport height to CSS variable
@@ -274,8 +276,16 @@ export default function App() {
         setOnlineUsers(new Set());
         setInactiveUsers(new Set());
         setUserRole(null);
-        setShowParentAuth(false);
         setShowParentDashboard(false);
+        // Controleer of we direct ouder-auth moeten openen na redirect
+        const pendingParentTab = localStorage.getItem('pulse_parent_default_tab');
+        if (pendingParentTab) {
+          localStorage.removeItem('pulse_parent_default_tab');
+          setParentAuthDefaultTab(pendingParentTab);
+          setShowParentAuth(true);
+        } else {
+          setShowParentAuth(false);
+        }
         if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }
         if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
         disconnectSocket();
@@ -303,8 +313,8 @@ export default function App() {
     <div className="app-root">
       {!user
         ? showParentAuth
-          ? <ParentAuthScreen onBack={() => setShowParentAuth(false)} />
-          : <Homepage onParentClick={() => setShowParentAuth(true)} />
+          ? <ParentAuthScreen defaultTab={parentAuthDefaultTab} onBack={() => { setShowParentAuth(false); setParentAuthDefaultTab('login'); }} />
+          : <Homepage onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
         : <>
             <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} />
             {userRole === 'parent' && showParentDashboard && (

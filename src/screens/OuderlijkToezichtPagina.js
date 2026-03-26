@@ -258,7 +258,6 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
   const navItems = [
     { key: 'functies', label: 'Functies', href: '/functies' },
     { key: 'hoe-werkt-het', label: 'Hoe werkt het', href: '/hoe-werkt-het' },
-    { key: 'veiligheid', label: 'Veiligheid', href: '/' },
     { key: 'ouderlijk-toezicht', label: 'Ouderlijk toezicht', href: '/ouderlijk-toezicht' },
     { key: 'over-pulse', label: 'Over Pulse', onClick: () => scrollTo('footer') },
   ];
@@ -284,7 +283,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
               communicatie van je kind — real-time, eenvoudig en direct vanuit je telefoon.
             </p>
             <div className="ot-hero-actions">
-              <button className="hp-cta-btn" onClick={onParentClick}>Ouderaccount aanmaken</button>
+              <button className="hp-cta-btn" onClick={() => onParentClick('register')}>Ouderaccount aanmaken</button>
               <button className="ot-secondary-btn" onClick={() => scrollTo('dashboard')}>Meer informatie</button>
             </div>
           </div>
@@ -383,11 +382,12 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
         <div className="hp-cta-inner">
           <h2>Jij houdt overzicht, je kind ervaart vrijheid</h2>
           <p>Pulse laat je kind in contact blijven met de mensen die echt belangrijk zijn, binnen een veilige omgeving onder ouderlijk toezicht.</p>
-          <button className="hp-cta-btn" onClick={onParentClick}>Ouderaccount aanmaken</button>
+          <button className="hp-cta-btn" onClick={() => onParentClick('register')}>Ouderaccount aanmaken</button>
         </div>
       </section>
 
       <MarketingFooter />
+
     </div>
   );
 }

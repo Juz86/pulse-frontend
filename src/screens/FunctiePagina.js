@@ -5,6 +5,7 @@ import { adventurer } from '@dicebear/collection';
 import PulseLogo from '../components/PulseLogo';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
+import AuthModal from '../components/AuthModal';
 import {
   Phone, Video, VideoOff, Mic,
   Message, Users, User, Search, Bell,
@@ -511,10 +512,11 @@ function SectionHeader({ title, sub }) {
 
 // ── Hoofdcomponent ────────────────────────────────────────────────────────────
 export default function FunctiePagina({ onParentClick }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [chatSlide, setChatSlide] = useState(0);
+  const [menuOpen,      setMenuOpen]      = useState(false);
+  const [scrolled,      setScrolled]      = useState(false);
+  const [chatSlide,     setChatSlide]     = useState(0);
   const [callVideoSlide, setCallVideoSlide] = useState(0);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -532,7 +534,6 @@ export default function FunctiePagina({ onParentClick }) {
   const navItems = [
     { key: 'functies', label: 'Functies', href: '/functies' },
     { key: 'hoe-werkt-het', label: 'Hoe werkt het', href: '/hoe-werkt-het' },
-    { key: 'veiligheid', label: 'Veiligheid', href: '/' },
     { key: 'ouderlijk-toezicht', label: 'Ouderlijk toezicht', href: '/ouderlijk-toezicht' },
     { key: 'over-pulse', label: 'Over Pulse', href: '/' },
   ];
@@ -682,8 +683,7 @@ export default function FunctiePagina({ onParentClick }) {
               veilig verbonden te blijven
             </h1>
             <p className="ot-hero-sub">
-              Pulse brengt chatten, bellen en videobellen samen in één rustige omgeving
-              voor gezinnen. Duidelijk, veilig en zonder afleiding.
+              Chatten, bellen en videobellen komen samen in één vertrouwde en beveiligde omgeving voor familie en vrienden.
             </p>
             <div className="ot-hero-actions">
               <button className="hp-cta-btn" onClick={() => scrollTo('chatten')}>
@@ -856,9 +856,16 @@ export default function FunctiePagina({ onParentClick }) {
         <div className="hp-cta-inner">
           <h2>Blijf veilig verbonden met wie echt telt</h2>
           <p>Pulse helpt ouders en kinderen om rustig en overzichtelijk in contact te blijven.</p>
-          <button className="hp-cta-btn" onClick={() => window.location.href = '/'}>Account aanmaken</button>
+          <button className="hp-cta-btn" onClick={() => setShowAuthModal(true)}>Account aanmaken</button>
         </div>
       </section>
+
+      {showAuthModal && (
+        <AuthModal
+          onClose={() => setShowAuthModal(false)}
+          onParentClick={onParentClick}
+        />
+      )}
 
       {/* ── FOOTER ── */}
       <MarketingFooter />

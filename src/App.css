@@ -193,8 +193,92 @@ body {
 }
 .btn-danger:hover { background:rgba(255,59,59,.22); border-color:rgba(255,59,59,.5); transform:translateY(-2px); }
 .btn-danger:active { transform:scale(0.97); }
+.auth-no-account {
+  font-size: 12px; color: var(--text3); line-height: 1.6;
+  text-align: center; margin: 16px 0 0;
+}
 .auth-features { display:flex; gap:12px; margin-top:28px; padding-top:24px; border-top:1px solid var(--border); }
 .auth-feature  { flex:1; text-align:center; font-size:11px; color:var(--text3); line-height:1.6; }
+
+/* ── AUTH MODAL ── */
+.auth-modal-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.auth-modal-overlay--visible { opacity: 1; }
+
+.auth-modal-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px 36px 32px;
+  width: 100%; max-width: 420px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(108,99,255,0.1);
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+.auth-modal-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(108,99,255,.4), transparent);
+  border-radius: 16px 16px 0 0;
+}
+.auth-modal-card--visible { opacity: 1; transform: scale(1); }
+
+.auth-modal-close {
+  position: absolute; top: 8px; left: 8px;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text2);
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+.auth-modal-close:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
+.auth-modal-parent-btn {
+  position: absolute; top: 14px; right: 14px;
+  background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.4);
+  color: var(--accent); border-radius: 10px;
+  padding: 6px 14px; font-size: 12px; font-weight: 600;
+  cursor: pointer; letter-spacing: 0.3px;
+  display: flex; align-items: center; gap: 5px;
+  transition: background 0.15s;
+}
+.auth-modal-parent-btn:hover { background: rgba(108,99,255,0.28); }
+
+.auth-modal-header {
+  text-align: center; margin: 8px 0 20px;
+}
+.auth-modal-title {
+  font-size: 18px; font-weight: 800; color: var(--text);
+  letter-spacing: -0.3px; margin: 10px 0 4px;
+}
+.auth-modal-sub { font-size: 13px; color: var(--text3); line-height: 1.5; }
+
+.auth-modal-register {
+  text-align: center; padding: 20px 0 8px;
+}
+.auth-modal-register-icon { font-size: 44px; margin-bottom: 14px; }
+.auth-modal-register h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.auth-modal-register p { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 0; }
+
+@media (max-width: 480px) {
+  .auth-modal-overlay { align-items: stretch; padding: 0; }
+  .auth-modal-card {
+    max-width: none; border-radius: 0;
+    max-height: 100vh; min-height: 100vh;
+    padding: 36px 20px 28px;
+  }
+  .auth-modal-card::before { border-radius: 0; }
+}
 
 /* ── APP LAYOUT ── */
 .app-root   { height:100vh; height:100dvh; }
@@ -2154,7 +2238,7 @@ body {
   box-shadow: 0 10px 24px rgba(124,114,242,0.08);
 }
 .hp-hero-title {
-  font-size: clamp(36px, 5vw, 64px); font-weight: 900;
+  font-size: 63px; font-weight: 900;
   line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 24px;
   color: #2f3552;
   background: linear-gradient(135deg, #2f3552 28%, #6f6fe8 100%);
@@ -2229,6 +2313,71 @@ body {
 .hp-feature-row:first-of-type { border-top: none; padding-top: 0; }
 .hp-feature-row--reverse { flex-direction: row-reverse; }
 .hp-feature-text { flex: 1; min-width: 0; }
+.hp-read-more-btn {
+  display: inline-block; margin-top: 16px;
+  color: var(--accent); font-size: 14px; font-weight: 600;
+  text-decoration: none; letter-spacing: 0.2px;
+  transition: opacity 0.15s;
+}
+.hp-read-more-btn:hover { opacity: 0.75; }
+
+/* ── PERSOON MOCKUP ── */
+.hp-person-mockup {
+  position: relative; display: flex; justify-content: center; align-items: flex-end;
+  height: 340px;
+}
+.hp-person-figure {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+.hp-person-head {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, #f5c5a3, #e8a87c);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  z-index: 2; position: relative;
+}
+.hp-person-face { width: 40px; }
+.hp-person-eyes { display: flex; justify-content: space-between; margin-bottom: 8px; padding: 0 6px; }
+.hp-person-eyes span {
+  width: 6px; height: 6px; border-radius: 50%; background: #3b2a1a;
+}
+.hp-person-smile {
+  width: 18px; height: 9px; border-radius: 0 0 12px 12px;
+  border: 2px solid #3b2a1a; border-top: none; margin: 0 auto;
+}
+.hp-person-body {
+  width: 90px; height: 120px; border-radius: 20px 20px 12px 12px;
+  background: linear-gradient(160deg, #6c63ff, #a855f7);
+  position: relative; display: flex; align-items: flex-start; justify-content: center;
+  box-shadow: 0 8px 24px rgba(108,99,255,0.35);
+  margin-top: -4px;
+}
+.hp-person-arm {
+  position: absolute; top: 20px;
+  width: 22px; height: 80px; border-radius: 12px;
+  background: linear-gradient(160deg, #6c63ff, #a855f7);
+}
+.hp-person-arm--left { left: -18px; transform: rotate(15deg); transform-origin: top center; }
+.hp-person-arm--right { right: -18px; transform: rotate(-20deg); transform-origin: top center; }
+.hp-person-hand-phone {
+  position: absolute; bottom: -10px; right: -90px;
+  transform: rotate(8deg);
+}
+.hp-phone--held { transform: scale(0.72); transform-origin: bottom left; }
+.hp-person-badge {
+  position: absolute; bottom: 24px; right: 0;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 12px; font-weight: 600; color: var(--text2);
+  display: flex; align-items: center; gap: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.hp-person-badge-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+}
+
 .hp-feature-tag {
   display: inline-block; background: rgba(108,99,255,0.1);
   color: #7c3aed; font-size: 11px; font-weight: 700;

@@ -6,6 +6,8 @@ import PulseLogo from '../components/PulseLogo';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import AuthModal from '../components/AuthModal';
+import ParentAuthModal from '../components/ParentAuthModal';
+import PageMeta from '../components/PageMeta';
 import {
   Phone, Video, VideoOff, Mic,
   Message, Users, User, Search, Bell,
@@ -517,6 +519,7 @@ export default function FunctiePagina({ onParentClick }) {
   const [chatSlide,     setChatSlide]     = useState(0);
   const [callVideoSlide, setCallVideoSlide] = useState(0);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showParentModal, setShowParentModal] = useState(false);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -660,6 +663,11 @@ export default function FunctiePagina({ onParentClick }) {
 
   return (
     <div className="hp-root">
+      <PageMeta
+        title="Functies van Pulse — Chatten, bellen en videobellen voor kinderen"
+        description="Ontdek alle Pulse functies: veilig chatten, bellen, videobellen, groepsgesprekken, @-vermeldingen en rustige communicatie zonder afleiding."
+        canonical="https://pulse-frontend-elt.pages.dev/functies"
+      />
 
       {/* ── NAVIGATIE ── */}
       <MarketingNavbar
@@ -671,6 +679,7 @@ export default function FunctiePagina({ onParentClick }) {
         onParentClick={onParentClick}
       />
 
+      <main id="main-content">
       {/* ── HERO ── */}
       <section className="ot-hero">
         <div className="ot-hero-inner">
@@ -686,10 +695,11 @@ export default function FunctiePagina({ onParentClick }) {
               Chatten, bellen en videobellen komen samen in één vertrouwde en beveiligde omgeving voor familie en vrienden.
             </p>
             <div className="ot-hero-actions">
-              <button className="hp-cta-btn" onClick={() => scrollTo('chatten')}>
+              <button type="button" className="hp-cta-btn" onClick={() => scrollTo('chatten')}>
                 Bekijk functies
               </button>
               <button
+                type="button"
                 className="ot-secondary-btn"
                 onClick={() => { window.location.href = '/ouderlijk-toezicht'; }}
               >
@@ -845,7 +855,7 @@ export default function FunctiePagina({ onParentClick }) {
               <GridCard icon={<Phone size={18} />} title="Spraak → Video upgrade" desc="Wissel tijdens gesprek" />
               <GridCard icon={<Message size={18} />} title="Gesprek minimaliseren" desc="Overlay terwijl je chat" />
               <GridCard icon={<Bell size={18} />} title="Beltoon inkomend gesprek" desc="Nooit een oproep missen" />
-              <GridCard icon={<CheckDouble size={18} />} title="WebRTC end-to-end" desc="Beveiligde verbinding" />
+              <GridCard icon={<CheckDouble size={18} />} title="WebRTC versleuteld" desc="Beveiligde verbinding" />
             </div>
           </div>
         </div>
@@ -856,7 +866,10 @@ export default function FunctiePagina({ onParentClick }) {
         <div className="hp-cta-inner">
           <h2>Blijf veilig verbonden met wie echt telt</h2>
           <p>Pulse helpt ouders en kinderen om rustig en overzichtelijk in contact te blijven.</p>
-          <button className="hp-cta-btn" onClick={() => setShowAuthModal(true)}>Account aanmaken</button>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+            <button type="button" className="hp-cta-btn" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)' }} onClick={() => setShowAuthModal(true)}>Inloggen</button>
+          </div>
         </div>
       </section>
 
@@ -866,6 +879,11 @@ export default function FunctiePagina({ onParentClick }) {
           onParentClick={onParentClick}
         />
       )}
+      {showParentModal && (
+        <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
+      )}
+
+      </main>
 
       {/* ── FOOTER ── */}
       <MarketingFooter />

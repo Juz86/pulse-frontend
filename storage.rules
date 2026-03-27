@@ -24,6 +24,23 @@ service firebase.storage {
       allow delete: if request.auth != null && request.auth.uid == uid;
     }
 
+    // ── Groepsfoto's — alleen gespreksleden ───────────────────────────────────
+    match /groups/{convId}/photo {
+      allow read: if request.auth != null
+        && request.auth.uid in
+          firestore.get(/databases/(default)/documents/conversations/$(convId)).data.members;
+
+      allow write: if request.auth != null
+        && request.auth.uid in
+          firestore.get(/databases/(default)/documents/conversations/$(convId)).data.members
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+
+      allow delete: if request.auth != null
+        && request.auth.uid in
+          firestore.get(/databases/(default)/documents/conversations/$(convId)).data.members;
+    }
+
     // ── Alles anders: geblokkeerd ─────────────────────────────────────────────
     match /{allPaths=**} {
       allow read, write: if false;

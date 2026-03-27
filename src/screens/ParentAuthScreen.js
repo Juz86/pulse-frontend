@@ -49,7 +49,7 @@ async function postJson(path, body, options = {}) {
   }
 }
 
-export default function ParentAuthScreen({ onBack, defaultTab = 'login' }) {
+export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal = false }) {
   const [tab,          setTab]          = useState(defaultTab);
   const [name,         setName]         = useState('');
   const [email,        setEmail]        = useState('');
@@ -132,7 +132,6 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login' }) {
       await postJson('/api/verify-code', { email, code });
 
       // Code klopt → maak account aan
-      localStorage.setItem('pulse_pending_role', 'parent');
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(cred.user, { displayName: name.trim() });
       const idToken = await cred.user.getIdToken();
@@ -172,10 +171,9 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login' }) {
 
   // ── Verificatiescherm ────────────────────────────────────────────────────────
   if (step === 'verify') {
-    return (
-      <div className="parent-auth-screen">
-        <div className="parent-auth-card">
-          <button className="parent-auth-back" onClick={() => { setStep('form'); setVerifyCode(['','','','','','']); setVerifyError(''); }}>
+    const verifyInner = (
+      <>
+          <button type="button" className="parent-auth-back" onClick={() => { setStep('form'); setVerifyCode(['','','','','','']); setVerifyError(''); }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
               <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
             </svg>
@@ -238,22 +236,26 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login' }) {
           <p style={{ fontSize:12, color:'#9ca3af', textAlign:'center', marginTop:8 }}>
             Code verloopt na 15 minuten · maximaal 3× opnieuw versturen
           </p>
-        </div>
+      </>
+    );
+    return isModal ? verifyInner : (
+      <div className="parent-auth-screen">
+        <div className="parent-auth-card">{verifyInner}</div>
       </div>
     );
   }
 
   // ── Inlog/registratiescherm ──────────────────────────────────────────────────
-  return (
-    <div className="parent-auth-screen">
-      <div className="parent-auth-card">
-
-        <button className="parent-auth-back" onClick={onBack}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-          </svg>
-          Terug
-        </button>
+  const formInner = (
+    <>
+        {!isModal && (
+          <button type="button" className="parent-auth-back" onClick={onBack}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+            </svg>
+            Terug
+          </button>
+        )}
 
         <div className="parent-auth-logo">
           <PulseLogo size={34} textSize={24} color="#1a1a2e" />
@@ -380,7 +382,11 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login' }) {
             <span>Meldingen</span>
           </div>
         </div>
-      </div>
+    </>
+  );
+  return isModal ? formInner : (
+    <div className="parent-auth-screen">
+      <div className="parent-auth-card">{formInner}</div>
     </div>
   );
 }

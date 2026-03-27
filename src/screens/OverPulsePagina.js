@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import AuthModal from '../components/AuthModal';
+import ParentAuthModal from '../components/ParentAuthModal';
+import PageMeta from '../components/PageMeta';
 import {
   AdminIcon,
   Bell,
@@ -107,6 +109,7 @@ export default function OverPulsePagina({ onParentClick }) {
   const [menuOpen,      setMenuOpen]      = useState(false);
   const [scrolled,      setScrolled]      = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showParentModal, setShowParentModal] = useState(false);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -218,6 +221,11 @@ export default function OverPulsePagina({ onParentClick }) {
 
   return (
     <div className="hp-root">
+      <PageMeta
+        title="Over Pulse — Waarom veilige communicatie voor kinderen anders moet"
+        description="Lees waarom Pulse bestaat: een Nederlandse, privacyvriendelijke communicatie-app voor kinderen zonder advertenties, algoritmes of afleiding."
+        canonical="https://pulse-frontend-elt.pages.dev/over-pulse"
+      />
       <MarketingNavbar
         items={navItems}
         activeKey="over-pulse"
@@ -227,20 +235,21 @@ export default function OverPulsePagina({ onParentClick }) {
         onParentClick={onParentClick}
       />
 
+      <main id="main-content">
       {/* ── HERO ── */}
       <section className="ot-hero op-hero">
         <div className="ot-hero-inner op-hero-inner">
           <div className="ot-hero-copy">
             <div className="fp-hero-badge">Over Pulse</div>
             <h1 className="ot-hero-title">
-              Pulse is geen<br />sociale media.<br />Pulse is verbinding.
+              Pulse is geen<br />social media.<br />Pulse is verbinding.
             </h1>
             <p className="ot-hero-sub">
               Wij geloven dat kinderen recht hebben op veilige, rustgevende communicatie — zonder algoritmes, zonder verslaving, zonder zorgen. Pulse is daarvoor gebouwd.
             </p>
             <div className="ot-hero-actions">
-              <button className="hp-cta-btn" onClick={() => onParentClick('register')}>Ouderaccount aanmaken</button>
-              <button className="ot-secondary-btn" onClick={() => scrollTo('waarom-pulse')}>Meer lezen</button>
+              <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+              <button type="button" className="ot-secondary-btn" onClick={() => scrollTo('waarom-pulse')}>Meer lezen</button>
             </div>
           </div>
           <div className="ot-hero-visual">
@@ -410,8 +419,19 @@ export default function OverPulsePagina({ onParentClick }) {
       <section className="ot-final-cta">
         <h2>Veilig verbonden. Met wie echt telt.</h2>
         <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
-        <button className="hp-cta-btn" onClick={() => setShowAuthModal(true)}>Gratis account aanmaken</button>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+          <button
+            type="button"
+            className="hp-cta-btn"
+            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)' }}
+            onClick={() => setShowAuthModal(true)}
+          >
+            Kind inloggen
+          </button>
+        </div>
       </section>
+      </main>
 
       <MarketingFooter />
 
@@ -420,6 +440,9 @@ export default function OverPulsePagina({ onParentClick }) {
           onClose={() => setShowAuthModal(false)}
           onParentClick={onParentClick}
         />
+      )}
+      {showParentModal && (
+        <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
       )}
     </div>
   );

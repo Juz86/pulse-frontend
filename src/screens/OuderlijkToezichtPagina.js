@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PulseLogo from '../components/PulseLogo';
+import ParentAuthModal from '../components/ParentAuthModal';
+import PageMeta from '../components/PageMeta';
 import {
   Activity,
   Bell,
@@ -236,9 +238,42 @@ function NotificationMockup() {
   );
 }
 
+function StepsOverview() {
+  const steps = [
+    {
+      title: 'Maak je ouderaccount aan',
+      text: 'Registreer jezelf en open het ouderportaal als veilige basis voor het gezin.',
+    },
+    {
+      title: 'Voeg je kind toe',
+      text: 'Maak per kind een account aan met eigen gebruikersnaam en wachtwoord.',
+    },
+    {
+      title: 'Beheer per functie',
+      text: 'Bekijk activiteiten, ontvang meldingen en pauzeer chatten, bellen of videobellen wanneer nodig.',
+    },
+  ];
+
+  return (
+    <div className="hp-steps">
+      {steps.map((step, index) => (
+        <React.Fragment key={step.title}>
+          <div className="hp-step">
+            <div className="hp-step-num">{index + 1}</div>
+            <h3>{step.title}</h3>
+            <p>{step.text}</p>
+          </div>
+          {index < steps.length - 1 && <div className="hp-step-arrow">→</div>}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
 export default function OuderlijkToezichtPagina({ onParentClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showParentModal, setShowParentModal] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -264,6 +299,11 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
 
   return (
     <div className="hp-root">
+      <PageMeta
+        title="Ouderlijk toezicht met Pulse — Overzicht en controle voor ouders"
+        description="Met het ouderportaal van Pulse hou je overzicht, pauzeer je chatten, bellen of videobellen per kind en ontvang je real-time meldingen."
+        canonical="https://pulse-frontend-elt.pages.dev/ouderlijk-toezicht"
+      />
       <MarketingNavbar
         items={navItems}
         activeKey="ouderlijk-toezicht"
@@ -273,6 +313,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
         onParentClick={onParentClick}
       />
 
+      <main id="main-content">
       <section className="ot-hero">
         <div className="ot-hero-inner">
           <div className="ot-hero-copy">
@@ -283,8 +324,8 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
               communicatie van je kind — real-time, eenvoudig en direct vanuit je telefoon.
             </p>
             <div className="ot-hero-actions">
-              <button className="hp-cta-btn" onClick={() => onParentClick('register')}>Ouderaccount aanmaken</button>
-              <button className="ot-secondary-btn" onClick={() => scrollTo('dashboard')}>Meer informatie</button>
+              <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+              <button type="button" className="ot-secondary-btn" onClick={() => scrollTo('dashboard')}>Meer informatie</button>
             </div>
           </div>
           <div className="ot-hero-visual">
@@ -378,16 +419,30 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
         </div>
       </section>
 
+      <section className="hp-section hp-section--steps" id="stappen">
+        <div className="hp-section-inner">
+          <div className="hp-section-header">
+            <h2>In 3 stappen in controle</h2>
+            <p>Zo richt je Pulse in en houd je als ouder overzicht zonder gedoe.</p>
+          </div>
+          <StepsOverview />
+        </div>
+      </section>
+
       <section className="ot-final-cta">
         <div className="hp-cta-inner">
           <h2>Jij houdt overzicht, je kind ervaart vrijheid</h2>
           <p>Pulse laat je kind in contact blijven met de mensen die echt belangrijk zijn, binnen een veilige omgeving onder ouderlijk toezicht.</p>
-          <button className="hp-cta-btn" onClick={() => onParentClick('register')}>Ouderaccount aanmaken</button>
+          <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
         </div>
       </section>
+      </main>
 
       <MarketingFooter />
 
+      {showParentModal && (
+        <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
+      )}
     </div>
   );
 }

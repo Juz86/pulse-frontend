@@ -112,7 +112,7 @@ export default function AuthScreen({ onParentClick, isModal }) {
       </p>
 
       <div className="auth-features">
-        <div className="auth-feature"><Shield size={18} color="var(--text3)" /><div>E2E versleuteld</div></div>
+        <div className="auth-feature"><Shield size={18} color="var(--text3)" /><div>Versleuteld</div></div>
         <div className="auth-feature"><PhoneIcon size={18} color="var(--text3)" /><div>Bellen &amp; video</div></div>
         <div className="auth-feature"><Wifi size={18} color="var(--text3)" /><div>Wifi &amp; mobiel</div></div>
       </div>

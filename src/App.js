@@ -40,7 +40,7 @@ export default function App() {
   if (window.location.pathname === '/functies') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <FunctiePagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/functies'); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <FunctiePagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/functies'); window.location.href = '/'; }} />
       </Suspense>
     );
   }
@@ -48,7 +48,7 @@ export default function App() {
   if (window.location.pathname === '/ouderlijk-toezicht') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <OuderlijkToezichtPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/ouderlijk-toezicht'); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <OuderlijkToezichtPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/ouderlijk-toezicht'); window.location.href = '/'; }} />
       </Suspense>
     );
   }
@@ -56,7 +56,7 @@ export default function App() {
   if (window.location.pathname === '/hoe-werkt-het') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <HoeWerktHetPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/hoe-werkt-het'); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <HoeWerktHetPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/hoe-werkt-het'); window.location.href = '/'; }} />
       </Suspense>
     );
   }
@@ -64,7 +64,7 @@ export default function App() {
   if (window.location.pathname === '/over-pulse') {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <OverPulsePagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/over-pulse'); localStorage.setItem('pulse_pending_role', 'parent'); window.location.href = '/'; }} />
+        <OverPulsePagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/over-pulse'); window.location.href = '/'; }} />
       </Suspense>
     );
   }
@@ -130,14 +130,11 @@ export default function App() {
         setUser(firebaseUser);
         Sentry.setUser({ id: firebaseUser.uid, email: firebaseUser.email });
         // Controleer ouder-rol — localStorage flag heeft prioriteit over Firestore
-        const pendingRole = localStorage.getItem('pulse_pending_role');
-        localStorage.removeItem('pulse_pending_role');
         let role = 'user';
         try {
           const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (snap.exists()) role = snap.data()?.role || 'user';
         } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-        if (pendingRole) role = pendingRole; // ouder-login overschrijft Firestore
         setUserRole(role);
         const idToken = await firebaseUser.getIdToken();
         const socket = connectSocket(firebaseUser.uid, idToken);

@@ -25,7 +25,8 @@ export default function useCalling({
 
   function logCall({ uid, name, photoURL, isVideo, direction }) {
     const key      = `pulse_calls_${user.uid}`;
-    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    const cutoff   = Date.now() - 30 * 24 * 60 * 60 * 1000; // 30 dagen
+    const existing = JSON.parse(localStorage.getItem(key) || '[]').filter(e => e.ts > cutoff);
     const entry    = { uid, name, photoURL: photoURL || '', isVideo, direction, ts: Date.now() };
     localStorage.setItem(key, JSON.stringify([entry, ...existing].slice(0, 50)));
   }

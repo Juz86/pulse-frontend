@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
-import AuthModal from '../components/AuthModal';
+import ParentAuthModal from '../components/ParentAuthModal';
 import PulseLogo from '../components/PulseLogo';
+import PageMeta from '../components/PageMeta';
 import {
   KeyRound,
   Message,
@@ -265,7 +266,7 @@ function SearchContactMockup() {
 export default function HoeWerktHetPagina({ onParentClick }) {
   const [menuOpen,      setMenuOpen]      = useState(false);
   const [scrolled,      setScrolled]      = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showParentModal, setShowParentModal] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -291,6 +292,11 @@ export default function HoeWerktHetPagina({ onParentClick }) {
 
   return (
     <div className="hp-root">
+      <PageMeta
+        title="Hoe Werkt Pulse? — Van ouderaccount tot veilig contact"
+        description="Bekijk stap voor stap hoe Pulse werkt: ouderaccount aanmaken, kind toevoegen, accounts koppelen en veilig communiceren met vertrouwde contacten."
+        canonical="https://pulse-frontend-elt.pages.dev/hoe-werkt-het"
+      />
       <MarketingNavbar
         items={navItems}
         activeKey="hoe-werkt-het"
@@ -300,6 +306,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
         onParentClick={onParentClick}
       />
 
+      <main id="main-content">
       <section className="ot-hero hw-hero">
         <div className="ot-hero-inner hw-hero-inner">
           <div className="hw-hero-copy">
@@ -309,8 +316,8 @@ export default function HoeWerktHetPagina({ onParentClick }) {
               Met Pulse ontdekt je kind op een veilige en eenvoudige manier hoe contact houden werkt, terwijl jij als ouder toezicht en controle houdt.
             </p>
             <div className="ot-hero-actions">
-              <button className="hp-cta-btn" onClick={() => onParentClick('register')}>Ouderaccount aanmaken</button>
-              <button className="ot-secondary-btn" onClick={() => scrollTo('contact-toevoegen')}>Bekijk contact toevoegen</button>
+              <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+              <button type="button" className="ot-secondary-btn" onClick={() => scrollTo('contact-toevoegen')}>Bekijk contact toevoegen</button>
             </div>
           </div>
           <div className="hw-hero-visual">
@@ -397,16 +404,13 @@ export default function HoeWerktHetPagina({ onParentClick }) {
       <section className="ot-final-cta">
         <h2>Blijf veilig verbonden met wie echt telt</h2>
         <p>Pulse helpt ouders en kinderen om rustig en overzichtelijk in contact te blijven.</p>
-        <button className="hp-cta-btn" onClick={() => setShowAuthModal(true)}>Account aanmaken</button>
+        <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
       </section>
+      </main>
 
       <MarketingFooter />
-
-      {showAuthModal && (
-        <AuthModal
-          onClose={() => setShowAuthModal(false)}
-          onParentClick={onParentClick}
-        />
+      {showParentModal && (
+        <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
       )}
     </div>
   );

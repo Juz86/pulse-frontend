@@ -502,6 +502,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         forwardMsg={forwardMsg} setForwardMsg={setForwardMsg}
         conversations={conversations} forwardToConv={forwardToConv}
         errToast={errToast} mentionToast={mentionToast} parentToast={parentToast}
+        blockedContacts={blockedContacts} parentBlockedUids={parentBlockedUids} unblockContact={unblockContact}
         lightMode={lightMode}
       />
       </Suspense>

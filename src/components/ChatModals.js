@@ -103,6 +103,9 @@ export default function ChatModals({
   // toasts
   errToast, mentionToast, parentToast,
 
+  // blocked contacts
+  blockedContacts, parentBlockedUids, unblockContact,
+
   // helpers
   lightMode,
 }) {
@@ -473,6 +476,7 @@ export default function ChatModals({
                 {[
                   ['account', <User size={16} />, 'Mijn account'],
                   ['styling', <Palette size={16} />, 'Styling'],
+                  ['geblokkeerd', <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>, 'Geblokkeerd'],
                   ['verwijderen', <Delete size={16} />, 'Verwijderen'],
                 ].map(([id, icon, label]) => (
                   <button key={id} type="button" className={`profile-sidebar-tab${profileTab === id ? ' active' : ''}${id === 'verwijderen' ? ' danger' : ''}`}
@@ -561,6 +565,51 @@ export default function ChatModals({
                     </div>
                   </div>
                 )}
+                {profileTab === 'geblokkeerd' && (() => {
+                  const selfBlocked = (blockedContacts || []).filter(c => !parentBlockedUids?.includes(c.uid));
+                  const parentBlocked = (blockedContacts || []).filter(c => parentBlockedUids?.includes(c.uid));
+                  return (
+                    <div>
+                      {selfBlocked.length === 0 && parentBlocked.length === 0 && (
+                        <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '14px', paddingTop: '24px' }}>
+                          Geen geblokkeerde contacten.
+                        </div>
+                      )}
+                      {selfBlocked.length > 0 && (
+                        <div style={{ marginBottom: '20px' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text3)', marginBottom: '10px', textTransform: 'uppercase' }}>Door jou geblokkeerd</div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {selfBlocked.map(c => (
+                              <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px 12px' }}>
+                                <div className="avatar sm" style={{ flexShrink: 0 }}>{getInitials(c.displayName || c.email || '?')}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.displayName || c.email}</div>
+                                </div>
+                                <button type="button" className="btn-secondary" style={{ fontSize: '12px', padding: '5px 12px', flexShrink: 0 }} onClick={() => unblockContact(c.uid)}>Deblokkeren</button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {parentBlocked.length > 0 && (
+                        <div>
+                          <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text3)', marginBottom: '10px', textTransform: 'uppercase' }}>Geblokkeerd door ouder</div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {parentBlocked.map(c => (
+                              <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '10px', padding: '10px 12px' }}>
+                                <div className="avatar sm" style={{ flexShrink: 0 }}>{getInitials(c.displayName || c.email || '?')}</div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.displayName || c.email}</div>
+                                  <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '2px' }}>Geblokkeerd door ouder</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
                 {profileTab === 'verwijderen' && (
                   <div>
                     <div style={{ marginBottom: '20px' }}>

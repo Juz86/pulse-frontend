@@ -102,7 +102,7 @@ export default function ResetPasswordScreen({ oobCode }) {
                 </div>
               </div>
               {msg && <div id="reset-password-message" className="auth-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{msg}</div>}
-              <button className="btn-primary" type="submit" disabled={loading}>
+              <button className="btn-primary" type="submit" disabled={loading} aria-busy={loading}>
                 {loading ? 'Opslaan…' : <>Wachtwoord opslaan <span aria-hidden="true">→</span></>}
               </button>
             </form>

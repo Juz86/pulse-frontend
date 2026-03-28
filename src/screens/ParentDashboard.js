@@ -260,9 +260,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const activityTabBadge = parentActivityBadge > 9 ? '9+' : parentActivityBadge;
 
   const TABS = [
-    { id: 'add',        icon: <UserPlus  size={16}/>, label: 'Kind toevoegen'       },
-    { id: 'children',   icon: <Users     size={16}/>, label: 'Mijn kinderen'         },
-    { id: 'activities', icon: <Activity  size={16}/>, label: 'Activiteiten', badge: parentActivityBadge > 0 ? activityTabBadge : null },
+    { id: 'add',        icon: <UserPlus  size={16} aria-hidden="true" />, label: 'Kind toevoegen'       },
+    { id: 'children',   icon: <Users     size={16} aria-hidden="true" />, label: 'Mijn kinderen'         },
+    { id: 'activities', icon: <Activity  size={16} aria-hidden="true" />, label: 'Activiteiten', badge: parentActivityBadge > 0 ? activityTabBadge : null },
   ];
 
   const createUsernameReady = createUsernameStatus === 'Beschikbaar';
@@ -899,9 +899,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       {/* Bevestigingsdialoog verwijderen */}
       {confirmDelete && (
         <div className="modal-overlay" onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>
-          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
-            <h3 className="modal-title">Account verwijderen</h3>
-            <p style={{ color: 'var(--text2)', fontSize: 14, margin: '12px 0 24px', lineHeight: 1.6 }}>
+          <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="parent-delete-title" aria-describedby="parent-delete-description" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
+            <h3 className="modal-title" id="parent-delete-title">Account verwijderen</h3>
+            <p id="parent-delete-description" style={{ color: 'var(--text2)', fontSize: 14, margin: '12px 0 24px', lineHeight: 1.6 }}>
               Weet u zeker dat u het account van <strong>{confirmDelete.displayName}</strong> wilt verwijderen?
               Dit kan niet ongedaan worden gemaakt.
             </p>

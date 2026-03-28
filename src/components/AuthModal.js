@@ -55,6 +55,7 @@ export default function AuthModal({ onClose, onParentClick }) {
   return createPortal(
     <div
       className={`auth-modal-overlay${visible ? ' auth-modal-overlay--visible' : ''}`}
+      role="presentation"
       onClick={handleBackdrop}
     >
       <div

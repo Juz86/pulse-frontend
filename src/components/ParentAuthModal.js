@@ -45,17 +45,21 @@ export default function ParentAuthModal({ onClose, defaultTab = 'register' }) {
   return createPortal(
     <div
       className={`auth-modal-overlay${visible ? ' auth-modal-overlay--visible' : ''}`}
+      role="presentation"
       onClick={handleBackdrop}
     >
       <div
         className={`parent-auth-modal-card${visible ? ' parent-auth-modal-card--visible' : ''}`}
         role="dialog"
         aria-modal="true"
-        aria-label="Ouderaccount"
+        aria-labelledby="parent-auth-modal-title"
+        aria-describedby="parent-auth-modal-description"
       >
         <button ref={closeButtonRef} type="button" className="auth-modal-close" onClick={handleClose} aria-label="Sluiten">
           <span aria-hidden="true">✕</span>
         </button>
+        <h2 id="parent-auth-modal-title" className="sr-only">Ouderaccount</h2>
+        <p id="parent-auth-modal-description" className="sr-only">Log in of registreer een ouderaccount.</p>
         <ParentAuthScreen isModal defaultTab={defaultTab} onBack={handleClose} />
       </div>
     </div>,

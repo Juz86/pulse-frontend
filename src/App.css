@@ -845,7 +845,8 @@ body {
 .block-confirm-modal h3 { margin: 0 0 12px; font-size: 18px; font-weight: 700; color: var(--text-primary); }
 .block-confirm-modal p  { margin: 0 0 24px; font-size: 14px; color: var(--text2); line-height: 1.6; }
 .block-confirm-actions  { display: flex; gap: 10px; justify-content: flex-end; }
-.block-confirm-actions > button { flex: 1; }
+.block-confirm-actions .btn-secondary,
+.block-confirm-actions .btn-danger { width: auto; padding: 10px 20px; margin: 0; }
 .btn-danger {
   padding: 10px 20px; font-size: 14px; font-weight: 600;
   background: var(--danger); color: #fff;

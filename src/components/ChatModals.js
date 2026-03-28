@@ -978,7 +978,7 @@ export default function ChatModals({
               const isAdmin = activeConv.creatorId === user.uid;
               return (
                 <>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                  <div role="list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
                     {activeConv.members.map(memberId => {
                       const name      = activeConv.memberNames?.[memberId] || memberId;
                       const isMe      = memberId === user.uid;
@@ -986,7 +986,7 @@ export default function ChatModals({
                       const isCreator = memberId === activeConv.creatorId;
                       const photo     = contacts.find(c => c.uid === memberId)?.photoURL || null;
                       return (
-                        <div key={memberId} className="search-result" style={{ cursor: 'default' }}>
+                        <div key={memberId} role="listitem" className="search-result" style={{ cursor: 'default' }}>
                           <div className="avatar-wrap">
                             <UserAvatar photoURL={photo} displayName={name} className="sm" decorative />
                             {isOnline && <span className="online-dot sm" />}
@@ -1024,6 +1024,7 @@ export default function ChatModals({
                       <p className="modal-sub">Kies een contact om toe te voegen</p>
                       <div
                         id="group-add-member-list"
+                        role="list"
                         style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}
                       >
                         {contacts.filter(c => !activeConv.members.includes(c.uid)).length === 0 && (
@@ -1033,6 +1034,7 @@ export default function ChatModals({
                           <button
                             key={c.uid}
                             type="button"
+                            role="listitem"
                             className="search-result"
                             aria-label={`Voeg ${c.displayName} toe aan de groep`}
                             onClick={() => addMemberToGroup(c)}

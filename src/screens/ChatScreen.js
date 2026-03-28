@@ -7,6 +7,7 @@ import ChatHeader from '../components/ChatHeader';
 import ChatSidebar from '../components/ChatSidebar';
 import MessageList from '../components/MessageList';
 import MsgContextMenu from '../components/MsgContextMenu';
+import BlockConfirmModal from '../components/BlockConfirmModal';
 import useConversations from '../hooks/useConversations';
 import useChat from '../hooks/useChat';
 import useCalling from '../hooks/useCalling';
@@ -158,10 +159,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     renamingContact, setRenamingContact, sharingContact, setSharingContact,
     shareRecipients, setShareRecipients, viewingSharedContact, setViewingSharedContact,
     viewingContact, setViewingContact, renameValue, setRenameValue,
-    loadContacts, loadFriendRequests,
+    loadContacts, loadFriendRequests, loadBlockedContacts,
     getContactNickname, saveContactNickname, getContactDisplayName, findConvWithUid,
     addContact, sendFriendRequestToEmail, acceptFriendRequest, declineFriendRequest,
     removeContact, togglePin, startChatWithContact, searchUser, startConversationWith,
+    blockedContacts, blockingContact, setBlockingContact, blockContact, unblockContact,
   } = useContacts({
     user, conversations, setConversations, activeConv, setActiveConv,
     setMessages, setConvLabels, openConversation, loadConversations,
@@ -209,7 +211,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const conv = conversations.find(c => c.id === initialConvId);
     if (conv) { openConversation(conv); onConvIdHandled?.(); }
   }, [initialConvId, conversations.length]);
-  useEffect(() => { loadConversations(); loadContacts(); loadFriendRequests(); }, [loadConversations, loadContacts, loadFriendRequests]);
+  useEffect(() => { loadConversations(); loadContacts(); loadFriendRequests(); loadBlockedContacts(); }, [loadConversations, loadContacts, loadFriendRequests, loadBlockedContacts]);
   useEffect(() => {
     const handler = () => { loadContacts(); loadConversations(); };
     window.addEventListener('pulse:child-added', handler);
@@ -327,7 +329,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onTogglePin={togglePin}
         onViewContact={contact => { setViewingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName || ''); }}
         onStartChat={startChatWithContact} onCallContact={callContact}
-        onRemoveContact={removeContact} onOpenConversation={openConversation}
+        onRemoveContact={removeContact}
+        onBlockContact={contact => setBlockingContact(contact)}
+        onUnblockContact={unblockContact}
+        blockedContacts={blockedContacts}
+        onOpenConversation={openConversation}
         onCallFromConv={initiateCallFromConv} onDeleteConversation={deleteConversation}
         getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         getContactDisplayName={getContactDisplayName}
@@ -484,6 +490,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             <button type="button" className="delete-popup-cancel" onClick={() => setDeleteConfirm(null)}>Annuleren</button>
           </div>
         </div>
+      )}
+
+      {blockingContact && (
+        <BlockConfirmModal
+          contactName={blockingContact.displayName || blockingContact.email || 'dit contact'}
+          onConfirm={() => blockContact(blockingContact.uid)}
+          onCancel={() => setBlockingContact(null)}
+        />
       )}
 
       {contextMenu && (

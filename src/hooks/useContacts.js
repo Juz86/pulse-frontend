@@ -63,6 +63,10 @@ export default function useContacts({
   const [friendReqSent,   setFriendReqSent]   = useState(false);
   const [friendReqLoading, setFriendReqLoading] = useState(false);
 
+  // Blocked contacts
+  const [blockedContacts,  setBlockedContacts]  = useState([]);
+  const [blockingContact,  setBlockingContact]  = useState(null); // { uid, displayName } — bevestigingsmodal
+
   // Contact rename / share / view
   const [renamingContact,      setRenamingContact]      = useState(null);
   const [sharingContact,       setSharingContact]       = useState(null);
@@ -145,6 +149,14 @@ export default function useContacts({
         });
       }
       setContacts(raw.map(c => ({ ...c, photoURL: c.photoURL || photoMap[c.uid] || null })));
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+  }, [user.uid]);
+
+  const loadBlockedContacts = useCallback(async () => {
+    try {
+      const res  = await authFetch(`${BACKEND_URL}/api/users/${user.uid}/blocked`);
+      const data = await res.json();
+      setBlockedContacts(Array.isArray(data) ? data : []);
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }, [user.uid]);
 
@@ -237,6 +249,32 @@ export default function useContacts({
     });
   }
 
+  async function blockContact(targetUid) {
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/users/${user.uid}/block`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUid }),
+      });
+      if (res.ok) {
+        const contact = contacts.find(c => c.uid === targetUid);
+        if (contact) setBlockedContacts(prev => [...prev.filter(c => c.uid !== targetUid), contact]);
+        setBlockingContact(null);
+      }
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+  }
+
+  async function unblockContact(targetUid) {
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/users/${user.uid}/unblock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUid }),
+      });
+      if (res.ok) setBlockedContacts(prev => prev.filter(c => c.uid !== targetUid));
+    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+  }
+
   function togglePin(contactUid) {
     setPinnedContacts(prev => {
       const next = prev.includes(contactUid) ? prev.filter(id => id !== contactUid) : [...prev, contactUid];
@@ -317,7 +355,10 @@ export default function useContacts({
     viewingContact, setViewingContact,
     renameValue, setRenameValue,
     // loaders
-    loadContacts, loadFriendRequests,
+    loadContacts, loadFriendRequests, loadBlockedContacts,
+    // blocked
+    blockedContacts, blockingContact, setBlockingContact,
+    blockContact, unblockContact,
     // helpers
     getContactNickname, saveContactNickname, getContactDisplayName, findConvWithUid,
     // actions

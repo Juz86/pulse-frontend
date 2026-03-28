@@ -56,6 +56,9 @@ export default function ChatSidebar({
   onStartChat,
   onCallContact,
   onRemoveContact,
+  onBlockContact,
+  onUnblockContact,
+  blockedContacts,
   // conv actions
   onOpenConversation,
   onCallFromConv,
@@ -276,6 +279,30 @@ export default function ChatSidebar({
               <p>Er zijn geen resultaten voor "{searchQuery}".</p>
             </div>
           )}
+
+          {blockedContacts && blockedContacts.length > 0 && (
+            <div className="blocked-contacts-section">
+              <div className="blocked-contacts-header">
+                Geblokkeerd ({blockedContacts.length})
+              </div>
+              {blockedContacts.map(blocked => (
+                <div key={blocked.uid} className="blocked-contact-row">
+                  <div className="avatar-circle sm" aria-hidden="true">{getInitials(blocked.displayName)}</div>
+                  <div className="blocked-contact-info">
+                    <div className="blocked-contact-name">{blocked.displayName}</div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '12px', minWidth: 0, flexShrink: 0 }}
+                    onClick={() => onUnblockContact(blocked.uid)}
+                  >
+                    Deblokkeren
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -324,6 +351,10 @@ export default function ChatSidebar({
             <button type="button" role="menuitem" className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
               <Pin size={17} aria-hidden="true" />
               <span>{pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}</span>
+            </button>
+            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }} onClick={() => { onBlockContact(contact); setContactMenu(null); }} title="Blokkeren">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+              <span>Blokkeren</span>
             </button>
             <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }} onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
               <Delete size={18} aria-hidden="true" />

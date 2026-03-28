@@ -831,6 +831,46 @@ body {
 }
 .delete-popup-cancel:hover { background:var(--surface3); }
 
+/* ── Block confirm modal ────────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.modal-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 16px; box-shadow: 0 20px 48px rgba(0,0,0,0.35);
+  width: 100%; max-width: 400px; padding: 28px;
+}
+.block-confirm-modal h3 { margin: 0 0 12px; font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.block-confirm-modal p  { margin: 0 0 24px; font-size: 14px; color: var(--text2); line-height: 1.6; }
+.block-confirm-actions  { display: flex; gap: 10px; justify-content: flex-end; }
+.btn-danger {
+  padding: 10px 20px; font-size: 14px; font-weight: 600;
+  background: var(--danger); color: #fff;
+  border: none; border-radius: 8px; cursor: pointer; transition: opacity .15s;
+}
+.btn-danger:hover { opacity: 0.88; }
+
+/* ── Blocked contacts section ───────────────────────────────────────────────── */
+.blocked-contacts-section {
+  padding: 0 12px 16px; margin-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.blocked-contacts-header {
+  font-size: 11px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 12px 6px 8px;
+}
+.blocked-contact-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 10px;
+  margin-bottom: 6px; opacity: 0.8;
+}
+.blocked-contact-info { flex: 1; min-width: 0; }
+.blocked-contact-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
+
 .msg-reply-quote {
   background:rgba(108,99,255,.15); border-left:3px solid var(--accent);
   border-radius:6px; padding:4px 8px; margin-bottom:4px;
@@ -4025,6 +4065,27 @@ body {
   .fp-hero-sub { font-size: 15px; }
   .ot-final-cta h2 { font-size: 28px; }
   .ot-final-cta p { font-size: 15px; }
+
+  /* Hero mockup als achtergrond op mobiel */
+  .ot-hero-inner { position: relative; min-height: 420px; align-items: flex-start; padding: 48px 20px 40px; }
+  .ot-hero-visual {
+    position: absolute;
+    right: -16px;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    opacity: 0.14;
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* Tekst op voorgrond */
+  .ot-hero-copy,
+  .ot-hero-inner > div:not(.ot-hero-visual) {
+    position: relative;
+    z-index: 1;
+    max-width: 75%;
+  }
 }
 
 /* ── Mobiel klein (≤480px) — titels, grids, knoppen ── */

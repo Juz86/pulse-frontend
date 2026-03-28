@@ -20,7 +20,8 @@ const ConversationList = React.memo(function ConversationList({
   getOtherUid,
   getConvPhoto,
   onOpen,
-  onMoreActions,
+  onMoreActionsEnter,
+  onMoreActionsLeave,
   setLabelMenuConvId,
 }) {
   const filtered = useMemo(() => {
@@ -94,7 +95,8 @@ const ConversationList = React.memo(function ConversationList({
             isPinned={isPinned}
             currentUid={currentUid}
             onOpen={() => onOpen(conv)}
-            onMoreActions={e => onMoreActions?.(conv, otherUid, e.currentTarget)}
+            onMoreActionsEnter={el => onMoreActionsEnter?.(conv, otherUid, el)}
+            onMoreActionsLeave={onMoreActionsLeave}
           />
         );
       })}

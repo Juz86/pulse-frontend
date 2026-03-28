@@ -107,7 +107,10 @@ export default function ChatSidebar({
     }
   }
 
+  const closeConvMenuTimerRef = useRef(null);
+
   function openConvMenu(conv, otherUid, anchorEl) {
+    if (closeConvMenuTimerRef.current) { clearTimeout(closeConvMenuTimerRef.current); closeConvMenuTimerRef.current = null; }
     const rect = anchorEl?.getBoundingClientRect?.();
     if (!rect) return;
     const menuWidth = 188;
@@ -121,8 +124,18 @@ export default function ChatSidebar({
     setConvMenu({ conv, otherUid, direction, top, left });
   }
 
+  function scheduleCloseConvMenu() {
+    if (closeConvMenuTimerRef.current) clearTimeout(closeConvMenuTimerRef.current);
+    closeConvMenuTimerRef.current = setTimeout(() => setConvMenu(null), 180);
+  }
+
+  function keepConvMenuOpen() {
+    if (closeConvMenuTimerRef.current) { clearTimeout(closeConvMenuTimerRef.current); closeConvMenuTimerRef.current = null; }
+  }
+
   useEffect(() => () => {
     if (closeMenuTimerRef.current) clearTimeout(closeMenuTimerRef.current);
+    if (closeConvMenuTimerRef.current) clearTimeout(closeConvMenuTimerRef.current);
   }, []);
 
   return (
@@ -200,7 +213,8 @@ export default function ChatSidebar({
           getOtherUid={getOtherUid}
           getConvPhoto={getConvPhoto}
           onOpen={onOpenConversation}
-          onMoreActions={(conv, otherUid, el) => openConvMenu(conv, otherUid, el)}
+          onMoreActionsEnter={(conv, otherUid, el) => openConvMenu(conv, otherUid, el)}
+          onMoreActionsLeave={scheduleCloseConvMenu}
           setLabelMenuConvId={setLabelMenuConvId}
         />
       )}
@@ -308,6 +322,8 @@ export default function ChatSidebar({
             role="menu"
             aria-label={`Acties voor ${conv.name}`}
             onClick={e => e.stopPropagation()}
+            onMouseEnter={keepConvMenuOpen}
+            onMouseLeave={scheduleCloseConvMenu}
             style={{
               position: 'fixed', zIndex: 3000,
               top: convMenu.top, left: convMenu.left,

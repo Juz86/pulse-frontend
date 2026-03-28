@@ -14,7 +14,8 @@ function ConversationItemBase({
   isPinned,
   currentUid,
   onOpen,
-  onMoreActions,
+  onMoreActionsEnter,
+  onMoreActionsLeave,
 }) {
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -51,7 +52,10 @@ function ConversationItemBase({
         className="icon-btn"
         aria-label={`Meer acties voor ${conv.name}`}
         title="Meer acties"
-        onClick={e => { e.stopPropagation(); onMoreActions?.(e); }}
+        onClick={e => e.stopPropagation()}
+        onMouseEnter={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
+        onMouseLeave={e => { e.stopPropagation(); onMoreActionsLeave?.(); }}
+        onFocus={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
       >
         <InfoIcon size={18} aria-hidden="true" />
       </button>

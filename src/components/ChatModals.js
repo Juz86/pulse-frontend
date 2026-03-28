@@ -269,10 +269,12 @@ export default function ChatModals({
       {viewingContact && (
         <div className="modal-overlay" onClick={() => setViewingContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setViewingContact(null)}><span aria-hidden="true">✕</span></button>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h3>
-              <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${getContactDisplayName(viewingContact)}`} onClick={() => { setSharingContact(viewingContact); setViewingContact(null); }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${getContactDisplayName(viewingContact)}`} onClick={() => { setSharingContact(viewingContact); setViewingContact(null); }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
+                <button type="button" className="modal-close-btn" style={{ position: 'relative', top: 'auto', right: 'auto' }} aria-label="Sluiten" onClick={() => setViewingContact(null)}><span aria-hidden="true">✕</span></button>
+              </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
               {viewingContact.photoURL

@@ -3,6 +3,7 @@ import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import ParentAuthModal from '../components/ParentAuthModal';
 import AuthModal from '../components/AuthModal';
+import DecorativeAvatar, { avatarSvgs } from '../components/DecorativeAvatars';
 import PulseLogo from '../components/PulseLogo';
 import PageMeta from '../components/PageMeta';
 import {
@@ -312,6 +313,8 @@ export default function HoeWerktHetPagina({ onParentClick }) {
 
       <main id="main-content">
       <section className="ot-hero hw-hero">
+        <DecorativeAvatar svg={avatarSvgs.hwTop}    className="fp-deco-avatar--hero-top" />
+        <DecorativeAvatar svg={avatarSvgs.hwBottom} className="fp-deco-avatar--hero-bottom" />
         <div className="ot-hero-inner hw-hero-inner">
           <div className="hw-hero-copy">
             <div className="fp-hero-badge">Hoe werkt het</div>

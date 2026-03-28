@@ -9,6 +9,25 @@ import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
 
 
+function HeroChatBubbles() {
+  return (
+    <div className="hp-hero-chat" aria-hidden="true">
+      <div className="hp-hero-bubble hp-hero-bubble--in" style={{ '--bubble-delay': '0s' }}>
+        <span className="hp-hero-bubble-text">Hoi! Ben je al thuis? 🏠</span>
+        <span className="hp-hero-bubble-time">17:02</span>
+      </div>
+      <div className="hp-hero-bubble hp-hero-bubble--out" style={{ '--bubble-delay': '2s' }}>
+        <span className="hp-hero-bubble-text">Bijna! 10 minuutjes 😊</span>
+        <span className="hp-hero-bubble-time">17:02</span>
+      </div>
+      <div className="hp-hero-bubble hp-hero-bubble--in" style={{ '--bubble-delay': '4s' }}>
+        <span className="hp-hero-bubble-text">Oké, ik wacht! ❤️</span>
+        <span className="hp-hero-bubble-time">17:03</span>
+      </div>
+    </div>
+  );
+}
+
 export default function Homepage({ onParentClick }) {
   const [menuOpen,      setMenuOpen]      = useState(false);
   const [scrolled,      setScrolled]      = useState(false);
@@ -53,6 +72,7 @@ export default function Homepage({ onParentClick }) {
       <main id="main-content">
       {/* ── HERO ── */}
       <section className="hp-hero" id="hero" aria-labelledby="homepage-hero-title">
+        <HeroChatBubbles />
         <div className="hp-hero-inner">
           <div className="hp-hero-text">
             <div className="hp-hero-badge">🇳🇱 100% Nederlands</div>

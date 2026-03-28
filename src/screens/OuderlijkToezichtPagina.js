@@ -4,6 +4,7 @@ import MarketingFooter from '../components/MarketingFooter';
 import PulseLogo from '../components/PulseLogo';
 import ParentAuthModal from '../components/ParentAuthModal';
 import AuthModal from '../components/AuthModal';
+import DecorativeAvatar, { avatarSvgs } from '../components/DecorativeAvatars';
 import PageMeta from '../components/PageMeta';
 import {
   Activity,
@@ -319,6 +320,8 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
 
       <main id="main-content">
       <section className="ot-hero">
+        <DecorativeAvatar svg={avatarSvgs.otTop}    className="fp-deco-avatar--hero-top" />
+        <DecorativeAvatar svg={avatarSvgs.otBottom} className="fp-deco-avatar--hero-bottom" />
         <div className="ot-hero-inner">
           <div className="ot-hero-copy">
             <div className="fp-hero-badge">Ouderlijk toezicht</div>

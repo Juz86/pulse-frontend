@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import AuthModal from '../components/AuthModal';
+import DecorativeAvatar, { avatarSvgs } from '../components/DecorativeAvatars';
 import ParentAuthModal from '../components/ParentAuthModal';
 import PageMeta from '../components/PageMeta';
 import {
@@ -240,6 +241,8 @@ export default function OverPulsePagina({ onParentClick }) {
       <main id="main-content">
       {/* ── HERO ── */}
       <section className="ot-hero op-hero">
+        <DecorativeAvatar svg={avatarSvgs.opTop}    className="fp-deco-avatar--hero-top" />
+        <DecorativeAvatar svg={avatarSvgs.opBottom} className="fp-deco-avatar--hero-bottom" />
         <div className="ot-hero-inner op-hero-inner">
           <div className="ot-hero-copy">
             <div className="fp-hero-badge">Over Pulse</div>

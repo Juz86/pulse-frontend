@@ -2279,6 +2279,63 @@ body {
     radial-gradient(ellipse 34% 46% at 84% 26%, rgba(248, 205, 214, 0.18) 0%, transparent 70%),
     linear-gradient(180deg, #fcfbff 0%, #f4f1fb 54%, #fcfbff 100%);
   display: flex; align-items: center;
+  position: relative; overflow: hidden;
+}
+
+/* ── Hero chat bubbles animatie ── */
+@keyframes hp-bubble-appear {
+  0%   { opacity: 0; transform: translateY(14px) scale(0.94); }
+  10%  { opacity: 1; transform: translateY(0) scale(1); }
+  55%  { opacity: 1; transform: translateY(0) scale(1); }
+  70%  { opacity: 0; transform: translateY(-8px) scale(0.97); }
+  100% { opacity: 0; transform: translateY(-8px) scale(0.97); }
+}
+.hp-hero-chat {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.hp-hero-bubble {
+  position: absolute;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+  opacity: 0;
+  animation: hp-bubble-appear 6s ease-in-out infinite;
+  animation-delay: var(--bubble-delay, 0s);
+  max-width: 230px;
+}
+.hp-hero-bubble--in {
+  background: #fff;
+  color: #1a1a2e;
+  border-bottom-left-radius: 5px;
+}
+.hp-hero-bubble--out {
+  background: linear-gradient(135deg, #7c3aed, #9c5bfd);
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+/* Posities verspreid over de banner */
+.hp-hero-bubble:nth-child(1) { top: calc(18% - 15px); left: 6%; }
+.hp-hero-bubble:nth-child(2) { bottom: 22%; left: 28%; }
+.hp-hero-bubble:nth-child(3) { top: 30%; right: 4%; }
+.hp-hero-bubble-text { flex: 1; }
+.hp-hero-bubble-time {
+  font-size: 10px;
+  opacity: 0.55;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+@media (max-width: 768px) {
+  .hp-hero-chat { display: none; }
 }
 .hp-hero-inner {
   max-width: 1200px; margin: 0 auto; padding: 60px 40px;
@@ -2705,8 +2762,10 @@ body {
 /* ── RESPONSIVE ── */
 @media (max-width: 1024px) {
   .hp-hero-inner { gap: 40px; padding: 60px 32px; }
-  .hp-why-grid { grid-template-columns: repeat(3, 1fr); }
+  .hp-hero-title { font-size: 48px; }
+  .hp-why-grid { grid-template-columns: repeat(2, 1fr); }
   .hp-feature-row { gap: 48px; }
+  .fp-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
@@ -2766,6 +2825,8 @@ body {
 .ot-hero {
   padding-top: 64px;
   background: #0f0a1e;
+  position: relative;
+  overflow: hidden;
 }
 .ot-hero-inner {
   max-width: 1200px; margin: 0 auto; padding: 72px 40px 56px;
@@ -2785,6 +2846,7 @@ body {
   padding: 15px 28px; border-radius: 999px; font-size: 16px; font-weight: 700;
   border: 1.5px solid rgba(255,255,255,0.18); background: transparent; color: #fff;
   cursor: pointer; transition: transform .18s, background .18s, border-color .18s;
+  text-decoration: none; display: inline-block;
 }
 .ot-secondary-btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.32); }
 .ot-hero-visual { display: flex; justify-content: center; }
@@ -3431,6 +3493,10 @@ body {
   right: 38%;
   transform: rotate(-10deg);
 }
+.ot-hero .fp-deco-avatar--hero-top {
+  top: 90px;
+  right: calc(38% + 40px);
+}
 
 .fp-deco-avatar--hero-bottom {
   right: 8px;
@@ -3943,6 +4009,103 @@ body {
 @media (max-width: 480px) {
   .op-privacy-card { padding: 32px 20px; }
   .op-statement blockquote { font-size: 15px; padding: 24px 20px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE ADDITIONS — ontbrekende breakpoints alle pagina's
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Mobiel groot (≤768px) — titels, subtekst, CTA ── */
+@media (max-width: 768px) {
+  .hp-hero-title { font-size: 36px; letter-spacing: -0.5px; }
+  .ot-hero-title { font-size: 36px; }
+  .fp-hero-title { font-size: 36px; }
+  .hp-hero-sub { font-size: 15px; }
+  .ot-hero-sub { font-size: 15px; line-height: 1.65; }
+  .fp-hero-sub { font-size: 15px; }
+  .ot-final-cta h2 { font-size: 28px; }
+  .ot-final-cta p { font-size: 15px; }
+}
+
+/* ── Mobiel klein (≤480px) — titels, grids, knoppen ── */
+@media (max-width: 480px) {
+  .hp-hero-title { font-size: 28px; letter-spacing: -0.3px; }
+  .ot-hero-title { font-size: 28px; }
+  .fp-hero-title { font-size: 28px; }
+  .hp-section-header h2 { font-size: 24px; }
+  .hp-hero-sub { font-size: 14px; }
+  .ot-hero-sub { font-size: 14px; }
+  .fp-hero-sub { font-size: 14px; }
+  .hp-section { padding: 44px 0; }
+  .fp-hero-inner { padding: 90px 16px 48px; }
+  .fp-grid-col { grid-template-columns: 1fr; }
+  .hp-cta-btn { padding: 14px 20px; font-size: 16px; }
+  .ot-final-cta { padding: 48px 16px 60px; }
+  .ot-final-cta h2 { font-size: 24px; }
+  .ot-final-cta p { font-size: 14px; }
+  .hw-copy h3 { font-size: 22px; }
+  .hw-hero-inner { gap: 28px; }
+}
+
+/* ── Mobiel extra klein (≤375px) ── */
+@media (max-width: 375px) {
+  /* Paddings */
+  .hp-hero-inner { padding: 20px 16px; gap: 20px; }
+  .ot-hero-inner { padding: 28px 16px 20px; }
+  .fp-hero-inner { padding: 76px 16px 36px; }
+
+  /* Titels */
+  .hp-hero-title { font-size: 24px; }
+  .ot-hero-title { font-size: 24px; }
+  .fp-hero-title { font-size: 24px; }
+  .hp-section-header h2 { font-size: 20px; }
+
+  /* Sub-tekst */
+  .hp-hero-sub,
+  .ot-hero-sub,
+  .fp-hero-sub { font-size: 13px; }
+
+  /* Sectie */
+  .hp-section { padding: 36px 0; }
+
+  /* Knoppen */
+  .hp-cta-btn { padding: 12px 16px; font-size: 15px; }
+  .ot-secondary-btn { padding: 12px 16px; font-size: 14px; }
+
+  /* Mockups */
+  .hp-phone { width: 160px; }
+  .ot-phone { width: 140px !important; }
+  .hw-phone { width: 140px !important; }
+  .ot-phone-screen { min-height: 220px !important; }
+  .hw-phone-screen { min-height: 200px !important; }
+
+  /* Feature rijen */
+  .hp-feature-row { gap: 24px; padding: 32px 0; }
+  .hp-feature-row--reverse { gap: 24px; padding: 32px 0; }
+
+  /* Functies slider */
+  .fp-slider { gap: 16px; }
+  .fp-slider-tab { padding: 9px 14px; font-size: 12px; }
+
+  /* CTA */
+  .ot-final-cta { padding: 40px 16px 52px; }
+  .ot-final-cta h2 { font-size: 20px; }
+
+  /* Footer */
+  .hp-footer-inner { padding: 0 16px 40px; }
+
+  /* Hoe werkt het */
+  .hw-row--stacked { padding: 14px 12px; gap: 14px; }
+  .hw-steps-grid { gap: 12px; }
+  .hw-copy h3 { font-size: 20px; }
+
+  /* Over Pulse */
+  .op-statement blockquote { font-size: 14px; padding: 20px 16px; }
+  .op-topic-grid { gap: 8px; }
+
+  /* Nav knoppen */
+  .hp-nav-kind,
+  .hp-nav-ouder { font-size: 11px; padding: 5px 10px; }
 }
 
 /* ── Toegankelijkheid: verminder beweging ── */

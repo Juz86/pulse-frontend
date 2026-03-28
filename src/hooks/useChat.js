@@ -18,6 +18,8 @@ export default function useChat({
   setContactSuccess,
   setContacts,
   setActiveConv,
+  setBlockedContacts,
+  setParentBlockedUids,
   onReconnect,
 }) {
   const disconnectTimerRef   = useRef(null);
@@ -224,6 +226,26 @@ export default function useChat({
     const onAccountPaused   = ({ features } = {})      => setPausedFeatures(features || { chat: true,  call: true,  video: true  });
     const onAccountResumed  = ({ features } = {})      => setPausedFeatures(features || { chat: false, call: false, video: false });
 
+    const onContactBlockedByParent = ({ targetUid, targetName }) => {
+      setBlockedContacts?.(prev => {
+        if (prev.some(c => c.uid === targetUid)) return prev;
+        return [...prev, { uid: targetUid, displayName: targetName, isBlockedByParent: true }];
+      });
+      setParentBlockedUids?.(prev => prev.includes(targetUid) ? prev : [...prev, targetUid]);
+    };
+    const onContactUnblockedByParent = ({ targetUid }) => {
+      setBlockedContacts?.(prev => prev.filter(c => c.uid !== targetUid));
+      setParentBlockedUids?.(prev => prev.filter(uid => uid !== targetUid));
+    };
+    const onContactRemovedByParent = ({ targetUid }) => {
+      setContacts(prev => prev.filter(c => c.uid !== targetUid));
+      setActiveConv(prev => {
+        if (!prev || prev.isGroup) return prev;
+        const isWithTarget = prev.members?.includes(targetUid);
+        return isWithTarget ? null : prev;
+      });
+    };
+
     const onMentionNotify = ({ senderName, groupName }) => {
       if (dndRef.current) return;
       setMentionToast({ senderName, groupName });
@@ -244,6 +266,9 @@ export default function useChat({
     socket.on('account:paused',   onAccountPaused);
     socket.on('account:resumed',  onAccountResumed);
     socket.on('mention:notify',   onMentionNotify);
+    socket.on('contact:blocked-by-parent',   onContactBlockedByParent);
+    socket.on('contact:unblocked-by-parent', onContactUnblockedByParent);
+    socket.on('contact:removed-by-parent',   onContactRemovedByParent);
 
     return () => {
       socket.off('connect',          onConnect);
@@ -260,6 +285,9 @@ export default function useChat({
       socket.off('account:resumed',  onAccountResumed);
       socket.off('user:updated',     onUserUpdated);
       socket.off('mention:notify',   onMentionNotify);
+      socket.off('contact:blocked-by-parent',   onContactBlockedByParent);
+      socket.off('contact:unblocked-by-parent', onContactUnblockedByParent);
+      socket.off('contact:removed-by-parent',   onContactRemovedByParent);
       clearTimeout(disconnectTimerRef.current);
       clearInterval(reconnectIntervalRef.current);
     };

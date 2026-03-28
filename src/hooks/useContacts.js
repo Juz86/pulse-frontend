@@ -64,8 +64,9 @@ export default function useContacts({
   const [friendReqLoading, setFriendReqLoading] = useState(false);
 
   // Blocked contacts
-  const [blockedContacts,  setBlockedContacts]  = useState([]);
-  const [blockingContact,  setBlockingContact]  = useState(null); // { uid, displayName } — bevestigingsmodal
+  const [blockedContacts,   setBlockedContacts]   = useState([]);
+  const [parentBlockedUids, setParentBlockedUids] = useState([]);
+  const [blockingContact,   setBlockingContact]   = useState(null); // { uid, displayName } — bevestigingsmodal
 
   // Contact rename / share / view
   const [renamingContact,      setRenamingContact]      = useState(null);
@@ -156,7 +157,10 @@ export default function useContacts({
     try {
       const res  = await authFetch(`${BACKEND_URL}/api/users/${user.uid}/blocked`);
       const data = await res.json();
-      setBlockedContacts(Array.isArray(data) ? data : []);
+      const contacts        = Array.isArray(data) ? data : (data?.contacts || []);
+      const parentUids      = data?.parentBlockedUids || [];
+      setBlockedContacts(contacts);
+      setParentBlockedUids(parentUids);
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }, [user.uid]);
 
@@ -357,7 +361,9 @@ export default function useContacts({
     // loaders
     loadContacts, loadFriendRequests, loadBlockedContacts,
     // blocked
-    blockedContacts, blockingContact, setBlockingContact,
+    blockedContacts, setBlockedContacts,
+    parentBlockedUids, setParentBlockedUids,
+    blockingContact, setBlockingContact,
     blockContact, unblockContact,
     // helpers
     getContactNickname, saveContactNickname, getContactDisplayName, findConvWithUid,

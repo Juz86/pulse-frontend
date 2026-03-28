@@ -163,7 +163,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     getContactNickname, saveContactNickname, getContactDisplayName, findConvWithUid,
     addContact, sendFriendRequestToEmail, acceptFriendRequest, declineFriendRequest,
     removeContact, togglePin, startChatWithContact, searchUser, startConversationWith,
-    blockedContacts, blockingContact, setBlockingContact, blockContact, unblockContact,
+    blockedContacts, setBlockedContacts,
+    parentBlockedUids, setParentBlockedUids,
+    blockingContact, setBlockingContact, blockContact, unblockContact,
   } = useContacts({
     user, conversations, setConversations, activeConv, setActiveConv,
     setMessages, setConvLabels, openConversation, loadConversations,
@@ -174,6 +176,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     user, activeConvRef, conversationsRef, msgsAreaRef, dndRef, audioCtxRef,
     loadConversations, loadContacts, setMessages, setConversations, setUnreadCounts,
     setFriendRequests, setContactSuccess, setContacts, setActiveConv,
+    setBlockedContacts, setParentBlockedUids,
     onReconnect: retryAllFailed,
   });
 
@@ -376,14 +379,22 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             )}
             {(() => {
               const blockedOtherUid = !activeConv.isGroup && getOtherUid(activeConv);
-              const isBlockedConv = blockedOtherUid && blockedContacts.some(c => c.uid === blockedOtherUid);
-              const blockedName = isBlockedConv && (blockedContacts.find(c => c.uid === blockedOtherUid)?.displayName || getConvName(activeConv));
-              return isBlockedConv ? (
+              const isBlockedConv   = blockedOtherUid && blockedContacts.some(c => c.uid === blockedOtherUid);
+              const isParentBlocked = blockedOtherUid && parentBlockedUids.includes(blockedOtherUid);
+              const blockedName     = isBlockedConv && (blockedContacts.find(c => c.uid === blockedOtherUid)?.displayName || getConvName(activeConv));
+              if (!isBlockedConv) return null;
+              return (
                 <div className="blocked-conv-banner" role="status">
-                  <span>Je hebt <strong>{blockedName}</strong> geblokkeerd. Ze kunnen je niet meer berichten of bellen.</span>
-                  <button type="button" className="btn-secondary" style={{ fontSize: '13px', padding: '6px 14px' }} onClick={() => unblockContact(blockedOtherUid)}>Deblokkeren</button>
+                  {isParentBlocked ? (
+                    <span>Dit contact is <strong>geblokkeerd door je ouder</strong>.</span>
+                  ) : (
+                    <>
+                      <span>Je hebt <strong>{blockedName}</strong> geblokkeerd. Ze kunnen je niet meer berichten of bellen.</span>
+                      <button type="button" className="btn-secondary" style={{ fontSize: '13px', padding: '6px 14px' }} onClick={() => unblockContact(blockedOtherUid)}>Deblokkeren</button>
+                    </>
+                  )}
                 </div>
-              ) : null;
+              );
             })()}
             <MessageList
               messages={messages.filter(m => !blockedContacts.some(c => c.uid === m.senderId && m.senderId !== user.uid))}
@@ -402,10 +413,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             />
             {(() => {
               const blockedOtherUid = !activeConv.isGroup && getOtherUid(activeConv);
-              const isBlockedConv = blockedOtherUid && blockedContacts.some(c => c.uid === blockedOtherUid);
+              const isBlockedConv   = blockedOtherUid && blockedContacts.some(c => c.uid === blockedOtherUid);
+              const isParentBlocked = blockedOtherUid && parentBlockedUids.includes(blockedOtherUid);
               return isBlockedConv ? (
                 <div className="blocked-input-overlay" role="status" aria-live="polite">
-                  Je hebt dit contact geblokkeerd. <button type="button" className="blocked-input-unblock" onClick={() => unblockContact(blockedOtherUid)}>Deblokkeren</button>
+                  {isParentBlocked
+                    ? 'Dit contact is geblokkeerd door je ouder.'
+                    : <><span>Je hebt dit contact geblokkeerd.</span> <button type="button" className="blocked-input-unblock" onClick={() => unblockContact(blockedOtherUid)}>Deblokkeren</button></>
+                  }
                 </div>
               ) : (
                 <ChatInput

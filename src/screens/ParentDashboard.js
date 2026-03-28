@@ -44,6 +44,13 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const [confirmDelete,  setConfirmDelete]  = useState(null); // { uid, displayName }
   const [deleteError,    setDeleteError]    = useState('');
 
+  // Contacten tab
+  const [contactsChildUid,    setContactsChildUid]    = useState(null);
+  const [childContacts,       setChildContacts]       = useState([]);
+  const [contactsLoading,     setContactsLoading]     = useState(false);
+  const [contactsError,       setContactsError]       = useState('');
+  const [contactActionUid,    setContactActionUid]    = useState(null); // uid bezig met actie
+
   // Analytics rapportage
   const [selectedChildUid, setSelectedChildUid] = useState(null);
   const [analytics,        setAnalytics]        = useState(null);
@@ -84,9 +91,58 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       const list = Array.isArray(data) ? data : [];
       setChildren(list);
       setSelectedChildUid(prev => prev || (list[0]?.uid ?? null));
+      setContactsChildUid(prev => prev || (list[0]?.uid ?? null));
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
     setLoading(false);
   }, [user]);
+
+  const loadChildContacts = useCallback(async (childUid) => {
+    if (!childUid) return;
+    setContactsLoading(true); setContactsError('');
+    try {
+      const res  = await authFetch(`${BACKEND}/api/parent/child/${childUid}/contacts`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Ophalen mislukt.');
+      setChildContacts(Array.isArray(data) ? data : []);
+    } catch (err) { setContactsError(err.message); setChildContacts([]); }
+    setContactsLoading(false);
+  }, []);
+
+  async function parentBlockContact(childUid, targetUid) {
+    setContactActionUid(targetUid);
+    try {
+      const res = await authFetch(`${BACKEND}/api/parent/child/${childUid}/block-contact`, {
+        method: 'POST', body: JSON.stringify({ targetUid }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      setChildContacts(prev => prev.map(c => c.uid === targetUid ? { ...c, isBlocked: true, isBlockedByParent: true } : c));
+    } catch (err) { setContactsError(err.message); }
+    setContactActionUid(null);
+  }
+
+  async function parentUnblockContact(childUid, targetUid) {
+    setContactActionUid(targetUid);
+    try {
+      const res = await authFetch(`${BACKEND}/api/parent/child/${childUid}/unblock-contact`, {
+        method: 'POST', body: JSON.stringify({ targetUid }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      setChildContacts(prev => prev.map(c => c.uid === targetUid ? { ...c, isBlocked: false, isBlockedByParent: false } : c));
+    } catch (err) { setContactsError(err.message); }
+    setContactActionUid(null);
+  }
+
+  async function parentRemoveContact(childUid, targetUid) {
+    setContactActionUid(targetUid);
+    try {
+      const res = await authFetch(`${BACKEND}/api/parent/child/${childUid}/remove-contact`, {
+        method: 'POST', body: JSON.stringify({ targetUid }),
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      setChildContacts(prev => prev.filter(c => c.uid !== targetUid));
+    } catch (err) { setContactsError(err.message); }
+    setContactActionUid(null);
+  }
 
   const loadActivities = useCallback(async () => {
     try {
@@ -144,6 +200,10 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     const interval = setInterval(() => loadAnalytics(selectedChildUid), 30000);
     return () => clearInterval(interval);
   }, [activeTab, selectedChildUid, loadAnalytics]);
+
+  useEffect(() => {
+    if (activeTab === 'contacts' && contactsChildUid) loadChildContacts(contactsChildUid);
+  }, [activeTab, contactsChildUid, loadChildContacts]);
 
   async function createChild(e) {
     e.preventDefault();
@@ -260,8 +320,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const activityTabBadge = parentActivityBadge > 9 ? '9+' : parentActivityBadge;
 
   const TABS = [
-    { id: 'add',        icon: <UserPlus  size={16} aria-hidden="true" />, label: 'Kind toevoegen'       },
-    { id: 'children',   icon: <Users     size={16} aria-hidden="true" />, label: 'Mijn kinderen'         },
+    { id: 'add',        icon: <UserPlus  size={16} aria-hidden="true" />, label: 'Kind toevoegen'  },
+    { id: 'children',   icon: <Users     size={16} aria-hidden="true" />, label: 'Mijn kinderen'   },
+    { id: 'contacts',   icon: <UserCheck size={16} aria-hidden="true" />, label: 'Contacten'       },
     { id: 'activities', icon: <Activity  size={16} aria-hidden="true" />, label: 'Activiteiten', badge: parentActivityBadge > 0 ? activityTabBadge : null },
   ];
 
@@ -617,7 +678,91 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
               </div>
             )}
 
-            {/* Tab 3 — Pulse activiteiten */}
+            {/* Tab 3 — Contacten van kind */}
+            {activeTab === 'contacts' && (
+              <div>
+                <h2 className="parent-section-title">Contacten</h2>
+                <p className="parent-section-sub" style={{ marginBottom: 16 }}>Bekijk en beheer de contacten van uw kind. U kunt contacten blokkeren of verwijderen.</p>
+
+                {/* Kind-selector */}
+                {children.length > 1 && (
+                  <div style={{ marginBottom: 16, position: 'relative', display: 'inline-block' }}>
+                    <button
+                      type="button"
+                      className="parent-btn-outline"
+                      style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                      onClick={e => { e.stopPropagation(); setChildDropdownOpen(v => !v); }}
+                    >
+                      <Users size={15} aria-hidden="true" />
+                      {children.find(c => c.uid === contactsChildUid)?.displayName || 'Selecteer kind'}
+                      <ChevronDown size={14} aria-hidden="true" />
+                    </button>
+                    {childDropdownOpen && (
+                      <div className="pd-dropdown" onClick={e => e.stopPropagation()}>
+                        {children.map(c => (
+                          <button key={c.uid} type="button" className={`pd-dropdown-item${c.uid === contactsChildUid ? ' active' : ''}`}
+                            onClick={() => { setContactsChildUid(c.uid); setChildDropdownOpen(false); }}>
+                            {c.uid === contactsChildUid && <Check size={14} aria-hidden="true" />}
+                            {c.displayName}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {contactsError && <div className="parent-error" role="alert" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{contactsError}</div>}
+
+                {contactsLoading ? (
+                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Contacten laden…</div>
+                ) : childContacts.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>
+                    <Users size={32} color="#ccc" style={{ marginBottom: 8 }} aria-hidden="true" />
+                    <p style={{ fontSize: 13 }}>Dit kind heeft nog geen contacten.</p>
+                  </div>
+                ) : (
+                  <div className="pd-contacts-list">
+                    {childContacts.map(contact => (
+                      <div key={contact.uid} className="pd-contact-row">
+                        <div className="pd-contact-avatar" aria-hidden="true">{getInitials(contact.displayName)}</div>
+                        <div className="pd-contact-info">
+                          <div className="pd-contact-name">{contact.displayName}</div>
+                          {contact.username && <div className="pd-contact-sub">@{contact.username}</div>}
+                        </div>
+                        <span className={`pd-contact-status${contact.isBlocked ? ' blocked' : ''}`}>
+                          {contact.isBlockedByParent ? 'Geblokkeerd door ouder' : contact.isBlocked ? 'Geblokkeerd' : 'Actief'}
+                        </span>
+                        <div className="pd-contact-actions">
+                          <button
+                            type="button"
+                            className="parent-btn-outline"
+                            style={{ fontSize: 12, padding: '5px 10px', color: contact.isBlocked ? '#22c55e' : '#f97316', borderColor: contact.isBlocked ? '#22c55e' : '#f97316', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
+                            disabled={contactActionUid === contact.uid}
+                            onClick={() => contact.isBlocked
+                              ? parentUnblockContact(contactsChildUid, contact.uid)
+                              : parentBlockContact(contactsChildUid, contact.uid)
+                            }
+                          >
+                            {contact.isBlocked ? 'Deblokkeren' : 'Blokkeren'}
+                          </button>
+                          <button
+                            type="button"
+                            className="parent-btn-outline"
+                            style={{ fontSize: 12, padding: '5px 10px', color: '#ef4444', borderColor: '#ef4444', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
+                            disabled={contactActionUid === contact.uid}
+                            onClick={() => parentRemoveContact(contactsChildUid, contact.uid)}
+                          >
+                            Verwijderen
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab 4 — Pulse activiteiten */}
             {activeTab === 'activities' && (
               <div>
                 {/* Header met kind-selector */}

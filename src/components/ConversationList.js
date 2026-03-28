@@ -53,9 +53,9 @@ const ConversationList = React.memo(function ConversationList({
   }, [onDelete]);
 
   return (
-    <div className="conv-list" onClick={() => setLabelMenuConvId(null)}>
+    <div className="conv-list" aria-busy={loadingConvs} onClick={() => setLabelMenuConvId(null)}>
       {loadingConvs && [0, 1, 2, 3].map(i => (
-        <div key={i} className="conv-item skeleton-item">
+        <div key={i} className="conv-item skeleton-item" aria-hidden="true">
           <div className="skeleton-avatar" />
           <div className="skeleton-lines">
             <div className="skeleton-line wide" />

@@ -113,16 +113,16 @@ export default function ChatSidebar({
         <div className="sidebar-top">
           <PulseLogo size={30} textSize={20} color={lightMode ? '#2b2448' : '#fff'} />
           <div style={{ display: 'flex', gap: '6px' }}>
-            <button type="button" className="icon-btn" onClick={onNewChat} title="Nieuw gesprek"><Message size={18} /></button>
-            <button type="button" className="icon-btn" onClick={onShowCallModal} title="Oproepen" style={{ position: 'relative' }}>
-              <Phone size={18} />
+            <button type="button" className="icon-btn" aria-label="Nieuw gesprek" onClick={onNewChat} title="Nieuw gesprek"><Message size={18} aria-hidden="true" /></button>
+            <button type="button" className="icon-btn" aria-label={hasMissedCall ? 'Oproepen, gemiste oproep aanwezig' : 'Oproepen'} onClick={onShowCallModal} title="Oproepen" style={{ position: 'relative' }}>
+              <Phone size={18} aria-hidden="true" />
               {hasMissedCall && (
-                <span style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
+                <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
               )}
             </button>
-            <button type="button" className="icon-btn" onClick={onNewGroup} title="Nieuwe groep"><Users size={18} /></button>
-            <button type="button" className={`icon-btn${dnd ? ' dnd-active' : ''}`} onClick={onToggleDnd} title={dnd ? 'Meldingen inschakelen' : 'Niet gestoord'}>
-              {dnd ? <BellOff size={18} /> : <Bell size={18} />}
+            <button type="button" className="icon-btn" aria-label="Nieuwe groep" onClick={onNewGroup} title="Nieuwe groep"><Users size={18} aria-hidden="true" /></button>
+            <button type="button" className={`icon-btn${dnd ? ' dnd-active' : ''}`} aria-label={dnd ? 'Meldingen inschakelen' : 'Niet gestoord inschakelen'} aria-pressed={dnd} onClick={onToggleDnd} title={dnd ? 'Meldingen inschakelen' : 'Niet gestoord'}>
+              {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -134,26 +134,28 @@ export default function ChatSidebar({
 
       {/* Tabs */}
       <div className="sidebar-tabs">
-        <button type="button" className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}>
-          <Message size={15} /> Chats
+        <button type="button" className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} aria-pressed={activeTab === 'chats'} onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}>
+          <Message size={15} aria-hidden="true" /> Chats
         </button>
-        <button type="button" className={`sidebar-tab ${activeTab === 'contacts' ? 'active' : ''}`} onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}>
-          <Users size={15} /> Contacten
-          {friendRequests.length > 0 && <span className="unread-badge" style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{friendRequests.length}</span>}
+        <button type="button" className={`sidebar-tab ${activeTab === 'contacts' ? 'active' : ''}`} aria-pressed={activeTab === 'contacts'} onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}>
+          <Users size={15} aria-hidden="true" /> Contacten
+          {friendRequests.length > 0 && <span className="unread-badge" aria-label={`${friendRequests.length} openstaande ${friendRequests.length === 1 ? 'uitnodiging' : 'uitnodigingen'}`} style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{friendRequests.length}</span>}
         </button>
       </div>
 
       {/* Filters */}
       {activeTab === 'chats' && (
-        <div className="chat-filters">
+        <div className="chat-filters" role="group" aria-label="Chatfilters">
           {['all', 'familie', 'vrienden'].map(f => (
             <button key={f} className={`chat-filter-chip${chatFilter === f ? ' active' : ''}`}
               type="button"
+              aria-pressed={chatFilter === f}
               onClick={() => { setChatFilter(f); setSelectedGroupId(null); }}>
               {f === 'all' ? 'Alles' : f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
           ))}
           <button type="button" className={`chat-filter-chip${chatFilter === 'groepen' ? ' active' : ''}`}
+            aria-pressed={chatFilter === 'groepen'}
             onClick={() => { setChatFilter('groepen'); setSelectedGroupId(null); }}>
             Groepen
           </button>
@@ -194,8 +196,8 @@ export default function ChatSidebar({
               + Contact toevoegen
             </button>
             {contactSuccess && (
-              <div style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', color: '#4ade80', fontSize: '13px' }}>
-                ✅ {contactSuccess}
+              <div role="status" aria-live="polite" style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', color: '#4ade80', fontSize: '13px' }}>
+                <span aria-hidden="true">✅ </span>{contactSuccess}
               </div>
             )}
           </div>
@@ -207,9 +209,9 @@ export default function ChatSidebar({
                 Verzoeken ({friendRequests.length})
               </div>
               {friendRequests.map(req => (
-                <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: 'rgba(124,111,255,0.08)', borderRadius: '10px', marginBottom: '8px', border: '1px solid rgba(124,111,255,0.2)' }}>
-                  <div className="avatar-circle sm">{getInitials(req.fromName)}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
+                <div key={req.id} aria-label={`Vriendschapsverzoek van ${req.fromName}${req.fromEmail ? `, ${req.fromEmail}` : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: 'rgba(124,111,255,0.08)', borderRadius: '10px', marginBottom: '8px', border: '1px solid rgba(124,111,255,0.2)' }}>
+                  <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.fromName)}</div>
+                  <div style={{ flex: 1, minWidth: 0 }} aria-hidden="true">
                     <div style={{ fontWeight: '600', fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.fromName}</div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.fromEmail}</div>
                   </div>
@@ -235,13 +237,13 @@ export default function ChatSidebar({
             c.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             c.email?.toLowerCase().includes(searchQuery.toLowerCase())
           ).map(contact => (
-            <div key={contact.uid} style={{ margin: '0 12px 10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div key={contact.uid} aria-label={`Contact ${getContactDisplayName(contact)}${contact.email ? `, ${contact.email}` : ''}`} style={{ margin: '0 12px 10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div className="avatar-wrap">
+                <div className="avatar-wrap" aria-hidden="true">
                   <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} />
-                  {onlineUsers.has(contact.uid) && <span className={`online-dot${inactiveUsers.has(contact.uid) ? ' inactive' : ''}`} />}
+                  {onlineUsers.has(contact.uid) && <span className={`online-dot${inactiveUsers.has(contact.uid) ? ' inactive' : ''}`} aria-hidden="true" />}
                 </div>
-                <div className="conv-info" style={{ flex: 1, minWidth: 0 }}>
+                <div className="conv-info" style={{ flex: 1, minWidth: 0 }} aria-hidden="true">
                   <div className="conv-name">{getContactDisplayName(contact)}</div>
                   <div className="conv-preview">{contact.email}</div>
                 </div>
@@ -253,11 +255,12 @@ export default function ChatSidebar({
                   <button
                     type="button"
                     className="icon-btn"
+                    aria-label={`Meer acties voor ${getContactDisplayName(contact)}`}
                     onMouseEnter={(e) => openContactMenu(contact.uid, e.currentTarget)}
                     onFocus={(e) => openContactMenu(contact.uid, e.currentTarget)}
                     title="Meer acties"
                   >
-                    <InfoIcon size={18} />
+                    <InfoIcon size={18} aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -281,6 +284,8 @@ export default function ChatSidebar({
         if (!contact) return null;
         return (
           <div
+            role="menu"
+            aria-label={`Acties voor ${getContactDisplayName(contact)}`}
             onMouseEnter={keepContactMenuOpen}
             onMouseLeave={() => scheduleCloseContactMenu(contact.uid)}
             onClick={e => e.stopPropagation()}
@@ -300,28 +305,28 @@ export default function ChatSidebar({
               gap: 4,
             }}
           >
-            <button type="button" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onViewContact(contact); setContactMenu(null); }} title="Profiel">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
+            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onViewContact(contact); setContactMenu(null); }} title="Profiel">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
               <span>Profiel</span>
             </button>
-            <button type="button" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onStartChat(contact); setContactMenu(null); }} title="Bericht sturen">
-              <Message size={16} />
+            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onStartChat(contact); setContactMenu(null); }} title="Bericht sturen">
+              <Message size={16} aria-hidden="true" />
               <span>Bericht sturen</span>
             </button>
-            <button type="button" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
-              <Phone size={16} />
+            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
+              <Phone size={16} aria-hidden="true" />
               <span>Bellen</span>
             </button>
-            <button type="button" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
-              <Video size={16} />
+            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
+              <Video size={16} aria-hidden="true" />
               <span>Videobellen</span>
             </button>
-            <button type="button" className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
-              <Pin size={17} />
+            <button type="button" role="menuitem" className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
+              <Pin size={17} aria-hidden="true" />
               <span>{pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}</span>
             </button>
-            <button type="button" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }} onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
-              <Delete size={18} />
+            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }} onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
+              <Delete size={18} aria-hidden="true" />
               <span>Prullenbak</span>
             </button>
           </div>
@@ -330,25 +335,25 @@ export default function ChatSidebar({
 
       {/* Footer */}
       <div className="sidebar-footer">
-        <div className="user-chip" style={{ cursor: 'pointer' }} onClick={onOpenProfile}>
-          <div className="avatar-wrap" style={{ flexShrink: 0 }}>
+        <button type="button" className="user-chip" style={{ cursor: 'pointer' }} aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`} onClick={onOpenProfile}>
+          <div className="avatar-wrap" style={{ flexShrink: 0 }} aria-hidden="true">
             <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" />
           </div>
-          <div className="user-chip-info">
+          <div className="user-chip-info" aria-hidden="true">
             <div className="user-chip-name">{user.displayName || user.email?.split('@')[0] || 'Gebruiker'}</div>
             <div className="user-chip-status">Online</div>
           </div>
-        </div>
+        </button>
         {isParent && (
-          <button type="button" className="icon-btn parent-dashboard-btn" onClick={onOpenDashboard} title="Ouderlijk toezicht" style={{ position: 'relative' }}>
-            <Shield size={18} />
-            {parentActivityBadge > 0 && <span className="parent-badge">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
+          <button type="button" className="icon-btn parent-dashboard-btn" aria-label={parentActivityBadge > 0 ? `Open ouderlijk toezicht, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open ouderlijk toezicht'} onClick={onOpenDashboard} title="Ouderlijk toezicht" style={{ position: 'relative' }}>
+            <Shield size={18} aria-hidden="true" />
+            {parentActivityBadge > 0 && <span className="parent-badge" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
           </button>
         )}
-        <button type="button" className="icon-btn" onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>
-          {lightMode ? <Moon size={18} /> : <Lightbulb size={18} />}
+        <button type="button" className="icon-btn" aria-label={lightMode ? 'Schakel naar donker thema' : 'Schakel naar licht thema'} onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>
+          {lightMode ? <Moon size={18} aria-hidden="true" /> : <Lightbulb size={18} aria-hidden="true" />}
         </button>
-        <button type="button" className="icon-btn danger" onClick={() => signOut(auth)} title="Uitloggen"><Logout size={18} /></button>
+        <button type="button" className="icon-btn danger" aria-label="Uitloggen" onClick={() => signOut(auth)} title="Uitloggen"><Logout size={18} aria-hidden="true" /></button>
       </div>
     </aside>
   );

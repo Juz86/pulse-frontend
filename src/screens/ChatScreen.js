@@ -292,7 +292,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   return (
     <div className="app-screen">
       {!connected && (
-        <div className="connection-banner">
+        <div className="connection-banner" role="status" aria-live="polite">
           <span>Verbinding verbroken{reconnectIn ? ` — opnieuw verbinden in ${reconnectIn}s` : ' — verbinden\u2026'}</span>
           <button type="button" className="connection-retry-btn" onClick={() => { const s = getSocket(); s?.connect(); }}>Nu verbinden</button>
         </div>
@@ -333,12 +333,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         getContactDisplayName={getContactDisplayName}
       />
 
-      <main className="chat-main">
+      <main className="chat-main" aria-label={activeConv ? `Chatvenster voor ${getConvName(activeConv)}` : 'Chatvenster'}>
         {!activeConv ? (
-          <div className="empty-state">
-            <div className="empty-icon"><Message size={48} /></div>
-            <div className="empty-title">Kies een gesprek</div>
-            <p>Of klik op het <Message size={14} style={{ verticalAlign: 'middle', margin: '0 2px', color: '#fff' }} /> om een nieuwe chat te beginnen.</p>
+          <div className="empty-state" role="status" aria-live="polite" aria-labelledby="chat-empty-title" aria-describedby="chat-empty-description">
+            <div className="empty-icon" aria-hidden="true"><Message size={48} /></div>
+            <div className="empty-title" id="chat-empty-title">Kies een gesprek</div>
+            <p id="chat-empty-description">Of klik op het <span aria-hidden="true"><Message size={14} style={{ verticalAlign: 'middle', margin: '0 2px', color: '#fff' }} /></span> om een nieuwe chat te beginnen.</p>
           </div>
         ) : (
           <>
@@ -357,12 +357,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               messages={messages} chatSearchRef={chatSearchRef}
             />
             {!isOnline && (
-              <div className="offline-banner">
+              <div className="offline-banner" role="status" aria-live="polite">
                 Je bent offline. Berichten worden verstuurd zodra je weer verbinding hebt.
               </div>
             )}
             {pinnedMsgs[activeConv?.id] && (
-              <div className="pinned-msg-bar">
+              <div className="pinned-msg-bar" role="status" aria-live="polite">
                 <span className="pinned-msg-icon" aria-hidden="true">📌</span>
                 <div className="pinned-msg-text">{pinnedMsgs[activeConv.id].text}</div>
                 <button type="button" className="pinned-msg-close" aria-label="Losmaken" onClick={() => handlePin(pinnedMsgs[activeConv.id])}><span aria-hidden="true">✕</span></button>

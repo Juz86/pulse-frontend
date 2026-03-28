@@ -93,7 +93,7 @@ const MessageBubble = React.memo(function MessageBubble({
     if (!sc?.uid && !sc?.name) return null;
     const canOpenSharedContact = !isOwn;
     return (
-      <div className={`msg-group ${isOwn ? 'out' : 'in'}`}>
+      <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
         <div
           className="msg-contact-card"
           role={canOpenSharedContact ? 'button' : undefined}
@@ -136,6 +136,7 @@ const MessageBubble = React.memo(function MessageBubble({
     return (
       <div
         className={`msg-group ${isOwn ? 'out' : 'in'}`}
+        role="listitem"
         ref={isFocused ? el => el?.scrollIntoView({ behavior: 'smooth', block: 'center' }) : null}
       >
         <div
@@ -166,6 +167,7 @@ const MessageBubble = React.memo(function MessageBubble({
   return (
     <div
       className={`msg-group ${isOwn ? 'out' : 'in'}`}
+      role="listitem"
       ref={isFocused ? el => el?.scrollIntoView({ behavior: 'smooth', block: 'center' }) : null}
       onContextMenu={handleContextMenu}
       onTouchStart={handleTouchStart}

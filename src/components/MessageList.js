@@ -42,7 +42,7 @@ const MessageList = React.memo(function MessageList({
       const label = formatDateLabel(msg.createdAt);
       if (label && label !== lastDate && msg.type !== 'call' && msg.type !== 'contact') {
         lastDate = label;
-        result.push(<div key={`date-${i}`} className="msg-date-sep"><span>{label}</span></div>);
+        result.push(<div key={`date-${i}`} className="msg-date-sep" role="separator" aria-label={`Berichten van ${label}`}><span>{label}</span></div>);
       } else if (label && label !== lastDate) {
         lastDate = label;
       }
@@ -85,7 +85,14 @@ const MessageList = React.memo(function MessageList({
 
   return (
     <div
+      id="chat-messages-log"
       className={`messages-area${chatBg ? ' has-chat-bg' : ''}${chatFading ? ' chat-fading' : ''}`}
+      role="log"
+      aria-label={activeConv ? `Berichten in gesprek met ${activeConv.isGroup ? (activeConv.name || 'groep') : (activeConv.name || activeConv.memberNames?.[activeConv.members?.find(m => m !== currentUid)] || 'contact')}` : 'Berichten'}
+      aria-live="polite"
+      aria-relevant="additions text"
+      aria-atomic="false"
+      aria-busy={loadingMsgs}
       ref={msgsAreaRef}
       style={bgStyle}
       onClick={handleAreaClick}
@@ -101,7 +108,7 @@ const MessageList = React.memo(function MessageList({
       {loadingMsgs ? (
         <div className="msg-skeleton-wrap">
           {[80, 55, 70, 40, 65].map((w, i) => (
-            <div key={i} className={`msg-skeleton ${i % 2 === 0 ? 'out' : 'in'}`}>
+            <div key={i} className={`msg-skeleton ${i % 2 === 0 ? 'out' : 'in'}`} aria-hidden="true">
               <div className="skeleton-bubble" style={{ width: `${w}%` }} />
             </div>
           ))}

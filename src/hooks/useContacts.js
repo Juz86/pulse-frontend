@@ -224,7 +224,13 @@ export default function useContacts({
 
   async function acceptFriendRequest(requestId) {
     try {
-      await authFetch(`${BACKEND_URL}/api/friend-requests/${requestId}/accept`, { method: 'POST' });
+      const res = await authFetch(`${BACKEND_URL}/api/friend-requests/${requestId}/accept`, { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showErrToast(data.error || 'Kan verzoek niet accepteren.');
+        setFriendRequests(prev => prev.filter(r => r.id !== requestId));
+        return;
+      }
       setFriendRequests(prev => prev.filter(r => r.id !== requestId));
       loadContacts();
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }

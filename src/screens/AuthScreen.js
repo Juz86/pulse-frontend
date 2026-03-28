@@ -1,17 +1,19 @@
 // src/screens/AuthScreen.js
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { User, Lock, EyeOn, EyeOff, Shield, PhoneIcon, Wifi, Heart } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { BACKEND_URL as BACKEND } from '../services/socket';
+import ParentAuthScreen from './ParentAuthScreen';
 
-export default function AuthScreen({ onParentClick, isModal }) {
+export default function AuthScreen({ isModal }) {
   const [username,     setUsername]     = useState('');
   const [password,     setPassword]     = useState('');
   const [error,        setError]        = useState('');
   const [loading,      setLoading]      = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [flipped,      setFlipped]      = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -142,31 +144,50 @@ export default function AuthScreen({ onParentClick, isModal }) {
     <div className="auth-screen">
       <div className="auth-bg" aria-hidden="true" />
 
-      <div
-        className="auth-card"
-        style={{ position: 'relative' }}
-        aria-labelledby="child-auth-title"
-        aria-describedby="child-auth-subtitle"
-      >
-        {onParentClick && (
-          <button
-            type="button"
-            onClick={onParentClick}
-            aria-label="Open ouder login of registratie"
-            style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.4)', color: 'var(--accent)', borderRadius: '10px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: 5 }}
+      <div className="auth-flip-wrapper">
+        <div className={`auth-flip-inner${flipped ? ' auth-flip-inner--flipped' : ''}`}>
+
+          {/* ── Voorkant: kind-login ── */}
+          <div
+            className="auth-card auth-card-front"
+            style={{ position: 'relative' }}
+            aria-labelledby="child-auth-title"
+            aria-describedby="child-auth-subtitle"
           >
-            <span aria-hidden="true"><Heart size={14} color="#ef4444" /></span> Ouder
-          </button>
-        )}
+            <button
+              type="button"
+              onClick={() => setFlipped(true)}
+              aria-label="Open ouder login of registratie"
+              style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.4)', color: 'var(--accent)', borderRadius: '10px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: 5 }}
+            >
+              <span aria-hidden="true"><Heart size={14} color="#ef4444" /></span> Ouder
+            </button>
 
-        <div className="auth-logo" aria-hidden="true">
-          <PulseLogo size={34} textSize={26} />
+            <div className="auth-logo" aria-hidden="true">
+              <PulseLogo size={34} textSize={26} />
+            </div>
+
+            <h2 id="child-auth-title" className="auth-title">Welkom terug</h2>
+            <p id="child-auth-subtitle" className="auth-sub">Log in met je gebruikersnaam en wachtwoord.</p>
+
+            {formContent}
+          </div>
+
+          {/* ── Achterkant: ouder-login ── */}
+          <div className="auth-card-back" aria-label="Ouder inloggen of registreren">
+            <button
+              type="button"
+              onClick={() => setFlipped(false)}
+              aria-label="Terug naar kind inloggen"
+              className="hp-nav-kind"
+              style={{ position: 'absolute', top: 16, right: 16 }}
+            >
+              <span aria-hidden="true">👦</span> Kind
+            </button>
+            <ParentAuthScreen isModal defaultTab="login" />
+          </div>
+
         </div>
-
-        <h2 id="child-auth-title" className="auth-title">Welkom terug</h2>
-        <p id="child-auth-subtitle" className="auth-sub">Log in met je gebruikersnaam en wachtwoord.</p>
-
-        {formContent}
       </div>
     </div>
   );

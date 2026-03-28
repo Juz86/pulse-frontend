@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import PulseLogo from './PulseLogo';
+import AuthModal from './AuthModal';
+import ParentAuthModal from './ParentAuthModal';
 
 export default function MarketingNavbar({
   items,
@@ -7,8 +9,9 @@ export default function MarketingNavbar({
   menuOpen,
   setMenuOpen,
   scrolled,
-  onParentClick,
 }) {
+  const [showKindModal,   setShowKindModal]   = useState(false);
+  const [showParentModal, setShowParentModal] = useState(false);
   const navMenuId = 'marketing-nav-links';
 
   useEffect(() => {
@@ -95,8 +98,17 @@ export default function MarketingNavbar({
 
       <button
         type="button"
+        className="hp-nav-kind"
+        onClick={() => { setShowKindModal(true); setMenuOpen(false); }}
+        aria-label="Kind inloggen"
+      >
+        <span aria-hidden="true">👦</span> Kind
+      </button>
+
+      <button
+        type="button"
         className="hp-nav-ouder"
-        onClick={onParentClick}
+        onClick={() => { setShowParentModal(true); setMenuOpen(false); }}
         aria-label="Open ouder login of registratie"
       >
         <span aria-hidden="true">❤️</span> Ouder
@@ -112,6 +124,9 @@ export default function MarketingNavbar({
       >
         <span aria-hidden="true">{menuOpen ? '✕' : '☰'}</span>
       </button>
+
+      {showKindModal   && <AuthModal       onClose={() => setShowKindModal(false)}   />}
+      {showParentModal && <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="login" />}
     </nav>
   );
 }

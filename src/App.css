@@ -82,6 +82,44 @@ body {
   content:''; position:absolute; top:0; left:0; right:0; height:1px;
   background:linear-gradient(90deg, transparent, rgba(108,99,255,.4), transparent);
 }
+
+/* ── Kaart-flip (kind ↔ ouder login) ────────────────────────────────────────── */
+.auth-flip-wrapper {
+  perspective: 1200px;
+  z-index: 1;
+}
+.auth-flip-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.auth-flip-inner--flipped {
+  transform: rotateY(180deg);
+}
+.auth-card-front {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.auth-card-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(180deg);
+  overflow-y: auto;
+  /* witte achtergrond: parent-auth gebruikt vaste lichte kleuren */
+  background: #fff;
+  border: 1px solid rgba(108,99,255,0.15);
+  border-radius: 28px;
+  padding: 44px;
+  box-shadow: 0 40px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(108,99,255,.08);
+}
+.auth-card-back::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(108,99,255,.4), transparent);
+  border-radius: 28px 28px 0 0;
+}
+
 .auth-logo { display:flex; align-items:center; gap:10px; margin-bottom:28px; }
 .auth-logo-icon {
   font-size:28px;
@@ -203,7 +241,9 @@ body {
 /* ── AUTH MODAL ── */
 .auth-modal-overlay {
   position: fixed; inset: 0; z-index: 9999;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex; align-items: center; justify-content: center;
   padding: 16px;
   opacity: 0;
@@ -1479,6 +1519,7 @@ body {
 @media (max-width: 767px) {
   /* Auth */
   .auth-card { width:calc(100vw - 32px); padding:32px 24px; border-radius:20px; }
+  .auth-card-back { width:calc(100vw - 32px); padding:32px 24px; border-radius:20px; }
 
   /* Modal */
   .modal-box { width:calc(100vw - 32px); padding:28px 20px; border-radius:20px; }
@@ -1552,7 +1593,8 @@ body {
 }
 
 @media (max-width: 480px) {
-  .auth-card  { padding:28px 18px; }
+  .auth-card      { padding:28px 18px; }
+  .auth-card-back { padding:28px 18px; }
   .modal-box  { padding:24px 16px; }
   .call-card  { width:calc(100vw - 32px); padding:36px 24px; }
 }
@@ -2223,6 +2265,14 @@ body {
   padding: 6px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s;
 }
 .fp-nav-link:hover { color: #1a1a2e; background: rgba(108,99,255,0.08); }
+.hp-nav-kind {
+  background: #f0fdf4; border: 1px solid rgba(34,197,94,0.22);
+  color: #16a34a; border-radius: 14px; padding: 7px 16px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s, color 0.15s; white-space: nowrap;
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px;
+}
+.hp-nav-kind:hover { background: #dcfce7; color: #15803d; }
 .hp-nav-ouder {
   background: #f4f1ff; border: 1px solid rgba(108,99,255,0.18);
   color: #7c69f2; border-radius: 14px; padding: 7px 16px;
@@ -2323,6 +2373,9 @@ body {
   position: static; transform: none; margin: 0; width: 100%;
   box-shadow: 0 24px 72px rgba(108,99,255,0.12), 0 0 0 1px rgba(108,99,255,0.08);
 }
+.hp-hero-card .auth-flip-wrapper { width: 100%; }
+.hp-hero-card .auth-flip-inner   { width: 100%; }
+.hp-hero-card .auth-card-back    { position: absolute; transform: rotateY(180deg); }
 
 /* ── SECTIONS ── */
 .hp-section { padding: 96px 0; background: #fff; }
@@ -2681,6 +2734,7 @@ body {
     z-index: 110;
   }
   .hp-nav-hamburger { display: block; }
+  .hp-nav-kind  { font-size: 12px; padding: 6px 12px; }
   .hp-nav-ouder { font-size: 12px; padding: 6px 12px; }
 
   .hp-hero-inner { flex-direction: column; padding: 40px 20px; }

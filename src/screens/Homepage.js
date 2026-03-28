@@ -72,7 +72,7 @@ export default function Homepage({ onParentClick }) {
           </div>
 
           <div className="hp-hero-card" id="login" aria-label="Inloggen bij Pulse">
-            <AuthScreen onParentClick={onParentClick} />
+            <AuthScreen />
           </div>
         </div>
       </section>

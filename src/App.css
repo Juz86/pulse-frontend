@@ -441,7 +441,7 @@ body {
   content:''; position:absolute; top:0; left:18px; right:18px; height:1px;
   background:linear-gradient(90deg, transparent, rgba(108,99,255,.3), transparent);
 }
-.user-chip      { display:flex; align-items:center; gap:10px; flex:1; }
+.user-chip      { display:flex; align-items:center; gap:10px; flex:1; background:none; border:none; padding:0; cursor:pointer; text-align:left; }
 .user-chip-avatar {
   width:36px; height:36px; border-radius:11px;
   background:linear-gradient(135deg, var(--accent), var(--accent2));

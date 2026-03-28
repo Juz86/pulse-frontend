@@ -988,10 +988,18 @@ export default function ChatModals({
       {/* ── DOORSTUREN MODAL ── */}
       {forwardMsg && (
         <div className="modal-overlay" onClick={() => setForwardMsg(null)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 380 }}>
+          <div
+            className="modal-box"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="forward-message-title"
+            aria-describedby="forward-message-description"
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: 380 }}
+          >
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setForwardMsg(null)}><span aria-hidden="true">✕</span></button>
-            <h3 className="modal-title">↪️ Doorsturen naar…</h3>
-            <div style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 12, padding: '8px 12px', background: 'var(--surface2)', borderRadius: 8, maxHeight: 60, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <h3 id="forward-message-title" className="modal-title"><span aria-hidden="true">↪️</span> Doorsturen naar…</h3>
+            <div id="forward-message-description" style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 12, padding: '8px 12px', background: 'var(--surface2)', borderRadius: 8, maxHeight: 60, overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {forwardMsg.text}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 320, overflowY: 'auto' }}>

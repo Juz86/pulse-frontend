@@ -374,8 +374,20 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 <button type="button" className="pinned-msg-close" aria-label="Losmaken" onClick={() => handlePin(pinnedMsgs[activeConv.id])}><span aria-hidden="true">✕</span></button>
               </div>
             )}
+            {(() => {
+              const blockedOtherUid = !activeConv.isGroup && getOtherUid(activeConv);
+              const isBlockedConv = blockedOtherUid && blockedContacts.some(c => c.uid === blockedOtherUid);
+              const blockedName = isBlockedConv && (blockedContacts.find(c => c.uid === blockedOtherUid)?.displayName || getConvName(activeConv));
+              return isBlockedConv ? (
+                <div className="blocked-conv-banner" role="status">
+                  <span>Je hebt <strong>{blockedName}</strong> geblokkeerd. Ze kunnen je niet meer berichten of bellen.</span>
+                  <button type="button" className="btn-secondary" style={{ fontSize: '13px', padding: '6px 14px' }} onClick={() => unblockContact(blockedOtherUid)}>Deblokkeren</button>
+                </div>
+              ) : null;
+            })()}
             <MessageList
-              messages={messages} activeConv={activeConv} currentUid={user.uid}
+              messages={messages.filter(m => !blockedContacts.some(c => c.uid === m.senderId && m.senderId !== user.uid))}
+              activeConv={activeConv} currentUid={user.uid}
               chatSearch={chatSearch} chatSearchIdx={chatSearchIdx}
               chatBg={chatBg} chatFading={chatFading}
               hasMore={hasMore} loadingMore={loadingMore} loadingMsgs={loadingMsgs}
@@ -388,18 +400,28 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onRetry={msg => retryMessage(msg)}
               onViewContact={sc => { setFriendReqSent(false); setViewingSharedContact({ ...sc, isAlreadyContact: contacts.some(c => c.uid === sc?.uid) }); }}
             />
-            <ChatInput
-              text={text} setText={setText}
-              editingMsg={editingMsg} setEditingMsg={setEditingMsg}
-              replyTo={replyTo} setReplyTo={setReplyTo}
-              mentionSuggestions={mentionSuggestions} setMentionSuggestions={setMentionSuggestions}
-              mentionSelIdx={mentionSelIdx} setMentionSelIdx={setMentionSelIdx}
-              setPendingMentions={setPendingMentions}
-              pausedFeatures={pausedFeatures} activeConv={activeConv}
-              user={user} contacts={contacts}
-              textareaRef={textareaRef} activeConvRef={activeConvRef}
-              typingTimerRef={typingTimer} stopTyping={stopTyping} onSend={sendMessage}
-            />
+            {(() => {
+              const blockedOtherUid = !activeConv.isGroup && getOtherUid(activeConv);
+              const isBlockedConv = blockedOtherUid && blockedContacts.some(c => c.uid === blockedOtherUid);
+              return isBlockedConv ? (
+                <div className="blocked-input-overlay" role="status" aria-live="polite">
+                  Je hebt dit contact geblokkeerd. <button type="button" className="blocked-input-unblock" onClick={() => unblockContact(blockedOtherUid)}>Deblokkeren</button>
+                </div>
+              ) : (
+                <ChatInput
+                  text={text} setText={setText}
+                  editingMsg={editingMsg} setEditingMsg={setEditingMsg}
+                  replyTo={replyTo} setReplyTo={setReplyTo}
+                  mentionSuggestions={mentionSuggestions} setMentionSuggestions={setMentionSuggestions}
+                  mentionSelIdx={mentionSelIdx} setMentionSelIdx={setMentionSelIdx}
+                  setPendingMentions={setPendingMentions}
+                  pausedFeatures={pausedFeatures} activeConv={activeConv}
+                  user={user} contacts={contacts}
+                  textareaRef={textareaRef} activeConvRef={activeConvRef}
+                  typingTimerRef={typingTimer} stopTyping={stopTyping} onSend={sendMessage}
+                />
+              );
+            })()}
           </>
         )}
       </main>

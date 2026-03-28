@@ -970,13 +970,20 @@ export default function ChatModals({
                           <div className="auth-error">⚠️ Alle contacten zijn al lid van deze groep.</div>
                         )}
                         {contacts.filter(c => !activeConv.members.includes(c.uid)).map(c => (
-                          <div key={c.uid} className="search-result" onClick={() => addMemberToGroup(c)}>
+                          <button
+                            key={c.uid}
+                            type="button"
+                            className="search-result"
+                            aria-label={`Voeg ${c.displayName} toe aan de groep`}
+                            onClick={() => addMemberToGroup(c)}
+                            style={{ textAlign: 'left', width: '100%' }}
+                          >
                             <div className="avatar-circle sm">{getInitials(c.displayName)}</div>
                             <div>
                               <div className="conv-name">{c.displayName}</div>
                               <div className="conv-preview">{c.email}</div>
                             </div>
-                          </div>
+                          </button>
                         ))}
                       </div>
                       <button type="button" className="btn-secondary" onClick={() => setAddingMember(false)}>Annuleren</button>
@@ -1040,23 +1047,28 @@ export default function ChatModals({
 
       {/* ── ERROR / INFO TOAST ── */}
       {errToast && (
-        <div className="mention-toast" style={{ background: typeof errToast === 'object' ? errToast.bg : errToast.startsWith('📋') ? 'rgba(34,197,94,0.92)' : 'rgba(255,71,87,0.92)', display: 'flex', alignItems: 'center', gap: 7 }}>
+        <div
+          className="mention-toast"
+          role="status"
+          aria-live="polite"
+          style={{ background: typeof errToast === 'object' ? errToast.bg : errToast.startsWith('📋') ? 'rgba(34,197,94,0.92)' : 'rgba(255,71,87,0.92)', display: 'flex', alignItems: 'center', gap: 7 }}
+        >
           {typeof errToast === 'object' ? <>{errToast.icon}<span>{errToast.text}</span></> : <span>{errToast}</span>}
         </div>
       )}
 
       {/* ── MENTION TOAST ── */}
       {mentionToast && (
-        <div className="mention-toast">
-          <span className="mention-toast-icon">@</span>
+        <div className="mention-toast" role="status" aria-live="polite">
+          <span className="mention-toast-icon" aria-hidden="true">@</span>
           <span><strong>{mentionToast.senderName}</strong> heeft je vermeld in <strong>{mentionToast.groupName}</strong></span>
         </div>
       )}
 
       {/* ── OUDER ACTIVITEIT TOAST ── */}
       {parentToast && (
-        <div className="parent-toast">
-          <span style={{ fontSize: 18 }}>❤️</span>
+        <div className="parent-toast" role="status" aria-live="polite">
+          <span style={{ fontSize: 18 }} aria-hidden="true">❤️</span>
           <span>{parentToast.description}</span>
         </div>
       )}

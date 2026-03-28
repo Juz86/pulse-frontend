@@ -14,6 +14,7 @@ const ChatHeader = React.memo(function ChatHeader({
   onInitiateCall,
   onShowGroupInfo,
   onShowContactProfile,
+  parentBlockedOtherUid,
   setRenameValue,
   getConvName,
   getOtherUid,
@@ -119,7 +120,7 @@ const ChatHeader = React.memo(function ChatHeader({
 
         {/* Actieknoppen */}
         <div className="chat-header-actions">
-          {!activeConv.isGroup && (
+          {!activeConv.isGroup && !parentBlockedOtherUid && (
             <>
               <button type="button" className="call-btn voice" aria-label={`Bel ${getConvName(activeConv)}`} onClick={() => onInitiateCall(false)} title="Bellen"><Phone size={18} aria-hidden="true" /></button>
               <button type="button" className="call-btn video" aria-label={`Videobel ${getConvName(activeConv)}`} onClick={() => onInitiateCall(true)} title="Videobellen"><Video size={18} aria-hidden="true" /></button>

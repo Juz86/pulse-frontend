@@ -581,7 +581,7 @@ export default function ChatModals({
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {selfBlocked.map(c => (
                               <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px 12px' }}>
-                                <div className="avatar sm" style={{ flexShrink: 0 }}>{getInitials(c.displayName || c.email || '?')}</div>
+                                <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.displayName || c.email}</div>
                                 </div>
@@ -597,7 +597,7 @@ export default function ChatModals({
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {parentBlocked.map(c => (
                               <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '10px', padding: '10px 12px' }}>
-                                <div className="avatar sm" style={{ flexShrink: 0 }}>{getInitials(c.displayName || c.email || '?')}</div>
+                                <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.displayName || c.email}</div>
                                   <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '2px' }}>Geblokkeerd door ouder</div>

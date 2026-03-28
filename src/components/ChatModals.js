@@ -961,13 +961,24 @@ export default function ChatModals({
                     })}
                   </div>
                   {isAdmin && !addingMember ? (
-                    <button type="button" className="btn-secondary" onClick={() => setAddingMember(true)}>+ Lid toevoegen</button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      aria-expanded="false"
+                      aria-controls="group-add-member-list"
+                      onClick={() => setAddingMember(true)}
+                    >
+                      <span aria-hidden="true">+</span> Lid toevoegen
+                    </button>
                   ) : isAdmin && addingMember ? (
                     <>
                       <p className="modal-sub">Kies een contact om toe te voegen</p>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+                      <div
+                        id="group-add-member-list"
+                        style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}
+                      >
                         {contacts.filter(c => !activeConv.members.includes(c.uid)).length === 0 && (
-                          <div className="auth-error">⚠️ Alle contacten zijn al lid van deze groep.</div>
+                          <div className="auth-error" role="status" aria-live="polite"><span aria-hidden="true">⚠️</span> Alle contacten zijn al lid van deze groep.</div>
                         )}
                         {contacts.filter(c => !activeConv.members.includes(c.uid)).map(c => (
                           <button

@@ -163,7 +163,7 @@ export default function ChatModals({
       {renamingContact && (
         <div className="modal-overlay" onClick={() => setRenamingContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
-            <h3 className="modal-title"><span className="modal-title-icon"><MagicEdit size={18} /></span> Naam wijzigen</h3>
+            <h3 className="modal-title"><span className="modal-title-icon" aria-hidden="true"><MagicEdit size={18} /></span> Naam wijzigen</h3>
             <div className="form-group">
               <label className="form-label">Bijnaam</label>
               <input
@@ -176,8 +176,8 @@ export default function ChatModals({
               />
             </div>
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setRenamingContact(null)}>Annuleren</button>
-              <button className="btn-primary" onClick={() => { saveContactNickname(renamingContact.uid, renameValue); setRenamingContact(null); setContacts(prev => [...prev]); }}>Opslaan</button>
+              <button type="button" className="btn-secondary" onClick={() => setRenamingContact(null)}>Annuleren</button>
+              <button type="button" className="btn-primary" onClick={() => { saveContactNickname(renamingContact.uid, renameValue); setRenamingContact(null); setContacts(prev => [...prev]); }}>Opslaan</button>
             </div>
           </div>
         </div>
@@ -187,7 +187,7 @@ export default function ChatModals({
       {sharingContact && (
         <div className="modal-overlay" onClick={() => { setSharingContact(null); setShareRecipients([]); }}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
-            <h3 className="modal-title" style={{ whiteSpace: 'nowrap', fontSize: '16px' }}><span className="modal-title-icon"><Share size={18} /></span> Contactpersoon delen</h3>
+            <h3 className="modal-title" style={{ whiteSpace: 'nowrap', fontSize: '16px' }}><span className="modal-title-icon" aria-hidden="true"><Share size={18} /></span> Contactpersoon delen</h3>
             <div style={{ marginBottom: '12px', padding: '10px 14px', borderRadius: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div className="avatar sm">{getInitials(getContactDisplayName(sharingContact))}</div>
               <div>
@@ -200,7 +200,7 @@ export default function ChatModals({
               {contacts.filter(c => c.uid !== sharingContact.uid).map(c => {
                 const selected = shareRecipients.includes(c.uid);
                 return (
-                  <button key={c.uid} className="contact-row"
+                  <button key={c.uid} type="button" className="contact-row"
                     style={{ background: selected ? 'var(--accent-soft, rgba(108,99,255,.15))' : 'none', border: selected ? '1px solid var(--accent)' : '1px solid var(--border)', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text)', textAlign: 'left' }}
                     onClick={() => setShareRecipients(prev => prev.includes(c.uid) ? prev.filter(id => id !== c.uid) : [...prev, c.uid])}>
                     <div className="avatar sm">{getInitials(getContactDisplayName(c))}</div>
@@ -208,14 +208,14 @@ export default function ChatModals({
                       <div style={{ fontWeight: 500, fontSize: '14px' }}>{getContactDisplayName(c)}</div>
                       <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{c.email}</div>
                     </div>
-                    {selected && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+                    {selected && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>}
                   </button>
                 );
               })}
             </div>
             <div className="modal-actions" style={{ marginTop: '14px' }}>
-              <button className="btn-secondary" onClick={() => { setSharingContact(null); setShareRecipients([]); }}>Annuleren</button>
-              <button className="btn-primary" disabled={shareRecipients.length === 0}
+              <button type="button" className="btn-secondary" onClick={() => { setSharingContact(null); setShareRecipients([]); }}>Annuleren</button>
+              <button type="button" className="btn-primary" disabled={shareRecipients.length === 0}
                 onClick={() => { shareRecipients.forEach(uid => { const c = contacts.find(x => x.uid === uid); if (c) sendContactCard(c, sharingContact); }); setSharingContact(null); setShareRecipients([]); }}>
                 Versturen{shareRecipients.length > 1 ? ` (${shareRecipients.length})` : ''}
               </button>
@@ -228,7 +228,7 @@ export default function ChatModals({
       {viewingSharedContact && (
         <div className="modal-overlay" onClick={() => setViewingSharedContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 400, width: '100%' }}>
-            <h3 className="modal-title" style={{ fontSize: '18px' }}><span className="modal-title-icon"><User size={18} /></span> Contactpersoon</h3>
+            <h3 className="modal-title" style={{ fontSize: '18px' }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Contactpersoon</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 0 20px' }}>
               <div className="avatar-wrap" style={{ flexShrink: 0 }}>
                 <div className="avatar-circle" style={{ width: 52, height: 52, fontSize: 20, borderRadius: 14 }}>{getInitials(viewingSharedContact.name || '')}</div>
@@ -248,10 +248,10 @@ export default function ChatModals({
               </div>
             </div>
             <div className="modal-actions" style={{ justifyContent: 'space-between' }}>
-              <button className="btn-secondary" onClick={() => setViewingSharedContact(null)}>Sluiten</button>
+              <button type="button" className="btn-secondary" onClick={() => setViewingSharedContact(null)}>Sluiten</button>
               {viewingSharedContact.isAlreadyContact
-                ? <span style={{ fontSize: '13px', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '5px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg> Al in contacten</span>
-                : <button className="btn-primary" disabled={friendReqLoading || friendReqSent}
+                ? <span style={{ fontSize: '13px', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '5px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg> Al in contacten</span>
+                : <button type="button" className="btn-primary" disabled={friendReqLoading || friendReqSent}
                     onClick={() => sendFriendRequestToEmail(viewingSharedContact.email)}>
                     {friendReqSent ? '✓ Verzoek verzonden' : friendReqLoading ? 'Verzenden…' : 'Vriendschapsverzoek'}
                   </button>
@@ -266,8 +266,8 @@ export default function ChatModals({
         <div className="modal-overlay" onClick={() => setViewingContact(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon"><User size={18} /></span> Profiel</h3>
-              <button className="icon-btn" onClick={() => { setSharingContact(viewingContact); setViewingContact(null); }} title="Contactpersoon delen"><Share size={18} /></button>
+              <h3 className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h3>
+              <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${getContactDisplayName(viewingContact)}`} onClick={() => { setSharingContact(viewingContact); setViewingContact(null); }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
               {viewingContact.photoURL
@@ -301,7 +301,7 @@ export default function ChatModals({
                   <label className="form-label">Relatie</label>
                   <div style={{ display: 'flex', gap: 8 }}>
                     {['familie', 'vrienden'].map(lbl => (
-                      <button key={lbl} onClick={() => setConvLabel(dmConv.id, convLabels[dmConv.id] === lbl ? null : lbl)}
+                      <button key={lbl} type="button" onClick={() => setConvLabel(dmConv.id, convLabels[dmConv.id] === lbl ? null : lbl)}
                         style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${convLabels[dmConv.id] === lbl ? '#6c63ff' : 'var(--border)'}`, background: convLabels[dmConv.id] === lbl ? '#6c63ff' : 'transparent', color: convLabels[dmConv.id] === lbl ? '#fff' : 'var(--text2)', fontSize: 13, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
                         {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
                       </button>
@@ -311,8 +311,8 @@ export default function ChatModals({
               );
             })()}
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setViewingContact(null)}>Sluiten</button>
-              <button className="btn-primary" style={{ flex: 1 }} onClick={() => { saveContactNickname(viewingContact.uid, renameValue); setContacts(prev => [...prev]); setViewingContact(null); }}>Opslaan</button>
+              <button type="button" className="btn-secondary" onClick={() => setViewingContact(null)}>Sluiten</button>
+              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => { saveContactNickname(viewingContact.uid, renameValue); setContacts(prev => [...prev]); setViewingContact(null); }}>Opslaan</button>
             </div>
           </div>
         </div>
@@ -324,8 +324,8 @@ export default function ChatModals({
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
             <p style={{ color: 'var(--text)', fontSize: '15px', marginBottom: '24px', lineHeight: '1.5' }}>{confirmDialog.message}</p>
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => setConfirmDialog(null)}>Annuleren</button>
-              <button className="btn-primary" style={{ flex: 1, background: 'linear-gradient(135deg, #ef4444, #dc2626)' }} onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}>Verwijderen</button>
+              <button type="button" className="btn-secondary" onClick={() => setConfirmDialog(null)}>Annuleren</button>
+              <button type="button" className="btn-primary" style={{ flex: 1, background: 'linear-gradient(135deg, #ef4444, #dc2626)' }} onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}>Verwijderen</button>
             </div>
           </div>
         </div>
@@ -335,7 +335,7 @@ export default function ChatModals({
       {showAddContact && (
         <div className="modal-overlay" onClick={() => setShowAddContact(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title"><span className="modal-title-icon"><Users size={18} /></span> Vriend uitnodigen</h3>
+            <h3 className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Vriend uitnodigen</h3>
             <p className="modal-sub">Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam</p>
             <div className="form-group">
               <label className="form-label">E-mailadres of gebruikersnaam</label>
@@ -345,7 +345,7 @@ export default function ChatModals({
               <label className="form-label">Relatie</label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {['familie', 'vrienden'].map(lbl => (
-                  <button key={lbl} onClick={() => setContactRelation(contactRelation === lbl ? null : lbl)}
+                  <button key={lbl} type="button" onClick={() => setContactRelation(contactRelation === lbl ? null : lbl)}
                     style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${contactRelation === lbl ? '#6c63ff' : 'var(--border)'}`, background: contactRelation === lbl ? '#6c63ff' : 'transparent', color: contactRelation === lbl ? '#fff' : 'var(--text2)', fontSize: 13, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
                     {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
                   </button>
@@ -354,8 +354,8 @@ export default function ChatModals({
             </div>
             {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); }}>Annuleren</button>
-              <button className="btn-primary" style={{ flex: 1 }} onClick={addContact} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>
+              <button type="button" className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); }}>Annuleren</button>
+              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={addContact} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>
             </div>
           </div>
         </div>
@@ -365,18 +365,18 @@ export default function ChatModals({
       {showNewChat && (
         <div className="modal-overlay" onClick={() => setShowNewChat(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 460, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
-            <h3 className="modal-title"><span className="modal-title-icon"><MagicEdit size={18} /></span> Nieuwe chat</h3>
+            <h3 className="modal-title"><span className="modal-title-icon" aria-hidden="true"><MagicEdit size={18} /></span> Nieuwe chat</h3>
             <p className="modal-sub">Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam</p>
             <div className="search-row" style={{ marginBottom: searchErr || searchResult ? 10 : 18 }}>
               <input className="form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={searchEmail} onChange={e => setSearchEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && searchUser()} />
-              <button className="btn-primary sm" onClick={searchUser}>Zoeken</button>
+              <button type="button" className="btn-primary sm" onClick={searchUser}>Zoeken</button>
             </div>
             {searchErr && <div className="auth-error" style={{ marginBottom: 14 }}>⚠️ {searchErr}</div>}
             {searchResult && (
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Zoekresultaat</div>
                 <div className="search-result" onClick={() => startConversationWith(searchResult)}>
-                  <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" />
+                  <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" decorative />
                   <div><div className="conv-name">{searchResult.displayName}</div><div className="conv-preview">{searchResult.email}</div></div>
                 </div>
               </div>
@@ -387,7 +387,7 @@ export default function ChatModals({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', overflowY: 'auto', maxHeight: '32vh', paddingRight: 4 }}>
                   {filteredNewChatContacts.map(c => (
                     <div key={c.uid} className="search-result" onClick={() => startConversationWith(c)}>
-                      <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" />
+                      <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" decorative />
                       <div><div className="conv-name">{getContactDisplayName(c)}</div><div className="conv-preview">{c.email}</div></div>
                     </div>
                   ))}
@@ -399,7 +399,7 @@ export default function ChatModals({
                 </div>
               </>
             )}
-            <button className="btn-secondary" style={{ marginTop: 'auto' }} onClick={() => setShowNewChat(false)}>Sluiten</button>
+            <button type="button" className="btn-secondary" style={{ marginTop: 'auto' }} onClick={() => setShowNewChat(false)}>Sluiten</button>
           </div>
         </div>
       )}
@@ -408,7 +408,7 @@ export default function ChatModals({
       {showNewGroup && (
         <div className="modal-overlay" onClick={() => setShowNewGroup(false)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title"><span className="modal-title-icon"><Users size={18} /></span> Nieuwe groep</h3>
+            <h3 className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Nieuwe groep</h3>
             <div className="form-group">
               <label className="form-label">Groepsnaam</label>
               <input className="form-input" placeholder="Bijv. Familie, Werk…" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={50} />
@@ -420,7 +420,7 @@ export default function ChatModals({
                 const selected = groupMembers.find(m => m.uid === c.uid);
                 return (
                   <div key={c.uid} className={`search-result ${selected ? 'selected' : ''}`} onClick={() => toggleGroupMember(c)}>
-                    <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" />
+                    <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" decorative />
                     <div style={{ flex: 1 }}><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
                     {selected
                       ? <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#6c63ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Check size={14} color="#fff" /></span>
@@ -432,8 +432,8 @@ export default function ChatModals({
             </div>
             {groupMembers.length > 0 && <p className="modal-sub">{groupMembers.length} deelnemer(s) geselecteerd</p>}
             <div className="modal-actions">
-              <button className="btn-secondary" onClick={() => { setShowNewGroup(false); setGroupName(''); }}>Annuleren</button>
-              <button className="btn-primary" style={{ flex: 1 }} onClick={createGroup} disabled={!groupName.trim() || groupMembers.length === 0}>Groep aanmaken →</button>
+              <button type="button" className="btn-secondary" onClick={() => { setShowNewGroup(false); setGroupName(''); }}>Annuleren</button>
+              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={createGroup} disabled={!groupName.trim() || groupMembers.length === 0}>Groep aanmaken →</button>
             </div>
           </div>
         </div>
@@ -445,7 +445,7 @@ export default function ChatModals({
           <div className="profile-modal-box" onClick={e => e.stopPropagation()}>
             <div className="profile-modal-header">
               <span className="profile-modal-header-title">Instellingen</span>
-              <button className="profile-modal-close" onClick={() => setShowProfile(false)}>✕</button>
+              <button type="button" className="profile-modal-close" aria-label="Instellingen sluiten" onClick={() => setShowProfile(false)}><span aria-hidden="true">✕</span></button>
             </div>
             <div className="profile-modal-body">
               <div className="profile-sidebar">
@@ -454,7 +454,7 @@ export default function ChatModals({
                   ['styling', <Palette size={16} />, 'Styling'],
                   ['verwijderen', <Delete size={16} />, 'Verwijderen'],
                 ].map(([id, icon, label]) => (
-                  <button key={id} className={`profile-sidebar-tab${profileTab === id ? ' active' : ''}${id === 'verwijderen' ? ' danger' : ''}`}
+                  <button key={id} type="button" className={`profile-sidebar-tab${profileTab === id ? ' active' : ''}${id === 'verwijderen' ? ' danger' : ''}`}
                     onClick={() => setProfileTab(id)}>
                     {icon}<span>{label}</span>
                   </button>
@@ -555,9 +555,9 @@ export default function ChatModals({
                         <div>🔐 Je account wordt permanent afgesloten</div>
                       </div>
                     </div>
-                    <button className="btn-danger" style={{ width: '100%' }}
+                    <button type="button" className="btn-danger" style={{ width: '100%' }}
                       onClick={() => { setShowProfile(false); handleDeleteAccount(); }}>
-                      <Delete size={16} style={{ marginRight: 6 }} /> Account definitief verwijderen
+                      <Delete size={16} style={{ marginRight: 6 }} aria-hidden="true" /> Account definitief verwijderen
                     </button>
                   </div>
                 )}
@@ -674,12 +674,12 @@ export default function ChatModals({
           <div className={`modal-overlay${profileClosing ? ' closing' : ''}`} onClick={() => setShowContactProfile(false)}>
             <div className="modal-box" onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon"><User size={18} /></span> Profiel</h3>
+                <h3 className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h3>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button className="icon-btn" title="Berichten met ster" onClick={openStarredFromProfile}>
-                    <StarFilled size={18} style={{ color: '#f59e0b' }} />
+                  <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={openStarredFromProfile}>
+                    <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
                   </button>
-                  <button className="icon-btn" onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen"><Share size={18} /></button>
+                  <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
                 </div>
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
@@ -712,7 +712,7 @@ export default function ChatModals({
                 <label className="form-label">Relatie</label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {['familie', 'vrienden'].map(lbl => (
-                    <button key={lbl} onClick={() => setConvLabel(activeConv.id, convLabels[activeConv.id] === lbl ? null : lbl)}
+                    <button key={lbl} type="button" onClick={() => setConvLabel(activeConv.id, convLabels[activeConv.id] === lbl ? null : lbl)}
                       style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${convLabels[activeConv.id] === lbl ? '#6c63ff' : 'var(--border)'}`, background: convLabels[activeConv.id] === lbl ? '#6c63ff' : 'transparent', color: convLabels[activeConv.id] === lbl ? '#fff' : 'var(--text2)', fontSize: 13, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
                       {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
                     </button>
@@ -720,8 +720,8 @@ export default function ChatModals({
                 </div>
               </div>
               <div className="modal-actions">
-                <button className="btn-secondary" onClick={() => setShowContactProfile(false)}>Sluiten</button>
-                <button className="btn-primary" style={{ flex: 1 }} onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowContactProfile(false)}>Sluiten</button>
+                <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
               </div>
             </div>
           </div>
@@ -740,15 +740,15 @@ export default function ChatModals({
             <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <h3 className="modal-title" style={{ margin: 0 }}>
-                  <span className="modal-title-icon"><StarFilled size={18} style={{ color: '#f59e0b' }} /></span>
+                  <span className="modal-title-icon" aria-hidden="true"><StarFilled size={18} style={{ color: '#f59e0b' }} /></span>
                   Berichten met ster
                 </h3>
-                <button className="icon-btn" aria-label="Sluiten" onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); }}>
-                  <Cancel size={18} />
+                <button type="button" className="icon-btn" aria-label="Berichten met ster sluiten" onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); }}>
+                  <Cancel size={18} aria-hidden="true" />
                 </button>
               </div>
               <div className="starred-search-wrap">
-                <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} />
+                <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
                 <input
                   className="starred-search-input"
                   placeholder="Zoeken…"
@@ -757,14 +757,14 @@ export default function ChatModals({
                   autoFocus
                 />
                 {starredSearch && (
-                  <button className="starred-search-clear" onClick={() => setStarredSearch('')}>
-                    <Cancel size={14} />
+                  <button type="button" className="starred-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setStarredSearch('')}>
+                    <Cancel size={14} aria-hidden="true" />
                   </button>
                 )}
               </div>
               {starred.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text3)' }}>
-                  <StarFilled size={36} style={{ opacity: .3, color: '#f59e0b', marginBottom: 8 }} />
+                  <StarFilled size={36} style={{ opacity: .3, color: '#f59e0b', marginBottom: 8 }} aria-hidden="true" />
                   <div style={{ fontSize: 14 }}>{q ? 'Geen resultaten' : 'Nog geen berichten met ster'}</div>
                 </div>
               ) : (
@@ -794,10 +794,10 @@ export default function ChatModals({
         return (
           <div className="modal-overlay" onClick={() => setShowCallModal(false)}>
             <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
-              <h3 className="modal-title"><span className="modal-title-icon"><Phone size={18} /></span> Recent</h3>
+              <h3 className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Phone size={18} /></span> Recent</h3>
               {callLog.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text3)' }}>
-                  <div style={{ fontSize: 40, marginBottom: 8 }}><Cancel size={40} /></div>
+                  <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
                   <div>Nog geen oproepen</div>
                 </div>
               ) : (
@@ -816,21 +816,21 @@ export default function ChatModals({
                     return (
                       <div key={i} className="call-log-row">
                         <div className="avatar-wrap">
-                          <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" />
+                          <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
                           {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ color: dirColor, fontWeight: 700, fontSize: 13 }}>{dirIcon}</span>
+                            <span style={{ color: dirColor, fontWeight: 700, fontSize: 13 }} aria-hidden="true">{dirIcon}</span>
                             <span className="conv-name">{entry.name}</span>
                             <span style={{ fontSize: 11, color: 'var(--text3)', marginLeft: 'auto' }}>{ago}</span>
                           </div>
-                          <div className="conv-preview" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{entry.isVideo ? <><Video size={12} /> Videogesprek</> : <><Phone size={12} /> Gesprek</>}</div>
+                          <div className="conv-preview" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{entry.isVideo ? <><Video size={12} aria-hidden="true" /> Videogesprek</> : <><Phone size={12} aria-hidden="true" /> Gesprek</>}</div>
                         </div>
                         {contact && (
                           <div style={{ display: 'flex', gap: 6 }}>
-                            <button className="call-btn voice" onClick={() => callContact(contact, false)} title="Bellen"><Phone size={16} /></button>
-                            <button className="call-btn video" onClick={() => callContact(contact, true)} title="Videobellen"><Video size={16} /></button>
+                            <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => callContact(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
+                            <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => callContact(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
                           </div>
                         )}
                       </div>
@@ -839,8 +839,8 @@ export default function ChatModals({
                 </div>
               )}
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowCallModal(false)}>Sluiten</button>
-                {callLog.length > 0 && <button className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={() => { localStorage.removeItem(`pulse_calls_${user.uid}`); setShowCallModal(false); }}>Wissen</button>}
+                <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowCallModal(false)}>Sluiten</button>
+                {callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={() => { localStorage.removeItem(`pulse_calls_${user.uid}`); setShowCallModal(false); }}>Wissen</button>}
               </div>
             </div>
           </div>
@@ -889,29 +889,29 @@ export default function ChatModals({
                       return (
                         <div key={memberId} className="search-result" style={{ cursor: 'default' }}>
                           <div className="avatar-wrap">
-                            <UserAvatar photoURL={photo} displayName={name} className="sm" />
+                            <UserAvatar photoURL={photo} displayName={name} className="sm" decorative />
                             {isOnline && <span className="online-dot sm" />}
                           </div>
                           <div style={{ flex: 1 }}>
                             <div className="conv-name" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               {name}{isMe ? ' (jij)' : ''}
-                              {isCreator && <span className="admin-badge"><AdminIcon size={11} /> Beheerder</span>}
+                              {isCreator && <span className="admin-badge"><AdminIcon size={11} aria-hidden="true" /> Beheerder</span>}
                             </div>
                             <div className="conv-preview" style={isOnline ? { color: 'var(--success)' } : {}}>
                               {isOnline ? 'Online' : 'Offline'}
                             </div>
                           </div>
                           {!isMe && isAdmin && (
-                            <button className="icon-btn" title="Verwijderen uit groep"
+                            <button type="button" className="icon-btn" aria-label={`Verwijder ${name} uit de groep`} title="Verwijderen uit groep"
                               onClick={() => removeMemberFromGroup(memberId)}
-                              style={{ color: 'var(--danger)', flexShrink: 0 }}><Delete size={18} /></button>
+                              style={{ color: 'var(--danger)', flexShrink: 0 }}><Delete size={18} aria-hidden="true" /></button>
                           )}
                         </div>
                       );
                     })}
                   </div>
                   {isAdmin && !addingMember ? (
-                    <button className="btn-secondary" onClick={() => setAddingMember(true)}>+ Lid toevoegen</button>
+                    <button type="button" className="btn-secondary" onClick={() => setAddingMember(true)}>+ Lid toevoegen</button>
                   ) : isAdmin && addingMember ? (
                     <>
                       <p className="modal-sub">Kies een contact om toe te voegen</p>
@@ -929,14 +929,14 @@ export default function ChatModals({
                           </div>
                         ))}
                       </div>
-                      <button className="btn-secondary" onClick={() => setAddingMember(false)}>Annuleren</button>
+                      <button type="button" className="btn-secondary" onClick={() => setAddingMember(false)}>Annuleren</button>
                     </>
                   ) : null}
                 </>
               );
             })()}
             <div className="modal-actions" style={{ marginTop: '16px' }}>
-              <button className="btn-secondary" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>Sluiten</button>
+              <button type="button" className="btn-secondary" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>Sluiten</button>
             </div>
           </div>
         </div>
@@ -962,7 +962,7 @@ export default function ChatModals({
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 320, overflowY: 'auto' }}>
               {conversations.filter(c => c.id !== activeConv?.id).map(conv => (
-                <button key={conv.id} onClick={() => forwardToConv(conv)} style={{
+                <button key={conv.id} type="button" onClick={() => forwardToConv(conv)} style={{
                   display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
                   background: 'var(--surface2)', border: '1px solid var(--border)',
                   borderRadius: 10, cursor: 'pointer', textAlign: 'left', color: 'var(--text)',
@@ -973,7 +973,7 @@ export default function ChatModals({
               ))}
             </div>
             <div className="modal-actions" style={{ marginTop: 12 }}>
-              <button className="btn-secondary" onClick={() => setForwardMsg(null)}>Annuleren</button>
+              <button type="button" className="btn-secondary" onClick={() => setForwardMsg(null)}>Annuleren</button>
             </div>
           </div>
         </div>

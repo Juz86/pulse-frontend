@@ -94,7 +94,7 @@ const ChatHeader = React.memo(function ChatHeader({
           onClick={openContactProfile}
           onKeyDown={handleProfileKeyDown}
         >
-          <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm" />
+          <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm" decorative />
           {isOnline && <span className={`online-dot sm${inactiveUsers.has(otherUid) ? ' inactive' : ''}`} aria-hidden="true" />}
         </div>
 
@@ -145,7 +145,7 @@ const ChatHeader = React.memo(function ChatHeader({
       </div>
 
       {/* Zoekbalk in gesprek */}
-      <div id="chat-search-region" className={`chat-search-bar${showChatSearch ? ' visible' : ''}`} role="search" aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`}>
+      <div id="chat-search-region" className={`chat-search-bar${showChatSearch ? ' visible' : ''}`} role="search" aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`} aria-hidden={!showChatSearch}>
         <input
           ref={chatSearchRef}
           aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`}

@@ -65,7 +65,7 @@ const ConversationList = React.memo(function ConversationList({
       ))}
 
       {!loadingConvs && conversations.length === 0 && (
-        <div className="empty-convs">
+        <div className="empty-convs" role="status" aria-live="polite">
           <p>Nog geen gesprekken.</p>
           <p>Klik op het <span aria-hidden="true"><Message size={14} color="#ffffff" style={{ verticalAlign: 'middle', margin: '0 2px' }} /></span> om een nieuwe chat te starten.</p>
         </div>

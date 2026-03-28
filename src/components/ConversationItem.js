@@ -35,7 +35,7 @@ function ConversationItemBase({
       onKeyDown={handleKeyDown}
     >
       <div className="avatar-wrap">
-        <UserAvatar photoURL={conv.photoURL || null} displayName={conv.name || conv.id} />
+        <UserAvatar photoURL={conv.photoURL || null} displayName={conv.name || conv.id} decorative />
         {isOnline && <span className={`online-dot${isInactive ? ' inactive' : ''}`} aria-hidden="true" />}
       </div>
       <div className="conv-info">
@@ -50,11 +50,11 @@ function ConversationItemBase({
       {unread > 0 && <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>}
       {!conv.isGroup && (
         <>
-          <button type="button" className="call-btn voice" onClick={onCallVoice} title="Bellen"><Phone size={16} /></button>
-          <button type="button" className="call-btn video" onClick={onCallVideo} title="Videobellen"><Video size={16} /></button>
+          <button type="button" className="call-btn voice" aria-label={`Bel ${conv.name}`} onClick={onCallVoice} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
+          <button type="button" className="call-btn video" aria-label={`Videobel ${conv.name}`} onClick={onCallVideo} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
         </>
       )}
-      <button type="button" className="conv-delete-btn" onClick={onDelete} title="Verwijderen"><Delete size={16} /></button>
+      <button type="button" className="conv-delete-btn" aria-label={`Verwijder gesprek met ${conv.name}`} onClick={onDelete} title="Verwijderen"><Delete size={16} aria-hidden="true" /></button>
     </div>
   );
 }

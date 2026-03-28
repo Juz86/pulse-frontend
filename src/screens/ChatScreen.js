@@ -86,8 +86,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     dndRef.current = next; setDnd(next);
     localStorage.setItem('pulse_dnd', next ? '1' : '0');
     showErrToast(next
-      ? { icon: <BellOff size={15}/>, text: 'Meldingen uitgeschakeld', bg: 'rgba(80,80,100,0.92)' }
-      : { icon: <Bell size={15}/>,    text: 'Meldingen ingeschakeld',  bg: 'rgba(34,197,94,0.92)' });
+      ? { icon: <BellOff size={15} aria-hidden="true" />, text: 'Meldingen uitgeschakeld', bg: 'rgba(80,80,100,0.92)' }
+      : { icon: <Bell size={15} aria-hidden="true" />,    text: 'Meldingen ingeschakeld',  bg: 'rgba(34,197,94,0.92)' });
   }
   function handleShowContextMenu(e, msg) {
     e.preventDefault?.();
@@ -468,14 +468,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
       {deleteConfirm && (
         <div className="delete-popup-overlay" onClick={() => setDeleteConfirm(null)}>
-          <div className="delete-popup" onClick={e => e.stopPropagation()}>
-            <div className="delete-popup-title">Bericht verwijderen</div>
+          <div className="delete-popup" role="dialog" aria-modal="true" aria-labelledby="delete-popup-title" aria-describedby="delete-popup-description" onClick={e => e.stopPropagation()}>
+            <div className="delete-popup-title" id="delete-popup-title">Bericht verwijderen</div>
+            <p id="delete-popup-description" style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--text3)' }}>
+              Kies of je dit bericht alleen voor jezelf of voor iedereen wilt verwijderen.
+            </p>
             <button type="button" className="delete-popup-btn" onClick={() => { deleteMessage(deleteConfirm.msgId, 'self'); setDeleteConfirm(null); }}>
-              <Delete size={18} /> Voor mezelf verwijderen
+              <Delete size={18} aria-hidden="true" /> Voor mezelf verwijderen
             </button>
             {deleteConfirm.isOwn && (
               <button type="button" className="delete-popup-btn danger" onClick={() => { deleteMessage(deleteConfirm.msgId, 'all'); setDeleteConfirm(null); }}>
-                <Trash2 size={18} /> Voor iedereen verwijderen
+                <Trash2 size={18} aria-hidden="true" /> Voor iedereen verwijderen
               </button>
             )}
             <button type="button" className="delete-popup-cancel" onClick={() => setDeleteConfirm(null)}>Annuleren</button>

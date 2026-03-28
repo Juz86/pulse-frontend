@@ -92,14 +92,14 @@ const MessageList = React.memo(function MessageList({
       aria-live="polite"
       aria-relevant="additions text"
       aria-atomic="false"
-      aria-busy={loadingMsgs}
+      aria-busy={loadingMsgs || loadingMore}
       ref={msgsAreaRef}
       style={bgStyle}
       onClick={handleAreaClick}
     >
       {hasMore && (
         <div style={{ textAlign: 'center', padding: '8px 0' }}>
-          <button type="button" className="load-more-btn" onClick={onLoadMore} disabled={loadingMore}>
+          <button type="button" className="load-more-btn" aria-controls="chat-messages-log" aria-busy={loadingMore} aria-label={loadingMore ? 'Oudere berichten laden' : 'Laad meer berichten'} onClick={onLoadMore} disabled={loadingMore}>
             {loadingMore ? 'Laden…' : <><span aria-hidden="true">↑ </span>Meer berichten laden</>}
           </button>
         </div>

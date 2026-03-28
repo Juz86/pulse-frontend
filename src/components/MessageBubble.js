@@ -103,7 +103,7 @@ const MessageBubble = React.memo(function MessageBubble({
           onClick={canOpenSharedContact ? () => onViewContact(sc) : undefined}
           onKeyDown={canOpenSharedContact ? (event) => handleActionCardKeyDown(event, () => onViewContact(sc)) : undefined}
         >
-          <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius: 12 }}>{getInitials(sc?.name || '')}</div>
+          <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius: 12 }} aria-hidden="true">{getInitials(sc?.name || '')}</div>
           <div className="u-flex-1 u-min-w-0">
             <div className="u-fw-600 u-fs-14 u-ellipsis">{sc?.name || 'Contactpersoon'}</div>
             {sc?.email && (
@@ -148,8 +148,8 @@ const MessageBubble = React.memo(function MessageBubble({
           onKeyDown={isMissed ? (event) => handleActionCardKeyDown(event, () => onStartCall(msg.isVideo)) : undefined}
           style={isMissed ? { cursor: 'pointer' } : undefined}
         >
-          <div className={`msg-call-icon ${iconType}`}>
-            {msg.isVideo ? <Video size={20} /> : <Phone size={20} />}
+          <div className={`msg-call-icon ${iconType}`} aria-hidden="true">
+            {msg.isVideo ? <Video size={20} aria-hidden="true" /> : <Phone size={20} aria-hidden="true" />}
           </div>
           <div className="msg-call-info">
             <div className="msg-call-label">{callLabel}</div>
@@ -212,7 +212,7 @@ const MessageBubble = React.memo(function MessageBubble({
             aria-label="Berichtopties"
             onClick={e => { e.stopPropagation(); onShowContextMenu(e); }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M7 10l5 5 5-5z"/>
             </svg>
           </button>

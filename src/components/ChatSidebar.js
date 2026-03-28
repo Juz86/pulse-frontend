@@ -240,7 +240,7 @@ export default function ChatSidebar({
             <div key={contact.uid} aria-label={`Contact ${getContactDisplayName(contact)}${contact.email ? `, ${contact.email}` : ''}`} style={{ margin: '0 12px 10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div className="avatar-wrap" aria-hidden="true">
-                  <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} />
+                  <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} decorative />
                   {onlineUsers.has(contact.uid) && <span className={`online-dot${inactiveUsers.has(contact.uid) ? ' inactive' : ''}`} aria-hidden="true" />}
                 </div>
                 <div className="conv-info" style={{ flex: 1, minWidth: 0 }} aria-hidden="true">
@@ -337,7 +337,7 @@ export default function ChatSidebar({
       <div className="sidebar-footer">
         <button type="button" className="user-chip" style={{ cursor: 'pointer' }} aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`} onClick={onOpenProfile}>
           <div className="avatar-wrap" style={{ flexShrink: 0 }} aria-hidden="true">
-            <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" />
+            <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" decorative />
           </div>
           <div className="user-chip-info" aria-hidden="true">
             <div className="user-chip-name">{user.displayName || user.email?.split('@')[0] || 'Gebruiker'}</div>

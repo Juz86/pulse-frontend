@@ -278,12 +278,12 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
         {/* Header */}
         <div className="parent-header">
           <div className="parent-logo">
-            <span style={{ fontSize: 28 }}>❤️</span>
+            <span style={{ fontSize: 28 }} aria-hidden="true">❤️</span>
             <span className="parent-logo-name">Ouderlijk toezicht</span>
           </div>
           <div className="parent-header-actions">
             {onClose && (
-              <button className="parent-btn-outline" onClick={onClose} style={{ padding: '8px 10px' }} title="Sluiten">✕</button>
+              <button type="button" className="parent-btn-outline" aria-label="Ouderdashboard sluiten" onClick={onClose} style={{ padding: '8px 10px' }} title="Sluiten"><span aria-hidden="true">✕</span></button>
             )}
           </div>
         </div>
@@ -294,8 +294,10 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
           <div className="pd-sidebar" ref={el => { if (el) el._sidebarEl = el; }}>
             {TABS.map(t => (
               <button
+                type="button"
                 key={t.id}
                 className={`pd-sidebar-tab${activeTab === t.id ? ' active' : ''}`}
+                aria-pressed={activeTab === t.id}
                 onClick={e => {
                   setActiveTab(t.id);
                   e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -384,15 +386,15 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                     />
                     <button type="button" aria-label={showCreatePw ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'} onClick={() => setShowCreatePw(p => !p)}
                       style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
-                      {showCreatePw ? <EyeOff size={18}/> : <EyeOn size={18}/>}
+                      {showCreatePw ? <EyeOff size={18} aria-hidden="true" /> : <EyeOn size={18} aria-hidden="true" />}
                     </button>
                   </div>
                   <button className="parent-btn-primary" type="submit" disabled={!canCreateChild}>
                     {createLoading ? 'Aanmaken…' : 'Kindaccount aanmaken →'}
                   </button>
                 </form>
-                {createError   && <div className="parent-error"   style={{ marginTop: 10 }}>⚠️ {createError}</div>}
-                {createSuccess && <div className="parent-success" style={{ marginTop: 10 }}>✓ {createSuccess}</div>}
+                {createError   && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginTop: 10 }}><span aria-hidden="true">⚠️ </span>{createError}</div>}
+                {createSuccess && <div className="parent-success" role="status" aria-live="polite" style={{ marginTop: 10 }}><span aria-hidden="true">✓ </span>{createSuccess}</div>}
               </div>
             )}
 
@@ -401,15 +403,15 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                   <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Mijn kinderen</h2>
-                  <button className="parent-btn-outline" onClick={loadChildren} style={{ fontSize: 12, padding: '6px 12px', display:'flex', alignItems:'center', gap:4 }}><Refresh size={14}/> Vernieuwen</button>
+                  <button type="button" className="parent-btn-outline" onClick={loadChildren} style={{ fontSize: 12, padding: '6px 12px', display:'flex', alignItems:'center', gap:4 }}><Refresh size={14} aria-hidden="true" /> Vernieuwen</button>
                 </div>
-                {childError && <div className="parent-error" style={{ marginBottom: 12 }}>⚠️ {childError}</div>}
+                {childError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{childError}</div>}
 
                 {loading ? (
                   <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Laden…</div>
                 ) : children.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>
-                    <Users size={40} color="#ccc" style={{ marginBottom: 8 }}/>
+                  <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>
+                    <Users size={40} color="#ccc" style={{ marginBottom: 8 }} aria-hidden="true" />
                     <p>Nog geen kinderen toegevoegd.</p>
                     <p style={{ fontSize: 13, marginTop: 4 }}>Voeg een kind toe via het tabblad "Kind toevoegen".</p>
                   </div>
@@ -426,13 +428,15 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                     <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
                       {/* Sleutel + Delete knoppen */}
                       <div style={{ position:'absolute', top:10, right:10, display:'flex', gap:4 }}>
-                        <button className="parent-btn-outline" title="Wachtwoord wijzigen"
+                        <button type="button" className="parent-btn-outline" aria-label={`Wijzig wachtwoord voor ${child.displayName}`} title="Wachtwoord wijzigen"
                           onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
                           style={{ padding:'4px 6px' }}>
-                          <KeyRound size={15}/>
+                          <KeyRound size={15} aria-hidden="true" />
                         </button>
                         <button
+                          type="button"
                           className="parent-btn-outline"
+                          aria-label={`Beheer gebruikersnaam voor ${child.displayName}`}
                           title="Gebruikersnaam beheren"
                           onClick={() => {
                             setEditingUsernameUid(child.uid);
@@ -442,11 +446,11 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                           }}
                           style={{ padding:'4px 6px' }}
                         >
-                          <MagicEdit size={15}/>
+                          <MagicEdit size={15} aria-hidden="true" />
                         </button>
-                        <button className="parent-btn-outline" style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
+                        <button type="button" className="parent-btn-outline" aria-label={`Verwijder account van ${child.displayName}`} style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
                           onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
-                          <Trash2 size={15} color="#ef4444"/>
+                          <Trash2 size={15} color="#ef4444" aria-hidden="true" />
                         </button>
                       </div>
 
@@ -474,15 +478,15 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                         {/* Pauze dropdown */}
                         {!allPaused && (
                           <div style={{ position:'relative' }}>
-                            <button className="parent-btn-orange" onClick={e => { e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}>
-                              <PauseCircle size={16}/> Pauze <ChevronDown size={14}/>
+                            <button type="button" className="parent-btn-orange" aria-label={`Open pauzemenu voor ${child.displayName}`} aria-expanded={pauseMenuUid === child.uid} onClick={e => { e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}>
+                              <PauseCircle size={16} aria-hidden="true" /> Pauze <ChevronDown size={14} aria-hidden="true" />
                             </button>
                             {pauseMenuUid === child.uid && (
                               <div className="pcd-dropdown">
-                                {!pf.chat  && <button className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'chat')}><Message size={14}/> Chat</button>}
-                                {!pf.call  && <button className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'call')}><Phone size={14}/> Bellen</button>}
-                                {!pf.video && <button className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'video')}><Video size={14}/> Videobellen</button>}
-                                {(!pf.chat || !pf.call || !pf.video) && <button className="pcd-dropdown-item pcd-dropdown-item--all" onClick={() => pauseChild(child.uid, 'all')}><PauseCircle size={14}/> Alles pauzeren</button>}
+                                {!pf.chat  && <button type="button" className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'chat')}><Message size={14} aria-hidden="true" /> Chat</button>}
+                                {!pf.call  && <button type="button" className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'call')}><Phone size={14} aria-hidden="true" /> Bellen</button>}
+                                {!pf.video && <button type="button" className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'video')}><Video size={14} aria-hidden="true" /> Videobellen</button>}
+                                {(!pf.chat || !pf.call || !pf.video) && <button type="button" className="pcd-dropdown-item pcd-dropdown-item--all" onClick={() => pauseChild(child.uid, 'all')}><PauseCircle size={14} aria-hidden="true" /> Alles pauzeren</button>}
                               </div>
                             )}
                           </div>
@@ -491,15 +495,15 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                         {/* Hervat dropdown */}
                         {anyPaused && (
                           <div style={{ position:'relative' }}>
-                            <button className="parent-btn-green" onClick={e => { e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }}>
-                              <PlayCircle size={16}/> Hervat <ChevronDown size={14}/>
+                            <button type="button" className="parent-btn-green" aria-label={`Open hervatmenu voor ${child.displayName}`} aria-expanded={resumeMenuUid === child.uid} onClick={e => { e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }}>
+                              <PlayCircle size={16} aria-hidden="true" /> Hervat <ChevronDown size={14} aria-hidden="true" />
                             </button>
                             {resumeMenuUid === child.uid && (
                               <div className="pcd-dropdown">
-                                {pf.chat  && <button className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'chat')}><Message size={14}/> Chat</button>}
-                                {pf.call  && <button className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'call')}><Phone size={14}/> Bellen</button>}
-                                {pf.video && <button className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'video')}><Video size={14}/> Videobellen</button>}
-                                {(pf.chat || pf.call || pf.video) && <button className="pcd-dropdown-item pcd-dropdown-item--all" onClick={() => resumeChild(child.uid, 'all')}><PlayCircle size={14}/> Alles hervatten</button>}
+                                {pf.chat  && <button type="button" className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'chat')}><Message size={14} aria-hidden="true" /> Chat</button>}
+                                {pf.call  && <button type="button" className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'call')}><Phone size={14} aria-hidden="true" /> Bellen</button>}
+                                {pf.video && <button type="button" className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'video')}><Video size={14} aria-hidden="true" /> Videobellen</button>}
+                                {(pf.chat || pf.call || pf.video) && <button type="button" className="pcd-dropdown-item pcd-dropdown-item--all" onClick={() => resumeChild(child.uid, 'all')}><PlayCircle size={14} aria-hidden="true" /> Alles hervatten</button>}
                               </div>
                             )}
                           </div>
@@ -508,9 +512,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                         {/* Gepauzeerde labels */}
                         {anyPaused && (
                           <>
-                            {pf.chat  && <span style={chipPause}><Message size={12}/> Chat</span>}
-                            {pf.call  && <span style={{ ...chipPause, background:'rgba(245,158,11,.15)', color:'#d97706' }}><Phone size={12}/> Bellen</span>}
-                            {pf.video && <span style={{ ...chipPause, background:'rgba(139,92,246,.12)', color:'#7c3aed' }}><Video size={12}/> Video</span>}
+                            {pf.chat  && <span style={chipPause}><Message size={12} aria-hidden="true" /> Chat</span>}
+                            {pf.call  && <span style={{ ...chipPause, background:'rgba(245,158,11,.15)', color:'#d97706' }}><Phone size={12} aria-hidden="true" /> Bellen</span>}
+                            {pf.video && <span style={{ ...chipPause, background:'rgba(139,92,246,.12)', color:'#7c3aed' }}><Video size={12} aria-hidden="true" /> Video</span>}
                           </>
                         )}
                       </div>
@@ -543,23 +547,27 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                             autoCapitalize="none"
                             autoCorrect="off"
                           />
-                          <button
+                            <button
+                            type="button"
                             style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(34,197,94,.18)', color:'#16a34a', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, opacity: (usernameSaving || !editingUsername.trim()) ? .45 : 1 }}
+                            aria-label={`Sla gebruikersnaam op voor ${child.displayName}`}
                             onClick={() => changeChildUsername(child.uid)}
                             disabled={usernameSaving || !editingUsername.trim()}
                             title="Gebruikersnaam opslaan">
-                            <Check size={22}/>
+                            <Check size={22} aria-hidden="true" />
                           </button>
                           <button
+                            type="button"
                             style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(239,68,68,.12)', color:'#ef4444', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}
+                            aria-label={`Annuleer gebruikersnaambewerking voor ${child.displayName}`}
                             onClick={() => { setEditingUsernameUid(null); setEditingUsername(''); setUsernameError(''); setUsernameSuccess(''); }}
                             title="Annuleren">
-                            <Cancel size={22}/>
+                            <Cancel size={22} aria-hidden="true" />
                           </button>
                         </div>
                         <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>3–20 tekens · alleen letters, cijfers en _</div>
-                        {usernameError && <div className="parent-error" style={{ marginTop: 6, fontSize: 13 }}>⚠️ {usernameError}</div>}
-                        {usernameSuccess && <div className="parent-success" style={{ marginTop: 6, fontSize: 13 }}>✓ {usernameSuccess}</div>}
+                        {usernameError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginTop: 6, fontSize: 13 }}><span aria-hidden="true">⚠️ </span>{usernameError}</div>}
+                        {usernameSuccess && <div className="parent-success" role="status" aria-live="polite" style={{ marginTop: 6, fontSize: 13 }}><span aria-hidden="true">✓ </span>{usernameSuccess}</div>}
                       </div>
                     )}
 
@@ -581,23 +589,27 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                             />
                             <button type="button" aria-label={showNewPw ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'} onClick={() => setShowNewPw(p => !p)}
                               style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
-                              {showNewPw ? <EyeOff size={16}/> : <EyeOn size={16}/>}
+                              {showNewPw ? <EyeOff size={16} aria-hidden="true" /> : <EyeOn size={16} aria-hidden="true" />}
                             </button>
                           </div>
                           <button
+                            type="button"
                             style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(34,197,94,.18)', color:'#16a34a', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, opacity: (pwLoading || newPassword.length < 6) ? .45 : 1 }}
+                            aria-label={`Sla nieuw wachtwoord op voor ${child.displayName}`}
                             onClick={() => changePassword(child.uid)} disabled={pwLoading || newPassword.length < 6}
                             title="Opslaan">
-                            <Check size={22}/>
+                            <Check size={22} aria-hidden="true" />
                           </button>
                           <button
+                            type="button"
                             style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(239,68,68,.12)', color:'#ef4444', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}
+                            aria-label={`Annuleer wachtwoordwijziging voor ${child.displayName}`}
                             onClick={() => { setChangingPwUid(null); setNewPassword(''); setPwError(''); }}
                             title="Annuleren">
-                            <Cancel size={22}/>
+                            <Cancel size={22} aria-hidden="true" />
                           </button>
                         </div>
-                        {pwError && <div className="parent-error" style={{ marginTop: 6, fontSize: 13 }}>⚠️ {pwError}</div>}
+                        {pwError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginTop: 6, fontSize: 13 }}><span aria-hidden="true">⚠️ </span>{pwError}</div>}
                       </div>
                     )}
                   </div>
@@ -615,19 +627,22 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                     {children.length > 0 && (
                       <div style={{ position:'relative' }}>
                         <button
+                          type="button"
                           className="parent-btn-outline"
                           style={{ fontSize:13, padding:'6px 10px 6px 12px', display:'flex', alignItems:'center', gap:4, minWidth:80, maxWidth:160 }}
+                          aria-label="Kies kind voor activiteitenoverzicht"
+                          aria-expanded={childDropdownOpen}
                           onClick={e => { e.stopPropagation(); setChildDropdownOpen(o => !o); }}
                         >
                           <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
                             {children.find(c => c.uid === selectedChildUid)?.displayName || 'Kind'}
                           </span>
-                          <ChevronDown size={16}/>
+                          <ChevronDown size={16} aria-hidden="true" />
                         </button>
                         {childDropdownOpen && (
                           <div style={{ position:'absolute', top:'calc(100% + 4px)', right:0, background:'var(--bg1,#fff)', border:'1px solid #e0e0e8', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.12)', zIndex:200, minWidth:140, padding:4 }}>
                             {children.map(c => (
-                              <button key={c.uid} style={{ display:'block', width:'100%', textAlign:'left', background: c.uid === selectedChildUid ? 'rgba(108,99,255,.08)' : 'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' }}
+                              <button key={c.uid} type="button" style={{ display:'block', width:'100%', textAlign:'left', background: c.uid === selectedChildUid ? 'rgba(108,99,255,.08)' : 'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' }}
                                 onClick={() => { setSelectedChildUid(c.uid); setChildDropdownOpen(false); }}>
                                 {c.displayName}
                               </button>
@@ -636,8 +651,8 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                         )}
                       </div>
                     )}
-                    <button className="parent-btn-outline activities-refresh-btn" onClick={() => { loadActivities(); if (selectedChildUid) loadAnalytics(selectedChildUid); }}>
-                      <Refresh size={14}/>
+                    <button type="button" className="parent-btn-outline activities-refresh-btn" onClick={() => { loadActivities(); if (selectedChildUid) loadAnalytics(selectedChildUid); }}>
+                      <Refresh size={14} aria-hidden="true" />
                       <span className="activities-refresh-label">Vernieuwen</span>
                     </button>
                   </div>
@@ -646,8 +661,8 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                 {/* Analyserapport voor geselecteerd kind */}
                 {selectedChildUid && (
                   <div style={{ marginBottom: 24 }}>
-                    {analyticsLoading && <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Rapport laden…</div>}
-                    {analyticsError && <div className="parent-error" style={{ marginBottom: 12 }}>⚠️ {analyticsError}</div>}
+                    {analyticsLoading && <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Rapport laden…</div>}
+                    {analyticsError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{analyticsError}</div>}
                     {analytics && !analyticsLoading && (() => {
                       const { profile, contacts, friendRequests, sessions, messaging } = analytics;
                       if (!profile || !sessions?.daily || !messaging?.topContacts || !contacts?.list || !friendRequests) return null;
@@ -674,13 +689,13 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                                 <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--text1,#1a1a1a)' }}>{profile.displayName}</span>
                                 {profile.username && <span style={{ fontSize: 13, color: '#888' }}>@{profile.username}</span>}
                               </div>
-                              <div style={{ fontSize: 12, color: profile.online ? '#22c55e' : '#9ca3af', marginTop:4, whiteSpace:'nowrap' }}>{profile.online ? '● Online' : `Offline · ${timeAgo(profile.lastSeen, 'Onbekend')}`}</div>
+                              <div style={{ fontSize: 12, color: profile.online ? '#22c55e' : '#9ca3af', marginTop:4, whiteSpace:'nowrap' }}>{profile.online ? <><span aria-hidden="true">● </span>Online</> : `Offline · ${timeAgo(profile.lastSeen, 'Onbekend')}`}</div>
                             </div>
                           </div>
 
                           {/* Gebruik - sessies */}
                           <div className="analytics-section">
-                            <div className="analytics-section-title"><Activity size={15} /> App-gebruik (afgelopen 7 dagen)</div>
+                            <div className="analytics-section-title"><Activity size={15} aria-hidden="true" /> App-gebruik (afgelopen 7 dagen)</div>
                             <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{fmtSecs(sessions.totalSecondsLast7Days)}</div>
@@ -737,19 +752,19 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
                           {/* Communicatie */}
                           <div className="analytics-section">
-                            <div className="analytics-section-title"><Message size={15} /> Communicatie (afgelopen 30 dagen)</div>
+                            <div className="analytics-section-title"><Message size={15} aria-hidden="true" /> Communicatie (afgelopen 30 dagen)</div>
                             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{messaging.totalMessagesSent}</div>
-                                <div className="analytics-stat-label"><Message size={13} /> Chatten</div>
+                                <div className="analytics-stat-label"><Message size={13} aria-hidden="true" /> Chatten</div>
                               </div>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{fmtSecs(messaging.totalCallSecs)}</div>
-                                <div className="analytics-stat-label"><Phone size={13} /> Bellen</div>
+                                <div className="analytics-stat-label"><Phone size={13} aria-hidden="true" /> Bellen</div>
                               </div>
                               <div className="analytics-stat-box">
                                 <div className="analytics-stat-value">{fmtSecs(messaging.totalVideoSecs)}</div>
-                                <div className="analytics-stat-label"><Video size={13} /> Videobellen</div>
+                                <div className="analytics-stat-label"><Video size={13} aria-hidden="true" /> Videobellen</div>
                               </div>
                             </div>
                           </div>
@@ -757,7 +772,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                           {/* Top contacten */}
                           {messaging.topContacts.length > 0 && (
                             <div className="analytics-section">
-                              <div className="analytics-section-title"><Users size={15} /> Meest contact mee</div>
+                              <div className="analytics-section-title"><Users size={15} aria-hidden="true" /> Meest contact mee</div>
                               {messaging.topContacts.map((c, i) => {
                                 const info = contacts.list.find(l => l.uid === c.uid) || {};
                                 const photoURL = info.photoURL || null;
@@ -784,9 +799,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                                       </div>
                                       <div className="analytics-contact-stats">
                                         {[
-                                          { value: c.messagesSent || 0,           icon: <Message size={11}/>, label: 'Chatberichten' },
-                                          { value: fmtSecs(c.totalCallSecs || 0), icon: <Phone size={11}/>,   label: 'Bellen' },
-                                          { value: fmtSecs(c.totalVideoSecs || 0),icon: <Video size={11}/>,   label: 'Videobellen' },
+                                          { value: c.messagesSent || 0,           icon: <Message size={11} aria-hidden="true" />, label: 'Chatberichten' },
+                                          { value: fmtSecs(c.totalCallSecs || 0), icon: <Phone size={11} aria-hidden="true" />,   label: 'Bellen' },
+                                          { value: fmtSecs(c.totalVideoSecs || 0),icon: <Video size={11} aria-hidden="true" />,   label: 'Videobellen' },
                                         ].map(({ value, icon, label }) => (
                                           <div key={label} style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:1 }}>
                                             <div style={{ fontWeight:700, fontSize:14, color:'#7c3aed' }}>{value}</div>
@@ -810,10 +825,10 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                             return (
                               <div className="analytics-section">
                                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10, flexWrap:'wrap', gap:8 }}>
-                                  <div className="analytics-section-title" style={{ margin:0 }}><Users size={15} /> Contacten ({contacts.total})</div>
-                                  <div style={{ display:'flex', gap:6 }}>
+                                  <div className="analytics-section-title" style={{ margin:0 }}><Users size={15} aria-hidden="true" /> Contacten ({contacts.total})</div>
+                                  <div style={{ display:'flex', gap:6 }} role="group" aria-label="Contactfilters">
                                     {['alles','familie','vrienden'].map(f => (
-                                      <button key={f} onClick={() => setContactFilter(f)}
+                                      <button key={f} type="button" aria-pressed={contactFilter === f} onClick={() => setContactFilter(f)}
                                         style={{ padding:'4px 10px', borderRadius:20, border:'1.5px solid', fontSize:12, fontWeight:600, cursor:'pointer', transition:'all .15s',
                                           borderColor: contactFilter === f ? '#7c3aed' : '#e5e7eb',
                                           background: contactFilter === f ? '#7c3aed' : 'transparent',
@@ -825,7 +840,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                                 </div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                                   {filtered.length === 0
-                                    ? <div style={{ fontSize:13, color:'#aaa' }}>Geen contacten in deze categorie.</div>
+                                    ? <div role="status" aria-live="polite" style={{ fontSize:13, color:'#aaa' }}>Geen contacten in deze categorie.</div>
                                     : filtered.map(c => (
                                       <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8f8fc', borderRadius: 20, padding: '4px 10px 4px 4px', fontSize: 13 }}>
                                         {c.photoURL
@@ -852,19 +867,19 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
                 {/* Activiteitenlogboek */}
                 <div className="analytics-section">
-                  <div className="analytics-section-title"><Activity size={15}/> Activiteitenlog</div>
+                  <div className="analytics-section-title"><Activity size={15} aria-hidden="true" /> Activiteitenlog</div>
                   {filteredActivities.length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>
-                      <Activity size={32} color="#ccc" style={{ marginBottom: 8 }}/>
+                    <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>
+                      <Activity size={32} color="#ccc" style={{ marginBottom: 8 }} aria-hidden="true" />
                       <p style={{ fontSize: 13 }}>Nog geen activiteiten voor dit kind.</p>
                     </div>
                   ) : filteredActivities.map(a => (
                     <div key={a.id} className="parent-activity-row">
-                      <div className="parent-activity-icon">
-                        {a.type === 'friend_request_sent'     && <UserPlus2 size={18} color="#3b82f6" />}
-                        {a.type === 'friend_request_accepted' && <UserCheck size={18} color="#22c55e" />}
-                        {a.type === 'friend_request_rejected' && <UserX     size={18} color="#ef4444" />}
-                        {a.type !== 'friend_request_sent' && a.type !== 'friend_request_accepted' && a.type !== 'friend_request_rejected' && <UserCheck size={18} color="#22c55e" />}
+                      <div className="parent-activity-icon" aria-hidden="true">
+                        {a.type === 'friend_request_sent'     && <UserPlus2 size={18} color="#3b82f6" aria-hidden="true" />}
+                        {a.type === 'friend_request_accepted' && <UserCheck size={18} color="#22c55e" aria-hidden="true" />}
+                        {a.type === 'friend_request_rejected' && <UserX     size={18} color="#ef4444" aria-hidden="true" />}
+                        {a.type !== 'friend_request_sent' && a.type !== 'friend_request_accepted' && a.type !== 'friend_request_rejected' && <UserCheck size={18} color="#22c55e" aria-hidden="true" />}
                       </div>
                       <div style={{ flex: 1 }}>
                         <div className="parent-activity-text">{a.description}</div>
@@ -890,10 +905,10 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
               Weet u zeker dat u het account van <strong>{confirmDelete.displayName}</strong> wilt verwijderen?
               Dit kan niet ongedaan worden gemaakt.
             </p>
-            {deleteError && <div className="parent-error" style={{ marginBottom: 12 }}>⚠️ {deleteError}</div>}
+            {deleteError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{deleteError}</div>}
             <div className="modal-actions">
-              <button className="btn-secondary" style={{ flex: 1 }} onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>Annuleren</button>
-              <button className="btn-primary" style={{ flex: 1, background: '#ef4444' }} onClick={() => deleteChild(confirmDelete.uid)}>Verwijderen</button>
+              <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>Annuleren</button>
+              <button type="button" className="btn-primary" style={{ flex: 1, background: '#ef4444' }} onClick={() => deleteChild(confirmDelete.uid)}>Verwijderen</button>
             </div>
           </div>
         </div>

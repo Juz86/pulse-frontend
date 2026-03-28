@@ -146,7 +146,11 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
       position:'fixed', inset:0, zIndex:9999,
       background:'rgba(0,0,0,0.7)', display:'flex', alignItems:'center', justifyContent:'center',
     }} onClick={e => e.target === e.currentTarget && onClose()}>
-      <div style={{
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="avatar-builder-title"
+        style={{
         background:bg, borderRadius:20, width:'min(480px, 100vw)',
         height:'min(680px, 95dvh)', display:'flex', flexDirection:'column',
         overflow:'hidden', boxShadow:'0 20px 60px rgba(0,0,0,0.5)',
@@ -154,8 +158,8 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
 
         {/* Header */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 20px 14px', borderBottom:`1px solid ${border}`, flexShrink:0 }}>
-          <div style={{ fontSize:17, fontWeight:700, color:text }}>Avatar maken</div>
-          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:text2, fontSize:22, lineHeight:1 }} aria-label="Sluiten">×</button>
+          <div id="avatar-builder-title" style={{ fontSize:17, fontWeight:700, color:text }}>Avatar maken</div>
+          <button type="button" onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:text2, fontSize:22, lineHeight:1 }} aria-label="Avatar builder sluiten"><span aria-hidden="true">×</span></button>
         </div>
 
         {/* Preview */}
@@ -167,7 +171,7 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
         {/* Category tabs */}
         <div style={{ display:'flex', flexWrap:'wrap', gap:6, padding:'0 16px 12px', flexShrink:0 }}>
           {CATEGORIES.map(c => (
-            <button key={c.id} onClick={() => setActiveCategory(c.id)} style={{
+            <button key={c.id} type="button" onClick={() => setActiveCategory(c.id)} style={{
               padding:'6px 13px', borderRadius:20, border:'none', cursor:'pointer',
               fontSize:12, fontWeight:600, transition:'.15s', whiteSpace:'nowrap',
               background: activeCategory === c.id ? accent : surface,
@@ -183,7 +187,7 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
               {cat.options.map(([val, label]) => {
                 const selected = opts[activeCategory] === val;
                 return (
-                  <button key={val} onClick={() => setOpts(p => ({ ...p, [activeCategory]: val }))} style={{
+                  <button key={val} type="button" onClick={() => setOpts(p => ({ ...p, [activeCategory]: val }))} style={{
                     padding:'6px 12px', borderRadius:10,
                     border:`1px solid ${selected ? accent : border}`,
                     background: selected ? `${accent}22` : surface,
@@ -199,7 +203,7 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
               {cat.colors.map(hex => {
                 const selected = opts[activeCategory === 'bgColor' ? 'bgColor' : activeCategory] === hex;
                 return (
-                  <button key={hex} onClick={() => setOpts(p => ({ ...p, [activeCategory === 'bgColor' ? 'bgColor' : activeCategory]: hex }))}
+                  <button key={hex} type="button" onClick={() => setOpts(p => ({ ...p, [activeCategory === 'bgColor' ? 'bgColor' : activeCategory]: hex }))}
                     aria-label={`#${hex}`} style={{
                       width:36, height:36, borderRadius:'50%', cursor:'pointer',
                       border:`3px solid ${selected ? accent : 'transparent'}`,
@@ -215,15 +219,15 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
           )}
         </div>
 
-        {error && <div style={{ margin:'0 16px 8px', padding:'10px 14px', borderRadius:10, background:'rgba(255,71,87,0.15)', color:'#ff4757', fontSize:13 }}>⚠️ {error}</div>}
+        {error && <div role="alert" aria-live="assertive" style={{ margin:'0 16px 8px', padding:'10px 14px', borderRadius:10, background:'rgba(255,71,87,0.15)', color:'#ff4757', fontSize:13 }}><span aria-hidden="true">⚠️ </span>{error}</div>}
 
         {/* Buttons */}
         <div style={{ display:'flex', gap:10, padding:'12px 16px 20px', borderTop:`1px solid ${border}`, flexShrink:0 }}>
-          <button onClick={randomize} style={{
+          <button type="button" onClick={randomize} style={{
             flex:1, padding:'12px', borderRadius:12, border:`1px solid ${border}`,
             background:surface, color:text, fontSize:13, fontWeight:600, cursor:'pointer',
-          }}>🎲 Willekeurig</button>
-          <button onClick={handleSave} disabled={saving} style={{
+          }}><span aria-hidden="true">🎲 </span>Willekeurig</button>
+          <button type="button" onClick={handleSave} disabled={saving} aria-busy={saving} style={{
             flex:2, padding:'12px', borderRadius:12, border:'none',
             background: saving ? '#9994d0' : accent, color:'#fff',
             fontSize:13, fontWeight:700, cursor: saving ? 'not-allowed' : 'pointer',

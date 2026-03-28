@@ -122,8 +122,8 @@ const ChatInput = React.memo(function ChatInput({
             >
               <div className="mention-avatar">
                 {m.photoURL
-                  ? <img src={m.photoURL} alt={m.displayName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} loading="lazy" />
-                  : <span>{m.displayName?.[0]?.toUpperCase() || '?'}</span>
+                  ? <img src={m.photoURL} alt="" aria-hidden="true" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} loading="lazy" />
+                  : <span aria-hidden="true">{m.displayName?.[0]?.toUpperCase() || '?'}</span>
                 }
               </div>
               <span className="mention-name">{m.displayName}</span>
@@ -133,7 +133,7 @@ const ChatInput = React.memo(function ChatInput({
       )}
       {pausedFeatures.chat ? (
         <div className="chat-paused-notice" role="status" aria-live="polite">
-          <PauseCircle size={16} style={{ flexShrink: 0 }} />
+          <PauseCircle size={16} style={{ flexShrink: 0 }} aria-hidden="true" />
           {' '}Chatten is gepauzeerd door je ouder
           {(!pausedFeatures.call || !pausedFeatures.video)
             ? `, maar je kan nog wel ${[!pausedFeatures.call && 'bellen', !pausedFeatures.video && 'videobellen'].filter(Boolean).join(' en ')}`
@@ -152,7 +152,7 @@ const ChatInput = React.memo(function ChatInput({
             onChange={e => handleTyping(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          <button type="button" className="send-btn" aria-label="Bericht versturen" onClick={onSend}><Send size={18} /></button>
+          <button type="button" className="send-btn" aria-label="Bericht versturen" onClick={onSend}><Send size={18} aria-hidden="true" /></button>
         </div>
       )}
     </div>

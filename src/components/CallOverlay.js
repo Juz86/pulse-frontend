@@ -179,7 +179,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   const canMinimize = callState === 'calling' || callState === 'active' || callState === 'connecting';
 
   if (minimized) return (
-    <div className="call-mini-bar" onClick={() => setMinimized(false)}>
+    <div className="call-mini-bar" role="button" tabIndex={0} aria-label={`Open gesprek met ${callName}`} onClick={() => setMinimized(false)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMinimized(false); } }}>
       <div className="call-mini-avatar">{callName.slice(0,2).toUpperCase()}</div>
       <div className="call-mini-info">
         <span className="call-mini-name">{callName}</span>
@@ -187,10 +187,10 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
           {callState === 'active' ? formatTimer(timer) : 'Verbinden…'}
         </span>
       </div>
-      {callState === 'active' && <div className="call-mini-pulse" />}
-      <button className="call-mini-end" onClick={e => { e.stopPropagation(); handleEnd(); }}
+      {callState === 'active' && <div className="call-mini-pulse" aria-hidden="true" />}
+      <button type="button" className="call-mini-end" aria-label={`Beeindig gesprek met ${callName}`} onClick={e => { e.stopPropagation(); handleEnd(); }}
         title="Ophangen">
-        <Cancel size={16} />
+        <Cancel size={16} aria-hidden="true" />
       </button>
     </div>
   );
@@ -212,56 +212,56 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
       {/* ── CALL CARD ── */}
       <div className={`call-card ${isVideo && callState === 'active' ? 'transparent' : ''}`}>
         {canMinimize && (
-          <button className="call-minimize-btn" onClick={() => setMinimized(true)} title="Minimaliseren">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <button type="button" className="call-minimize-btn" aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         )}
-        <button className="call-close-btn" onClick={() => onClose?.()} title="Sluiten">
-          <Cancel size={14} />
+        <button type="button" className="call-close-btn" aria-label="Gespreksscherm sluiten" onClick={() => onClose?.()} title="Sluiten">
+          <Cancel size={14} aria-hidden="true" />
         </button>
         <div className="call-avatar-big">{callName.slice(0,2).toUpperCase()}</div>
         <div className="call-name">{callName}</div>
 
         {callState === 'incoming' && (
-          <div className="call-status blink">{isVideo ? <><Video size={14} /> Inkomend videogesprek</> : <><Phone size={14} /> Inkomende oproep</>}</div>
+          <div className="call-status blink" role="status" aria-live="polite">{isVideo ? <><Video size={14} aria-hidden="true" /> Inkomend videogesprek</> : <><Phone size={14} aria-hidden="true" /> Inkomende oproep</>}</div>
         )}
-        {callState === 'calling'     && <div className="call-status blink">Verbinden…</div>}
-        {callState === 'connecting'  && <div className="call-status blink">Camera aanzetten…</div>}
-        {callState === 'active'      && <div className="call-timer">{formatTimer(timer)}</div>}
+        {callState === 'calling'     && <div className="call-status blink" role="status" aria-live="polite">Verbinden…</div>}
+        {callState === 'connecting'  && <div className="call-status blink" role="status" aria-live="polite">Camera aanzetten…</div>}
+        {callState === 'active'      && <div className="call-timer" aria-label={`Gespreksduur ${formatTimer(timer)}`}>{formatTimer(timer)}</div>}
         {videoUpgradeRequest && callState === 'active' && (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'12px', margin:'10px 0' }}>
-            <div style={{ fontSize:'13px', color:'#ccc', display:'flex', alignItems:'center', gap:6 }}><Video size={14} /> {callName} wil videobellen</div>
+            <div style={{ fontSize:'13px', color:'#ccc', display:'flex', alignItems:'center', gap:6 }} role="status" aria-live="polite"><Video size={14} aria-hidden="true" /> {callName} wil videobellen</div>
             <div style={{ display:'flex', gap:'10px' }}>
-              <button className="call-ctrl-btn decline" onClick={() => setVideoUpgradeRequest(false)}><Cancel size={18} /><span>Weigeren</span></button>
-              <button className="call-ctrl-btn accept" onClick={handleAcceptVideoUpgrade}><Video size={18} /><span>Accepteren</span></button>
+              <button type="button" className="call-ctrl-btn decline" onClick={() => setVideoUpgradeRequest(false)}><Cancel size={18} aria-hidden="true" /><span>Weigeren</span></button>
+              <button type="button" className="call-ctrl-btn accept" onClick={handleAcceptVideoUpgrade}><Video size={18} aria-hidden="true" /><span>Accepteren</span></button>
             </div>
           </div>
         )}
-        {callState === 'ended'       && <div className="call-status call-status-error">{callMsg}</div>}
+        {callState === 'ended'       && <div className="call-status call-status-error" role="status" aria-live="assertive">{callMsg}</div>}
 
         {/* ── KNOPPEN ── */}
         {callState !== 'ended' && <div className="call-controls">
           {callState === 'incoming' ? (
             <>
-              <button className="call-ctrl-btn accept"  onClick={handleAccept}><Phone size={18} /><span>Opnemen</span></button>
-              <button className="call-ctrl-btn decline" onClick={handleDecline}><Cancel size={18} /><span>Weigeren</span></button>
+              <button type="button" className="call-ctrl-btn accept"  onClick={handleAccept}><Phone size={18} aria-hidden="true" /><span>Opnemen</span></button>
+              <button type="button" className="call-ctrl-btn decline" onClick={handleDecline}><Cancel size={18} aria-hidden="true" /><span>Weigeren</span></button>
             </>
           ) : (
             <>
-              <button className={`call-ctrl-btn mute ${muted ? 'on' : ''}`} onClick={toggleMute}>
-                {muted ? <MicOff size={18} /> : <Mic size={18} />}<span>{muted ? 'Dempen uit' : 'Dempen'}</span>
+              <button type="button" className={`call-ctrl-btn mute ${muted ? 'on' : ''}`} aria-pressed={muted} onClick={toggleMute}>
+                {muted ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}<span>{muted ? 'Dempen uit' : 'Dempen'}</span>
               </button>
               {isVideo && (
-                <button className={`call-ctrl-btn cam ${camOff ? 'on' : ''}`} onClick={toggleCam}>
-                  {camOff ? <Cancel size={18} /> : <Camera size={18} />}<span>Camera</span>
+                <button type="button" className={`call-ctrl-btn cam ${camOff ? 'on' : ''}`} aria-pressed={camOff} onClick={toggleCam}>
+                  {camOff ? <Cancel size={18} aria-hidden="true" /> : <Camera size={18} aria-hidden="true" />}<span>Camera</span>
                 </button>
               )}
               {!isVideo && callState === 'active' && (
-                <button className="call-ctrl-btn cam" onClick={handleUpgradeToVideo}>
-                  <Video size={18} /><span>Video</span>
+                <button type="button" className="call-ctrl-btn cam" onClick={handleUpgradeToVideo}>
+                  <Video size={18} aria-hidden="true" /><span>Video</span>
                 </button>
               )}
-              <button className="call-ctrl-btn end" onClick={handleEnd}><Cancel size={18} /><span>Ophangen</span></button>
+              <button type="button" className="call-ctrl-btn end" onClick={handleEnd}><Cancel size={18} aria-hidden="true" /><span>Ophangen</span></button>
             </>
           )}
         </div>}

@@ -32,45 +32,45 @@ export default function MsgContextMenu({
 
         {isOwn && msg.failed && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onRetry)}>
-            <Refresh size={18} className="msg-ctx-icon" style={{ color: '#f87171' }} />
+            <Refresh size={18} className="msg-ctx-icon" style={{ color: '#f87171' }} aria-hidden="true" />
             <span>Opnieuw versturen</span>
           </button>
         )}
 
         <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onReply)}>
-          <Reply size={18} className="msg-ctx-icon" />
+          <Reply size={18} className="msg-ctx-icon" aria-hidden="true" />
           <span>Beantwoorden</span>
         </button>
 
         {isText && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onCopy)}>
-            <Copy size={18} className="msg-ctx-icon" />
+            <Copy size={18} className="msg-ctx-icon" aria-hidden="true" />
             <span>Kopiëren</span>
           </button>
         )}
 
         {isText && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onForward)}>
-            <Share size={18} className="msg-ctx-icon" />
+            <Share size={18} className="msg-ctx-icon" aria-hidden="true" />
             <span>Doorsturen</span>
           </button>
         )}
 
         <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onPin)}>
-          <Pin size={18} className="msg-ctx-icon" style={{ transform: pinned ? 'rotate(45deg)' : 'none', transition: 'transform .15s' }} />
+          <Pin size={18} className="msg-ctx-icon" style={{ transform: pinned ? 'rotate(45deg)' : 'none', transition: 'transform .15s' }} aria-hidden="true" />
           <span>{pinned ? 'Losmaken' : 'Vastzetten'}</span>
         </button>
 
         <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onStar)}>
           {starred
-            ? <StarFilled  size={18} className="msg-ctx-icon" style={{ color: '#f59e0b' }} />
-            : <StarOutline size={18} className="msg-ctx-icon" />}
+            ? <StarFilled  size={18} className="msg-ctx-icon" style={{ color: '#f59e0b' }} aria-hidden="true" />
+            : <StarOutline size={18} className="msg-ctx-icon" aria-hidden="true" />}
           <span>{starred ? 'Ster verwijderen' : 'Met ster markeren'}</span>
         </button>
 
         {isOwn && isText && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onEdit)}>
-            <MagicEdit size={18} className="msg-ctx-icon" />
+            <MagicEdit size={18} className="msg-ctx-icon" aria-hidden="true" />
             <span>Bewerken</span>
           </button>
         )}
@@ -78,7 +78,7 @@ export default function MsgContextMenu({
         <div className="msg-ctx-divider" />
 
         <button type="button" role="menuitem" className="msg-ctx-item danger" onClick={doAndClose(onDeleteRequest)}>
-          <Delete size={18} className="msg-ctx-icon" />
+          <Delete size={18} className="msg-ctx-icon" aria-hidden="true" />
           <span>Verwijderen</span>
         </button>
       </div>

@@ -44,86 +44,90 @@ export default function MarketingNavbar({
   return (
     <nav className={`hp-nav${scrolled ? ' hp-nav--scrolled' : ''}`} aria-label="Hoofdnavigatie">
       <a className="hp-skip-link" href="#main-content">Ga naar inhoud</a>
-      <a className="hp-nav-logo" href="/" aria-label="Ga naar de homepage van Pulse">
-        <span aria-hidden="true">
-          <PulseLogo size={30} textSize={20} color="#6c63ff" />
-        </span>
-      </a>
+      <div className="hp-nav-inner">
+        <a className="hp-nav-logo" href="/" aria-label="Ga naar de homepage van Pulse">
+          <span aria-hidden="true">
+            <PulseLogo size={30} textSize={20} color="#6c63ff" />
+          </span>
+        </a>
 
-      <div
-        id={navMenuId}
-        className={`hp-nav-links${menuOpen ? ' hp-nav-links--open' : ''}`}
-      >
-        {items.map((item) => {
-          const isActive = item.key === activeKey;
-          const className = isActive ? 'fp-nav-active' : (item.href ? 'fp-nav-link' : '');
+        <div
+          id={navMenuId}
+          className={`hp-nav-links${menuOpen ? ' hp-nav-links--open' : ''}`}
+        >
+          {items.map((item) => {
+            const isActive = item.key === activeKey;
+            const className = isActive ? 'fp-nav-active' : (item.href ? 'fp-nav-link' : '');
 
-          if (item.href) {
+            if (item.href) {
+              return (
+                <a
+                  key={item.key}
+                  href={item.href}
+                  className={className}
+                  aria-current={isActive ? 'page' : undefined}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </a>
+              );
+            }
+
             return (
-              <a
+              <button
                 key={item.key}
-                href={item.href}
+                type="button"
                 className={className}
-                aria-current={isActive ? 'page' : undefined}
-                onClick={() => setMenuOpen(false)}
+                onClick={() => {
+                  item.onClick?.();
+                  setMenuOpen(false);
+                }}
               >
                 {item.label}
-              </a>
+              </button>
             );
-          }
+          })}
+        </div>
+        {menuOpen && (
+          <button
+            type="button"
+            className="hp-nav-backdrop"
+            aria-label="Sluit het menu"
+            onClick={() => setMenuOpen(false)}
+          />
+        )}
 
-          return (
-            <button
-              key={item.key}
-              type="button"
-              className={className}
-              onClick={() => {
-                item.onClick?.();
-                setMenuOpen(false);
-              }}
-            >
-              {item.label}
-            </button>
-          );
-        })}
+        <div className="hp-nav-actions">
+          <button
+            type="button"
+            className="hp-nav-kind"
+            onClick={() => { setShowKindModal(true); setMenuOpen(false); }}
+            aria-label="Kind inloggen"
+          >
+            <span aria-hidden="true">👦</span> Kind
+          </button>
+
+          <button
+            type="button"
+            className="hp-nav-ouder"
+            onClick={() => { setShowParentModal(true); setMenuOpen(false); }}
+            aria-label="Open ouder login of registratie"
+          >
+            <span aria-hidden="true">❤️</span> Ouder
+          </button>
+
+          <button
+            type="button"
+            className="hp-nav-hamburger"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? 'Sluit menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls={navMenuId}
+          >
+            <span aria-hidden="true">{menuOpen ? '✕' : '☰'}</span>
+          </button>
+        </div>
       </div>
-      {menuOpen && (
-        <button
-          type="button"
-          className="hp-nav-backdrop"
-          aria-label="Sluit het menu"
-          onClick={() => setMenuOpen(false)}
-        />
-      )}
-
-      <button
-        type="button"
-        className="hp-nav-kind"
-        onClick={() => { setShowKindModal(true); setMenuOpen(false); }}
-        aria-label="Kind inloggen"
-      >
-        <span aria-hidden="true">👦</span> Kind
-      </button>
-
-      <button
-        type="button"
-        className="hp-nav-ouder"
-        onClick={() => { setShowParentModal(true); setMenuOpen(false); }}
-        aria-label="Open ouder login of registratie"
-      >
-        <span aria-hidden="true">❤️</span> Ouder
-      </button>
-
-      <button
-        type="button"
-        className="hp-nav-hamburger"
-        onClick={() => setMenuOpen((open) => !open)}
-        aria-label={menuOpen ? 'Sluit menu' : 'Open menu'}
-        aria-expanded={menuOpen}
-        aria-controls={navMenuId}
-      >
-        <span aria-hidden="true">{menuOpen ? '✕' : '☰'}</span>
-      </button>
 
       {showKindModal   && <AuthModal       onClose={() => setShowKindModal(false)}   />}
       {showParentModal && <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="login" />}

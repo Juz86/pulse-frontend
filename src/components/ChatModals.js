@@ -452,11 +452,21 @@ export default function ChatModals({
       {/* ── PROFIEL MODAL ── */}
       {showProfile && (
         <div className="modal-overlay" onClick={() => setShowProfile(false)}>
-          <div className="profile-modal-box" onClick={e => e.stopPropagation()}>
+          <div
+            className="profile-modal-box"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profile-settings-title"
+            aria-describedby="profile-settings-description"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="profile-modal-header">
-              <span className="profile-modal-header-title">Instellingen</span>
+              <span id="profile-settings-title" className="profile-modal-header-title">Instellingen</span>
               <button type="button" className="profile-modal-close" aria-label="Instellingen sluiten" onClick={() => setShowProfile(false)}><span aria-hidden="true">✕</span></button>
             </div>
+            <p id="profile-settings-description" className="sr-only">
+              Pas je account, styling en verwijderopties aan in dit instellingenvenster.
+            </p>
             <div className="profile-modal-body">
               <div className="profile-sidebar">
                 {[
@@ -748,14 +758,25 @@ export default function ChatModals({
         );
         return (
           <div className="modal-overlay" onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); }}>
-            <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
+            <div
+              className="modal-box"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="starred-messages-title"
+              aria-describedby="starred-messages-description"
+              onClick={e => e.stopPropagation()}
+              style={{ maxHeight: '70vh', display: 'flex', flexDirection: 'column' }}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <h3 className="modal-title" style={{ margin: 0 }}>
+                <h3 id="starred-messages-title" className="modal-title" style={{ margin: 0 }}>
                   <span className="modal-title-icon" aria-hidden="true"><StarFilled size={18} style={{ color: '#f59e0b' }} /></span>
                   Berichten met ster
                 </h3>
                 <button type="button" className="modal-close-btn" aria-label="Berichten met ster sluiten" onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); }}><span aria-hidden="true">✕</span></button>
               </div>
+              <p id="starred-messages-description" className="sr-only">
+                Bekijk en doorzoek berichten met ster uit het actieve gesprek.
+              </p>
               <div className="starred-search-wrap">
                 <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
                 <input
@@ -802,9 +823,10 @@ export default function ChatModals({
         const callLog = getCallLog();
         return (
           <div className="modal-overlay" onClick={() => setShowCallModal(false)}>
-            <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="call-log-title" aria-describedby="call-log-description" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
               <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setShowCallModal(false)}><span aria-hidden="true">✕</span></button>
-              <h3 className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Phone size={18} /></span> Recent</h3>
+              <h3 id="call-log-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Phone size={18} /></span> Recent</h3>
+              <p id="call-log-description" className="sr-only">Bekijk recente oproepen en start een nieuwe bel- of video-oproep.</p>
               {callLog.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text3)' }}>
                   <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>

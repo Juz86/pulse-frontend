@@ -242,7 +242,7 @@ function SidebarMockup() {
           )}
         </div>
       ))}
-      <div style={{ flex: 1 }} />
+      <div style={{ height: 8 }} />
       {/* Footer met gebruiker + knoppen */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 8, marginTop: 4 }}>
         <MockAvatar letter="K" gradient="linear-gradient(135deg,#ec4899,#8b5cf6)" size={26} online />
@@ -526,8 +526,10 @@ export default function FunctiePagina({ onParentClick }) {
   const [callVideoSlide, setCallVideoSlide] = useState(0);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showParentModal, setShowParentModal] = useState(false);
-  const chatTabRefs = useRef([]);
-  const callTabRefs = useRef([]);
+  const chatTabRefs     = useRef([]);
+  const callTabRefs     = useRef([]);
+  const chatTouchStartX = useRef(null);
+  const callTouchStartX = useRef(null);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -799,6 +801,14 @@ export default function FunctiePagina({ onParentClick }) {
               role="tabpanel"
               aria-labelledby={`chat-tab-${currentChatSlide.key}`}
               tabIndex={0}
+              onTouchStart={(e) => { chatTouchStartX.current = e.touches[0].clientX; }}
+              onTouchEnd={(e) => {
+                if (chatTouchStartX.current === null) return;
+                const delta = e.changedTouches[0].clientX - chatTouchStartX.current;
+                if (delta < -40) setChatSlide((prev) => (prev === chatSlides.length - 1 ? 0 : prev + 1));
+                else if (delta > 40) setChatSlide((prev) => (prev === 0 ? chatSlides.length - 1 : prev - 1));
+                chatTouchStartX.current = null;
+              }}
             >
               <FeatureRow
                 key={currentChatSlide.key}
@@ -819,11 +829,15 @@ export default function FunctiePagina({ onParentClick }) {
               >
                 <span aria-hidden="true">← </span>Vorige
               </button>
-              <div className="fp-slider-dots" aria-hidden="true">
+              <div className="fp-slider-dots">
                 {chatSlides.map((slide, index) => (
-                  <span
+                  <button
                     key={slide.key}
+                    type="button"
+                    aria-label={`Ga naar ${slide.label}`}
+                    aria-current={index === chatSlide ? 'true' : undefined}
                     className={`fp-slider-dot${index === chatSlide ? ' fp-slider-dot--active' : ''}`}
+                    onClick={() => setChatSlide(index)}
                   />
                 ))}
               </div>
@@ -874,6 +888,14 @@ export default function FunctiePagina({ onParentClick }) {
               role="tabpanel"
               aria-labelledby={`call-tab-${currentCallVideoSlide.key}`}
               tabIndex={0}
+              onTouchStart={(e) => { callTouchStartX.current = e.touches[0].clientX; }}
+              onTouchEnd={(e) => {
+                if (callTouchStartX.current === null) return;
+                const delta = e.changedTouches[0].clientX - callTouchStartX.current;
+                if (delta < -40) setCallVideoSlide((prev) => (prev === callVideoSlides.length - 1 ? 0 : prev + 1));
+                else if (delta > 40) setCallVideoSlide((prev) => (prev === 0 ? callVideoSlides.length - 1 : prev - 1));
+                callTouchStartX.current = null;
+              }}
             >
               <FeatureRow
                 key={currentCallVideoSlide.key}
@@ -894,11 +916,15 @@ export default function FunctiePagina({ onParentClick }) {
               >
                 <span aria-hidden="true">← </span>Vorige
               </button>
-              <div className="fp-slider-dots" aria-hidden="true">
+              <div className="fp-slider-dots">
                 {callVideoSlides.map((slide, index) => (
-                  <span
+                  <button
                     key={slide.key}
+                    type="button"
+                    aria-label={`Ga naar ${slide.label}`}
+                    aria-current={index === callVideoSlide ? 'true' : undefined}
                     className={`fp-slider-dot${index === callVideoSlide ? ' fp-slider-dot--active' : ''}`}
+                    onClick={() => setCallVideoSlide(index)}
                   />
                 ))}
               </div>

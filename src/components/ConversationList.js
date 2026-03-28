@@ -23,6 +23,7 @@ const ConversationList = React.memo(function ConversationList({
   onCallVoice,
   onCallVideo,
   onDelete,
+  onInfo,
   setLabelMenuConvId,
 }) {
   const filtered = useMemo(() => {
@@ -103,6 +104,7 @@ const ConversationList = React.memo(function ConversationList({
             onCallVoice={e => { e.stopPropagation(); onCallVoice(conv, false); }}
             onCallVideo={e => { e.stopPropagation(); onCallVideo(conv, true); }}
             onDelete={e => handleDelete(e, conv.id)}
+            onInfo={e => { e.stopPropagation(); onInfo?.(otherUid); }}
           />
         );
       })}

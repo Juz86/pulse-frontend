@@ -64,6 +64,7 @@ export default function ChatSidebar({
   onOpenConversation,
   onCallFromConv,
   onDeleteConversation,
+  onInfoFromConv,
   // helpers
   getConvName,
   getOtherUid,
@@ -188,6 +189,7 @@ export default function ChatSidebar({
           onCallVoice={onCallFromConv}
           onCallVideo={onCallFromConv}
           onDelete={onDeleteConversation}
+          onInfo={onInfoFromConv}
           setLabelMenuConvId={setLabelMenuConvId}
         />
       )}

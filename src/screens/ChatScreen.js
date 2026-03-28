@@ -339,6 +339,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         parentBlockedUids={parentBlockedUids}
         onOpenConversation={openConversation}
         onCallFromConv={initiateCallFromConv} onDeleteConversation={deleteConversation}
+        onInfoFromConv={uid => { const c = contacts.find(x => x.uid === uid); if (c) { setViewingContact(c); setRenameValue(getContactNickname(c.uid) || c.displayName || ''); } }}
         getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         getContactDisplayName={getContactDisplayName}
       />

@@ -2,15 +2,11 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import AuthScreen from '../screens/AuthScreen';
-import { Heart } from './Icons';
-import PulseLogo from './PulseLogo';
 
-export default function AuthModal({ onClose, onParentClick }) {
+export default function AuthModal({ onClose }) {
   const [visible, setVisible] = useState(false);
-  const closeButtonRef = useRef(null);
   const previousFocusRef = useRef(null);
 
-  // Fade-in
   useEffect(() => {
     const raf = requestAnimationFrame(() => setVisible(true));
     return () => cancelAnimationFrame(raf);
@@ -18,14 +14,9 @@ export default function AuthModal({ onClose, onParentClick }) {
 
   useEffect(() => {
     previousFocusRef.current = document.activeElement;
-    const timer = setTimeout(() => closeButtonRef.current?.focus(), 0);
-    return () => {
-      clearTimeout(timer);
-      previousFocusRef.current?.focus?.();
-    };
+    return () => previousFocusRef.current?.focus?.();
   }, []);
 
-  // Body scroll vergrendelen
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
@@ -36,7 +27,6 @@ export default function AuthModal({ onClose, onParentClick }) {
     setTimeout(onClose, 200);
   }, [onClose]);
 
-  // ESC-toets
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') handleClose(); };
     document.addEventListener('keydown', onKey);
@@ -47,53 +37,13 @@ export default function AuthModal({ onClose, onParentClick }) {
     if (e.target === e.currentTarget) handleClose();
   }
 
-  function handleParentClick() {
-    handleClose();
-    setTimeout(() => onParentClick?.(), 220);
-  }
-
   return createPortal(
     <div
       className={`auth-modal-overlay${visible ? ' auth-modal-overlay--visible' : ''}`}
-      role="presentation"
       onClick={handleBackdrop}
+      role="presentation"
     >
-      <div
-        className={`auth-modal-card${visible ? ' auth-modal-card--visible' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="auth-modal-title"
-        aria-describedby="auth-modal-description"
-      >
-
-        {/* Sluitknop */}
-        <button ref={closeButtonRef} type="button" className="auth-modal-close" onClick={handleClose} aria-label="Sluiten">
-          <span aria-hidden="true">✕</span>
-        </button>
-
-        {/* Ouder knop */}
-        <button
-          type="button"
-          className="auth-modal-parent-btn"
-          onClick={handleParentClick}
-          aria-label="Open ouder login of registratie"
-        >
-          <span aria-hidden="true"><Heart size={13} color="#ef4444" /></span> Ouder
-        </button>
-
-        {/* Koptekst */}
-        <div className="auth-modal-header">
-          <div aria-hidden="true">
-            <PulseLogo size={28} textSize={22} />
-          </div>
-          <h2 id="auth-modal-title" className="auth-modal-title">Welkom bij Pulse</h2>
-          <p id="auth-modal-description" className="auth-modal-sub">Log in met je gebruikersnaam en wachtwoord</p>
-        </div>
-
-        {/* Loginformulier */}
-        <AuthScreen isModal />
-
-      </div>
+      <AuthScreen inModal onClose={handleClose} />
     </div>,
     document.body
   );

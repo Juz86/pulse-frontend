@@ -251,73 +251,9 @@ body {
 }
 .auth-modal-overlay--visible { opacity: 1; }
 
-.auth-modal-card {
-  position: relative;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 36px 36px 32px;
-  width: 100%; max-width: 420px;
-  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(108,99,255,0.1);
-  opacity: 0;
-  transform: scale(0.95);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  max-height: calc(100vh - 32px);
-  overflow-y: auto;
-}
-.auth-modal-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(108,99,255,.4), transparent);
-  border-radius: 16px 16px 0 0;
-}
-.auth-modal-card--visible { opacity: 1; transform: scale(1); }
-
-.auth-modal-close {
-  position: absolute; top: 8px; left: 8px;
-  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
-  border-radius: 8px; color: var(--text2);
-  width: 32px; height: 32px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 13px;
-  transition: background 0.15s, color 0.15s;
-}
-.auth-modal-close:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-
-.auth-modal-parent-btn {
-  position: absolute; top: 14px; right: 14px;
-  background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.4);
-  color: var(--accent); border-radius: 10px;
-  padding: 6px 14px; font-size: 12px; font-weight: 600;
-  cursor: pointer; letter-spacing: 0.3px;
-  display: flex; align-items: center; gap: 5px;
-  transition: background 0.15s;
-}
-.auth-modal-parent-btn:hover { background: rgba(108,99,255,0.28); }
-
-.auth-modal-header {
-  text-align: center; margin: 8px 0 20px;
-}
-.auth-modal-title {
-  font-size: 18px; font-weight: 800; color: var(--text);
-  letter-spacing: -0.3px; margin: 10px 0 4px;
-}
-.auth-modal-sub { font-size: 13px; color: var(--text3); line-height: 1.5; }
-
-.auth-modal-register {
-  text-align: center; padding: 20px 0 8px;
-}
-.auth-modal-register-icon { font-size: 44px; margin-bottom: 14px; }
-.auth-modal-register h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
-.auth-modal-register p { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 0; }
 
 @media (max-width: 480px) {
   .auth-modal-overlay { align-items: stretch; padding: 0; }
-  .auth-modal-card {
-    max-width: none; border-radius: 0;
-    max-height: 100vh; min-height: 100vh;
-    padding: 36px 20px 28px;
-  }
-  .auth-modal-card::before { border-radius: 0; }
 }
 
 .parent-auth-modal-card {
@@ -1220,6 +1156,23 @@ body {
   content:''; position:absolute; top:0; left:0; right:0; height:1px;
   background:linear-gradient(90deg, transparent, rgba(108,99,255,.4), transparent);
 }
+
+/* ── Universele sluitknop (✕) rechtsboven in elke modal ── */
+.modal-close-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text2);
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 13px;
+  transition: background 0.15s, color 0.15s;
+}
+.modal-close-btn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+.modal-close-btn--light {
+  background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.12); color: #6b7280;
+}
+.modal-close-btn--light:hover { background: rgba(0,0,0,0.1); color: #374151; }
+
 .modal-title {
   font-family:'Inter',sans-serif; font-size:22px; font-weight:800; margin-bottom:20px;
   color: var(--text); line-height:1.4; padding-bottom:2px;
@@ -2498,6 +2451,33 @@ body {
 }
 .hp-feature-text p { font-size: 16px; line-height: 1.7; color: #6b7280; }
 .hp-feature-mockup { flex: 1; display: flex; justify-content: center; }
+
+/* ── Homepage image tilt ── */
+.hp-img-container {
+  overflow: hidden;
+  border-radius: 16px;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(108,99,255,0.1);
+}
+.hp-img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.hp-img-tilt-left  { transform: perspective(900px) rotateY(-5deg) rotateX(1deg); }
+.hp-img-tilt-right { transform: perspective(900px) rotateY(5deg)  rotateX(1deg); }
+.hp-img-tilt-subtle{ transform: perspective(900px) rotateY(-3deg) rotateX(1deg); }
+.hp-img-container:hover {
+  transform: perspective(900px) rotateY(0deg) rotateX(0deg) scale(1.02);
+  box-shadow: 0 28px 70px rgba(0,0,0,0.22), 0 0 0 1px rgba(108,99,255,0.15);
+}
+
 .hp-screenshot-frame {
   border-radius: 20px;
   box-shadow: 0 32px 80px rgba(0,0,0,0.2), 0 0 0 1px rgba(108,99,255,0.15);
@@ -2748,6 +2728,8 @@ body {
   .hp-why-grid { grid-template-columns: 1fr; gap: 16px; }
   .hp-feature-row, .hp-feature-row--reverse { flex-direction: column; gap: 40px; padding: 48px 0; }
   .hp-feature-mockup { width: 100%; display: flex; justify-content: center; }
+  .hp-img-tilt-left, .hp-img-tilt-right, .hp-img-tilt-subtle { transform: none; }
+  .hp-img-container:hover { transform: none; }
   .hp-steps { flex-direction: column; align-items: center; }
   .hp-step-arrow { display: none; }
   .hp-step { max-width: 320px; }

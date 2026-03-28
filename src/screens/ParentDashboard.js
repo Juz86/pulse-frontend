@@ -306,7 +306,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                 {t.icon}
                 <span>{t.label}</span>
                 {t.badge && (
-                  <span className="parent-badge" style={{ marginLeft: '6px', position: 'static', transform: 'none', flexShrink: 0 }}>
+                  <span className="parent-badge" aria-label={`${t.badge} nieuwe activiteiten`} style={{ marginLeft: '6px', position: 'static', transform: 'none', flexShrink: 0 }}>
                     {t.badge}
                   </span>
                 )}
@@ -631,6 +631,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                           className="parent-btn-outline"
                           style={{ fontSize:13, padding:'6px 10px 6px 12px', display:'flex', alignItems:'center', gap:4, minWidth:80, maxWidth:160 }}
                           aria-label="Kies kind voor activiteitenoverzicht"
+                          aria-haspopup="listbox"
                           aria-expanded={childDropdownOpen}
                           onClick={e => { e.stopPropagation(); setChildDropdownOpen(o => !o); }}
                         >
@@ -640,9 +641,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                           <ChevronDown size={16} aria-hidden="true" />
                         </button>
                         {childDropdownOpen && (
-                          <div style={{ position:'absolute', top:'calc(100% + 4px)', right:0, background:'var(--bg1,#fff)', border:'1px solid #e0e0e8', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.12)', zIndex:200, minWidth:140, padding:4 }}>
+                          <div role="listbox" aria-label="Kies een kind" style={{ position:'absolute', top:'calc(100% + 4px)', right:0, background:'var(--bg1,#fff)', border:'1px solid #e0e0e8', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.12)', zIndex:200, minWidth:140, padding:4 }}>
                             {children.map(c => (
-                              <button key={c.uid} type="button" style={{ display:'block', width:'100%', textAlign:'left', background: c.uid === selectedChildUid ? 'rgba(108,99,255,.08)' : 'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' }}
+                              <button key={c.uid} type="button" role="option" aria-selected={c.uid === selectedChildUid} style={{ display:'block', width:'100%', textAlign:'left', background: c.uid === selectedChildUid ? 'rgba(108,99,255,.08)' : 'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' }}
                                 onClick={() => { setSelectedChildUid(c.uid); setChildDropdownOpen(false); }}>
                                 {c.displayName}
                               </button>

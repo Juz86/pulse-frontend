@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import AuthScreen from './AuthScreen';
 import AuthModal from '../components/AuthModal';
 import ParentAuthModal from '../components/ParentAuthModal';
-import { Shield, PhoneIcon, Wifi } from '../components/Icons';
+import { Shield, PhoneIcon, Wifi, Login } from '../components/Icons';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
@@ -67,7 +67,7 @@ export default function Homepage({ onParentClick }) {
             <ul className="hp-hero-features" aria-label="Belangrijkste voordelen">
               <li className="hp-hero-feature"><span aria-hidden="true"><Shield size={16} /></span> Versleuteld &amp; privé</li>
               <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Chatten &amp; (video)bellen</li>
-              <li className="hp-hero-feature"><span aria-hidden="true"><Wifi size={16} /></span> Wifi &amp; mobiel</li>
+              <li className="hp-hero-feature"><span aria-hidden="true"><Wifi size={16} /></span> Wi-Fi &amp; data</li>
             </ul>
           </div>
 
@@ -96,32 +96,36 @@ export default function Homepage({ onParentClick }) {
               </a>
             </div>
             <div className="hp-feature-mockup">
-              <img
-                src="/screenshots/pulse1.png"
-                alt="Pulse chat in gebruik"
-                width="420"
-                height="315"
-                sizes="(max-width: 768px) 100vw, 420px"
-                loading="lazy"
-                decoding="async"
-                style={{ width: '100%', maxWidth: 420, borderRadius: 16, display: 'block' }}
-              />
+              <div className="hp-img-container hp-img-tilt-left">
+                <img
+                  src="/screenshots/pulse1.png"
+                  alt="Pulse chat in gebruik"
+                  width="420"
+                  height="315"
+                  sizes="(max-width: 768px) 100vw, 420px"
+                  loading="lazy"
+                  decoding="async"
+                  style={{ objectPosition: 'center' }}
+                />
+              </div>
             </div>
           </article>
 
           {/* Rij 2 */}
           <article className="hp-feature-row hp-feature-row--reverse" id="toezicht" aria-labelledby="homepage-feature-parental-controls">
             <div className="hp-feature-mockup">
-              <img
-                src="/screenshots/tablet-hand.jpg"
-                alt="Ouderlijk toezicht dashboard"
-                width="420"
-                height="315"
-                sizes="(max-width: 768px) 100vw, 420px"
-                loading="lazy"
-                decoding="async"
-                style={{ width: '100%', maxWidth: 420, borderRadius: 16, display: 'block' }}
-              />
+              <div className="hp-img-container hp-img-tilt-right">
+                <img
+                  src="/screenshots/tablet-hand.jpg"
+                  alt="Ouderlijk toezicht dashboard"
+                  width="420"
+                  height="315"
+                  sizes="(max-width: 768px) 100vw, 420px"
+                  loading="lazy"
+                  decoding="async"
+                  style={{ objectPosition: '50% 80%' }}
+                />
+              </div>
             </div>
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Ouderlijk toezicht</div>
@@ -144,16 +148,18 @@ export default function Homepage({ onParentClick }) {
               </a>
             </div>
             <div className="hp-feature-mockup">
-              <img
-                src="/screenshots/avg.png"
-                alt="AVG en privacy"
-                width="420"
-                height="315"
-                sizes="(max-width: 768px) 100vw, 420px"
-                loading="lazy"
-                decoding="async"
-                style={{ width: '100%', maxWidth: 420, borderRadius: 16, display: 'block' }}
-              />
+              <div className="hp-img-container hp-img-tilt-subtle">
+                <img
+                  src="/screenshots/avg.png"
+                  alt="AVG en privacy"
+                  width="420"
+                  height="315"
+                  sizes="(max-width: 768px) 100vw, 420px"
+                  loading="lazy"
+                  decoding="async"
+                  style={{ objectPosition: 'center' }}
+                />
+              </div>
             </div>
           </article>
 
@@ -162,23 +168,19 @@ export default function Homepage({ onParentClick }) {
 
 
       {/* ── CTA ── */}
-      <section className="hp-cta" aria-labelledby="homepage-cta-title">
-        <div className="hp-cta-inner">
-          <h2 id="homepage-cta-title">Blijf veilig verbonden met wie echt telt</h2>
-          <p>Gratis account aanmaken. Beschikbaar op web, iOS en Android.</p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
-              Ouderaccount aanmaken
-            </button>
-            <button
-              type="button"
-              className="hp-cta-btn"
-              style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)' }}
-              onClick={() => setShowAuthModal(true)}
-            >
-              Kind inloggen
-            </button>
-          </div>
+      <section className="ot-final-cta">
+        <h2>Veilig verbonden. Met wie echt telt.</h2>
+        <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+          <button
+            type="button"
+            className="hp-cta-btn"
+            style={{ background: '#fff', border: '1.5px solid rgba(108,99,255,0.4)', color: '#6c63ff', display: 'flex', alignItems: 'center', gap: 6 }}
+            onClick={() => setShowAuthModal(true)}
+          >
+            <Login size={18} /> Inloggen
+          </button>
         </div>
       </section>
       </main>

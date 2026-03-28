@@ -3,6 +3,7 @@ import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PulseLogo from '../components/PulseLogo';
 import ParentAuthModal from '../components/ParentAuthModal';
+import AuthModal from '../components/AuthModal';
 import PageMeta from '../components/PageMeta';
 import {
   Activity,
@@ -11,6 +12,7 @@ import {
   Clock,
   Delete,
   KeyRound,
+  Login,
   Message,
   PauseCircle,
   Phone,
@@ -274,6 +276,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showParentModal, setShowParentModal] = useState(false);
+  const [showAuthModal,   setShowAuthModal]   = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -431,10 +434,18 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
       </section>
 
       <section className="ot-final-cta">
-        <div className="hp-cta-inner">
-          <h2>Jij houdt overzicht, je kind ervaart vrijheid</h2>
-          <p>Pulse laat je kind in contact blijven met de mensen die echt belangrijk zijn, binnen een veilige omgeving onder ouderlijk toezicht.</p>
+        <h2>Veilig verbonden. Met wie echt telt.</h2>
+        <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+          <button
+            type="button"
+            className="hp-cta-btn"
+            style={{ background: '#fff', border: '1.5px solid rgba(108,99,255,0.4)', color: '#6c63ff', display: 'flex', alignItems: 'center', gap: 6 }}
+            onClick={() => setShowAuthModal(true)}
+          >
+            <Login size={18} /> Inloggen
+          </button>
         </div>
       </section>
       </main>
@@ -443,6 +454,9 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
 
       {showParentModal && (
         <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
+      )}
+      {showAuthModal && (
+        <AuthModal onClose={() => setShowAuthModal(false)} />
       )}
     </div>
   );

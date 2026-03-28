@@ -13,7 +13,7 @@ import {
   Message, Users, User, Search, Bell,
   Pin, StarFilled, CheckDouble, Check,
   Forward, Reply, ImageIcon, Palette,
-  Refresh, Clock, Wifi, Logout,
+  Refresh, Clock, Wifi, Logout, Login,
   Lightbulb, Delete, PhoneCall, PhoneMissed, PhoneEnd,
 } from '../components/Icons';
 import { MdAlternateEmail, MdSend, MdSmartphone } from 'react-icons/md';
@@ -952,14 +952,19 @@ export default function FunctiePagina({ onParentClick }) {
       </section>
 
       {/* ── CTA ── */}
-      <section className="hp-cta">
-        <div className="hp-cta-inner">
-          <h2>Blijf veilig verbonden met wie echt telt</h2>
-          <p>Pulse helpt ouders en kinderen om rustig en overzichtelijk in contact te blijven.</p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
-            <button type="button" className="hp-cta-btn" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)' }} onClick={() => setShowAuthModal(true)}>Inloggen</button>
-          </div>
+      <section className="ot-final-cta">
+        <h2>Veilig verbonden. Met wie echt telt.</h2>
+        <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+          <button
+            type="button"
+            className="hp-cta-btn"
+            style={{ background: '#fff', border: '1.5px solid rgba(108,99,255,0.4)', color: '#6c63ff', display: 'flex', alignItems: 'center', gap: 6 }}
+            onClick={() => setShowAuthModal(true)}
+          >
+            <Login size={18} /> Inloggen
+          </button>
         </div>
       </section>
 

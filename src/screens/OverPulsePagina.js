@@ -12,6 +12,7 @@ import {
   EyeOn,
   Heart,
   Lock,
+  Login,
   Message,
   Phone,
   Shield,
@@ -425,10 +426,10 @@ export default function OverPulsePagina({ onParentClick }) {
           <button
             type="button"
             className="hp-cta-btn"
-            style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)' }}
+            style={{ background: '#fff', border: '1.5px solid rgba(108,99,255,0.4)', color: '#6c63ff', display: 'flex', alignItems: 'center', gap: 6 }}
             onClick={() => setShowAuthModal(true)}
           >
-            Kind inloggen
+            <Login size={18} /> Inloggen
           </button>
         </div>
       </section>

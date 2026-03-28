@@ -7,7 +7,7 @@ import PulseLogo from '../components/PulseLogo';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import ParentAuthScreen from './ParentAuthScreen';
 
-export default function AuthScreen({ isModal }) {
+export default function AuthScreen({ isModal, inModal, onClose }) {
   const [username,     setUsername]     = useState('');
   const [password,     setPassword]     = useState('');
   const [error,        setError]        = useState('');
@@ -132,63 +132,82 @@ export default function AuthScreen({ isModal }) {
 
       <ul className="auth-features" aria-label="Belangrijkste voordelen">
         <li className="auth-feature"><span aria-hidden="true"><Shield size={18} color="var(--text3)" /></span><div>Versleuteld</div></li>
-        <li className="auth-feature"><span aria-hidden="true"><PhoneIcon size={18} color="var(--text3)" /></span><div>Bellen &amp; video</div></li>
-        <li className="auth-feature"><span aria-hidden="true"><Wifi size={18} color="var(--text3)" /></span><div>Wifi &amp; mobiel</div></li>
+        <li className="auth-feature"><span aria-hidden="true"><PhoneIcon size={18} color="var(--text3)" /></span><div style={{ whiteSpace: 'nowrap' }}>Chatten &amp; (video)bellen</div></li>
+        <li className="auth-feature"><span aria-hidden="true"><Wifi size={18} color="var(--text3)" /></span><div>Wi-Fi &amp; data</div></li>
       </ul>
     </>
   );
 
   if (isModal) return formContent;
 
-  return (
-    <div className="auth-screen">
-      <div className="auth-bg" aria-hidden="true" />
+  const flipCards = (
+    <div className="auth-flip-wrapper">
+      <div className={`auth-flip-inner${flipped ? ' auth-flip-inner--flipped' : ''}`}>
 
-      <div className="auth-flip-wrapper">
-        <div className={`auth-flip-inner${flipped ? ' auth-flip-inner--flipped' : ''}`}>
-
-          {/* ── Voorkant: kind-login ── */}
-          <div
-            className="auth-card auth-card-front"
-            style={{ position: 'relative' }}
-            aria-labelledby="child-auth-title"
-            aria-describedby="child-auth-subtitle"
-          >
+        {/* ── Voorkant: kind-login ── */}
+        <div
+          className="auth-card auth-card-front"
+          style={{ position: 'relative' }}
+          aria-labelledby="child-auth-title"
+          aria-describedby="child-auth-subtitle"
+        >
+          <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
               type="button"
               onClick={() => setFlipped(true)}
               aria-label="Open ouder login of registratie"
-              style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.4)', color: 'var(--accent)', borderRadius: '10px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: 5 }}
+              style={{ background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.4)', color: 'var(--accent)', borderRadius: '10px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: 5 }}
             >
               <span aria-hidden="true"><Heart size={14} color="#ef4444" /></span> Ouder
             </button>
-
-            <div className="auth-logo" aria-hidden="true">
-              <PulseLogo size={34} textSize={26} />
-            </div>
-
-            <h2 id="child-auth-title" className="auth-title">Welkom terug</h2>
-            <p id="child-auth-subtitle" className="auth-sub">Log in met je gebruikersnaam en wachtwoord.</p>
-
-            {formContent}
+            {inModal && onClose && (
+              <button type="button" onClick={onClose} aria-label="Sluiten" className="modal-close-btn" style={{ position: 'static' }}>
+                <span aria-hidden="true">✕</span>
+              </button>
+            )}
           </div>
 
-          {/* ── Achterkant: ouder-login ── */}
-          <div className="auth-card-back" aria-label="Ouder inloggen of registreren">
+          <div className="auth-logo" aria-hidden="true">
+            <PulseLogo size={34} textSize={26} />
+          </div>
+
+          <h2 id="child-auth-title" className="auth-title">Welkom terug</h2>
+          <p id="child-auth-subtitle" className="auth-sub">Log in met je gebruikersnaam en wachtwoord.</p>
+
+          {formContent}
+        </div>
+
+        {/* ── Achterkant: ouder-login ── */}
+        <div className="auth-card-back" aria-label="Ouder inloggen of registreren">
+          <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
             <button
               type="button"
               onClick={() => setFlipped(false)}
               aria-label="Terug naar kind inloggen"
               className="hp-nav-kind"
-              style={{ position: 'absolute', top: 16, right: 16 }}
+              style={{ padding: '6px 12px', fontSize: '12px' }}
             >
               <span aria-hidden="true">👦</span> Kind
             </button>
-            <ParentAuthScreen isModal defaultTab="login" />
+            {inModal && onClose && (
+              <button type="button" onClick={onClose} aria-label="Sluiten" className="modal-close-btn modal-close-btn--light" style={{ position: 'static' }}>
+                <span aria-hidden="true">✕</span>
+              </button>
+            )}
           </div>
-
+          <ParentAuthScreen isModal defaultTab="login" />
         </div>
+
       </div>
+    </div>
+  );
+
+  if (inModal) return flipCards;
+
+  return (
+    <div className="auth-screen">
+      <div className="auth-bg" aria-hidden="true" />
+      {flipCards}
     </div>
   );
 }

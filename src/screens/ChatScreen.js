@@ -336,6 +336,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onBlockContact={contact => setBlockingContact(contact)}
         onUnblockContact={unblockContact}
         blockedContacts={blockedContacts}
+        parentBlockedUids={parentBlockedUids}
         onOpenConversation={openConversation}
         onCallFromConv={initiateCallFromConv} onDeleteConversation={deleteConversation}
         getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}

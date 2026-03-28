@@ -1,5 +1,5 @@
 // src/components/ConversationList.js
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import { Message } from '../components/Icons';
 import ConversationItem from './ConversationItem';
 
@@ -20,10 +20,7 @@ const ConversationList = React.memo(function ConversationList({
   getOtherUid,
   getConvPhoto,
   onOpen,
-  onCallVoice,
-  onCallVideo,
-  onDelete,
-  onInfo,
+  onMoreActions,
   setLabelMenuConvId,
 }) {
   const filtered = useMemo(() => {
@@ -48,10 +45,6 @@ const ConversationList = React.memo(function ConversationList({
         photoURL: getConvPhoto(conv),
       }));
   }, [conversations, searchQuery, chatFilter, selectedGroupId, convLabels, pinnedContacts, getConvName, getOtherUid, getConvPhoto]);
-
-  const handleDelete = useCallback((e, convId) => {
-    onDelete(e, convId);
-  }, [onDelete]);
 
   return (
     <div className="conv-list" aria-busy={loadingConvs} onClick={() => setLabelMenuConvId(null)}>
@@ -101,10 +94,7 @@ const ConversationList = React.memo(function ConversationList({
             isPinned={isPinned}
             currentUid={currentUid}
             onOpen={() => onOpen(conv)}
-            onCallVoice={e => { e.stopPropagation(); onCallVoice(conv, false); }}
-            onCallVideo={e => { e.stopPropagation(); onCallVideo(conv, true); }}
-            onDelete={e => handleDelete(e, conv.id)}
-            onInfo={e => { e.stopPropagation(); onInfo?.(otherUid); }}
+            onMoreActions={e => onMoreActions?.(conv, otherUid, e.currentTarget)}
           />
         );
       })}

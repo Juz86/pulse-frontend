@@ -64,14 +64,14 @@ export default function ChatSidebar({
   onOpenConversation,
   onCallFromConv,
   onDeleteConversation,
-  onInfoFromConv,
   // helpers
   getConvName,
   getOtherUid,
   getConvPhoto,
   getContactDisplayName,
 }) {
-  const [contactMenu, setContactMenu] = useState(null); // { uid, direction }
+  const [contactMenu, setContactMenu] = useState(null);
+  const [convMenu, setConvMenu]       = useState(null); // { conv, otherUid, direction, top, left }
   const closeMenuTimerRef = useRef(null);
   const hasMissedCall = (!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert;
 
@@ -107,12 +107,26 @@ export default function ChatSidebar({
     }
   }
 
+  function openConvMenu(conv, otherUid, anchorEl) {
+    const rect = anchorEl?.getBoundingClientRect?.();
+    if (!rect) return;
+    const menuWidth = 188;
+    const menuHeight = 280;
+    const spacing = 8;
+    const direction = rect.top < 420 ? 'down' : 'up';
+    const left = Math.max(12, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 12));
+    const top = direction === 'down'
+      ? Math.min(rect.bottom + spacing, window.innerHeight - menuHeight - 12)
+      : Math.max(12, rect.top - menuHeight - spacing);
+    setConvMenu({ conv, otherUid, direction, top, left });
+  }
+
   useEffect(() => () => {
     if (closeMenuTimerRef.current) clearTimeout(closeMenuTimerRef.current);
   }, []);
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" onClick={() => { setConvMenu(null); }}>
       {/* Header */}
       <div className="sidebar-header">
         <div className="sidebar-top">
@@ -186,10 +200,7 @@ export default function ChatSidebar({
           getOtherUid={getOtherUid}
           getConvPhoto={getConvPhoto}
           onOpen={onOpenConversation}
-          onCallVoice={onCallFromConv}
-          onCallVideo={onCallFromConv}
-          onDelete={onDeleteConversation}
-          onInfo={onInfoFromConv}
+          onMoreActions={(conv, otherUid, el) => openConvMenu(conv, otherUid, el)}
           setLabelMenuConvId={setLabelMenuConvId}
         />
       )}
@@ -286,6 +297,73 @@ export default function ChatSidebar({
 
         </div>
       )}
+
+      {convMenu && (() => {
+        const { conv, otherUid } = convMenu;
+        const contact = contacts.find(c => c.uid === otherUid);
+        const isParentBlocked = parentBlockedUids?.includes(otherUid);
+        const isPinned = pinnedContacts.includes(otherUid);
+        return (
+          <div
+            role="menu"
+            aria-label={`Acties voor ${conv.name}`}
+            onClick={e => e.stopPropagation()}
+            style={{
+              position: 'fixed', zIndex: 3000,
+              top: convMenu.top, left: convMenu.left,
+              background: 'var(--surface2)', border: '1px solid var(--border)',
+              borderRadius: '14px', padding: '6px',
+              boxShadow: '0 8px 32px rgba(0,0,0,.35)',
+              display: 'flex', flexDirection: 'column',
+              minWidth: 188, gap: 2,
+            }}
+          >
+            {contact && (
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }}
+                onClick={() => { onViewContact(contact); setConvMenu(null); }} title="Profiel">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
+                <span>Profiel</span>
+              </button>
+            )}
+            {!isParentBlocked && <>
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }}
+                onClick={() => { onOpenConversation(conv); setConvMenu(null); }} title="Bericht sturen">
+                <Message size={16} aria-hidden="true" />
+                <span>Bericht sturen</span>
+              </button>
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }}
+                onClick={() => { onCallFromConv(conv, false); setConvMenu(null); }} title="Bellen">
+                <Phone size={16} aria-hidden="true" />
+                <span>Bellen</span>
+              </button>
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }}
+                onClick={() => { onCallFromConv(conv, true); setConvMenu(null); }} title="Videobellen">
+                <Video size={16} aria-hidden="true" />
+                <span>Videobellen</span>
+              </button>
+              {otherUid && (
+                <button type="button" role="menuitem" className={`icon-btn${isPinned ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }}
+                  onClick={() => { onTogglePin(otherUid); setConvMenu(null); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
+                  <Pin size={17} aria-hidden="true" />
+                  <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
+                </button>
+              )}
+              {contact && (
+                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }}
+                  onClick={() => { onBlockContact(contact); setConvMenu(null); }} title="Blokkeren">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+                  <span>Blokkeren</span>
+                </button>
+              )}
+            </>}
+            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }}
+              onClick={() => { onDeleteConversation(null, conv.id); setConvMenu(null); }} title="Gesprek verwijderen">
+              <Delete size={18} aria-hidden="true" />
+              <span>Prullenbak</span>
+            </button>
+          </div>
+        );
+      })()}
 
       {contactMenu && (() => {
         const contact = contacts.find(c => c.uid === contactMenu.uid);

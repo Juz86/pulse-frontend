@@ -1,6 +1,6 @@
 // src/components/ConversationItem.js
 import React from 'react';
-import { Phone, Video, Delete, Pin, InfoIcon } from '../components/Icons';
+import { Pin, InfoIcon } from '../components/Icons';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview } from '../utils';
 
@@ -14,10 +14,7 @@ function ConversationItemBase({
   isPinned,
   currentUid,
   onOpen,
-  onCallVoice,
-  onCallVideo,
-  onDelete,
-  onInfo,
+  onMoreActions,
 }) {
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -49,14 +46,15 @@ function ConversationItemBase({
         </div>
       </div>
       {unread > 0 && <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>}
-      {!conv.isGroup && (
-        <>
-          <button type="button" className="icon-btn" aria-label={`Informatie over ${conv.name}`} onClick={onInfo} title="Informatie"><InfoIcon size={16} aria-hidden="true" /></button>
-          <button type="button" className="call-btn voice" aria-label={`Bel ${conv.name}`} onClick={onCallVoice} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
-          <button type="button" className="call-btn video" aria-label={`Videobel ${conv.name}`} onClick={onCallVideo} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
-        </>
-      )}
-      <button type="button" className="conv-delete-btn" aria-label={`Verwijder gesprek met ${conv.name}`} onClick={onDelete} title="Verwijderen"><Delete size={16} aria-hidden="true" /></button>
+      <button
+        type="button"
+        className="icon-btn"
+        aria-label={`Meer acties voor ${conv.name}`}
+        title="Meer acties"
+        onClick={e => { e.stopPropagation(); onMoreActions?.(e); }}
+      >
+        <InfoIcon size={18} aria-hidden="true" />
+      </button>
     </div>
   );
 }

@@ -263,6 +263,7 @@ export default function ChatSidebar({
                     onMouseEnter={(e) => openContactMenu(contact.uid, e.currentTarget)}
                     onFocus={(e) => openContactMenu(contact.uid, e.currentTarget)}
                     title="Meer acties"
+                    style={parentBlockedUids?.includes(contact.uid) ? { color: 'var(--danger, #ef4444)' } : undefined}
                   >
                     <InfoIcon size={18} aria-hidden="true" />
                   </button>

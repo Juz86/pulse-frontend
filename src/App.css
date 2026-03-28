@@ -643,17 +643,21 @@ body {
 }
 .has-chat-bg .msg-time { text-shadow:0 1px 3px rgba(0,0,0,.6); }
 .msg-time {
-  font-size:10px; color:var(--text3); margin-top:4px; padding:0 4px;
+  font-size:10px; color:var(--text3); margin-top:4px; padding:2px 6px;
   letter-spacing:.3px; font-family:'Inter',sans-serif;
   display:flex; align-items:center; gap:3px;
+  background:rgba(0,0,0,.35); border-radius:8px;
+  backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+  width:fit-content;
 }
+.msg-group.out .msg-time { margin-left:auto; }
 .msg-ticks {
-  font-size:11px; color:var(--text3); line-height:1;
+  font-size:11px; color:rgba(255,255,255,.85); line-height:1;
   display:inline-flex; align-items:center; gap:2px;
   transition:color .2s;
 }
 .msg-ticks.read { color:#4fc3f7; }
-.msg-ticks-label { font-size:10px; opacity:.75; margin-left:1px; }
+.msg-ticks-label { font-size:10px; opacity:.9; margin-left:1px; color:rgba(255,255,255,.85); }
 .msg-edited { font-size:11px; opacity:.55; margin-left:5px; font-style:italic; }
 .admin-badge { display:inline-flex; align-items:center; gap:2px; font-size:11px; font-weight:600; color:var(--accent); background:rgba(108,99,255,.15); border-radius:6px; padding:1px 6px; }
 
@@ -1066,12 +1070,16 @@ body {
   margin:14px 0 8px; color:var(--text3); font-size:11px; letter-spacing:.5px;
 }
 .msg-date-sep::before, .msg-date-sep::after {
-  content:''; flex:1; height:1px; background:var(--border);
+  content:''; flex:1; height:1px; background:rgba(255,255,255,.15);
 }
 .msg-date-sep span {
-  white-space:nowrap; background:var(--surface2);
-  padding:3px 10px; border-radius:20px;
-  border:1px solid var(--border);
+  white-space:nowrap;
+  background:rgba(0,0,0,.45);
+  color:rgba(255,255,255,.85);
+  padding:4px 12px; border-radius:20px;
+  border:1px solid rgba(255,255,255,.1);
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  font-weight:500;
 }
 
 /* ── CHAT HEADER ONLINE ── */

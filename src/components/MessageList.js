@@ -74,7 +74,13 @@ const MessageList = React.memo(function MessageList({
       onReact, onShowContextMenu, onRetry, onStartCall, onViewContact, jumpToMsgId]);
 
   const bgStyle = useMemo(() => {
-    if (chatBg?.type === 'photo') return { backgroundImage: `url(${chatBg.url})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'local' };
+    if (chatBg?.type === 'photo') return {
+      backgroundImage: `url(${chatBg.url})`,
+      backgroundSize: 'contain',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundColor: '#000',
+    };
     if (chatBg?.type === 'color') return { background: chatBg.value };
     return {};
   }, [chatBg]);
@@ -84,9 +90,10 @@ const MessageList = React.memo(function MessageList({
   }, [showChatSearch, onCloseSearch]);
 
   return (
+    <div className={`messages-area-wrap${chatBg ? ' has-chat-bg' : ''}`} style={bgStyle}>
     <div
       id="chat-messages-log"
-      className={`messages-area${chatBg ? ' has-chat-bg' : ''}${chatFading ? ' chat-fading' : ''}`}
+      className={`messages-area${chatFading ? ' chat-fading' : ''}`}
       role="log"
       aria-label={activeConv ? `Berichten in gesprek met ${activeConv.isGroup ? (activeConv.name || 'groep') : (activeConv.name || activeConv.memberNames?.[activeConv.members?.find(m => m !== currentUid)] || 'contact')}` : 'Berichten'}
       aria-live="polite"
@@ -94,7 +101,6 @@ const MessageList = React.memo(function MessageList({
       aria-atomic="false"
       aria-busy={loadingMsgs || loadingMore}
       ref={msgsAreaRef}
-      style={bgStyle}
       onClick={handleAreaClick}
     >
       {hasMore && (
@@ -116,6 +122,7 @@ const MessageList = React.memo(function MessageList({
       ) : items}
 
       <div ref={msgEndRef} />
+    </div>
     </div>
   );
 });

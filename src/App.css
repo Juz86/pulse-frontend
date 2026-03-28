@@ -590,10 +590,9 @@ body {
   display:flex; flex-direction:column;
 }
 .messages-area-wrap.has-chat-bg {
-  background-size:contain;
+  background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
-  background-color:#000;
 }
 .messages-area {
   flex:1; overflow-y:auto; padding:20px 24px 16px;

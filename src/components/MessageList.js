@@ -76,10 +76,9 @@ const MessageList = React.memo(function MessageList({
   const bgStyle = useMemo(() => {
     if (chatBg?.type === 'photo') return {
       backgroundImage: `url(${chatBg.url})`,
-      backgroundSize: 'contain',
+      backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
-      backgroundColor: '#000',
     };
     if (chatBg?.type === 'color') return { background: chatBg.value };
     return {};

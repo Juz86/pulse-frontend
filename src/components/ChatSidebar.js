@@ -282,29 +282,6 @@ export default function ChatSidebar({
             </div>
           )}
 
-          {blockedContacts && blockedContacts.length > 0 && (
-            <div className="blocked-contacts-section">
-              <div className="blocked-contacts-header">
-                Geblokkeerd ({blockedContacts.length})
-              </div>
-              {blockedContacts.map(blocked => (
-                <div key={blocked.uid} className="blocked-contact-row">
-                  <div className="avatar-circle sm" aria-hidden="true">{getInitials(blocked.displayName)}</div>
-                  <div className="blocked-contact-info">
-                    <div className="blocked-contact-name">{blocked.displayName}</div>
-                  </div>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ padding: '4px 10px', fontSize: '12px', minWidth: 0, flexShrink: 0 }}
-                    onClick={() => onUnblockContact(blocked.uid)}
-                  >
-                    Deblokkeren
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
 

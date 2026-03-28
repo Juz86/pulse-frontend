@@ -1,9 +1,11 @@
 // src/components/UserAvatar.js
-import React from 'react';
+import React, { useState } from 'react';
 import { getInitials } from '../utils';
 
 const UserAvatar = React.memo(function UserAvatar({ photoURL, displayName, className = '', decorative = false }) {
-  if (photoURL) {
+  const [imgError, setImgError] = useState(false);
+
+  if (photoURL && !imgError) {
     return (
       <img
         src={photoURL}
@@ -12,6 +14,7 @@ const UserAvatar = React.memo(function UserAvatar({ photoURL, displayName, class
         className={`avatar-circle ${className}`}
         style={{ objectFit: 'cover' }}
         loading="lazy"
+        onError={() => setImgError(true)}
       />
     );
   }

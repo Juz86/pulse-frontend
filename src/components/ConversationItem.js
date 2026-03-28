@@ -4,6 +4,19 @@ import { Pin, InfoIcon } from '../components/Icons';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview } from '../utils';
 
+function convTime(val) {
+  if (!val) return '';
+  const d = val?.toDate ? val.toDate() : new Date(val);
+  if (isNaN(d)) return '';
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  if (isToday) return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+  if (isYesterday) return 'Gisteren';
+  return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
+}
+
 function ConversationItemBase({
   conv,
   isActive,
@@ -41,6 +54,7 @@ function ConversationItemBase({
         <div className="conv-name" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {conv.name}
           {isPinned && <span aria-hidden="true"><Pin size={11} style={{ color: 'var(--accent,#7c3aed)', flexShrink: 0, opacity: 0.7 }} /></span>}
+          {conv.updatedAt && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text3)', fontWeight: 400, flexShrink: 0 }}>{convTime(conv.updatedAt)}</span>}
         </div>
         <div className="conv-preview">
           {conv.lastCallDirection ? callPreview(conv, currentUid) : (conv.lastMessage || 'Start een gesprek…')}

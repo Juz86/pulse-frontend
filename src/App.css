@@ -2362,10 +2362,10 @@ body {
   color: #fff;
   border-bottom-right-radius: 5px;
 }
-/* Posities verspreid over de banner */
-.hp-hero-bubble:nth-child(1) { top: calc(18% - 15px); left: 6%; }
-.hp-hero-bubble:nth-child(2) { bottom: 22%; left: 28%; }
-.hp-hero-bubble:nth-child(3) { top: 30%; right: 4%; }
+/* Posities rondom de loginkaart: boven logo, rechts-midden, links-onder */
+.hp-hero-bubble:nth-child(1) { top: calc(10% + 20px); right: 38%; }
+.hp-hero-bubble:nth-child(2) { top: 42%;    right: 2%;  }
+.hp-hero-bubble:nth-child(3) { bottom: 12%; right: 36%; }
 .hp-hero-bubble-text { flex: 1; }
 .hp-hero-bubble-time {
   font-size: 10px;

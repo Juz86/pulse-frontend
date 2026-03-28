@@ -692,10 +692,17 @@ export default function ChatModals({
         const isInactive = uid && inactiveUsers.has(uid);
         return (
           <div className={`modal-overlay${profileClosing ? ' closing' : ''}`} onClick={() => setShowContactProfile(false)}>
-            <div className="modal-box" onClick={e => e.stopPropagation()}>
+            <div
+              className="modal-box"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="contact-profile-title"
+              aria-describedby="contact-profile-description"
+              onClick={e => e.stopPropagation()}
+            >
               <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setShowContactProfile(false)}><span aria-hidden="true">✕</span></button>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h3 className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h3>
+                <h3 id="contact-profile-title" className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h3>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={openStarredFromProfile}>
                     <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
@@ -703,6 +710,9 @@ export default function ChatModals({
                   <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
                 </div>
               </div>
+              <p id="contact-profile-description" className="sr-only">
+                Bekijk en bewerk de profielgegevens van {name}.
+              </p>
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
                 {photo
                   ? <img src={photo} alt={name || 'Profielfoto'} className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" />
@@ -882,7 +892,14 @@ export default function ChatModals({
       {/* ── GROEPSINFORMATIE MODAL ── */}
       {showGroupInfo && activeConv?.isGroup && (
         <div className="modal-overlay" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
+          <div
+            className="modal-box"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="group-info-title"
+            aria-describedby="group-info-description"
+            onClick={e => e.stopPropagation()}
+          >
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}><span aria-hidden="true">✕</span></button>
             {(() => {
               const isAdmin = activeConv.creatorId === user.uid;
@@ -903,8 +920,8 @@ export default function ChatModals({
                       </>
                     )}
                   </label>
-                  <h3 className="modal-title" style={{ margin: 0 }}>{getConvName(activeConv)}</h3>
-                  <p className="modal-sub" style={{ margin: 0 }}>{activeConv.members.length} deelnemers</p>
+                  <h3 id="group-info-title" className="modal-title" style={{ margin: 0 }}>{getConvName(activeConv)}</h3>
+                  <p id="group-info-description" className="modal-sub" style={{ margin: 0 }}>{activeConv.members.length} deelnemers</p>
                 </div>
               );
             })()}

@@ -701,7 +701,6 @@ export default function ChatModals({
               aria-describedby="contact-profile-description"
               onClick={e => e.stopPropagation()}
             >
-              <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setShowContactProfile(false)}><span aria-hidden="true">✕</span></button>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h3 id="contact-profile-title" className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h3>
                 <div style={{ display: 'flex', gap: 8 }}>

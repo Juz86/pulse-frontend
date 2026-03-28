@@ -84,31 +84,39 @@ const ChatInput = React.memo(function ChatInput({
     typingTimerRef.current = setTimeout(stopTyping, 2000);
   }, [activeConv, user, contacts, setText, setMentionSuggestions, setMentionSelIdx, textareaRef, activeConvRef, typingTimerRef, stopTyping]);
 
+  const textareaDescribedBy = [
+    editingMsg ? 'chat-compose-editing' : null,
+    replyTo ? 'chat-compose-reply' : null,
+  ].filter(Boolean).join(' ') || undefined;
+
   return (
     <div className="chat-input-area">
       {editingMsg && (
-        <div className="reply-preview">
+        <div className="reply-preview" id="chat-compose-editing" role="status" aria-live="polite">
           <div className="reply-preview-inner">
-            <span className="reply-preview-name">✏️ Bewerken</span>
+            <span className="reply-preview-name"><span aria-hidden="true">✏️ </span>Bewerken</span>
             <span className="reply-preview-text">{editingMsg.text}</span>
           </div>
-          <button className="reply-preview-close" aria-label="Bewerken annuleren" onClick={() => { setEditingMsg(null); setText(''); }}>✕</button>
+          <button type="button" className="reply-preview-close" aria-label="Bewerken annuleren" onClick={() => { setEditingMsg(null); setText(''); }}><span aria-hidden="true">✕</span></button>
         </div>
       )}
       {replyTo && (
-        <div className="reply-preview">
+        <div className="reply-preview" id="chat-compose-reply" role="status" aria-live="polite">
           <div className="reply-preview-inner">
             <span className="reply-preview-name">{replyTo.senderName}</span>
             <span className="reply-preview-text">{replyTo.text}</span>
           </div>
-          <button className="reply-preview-close" aria-label="Antwoord annuleren" onClick={() => setReplyTo(null)}>✕</button>
+          <button type="button" className="reply-preview-close" aria-label="Antwoord annuleren" onClick={() => setReplyTo(null)}><span aria-hidden="true">✕</span></button>
         </div>
       )}
       {mentionSuggestions.length > 0 && (
-        <div className="mention-popup">
+        <div className="mention-popup" role="listbox" aria-label="Mention suggesties">
           {mentionSuggestions.map((m, i) => (
             <button
               key={m.uid}
+              type="button"
+              role="option"
+              aria-selected={i === mentionSelIdx}
               className={`mention-item${i === mentionSelIdx ? ' selected' : ''}`}
               onMouseDown={e => { e.preventDefault(); insertMention(m); }}
             >
@@ -124,7 +132,7 @@ const ChatInput = React.memo(function ChatInput({
         </div>
       )}
       {pausedFeatures.chat ? (
-        <div className="chat-paused-notice">
+        <div className="chat-paused-notice" role="status" aria-live="polite">
           <PauseCircle size={16} style={{ flexShrink: 0 }} />
           {' '}Chatten is gepauzeerd door je ouder
           {(!pausedFeatures.call || !pausedFeatures.video)
@@ -137,12 +145,14 @@ const ChatInput = React.memo(function ChatInput({
             ref={textareaRef}
             className="chat-textarea"
             rows={1}
+            aria-label="Bericht invoeren"
+            aria-describedby={textareaDescribedBy}
             placeholder="Stuur een bericht…"
             value={text}
             onChange={e => handleTyping(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          <button className="send-btn" aria-label="Bericht versturen" onClick={onSend}><Send size={18} /></button>
+          <button type="button" className="send-btn" aria-label="Bericht versturen" onClick={onSend}><Send size={18} /></button>
         </div>
       )}
     </div>

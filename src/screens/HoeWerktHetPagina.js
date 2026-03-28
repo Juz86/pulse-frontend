@@ -56,7 +56,7 @@ function StepRow({ step, title, text, mockup, reverse = false, stacked = false, 
       className={`hp-feature-row${reverse ? ' hp-feature-row--reverse' : ''} hw-row${stacked ? ' hw-row--stacked' : ''}${visible ? ' fp-visible' : ''}`}
     >
       <StepCopy step={step} title={title} text={text} />
-      <div className="hp-feature-mockup">{mockup}</div>
+      <div className="hp-feature-mockup" aria-hidden="true">{mockup}</div>
     </div>
   );
 }
@@ -106,7 +106,7 @@ function RegistrationMockup() {
         <div className="hw-field">Naam</div>
         <div className="hw-field">E-mailadres</div>
         <div className="hw-field">Wachtwoord</div>
-        <button className="hw-primary-btn">Account aanmaken</button>
+        <button type="button" className="hw-primary-btn">Account aanmaken</button>
       </div>
     </BrowserMockup>
   );
@@ -125,7 +125,7 @@ function AddChildMockup() {
           <div className="hw-field">Naam van het kind</div>
           <div className="hw-field">Gebruikersnaam</div>
           <div className="hw-field">Wachtwoord</div>
-          <button className="hw-primary-btn">Kindaccount aanmaken</button>
+          <button type="button" className="hw-primary-btn">Kindaccount aanmaken</button>
         </div>
       </div>
     </BrowserMockup>
@@ -193,14 +193,14 @@ function ContactsOverviewMockup() {
         <div className="hw-contact-avatar">S</div>
         <div>
           <strong>Stephan</strong>
-          <span>stephan@pulse.internal</span>
+          <span>@stephan</span>
         </div>
       </div>
       <div className="hw-contact-card">
         <div className="hw-contact-avatar hw-contact-avatar--soft">K</div>
         <div>
           <strong>Kamilah</strong>
-          <span>kamilah@pulse.internal</span>
+          <span>@kamilah</span>
         </div>
       </div>
     </BrowserMockup>
@@ -222,14 +222,14 @@ function AddContactButtonMockup() {
       </div>
       <div className="hw-choice-row">
         <span>E-mailadres</span>
-        <span>@pulse.internal</span>
         <span>Gebruikersnaam</span>
+        <span>Zoekresultaat</span>
       </div>
       <div className="hw-contact-card hw-contact-card--muted">
         <div className="hw-contact-avatar">N</div>
         <div>
           <strong>Stephan</strong>
-          <span>stephan@pulse.internal</span>
+          <span>@stephan</span>
         </div>
       </div>
     </BrowserMockup>
@@ -254,10 +254,10 @@ function SearchContactMockup() {
           <div className="hw-contact-avatar">N</div>
           <div>
             <strong>Nick</strong>
-            <span>nick@pulse.internal</span>
+            <span>@nick</span>
           </div>
         </div>
-        <button className="hw-primary-btn hw-primary-btn--wide">Verzoek sturen</button>
+        <button type="button" className="hw-primary-btn hw-primary-btn--wide">Verzoek sturen</button>
       </div>
     </BrowserMockup>
   );
@@ -279,7 +279,8 @@ export default function HoeWerktHetPagina({ onParentClick }) {
   }, []);
 
   const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById(id)?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
     setMenuOpen(false);
   };
 
@@ -321,7 +322,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
             </div>
           </div>
           <div className="hw-hero-visual">
-            <div className="hw-hero-preview hw-hero-preview--single">
+            <div className="hw-hero-preview hw-hero-preview--single" aria-hidden="true">
               <ConnectedMockup />
             </div>
           </div>
@@ -386,7 +387,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
               step="2"
               stacked
               title="Zoek een contactpersoon"
-              text="Voeg familie en vrienden via gewoon e-mailadres, naam@pulse.nl of gebruikersnaam toe."
+              text="Voeg familie en vrienden eenvoudig toe via e-mailadres of gebruikersnaam."
               mockup={<AddContactButtonMockup />}
             />
 

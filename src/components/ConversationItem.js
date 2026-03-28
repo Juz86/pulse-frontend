@@ -18,32 +18,43 @@ function ConversationItemBase({
   onCallVideo,
   onDelete,
 }) {
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onOpen();
+    }
+  };
+
   return (
     <div
       className={`conv-item ${isActive ? 'active' : ''}`}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isActive}
       onClick={onOpen}
+      onKeyDown={handleKeyDown}
     >
       <div className="avatar-wrap">
         <UserAvatar photoURL={conv.photoURL || null} displayName={conv.name || conv.id} />
-        {isOnline && <span className={`online-dot${isInactive ? ' inactive' : ''}`} />}
+        {isOnline && <span className={`online-dot${isInactive ? ' inactive' : ''}`} aria-hidden="true" />}
       </div>
       <div className="conv-info">
         <div className="conv-name" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {conv.name}
-          {isPinned && <Pin size={11} style={{ color: 'var(--accent,#7c3aed)', flexShrink: 0, opacity: 0.7 }} />}
+          {isPinned && <span aria-hidden="true"><Pin size={11} style={{ color: 'var(--accent,#7c3aed)', flexShrink: 0, opacity: 0.7 }} /></span>}
         </div>
         <div className="conv-preview">
           {conv.lastCallDirection ? callPreview(conv, currentUid) : (conv.lastMessage || 'Start een gesprek…')}
         </div>
       </div>
-      {unread > 0 && <span className="unread-badge">{unread}</span>}
+      {unread > 0 && <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>}
       {!conv.isGroup && (
         <>
-          <button className="call-btn voice" onClick={onCallVoice} title="Bellen"><Phone size={16} /></button>
-          <button className="call-btn video" onClick={onCallVideo} title="Videobellen"><Video size={16} /></button>
+          <button type="button" className="call-btn voice" onClick={onCallVoice} title="Bellen"><Phone size={16} /></button>
+          <button type="button" className="call-btn video" onClick={onCallVideo} title="Videobellen"><Video size={16} /></button>
         </>
       )}
-      <button className="conv-delete-btn" onClick={onDelete} title="Verwijderen"><Delete size={16} /></button>
+      <button type="button" className="conv-delete-btn" onClick={onDelete} title="Verwijderen"><Delete size={16} /></button>
     </div>
   );
 }

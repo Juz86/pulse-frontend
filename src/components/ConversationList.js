@@ -67,7 +67,18 @@ const ConversationList = React.memo(function ConversationList({
       {!loadingConvs && conversations.length === 0 && (
         <div className="empty-convs">
           <p>Nog geen gesprekken.</p>
-          <p>Klik op het <Message size={14} color="#ffffff" style={{ verticalAlign: 'middle', margin: '0 2px' }} /> om een nieuwe chat te starten.</p>
+          <p>Klik op het <span aria-hidden="true"><Message size={14} color="#ffffff" style={{ verticalAlign: 'middle', margin: '0 2px' }} /></span> om een nieuwe chat te starten.</p>
+        </div>
+      )}
+
+      {!loadingConvs && conversations.length > 0 && filtered.length === 0 && (
+        <div className="empty-convs" role="status" aria-live="polite">
+          <p>Geen gesprekken gevonden.</p>
+          <p>
+            {searchQuery.trim()
+              ? `Er zijn geen resultaten voor "${searchQuery}".`
+              : 'Er zijn geen gesprekken die bij het gekozen filter passen.'}
+          </p>
         </div>
       )}
 

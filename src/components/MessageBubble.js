@@ -80,16 +80,28 @@ const MessageBubble = React.memo(function MessageBubble({
     e.preventDefault();
     onShowContextMenu(e);
   }
+
+  function handleActionCardKeyDown(event, action) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      action();
+    }
+  }
   // ── Gedeeld contactkaart bericht ─────────────────────────────────────────
   if (msg.type === 'contact') {
     const sc = msg.sharedContact;
     if (!sc?.uid && !sc?.name) return null;
+    const canOpenSharedContact = !isOwn;
     return (
       <div className={`msg-group ${isOwn ? 'out' : 'in'}`}>
         <div
           className="msg-contact-card"
-          style={{ cursor: isOwn ? 'default' : 'pointer' }}
-          onClick={!isOwn ? () => onViewContact(sc) : undefined}
+          role={canOpenSharedContact ? 'button' : undefined}
+          tabIndex={canOpenSharedContact ? 0 : undefined}
+          aria-label={canOpenSharedContact ? `Open gedeeld contact ${sc?.name || 'Contactpersoon'}` : undefined}
+          style={{ cursor: canOpenSharedContact ? 'pointer' : 'default' }}
+          onClick={canOpenSharedContact ? () => onViewContact(sc) : undefined}
+          onKeyDown={canOpenSharedContact ? (event) => handleActionCardKeyDown(event, () => onViewContact(sc)) : undefined}
         >
           <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius: 12 }}>{getInitials(sc?.name || '')}</div>
           <div className="u-flex-1 u-min-w-0">
@@ -118,6 +130,9 @@ const MessageBubble = React.memo(function MessageBubble({
       : (isMissed ? (msg.isVideo ? 'Gemiste video-oproep' : 'Gemiste spraakoproep') : (msg.isVideo ? 'Video-oproep' : 'Spraakoproep'));
     const callSub     = durationStr || (isMissed ? 'Tik om terug te bellen' : '');
     const iconType    = isMissed ? 'missed' : isOwn ? 'outgoing' : 'incoming';
+    const callCardLabel = isMissed
+      ? `${callLabel}. Activeer om terug te bellen`
+      : callSub ? `${callLabel}. ${callSub}` : callLabel;
     return (
       <div
         className={`msg-group ${isOwn ? 'out' : 'in'}`}
@@ -125,7 +140,11 @@ const MessageBubble = React.memo(function MessageBubble({
       >
         <div
           className={`msg-call-card ${isOwn ? 'out' : 'in'}${isMissed ? ' missed' : ''}`}
+          role={isMissed ? 'button' : undefined}
+          tabIndex={isMissed ? 0 : undefined}
+          aria-label={isMissed ? callCardLabel : undefined}
           onClick={isMissed ? () => onStartCall(msg.isVideo) : undefined}
+          onKeyDown={isMissed ? (event) => handleActionCardKeyDown(event, () => onStartCall(msg.isVideo)) : undefined}
           style={isMissed ? { cursor: 'pointer' } : undefined}
         >
           <div className={`msg-call-icon ${iconType}`}>
@@ -156,7 +175,7 @@ const MessageBubble = React.memo(function MessageBubble({
       {!isOwn && isGroup && <div className="msg-sender">{msg.senderName}</div>}
       <div className="msg-bubble-wrap">
         {msg.replyTo && (
-          <div className="msg-reply-quote">
+          <div className="msg-reply-quote" aria-label={`Antwoord op bericht van ${msg.replyTo.senderName}`}>
             <span className="msg-reply-name">{msg.replyTo.senderName}</span>
             <span className="msg-reply-text">{msg.replyTo.text}</span>
           </div>
@@ -165,26 +184,28 @@ const MessageBubble = React.memo(function MessageBubble({
           {chatSearch.trim()
             ? highlightText(msg.text || '', chatSearch)
             : renderMsgText(msg.text || '', msg.mentions, memberNames)}
-          {msg.editedAt && <span className="msg-edited">(bewerkt)</span>}
+          {msg.editedAt && <span className="msg-edited" aria-label="Bewerkt"><span aria-hidden="true">(bewerkt)</span></span>}
         </div>
 
         {/* Acties (zichtbaar bij hover) */}
         <div className="msg-actions" onClick={e => e.stopPropagation()}>
           <div style={{ position: 'relative' }}>
             <button
+              type="button"
               className="msg-action-btn"
               aria-label="Reageren"
               onClick={e => { e.stopPropagation(); setEmojiPickerOpen(v => !v); }}
-            >😊</button>
+            ><span aria-hidden="true">😊</span></button>
             {emojiPickerOpen && (
               <div className="msg-emoji-picker">
                 {QUICK_EMOJI.map(emoji => (
-                  <button key={emoji} onClick={() => { onReact(emoji); setEmojiPickerOpen(false); }}>{emoji}</button>
+                  <button type="button" key={emoji} aria-label={`Reageer met ${emoji}`} onClick={() => { onReact(emoji); setEmojiPickerOpen(false); }}>{emoji}</button>
                 ))}
               </div>
             )}
           </div>
           <button
+            type="button"
             className="msg-action-btn"
             aria-label="Berichtopties"
             onClick={e => { e.stopPropagation(); onShowContextMenu(e); }}
@@ -203,11 +224,13 @@ const MessageBubble = React.memo(function MessageBubble({
             .filter(([, uids]) => uids?.length > 0)
             .map(([emoji, uids]) => (
               <button
+                type="button"
                 key={emoji}
                 className={`msg-reaction-pill${uids.includes(currentUid) ? ' mine' : ''}`}
+                aria-label={`${uids.includes(currentUid) ? 'Verwijder je reactie' : 'Reageer met'} ${emoji}${uids.length > 1 ? `, ${uids.length} reacties totaal` : ''}`}
                 onClick={() => onReact(emoji)}
               >
-                {emoji}{uids.length > 1 && <span>{uids.length}</span>}
+                <span aria-hidden="true">{emoji}</span>{uids.length > 1 && <span aria-hidden="true">{uids.length}</span>}
               </button>
             ))}
         </div>
@@ -219,18 +242,18 @@ const MessageBubble = React.memo(function MessageBubble({
         {isOwn && status && (
           status.failed
             ? (
-              <span className="msg-ticks failed" onClick={onRetry} title="Opnieuw versturen">
+              <button type="button" className="msg-ticks failed" onClick={onRetry} title="Opnieuw versturen" aria-label="Bericht niet verzonden, probeer opnieuw">
                 <span className="msg-ticks-label">Niet verzonden. Tik om opnieuw te proberen.</span>
-                <ErrorIcon size={14} />
-              </span>
+                <span aria-hidden="true"><ErrorIcon size={14} /></span>
+              </button>
             ) : (
-              <span className={`msg-ticks${status.read ? ' read' : ''}`}>
+              <span className={`msg-ticks${status.read ? ' read' : ''}`} aria-label={`Bericht ${status.label}`}>
                 <span className="msg-ticks-label">{status.label}</span>
                 {status.icon === 'clock'
-                  ? <span className={msg._retrying ? 'msg-clock-spin' : ''}><Clock size={12} /></span>
+                  ? <span className={msg._retrying ? 'msg-clock-spin' : ''} aria-hidden="true"><Clock size={12} /></span>
                   : status.icon === 'double'
-                    ? <CheckDouble size={12} />
-                    : <Check size={12} />}
+                    ? <span aria-hidden="true"><CheckDouble size={12} /></span>
+                    : <span aria-hidden="true"><Check size={12} /></span>}
               </span>
             )
         )}

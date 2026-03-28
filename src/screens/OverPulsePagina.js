@@ -73,7 +73,7 @@ function FadeRow({ children, className = '' }) {
 
 function FeatureStrip() {
   return (
-    <div className="op-feature-strip">
+    <div className="op-feature-strip" aria-hidden="true">
       <div className="op-strip-header">Pulse doet drie dingen</div>
       <div className="op-strip-item">
         <div className="op-strip-icon"><Message size={20} /></div>
@@ -120,7 +120,8 @@ export default function OverPulsePagina({ onParentClick }) {
   }, []);
 
   const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById(id)?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
     setMenuOpen(false);
   };
 
@@ -252,7 +253,7 @@ export default function OverPulsePagina({ onParentClick }) {
               <button type="button" className="ot-secondary-btn" onClick={() => scrollTo('waarom-pulse')}>Meer lezen</button>
             </div>
           </div>
-          <div className="ot-hero-visual">
+          <div className="ot-hero-visual" aria-hidden="true">
             <FeatureStrip />
           </div>
         </div>

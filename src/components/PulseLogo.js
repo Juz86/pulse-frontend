@@ -6,7 +6,8 @@ export default function PulseLogo({ size = 32, textSize = 22, color = '#fff', ga
       {/* Icoon: het echte app-icoon */}
       <img
         src="/logo192.png"
-        alt="Pulse"
+        alt=""
+        aria-hidden="true"
         width={size}
         height={size}
         style={{ borderRadius: Math.round(size * 0.22), flexShrink: 0 }}

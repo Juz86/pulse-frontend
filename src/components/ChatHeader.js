@@ -60,10 +60,10 @@ const ChatHeader = React.memo(function ChatHeader({
     <>
       <div className="chat-header">
         {/* Terug-knop met ongelezen badge */}
-        <button className="back-btn" onClick={onBack} title="Terug" style={{ position: 'relative' }}>
-          ←
+        <button type="button" className="back-btn" onClick={onBack} title="Terug" aria-label={totalUnread > 0 ? `Terug, ${totalUnread} ongelezen ${totalUnread === 1 ? 'bericht' : 'berichten'} in andere gesprekken` : 'Terug'} style={{ position: 'relative' }}>
+          <span aria-hidden="true">←</span>
           {totalUnread > 0 && (
-            <span style={{
+            <span aria-hidden="true" style={{
               position: 'absolute', top: -6, right: -6,
               background: '#25d366', color: '#fff',
               fontSize: 10, fontWeight: 700, lineHeight: 1,
@@ -83,7 +83,7 @@ const ChatHeader = React.memo(function ChatHeader({
           onClick={openContactProfile}
         >
           <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm" />
-          {isOnline && <span className={`online-dot sm${inactiveUsers.has(otherUid) ? ' inactive' : ''}`} />}
+          {isOnline && <span className={`online-dot sm${inactiveUsers.has(otherUid) ? ' inactive' : ''}`} aria-hidden="true" />}
         </div>
 
         {/* Naam + status */}
@@ -105,14 +105,15 @@ const ChatHeader = React.memo(function ChatHeader({
         <div className="chat-header-actions">
           {!activeConv.isGroup && (
             <>
-              <button className="call-btn voice" onClick={() => onInitiateCall(false)} title="Bellen"><Phone size={18} /></button>
-              <button className="call-btn video" onClick={() => onInitiateCall(true)} title="Videobellen"><Video size={18} /></button>
+              <button type="button" className="call-btn voice" onClick={() => onInitiateCall(false)} title="Bellen"><Phone size={18} /></button>
+              <button type="button" className="call-btn video" onClick={() => onInitiateCall(true)} title="Videobellen"><Video size={18} /></button>
             </>
           )}
           {activeConv.isGroup && (
-            <button className="icon-btn" onClick={onShowGroupInfo} title="Groepsinformatie"><Users size={18} /></button>
+            <button type="button" className="icon-btn" onClick={onShowGroupInfo} title="Groepsinformatie"><Users size={18} /></button>
           )}
           <button
+            type="button"
             className="icon-btn"
             title="Zoeken"
             onClick={() => { setShowChatSearch(s => !s); setChatSearch(''); setChatSearchIdx(0); setTimeout(() => chatSearchRef.current?.focus(), 50); }}
@@ -128,6 +129,7 @@ const ChatHeader = React.memo(function ChatHeader({
       <div className={`chat-search-bar${showChatSearch ? ' visible' : ''}`}>
         <input
           ref={chatSearchRef}
+          aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`}
           value={chatSearch}
           onChange={e => { setChatSearch(e.target.value); setChatSearchIdx(0); }}
           placeholder="Zoeken in gesprek…"
@@ -138,17 +140,17 @@ const ChatHeader = React.memo(function ChatHeader({
           }}
         />
         {chatSearch.trim() && (
-          <span style={{ fontSize: '13px', color: 'var(--text3)', whiteSpace: 'nowrap' }}>
+          <span aria-live="polite" style={{ fontSize: '13px', color: 'var(--text3)', whiteSpace: 'nowrap' }}>
             {searchTotal === 0 ? 'Geen resultaten' : `${searchCurrent + 1} / ${searchTotal}`}
           </span>
         )}
         {searchTotal > 1 && (
           <>
-            <button aria-label="Vorig resultaat" className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setChatSearchIdx(i => (i - 1 + searchTotal) % searchTotal)}>↑</button>
-            <button aria-label="Volgend resultaat" className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setChatSearchIdx(i => (i + 1) % searchTotal)}>↓</button>
+            <button type="button" aria-label="Vorig resultaat" className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setChatSearchIdx(i => (i - 1 + searchTotal) % searchTotal)}><span aria-hidden="true">↑</span></button>
+            <button type="button" aria-label="Volgend resultaat" className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setChatSearchIdx(i => (i + 1) % searchTotal)}><span aria-hidden="true">↓</span></button>
           </>
         )}
-        <button aria-label="Zoeken sluiten" className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}>✕</button>
+        <button type="button" aria-label="Zoeken sluiten" className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}><span aria-hidden="true">✕</span></button>
       </div>
     </>
   );

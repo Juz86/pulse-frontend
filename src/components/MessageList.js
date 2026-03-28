@@ -92,8 +92,8 @@ const MessageList = React.memo(function MessageList({
     >
       {hasMore && (
         <div style={{ textAlign: 'center', padding: '8px 0' }}>
-          <button className="load-more-btn" onClick={onLoadMore} disabled={loadingMore}>
-            {loadingMore ? 'Laden…' : '↑ Meer berichten laden'}
+          <button type="button" className="load-more-btn" onClick={onLoadMore} disabled={loadingMore}>
+            {loadingMore ? 'Laden…' : <><span aria-hidden="true">↑ </span>Meer berichten laden</>}
           </button>
         </div>
       )}

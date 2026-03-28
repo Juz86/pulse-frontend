@@ -97,7 +97,13 @@ const decorativeAvatars = {
 };
 
 function DecorativeAvatar({ svg, className = '' }) {
-  return <div className={`fp-deco-avatar ${className}`.trim()} dangerouslySetInnerHTML={{ __html: svg }} />;
+  return (
+    <div
+      className={`fp-deco-avatar ${className}`.trim()}
+      aria-hidden="true"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
 }
 
 // ── Scroll-in animatie hook ──────────────────────────────────────────────────
@@ -473,7 +479,7 @@ function FeatureRow({ reverse, mockup, title, text, features, id }) {
     <div ref={ref} id={id}
       className={`hp-feature-row${reverse ? ' hp-feature-row--reverse' : ''} fp-feature-row${visible ? ' fp-visible' : ''}`}
     >
-      <div className="hp-feature-mockup">{mockup}</div>
+      <div className="hp-feature-mockup" aria-hidden="true">{mockup}</div>
       <div className="hp-feature-text">
         <h3>{title}</h3>
         <p>{text}</p>
@@ -502,11 +508,11 @@ function GridCard({ icon, title, desc }) {
   );
 }
 
-function SectionHeader({ title, sub }) {
+function SectionHeader({ title, sub, headingId }) {
   const [ref, visible] = useFadeIn();
   return (
     <div ref={ref} className={`hp-section-header fp-section-header${visible ? ' fp-visible' : ''}`}>
-      <h2>{title}</h2>
+      <h2 id={headingId}>{title}</h2>
       {sub && <p>{sub}</p>}
     </div>
   );
@@ -520,6 +526,8 @@ export default function FunctiePagina({ onParentClick }) {
   const [callVideoSlide, setCallVideoSlide] = useState(0);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showParentModal, setShowParentModal] = useState(false);
+  const chatTabRefs = useRef([]);
+  const callTabRefs = useRef([]);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -530,8 +538,55 @@ export default function FunctiePagina({ onParentClick }) {
   }, []);
 
   const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById(id)?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
     setMenuOpen(false);
+  };
+
+  const handleChatTabKeyDown = (event, index) => {
+    if (event.key === 'Home') {
+      event.preventDefault();
+      setChatSlide(0);
+      chatTabRefs.current[0]?.focus();
+      return;
+    }
+    if (event.key === 'End') {
+      event.preventDefault();
+      const lastIndex = chatSlides.length - 1;
+      setChatSlide(lastIndex);
+      chatTabRefs.current[lastIndex]?.focus();
+      return;
+    }
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    event.preventDefault();
+    const nextIndex = event.key === 'ArrowRight'
+      ? (index + 1) % chatSlides.length
+      : (index - 1 + chatSlides.length) % chatSlides.length;
+    setChatSlide(nextIndex);
+    chatTabRefs.current[nextIndex]?.focus();
+  };
+
+  const handleCallTabKeyDown = (event, index) => {
+    if (event.key === 'Home') {
+      event.preventDefault();
+      setCallVideoSlide(0);
+      callTabRefs.current[0]?.focus();
+      return;
+    }
+    if (event.key === 'End') {
+      event.preventDefault();
+      const lastIndex = callVideoSlides.length - 1;
+      setCallVideoSlide(lastIndex);
+      callTabRefs.current[lastIndex]?.focus();
+      return;
+    }
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    event.preventDefault();
+    const nextIndex = event.key === 'ArrowRight'
+      ? (index + 1) % callVideoSlides.length
+      : (index - 1 + callVideoSlides.length) % callVideoSlides.length;
+    setCallVideoSlide(nextIndex);
+    callTabRefs.current[nextIndex]?.focus();
   };
 
   const navItems = [
@@ -698,17 +753,16 @@ export default function FunctiePagina({ onParentClick }) {
               <button type="button" className="hp-cta-btn" onClick={() => scrollTo('chatten')}>
                 Bekijk functies
               </button>
-              <button
-                type="button"
+              <a
                 className="ot-secondary-btn"
-                onClick={() => { window.location.href = '/ouderlijk-toezicht'; }}
+                href="/ouderlijk-toezicht"
               >
                 Ouderlijk toezicht
-              </button>
+              </a>
             </div>
           </div>
 
-          <div className="ot-hero-visual">
+          <div className="ot-hero-visual" aria-hidden="true">
             <SidebarMockup />
           </div>
         </div>
@@ -720,35 +774,50 @@ export default function FunctiePagina({ onParentClick }) {
           <DecorativeAvatar svg={decorativeAvatars.chatSide} className="fp-deco-avatar--chat" />
           <SectionHeader title="Chatten" sub="Snel en veilig berichten sturen zonder telefoonnummer." />
           <div className="fp-slider">
-            <div className="fp-slider-tabs" role="tablist" aria-label="Chatfuncties">
+            <div className="fp-slider-tabs" role="tablist" aria-label="Chatfuncties" aria-orientation="horizontal">
               {chatSlides.map((slide, index) => (
                 <button
                   key={slide.key}
+                  ref={(element) => { chatTabRefs.current[index] = element; }}
+                  id={`chat-tab-${slide.key}`}
                   type="button"
+                  role="tab"
+                  aria-selected={index === chatSlide}
+                  aria-controls={`chat-panel-${slide.key}`}
+                  tabIndex={index === chatSlide ? 0 : -1}
                   className={`fp-slider-tab${index === chatSlide ? ' fp-slider-tab--active' : ''}`}
                   onClick={() => setChatSlide(index)}
+                  onKeyDown={(event) => handleChatTabKeyDown(event, index)}
                 >
                   {slide.label}
                 </button>
               ))}
             </div>
 
-            <FeatureRow
-              key={currentChatSlide.key}
-              reverse={currentChatSlide.reverse}
-              mockup={currentChatSlide.mockup}
-              title={currentChatSlide.title}
-              text={currentChatSlide.text}
-              features={currentChatSlide.features}
-            />
+            <div
+              id={`chat-panel-${currentChatSlide.key}`}
+              role="tabpanel"
+              aria-labelledby={`chat-tab-${currentChatSlide.key}`}
+              tabIndex={0}
+            >
+              <FeatureRow
+                key={currentChatSlide.key}
+                reverse={currentChatSlide.reverse}
+                mockup={currentChatSlide.mockup}
+                title={currentChatSlide.title}
+                text={currentChatSlide.text}
+                features={currentChatSlide.features}
+              />
+            </div>
 
             <div className="fp-slider-controls">
               <button
                 type="button"
                 className="fp-slider-arrow"
+                aria-label="Vorige chatfunctie"
                 onClick={() => setChatSlide((prev) => (prev === 0 ? chatSlides.length - 1 : prev - 1))}
               >
-                ← Vorige
+                <span aria-hidden="true">← </span>Vorige
               </button>
               <div className="fp-slider-dots" aria-hidden="true">
                 {chatSlides.map((slide, index) => (
@@ -761,9 +830,10 @@ export default function FunctiePagina({ onParentClick }) {
               <button
                 type="button"
                 className="fp-slider-arrow"
+                aria-label="Volgende chatfunctie"
                 onClick={() => setChatSlide((prev) => (prev === chatSlides.length - 1 ? 0 : prev + 1))}
               >
-                Volgende →
+                Volgende <span aria-hidden="true">→</span>
               </button>
             </div>
           </div>
@@ -773,37 +843,56 @@ export default function FunctiePagina({ onParentClick }) {
       {/* ── BELLEN ── */}
       <section className="hp-section hp-section--gray" id="bellen">
         <div className="hp-section-inner">
-          <SectionHeader title="Bellen & videobellen" sub="Bel of videobel gratis met vrienden en familie — zonder telefoonnummer, zonder tijdslimiet." />
+          <SectionHeader
+            headingId="videobellen"
+            title="Bellen & videobellen"
+            sub="Bel of videobel gratis met vrienden en familie — zonder telefoonnummer, zonder tijdslimiet."
+          />
           <div className="fp-slider">
-            <div className="fp-slider-tabs" role="tablist" aria-label="Bel- en videofuncties">
+            <div className="fp-slider-tabs" role="tablist" aria-label="Bel- en videofuncties" aria-orientation="horizontal">
               {callVideoSlides.map((slide, index) => (
                 <button
                   key={slide.key}
+                  ref={(element) => { callTabRefs.current[index] = element; }}
+                  id={`call-tab-${slide.key}`}
                   type="button"
+                  role="tab"
+                  aria-selected={index === callVideoSlide}
+                  aria-controls={`call-panel-${slide.key}`}
+                  tabIndex={index === callVideoSlide ? 0 : -1}
                   className={`fp-slider-tab${index === callVideoSlide ? ' fp-slider-tab--active' : ''}`}
                   onClick={() => setCallVideoSlide(index)}
+                  onKeyDown={(event) => handleCallTabKeyDown(event, index)}
                 >
                   {slide.label}
                 </button>
               ))}
             </div>
 
-            <FeatureRow
-              key={currentCallVideoSlide.key}
-              reverse={currentCallVideoSlide.reverse}
-              mockup={currentCallVideoSlide.mockup}
-              title={currentCallVideoSlide.title}
-              text={currentCallVideoSlide.text}
-              features={currentCallVideoSlide.features}
-            />
+            <div
+              id={`call-panel-${currentCallVideoSlide.key}`}
+              role="tabpanel"
+              aria-labelledby={`call-tab-${currentCallVideoSlide.key}`}
+              tabIndex={0}
+            >
+              <FeatureRow
+                key={currentCallVideoSlide.key}
+                reverse={currentCallVideoSlide.reverse}
+                mockup={currentCallVideoSlide.mockup}
+                title={currentCallVideoSlide.title}
+                text={currentCallVideoSlide.text}
+                features={currentCallVideoSlide.features}
+              />
+            </div>
 
             <div className="fp-slider-controls">
               <button
                 type="button"
                 className="fp-slider-arrow"
+                aria-label="Vorige bel- of videofunctie"
                 onClick={() => setCallVideoSlide((prev) => (prev === 0 ? callVideoSlides.length - 1 : prev - 1))}
               >
-                ← Vorige
+                <span aria-hidden="true">← </span>Vorige
               </button>
               <div className="fp-slider-dots" aria-hidden="true">
                 {callVideoSlides.map((slide, index) => (
@@ -816,9 +905,10 @@ export default function FunctiePagina({ onParentClick }) {
               <button
                 type="button"
                 className="fp-slider-arrow"
+                aria-label="Volgende bel- of videofunctie"
                 onClick={() => setCallVideoSlide((prev) => (prev === callVideoSlides.length - 1 ? 0 : prev + 1))}
               >
-                Volgende →
+                Volgende <span aria-hidden="true">→</span>
               </button>
             </div>
           </div>

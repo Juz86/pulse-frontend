@@ -294,7 +294,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {!connected && (
         <div className="connection-banner">
           <span>Verbinding verbroken{reconnectIn ? ` — opnieuw verbinden in ${reconnectIn}s` : ' — verbinden\u2026'}</span>
-          <button className="connection-retry-btn" onClick={() => { const s = getSocket(); s?.connect(); }}>Nu verbinden</button>
+          <button type="button" className="connection-retry-btn" onClick={() => { const s = getSocket(); s?.connect(); }}>Nu verbinden</button>
         </div>
       )}
 
@@ -363,9 +363,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             )}
             {pinnedMsgs[activeConv?.id] && (
               <div className="pinned-msg-bar">
-                <span className="pinned-msg-icon">📌</span>
+                <span className="pinned-msg-icon" aria-hidden="true">📌</span>
                 <div className="pinned-msg-text">{pinnedMsgs[activeConv.id].text}</div>
-                <button className="pinned-msg-close" aria-label="Losmaken" onClick={() => handlePin(pinnedMsgs[activeConv.id])}>✕</button>
+                <button type="button" className="pinned-msg-close" aria-label="Losmaken" onClick={() => handlePin(pinnedMsgs[activeConv.id])}><span aria-hidden="true">✕</span></button>
               </div>
             )}
             <MessageList
@@ -470,15 +470,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         <div className="delete-popup-overlay" onClick={() => setDeleteConfirm(null)}>
           <div className="delete-popup" onClick={e => e.stopPropagation()}>
             <div className="delete-popup-title">Bericht verwijderen</div>
-            <button className="delete-popup-btn" onClick={() => { deleteMessage(deleteConfirm.msgId, 'self'); setDeleteConfirm(null); }}>
+            <button type="button" className="delete-popup-btn" onClick={() => { deleteMessage(deleteConfirm.msgId, 'self'); setDeleteConfirm(null); }}>
               <Delete size={18} /> Voor mezelf verwijderen
             </button>
             {deleteConfirm.isOwn && (
-              <button className="delete-popup-btn danger" onClick={() => { deleteMessage(deleteConfirm.msgId, 'all'); setDeleteConfirm(null); }}>
+              <button type="button" className="delete-popup-btn danger" onClick={() => { deleteMessage(deleteConfirm.msgId, 'all'); setDeleteConfirm(null); }}>
                 <Trash2 size={18} /> Voor iedereen verwijderen
               </button>
             )}
-            <button className="delete-popup-cancel" onClick={() => setDeleteConfirm(null)}>Annuleren</button>
+            <button type="button" className="delete-popup-cancel" onClick={() => setDeleteConfirm(null)}>Annuleren</button>
           </div>
         </div>
       )}

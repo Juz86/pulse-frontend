@@ -113,31 +113,31 @@ export default function ChatSidebar({
         <div className="sidebar-top">
           <PulseLogo size={30} textSize={20} color={lightMode ? '#2b2448' : '#fff'} />
           <div style={{ display: 'flex', gap: '6px' }}>
-            <button className="icon-btn" onClick={onNewChat} title="Nieuw gesprek"><Message size={18} /></button>
-            <button className="icon-btn" onClick={onShowCallModal} title="Oproepen" style={{ position: 'relative' }}>
+            <button type="button" className="icon-btn" onClick={onNewChat} title="Nieuw gesprek"><Message size={18} /></button>
+            <button type="button" className="icon-btn" onClick={onShowCallModal} title="Oproepen" style={{ position: 'relative' }}>
               <Phone size={18} />
               {hasMissedCall && (
                 <span style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
               )}
             </button>
-            <button className="icon-btn" onClick={onNewGroup} title="Nieuwe groep"><Users size={18} /></button>
-            <button className={`icon-btn${dnd ? ' dnd-active' : ''}`} onClick={onToggleDnd} title={dnd ? 'Meldingen inschakelen' : 'Niet gestoord'}>
+            <button type="button" className="icon-btn" onClick={onNewGroup} title="Nieuwe groep"><Users size={18} /></button>
+            <button type="button" className={`icon-btn${dnd ? ' dnd-active' : ''}`} onClick={onToggleDnd} title={dnd ? 'Meldingen inschakelen' : 'Niet gestoord'}>
               {dnd ? <BellOff size={18} /> : <Bell size={18} />}
             </button>
           </div>
         </div>
         <div className="search-box">
-          <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} />
-          <input placeholder="Zoeken…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+          <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+          <input aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'} placeholder="Zoeken…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
       </div>
 
       {/* Tabs */}
       <div className="sidebar-tabs">
-        <button className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}>
+        <button type="button" className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}>
           <Message size={15} /> Chats
         </button>
-        <button className={`sidebar-tab ${activeTab === 'contacts' ? 'active' : ''}`} onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}>
+        <button type="button" className={`sidebar-tab ${activeTab === 'contacts' ? 'active' : ''}`} onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}>
           <Users size={15} /> Contacten
           {friendRequests.length > 0 && <span className="unread-badge" style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{friendRequests.length}</span>}
         </button>
@@ -148,11 +148,12 @@ export default function ChatSidebar({
         <div className="chat-filters">
           {['all', 'familie', 'vrienden'].map(f => (
             <button key={f} className={`chat-filter-chip${chatFilter === f ? ' active' : ''}`}
+              type="button"
               onClick={() => { setChatFilter(f); setSelectedGroupId(null); }}>
               {f === 'all' ? 'Alles' : f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
           ))}
-          <button className={`chat-filter-chip${chatFilter === 'groepen' ? ' active' : ''}`}
+          <button type="button" className={`chat-filter-chip${chatFilter === 'groepen' ? ' active' : ''}`}
             onClick={() => { setChatFilter('groepen'); setSelectedGroupId(null); }}>
             Groepen
           </button>
@@ -189,7 +190,7 @@ export default function ChatSidebar({
       {activeTab === 'contacts' && (
         <div className="conv-list">
           <div style={{ padding: '12px 18px' }}>
-            <button className="btn-primary" style={{ padding: '10px', fontSize: '13px' }} onClick={onShowAddContact}>
+            <button type="button" className="btn-primary" style={{ padding: '10px', fontSize: '13px' }} onClick={onShowAddContact}>
               + Contact toevoegen
             </button>
             {contactSuccess && (
@@ -213,8 +214,8 @@ export default function ChatSidebar({
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.fromEmail}</div>
                   </div>
                   <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
-                    <button className="btn-primary" style={{ padding: '4px 10px', fontSize: '12px', minWidth: 0 }} onClick={() => onAcceptFriendRequest(req.id)}>✓</button>
-                    <button className="btn-secondary" style={{ padding: '4px 10px', fontSize: '12px', minWidth: 0 }} onClick={() => onDeclineFriendRequest(req.id)}>✗</button>
+                    <button type="button" className="btn-primary" aria-label={`Accepteer verzoek van ${req.fromName}`} style={{ padding: '4px 10px', fontSize: '12px', minWidth: 0 }} onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
+                    <button type="button" className="btn-secondary" aria-label={`Weiger verzoek van ${req.fromName}`} style={{ padding: '4px 10px', fontSize: '12px', minWidth: 0 }} onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
                   </div>
                 </div>
               ))}
@@ -250,6 +251,7 @@ export default function ChatSidebar({
                   onMouseLeave={() => scheduleCloseContactMenu(contact.uid)}
                 >
                   <button
+                    type="button"
                     className="icon-btn"
                     onMouseEnter={(e) => openContactMenu(contact.uid, e.currentTarget)}
                     onFocus={(e) => openContactMenu(contact.uid, e.currentTarget)}
@@ -261,6 +263,16 @@ export default function ChatSidebar({
               </div>
             </div>
           ))}
+
+          {contacts.length > 0 && searchQuery.trim() && contacts.filter(c =>
+            c.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            c.email?.toLowerCase().includes(searchQuery.toLowerCase())
+          ).length === 0 && (
+            <div className="empty-convs" role="status" aria-live="polite">
+              <p>Geen contacten gevonden.</p>
+              <p>Er zijn geen resultaten voor "{searchQuery}".</p>
+            </div>
+          )}
         </div>
       )}
 
@@ -288,27 +300,27 @@ export default function ChatSidebar({
               gap: 4,
             }}
           >
-            <button className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onViewContact(contact); setContactMenu(null); }} title="Profiel">
+            <button type="button" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onViewContact(contact); setContactMenu(null); }} title="Profiel">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
               <span>Profiel</span>
             </button>
-            <button className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onStartChat(contact); setContactMenu(null); }} title="Bericht sturen">
+            <button type="button" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onStartChat(contact); setContactMenu(null); }} title="Bericht sturen">
               <Message size={16} />
               <span>Bericht sturen</span>
             </button>
-            <button className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
+            <button type="button" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
               <Phone size={16} />
               <span>Bellen</span>
             </button>
-            <button className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
+            <button type="button" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
               <Video size={16} />
               <span>Videobellen</span>
             </button>
-            <button className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
+            <button type="button" className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
               <Pin size={17} />
               <span>{pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}</span>
             </button>
-            <button className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }} onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
+            <button type="button" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }} onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
               <Delete size={18} />
               <span>Prullenbak</span>
             </button>
@@ -328,15 +340,15 @@ export default function ChatSidebar({
           </div>
         </div>
         {isParent && (
-          <button className="icon-btn parent-dashboard-btn" onClick={onOpenDashboard} title="Ouderlijk toezicht" style={{ position: 'relative' }}>
+          <button type="button" className="icon-btn parent-dashboard-btn" onClick={onOpenDashboard} title="Ouderlijk toezicht" style={{ position: 'relative' }}>
             <Shield size={18} />
             {parentActivityBadge > 0 && <span className="parent-badge">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
           </button>
         )}
-        <button className="icon-btn" onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>
+        <button type="button" className="icon-btn" onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>
           {lightMode ? <Moon size={18} /> : <Lightbulb size={18} />}
         </button>
-        <button className="icon-btn danger" onClick={() => signOut(auth)} title="Uitloggen"><Logout size={18} /></button>
+        <button type="button" className="icon-btn danger" onClick={() => signOut(auth)} title="Uitloggen"><Logout size={18} /></button>
       </div>
     </aside>
   );

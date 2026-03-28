@@ -197,7 +197,7 @@ body {
   font-size: 12px; color: var(--text3); line-height: 1.6;
   text-align: center; margin: 16px 0 0;
 }
-.auth-features { display:flex; gap:12px; margin-top:28px; padding-top:24px; border-top:1px solid var(--border); }
+.auth-features { display:flex; gap:12px; margin-top:28px; padding:24px 0 0; border-top:1px solid var(--border); list-style:none; }
 .auth-feature  { flex:1; text-align:center; font-size:11px; color:var(--text3); line-height:1.6; }
 
 /* ── AUTH MODAL ── */
@@ -1946,7 +1946,7 @@ body {
 .parent-auth-btn:disabled { opacity:.5; cursor:not-allowed; }
 .parent-auth-features {
   display:flex; justify-content:space-around; margin-top:24px;
-  padding-top:20px; border-top:1px solid #f3f4f6;
+  padding:20px 0 0; border-top:1px solid #f3f4f6; list-style:none;
 }
 .parent-auth-feature {
   display:flex; flex-direction:column; align-items:center; gap:5px;
@@ -2452,6 +2452,18 @@ body {
 }
 .hp-screenshot-img { width: 100%; height: auto; display: block; }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ── PHONE MOCKUP ── */
 .hp-phone {
   width: 220px; border-radius: 32px;
@@ -2626,6 +2638,15 @@ body {
 .hp-footer-logo img { border-radius: 6px; }
 .hp-footer-col { display: flex; flex-direction: column; gap: 10px; }
 .hp-footer-col h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+.hp-footer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hp-footer-list li { margin: 0; }
 .hp-footer-col p, .hp-footer-col a { font-size: 14px; color: rgba(255,255,255,0.6); transition: color 0.15s; text-decoration: none; }
 .hp-footer-col a { cursor: pointer; }
 .hp-footer-col a:hover { color: #fff; }

@@ -53,7 +53,9 @@ export default function ParentAuthModal({ onClose, defaultTab = 'register' }) {
         aria-modal="true"
         aria-label="Ouderaccount"
       >
-        <button ref={closeButtonRef} type="button" className="auth-modal-close" onClick={handleClose} aria-label="Sluiten">✕</button>
+        <button ref={closeButtonRef} type="button" className="auth-modal-close" onClick={handleClose} aria-label="Sluiten">
+          <span aria-hidden="true">✕</span>
+        </button>
         <ParentAuthScreen isModal defaultTab={defaultTab} onBack={handleClose} />
       </div>
     </div>,

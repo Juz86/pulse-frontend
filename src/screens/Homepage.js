@@ -16,6 +16,10 @@ export default function Homepage({ onParentClick }) {
   const [showParentModal, setShowParentModal] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handler, { passive: true });
     return () => window.removeEventListener('scroll', handler);
@@ -48,11 +52,11 @@ export default function Homepage({ onParentClick }) {
 
       <main id="main-content">
       {/* ── HERO ── */}
-      <section className="hp-hero" id="hero">
+      <section className="hp-hero" id="hero" aria-labelledby="homepage-hero-title">
         <div className="hp-hero-inner">
           <div className="hp-hero-text">
             <div className="hp-hero-badge">🇳🇱 100% Nederlands</div>
-            <h1 className="hp-hero-title">
+            <h1 id="homepage-hero-title" className="hp-hero-title">
               Veilig chatten en (video)bellen voor elk kind
             </h1>
             <p className="hp-hero-sub">
@@ -60,14 +64,14 @@ export default function Homepage({ onParentClick }) {
               zonder telefoonnummer kunnen bellen, videobellen en chatten — zonder
               afleiding, zonder pesterij, volledig onder ouderlijk toezicht. Speciaal ontworpen voor de veiligheid van kinderen online.
             </p>
-            <div className="hp-hero-features">
-              <div className="hp-hero-feature"><Shield size={16} /> Versleuteld &amp; privé</div>
-              <div className="hp-hero-feature"><PhoneIcon size={16} /> Chatten &amp; (video)bellen</div>
-              <div className="hp-hero-feature"><Wifi size={16} /> Wifi &amp; mobiel</div>
-            </div>
+            <ul className="hp-hero-features" aria-label="Belangrijkste voordelen">
+              <li className="hp-hero-feature"><span aria-hidden="true"><Shield size={16} /></span> Versleuteld &amp; privé</li>
+              <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Chatten &amp; (video)bellen</li>
+              <li className="hp-hero-feature"><span aria-hidden="true"><Wifi size={16} /></span> Wifi &amp; mobiel</li>
+            </ul>
           </div>
 
-          <div className="hp-hero-card" id="login">
+          <div className="hp-hero-card" id="login" aria-label="Inloggen bij Pulse">
             <AuthScreen onParentClick={onParentClick} />
           </div>
         </div>
@@ -75,36 +79,45 @@ export default function Homepage({ onParentClick }) {
 
 
       {/* ── FUNCTIES ── */}
-      <section className="hp-section" id="functies">
+      <section className="hp-section" id="functies" aria-labelledby="homepage-features-title">
         <div className="hp-section-inner">
+          <h2 id="homepage-features-title" className="sr-only">Belangrijkste Pulse functies</h2>
 
           {/* Rij 1 */}
-          <div className="hp-feature-row" id="veiligheid">
+          <article className="hp-feature-row" id="veiligheid" aria-labelledby="homepage-feature-communication">
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Communicatie</div>
-              <h3>Chatten, bellen en videobellen</h3>
+              <h3 id="homepage-feature-communication">Chatten, bellen en videobellen</h3>
               <p>Blijf verbonden met familie en vrienden via chat, bellen en videobellen.
                 Geen telefoonnummer, foto's, gifs of algoritmes. Pulse is pure communicatie.
               </p>
-              <a href="/functies" className="hp-read-more-btn">Lees meer →</a>
+              <a href="/functies#chatten" className="hp-read-more-btn" aria-label="Lees meer over chatten, bellen en videobellen">
+                Lees meer <span aria-hidden="true">→</span>
+              </a>
             </div>
             <div className="hp-feature-mockup">
               <img
                 src="/screenshots/pulse1.png"
                 alt="Pulse chat in gebruik"
+                width="420"
+                height="315"
+                sizes="(max-width: 768px) 100vw, 420px"
                 loading="lazy"
                 decoding="async"
                 style={{ width: '100%', maxWidth: 420, borderRadius: 16, display: 'block' }}
               />
             </div>
-          </div>
+          </article>
 
           {/* Rij 2 */}
-          <div className="hp-feature-row hp-feature-row--reverse" id="toezicht">
+          <article className="hp-feature-row hp-feature-row--reverse" id="toezicht" aria-labelledby="homepage-feature-parental-controls">
             <div className="hp-feature-mockup">
               <img
                 src="/screenshots/tablet-hand.jpg"
                 alt="Ouderlijk toezicht dashboard"
+                width="420"
+                height="315"
+                sizes="(max-width: 768px) 100vw, 420px"
                 loading="lazy"
                 decoding="async"
                 style={{ width: '100%', maxWidth: 420, borderRadius: 16, display: 'block' }}
@@ -112,39 +125,46 @@ export default function Homepage({ onParentClick }) {
             </div>
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Ouderlijk toezicht</div>
-              <h3>Volledig overzicht voor ouders</h3>
+              <h3 id="homepage-feature-parental-controls">Volledig overzicht voor ouders</h3>
               <p>Ouders hebben volledig toezicht via een eigen dashboard. Chat, bellen of videobellen pauzeren per functie. Direct meldingen bij nieuwe contacten.</p>
-              <a href="/ouderlijk-toezicht" className="hp-read-more-btn">Lees meer →</a>
+              <a href="/ouderlijk-toezicht#dashboard" className="hp-read-more-btn" aria-label="Lees meer over ouderlijk toezicht">
+                Lees meer <span aria-hidden="true">→</span>
+              </a>
             </div>
-          </div>
+          </article>
 
           {/* Rij 3 */}
-          <div className="hp-feature-row">
+          <article className="hp-feature-row" aria-labelledby="homepage-feature-privacy">
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Privacy &amp; AVG</div>
-              <h3>AVG en privacy centraal</h3>
+              <h3 id="homepage-feature-privacy">AVG en privacy centraal</h3>
               <p>Pulse brengt familie en vrienden dichter bij elkaar in één vertrouwde en beveiligde omgeving — met respect voor privacy: geen onnodige dataverzameling en berichten verdwijnen na 30 dagen.</p>
-              <a href="/over-pulse" className="hp-read-more-btn">Lees meer →</a>
+              <a href="/over-pulse#privacy" className="hp-read-more-btn" aria-label="Lees meer over privacy en AVG bij Pulse">
+                Lees meer <span aria-hidden="true">→</span>
+              </a>
             </div>
             <div className="hp-feature-mockup">
               <img
                 src="/screenshots/avg.png"
                 alt="AVG en privacy"
+                width="420"
+                height="315"
+                sizes="(max-width: 768px) 100vw, 420px"
                 loading="lazy"
                 decoding="async"
                 style={{ width: '100%', maxWidth: 420, borderRadius: 16, display: 'block' }}
               />
             </div>
-          </div>
+          </article>
 
         </div>
       </section>
 
 
       {/* ── CTA ── */}
-      <section className="hp-cta">
+      <section className="hp-cta" aria-labelledby="homepage-cta-title">
         <div className="hp-cta-inner">
-          <h2>Blijf veilig verbonden met wie echt telt</h2>
+          <h2 id="homepage-cta-title">Blijf veilig verbonden met wie echt telt</h2>
           <p>Gratis account aanmaken. Beschikbaar op web, iOS en Android.</p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>

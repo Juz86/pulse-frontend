@@ -42,7 +42,9 @@ export default function MarketingNavbar({
     <nav className={`hp-nav${scrolled ? ' hp-nav--scrolled' : ''}`} aria-label="Hoofdnavigatie">
       <a className="hp-skip-link" href="#main-content">Ga naar inhoud</a>
       <a className="hp-nav-logo" href="/" aria-label="Ga naar de homepage van Pulse">
-        <PulseLogo size={30} textSize={20} color="#6c63ff" />
+        <span aria-hidden="true">
+          <PulseLogo size={30} textSize={20} color="#6c63ff" />
+        </span>
       </a>
 
       <div
@@ -91,19 +93,24 @@ export default function MarketingNavbar({
         />
       )}
 
-      <button type="button" className="hp-nav-ouder" onClick={onParentClick}>
-        ❤️ Ouder
+      <button
+        type="button"
+        className="hp-nav-ouder"
+        onClick={onParentClick}
+        aria-label="Open ouder login of registratie"
+      >
+        <span aria-hidden="true">❤️</span> Ouder
       </button>
 
       <button
         type="button"
         className="hp-nav-hamburger"
         onClick={() => setMenuOpen((open) => !open)}
-        aria-label="Menu"
+        aria-label={menuOpen ? 'Sluit menu' : 'Open menu'}
         aria-expanded={menuOpen}
         aria-controls={navMenuId}
       >
-        {menuOpen ? '✕' : '☰'}
+        <span aria-hidden="true">{menuOpen ? '✕' : '☰'}</span>
       </button>
     </nav>
   );

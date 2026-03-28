@@ -79,7 +79,7 @@ function SectionRow({ reverse, mockup, title, text, list, id }) {
       ref={ref}
       className={`hp-feature-row${reverse ? ' hp-feature-row--reverse' : ''} ot-row${visible ? ' fp-visible' : ''}`}
     >
-      <div className="hp-feature-mockup">{mockup}</div>
+      <div className="hp-feature-mockup" aria-hidden="true">{mockup}</div>
       <SectionHeader title={title} text={text} list={list} />
     </div>
   );
@@ -105,7 +105,7 @@ function DashboardMockup() {
             <span>5 contacten</span>
             <span>8 chats</span>
           </div>
-          <button className="ot-pause-btn">⏸ Pauze</button>
+          <button type="button" className="ot-pause-btn">⏸ Pauze</button>
         </div>
         <div className="ot-child-actions">
           <span><KeyRound size={16} /></span>
@@ -122,7 +122,7 @@ function DashboardMockup() {
             <span>3 contacten</span>
             <span>4 chats</span>
           </div>
-          <button className="ot-pause-btn">⏸ Pauze</button>
+          <button type="button" className="ot-pause-btn">⏸ Pauze</button>
         </div>
         <div className="ot-child-actions">
           <span><KeyRound size={16} /></span>
@@ -263,7 +263,7 @@ function StepsOverview() {
             <h3>{step.title}</h3>
             <p>{step.text}</p>
           </div>
-          {index < steps.length - 1 && <div className="hp-step-arrow">→</div>}
+          {index < steps.length - 1 && <div className="hp-step-arrow" aria-hidden="true">→</div>}
         </React.Fragment>
       ))}
     </div>
@@ -286,7 +286,8 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
   }, []);
 
   const scrollTo = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById(id)?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
     setMenuOpen(false);
   };
 
@@ -328,7 +329,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
               <button type="button" className="ot-secondary-btn" onClick={() => scrollTo('dashboard')}>Meer informatie</button>
             </div>
           </div>
-          <div className="ot-hero-visual">
+          <div className="ot-hero-visual" aria-hidden="true">
             <DashboardMockup />
           </div>
         </div>

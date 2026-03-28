@@ -66,16 +66,25 @@ export default function AuthModal({ onClose, onParentClick }) {
       >
 
         {/* Sluitknop */}
-        <button ref={closeButtonRef} type="button" className="auth-modal-close" onClick={handleClose} aria-label="Sluiten">✕</button>
+        <button ref={closeButtonRef} type="button" className="auth-modal-close" onClick={handleClose} aria-label="Sluiten">
+          <span aria-hidden="true">✕</span>
+        </button>
 
         {/* Ouder knop */}
-        <button type="button" className="auth-modal-parent-btn" onClick={handleParentClick}>
-          <Heart size={13} color="#ef4444" /> Ouder
+        <button
+          type="button"
+          className="auth-modal-parent-btn"
+          onClick={handleParentClick}
+          aria-label="Open ouder login of registratie"
+        >
+          <span aria-hidden="true"><Heart size={13} color="#ef4444" /></span> Ouder
         </button>
 
         {/* Koptekst */}
         <div className="auth-modal-header">
-          <PulseLogo size={28} textSize={22} />
+          <div aria-hidden="true">
+            <PulseLogo size={28} textSize={22} />
+          </div>
           <h2 id="auth-modal-title" className="auth-modal-title">Welkom bij Pulse</h2>
           <p id="auth-modal-description" className="auth-modal-sub">Log in met je gebruikersnaam en wachtwoord</p>
         </div>

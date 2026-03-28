@@ -46,11 +46,11 @@ export default function AuthScreen({ onParentClick, isModal }) {
 
   const formContent = (
     <>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} aria-busy={loading}>
         <div className="form-group">
-          <label className="form-label">Gebruikersnaam</label>
+          <label className="form-label" htmlFor="username">Gebruikersnaam</label>
           <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', display: 'flex', pointerEvents: 'none' }}>
+            <span aria-hidden="true" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', display: 'flex', pointerEvents: 'none' }}>
               <User size={16} />
             </span>
             <input
@@ -64,6 +64,10 @@ export default function AuthScreen({ onParentClick, isModal }) {
               autoCapitalize="none"
               autoCorrect="off"
               autoComplete="username"
+              enterKeyHint="next"
+              aria-describedby={error ? 'child-auth-error' : undefined}
+              aria-errormessage={error ? 'child-auth-error' : undefined}
+              aria-invalid={error ? 'true' : undefined}
               required
               style={{ paddingLeft: 38 }}
             />
@@ -71,9 +75,9 @@ export default function AuthScreen({ onParentClick, isModal }) {
         </div>
 
         <div className="form-group">
-          <label className="form-label">Wachtwoord</label>
+          <label className="form-label" htmlFor="password">Wachtwoord</label>
           <div style={{ position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', display: 'flex', pointerEvents: 'none' }}>
+            <span aria-hidden="true" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', display: 'flex', pointerEvents: 'none' }}>
               <Lock size={16} />
             </span>
             <input
@@ -84,7 +88,14 @@ export default function AuthScreen({ onParentClick, isModal }) {
               placeholder="Wachtwoord"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              autoCapitalize="none"
+              autoCorrect="off"
               autoComplete="current-password"
+              enterKeyHint="done"
+              spellCheck={false}
+              aria-describedby={error ? 'child-auth-error' : undefined}
+              aria-errormessage={error ? 'child-auth-error' : undefined}
+              aria-invalid={error ? 'true' : undefined}
               required
               minLength={6}
               style={{ paddingLeft: 38, paddingRight: 42 }}
@@ -92,18 +103,24 @@ export default function AuthScreen({ onParentClick, isModal }) {
             <button
               type="button"
               aria-label={showPassword ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'}
+              aria-pressed={showPassword}
               onClick={() => setShowPassword(p => !p)}
               style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 0, display: 'flex' }}
             >
-              {showPassword ? <EyeOff size={18} /> : <EyeOn size={18} />}
+              <span aria-hidden="true">{showPassword ? <EyeOff size={18} /> : <EyeOn size={18} />}</span>
             </button>
           </div>
         </div>
 
-        {error && <div className="auth-error">⚠️ {error}</div>}
+        {error && (
+          <div id="child-auth-error" className="auth-error" role="alert" aria-live="assertive">
+            <span aria-hidden="true">⚠️ </span>
+            {error}
+          </div>
+        )}
 
         <button className="btn-primary" type="submit" disabled={loading}>
-          {loading ? 'Even wachten…' : 'Inloggen →'}
+          {loading ? 'Even wachten…' : <>Inloggen <span aria-hidden="true">→</span></>}
         </button>
       </form>
 
@@ -111,11 +128,11 @@ export default function AuthScreen({ onParentClick, isModal }) {
         Geen account? Vraag je ouder om een account voor je aan te maken.
       </p>
 
-      <div className="auth-features">
-        <div className="auth-feature"><Shield size={18} color="var(--text3)" /><div>Versleuteld</div></div>
-        <div className="auth-feature"><PhoneIcon size={18} color="var(--text3)" /><div>Bellen &amp; video</div></div>
-        <div className="auth-feature"><Wifi size={18} color="var(--text3)" /><div>Wifi &amp; mobiel</div></div>
-      </div>
+      <ul className="auth-features" aria-label="Belangrijkste voordelen">
+        <li className="auth-feature"><span aria-hidden="true"><Shield size={18} color="var(--text3)" /></span><div>Versleuteld</div></li>
+        <li className="auth-feature"><span aria-hidden="true"><PhoneIcon size={18} color="var(--text3)" /></span><div>Bellen &amp; video</div></li>
+        <li className="auth-feature"><span aria-hidden="true"><Wifi size={18} color="var(--text3)" /></span><div>Wifi &amp; mobiel</div></li>
+      </ul>
     </>
   );
 
@@ -123,24 +140,31 @@ export default function AuthScreen({ onParentClick, isModal }) {
 
   return (
     <div className="auth-screen">
-      <div className="auth-bg" />
+      <div className="auth-bg" aria-hidden="true" />
 
-      <div className="auth-card" style={{ position: 'relative' }}>
+      <div
+        className="auth-card"
+        style={{ position: 'relative' }}
+        aria-labelledby="child-auth-title"
+        aria-describedby="child-auth-subtitle"
+      >
         {onParentClick && (
           <button
+            type="button"
             onClick={onParentClick}
+            aria-label="Open ouder login of registratie"
             style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.4)', color: 'var(--accent)', borderRadius: '10px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: 5 }}
           >
-            <Heart size={14} color="#ef4444" /> Ouder
+            <span aria-hidden="true"><Heart size={14} color="#ef4444" /></span> Ouder
           </button>
         )}
 
-        <div className="auth-logo">
+        <div className="auth-logo" aria-hidden="true">
           <PulseLogo size={34} textSize={26} />
         </div>
 
-        <h2 className="auth-title">Welkom terug</h2>
-        <p className="auth-sub">Log in met je gebruikersnaam en wachtwoord.</p>
+        <h2 id="child-auth-title" className="auth-title">Welkom terug</h2>
+        <p id="child-auth-subtitle" className="auth-sub">Log in met je gebruikersnaam en wachtwoord.</p>
 
         {formContent}
       </div>

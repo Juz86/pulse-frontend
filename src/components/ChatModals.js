@@ -585,7 +585,7 @@ export default function ChatModals({
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.displayName || c.email}</div>
                                 </div>
-                                <button type="button" className="btn-secondary" style={{ fontSize: '12px', padding: '5px 12px', flexShrink: 0 }} onClick={() => unblockContact(c.uid)}>Deblokkeren</button>
+                                <button type="button" className="btn-secondary" style={{ fontSize: '12px', padding: '5px 12px', flexShrink: 0, width: 'auto', marginTop: 0 }} onClick={() => unblockContact(c.uid)}>Deblokkeren</button>
                               </div>
                             ))}
                           </div>

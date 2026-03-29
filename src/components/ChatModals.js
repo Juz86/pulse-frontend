@@ -957,10 +957,12 @@ export default function ChatModals({
                   <label
                     htmlFor={isAdmin ? 'group-photo-upload' : undefined}
                     aria-label={isAdmin ? 'Groepsfoto wijzigen' : undefined}
+                    aria-describedby={isAdmin ? 'group-photo-upload-status' : undefined}
+                    aria-busy={isAdmin && groupPhotoLoading ? 'true' : undefined}
                     style={{ position: 'relative', cursor: isAdmin ? 'pointer' : 'default' }}
                   >
                     {activeConv.photoURL
-                      ? <img src={activeConv.photoURL} alt="groep" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--accent,#7c3aed)' }} />
+                      ? <img src={activeConv.photoURL} alt={`Groepsfoto van ${getConvName(activeConv)}`} style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--accent,#7c3aed)' }} />
                       : <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 700, color: '#fff', border: '3px solid var(--accent,#7c3aed)' }}>
                           {getConvName(activeConv)?.[0]?.toUpperCase() || '?'}
                         </div>}
@@ -973,6 +975,11 @@ export default function ChatModals({
                       </>
                     )}
                   </label>
+                  {isAdmin && (
+                    <p id="group-photo-upload-status" className="sr-only" aria-live="polite">
+                      {groupPhotoLoading ? 'Groepsfoto wordt geupload.' : 'Kies een afbeelding om de groepsfoto te wijzigen.'}
+                    </p>
+                  )}
                   <h3 id="group-info-title" className="modal-title" style={{ margin: 0 }}>{getConvName(activeConv)}</h3>
                   <p id="group-info-description" className="modal-sub" style={{ margin: 0 }}>{activeConv.members.length} deelnemers</p>
                 </div>

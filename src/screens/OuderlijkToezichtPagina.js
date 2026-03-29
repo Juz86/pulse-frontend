@@ -319,11 +319,11 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
       />
 
       <main id="main-content">
-      <section className="ot-hero">
+      <section className="ot-hero hw-hero">
         <DecorativeAvatar svg={avatarSvgs.otTop}    className="fp-deco-avatar--hero-top" />
         <DecorativeAvatar svg={avatarSvgs.otBottom} className="fp-deco-avatar--hero-bottom" />
-        <div className="ot-hero-inner">
-          <div className="ot-hero-copy">
+        <div className="ot-hero-inner hw-hero-inner">
+          <div className="ot-hero-copy hw-hero-copy">
             <div className="fp-hero-badge">Ouderlijk toezicht</div>
             <h1 className="ot-hero-title">Jij bepaalt. Altijd.</h1>
             <p className="ot-hero-sub">

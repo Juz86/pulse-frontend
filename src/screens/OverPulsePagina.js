@@ -240,11 +240,11 @@ export default function OverPulsePagina({ onParentClick }) {
 
       <main id="main-content">
       {/* ── HERO ── */}
-      <section className="ot-hero op-hero">
+      <section className="ot-hero op-hero hw-hero">
         <DecorativeAvatar svg={avatarSvgs.opTop}    className="fp-deco-avatar--hero-top" />
         <DecorativeAvatar svg={avatarSvgs.opBottom} className="fp-deco-avatar--hero-bottom" />
-        <div className="ot-hero-inner op-hero-inner">
-          <div className="ot-hero-copy">
+        <div className="ot-hero-inner op-hero-inner hw-hero-inner">
+          <div className="ot-hero-copy hw-hero-copy">
             <div className="fp-hero-badge">Over Pulse</div>
             <h1 className="ot-hero-title">
               Pulse is geen<br />social media.<br />Pulse is verbinding.

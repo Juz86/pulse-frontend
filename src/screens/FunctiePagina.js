@@ -738,11 +738,11 @@ export default function FunctiePagina({ onParentClick }) {
 
       <main id="main-content">
       {/* ── HERO ── */}
-      <section className="ot-hero">
-        <div className="ot-hero-inner">
+      <section className="ot-hero hw-hero">
+        <div className="ot-hero-inner hw-hero-inner">
           <DecorativeAvatar svg={decorativeAvatars.heroTop} className="fp-deco-avatar--hero-top" />
           <DecorativeAvatar svg={decorativeAvatars.heroBottom} className="fp-deco-avatar--hero-bottom" />
-          <div>
+          <div className="hw-hero-copy">
             <div className="fp-hero-badge">Functies</div>
             <h1 className="ot-hero-title fp-hero-title-compact">
               Alles wat je nodig hebt om

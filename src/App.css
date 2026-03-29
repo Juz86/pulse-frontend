@@ -3877,7 +3877,7 @@ body {
   .ot-phone { width: 180px !important; }
   .ot-phone-screen { min-height: 260px !important; }
   .ot-hero-actions { flex-direction: column; align-items: stretch; }
-  .ot-secondary-btn, .hp-cta-btn { width: 100%; }
+  .ot-secondary-btn, .hp-cta-btn { width: 100%; text-align: center; }
   .ot-stats-grid { grid-template-columns: 1fr; }
   .hw-browser,
   .hw-browser--wide { width: 100%; }
@@ -4153,14 +4153,14 @@ body {
   .ot-final-cta p { font-size: 15px; }
 
   /* Hero mockup als achtergrond op mobiel */
-  .ot-hero-inner { position: relative; min-height: 420px; align-items: flex-start; padding: 48px 20px 40px; }
+  .ot-hero-inner { position: relative; min-height: 390px; align-items: flex-start; padding: 28px 20px 40px; }
   .ot-hero-visual {
     position: absolute;
     right: -16px;
-    top: 0;
+    top: 18px;
     bottom: 0;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     opacity: 0.14;
     pointer-events: none;
     z-index: 0;
@@ -4198,8 +4198,13 @@ body {
 @media (max-width: 375px) {
   /* Paddings */
   .hp-hero-inner { padding: 20px 16px; gap: 20px; }
-  .ot-hero-inner { padding: 28px 16px 20px; }
+  .ot-hero-inner { min-height: 340px; padding: 18px 16px 20px; }
   .fp-hero-inner { padding: 76px 16px 36px; }
+
+  .ot-hero-visual {
+    top: 10px;
+    right: -12px;
+  }
 
   /* Titels */
   .hp-hero-title { font-size: 24px; }

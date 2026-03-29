@@ -954,7 +954,11 @@ export default function ChatModals({
               const isAdmin = activeConv.creatorId === user.uid;
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                  <label style={{ position: 'relative', cursor: isAdmin ? 'pointer' : 'default' }}>
+                  <label
+                    htmlFor={isAdmin ? 'group-photo-upload' : undefined}
+                    aria-label={isAdmin ? 'Groepsfoto wijzigen' : undefined}
+                    style={{ position: 'relative', cursor: isAdmin ? 'pointer' : 'default' }}
+                  >
                     {activeConv.photoURL
                       ? <img src={activeConv.photoURL} alt="groep" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--accent,#7c3aed)' }} />
                       : <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 700, color: '#fff', border: '3px solid var(--accent,#7c3aed)' }}>
@@ -962,10 +966,10 @@ export default function ChatModals({
                         </div>}
                     {isAdmin && (
                       <>
-                        <div style={{ position: 'absolute', bottom: 2, right: 2, width: 22, height: 22, borderRadius: '50%', background: 'var(--accent,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
-                          {groupPhotoLoading ? <div className="splash-spinner" style={{ width: 12, height: 12 }} /> : <Camera size={12} color="#fff" />}
+                        <div aria-hidden="true" style={{ position: 'absolute', bottom: 2, right: 2, width: 22, height: 22, borderRadius: '50%', background: 'var(--accent,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
+                          {groupPhotoLoading ? <div className="splash-spinner" style={{ width: 12, height: 12 }} /> : <Camera size={12} color="#fff" aria-hidden="true" />}
                         </div>
-                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadGroupPhoto(f); e.target.value = ''; }} />
+                        <input id="group-photo-upload" type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadGroupPhoto(f); e.target.value = ''; }} />
                       </>
                     )}
                   </label>
@@ -1021,10 +1025,11 @@ export default function ChatModals({
                     </button>
                   ) : isAdmin && addingMember ? (
                     <>
-                      <p className="modal-sub">Kies een contact om toe te voegen</p>
+                      <p id="group-add-member-description" className="modal-sub">Kies een contact om toe te voegen</p>
                       <div
                         id="group-add-member-list"
                         role="list"
+                        aria-describedby="group-add-member-description"
                         style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}
                       >
                         {contacts.filter(c => !activeConv.members.includes(c.uid)).length === 0 && (
@@ -1048,7 +1053,15 @@ export default function ChatModals({
                           </button>
                         ))}
                       </div>
-                      <button type="button" className="btn-secondary" onClick={() => setAddingMember(false)}>Annuleren</button>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        aria-expanded="true"
+                        aria-controls="group-add-member-list"
+                        onClick={() => setAddingMember(false)}
+                      >
+                        Annuleren
+                      </button>
                     </>
                   ) : null}
                 </>

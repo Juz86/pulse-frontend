@@ -4172,6 +4172,23 @@ body {
     z-index: 1;
     max-width: 100%;
   }
+
+  /* hw-hero: tekst boven, mockup onder (geen achtergrond-gedrag) */
+  .hw-hero .ot-hero-inner {
+    position: static;
+    min-height: unset;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 28px 20px 32px;
+  }
+  .hw-hero .ot-hero-visual {
+    position: static;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: auto;
+    justify-content: center;
+  }
 }
 
 /* ── Mobiel klein (≤480px) — titels, grids, knoppen ── */

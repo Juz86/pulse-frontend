@@ -4313,6 +4313,23 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
     z-index: auto;
     justify-content: center;
   }
+
+  .ot-hero,
+  .hw-hero {
+    min-height: unset !important;
+    padding-top: 20px !important;
+    padding-bottom: 40px !important;
+    margin-top: 0 !important;
+  }
+
+  .ot-hero-inner,
+  .hw-hero-inner {
+    min-height: unset !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+  }
 }
 
 /* ── Mobiel klein (≤480px) — titels, grids, knoppen ── */
@@ -4364,6 +4381,21 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   /* Knoppen */
   .hp-cta-btn { padding: 12px 16px; font-size: 15px; }
   .ot-secondary-btn { padding: 12px 16px; font-size: 14px; }
+
+  .ot-hero,
+  .hw-hero {
+    min-height: unset !important;
+    padding-top: 20px !important;
+    padding-bottom: 32px !important;
+  }
+
+  .ot-hero-inner,
+  .hw-hero-inner {
+    min-height: unset !important;
+    padding-top: 0 !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+  }
 
   /* Mockups */
   .hp-phone { width: 160px; }

@@ -4170,7 +4170,7 @@ body {
   .ot-hero-inner > div:not(.ot-hero-visual) {
     position: relative;
     z-index: 1;
-    max-width: 75%;
+    max-width: 100%;
   }
 }
 

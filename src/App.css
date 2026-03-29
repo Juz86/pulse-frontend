@@ -3214,8 +3214,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
    HOE WERKT HET  (hw-)
    ══════════════════════════════════════════════════════════════════════════ */
 
-.hw-hero { min-height: 76vh; }
+.hw-hero { min-height: unset; }
 .hw-hero-inner { align-items: center; gap: 56px; }
+.hw-hero .ot-hero-inner { padding-top: 28px; padding-bottom: 40px; }
 .hw-hero-copy { max-width: 560px; }
 .hw-hero-visual { display: flex; justify-content: center; }
 .hw-hero-preview {

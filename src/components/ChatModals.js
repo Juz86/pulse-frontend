@@ -972,7 +972,16 @@ export default function ChatModals({
                         <div aria-hidden="true" style={{ position: 'absolute', bottom: 2, right: 2, width: 22, height: 22, borderRadius: '50%', background: 'var(--accent,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
                           {groupPhotoLoading ? <div className="splash-spinner" style={{ width: 12, height: 12 }} /> : <Camera size={12} color="#fff" aria-hidden="true" />}
                         </div>
-                        <input id="group-photo-upload" type="file" accept="image/*" disabled={groupPhotoLoading} style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadGroupPhoto(f); e.target.value = ''; }} />
+                        <input
+                          id="group-photo-upload"
+                          type="file"
+                          accept="image/*"
+                          aria-label="Kies een nieuwe groepsfoto"
+                          aria-describedby="group-photo-upload-status"
+                          disabled={groupPhotoLoading}
+                          style={{ display: 'none' }}
+                          onChange={e => { const f = e.target.files?.[0]; if (f) uploadGroupPhoto(f); e.target.value = ''; }}
+                        />
                       </>
                     )}
                   </label>

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PulseLogo from './PulseLogo';
 import AuthModal from './AuthModal';
 import ParentAuthModal from './ParentAuthModal';
+import { Heart, Users } from './Icons';
 
 export default function MarketingNavbar({
   items,
@@ -13,6 +14,8 @@ export default function MarketingNavbar({
   const [showKindModal,   setShowKindModal]   = useState(false);
   const [showParentModal, setShowParentModal] = useState(false);
   const navMenuId = 'marketing-nav-links';
+  const menuRef      = useRef(null);
+  const hamburgerRef = useRef(null);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -24,11 +27,26 @@ export default function MarketingNavbar({
       if (event.key === 'Escape') setMenuOpen(false);
     };
 
+    const handleClickOutside = (event) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target) &&
+        hamburgerRef.current &&
+        !hamburgerRef.current.contains(event.target)
+      ) {
+        setMenuOpen(false);
+      }
+    };
+
     document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
 
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [menuOpen, setMenuOpen]);
 
@@ -53,6 +71,7 @@ export default function MarketingNavbar({
 
         <div
           id={navMenuId}
+          ref={menuRef}
           className={`hp-nav-links${menuOpen ? ' hp-nav-links--open' : ''}`}
         >
           {items.map((item) => {
@@ -104,7 +123,7 @@ export default function MarketingNavbar({
             onClick={() => { setShowKindModal(true); setMenuOpen(false); }}
             aria-label="Kind inloggen"
           >
-            <span aria-hidden="true">👦</span> Kind
+            <Heart size={16} aria-hidden="true" /> Kind
           </button>
 
           <button
@@ -113,11 +132,12 @@ export default function MarketingNavbar({
             onClick={() => { setShowParentModal(true); setMenuOpen(false); }}
             aria-label="Open ouder login of registratie"
           >
-            <span aria-hidden="true">❤️</span> Ouder
+            <Users size={16} aria-hidden="true" /> Ouder
           </button>
 
           <button
             type="button"
+            ref={hamburgerRef}
             className="hp-nav-hamburger"
             onClick={() => setMenuOpen((open) => !open)}
             aria-label={menuOpen ? 'Sluit menu' : 'Open menu'}

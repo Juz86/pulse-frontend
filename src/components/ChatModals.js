@@ -959,7 +959,8 @@ export default function ChatModals({
                     aria-label={isAdmin ? 'Groepsfoto wijzigen' : undefined}
                     aria-describedby={isAdmin ? 'group-photo-upload-status' : undefined}
                     aria-busy={isAdmin && groupPhotoLoading ? 'true' : undefined}
-                    style={{ position: 'relative', cursor: isAdmin ? 'pointer' : 'default' }}
+                    aria-disabled={isAdmin && groupPhotoLoading ? 'true' : undefined}
+                    style={{ position: 'relative', cursor: isAdmin && !groupPhotoLoading ? 'pointer' : 'default' }}
                   >
                     {activeConv.photoURL
                       ? <img src={activeConv.photoURL} alt={`Groepsfoto van ${getConvName(activeConv)}`} style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--accent,#7c3aed)' }} />
@@ -971,7 +972,7 @@ export default function ChatModals({
                         <div aria-hidden="true" style={{ position: 'absolute', bottom: 2, right: 2, width: 22, height: 22, borderRadius: '50%', background: 'var(--accent,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
                           {groupPhotoLoading ? <div className="splash-spinner" style={{ width: 12, height: 12 }} /> : <Camera size={12} color="#fff" aria-hidden="true" />}
                         </div>
-                        <input id="group-photo-upload" type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadGroupPhoto(f); e.target.value = ''; }} />
+                        <input id="group-photo-upload" type="file" accept="image/*" disabled={groupPhotoLoading} style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadGroupPhoto(f); e.target.value = ''; }} />
                       </>
                     )}
                   </label>

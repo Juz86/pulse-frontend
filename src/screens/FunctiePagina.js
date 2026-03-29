@@ -531,7 +531,20 @@ export default function FunctiePagina({ onParentClick }) {
   const chatTouchStartX = useRef(null);
   const callTouchStartX = useRef(null);
 
+  const chatSlideInitial    = useRef(true);
+  const callSlideInitial    = useRef(true);
+
   useEffect(() => { window.scrollTo(0, 0); }, []);
+
+  useEffect(() => {
+    if (chatSlideInitial.current) { chatSlideInitial.current = false; return; }
+    chatTabRefs.current[chatSlide]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+  }, [chatSlide]);
+
+  useEffect(() => {
+    if (callSlideInitial.current) { callSlideInitial.current = false; return; }
+    callTabRefs.current[callVideoSlide]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+  }, [callVideoSlide]);
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 50);
@@ -776,24 +789,42 @@ export default function FunctiePagina({ onParentClick }) {
           <DecorativeAvatar svg={decorativeAvatars.chatSide} className="fp-deco-avatar--chat" />
           <SectionHeader title="Chatten" sub="Snel en veilig berichten sturen zonder telefoonnummer." />
           <div className="fp-slider">
-            <div className="fp-slider-tabs" role="tablist" aria-label="Chatfuncties" aria-orientation="horizontal">
-              {chatSlides.map((slide, index) => (
-                <button
-                  key={slide.key}
-                  ref={(element) => { chatTabRefs.current[index] = element; }}
-                  id={`chat-tab-${slide.key}`}
-                  type="button"
-                  role="tab"
-                  aria-selected={index === chatSlide}
-                  aria-controls={`chat-panel-${slide.key}`}
-                  tabIndex={index === chatSlide ? 0 : -1}
-                  className={`fp-slider-tab${index === chatSlide ? ' fp-slider-tab--active' : ''}`}
-                  onClick={() => setChatSlide(index)}
-                  onKeyDown={(event) => handleChatTabKeyDown(event, index)}
-                >
-                  {slide.label}
-                </button>
-              ))}
+            <div className="fp-slider-header">
+              <button
+                type="button"
+                className="fp-slider-arrow"
+                aria-label="Vorige chatfunctie"
+                onClick={() => setChatSlide((prev) => (prev === 0 ? chatSlides.length - 1 : prev - 1))}
+              >
+                <span aria-hidden="true">←</span> Vorige
+              </button>
+              <div className="fp-slider-tabs" role="tablist" aria-label="Chatfuncties" aria-orientation="horizontal">
+                {chatSlides.map((slide, index) => (
+                  <button
+                    key={slide.key}
+                    ref={(element) => { chatTabRefs.current[index] = element; }}
+                    id={`chat-tab-${slide.key}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={index === chatSlide}
+                    aria-controls={`chat-panel-${slide.key}`}
+                    tabIndex={index === chatSlide ? 0 : -1}
+                    className={`fp-slider-tab${index === chatSlide ? ' fp-slider-tab--active' : ''}`}
+                    onClick={() => setChatSlide(index)}
+                    onKeyDown={(event) => handleChatTabKeyDown(event, index)}
+                  >
+                    {slide.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="fp-slider-arrow"
+                aria-label="Volgende chatfunctie"
+                onClick={() => setChatSlide((prev) => (prev === chatSlides.length - 1 ? 0 : prev + 1))}
+              >
+                Volgende <span aria-hidden="true">→</span>
+              </button>
             </div>
 
             <div
@@ -820,35 +851,17 @@ export default function FunctiePagina({ onParentClick }) {
               />
             </div>
 
-            <div className="fp-slider-controls">
-              <button
-                type="button"
-                className="fp-slider-arrow"
-                aria-label="Vorige chatfunctie"
-                onClick={() => setChatSlide((prev) => (prev === 0 ? chatSlides.length - 1 : prev - 1))}
-              >
-                <span aria-hidden="true">← </span>Vorige
-              </button>
-              <div className="fp-slider-dots">
-                {chatSlides.map((slide, index) => (
-                  <button
-                    key={slide.key}
-                    type="button"
-                    aria-label={`Ga naar ${slide.label}`}
-                    aria-current={index === chatSlide ? 'true' : undefined}
-                    className={`fp-slider-dot${index === chatSlide ? ' fp-slider-dot--active' : ''}`}
-                    onClick={() => setChatSlide(index)}
-                  />
-                ))}
-              </div>
-              <button
-                type="button"
-                className="fp-slider-arrow"
-                aria-label="Volgende chatfunctie"
-                onClick={() => setChatSlide((prev) => (prev === chatSlides.length - 1 ? 0 : prev + 1))}
-              >
-                Volgende <span aria-hidden="true">→</span>
-              </button>
+            <div className="fp-slider-dots">
+              {chatSlides.map((slide, index) => (
+                <button
+                  key={slide.key}
+                  type="button"
+                  aria-label={`Ga naar ${slide.label}`}
+                  aria-current={index === chatSlide ? 'true' : undefined}
+                  className={`fp-slider-dot${index === chatSlide ? ' fp-slider-dot--active' : ''}`}
+                  onClick={() => setChatSlide(index)}
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -863,24 +876,42 @@ export default function FunctiePagina({ onParentClick }) {
             sub="Bel of videobel gratis met vrienden en familie — zonder telefoonnummer, zonder tijdslimiet."
           />
           <div className="fp-slider">
-            <div className="fp-slider-tabs" role="tablist" aria-label="Bel- en videofuncties" aria-orientation="horizontal">
-              {callVideoSlides.map((slide, index) => (
-                <button
-                  key={slide.key}
-                  ref={(element) => { callTabRefs.current[index] = element; }}
-                  id={`call-tab-${slide.key}`}
-                  type="button"
-                  role="tab"
-                  aria-selected={index === callVideoSlide}
-                  aria-controls={`call-panel-${slide.key}`}
-                  tabIndex={index === callVideoSlide ? 0 : -1}
-                  className={`fp-slider-tab${index === callVideoSlide ? ' fp-slider-tab--active' : ''}`}
-                  onClick={() => setCallVideoSlide(index)}
-                  onKeyDown={(event) => handleCallTabKeyDown(event, index)}
-                >
-                  {slide.label}
-                </button>
-              ))}
+            <div className="fp-slider-header">
+              <button
+                type="button"
+                className="fp-slider-arrow"
+                aria-label="Vorige bel- of videofunctie"
+                onClick={() => setCallVideoSlide((prev) => (prev === 0 ? callVideoSlides.length - 1 : prev - 1))}
+              >
+                <span aria-hidden="true">←</span> Vorige
+              </button>
+              <div className="fp-slider-tabs" role="tablist" aria-label="Bel- en videofuncties" aria-orientation="horizontal">
+                {callVideoSlides.map((slide, index) => (
+                  <button
+                    key={slide.key}
+                    ref={(element) => { callTabRefs.current[index] = element; }}
+                    id={`call-tab-${slide.key}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={index === callVideoSlide}
+                    aria-controls={`call-panel-${slide.key}`}
+                    tabIndex={index === callVideoSlide ? 0 : -1}
+                    className={`fp-slider-tab${index === callVideoSlide ? ' fp-slider-tab--active' : ''}`}
+                    onClick={() => setCallVideoSlide(index)}
+                    onKeyDown={(event) => handleCallTabKeyDown(event, index)}
+                  >
+                    {slide.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="fp-slider-arrow"
+                aria-label="Volgende bel- of videofunctie"
+                onClick={() => setCallVideoSlide((prev) => (prev === callVideoSlides.length - 1 ? 0 : prev + 1))}
+              >
+                Volgende <span aria-hidden="true">→</span>
+              </button>
             </div>
 
             <div
@@ -907,35 +938,17 @@ export default function FunctiePagina({ onParentClick }) {
               />
             </div>
 
-            <div className="fp-slider-controls">
-              <button
-                type="button"
-                className="fp-slider-arrow"
-                aria-label="Vorige bel- of videofunctie"
-                onClick={() => setCallVideoSlide((prev) => (prev === 0 ? callVideoSlides.length - 1 : prev - 1))}
-              >
-                <span aria-hidden="true">← </span>Vorige
-              </button>
-              <div className="fp-slider-dots">
-                {callVideoSlides.map((slide, index) => (
-                  <button
-                    key={slide.key}
-                    type="button"
-                    aria-label={`Ga naar ${slide.label}`}
-                    aria-current={index === callVideoSlide ? 'true' : undefined}
-                    className={`fp-slider-dot${index === callVideoSlide ? ' fp-slider-dot--active' : ''}`}
-                    onClick={() => setCallVideoSlide(index)}
-                  />
-                ))}
-              </div>
-              <button
-                type="button"
-                className="fp-slider-arrow"
-                aria-label="Volgende bel- of videofunctie"
-                onClick={() => setCallVideoSlide((prev) => (prev === callVideoSlides.length - 1 ? 0 : prev + 1))}
-              >
-                Volgende <span aria-hidden="true">→</span>
-              </button>
+            <div className="fp-slider-dots">
+              {callVideoSlides.map((slide, index) => (
+                <button
+                  key={slide.key}
+                  type="button"
+                  aria-label={`Ga naar ${slide.label}`}
+                  aria-current={index === callVideoSlide ? 'true' : undefined}
+                  className={`fp-slider-dot${index === callVideoSlide ? ' fp-slider-dot--active' : ''}`}
+                  onClick={() => setCallVideoSlide(index)}
+                />
+              ))}
             </div>
           </div>
         </div>

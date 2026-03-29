@@ -44,10 +44,10 @@ function useFadeIn() {
   return [ref, visible];
 }
 
-function SectionHeader({ badge, title, text }) {
+function SectionHeader({ badge, title, text, align }) {
   const [ref, visible] = useFadeIn();
   return (
-    <div ref={ref} className={`hp-section-header fp-section-header${visible ? ' fp-visible' : ''}`}>
+    <div ref={ref} className={`hp-section-header fp-section-header${align === 'left' ? ' hp-section-header--left' : ''}${visible ? ' fp-visible' : ''}`}>
       {badge && <div className="fp-hero-badge" style={{ marginBottom: 16 }}>{badge}</div>}
       <h2>{title}</h2>
       {text && <p style={{ marginTop: 12 }}>{text}</p>}
@@ -247,7 +247,7 @@ export default function OverPulsePagina({ onParentClick }) {
           <div className="ot-hero-copy hw-hero-copy">
             <div className="fp-hero-badge">Over Pulse</div>
             <h1 className="ot-hero-title">
-              Pulse is geen<br />social media.<br />Pulse is verbinding.
+              Pulse is geen<br />social media.<br /><span style={{ whiteSpace: 'nowrap' }}>Pulse is verbinding.</span>
             </h1>
             <p className="ot-hero-sub">
               Wij geloven dat kinderen recht hebben op veilige, rustgevende communicatie — zonder algoritmes, zonder verslaving, zonder zorgen. Pulse is daarvoor gebouwd.
@@ -270,6 +270,7 @@ export default function OverPulsePagina({ onParentClick }) {
             badge="Waarom Pulse bestaat"
             title="Kinderen verdienen beter dan de apps die nu bestaan"
             text="De huidige communicatie-apps zijn gemaakt voor volwassenen — of voor winst. Ze zijn niet gebouwd met het welzijn van kinderen als vertrekpunt. Pulse wel."
+            align="left"
           />
           <div className="hp-why-grid" style={{ marginTop: 48 }}>
             {problemCards.map((card) => (
@@ -292,6 +293,7 @@ export default function OverPulsePagina({ onParentClick }) {
             badge="Een veilig alternatief"
             title="Pure communicatie, zonder afleiding"
             text="Pulse is bewust gestript van alles wat niet bijdraagt aan veilig contact. Het resultaat: een app die doet wat het belooft — en niets meer dan dat."
+            align="left"
           />
           <div className="op-compare-row">
             <div className="op-compare-col op-compare-col--yes">
@@ -327,6 +329,7 @@ export default function OverPulsePagina({ onParentClick }) {
             badge="Ontworpen voor kinderen"
             title="Met ouders in regie, voor kinderen in vrijheid"
             text="Pulse geeft kinderen de vrijheid om contact te houden met de mensen die echt belangrijk zijn — binnen een veilige omgeving die ouders volledig in de hand hebben."
+            align="left"
           />
           <div className="hp-why-grid op-feature-grid" style={{ marginTop: 48 }}>
             {coreFeatures.map((f) => (
@@ -384,16 +387,26 @@ export default function OverPulsePagina({ onParentClick }) {
             badge="Waarom juist nu"
             title="De wereld vraagt om een rustiger digitaal alternatief"
             text="De discussie over schermtijd, online veiligheid en verslavend app-design staat hoog op de agenda — van de Tweede Kamer tot ouderavonden op school. Er is een breed gedeeld gevoel dat het anders moet. Pulse is dat alternatief."
+            align="left"
           />
-          <div className="op-topic-grid">
-            {topics.map((topic) => (
-              <span key={topic} className="op-topic-pill">{topic}</span>
+          <div className="op-quote-scene">
+            {[
+              { label: 'Schermtijd bij kinderen',       style: { top: '8%',  left: '2%',   transform: 'rotate(-4deg)' } },
+              { label: 'Verslavend app-design',         style: { top: '4%',  left: 'calc(32% + 50px)',  transform: 'rotate(2deg)'  } },
+              { label: 'Online veiligheid',             style: { top: '6%',  right: '4%',  transform: 'rotate(-3deg)' } },
+              { label: 'Cyberpesten',                   style: { top: '38%', right: '1%',  transform: 'rotate(4deg)'  } },
+              { label: 'Privacy & AVG',                 style: { bottom: '8%',  left: '3%',  transform: 'rotate(3deg)'  } },
+              { label: 'Smartphonegebruik op scholen',  style: { bottom: '4%', left: 'calc(28% + 50px)', transform: 'rotate(-2deg)' } },
+              { label: 'Kinderen en sociale media',     style: { bottom: '5%',  right: '3%', transform: 'rotate(-4deg)' } },
+              { label: 'Digitaal welzijn',              style: { top: '38%', left: '1%',  transform: 'rotate(-3deg)' } },
+            ].map(({ label, style }) => (
+              <span key={label} className="op-topic-pill op-topic-pill--deco" style={style} aria-hidden="true">{label}</span>
             ))}
-          </div>
-          <div className="op-statement">
-            <blockquote>
-              "Kinderen hebben geen sociale media nodig. Ze hebben contact nodig — met opa en oma, met hun beste vriend, met de ouder die op het werk is. Dat is waar Pulse voor is."
-            </blockquote>
+            <div className="op-statement">
+              <blockquote>
+                "Kinderen hebben geen sociale media nodig. Ze hebben contact nodig — met opa en oma, met hun beste vriend, met de ouder die op het werk is. Dat is waar Pulse voor is."
+              </blockquote>
+            </div>
           </div>
         </div>
       </section>
@@ -405,6 +418,7 @@ export default function OverPulsePagina({ onParentClick }) {
             badge="Voor wie is Pulse?"
             title="Voor gezinnen, scholen en partners"
             text="Pulse is relevant voor iedereen die werkt aan veilige digitale communicatie voor kinderen — van thuis tot op school."
+            align="left"
           />
           <div className="hp-why-grid" style={{ marginTop: 48 }}>
             {audiences.map((a) => (

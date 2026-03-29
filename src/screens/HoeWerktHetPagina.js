@@ -68,7 +68,7 @@ function SectionIntro({ badge, title, text }) {
   const [ref, visible] = useFadeIn();
   return (
     <div ref={ref} className={`hp-section-header fp-section-header${visible ? ' fp-visible' : ''} hw-section-intro`}>
-      <div className="fp-section-kicker">{badge}</div>
+      <div className="fp-hero-badge">{badge}</div>
       <h2>{title}</h2>
       <p>{text}</p>
     </div>

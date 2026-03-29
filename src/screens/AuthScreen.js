@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
-import { User, Lock, EyeOn, EyeOff, Shield, PhoneIcon, Wifi, Heart } from '../components/Icons';
+import { User, Lock, EyeOn, EyeOff, Shield, PhoneIcon, Wifi, Heart, Users } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import ParentAuthScreen from './ParentAuthScreen';
@@ -158,7 +158,7 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
               aria-label="Open ouder login of registratie"
               style={{ background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.4)', color: 'var(--accent)', borderRadius: '10px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: 5 }}
             >
-              <span aria-hidden="true"><Heart size={14} color="#ef4444" /></span> Ouder
+              <Users size={14} aria-hidden="true" /> Ouder
             </button>
             {inModal && onClose && (
               <button type="button" onClick={onClose} aria-label="Sluiten" className="modal-close-btn" style={{ position: 'static' }}>
@@ -187,7 +187,7 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
               className="hp-nav-kind"
               style={{ padding: '6px 12px', fontSize: '12px' }}
             >
-              <span aria-hidden="true">👦</span> Kind
+              <Heart size={14} aria-hidden="true" /> Kind
             </button>
             {inModal && onClose && (
               <button type="button" onClick={onClose} aria-label="Sluiten" className="modal-close-btn modal-close-btn--light" style={{ position: 'static' }}>

@@ -339,7 +339,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
         {/* Header */}
         <div className="parent-header">
           <div className="parent-logo">
-            <span style={{ fontSize: 28 }} aria-hidden="true">❤️</span>
+            <Users size={26} aria-hidden="true" />
             <span className="parent-logo-name">Ouderlijk toezicht</span>
           </div>
           <div className="parent-header-actions">

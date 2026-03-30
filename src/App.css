@@ -1912,10 +1912,86 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
+/* ── Mini Calendar ── */
+.agenda-cal {
+  margin: 10px 12px 6px;
+  background: var(--surface2, #1e1e2e);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 10px 8px;
+  flex-shrink: 0;
+}
+.agenda-cal-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; padding: 0 2px;
+}
+.agenda-cal-arrow {
+  background: none; border: none; cursor: pointer;
+  font-size: 20px; color: var(--text3); padding: 2px 8px;
+  border-radius: 8px; transition: background 0.15s, color 0.15s;
+  line-height: 1;
+}
+.agenda-cal-arrow:hover { background: rgba(124,58,237,0.1); color: var(--accent, #7c3aed); }
+.agenda-cal-month {
+  font-size: 14px; font-weight: 700; color: var(--text-primary);
+}
+.agenda-cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.agenda-cal-head {
+  text-align: center; font-size: 11px; font-weight: 600;
+  color: var(--text3); padding: 2px 0 6px;
+}
+.agenda-cal-day {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  aspect-ratio: 1;
+  font-size: 12px; font-weight: 500;
+  color: var(--text-primary);
+  background: none; border: none; border-radius: 8px;
+  cursor: pointer; transition: background 0.12s, color 0.12s;
+  padding: 0;
+}
+.agenda-cal-day:hover { background: rgba(124,58,237,0.1); color: var(--accent, #7c3aed); }
+.agenda-cal-day--out { color: var(--text3); opacity: 0.4; }
+.agenda-cal-day--today {
+  background: rgba(124,58,237,0.15);
+  color: var(--accent, #7c3aed);
+  font-weight: 700;
+}
+.agenda-cal-day--selected {
+  background: var(--accent, #7c3aed) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+.agenda-cal-dot {
+  position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--accent, #7c3aed);
+}
+.agenda-cal-day--selected .agenda-cal-dot { background: rgba(255,255,255,0.7); }
+
+/* ── Date filter label ── */
+.agenda-date-filter {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 16px 2px;
+  font-size: 13px; font-weight: 600; color: var(--accent, #7c3aed);
+  flex-shrink: 0;
+}
+.agenda-date-filter-clear {
+  background: none; border: none; cursor: pointer;
+  font-size: 14px; color: var(--text3); padding: 2px 6px;
+  border-radius: 6px; transition: background 0.12s;
+}
+.agenda-date-filter-clear:hover { background: rgba(0,0,0,0.07); }
+
 /* ── Responsief ── */
 @media (max-width: 480px) {
   .agenda-modal { border-radius: 12px; }
   .agenda-card { margin: 4px 8px; }
+  .agenda-cal { margin: 8px 8px 4px; padding: 10px 6px 6px; }
+  .agenda-cal-day { font-size: 11px; border-radius: 6px; }
 }
 
 /* ── OUDERLIJK TOEZICHT DASHBOARD ── */

@@ -272,10 +272,10 @@ export default function OverPulsePagina({ onParentClick }) {
             text="De huidige communicatie-apps zijn gemaakt voor volwassenen — of voor winst. Ze zijn niet gebouwd met het welzijn van kinderen als vertrekpunt. Pulse wel."
             align="left"
           />
-          <div className="hp-why-grid" style={{ marginTop: 48 }}>
-            {problemCards.map((card) => (
+          <div className="hp-why-grid op-why-grid" style={{ marginTop: 48 }}>
+            {problemCards.map((card, index) => (
               <FadeCard key={card.title}>
-                <div className="hp-why-card">
+                <div className={`hp-why-card${index === 0 ? ' hp-why-card--lead' : ''}`}>
                   <div className="op-feature-icon">{card.icon}</div>
                   <h3>{card.title}</h3>
                   <p>{card.text}</p>
@@ -331,7 +331,7 @@ export default function OverPulsePagina({ onParentClick }) {
             text="Pulse geeft kinderen de vrijheid om contact te houden met de mensen die echt belangrijk zijn — binnen een veilige omgeving die ouders volledig in de hand hebben."
             align="left"
           />
-          <div className="hp-why-grid op-feature-grid" style={{ marginTop: 48 }}>
+          <div className="hp-why-grid op-feature-grid">
             {coreFeatures.map((f) => (
               <FadeCard key={f.title}>
                 <div className="hp-why-card">
@@ -348,7 +348,7 @@ export default function OverPulsePagina({ onParentClick }) {
       {/* ── PRIVACY EN VEILIGHEID ── */}
       <section className="hp-section hp-section--gray" id="privacy">
         <div className="hp-section-inner">
-          <FadeRow>
+          <FadeRow className="op-privacy-row">
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Privacy &amp; AVG</div>
               <h3>Privacy als fundament, niet als bijzaak</h3>
@@ -421,9 +421,9 @@ export default function OverPulsePagina({ onParentClick }) {
             align="left"
           />
           <div className="hp-why-grid" style={{ marginTop: 48 }}>
-            {audiences.map((a) => (
+            {audiences.map((a, index) => (
               <FadeCard key={a.title}>
-                <div className="hp-why-card">
+                <div className={`hp-why-card${index === 0 ? ' hp-why-card--audience-lead' : ''}`}>
                   <div className="op-feature-icon">{a.icon}</div>
                   <h3>{a.title}</h3>
                   <p>{a.text}</p>
@@ -436,7 +436,7 @@ export default function OverPulsePagina({ onParentClick }) {
 
       {/* ── CTA ── */}
       <section className="ot-final-cta">
-        <h2>Veilig verbonden. Met wie echt telt.</h2>
+        <h2>Veilig verbonden.<br className="ot-final-cta-break" />Met wie echt telt.</h2>
         <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>

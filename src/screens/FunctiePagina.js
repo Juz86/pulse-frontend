@@ -1109,7 +1109,7 @@ export default function FunctiePagina({ onParentClick }) {
 
       {/* ── CTA ── */}
       <section className="ot-final-cta">
-        <h2>Veilig verbonden. Met wie echt telt.</h2>
+        <h2>Veilig verbonden.<br className="ot-final-cta-break" />Met wie echt telt.</h2>
         <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>

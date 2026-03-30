@@ -2,8 +2,6 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { getSocket } from '../services/socket';
 import { Bell, BellOff, Message, Delete, Trash2 } from '../components/Icons';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
-import { db } from '../firebase';
 import ChatInput from '../components/ChatInput';
 import ChatHeader from '../components/ChatHeader';
 import ChatSidebar from '../components/ChatSidebar';
@@ -60,7 +58,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [showStarredMsgs, setShowStarredMsgs] = useState(false);
   const [jumpToMsgId,     setJumpToMsgId]     = useState(null);
   const [isOnline,        setIsOnline]        = useState(navigator.onLine);
-  const [agendaTodayCount, setAgendaTodayCount] = useState(0);
   const jumpTimer = useRef(null);
 
   function handleJumpToMsg(msgId) {
@@ -200,15 +197,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     uploadChatBgPhoto, saveChatBgColor, removeChatBg, uploadGroupPhoto, handleDeleteAccount,
   } = useProfile({ user, activeConv, setActiveConv, setConversations, showErrToast, setConfirmDialog });
 
-  // ── Agenda: today-count + socket-toast ───────────────────────────────────
-  useEffect(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    const q = query(collection(db, 'agenda', user.uid, 'activities'), orderBy('date', 'asc'));
-    return onSnapshot(q, snap => {
-      setAgendaTodayCount(snap.docs.filter(d => d.data().date === today).length);
-    });
-  }, [user.uid]);
-
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
@@ -342,7 +330,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         lightMode={lightMode} onToggleTheme={onToggleTheme}
         onOpenDashboard={onOpenDashboard}
         setLabelMenuConvId={setLabelMenuConvId}
-        agendaTodayCount={agendaTodayCount}
         onNewChat={() => setShowNewChat(true)}
         onNewGroup={() => setShowNewGroup(true)}
         onShowCallModal={() => { setShowCallModal(true); setCallLogRead(true); onCallLogRead?.(); }}

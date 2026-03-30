@@ -2,12 +2,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Delete, Search, Message, Users, Moon, Lightbulb, Bell, BellOff, Shield, Logout, Pin, InfoIcon, Calendar } from '../components/Icons';
+import { Phone, Video, Delete, Search, Message, Users, Moon, Lightbulb, Bell, BellOff, Shield, Logout, Pin, InfoIcon } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
 import { getInitials } from '../utils';
-import AgendaScreen from '../screens/AgendaScreen';
 
 export default function ChatSidebar({
   user,
@@ -43,7 +42,6 @@ export default function ChatSidebar({
   onToggleTheme,
   onOpenDashboard,
   setLabelMenuConvId,
-  agendaTodayCount,
   // modal openers
   onNewChat,
   onNewGroup,
@@ -444,13 +442,6 @@ export default function ChatSidebar({
         );
       })()}
 
-      {/* Agenda tab */}
-      {activeTab === 'agenda' && (
-        <div className="conv-list agenda-sidebar-wrap">
-          <AgendaScreen user={user} />
-        </div>
-      )}
-
       {/* Footer */}
       <div className="sidebar-footer">
         <button type="button" className="user-chip" style={{ cursor: 'pointer' }} aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`} onClick={onOpenProfile}>
@@ -468,22 +459,6 @@ export default function ChatSidebar({
             {parentActivityBadge > 0 && <span className="parent-badge" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
           </button>
         )}
-        <button
-          type="button"
-          className={`icon-btn${activeTab === 'agenda' ? ' active' : ''}`}
-          aria-label="Agenda"
-          aria-pressed={activeTab === 'agenda'}
-          title="Agenda"
-          style={{ position: 'relative' }}
-          onClick={() => { setActiveTab(activeTab === 'agenda' ? 'chats' : 'agenda'); setSearchQuery(''); }}
-        >
-          <Calendar size={18} aria-hidden="true" />
-          {agendaTodayCount > 0 && (
-            <span className="parent-badge" aria-hidden="true" aria-label={`${agendaTodayCount} activiteit${agendaTodayCount === 1 ? '' : 'en'} vandaag`}>
-              {agendaTodayCount > 9 ? '9+' : agendaTodayCount}
-            </span>
-          )}
-        </button>
         <button type="button" className="icon-btn" aria-label={lightMode ? 'Schakel naar donker thema' : 'Schakel naar licht thema'} onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>
           {lightMode ? <Moon size={18} aria-hidden="true" /> : <Lightbulb size={18} aria-hidden="true" />}
         </button>

@@ -1,11 +1,8 @@
 // src/screens/ParentDashboard.js
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getInitials, timeAgo } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit, Calendar, Delete } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
-import { db } from '../firebase';
-import AgendaModal from './AgendaModal';
 
 export default function ParentDashboard({ user, onClose, parentActivityBadge = 0, onActivitiesViewed }) {
   const [activeTab,      setActiveTab]      = useState('add');
@@ -61,15 +58,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const [analyticsError,   setAnalyticsError]   = useState('');
   const [contactFilter,    setContactFilter]    = useState('alles');
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
-
-  // Agenda tab
-  const [agendaChildUid,    setAgendaChildUid]    = useState(null);
-  const [agendaActivities,  setAgendaActivities]  = useState([]);
-  const [agendaModal,       setAgendaModal]        = useState(null); // null | {mode:'add'} | {mode:'edit',activity}
-  const [agendaDeleteConfirm, setAgendaDeleteConfirm] = useState(null);
-  const [agendaToast,       setAgendaToast]        = useState('');
-  const agendaToastTimer    = useRef(null);
-  const agendaUnsubRef      = useRef(null);
 
   const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 
@@ -329,59 +317,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     } catch (err) { setDeleteError(err.message); }
   }
 
-  // Agenda helpers
-  function showAgendaToast(msg) {
-    setAgendaToast(msg);
-    clearTimeout(agendaToastTimer.current);
-    agendaToastTimer.current = setTimeout(() => setAgendaToast(''), 4000);
-  }
-
-  useEffect(() => {
-    if (activeTab !== 'agenda' || !agendaChildUid) return;
-    agendaUnsubRef.current?.();
-    const q = query(collection(db, 'agenda', agendaChildUid, 'activities'), orderBy('date', 'asc'));
-    agendaUnsubRef.current = onSnapshot(q, snap => {
-      setAgendaActivities(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    return () => agendaUnsubRef.current?.();
-  }, [activeTab, agendaChildUid]);
-
-  useEffect(() => {
-    if (activeTab === 'agenda' && !agendaChildUid && children.length > 0) {
-      setAgendaChildUid(children[0].uid);
-    }
-  }, [activeTab, children, agendaChildUid]);
-
-  async function handleAgendaSave({ title, date, time }) {
-    try {
-      const method = agendaModal.mode === 'add' ? 'POST' : 'PUT';
-      const url = agendaModal.mode === 'add'
-        ? `${BACKEND}/api/agenda/${agendaChildUid}`
-        : `${BACKEND}/api/agenda/${agendaChildUid}/${agendaModal.activity.id}`;
-      await authFetch(url, { method, body: JSON.stringify({ title, date, time }) });
-      setAgendaModal(null);
-      showAgendaToast(agendaModal.mode === 'add' ? `'${title}' toegevoegd.` : `'${title}' bijgewerkt.`);
-    } catch {
-      showAgendaToast('Er ging iets mis. Probeer het opnieuw.');
-    }
-  }
-
-  async function handleAgendaDelete(activity) {
-    try {
-      await authFetch(`${BACKEND}/api/agenda/${agendaChildUid}/${activity.id}`, { method: 'DELETE' });
-      setAgendaDeleteConfirm(null);
-      showAgendaToast(`'${activity.title}' verwijderd.`);
-    } catch {
-      showAgendaToast('Er ging iets mis. Probeer het opnieuw.');
-    }
-  }
-
-  function agendaFormatDate(dateStr) {
-    if (!dateStr) return '';
-    const [y, m, d] = dateStr.split('-').map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  }
-
   const activityTabBadge = parentActivityBadge > 9 ? '9+' : parentActivityBadge;
 
   const TABS = [
@@ -389,7 +324,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     { id: 'children',   icon: <Users     size={16} aria-hidden="true" />, label: 'Mijn kinderen'   },
     { id: 'contacts',   icon: <UserCheck size={16} aria-hidden="true" />, label: 'Contacten'       },
     { id: 'activities', icon: <Activity  size={16} aria-hidden="true" />, label: 'Activiteiten', badge: parentActivityBadge > 0 ? activityTabBadge : null },
-    { id: 'agenda',     icon: <Calendar  size={16} aria-hidden="true" />, label: 'Agenda' },
   ];
 
   const createUsernameReady = createUsernameStatus === 'Beschikbaar';
@@ -828,99 +762,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
               </div>
             )}
 
-            {/* Tab 5 — Agenda kind */}
-            {activeTab === 'agenda' && (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-                  <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Agenda</h2>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                    {children.length > 0 && (
-                      <select
-                        className="parent-btn-outline"
-                        style={{ fontSize: 13, padding: '6px 10px', cursor: 'pointer' }}
-                        value={agendaChildUid || ''}
-                        onChange={e => setAgendaChildUid(e.target.value)}
-                        aria-label="Kies kind"
-                      >
-                        {children.map(c => (
-                          <option key={c.uid} value={c.uid}>{c.displayName}</option>
-                        ))}
-                      </select>
-                    )}
-                    <button
-                      type="button"
-                      className="parent-btn-outline"
-                      style={{ fontSize: 13, padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 4 }}
-                      onClick={() => setAgendaModal({ mode: 'add' })}
-                    >
-                      <Calendar size={14} aria-hidden="true" /> + Toevoegen voor kind
-                    </button>
-                  </div>
-                </div>
-
-                {!agendaChildUid && (
-                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#999', fontSize: 14 }}>
-                    Selecteer een kind om de agenda te bekijken.
-                  </div>
-                )}
-
-                {agendaChildUid && agendaActivities.length === 0 && (
-                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>
-                    <Calendar size={32} color="#ccc" style={{ marginBottom: 8 }} aria-hidden="true" />
-                    <p style={{ fontSize: 13 }}>Dit kind heeft nog geen activiteiten.</p>
-                  </div>
-                )}
-
-                {agendaChildUid && agendaActivities.map(a => {
-                  const today = new Date().toISOString().slice(0, 10);
-                  const isToday = a.date === today;
-                  const isPast  = a.date < today;
-                  return (
-                    <div
-                      key={a.id}
-                      className={`agenda-card agenda-card--parent${isToday ? ' agenda-card--today' : ''}${isPast ? ' agenda-card--past' : ''}`}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <div className="agenda-card-date">{agendaFormatDate(a.date)}{a.time && <span className="agenda-card-time"> · {a.time}</span>}</div>
-                        <div className="agenda-card-title">{a.title}</div>
-                        <div className="agenda-card-by">
-                          <span className={`agenda-badge agenda-badge--${a.createdBy}`}>
-                            {a.createdBy === 'parent' ? 'Toegevoegd door ouder' : 'Toegevoegd door kind'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="agenda-card-actions">
-                        <button type="button" className="agenda-icon-btn" aria-label={`Bewerk ${a.title}`} onClick={() => setAgendaModal({ mode: 'edit', activity: a })}>
-                          <MagicEdit size={16} aria-hidden="true" />
-                        </button>
-                        <button type="button" className="agenda-icon-btn agenda-icon-btn--danger" aria-label={`Verwijder ${a.title}`} onClick={() => setAgendaDeleteConfirm(a)}>
-                          <Delete size={16} aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {agendaDeleteConfirm && (
-                  <div className="agenda-dialog-backdrop" role="dialog" aria-modal="true" onClick={() => setAgendaDeleteConfirm(null)}>
-                    <div className="agenda-dialog" onClick={e => e.stopPropagation()}>
-                      <p className="agenda-dialog-text">
-                        Weet je zeker dat je <strong>'{agendaDeleteConfirm.title}'</strong> wilt verwijderen?
-                      </p>
-                      <div className="agenda-dialog-actions">
-                        <button type="button" className="agenda-btn-cancel" onClick={() => setAgendaDeleteConfirm(null)}>Annuleren</button>
-                        <button type="button" className="agenda-btn-danger" onClick={() => handleAgendaDelete(agendaDeleteConfirm)}>Verwijderen</button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {agendaToast && (
-                  <div className="agenda-toast" role="status" aria-live="polite">{agendaToast}</div>
-                )}
-              </div>
-            )}
-
             {/* Tab 4 — Pulse activiteiten */}
             {activeTab === 'activities' && (
               <div>
@@ -1200,16 +1041,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
         </div>
 
       </div>
-
-      {/* Agenda modal */}
-      {agendaModal && (
-        <AgendaModal
-          mode={agendaModal.mode}
-          initial={agendaModal.activity}
-          onSave={handleAgendaSave}
-          onClose={() => setAgendaModal(null)}
-        />
-      )}
 
       {/* Bevestigingsdialoog verwijderen */}
       {confirmDelete && (

@@ -524,27 +524,63 @@ export default function FunctiePagina({ onParentClick }) {
   const [scrolled,      setScrolled]      = useState(false);
   const [chatSlide,     setChatSlide]     = useState(0);
   const [callVideoSlide, setCallVideoSlide] = useState(0);
+  const [activeGridTab, setActiveGridTab] = useState('chatten');
+  const [expandedGridTabs, setExpandedGridTabs] = useState({
+    chatten: false,
+    bellen: false,
+    videobellen: false,
+  });
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showParentModal, setShowParentModal] = useState(false);
   const chatTabRefs     = useRef([]);
   const callTabRefs     = useRef([]);
+  const gridTabRefs     = useRef([]);
+  const gridTabsMenuRef = useRef(null);
   const chatTouchStartX = useRef(null);
   const callTouchStartX = useRef(null);
 
   const chatSlideInitial    = useRef(true);
   const callSlideInitial    = useRef(true);
+  const gridTabInitial      = useRef(true);
+
+  const scrollTabRowToActive = (tabElement) => {
+    const tabRow = tabElement?.parentElement;
+    if (!tabElement || !tabRow) return;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    tabRow.scrollTo({
+      left: Math.max(tabElement.offsetLeft - 16, 0),
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+    });
+  };
+
+  const scrollGridSectionIntoView = () => {
+    const targetElement = gridTabsMenuRef.current || document.getElementById('functies-overzicht');
+    if (!targetElement) return;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const targetTop = window.scrollY + targetElement.getBoundingClientRect().top - 84;
+    window.scrollTo({
+      top: Math.max(targetTop, 0),
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+    });
+  };
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   useEffect(() => {
     if (chatSlideInitial.current) { chatSlideInitial.current = false; return; }
-    chatTabRefs.current[chatSlide]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    scrollTabRowToActive(chatTabRefs.current[chatSlide]);
   }, [chatSlide]);
 
   useEffect(() => {
     if (callSlideInitial.current) { callSlideInitial.current = false; return; }
-    callTabRefs.current[callVideoSlide]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    scrollTabRowToActive(callTabRefs.current[callVideoSlide]);
   }, [callVideoSlide]);
+
+  useEffect(() => {
+    if (gridTabInitial.current) { gridTabInitial.current = false; return; }
+    const activeIndex = featureGridGroups.findIndex((group) => group.key === activeGridTab);
+    scrollTabRowToActive(gridTabRefs.current[activeIndex]);
+  }, [activeGridTab]);
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 50);
@@ -731,6 +767,55 @@ export default function FunctiePagina({ onParentClick }) {
 
   const currentCallVideoSlide = callVideoSlides[callVideoSlide];
 
+  const featureGridGroups = [
+    {
+      key: 'chatten',
+      label: 'Chatten',
+      tabIcon: <Message size={16} />,
+      headerIcon: <Message size={16} />,
+      items: [
+        { icon: <Message size={18} />, title: 'Real-time berichten', desc: 'Real-time delivery van chatberichten' },
+        { icon: <MdAlternateEmail size={18} />, title: 'Groepen & @mentions', desc: 'Chatgroep maken en met @ iemand direct vermelden' },
+        { icon: <ImageIcon size={18} />, title: 'Chatachtergrond', desc: 'Foto of kleur naar keuze' },
+        { icon: <StarFilled size={18} />, title: 'Berichten sterren', desc: 'Sla belangrijke berichten op' },
+        { icon: <Message size={18} />, title: 'Conceptberichten', desc: 'Bewaard per gesprek' },
+      ],
+    },
+    {
+      key: 'bellen',
+      label: 'Bellen',
+      tabIcon: <Phone size={16} />,
+      headerIcon: <Phone size={16} />,
+      items: [
+        { icon: <Phone size={18} />, title: 'HD Spraakoproepen', desc: 'Helder geluid via WebRTC' },
+        { icon: <PhoneCall size={18} />, title: 'Belgeschiedenis', desc: 'Overzicht in chat & logboek' },
+        { icon: <PhoneMissed size={18} />, title: 'Gemiste oproepen melding', desc: 'Badge & notificatie' },
+        { icon: <Bell size={18} />, title: 'Push notificaties', desc: 'Ook als app op achtergrond' },
+        { icon: <Clock size={18} />, title: 'Gespreksduur timer', desc: 'Altijd zichtbaar tijdens gesprek' },
+        { icon: <Phone size={18} />, title: 'Bezet-status', desc: 'Automatisch bij dubbele oproep' },
+      ],
+    },
+    {
+      key: 'videobellen',
+      label: 'Videobellen',
+      tabIcon: <Video size={16} />,
+      headerIcon: <Video size={16} />,
+      items: [
+        { icon: <Video size={18} />, title: 'HD Videogesprekken', desc: 'Scherp beeld via WebRTC' },
+        { icon: <VideoOff size={18} />, title: 'Camera aan/uit', desc: 'Jij bepaalt wat zichtbaar is' },
+        { icon: <Phone size={18} />, title: 'Spraak → Video upgrade', desc: 'Wissel tijdens gesprek' },
+        { icon: <Message size={18} />, title: 'Gesprek minimaliseren', desc: 'Overlay terwijl je chat' },
+        { icon: <Bell size={18} />, title: 'Beltoon inkomend gesprek', desc: 'Nooit een oproep missen' },
+        { icon: <CheckDouble size={18} />, title: 'WebRTC versleuteld', desc: 'Beveiligde verbinding' },
+      ],
+    },
+  ];
+
+  const activeFeatureGroup = featureGridGroups.find((group) => group.key === activeGridTab) || featureGridGroups[0];
+  const activeFeatureItems = expandedGridTabs[activeFeatureGroup.key]
+    ? activeFeatureGroup.items
+    : activeFeatureGroup.items.slice(0, 3);
+
   return (
     <div className="hp-root">
       <PageMeta
@@ -752,14 +837,14 @@ export default function FunctiePagina({ onParentClick }) {
       <main id="main-content">
       {/* ── HERO ── */}
       <section className="ot-hero hw-hero">
+        <DecorativeAvatar svg={decorativeAvatars.heroTop} className="fp-deco-avatar--hero-top" />
+        <DecorativeAvatar svg={decorativeAvatars.heroBottom} className="fp-deco-avatar--hero-bottom" />
         <div className="ot-hero-inner hw-hero-inner">
-          <DecorativeAvatar svg={decorativeAvatars.heroTop} className="fp-deco-avatar--hero-top" />
-          <DecorativeAvatar svg={decorativeAvatars.heroBottom} className="fp-deco-avatar--hero-bottom" />
-          <div className="hw-hero-copy">
+          <div className="ot-hero-copy hw-hero-copy marketing-hero-copy">
             <div className="fp-hero-badge">Functies</div>
-            <h1 className="ot-hero-title fp-hero-title-compact">
+            <h1 className="ot-hero-title ot-hero-title--marketing fp-hero-title-compact">
               Alles wat je nodig hebt om
-              veilig verbonden te blijven
+              veilig verbonden te blijven.
             </h1>
             <p className="ot-hero-sub">
               Chatten, bellen en videobellen komen samen in één vertrouwde en beveiligde omgeving voor familie en vrienden.
@@ -955,36 +1040,68 @@ export default function FunctiePagina({ onParentClick }) {
       </section>
 
       {/* ── FEATURE GRID ── */}
-      <section className="hp-section">
+      <section className="hp-section" id="functies-overzicht">
         <div className="hp-section-inner">
           <DecorativeAvatar svg={decorativeAvatars.gridCorner} className="fp-deco-avatar--grid" />
           <SectionHeader title="Alles in één overzicht" />
-          <div className="fp-grid">
-            <div className="fp-grid-col">
-              <div className="fp-grid-col-header">💬 Chatten</div>
-              <GridCard icon={<Message size={18} />} title="Real-time berichten" desc="Real-time delivery van chatberichten" />
-              <GridCard icon={<MdAlternateEmail size={18} />} title="Groepen & @mentions" desc="Chatgroep maken en met @ iemand direct vermelden" />
-              <GridCard icon={<ImageIcon size={18} />} title="Chatachtergrond" desc="Foto of kleur naar keuze" />
-              <GridCard icon={<StarFilled size={18} />} title="Berichten sterren" desc="Sla belangrijke berichten op" />
-              <GridCard icon={<Message size={18} />} title="Conceptberichten" desc="Bewaard per gesprek" />
-            </div>
-            <div className="fp-grid-col">
-              <div className="fp-grid-col-header">📞 Bellen</div>
-              <GridCard icon={<Phone size={18} />} title="HD Spraakoproepen" desc="Helder geluid via WebRTC" />
-              <GridCard icon={<PhoneCall size={18} />} title="Belgeschiedenis" desc="Overzicht in chat & logboek" />
-              <GridCard icon={<PhoneMissed size={18} />} title="Gemiste oproepen melding" desc="Badge & notificatie" />
-              <GridCard icon={<Bell size={18} />} title="Push notificaties" desc="Ook als app op achtergrond" />
-              <GridCard icon={<Clock size={18} />} title="Gespreksduur timer" desc="Altijd zichtbaar tijdens gesprek" />
-              <GridCard icon={<Phone size={18} />} title="Bezet-status" desc="Automatisch bij dubbele oproep" />
-            </div>
-            <div className="fp-grid-col">
-              <div className="fp-grid-col-header">🎥 Videobellen</div>
-              <GridCard icon={<Video size={18} />} title="HD Videogesprekken" desc="Scherp beeld via WebRTC" />
-              <GridCard icon={<VideoOff size={18} />} title="Camera aan/uit" desc="Jij bepaalt wat zichtbaar is" />
-              <GridCard icon={<Phone size={18} />} title="Spraak → Video upgrade" desc="Wissel tijdens gesprek" />
-              <GridCard icon={<Message size={18} />} title="Gesprek minimaliseren" desc="Overlay terwijl je chat" />
-              <GridCard icon={<Bell size={18} />} title="Beltoon inkomend gesprek" desc="Nooit een oproep missen" />
-              <GridCard icon={<CheckDouble size={18} />} title="WebRTC versleuteld" desc="Beveiligde verbinding" />
+          <div className="fp-grid fp-grid--desktop">
+            {featureGridGroups.map((group) => (
+              <div key={group.key} className="fp-grid-col">
+                <div className="fp-grid-col-header">{group.emoji} {group.label}</div>
+                {group.items.map((item) => (
+                  <GridCard key={item.title} icon={item.icon} title={item.title} desc={item.desc} />
+                ))}
+              </div>
+            ))}
+          </div>
+          <div className="fp-grid-mobile">
+            <div
+              id="fp-grid-mobile-panel"
+              role="tabpanel"
+              aria-labelledby={`fp-grid-mobile-tab-${activeFeatureGroup.key}`}
+              className="fp-grid-mobile-panel"
+            >
+              <div ref={gridTabsMenuRef} className="fp-grid-mobile-header" role="tablist" aria-label="Overzichtsfuncties">
+                {featureGridGroups.map((group, index) => (
+                  <button
+                    key={group.key}
+                    id={`fp-grid-mobile-tab-${group.key}`}
+                    ref={(element) => { gridTabRefs.current[index] = element; }}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeGridTab === group.key}
+                    aria-controls="fp-grid-mobile-panel"
+                    className={`fp-grid-mobile-inline-tab${activeGridTab === group.key ? ' fp-grid-mobile-inline-tab--active' : ''}`}
+                    onClick={() => setActiveGridTab(group.key)}
+                  >
+                    <span className="fp-grid-mobile-tab-icon" aria-hidden="true">{group.tabIcon}</span>
+                    <span>{group.label}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="fp-grid-mobile-cards">
+                {activeFeatureItems.map((item) => (
+                  <GridCard key={`${activeFeatureGroup.key}-${item.title}`} icon={item.icon} title={item.title} desc={item.desc} />
+                ))}
+              </div>
+              {activeFeatureGroup.items.length > 3 && (
+                <button
+                  type="button"
+                  className="fp-grid-more-btn"
+                  aria-expanded={expandedGridTabs[activeFeatureGroup.key]}
+                  onClick={() => {
+                    setExpandedGridTabs((prev) => ({
+                      ...prev,
+                      [activeFeatureGroup.key]: !prev[activeFeatureGroup.key],
+                    }));
+                    requestAnimationFrame(() => {
+                      scrollGridSectionIntoView();
+                    });
+                  }}
+                >
+                  {expandedGridTabs[activeFeatureGroup.key] ? 'Minder tonen' : 'Meer tonen'}
+                </button>
+              )}
             </div>
           </div>
         </div>

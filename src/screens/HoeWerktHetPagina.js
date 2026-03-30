@@ -271,6 +271,10 @@ export default function HoeWerktHetPagina({ onParentClick }) {
   const [scrolled,      setScrolled]      = useState(false);
   const [showParentModal, setShowParentModal] = useState(false);
   const [showAuthModal,   setShowAuthModal]   = useState(false);
+  const [activeIntroStep, setActiveIntroStep] = useState('1');
+  const [activeContactStep, setActiveContactStep] = useState('1');
+  const introStepTabRefs = useRef([]);
+  const contactStepTabRefs = useRef([]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -295,6 +299,79 @@ export default function HoeWerktHetPagina({ onParentClick }) {
     { key: 'over-pulse', label: 'Over Pulse', href: '/over-pulse' },
   ];
 
+  const scrollTabRowToActive = (tabElement) => {
+    if (!tabElement) return;
+    const parent = tabElement.parentElement;
+    if (!parent) return;
+    const targetLeft =
+      tabElement.offsetLeft - (parent.clientWidth / 2) + (tabElement.clientWidth / 2);
+    parent.scrollTo({
+      left: Math.max(0, targetLeft),
+      behavior: 'smooth',
+    });
+  };
+
+  const introSteps = [
+    {
+      key: '1',
+      step: '1',
+      title: 'Ouder registreert zich',
+      text: 'De ouder maakt eerst een eigen account aan. Vanaf daar wordt alles beheerd in een vertrouwde, eenvoudige omgeving.',
+      mockup: <RegistrationMockup />,
+    },
+    {
+      key: '2',
+      step: '2',
+      title: 'Ouder voegt een kind toe',
+      text: 'In het ouderportaal maakt de ouder een kindaccount aan met een unieke gebruikersnaam en wachtwoord. Het kind logt daarna in met deze gegevens.',
+      mockup: <AddChildMockup />,
+    },
+    {
+      key: '3',
+      step: '3',
+      title: 'Ouder en kind zijn verbonden',
+      text: 'Zodra het account actief is, zijn ouder en kind gekoppeld. Ouder en kind kunnen veilig chatten, bellen en videobellen.',
+      mockup: <ConnectedMockup />,
+    },
+  ];
+
+  const contactSteps = [
+    {
+      key: '1',
+      step: '1',
+      title: 'Klik op Contacten',
+      text: 'Ga in de app naar het tabblad Contacten om bestaande contacten te bekijken en nieuwe contacten toe te voegen.',
+      mockup: <ContactsOverviewMockup />,
+    },
+    {
+      key: '2',
+      step: '2',
+      title: 'Zoek een contactpersoon',
+      text: 'Voeg familie en vrienden eenvoudig toe via e-mailadres of gebruikersnaam.',
+      mockup: <AddContactButtonMockup />,
+    },
+    {
+      key: '3',
+      step: '3',
+      title: 'Contactpersoon toevoegen',
+      text: 'Zie je de juiste contactpersoon? Klik dan op ‘Verzoek sturen’.',
+      mockup: <SearchContactMockup />,
+    },
+  ];
+
+  useEffect(() => {
+    const activeIndex = introSteps.findIndex((step) => step.key === activeIntroStep);
+    scrollTabRowToActive(introStepTabRefs.current[activeIndex]);
+  }, [activeIntroStep]);
+
+  useEffect(() => {
+    const activeIndex = contactSteps.findIndex((step) => step.key === activeContactStep);
+    scrollTabRowToActive(contactStepTabRefs.current[activeIndex]);
+  }, [activeContactStep]);
+
+  const activeIntroStepData = introSteps.find((step) => step.key === activeIntroStep) || introSteps[0];
+  const activeContactStepData = contactSteps.find((step) => step.key === activeContactStep) || contactSteps[0];
+
   return (
     <div className="hp-root">
       <PageMeta
@@ -316,9 +393,9 @@ export default function HoeWerktHetPagina({ onParentClick }) {
         <DecorativeAvatar svg={avatarSvgs.hwTop}    className="fp-deco-avatar--hero-top" />
         <DecorativeAvatar svg={avatarSvgs.hwBottom} className="fp-deco-avatar--hero-bottom" />
         <div className="ot-hero-inner hw-hero-inner">
-          <div className="hw-hero-copy">
+          <div className="ot-hero-copy hw-hero-copy marketing-hero-copy">
             <div className="fp-hero-badge">Hoe werkt het</div>
-            <h1 className="ot-hero-title">Van ouderaccount tot veilig contact</h1>
+            <h1 className="ot-hero-title ot-hero-title--marketing">Van ouderaccount tot veilig contact.</h1>
             <p className="ot-hero-sub">
               Met Pulse ontdekt je kind op een veilige en eenvoudige manier hoe contact houden werkt, terwijl jij als ouder toezicht en controle houdt.
             </p>
@@ -343,7 +420,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
             text="Veilig contact hoeft niet ingewikkeld te zijn. Met Pulse stel je in drie overzichtelijke stappen een vertrouwde omgeving in waarin je kind kan chatten, bellen en videobellen met de mensen die ertoe doen."
           />
 
-          <div className="hw-steps-grid">
+          <div className="hw-steps-grid hw-steps-grid--intro">
             <StepRow
               id="registreren"
               step="1"
@@ -354,20 +431,55 @@ export default function HoeWerktHetPagina({ onParentClick }) {
             />
 
             <StepRow
-            step="2"
-            stacked
-            title="Ouder voegt een kind toe"
-            text="In het ouderportaal maakt de ouder een kindaccount aan met een unieke gebruikersnaam en wachtwoord. Het kind logt daarna in met deze gegevens."
-            mockup={<AddChildMockup />}
-          />
+              step="2"
+              stacked
+              title="Ouder voegt een kind toe"
+              text="In het ouderportaal maakt de ouder een kindaccount aan met een unieke gebruikersnaam en wachtwoord. Het kind logt daarna in met deze gegevens."
+              mockup={<AddChildMockup />}
+            />
 
             <StepRow
-            step="3"
-            stacked
-            title="Ouder en kind zijn verbonden"
-            text="Zodra het account actief is, zijn ouder en kind gekoppeld. Ouder en kind kunnen veilig chatten, bellen en videobellen."
-            mockup={<ConnectedMockup />}
-          />
+              step="3"
+              stacked
+              title="Ouder en kind zijn verbonden"
+              text="Zodra het account actief is, zijn ouder en kind gekoppeld. Ouder en kind kunnen veilig chatten, bellen en videobellen."
+              mockup={<ConnectedMockup />}
+            />
+          </div>
+
+          <div className="hw-steps-mobile">
+            <div className="hw-steps-mobile-header" role="tablist" aria-label="Hoe werkt Pulse stappen">
+              {introSteps.map((step, index) => (
+                <button
+                  key={step.key}
+                  ref={(element) => { introStepTabRefs.current[index] = element; }}
+                  id={`hw-step-tab-${step.key}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeIntroStep === step.key}
+                  aria-controls="hw-steps-mobile-panel"
+                  className={`hw-steps-mobile-tab${activeIntroStep === step.key ? ' hw-steps-mobile-tab--active' : ''}`}
+                  onClick={() => setActiveIntroStep(step.key)}
+                >
+                  {`Stap ${step.step}`}
+                </button>
+              ))}
+            </div>
+
+            <div
+              id="hw-steps-mobile-panel"
+              role="tabpanel"
+              aria-labelledby={`hw-step-tab-${activeIntroStepData.key}`}
+              className="hw-steps-mobile-panel"
+            >
+              <StepRow
+                step={activeIntroStepData.step}
+                stacked
+                title={activeIntroStepData.title}
+                text={activeIntroStepData.text}
+                mockup={activeIntroStepData.mockup}
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -380,7 +492,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
             text="Met Pulse blijven ouder en kind dichtbij de mensen die echt tellen, zoals opa en oma, ooms en tantes, buren en vertrouwde vrienden van school. Ouders houden regie over de contacten van hun kind."
           />
 
-          <div className="hw-steps-grid">
+          <div className="hw-steps-grid hw-steps-grid--contacts">
             <StepRow
               step="1"
               stacked
@@ -404,6 +516,41 @@ export default function HoeWerktHetPagina({ onParentClick }) {
               text="Zie je de juiste contactpersoon? Klik dan op ‘Verzoek sturen’."
               mockup={<SearchContactMockup />}
             />
+          </div>
+
+          <div className="hw-steps-mobile">
+            <div className="hw-steps-mobile-header" role="tablist" aria-label="Contact toevoegen stappen">
+              {contactSteps.map((step, index) => (
+                <button
+                  key={step.key}
+                  ref={(element) => { contactStepTabRefs.current[index] = element; }}
+                  id={`hw-contact-step-tab-${step.key}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeContactStep === step.key}
+                  aria-controls="hw-contact-steps-mobile-panel"
+                  className={`hw-steps-mobile-tab${activeContactStep === step.key ? ' hw-steps-mobile-tab--active' : ''}`}
+                  onClick={() => setActiveContactStep(step.key)}
+                >
+                  {`Stap ${step.step}`}
+                </button>
+              ))}
+            </div>
+
+            <div
+              id="hw-contact-steps-mobile-panel"
+              role="tabpanel"
+              aria-labelledby={`hw-contact-step-tab-${activeContactStepData.key}`}
+              className="hw-steps-mobile-panel"
+            >
+              <StepRow
+                step={activeContactStepData.step}
+                stacked
+                title={activeContactStepData.title}
+                text={activeContactStepData.text}
+                mockup={activeContactStepData.mockup}
+              />
+            </div>
           </div>
         </div>
       </section>

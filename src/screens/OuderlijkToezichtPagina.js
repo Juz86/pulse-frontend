@@ -46,9 +46,9 @@ function useFadeIn() {
   return [ref, visible];
 }
 
-function PhoneFrame({ children, tall = false }) {
+function PhoneFrame({ children, tall = false, className = '' }) {
   return (
-    <div className={`hp-phone fp-phone ot-phone${tall ? ' fp-phone--tall' : ''}`}>
+    <div className={`hp-phone fp-phone ot-phone${tall ? ' fp-phone--tall' : ''} ${className}`.trim()}>
       <div className="hp-phone-notch" />
       <div className="hp-phone-screen fp-phone-screen ot-phone-screen">
         {children}
@@ -138,7 +138,7 @@ function DashboardMockup() {
 
 function PauseMockup() {
   return (
-    <PhoneFrame>
+    <PhoneFrame className="ot-phone--pause">
       <div className="ot-phone-top">
         <PulseLogo size={16} textSize={12} color="#fff" />
         <span className="ot-phone-badge">Pauzeren</span>
@@ -323,9 +323,9 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
         <DecorativeAvatar svg={avatarSvgs.otTop}    className="fp-deco-avatar--hero-top" />
         <DecorativeAvatar svg={avatarSvgs.otBottom} className="fp-deco-avatar--hero-bottom" />
         <div className="ot-hero-inner hw-hero-inner">
-          <div className="ot-hero-copy hw-hero-copy">
+          <div className="ot-hero-copy hw-hero-copy marketing-hero-copy">
             <div className="fp-hero-badge">Ouderlijk toezicht</div>
-            <h1 className="ot-hero-title">Jij bepaalt. Altijd.</h1>
+            <h1 className="ot-hero-title ot-hero-title--marketing">Veilig online, onder ouderlijk toezicht.</h1>
             <p className="ot-hero-sub">
               Het ouderportaal van Pulse geeft jou als ouder volledige controle over de
               communicatie van je kind — real-time, eenvoudig en direct vanuit je telefoon.

@@ -244,10 +244,10 @@ export default function OverPulsePagina({ onParentClick }) {
         <DecorativeAvatar svg={avatarSvgs.opTop}    className="fp-deco-avatar--hero-top" />
         <DecorativeAvatar svg={avatarSvgs.opBottom} className="fp-deco-avatar--hero-bottom" />
         <div className="ot-hero-inner op-hero-inner hw-hero-inner">
-          <div className="ot-hero-copy hw-hero-copy">
+          <div className="ot-hero-copy hw-hero-copy marketing-hero-copy">
             <div className="fp-hero-badge">Over Pulse</div>
-            <h1 className="ot-hero-title">
-              Pulse is geen<br />social media.<br /><span style={{ whiteSpace: 'nowrap' }}>Pulse is verbinding.</span>
+            <h1 className="ot-hero-title ot-hero-title--marketing">
+              Geen social media.<br /><span style={{ whiteSpace: 'nowrap' }}>Wel verbinding.</span>
             </h1>
             <p className="ot-hero-sub">
               Wij geloven dat kinderen recht hebben op veilige, rustgevende communicatie — zonder algoritmes, zonder verslaving, zonder zorgen. Pulse is daarvoor gebouwd.

@@ -209,6 +209,8 @@ export default function AgendaScreen({ user }) {
         showToast(`'${title}' bijgewerkt.`);
       }
       setModal(null);
+      // Re-open the day modal for the saved date so the user sees the result
+      setDayModal({ date, activities: activities.filter(a => a.date === date) });
     } catch { showToast('Er ging iets mis. Probeer het opnieuw.'); }
   }
 

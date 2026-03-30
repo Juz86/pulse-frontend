@@ -175,10 +175,6 @@ export default function ChatSidebar({
           <Users size={15} aria-hidden="true" /> Contacten
           {friendRequests.length > 0 && <span className="unread-badge" aria-label={`${friendRequests.length} openstaande ${friendRequests.length === 1 ? 'uitnodiging' : 'uitnodigingen'}`} style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{friendRequests.length}</span>}
         </button>
-        <button type="button" className={`sidebar-tab ${activeTab === 'agenda' ? 'active' : ''}`} aria-pressed={activeTab === 'agenda'} onClick={() => { setActiveTab('agenda'); setSearchQuery(''); }}>
-          <Calendar size={15} aria-hidden="true" /> Agenda
-          {agendaTodayCount > 0 && <span className="unread-badge" aria-label={`${agendaTodayCount} activiteit${agendaTodayCount === 1 ? '' : 'en'} vandaag`} style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{agendaTodayCount}</span>}
-        </button>
       </div>
 
       {/* Filters */}
@@ -472,6 +468,22 @@ export default function ChatSidebar({
             {parentActivityBadge > 0 && <span className="parent-badge" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
           </button>
         )}
+        <button
+          type="button"
+          className={`icon-btn${activeTab === 'agenda' ? ' active' : ''}`}
+          aria-label="Agenda"
+          aria-pressed={activeTab === 'agenda'}
+          title="Agenda"
+          style={{ position: 'relative' }}
+          onClick={() => { setActiveTab(activeTab === 'agenda' ? 'chats' : 'agenda'); setSearchQuery(''); }}
+        >
+          <Calendar size={18} aria-hidden="true" />
+          {agendaTodayCount > 0 && (
+            <span className="parent-badge" aria-hidden="true" aria-label={`${agendaTodayCount} activiteit${agendaTodayCount === 1 ? '' : 'en'} vandaag`}>
+              {agendaTodayCount > 9 ? '9+' : agendaTodayCount}
+            </span>
+          )}
+        </button>
         <button type="button" className="icon-btn" aria-label={lightMode ? 'Schakel naar donker thema' : 'Schakel naar licht thema'} onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>
           {lightMode ? <Moon size={18} aria-hidden="true" /> : <Lightbulb size={18} aria-hidden="true" />}
         </button>

@@ -29,10 +29,8 @@ function isPast(dateStr) {
   return dateStr < new Date().toISOString().slice(0, 10);
 }
 
-// Geeft de maandagrens terug: array van {day, dateStr, inMonth}
 function buildCalendarDays(year, month) {
   const firstDay = new Date(year, month, 1);
-  // Maandag = 0 … Zondag = 6
   const startOffset = (firstDay.getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const cells = [];
@@ -51,7 +49,7 @@ function buildCalendarDays(year, month) {
   return cells;
 }
 
-function MiniCalendar({ activities, selectedDate, onSelectDate }) {
+function MiniCalendar({ activities, onDayClick }) {
   const now = new Date();
   const [viewYear,  setViewYear]  = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
@@ -70,37 +68,31 @@ function MiniCalendar({ activities, selectedDate, onSelectDate }) {
 
   return (
     <div className="agenda-cal">
-      {/* Navigatie */}
       <div className="agenda-cal-nav">
         <button type="button" className="agenda-cal-arrow" onClick={prevMonth} aria-label="Vorige maand">‹</button>
         <span className="agenda-cal-month">{MONTH_NAMES[viewMonth]} {viewYear}</span>
         <button type="button" className="agenda-cal-arrow" onClick={nextMonth} aria-label="Volgende maand">›</button>
       </div>
 
-      {/* Dagkoppen */}
       <div className="agenda-cal-grid">
         {DAY_LABELS.map(l => (
           <div key={l} className="agenda-cal-head">{l}</div>
         ))}
 
-        {/* Dagen */}
         {cells.map(({ day, dateStr, inMonth }) => {
-          const today    = isToday(dateStr);
-          const selected = dateStr === selectedDate;
-          const hasDot   = activityDates.has(dateStr);
+          const today  = isToday(dateStr);
+          const hasDot = activityDates.has(dateStr);
           return (
             <button
               key={dateStr}
               type="button"
               className={[
                 'agenda-cal-day',
-                !inMonth  ? 'agenda-cal-day--out'      : '',
-                today     ? 'agenda-cal-day--today'    : '',
-                selected  ? 'agenda-cal-day--selected' : '',
+                !inMonth ? 'agenda-cal-day--out'   : '',
+                today    ? 'agenda-cal-day--today'  : '',
               ].join(' ').trim()}
               aria-label={`${day} ${MONTH_NAMES[viewMonth]}${hasDot ? ', heeft activiteiten' : ''}`}
-              aria-pressed={selected}
-              onClick={() => onSelectDate(selected ? null : dateStr)}
+              onClick={() => onDayClick(dateStr, activityDates.has(dateStr))}
             >
               {day}
               {hasDot && <span className="agenda-cal-dot" aria-hidden="true" />}
@@ -112,13 +104,69 @@ function MiniCalendar({ activities, selectedDate, onSelectDate }) {
   );
 }
 
+// Day detail modal
+function DayModal({ date, activities, onClose, onEdit, onDelete, onAdd }) {
+  useEffect(() => {
+    function onKey(e) { if (e.key === 'Escape') onClose(); }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const past = isPast(date);
+  const today = isToday(date);
+
+  return (
+    <div className="agenda-modal-backdrop" onClick={onClose}>
+      <div className="agenda-day-modal" onClick={e => e.stopPropagation()}>
+        <div className="agenda-day-modal-header">
+          <div>
+            <div className="agenda-day-modal-title">{formatDate(date)}</div>
+            {today && <span className="agenda-day-modal-badge agenda-day-modal-badge--today">Vandaag</span>}
+            {past && !today && <span className="agenda-day-modal-badge agenda-day-modal-badge--past">Verlopen</span>}
+          </div>
+          <button type="button" className="agenda-modal-close" onClick={onClose} aria-label="Sluiten">✕</button>
+        </div>
+
+        <div className="agenda-day-modal-body">
+          {activities.length === 0 ? (
+            <p className="agenda-day-modal-empty">Geen activiteiten op deze dag.</p>
+          ) : (
+            activities.map(a => (
+              <div key={a.id} className={`agenda-day-item${today ? ' agenda-day-item--today' : ''}${isPast(a.date) ? ' agenda-day-item--past' : ''}`}>
+                <div style={{ flex: 1 }}>
+                  <div className="agenda-day-item-title">{a.title}</div>
+                  {a.time && <div className="agenda-day-item-time">{a.time}</div>}
+                </div>
+                <div className="agenda-card-actions">
+                  <button type="button" className="agenda-icon-btn" aria-label={`Bewerk ${a.title}`} onClick={() => onEdit(a)}>
+                    <MagicEdit size={15} aria-hidden="true" />
+                  </button>
+                  <button type="button" className="agenda-icon-btn agenda-icon-btn--danger" aria-label={`Verwijder ${a.title}`} onClick={() => onDelete(a)}>
+                    <Delete size={15} aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="agenda-day-modal-footer">
+          <button type="button" className="agenda-add-btn" style={{ width: '100%' }} onClick={onAdd}>
+            + Toevoegen op deze dag
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AgendaScreen({ user }) {
   const [activities, setActivities]       = useState([]);
   const [loading, setLoading]             = useState(true);
   const [modal, setModal]                 = useState(null);
+  const [dayModal, setDayModal]           = useState(null); // { date, activities }
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [toast, setToast]                 = useState('');
-  const [selectedDate, setSelectedDate]   = useState(null);
   const toastTimer                        = useRef(null);
 
   function showToast(msg) {
@@ -135,6 +183,13 @@ export default function AgendaScreen({ user }) {
     }, () => setLoading(false));
     return unsub;
   }, [user.uid]);
+
+  // Keep dayModal activities in sync when activities state updates
+  useEffect(() => {
+    if (!dayModal) return;
+    const updated = activities.filter(a => a.date === dayModal.date);
+    setDayModal(prev => prev ? { ...prev, activities: updated } : null);
+  }, [activities]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function authFetch(url, options = {}) {
     const token = await user.getIdToken();
@@ -165,14 +220,14 @@ export default function AgendaScreen({ user }) {
     } catch { showToast('Er ging iets mis. Probeer het opnieuw.'); }
   }
 
-  // Filter op geselecteerde datum of toon alles
-  const visibleActivities = selectedDate
-    ? activities.filter(a => a.date === selectedDate)
-    : activities;
+  function handleDayClick(dateStr) {
+    const dayActivities = activities.filter(a => a.date === dateStr);
+    setDayModal({ date: dateStr, activities: dayActivities });
+  }
 
-  const todayList    = visibleActivities.filter(a => isToday(a.date));
-  const upcomingList = visibleActivities.filter(a => !isToday(a.date) && !isPast(a.date));
-  const pastList     = visibleActivities.filter(a => isPast(a.date));
+  const todayList    = activities.filter(a => isToday(a.date));
+  const upcomingList = activities.filter(a => !isToday(a.date) && !isPast(a.date));
+  const pastList     = activities.filter(a => isPast(a.date));
 
   return (
     <div className="agenda-screen">
@@ -185,7 +240,7 @@ export default function AgendaScreen({ user }) {
         <button
           type="button"
           className="agenda-add-btn"
-          onClick={() => setModal({ mode: 'add', prefillDate: selectedDate })}
+          onClick={() => setModal({ mode: 'add' })}
           aria-label="Activiteit toevoegen"
         >
           + Toevoegen
@@ -196,17 +251,8 @@ export default function AgendaScreen({ user }) {
       {!loading && (
         <MiniCalendar
           activities={activities}
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
+          onDayClick={handleDayClick}
         />
-      )}
-
-      {/* Geselecteerde datum label */}
-      {selectedDate && (
-        <div className="agenda-date-filter">
-          <span>{formatDate(selectedDate)}</span>
-          <button type="button" className="agenda-date-filter-clear" onClick={() => setSelectedDate(null)} aria-label="Filter wissen">✕</button>
-        </div>
       )}
 
       {/* Lijst */}
@@ -217,14 +263,12 @@ export default function AgendaScreen({ user }) {
           </div>
         )}
 
-        {!loading && visibleActivities.length === 0 && (
+        {!loading && activities.length === 0 && (
           <div className="agenda-empty">
-            <p className="agenda-empty-title">
-              {selectedDate ? 'Geen activiteiten op deze dag.' : 'Je hebt nog geen activiteiten.'}
-            </p>
-            {!selectedDate && <p className="agenda-empty-sub">Voeg je eerste toe!</p>}
-            <button type="button" className="agenda-add-btn" onClick={() => setModal({ mode: 'add', prefillDate: selectedDate })}>
-              + {selectedDate ? 'Toevoegen op deze dag' : 'Eerste activiteit toevoegen'}
+            <p className="agenda-empty-title">Je hebt nog geen activiteiten.</p>
+            <p className="agenda-empty-sub">Voeg je eerste toe!</p>
+            <button type="button" className="agenda-add-btn" onClick={() => setModal({ mode: 'add' })}>
+              + Eerste activiteit toevoegen
             </button>
           </div>
         )}
@@ -263,7 +307,19 @@ export default function AgendaScreen({ user }) {
         )}
       </div>
 
-      {/* Modals */}
+      {/* Day detail modal */}
+      {dayModal && (
+        <DayModal
+          date={dayModal.date}
+          activities={dayModal.activities}
+          onClose={() => setDayModal(null)}
+          onEdit={a => { setModal({ mode: 'edit', activity: a }); setDayModal(null); }}
+          onDelete={a => { setDeleteConfirm(a); setDayModal(null); }}
+          onAdd={() => { setModal({ mode: 'add', prefillDate: dayModal.date }); setDayModal(null); }}
+        />
+      )}
+
+      {/* Add/edit modal */}
       {modal && (
         <AgendaModal
           mode={modal.mode}

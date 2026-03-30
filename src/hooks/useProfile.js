@@ -243,6 +243,14 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
   // ── Groepsfoto uploaden ───────────────────────────────────────────────────
   async function uploadGroupPhoto(file) {
     if (!file || !activeConv?.id) return;
+    if (!file.type.startsWith('image/')) {
+      showErrToast('Alleen afbeeldingsbestanden zijn toegestaan');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showErrToast('Groepsfoto mag maximaal 5 MB zijn');
+      return;
+    }
     setGroupPhotoLoading(true);
     try {
       const ref = storageRef(storage, `groups/${activeConv.id}/photo`);

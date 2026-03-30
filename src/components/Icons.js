@@ -62,5 +62,3 @@ export { MdStar               as StarFilled }  from 'react-icons/md';
 export { MdStarBorder         as StarOutline } from 'react-icons/md';
 export { MdError              as ErrorIcon }   from 'react-icons/md';
 export { MdWifiOff            as WifiOff }     from 'react-icons/md';
-export { MdEvent              as Calendar }    from 'react-icons/md';
-export { MdEditCalendar       as CalendarEdit } from 'react-icons/md';

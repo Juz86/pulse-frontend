@@ -197,14 +197,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     uploadChatBgPhoto, saveChatBgColor, removeChatBg, uploadGroupPhoto, handleDeleteAccount,
   } = useProfile({ user, activeConv, setActiveConv, setConversations, showErrToast, setConfirmDialog });
 
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket) return;
-    const handler = ({ message }) => showErrToast({ text: message, bg: 'rgba(108,99,255,0.92)' });
-    socket.on('agenda:toast', handler);
-    return () => socket.off('agenda:toast', handler);
-  }, []);
-
   // ── Effects ───────────────────────────────────────────────────────────────
   useEffect(() => {
     const handleOnline  = () => setIsOnline(true);

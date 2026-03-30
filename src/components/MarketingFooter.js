@@ -27,8 +27,8 @@ export default function MarketingFooter() {
             <h4 id="footer-about-title">Over Pulse</h4>
             <ul className="hp-footer-list">
               <li><a href="/over-pulse#waarom-pulse">Over ons</a></li>
-              <li><a href="/over-pulse#privacy">Privacy</a></li>
-              <li><a href="/over-pulse#privacy">AVG-beleid</a></li>
+              <li><a href="/privacybeleid">Privacybeleid</a></li>
+              <li><a href="/avg-beleid-elektronische-communicatie">AVG-beleid</a></li>
               <li><p className="hp-footer-text">Contact</p></li>
             </ul>
           </nav>

@@ -2,11 +2,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Delete, Search, Message, Users, Moon, Lightbulb, Bell, BellOff, Shield, Logout, Pin, InfoIcon } from '../components/Icons';
+import { Phone, Video, Delete, Search, Message, Users, Moon, Lightbulb, Bell, BellOff, Shield, Logout, Pin, InfoIcon, Calendar } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
 import { getInitials } from '../utils';
+import AgendaScreen from '../screens/AgendaScreen';
 
 export default function ChatSidebar({
   user,
@@ -42,6 +43,7 @@ export default function ChatSidebar({
   onToggleTheme,
   onOpenDashboard,
   setLabelMenuConvId,
+  agendaTodayCount,
   // modal openers
   onNewChat,
   onNewGroup,
@@ -172,6 +174,10 @@ export default function ChatSidebar({
         <button type="button" className={`sidebar-tab ${activeTab === 'contacts' ? 'active' : ''}`} aria-pressed={activeTab === 'contacts'} onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}>
           <Users size={15} aria-hidden="true" /> Contacten
           {friendRequests.length > 0 && <span className="unread-badge" aria-label={`${friendRequests.length} openstaande ${friendRequests.length === 1 ? 'uitnodiging' : 'uitnodigingen'}`} style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{friendRequests.length}</span>}
+        </button>
+        <button type="button" className={`sidebar-tab ${activeTab === 'agenda' ? 'active' : ''}`} aria-pressed={activeTab === 'agenda'} onClick={() => { setActiveTab('agenda'); setSearchQuery(''); }}>
+          <Calendar size={15} aria-hidden="true" /> Agenda
+          {agendaTodayCount > 0 && <span className="unread-badge" aria-label={`${agendaTodayCount} activiteit${agendaTodayCount === 1 ? '' : 'en'} vandaag`} style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{agendaTodayCount}</span>}
         </button>
       </div>
 
@@ -441,6 +447,13 @@ export default function ChatSidebar({
           </div>
         );
       })()}
+
+      {/* Agenda tab */}
+      {activeTab === 'agenda' && (
+        <div className="conv-list agenda-sidebar-wrap">
+          <AgendaScreen user={user} />
+        </div>
+      )}
 
       {/* Footer */}
       <div className="sidebar-footer">

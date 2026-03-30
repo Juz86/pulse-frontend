@@ -956,10 +956,19 @@ export default function ChatModals({
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                   <label
                     htmlFor={isAdmin ? 'group-photo-upload' : undefined}
-                    aria-label={isAdmin ? 'Groepsfoto wijzigen' : undefined}
+                    aria-label={isAdmin ? `${activeConv.photoURL ? 'Wijzig' : 'Voeg'} groepsfoto toe voor ${getConvName(activeConv)}` : undefined}
                     aria-describedby={isAdmin ? 'group-photo-upload-status' : undefined}
                     aria-busy={isAdmin && groupPhotoLoading ? 'true' : undefined}
                     aria-disabled={isAdmin && groupPhotoLoading ? 'true' : undefined}
+                    aria-haspopup={isAdmin ? 'dialog' : undefined}
+                    role={isAdmin ? 'button' : undefined}
+                    tabIndex={isAdmin && !groupPhotoLoading ? 0 : undefined}
+                    onKeyDown={isAdmin ? (e) => {
+                      if ((e.key === 'Enter' || e.key === ' ') && !groupPhotoLoading) {
+                        e.preventDefault();
+                        e.currentTarget.querySelector('input[type="file"]')?.click();
+                      }
+                    } : undefined}
                     style={{ position: 'relative', cursor: isAdmin && !groupPhotoLoading ? 'pointer' : 'default' }}
                   >
                     {activeConv.photoURL
@@ -987,7 +996,11 @@ export default function ChatModals({
                   </label>
                   {isAdmin && (
                     <p id="group-photo-upload-status" className="sr-only" aria-live="polite">
-                      {groupPhotoLoading ? 'Groepsfoto wordt geupload.' : 'Kies een afbeelding om de groepsfoto te wijzigen.'}
+                      {groupPhotoLoading
+                        ? `Groepsfoto voor ${getConvName(activeConv)} wordt geupload.`
+                        : activeConv.photoURL
+                          ? `Kies een afbeelding om de groepsfoto voor ${getConvName(activeConv)} te wijzigen. Toegestane bestandssoorten zijn afbeeldingsbestanden.`
+                          : `Kies een afbeelding om een groepsfoto toe te voegen voor ${getConvName(activeConv)}. Toegestane bestandssoorten zijn afbeeldingsbestanden.`}
                     </p>
                   )}
                   <h3 id="group-info-title" className="modal-title" style={{ margin: 0 }}>{getConvName(activeConv)}</h3>

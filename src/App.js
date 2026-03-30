@@ -19,6 +19,8 @@ const FunctiePagina       = lazy(() => import('./screens/FunctiePagina'));
 const OuderlijkToezichtPagina = lazy(() => import('./screens/OuderlijkToezichtPagina'));
 const HoeWerktHetPagina  = lazy(() => import('./screens/HoeWerktHetPagina'));
 const OverPulsePagina    = lazy(() => import('./screens/OverPulsePagina'));
+const PrivacybeleidPagina = lazy(() => import('./screens/PrivacybeleidPagina'));
+const ElektronischeCommunicatieBeleidPagina = lazy(() => import('./screens/ElektronischeCommunicatieBeleidPagina'));
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 
@@ -65,6 +67,22 @@ export default function App() {
     return (
       <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
         <OverPulsePagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/over-pulse'); window.location.href = '/'; }} />
+      </Suspense>
+    );
+  }
+
+  if (window.location.pathname === '/privacybeleid') {
+    return (
+      <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
+        <PrivacybeleidPagina />
+      </Suspense>
+    );
+  }
+
+  if (window.location.pathname === '/avg-beleid-elektronische-communicatie') {
+    return (
+      <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
+        <ElektronischeCommunicatieBeleidPagina />
       </Suspense>
     );
   }

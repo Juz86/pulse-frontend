@@ -1719,6 +1719,205 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 .chat-search-bar input:focus { border-color: var(--accent) !important; }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   AGENDA — kind & ouder
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Kind: agenda scherm in sidebar ── */
+.agenda-sidebar-wrap { padding: 0; overflow-y: auto; flex: 1; }
+.agenda-screen { display: flex; flex-direction: column; height: 100%; }
+
+.agenda-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.agenda-header-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
+}
+.agenda-add-btn {
+  background: var(--accent, #7c3aed); color: #fff;
+  border: none; border-radius: 20px; padding: 7px 14px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: opacity 0.15s;
+}
+.agenda-add-btn:hover { opacity: 0.88; }
+
+.agenda-content { flex: 1; overflow-y: auto; padding: 8px 0 24px; }
+
+.agenda-empty {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 48px 20px; gap: 8px; text-align: center;
+}
+.agenda-empty-icon { font-size: 40px; }
+.agenda-empty-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin: 0; }
+.agenda-empty-sub { font-size: 13px; color: var(--text3); margin: 0 0 12px; }
+
+.agenda-group { margin-bottom: 4px; }
+.agenda-group-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text3); padding: 6px 16px 4px;
+}
+.agenda-group-label--today { color: var(--accent, #7c3aed); }
+.agenda-group-label--past  { color: var(--text3); }
+
+/* ── Activiteitenkaart (kind + ouder) ── */
+.agenda-card {
+  margin: 4px 12px;
+  background: var(--surface2, #1e1e2e);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex; align-items: flex-start; gap: 10px;
+  animation: agenda-slide-in 0.2s ease;
+}
+@keyframes agenda-slide-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.agenda-card--today {
+  background: rgba(124, 58, 237, 0.10);
+  border-color: rgba(124, 58, 237, 0.30);
+}
+.agenda-card--past { opacity: 0.55; }
+.agenda-card--past .agenda-card-title { text-decoration: line-through; }
+
+.agenda-card--parent {
+  background: #fff; border: 1px solid #e5e7eb;
+  margin: 4px 0;
+}
+.agenda-card--parent.agenda-card--today { background: #f5f0ff; border-color: rgba(124,58,237,0.25); }
+
+.agenda-card-date { font-size: 11px; color: var(--text3, #8888aa); margin-bottom: 3px; }
+.agenda-card-title { font-size: 15px; font-weight: 500; color: var(--text-primary); line-height: 1.4; }
+.agenda-card-time { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.agenda-card-by { margin-top: 6px; }
+
+.agenda-card-actions {
+  display: flex; gap: 4px; flex-shrink: 0; margin-top: 2px;
+}
+.agenda-icon-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text3); padding: 4px; border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  display: flex; align-items: center;
+}
+.agenda-icon-btn:hover { color: var(--accent, #7c3aed); background: rgba(124,58,237,0.08); }
+.agenda-icon-btn--danger:hover { color: #ef4444; background: rgba(239,68,68,0.08); }
+
+/* ── Badge (toegevoegd door) ── */
+.agenda-badge {
+  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px;
+}
+.agenda-badge--parent { background: #ede9fe; color: #5b21b6; }
+.agenda-badge--child  { background: #dcfce7; color: #166534; }
+
+/* ── Modal ── */
+.agenda-modal-backdrop {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.agenda-modal {
+  background: var(--bg1, #fff); border-radius: 16px;
+  width: 100%; max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  animation: agenda-modal-in 0.18s ease;
+}
+@keyframes agenda-modal-in {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.agenda-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+.agenda-modal-title { font-size: 16px; font-weight: 700; color: var(--text-primary); margin: 0; }
+.agenda-modal-close {
+  background: none; border: none; cursor: pointer; font-size: 16px;
+  color: var(--text3); padding: 4px 8px; border-radius: 8px;
+  transition: background 0.15s;
+}
+.agenda-modal-close:hover { background: rgba(0,0,0,0.07); }
+.agenda-modal-form { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.agenda-field { display: flex; flex-direction: column; gap: 5px; }
+.agenda-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.agenda-label-optional { font-weight: 400; color: var(--text3); }
+.agenda-input {
+  background: var(--surface2, #f3f4f6); border: 1.5px solid var(--border, #e5e7eb);
+  border-radius: 10px; padding: 10px 12px;
+  font-size: 14px; color: var(--text-primary);
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+.agenda-input:focus { outline: none; border-color: var(--accent, #7c3aed); }
+.agenda-field-error { font-size: 13px; color: #ef4444; margin: 0; }
+
+.agenda-modal-actions { display: flex; gap: 10px; margin-top: 4px; }
+.agenda-btn-cancel {
+  flex: 1; padding: 11px; border-radius: 10px;
+  background: var(--surface2, #f3f4f6); border: 1px solid var(--border, #e5e7eb);
+  font-size: 14px; font-weight: 600; cursor: pointer; color: var(--text-primary);
+  transition: background 0.15s;
+}
+.agenda-btn-cancel:hover { background: var(--border, #e5e7eb); }
+.agenda-btn-save {
+  flex: 1; padding: 11px; border-radius: 10px;
+  background: var(--accent, #7c3aed); border: none;
+  font-size: 14px; font-weight: 600; cursor: pointer; color: #fff;
+  transition: opacity 0.15s;
+}
+.agenda-btn-save:hover { opacity: 0.88; }
+.agenda-btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Verwijder dialoog ── */
+.agenda-dialog-backdrop {
+  position: fixed; inset: 0; z-index: 600;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.agenda-dialog {
+  background: var(--bg1, #fff); border-radius: 14px;
+  padding: 24px 20px; max-width: 340px; width: 100%;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+}
+.agenda-dialog-text { font-size: 14px; color: var(--text-primary); margin: 0 0 20px; line-height: 1.6; }
+.agenda-dialog-actions { display: flex; gap: 10px; }
+.agenda-btn-danger {
+  flex: 1; padding: 10px; border-radius: 10px;
+  background: #ef4444; border: none;
+  font-size: 14px; font-weight: 600; cursor: pointer; color: #fff;
+  transition: opacity 0.15s;
+}
+.agenda-btn-danger:hover { opacity: 0.88; }
+
+/* ── Toast ── */
+.agenda-toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: rgba(30,30,46,0.95); color: #fff;
+  padding: 10px 18px; border-radius: 20px;
+  font-size: 13px; font-weight: 500;
+  z-index: 700; white-space: nowrap;
+  animation: agenda-toast-in 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+@keyframes agenda-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── Responsief ── */
+@media (max-width: 480px) {
+  .agenda-modal { border-radius: 12px; }
+  .agenda-card { margin: 4px 8px; }
+}
+
 /* ── OUDERLIJK TOEZICHT DASHBOARD ── */
 .parent-root {
   min-height:100vh;
@@ -4549,12 +4748,12 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
     min-height: unset;
   }
   .hw-hero .ot-hero-inner {
-    position: static;
-    min-height: unset;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 28px 20px 32px;
+    position: static !important;
+    min-height: unset !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 20px 20px 32px !important;
   }
   .hw-hero .ot-hero-visual {
     position: static;
@@ -4567,18 +4766,6 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .ot-hero,
   .hw-hero {
     min-height: unset !important;
-    padding-top: 20px !important;
-    padding-bottom: 40px !important;
-    margin-top: 0 !important;
-  }
-
-  .ot-hero-inner,
-  .hw-hero-inner {
-    min-height: unset !important;
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-    justify-content: flex-start !important;
-    align-items: flex-start !important;
   }
 
   .marketing-hero-copy,
@@ -4717,16 +4904,6 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .ot-hero,
   .hw-hero {
     min-height: unset !important;
-    padding-top: 20px !important;
-    padding-bottom: 32px !important;
-  }
-
-  .ot-hero-inner,
-  .hw-hero-inner {
-    min-height: unset !important;
-    padding-top: 0 !important;
-    justify-content: flex-start !important;
-    align-items: flex-start !important;
   }
 
   .marketing-hero-copy,
@@ -4800,6 +4977,224 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   /* Nav knoppen */
   .hp-nav-kind,
   .hp-nav-ouder { font-size: 11px; padding: 5px 10px; }
+}
+
+/* ── LEGAL PAGINA'S ── */
+.legal-root {
+  background:
+    radial-gradient(circle at top left, rgba(108,99,255,0.08), transparent 30%),
+    linear-gradient(180deg, #f7f7fb 0%, #ffffff 24%, #fbfbff 100%);
+  min-height: 100vh;
+}
+
+.legal-main {
+  padding-bottom: 64px;
+}
+
+.legal-hero {
+  padding: 120px 0 44px;
+}
+
+.legal-hero-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.legal-hero-badge {
+  margin-bottom: 18px;
+}
+
+.legal-hero-title {
+  margin: 0;
+  max-width: 800px;
+  font-size: clamp(40px, 5vw, 58px);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  color: #1c1a33;
+}
+
+.legal-hero-intro {
+  margin: 18px 0 0;
+  max-width: 760px;
+  font-size: 18px;
+  line-height: 1.8;
+  color: #5f6780;
+}
+
+.legal-hero-meta {
+  margin-top: 24px;
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(108,99,255,0.08);
+  border: 1px solid rgba(108,99,255,0.14);
+}
+
+.legal-meta-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #6c63ff;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.legal-meta-value {
+  font-size: 14px;
+  color: #434b63;
+}
+
+.legal-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.legal-section {
+  padding: 30px 0;
+  border-top: 1px solid rgba(108,99,255,0.12);
+}
+
+.legal-section:first-child {
+  border-top: none;
+}
+
+.legal-section h2 {
+  margin: 0 0 16px;
+  font-size: 30px;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  color: #1e2238;
+}
+
+.legal-section-body,
+.legal-subsection {
+  display: grid;
+  gap: 14px;
+}
+
+.legal-section p,
+.legal-subsection p {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.85;
+  color: #556079;
+}
+
+.legal-subsection + .legal-subsection {
+  margin-top: 14px;
+}
+
+.legal-subsection h3,
+.legal-card h3 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.25;
+  color: #232842;
+}
+
+.legal-list {
+  margin: 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 10px;
+  color: #556079;
+}
+
+.legal-list li {
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.legal-card {
+  display: grid;
+  gap: 10px;
+  padding: 22px 24px;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(108,99,255,0.14);
+  border-radius: 24px;
+  box-shadow: 0 18px 50px rgba(36, 24, 86, 0.06);
+}
+
+.legal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.legal-section--closing {
+  padding-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+  .legal-hero {
+    padding: 104px 0 36px;
+  }
+
+  .legal-hero-inner,
+  .legal-content {
+    padding: 0 20px;
+  }
+
+  .legal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .legal-section h2 {
+    font-size: 26px;
+  }
+
+  .legal-section p,
+  .legal-subsection p,
+  .legal-list li {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .legal-hero {
+    padding: 92px 0 28px;
+  }
+
+  .legal-hero-inner,
+  .legal-content {
+    padding: 0 16px;
+  }
+
+  .legal-hero-title {
+    font-size: 32px;
+  }
+
+  .legal-hero-intro {
+    font-size: 16px;
+    line-height: 1.75;
+  }
+
+  .legal-hero-meta {
+    display: grid;
+    gap: 4px;
+    border-radius: 20px;
+  }
+
+  .legal-section {
+    padding: 24px 0;
+  }
+
+  .legal-section h2 {
+    font-size: 23px;
+  }
+
+  .legal-subsection h3,
+  .legal-card h3 {
+    font-size: 18px;
+  }
+
+  .legal-card {
+    padding: 18px 18px;
+    border-radius: 20px;
+  }
 }
 
 /* ── Toegankelijkheid: verminder beweging ── */

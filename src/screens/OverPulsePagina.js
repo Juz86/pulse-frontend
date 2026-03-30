@@ -136,17 +136,17 @@ export default function OverPulsePagina({ onParentClick }) {
 
   const problemCards = [
     {
-      icon: <Bell size={22} />,
+      icon: <EyeOn size={22} />,
       title: 'Gemaakt voor verslaving',
       text: 'Populaire apps zijn ontworpen om zoveel mogelijk tijd te stelen. Oneindige feeds, notificaties, foto\'s en gif\'s — gebouwd op gedragspatronen die zelfs voor volwassenen uitdagend zijn.',
     },
     {
-      icon: <EyeOn size={22} />,
+      icon: <Bell size={22} />,
       title: 'Kinderen zijn het product',
       text: 'Bij gratis apps betaal je met data. Elk bericht, elke interactie wordt gevolgd en verwerkt. Voor kinderen is dat niet alleen onwenselijk — het is ook niet AVG-proof.',
     },
     {
-      icon: <Shield size={22} />,
+      icon: <Users size={22} />,
       title: 'Ouders staan buitenspel',
       text: 'De meeste apps bieden ouders weinig tot geen inzicht in wat er gebeurt. Wie stuurt wie een bericht? Met wie chat mijn kind? Pulse geeft ouders het overzicht terug.',
     },

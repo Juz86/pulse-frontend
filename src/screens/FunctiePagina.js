@@ -793,7 +793,7 @@ export default function FunctiePagina({ onParentClick }) {
       tabIcon: <Phone size={16} />,
       headerIcon: <Phone size={16} />,
       items: [
-        { icon: <Phone size={18} />, title: 'HD Spraakoproepen', desc: 'Helder geluid via WebRTC' },
+        { icon: <Phone size={18} />, title: 'HD Spraakoproepen', desc: 'Helder geluid' },
         { icon: <PhoneCall size={18} />, title: 'Belgeschiedenis', desc: 'Overzicht in chat & logboek' },
         { icon: <PhoneMissed size={18} />, title: 'Gemiste oproepen melding', desc: 'Badge & notificatie' },
         { icon: <Bell size={18} />, title: 'Push notificaties', desc: 'Ook als app op achtergrond' },
@@ -807,12 +807,12 @@ export default function FunctiePagina({ onParentClick }) {
       tabIcon: <Video size={16} />,
       headerIcon: <Video size={16} />,
       items: [
-        { icon: <Video size={18} />, title: 'HD Videogesprekken', desc: 'Scherp beeld via WebRTC' },
+        { icon: <Video size={18} />, title: 'HD Videogesprekken', desc: 'Scherp beeld' },
         { icon: <VideoOff size={18} />, title: 'Camera aan/uit', desc: 'Jij bepaalt wat zichtbaar is' },
         { icon: <Phone size={18} />, title: 'Spraak → Video upgrade', desc: 'Wissel tijdens gesprek' },
         { icon: <Message size={18} />, title: 'Gesprek minimaliseren', desc: 'Overlay terwijl je chat' },
         { icon: <Bell size={18} />, title: 'Beltoon inkomend gesprek', desc: 'Nooit een oproep missen' },
-        { icon: <CheckDouble size={18} />, title: 'WebRTC versleuteld', desc: 'Beveiligde verbinding' },
+        { icon: <Shield size={18} />, title: 'Privacy & versleuteld', desc: 'Beveiligde verbinding' },
       ],
     },
   ];

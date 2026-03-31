@@ -73,6 +73,11 @@
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 button, a, [role="button"] { touch-action:manipulation; }
 
+:focus-visible {
+  outline: 3px solid rgba(108, 99, 255, 0.45);
+  outline-offset: 3px;
+}
+
 body {
   font-family: var(--font-primary);
   background:var(--bg);
@@ -317,10 +322,15 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   transition: opacity 0.2s ease;
 }
 .auth-modal-overlay--visible { opacity: 1; }
+.auth-modal-dialog {
+  width: 100%;
+  max-width: 420px;
+}
 
 
 @media (max-width: 480px) {
   .auth-modal-overlay { align-items: stretch; padding: 0; }
+  .auth-modal-dialog { max-width: none; }
 }
 
 .parent-auth-modal-card {

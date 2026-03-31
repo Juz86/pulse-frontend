@@ -4,6 +4,55 @@ export function getInitials(name = '') {
   return (name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 
+export function safeJsonParse(value, fallback) {
+  if (typeof value !== 'string' || !value.trim()) return fallback;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+}
+
+export function createSvgDataUrl(svg) {
+  if (!svg) return '';
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+export function normalizeUsername(value = '') {
+  return value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+}
+
+export function normalizeEmail(value = '') {
+  return value.trim().toLowerCase();
+}
+
+export function sanitizeDisplayName(value = '', maxLength = 80) {
+  return value.replace(/\s+/g, ' ').trim().slice(0, maxLength);
+}
+
+export function isValidEmail(value = '') {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(value));
+}
+
+export function getSafeInternalPath(path, fallback = '/') {
+  if (typeof path !== 'string' || !path.startsWith('/')) return fallback;
+  if (path.startsWith('//')) return fallback;
+  return path;
+}
+
+export function getScrollBehavior() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+}
+
+export function scheduleIdleTask(callback, timeout = 1500) {
+  if (typeof window.requestIdleCallback === 'function') {
+    const id = window.requestIdleCallback(callback, { timeout });
+    return () => window.cancelIdleCallback(id);
+  }
+  const id = window.setTimeout(callback, timeout);
+  return () => window.clearTimeout(id);
+}
+
 /** Converteert een Firestore Timestamp ({_seconds}) of ISO-string naar milliseconden */
 export function toMs(v) {
   if (!v) return 0;

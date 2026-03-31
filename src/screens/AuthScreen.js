@@ -6,6 +6,9 @@ import { User, Lock, EyeOn, EyeOff, Shield, PhoneIcon, Wifi, Heart, Users } from
 import PulseLogo from '../components/PulseLogo';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import ParentAuthScreen from './ParentAuthScreen';
+import { normalizeUsername } from '../utils';
+
+const LOGIN_LOOKUP_TIMEOUT_MS = 10000;
 
 export default function AuthScreen({ isModal, inModal, onClose }) {
   const [username,     setUsername]     = useState('');
@@ -21,17 +24,30 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
     setLoading(true);
     try {
       const input = username.trim();
+      if (!input || !password.trim()) {
+        throw new Error('Vul uw gebruikersnaam en wachtwoord in.');
+      }
+
       let email = input;
 
       // Als het geen e-mailadres is: zoek intern e-mailadres op via gebruikersnaam
       if (!input.includes('@')) {
-        const res = await fetch(`${BACKEND}/api/users/lookup-username?username=${encodeURIComponent(input)}`);
+        const cleanUsername = normalizeUsername(input);
+        if (cleanUsername.length < 3) {
+          throw new Error('Gebruikersnaam moet minimaal 3 tekens hebben.');
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), LOGIN_LOOKUP_TIMEOUT_MS);
+        const res = await fetch(`${BACKEND}/api/users/lookup-username?username=${encodeURIComponent(cleanUsername)}`, {
+          signal: controller.signal,
+        }).finally(() => clearTimeout(timeoutId));
         const data = await res.json();
         if (!res.ok) throw new Error('Gebruikersnaam of wachtwoord klopt niet.');
         email = data.email;
       }
 
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
     } catch (err) {
       const msg = {
         'auth/user-not-found':     'Gebruikersnaam of wachtwoord klopt niet.',
@@ -39,7 +55,9 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
         'auth/invalid-credential': 'Gebruikersnaam of wachtwoord klopt niet.',
         'auth/invalid-email':      'Gebruikersnaam of wachtwoord klopt niet.',
         'auth/too-many-requests':  'Te veel pogingen. Probeer het later opnieuw.',
-      }[err.code] || err.message;
+      }[err.code] || (err.name === 'AbortError'
+        ? 'De inlogcontrole duurt te lang. Probeer het opnieuw.'
+        : err.message);
       setError(msg);
     } finally {
       setLoading(false);
@@ -62,7 +80,7 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
               type="text"
               placeholder="jouw_naam"
               value={username}
-              onChange={e => setUsername(e.target.value)}
+              onChange={e => setUsername(e.target.value.slice(0, 80))}
               autoCapitalize="none"
               autoCorrect="off"
               autoComplete="username"
@@ -128,6 +146,9 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
 
       <p className="auth-no-account">
         Geen account? Vraag je ouder om een account voor je aan te maken.
+      </p>
+      <p className="auth-no-account" style={{ marginTop: 8 }}>
+        Pulse vraagt nooit om een telefoonnummer of openbare profielgegevens.
       </p>
 
       <ul className="auth-features" aria-label="Belangrijkste voordelen">

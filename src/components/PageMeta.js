@@ -7,6 +7,14 @@ const DEFAULT_META = {
   image: 'https://pulse-frontend-elt.pages.dev/logo512.png',
 };
 
+function resolveCanonical(url) {
+  try {
+    return new URL(url || DEFAULT_META.canonical, DEFAULT_META.canonical).toString();
+  } catch {
+    return DEFAULT_META.canonical;
+  }
+}
+
 function upsertMeta(selector, attributes) {
   let element = document.head.querySelector(selector);
   if (!element) {
@@ -25,17 +33,20 @@ export default function PageMeta({ title, description, canonical, image }) {
       ...DEFAULT_META,
       title,
       description,
-      canonical,
+      canonical: resolveCanonical(canonical),
       image,
     };
 
     document.title = next.title;
 
     upsertMeta('meta[name="description"]', { name: 'description', content: next.description });
+    upsertMeta('meta[name="robots"]', { name: 'robots', content: 'index, follow' });
     upsertMeta('meta[property="og:title"]', { property: 'og:title', content: next.title });
+    upsertMeta('meta[property="og:type"]', { property: 'og:type', content: 'website' });
     upsertMeta('meta[property="og:description"]', { property: 'og:description', content: next.description });
     upsertMeta('meta[property="og:url"]', { property: 'og:url', content: next.canonical });
     upsertMeta('meta[property="og:image"]', { property: 'og:image', content: next.image });
+    upsertMeta('meta[name="twitter:card"]', { name: 'twitter:card', content: 'summary' });
     upsertMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: next.title });
     upsertMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: next.description });
     upsertMeta('meta[name="twitter:image"]', { name: 'twitter:image', content: next.image });

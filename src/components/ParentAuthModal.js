@@ -7,6 +7,7 @@ export default function ParentAuthModal({ onClose, defaultTab = 'register' }) {
   const [visible, setVisible] = useState(false);
   const closeButtonRef = useRef(null);
   const previousFocusRef = useRef(null);
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setVisible(true));
@@ -33,7 +34,35 @@ export default function ParentAuthModal({ onClose, defaultTab = 'register' }) {
   }, [onClose]);
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') handleClose(); };
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        handleClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+
+      const focusable = dialogRef.current.querySelectorAll(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (!focusable.length) {
+        e.preventDefault();
+        dialogRef.current.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [handleClose]);
@@ -54,6 +83,8 @@ export default function ParentAuthModal({ onClose, defaultTab = 'register' }) {
         aria-modal="true"
         aria-labelledby="parent-auth-modal-title"
         aria-describedby="parent-auth-modal-description"
+        ref={dialogRef}
+        tabIndex={-1}
       >
         <button ref={closeButtonRef} type="button" className="modal-close-btn modal-close-btn--light" onClick={handleClose} aria-label="Sluit ouderaccountvenster">
           <span aria-hidden="true">✕</span>

@@ -1,6 +1,7 @@
 // src/components/DecorativeAvatars.js
 import { createAvatar } from '@dicebear/core';
 import { adventurer } from '@dicebear/collection';
+import SafeSvgImage from './SafeSvgImage';
 
 function makeAvatar(options) {
   return createAvatar(adventurer, {
@@ -116,10 +117,12 @@ export const avatarSvgs = {
 
 export default function DecorativeAvatar({ svg, className = '' }) {
   return (
-    <div
+    <SafeSvgImage
+      svg={svg}
+      alt=""
       className={`fp-deco-avatar ${className}`.trim()}
       aria-hidden="true"
-      dangerouslySetInnerHTML={{ __html: svg }}
+      focusable="false"
     />
   );
 }

@@ -7,6 +7,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db, storage } from '../firebase';
 import { updateProfile as fbUpdateProfile } from 'firebase/auth';
 import { auth } from '../firebase';
+import SafeSvgImage from './SafeSvgImage';
 
 // ── Option definitions ─────────────────────────────────────────────────────
 const HAIR_SHORT = Array.from({length:19}, (_,i) => [`short${String(i+1).padStart(2,'0')}`, `Kort ${i+1}`]);
@@ -164,8 +165,9 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
 
         {/* Preview */}
         <div style={{ display:'flex', justifyContent:'center', padding:'20px 20px 12px', flexShrink:0 }}>
-          <div style={{ width:100, height:100, borderRadius:'50%', overflow:'hidden', border:`3px solid ${accent}`, background:surface }}
-            dangerouslySetInnerHTML={{ __html: svgString }} />
+          <div style={{ width:100, height:100, borderRadius:'50%', overflow:'hidden', border:`3px solid ${accent}`, background:surface }}>
+            <SafeSvgImage svg={svgString} alt="" aria-hidden="true" size={100} />
+          </div>
         </div>
 
         {/* Category tabs */}

@@ -1,9 +1,10 @@
 // src/screens/ParentAuthScreen.js
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import PulseLogo from '../components/PulseLogo';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '../firebase';
 import { BACKEND_URL as BACKEND } from '../services/socket';
+import { isValidEmail, normalizeEmail, sanitizeDisplayName } from '../utils';
 
 const API_BASE = (BACKEND || '').replace(/\/+$/, '');
 
@@ -74,18 +75,30 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
     ? 'parent-verify-instructions parent-verify-error'
     : 'parent-verify-instructions';
 
+  useEffect(() => {
+    if (step === 'verify') codeInputRefs.current[0]?.focus();
+  }, [step]);
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
+      const cleanEmail = normalizeEmail(email);
+      const cleanName = sanitizeDisplayName(name);
+
+      if (!isValidEmail(cleanEmail)) throw new Error('Vul een geldig e-mailadres in.');
+      if (password.trim().length < 6) throw new Error('Wachtwoord moet minimaal 6 tekens zijn.');
+
       if (tab === 'register') {
-        if (!name.trim()) throw new Error('Vul uw naam in.');
+        if (cleanName.length < 2) throw new Error('Vul uw naam in.');
         // Stuur verificatiecode, maak account nog NIET aan
-        await postJson('/api/send-code', { email });
+        await postJson('/api/send-code', { email: cleanEmail });
+        setName(cleanName);
+        setEmail(cleanEmail);
         setStep('verify');
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(auth, cleanEmail, password);
       }
     } catch (err) {
       const msg = {
@@ -134,15 +147,17 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
     setVerifyLoading(true);
     try {
       // Verifieer code bij backend
-      await postJson('/api/verify-code', { email, code });
+      await postJson('/api/verify-code', { email: normalizeEmail(email), code });
 
       // Code klopt → maak account aan
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(cred.user, { displayName: name.trim() });
+      const cleanName = sanitizeDisplayName(name);
+      const cleanEmail = normalizeEmail(email);
+      const cred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+      await updateProfile(cred.user, { displayName: cleanName });
       const idToken = await cred.user.getIdToken();
       await postJson(
         '/api/users',
-        { uid: cred.user.uid, displayName: name.trim(), email, photoURL: '', role: 'parent' },
+        { uid: cred.user.uid, displayName: cleanName, email: cleanEmail, photoURL: '', role: 'parent' },
         { headers: { Authorization: `Bearer ${idToken}` } }
       );
       // App.js pikt de auth state change automatisch op
@@ -162,7 +177,7 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
     setResendLoading(true);
     setResendMsg('');
     try {
-      await postJson('/api/send-code', { email });
+      await postJson('/api/send-code', { email: normalizeEmail(email) });
       setResendCount(c => c + 1);
       setVerifyCode(['', '', '', '', '', '']);
       setResendMsg('Nieuwe code verstuurd.');
@@ -366,7 +381,7 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
                 type="text"
                 placeholder="Jan de Vries"
                 value={name}
-                onChange={e => setName(e.target.value)}
+                onChange={e => setName(e.target.value.slice(0, 80))}
                 autoComplete="name"
                 enterKeyHint="next"
                 aria-describedby={error ? 'parent-auth-error' : undefined}
@@ -386,7 +401,7 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
               type="email"
               placeholder="ouder@voorbeeld.nl"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value.slice(0, 120))}
               autoCapitalize="none"
               autoCorrect="off"
               autoComplete="email"

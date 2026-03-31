@@ -8,6 +8,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket';
 import './App.css';
 import PulseLogo from './components/PulseLogo';
+import { getSafeInternalPath, scheduleIdleTask } from './utils';
 
 const Homepage           = lazy(() => import('./screens/Homepage'));
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
@@ -25,11 +26,27 @@ const ElektronischeCommunicatieBeleidPagina = lazy(() => import('./screens/Elekt
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 
 const BACKEND = BACKEND_URL;
-
-// Backend alvast wakker maken
-fetch(`${BACKEND}/`).catch(e => { console.warn('[Pulse] Backend fout:', e.message); });
+const ROUTE_PARENT_REFERRERS = {
+  '/functies': '/functies',
+  '/ouderlijk-toezicht': '/ouderlijk-toezicht',
+  '/hoe-werkt-het': '/hoe-werkt-het',
+  '/over-pulse': '/over-pulse',
+};
+const splashFallback = (
+  <div className="splash">
+    <div className="splash-logo"><PulseLogo size={40} textSize={28} /></div>
+    <div className="splash-spinner" />
+  </div>
+);
 
 export default function App() {
+  const pathname = window.location.pathname;
+  const goToHomepageForParentAuth = (tab = 'login', referrer = pathname) => {
+    if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab);
+    localStorage.setItem('pulse_parent_referrer', getSafeInternalPath(referrer));
+    window.location.assign('/');
+  };
+
   // Wachtwoord reset via Firebase link
   const urlParams = new URLSearchParams(window.location.search);
   const oobCode   = urlParams.get('oobCode');
@@ -39,55 +56,54 @@ export default function App() {
   }
 
   // /functies route
-  if (window.location.pathname === '/functies') {
+  if (pathname === '/functies') {
     return (
-      <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <FunctiePagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/functies'); window.location.href = '/'; }} />
+      <Suspense fallback={splashFallback}>
+        <FunctiePagina onParentClick={(tab = 'login') => goToHomepageForParentAuth(tab, ROUTE_PARENT_REFERRERS['/functies'])} />
       </Suspense>
     );
   }
 
-  if (window.location.pathname === '/ouderlijk-toezicht') {
+  if (pathname === '/ouderlijk-toezicht') {
     return (
-      <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <OuderlijkToezichtPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/ouderlijk-toezicht'); window.location.href = '/'; }} />
+      <Suspense fallback={splashFallback}>
+        <OuderlijkToezichtPagina onParentClick={(tab = 'login') => goToHomepageForParentAuth(tab, ROUTE_PARENT_REFERRERS['/ouderlijk-toezicht'])} />
       </Suspense>
     );
   }
 
-  if (window.location.pathname === '/hoe-werkt-het') {
+  if (pathname === '/hoe-werkt-het') {
     return (
-      <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <HoeWerktHetPagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/hoe-werkt-het'); window.location.href = '/'; }} />
+      <Suspense fallback={splashFallback}>
+        <HoeWerktHetPagina onParentClick={(tab = 'login') => goToHomepageForParentAuth(tab, ROUTE_PARENT_REFERRERS['/hoe-werkt-het'])} />
       </Suspense>
     );
   }
 
-  if (window.location.pathname === '/over-pulse') {
+  if (pathname === '/over-pulse') {
     return (
-      <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
-        <OverPulsePagina onParentClick={(tab = 'login') => { if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab); localStorage.setItem('pulse_parent_referrer', '/over-pulse'); window.location.href = '/'; }} />
+      <Suspense fallback={splashFallback}>
+        <OverPulsePagina onParentClick={(tab = 'login') => goToHomepageForParentAuth(tab, ROUTE_PARENT_REFERRERS['/over-pulse'])} />
       </Suspense>
     );
   }
 
-  if (window.location.pathname === '/privacybeleid') {
+  if (pathname === '/privacybeleid') {
     return (
-      <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
+      <Suspense fallback={splashFallback}>
         <PrivacybeleidPagina />
       </Suspense>
     );
   }
 
-  if (window.location.pathname === '/avg-beleid-elektronische-communicatie') {
+  if (pathname === '/avg-beleid-elektronische-communicatie') {
     return (
-      <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
+      <Suspense fallback={splashFallback}>
         <ElektronischeCommunicatieBeleidPagina />
       </Suspense>
     );
   }
 
-  const wasLoggedIn = localStorage.getItem('pulse_user') === '1';
   const [user,         setUser]         = useState(auth.currentUser);
   const [loading,      setLoading]      = useState(!auth.currentUser);
   const [incomingCall,    setIncomingCall]    = useState(null);
@@ -113,7 +129,11 @@ export default function App() {
     localStorage.setItem('pulse_theme', lightMode ? 'light' : 'dark');
   }, [lightMode]);
 
-
+  useEffect(() => scheduleIdleTask(() => {
+    fetch(`${BACKEND}/`, { method: 'GET', keepalive: true }).catch((e) => {
+      console.warn('[Pulse] Backend fout:', e.message);
+    });
+  }), []);
 
   // Fix iOS Safari keyboard: sync visual viewport height to CSS variable
   // Service worker → deep-link naar gesprek via notificatie-tik (één keer registreren)
@@ -161,6 +181,7 @@ export default function App() {
         // Notificatie-toestemming + FCM token
         const registerFcmToken = async (authHdr) => {
           try {
+            if (!messaging || typeof Notification === 'undefined') return;
             if (Notification.permission !== 'granted' && Notification.permission !== 'default') return;
             const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
             if (permission !== 'granted' || !VAPID_KEY || !navigator.serviceWorker) return;
@@ -342,7 +363,7 @@ export default function App() {
     <div className="app-root">
       {!user
         ? showParentAuth
-          ? <ParentAuthScreen defaultTab={parentAuthDefaultTab} onBack={() => { if (parentAuthReferrer) { window.location.href = parentAuthReferrer; } else { setShowParentAuth(false); setParentAuthDefaultTab('login'); setParentAuthReferrer(null); } }} />
+          ? <ParentAuthScreen defaultTab={parentAuthDefaultTab} onBack={() => { if (parentAuthReferrer) { window.location.assign(getSafeInternalPath(parentAuthReferrer)); } else { setShowParentAuth(false); setParentAuthDefaultTab('login'); setParentAuthReferrer(null); } }} />
           : <Homepage onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
         : <>
             <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} />

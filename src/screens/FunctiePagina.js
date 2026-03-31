@@ -8,6 +8,7 @@ import MarketingFooter from '../components/MarketingFooter';
 import AuthModal from '../components/AuthModal';
 import ParentAuthModal from '../components/ParentAuthModal';
 import PageMeta from '../components/PageMeta';
+import SafeSvgImage from '../components/SafeSvgImage';
 import {
   Phone, Video, VideoOff, Mic,
   Message, Users, User, Search, Bell,
@@ -98,10 +99,12 @@ const decorativeAvatars = {
 
 function DecorativeAvatar({ svg, className = '' }) {
   return (
-    <div
+    <SafeSvgImage
+      svg={svg}
+      alt=""
       className={`fp-deco-avatar ${className}`.trim()}
       aria-hidden="true"
-      dangerouslySetInnerHTML={{ __html: svg }}
+      focusable="false"
     />
   );
 }
@@ -347,7 +350,9 @@ function BgMockup() {
     <PhoneMockup>
       <ChatHeader letter="S" name="Sara" online />
       <div style={{ flex: 1, background: 'linear-gradient(135deg,#4c1d95,#7c3aed)', borderRadius: 8, display: 'flex', flexDirection: 'column', padding: 8, gap: 6, margin: '4px 0', position: 'relative', overflow: 'hidden' }}>
-        <div
+        <SafeSvgImage
+          svg={bgAvatarSvg}
+          alt=""
           style={{
             position: 'absolute',
             right: 18,
@@ -355,7 +360,8 @@ function BgMockup() {
             opacity: 0.22,
             transform: 'scale(1.7)',
           }}
-          dangerouslySetInnerHTML={{ __html: bgAvatarSvg }}
+          aria-hidden="true"
+          focusable="false"
         />
         <div className="hp-mock-msg hp-mock-msg--in" style={{ background: 'rgba(255,255,255,0.18)' }}>Mooie achtergrond! 🎨</div>
         <div className="hp-mock-msg hp-mock-msg--out" style={{ background: 'rgba(108,99,255,0.7)' }}>Dankjewel 😊</div>

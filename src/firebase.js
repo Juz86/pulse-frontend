@@ -27,6 +27,14 @@ export const db        = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
 });
 export const storage   = getStorage(app);
-export const messaging = getMessaging(app);
+export const messaging = (() => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return null;
+  try {
+    return getMessaging(app);
+  } catch (error) {
+    console.warn('[Pulse] Messaging niet beschikbaar:', error.message);
+    return null;
+  }
+})();
 export { getToken, onMessage };
 export default app;

@@ -9,17 +9,21 @@ import './App.css';
 import App from './App';
 
 // ── Sentry (alleen in productie) ──────────────────────────────────────────────
-Sentry.init({
-  dsn: process.env.REACT_APP_SENTRY_DSN,
-  enabled: process.env.NODE_ENV === 'production',
-  environment: process.env.NODE_ENV,
-  tracesSampleRate: 0.2,
-  replaysOnErrorSampleRate: 0,
-});
+if (process.env.REACT_APP_SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.REACT_APP_SENTRY_DSN,
+    enabled: process.env.NODE_ENV === 'production',
+    environment: process.env.NODE_ENV,
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
+    replaysOnErrorSampleRate: 0,
+  });
+}
 
 // Onafgehandelde promise rejections doorsturen naar Sentry
 window.addEventListener('unhandledrejection', (event) => {
-  Sentry.captureException(event.reason);
+  if (process.env.REACT_APP_SENTRY_DSN) {
+    Sentry.captureException(event.reason);
+  }
 });
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -57,7 +61,7 @@ function AppCrashFallback() {
 }
 
 // Service worker registreren voor PWA
-if ('serviceWorker' in navigator) {
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(e => { console.warn('[Pulse] Fout:', e.message); });
   });

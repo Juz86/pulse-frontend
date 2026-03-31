@@ -16,7 +16,9 @@ import {
   Login,
   Message,
   Phone,
+  School,
   Shield,
+  User,
   Users,
   Video,
 } from '../components/Icons';
@@ -141,7 +143,7 @@ export default function OverPulsePagina({ onParentClick }) {
       text: 'Populaire apps zijn ontworpen om zoveel mogelijk tijd te stelen. Oneindige feeds, notificaties, foto\'s en gif\'s — gebouwd op gedragspatronen die zelfs voor volwassenen uitdagend zijn.',
     },
     {
-      icon: <Bell size={22} />,
+      icon: <User size={22} />,
       title: 'Kinderen zijn het product',
       text: 'Bij gratis apps betaal je met data. Elk bericht, elke interactie wordt gevolgd en verwerkt. Voor kinderen is dat niet alleen onwenselijk — het is ook niet AVG-proof.',
     },
@@ -177,12 +179,12 @@ export default function OverPulsePagina({ onParentClick }) {
       text: 'Pulse is gebouwd met veiligheid als startpunt, niet als nagedachte. Geen media-deling betekent: cyberpesten via foto\'s of gif\'s is structureel onmogelijk.',
     },
     {
-      icon: <Users size={22} />,
+      icon: <Lock size={22} />,
       title: 'Alleen vertrouwde contacten',
       text: 'Kinderen communiceren uitsluitend met mensen die door de ouder zijn goedgekeurd. Geen onbekenden, geen verzoeken van vreemden.',
     },
     {
-      icon: <Lock size={22} />,
+      icon: <Users size={22} />,
       title: 'Ouders in regie',
       text: 'Het ouderportaal geeft real-time inzicht. Chat, bellen of videobellen pauzeren per functie. Direct een melding bij nieuwe contacten.',
     },
@@ -211,7 +213,7 @@ export default function OverPulsePagina({ onParentClick }) {
       text: 'Ouders die hun kind veilig willen laten communiceren met familie en vrienden. Opa en oma, neven en nichten, vertrouwde vriendjes van school — altijd bereikbaar, nooit onveilig.',
     },
     {
-      icon: <Users size={22} />,
+      icon: <School size={22} />,
       title: 'Scholen',
       text: 'Basisscholen en middelbare scholen die zoeken naar een veilige communicatieoplossing voor leerlingen. Geen WhatsApp-groepen, geen uitsluiting, geen pesterij via media-deling.',
     },
@@ -436,7 +438,7 @@ export default function OverPulsePagina({ onParentClick }) {
 
       {/* ── CTA ── */}
       <section className="ot-final-cta">
-        <h2>Veilig verbonden.<br className="ot-final-cta-break" />Met wie echt telt.</h2>
+        <h2>Veilig verbonden. <br className="ot-final-cta-break" />Met wie echt telt.</h2>
         <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>

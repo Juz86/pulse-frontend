@@ -51,6 +51,7 @@ export { MdNotifications    as Bell }        from 'react-icons/md';
 export { MdNotificationsOff as BellOff }     from 'react-icons/md';
 export { MdForward          as Forward }     from 'react-icons/md';
 export { MdAdminPanelSettings as AdminIcon }   from 'react-icons/md';
+export { MdSchool             as School }      from 'react-icons/md';
 export { MdRefresh            as Refresh }     from 'react-icons/md';
 export { MdExpandMore         as ChevronDown } from 'react-icons/md';
 export { MdLabel              as Label }       from 'react-icons/md';

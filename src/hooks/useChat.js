@@ -303,7 +303,7 @@ export default function useChat({
       clearTimeout(disconnectTimerRef.current);
       clearInterval(reconnectIntervalRef.current);
     };
-  }, [socket, loadConversations, loadContacts]);
+  }, [socket]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   // ── Inactiviteitsdetectie ─────────────────────────────────────────────────

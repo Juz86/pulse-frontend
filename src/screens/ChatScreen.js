@@ -208,7 +208,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const conv = conversations.find(c => c.id === initialConvId);
     if (conv) { openConversation(conv); onConvIdHandled?.(); }
   }, [conversations, initialConvId, onConvIdHandled, openConversation]);
-  useEffect(() => { loadConversations(); loadContacts(); loadFriendRequests(); loadBlockedContacts(); }, [loadConversations, loadContacts, loadFriendRequests, loadBlockedContacts]);
+  useEffect(() => { loadConversations(); loadContacts(); loadFriendRequests(); loadBlockedContacts(); }, []);
   useEffect(() => {
     const handler = () => { loadContacts(); loadConversations(); };
     window.addEventListener('pulse:child-added', handler);

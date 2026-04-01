@@ -20,10 +20,10 @@ export default function useContacts({
   showErrToast,
   setConfirmDialog,
 }) {
-  async function authFetch(url, options = {}) {
+  const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
-  }
+  }, [user]);
 
   async function resolveIdentifierToEmail(identifier) {
     const clean = identifier.trim().toLowerCase();
@@ -162,7 +162,7 @@ export default function useContacts({
       setBlockedContacts(contacts);
       setParentBlockedUids(parentUids);
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-  }, [user.uid]);
+  }, [authFetch, user.uid]);
 
   const loadFriendRequests = useCallback(async () => {
     try {
@@ -170,7 +170,7 @@ export default function useContacts({
       const data = await res.json();
       setFriendRequests(Array.isArray(data) ? data : []);
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-  }, [user.uid]);
+  }, [authFetch, user.uid]);
 
   // ── Contact toevoegen ─────────────────────────────────────────────────────
   async function addContact() {

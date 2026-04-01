@@ -13,6 +13,7 @@ import useChat from '../hooks/useChat';
 import useCalling from '../hooks/useCalling';
 import useProfile from '../hooks/useProfile';
 import useContacts from '../hooks/useContacts';
+import { copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
@@ -25,7 +26,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [chatFilter,     setChatFilter]     = useState('all');
   const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [convLabels,     setConvLabels]     = useState(() => { try { return JSON.parse(localStorage.getItem(`pulse_labels_${user.uid}`) || '{}'); } catch { return {}; } });
-  const [labelMenuConvId, setLabelMenuConvId] = useState(null);
   const [showCallModal,  setShowCallModal]  = useState(false);
   const [callLogRead,    setCallLogRead]    = useState(false);
   const [showGroupInfo,  setShowGroupInfo]  = useState(false);
@@ -59,6 +59,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [jumpToMsgId,     setJumpToMsgId]     = useState(null);
   const [isOnline,        setIsOnline]        = useState(navigator.onLine);
   const jumpTimer = useRef(null);
+  const clearLabelMenu = () => {};
 
   function handleJumpToMsg(msgId) {
     clearTimeout(jumpTimer.current);
@@ -115,18 +116,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   function handleDeleteRequest(msg) {
     setDeleteConfirm({ msgId: msg.id, isOwn: msg.senderId === user.uid });
   }
-  function handleMsgInfo(msg) {
-    const time    = new Date(msg.createdAt).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-    const dateStr = new Date(msg.createdAt).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
-    const status  = msg.status === 'gelezen' ? 'Gelezen' : msg.status === 'bezorgd' ? 'Bezorgd' : 'Verstuurd';
-    showErrToast(`📋 ${status} · ${dateStr} ${time}${msg.editedAt ? ' · Bewerkt' : ''}`);
-  }
-
   const setConvLabel = (convId, label) => {
     const next = label ? { ...convLabels, [convId]: label } : Object.fromEntries(Object.entries(convLabels).filter(([k]) => k !== convId));
     setConvLabels(next);
     localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(next));
-    setLabelMenuConvId(null);
+    clearLabelMenu();
   };
 
   // ── Hooks ─────────────────────────────────────────────────────────────────
@@ -134,7 +128,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     conversations, setConversations, activeConv, setActiveConv,
     messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore,
     loadConversations, openConversation, deleteConversation, loadMoreMessages,
-    sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
+    sendMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     forwardToConv, deleteMessage,
     toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
   } = useConversations({
@@ -213,7 +207,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     if (!initialConvId || !conversations.length) return;
     const conv = conversations.find(c => c.id === initialConvId);
     if (conv) { openConversation(conv); onConvIdHandled?.(); }
-  }, [initialConvId, conversations.length]);
+  }, [conversations, initialConvId, onConvIdHandled, openConversation]);
   useEffect(() => { loadConversations(); loadContacts(); loadFriendRequests(); loadBlockedContacts(); }, [loadConversations, loadContacts, loadFriendRequests, loadBlockedContacts]);
   useEffect(() => {
     const handler = () => { loadContacts(); loadConversations(); };
@@ -264,7 +258,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     }
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [showAddContact, showNewChat, showNewGroup, showProfile, showCallModal, showGroupInfo]);
+  }, [setContactEmail, setSearchEmail, setShowAddContact, setShowNewChat, showAddContact, showCallModal, showGroupInfo, showNewChat, showNewGroup, showProfile]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function sendContactCard(toContact, sharedContact) {
@@ -321,7 +315,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         isParent={isParent} parentActivityBadge={parentActivityBadge}
         lightMode={lightMode} onToggleTheme={onToggleTheme}
         onOpenDashboard={onOpenDashboard}
-        setLabelMenuConvId={setLabelMenuConvId}
+        setLabelMenuConvId={clearLabelMenu}
         onNewChat={() => setShowNewChat(true)}
         onNewGroup={() => setShowNewGroup(true)}
         onShowCallModal={() => { setShowCallModal(true); setCallLogRead(true); onCallLogRead?.(); }}
@@ -544,7 +538,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           pinned={pinnedMsgs[activeConv?.id]?.id === contextMenu.msg.id}
           onClose={() => setContextMenu(null)}
           onReply={() => { setReplyTo({ id: contextMenu.msg.id, text: contextMenu.msg.text, senderName: contextMenu.msg.senderName }); textareaRef.current?.focus(); }}
-          onCopy={() => { navigator.clipboard.writeText(contextMenu.msg.text || '').then(() => showErrToast('📋 Bericht gekopieerd')).catch(e => { console.warn('[Pulse] Fout:', e.message); }); }}
+          onCopy={() => {
+            copyTextToClipboard(contextMenu.msg.text || '')
+              .then(() => showErrToast('📋 Bericht gekopieerd'))
+              .catch((e) => {
+                console.warn('[Pulse] Fout:', e.message);
+                showErrToast('Kopieren lukt niet in deze browser.');
+              });
+          }}
           onReact={emoji => toggleReaction(contextMenu.msg.id, emoji)}
           onForward={() => setForwardMsg({ text: contextMenu.msg.text })}
           onPin={() => handlePin(contextMenu.msg)}

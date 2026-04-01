@@ -2,6 +2,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { getSocket } from '../services/socket';
 
+const PRIVATE_NOTIFICATION_BODY = 'Open Pulse om het bericht veilig te bekijken.';
+const PRIVATE_REQUEST_NOTIFICATION_BODY = 'Open Pulse om de uitnodiging te bekijken.';
+
 export default function useChat({
   user,
   activeConvRef,
@@ -58,6 +61,9 @@ export default function useChat({
   }
 
   // ── Socket events ─────────────────────────────────────────────────────────
+  /* eslint-disable react-hooks/exhaustive-deps */
+  // This socket wiring is intentionally attached to the live socket lifecycle.
+  // The referenced setters/refs are stable inputs from React and parent hooks.
   useEffect(() => {
     if (!socket) return;
 
@@ -116,7 +122,10 @@ export default function useChat({
       } else if (msg.senderId !== user.uid) {
         setUnreadCounts(prev => ({ ...prev, [msg.convId]: (prev[msg.convId] || 0) + 1 }));
         if (Notification.permission === 'granted' && document.hidden) {
-          new Notification(msg.senderName || 'Nieuw bericht', { body: msg.text, icon: '/logo192.png' });
+          new Notification('Nieuw bericht in Pulse', {
+            body: PRIVATE_NOTIFICATION_BODY,
+            icon: '/logo192.png',
+          });
         }
         playMessageSound();
       }
@@ -183,7 +192,10 @@ export default function useChat({
         });
       } catch (e) { console.warn('[Pulse] Fout:', e.message); }
       if (Notification.permission === 'granted') {
-        new Notification('Nieuwe uitnodiging', { body: `${req.fromName} wil je toevoegen`, icon: '/logo192.png' });
+        new Notification('Nieuwe uitnodiging in Pulse', {
+          body: PRIVATE_REQUEST_NOTIFICATION_BODY,
+          icon: '/logo192.png',
+        });
       }
     };
 
@@ -292,6 +304,7 @@ export default function useChat({
       clearInterval(reconnectIntervalRef.current);
     };
   }, [socket, loadConversations, loadContacts]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   // ── Inactiviteitsdetectie ─────────────────────────────────────────────────
   useEffect(() => {

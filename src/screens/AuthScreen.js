@@ -1,14 +1,14 @@
 // src/screens/AuthScreen.js
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { User, Lock, EyeOn, EyeOff, Shield, PhoneIcon, Wifi, Heart, Users } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { BACKEND_URL as BACKEND } from '../services/socket';
-import ParentAuthScreen from './ParentAuthScreen';
 import { normalizeUsername } from '../utils';
 
 const LOGIN_LOOKUP_TIMEOUT_MS = 10000;
+const ParentAuthScreen = lazy(() => import('./ParentAuthScreen'));
 
 export default function AuthScreen({ isModal, inModal, onClose }) {
   const [username,     setUsername]     = useState('');
@@ -216,7 +216,9 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
               </button>
             )}
           </div>
-          <ParentAuthScreen isModal defaultTab="login" />
+          <Suspense fallback={<div className="auth-sub" style={{ marginBottom: 0 }}>Ouderportaal laden…</div>}>
+            <ParentAuthScreen isModal defaultTab="login" />
+          </Suspense>
         </div>
 
       </div>

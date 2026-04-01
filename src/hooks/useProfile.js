@@ -5,6 +5,7 @@ import { auth, db, storage } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getSocket, BACKEND_URL } from '../services/socket';
+import { clearPulseUserStorage } from '../utils';
 
 export default function useProfile({ user, activeConv, setActiveConv, setConversations, showErrToast, setConfirmDialog }) {
   const socket = getSocket();
@@ -81,24 +82,6 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
     const u8arr = new Uint8Array(bstr.length);
     for (let i = 0; i < bstr.length; i++) u8arr[i] = bstr.charCodeAt(i);
     return new Blob([u8arr], { type: mime });
-  }
-
-  function resizeBgImage(file, maxWidth = 1920) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        const scale  = Math.min(1, maxWidth / img.width);
-        const canvas = document.createElement('canvas');
-        canvas.width  = Math.round(img.width  * scale);
-        canvas.height = Math.round(img.height * scale);
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(url);
-        resolve(canvas.toDataURL('image/jpeg', 0.75));
-      };
-      img.onerror = reject;
-      img.src = url;
-    });
   }
 
   function resizeImageToBase64(file, size = 200) {
@@ -270,8 +253,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
       onConfirm: async () => {
         try {
           await authFetch(`${BACKEND_URL}/api/account/${user.uid}`, { method: 'DELETE' });
-          localStorage.removeItem(`pulse_photo_${user.uid}`);
-          localStorage.removeItem(`pulse_calls_${user.uid}`);
+          clearPulseUserStorage(user.uid);
           await signOut(auth);
         } catch (err) { showErrToast('Verwijderen mislukt: ' + err.message); }
       },

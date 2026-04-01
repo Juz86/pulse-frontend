@@ -1,5 +1,5 @@
 // src/screens/FunctiePagina.js
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createAvatar } from '@dicebear/core';
 import { adventurer } from '@dicebear/collection';
 import PulseLogo from '../components/PulseLogo';
@@ -12,10 +12,10 @@ import SafeSvgImage from '../components/SafeSvgImage';
 import {
   Phone, Video, VideoOff, Mic,
   Message, Users, User, Search, Bell,
-  Pin, StarFilled, CheckDouble, Check,
+  Pin, StarFilled, CheckDouble, Shield,
   Forward, Reply, ImageIcon, Palette,
-  Refresh, Clock, Wifi, Logout, Login,
-  Lightbulb, Delete, PhoneCall, PhoneMissed, PhoneEnd,
+  Clock, Wifi, Logout, Login,
+  Lightbulb, PhoneCall, PhoneMissed, PhoneEnd,
 } from '../components/Icons';
 import { MdAlternateEmail, MdSend, MdSmartphone } from 'react-icons/md';
 
@@ -255,35 +255,6 @@ function SidebarMockup() {
         </div>
         <div className="fp-footer-icon-btn"><Lightbulb size={12} color="rgba(255,255,255,0.6)" /></div>
         <div className="fp-footer-icon-btn"><Logout size={12} color="rgba(255,255,255,0.6)" /></div>
-      </div>
-    </PhoneMockup>
-  );
-}
-
-// ── Mockup 2: Chat berichten ─────────────────────────────────────────────────
-function ChatMockup() {
-  return (
-    <PhoneMockup>
-      <ChatHeader letter="S" name="Sara" online />
-      <div className="hp-mock-msgs">
-        <div className="hp-mock-msg hp-mock-msg--in">Hoi! Alles goed? 👋</div>
-        <div className="hp-mock-msg hp-mock-msg--out" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          Ja super! Jij?
-          <CheckDouble size={11} color="#60a5fa" />
-        </div>
-        <div className="hp-mock-msg hp-mock-msg--in">Heel goed 😊</div>
-        <div className="hp-mock-msg hp-mock-msg--out">
-          <div style={{ fontSize: 9, color: 'rgba(167,139,250,0.8)', borderLeft: '2px solid #7c3aed', paddingLeft: 5, marginBottom: 3 }}>Heel goed 😊</div>
-          Fijn! 🎉
-          <CheckDouble size={11} color="#60a5fa" style={{ marginLeft: 4 }} />
-        </div>
-      </div>
-      <div className="hp-mock-inputbar" style={{ gap: 6 }}>
-        <Mic size={12} color="rgba(255,255,255,0.4)" />
-        <span style={{ flex: 1 }}>Bericht…</span>
-        <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <MdSend size={11} color="#fff" />
-        </div>
       </div>
     </PhoneMockup>
   );
@@ -583,12 +554,6 @@ export default function FunctiePagina({ onParentClick }) {
   }, [callVideoSlide]);
 
   useEffect(() => {
-    if (gridTabInitial.current) { gridTabInitial.current = false; return; }
-    const activeIndex = featureGridGroups.findIndex((group) => group.key === activeGridTab);
-    scrollTabRowToActive(gridTabRefs.current[activeIndex]);
-  }, [activeGridTab]);
-
-  useEffect(() => {
     const h = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
@@ -773,7 +738,7 @@ export default function FunctiePagina({ onParentClick }) {
 
   const currentCallVideoSlide = callVideoSlides[callVideoSlide];
 
-  const featureGridGroups = [
+  const featureGridGroups = useMemo(() => [
     {
       key: 'chatten',
       label: 'Chatten',
@@ -815,7 +780,13 @@ export default function FunctiePagina({ onParentClick }) {
         { icon: <Shield size={18} />, title: 'Privacy & versleuteld', desc: 'Beveiligde verbinding' },
       ],
     },
-  ];
+  ], []);
+
+  useEffect(() => {
+    if (gridTabInitial.current) { gridTabInitial.current = false; return; }
+    const activeIndex = featureGridGroups.findIndex((group) => group.key === activeGridTab);
+    scrollTabRowToActive(gridTabRefs.current[activeIndex]);
+  }, [activeGridTab, featureGridGroups]);
 
   const activeFeatureGroup = featureGridGroups.find((group) => group.key === activeGridTab) || featureGridGroups[0];
   const activeFeatureItems = expandedGridTabs[activeFeatureGroup.key]
@@ -1115,7 +1086,7 @@ export default function FunctiePagina({ onParentClick }) {
 
       {/* ── CTA ── */}
       <section className="ot-final-cta">
-        <h2>Veilig verbonden. <br className="ot-final-cta-break" />Met wie echt telt.</h2>
+        <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
         <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>

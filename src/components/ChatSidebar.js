@@ -6,7 +6,7 @@ import { Phone, Video, Delete, Search, Message, Users, Moon, Lightbulb, Bell, Be
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
-import { getInitials } from '../utils';
+import { clearPulseUserStorage, getInitials } from '../utils';
 
 export default function ChatSidebar({
   user,
@@ -74,6 +74,11 @@ export default function ChatSidebar({
   const [convMenu, setConvMenu]       = useState(null); // { conv, otherUid, direction, top, left }
   const closeMenuTimerRef = useRef(null);
   const hasMissedCall = (!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert;
+
+  async function handleLogout() {
+    clearPulseUserStorage(user.uid);
+    await signOut(auth);
+  }
 
   function openContactMenu(contactUid, anchorEl) {
     if (closeMenuTimerRef.current) {
@@ -462,7 +467,7 @@ export default function ChatSidebar({
         <button type="button" className="icon-btn" aria-label={lightMode ? 'Schakel naar donker thema' : 'Schakel naar licht thema'} onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>
           {lightMode ? <Moon size={18} aria-hidden="true" /> : <Lightbulb size={18} aria-hidden="true" />}
         </button>
-        <button type="button" className="icon-btn danger" aria-label="Uitloggen" onClick={() => signOut(auth)} title="Uitloggen"><Logout size={18} aria-hidden="true" /></button>
+        <button type="button" className="icon-btn danger" aria-label="Uitloggen" onClick={() => { handleLogout().catch(() => {}); }} title="Uitloggen"><Logout size={18} aria-hidden="true" /></button>
       </div>
     </aside>
   );

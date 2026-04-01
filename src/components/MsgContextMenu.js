@@ -2,7 +2,7 @@
 import React from 'react';
 import {
   Reply, Copy, Share, Pin, StarFilled, StarOutline,
-  MagicEdit, Delete, Refresh, ErrorIcon,
+  MagicEdit, Delete, Refresh,
 } from './Icons';
 
 export default function MsgContextMenu({

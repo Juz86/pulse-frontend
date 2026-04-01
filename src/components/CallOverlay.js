@@ -40,6 +40,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         },
         onEnd: () => { cleanup(); onClose?.(true); },
         onVideoUpgradeRequest: () => setVideoUpgradeRequest(true),
+        onConnectionFallback: (message) => setCallMsg(message),
       });
       localStreamRef.current = localStream;
       if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
@@ -137,7 +138,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
       cleanup();
       closeTimeoutRef.current = setTimeout(() => onClose?.(), 3000);
     }
-  }, [active]);
+  }, [active, callState, onClose]);
 
   // ── Beltoon bij inkomend gesprek ─────────────────────────────────────────
   useEffect(() => {

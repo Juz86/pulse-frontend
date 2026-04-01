@@ -25,10 +25,10 @@ export default function useConversations({
   showErrToast, setConfirmDialog,
   msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
 }) {
-  async function authFetch(url, options = {}) {
+  const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
-  }
+  }, [user]);
 
   const pendingTempIds = useRef(new Set());
 
@@ -42,8 +42,8 @@ export default function useConversations({
   const [msgOffset,      setMsgOffset]      = useState(0);
 
   // Sync refs owned by ChatScreen
-  useEffect(() => { activeConvRef.current = activeConv; }, [activeConv]);
-  useEffect(() => { conversationsRef.current = conversations; }, [conversations]);
+  useEffect(() => { activeConvRef.current = activeConv; }, [activeConv, activeConvRef]);
+  useEffect(() => { conversationsRef.current = conversations; }, [conversations, conversationsRef]);
 
   // ── Gesprekken laden ──────────────────────────────────────────────────────
   const loadConversations = useCallback(async () => {
@@ -70,7 +70,7 @@ export default function useConversations({
       }
     } catch { showErrToast('Gesprekken laden mislukt'); }
     finally { setLoadingConvs(false); }
-  }, [user.uid]);
+  }, [authFetch, setConvLabels, showErrToast, user.uid]);
 
   // ── Gesprek openen ────────────────────────────────────────────────────────
   async function openConversation(conv) {

@@ -13,9 +13,9 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const { title, body, icon } = payload.notification || {};
-  self.registration.showNotification(title || 'Pulse', {
-    body:  body  || 'Nieuw bericht',
+  const { icon } = payload.notification || {};
+  self.registration.showNotification('Pulse', {
+    body: 'Open Pulse om het bericht veilig te bekijken.',
     icon:  icon  || '/logo192.png',
     badge: '/logo192.png',
     data:  payload.data,

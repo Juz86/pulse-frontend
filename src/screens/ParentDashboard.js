@@ -1,7 +1,7 @@
 // src/screens/ParentDashboard.js
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getInitials, timeAgo } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 
 export default function ParentDashboard({ user, onClose, parentActivityBadge = 0, onActivitiesViewed }) {
@@ -61,10 +61,10 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
   const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 
-  async function authFetch(url, options = {}) {
+  const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
     return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
-  }
+  }, [user]);
 
   async function checkUsernameAvailability(username, excludeUsername = null) {
     const clean = username.trim().toLowerCase();
@@ -94,7 +94,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       setContactsChildUid(prev => prev || (list[0]?.uid ?? null));
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
     setLoading(false);
-  }, [user]);
+  }, [authFetch]);
 
   const loadChildContacts = useCallback(async (childUid) => {
     if (!childUid) return;
@@ -106,7 +106,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       setChildContacts(Array.isArray(data) ? data : []);
     } catch (err) { setContactsError(err.message); setChildContacts([]); }
     setContactsLoading(false);
-  }, []);
+  }, [authFetch]);
 
   async function parentBlockContact(childUid, targetUid) {
     setContactActionUid(targetUid);
@@ -150,7 +150,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       const data = await res.json();
       setActivities(Array.isArray(data) ? data : []);
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-  }, [user]);
+  }, [authFetch]);
 
   const loadAnalytics = useCallback(async (childUid) => {
     if (!childUid) { setAnalytics(null); setSelectedChildUid(null); return; }
@@ -164,7 +164,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       setAnalytics(data);
     } catch (err) { setAnalyticsError(err.message); setAnalytics(null); }
     setAnalyticsLoading(false);
-  }, []);
+  }, [authFetch]);
 
   useEffect(() => { loadChildren(); loadActivities(); }, [loadChildren, loadActivities]);
 
@@ -484,7 +484,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                       const allPaused = pf.chat && pf.call && pf.video;
                       const chipBase = { display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:20, border:'none', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:'Inter,sans-serif' };
                       const chipPause  = { ...chipBase, background:'rgba(249,115,22,.15)', color:'#f97316' };
-                      const chipResume = { ...chipBase, background:'rgba(34,197,94,.15)',  color:'#16a34a' };
                       return (
                     <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
                       {/* Sleutel + Delete knoppen */}

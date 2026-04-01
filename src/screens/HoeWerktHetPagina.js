@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import ParentAuthModal from '../components/ParentAuthModal';
@@ -7,13 +7,10 @@ import DecorativeAvatar, { avatarSvgs } from '../components/DecorativeAvatars';
 import PulseLogo from '../components/PulseLogo';
 import PageMeta from '../components/PageMeta';
 import {
-  KeyRound,
   Login,
   Message,
   Phone,
   Search,
-  UserPlus,
-  Users,
   Video,
 } from '../components/Icons';
 
@@ -84,15 +81,6 @@ function BrowserMockup({ children, wide = false }) {
         <span />
       </div>
       <div className="hw-browser-body">{children}</div>
-    </div>
-  );
-}
-
-function PhoneMockup({ children }) {
-  return (
-    <div className="ot-phone hw-phone">
-      <div className="hp-phone-notch" />
-      <div className="hp-phone-screen fp-phone-screen hw-phone-screen">{children}</div>
     </div>
   );
 }
@@ -311,7 +299,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
     });
   };
 
-  const introSteps = [
+  const introSteps = useMemo(() => [
     {
       key: '1',
       step: '1',
@@ -333,9 +321,9 @@ export default function HoeWerktHetPagina({ onParentClick }) {
       text: 'Zodra het account actief is, zijn ouder en kind gekoppeld. Ouder en kind kunnen veilig chatten, bellen en videobellen.',
       mockup: <ConnectedMockup />,
     },
-  ];
+  ], []);
 
-  const contactSteps = [
+  const contactSteps = useMemo(() => [
     {
       key: '1',
       step: '1',
@@ -357,17 +345,17 @@ export default function HoeWerktHetPagina({ onParentClick }) {
       text: 'Zie je de juiste contactpersoon? Klik dan op ‘Verzoek sturen’.',
       mockup: <SearchContactMockup />,
     },
-  ];
+  ], []);
 
   useEffect(() => {
     const activeIndex = introSteps.findIndex((step) => step.key === activeIntroStep);
     scrollTabRowToActive(introStepTabRefs.current[activeIndex]);
-  }, [activeIntroStep]);
+  }, [activeIntroStep, introSteps]);
 
   useEffect(() => {
     const activeIndex = contactSteps.findIndex((step) => step.key === activeContactStep);
     scrollTabRowToActive(contactStepTabRefs.current[activeIndex]);
-  }, [activeContactStep]);
+  }, [activeContactStep, contactSteps]);
 
   const activeIntroStepData = introSteps.find((step) => step.key === activeIntroStep) || introSteps[0];
   const activeContactStepData = contactSteps.find((step) => step.key === activeContactStep) || contactSteps[0];
@@ -556,7 +544,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
       </section>
 
       <section className="ot-final-cta">
-        <h2>Veilig verbonden. <br className="ot-final-cta-break" />Met wie echt telt.</h2>
+        <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
         <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>

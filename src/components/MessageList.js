@@ -71,7 +71,7 @@ const MessageList = React.memo(function MessageList({
 
     return result;
   }, [messages, activeConv, currentUid, chatSearch, focusedMsgId,
-      onReact, onShowContextMenu, onRetry, onStartCall, onViewContact, jumpToMsgId]);
+      onReact, onShowContextMenu, onRetry, onStartCall, onViewContact]);
 
   const bgStyle = useMemo(() => {
     if (chatBg?.type === 'photo') return {

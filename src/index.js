@@ -1,12 +1,12 @@
-if (typeof window !== 'undefined' && !window.process) {
-  window.process = { env: {}, nextTick: (fn, ...args) => setTimeout(() => fn(...args), 0) };
-}
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import './App.css';
 import App from './App';
+
+if (typeof window !== 'undefined' && !window.process) {
+  window.process = { env: {}, nextTick: (fn, ...args) => setTimeout(() => fn(...args), 0) };
+}
 
 // ── Sentry (alleen in productie) ──────────────────────────────────────────────
 if (process.env.REACT_APP_SENTRY_DSN) {

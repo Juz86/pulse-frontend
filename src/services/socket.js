@@ -10,26 +10,37 @@ export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhos
 // ICE servers worden opgehaald van de backend (credentials nooit in de bundle)
 let _iceServers = null;
 let _iceServersExpiry = 0;
+const TURN_REQUEST_TIMEOUT_MS = 5000;
+const FALLBACK_ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  { urls: 'stun:global.stun.twilio.com:3478' },
+];
 
-async function getIceServers(authToken) {
+async function getIceServers(authToken, onFallback) {
   if (_iceServers && Date.now() < _iceServersExpiry) return _iceServers;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TURN_REQUEST_TIMEOUT_MS);
   try {
     const token = authToken || socket?.auth?.token;
     const res = await fetch(`${BACKEND_URL}/api/turn-credentials`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
+      signal: controller.signal,
     });
     if (res.ok) {
       const { iceServers } = await res.json();
+      if (!Array.isArray(iceServers) || iceServers.length === 0) {
+        throw new Error('Geen TURN-servers ontvangen');
+      }
       _iceServers = iceServers;
       _iceServersExpiry = Date.now() + 3600_000; // 1 uur cache
       return iceServers;
     }
   } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+  finally { clearTimeout(timeoutId); }
   // Fallback: alleen STUN als backend niet bereikbaar
-  return [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun.cloudflare.com:3478' },
-  ];
+  onFallback?.('Verbinding is beperkt. Bellen kan op mobiel netwerk minder stabiel zijn.');
+  return FALLBACK_ICE_SERVERS;
 }
 
 let socket            = null;
@@ -68,7 +79,7 @@ export function disconnectSocket() {
 }
 
 // ── WebRTC Bellen ─────────────────────────────────────────────────────────────
-export async function startCall({ toUid, fromUid, callerName, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest }) {
+export async function startCall({ toUid, fromUid, callerName, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest, onConnectionFallback }) {
   let stream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({
@@ -84,7 +95,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   }
 
   callPeer = toUid;
-  const iceServers = await getIceServers();
+  const iceServers = await getIceServers(undefined, onConnectionFallback);
 
   peer = new SimplePeer({
     initiator: true,
@@ -167,7 +178,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   return stream;
 }
 
-export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest }) {
+export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest, onConnectionFallback }) {
   let stream;
   try {
     stream = await navigator.mediaDevices.getUserMedia({
@@ -183,7 +194,7 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onV
   }
 
   callPeer = fromUid;
-  const iceServers = await getIceServers();
+  const iceServers = await getIceServers(undefined, onConnectionFallback);
 
   peer = new SimplePeer({
     initiator: false,

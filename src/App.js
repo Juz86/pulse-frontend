@@ -8,7 +8,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket';
 import './App.css';
 import PulseLogo from './components/PulseLogo';
-import { getSafeInternalPath, scheduleIdleTask } from './utils';
+import { clearPulseUserStorage, getSafeInternalPath, scheduleIdleTask } from './utils';
 
 const Homepage           = lazy(() => import('./screens/Homepage'));
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
@@ -104,6 +104,11 @@ export default function App() {
     );
   }
 
+  return <MainApp />;
+}
+
+function MainApp() {
+  const urlParams = new URLSearchParams(window.location.search);
   const [user,         setUser]         = useState(auth.currentUser);
   const [loading,      setLoading]      = useState(!auth.currentUser);
   const [incomingCall,    setIncomingCall]    = useState(null);
@@ -123,6 +128,7 @@ export default function App() {
   const toastTimerRef          = useRef(null);
   const fcmVisibilityRef       = useRef(null);
   const onlineVisibilityRef    = useRef(null);
+  const lastSignedInUidRef     = useRef(auth.currentUser?.uid || null);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', lightMode);
@@ -164,9 +170,13 @@ export default function App() {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       clearTimeout(loadingTimeout);
       if (firebaseUser) {
+        if (lastSignedInUidRef.current && lastSignedInUidRef.current !== firebaseUser.uid) {
+          clearPulseUserStorage(lastSignedInUidRef.current);
+        }
+        lastSignedInUidRef.current = firebaseUser.uid;
         localStorage.setItem('pulse_user', '1');
         setUser(firebaseUser);
-        Sentry.setUser({ id: firebaseUser.uid, email: firebaseUser.email });
+        Sentry.setUser({ id: firebaseUser.uid });
         // Controleer ouder-rol — localStorage flag heeft prioriteit over Firestore
         let role = 'user';
         try {
@@ -199,8 +209,7 @@ export default function App() {
             }
             const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
             if (!token) return;
-            let retries = 0;
-            while (retries < 3) {
+            for (let attempt = 1; attempt <= 3; attempt += 1) {
               try {
                 const res = await fetch(`${BACKEND}/api/fcm-token`, {
                   method: 'POST',
@@ -209,8 +218,7 @@ export default function App() {
                 });
                 if (res.ok) break;
               } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-              retries++;
-              await new Promise(r => setTimeout(r, 1000 * retries));
+              await new Promise(r => setTimeout(r, 1000 * attempt));
             }
           } catch (e) { console.warn('[Pulse] Fout:', e.message); }
         };
@@ -316,6 +324,8 @@ export default function App() {
           });
         });
       } else {
+        clearPulseUserStorage(lastSignedInUidRef.current);
+        lastSignedInUidRef.current = null;
         localStorage.removeItem('pulse_user');
         setUser(null);
         Sentry.setUser(null);

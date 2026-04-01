@@ -22,6 +22,7 @@ export default function useCalling({
   const callStartTimeRef = useRef(null);
   const callIsVideoRef   = useRef(false);
   const callConvIdRef    = useRef(null);
+  const fallbackNoticeShownRef = useRef(false);
 
   function logCall({ uid, name, photoURL, isVideo, direction }) {
     const key      = `pulse_calls_${user.uid}`;
@@ -102,6 +103,11 @@ export default function useCalling({
         },
         onVideoUpgradeRequest: () => {
           setActiveCall(prev => prev ? { ...prev, videoUpgradeRequest: true } : prev);
+        },
+        onConnectionFallback: (message) => {
+          if (fallbackNoticeShownRef.current) return;
+          fallbackNoticeShownRef.current = true;
+          showErrToast(message);
         },
       });
       if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });

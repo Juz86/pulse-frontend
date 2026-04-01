@@ -53,6 +53,64 @@ export function scheduleIdleTask(callback, timeout = 1500) {
   return () => window.clearTimeout(id);
 }
 
+export async function copyTextToClipboard(text) {
+  const value = `${text ?? ''}`;
+
+  if (navigator.clipboard?.writeText && window.isSecureContext) {
+    await navigator.clipboard.writeText(value);
+    return true;
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = value;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  textarea.style.pointerEvents = 'none';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  try {
+    const copied = document.execCommand('copy');
+    if (!copied) throw new Error('Kopieren mislukt');
+    return true;
+  } finally {
+    document.body.removeChild(textarea);
+  }
+}
+
+const USER_STORAGE_PREFIXES = [
+  'pulse_calls_',
+  'pulse_draft_',
+  'pulse_labels_',
+  'pulse_pending_',
+  'pulse_pending_labels_',
+  'pulse_photo_',
+  'pulse_pinned_',
+  'pulse_pinned_msgs_',
+  'pulse_starred_',
+];
+
+export function clearPulseUserStorage(uid) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid) return;
+
+  const keysToRemove = [];
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (!key) continue;
+
+    const isUserScoped = USER_STORAGE_PREFIXES.some((prefix) => key === `${prefix}${uid}` || key.startsWith(`${prefix}${uid}_`));
+    const isNicknameCache = key.startsWith('pulse_nick_');
+
+    if (isUserScoped || isNicknameCache) {
+      keysToRemove.push(key);
+    }
+  }
+
+  keysToRemove.forEach((key) => localStorage.removeItem(key));
+}
+
 /** Converteert een Firestore Timestamp ({_seconds}) of ISO-string naar milliseconden */
 export function toMs(v) {
   if (!v) return 0;

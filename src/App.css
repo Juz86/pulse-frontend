@@ -4564,7 +4564,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
     display: flex !important;
     flex-direction: column !important;
     align-items: stretch !important;
-    padding: 20px 20px 32px !important;
+    padding: 18px 20px 28px !important;
   }
   .hw-hero .ot-hero-visual {
     position: static;
@@ -4629,14 +4629,24 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
     position: relative;
     z-index: 2;
     margin-top: 0;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
+  .hw-hero-copy .ot-hero-title,
+  .hw-hero-copy .fp-hero-title-compact,
+  .hw-hero-copy .ot-hero-title--marketing { margin-bottom: 14px; }
+  .hw-hero-copy .ot-hero-sub { margin-bottom: 24px; }
+  .hw-hero-copy .ot-hero-actions { gap: 10px; }
   .hp-section-header h2 { font-size: 24px; }
   .hp-hero-sub { font-size: 14px; }
-  .ot-hero-sub { font-size: 14px; }
+  .ot-hero-sub { font-size: 14px; line-height: 1.58; }
   .fp-hero-sub { font-size: 14px; }
   .ot-hero-actions {
     width: 100%;
+  }
+  .hw-hero-copy .ot-hero-actions > .hp-cta-btn,
+  .hw-hero-copy .ot-hero-actions > .ot-secondary-btn {
+    padding-top: 13px;
+    padding-bottom: 13px;
   }
   .ot-hero-actions > .hp-cta-btn,
   .ot-hero-actions > .ot-secondary-btn {
@@ -4652,8 +4662,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .ot-final-cta-break { display: block; }
   .ot-final-cta p { font-size: 14px; }
   .hw-copy h3 { font-size: 22px; }
-  .hw-hero-inner { gap: 20px; }
-  .hw-hero .ot-hero-visual { max-width: 220px; margin: 0 auto; opacity: 0.92; }
+  .hw-hero .ot-hero-inner { padding: 16px 16px 24px !important; }
+  .hw-hero-inner { gap: 14px; }
+  .hw-hero .ot-hero-visual { max-width: 220px; margin: -4px auto 0; opacity: 0.92; }
 }
 
 /* ── Mobiel extra klein (≤375px) ── */
@@ -4676,15 +4687,21 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
     position: relative;
     z-index: 2;
     margin-top: 0;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
+  .hw-hero-copy .ot-hero-title,
+  .hw-hero-copy .fp-hero-title-compact,
+  .hw-hero-copy .ot-hero-title--marketing { margin-bottom: 12px; }
+  .hw-hero-copy .ot-hero-sub { margin-bottom: 20px; }
+  .hw-hero-copy .ot-hero-actions { gap: 8px; }
 
   .ot-hero-visual {
     top: 10px;
     right: -12px;
   }
-  .hw-hero-inner { gap: 16px; }
-  .hw-hero .ot-hero-visual { max-width: 180px; opacity: 0.88; }
+  .hw-hero .ot-hero-inner { padding: 14px 16px 20px !important; }
+  .hw-hero-inner { gap: 12px; }
+  .hw-hero .ot-hero-visual { max-width: 180px; margin: -6px auto 0; opacity: 0.88; }
 
   /* Titels */
   .hp-hero-title { font-size: 24px; }
@@ -4696,8 +4713,14 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .hp-hero-sub,
   .ot-hero-sub,
   .fp-hero-sub { font-size: 13px; }
+  .hw-hero-copy .ot-hero-sub { line-height: 1.5; }
   .ot-hero-actions {
     width: 100%;
+  }
+  .hw-hero-copy .ot-hero-actions > .hp-cta-btn,
+  .hw-hero-copy .ot-hero-actions > .ot-secondary-btn {
+    padding-top: 12px;
+    padding-bottom: 12px;
   }
   .ot-hero-actions > .hp-cta-btn,
   .ot-hero-actions > .ot-secondary-btn {

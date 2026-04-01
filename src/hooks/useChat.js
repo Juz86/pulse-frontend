@@ -144,7 +144,7 @@ export default function useChat({
 
       setConversations(prev => {
         const exists = prev.some(c => c.id === msg.convId);
-        if (!exists) { loadConversations(); return prev; }
+        if (!exists) return prev;
         const callMeta = msg.type === 'call'
           ? { lastCallSenderId: msg.senderId, lastCallDirection: msg.direction, lastCallIsVideo: !!msg.isVideo }
           : { lastCallDirection: null, lastCallSenderId: null, lastCallIsVideo: null };

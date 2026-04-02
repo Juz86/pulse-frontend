@@ -14,6 +14,7 @@ export default function useChat({
   audioCtxRef,
   loadConversations,
   loadContacts,
+  loadFriendRequests,
   setMessages,
   setConversations,
   setUnreadCounts,
@@ -74,6 +75,8 @@ export default function useChat({
       setReconnectIn(null);
       conversationsRef.current.forEach(conv => socket.emit('conversation:join', { convId: conv.id }));
       socket.emit('users:online:request');
+      // Haal vriendschapsverzoeken op bij reconnect — gemiste verzoeken tijdens offline periode ophalen
+      loadFriendRequests?.();
       // Herverstuurd mislukte berichten zodra socket daadwerkelijk connected is
       onReconnect?.();
     };

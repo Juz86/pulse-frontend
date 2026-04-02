@@ -10,7 +10,13 @@
       "Bash(git commit:*)",
       "Bash(git config:*)",
       "Bash(git push:*)",
-      "Bash(sh)"
+      "Bash(sh)",
+      "Bash(nslookup -type=TXT resend._domainkey.pulse-messenger.com)",
+      "Bash(nslookup -type=TXT send.pulse-messenger.com)",
+      "Bash(nslookup -type=MX send.pulse-messenger.com)",
+      "Bash(curl -s \"https://dns.google/resolve?name=resend._domainkey.pulse-messenger.com&type=TXT\")",
+      "Bash(curl -s \"https://dns.google/resolve?name=send.pulse-messenger.com&type=TXT\")",
+      "Bash(curl -s \"https://dns.google/resolve?name=send.pulse-messenger.com&type=MX\")"
     ],
     "additionalDirectories": [
       "/home/yushuaabdulkadir/pulse-backend"

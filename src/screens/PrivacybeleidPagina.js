@@ -46,12 +46,7 @@ export default function PrivacybeleidPagina() {
 
       <LegalSection title="Wie verantwoordelijk is voor de verwerking">
         <div className="legal-card">
-          <p><strong>Pulse Messenger</strong></p>
-          <p>Willem III Straat 36</p>
-          <p>2291TM Wateringen</p>
-          <p>[E-MAILADRES PRIVACYCONTACT]</p>
-          <p>[KVK-NUMMER]</p>
-          <p><strong>Functionaris voor gegevensbescherming (indien van toepassing):</strong> [FUNCTIONARIS GEGEVENSBESCHERMING]</p>
+          <p><strong>Pulse Messenger,</strong></p>
         </div>
       </LegalSection>
 
@@ -194,9 +189,9 @@ export default function PrivacybeleidPagina() {
       <LegalSection title="Hoe lang wij gegevens bewaren">
         <p>
           Wij bewaren persoonsgegevens niet langer dan nodig is voor de doeleinden waarvoor zij zijn verzameld of verwerkt, tenzij
-          een langere bewaartermijn wettelijk verplicht of aantoonbaar noodzakelijk is. Voor berichtinhoud gaat Pulse op dit
-          moment uit van een bewaartermijn van 30 dagen. Voor andere categorieën blijven placeholders staan totdat de definitieve
-          implementatie en juridische beoordeling zijn afgerond.
+          een langere bewaartermijn wettelijk verplicht of aantoonbaar noodzakelijk is. De concrete bewaartermijn verschilt per
+          gegevenscategorie en kan in specifieke gevallen langer zijn als dat nodig is voor beveiliging, incidentonderzoek,
+          geschilafhandeling of naleving van wettelijke verplichtingen.
         </p>
       </LegalSection>
 
@@ -204,15 +199,15 @@ export default function PrivacybeleidPagina() {
         <div className="legal-grid">
           <div className="legal-card">
             <h3>Accountgegevens ouders</h3>
-            <p>[BEWAARTERMIJN]</p>
+            <p>Zolang account actief is, daarna in beginsel max. 120 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Accountgegevens kinderen</h3>
-            <p>[BEWAARTERMIJN]</p>
+            <p>Zolang account actief is, daarna in beginsel max. 120 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Vertrouwde contacten</h3>
-            <p>[BEWAARTERMIJN]</p>
+            <p>Zolang gekoppeld, daarna in beginsel max. 30 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Berichten en communicatie-inhoud</h3>
@@ -220,11 +215,11 @@ export default function PrivacybeleidPagina() {
           </div>
           <div className="legal-card">
             <h3>Logbestanden</h3>
-            <p>[BEWAARTERMIJN LOGBESTANDEN]</p>
+            <p>90 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Support- en privacyverzoeken</h3>
-            <p>[BEWAARTERMIJN]</p>
+            <p>Tot 2 jaar na afhandeling</p>
           </div>
         </div>
       </LegalSection>
@@ -243,8 +238,11 @@ export default function PrivacybeleidPagina() {
           support en communicatievoorzieningen. Voor zover van toepassing sluiten wij met zulke partijen verwerkersovereenkomsten.
         </p>
         <div className="legal-card">
-          <p><strong>[SUBPROCESSORS / VERWERKERS]</strong></p>
-          <p><strong>[HOSTINGPARTIJ]</strong></p>
+          <p>Cloudflare - voor frontend-hosting, content delivery, netwerkbeveiliging en technische bescherming van de website.</p>
+          <p>Railway - voor hosting, deployment en technische infrastructuur van de backenddiensten en API van Pulse.</p>
+          <p>Google Firebase - voor database-infrastructuur en, voor zover gebruikt binnen de dienst, aanverwante backendfunctionaliteiten zoals authenticatie en opslag.</p>
+          <p>Vimexx - voor domeinregistratie en domeinbeheer.</p>
+          <p><strong>Hosting- en technische partijen:</strong> Cloudflare (frontend-hosting), Railway (backend-hosting), Google Firebase (database-infrastructuur) en Vimexx (domeinregistratie en domeinbeheer).</p>
         </div>
       </LegalSection>
 
@@ -307,11 +305,8 @@ export default function PrivacybeleidPagina() {
 
       <LegalSection title="Contact opnemen over privacy">
         <div className="legal-card">
-          <p><strong>[E-MAILADRES PRIVACYCONTACT]</strong></p>
-          <p>Pulse Messenger</p>
-          <p>Willem III Straat 36</p>
-          <p>2291TM Wateringen</p>
-          <p>[FUNCTIONARIS GEGEVENSBESCHERMING]</p>
+          <p><strong>Bedrijf:</strong> Pulse Messenger</p>
+          <p><strong>E-mail:</strong> info@pulse-messenger.com</p>
         </div>
       </LegalSection>
 
@@ -320,7 +315,7 @@ export default function PrivacybeleidPagina() {
           Als u meent dat de verwerking van persoonsgegevens binnen Pulse in strijd is met de AVG, heeft u het recht een klacht
           in te dienen bij de bevoegde toezichthouder:
         </p>
-        <p><strong>[TOEZICHTHOUDENDE AUTORITEIT]</strong></p>
+        <p><strong>Autoriteit Persoonsgegevens (AP)</strong> - de Nederlandse toezichthouder voor de bescherming van persoonsgegevens. Meer informatie of een klacht indienen kan via: https://autoriteitpersoonsgegevens.nl</p>
       </LegalSection>
 
       <section className="legal-section legal-section--closing">

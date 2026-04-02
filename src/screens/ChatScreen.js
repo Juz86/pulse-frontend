@@ -208,6 +208,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const conv = conversations.find(c => c.id === initialConvId);
     if (conv) { openConversation(conv); onConvIdHandled?.(); }
   }, [conversations, initialConvId, onConvIdHandled, openConversation]);
+  // Intentionally run once on mount to avoid re-fetch loops from recreated callbacks.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadConversations(); loadContacts(); loadFriendRequests(); loadBlockedContacts(); }, []);
   useEffect(() => {
     const handler = () => { loadContacts(); loadConversations(); };

@@ -251,7 +251,12 @@ export default function PrivacybeleidPagina() {
           Als persoonsgegevens buiten de Europese Economische Ruimte worden verwerkt of toegankelijk zijn, zorgen wij voor een
           passende juridische grondslag en passende waarborgen overeenkomstig de AVG.
         </p>
-        <p><strong>[LANDEN BUITEN DE EER]</strong></p>
+        <p>
+          Persoonsgegevens kunnen worden verwerkt of toegankelijk zijn buiten de EER, waaronder in de Verenigde Staten,
+          bijvoorbeeld via Cloudflare, Railway en Google Firebase. Als sprake is van doorgifte buiten de EER, baseren wij die op
+          een passend doorgiftemechanisme, zoals een adequaatheidsbesluit, het EU-U.S. Data Privacy Framework of de Europese
+          Standard Contractual Clauses (SCC’s), aangevuld met passende waarborgen waar nodig.
+        </p>
       </LegalSection>
 
       <LegalSection title="Beveiliging van persoonsgegevens">
@@ -300,7 +305,11 @@ export default function PrivacybeleidPagina() {
           Voor de Pulse-website kunnen cookies of vergelijkbare technieken worden gebruikt voor basisfunctionaliteit, beveiliging,
           voorkeursinstellingen en — indien relevant — beperkte analyse. Verdere informatie volgt in:
         </p>
-        <p><strong>[COOKIE-INFORMATIE]</strong></p>
+        <p>
+          Op dit moment gebruikt de Pulse-website alleen functionele en technisch noodzakelijke cookies of vergelijkbare
+          technieken. Wij gebruiken geen advertentiecookies en geen niet-noodzakelijke trackingcookies, tenzij dit later
+          expliciet wordt toegevoegd.
+        </p>
       </LegalSection>
 
       <LegalSection title="Contact opnemen over privacy">

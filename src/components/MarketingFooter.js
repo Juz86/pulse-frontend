@@ -9,7 +9,11 @@ export default function MarketingFooter() {
             <img src="/logo192.png" alt="" aria-hidden="true" width={28} height={28} />
             <span>Pulse</span>
           </div>
-          <p>Veilig communiceren voor elk kind.</p>
+          <p>
+            Pulse houdt ouder en kind veilig verbonden.
+            <br />
+            Chatten, bellen en videobellen met wie echt telt.
+          </p>
         </div>
 
         <div className="hp-footer-nav-group">
@@ -52,7 +56,7 @@ export default function MarketingFooter() {
           </div>
         </div>
       </div>
-      <div className="hp-footer-copy">© {currentYear} Pulse — Echt Nederlands. Echt veilig.</div>
+      <div className="hp-footer-copy">© {currentYear} Pulse — Voor ouder en kind. Veilig verbonden.</div>
     </footer>
   );
 }

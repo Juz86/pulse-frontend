@@ -46,7 +46,7 @@ export default function PrivacybeleidPagina() {
 
       <LegalSection title="Wie verantwoordelijk is voor de verwerking">
         <div className="legal-card">
-          <p><strong>Pulse Messenger,</strong></p>
+          <p><strong>Pulse Messenger</strong></p>
         </div>
       </LegalSection>
 

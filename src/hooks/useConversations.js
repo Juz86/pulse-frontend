@@ -1,9 +1,17 @@
 // src/hooks/useConversations.js
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getSocket, BACKEND_URL } from '../services/socket';
+import { messagingService } from '../lib/e2ee/messagingService';
+import {
+  buildPendingMessage,
+  getConversationPreview,
+  normalizeIncomingMessage,
+} from '../lib/e2ee/messageModel';
+import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
 import { toMs } from '../utils';
 
 const MSG_LIMIT = 30;
+const USE_E2EE_SERVICE = process.env.REACT_APP_E2EE_TRANSPORT === 'service';
 
 export default function useConversations({
   user,
@@ -40,10 +48,111 @@ export default function useConversations({
   const [hasMore,        setHasMore]        = useState(false);
   const [loadingMore,    setLoadingMore]    = useState(false);
   const [msgOffset,      setMsgOffset]      = useState(0);
+  const [currentDeviceId, setCurrentDeviceId] = useState(null);
 
   // Sync refs owned by ChatScreen
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv, activeConvRef]);
   useEffect(() => { conversationsRef.current = conversations; }, [conversations, conversationsRef]);
+  useEffect(() => {
+    let mounted = true;
+
+    secureKeyStore.getIdentity(user.uid).then((identity) => {
+      if (mounted) setCurrentDeviceId(identity?.deviceId || null);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, [user.uid]);
+
+  function getConversationRecipient(conv) {
+    if (!conv || conv.isGroup) return null;
+    const otherUid = (conv.members || []).find((memberUid) => memberUid !== user.uid);
+    return otherUid ? { userId: otherUid } : null;
+  }
+
+  async function hydrateMessages(rawMessages) {
+    return Promise.all(
+      rawMessages.map(async (raw) => {
+        try {
+          return await messagingService.hydrateIncomingMessage(raw, user.uid);
+        } catch {
+          return normalizeIncomingMessage(raw, user.uid);
+        }
+      })
+    );
+  }
+
+  function shouldUseServiceTransport(conv) {
+    return USE_E2EE_SERVICE && !!currentDeviceId && !!getConversationRecipient(conv);
+  }
+
+  function patchMessageAsSending(messageId, retryCount = 0) {
+    setMessages(prev => prev.map((message) => (
+      message.id === messageId
+        ? {
+            ...message,
+            pending: true,
+            failed: false,
+            _retryCount: retryCount,
+            _retrying: retryCount > 0,
+            deliveryState: 'sending',
+          }
+        : message
+    )));
+  }
+
+  function patchMessageAsFailed(messageId) {
+    setMessages(prev => prev.map((message) => (
+      message.id === messageId
+        ? {
+            ...message,
+            pending: false,
+            failed: true,
+            _retrying: false,
+            deliveryState: 'failed',
+          }
+        : message
+    )));
+  }
+
+  function patchMessageAsSent(messageId, savedMsg, fallbackKey = messageId) {
+    setMessages(prev => prev.map((message) => (
+      message.id === messageId
+        ? {
+            ...normalizeIncomingMessage(savedMsg, user.uid),
+            _key: fallbackKey,
+            pending: false,
+            failed: false,
+            _retrying: false,
+            deliveryState: 'sent',
+          }
+        : message
+    )));
+  }
+
+  async function sendViaService({ conv, plaintext, recipientUserId, replyToMessageId }) {
+    const result = await messagingService.sendMessage({
+      user,
+      conversationId: conv.id,
+      recipientUserId,
+      plaintext,
+      replyToMessageId,
+    }, currentDeviceId);
+
+    return {
+      id: result.messageId,
+      conversationId: conv.id,
+      senderId: user.uid,
+      senderUserId: user.uid,
+      senderDeviceId: currentDeviceId,
+      text: plaintext,
+      createdAt: new Date().toISOString(),
+      protocol: 'signal_v1',
+      deliveryState: 'sent',
+      replyToMessageId,
+    };
+  }
 
   // ── Gesprekken laden ──────────────────────────────────────────────────────
   const loadConversations = useCallback(async () => {
@@ -102,10 +211,11 @@ export default function useConversations({
       const res  = await authFetch(`${BACKEND_URL}/api/messages/${conv.id}?limit=${MSG_LIMIT}&offset=0`);
       const data = await res.json();
       const arr  = Array.isArray(data) ? data : [];
+      const hydrated = await hydrateMessages(arr);
       if (activeConvRef.current?.id !== convId) return;
-      msgCache.current[convId] = arr;
+      msgCache.current[convId] = hydrated;
       setMessages(prev => {
-        const fetchedIds = new Set(arr.map(m => m.id).filter(Boolean));
+        const fetchedIds = new Set(hydrated.map(m => m.id).filter(Boolean));
         const live = prev.filter(m => {
           if (!m.id) return false;
           if (fetchedIds.has(m.id)) return false;
@@ -113,9 +223,9 @@ export default function useConversations({
           if (m.id.startsWith('temp-') && !pendingTempIds.current.has(m.id)) return false;
           return true;
         });
-        return [...arr, ...live];
+        return [...hydrated, ...live];
       });
-      setMsgOffset(arr.length);
+      setMsgOffset(hydrated.length);
       setHasMore(arr.length === MSG_LIMIT);
       setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 100);
     } catch (e) {
@@ -147,7 +257,8 @@ export default function useConversations({
       const res  = await authFetch(`${BACKEND_URL}/api/messages/${activeConv.id}?limit=${MSG_LIMIT}&offset=${msgOffset}`);
       const data = await res.json();
       const arr  = Array.isArray(data) ? data : [];
-      setMessages(prev => [...arr, ...prev]);
+      const hydrated = await hydrateMessages(arr);
+      setMessages(prev => [...hydrated, ...prev]);
       setMsgOffset(prev => prev + arr.length);
       setHasMore(arr.length === MSG_LIMIT);
     } catch { showErrToast('Meer berichten laden mislukt'); }
@@ -195,36 +306,72 @@ export default function useConversations({
     const socket = getSocket();
     if (editingMsg) return sendEditedMessage();
     if (!text.trim() || !activeConv) return;
-    if (!socket?.connected) { showErrToast('Geen verbinding. Controleer je internet en probeer opnieuw.'); return; }
+    if (!socket?.connected && !shouldUseServiceTransport(activeConv)) { showErrToast('Geen verbinding. Controleer je internet en probeer opnieuw.'); return; }
     const tempId = `temp-${Date.now()}`;
     const trimmedText = text.trim();
     const mentions = pendingMentions.filter(m => trimmedText.includes(`@${m.displayName}`)).map(m => m.uid);
+    const recipient = getConversationRecipient(activeConv);
+    const optimisticMsg = {
+      ...buildPendingMessage({
+        text: trimmedText,
+        conversationId: activeConv.id,
+        userId: user.uid,
+        replyTo: replyTo || null,
+      }),
+      id: tempId,
+      convId: activeConv.id,
+      senderName: user.displayName || user.email,
+      mentions,
+      _key: tempId,
+      _retryCount: 0,
+    };
     const msg = {
       convId: activeConv.id, senderId: user.uid, senderName: user.displayName || user.email,
-      text: trimmedText, createdAt: new Date().toISOString(),
+      text: trimmedText, createdAt: optimisticMsg.createdAt,
+      protocol: 'signal_v1',
+      senderDeviceId: currentDeviceId,
       ...(replyTo ? { replyTo } : {}),
       ...(mentions.length > 0 ? { mentions } : {}),
     };
     setReplyTo(null);
-    pendingTempIds.current.add(tempId);
-    setMessages(prev => [...prev, { ...msg, id: tempId, _key: tempId, pending: true, _retryCount: 0 }]);
-    savePending(tempId, activeConv.id, msg);
+    pendingTempIds.current.add(optimisticMsg.id);
+    setMessages(prev => [...prev, optimisticMsg]);
+    savePending(optimisticMsg.id, activeConv.id, msg);
     setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
     setConversations(prev => {
-      const updated = prev.map(c => c.id === activeConv.id ? { ...c, lastMessage: msg.text, updatedAt: msg.createdAt, lastCallDirection: null, lastCallSenderId: null, lastCallIsVideo: null } : c);
+      const updated = prev.map(c => c.id === activeConv.id ? { ...c, lastMessage: getConversationPreview(optimisticMsg), updatedAt: msg.createdAt, lastCallDirection: null, lastCallSenderId: null, lastCallIsVideo: null } : c);
       return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
     });
     const failTimer = setTimeout(() => {
-      setMessages(prev => prev.map(m => m.id === tempId ? { ...m, pending: false, failed: true } : m));
+      patchMessageAsFailed(optimisticMsg.id);
     }, 20000);
-    socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
-      clearTimeout(failTimer);
-      if (savedMsg?.id) {
-        pendingTempIds.current.delete(tempId);
-        setMessages(prev => prev.map(m => m.id === tempId ? { ...savedMsg, _key: tempId, pending: false, failed: false } : m));
-        removePending(tempId);
-      }
-    });
+
+    if (shouldUseServiceTransport(activeConv)) {
+      sendViaService({
+        conv: activeConv,
+        plaintext: trimmedText,
+        recipientUserId: recipient?.userId || null,
+        replyToMessageId: replyTo?.id || null,
+      }).then((savedMsg) => {
+        clearTimeout(failTimer);
+        pendingTempIds.current.delete(optimisticMsg.id);
+        patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
+        removePending(optimisticMsg.id);
+      }).catch(() => {
+        clearTimeout(failTimer);
+        patchMessageAsFailed(optimisticMsg.id);
+      });
+    } else {
+      socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
+        clearTimeout(failTimer);
+        if (savedMsg?.id) {
+          pendingTempIds.current.delete(optimisticMsg.id);
+          patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
+          removePending(optimisticMsg.id);
+        }
+      });
+    }
+
     setText('');
     localStorage.removeItem(`pulse_draft_${user.uid}_${activeConv.id}`);
     setPendingMentions([]);
@@ -235,36 +382,45 @@ export default function useConversations({
 
   function retryMessage(failedMsg) {
     const socket = getSocket();
-    if (!socket?.connected || !activeConv) return;
+    if ((!socket?.connected && !shouldUseServiceTransport(activeConv)) || !activeConv) return;
     const retryCount = (failedMsg._retryCount || 0) + 1;
-    setMessages(prev => prev.map(m => m.id === failedMsg.id
-      ? { ...m, pending: true, failed: false, _retryCount: retryCount, _retrying: true }
-      : m
-    ));
+    const recipient = getConversationRecipient(activeConv);
+    patchMessageAsSending(failedMsg.id, retryCount);
     const failTimer = setTimeout(() => {
-      setMessages(prev => prev.map(m => m.id === failedMsg.id
-        ? { ...m, pending: false, failed: true, _retrying: false }
-        : m
-      ));
+      patchMessageAsFailed(failedMsg.id);
     }, 20000);
-    socket.emit('message:send', { convId: activeConv.id, message: { ...failedMsg, createdAt: new Date().toISOString() } }, (savedMsg) => {
-      clearTimeout(failTimer);
-      if (savedMsg?.id) {
+    if (shouldUseServiceTransport(activeConv)) {
+      sendViaService({
+        conv: activeConv,
+        plaintext: failedMsg.text,
+        recipientUserId: recipient?.userId || null,
+        replyToMessageId: failedMsg.replyTo?.messageId || failedMsg.replyTo?.id || null,
+      }).then((savedMsg) => {
+        clearTimeout(failTimer);
         pendingTempIds.current.delete(failedMsg.id);
-        setMessages(prev => prev.map(m => m.id === failedMsg.id
-          ? { ...savedMsg, _key: failedMsg.id, pending: false, failed: false, _retrying: false }
-          : m
-        ));
+        patchMessageAsSent(failedMsg.id, savedMsg, failedMsg.id);
         removePending(failedMsg.id);
-      }
-    });
+      }).catch(() => {
+        clearTimeout(failTimer);
+        patchMessageAsFailed(failedMsg.id);
+      });
+    } else {
+      socket.emit('message:send', { convId: activeConv.id, message: { ...failedMsg, createdAt: new Date().toISOString() } }, (savedMsg) => {
+        clearTimeout(failTimer);
+        if (savedMsg?.id) {
+          pendingTempIds.current.delete(failedMsg.id);
+          patchMessageAsSent(failedMsg.id, savedMsg, failedMsg.id);
+          removePending(failedMsg.id);
+        }
+      });
+    }
   }
 
   function retryAllFailed() {
     const conv = activeConvRef.current;
     if (!conv) return;
     messages
-      .filter(m => m.failed && (m._retryCount || 0) < 3)
+      .filter(m => (m.deliveryState === 'failed' || m.failed) && (m._retryCount || 0) < 3)
       .forEach(msg => retryMessage(msg));
   }
 
@@ -275,14 +431,31 @@ export default function useConversations({
     setReactionPickerMsgId(null);
   }
 
-  function forwardToConv(conv) {
+  async function forwardToConv(conv) {
     const socket = getSocket();
-    if (!socket?.connected || !forwardMsg) return;
+    if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !forwardMsg) return;
+    const recipient = getConversationRecipient(conv);
     const msg = {
       convId: conv.id, senderId: user.uid, senderName: user.displayName || user.email,
       text: `↪️ ${forwardMsg.text}`, createdAt: new Date().toISOString(),
+      protocol: 'signal_v1',
+      senderDeviceId: currentDeviceId,
     };
-    socket.emit('message:send', { convId: conv.id, message: msg });
+    if (shouldUseServiceTransport(conv)) {
+      try {
+        await sendViaService({
+          conv,
+          plaintext: msg.text,
+          recipientUserId: recipient?.userId || null,
+          replyToMessageId: null,
+        });
+      } catch {
+        showErrToast('Doorsturen mislukt');
+        return;
+      }
+    } else {
+      socket.emit('message:send', { convId: conv.id, message: msg });
+    }
     setForwardMsg(null);
     showErrToast('📋 Bericht doorgestuurd');
   }
@@ -350,6 +523,7 @@ export default function useConversations({
     activeConv, setActiveConv,
     messages, setMessages,
     loadingConvs, loadingMsgs, hasMore, loadingMore, msgOffset, setMsgOffset,
+    currentDeviceId,
     loadConversations, openConversation, deleteConversation, loadMoreMessages,
     sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     forwardToConv, deleteMessage,

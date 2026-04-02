@@ -16,7 +16,8 @@
       "Bash(nslookup -type=MX send.pulse-messenger.com)",
       "Bash(curl -s \"https://dns.google/resolve?name=resend._domainkey.pulse-messenger.com&type=TXT\")",
       "Bash(curl -s \"https://dns.google/resolve?name=send.pulse-messenger.com&type=TXT\")",
-      "Bash(curl -s \"https://dns.google/resolve?name=send.pulse-messenger.com&type=MX\")"
+      "Bash(curl -s \"https://dns.google/resolve?name=send.pulse-messenger.com&type=MX\")",
+      "Bash(node -e \"require\\('resend'\\); console.log\\('ok'\\)\")"
     ],
     "additionalDirectories": [
       "/home/yushuaabdulkadir/pulse-backend"

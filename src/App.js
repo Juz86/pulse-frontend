@@ -182,6 +182,11 @@ function MainApp() {
         try {
           const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
           if (snap.exists()) role = snap.data()?.role || 'user';
+          else {
+            // Nieuw account — controleer of ouderregistratie bezig is (race condition met /api/users)
+            const pendingRole = localStorage.getItem('pulse_pending_role');
+            if (pendingRole === 'parent') role = 'parent';
+          }
         } catch (e) { console.warn('[Pulse] Fout:', e.message); }
         setUserRole(role);
         const idToken = await firebaseUser.getIdToken();

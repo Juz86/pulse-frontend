@@ -152,6 +152,8 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
       // Code klopt → maak account aan
       const cleanName = sanitizeDisplayName(name);
       const cleanEmail = normalizeEmail(email);
+      // Sla rol op vóór account aanmaken — onAuthStateChanged vuurt voor de /api/users call klaar is
+      localStorage.setItem('pulse_pending_role', 'parent');
       const cred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
       await updateProfile(cred.user, { displayName: cleanName });
       const idToken = await cred.user.getIdToken();
@@ -160,6 +162,7 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
         { uid: cred.user.uid, displayName: cleanName, email: cleanEmail, photoURL: '', role: 'parent' },
         { headers: { Authorization: `Bearer ${idToken}` } }
       );
+      localStorage.removeItem('pulse_pending_role');
       // App.js pikt de auth state change automatisch op
     } catch (err) {
       const msg = {

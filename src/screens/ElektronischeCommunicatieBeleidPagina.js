@@ -168,7 +168,7 @@ export default function ElektronischeCommunicatieBeleidPagina() {
           concrete invulling hangt af van de definitieve implementatie en wordt waar nodig nader gespecificeerd.
         </p>
         <div className="legal-card">
-          <p><strong>Beveiligings- of encryptiemodel:</strong> [ENCRYPTIEMODEL]</p>
+          <p><strong>Beveiligings- of encryptiemodel:</strong> Versleuteling tijdens transport en passende beveiliging van gegevensopslag; Pulse claimt op dit moment geen end-to-end encryptie.</p>
         </div>
         <p>
           Pulse claimt geen end-to-end encryptie of een ander specifiek cryptografisch model zolang dat niet feitelijk is

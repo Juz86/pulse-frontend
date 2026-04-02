@@ -7,11 +7,12 @@ import {
   getConversationPreview,
   normalizeIncomingMessage,
 } from '../lib/e2ee/messageModel';
+import { isE2EEServiceTransportEnabled } from '../lib/e2ee/config';
+import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
 import { toMs } from '../utils';
 
 const MSG_LIMIT = 30;
-const USE_E2EE_SERVICE = process.env.REACT_APP_E2EE_TRANSPORT === 'service';
 
 export default function useConversations({
   user,
@@ -84,7 +85,7 @@ export default function useConversations({
   }
 
   function shouldUseServiceTransport(conv) {
-    return USE_E2EE_SERVICE && !!currentDeviceId && !!getConversationRecipient(conv);
+    return isE2EEServiceTransportEnabled && !!currentDeviceId && !!getConversationRecipient(conv);
   }
 
   function patchMessageAsSending(messageId, retryCount = 0) {
@@ -292,6 +293,12 @@ export default function useConversations({
   function sendEditedMessage() {
     const socket = getSocket();
     if (!editingMsg || !text.trim() || !socket?.connected) return;
+    if (!canEditMessage(editingMsg)) {
+      showErrToast(ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE);
+      setEditingMsg(null);
+      setText('');
+      return;
+    }
     const trimmed = text.trim();
     socket.emit('message:edit', { convId: activeConv.id, msgId: editingMsg.id, newText: trimmed }, (res) => {
       if (res?.error) return showErrToast(res.error);

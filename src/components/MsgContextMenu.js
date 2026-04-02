@@ -1,5 +1,6 @@
 // src/components/MsgContextMenu.js
 import React from 'react';
+import { canEditMessage } from '../lib/e2ee/policy';
 import {
   Reply, Copy, Share, Pin, StarFilled, StarOutline,
   MagicEdit, Delete, Refresh,
@@ -68,7 +69,7 @@ export default function MsgContextMenu({
           <span>{starred ? 'Ster verwijderen' : 'Met ster markeren'}</span>
         </button>
 
-        {isOwn && isText && (
+        {isOwn && isText && canEditMessage(msg) && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onEdit)}>
             <MagicEdit size={18} className="msg-ctx-icon" aria-hidden="true" />
             <span>Bewerken</span>

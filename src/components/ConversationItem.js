@@ -1,6 +1,7 @@
 // src/components/ConversationItem.js
 import React from 'react';
 import { Pin, InfoIcon } from '../components/Icons';
+import { getConversationPreview } from '../lib/e2ee/messageModel';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview } from '../utils';
 
@@ -57,7 +58,7 @@ function ConversationItemBase({
           {conv.updatedAt && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text3)', fontWeight: 400, flexShrink: 0 }}>{convTime(conv.updatedAt)}</span>}
         </div>
         <div className="conv-preview">
-          {conv.lastCallDirection ? callPreview(conv, currentUid) : (conv.lastMessage || 'Start een gesprek…')}
+          {conv.lastCallDirection ? callPreview(conv, currentUid) : (getConversationPreview(conv) || conv.lastMessage || 'Start een gesprek…')}
         </div>
       </div>
       {unread > 0 && <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>}

@@ -1,6 +1,7 @@
 // src/components/MessageBubble.js
 import React, { useRef, useState, useEffect } from 'react';
 import { Phone, Video, Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
+import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { getInitials, formatTime } from '../utils';
 
 // ── Helpers (pure, buiten component voor stabiele referentie) ─────────────────
@@ -8,6 +9,10 @@ import { getInitials, formatTime } from '../utils';
 function getMsgStatusInfo(msg) {
   if (msg.failed)  return { icon: 'cancel', label: 'Mislukt', failed: true };
   if (msg.pending) return { icon: 'clock',  label: 'verstuurd', failed: false };
+  if (msg.deliveryState === 'read') return { icon: 'double', label: 'gelezen', read: true };
+  if (msg.deliveryState === 'delivered') return { icon: 'double', label: 'bezorgd', read: false };
+  if (msg.deliveryState === 'failed') return { icon: 'cancel', label: 'Mislukt', failed: true };
+  if (msg.deliveryState === 'sending') return { icon: 'clock', label: 'verstuurd', failed: false };
   if (msg.status === 'gelezen') return { icon: 'double', label: 'gelezen', read: true };
   if (msg.status === 'bezorgd') return { icon: 'double', label: 'bezorgd', read: false };
   return { icon: 'check', label: 'verstuurd', failed: false };
@@ -163,6 +168,7 @@ const MessageBubble = React.memo(function MessageBubble({
 
   // ── Standaard tekst bericht ───────────────────────────────────────────────
   const status = isOwn ? getMsgStatusInfo(msg) : null;
+  const displayText = getMessageDisplayText(msg);
 
   return (
     <div
@@ -185,8 +191,8 @@ const MessageBubble = React.memo(function MessageBubble({
         <div className="msg-bubble" style={isFocused ? { outline: '2px solid #f59e0b', outlineOffset: '2px' } : {}}>
           <span className="msg-bubble-text">
             {chatSearch.trim()
-              ? highlightText(msg.text || '', chatSearch)
-              : renderMsgText(msg.text || '', msg.mentions, memberNames)}
+              ? highlightText(displayText, chatSearch)
+              : renderMsgText(displayText, msg.mentions, memberNames)}
             {msg.editedAt && <span className="msg-edited" aria-label="Bewerkt"><span aria-hidden="true">(bewerkt)</span></span>}
           </span>
           {/* Tijd + status binnen de bubble */}

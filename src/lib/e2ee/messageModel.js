@@ -81,8 +81,16 @@ export function patchPendingMessageAsFailed(msg) {
 
 export function getConversationPreview(msg) {
   if (!msg) return '';
+  if (typeof msg.lastMessage === 'string' && msg.lastMessage) return msg.lastMessage;
   if (msg.deleted) return 'Bericht verwijderd';
   if (msg.text) return msg.text;
   if (msg.ciphertextAvailable) return 'Versleuteld bericht';
+  return '';
+}
+
+export function getMessageDisplayText(msg) {
+  if (!msg) return '';
+  if (msg.text) return msg.text;
+  if (msg.ciphertextAvailable && msg.decryptedLocally === false) return 'Versleuteld bericht';
   return '';
 }

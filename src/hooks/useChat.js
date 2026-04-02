@@ -1,6 +1,9 @@
 // src/hooks/useChat.js
 import { useState, useEffect, useRef } from 'react';
 import { getSocket } from '../services/socket';
+import { messagingService } from '../lib/e2ee/messagingService';
+import { getConversationPreview, normalizeIncomingMessage } from '../lib/e2ee/messageModel';
+import { canApplyPlaintextEditUpdate } from '../lib/e2ee/policy';
 
 const PRIVATE_NOTIFICATION_BODY = 'Open Pulse om het bericht veilig te bekijken.';
 const PRIVATE_REQUEST_NOTIFICATION_BODY = 'Open Pulse om de uitnodiging te bekijken.';
@@ -95,35 +98,44 @@ export default function useChat({
       }, 3000);
     };
 
-    const onMessageReceived = (msg) => {
+    const onMessageReceived = async (msg) => {
+      let hydratedMsg;
+      try {
+        hydratedMsg = await messagingService.hydrateIncomingMessage(msg, user.uid);
+      } catch {
+        hydratedMsg = normalizeIncomingMessage(msg, user.uid);
+      }
+
       const current = activeConvRef.current;
-      if (current?.id === msg.convId) {
+      const convId = hydratedMsg.convId || hydratedMsg.conversationId || msg.convId;
+
+      if (current?.id === convId) {
         setMessages(prev => {
-          if (msg.type === 'call') {
-            const callPendingIdx = prev.findIndex(m => m.pending && m.type === 'call' && m.senderId === msg.senderId);
+          if (hydratedMsg.type === 'call') {
+            const callPendingIdx = prev.findIndex(m => m.pending && m.type === 'call' && m.senderId === hydratedMsg.senderId);
             if (callPendingIdx !== -1) {
               const next = [...prev];
-              next[callPendingIdx] = { ...msg, pending: false };
+              next[callPendingIdx] = { ...hydratedMsg, pending: false };
               return next;
             }
-            if (prev.some(m => m.id && m.id === msg.id)) return prev;
-            return [...prev, msg];
+            if (prev.some(m => m.id && m.id === hydratedMsg.id)) return prev;
+            return [...prev, hydratedMsg];
           }
-          const pendingIdx = prev.findIndex(m => m.pending && m.senderId === msg.senderId && m.text === msg.text);
+          const pendingIdx = prev.findIndex(m => m.pending && m.senderId === hydratedMsg.senderId && m.text === hydratedMsg.text);
           if (pendingIdx !== -1) {
             const next = [...prev];
-            next[pendingIdx] = { ...msg, pending: false };
+            next[pendingIdx] = { ...hydratedMsg, pending: false };
             return next;
           }
-          if (prev.some(m => m.id && m.id === msg.id)) return prev;
-          return [...prev, msg];
+          if (prev.some(m => m.id && m.id === hydratedMsg.id)) return prev;
+          return [...prev, hydratedMsg];
         });
         setTimeout(() => {
           if (msgsAreaRef.current) msgsAreaRef.current.scrollTo({ top: msgsAreaRef.current.scrollHeight, behavior: 'smooth' });
         }, 50);
         playMessageSound();
-      } else if (msg.senderId !== user.uid) {
-        setUnreadCounts(prev => ({ ...prev, [msg.convId]: (prev[msg.convId] || 0) + 1 }));
+      } else if (hydratedMsg.senderId !== user.uid) {
+        setUnreadCounts(prev => ({ ...prev, [convId]: (prev[convId] || 0) + 1 }));
         if (Notification.permission === 'granted' && document.hidden) {
           new Notification('Nieuw bericht in Pulse', {
             body: PRIVATE_NOTIFICATION_BODY,
@@ -133,27 +145,27 @@ export default function useChat({
         playMessageSound();
       }
 
-      const previewText = msg.type === 'contact'
-        ? `Contactpersoon: ${msg.sharedContact?.name || ''}`
-        : msg.type === 'call'
+      const previewText = hydratedMsg.type === 'contact'
+        ? `Contactpersoon: ${hydratedMsg.sharedContact?.name || ''}`
+        : hydratedMsg.type === 'call'
           ? (() => {
-              const isOwn = msg.senderId === user.uid;
-              const iv    = msg.isVideo;
-              if (msg.direction === 'completed') return iv ? 'Video-oproep' : 'Spraakoproep';
-              if (msg.direction === 'declined')  return isOwn ? 'Geweigerd' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
+              const isOwn = hydratedMsg.senderId === user.uid;
+              const iv    = hydratedMsg.isVideo;
+              if (hydratedMsg.direction === 'completed') return iv ? 'Video-oproep' : 'Spraakoproep';
+              if (hydratedMsg.direction === 'declined')  return isOwn ? 'Geweigerd' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
               return isOwn ? 'Geen antwoord' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
             })()
-          : (msg.text || '');
+          : getConversationPreview(hydratedMsg);
 
       setConversations(prev => {
-        const exists = prev.some(c => c.id === msg.convId);
+        const exists = prev.some(c => c.id === convId);
         if (!exists) return prev;
-        const callMeta = msg.type === 'call'
-          ? { lastCallSenderId: msg.senderId, lastCallDirection: msg.direction, lastCallIsVideo: !!msg.isVideo }
+        const callMeta = hydratedMsg.type === 'call'
+          ? { lastCallSenderId: hydratedMsg.senderId, lastCallDirection: hydratedMsg.direction, lastCallIsVideo: !!hydratedMsg.isVideo }
           : { lastCallDirection: null, lastCallSenderId: null, lastCallIsVideo: null };
-        const target = prev.find(c => c.id === msg.convId);
-        const rest   = prev.filter(c => c.id !== msg.convId);
-        return [{ ...target, lastMessage: previewText, updatedAt: msg.createdAt || new Date().toISOString(), ...callMeta }, ...rest];
+        const target = prev.find(c => c.id === convId);
+        const rest   = prev.filter(c => c.id !== convId);
+        return [{ ...target, lastMessage: previewText, updatedAt: hydratedMsg.createdAt || new Date().toISOString(), ...callMeta }, ...rest];
       });
     };
 
@@ -165,11 +177,15 @@ export default function useChat({
     const onMessageStatus = ({ convId, msgId, status }) => {
       if (status === 'gelezen') {
         setMessages(prev => prev.map(m =>
-          m.convId === convId && m.senderId === user.uid ? { ...m, status: 'gelezen' } : m
+          (m.convId === convId || m.conversationId === convId) && m.senderId === user.uid
+            ? { ...m, status: 'gelezen', deliveryState: 'read' }
+            : m
         ));
       } else if (status === 'bezorgd' && msgId) {
         setMessages(prev => prev.map(m =>
-          m.id === msgId && m.status !== 'gelezen' ? { ...m, status: 'bezorgd' } : m
+          m.id === msgId && m.status !== 'gelezen'
+            ? { ...m, status: 'bezorgd', deliveryState: m.deliveryState === 'read' ? 'read' : 'delivered' }
+            : m
         ));
       }
     };
@@ -236,8 +252,12 @@ export default function useChat({
     };
 
     const onMessageDeleted  = ({ msgId })              => setMessages(prev => prev.filter(m => m.id !== msgId));
-    const onMessageEdited   = ({ msgId, text, editedAt }) => setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text, editedAt } : m));
-    const onMessageReaction = ({ msgId, reactions })   => setMessages(prev => prev.map(m => m.id === msgId ? { ...m, reactions } : m));
+    const onMessageEdited   = ({ msgId, text, editedAt }) => setMessages(prev => prev.map(m => (
+      m.id === msgId
+        ? (canApplyPlaintextEditUpdate(m) ? { ...m, text, editedAt, decryptedLocally: true } : m)
+        : m
+    )));
+    const onMessageReaction = ({ msgId, reactions })   => setMessages(prev => prev.map(m => m.id === msgId ? { ...m, reactions: reactions || {} } : m));
     const onAccountPaused   = ({ features } = {})      => setPausedFeatures(features || { chat: true,  call: true,  video: true  });
     const onAccountResumed  = ({ features } = {})      => setPausedFeatures(features || { chat: false, call: false, video: false });
 
@@ -270,6 +290,7 @@ export default function useChat({
     socket.on('connect',          onConnect);
     socket.on('disconnect',       onDisconnect);
     socket.on('message:received', onMessageReceived);
+    socket.on('message:new',      onMessageReceived);
     socket.on('typing:update',    onTypingUpdate);
     socket.on('message:status',   onMessageStatus);
     socket.on('friend:request',   onFriendRequest);
@@ -289,6 +310,7 @@ export default function useChat({
       socket.off('connect',          onConnect);
       socket.off('disconnect',       onDisconnect);
       socket.off('message:received', onMessageReceived);
+      socket.off('message:new',      onMessageReceived);
       socket.off('typing:update',    onTypingUpdate);
       socket.off('message:status',   onMessageStatus);
       socket.off('friend:request',   onFriendRequest);

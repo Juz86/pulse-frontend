@@ -1,6 +1,7 @@
 // src/screens/ChatScreen.js
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { getSocket } from '../services/socket';
+import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { Bell, BellOff, Message, Delete, Trash2 } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
 import ChatHeader from '../components/ChatHeader';
@@ -552,7 +553,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           onForward={() => setForwardMsg({ text: contextMenu.msg.text })}
           onPin={() => handlePin(contextMenu.msg)}
           onStar={() => handleStar(contextMenu.msg.id)}
-          onEdit={() => { setEditingMsg({ id: contextMenu.msg.id, text: contextMenu.msg.text }); setText(contextMenu.msg.text); setTimeout(() => textareaRef.current?.focus(), 0); }}
+          onEdit={() => {
+            if (!canEditMessage(contextMenu.msg)) {
+              showErrToast(ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE);
+              return;
+            }
+            setEditingMsg({ id: contextMenu.msg.id, text: contextMenu.msg.text, protocol: contextMenu.msg.protocol });
+            setText(contextMenu.msg.text);
+            setTimeout(() => textareaRef.current?.focus(), 0);
+          }}
           onDeleteRequest={() => handleDeleteRequest(contextMenu.msg)}
           onRetry={() => retryMessage(contextMenu.msg)}
         />

@@ -9,6 +9,7 @@ import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket'
 import './App.css';
 import PulseLogo from './components/PulseLogo';
 import { bootstrapDevice } from './lib/e2ee/deviceBootstrap';
+import { shouldBootstrapE2EEDevice } from './lib/e2ee/config';
 import { clearPulseUserStorage, getSafeInternalPath, scheduleIdleTask } from './utils';
 
 const Homepage           = lazy(() => import('./screens/Homepage'));
@@ -190,10 +191,12 @@ function MainApp() {
           }
         } catch (e) { console.warn('[Pulse] Fout:', e.message); }
         setUserRole(role);
-        try {
-          await bootstrapDevice(firebaseUser);
-        } catch (e) {
-          console.warn('[Pulse] Device bootstrap mislukt:', e.message);
+        if (shouldBootstrapE2EEDevice) {
+          try {
+            await bootstrapDevice(firebaseUser);
+          } catch (e) {
+            console.warn('[Pulse] Device bootstrap mislukt:', e.message);
+          }
         }
         const idToken = await firebaseUser.getIdToken();
         const socket = connectSocket(firebaseUser.uid, idToken);

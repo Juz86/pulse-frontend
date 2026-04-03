@@ -205,15 +205,15 @@ export default function ElektronischeCommunicatieBeleidPagina() {
           </div>
           <div className="legal-card">
             <h3>Videocommunicatiegerelateerde data</h3>
-            <p>30 dagen</p>
+            <p>14 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Technische metadata</h3>
-            <p>30 dagen</p>
+            <p>7 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Logbestanden</h3>
-            <p>30 dagen</p>
+            <p>7 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Support- en incidentdossiers</h3>

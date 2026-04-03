@@ -6,12 +6,15 @@ import { keysRouter } from './routes/keys.js';
 import { messagesRouter } from './routes/messages.js';
 import { parentRouter } from './routes/parent.js';
 import { callsRouter } from './routes/calls.js';
+import { requestContext } from './middleware/requestContext.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { createSocketServer } from './socket/index.js';
 import {
-  checkFirestoreReady,
   getFirebaseConfigDiagnostics,
   getFirebaseCredentialMode,
+} from './services/firebaseConfig.js';
+import {
+  checkFirestoreReady,
 } from './services/firestore.js';
 
 const app = express();
@@ -21,11 +24,13 @@ const startedAt = new Date().toISOString();
 
 app.use(cors());
 app.use(express.json());
+app.use(requestContext);
 
 app.get('/', (_req, res) => {
   res.json({
     ok: true,
     service: 'pulse-e2ee-backend-skeleton',
+    requestId: _req.requestId,
   });
 });
 
@@ -33,6 +38,7 @@ app.get('/health', (_req, res) => {
   res.json({
     ok: true,
     service: 'pulse-e2ee-backend-skeleton',
+    requestId: _req.requestId,
     uptimeSeconds: Math.round(process.uptime()),
     startedAt,
     firebaseCredentialMode: getFirebaseCredentialMode(),
@@ -43,6 +49,7 @@ app.get('/configz', (_req, res) => {
   res.json({
     ok: true,
     service: 'pulse-e2ee-backend-skeleton',
+    requestId: _req.requestId,
     firebase: getFirebaseConfigDiagnostics(),
   });
 });
@@ -54,6 +61,7 @@ app.get('/readyz', async (_req, res) => {
     return res.status(503).json({
       ok: false,
       service: 'pulse-e2ee-backend-skeleton',
+      requestId: _req.requestId,
       firestore,
       firebaseCredentialMode: getFirebaseCredentialMode(),
       firebase: getFirebaseConfigDiagnostics(),
@@ -63,6 +71,7 @@ app.get('/readyz', async (_req, res) => {
   return res.json({
     ok: true,
     service: 'pulse-e2ee-backend-skeleton',
+    requestId: _req.requestId,
     firestore,
     firebaseCredentialMode: getFirebaseCredentialMode(),
     firebase: getFirebaseConfigDiagnostics(),

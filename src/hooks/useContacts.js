@@ -247,7 +247,8 @@ export default function useContacts({
     setConfirmDialog({
       message: 'Weet je zeker dat je dit contact wilt verwijderen?',
       onConfirm: async () => {
-        // Bidirectionele verwijdering via backend — beide kanten worden direct verwijderd
+        // Eenzijdige verwijdering via backend — alleen eigen kant wordt verwijderd.
+        // De ander behoudt het contact en mag nog berichten sturen.
         try {
           await authFetch(`${BACKEND_URL}/api/contacts/${user.uid}/${targetUid}`, { method: 'DELETE' });
         } catch (e) { console.warn('[Pulse] Contact verwijderen mislukt:', e.message); }

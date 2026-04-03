@@ -199,15 +199,15 @@ export default function PrivacybeleidPagina() {
         <div className="legal-grid">
           <div className="legal-card">
             <h3>Accountgegevens ouders</h3>
-            <p>Zolang account actief is, daarna in beginsel max. 120 dagen</p>
+            <p>Zolang account actief is.</p>
           </div>
           <div className="legal-card">
             <h3>Accountgegevens kinderen</h3>
-            <p>Zolang account actief is, daarna in beginsel max. 120 dagen</p>
+            <p>Zolang account actief is.</p>
           </div>
           <div className="legal-card">
             <h3>Vertrouwde contacten</h3>
-            <p>Zolang gekoppeld, daarna in beginsel max. 30 dagen</p>
+            <p>Zolang gekoppeld.</p>
           </div>
           <div className="legal-card">
             <h3>Berichten en communicatie-inhoud</h3>
@@ -215,11 +215,11 @@ export default function PrivacybeleidPagina() {
           </div>
           <div className="legal-card">
             <h3>Logbestanden</h3>
-            <p>90 dagen</p>
+            <p>7 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Support- en privacyverzoeken</h3>
-            <p>Tot 2 jaar na afhandeling</p>
+            <p>30 dagen</p>
           </div>
         </div>
       </LegalSection>

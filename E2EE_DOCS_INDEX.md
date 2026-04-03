@@ -43,6 +43,10 @@ Voor prioritering van het resterende werk:
 
 - [E2EE_BACKLOG.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BACKLOG.md)
 
+Voor de belangrijkste rollout- en architectuurrisico's:
+
+- [E2EE_RISKS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_RISKS.md)
+
 ## Backend Contract
 
 Voor de API-endpoints en payloads die de frontend inmiddels verwacht:

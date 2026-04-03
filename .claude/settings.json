@@ -22,7 +22,11 @@
       "WebFetch(domain:www.whatsapp.com)",
       "Bash(node -e ':*)",
       "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/cleanup.js)",
-      "Bash(grep -rn \"profilePhoto\\\\|users/\\\\${uid}\" /home/yushuaabdulkadir/pulse-frontend/src/)"
+      "Bash(grep -rn \"profilePhoto\\\\|users/\\\\${uid}\" /home/yushuaabdulkadir/pulse-frontend/src/)",
+      "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/firebase.js)",
+      "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/routes/users.js)",
+      "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/routes/parent.js)",
+      "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/routes/friends.js)"
     ],
     "additionalDirectories": [
       "/home/yushuaabdulkadir/pulse-backend"

@@ -243,15 +243,17 @@ export default function useContacts({
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }
 
-  function removeContact(uid) {
+  function removeContact(targetUid) {
     setConfirmDialog({
       message: 'Weet je zeker dat je dit contact wilt verwijderen?',
       onConfirm: async () => {
-        await deleteDoc(doc(db, 'users', user.uid, 'contacts', uid));
-        setContacts(prev => prev.filter(c => c.uid !== uid));
-        const conv = conversations.find(c => !c.isGroup && c.members?.includes(uid));
+        // Bidirectionele verwijdering via backend — beide kanten worden direct verwijderd
+        try {
+          await authFetch(`${BACKEND_URL}/api/contacts/${user.uid}/${targetUid}`, { method: 'DELETE' });
+        } catch (e) { console.warn('[Pulse] Contact verwijderen mislukt:', e.message); }
+        setContacts(prev => prev.filter(c => c.uid !== targetUid));
+        const conv = conversations.find(c => !c.isGroup && c.members?.includes(targetUid));
         if (conv) {
-          try { await authFetch(`${BACKEND_URL}/api/conversations/${conv.id}`, { method: 'DELETE' }); } catch (e) { console.warn('[Pulse] Fout:', e.message); }
           setConversations(prev => prev.filter(c => c.id !== conv.id));
           if (activeConv?.id === conv.id) { setActiveConv(null); setMessages([]); }
         }

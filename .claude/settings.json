@@ -17,7 +17,9 @@
       "Bash(curl -s \"https://dns.google/resolve?name=resend._domainkey.pulse-messenger.com&type=TXT\")",
       "Bash(curl -s \"https://dns.google/resolve?name=send.pulse-messenger.com&type=TXT\")",
       "Bash(curl -s \"https://dns.google/resolve?name=send.pulse-messenger.com&type=MX\")",
-      "Bash(node -e \"require\\('resend'\\); console.log\\('ok'\\)\")"
+      "Bash(node -e \"require\\('resend'\\); console.log\\('ok'\\)\")",
+      "WebSearch",
+      "WebFetch(domain:www.whatsapp.com)"
     ],
     "additionalDirectories": [
       "/home/yushuaabdulkadir/pulse-backend"

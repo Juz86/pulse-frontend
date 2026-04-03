@@ -2,6 +2,10 @@
 
 Deze codebase bevat nu een gefaseerde frontend-basis voor end-to-end encryptie.
 
+Volledig documentatie-overzicht:
+
+- [E2EE_DOCS_INDEX.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_DOCS_INDEX.md)
+
 ## Huidige frontendstatus
 
 - Device bootstrap draait na login via [src/App.js](/home/yushuaabdulkadir/pulse-frontend/src/App.js).
@@ -11,6 +15,10 @@ Deze codebase bevat nu een gefaseerde frontend-basis voor end-to-end encryptie.
 - Bewerken van `signal_v1`-berichten is bewust uitgeschakeld totdat daar een apart encrypted edit-model voor is.
 
 ## Feature flags
+
+Veilige voorbeeldconfig:
+
+- [.env.example](/home/yushuaabdulkadir/pulse-frontend/.env.example)
 
 - `REACT_APP_E2EE_MODE=mock`
   Betekent: gebruik de mock crypto-adapter.

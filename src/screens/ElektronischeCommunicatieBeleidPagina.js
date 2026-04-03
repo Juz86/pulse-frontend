@@ -201,23 +201,23 @@ export default function ElektronischeCommunicatieBeleidPagina() {
           </div>
           <div className="legal-card">
             <h3>Oproepgegevens</h3>
-            <p>[BEWAARTERMIJN]</p>
+            <p>30 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Videocommunicatiegerelateerde data</h3>
-            <p>[BEWAARTERMIJN]</p>
+            <p>30 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Technische metadata</h3>
-            <p>[BEWAARTERMIJN]</p>
+            <p>30 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Logbestanden</h3>
-            <p>[BEWAARTERMIJN LOGBESTANDEN]</p>
+            <p>30 dagen</p>
           </div>
           <div className="legal-card">
             <h3>Support- en incidentdossiers</h3>
-            <p>[BEWAARTERMIJN]</p>
+            <p>30 dagen</p>
           </div>
         </div>
       </LegalSection>

@@ -17,8 +17,12 @@ Frontendrepo voor Pulse, inclusief de huidige marketingpagina's, chat-UI en de v
   `npm run build`
 - tests:
   `npm test -- --watchAll=false`
+- E2EE-helpertests:
+  `npm run test:e2ee`
 - lint:
   `npm run lint`
+- gerichte E2EE-verificatie:
+  `npm run verify:e2ee`
 
 ## E2EE Status
 
@@ -37,6 +41,7 @@ Belangrijkste documenten:
 
 - [E2EE_IMPLEMENTATION_STATUS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_IMPLEMENTATION_STATUS.md)
 - [E2EE_ARCHITECTURE_OVERVIEW.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ARCHITECTURE_OVERVIEW.md)
+- [E2EE_FILE_MAP.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_FILE_MAP.md)
 - [E2EE_DECISIONS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_DECISIONS.md)
 - [E2EE_GLOSSARY.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_GLOSSARY.md)
 - [E2EE_OPEN_QUESTIONS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_OPEN_QUESTIONS.md)
@@ -47,6 +52,7 @@ Belangrijkste documenten:
 - [E2EE_TEST_MATRIX.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_TEST_MATRIX.md)
 - [E2EE_BACKLOG.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BACKLOG.md)
 - [E2EE_RISKS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_RISKS.md)
+- [E2EE_PRODUCT_IMPACT.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_PRODUCT_IMPACT.md)
 - [BACKEND_E2EE_API_SPEC.md](/home/yushuaabdulkadir/pulse-frontend/BACKEND_E2EE_API_SPEC.md)
 - [BACKEND_E2EE_FIRESTORE_PLAN.md](/home/yushuaabdulkadir/pulse-frontend/BACKEND_E2EE_FIRESTORE_PLAN.md)
 - [E2EE_BACKEND_HANDOFF_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BACKEND_HANDOFF_CHECKLIST.md)
@@ -56,3 +62,11 @@ Belangrijkste documenten:
 - frontendvoorbereiding voor E2EE is ingebouwd
 - build, tests en lint zijn eerder succesvol gedraaid
 - de volgende grote stap ligt aan backendkant
+
+## Backend Startpunt
+
+Er staat nu ook een minimale backend-skeleton klaar in:
+
+- [backend-skeleton/README.md](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/README.md)
+
+Die map is bedoeld als implementatiestart voor de eerste E2EE-serviceflow, niet als af productiebackend.

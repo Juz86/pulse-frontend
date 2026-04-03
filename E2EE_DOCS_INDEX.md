@@ -11,6 +11,7 @@ Als je wilt weten wat er al gebouwd is en wat de eerstvolgende stap is:
 Als je wilt begrijpen hoe de frontend-E2EE-laag intern is opgesplitst:
 
 - [E2EE_ARCHITECTURE_OVERVIEW.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ARCHITECTURE_OVERVIEW.md)
+- [E2EE_FILE_MAP.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_FILE_MAP.md)
 
 Als je wilt zien welke ontwerpkeuzes al bewust vastliggen:
 
@@ -47,6 +48,10 @@ Voor prioritering van het resterende werk:
 Voor de belangrijkste rollout- en architectuurrisico's:
 
 - [E2EE_RISKS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_RISKS.md)
+
+Voor product- en copy-impact van echte activatie:
+
+- [E2EE_PRODUCT_IMPACT.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_PRODUCT_IMPACT.md)
 
 ## Backend Contract
 

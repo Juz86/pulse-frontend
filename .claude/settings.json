@@ -21,7 +21,8 @@
       "WebSearch",
       "WebFetch(domain:www.whatsapp.com)",
       "Bash(node -e ':*)",
-      "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/cleanup.js)"
+      "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/cleanup.js)",
+      "Bash(grep -rn \"profilePhoto\\\\|users/\\\\${uid}\" /home/yushuaabdulkadir/pulse-frontend/src/)"
     ],
     "additionalDirectories": [
       "/home/yushuaabdulkadir/pulse-backend"

@@ -1,10 +1,11 @@
 import { Router } from 'express';
+import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 
 export const devicesRouter = Router();
 
-devicesRouter.post('/register', requireAuth, async (req, res) => {
+devicesRouter.post('/register', requireAuth, asyncRoute(async (req, res) => {
   const uid = req.auth.uid;
   const {
     deviceLabel,
@@ -40,4 +41,4 @@ devicesRouter.post('/register', requireAuth, async (req, res) => {
     deviceId: ref.id,
     status: 'registered',
   });
-});
+}));

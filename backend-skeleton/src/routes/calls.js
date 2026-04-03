@@ -1,11 +1,12 @@
 import { Router } from 'express';
+import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
 export const callsRouter = Router();
 
-callsRouter.post('/start', requireAuth, async (req, res) => {
+callsRouter.post('/start', requireAuth, asyncRoute(async (req, res) => {
   const uid = req.auth.uid;
   const { targetUid, isVideo = false } = req.body || {};
 
@@ -29,4 +30,4 @@ callsRouter.post('/start', requireAuth, async (req, res) => {
     ok: true,
     allowed: true,
   });
-});
+}));

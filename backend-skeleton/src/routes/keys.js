@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
@@ -6,7 +7,7 @@ import { logPolicyEvent } from '../services/policyEvents.js';
 
 export const keysRouter = Router();
 
-keysRouter.get('/:userId/key-bundle', requireAuth, async (req, res) => {
+keysRouter.get('/:userId/key-bundle', requireAuth, asyncRoute(async (req, res) => {
   const requesterId = req.auth.uid;
   const targetUserId = req.params.userId;
 
@@ -50,4 +51,4 @@ keysRouter.get('/:userId/key-bundle', requireAuth, async (req, res) => {
     devices,
     protocolVersion: 1,
   });
-});
+}));

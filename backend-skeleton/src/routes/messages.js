@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
@@ -7,7 +8,7 @@ import { logPolicyEvent } from '../services/policyEvents.js';
 export function messagesRouter({ io, emitToUser }) {
   const router = Router();
 
-  router.post('/send', requireAuth, async (req, res) => {
+  router.post('/send', requireAuth, asyncRoute(async (req, res) => {
     const uid = req.auth.uid;
     const {
       conversationId,
@@ -108,9 +109,9 @@ export function messagesRouter({ io, emitToUser }) {
       messageId: messageRef.id,
       accepted: true,
     });
-  });
+  }));
 
-  router.post('/receipt', requireAuth, async (req, res) => {
+  router.post('/receipt', requireAuth, asyncRoute(async (req, res) => {
     const uid = req.auth.uid;
     const { messageId, recipientDeviceId, type } = req.body || {};
 
@@ -139,9 +140,9 @@ export function messagesRouter({ io, emitToUser }) {
     });
 
     return res.json({ ok: true });
-  });
+  }));
 
-  router.get('/feed/:convId', requireAuth, async (req, res) => {
+  router.get('/feed/:convId', requireAuth, asyncRoute(async (req, res) => {
     const uid = req.auth.uid;
     const { convId } = req.params;
     const limit = Number(req.query.limit || 30);
@@ -167,7 +168,7 @@ export function messagesRouter({ io, emitToUser }) {
 
     const items = snap.docs.map((doc) => doc.data()).reverse();
     return res.json(items);
-  });
+  }));
 
   return router;
 }

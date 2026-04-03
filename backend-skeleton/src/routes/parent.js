@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
@@ -16,7 +17,7 @@ async function ensureParentAccess(parentUid, childUid, res) {
   return true;
 }
 
-parentRouter.get('/child/:childUid/policy', requireAuth, async (req, res) => {
+parentRouter.get('/child/:childUid/policy', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid } = req.params;
 
@@ -51,11 +52,11 @@ parentRouter.get('/child/:childUid/policy', requireAuth, async (req, res) => {
             quietHoursEnd: null,
             timezone: 'Europe/Amsterdam',
           },
-        }
+      }
   );
-});
+}));
 
-parentRouter.patch('/child/:childUid/policy/features', requireAuth, async (req, res) => {
+parentRouter.patch('/child/:childUid/policy/features', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid } = req.params;
   const { chat, call, video } = req.body || {};
@@ -91,9 +92,9 @@ parentRouter.patch('/child/:childUid/policy/features', requireAuth, async (req, 
   });
 
   return res.json({ ok: true });
-});
+}));
 
-parentRouter.patch('/child/:childUid/policy/schedule', requireAuth, async (req, res) => {
+parentRouter.patch('/child/:childUid/policy/schedule', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid } = req.params;
   const {
@@ -136,9 +137,9 @@ parentRouter.patch('/child/:childUid/policy/schedule', requireAuth, async (req, 
   });
 
   return res.json({ ok: true });
-});
+}));
 
-parentRouter.get('/child/:childUid/approved-contacts', requireAuth, async (req, res) => {
+parentRouter.get('/child/:childUid/approved-contacts', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid } = req.params;
 
@@ -148,9 +149,9 @@ parentRouter.get('/child/:childUid/approved-contacts', requireAuth, async (req, 
 
   const snap = await db.collection('approved_contacts').where('childId', '==', childUid).get();
   return res.json(snap.docs.map((doc) => doc.data()));
-});
+}));
 
-parentRouter.get('/child/:childUid/contacts', requireAuth, async (req, res) => {
+parentRouter.get('/child/:childUid/contacts', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid } = req.params;
 
@@ -174,9 +175,9 @@ parentRouter.get('/child/:childUid/contacts', requireAuth, async (req, res) => {
       };
     })
   );
-});
+}));
 
-parentRouter.post('/child/:childUid/approved-contacts', requireAuth, async (req, res) => {
+parentRouter.post('/child/:childUid/approved-contacts', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid } = req.params;
   const { targetUid, chat, call, video } = req.body || {};
@@ -218,9 +219,9 @@ parentRouter.post('/child/:childUid/approved-contacts', requireAuth, async (req,
   });
 
   return res.json({ ok: true });
-});
+}));
 
-parentRouter.patch('/child/:childUid/approved-contacts/:targetUid', requireAuth, async (req, res) => {
+parentRouter.patch('/child/:childUid/approved-contacts/:targetUid', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid, targetUid } = req.params;
   const { chat, call, video, blocked } = req.body || {};
@@ -258,9 +259,9 @@ parentRouter.patch('/child/:childUid/approved-contacts/:targetUid', requireAuth,
   });
 
   return res.json({ ok: true });
-});
+}));
 
-parentRouter.delete('/child/:childUid/approved-contacts/:targetUid', requireAuth, async (req, res) => {
+parentRouter.delete('/child/:childUid/approved-contacts/:targetUid', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid, targetUid } = req.params;
 
@@ -279,9 +280,9 @@ parentRouter.delete('/child/:childUid/approved-contacts/:targetUid', requireAuth
   });
 
   return res.json({ ok: true });
-});
+}));
 
-parentRouter.post('/child/:childUid/block-contact', requireAuth, async (req, res) => {
+parentRouter.post('/child/:childUid/block-contact', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid } = req.params;
   const { targetUid } = req.body || {};
@@ -314,9 +315,9 @@ parentRouter.post('/child/:childUid/block-contact', requireAuth, async (req, res
   });
 
   return res.json({ ok: true });
-});
+}));
 
-parentRouter.post('/child/:childUid/unblock-contact', requireAuth, async (req, res) => {
+parentRouter.post('/child/:childUid/unblock-contact', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid } = req.params;
   const { targetUid } = req.body || {};
@@ -349,9 +350,9 @@ parentRouter.post('/child/:childUid/unblock-contact', requireAuth, async (req, r
   });
 
   return res.json({ ok: true });
-});
+}));
 
-parentRouter.post('/child/:childUid/remove-contact', requireAuth, async (req, res) => {
+parentRouter.post('/child/:childUid/remove-contact', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid } = req.params;
   const { targetUid } = req.body || {};
@@ -375,9 +376,9 @@ parentRouter.post('/child/:childUid/remove-contact', requireAuth, async (req, re
   });
 
   return res.json({ ok: true });
-});
+}));
 
-parentRouter.get('/activities', requireAuth, async (req, res) => {
+parentRouter.get('/activities', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
 
   const snap = await db
@@ -388,4 +389,4 @@ parentRouter.get('/activities', requireAuth, async (req, res) => {
     .get();
 
   return res.json(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-});
+}));

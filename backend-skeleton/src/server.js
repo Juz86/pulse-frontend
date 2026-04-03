@@ -6,6 +6,7 @@ import { keysRouter } from './routes/keys.js';
 import { messagesRouter } from './routes/messages.js';
 import { parentRouter } from './routes/parent.js';
 import { callsRouter } from './routes/calls.js';
+import { errorHandler } from './middleware/errorHandler.js';
 import { createSocketServer } from './socket/index.js';
 import {
   checkFirestoreReady,
@@ -73,6 +74,7 @@ app.use('/users', keysRouter);
 app.use('/messages', messagesRouter({ io, emitToUser }));
 app.use('/calls', callsRouter);
 app.use('/api/parent', parentRouter);
+app.use(errorHandler);
 
 const port = Number(process.env.PORT || 3001);
 server.listen(port, () => {

@@ -19,6 +19,8 @@ Deze map is geen complete productiebackend, maar een startpunt voor:
 
 - [src/server.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/server.js)
 - [src/middleware/auth.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/middleware/auth.js)
+- [src/middleware/asyncRoute.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/middleware/asyncRoute.js)
+- [src/middleware/errorHandler.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/middleware/errorHandler.js)
 - [src/routes/devices.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/devices.js)
 - [src/routes/keys.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/keys.js)
 - [src/routes/messages.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/messages.js)
@@ -95,6 +97,7 @@ Dat dekt nu ook de quiet-hours policyhelper mee.
 ## Belangrijk
 
 - deze skeleton gebruikt eenvoudige Express-code
+- async routefouten worden centraal afgehandeld via middleware
 - Firestore-queries en policychecks zijn bewust minimaal gehouden
 - Firebase Admin kan lokaal of via Railway-secrets worden geïnitialiseerd
 - one-time prekeys worden hier nog niet transactioneel gereserveerd

@@ -1,7 +1,7 @@
 // src/hooks/useContacts.js
 import { useState, useCallback } from 'react';
 import { db } from '../firebase';
-import { doc, getDoc, getDocs, deleteDoc, collection, setDoc } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, setDoc } from 'firebase/firestore';
 import { getSocket, BACKEND_URL } from '../services/socket';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

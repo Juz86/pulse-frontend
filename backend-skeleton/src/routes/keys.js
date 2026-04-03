@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
+import { logPolicyEvent } from '../services/policyEvents.js';
 
 export const keysRouter = Router();
 
@@ -11,6 +12,13 @@ keysRouter.get('/:userId/key-bundle', requireAuth, async (req, res) => {
 
   const decision = await parentPolicyService.mayFetchKeyBundle(requesterId, targetUserId);
   if (!decision.allowed) {
+    await logPolicyEvent({
+      actorUid: requesterId,
+      targetUid: targetUserId,
+      action: 'fetch_key_bundle',
+      allowed: false,
+      reason: decision.reason || 'not_allowed',
+    });
     return res.status(403).json({ error: decision.reason || 'not_allowed' });
   }
 

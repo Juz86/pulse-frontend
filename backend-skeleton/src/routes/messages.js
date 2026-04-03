@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
+import { logPolicyEvent } from '../services/policyEvents.js';
 
 export function messagesRouter({ io, emitToUser }) {
   const router = Router();
@@ -41,6 +42,14 @@ export function messagesRouter({ io, emitToUser }) {
       );
 
       if (!decision.allowed) {
+        await logPolicyEvent({
+          actorUid: uid,
+          targetUid: payload.recipientUserId,
+          action: 'send_message',
+          allowed: false,
+          reason: decision.reason || 'send_not_allowed',
+          conversationId,
+        });
         return res.status(403).json({ error: decision.reason || 'send_not_allowed' });
       }
     }

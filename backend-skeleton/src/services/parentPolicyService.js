@@ -49,6 +49,46 @@ class ParentPolicyService {
       return { allowed: false, reason: 'chat_disabled_by_parent' };
     }
 
+    if (policy && this.isWithinQuietHours(policy, new Date())) {
+      return { allowed: false, reason: 'quiet_hours' };
+    }
+
+    return { allowed: true };
+  }
+
+  async mayStartCall(senderId, targetUserId, isVideo = false) {
+    const relation = await this.getChildContactRelation(senderId, targetUserId);
+    if (!relation) {
+      return { allowed: false, reason: 'contact_not_approved' };
+    }
+
+    if (relation.blocked) {
+      return { allowed: false, reason: 'contact_blocked' };
+    }
+
+    if (isVideo && relation.video === false) {
+      return { allowed: false, reason: 'video_disabled_for_contact' };
+    }
+
+    if (!isVideo && relation.call === false) {
+      return { allowed: false, reason: 'call_disabled_for_contact' };
+    }
+
+    const policy = await this.getChildPolicyIfManaged(senderId);
+    if (policy) {
+      if (isVideo && policy.featureRules?.video === false) {
+        return { allowed: false, reason: 'video_disabled_by_parent' };
+      }
+
+      if (!isVideo && policy.featureRules?.call === false) {
+        return { allowed: false, reason: 'call_disabled_by_parent' };
+      }
+
+      if (this.isWithinQuietHours(policy, new Date())) {
+        return { allowed: false, reason: 'quiet_hours' };
+      }
+    }
+
     return { allowed: true };
   }
 
@@ -84,6 +124,35 @@ class ParentPolicyService {
     const data = doc.data();
     if (!data.approved) return null;
     return data;
+  }
+
+  isWithinQuietHours(policy, now) {
+    const schedule = policy?.scheduleRules;
+    if (!schedule?.quietHoursEnabled) return false;
+    if (!schedule.quietHoursStart || !schedule.quietHoursEnd) return false;
+
+    const [startHour, startMinute] = schedule.quietHoursStart.split(':').map(Number);
+    const [endHour, endMinute] = schedule.quietHoursEnd.split(':').map(Number);
+
+    if (
+      Number.isNaN(startHour) ||
+      Number.isNaN(startMinute) ||
+      Number.isNaN(endHour) ||
+      Number.isNaN(endMinute)
+    ) {
+      return false;
+    }
+
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const startMinutes = startHour * 60 + startMinute;
+    const endMinutes = endHour * 60 + endMinute;
+
+    if (startMinutes === endMinutes) return false;
+    if (startMinutes < endMinutes) {
+      return currentMinutes >= startMinutes && currentMinutes < endMinutes;
+    }
+
+    return currentMinutes >= startMinutes || currentMinutes < endMinutes;
   }
 }
 

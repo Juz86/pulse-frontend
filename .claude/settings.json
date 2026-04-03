@@ -26,7 +26,8 @@
       "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/firebase.js)",
       "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/routes/users.js)",
       "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/routes/parent.js)",
-      "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/routes/friends.js)"
+      "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/routes/friends.js)",
+      "Bash(npx jest:*)"
     ],
     "additionalDirectories": [
       "/home/yushuaabdulkadir/pulse-backend"

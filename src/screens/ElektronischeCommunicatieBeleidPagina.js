@@ -304,9 +304,6 @@ export default function ElektronischeCommunicatieBeleidPagina() {
         <div className="legal-card">
           <p><strong>Pulse Messenger</strong></p>
           <p>info@pulse-messenger.com</p>
-          <p>Willem III Straat 36</p>
-          <p>2291TM Wateringen</p>
-          <p>[FUNCTIONARIS GEGEVENSBESCHERMING]</p>
         </div>
       </LegalSection>
 

@@ -1,6 +1,14 @@
 import { db } from './firestore.js';
 
 class ParentPolicyService {
+  async isParentOfChild(parentUid, childUid) {
+    const doc = await db.collection('users').doc(childUid).get();
+    if (!doc.exists) return false;
+
+    const data = doc.data();
+    return data.parentUid === parentUid || data.managedByParentId === parentUid;
+  }
+
   async mayFetchKeyBundle(requesterId, targetUserId) {
     if (requesterId === targetUserId) {
       return { allowed: false, reason: 'self_target_not_allowed' };

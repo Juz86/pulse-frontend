@@ -4,6 +4,7 @@ import http from 'http';
 import { devicesRouter } from './routes/devices.js';
 import { keysRouter } from './routes/keys.js';
 import { messagesRouter } from './routes/messages.js';
+import { parentRouter } from './routes/parent.js';
 import { createSocketServer } from './socket/index.js';
 
 const app = express();
@@ -23,6 +24,7 @@ app.get('/', (_req, res) => {
 app.use('/devices', devicesRouter);
 app.use('/users', keysRouter);
 app.use('/messages', messagesRouter({ io, emitToUser }));
+app.use('/api/parent', parentRouter);
 
 const port = Number(process.env.PORT || 3001);
 server.listen(port, () => {

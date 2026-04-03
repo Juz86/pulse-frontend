@@ -12,6 +12,7 @@ Deze map is geen complete productiebackend, maar een startpunt voor:
 - `POST /messages/receipt`
 - mixed `GET /api/messages/:convId`
 - socket auth en `message:new`
+- parent policy admin-routes
 
 ## Structuur
 
@@ -20,9 +21,31 @@ Deze map is geen complete productiebackend, maar een startpunt voor:
 - [src/routes/devices.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/devices.js)
 - [src/routes/keys.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/keys.js)
 - [src/routes/messages.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/messages.js)
+- [src/routes/parent.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/parent.js)
 - [src/services/firestore.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/services/firestore.js)
 - [src/services/parentPolicyService.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/services/parentPolicyService.js)
 - [src/socket/index.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/socket/index.js)
+
+## Parent Admin Routes
+
+Deze skeleton bevat nu ook minimale routes voor:
+
+- `GET /api/parent/child/:childUid/policy`
+- `PATCH /api/parent/child/:childUid/policy/features`
+- `PATCH /api/parent/child/:childUid/policy/schedule`
+- `GET /api/parent/child/:childUid/approved-contacts`
+- `POST /api/parent/child/:childUid/approved-contacts`
+- `PATCH /api/parent/child/:childUid/approved-contacts/:targetUid`
+- `DELETE /api/parent/child/:childUid/approved-contacts/:targetUid`
+
+## Lokale Start
+
+1. installeer dependencies:
+   `npm install`
+2. configureer omgeving op basis van:
+   [ .env.example ](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/.env.example)
+3. start lokaal:
+   `npm run dev`
 
 ## Belangrijk
 

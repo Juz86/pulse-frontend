@@ -264,7 +264,16 @@ export default function ElektronischeCommunicatieBeleidPagina() {
           Voor zover communicatiegegevens of gerelateerde metadata buiten de EER worden verwerkt of toegankelijk zijn, treft Pulse
           passende waarborgen overeenkomstig de AVG.
         </p>
-        <p><strong>[LANDEN BUITEN DE EER]</strong></p>
+        <p>
+          Persoonsgegevens kunnen worden verwerkt of toegankelijk zijn buiten de Europese Economische Ruimte, waaronder in de
+          <strong> Verenigde Staten</strong>, via de volgende dienstverleners: Cloudflare (VS), Railway (VS), Google Firebase (VS)
+          en Resend (VS). Vimexx is in Nederland gevestigd en valt binnen de EER.
+        </p>
+        <p>
+          Voor doorgifte buiten de EER baseren wij ons op passende doorgiftemechanismen overeenkomstig de AVG, waaronder
+          het EU-U.S. Data Privacy Framework, de Europese Standard Contractual Clauses (SCC's) en, waar van toepassing,
+          adequaatheidsbesluiten van de Europese Commissie.
+        </p>
       </LegalSection>
 
       <LegalSection title="Datalekken, incidenten en meldplicht">
@@ -293,8 +302,8 @@ export default function ElektronischeCommunicatieBeleidPagina() {
 
       <LegalSection title="Contactpunt voor privacy en elektronische communicatie">
         <div className="legal-card">
-          <p><strong>[E-MAILADRES PRIVACYCONTACT]</strong></p>
-          <p>Pulse Messenger</p>
+          <p><strong>Pulse Messenger</strong></p>
+          <p>info@pulse-messenger.com</p>
           <p>Willem III Straat 36</p>
           <p>2291TM Wateringen</p>
           <p>[FUNCTIONARIS GEGEVENSBESCHERMING]</p>

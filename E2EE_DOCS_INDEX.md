@@ -39,6 +39,10 @@ Voor handmatige validatie van de eerste service-rollout:
 
 - [E2EE_MANUAL_QA_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_MANUAL_QA_CHECKLIST.md)
 
+Voor prioritering van het resterende werk:
+
+- [E2EE_BACKLOG.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BACKLOG.md)
+
 ## Backend Contract
 
 Voor de API-endpoints en payloads die de frontend inmiddels verwacht:

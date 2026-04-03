@@ -78,6 +78,20 @@ Optioneel voorbeelddata laden:
 
 - `npm run seed`
 
+Snelle smoke-checks tegen een draaiende lokale server:
+
+- `npm run smoke`
+
+Snelle configuratiecheck vóór starten of deploy:
+
+- `npm run preflight`
+
+Kleine unit-test voor Firebase-confighelpers:
+
+- `npm test`
+
+Dat dekt nu ook de quiet-hours policyhelper mee.
+
 ## Belangrijk
 
 - deze skeleton gebruikt eenvoudige Express-code
@@ -87,11 +101,39 @@ Optioneel voorbeelddata laden:
 - denied policychecks en parent-acties worden alvast gelogd naar `policy_events`
 - dit is bedoeld als implementatiestart, niet als af productieontwerp
 
+## Health En Readiness
+
+Beschikbaar:
+
+- `GET /`
+- `GET /health`
+- `GET /configz`
+- `GET /readyz`
+
+`/health` geeft een lichte processtatus terug.
+
+`/configz` geeft een veilige diagnose van de Firebase-config terug zonder secrets te echoën.
+
+`/readyz` probeert ook Firestore-bereikbaarheid te valideren en geeft `503` terug als die check faalt.
+
 ## Firestore Hulp
 
 Voor de belangrijkste skeletonqueries en vermoedelijke indexes:
 
 - [FIRESTORE_INDEXES.md](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/FIRESTORE_INDEXES.md)
+
+## Firebase Setup
+
+Voor lokale en Railway-vriendelijke Firebase Admin-config:
+
+- [FIREBASE_SETUP.md](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/FIREBASE_SETUP.md)
+
+## Request Voorbeelden
+
+Voor directe handmatige tests:
+
+- [REQUEST_EXAMPLES.md](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/REQUEST_EXAMPLES.md)
+- [requests.http](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/requests.http)
 
 ## Deploy
 

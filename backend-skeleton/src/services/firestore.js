@@ -1,28 +1,9 @@
 import admin from 'firebase-admin';
-
-function normalizePrivateKey(value) {
-  return value ? value.replace(/\\n/g, '\n') : undefined;
-}
-
-function getServiceAccountFromEnv() {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-    return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-  }
-
-  if (
-    process.env.FIREBASE_PROJECT_ID &&
-    process.env.FIREBASE_CLIENT_EMAIL &&
-    process.env.FIREBASE_PRIVATE_KEY
-  ) {
-    return {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: normalizePrivateKey(process.env.FIREBASE_PRIVATE_KEY),
-    };
-  }
-
-  return null;
-}
+import {
+  getFirebaseConfigDiagnostics,
+  getFirebaseCredentialMode,
+  getServiceAccountFromEnv,
+} from './firebaseConfig.js';
 
 if (!admin.apps.length) {
   const serviceAccount = getServiceAccountFromEnv();
@@ -37,3 +18,24 @@ if (!admin.apps.length) {
 }
 
 export const db = admin.firestore();
+
+export async function checkFirestoreReady(timeoutMs = 3000) {
+  const timeout = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('firestore_timeout')), timeoutMs);
+  });
+
+  const probe = (async () => {
+    await db.listCollections();
+    return true;
+  })();
+
+  try {
+    await Promise.race([probe, timeout]);
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error.message || 'firestore_unavailable',
+    };
+  }
+}

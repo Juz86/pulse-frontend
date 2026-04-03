@@ -46,6 +46,8 @@ Start:
 1. project koppelen aan Railway
 2. dependencies laten installeren
 3. Firebase Admin secrets configureren
+4. optioneel preflight draaien:
+   `npm run preflight`
 4. Firestore-toegang bevestigen
 5. root healthcheck testen via `/`
 6. daarna pas `devices/register`, `key-bundle` en `messages/send` testen

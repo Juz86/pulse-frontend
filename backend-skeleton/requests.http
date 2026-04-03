@@ -1,0 +1,98 @@
+@baseUrl = http://127.0.0.1:3001
+@token = REPLACE_WITH_FIREBASE_ID_TOKEN
+
+### Root
+GET {{baseUrl}}/
+
+### Health
+GET {{baseUrl}}/health
+
+### Config
+GET {{baseUrl}}/configz
+
+### Ready
+GET {{baseUrl}}/readyz
+
+### Register device
+POST {{baseUrl}}/devices/register
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "deviceLabel": "Demo Browser",
+  "identityPublicKey": "mock-public-key",
+  "signedPreKey": {
+    "keyId": 1,
+    "publicKey": "mock-signed-prekey",
+    "signature": "mock-signature"
+  },
+  "oneTimePreKeys": [
+    { "keyId": 1, "publicKey": "mock-onetime-key-1" }
+  ],
+  "platform": "web",
+  "protocol": "signal_v1",
+  "protocolVersion": 1
+}
+
+### Key bundle
+GET {{baseUrl}}/users/uid_contact_9/key-bundle
+Authorization: Bearer {{token}}
+
+### Send message
+POST {{baseUrl}}/messages/send
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "conversationId": "conv_1",
+  "senderDeviceId": "device_sender_1",
+  "ciphertext": "mock-ciphertext",
+  "messageType": "text",
+  "protocol": "signal_v1",
+  "protocolVersion": 1,
+  "replyToMessageId": null,
+  "recipientPayloads": [
+    {
+      "recipientUserId": "uid_contact_9",
+      "recipientDeviceId": "device_target_1",
+      "encryptedMessageKey": "mock-envelope-key"
+    }
+  ]
+}
+
+### Receipt
+POST {{baseUrl}}/messages/receipt
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "messageId": "msg_123",
+  "recipientDeviceId": "device_target_1",
+  "type": "delivered"
+}
+
+### Message feed
+GET {{baseUrl}}/messages/feed/conv_1?limit=30&offset=0
+Authorization: Bearer {{token}}
+
+### Start call
+POST {{baseUrl}}/calls/start
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "targetUid": "uid_contact_9",
+  "isVideo": false
+}
+
+### Parent policy
+GET {{baseUrl}}/api/parent/child/uid_child_1/policy
+Authorization: Bearer {{token}}
+
+### Parent contacts
+GET {{baseUrl}}/api/parent/child/uid_child_1/contacts
+Authorization: Bearer {{token}}
+
+### Parent activities
+GET {{baseUrl}}/api/parent/activities
+Authorization: Bearer {{token}}

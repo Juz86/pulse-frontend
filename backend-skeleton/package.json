@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "node src/server.js",
     "start": "node src/server.js",
-    "seed": "node src/scripts/seed.js"
+    "seed": "node src/scripts/seed.js",
+    "smoke": "node src/scripts/smoke.js",
+    "preflight": "node src/scripts/preflight.js",
+    "test": "node --test src/services/firebaseConfig.test.js src/services/policyTime.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

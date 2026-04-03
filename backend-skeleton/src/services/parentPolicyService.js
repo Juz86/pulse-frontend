@@ -1,4 +1,5 @@
 import { db } from './firestore.js';
+import { isWithinQuietHours } from './policyTime.js';
 
 class ParentPolicyService {
   async isParentOfChild(parentUid, childUid) {
@@ -49,7 +50,7 @@ class ParentPolicyService {
       return { allowed: false, reason: 'chat_disabled_by_parent' };
     }
 
-    if (policy && this.isWithinQuietHours(policy, new Date())) {
+    if (policy && isWithinQuietHours(policy.scheduleRules, new Date())) {
       return { allowed: false, reason: 'quiet_hours' };
     }
 
@@ -84,7 +85,7 @@ class ParentPolicyService {
         return { allowed: false, reason: 'call_disabled_by_parent' };
       }
 
-      if (this.isWithinQuietHours(policy, new Date())) {
+      if (isWithinQuietHours(policy.scheduleRules, new Date())) {
         return { allowed: false, reason: 'quiet_hours' };
       }
     }
@@ -124,35 +125,6 @@ class ParentPolicyService {
     const data = doc.data();
     if (!data.approved) return null;
     return data;
-  }
-
-  isWithinQuietHours(policy, now) {
-    const schedule = policy?.scheduleRules;
-    if (!schedule?.quietHoursEnabled) return false;
-    if (!schedule.quietHoursStart || !schedule.quietHoursEnd) return false;
-
-    const [startHour, startMinute] = schedule.quietHoursStart.split(':').map(Number);
-    const [endHour, endMinute] = schedule.quietHoursEnd.split(':').map(Number);
-
-    if (
-      Number.isNaN(startHour) ||
-      Number.isNaN(startMinute) ||
-      Number.isNaN(endHour) ||
-      Number.isNaN(endMinute)
-    ) {
-      return false;
-    }
-
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const startMinutes = startHour * 60 + startMinute;
-    const endMinutes = endHour * 60 + endMinute;
-
-    if (startMinutes === endMinutes) return false;
-    if (startMinutes < endMinutes) {
-      return currentMinutes >= startMinutes && currentMinutes < endMinutes;
-    }
-
-    return currentMinutes >= startMinutes || currentMinutes < endMinutes;
   }
 }
 

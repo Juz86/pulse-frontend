@@ -250,13 +250,12 @@ export default function ElektronischeCommunicatieBeleidPagina() {
           Voor chat-, bel- en videofunctionaliteit kan Pulse gebruikmaken van gespecialiseerde verwerkers of infrastructuurpartijen.
           Daarbij worden passende afspraken gemaakt over vertrouwelijkheid, beveiliging en verwerkingsinstructies.
         </p>
-        <p>
-          De precieze infrastructuur en de betrokken verwerkers moeten nog definitief en openbaar worden bevestigd. Daarom blijven
-          de hieronder genoemde onderdelen voorlopig als placeholder opgenomen.
-        </p>
         <div className="legal-card">
-          <p><strong>[SUBPROCESSORS / VERWERKERS]</strong></p>
-          <p><strong>[HOSTINGPARTIJ]</strong></p>
+          <p><strong>Cloudflare</strong> — frontend-hosting, content delivery, DDoS-beveiliging en netwerkbeveiliging van de website.</p>
+          <p><strong>Railway</strong> — backend-hosting, deployment en technische infrastructuur van de API en servercomponenten van Pulse.</p>
+          <p><strong>Google Firebase</strong> — database-infrastructuur, authenticatie en aanverwante backendfunctionaliteiten.</p>
+          <p><strong>Resend</strong> — transactionele e-mailverzending (verificatiecodes en wachtwoordherstel).</p>
+          <p><strong>Vimexx</strong> — domeinregistratie en domeinbeheer.</p>
         </div>
       </LegalSection>
 

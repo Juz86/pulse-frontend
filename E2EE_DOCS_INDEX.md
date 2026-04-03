@@ -20,6 +20,10 @@ Als je snel de gebruikte termen wilt kunnen plaatsen:
 
 - [E2EE_GLOSSARY.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_GLOSSARY.md)
 
+Als je wilt zien wat bewust nog openstaat:
+
+- [E2EE_OPEN_QUESTIONS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_OPEN_QUESTIONS.md)
+
 ## Frontend Rollout
 
 Voor feature flags, veilige defaults en de overstap van socket naar service:

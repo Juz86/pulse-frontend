@@ -34,6 +34,8 @@ Belangrijk voor Cloudflare Pages:
 - Create React App draait daar met `CI=true`
 - warnings tellen dan mee als build errors
 - `npm run verify:cloudflare` bootst dat lokaal na
+- de GitHub workflow `Cloudflare Guard` draait dezelfde controle ook automatisch op pushes en PR's
+- nieuwe PR's krijgen ook een deploy-safety checklist via de pull request template
 
 ## E2EE Status
 

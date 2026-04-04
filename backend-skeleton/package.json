@@ -5,11 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "node src/server.js",
+    "dev:emulator": "node src/scripts/devEmulator.js",
     "start": "node src/server.js",
     "seed": "node src/scripts/seed.js",
+    "seed:emulator": "node src/scripts/seedEmulator.js",
     "smoke": "node src/scripts/smoke.js",
     "preflight": "node src/scripts/preflight.js",
-    "test": "node --test src/services/firebaseConfig.test.js src/services/policyTime.test.js"
+    "preflight:emulator": "node src/scripts/preflightEmulator.js",
+    "test": "node --test src/services/firebaseConfig.test.js src/services/policyTime.test.js src/middleware/auth.test.js src/middleware/requireFirebaseReady.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

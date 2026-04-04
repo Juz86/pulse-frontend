@@ -1,5 +1,6 @@
 @baseUrl = http://127.0.0.1:3001
 @token = REPLACE_WITH_FIREBASE_ID_TOKEN
+@devUid = uid_child_1
 
 ### Root
 GET {{baseUrl}}/
@@ -16,6 +17,27 @@ GET {{baseUrl}}/readyz
 ### Register device
 POST {{baseUrl}}/devices/register
 Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "deviceLabel": "Demo Browser",
+  "identityPublicKey": "mock-public-key",
+  "signedPreKey": {
+    "keyId": 1,
+    "publicKey": "mock-signed-prekey",
+    "signature": "mock-signature"
+  },
+  "oneTimePreKeys": [
+    { "keyId": 1, "publicKey": "mock-onetime-key-1" }
+  ],
+  "platform": "web",
+  "protocol": "signal_v1",
+  "protocolVersion": 1
+}
+
+### Register device (dev bypass)
+POST {{baseUrl}}/devices/register
+x-dev-uid: {{devUid}}
 Content-Type: application/json
 
 {

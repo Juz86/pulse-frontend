@@ -21,6 +21,38 @@ Verwacht:
 - preflight meldt dat het pad bestaat
 - daarna kan `/readyz` groen worden als Firestore bereikbaar is
 
+## Optie 1b: Lokaal Via Firestore Emulator
+
+Gebruik:
+
+- `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080`
+- `FIREBASE_PROJECT_ID=demo-pulse`
+
+Aanpak:
+
+1. start de Firestore Emulator
+2. zet bovenstaande env-variabelen in je lokale `.env`
+3. zet optioneel ook:
+   `ALLOW_DEV_AUTH_BYPASS=true`
+4. draai:
+   `npm run preflight`
+
+Verwacht:
+
+- preflight meldt `firestore_emulator`
+- `/readyz` kan groen worden zonder productie-service-account
+- je kunt lokale routeflows veel sneller testen
+
+Snelle repo-workflow:
+
+1. start de Firestore Emulator
+2. draai:
+   `npm run preflight:emulator`
+3. laad demo-data:
+   `npm run seed:emulator`
+4. start de backend:
+   `npm run dev:emulator`
+
 ## Optie 2: Railway Via JSON Secret
 
 Gebruik:

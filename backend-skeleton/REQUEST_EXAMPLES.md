@@ -10,6 +10,19 @@ Vervang in de voorbeelden:
 - `<BASE_URL>` met bijvoorbeeld `http://127.0.0.1:3001`
 - ids zoals `uid_child_1`, `uid_contact_9` en `conv_1` met echte testdata
 
+## Lokale Dev Bypass
+
+Als je lokaal test zonder echte Firebase token, kun je tijdelijk gebruiken:
+
+- `ALLOW_DEV_AUTH_BYPASS=true`
+- header:
+  `x-dev-uid: uid_child_1`
+
+Belangrijk:
+
+- dit is alleen bedoeld voor lokaal testen
+- standaard staat dit uit
+
 ## Health
 
 ```bash
@@ -24,6 +37,29 @@ curl -s <BASE_URL>/readyz
 ```bash
 curl -X POST <BASE_URL>/devices/register \
   -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "deviceLabel": "Demo Browser",
+    "identityPublicKey": "mock-public-key",
+    "signedPreKey": {
+      "keyId": 1,
+      "publicKey": "mock-signed-prekey",
+      "signature": "mock-signature"
+    },
+    "oneTimePreKeys": [
+      { "keyId": 1, "publicKey": "mock-onetime-key-1" }
+    ],
+    "platform": "web",
+    "protocol": "signal_v1",
+    "protocolVersion": 1
+  }'
+```
+
+Lokaal met dev bypass:
+
+```bash
+curl -X POST <BASE_URL>/devices/register \
+  -H "x-dev-uid: uid_child_1" \
   -H "Content-Type: application/json" \
   -d '{
     "deviceLabel": "Demo Browser",

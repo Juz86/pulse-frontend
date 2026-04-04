@@ -2,11 +2,16 @@ import cors from 'cors';
 import express from 'express';
 import http from 'http';
 import { devicesRouter } from './routes/devices.js';
+import { apiMessagesRouter } from './routes/apiMessages.js';
+import { contactsRouter } from './routes/contacts.js';
+import { friendRequestsRouter } from './routes/friendRequests.js';
 import { keysRouter } from './routes/keys.js';
 import { messagesRouter } from './routes/messages.js';
 import { parentRouter } from './routes/parent.js';
 import { callsRouter } from './routes/calls.js';
+import { usersRouter } from './routes/users.js';
 import { requestContext } from './middleware/requestContext.js';
+import { requireFirebaseReady } from './middleware/requireFirebaseReady.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { createSocketServer } from './socket/index.js';
 import {
@@ -78,11 +83,15 @@ app.get('/readyz', async (_req, res) => {
   });
 });
 
-app.use('/devices', devicesRouter);
-app.use('/users', keysRouter);
-app.use('/messages', messagesRouter({ io, emitToUser }));
-app.use('/calls', callsRouter);
-app.use('/api/parent', parentRouter);
+app.use('/devices', requireFirebaseReady, devicesRouter);
+app.use('/api/contacts', requireFirebaseReady, contactsRouter);
+app.use('/api/friend-requests', requireFirebaseReady, friendRequestsRouter);
+app.use('/api/messages', requireFirebaseReady, apiMessagesRouter);
+app.use('/api/users', requireFirebaseReady, usersRouter);
+app.use('/users', requireFirebaseReady, keysRouter);
+app.use('/messages', requireFirebaseReady, messagesRouter({ io, emitToUser }));
+app.use('/calls', requireFirebaseReady, callsRouter);
+app.use('/api/parent', requireFirebaseReady, parentRouter);
 app.use(errorHandler);
 
 const port = Number(process.env.PORT || 3001);

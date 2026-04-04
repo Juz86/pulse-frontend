@@ -11,9 +11,11 @@ Deze map is geen complete productiebackend, maar een startpunt voor:
 - `POST /messages/send`
 - `POST /messages/receipt`
 - mixed `GET /api/messages/:convId`
+- `DELETE /api/messages/:convId/:msgId`
 - `POST /calls/start`
 - socket auth en `message:new`
 - parent policy admin-routes
+- friend requests en contact-compatibiliteitsroutes
 
 ## Structuur
 
@@ -23,10 +25,14 @@ Deze map is geen complete productiebackend, maar een startpunt voor:
 - [src/middleware/errorHandler.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/middleware/errorHandler.js)
 - [src/middleware/requestContext.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/middleware/requestContext.js)
 - [src/routes/devices.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/devices.js)
+- [src/routes/apiMessages.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/apiMessages.js)
+- [src/routes/contacts.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/contacts.js)
+- [src/routes/friendRequests.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/friendRequests.js)
 - [src/routes/keys.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/keys.js)
 - [src/routes/messages.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/messages.js)
 - [src/routes/calls.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/calls.js)
 - [src/routes/parent.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/parent.js)
+- [src/routes/users.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/routes/users.js)
 - [src/services/firestore.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/services/firestore.js)
 - [src/services/parentPolicyService.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/services/parentPolicyService.js)
 - [src/services/policyEvents.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/services/policyEvents.js)
@@ -37,6 +43,8 @@ Deze map is geen complete productiebackend, maar een startpunt voor:
 
 Deze skeleton bevat nu ook minimale routes voor:
 
+- `GET /api/parent/children`
+- `GET /api/parent/analytics/:childUid`
 - `GET /api/parent/child/:childUid/policy`
 - `PATCH /api/parent/child/:childUid/policy/features`
 - `PATCH /api/parent/child/:childUid/policy/schedule`
@@ -49,6 +57,21 @@ Deze skeleton bevat nu ook minimale routes voor:
 - `POST /api/parent/child/:childUid/unblock-contact`
 - `POST /api/parent/child/:childUid/remove-contact`
 - `GET /api/parent/activities`
+
+Daarnaast bevat de skeleton nu ook frontend-compatibiliteitsroutes voor:
+
+- `GET /api/messages/:convId`
+- `DELETE /api/messages/:convId/:msgId`
+- `GET /api/users/:uid/blocked`
+- `POST /api/users/:uid/block`
+- `POST /api/users/:uid/unblock`
+- `GET /api/users/lookup-username`
+- `GET /api/users/search`
+- `GET /api/friend-requests/:uid`
+- `POST /api/friend-requests`
+- `POST /api/friend-requests/:requestId/accept`
+- `POST /api/friend-requests/:requestId/decline`
+- `DELETE /api/contacts/:uid/:targetUid`
 
 Daarnaast ondersteunt de policieservice nu ook:
 
@@ -77,6 +100,12 @@ Belangrijk:
 3. start lokaal:
    `npm run dev`
 
+Snelle lokale emulatorflow zonder losse env-export:
+
+- `npm run preflight:emulator`
+- `npm run seed:emulator`
+- `npm run dev:emulator`
+
 Optioneel voorbeelddata laden:
 
 - `npm run seed`
@@ -88,6 +117,7 @@ Snelle smoke-checks tegen een draaiende lokale server:
 Snelle configuratiecheck vóór starten of deploy:
 
 - `npm run preflight`
+- `npm run preflight:emulator`
 
 Kleine unit-test voor Firebase-confighelpers:
 
@@ -102,6 +132,11 @@ Dat dekt nu ook de quiet-hours policyhelper mee.
 - requests krijgen een `x-request-id` voor eenvoudige tracing
 - Firestore-queries en policychecks zijn bewust minimaal gehouden
 - Firebase Admin kan lokaal of via Railway-secrets worden geïnitialiseerd
+- optioneel is er een lokaal-only auth bypass via `ALLOW_DEV_AUTH_BYPASS=true` + `x-dev-uid`
+- `dev:emulator` zet standaard:
+  `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080`,
+  `FIREBASE_PROJECT_ID=demo-pulse`,
+  `ALLOW_DEV_AUTH_BYPASS=true`
 - one-time prekeys worden hier nog niet transactioneel gereserveerd
 - denied policychecks en parent-acties worden alvast gelogd naar `policy_events`
 - dit is bedoeld als implementatiestart, niet als af productieontwerp
@@ -114,6 +149,9 @@ Beschikbaar:
 - `GET /health`
 - `GET /configz`
 - `GET /readyz`
+
+When Firebase Admin credentials are missing, Firestore-backed routes fail fast with `503 firebase_not_configured` instead of waiting on a long Google client timeout.
+For local development, you can also use `FIRESTORE_EMULATOR_HOST` plus `FIREBASE_PROJECT_ID` to exercise Firestore-backed routes without production credentials.
 
 `/health` geeft een lichte processtatus terug.
 

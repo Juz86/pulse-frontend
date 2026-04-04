@@ -17,6 +17,72 @@ async function ensureParentAccess(parentUid, childUid, res) {
   return true;
 }
 
+async function listChildrenForParent(parentUid) {
+  const primary = await db.collection('users').where('parentUid', '==', parentUid).get();
+  if (!primary.empty) return primary.docs.map((doc) => ({ uid: doc.id, ...doc.data() }));
+
+  const fallback = await db.collection('users').where('managedByParentId', '==', parentUid).get();
+  return fallback.docs.map((doc) => ({ uid: doc.id, ...doc.data() }));
+}
+
+parentRouter.get('/children', requireAuth, asyncRoute(async (req, res) => {
+  const parentUid = req.auth.uid;
+  const children = await listChildrenForParent(parentUid);
+
+  const withPolicies = await Promise.all(children.map(async (child) => {
+    const policyDoc = await db.collection('child_policies').doc(child.uid).get();
+    const policy = policyDoc.exists ? policyDoc.data() : null;
+
+    return {
+      uid: child.uid,
+      displayName: child.displayName || child.username || child.uid,
+      username: child.username || null,
+      online: false,
+      pausedFeatures: {
+        chat: policy ? policy.featureRules?.chat === false : false,
+        call: policy ? policy.featureRules?.call === false : false,
+        video: policy ? policy.featureRules?.video === false : false,
+      },
+    };
+  }));
+
+  return res.json(withPolicies);
+}));
+
+parentRouter.get('/analytics/:childUid', requireAuth, asyncRoute(async (req, res) => {
+  const parentUid = req.auth.uid;
+  const { childUid } = req.params;
+
+  if (!(await ensureParentAccess(parentUid, childUid, res))) {
+    return;
+  }
+
+  const contactsSnap = await db.collection('approved_contacts').where('childId', '==', childUid).get();
+  const messagesSentSnap = await db.collection('messages').where('senderUserId', '==', childUid).get();
+  const blockedCount = contactsSnap.docs.filter((doc) => doc.data().blocked).length;
+
+  return res.json({
+    profile: {
+      uid: childUid,
+    },
+    contacts: {
+      total: contactsSnap.size,
+      blocked: blockedCount,
+    },
+    friendRequests: {
+      pending: 0,
+    },
+    sessions: {
+      total: 0,
+      activeDays: 0,
+    },
+    messaging: {
+      sent: messagesSentSnap.size,
+      received: 0,
+    },
+  });
+}));
+
 parentRouter.get('/child/:childUid/policy', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const { childUid } = req.params;

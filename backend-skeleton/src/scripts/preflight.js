@@ -5,6 +5,9 @@ function has(value) {
 }
 
 function getFirebaseMode() {
+  if (has(process.env.FIRESTORE_EMULATOR_HOST) && (has(process.env.FIREBASE_PROJECT_ID) || has(process.env.GCLOUD_PROJECT))) {
+    return 'firestore_emulator';
+  }
   if (has(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)) return 'service_account_json';
   if (
     has(process.env.FIREBASE_PROJECT_ID) &&
@@ -69,13 +72,18 @@ function main() {
   const firebaseMode = getFirebaseMode();
   const jsonCheck = checkServiceAccountJson();
   const pathCheck = checkGoogleApplicationCredentialsPath();
+  const hasEmulatorHost = has(process.env.FIRESTORE_EMULATOR_HOST);
+  const hasProjectId = has(process.env.FIREBASE_PROJECT_ID);
+  const hasGcloudProject = has(process.env.GCLOUD_PROJECT);
 
   console.log('Pulse backend skeleton preflight');
   console.log('--------------------------------');
   logLine('PORT', port);
   logLine('Firebase mode', firebaseMode);
+  logLine('FIRESTORE_EMULATOR_HOST aanwezig', hasEmulatorHost);
   logLine('GOOGLE_APPLICATION_CREDENTIALS aanwezig', has(process.env.GOOGLE_APPLICATION_CREDENTIALS));
-  logLine('FIREBASE_PROJECT_ID aanwezig', has(process.env.FIREBASE_PROJECT_ID));
+  logLine('FIREBASE_PROJECT_ID aanwezig', hasProjectId);
+  logLine('GCLOUD_PROJECT aanwezig', hasGcloudProject);
   logLine('FIREBASE_CLIENT_EMAIL aanwezig', has(process.env.FIREBASE_CLIENT_EMAIL));
   logLine('FIREBASE_PRIVATE_KEY aanwezig', has(process.env.FIREBASE_PRIVATE_KEY));
   logLine('FIREBASE_SERVICE_ACCOUNT_JSON aanwezig', has(process.env.FIREBASE_SERVICE_ACCOUNT_JSON));
@@ -97,6 +105,12 @@ function main() {
     console.log(
       'Waarschuwing: er is geen expliciete Firebase Admin-config gevonden. /readyz zal waarschijnlijk rood blijven buiten een omgeving met werkende application default credentials.'
     );
+    process.exitCode = 1;
+    return;
+  }
+
+  if (firebaseMode === 'firestore_emulator' && !(hasProjectId || hasGcloudProject)) {
+    console.log('Waarschuwing: emulator-modus vereist FIREBASE_PROJECT_ID of GCLOUD_PROJECT.');
     process.exitCode = 1;
     return;
   }

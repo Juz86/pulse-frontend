@@ -3240,7 +3240,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .ot-child-meta { font-size: 12px; color: #6b7280; margin-top: 2px; display: flex; align-items: center; gap: 6px; }
 .ot-dot { width: 8px; height: 8px; border-radius: 50%; background: #c5cad8; display: inline-block; }
 .ot-dot--online { background: #22c55e; }
-.ot-stat-row { gap: 10px; margin-top: 10px; font-size: 12px; color: #6b7280; }
+.ot-stat-row { display: flex; gap: 10px; margin-top: 10px; font-size: 12px; color: #6b7280; }
 .ot-pause-btn {
   margin-top: 12px; border: none; border-radius: 999px;
   background: rgba(249,115,22,0.12); color: #f97316;
@@ -3252,7 +3252,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   display: flex; align-items: center; justify-content: center;
 }
 
-.ot-phone { width: 230px !important; }
+.ot-phone { width: 260px !important; }
 .ot-phone-screen { min-height: 310px !important; }
 .ot-phone-top {
   display: flex; align-items: center; justify-content: space-between;

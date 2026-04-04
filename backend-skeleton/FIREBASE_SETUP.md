@@ -26,7 +26,7 @@ Verwacht:
 Gebruik:
 
 - `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080`
-- `FIREBASE_PROJECT_ID=demo-pulse`
+- `FIREBASE_PROJECT_ID=pulse-messenger-3cb9d`
 
 Aanpak:
 

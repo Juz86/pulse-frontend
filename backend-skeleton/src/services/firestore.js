@@ -22,6 +22,11 @@ if (!admin.apps.length) {
 
 export const db = admin.firestore();
 
+export async function closeFirestoreApp() {
+  if (!admin.apps.length) return;
+  await Promise.all(admin.apps.map((app) => app.delete()));
+}
+
 export async function checkFirestoreReady(timeoutMs = 3000) {
   if (!hasExplicitFirebaseConfig()) {
     return {

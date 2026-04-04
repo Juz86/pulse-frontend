@@ -1,4 +1,4 @@
-import { db } from '../services/firestore.js';
+import { closeFirestoreApp, db } from '../services/firestore.js';
 
 async function seed() {
   const now = new Date().toISOString();
@@ -142,7 +142,12 @@ async function seed() {
   console.log('Seed data geschreven voor Pulse backend skeleton.');
 }
 
-seed().catch((error) => {
+try {
+  await seed();
+  await closeFirestoreApp();
+  process.exit(0);
+} catch (error) {
   console.error(error);
+  await closeFirestoreApp();
   process.exit(1);
-});
+}

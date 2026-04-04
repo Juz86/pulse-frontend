@@ -3,11 +3,16 @@ export function computeDeliveryState(receiptRecords = []) {
     return 'sent';
   }
 
-  if (receiptRecords.some((record) => !!record?.readAt)) {
+  const relevantRecords = receiptRecords.filter(Boolean);
+  if (relevantRecords.length === 0) {
+    return 'sent';
+  }
+
+  if (relevantRecords.every((record) => !!record?.readAt)) {
     return 'read';
   }
 
-  if (receiptRecords.some((record) => !!record?.deliveredAt)) {
+  if (relevantRecords.every((record) => !!record?.deliveredAt || !!record?.readAt)) {
     return 'delivered';
   }
 

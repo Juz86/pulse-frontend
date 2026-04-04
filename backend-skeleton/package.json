@@ -10,6 +10,7 @@
     "seed": "node src/scripts/seed.js",
     "seed:emulator": "node src/scripts/seedEmulator.js",
     "smoke": "node src/scripts/smoke.js",
+    "smoke:socket": "node src/scripts/socketSmoke.js",
     "preflight": "node src/scripts/preflight.js",
     "preflight:emulator": "node src/scripts/preflightEmulator.js",
     "test": "node --test src/services/firebaseConfig.test.js src/services/policyTime.test.js src/services/deviceKeys.test.js src/services/deviceRecords.test.js src/services/deviceValidation.test.js src/services/messageEdits.test.js src/services/messageReceipts.test.js src/services/messageVisibility.test.js src/middleware/auth.test.js src/middleware/requireFirebaseReady.test.js"
@@ -18,6 +19,7 @@
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "firebase-admin": "^13.0.2",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.3"
   }
 }

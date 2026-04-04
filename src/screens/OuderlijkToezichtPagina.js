@@ -242,7 +242,7 @@ function StepsOverview() {
   const steps = [
     {
       title: 'Maak je ouderaccount aan',
-      text: 'Registreer jezelf en open het ouderportaal als veilige basis voor het gezin.',
+      text: 'Registreer jezelf en krijg toegang tot het ouderportaal.',
     },
     {
       title: 'Voeg je kind toe',
@@ -250,7 +250,7 @@ function StepsOverview() {
     },
     {
       title: 'Beheer per functie',
-      text: 'Bekijk activiteiten, ontvang meldingen en pauzeer chatten, bellen of videobellen wanneer nodig.',
+      text: 'Bekijk activiteiten, ontvang meldingen en pauzeer het kindaccount wanneer nodig.',
     },
   ];
 

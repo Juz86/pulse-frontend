@@ -119,6 +119,7 @@ Optioneel voorbeelddata laden:
 Snelle smoke-checks tegen een draaiende lokale server:
 
 - `npm run smoke`
+- `npm run smoke:socket`
 
 Snelle configuratiecheck vóór starten of deploy:
 
@@ -142,7 +143,7 @@ Dat dekt nu ook de quiet-hours policyhelper mee.
 - dezelfde lokale bypass werkt voor Socket.IO via `auth.devUid`
 - `dev:emulator` zet standaard:
   `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080`,
-  `FIREBASE_PROJECT_ID=demo-pulse`,
+  `FIREBASE_PROJECT_ID=pulse-messenger-3cb9d`,
   `ALLOW_DEV_AUTH_BYPASS=true`
 - key bundle retrieval reserveert nu transactioneel een one-time prekey per device
 - devices kunnen one-time prekeys bijvullen via `POST /devices/:deviceId/prekeys`

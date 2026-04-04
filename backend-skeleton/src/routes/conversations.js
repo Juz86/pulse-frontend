@@ -11,6 +11,7 @@ function deriveConversationSummary(message, fallback = '') {
       lastAttachmentTransfer: null,
       lastAttachmentEncoding: null,
       lastAttachmentOriginalMimeType: null,
+      lastAttachmentExpectedPayloadSha256: null,
     };
   }
 
@@ -21,6 +22,7 @@ function deriveConversationSummary(message, fallback = '') {
       lastAttachmentTransfer: message.messageType === 'attachment' ? (message.attachment?.transfer || null) : null,
       lastAttachmentEncoding: message.messageType === 'attachment' ? (message.attachment?.contentEncoding || null) : null,
       lastAttachmentOriginalMimeType: message.messageType === 'attachment' ? (message.attachment?.originalMimeType || message.attachment?.mimeType || null) : null,
+      lastAttachmentExpectedPayloadSha256: message.messageType === 'attachment' ? (message.attachment?.expectedPayloadSha256 || message.attachment?.encryption?.sha256 || null) : null,
     };
   }
 
@@ -31,6 +33,7 @@ function deriveConversationSummary(message, fallback = '') {
       lastAttachmentTransfer: null,
       lastAttachmentEncoding: null,
       lastAttachmentOriginalMimeType: null,
+      lastAttachmentExpectedPayloadSha256: null,
     };
   }
 
@@ -41,6 +44,7 @@ function deriveConversationSummary(message, fallback = '') {
       lastAttachmentTransfer: message.attachment?.transfer || null,
       lastAttachmentEncoding: message.attachment?.contentEncoding || null,
       lastAttachmentOriginalMimeType: message.attachment?.originalMimeType || message.attachment?.mimeType || null,
+      lastAttachmentExpectedPayloadSha256: message.attachment?.expectedPayloadSha256 || message.attachment?.encryption?.sha256 || null,
     };
   }
 
@@ -51,6 +55,7 @@ function deriveConversationSummary(message, fallback = '') {
       lastAttachmentTransfer: null,
       lastAttachmentEncoding: null,
       lastAttachmentOriginalMimeType: null,
+      lastAttachmentExpectedPayloadSha256: null,
     };
   }
 
@@ -62,6 +67,7 @@ function deriveConversationSummary(message, fallback = '') {
         lastAttachmentTransfer: null,
         lastAttachmentEncoding: null,
         lastAttachmentOriginalMimeType: null,
+        lastAttachmentExpectedPayloadSha256: null,
       };
     } catch {
       return {
@@ -70,6 +76,7 @@ function deriveConversationSummary(message, fallback = '') {
         lastAttachmentTransfer: null,
         lastAttachmentEncoding: null,
         lastAttachmentOriginalMimeType: null,
+        lastAttachmentExpectedPayloadSha256: null,
       };
     }
   }
@@ -80,6 +87,7 @@ function deriveConversationSummary(message, fallback = '') {
     lastAttachmentTransfer: null,
     lastAttachmentEncoding: null,
     lastAttachmentOriginalMimeType: null,
+    lastAttachmentExpectedPayloadSha256: null,
   };
 }
 
@@ -125,6 +133,7 @@ conversationsRouter.get('/:uid', requireAuth, asyncRoute(async (req, res) => {
         lastAttachmentTransfer: summary.lastAttachmentTransfer,
         lastAttachmentEncoding: summary.lastAttachmentEncoding,
         lastAttachmentOriginalMimeType: summary.lastAttachmentOriginalMimeType,
+        lastAttachmentExpectedPayloadSha256: summary.lastAttachmentExpectedPayloadSha256,
       };
     })
   );

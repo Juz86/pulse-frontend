@@ -14,6 +14,9 @@ export function normalizeAttachmentPayload(attachment) {
   const originalMimeType = typeof attachment.originalMimeType === 'string' ? attachment.originalMimeType : '';
   const contentEncoding = typeof attachment.contentEncoding === 'string' ? attachment.contentEncoding : '';
   const envelopeKind = typeof attachment.envelopeKind === 'string' ? attachment.envelopeKind : '';
+  const expectedPayloadSha256 = typeof attachment.expectedPayloadSha256 === 'string'
+    ? attachment.expectedPayloadSha256
+    : '';
   const encryption = attachment.encryption && typeof attachment.encryption === 'object'
     ? {
         alg: typeof attachment.encryption.alg === 'string' ? attachment.encryption.alg : '',
@@ -40,6 +43,7 @@ export function normalizeAttachmentPayload(attachment) {
     originalMimeType,
     contentEncoding,
     envelopeKind,
+    expectedPayloadSha256,
     size: normalizedSize,
     caption: typeof attachment.caption === 'string' ? attachment.caption.trim() : '',
     encryption,

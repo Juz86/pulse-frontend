@@ -303,6 +303,18 @@ const MessageBubble = React.memo(function MessageBubble({
                   {attachmentPresentation.storageDetail}
                 </div>
               )}
+              {attachmentPresentation.hasIntegrityContract && (
+                <div
+                  className="u-fs-12"
+                  style={{
+                    marginTop: 4,
+                    color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
+                    opacity: 0.82,
+                  }}
+                >
+                  Integriteit bevestigd via SHA-256 metadata
+                </div>
+              )}
               {attachmentActionError && (
                 <div
                   className="u-fs-12"
@@ -341,8 +353,20 @@ const MessageBubble = React.memo(function MessageBubble({
                         color: isOwn ? 'rgba(255,255,255,.62)' : 'var(--text3)',
                         opacity: 0.85,
                       }}
+                  >
+                    {attachmentPresentation.storageDetail}
+                  </div>
+                )}
+                  {attachmentPresentation.hasIntegrityContract && (
+                    <div
+                      className="u-fs-12"
+                      style={{
+                        marginTop: 4,
+                        color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
+                        opacity: 0.82,
+                      }}
                     >
-                      {attachmentPresentation.storageDetail}
+                      Integriteit bevestigd via SHA-256 metadata
                     </div>
                   )}
                   {attachmentActionError && (

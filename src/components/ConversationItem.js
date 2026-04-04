@@ -36,6 +36,7 @@ function ConversationItemBase({
     transfer: conv.lastAttachmentTransfer,
     contentEncoding: conv.lastAttachmentEncoding,
     originalMimeType: conv.lastAttachmentOriginalMimeType,
+    expectedPayloadSha256: conv.lastAttachmentExpectedPayloadSha256,
   });
   const showRemoteAttachmentBadge = conv.lastMessageType === 'attachment' && attachmentPresentation.isRemote;
   const handleKeyDown = (event) => {
@@ -125,6 +126,7 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.conv.lastAttachmentTransfer === next.conv.lastAttachmentTransfer &&
   prev.conv.lastAttachmentEncoding === next.conv.lastAttachmentEncoding &&
   prev.conv.lastAttachmentOriginalMimeType === next.conv.lastAttachmentOriginalMimeType &&
+  prev.conv.lastAttachmentExpectedPayloadSha256 === next.conv.lastAttachmentExpectedPayloadSha256 &&
   prev.conv.updatedAt   === next.conv.updatedAt    &&
   prev.conv.photoURL    === next.conv.photoURL     &&
   prev.isActive         === next.isActive          &&

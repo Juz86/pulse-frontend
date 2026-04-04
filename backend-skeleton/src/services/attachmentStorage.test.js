@@ -55,6 +55,7 @@ test('buildStoredAttachmentMetadata creates remote mock payload', () => {
   assert.equal(metadata.encryption.alg, 'mock-storage-envelope');
   assert.equal(metadata.contentEncoding, 'identity');
   assert.equal(metadata.originalMimeType, 'image/png');
+  assert.equal(metadata.expectedPayloadSha256, '');
 });
 
 test('storeMockAttachment persists inline data for retrieval', async () => {
@@ -75,6 +76,7 @@ test('storeMockAttachment persists inline data for retrieval', async () => {
   assert.equal(stored.mimeType, 'text/plain');
   assert.equal(stored.buffer.toString('utf8'), 'Hello');
   assert.equal(stored.contentEncoding, 'identity');
+  assert.equal(stored.expectedPayloadSha256, '');
 });
 
 test('storeMockAttachment preserves mock envelope contract metadata', async () => {
@@ -89,6 +91,7 @@ test('storeMockAttachment preserves mock envelope contract metadata', async () =
         alg: 'mock-e2ee-envelope-v1',
         envelopeKind: 'pulse_mock_media_envelope',
         originalMimeType: 'image/png',
+        sha256: 'abcd1234',
       },
     },
   });
@@ -101,8 +104,10 @@ test('storeMockAttachment preserves mock envelope contract metadata', async () =
   assert.equal(stored.originalMimeType, 'image/png');
   assert.equal(stored.contentEncoding, 'mock-e2ee-envelope-v1');
   assert.equal(stored.envelopeKind, 'pulse_mock_media_envelope');
+  assert.equal(stored.expectedPayloadSha256, 'abcd1234');
   assert.equal(metadata.contentEncoding, 'mock-e2ee-envelope-v1');
   assert.equal(metadata.originalMimeType, 'image/png');
+  assert.equal(metadata.expectedPayloadSha256, 'abcd1234');
 });
 
 test('getAttachmentIdFromUrl extracts the stored attachment id', () => {

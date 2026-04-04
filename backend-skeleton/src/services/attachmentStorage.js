@@ -51,6 +51,7 @@ function getAttachmentEnvelopeContract(attachment = {}, fallbackMimeType = 'appl
     isMockEnvelope,
     contentEncoding: isMockEnvelope ? 'mock-e2ee-envelope-v1' : 'identity',
     envelopeKind: typeof encryption.envelopeKind === 'string' ? encryption.envelopeKind : '',
+    expectedPayloadSha256: typeof encryption.sha256 === 'string' ? encryption.sha256 : '',
     originalMimeType: typeof encryption.originalMimeType === 'string' && encryption.originalMimeType
       ? encryption.originalMimeType
       : (attachment?.mimeType || fallbackMimeType || 'application/octet-stream'),
@@ -75,6 +76,7 @@ export function buildStoredAttachmentMetadata({ id, baseUrl, attachment }) {
     originalMimeType: contract.originalMimeType,
     contentEncoding: contract.contentEncoding,
     envelopeKind: contract.envelopeKind,
+    expectedPayloadSha256: contract.expectedPayloadSha256,
     size: Number.isFinite(attachment?.size) ? Number(attachment.size) : null,
     caption: attachment?.caption || '',
     encryption: attachment?.encryption || {
@@ -112,6 +114,7 @@ export async function storeMockAttachment({ attachment, baseUrl }) {
     originalMimeType: contract.originalMimeType,
     contentEncoding: contract.contentEncoding,
     envelopeKind: contract.envelopeKind,
+    expectedPayloadSha256: contract.expectedPayloadSha256,
     size: Number.isFinite(attachment.size) ? Number(attachment.size) : parsed.buffer.length,
     contentDisposition: isPreviewableMimeType(contract.originalMimeType)
       ? 'inline'
@@ -128,6 +131,7 @@ export async function storeMockAttachment({ attachment, baseUrl }) {
     originalMimeType: storedRecord.originalMimeType,
     contentEncoding: storedRecord.contentEncoding,
     envelopeKind: storedRecord.envelopeKind,
+    expectedPayloadSha256: storedRecord.expectedPayloadSha256,
     size: storedRecord.size,
     contentDisposition: storedRecord.contentDisposition,
   }, null, 2), 'utf8');
@@ -173,6 +177,7 @@ export async function getStoredAttachmentMetadata(id) {
     originalMimeType: storedAttachment.originalMimeType || storedAttachment.mimeType,
     contentEncoding: storedAttachment.contentEncoding || 'identity',
     envelopeKind: storedAttachment.envelopeKind || '',
+    expectedPayloadSha256: storedAttachment.expectedPayloadSha256 || '',
     size: storedAttachment.size,
     contentDisposition: storedAttachment.contentDisposition,
   };

@@ -58,6 +58,9 @@ attachmentsRouter.get('/:attachmentId', asyncRoute(async (req, res) => {
   if (storedAttachment.envelopeKind) {
     res.setHeader('X-Pulse-Envelope-Kind', storedAttachment.envelopeKind);
   }
+  if (storedAttachment.expectedPayloadSha256) {
+    res.setHeader('X-Pulse-Expected-Sha256', storedAttachment.expectedPayloadSha256);
+  }
   res.setHeader('Content-Length', String(storedAttachment.size || storedAttachment.buffer.length || 0));
   res.setHeader(
     'Content-Disposition',

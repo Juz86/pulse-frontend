@@ -1,6 +1,8 @@
+import crypto from 'crypto';
 const baseUrl = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3001';
 const devUid = process.env.SMOKE_ATTACHMENT_UID || 'uid_child_1';
 const envelopePayloadBase64 = Buffer.from('Hello attachment smoke', 'utf8').toString('base64');
+const envelopePayloadSha256 = crypto.createHash('sha256').update('Hello attachment smoke', 'utf8').digest('hex');
 const envelopeJsonBase64 = Buffer.from(JSON.stringify({
   version: 1,
   kind: 'pulse_mock_media_envelope',
@@ -8,6 +10,7 @@ const envelopeJsonBase64 = Buffer.from(JSON.stringify({
   name: 'smoke-note.txt',
   size: 21,
   payloadBase64: envelopePayloadBase64,
+  payloadSha256: envelopePayloadSha256,
 }), 'utf8').toString('base64');
 
 async function main() {
@@ -28,6 +31,7 @@ async function main() {
           alg: 'mock-e2ee-envelope-v1',
           envelopeKind: 'pulse_mock_media_envelope',
           originalMimeType: 'text/plain',
+          sha256: envelopePayloadSha256,
         },
       },
     }),
@@ -73,6 +77,7 @@ async function main() {
       originalMimeType: downloadResponse.headers.get('x-pulse-original-mimetype'),
       contentEncoding: downloadResponse.headers.get('x-pulse-content-encoding'),
       envelopeKind: downloadResponse.headers.get('x-pulse-envelope-kind'),
+      expectedSha256: downloadResponse.headers.get('x-pulse-expected-sha256'),
     },
     body: textBody,
   }));

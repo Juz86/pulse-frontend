@@ -12,9 +12,22 @@ export async function passthroughDecryptAttachmentBlob(blob) {
   return blob;
 }
 
+export function resolveExpectedAttachmentSha256(attachment) {
+  return attachment?.expectedPayloadSha256 || attachment?.encryption?.sha256 || '';
+}
+
+export function resolveAttachmentContractFields(attachment) {
+  return {
+    expectedPayloadSha256: resolveExpectedAttachmentSha256(attachment),
+    contentEncoding: attachment?.contentEncoding || '',
+    envelopeKind: attachment?.envelopeKind || attachment?.encryption?.envelopeKind || '',
+    originalMimeType: attachment?.originalMimeType || attachment?.encryption?.originalMimeType || '',
+  };
+}
+
 export async function decryptAttachmentBlob(blob, attachment) {
   if (attachment?.encryption?.alg === 'mock-e2ee-envelope-v1') {
-    return decryptMockAttachmentEnvelopeBlob(blob, attachment?.encryption?.sha256 || '');
+    return decryptMockAttachmentEnvelopeBlob(blob, resolveExpectedAttachmentSha256(attachment));
   }
 
   return passthroughDecryptAttachmentBlob(blob);
@@ -50,6 +63,43 @@ export function mergeAttachmentMetadata(baseAttachment, metadataAttachment) {
     ...baseAttachment,
     ...metadataAttachment,
   });
+}
+
+export function assertAttachmentMetadataIntegrity(baseAttachment, metadataAttachment) {
+  const baseContract = resolveAttachmentContractFields(baseAttachment);
+  const metadataContract = resolveAttachmentContractFields(metadataAttachment);
+
+  if (
+    baseContract.expectedPayloadSha256
+    && metadataContract.expectedPayloadSha256
+    && baseContract.expectedPayloadSha256 !== metadataContract.expectedPayloadSha256
+  ) {
+    throw new Error('Attachment metadata-integriteit komt niet overeen');
+  }
+
+  if (
+    baseContract.contentEncoding
+    && metadataContract.contentEncoding
+    && baseContract.contentEncoding !== metadataContract.contentEncoding
+  ) {
+    throw new Error('Attachment content-encoding komt niet overeen');
+  }
+
+  if (
+    baseContract.envelopeKind
+    && metadataContract.envelopeKind
+    && baseContract.envelopeKind !== metadataContract.envelopeKind
+  ) {
+    throw new Error('Attachment envelope-kind komt niet overeen');
+  }
+
+  if (
+    baseContract.originalMimeType
+    && metadataContract.originalMimeType
+    && baseContract.originalMimeType !== metadataContract.originalMimeType
+  ) {
+    throw new Error('Attachment original mime type komt niet overeen');
+  }
 }
 
 export function buildAttachmentMetadataUrl(attachment) {
@@ -101,6 +151,8 @@ export async function fetchAttachmentMetadata(attachment, user, fetchImpl = fetc
     throw new Error(data?.error || 'Attachment metadata ophalen mislukt');
   }
 
+  assertAttachmentMetadataIntegrity(attachment, data.attachment);
+
   return cacheAttachmentMetadata(attachment, data.attachment);
 }
 
@@ -122,6 +174,31 @@ export async function fetchAttachmentBlob(attachment, fetchImpl = fetch) {
   const response = await fetchImpl(url);
   if (!response.ok) {
     throw new Error('Attachment downloaden mislukt');
+  }
+
+  const responseContract = {
+    expectedPayloadSha256: response.headers?.get?.('X-Pulse-Expected-Sha256') || '',
+    contentEncoding: response.headers?.get?.('X-Pulse-Content-Encoding') || '',
+    envelopeKind: response.headers?.get?.('X-Pulse-Envelope-Kind') || '',
+    originalMimeType: response.headers?.get?.('X-Pulse-Original-MimeType') || '',
+  };
+
+  try {
+    assertAttachmentMetadataIntegrity(attachment, responseContract);
+  } catch (error) {
+    if (error?.message === 'Attachment metadata-integriteit komt niet overeen') {
+      throw new Error('Attachment-integriteitsmetadata komt niet overeen');
+    }
+    if (error?.message === 'Attachment content-encoding komt niet overeen') {
+      throw new Error('Attachment content-encoding header komt niet overeen');
+    }
+    if (error?.message === 'Attachment envelope-kind komt niet overeen') {
+      throw new Error('Attachment envelope-kind header komt niet overeen');
+    }
+    if (error?.message === 'Attachment original mime type komt niet overeen') {
+      throw new Error('Attachment original mime type header komt niet overeen');
+    }
+    throw error;
   }
 
   return response.blob();

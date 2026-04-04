@@ -265,6 +265,49 @@ export default function useChat({
       }
     };
 
+    const onConversationCreated = (conversation) => {
+      if (!conversation?.id) return;
+      setConversations(prev => {
+        const withoutCurrent = prev.filter((conv) => conv.id !== conversation.id);
+        return [conversation, ...withoutCurrent];
+      });
+      loadConversations?.();
+    };
+
+    const onConversationMemberAdded = ({ conversation }) => {
+      if (!conversation?.id) return;
+      setConversations(prev => prev.map((conv) => (
+        conv.id === conversation.id ? { ...conv, ...conversation } : conv
+      )));
+      if (activeConvRef.current?.id === conversation.id) {
+        setActiveConv((prev) => (prev?.id === conversation.id ? { ...prev, ...conversation } : prev));
+      }
+      loadConversations?.();
+    };
+
+    const onConversationMemberRemoved = ({ convId, uid: removedUid, removedSelf, conversation }) => {
+      if (!convId) return;
+
+      if (removedSelf && removedUid === user.uid) {
+        setActiveConv((prev) => (prev?.id === convId ? null : prev));
+        setMessages((prev) => (activeConvRef.current?.id === convId ? [] : prev));
+        setConversations(prev => prev.filter((conv) => conv.id !== convId));
+        loadConversations?.();
+        return;
+      }
+
+      if (conversation?.id) {
+        setConversations(prev => prev.map((conv) => (
+          conv.id === conversation.id ? { ...conv, ...conversation } : conv
+        )));
+        if (activeConvRef.current?.id === conversation.id) {
+          setActiveConv((prev) => (prev?.id === conversation.id ? { ...prev, ...conversation } : prev));
+        }
+      }
+
+      loadConversations?.();
+    };
+
     const onMessageDeleted  = ({ msgId })              => setMessages(prev => prev.filter(m => m.id !== msgId));
     const onMessageEdited   = ({ msgId, text, editedAt }) => setMessages(prev => prev.map(m => (
       m.id === msgId
@@ -317,6 +360,9 @@ export default function useChat({
     socket.on('account:paused',   onAccountPaused);
     socket.on('account:resumed',  onAccountResumed);
     socket.on('mention:notify',   onMentionNotify);
+    socket.on('conversation:created',       onConversationCreated);
+    socket.on('conversation:member_added',  onConversationMemberAdded);
+    socket.on('conversation:member_removed', onConversationMemberRemoved);
     socket.on('contact:blocked-by-parent',   onContactBlockedByParent);
     socket.on('contact:unblocked-by-parent', onContactUnblockedByParent);
     socket.on('contact:removed-by-parent',   onContactRemovedByParent);
@@ -338,6 +384,9 @@ export default function useChat({
       socket.off('account:resumed',  onAccountResumed);
       socket.off('user:updated',     onUserUpdated);
       socket.off('mention:notify',   onMentionNotify);
+      socket.off('conversation:created',       onConversationCreated);
+      socket.off('conversation:member_added',  onConversationMemberAdded);
+      socket.off('conversation:member_removed', onConversationMemberRemoved);
       socket.off('contact:blocked-by-parent',   onContactBlockedByParent);
       socket.off('contact:unblocked-by-parent', onContactUnblockedByParent);
       socket.off('contact:removed-by-parent',   onContactRemovedByParent);

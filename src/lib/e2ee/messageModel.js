@@ -1,6 +1,9 @@
 export function normalizeIncomingMessage(raw, currentUserId) {
   const senderId = raw.senderId || raw.senderUserId;
   const type = raw.type || raw.messageType || 'text';
+  const reactions = raw.reactions && typeof raw.reactions === 'object' && !Array.isArray(raw.reactions)
+    ? raw.reactions
+    : {};
 
   return {
     id: raw.id,
@@ -11,7 +14,7 @@ export function normalizeIncomingMessage(raw, currentUserId) {
     createdAt: raw.createdAt || new Date().toISOString(),
 
     replyTo: raw.replyTo || (raw.replyToMessageId ? { messageId: raw.replyToMessageId } : null),
-    reactions: Array.isArray(raw.reactions) ? raw.reactions : [],
+    reactions,
     deleted: !!raw.deleted,
 
     protocol: raw.protocol || 'legacy_plaintext',
@@ -50,7 +53,7 @@ export function buildPendingMessage({
     createdAt: new Date().toISOString(),
 
     replyTo,
-    reactions: [],
+    reactions: {},
     deleted: false,
 
     protocol: 'signal_v1',

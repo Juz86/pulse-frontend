@@ -128,6 +128,7 @@ export const messagingService = {
     user,
     conversationId,
     recipientUserId,
+    recipientUserIds = null,
     plaintext,
     replyToMessageId = null,
     messageType = 'text',
@@ -135,9 +136,11 @@ export const messagingService = {
   }, currentDeviceId) {
     if (!user) throw new Error('Geen gebruiker beschikbaar.');
     if (!currentDeviceId) throw new Error('Geen huidig device beschikbaar.');
-    if (!recipientUserId) throw new Error('Geen ontvanger beschikbaar.');
+    const targetUserIds = Array.from(new Set(
+      (Array.isArray(recipientUserIds) ? recipientUserIds : [recipientUserId]).filter(Boolean)
+    ));
+    if (targetUserIds.length === 0) throw new Error('Geen ontvanger beschikbaar.');
 
-    const sessions = await ensureSessions(user, recipientUserId);
     const recipientPayloads = [];
     let primaryCiphertext = '';
     const payloadPlaintext = serializeMessagePayload({
@@ -146,27 +149,31 @@ export const messagingService = {
       sharedContact,
     });
 
-    for (const session of sessions) {
-      const encrypted = await pulseCryptoAdapter.encryptMessage({
-        sessionData: session.sessionData,
-        plaintext: payloadPlaintext,
-      });
+    for (const targetUserId of targetUserIds) {
+      const sessions = await ensureSessions(user, targetUserId);
 
-      await sessionStore.save(user.uid, {
-        ...session,
-        sessionData: encrypted.updatedSessionData,
-        updatedAt: new Date().toISOString(),
-      });
+      for (const session of sessions) {
+        const encrypted = await pulseCryptoAdapter.encryptMessage({
+          sessionData: session.sessionData,
+          plaintext: payloadPlaintext,
+        });
 
-      if (!primaryCiphertext) {
-        primaryCiphertext = encrypted.ciphertext;
+        await sessionStore.save(user.uid, {
+          ...session,
+          sessionData: encrypted.updatedSessionData,
+          updatedAt: new Date().toISOString(),
+        });
+
+        if (!primaryCiphertext) {
+          primaryCiphertext = encrypted.ciphertext;
+        }
+
+        recipientPayloads.push({
+          recipientUserId: targetUserId,
+          recipientDeviceId: session.remoteDeviceId,
+          encryptedMessageKey: encrypted.encryptedMessageKey,
+        });
       }
-
-      recipientPayloads.push({
-        recipientUserId,
-        recipientDeviceId: session.remoteDeviceId,
-        encryptedMessageKey: encrypted.encryptedMessageKey,
-      });
     }
 
     const token = await getAuthToken(user);

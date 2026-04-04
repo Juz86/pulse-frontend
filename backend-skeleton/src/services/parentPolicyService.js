@@ -57,6 +57,38 @@ class ParentPolicyService {
     return { allowed: true };
   }
 
+  async mayCreateConversation(requesterId, targetUserId) {
+    return this.mayFetchKeyBundle(requesterId, targetUserId);
+  }
+
+  async mayAddGroupMember(requesterId, existingMemberIds, targetUserId) {
+    if (!Array.isArray(existingMemberIds) || existingMemberIds.length === 0) {
+      return { allowed: false, reason: 'invalid_group_members' };
+    }
+
+    if (!targetUserId || existingMemberIds.includes(targetUserId)) {
+      return { allowed: false, reason: 'already_in_group' };
+    }
+
+    const participants = Array.from(new Set([requesterId, ...existingMemberIds].filter(Boolean)));
+
+    for (const memberId of participants) {
+      if (memberId === targetUserId) continue;
+
+      const decision = await this.mayCreateConversation(memberId, targetUserId);
+      if (!decision.allowed) {
+        return decision;
+      }
+
+      const reverseDecision = await this.mayCreateConversation(targetUserId, memberId);
+      if (!reverseDecision.allowed) {
+        return reverseDecision;
+      }
+    }
+
+    return { allowed: true };
+  }
+
   async mayStartCall(senderId, targetUserId, isVideo = false) {
     const relation = await this.getChildContactRelation(senderId, targetUserId);
     if (!relation) {

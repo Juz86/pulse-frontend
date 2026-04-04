@@ -108,6 +108,14 @@ export function createSocketServer(server) {
         return;
       }
 
+      for (const memberUid of members.filter((memberUid) => memberUid !== uid)) {
+        const decision = await parentPolicyService.mayCreateConversation(uid, memberUid);
+        if (!decision.allowed) {
+          ack({ error: decision.reason || 'conversation_not_allowed' });
+          return;
+        }
+      }
+
       const convRef = db.collection('conversations').doc();
       const now = new Date().toISOString();
       const conversation = {
@@ -132,6 +140,165 @@ export function createSocketServer(server) {
       }
       socket.join(`conv:${convRef.id}`);
       ack({ convId: convRef.id });
+    });
+
+    socket.on('conversation:addMember', async ({ convId, uid: targetUid, displayName }, ack = () => {}) => {
+      if (!convId || !targetUid || !uid) {
+        ack({ error: 'invalid_payload' });
+        return;
+      }
+
+      const convDoc = await db.collection('conversations').doc(convId).get();
+      if (!convDoc.exists) {
+        ack({ error: 'conversation_not_found' });
+        return;
+      }
+
+      const conv = convDoc.data();
+      if (!conv.isGroup) {
+        ack({ error: 'not_a_group' });
+        return;
+      }
+
+      if (!Array.isArray(conv.members) || !conv.members.includes(uid)) {
+        ack({ error: 'not_allowed_in_conversation' });
+        return;
+      }
+
+      if (conv.creatorId !== uid) {
+        ack({ error: 'not_group_admin' });
+        return;
+      }
+
+      if (conv.members.includes(targetUid)) {
+        ack({ ok: true, alreadyMember: true });
+        return;
+      }
+
+      const policyDecision = await parentPolicyService.mayAddGroupMember(uid, conv.members || [], targetUid);
+      if (!policyDecision.allowed) {
+        ack({ error: policyDecision.reason || 'group_member_not_allowed' });
+        return;
+      }
+
+      const userDoc = await db.collection('users').doc(targetUid).get();
+      if (!userDoc.exists) {
+        ack({ error: 'user_not_found' });
+        return;
+      }
+
+      const targetUser = userDoc.data();
+      const nextMembers = [...conv.members, targetUid];
+      const nextMemberNames = {
+        ...(conv.memberNames || {}),
+        [targetUid]: displayName || targetUser.displayName || targetUser.username || targetUser.email || targetUid,
+      };
+      const nextMemberEmails = {
+        ...(conv.memberEmails || {}),
+        [targetUid]: targetUser.email || null,
+      };
+      const updatedAt = new Date().toISOString();
+
+      await convDoc.ref.set({
+        members: nextMembers,
+        memberNames: nextMemberNames,
+        memberEmails: nextMemberEmails,
+        updatedAt,
+      }, { merge: true });
+
+      const updatedConversation = {
+        id: convId,
+        ...conv,
+        members: nextMembers,
+        memberNames: nextMemberNames,
+        memberEmails: nextMemberEmails,
+        updatedAt,
+      };
+
+      for (const memberUid of nextMembers) {
+        emitToUser(io, memberUid, 'conversation:member_added', {
+          convId,
+          uid: targetUid,
+          conversation: updatedConversation,
+        });
+      }
+
+      ack({ ok: true, conversation: updatedConversation });
+    });
+
+    socket.on('conversation:removeMember', async ({ convId, uid: targetUid }, ack = () => {}) => {
+      if (!convId || !targetUid || !uid) {
+        ack({ error: 'invalid_payload' });
+        return;
+      }
+
+      const convDoc = await db.collection('conversations').doc(convId).get();
+      if (!convDoc.exists) {
+        ack({ error: 'conversation_not_found' });
+        return;
+      }
+
+      const conv = convDoc.data();
+      if (!conv.isGroup) {
+        ack({ error: 'not_a_group' });
+        return;
+      }
+
+      if (!Array.isArray(conv.members) || !conv.members.includes(uid)) {
+        ack({ error: 'not_allowed_in_conversation' });
+        return;
+      }
+
+      const isSelfRemoval = uid === targetUid;
+      if (!isSelfRemoval && conv.creatorId !== uid) {
+        ack({ error: 'not_group_admin' });
+        return;
+      }
+
+      if (!conv.members.includes(targetUid)) {
+        ack({ ok: true, alreadyRemoved: true });
+        return;
+      }
+
+      const nextMembers = conv.members.filter((memberUid) => memberUid !== targetUid);
+      const nextMemberNames = { ...(conv.memberNames || {}) };
+      const nextMemberEmails = { ...(conv.memberEmails || {}) };
+      delete nextMemberNames[targetUid];
+      delete nextMemberEmails[targetUid];
+      const updatedAt = new Date().toISOString();
+
+      await convDoc.ref.set({
+        members: nextMembers,
+        memberNames: nextMemberNames,
+        memberEmails: nextMemberEmails,
+        updatedAt,
+      }, { merge: true });
+
+      const updatedConversation = {
+        id: convId,
+        ...conv,
+        members: nextMembers,
+        memberNames: nextMemberNames,
+        memberEmails: nextMemberEmails,
+        updatedAt,
+      };
+
+      for (const memberUid of nextMembers) {
+        emitToUser(io, memberUid, 'conversation:member_removed', {
+          convId,
+          uid: targetUid,
+          conversation: updatedConversation,
+        });
+      }
+
+      emitToUser(io, targetUid, 'conversation:member_removed', {
+        convId,
+        uid: targetUid,
+        removedSelf: true,
+        conversation: updatedConversation,
+      });
+
+      ack({ ok: true, conversation: updatedConversation });
     });
 
     socket.on('message:send', async ({ convId, message }, ack = () => {}) => {

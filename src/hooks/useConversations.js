@@ -66,10 +66,9 @@ export default function useConversations({
     };
   }, [user.uid]);
 
-  function getConversationRecipient(conv) {
-    if (!conv || conv.isGroup) return null;
-    const otherUid = (conv.members || []).find((memberUid) => memberUid !== user.uid);
-    return otherUid ? { userId: otherUid } : null;
+  function getConversationRecipients(conv) {
+    if (!conv) return [];
+    return Array.from(new Set((conv.members || []).filter((memberUid) => memberUid && memberUid !== user.uid)));
   }
 
   async function hydrateMessages(rawMessages) {
@@ -97,7 +96,7 @@ export default function useConversations({
   }
 
   function shouldUseServiceTransport(conv) {
-    return isE2EEServiceTransportEnabled && !!currentDeviceId && !!getConversationRecipient(conv);
+    return isE2EEServiceTransportEnabled && !!currentDeviceId && getConversationRecipients(conv).length > 0;
   }
 
   function patchMessageAsSending(messageId, retryCount = 0) {
@@ -144,11 +143,11 @@ export default function useConversations({
     )));
   }
 
-  async function sendViaService({ conv, plaintext, recipientUserId, replyToMessageId, messageType = 'text', sharedContact = null }) {
+  async function sendViaService({ conv, plaintext, recipientUserIds, replyToMessageId, messageType = 'text', sharedContact = null }) {
     const result = await messagingService.sendMessage({
       user,
       conversationId: conv.id,
-      recipientUserId,
+      recipientUserIds,
       plaintext,
       replyToMessageId,
       messageType,
@@ -337,7 +336,7 @@ export default function useConversations({
     const tempId = `temp-${Date.now()}`;
     const trimmedText = text.trim();
     const mentions = pendingMentions.filter(m => trimmedText.includes(`@${m.displayName}`)).map(m => m.uid);
-    const recipient = getConversationRecipient(activeConv);
+    const recipientUserIds = getConversationRecipients(activeConv);
     const optimisticMsg = {
       ...buildPendingMessage({
         text: trimmedText,
@@ -377,7 +376,7 @@ export default function useConversations({
       sendViaService({
         conv: activeConv,
         plaintext: trimmedText,
-        recipientUserId: recipient?.userId || null,
+        recipientUserIds,
         replyToMessageId: replyTo?.id || null,
       }).then((savedMsg) => {
         clearTimeout(failTimer);
@@ -458,11 +457,11 @@ export default function useConversations({
     });
 
     if (shouldUseServiceTransport(conv)) {
-      const recipient = getConversationRecipient(conv);
+      const recipientUserIds = getConversationRecipients(conv);
       sendViaService({
         conv,
         plaintext: optimisticMsg.text,
-        recipientUserId: recipient?.userId || null,
+        recipientUserIds,
         replyToMessageId: null,
         messageType: 'contact',
         sharedContact: normalizedSharedContact,
@@ -494,7 +493,7 @@ export default function useConversations({
     const socket = getSocket();
     if ((!socket?.connected && !shouldUseServiceTransport(activeConv)) || !activeConv) return;
     const retryCount = (failedMsg._retryCount || 0) + 1;
-    const recipient = getConversationRecipient(activeConv);
+    const recipientUserIds = getConversationRecipients(activeConv);
     patchMessageAsSending(failedMsg.id, retryCount);
     const failTimer = setTimeout(() => {
       patchMessageAsFailed(failedMsg.id);
@@ -503,7 +502,7 @@ export default function useConversations({
       sendViaService({
         conv: activeConv,
         plaintext: failedMsg.text,
-        recipientUserId: recipient?.userId || null,
+        recipientUserIds,
         replyToMessageId: failedMsg.replyTo?.messageId || failedMsg.replyTo?.id || null,
       }).then((savedMsg) => {
         clearTimeout(failTimer);
@@ -536,7 +535,31 @@ export default function useConversations({
 
   function toggleReaction(msgId, emoji) {
     const socket = getSocket();
-    if (!socket?.connected || !activeConv) return;
+    if (!activeConv) return;
+    if (shouldUseServiceTransport(activeConv)) {
+      authFetch(`${BACKEND_URL}/messages/react`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          conversationId: activeConv.id,
+          msgId,
+          emoji,
+        }),
+      })
+        .then(res => res.json().then(data => ({ ok: res.ok, data })))
+        .then(({ ok, data }) => {
+          if (!ok) throw new Error(data?.error || 'reaction_failed');
+          setMessages(prev => prev.map(m => (
+            m.id === msgId ? { ...m, reactions: data.reactions || {} } : m
+          )));
+        })
+        .catch(() => {
+          showErrToast('Reactie bijwerken mislukt');
+        });
+      setReactionPickerMsgId(null);
+      return;
+    }
+    if (!socket?.connected) return;
     socket.emit('message:react', { convId: activeConv.id, msgId, emoji });
     setReactionPickerMsgId(null);
   }
@@ -544,7 +567,7 @@ export default function useConversations({
   async function forwardToConv(conv) {
     const socket = getSocket();
     if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !forwardMsg) return;
-    const recipient = getConversationRecipient(conv);
+    const recipientUserIds = getConversationRecipients(conv);
     const msg = {
       convId: conv.id, senderId: user.uid, senderName: user.displayName || user.email,
       text: `↪️ ${forwardMsg.text}`, createdAt: new Date().toISOString(),
@@ -556,7 +579,7 @@ export default function useConversations({
         await sendViaService({
           conv,
           plaintext: msg.text,
-          recipientUserId: recipient?.userId || null,
+          recipientUserIds,
           replyToMessageId: null,
         });
       } catch {

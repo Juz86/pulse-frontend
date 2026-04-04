@@ -107,6 +107,20 @@ describe('e2ee message model helpers', () => {
     expect(normalized.messageType).toBe('contact');
     expect(normalized.sharedContact?.name).toBe('Habiba');
   });
+
+  test('normalizeIncomingMessage preserves reaction objects', () => {
+    const normalized = normalizeIncomingMessage(
+      {
+        id: 'msg-2',
+        conversationId: 'conv-1',
+        senderUserId: 'user-2',
+        reactions: { '❤️': ['user-1', 'user-2'] },
+      },
+      'user-1'
+    );
+
+    expect(normalized.reactions['❤️']).toEqual(['user-1', 'user-2']);
+  });
 });
 
 describe('e2ee policy helpers', () => {

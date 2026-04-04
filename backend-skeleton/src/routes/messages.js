@@ -59,6 +59,10 @@ export function messagesRouter({ io, emitToUser }) {
       return res.status(403).json({ error: 'invalid_sender_device' });
     }
 
+    const uniqueRecipientUserIds = Array.from(new Set(
+      recipientPayloads.map((payload) => payload.recipientUserId).filter(Boolean)
+    ));
+
     for (const payload of recipientPayloads) {
       const recipientDeviceDoc = await db.collection('devices').doc(payload.recipientDeviceId).get();
       if (!recipientDeviceDoc.exists) {
@@ -115,14 +119,18 @@ export function messagesRouter({ io, emitToUser }) {
         deliveredAt: null,
         readAt: null,
       });
+    }
 
-      emitToUser(io, payload.recipientUserId, 'message:new', {
+    for (const recipientUserId of uniqueRecipientUserIds) {
+      const firstPayload = recipientPayloads.find((payload) => payload.recipientUserId === recipientUserId);
+
+      emitToUser(io, recipientUserId, 'message:new', {
         id: messageRef.id,
         conversationId,
         senderUserId: uid,
         senderDeviceId,
         ciphertext,
-        encryptedMessageKey: payload.encryptedMessageKey,
+        encryptedMessageKey: firstPayload?.encryptedMessageKey || null,
         createdAt,
         protocol: protocol || 'signal_v1',
         protocolVersion: protocolVersion || 1,
@@ -219,6 +227,52 @@ export function messagesRouter({ io, emitToUser }) {
     }
 
     return res.json({ ok: true });
+  }));
+
+  router.post('/react', requireAuth, asyncRoute(async (req, res) => {
+    const uid = req.auth.uid;
+    const { conversationId, msgId, emoji } = req.body || {};
+
+    if (!conversationId || !msgId || !emoji) {
+      return res.status(400).json({ error: 'invalid_payload' });
+    }
+
+    const convDoc = await db.collection('conversations').doc(conversationId).get();
+    if (!convDoc.exists) {
+      return res.status(404).json({ error: 'conversation_not_found' });
+    }
+
+    const conv = convDoc.data();
+    if (!Array.isArray(conv.members) || !conv.members.includes(uid)) {
+      return res.status(403).json({ error: 'not_allowed_in_conversation' });
+    }
+
+    const msgDoc = await db.collection('messages').doc(msgId).get();
+    if (!msgDoc.exists) {
+      return res.status(404).json({ error: 'message_not_found' });
+    }
+
+    const message = msgDoc.data();
+    if (message.conversationId !== conversationId) {
+      return res.status(400).json({ error: 'message_conversation_mismatch' });
+    }
+
+    const reactions = { ...(message.reactions || {}) };
+    const existingUsers = new Set(Array.isArray(reactions[emoji]) ? reactions[emoji] : []);
+
+    if (existingUsers.has(uid)) existingUsers.delete(uid);
+    else existingUsers.add(uid);
+
+    reactions[emoji] = Array.from(existingUsers);
+    if (reactions[emoji].length === 0) delete reactions[emoji];
+
+    await msgDoc.ref.set({ reactions }, { merge: true });
+
+    for (const memberUid of conv.members) {
+      emitToUser(io, memberUid, 'message:reaction', { convId: conversationId, msgId, reactions });
+    }
+
+    return res.json({ ok: true, reactions });
   }));
 
   router.get('/feed/:convId', requireAuth, asyncRoute(async (req, res) => {

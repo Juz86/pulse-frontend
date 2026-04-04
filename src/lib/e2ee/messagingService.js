@@ -1,4 +1,5 @@
 import { BACKEND_URL } from '../../services/socket';
+import { E2EE_MODE } from './config';
 import { pulseCryptoAdapter } from './adapter/pulseCryptoAdapter';
 import { normalizeIncomingMessage } from './messageModel';
 import { secureKeyStore } from './secureKeyStore';
@@ -55,6 +56,27 @@ async function ensureSessions(user, remoteUserId) {
   }
 
   return created;
+}
+
+async function hydrateMockCiphertext(raw, currentUserId) {
+  if (E2EE_MODE !== 'mock' || !raw?.ciphertext) return null;
+
+  try {
+    const decrypted = await pulseCryptoAdapter.decryptMessage({
+      sessionData: null,
+      ciphertext: raw.ciphertext,
+      encryptedMessageKey: raw.encryptedMessageKey || null,
+    });
+
+    return normalizeIncomingMessage({
+      ...raw,
+      text: decrypted.plaintext,
+      decryptedLocally: true,
+      ciphertextAvailable: true,
+    }, currentUserId);
+  } catch {
+    return null;
+  }
 }
 
 export const messagingService = {
@@ -120,6 +142,9 @@ export const messagingService = {
 
     const identity = await secureKeyStore.getIdentity(currentUserId);
     if (!identity) {
+      const mockHydrated = await hydrateMockCiphertext(raw, currentUserId);
+      if (mockHydrated) return mockHydrated;
+
       return normalizeIncomingMessage({
         ...raw,
         text: 'Versleuteld bericht',
@@ -135,6 +160,9 @@ export const messagingService = {
     );
 
     if (!sessionRecord) {
+      const mockHydrated = await hydrateMockCiphertext(raw, currentUserId);
+      if (mockHydrated) return mockHydrated;
+
       return normalizeIncomingMessage({
         ...raw,
         text: 'Versleuteld bericht',

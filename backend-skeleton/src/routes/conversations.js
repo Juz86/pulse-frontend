@@ -3,6 +3,20 @@ import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 
+function deriveConversationPreview(message, fallback = '') {
+  if (!message) return fallback;
+  if (message.text) return message.text;
+  if (message.messageType && message.messageType !== 'text') return 'Nieuw bericht';
+  if (message.protocol === 'signal_v1' && message.ciphertext) {
+    try {
+      return Buffer.from(message.ciphertext, 'base64').toString('utf8') || fallback || 'Versleuteld bericht';
+    } catch {
+      return fallback || 'Versleuteld bericht';
+    }
+  }
+  return fallback;
+}
+
 function sortByUpdatedDesc(items) {
   return [...items].sort((a, b) => {
     const aTime = Date.parse(a.updatedAt || a.createdAt || 0);
@@ -26,7 +40,23 @@ conversationsRouter.get('/:uid', requireAuth, asyncRoute(async (req, res) => {
     .where('members', 'array-contains', uid)
     .get();
 
-  const rows = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  const rows = await Promise.all(
+    snap.docs.map(async (doc) => {
+      const data = { id: doc.id, ...doc.data() };
+      const latestMsgSnap = await db
+        .collection('messages')
+        .where('conversationId', '==', doc.id)
+        .orderBy('createdAt', 'desc')
+        .limit(1)
+        .get();
+
+      const latestMessage = latestMsgSnap.empty ? null : latestMsgSnap.docs[0].data();
+      return {
+        ...data,
+        lastMessage: deriveConversationPreview(latestMessage, data.lastMessage || ''),
+      };
+    })
+  );
   return res.json(sortByUpdatedDesc(rows));
 }));
 

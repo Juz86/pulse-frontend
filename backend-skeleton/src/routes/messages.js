@@ -8,6 +8,17 @@ import { filterVisibleMessages } from '../services/messageVisibility.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
+function deriveMockPreview({ ciphertext, protocol, messageType }) {
+  if (messageType && messageType !== 'text') return 'Nieuw bericht';
+  if (protocol !== 'signal_v1' || !ciphertext) return '';
+
+  try {
+    return Buffer.from(ciphertext, 'base64').toString('utf8') || 'Versleuteld bericht';
+  } catch {
+    return 'Versleuteld bericht';
+  }
+}
+
 export function messagesRouter({ io, emitToUser }) {
   const router = Router();
 
@@ -118,10 +129,16 @@ export function messagesRouter({ io, emitToUser }) {
       });
     }
 
+    const conversationPreview = deriveMockPreview({
+      ciphertext,
+      protocol: protocol || 'signal_v1',
+      messageType: messageType || 'text',
+    });
+
     await db.collection('conversations').doc(conversationId).set(
       {
         updatedAt: createdAt,
-        lastMessage: (protocol || 'signal_v1') === 'signal_v1' ? 'Versleuteld bericht' : '',
+        lastMessage: conversationPreview || ((protocol || 'signal_v1') === 'signal_v1' ? 'Versleuteld bericht' : ''),
       },
       { merge: true }
     );

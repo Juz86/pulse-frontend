@@ -1,11 +1,11 @@
 import { io as createClient } from 'socket.io-client';
 
 const baseUrl = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3001';
-const convId = process.env.SMOKE_CONVERSATION_ID || 'conv_1';
+const seededConvId = process.env.SMOKE_CONVERSATION_ID || 'conv_1';
 const senderUid = process.env.SMOKE_SENDER_UID || 'uid_child_1';
 const recipientUid = process.env.SMOKE_RECIPIENT_UID || 'uid_contact_9';
-const senderDeviceId = process.env.SMOKE_SENDER_DEVICE_ID || 'device_child_1';
-const recipientDeviceId = process.env.SMOKE_RECIPIENT_DEVICE_ID || 'device_contact_9';
+const senderDeviceId = process.env.SMOKE_SENDER_DEVICE_ID || null;
+const recipientDeviceId = process.env.SMOKE_RECIPIENT_DEVICE_ID || null;
 
 function waitForEvent(socket, event, timeoutMs = 5000) {
   return new Promise((resolve, reject) => {
@@ -68,11 +68,59 @@ async function postJson(path, body, devUid) {
   return data;
 }
 
+async function ensureDevice(devUid, explicitDeviceId = null) {
+  if (explicitDeviceId) return explicitDeviceId;
+
+  const nowKey = Date.now();
+  const data = await postJson('/devices/register', {
+    deviceLabel: `Smoke ${devUid}`,
+    identityPublicKey: `identity-${devUid}-${nowKey}`,
+    signedPreKey: {
+      keyId: nowKey,
+      publicKey: `signed-${devUid}-${nowKey}`,
+      signature: `sig-${devUid}-${nowKey}`,
+    },
+    oneTimePreKeys: [
+      { keyId: nowKey + 1, publicKey: `otk-${devUid}-${nowKey + 1}` },
+      { keyId: nowKey + 2, publicKey: `otk-${devUid}-${nowKey + 2}` },
+    ],
+    platform: 'web',
+    protocol: 'signal_v1',
+    protocolVersion: 1,
+  }, devUid);
+
+  return data.deviceId;
+}
+
 async function main() {
   const senderSocket = await connectDevSocket(senderUid);
   const recipientSocket = await connectDevSocket(recipientUid);
 
   try {
+    const ensuredSenderDeviceId = await ensureDevice(senderUid, senderDeviceId);
+    const ensuredRecipientDeviceId = await ensureDevice(recipientUid, recipientDeviceId);
+
+    const convId = await new Promise((resolve, reject) => {
+      senderSocket.emit('conversation:create', {
+        members: [senderUid, recipientUid],
+        memberNames: {
+          [senderUid]: senderUid,
+          [recipientUid]: recipientUid,
+        },
+        isGroup: false,
+      }, (response = {}) => {
+        if (response.error) {
+          if (seededConvId) {
+            resolve(seededConvId);
+            return;
+          }
+          reject(new Error(response.error));
+          return;
+        }
+        resolve(response.convId || seededConvId);
+      });
+    });
+
     senderSocket.emit('conversation:join', { convId });
     recipientSocket.emit('conversation:join', { convId });
 
@@ -80,7 +128,7 @@ async function main() {
 
     const sendResult = await postJson('/messages/send', {
       conversationId: convId,
-      senderDeviceId,
+      senderDeviceId: ensuredSenderDeviceId,
       ciphertext: Buffer.from(`socket-smoke-${Date.now()}`).toString('base64'),
       messageType: 'text',
       protocol: 'signal_v1',
@@ -89,7 +137,7 @@ async function main() {
       recipientPayloads: [
         {
           recipientUserId: recipientUid,
-          recipientDeviceId,
+          recipientDeviceId: ensuredRecipientDeviceId,
           encryptedMessageKey: Buffer.from('socket-smoke-emk').toString('base64'),
         },
       ],
@@ -104,7 +152,7 @@ async function main() {
 
     await postJson('/messages/receipt', {
       messageId: sendResult.messageId,
-      recipientDeviceId,
+      recipientDeviceId: ensuredRecipientDeviceId,
       type: 'read',
     }, recipientUid);
 

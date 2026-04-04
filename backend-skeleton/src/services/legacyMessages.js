@@ -23,3 +23,30 @@ export function buildLegacyMessage({
     reactions: {},
   };
 }
+
+export function buildSystemMessage({
+  id,
+  convId,
+  text,
+  createdAt = new Date().toISOString(),
+}) {
+  return {
+    id,
+    conversationId: convId,
+    convId,
+    senderId: 'system',
+    senderUserId: 'system',
+    senderName: 'Pulse',
+    text: text || '',
+    type: 'system',
+    sharedContact: null,
+    mentions: [],
+    protocol: 'legacy',
+    senderDeviceId: null,
+    replyTo: null,
+    createdAt,
+    status: 'verzonden',
+    deliveryState: 'sent',
+    reactions: {},
+  };
+}

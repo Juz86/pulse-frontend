@@ -18,7 +18,7 @@ import { copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
   const [unreadCounts,   setUnreadCounts]   = useState({});
@@ -130,7 +130,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore,
     loadConversations, openConversation, deleteConversation, loadMoreMessages,
     sendMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
-    sendContactCardToConversation,
+    sendContactCardToConversation, sendAttachmentToConversation,
     forwardToConv, deleteMessage,
     toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
   } = useConversations({
@@ -143,6 +143,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     setShowNewGroup, setAddingMember,
     showErrToast, setConfirmDialog,
     msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
+    serviceTransportReady,
   });
 
   const {
@@ -178,6 +179,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     setFriendRequests, setContactSuccess, setShowFriendRequestsPanel, setContacts, setActiveConv,
     setBlockedContacts, setParentBlockedUids,
     onReconnect: retryAllFailed,
+    onOpenMentionConversation: openConversation,
   });
 
   const { activeCall, setActiveCall, getCallLog, callContact, initiateCall, initiateCallFromConv } = useCalling({
@@ -279,6 +281,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     });
     setSharingContact(null);
   }
+  function sendAttachment(attachment) {
+    if (!activeConv) return;
+    sendAttachmentToConversation(activeConv, attachment);
+  }
   function getConvName(conv) {
     if (conv.isGroup) return conv.groupName || 'Groepsgesprek';
     const otherUid = conv.members?.find(m => m !== user.uid);
@@ -371,6 +377,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               chatSearch={chatSearch} setChatSearch={setChatSearch}
               chatSearchIdx={chatSearchIdx} setChatSearchIdx={setChatSearchIdx}
               messages={messages} chatSearchRef={chatSearchRef}
+              serviceTransportReady={serviceTransportReady}
             />
             {!isOnline && (
               <div className="offline-banner" role="status" aria-live="polite">
@@ -435,6 +442,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   user={user} contacts={contacts}
                   textareaRef={textareaRef} activeConvRef={activeConvRef}
                   typingTimerRef={typingTimer} stopTyping={stopTyping} onSend={sendMessage}
+                  onSendAttachment={sendAttachment}
                 />
               );
             })()}
@@ -510,6 +518,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         forwardMsg={forwardMsg} setForwardMsg={setForwardMsg}
         conversations={conversations} forwardToConv={forwardToConv}
         errToast={errToast} mentionToast={mentionToast} parentToast={parentToast}
+        onOpenMentionConversation={openConversation}
         blockedContacts={blockedContacts} parentBlockedUids={parentBlockedUids} unblockContact={unblockContact}
         lightMode={lightMode}
       />

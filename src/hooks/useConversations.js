@@ -33,6 +33,7 @@ export default function useConversations({
   setAddingMember,
   showErrToast, setConfirmDialog,
   msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
+  serviceTransportReady = false,
 }) {
   const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
@@ -96,7 +97,7 @@ export default function useConversations({
   }
 
   function shouldUseServiceTransport(conv) {
-    return isE2EEServiceTransportEnabled && !!currentDeviceId && getConversationRecipients(conv).length > 0;
+    return isE2EEServiceTransportEnabled && serviceTransportReady && !!currentDeviceId && getConversationRecipients(conv).length > 0;
   }
 
   function patchMessageAsSending(messageId, retryCount = 0) {
@@ -143,7 +144,7 @@ export default function useConversations({
     )));
   }
 
-  async function sendViaService({ conv, plaintext, recipientUserIds, replyToMessageId, messageType = 'text', sharedContact = null }) {
+  async function sendViaService({ conv, plaintext, recipientUserIds, replyToMessageId, messageType = 'text', sharedContact = null, attachment = null }) {
     const result = await messagingService.sendMessage({
       user,
       conversationId: conv.id,
@@ -152,6 +153,7 @@ export default function useConversations({
       replyToMessageId,
       messageType,
       sharedContact,
+      attachment,
     }, currentDeviceId);
 
     return {
@@ -162,6 +164,8 @@ export default function useConversations({
       senderDeviceId: currentDeviceId,
       text: messageType === 'contact'
         ? `Contactpersoon: ${sharedContact?.name || 'Contactpersoon'}`
+        : messageType === 'attachment'
+          ? (attachment?.caption || attachment?.name || 'Bijlage')
         : plaintext,
       createdAt: new Date().toISOString(),
       protocol: 'signal_v1',
@@ -170,6 +174,7 @@ export default function useConversations({
       type: messageType,
       messageType,
       sharedContact,
+      attachment,
     };
   }
 
@@ -491,6 +496,92 @@ export default function useConversations({
     });
   }
 
+  function sendAttachmentToConversation(conv, attachment) {
+    const socket = getSocket();
+    if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !conv || !attachment) return;
+
+    const normalizedAttachment = {
+      name: attachment.name || 'Bestand',
+      url: attachment.url || '',
+      mimeType: attachment.mimeType || '',
+      size: attachment.size || null,
+      caption: attachment.caption || '',
+    };
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg = {
+      ...buildPendingMessage({
+        text: normalizedAttachment.caption || normalizedAttachment.name,
+        conversationId: conv.id,
+        userId: user.uid,
+        type: 'attachment',
+        attachment: normalizedAttachment,
+      }),
+      id: tempId,
+      convId: conv.id,
+      senderName: user.displayName || user.email,
+      _key: tempId,
+      _retryCount: 0,
+    };
+    const isActiveConversation = activeConvRef.current?.id === conv.id;
+
+    if (isActiveConversation) {
+      pendingTempIds.current.add(optimisticMsg.id);
+      setMessages(prev => [...prev, optimisticMsg]);
+      setTimeout(() => {
+        if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight;
+      }, 50);
+    }
+
+    setConversations(prev => {
+      const updated = prev.map((item) => (
+        item.id === conv.id
+          ? {
+              ...item,
+              lastMessage: getConversationPreview(optimisticMsg),
+              updatedAt: optimisticMsg.createdAt,
+              lastCallDirection: null,
+              lastCallSenderId: null,
+              lastCallIsVideo: null,
+            }
+          : item
+      ));
+      return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
+    });
+
+    if (shouldUseServiceTransport(conv)) {
+      const recipientUserIds = getConversationRecipients(conv);
+      sendViaService({
+        conv,
+        plaintext: normalizedAttachment.caption || normalizedAttachment.name,
+        recipientUserIds,
+        replyToMessageId: null,
+        messageType: 'attachment',
+        attachment: normalizedAttachment,
+      }).then((savedMsg) => {
+        if (!isActiveConversation) return;
+        pendingTempIds.current.delete(optimisticMsg.id);
+        patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
+      }).catch(() => {
+        if (!isActiveConversation) return;
+        patchMessageAsFailed(optimisticMsg.id);
+      });
+      return;
+    }
+
+    socket.emit('message:send', {
+      convId: conv.id,
+      message: {
+        convId: conv.id,
+        senderId: user.uid,
+        senderName: user.displayName || user.email,
+        type: 'attachment',
+        text: normalizedAttachment.caption || normalizedAttachment.name,
+        attachment: normalizedAttachment,
+        createdAt: optimisticMsg.createdAt,
+      },
+    });
+  }
+
   function retryMessage(failedMsg) {
     const socket = getSocket();
     if ((!socket?.connected && !shouldUseServiceTransport(activeConv)) || !activeConv) return;
@@ -661,7 +752,7 @@ export default function useConversations({
     currentDeviceId,
     loadConversations, openConversation, deleteConversation, loadMoreMessages,
     sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
-    sendContactCardToConversation,
+    sendContactCardToConversation, sendAttachmentToConversation,
     forwardToConv, deleteMessage,
     toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
   };

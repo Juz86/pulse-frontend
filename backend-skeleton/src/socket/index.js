@@ -3,12 +3,35 @@ import admin from 'firebase-admin';
 import { db } from '../services/firestore.js';
 import { getDevUidFromSocketAuth, isDevAuthBypassEnabled } from '../middleware/auth.js';
 import { canEditMessage, normalizeEditedText } from '../services/messageEdits.js';
-import { buildLegacyMessage } from '../services/legacyMessages.js';
+import { buildLegacyMessage, buildSystemMessage } from '../services/legacyMessages.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
 const onlineUsers = new Map();
 const inactiveUsers = new Set();
+
+async function createGroupSystemMessage({ io, convRef, conv, text, emitToUser }) {
+  if (!convRef?.id || !text) return null;
+
+  const messageRef = db.collection('messages').doc();
+  const savedMessage = buildSystemMessage({
+    id: messageRef.id,
+    convId: convRef.id,
+    text,
+  });
+
+  await messageRef.set(savedMessage);
+  await convRef.set({
+    lastMessage: savedMessage.text,
+    updatedAt: savedMessage.createdAt,
+  }, { merge: true });
+
+  for (const memberUid of conv.members || []) {
+    emitToUser(io, memberUid, 'message:received', savedMessage);
+  }
+
+  return savedMessage;
+}
 
 export function createSocketServer(server) {
   const io = new Server(server, {
@@ -206,6 +229,9 @@ export function createSocketServer(server) {
         updatedAt,
       }, { merge: true });
 
+      const actorName = conv.memberNames?.[uid] || conv.memberEmails?.[uid] || uid;
+      const targetName = nextMemberNames[targetUid] || targetUser.email || targetUid;
+
       const updatedConversation = {
         id: convId,
         ...conv,
@@ -214,6 +240,14 @@ export function createSocketServer(server) {
         memberEmails: nextMemberEmails,
         updatedAt,
       };
+
+      await createGroupSystemMessage({
+        io,
+        convRef: convDoc.ref,
+        conv: updatedConversation,
+        text: `${actorName} heeft ${targetName} toegevoegd aan de groep.`,
+        emitToUser,
+      });
 
       for (const memberUid of nextMembers) {
         emitToUser(io, memberUid, 'conversation:member_added', {
@@ -274,6 +308,12 @@ export function createSocketServer(server) {
         updatedAt,
       }, { merge: true });
 
+      const actorName = conv.memberNames?.[uid] || conv.memberEmails?.[uid] || uid;
+      const targetName = conv.memberNames?.[targetUid] || conv.memberEmails?.[targetUid] || targetUid;
+      const systemText = isSelfRemoval
+        ? `${targetName} heeft de groep verlaten.`
+        : `${actorName} heeft ${targetName} uit de groep verwijderd.`;
+
       const updatedConversation = {
         id: convId,
         ...conv,
@@ -282,6 +322,14 @@ export function createSocketServer(server) {
         memberEmails: nextMemberEmails,
         updatedAt,
       };
+
+      await createGroupSystemMessage({
+        io,
+        convRef: convDoc.ref,
+        conv: updatedConversation,
+        text: systemText,
+        emitToUser,
+      });
 
       for (const memberUid of nextMembers) {
         emitToUser(io, memberUid, 'conversation:member_removed', {

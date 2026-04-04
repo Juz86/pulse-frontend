@@ -20,6 +20,7 @@ export function normalizeIncomingMessage(raw, currentUserId) {
 
     protocol: raw.protocol || 'legacy_plaintext',
     deliveryState: raw.deliveryState || 'sent',
+    receiptSummary: raw.receiptSummary || null,
     decryptedLocally: raw.decryptedLocally ?? true,
     ciphertextAvailable: !!raw.ciphertext,
     isLocalOnly: !!raw.isLocalOnly,
@@ -42,6 +43,7 @@ export function buildPendingMessage({
   replyTo = null,
   type = 'text',
   sharedContact = null,
+  attachment = null,
   mentions = [],
 }) {
   const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -61,6 +63,7 @@ export function buildPendingMessage({
 
     protocol: 'signal_v1',
     deliveryState: 'sending',
+    receiptSummary: null,
     decryptedLocally: true,
     ciphertextAvailable: false,
     isLocalOnly: true,
@@ -69,7 +72,7 @@ export function buildPendingMessage({
     type,
     messageType: type,
     sharedContact,
-    attachment: null,
+    attachment,
 
     pending: true,
     failed: false,
@@ -81,6 +84,7 @@ export function patchPendingMessageAsSent(msg, messageId) {
     ...msg,
     id: messageId,
     deliveryState: 'sent',
+    receiptSummary: msg.receiptSummary || null,
     ciphertextAvailable: true,
     isLocalOnly: false,
     pending: false,
@@ -92,6 +96,7 @@ export function patchPendingMessageAsFailed(msg) {
   return {
     ...msg,
     deliveryState: 'failed',
+    receiptSummary: msg.receiptSummary || null,
     pending: false,
     failed: true,
   };
@@ -102,6 +107,7 @@ export function getConversationPreview(msg) {
   if (typeof msg.lastMessage === 'string' && msg.lastMessage) return msg.lastMessage;
   if (msg.deleted) return 'Bericht verwijderd';
   if (msg.type === 'contact') return `Contactpersoon: ${msg.sharedContact?.name || 'Contactpersoon'}`;
+  if (msg.type === 'attachment') return `Bijlage: ${msg.attachment?.name || 'Bestand'}`;
   if (msg.text) return msg.text;
   if (msg.ciphertextAvailable) return 'Versleuteld bericht';
   return '';
@@ -109,6 +115,7 @@ export function getConversationPreview(msg) {
 
 export function getMessageDisplayText(msg) {
   if (!msg) return '';
+  if (msg.type === 'attachment') return msg.attachment?.name || 'Bijlage';
   if (msg.text) return msg.text;
   if (msg.ciphertextAvailable && msg.decryptedLocally === false) return 'Versleuteld bericht';
   return '';

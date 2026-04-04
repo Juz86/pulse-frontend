@@ -108,6 +108,24 @@ describe('e2ee message model helpers', () => {
     expect(normalized.sharedContact?.name).toBe('Habiba');
   });
 
+  test('normalizeIncomingMessage preserves structured attachment metadata', () => {
+    const normalized = normalizeIncomingMessage(
+      {
+        id: 'msg-attachment-1',
+        conversationId: 'conv-1',
+        senderUserId: 'user-2',
+        type: 'attachment',
+        messageType: 'attachment',
+        text: 'document.pdf',
+        attachment: { name: 'document.pdf', url: 'https://example.com/document.pdf', mimeType: 'application/pdf' },
+      },
+      'user-1'
+    );
+
+    expect(normalized.type).toBe('attachment');
+    expect(normalized.attachment?.name).toBe('document.pdf');
+  });
+
   test('normalizeIncomingMessage preserves reaction objects', () => {
     const normalized = normalizeIncomingMessage(
       {

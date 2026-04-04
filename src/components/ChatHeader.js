@@ -1,6 +1,7 @@
 // src/components/ChatHeader.js
 import React, { useMemo } from 'react';
 import { Phone, Video, Users } from '../components/Icons';
+import { isE2EEServiceTransportEnabled } from '../lib/e2ee/config';
 import UserAvatar from '../components/UserAvatar';
 
 const ChatHeader = React.memo(function ChatHeader({
@@ -28,6 +29,7 @@ const ChatHeader = React.memo(function ChatHeader({
   setChatSearchIdx,
   messages,
   chatSearchRef,
+  serviceTransportReady,
 }) {
   const otherUid  = getOtherUid(activeConv);
   const isOnline  = otherUid && onlineUsers.has(otherUid);
@@ -144,6 +146,25 @@ const ChatHeader = React.memo(function ChatHeader({
           </button>
         </div>
       </div>
+
+      {isE2EEServiceTransportEnabled && !serviceTransportReady && (
+        <div
+          className="chat-service-fallback-banner"
+          role="status"
+          aria-live="polite"
+          style={{
+            margin: '0 12px 10px',
+            padding: '8px 12px',
+            borderRadius: 12,
+            background: 'rgba(245, 158, 11, 0.14)',
+            border: '1px solid rgba(245, 158, 11, 0.28)',
+            color: 'var(--text2)',
+            fontSize: 12,
+          }}
+        >
+          Serviceversleuteling is tijdelijk niet beschikbaar. Pulse gebruikt nu automatisch socketfallback.
+        </div>
+      )}
 
       {/* Zoekbalk in gesprek */}
       <div id="chat-search-region" className={`chat-search-bar${showChatSearch ? ' visible' : ''}`} role="search" aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`} aria-hidden={!showChatSearch}>

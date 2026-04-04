@@ -3,13 +3,14 @@ import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { canTargetRecipientDevice, canUseSenderDevice } from '../services/deviceValidation.js';
-import { computeDeliveryState, toSocketStatus } from '../services/messageReceipts.js';
+import { computeDeliveryState, computeReceiptSummary, toSocketStatus } from '../services/messageReceipts.js';
 import { filterVisibleMessages } from '../services/messageVisibility.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
 function deriveMockPreview({ ciphertext, protocol, messageType }) {
   if (messageType === 'contact') return 'Contactpersoon gedeeld';
+  if (messageType === 'attachment') return 'Bijlage gedeeld';
   if (messageType && messageType !== 'text') return 'Nieuw bericht';
   if (protocol !== 'signal_v1' || !ciphertext) return '';
 
@@ -104,6 +105,7 @@ export function messagesRouter({ io, emitToUser }) {
       ciphertext,
       messageType: messageType || 'text',
       sharedContact: req.body?.sharedContact || null,
+      attachment: req.body?.attachment || null,
       mentions: Array.isArray(mentions) ? mentions : [],
       protocol: protocol || 'signal_v1',
       protocolVersion: protocolVersion || 1,
@@ -138,6 +140,7 @@ export function messagesRouter({ io, emitToUser }) {
         protocolVersion: protocolVersion || 1,
         messageType: messageType || 'text',
         sharedContact: req.body?.sharedContact || null,
+        attachment: req.body?.attachment || null,
         mentions: Array.isArray(mentions) ? mentions : [],
         replyToMessageId: replyToMessageId || null,
       });
@@ -224,12 +227,15 @@ export function messagesRouter({ io, emitToUser }) {
         .where('messageId', '==', messageId)
         .get();
 
-      const deliveryState = computeDeliveryState(allReceiptsSnap.docs.map((item) => item.data()));
+      const receiptRecords = allReceiptsSnap.docs.map((item) => item.data());
+      const deliveryState = computeDeliveryState(receiptRecords);
+      const receiptSummary = computeReceiptSummary(receiptRecords);
       const socketStatus = toSocketStatus(deliveryState);
 
       await messageDoc.ref.set(
         {
           deliveryState,
+          receiptSummary,
           updatedAt: now,
         },
         { merge: true }
@@ -241,6 +247,7 @@ export function messagesRouter({ io, emitToUser }) {
           msgId: messageId,
           status: socketStatus,
           deliveryState,
+          receiptSummary,
         });
       }
     }

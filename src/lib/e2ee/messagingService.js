@@ -5,7 +5,7 @@ import { normalizeIncomingMessage } from './messageModel';
 import { secureKeyStore } from './secureKeyStore';
 import { sessionStore } from './sessionStore';
 
-function serializeMessagePayload({ plaintext, messageType = 'text', sharedContact = null }) {
+function serializeMessagePayload({ plaintext, messageType = 'text', sharedContact = null, attachment = null }) {
   if (messageType === 'contact') {
     return JSON.stringify({
       kind: 'contact',
@@ -13,15 +13,45 @@ function serializeMessagePayload({ plaintext, messageType = 'text', sharedContac
     });
   }
 
+  if (messageType === 'attachment') {
+    return JSON.stringify({
+      kind: 'attachment',
+      attachment: attachment || null,
+      text: plaintext || '',
+    });
+  }
+
   return plaintext;
 }
 
 function deserializeMessagePayload({ plaintext, messageType = 'text' }) {
+  if (messageType === 'attachment') {
+    try {
+      const parsed = JSON.parse(plaintext);
+      const attachment = parsed?.attachment || null;
+
+      return {
+        text: parsed?.text || attachment?.name || 'Bijlage',
+        type: 'attachment',
+        sharedContact: null,
+        attachment,
+      };
+    } catch {
+      return {
+        text: 'Bijlage',
+        type: 'attachment',
+        sharedContact: null,
+        attachment: null,
+      };
+    }
+  }
+
   if (messageType !== 'contact') {
     return {
       text: plaintext,
       type: 'text',
       sharedContact: null,
+      attachment: null,
     };
   }
 
@@ -33,12 +63,14 @@ function deserializeMessagePayload({ plaintext, messageType = 'text' }) {
       text: `Contactpersoon: ${sharedContact?.name || 'Contactpersoon'}`,
       type: 'contact',
       sharedContact,
+      attachment: null,
     };
   } catch {
     return {
       text: 'Contactpersoon gedeeld',
       type: 'contact',
       sharedContact: null,
+      attachment: null,
     };
   }
 }
@@ -115,6 +147,7 @@ async function hydrateMockCiphertext(raw, currentUserId) {
       text: structured.text,
       type: structured.type,
       sharedContact: structured.sharedContact,
+      attachment: structured.attachment,
       decryptedLocally: true,
       ciphertextAvailable: true,
     }, currentUserId);
@@ -133,6 +166,7 @@ export const messagingService = {
     replyToMessageId = null,
     messageType = 'text',
     sharedContact = null,
+    attachment = null,
     mentions = [],
   }, currentDeviceId) {
     if (!user) throw new Error('Geen gebruiker beschikbaar.');
@@ -148,6 +182,7 @@ export const messagingService = {
       plaintext,
       messageType,
       sharedContact,
+      attachment,
     });
 
     for (const targetUserId of targetUserIds) {
@@ -190,6 +225,7 @@ export const messagingService = {
         ciphertext: primaryCiphertext,
         messageType,
         sharedContact,
+        attachment,
         mentions,
         protocol: 'signal_v1',
         protocolVersion: 1,
@@ -259,6 +295,7 @@ export const messagingService = {
       text: structured.text,
       type: structured.type,
       sharedContact: structured.sharedContact,
+      attachment: structured.attachment,
       decryptedLocally: true,
       ciphertextAvailable: true,
     }, currentUserId);

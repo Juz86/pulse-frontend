@@ -1,7 +1,7 @@
 // src/components/ChatInput.js
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { getSocket } from '../services/socket';
-import { Send, PauseCircle } from '../components/Icons';
+import { Send, PauseCircle, ImageIcon } from '../components/Icons';
 
 const ChatInput = React.memo(function ChatInput({
   text,
@@ -24,7 +24,10 @@ const ChatInput = React.memo(function ChatInput({
   typingTimerRef,
   stopTyping,
   onSend,
+  onSendAttachment,
 }) {
+  const fileInputRef = useRef(null);
+
   const insertMention = useCallback((member) => {
     const cursorPos = textareaRef.current?.selectionStart ?? text.length;
     const textBefore = text.slice(0, cursorPos);
@@ -84,6 +87,34 @@ const ChatInput = React.memo(function ChatInput({
     typingTimerRef.current = setTimeout(stopTyping, 2000);
   }, [activeConv, user, contacts, setText, setMentionSuggestions, setMentionSelIdx, textareaRef, activeConvRef, typingTimerRef, stopTyping]);
 
+  const handleAttachmentChange = useCallback((event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      window.alert('Bijlagen mogen lokaal maximaal 2 MB zijn in deze testfase.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      onSendAttachment?.({
+        name: file.name,
+        url: typeof reader.result === 'string' ? reader.result : '',
+        mimeType: file.type || 'application/octet-stream',
+        size: file.size,
+        caption: text.trim(),
+      });
+      setText('');
+      setMentionSuggestions([]);
+      setPendingMentions([]);
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+      stopTyping();
+    };
+    reader.readAsDataURL(file);
+  }, [onSendAttachment, setMentionSuggestions, setPendingMentions, setText, stopTyping, text, textareaRef]);
+
   const textareaDescribedBy = [
     editingMsg ? 'chat-compose-editing' : null,
     replyTo ? 'chat-compose-reply' : null,
@@ -141,6 +172,22 @@ const ChatInput = React.memo(function ChatInput({
         </div>
       ) : (
         <div className="input-row">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.pdf,.txt,.doc,.docx"
+            style={{ display: 'none' }}
+            onChange={handleAttachmentChange}
+          />
+          <button
+            type="button"
+            className="send-btn"
+            aria-label="Bijlage toevoegen"
+            onClick={() => fileInputRef.current?.click()}
+            style={{ marginRight: 8 }}
+          >
+            <ImageIcon size={18} aria-hidden="true" />
+          </button>
           <textarea
             ref={textareaRef}
             className="chat-textarea"

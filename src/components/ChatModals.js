@@ -104,6 +104,7 @@ export default function ChatModals({
 
   // toasts
   errToast, mentionToast, parentToast,
+  onOpenMentionConversation,
 
   // blocked contacts
   blockedContacts, parentBlockedUids, unblockContact,
@@ -1195,10 +1196,20 @@ export default function ChatModals({
 
       {/* ── MENTION TOAST ── */}
       {mentionToast && (
-        <div className="mention-toast" role="status" aria-live="polite">
+        <button
+          type="button"
+          className="mention-toast"
+          role="status"
+          aria-live="polite"
+          onClick={() => {
+            const conv = conversations?.find?.((item) => item.id === mentionToast.convId);
+            if (conv) onOpenMentionConversation?.(conv);
+          }}
+          style={{ border: 0, cursor: mentionToast.convId ? 'pointer' : 'default' }}
+        >
           <span className="mention-toast-icon" aria-hidden="true">@</span>
           <span><strong>{mentionToast.senderName}</strong> heeft je vermeld in <strong>{mentionToast.groupName}</strong></span>
-        </div>
+        </button>
       )}
 
       {/* ── OUDER ACTIVITEIT TOAST ── */}

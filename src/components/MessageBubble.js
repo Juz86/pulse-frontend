@@ -18,6 +18,21 @@ function getMsgStatusInfo(msg) {
   return { icon: 'check', label: 'verstuurd', failed: false };
 }
 
+function getReceiptSummaryLabel(msg, isGroup) {
+  if (!isGroup || !msg?.receiptSummary || !msg?.isOwn) return '';
+
+  const {
+    recipientCount = 0,
+    deliveredCount = 0,
+    readCount = 0,
+  } = msg.receiptSummary;
+
+  if (!recipientCount) return '';
+  if (readCount > 0) return `gelezen door ${readCount}/${recipientCount}`;
+  if (deliveredCount > 0) return `bezorgd bij ${deliveredCount}/${recipientCount}`;
+  return '';
+}
+
 function renderMsgText(text, mentions, memberNames) {
   const parts = text.split(/(@\S+)/g);
   return parts.map((part, i) => {
@@ -92,6 +107,62 @@ const MessageBubble = React.memo(function MessageBubble({
       action();
     }
   }
+
+  if (msg.type === 'system') {
+    return (
+      <div className="msg-group system" role="listitem">
+        <div
+          className="msg-system-note"
+          style={{
+            alignSelf: 'center',
+            maxWidth: '85%',
+            padding: '8px 12px',
+            borderRadius: 999,
+            background: 'rgba(255,255,255,0.06)',
+            color: 'var(--text3)',
+            fontSize: 12,
+            lineHeight: 1.4,
+            textAlign: 'center',
+          }}
+        >
+          {msg.text}
+        </div>
+      </div>
+    );
+  }
+
+  if (msg.type === 'attachment') {
+    const attachment = msg.attachment;
+    const openAttachment = () => {
+      if (attachment?.url) window.open(attachment.url, '_blank', 'noopener,noreferrer');
+    };
+
+    return (
+      <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
+        <div
+          className="msg-contact-card"
+          role={attachment?.url ? 'button' : undefined}
+          tabIndex={attachment?.url ? 0 : undefined}
+          aria-label={attachment?.url ? `Open bijlage ${attachment?.name || 'Bestand'}` : undefined}
+          style={{ cursor: attachment?.url ? 'pointer' : 'default' }}
+          onClick={attachment?.url ? openAttachment : undefined}
+          onKeyDown={attachment?.url ? (event) => handleActionCardKeyDown(event, openAttachment) : undefined}
+        >
+          <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius: 12 }} aria-hidden="true">F</div>
+          <div className="u-flex-1 u-min-w-0">
+            <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Bijlage'}</div>
+            <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
+              {attachment?.caption || attachment?.mimeType || 'Bestand gedeeld'}
+            </div>
+          </div>
+          <div className="u-flex-shrink" style={{ fontSize: '11px', color: isOwn ? 'rgba(255,255,255,.5)' : 'var(--text3)', alignSelf: 'flex-end' }}>
+            {formatTime(msg.createdAt)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ── Gedeeld contactkaart bericht ─────────────────────────────────────────
   if (msg.type === 'contact') {
     const sc = msg.sharedContact;
@@ -169,6 +240,7 @@ const MessageBubble = React.memo(function MessageBubble({
   // ── Standaard tekst bericht ───────────────────────────────────────────────
   const status = isOwn ? getMsgStatusInfo(msg) : null;
   const displayText = getMessageDisplayText(msg);
+  const receiptSummaryLabel = getReceiptSummaryLabel(msg, isGroup);
 
   return (
     <div
@@ -218,6 +290,19 @@ const MessageBubble = React.memo(function MessageBubble({
             )}
           </span>
         </div>
+        {receiptSummaryLabel && (
+          <div
+            className="msg-group-receipt-summary"
+            style={{
+              marginTop: 4,
+              fontSize: 11,
+              color: isOwn ? 'rgba(255,255,255,.62)' : 'var(--text3)',
+              textAlign: isOwn ? 'right' : 'left',
+            }}
+          >
+            {receiptSummaryLabel}
+          </div>
+        )}
 
         {/* Acties (zichtbaar bij hover) */}
         <div className="msg-actions" onClick={e => e.stopPropagation()}>

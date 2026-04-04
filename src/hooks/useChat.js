@@ -29,6 +29,7 @@ export default function useChat({
   setBlockedContacts,
   setParentBlockedUids,
   onReconnect,
+  onOpenMentionConversation,
 }) {
   const disconnectTimerRef   = useRef(null);
   const reconnectIntervalRef = useRef(null);
@@ -181,17 +182,17 @@ export default function useChat({
       else setTyping(false);
     };
 
-    const onMessageStatus = ({ convId, msgId, status }) => {
+    const onMessageStatus = ({ convId, msgId, status, receiptSummary }) => {
       if (status === 'gelezen') {
         setMessages(prev => prev.map(m =>
           (m.convId === convId || m.conversationId === convId) && m.senderId === user.uid
-            ? { ...m, status: 'gelezen', deliveryState: 'read' }
+            ? { ...m, status: 'gelezen', deliveryState: 'read', receiptSummary: receiptSummary || m.receiptSummary || null }
             : m
         ));
       } else if (status === 'bezorgd' && msgId) {
         setMessages(prev => prev.map(m =>
           m.id === msgId && m.status !== 'gelezen'
-            ? { ...m, status: 'bezorgd', deliveryState: m.deliveryState === 'read' ? 'read' : 'delivered' }
+            ? { ...m, status: 'bezorgd', deliveryState: m.deliveryState === 'read' ? 'read' : 'delivered', receiptSummary: receiptSummary || m.receiptSummary || null }
             : m
         ));
       }
@@ -338,9 +339,9 @@ export default function useChat({
       });
     };
 
-    const onMentionNotify = ({ senderName, groupName }) => {
+    const onMentionNotify = ({ senderName, groupName, convId }) => {
       if (dndRef.current) return;
-      setMentionToast({ senderName, groupName });
+      setMentionToast({ senderName, groupName, convId });
       setTimeout(() => setMentionToast(null), 4000);
     };
 

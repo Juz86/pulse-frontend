@@ -3,6 +3,7 @@ import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { computeDeliveryState, toSocketStatus } from '../services/messageReceipts.js';
+import { filterVisibleMessages } from '../services/messageVisibility.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
@@ -196,7 +197,10 @@ export function messagesRouter({ io, emitToUser }) {
       .limit(limit)
       .get();
 
-    const items = snap.docs.map((doc) => doc.data()).reverse();
+    const items = filterVisibleMessages(
+      snap.docs.map((doc) => doc.data()).reverse(),
+      uid
+    );
     return res.json(items);
   }));
 

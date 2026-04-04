@@ -147,6 +147,7 @@ Dat dekt nu ook de quiet-hours policyhelper mee.
 - devices kunnen hun signed prekey roteren via `POST /devices/:deviceId/signed-prekey`
 - users kunnen hun eigen devices opvragen via `GET /devices` en intrekken via `POST /devices/:deviceId/revoke`
 - receipt-updates sturen nu realtime `message:status` terug naar de afzender
+- `DELETE /api/messages/:convId/:msgId?scope=self|all` ondersteunt nu self-hide en all-delete met realtime `message:deleted`
 - denied policychecks en parent-acties worden alvast gelogd naar `policy_events`
 - dit is bedoeld als implementatiestart, niet als af productieontwerp
 

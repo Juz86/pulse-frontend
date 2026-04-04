@@ -30,6 +30,7 @@ export function messagesRouter({ io, emitToUser }) {
       senderDeviceId,
       ciphertext,
       messageType,
+      mentions,
       protocol,
       protocolVersion,
       replyToMessageId,
@@ -103,6 +104,7 @@ export function messagesRouter({ io, emitToUser }) {
       ciphertext,
       messageType: messageType || 'text',
       sharedContact: req.body?.sharedContact || null,
+      mentions: Array.isArray(mentions) ? mentions : [],
       protocol: protocol || 'signal_v1',
       protocolVersion: protocolVersion || 1,
       replyToMessageId: replyToMessageId || null,
@@ -136,8 +138,25 @@ export function messagesRouter({ io, emitToUser }) {
         protocolVersion: protocolVersion || 1,
         messageType: messageType || 'text',
         sharedContact: req.body?.sharedContact || null,
+        mentions: Array.isArray(mentions) ? mentions : [],
         replyToMessageId: replyToMessageId || null,
       });
+    }
+
+    if (Array.isArray(conv.members) && conv.isGroup && Array.isArray(mentions) && mentions.length > 0) {
+      const uniqueMentions = Array.from(new Set(
+        mentions.filter((mentionedUid) => mentionedUid && mentionedUid !== uid && conv.members.includes(mentionedUid))
+      ));
+
+      for (const mentionedUid of uniqueMentions) {
+        emitToUser(io, mentionedUid, 'mention:notify', {
+          convId: conversationId,
+          senderUid: uid,
+          senderName: conv.memberNames?.[uid] || uid,
+          groupName: conv.groupName || 'Groep',
+          messageId: messageRef.id,
+        });
+      }
     }
 
     const conversationPreview = deriveMockPreview({

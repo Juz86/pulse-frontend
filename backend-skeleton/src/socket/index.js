@@ -339,6 +339,22 @@ export function createSocketServer(server) {
         emitToUser(io, memberUid, 'message:received', savedMessage);
       }
 
+      if (conv.isGroup && Array.isArray(savedMessage.mentions) && savedMessage.mentions.length > 0) {
+        const uniqueMentions = Array.from(new Set(
+          savedMessage.mentions.filter((mentionedUid) => mentionedUid && mentionedUid !== uid && conv.members.includes(mentionedUid))
+        ));
+
+        for (const mentionedUid of uniqueMentions) {
+          emitToUser(io, mentionedUid, 'mention:notify', {
+            convId,
+            senderUid: uid,
+            senderName: savedMessage.senderName || uid,
+            groupName: conv.groupName || 'Groep',
+            messageId: savedMessage.id,
+          });
+        }
+      }
+
       ack(savedMessage);
     });
 

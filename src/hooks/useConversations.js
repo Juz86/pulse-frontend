@@ -343,6 +343,7 @@ export default function useConversations({
         conversationId: activeConv.id,
         userId: user.uid,
         replyTo: replyTo || null,
+        mentions,
       }),
       id: tempId,
       convId: activeConv.id,
@@ -378,6 +379,7 @@ export default function useConversations({
         plaintext: trimmedText,
         recipientUserIds,
         replyToMessageId: replyTo?.id || null,
+        mentions,
       }).then((savedMsg) => {
         clearTimeout(failTimer);
         pendingTempIds.current.delete(optimisticMsg.id);

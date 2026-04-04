@@ -133,6 +133,7 @@ export const messagingService = {
     replyToMessageId = null,
     messageType = 'text',
     sharedContact = null,
+    mentions = [],
   }, currentDeviceId) {
     if (!user) throw new Error('Geen gebruiker beschikbaar.');
     if (!currentDeviceId) throw new Error('Geen huidig device beschikbaar.');
@@ -189,6 +190,7 @@ export const messagingService = {
         ciphertext: primaryCiphertext,
         messageType,
         sharedContact,
+        mentions,
         protocol: 'signal_v1',
         protocolVersion: 1,
         replyToMessageId,

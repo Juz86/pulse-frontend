@@ -14,6 +14,7 @@ export function normalizeIncomingMessage(raw, currentUserId) {
     createdAt: raw.createdAt || new Date().toISOString(),
 
     replyTo: raw.replyTo || (raw.replyToMessageId ? { messageId: raw.replyToMessageId } : null),
+    mentions: Array.isArray(raw.mentions) ? raw.mentions : [],
     reactions,
     deleted: !!raw.deleted,
 
@@ -41,6 +42,7 @@ export function buildPendingMessage({
   replyTo = null,
   type = 'text',
   sharedContact = null,
+  mentions = [],
 }) {
   const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -53,6 +55,7 @@ export function buildPendingMessage({
     createdAt: new Date().toISOString(),
 
     replyTo,
+    mentions,
     reactions: {},
     deleted: false,
 

@@ -121,6 +121,20 @@ describe('e2ee message model helpers', () => {
 
     expect(normalized.reactions['❤️']).toEqual(['user-1', 'user-2']);
   });
+
+  test('normalizeIncomingMessage preserves mentions', () => {
+    const normalized = normalizeIncomingMessage(
+      {
+        id: 'msg-3',
+        conversationId: 'conv-1',
+        senderUserId: 'user-2',
+        mentions: ['user-1', 'user-4'],
+      },
+      'user-1'
+    );
+
+    expect(normalized.mentions).toEqual(['user-1', 'user-4']);
+  });
 });
 
 describe('e2ee policy helpers', () => {

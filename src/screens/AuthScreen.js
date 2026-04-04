@@ -147,9 +147,6 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
       <p className="auth-no-account">
         Geen account? Vraag je ouder om een account voor je aan te maken.
       </p>
-      <p className="auth-no-account" style={{ marginTop: 8 }}>
-        Pulse vraagt nooit om een telefoonnummer of openbare profielgegevens.
-      </p>
 
       <ul className="auth-features" aria-label="Belangrijkste voordelen">
         <li className="auth-feature"><span aria-hidden="true"><Shield size={18} color="var(--text3)" /></span><div>Versleuteld</div></li>

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
+import { canTargetRecipientDevice, canUseSenderDevice } from '../services/deviceValidation.js';
 import { computeDeliveryState, toSocketStatus } from '../services/messageReceipts.js';
 import { filterVisibleMessages } from '../services/messageVisibility.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
@@ -37,7 +38,25 @@ export function messagesRouter({ io, emitToUser }) {
       return res.status(403).json({ error: 'not_allowed_in_conversation' });
     }
 
+    const senderDeviceDoc = await db.collection('devices').doc(senderDeviceId).get();
+    if (!senderDeviceDoc.exists) {
+      return res.status(404).json({ error: 'sender_device_not_found' });
+    }
+
+    if (!canUseSenderDevice(senderDeviceDoc.data(), uid)) {
+      return res.status(403).json({ error: 'invalid_sender_device' });
+    }
+
     for (const payload of recipientPayloads) {
+      const recipientDeviceDoc = await db.collection('devices').doc(payload.recipientDeviceId).get();
+      if (!recipientDeviceDoc.exists) {
+        return res.status(404).json({ error: 'recipient_device_not_found' });
+      }
+
+      if (!canTargetRecipientDevice(recipientDeviceDoc.data(), payload.recipientUserId)) {
+        return res.status(403).json({ error: 'invalid_recipient_device' });
+      }
+
       const decision = await parentPolicyService.maySendMessage(
         uid,
         conversationId,
@@ -130,6 +149,15 @@ export function messagesRouter({ io, emitToUser }) {
 
     if (snap.empty) {
       return res.status(404).json({ error: 'receipt_target_not_found' });
+    }
+
+    const recipientDeviceDoc = await db.collection('devices').doc(recipientDeviceId).get();
+    if (!recipientDeviceDoc.exists) {
+      return res.status(404).json({ error: 'recipient_device_not_found' });
+    }
+
+    if (!canUseSenderDevice(recipientDeviceDoc.data(), uid)) {
+      return res.status(403).json({ error: 'invalid_recipient_device' });
     }
 
     const doc = snap.docs[0];

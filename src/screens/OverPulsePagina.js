@@ -103,7 +103,9 @@ function FeatureStrip() {
         </div>
       </div>
       <div className="op-strip-footer">
-        <Shield size={13} /> &nbsp;AVG-compliant &nbsp;·&nbsp; 🇳🇱 Nederlands
+        <span><Shield size={13} /> Versleuteld</span>
+        <span><Users size={13} /> Toezicht</span>
+        <span>🇳🇱 100% Nederlands</span>
       </div>
     </div>
   );

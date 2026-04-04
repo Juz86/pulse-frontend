@@ -150,8 +150,8 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
 
       <ul className="auth-features" aria-label="Belangrijkste voordelen">
         <li className="auth-feature"><span aria-hidden="true"><Shield size={18} color="var(--text3)" /></span><div>Versleuteld</div></li>
-        <li className="auth-feature"><span aria-hidden="true"><PhoneIcon size={18} color="var(--text3)" /></span><div style={{ whiteSpace: 'nowrap' }}>Chatten &amp; (video)bellen</div></li>
-        <li className="auth-feature"><span aria-hidden="true"><Wifi size={18} color="var(--text3)" /></span><div>Wi-Fi &amp; data</div></li>
+        <li className="auth-feature"><span aria-hidden="true"><Users size={18} color="var(--text3)" /></span><div>Toezicht</div></li>
+        <li className="auth-feature"><span aria-hidden="true"><span style={{ fontSize: 18, lineHeight: 1 }}>🇳🇱</span></span><div>100% Nederlands</div></li>
       </ul>
     </>
   );

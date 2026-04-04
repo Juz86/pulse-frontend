@@ -4276,7 +4276,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   gap: 0;
   backdrop-filter: blur(12px);
   box-shadow: 0 32px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(108,99,255,0.1);
-  max-width: 300px;
+  max-width: 380px;
   width: 100%;
 }
 
@@ -4335,10 +4335,17 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   padding-top: 16px;
   border-top: 1px solid rgba(255,255,255,0.07);
   font-size: 12px;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.op-strip-footer span {
   display: flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
 }
 
 /* Vergelijking: Pulse is / Pulse is niet */

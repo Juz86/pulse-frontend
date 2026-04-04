@@ -12,7 +12,7 @@
     "smoke": "node src/scripts/smoke.js",
     "preflight": "node src/scripts/preflight.js",
     "preflight:emulator": "node src/scripts/preflightEmulator.js",
-    "test": "node --test src/services/firebaseConfig.test.js src/services/policyTime.test.js src/services/deviceKeys.test.js src/services/deviceRecords.test.js src/services/messageEdits.test.js src/services/messageReceipts.test.js src/services/messageVisibility.test.js src/middleware/auth.test.js src/middleware/requireFirebaseReady.test.js"
+    "test": "node --test src/services/firebaseConfig.test.js src/services/policyTime.test.js src/services/deviceKeys.test.js src/services/deviceRecords.test.js src/services/deviceValidation.test.js src/services/messageEdits.test.js src/services/messageReceipts.test.js src/services/messageVisibility.test.js src/middleware/auth.test.js src/middleware/requireFirebaseReady.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

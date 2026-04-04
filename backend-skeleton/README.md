@@ -150,6 +150,7 @@ Dat dekt nu ook de quiet-hours policyhelper mee.
 - users kunnen hun eigen devices opvragen via `GET /devices` en intrekken via `POST /devices/:deviceId/revoke`
 - receipt-updates sturen nu realtime `message:status` terug naar de afzender
 - `DELETE /api/messages/:convId/:msgId?scope=self|all` ondersteunt nu self-hide en all-delete met realtime `message:deleted`
+- send- en receiptflows valideren nu expliciet actieve sender- en recipient-devices
 - denied policychecks en parent-acties worden alvast gelogd naar `policy_events`
 - dit is bedoeld als implementatiestart, niet als af productieontwerp
 

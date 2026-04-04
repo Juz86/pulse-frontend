@@ -5,6 +5,8 @@ import os from 'os';
 import path from 'path';
 import {
   buildStoredAttachmentMetadata,
+  deleteStoredAttachmentFromMessageAttachment,
+  getAttachmentIdFromUrl,
   isDataUrl,
   parseDataUrl,
   storeMockAttachment,
@@ -70,4 +72,33 @@ test('storeMockAttachment persists inline data for retrieval', async () => {
   assert.ok(stored);
   assert.equal(stored.mimeType, 'text/plain');
   assert.equal(stored.buffer.toString('utf8'), 'Hello');
+});
+
+test('getAttachmentIdFromUrl extracts the stored attachment id', () => {
+  assert.equal(
+    getAttachmentIdFromUrl('http://localhost:3001/attachments/attachment-123'),
+    'attachment-123'
+  );
+});
+
+test('deleteStoredAttachmentFromMessageAttachment removes stored binary and metadata', async () => {
+  const metadata = await storeMockAttachment({
+    baseUrl: 'http://localhost:3001',
+    attachment: {
+      name: 'document.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      size: 5,
+    },
+  });
+
+  const attachmentId = metadata.downloadUrl.split('/').pop();
+  assert.ok(await getStoredAttachment(attachmentId));
+
+  const deleted = await deleteStoredAttachmentFromMessageAttachment({
+    downloadUrl: metadata.downloadUrl,
+  });
+
+  assert.equal(deleted, true);
+  assert.equal(await getStoredAttachment(attachmentId), null);
 });

@@ -136,6 +136,34 @@ export async function getStoredAttachment(id) {
   }
 }
 
+export function getAttachmentIdFromUrl(downloadUrl = '') {
+  try {
+    const parsed = new URL(downloadUrl);
+    const segments = parsed.pathname.split('/').filter(Boolean);
+    return segments[segments.length - 1] || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteStoredAttachment(id) {
+  if (!id) return false;
+
+  attachmentStore.delete(id);
+  const { binaryPath, metadataPath } = getAttachmentPaths(id);
+  await Promise.all([
+    rm(binaryPath, { force: true }),
+    rm(metadataPath, { force: true }),
+  ]);
+  return true;
+}
+
+export async function deleteStoredAttachmentFromMessageAttachment(attachment = null) {
+  const attachmentId = getAttachmentIdFromUrl(attachment?.downloadUrl || attachment?.url || '');
+  if (!attachmentId) return false;
+  return deleteStoredAttachment(attachmentId);
+}
+
 export async function clearStoredAttachments() {
   attachmentStore.clear();
   await rm(getMockStorageDir(), { recursive: true, force: true });

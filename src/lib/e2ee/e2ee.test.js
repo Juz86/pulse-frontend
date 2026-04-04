@@ -23,6 +23,11 @@ import {
   buildMockRemoteAttachmentPayload,
   prepareAttachmentForSend,
 } from './attachmentUploadAdapter';
+import {
+  getAttachmentAccessInfo,
+  openAttachmentInNewTab,
+  triggerAttachmentDownload,
+} from './attachmentAccessAdapter';
 
 describe('e2ee message model helpers', () => {
   test('normalizeIncomingMessage maps senderUserId to senderId and marks ownership', () => {
@@ -354,5 +359,61 @@ describe('e2ee attachment helpers', () => {
     expect(global.fetch.mock.calls[0][0]).toContain('/api/attachments/upload');
     expect(attachment.transfer).toBe('remote');
     expect(attachment.downloadUrl).toBe('http://localhost:3001/attachments/mock-1');
+  });
+
+  test('getAttachmentAccessInfo exposes future decrypt-related access hints', () => {
+    const info = getAttachmentAccessInfo({
+      transfer: 'remote',
+      downloadUrl: 'https://cdn.example.com/foto.png',
+      mimeType: 'image/png',
+      encryption: {
+        alg: 'mock-storage-envelope',
+        keyId: 'key-1',
+      },
+    });
+
+    expect(info.url).toBe('https://cdn.example.com/foto.png');
+    expect(info.canOpen).toBe(true);
+    expect(info.canDownload).toBe(true);
+    expect(info.isImage).toBe(true);
+    expect(info.needsRemoteFetch).toBe(true);
+  });
+
+  test('openAttachmentInNewTab uses provided opener', () => {
+    const opener = jest.fn();
+    const opened = openAttachmentInNewTab({
+      downloadUrl: 'https://cdn.example.com/file.pdf',
+    }, opener);
+
+    expect(opened).toBe(true);
+    expect(opener).toHaveBeenCalledWith('https://cdn.example.com/file.pdf', '_blank', 'noopener,noreferrer');
+  });
+
+  test('triggerAttachmentDownload creates a downloadable link', () => {
+    const click = jest.fn();
+    const remove = jest.fn();
+    const appendChild = jest.fn();
+    const createElement = jest.fn(() => ({
+      click,
+      remove,
+      href: '',
+      download: '',
+      rel: '',
+    }));
+    const doc = {
+      createElement,
+      body: { appendChild },
+    };
+
+    const downloaded = triggerAttachmentDownload({
+      name: 'rapport.pdf',
+      downloadUrl: 'https://cdn.example.com/rapport.pdf',
+    }, doc);
+
+    expect(downloaded).toBe(true);
+    expect(createElement).toHaveBeenCalledWith('a');
+    expect(appendChild).toHaveBeenCalled();
+    expect(click).toHaveBeenCalled();
+    expect(remove).toHaveBeenCalled();
   });
 });

@@ -135,9 +135,9 @@ export default function AvatarBuilder({ uid, currentOptions, currentPhotoURL, on
 
   const cat = CATEGORIES.find(c => c.id === activeCategory);
 
-  const bg     = darkMode ? '#111118' : '#ffffff';
-  const surface= darkMode ? '#1a1a24' : '#f4f4f8';
-  const border = darkMode ? 'rgba(255,255,255,0.08)' : '#e0e0e8';
+  const bg     = darkMode ? '#1e1b3a' : '#ffffff';
+  const surface= darkMode ? '#272450' : '#f4f4f8';
+  const border = darkMode ? 'rgba(255,255,255,0.09)' : '#e0e0e8';
   const text   = darkMode ? '#f0f0f8' : '#1a1a2e';
   const text2  = darkMode ? '#9090b0' : '#5a5a7a';
   const accent = '#6c63ff';

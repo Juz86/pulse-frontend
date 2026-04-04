@@ -1,7 +1,11 @@
 // src/components/MessageBubble.js
 import React, { useRef, useState, useEffect } from 'react';
 import { Phone, Video, Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
-import { isImageAttachment, resolveAttachmentUrl } from '../lib/e2ee/attachmentPayload';
+import {
+  getAttachmentAccessInfo,
+  openAttachmentInNewTab,
+  triggerAttachmentDownload,
+} from '../lib/e2ee/attachmentAccessAdapter';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { getInitials, formatTime } from '../utils';
 
@@ -134,22 +138,16 @@ const MessageBubble = React.memo(function MessageBubble({
 
   if (msg.type === 'attachment') {
     const attachment = msg.attachment;
-    const attachmentUrl = resolveAttachmentUrl(attachment);
+    const attachmentAccess = getAttachmentAccessInfo(attachment);
+    const attachmentUrl = attachmentAccess.url;
     const isRemoteAttachment = attachment?.transfer === 'remote';
     const openAttachment = () => {
-      if (attachmentUrl) window.open(attachmentUrl, '_blank', 'noopener,noreferrer');
+      openAttachmentInNewTab(attachment);
     };
     const downloadAttachment = () => {
-      if (!attachmentUrl) return;
-      const link = document.createElement('a');
-      link.href = attachmentUrl;
-      link.download = attachment?.name || 'bijlage';
-      link.rel = 'noopener noreferrer';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      triggerAttachmentDownload(attachment);
     };
-    const attachmentActions = attachmentUrl ? (
+    const attachmentActions = attachmentAccess.canOpen ? (
       <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         <button
           type="button"
@@ -196,14 +194,14 @@ const MessageBubble = React.memo(function MessageBubble({
       <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
         <div
           className="msg-contact-card"
-          role={attachmentUrl ? 'button' : undefined}
-          tabIndex={attachmentUrl ? 0 : undefined}
-          aria-label={attachmentUrl ? `Open bijlage ${attachment?.name || 'Bestand'}` : undefined}
-          style={{ cursor: attachmentUrl ? 'pointer' : 'default' }}
-          onClick={attachmentUrl ? openAttachment : undefined}
-          onKeyDown={attachmentUrl ? (event) => handleActionCardKeyDown(event, openAttachment) : undefined}
+          role={attachmentAccess.canOpen ? 'button' : undefined}
+          tabIndex={attachmentAccess.canOpen ? 0 : undefined}
+          aria-label={attachmentAccess.canOpen ? `Open bijlage ${attachment?.name || 'Bestand'}` : undefined}
+          style={{ cursor: attachmentAccess.canOpen ? 'pointer' : 'default' }}
+          onClick={attachmentAccess.canOpen ? openAttachment : undefined}
+          onKeyDown={attachmentAccess.canOpen ? (event) => handleActionCardKeyDown(event, openAttachment) : undefined}
         >
-          {isImageAttachment(attachment) ? (
+          {attachmentAccess.isImage ? (
             <div className="u-flex-1 u-min-w-0">
               <img
                 src={attachmentUrl}

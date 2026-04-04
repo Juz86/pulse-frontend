@@ -44,18 +44,18 @@
 }
 
 :root {
-  --bg:       #11102a;
-  --surface:  #18172e;
-  --surface2: #211f3d;
-  --surface3: #2b2950;
-  --border:   rgba(255,255,255,0.08);
+  --bg:       #1e1b3a;
+  --surface:  #272450;
+  --surface2: #302d60;
+  --surface3: #3a3770;
+  --border:   rgba(255,255,255,0.09);
   --accent:   #6c63ff;
   --accent2:  #ff6584;
   --success:  #43e97b;
   --danger:   #ff4757;
   --text:     #edeaf8;
   --text2:    #9b97c4;
-  --text3:    #5e5a88;
+  --text3:    #6e6a98;
   --radius:   16px;
 }
 

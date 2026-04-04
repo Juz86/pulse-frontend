@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
+import { deleteStoredAttachmentFromMessageAttachment } from '../services/attachmentStorage.js';
 import { filterVisibleMessages, toConversationPreview } from '../services/messageVisibility.js';
 
 export function apiMessagesRouter({ io, emitToUser }) {
@@ -86,6 +87,7 @@ router.delete('/:convId/:msgId', requireAuth, asyncRoute(async (req, res) => {
   }
 
   await msgDoc.ref.delete();
+  await deleteStoredAttachmentFromMessageAttachment(msg.attachment).catch(() => {});
 
   const recipients = await db.collection('message_recipients').where('messageId', '==', msgId).get();
   await Promise.all(recipients.docs.map((doc) => doc.ref.delete()));

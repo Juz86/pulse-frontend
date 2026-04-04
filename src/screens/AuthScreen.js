@@ -2,7 +2,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
-import { User, Lock, EyeOn, EyeOff, Shield, PhoneIcon, Wifi, Heart, Users } from '../components/Icons';
+import { User, Lock, EyeOn, EyeOff, Shield, Heart, Users } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { normalizeUsername } from '../utils';

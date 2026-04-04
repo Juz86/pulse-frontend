@@ -24,6 +24,7 @@ const HoeWerktHetPagina  = lazy(() => import('./screens/HoeWerktHetPagina'));
 const OverPulsePagina    = lazy(() => import('./screens/OverPulsePagina'));
 const PrivacybeleidPagina = lazy(() => import('./screens/PrivacybeleidPagina'));
 const ElektronischeCommunicatieBeleidPagina = lazy(() => import('./screens/ElektronischeCommunicatieBeleidPagina'));
+const ContactPagina      = lazy(() => import('./screens/ContactPagina'));
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 
@@ -102,6 +103,14 @@ export default function App() {
     return (
       <Suspense fallback={splashFallback}>
         <ElektronischeCommunicatieBeleidPagina />
+      </Suspense>
+    );
+  }
+
+  if (pathname === '/contact') {
+    return (
+      <Suspense fallback={splashFallback}>
+        <ContactPagina />
       </Suspense>
     );
   }

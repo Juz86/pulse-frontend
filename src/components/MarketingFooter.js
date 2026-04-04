@@ -33,7 +33,7 @@ export default function MarketingFooter() {
               <li><a href="/over-pulse#waarom-pulse">Over ons</a></li>
               <li><a href="/privacybeleid">Privacybeleid</a></li>
               <li><a href="/avg-beleid-elektronische-communicatie">AVG-beleid</a></li>
-              <li><p className="hp-footer-text">Contact</p></li>
+              <li><a href="/contact">Contact</a></li>
             </ul>
           </nav>
         </div>

@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
+import { consumeOneTimePreKey } from '../services/deviceKeys.js';
 
 export const keysRouter = Router();
 
@@ -29,22 +30,40 @@ keysRouter.get('/:userId/key-bundle', requireAuth, asyncRoute(async (req, res) =
     .where('status', '==', 'active')
     .get();
 
-  const devices = snap.docs
-    .map((doc) => {
-      const data = doc.data();
-      const preKeys = data.oneTimePreKeys || [];
-      const oneTimePreKey = preKeys[0] || null;
+  const devices = [];
 
-      if (!oneTimePreKey) return null;
+  for (const doc of snap.docs) {
+    const bundle = await db.runTransaction(async (tx) => {
+      const freshDoc = await tx.get(doc.ref);
+      if (!freshDoc.exists) return null;
+
+      const data = freshDoc.data();
+      const {
+        issuedPreKey,
+        remainingPreKeys,
+        remainingCount,
+      } = consumeOneTimePreKey(data.oneTimePreKeys || []);
+
+      if (!issuedPreKey) return null;
+
+      tx.update(doc.ref, {
+        oneTimePreKeys: remainingPreKeys,
+        oneTimePreKeyCount: remainingCount,
+        lastPreKeyIssuedAt: new Date().toISOString(),
+      });
 
       return {
         deviceId: data.id,
         identityPublicKey: data.identityPublicKey,
         signedPreKey: data.signedPreKey,
-        oneTimePreKey,
+        oneTimePreKey: issuedPreKey,
       };
-    })
-    .filter(Boolean);
+    });
+
+    if (bundle) {
+      devices.push(bundle);
+    }
+  }
 
   return res.json({
     userId: targetUserId,

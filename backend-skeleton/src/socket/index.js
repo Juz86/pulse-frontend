@@ -1,6 +1,7 @@
 import { Server } from 'socket.io';
 import admin from 'firebase-admin';
 import { db } from '../services/firestore.js';
+import { getDevUidFromSocketAuth, isDevAuthBypassEnabled } from '../middleware/auth.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
@@ -15,6 +16,15 @@ export function createSocketServer(server) {
 
   io.use(async (socket, next) => {
     try {
+      if (isDevAuthBypassEnabled()) {
+        const devUid = getDevUidFromSocketAuth(socket.handshake.auth || {});
+        if (devUid) {
+          socket.data.uid = devUid;
+          socket.data.devBypass = true;
+          return next();
+        }
+      }
+
       const token = socket.handshake.auth?.token;
       if (!token) {
         return next(new Error('missing_auth_token'));

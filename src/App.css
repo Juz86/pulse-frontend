@@ -4824,6 +4824,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .legal-main {
   padding-bottom: 64px;
 }
+.legal-main:has(.ot-final-cta) {
+  padding-bottom: 0;
+}
 
 .legal-hero {
   padding: 120px 0 44px;

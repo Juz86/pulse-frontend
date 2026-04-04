@@ -56,7 +56,7 @@ export default function Homepage({ onParentClick }) {
       <PageMeta
         title="Pulse — Veilig communiceren voor elk kind"
         description="Pulse is een veilige Nederlandse communicatie-app voor kinderen: chatten, bellen en videobellen zonder telefoonnummer, onder ouderlijk toezicht."
-        canonical="https://pulse-frontend-elt.pages.dev/"
+        canonical="https://pulse-messenger.com/"
       />
 
       {/* ── NAVIGATIE ── */}

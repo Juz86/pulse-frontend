@@ -1,14 +1,24 @@
 import admin from 'firebase-admin';
 
-function isDevAuthBypassEnabled() {
+export function isDevAuthBypassEnabled() {
   return process.env.ALLOW_DEV_AUTH_BYPASS === 'true';
+}
+
+export function getDevUidFromHeaders(headers = {}) {
+  const devUid = headers['x-dev-uid'];
+  return typeof devUid === 'string' && devUid.trim() ? devUid.trim() : null;
+}
+
+export function getDevUidFromSocketAuth(auth = {}) {
+  const devUid = auth.devUid;
+  return typeof devUid === 'string' && devUid.trim() ? devUid.trim() : null;
 }
 
 export async function requireAuth(req, res, next) {
   if (isDevAuthBypassEnabled()) {
-    const devUid = req.headers['x-dev-uid'];
-    if (typeof devUid === 'string' && devUid.trim()) {
-      req.auth = { uid: devUid.trim(), devBypass: true };
+    const devUid = getDevUidFromHeaders(req.headers);
+    if (devUid) {
+      req.auth = { uid: devUid, devBypass: true };
       return next();
     }
   }

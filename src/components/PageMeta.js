@@ -3,8 +3,8 @@ import { useEffect } from 'react';
 const DEFAULT_META = {
   title: 'Pulse — Veilig communiceren voor elk kind',
   description: 'De enige Nederlandse chat app voor kinderen zonder telefoonnummer. Veilig, afleidingsvrij en antipesten by design. Volledig onder ouderlijk toezicht.',
-  canonical: 'https://pulse-frontend-elt.pages.dev/',
-  image: 'https://pulse-frontend-elt.pages.dev/logo512.png',
+  canonical: 'https://pulse-messenger.com/',
+  image: 'https://pulse-messenger.com/logo512.png',
 };
 
 function resolveCanonical(url) {

@@ -11,6 +11,7 @@ export default function LegalPageLayout({
   canonical,
   metaTitle,
   metaDescription,
+  cta,
   children,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -65,6 +66,7 @@ export default function LegalPageLayout({
         <div className="legal-content">
           {children}
         </div>
+        {cta}
       </main>
 
       <MarketingFooter />

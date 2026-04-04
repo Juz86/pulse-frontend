@@ -7,6 +7,10 @@ Dit is een minimale backend-skeleton voor de eerste E2EE-serviceflow van Pulse.
 Deze map is geen complete productiebackend, maar een startpunt voor:
 
 - `POST /devices/register`
+- `GET /devices`
+- `POST /devices/:deviceId/prekeys`
+- `POST /devices/:deviceId/signed-prekey`
+- `POST /devices/:deviceId/revoke`
 - `GET /users/:userId/key-bundle`
 - `POST /messages/send`
 - `POST /messages/receipt`
@@ -133,11 +137,16 @@ Dat dekt nu ook de quiet-hours policyhelper mee.
 - Firestore-queries en policychecks zijn bewust minimaal gehouden
 - Firebase Admin kan lokaal of via Railway-secrets worden geïnitialiseerd
 - optioneel is er een lokaal-only auth bypass via `ALLOW_DEV_AUTH_BYPASS=true` + `x-dev-uid`
+- dezelfde lokale bypass werkt voor Socket.IO via `auth.devUid`
 - `dev:emulator` zet standaard:
   `FIRESTORE_EMULATOR_HOST=127.0.0.1:8080`,
   `FIREBASE_PROJECT_ID=demo-pulse`,
   `ALLOW_DEV_AUTH_BYPASS=true`
-- one-time prekeys worden hier nog niet transactioneel gereserveerd
+- key bundle retrieval reserveert nu transactioneel een one-time prekey per device
+- devices kunnen one-time prekeys bijvullen via `POST /devices/:deviceId/prekeys`
+- devices kunnen hun signed prekey roteren via `POST /devices/:deviceId/signed-prekey`
+- users kunnen hun eigen devices opvragen via `GET /devices` en intrekken via `POST /devices/:deviceId/revoke`
+- receipt-updates sturen nu realtime `message:status` terug naar de afzender
 - denied policychecks en parent-acties worden alvast gelogd naar `policy_events`
 - dit is bedoeld als implementatiestart, niet als af productieontwerp
 

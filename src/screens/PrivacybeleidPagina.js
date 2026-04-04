@@ -26,7 +26,7 @@ export default function PrivacybeleidPagina() {
       title="Privacybeleid"
       intro="Dit privacybeleid legt uit hoe Pulse persoonsgegevens verwerkt van ouders, kinderen en vertrouwde contacten. Het document is geschreven voor een kindgerichte communicatiedienst en is bedoeld als een zorgvuldige, publiceerbare eerste versie die later juridisch kan worden verfijnd."
       lastUpdated="30 maart 2026"
-      canonical="https://pulse-frontend-elt.pages.dev/privacybeleid"
+      canonical="https://pulse-messenger.com/privacybeleid"
       metaTitle="Privacybeleid van Pulse"
       metaDescription="Lees hoe Pulse persoonsgegevens verwerkt van ouders, kinderen en vertrouwde contacten binnen een veilige communicatieomgeving voor families."
     >

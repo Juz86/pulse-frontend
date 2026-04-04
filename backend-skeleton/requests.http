@@ -2,6 +2,9 @@
 @token = REPLACE_WITH_FIREBASE_ID_TOKEN
 @devUid = uid_child_1
 
+# Socket.IO dev bypass voorbeeld (in je client):
+# io(baseUrl, { auth: { devUid: 'uid_child_1' } })
+
 ### Root
 GET {{baseUrl}}/
 

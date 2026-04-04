@@ -365,7 +365,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
       <PageMeta
         title="Hoe Werkt Pulse? — Van ouderaccount tot veilig contact"
         description="Bekijk stap voor stap hoe Pulse werkt: ouderaccount aanmaken, kind toevoegen, accounts koppelen en veilig communiceren met vertrouwde contacten."
-        canonical="https://pulse-frontend-elt.pages.dev/hoe-werkt-het"
+        canonical="https://pulse-messenger.com/hoe-werkt-het"
       />
       <MarketingNavbar
         items={navItems}

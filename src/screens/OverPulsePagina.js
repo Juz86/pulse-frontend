@@ -218,7 +218,7 @@ export default function OverPulsePagina({ onParentClick }) {
       <PageMeta
         title="Over Pulse — Waarom veilige communicatie voor kinderen anders moet"
         description="Lees waarom Pulse bestaat: een Nederlandse, privacyvriendelijke communicatie-app voor kinderen zonder advertenties, algoritmes of afleiding."
-        canonical="https://pulse-frontend-elt.pages.dev/over-pulse"
+        canonical="https://pulse-messenger.com/over-pulse"
       />
       <MarketingNavbar
         items={navItems}

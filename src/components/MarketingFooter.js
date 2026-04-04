@@ -34,6 +34,7 @@ export default function MarketingFooter() {
               <li><a href="/privacybeleid">Privacybeleid</a></li>
               <li><a href="/avg-beleid-elektronische-communicatie">AVG-beleid</a></li>
               <li><a href="/contact">Contact</a></li>
+              <li><a href="/sitemap">Sitemap</a></li>
             </ul>
           </nav>
         </div>

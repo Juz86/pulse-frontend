@@ -87,6 +87,58 @@ async function seed() {
     lastCallIsVideo: null,
   }, { merge: true });
 
+  await db.collection('devices').doc('device_child_1').set({
+    id: 'device_child_1',
+    userId: 'uid_child_1',
+    deviceLabel: 'Demo Child Device',
+    identityPublicKey: 'child-identity-public-key',
+    signedPreKey: {
+      keyId: 1,
+      publicKey: 'child-signed-prekey-public',
+      signature: 'child-signed-prekey-signature',
+    },
+    signedPreKeyRotatedAt: now,
+    oneTimePreKeys: [
+      { keyId: 1, publicKey: 'child-onetime-1' },
+      { keyId: 2, publicKey: 'child-onetime-2' },
+      { keyId: 3, publicKey: 'child-onetime-3' },
+    ],
+    oneTimePreKeyCount: 3,
+    platform: 'web',
+    protocol: 'signal_v1',
+    protocolVersion: 1,
+    status: 'active',
+    createdAt: now,
+    updatedAt: now,
+    revokedAt: null,
+  }, { merge: true });
+
+  await db.collection('devices').doc('device_contact_9').set({
+    id: 'device_contact_9',
+    userId: 'uid_contact_9',
+    deviceLabel: 'Demo Contact Device',
+    identityPublicKey: 'contact-identity-public-key',
+    signedPreKey: {
+      keyId: 1,
+      publicKey: 'contact-signed-prekey-public',
+      signature: 'contact-signed-prekey-signature',
+    },
+    signedPreKeyRotatedAt: now,
+    oneTimePreKeys: [
+      { keyId: 11, publicKey: 'contact-onetime-11' },
+      { keyId: 12, publicKey: 'contact-onetime-12' },
+      { keyId: 13, publicKey: 'contact-onetime-13' },
+    ],
+    oneTimePreKeyCount: 3,
+    platform: 'web',
+    protocol: 'signal_v1',
+    protocolVersion: 1,
+    status: 'active',
+    createdAt: now,
+    updatedAt: now,
+    revokedAt: null,
+  }, { merge: true });
+
   console.log('Seed data geschreven voor Pulse backend skeleton.');
 }
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
+import { computeDeliveryState, toSocketStatus } from '../services/messageReceipts.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
@@ -138,6 +139,35 @@ export function messagesRouter({ io, emitToUser }) {
       deliveredAt: type === 'delivered' ? now : data.deliveredAt || null,
       readAt: type === 'read' ? now : data.readAt || null,
     });
+
+    const messageDoc = await db.collection('messages').doc(messageId).get();
+    if (messageDoc.exists) {
+      const message = messageDoc.data();
+      const allReceiptsSnap = await db
+        .collection('message_recipients')
+        .where('messageId', '==', messageId)
+        .get();
+
+      const deliveryState = computeDeliveryState(allReceiptsSnap.docs.map((item) => item.data()));
+      const socketStatus = toSocketStatus(deliveryState);
+
+      await messageDoc.ref.set(
+        {
+          deliveryState,
+          updatedAt: now,
+        },
+        { merge: true }
+      );
+
+      if (socketStatus && message?.senderUserId) {
+        emitToUser(io, message.senderUserId, 'message:status', {
+          convId: message.conversationId,
+          msgId: messageId,
+          status: socketStatus,
+          deliveryState,
+        });
+      }
+    }
 
     return res.json({ ok: true });
   }));

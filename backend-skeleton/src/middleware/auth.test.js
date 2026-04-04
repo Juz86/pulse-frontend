@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { requireAuth } from './auth.js';
+import { getDevUidFromHeaders, getDevUidFromSocketAuth, requireAuth } from './auth.js';
 
 function createResponseRecorder() {
   return {
@@ -74,4 +74,14 @@ test('requireAuth rejects requests without bearer token when bypass is disabled'
       process.env.ALLOW_DEV_AUTH_BYPASS = previous;
     }
   }
+});
+
+test('getDevUidFromHeaders normalizes valid x-dev-uid input', () => {
+  assert.equal(getDevUidFromHeaders({ 'x-dev-uid': ' uid_parent_1 ' }), 'uid_parent_1');
+  assert.equal(getDevUidFromHeaders({}), null);
+});
+
+test('getDevUidFromSocketAuth normalizes valid devUid auth input', () => {
+  assert.equal(getDevUidFromSocketAuth({ devUid: ' uid_child_1 ' }), 'uid_child_1');
+  assert.equal(getDevUidFromSocketAuth({}), null);
 });

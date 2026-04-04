@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
-import { Mail, Shield, Check, Send } from '../components/Icons';
+import { Mail, Shield, Check, Send, Message, Phone, Video, Users } from '../components/Icons';
 
 function useFadeIn() {
   const ref = useRef(null);
@@ -18,6 +18,71 @@ function useFadeIn() {
     return () => obs.disconnect();
   }, []);
   return [ref, visible];
+}
+
+const BADGES = [
+  { icon: <Shield size={14} />, label: 'Versleuteld' },
+  { icon: <Users size={14} />,  label: 'Toezicht' },
+  { icon: <span style={{ fontSize: 13 }}>🇳🇱</span>, label: '100% Nederlands' },
+];
+
+function BadgeStrip() {
+  const [active, setActive] = useState(0);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => setActive(i => (i + 1) % BADGES.length), 2500);
+    return () => clearInterval(timerRef.current);
+  }, []);
+
+  return (
+    <>
+      {/* Desktop: naast elkaar */}
+      <div className="badge-strip--desktop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 4 }}>
+        {BADGES.map(({ icon, label }) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--accent)' }}>
+            {icon}
+            <span style={{ fontSize: 13, color: 'var(--text3)' }}>{label}</span>
+          </div>
+        ))}
+      </div>
+      {/* Mobiel: auto-slide */}
+      <div className="badge-strip--mobile" style={{ paddingTop: 4, overflow: 'hidden', textAlign: 'center' }}>
+        <div style={{
+          display: 'flex',
+          transform: `translateX(${-active * 100}%)`,
+          transition: 'transform 0.5s cubic-bezier(0.4,0,0.2,1)',
+        }}>
+          {BADGES.map(({ icon, label }) => (
+            <div key={label} style={{
+              minWidth: '100%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              color: 'var(--accent)',
+            }}>
+              {icon}
+              <span style={{ fontSize: 13, color: 'var(--text3)' }}>{label}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 5, marginTop: 8, justifyContent: 'center' }}>
+          {BADGES.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => { setActive(i); clearInterval(timerRef.current); timerRef.current = setInterval(() => setActive(j => (j + 1) % BADGES.length), 2500); }}
+              style={{
+                width: i === active ? 16 : 6, height: 6, borderRadius: 3,
+                background: i === active ? 'var(--accent)' : 'var(--border)',
+                border: 'none', cursor: 'pointer', padding: 0,
+                transition: 'width 0.3s, background 0.3s',
+              }}
+              aria-label={BADGES[i].label}
+            />
+          ))}
+        </div>
+      </div>
+    </>
+  );
 }
 
 function ContactInfoCard() {
@@ -46,6 +111,36 @@ function ContactInfoCard() {
           <p style={{ color: 'var(--text2)', fontSize: 15, lineHeight: 1.7 }}>
             Veilige communicatie voor kinderen en gezinnen. Wij helpen je graag verder.
           </p>
+
+          {/* Feature strip */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
+            {[
+              { icon: <Message size={18} />, label: 'Chatten', sub: 'Veilig berichten sturen' },
+              { icon: <Phone size={18} />,   label: 'Bellen',  sub: 'Zonder telefoonnummer' },
+              { icon: <Video size={18} />,   label: 'Videobellen', sub: 'Met vertrouwde contacten' },
+            ].map(({ icon, label, sub }, i, arr) => (
+              <div key={label} style={{
+                display: 'flex', alignItems: 'center', gap: 14,
+                padding: '13px 16px',
+                background: 'var(--surface)',
+                borderRadius: 12,
+                border: '1px solid var(--border)',
+              }}>
+                <span style={{
+                  width: 36, height: 36, flexShrink: 0, borderRadius: 10,
+                  background: 'rgba(108,99,255,0.15)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'var(--accent)',
+                }}>
+                  {icon}
+                </span>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{label}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text3)' }}>{sub}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* E-mail */}
@@ -79,64 +174,10 @@ function ContactInfoCard() {
             </div>
           </div>
 
-          {/* Adresgegevens — volgt later */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 14,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 12,
-            padding: '14px 18px',
-            opacity: 0.55,
-          }}>
-            <span style={{
-              width: 36, height: 36,
-              background: 'rgba(108,99,255,0.08)',
-              borderRadius: 10,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--text3)', flexShrink: 0,
-            }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            </span>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>Vestigingsadres</div>
-              <span style={{ color: 'var(--text3)', fontSize: 14 }}>Wordt binnenkort aangevuld</span>
-            </div>
-          </div>
-
-          {/* KVK — volgt later */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 14,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 12,
-            padding: '14px 18px',
-            opacity: 0.55,
-          }}>
-            <span style={{
-              width: 36, height: 36,
-              background: 'rgba(108,99,255,0.08)',
-              borderRadius: 10,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--text3)', flexShrink: 0,
-            }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-            </span>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>KVK-nummer</div>
-              <span style={{ color: 'var(--text3)', fontSize: 14 }}>Wordt binnenkort aangevuld</span>
-            </div>
-          </div>
         </div>
 
         {/* Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 4 }}>
-          <Shield size={14} style={{ color: 'var(--accent)' }} />
-          <span style={{ fontSize: 13, color: 'var(--text3)' }}>AVG-compliant · 100% Nederlands</span>
-        </div>
+        <BadgeStrip />
       </div>
     </div>
   );
@@ -159,6 +200,16 @@ function ContactForm() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   function set(field, value) {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -296,19 +347,52 @@ function ContactForm() {
               </div>
 
               <div>
-                <label htmlFor="contact-onderwerp" style={labelStyle}>Onderwerp</label>
-                <select
-                  id="contact-onderwerp"
-                  value={form.onderwerp}
-                  onChange={e => set('onderwerp', e.target.value)}
-                  style={{ ...inputStyle(errors.onderwerp), cursor: 'pointer', appearance: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239090b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center', paddingRight: 40 }}
-                >
-                  {ONDERWERPEN.map(o => (
-                    <option key={o} value={o === ONDERWERPEN[0] ? '' : o} disabled={o === ONDERWERPEN[0]}>
-                      {o}
-                    </option>
-                  ))}
-                </select>
+                <label style={labelStyle}>Onderwerp</label>
+                <div ref={dropdownRef} style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    onClick={() => setDropdownOpen(o => !o)}
+                    style={{
+                      ...inputStyle(errors.onderwerp),
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      cursor: 'pointer', textAlign: 'left',
+                      color: form.onderwerp ? 'var(--text)' : 'var(--text3)',
+                    }}
+                  >
+                    <span>{form.onderwerp || 'Selecteer een onderwerp'}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transition: 'transform 0.2s', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', color: 'var(--text3)' }}><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  {dropdownOpen && (
+                    <div style={{
+                      position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 50,
+                      background: 'var(--surface2)',
+                      border: '1.5px solid var(--border)',
+                      borderRadius: 12,
+                      overflow: 'hidden',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                    }}>
+                      {ONDERWERPEN.slice(1).map((o, i, arr) => (
+                        <button
+                          key={o}
+                          type="button"
+                          onClick={() => { set('onderwerp', o); setDropdownOpen(false); }}
+                          style={{
+                            display: 'block', width: '100%', textAlign: 'left',
+                            padding: '11px 16px', fontSize: 15,
+                            background: form.onderwerp === o ? 'rgba(108,99,255,0.12)' : 'transparent',
+                            color: form.onderwerp === o ? 'var(--accent)' : 'var(--text)',
+                            border: 'none', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
+                            cursor: 'pointer', fontFamily: 'var(--font-primary)',
+                          }}
+                          onMouseEnter={e => { if (form.onderwerp !== o) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                          onMouseLeave={e => { if (form.onderwerp !== o) e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          {o}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 {errors.onderwerp && <div style={errorStyle}>{errors.onderwerp}</div>}
               </div>
 
@@ -374,7 +458,7 @@ export default function ContactPagina() {
       <PageMeta
         title="Contact — Pulse Messenger"
         description="Neem contact op met Pulse Messenger. Stuur ons een bericht voor vragen over de app, ouderlijk toezicht, privacy of samenwerking."
-        canonical="https://pulse-frontend-elt.pages.dev/contact"
+        canonical="https://pulse-messenger.com/contact"
       />
 
       <MarketingNavbar
@@ -390,7 +474,7 @@ export default function ContactPagina() {
         <section className="legal-hero" style={{ paddingBottom: 48 }}>
           <div className="legal-hero-inner">
             <div className="fp-hero-badge legal-hero-badge">Contact</div>
-            <h1 className="legal-hero-title" style={{ maxWidth: 560 }}>
+            <h1 className="legal-hero-title">
               Hoe kunnen we je helpen?
             </h1>
             <p className="legal-hero-intro" style={{ maxWidth: 520 }}>
@@ -418,11 +502,10 @@ export default function ContactPagina() {
         </section>
 
         {/* ── CTA ── */}
-        <section className="ot-final-cta" style={{ marginTop: 0 }}>
+        <section className="ot-final-cta">
           <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
           <p>Pulse helpt gezinnen communiceren op een manier die vertrouwd, veilig en rustig voelt.</p>
           <a href="/" className="hp-cta-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-            <Shield size={18} />
             Naar de homepage
           </a>
         </section>
@@ -430,12 +513,14 @@ export default function ContactPagina() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        .badge-strip--mobile { display: none; }
         @media (max-width: 768px) {
           .contact-grid { grid-template-columns: 1fr !important; }
+          .badge-strip--desktop { display: none !important; }
+          .badge-strip--mobile { display: block; }
         }
-        select option { background: var(--surface2); color: var(--text); }
         input::placeholder, textarea::placeholder { color: var(--text3); }
-        input:focus, textarea:focus, select:focus {
+        input:focus, textarea:focus {
           border-color: var(--accent) !important;
           outline: none;
         }

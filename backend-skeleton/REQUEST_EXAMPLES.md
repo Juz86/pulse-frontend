@@ -23,6 +23,14 @@ Belangrijk:
 - dit is alleen bedoeld voor lokaal testen
 - standaard staat dit uit
 
+Voor Socket.IO lokaal kun je in `handshake.auth` ook gebruiken:
+
+```js
+{
+  devUid: 'uid_child_1'
+}
+```
+
 ## Health
 
 ```bash
@@ -78,11 +86,54 @@ curl -X POST <BASE_URL>/devices/register \
   }'
 ```
 
+## List Devices
+
+```bash
+curl -X GET <BASE_URL>/devices \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+## Revoke Device
+
+```bash
+curl -X POST <BASE_URL>/devices/device_child_1/revoke \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
 ## Key Bundle Lookup
 
 ```bash
 curl -X GET "<BASE_URL>/users/uid_contact_9/key-bundle" \
   -H "Authorization: Bearer <TOKEN>"
+```
+
+## Signed Prekey Rotate
+
+```bash
+curl -X POST <BASE_URL>/devices/device_child_1/signed-prekey \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "signedPreKey": {
+      "keyId": 2,
+      "publicKey": "mock-next-signed-prekey",
+      "signature": "mock-next-signature"
+    }
+  }'
+```
+
+## One-Time Prekeys Refill
+
+```bash
+curl -X POST <BASE_URL>/devices/device_child_1/prekeys \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "oneTimePreKeys": [
+      { "keyId": 20, "publicKey": "mock-onetime-key-20" },
+      { "keyId": 21, "publicKey": "mock-onetime-key-21" }
+    ]
+  }'
 ```
 
 ## Send Message

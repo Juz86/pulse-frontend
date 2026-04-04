@@ -798,7 +798,7 @@ export default function FunctiePagina({ onParentClick }) {
       <PageMeta
         title="Functies van Pulse — Chatten, bellen en videobellen voor kinderen"
         description="Ontdek alle Pulse functies: veilig chatten, bellen, videobellen, groepsgesprekken, @-vermeldingen en rustige communicatie zonder afleiding."
-        canonical="https://pulse-frontend-elt.pages.dev/functies"
+        canonical="https://pulse-messenger.com/functies"
       />
 
       {/* ── NAVIGATIE ── */}

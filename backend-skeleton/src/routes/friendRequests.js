@@ -3,6 +3,20 @@ import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 
+const MAX_REMINDERS = 3;
+
+function toPendingRequestResponse(request) {
+  const reminderCount = Number(request?.reminderCount || 0);
+  return {
+    requestId: request.id,
+    toUid: request.toUid,
+    reminderCount,
+    remindersRemaining: Math.max(0, MAX_REMINDERS - reminderCount),
+    canSendReminder: reminderCount < MAX_REMINDERS,
+    canCancel: true,
+  };
+}
+
 export function friendRequestsRouter({ io, emitToUser }) {
   const router = Router();
 
@@ -17,6 +31,23 @@ export function friendRequestsRouter({ io, emitToUser }) {
     const snap = await db
       .collection('friend_requests')
       .where('toUid', '==', uid)
+      .where('status', '==', 'pending')
+      .get();
+
+    return res.json(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+  }));
+
+  router.get('/:uid/sent', requireAuth, asyncRoute(async (req, res) => {
+    const requesterUid = req.auth.uid;
+    const { uid } = req.params;
+
+    if (requesterUid !== uid) {
+      return res.status(403).json({ error: 'not_allowed' });
+    }
+
+    const snap = await db
+      .collection('friend_requests')
+      .where('fromUid', '==', uid)
       .where('status', '==', 'pending')
       .get();
 
@@ -56,6 +87,23 @@ export function friendRequestsRouter({ io, emitToUser }) {
       return res.json({ ok: true, restored: true, toUid });
     }
 
+    const existingPendingSnap = await db
+      .collection('friend_requests')
+      .where('fromUid', '==', fromUid)
+      .where('toUid', '==', toUid)
+      .where('status', '==', 'pending')
+      .limit(1)
+      .get();
+
+    if (!existingPendingSnap.empty) {
+      const existingPending = existingPendingSnap.docs[0].data();
+      return res.status(409).json({
+        error: 'Verzoek al verzonden',
+        code: 'friend_request_already_pending',
+        ...toPendingRequestResponse(existingPending),
+      });
+    }
+
     const requestRef = db.collection('friend_requests').doc();
     const requestData = {
       id: requestRef.id,
@@ -67,6 +115,8 @@ export function friendRequestsRouter({ io, emitToUser }) {
       toEmail,
       toIdentifier: toIdentifier || toEmail,
       status: 'pending',
+      reminderCount: 0,
+      lastReminderAt: null,
       createdAt: new Date().toISOString(),
     };
 
@@ -79,6 +129,96 @@ export function friendRequestsRouter({ io, emitToUser }) {
       requestId: requestRef.id,
       toUid,
     });
+  }));
+
+  router.post('/:requestId/remind', requireAuth, asyncRoute(async (req, res) => {
+    const uid = req.auth.uid;
+    const { requestId } = req.params;
+
+    const requestDoc = await db.collection('friend_requests').doc(requestId).get();
+    if (!requestDoc.exists) {
+      return res.status(404).json({ error: 'request_not_found' });
+    }
+
+    const request = requestDoc.data();
+    if (request.fromUid !== uid) {
+      return res.status(403).json({ error: 'not_allowed' });
+    }
+
+    if (request.status !== 'pending') {
+      return res.status(409).json({ error: 'request_not_pending' });
+    }
+
+    const reminderCount = Number(request.reminderCount || 0);
+    if (reminderCount >= MAX_REMINDERS) {
+      return res.status(409).json({
+        error: 'Maximum aantal herinneringen bereikt',
+        code: 'friend_request_reminder_limit_reached',
+        ...toPendingRequestResponse(request),
+      });
+    }
+
+    const nextReminderCount = reminderCount + 1;
+    const remindedAt = new Date().toISOString();
+
+    await requestDoc.ref.set({
+      reminderCount: nextReminderCount,
+      lastReminderAt: remindedAt,
+      updatedAt: remindedAt,
+    }, { merge: true });
+
+    const updatedRequest = {
+      ...request,
+      reminderCount: nextReminderCount,
+      lastReminderAt: remindedAt,
+      updatedAt: remindedAt,
+    };
+
+    emitToUser(io, request.toUid, 'friend:request', {
+      ...updatedRequest,
+      isReminder: true,
+    });
+
+    return res.json({
+      ok: true,
+      reminded: true,
+      remindedAt,
+      ...toPendingRequestResponse(updatedRequest),
+    });
+  }));
+
+  router.post('/:requestId/cancel', requireAuth, asyncRoute(async (req, res) => {
+    const uid = req.auth.uid;
+    const { requestId } = req.params;
+
+    const requestDoc = await db.collection('friend_requests').doc(requestId).get();
+    if (!requestDoc.exists) {
+      return res.status(404).json({ error: 'request_not_found' });
+    }
+
+    const request = requestDoc.data();
+    if (request.fromUid !== uid) {
+      return res.status(403).json({ error: 'not_allowed' });
+    }
+
+    if (request.status !== 'pending') {
+      return res.status(409).json({ error: 'request_not_pending' });
+    }
+
+    const canceledAt = new Date().toISOString();
+    await requestDoc.ref.set({
+      status: 'cancelled',
+      canceledAt,
+      updatedAt: canceledAt,
+    }, { merge: true });
+
+    emitToUser(io, request.toUid, 'friend:request:cancelled', {
+      requestId,
+      fromUid: request.fromUid,
+      canceledAt,
+    });
+
+    return res.json({ ok: true, cancelled: true, requestId, canceledAt });
   }));
 
   router.post('/:requestId/accept', requireAuth, asyncRoute(async (req, res) => {

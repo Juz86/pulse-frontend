@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Delete, Search, Message, Users, Moon, Lightbulb, Bell, BellOff, Shield, Logout, Pin, InfoIcon } from '../components/Icons';
+import { Phone, Video, Delete, Search, Message, Users, Moon, Lightbulb, Bell, BellOff, Shield, Logout, Pin, InfoIcon, ChevronDown } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
@@ -27,6 +27,9 @@ export default function ChatSidebar({
   selectedGroupId,
   setSelectedGroupId,
   friendRequests,
+  sentFriendRequests,
+  showFriendRequestsPanel,
+  setShowFriendRequestsPanel,
   contactSuccess,
   contacts,
   conversations,
@@ -51,6 +54,8 @@ export default function ChatSidebar({
   // contact actions
   onAcceptFriendRequest,
   onDeclineFriendRequest,
+  onRemindFriendRequest,
+  onCancelFriendRequest,
   onTogglePin,
   onViewContact,
   onStartChat,
@@ -228,9 +233,25 @@ export default function ChatSidebar({
       {activeTab === 'contacts' && (
         <div className="conv-list">
           <div style={{ padding: '12px 18px' }}>
-            <button type="button" className="btn-primary" style={{ padding: '10px', fontSize: '13px' }} onClick={onShowAddContact}>
-              + Contact toevoegen
-            </button>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
+              <button type="button" className="btn-primary" style={{ padding: '10px', fontSize: '13px', flex: 1 }} onClick={onShowAddContact}>
+                + Contact toevoegen
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ padding: '10px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}
+                onClick={() => setShowFriendRequestsPanel(prev => !prev)}
+                aria-expanded={showFriendRequestsPanel}
+              >
+                Vriendschapsverzoeken
+                <ChevronDown
+                  size={16}
+                  aria-hidden="true"
+                  style={{ transform: showFriendRequestsPanel ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 160ms ease' }}
+                />
+              </button>
+            </div>
             {contactSuccess && (
               <div role="status" aria-live="polite" style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', color: '#4ade80', fontSize: '13px' }}>
                 <span aria-hidden="true">✅ </span>{contactSuccess}
@@ -238,11 +259,10 @@ export default function ChatSidebar({
             )}
           </div>
 
-          {/* Vriendschapsverzoeken */}
-          {friendRequests.length > 0 && (
+          {showFriendRequestsPanel && (
             <div style={{ padding: '0 12px 4px' }}>
               <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 6px 8px' }}>
-                Verzoeken ({friendRequests.length})
+                Ontvangen verzoeken ({friendRequests.length})
               </div>
               {friendRequests.map(req => (
                 <div key={req.id} aria-label={`Vriendschapsverzoek van ${req.fromName}${req.fromEmail ? `, ${req.fromEmail}` : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: 'rgba(124,111,255,0.08)', borderRadius: '10px', marginBottom: '8px', border: '1px solid rgba(124,111,255,0.2)' }}>
@@ -257,11 +277,58 @@ export default function ChatSidebar({
                   </div>
                 </div>
               ))}
+
+              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '8px 6px 8px' }}>
+                Verstuurde verzoeken ({sentFriendRequests.length})
+              </div>
+              {sentFriendRequests.map(req => {
+                const reminderCount = Number(req.reminderCount || 0);
+                const remindersRemaining = Math.max(0, 3 - reminderCount);
+                return (
+                  <div key={req.id} aria-label={`Verstuurd vriendschapsverzoek naar ${req.toEmail || req.toUid}`} style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '10px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', marginBottom: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.toEmail || req.toUid)}</div>
+                      <div style={{ flex: 1, minWidth: 0 }} aria-hidden="true">
+                        <div style={{ fontWeight: '600', fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.toEmail || req.toIdentifier || req.toUid}</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                          {remindersRemaining > 0 ? `Nog ${remindersRemaining} ${remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} over` : 'Geen herinneringen meer over'}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        style={{ flex: 1, padding: '6px 10px', fontSize: '12px', minWidth: 0 }}
+                        onClick={() => onCancelFriendRequest(req.id)}
+                      >
+                        Annuleren
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-primary"
+                        style={{ flex: 1, padding: '6px 10px', fontSize: '12px', minWidth: 0 }}
+                        onClick={() => onRemindFriendRequest(req.id)}
+                        disabled={remindersRemaining <= 0}
+                      >
+                        Herinneren
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {friendRequests.length === 0 && sentFriendRequests.length === 0 && (
+                <div className="empty-convs" style={{ paddingTop: 8, paddingBottom: 12 }}>
+                  <p>Geen openstaande vriendschapsverzoeken.</p>
+                </div>
+              )}
+
               <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '4px 6px 12px' }} />
             </div>
           )}
 
-          {contacts.length === 0 && friendRequests.length === 0 && (
+          {contacts.length === 0 && friendRequests.length === 0 && sentFriendRequests.length === 0 && (
             <div className="empty-convs">
               <p>Nog geen contacten.</p>
               <p>Voeg iemand toe via e-mailadres.</p>

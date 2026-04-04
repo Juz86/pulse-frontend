@@ -220,6 +220,7 @@ export default function useChat({
 
     const onFriendAccepted = ({ byName }) => {
       loadContacts();
+      loadFriendRequests?.();
       setContactSuccess(`${byName} heeft je uitnodiging geaccepteerd!`);
       setTimeout(() => setContactSuccess(''), 4000);
       try {
@@ -237,6 +238,10 @@ export default function useChat({
           osc.onended = () => { try { ctx.close(); } catch (e) { console.warn('[Pulse] Fout:', e.message); } };
         });
       } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+    };
+
+    const onFriendRequestCancelled = ({ requestId }) => {
+      setFriendRequests(prev => prev.filter(r => r.id !== requestId));
     };
 
     const onUserUpdated = ({ uid, displayName, photoURL }) => {
@@ -295,6 +300,7 @@ export default function useChat({
     socket.on('message:status',   onMessageStatus);
     socket.on('friend:request',   onFriendRequest);
     socket.on('friend:accepted',  onFriendAccepted);
+    socket.on('friend:request:cancelled', onFriendRequestCancelled);
     socket.on('user:updated',     onUserUpdated);
     socket.on('message:deleted',  onMessageDeleted);
     socket.on('message:edited',   onMessageEdited);
@@ -315,6 +321,7 @@ export default function useChat({
       socket.off('message:status',   onMessageStatus);
       socket.off('friend:request',   onFriendRequest);
       socket.off('friend:accepted',  onFriendAccepted);
+      socket.off('friend:request:cancelled', onFriendRequestCancelled);
       socket.off('message:deleted',  onMessageDeleted);
       socket.off('message:edited',   onMessageEdited);
       socket.off('message:reaction', onMessageReaction);

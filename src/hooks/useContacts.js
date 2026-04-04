@@ -49,6 +49,7 @@ export default function useContacts({
     try { return JSON.parse(localStorage.getItem(`pulse_pinned_${user.uid}`) || '[]'); } catch { return []; }
   });
   const [friendRequests,  setFriendRequests]  = useState([]);
+  const [sentFriendRequests, setSentFriendRequests] = useState([]);
   const [contactSuccess,  setContactSuccess]  = useState('');
   const [showAddContact,  setShowAddContact]  = useState(false);
   const [contactEmail,    setContactEmail]    = useState('');
@@ -62,6 +63,8 @@ export default function useContacts({
   const [searchErr,       setSearchErr]       = useState('');
   const [friendReqSent,   setFriendReqSent]   = useState(false);
   const [friendReqLoading, setFriendReqLoading] = useState(false);
+  const [pendingFriendRequest, setPendingFriendRequest] = useState(null);
+  const [showFriendRequestsPanel, setShowFriendRequestsPanel] = useState(false);
 
   // Blocked contacts
   const [blockedContacts,   setBlockedContacts]   = useState([]);
@@ -166,9 +169,14 @@ export default function useContacts({
 
   const loadFriendRequests = useCallback(async () => {
     try {
-      const res  = await authFetch(`${BACKEND_URL}/api/friend-requests/${user.uid}`);
-      const data = await res.json();
-      setFriendRequests(Array.isArray(data) ? data : []);
+      const [incomingRes, sentRes] = await Promise.all([
+        authFetch(`${BACKEND_URL}/api/friend-requests/${user.uid}`),
+        authFetch(`${BACKEND_URL}/api/friend-requests/${user.uid}/sent`),
+      ]);
+      const incomingData = await incomingRes.json().catch(() => []);
+      const sentData = await sentRes.json().catch(() => []);
+      setFriendRequests(Array.isArray(incomingData) ? incomingData : []);
+      setSentFriendRequests(Array.isArray(sentData) ? sentData : []);
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }, [authFetch, user.uid]);
 
@@ -189,7 +197,23 @@ export default function useContacts({
         }),
       });
       const data = await res.json();
-      if (!res.ok) { setContactErr(data.error || 'Fout bij verzenden'); return; }
+      if (!res.ok) {
+        if (data.code === 'friend_request_already_pending') {
+          setPendingFriendRequest({
+            requestId: data.requestId,
+            toUid: data.toUid,
+            reminderCount: Number(data.reminderCount || 0),
+            remindersRemaining: Number(data.remindersRemaining || 0),
+            canSendReminder: !!data.canSendReminder,
+            canCancel: !!data.canCancel,
+          });
+        } else {
+          setPendingFriendRequest(null);
+        }
+        setContactErr(data.error || 'Fout bij verzenden');
+        return;
+      }
+      setPendingFriendRequest(null);
       if (contactNickname.trim() && data.toUid) saveContactNickname(data.toUid, contactNickname.trim());
       if (contactRelation && data.toUid) {
         const pending = (() => { try { return JSON.parse(localStorage.getItem(`pulse_pending_labels_${user.uid}`) || '{}'); } catch { return {}; } })();
@@ -202,11 +226,127 @@ export default function useContacts({
         await loadContacts();
         setContactSuccess('Contact hersteld!');
       } else {
+        await loadFriendRequests();
         setContactSuccess('Uitnodiging verzonden!');
       }
       setTimeout(() => setContactSuccess(''), 4000);
     } catch { setContactErr('Verbindingsfout'); }
     finally { setContactLoading(false); }
+  }
+
+  async function remindPendingFriendRequest(requestOverride = null) {
+    const targetRequest = requestOverride || pendingFriendRequest;
+    if (!targetRequest?.requestId || !targetRequest?.canSendReminder) return;
+
+    setContactLoading(true);
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/friend-requests/${targetRequest.requestId}/remind`, {
+        method: 'POST',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setContactErr(data.error || 'Herinnering sturen mislukt');
+        if (data.requestId) {
+          setPendingFriendRequest({
+            requestId: data.requestId,
+            toUid: data.toUid || pendingFriendRequest.toUid,
+            reminderCount: Number(data.reminderCount || pendingFriendRequest.reminderCount || 0),
+            remindersRemaining: Number(data.remindersRemaining || pendingFriendRequest.remindersRemaining || 0),
+            canSendReminder: !!data.canSendReminder,
+            canCancel: data.canCancel !== false,
+          });
+        }
+        return;
+      }
+
+      setPendingFriendRequest({
+        requestId: targetRequest.requestId,
+        toUid: targetRequest.toUid,
+        reminderCount: Number(data.reminderCount || 0),
+        remindersRemaining: Number(data.remindersRemaining || 0),
+        canSendReminder: !!data.canSendReminder,
+        canCancel: true,
+      });
+      setSentFriendRequests(prev => prev.map(req =>
+        req.id === targetRequest.requestId
+          ? {
+              ...req,
+              reminderCount: Number(data.reminderCount || 0),
+              lastReminderAt: data.remindedAt || req.lastReminderAt || null,
+            }
+          : req
+      ));
+      setContactErr('Verzoek al verzonden');
+      setContactSuccess('Herinnering verstuurd!');
+      setTimeout(() => setContactSuccess(''), 4000);
+    } catch {
+      setContactErr('Herinnering sturen mislukt');
+    } finally {
+      setContactLoading(false);
+    }
+  }
+
+  async function cancelPendingFriendRequest(requestOverride = null) {
+    const targetRequest = requestOverride || pendingFriendRequest;
+    if (!targetRequest?.requestId) return;
+
+    setContactLoading(true);
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/friend-requests/${targetRequest.requestId}/cancel`, {
+        method: 'POST',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setContactErr(data.error || 'Verzoek annuleren mislukt');
+        return;
+      }
+
+      setPendingFriendRequest(null);
+      setSentFriendRequests(prev => prev.filter(req => req.id !== targetRequest.requestId));
+      setContactErr('');
+      setContactSuccess('Uitnodiging geannuleerd.');
+      setTimeout(() => setContactSuccess(''), 4000);
+    } catch {
+      setContactErr('Verzoek annuleren mislukt');
+    } finally {
+      setContactLoading(false);
+    }
+  }
+
+  function clearPendingFriendRequestState() {
+    setPendingFriendRequest(null);
+  }
+
+  async function remindFriendRequestById(requestId) {
+    const request = sentFriendRequests.find((item) => item.id === requestId);
+    if (!request) return;
+
+    const targetRequest = {
+      requestId: request.id,
+      toUid: request.toUid,
+      reminderCount: Number(request.reminderCount || 0),
+      remindersRemaining: Math.max(0, 3 - Number(request.reminderCount || 0)),
+      canSendReminder: Number(request.reminderCount || 0) < 3,
+      canCancel: true,
+    };
+    setPendingFriendRequest(targetRequest);
+    await remindPendingFriendRequest(targetRequest);
+  }
+
+  async function cancelFriendRequestById(requestId) {
+    const request = sentFriendRequests.find((item) => item.id === requestId);
+    if (!request) return;
+
+    const targetRequest = {
+      requestId: request.id,
+      toUid: request.toUid,
+      reminderCount: Number(request.reminderCount || 0),
+      remindersRemaining: Math.max(0, 3 - Number(request.reminderCount || 0)),
+      canSendReminder: Number(request.reminderCount || 0) < 3,
+      canCancel: true,
+    };
+    setPendingFriendRequest(targetRequest);
+    await cancelPendingFriendRequest(targetRequest);
   }
 
   async function sendFriendRequestToEmail(email) {
@@ -361,6 +501,9 @@ export default function useContacts({
     searchResult, searchErr,
     friendReqSent, setFriendReqSent,
     friendReqLoading,
+    pendingFriendRequest, setPendingFriendRequest,
+    sentFriendRequests, setSentFriendRequests,
+    showFriendRequestsPanel, setShowFriendRequestsPanel,
     renamingContact, setRenamingContact,
     sharingContact, setSharingContact,
     shareRecipients, setShareRecipients,
@@ -378,8 +521,11 @@ export default function useContacts({
     getContactNickname, saveContactNickname, getContactDisplayName, findConvWithUid,
     // actions
     addContact, sendFriendRequestToEmail,
+    remindPendingFriendRequest, cancelPendingFriendRequest,
+    remindFriendRequestById, cancelFriendRequestById,
     acceptFriendRequest, declineFriendRequest,
     removeContact, togglePin,
     startChatWithContact, searchUser, startConversationWith,
+    clearPendingFriendRequestState,
   };
 }

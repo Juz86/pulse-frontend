@@ -26,6 +26,7 @@ const PrivacybeleidPagina = lazy(() => import('./screens/PrivacybeleidPagina'));
 const ElektronischeCommunicatieBeleidPagina = lazy(() => import('./screens/ElektronischeCommunicatieBeleidPagina'));
 const ContactPagina      = lazy(() => import('./screens/ContactPagina'));
 const SitemapPagina      = lazy(() => import('./screens/SitemapPagina'));
+const PrivacyFirstPagina = lazy(() => import('./screens/PrivacyFirstPagina'));
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 
@@ -120,6 +121,14 @@ export default function App() {
     return (
       <Suspense fallback={splashFallback}>
         <SitemapPagina />
+      </Suspense>
+    );
+  }
+
+  if (pathname === '/privacy-first') {
+    return (
+      <Suspense fallback={splashFallback}>
+        <PrivacyFirstPagina onParentClick={(tab = 'login') => goToHomepageForParentAuth(tab)} />
       </Suspense>
     );
   }

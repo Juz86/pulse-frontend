@@ -39,6 +39,10 @@ export default function ChatModals({
   contactRelation, setContactRelation,
   contactErr, contactLoading,
   addContact,
+  pendingFriendRequest,
+  remindPendingFriendRequest,
+  cancelPendingFriendRequest,
+  clearPendingFriendRequestState,
 
   // new chat
   showNewChat, setShowNewChat,
@@ -344,12 +348,12 @@ export default function ChatModals({
       {showAddContact && (
         <div className="modal-overlay" onClick={() => setShowAddContact(false)}>
           <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="add-contact-title" aria-describedby="add-contact-description" onClick={e => e.stopPropagation()}>
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); }}><span aria-hidden="true">✕</span></button>
+            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); clearPendingFriendRequestState(); }}><span aria-hidden="true">✕</span></button>
             <h3 id="add-contact-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Vriend uitnodigen</h3>
             <p id="add-contact-description" className="modal-sub">Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam</p>
             <div className="form-group">
               <label className="form-label">E-mailadres of gebruikersnaam</label>
-              <input className="form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={contactEmail} onChange={e => setContactEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && addContact()} />
+              <input className="form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={contactEmail} onChange={e => { setContactEmail(e.target.value); clearPendingFriendRequestState(); }} onKeyDown={e => e.key === 'Enter' && addContact()} />
             </div>
             <div className="form-group">
               <label className="form-label">Relatie</label>
@@ -363,8 +367,37 @@ export default function ChatModals({
               </div>
             </div>
             {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
+            {pendingFriendRequest && (
+              <div style={{ marginTop: '-6px', marginBottom: '8px', padding: '10px 12px', borderRadius: '10px', background: 'rgba(124,111,255,0.08)', border: '1px solid rgba(124,111,255,0.2)', color: 'var(--text2)', fontSize: '13px' }}>
+                <div style={{ marginBottom: '10px' }}>
+                  {pendingFriendRequest.remindersRemaining > 0
+                    ? `Je kunt nog ${pendingFriendRequest.remindersRemaining} ${pendingFriendRequest.remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} sturen.`
+                    : 'Je hebt alle 3 herinneringen al gebruikt.'}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ flex: 1 }}
+                    onClick={cancelPendingFriendRequest}
+                    disabled={contactLoading || !pendingFriendRequest.canCancel}
+                  >
+                    Verzoek annuleren
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ flex: 1 }}
+                    onClick={remindPendingFriendRequest}
+                    disabled={contactLoading || !pendingFriendRequest.canSendReminder}
+                  >
+                    {contactLoading ? 'Verzenden…' : 'Herinnering sturen'}
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="modal-actions">
-              <button type="button" className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); }}>Annuleren</button>
+              <button type="button" className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); clearPendingFriendRequestState(); }}>Annuleren</button>
               <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={addContact} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>
             </div>
           </div>

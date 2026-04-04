@@ -151,13 +151,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     contactRelation, setContactRelation, contactErr, contactLoading,
     showNewChat, setShowNewChat, searchEmail, setSearchEmail,
     searchResult, searchErr, friendReqSent, setFriendReqSent, friendReqLoading,
+    pendingFriendRequest,
+    sentFriendRequests, showFriendRequestsPanel, setShowFriendRequestsPanel,
     renamingContact, setRenamingContact, sharingContact, setSharingContact,
     shareRecipients, setShareRecipients, viewingSharedContact, setViewingSharedContact,
     viewingContact, setViewingContact, renameValue, setRenameValue,
     loadContacts, loadFriendRequests, loadBlockedContacts,
     getContactNickname, saveContactNickname, getContactDisplayName, findConvWithUid,
-    addContact, sendFriendRequestToEmail, acceptFriendRequest, declineFriendRequest,
+    addContact, sendFriendRequestToEmail, remindPendingFriendRequest, cancelPendingFriendRequest, acceptFriendRequest, declineFriendRequest,
+    remindFriendRequestById, cancelFriendRequestById,
     removeContact, togglePin, startChatWithContact, searchUser, startConversationWith,
+    clearPendingFriendRequestState,
     blockedContacts, setBlockedContacts,
     parentBlockedUids, setParentBlockedUids,
     blockingContact, setBlockingContact, blockContact, unblockContact,
@@ -310,7 +314,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         activeTab={activeTab} setActiveTab={setActiveTab}
         chatFilter={chatFilter} setChatFilter={setChatFilter}
         selectedGroupId={selectedGroupId} setSelectedGroupId={setSelectedGroupId}
-        friendRequests={friendRequests} contactSuccess={contactSuccess}
+        friendRequests={friendRequests} sentFriendRequests={sentFriendRequests}
+        showFriendRequestsPanel={showFriendRequestsPanel} setShowFriendRequestsPanel={setShowFriendRequestsPanel}
+        contactSuccess={contactSuccess}
         contacts={contacts} conversations={conversations}
         activeConv={activeConv} loadingConvs={loadingConvs}
         convLabels={convLabels} pinnedContacts={pinnedContacts}
@@ -326,6 +332,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onOpenProfile={() => { setShowProfile(true); openProfile(); }}
         onAcceptFriendRequest={acceptFriendRequest}
         onDeclineFriendRequest={declineFriendRequest}
+        onRemindFriendRequest={remindFriendRequestById}
+        onCancelFriendRequest={cancelFriendRequestById}
         onTogglePin={togglePin}
         onViewContact={contact => { setViewingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName || ''); }}
         onStartChat={startChatWithContact} onCallContact={callContact}
@@ -457,6 +465,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         contactNickname={contactNickname} setContactNickname={setContactNickname}
         contactRelation={contactRelation} setContactRelation={setContactRelation}
         contactErr={contactErr} contactLoading={contactLoading} addContact={addContact}
+        pendingFriendRequest={pendingFriendRequest}
+        remindPendingFriendRequest={remindPendingFriendRequest}
+        cancelPendingFriendRequest={cancelPendingFriendRequest}
+        clearPendingFriendRequestState={clearPendingFriendRequestState}
         showNewChat={showNewChat} setShowNewChat={setShowNewChat}
         searchEmail={searchEmail} setSearchEmail={setSearchEmail}
         searchErr={searchErr} searchResult={searchResult}

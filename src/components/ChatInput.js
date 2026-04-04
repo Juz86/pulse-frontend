@@ -2,6 +2,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { getSocket } from '../services/socket';
 import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2ee/attachmentPayload';
+import { isRemoteMockAttachmentTransportEnabled } from '../lib/e2ee/config';
 import { Send, PauseCircle, ImageIcon } from '../components/Icons';
 
 const ChatInput = React.memo(function ChatInput({
@@ -201,6 +202,22 @@ const ChatInput = React.memo(function ChatInput({
           }}
         >
           {attachmentStatus}
+        </div>
+      )}
+      {!attachmentStatus && !pausedFeatures.chat && isRemoteMockAttachmentTransportEnabled && (
+        <div
+          role="note"
+          style={{
+            marginBottom: 10,
+            padding: '7px 11px',
+            borderRadius: 12,
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            color: 'var(--text3)',
+            fontSize: 12,
+          }}
+        >
+          Bijlagen gebruiken nu de remote mock-opslagtest.
         </div>
       )}
       {pausedFeatures.chat ? (

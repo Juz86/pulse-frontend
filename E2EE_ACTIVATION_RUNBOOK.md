@@ -10,6 +10,7 @@ De eerste activatiefase is niet meteen "echte crypto in productie", maar:
 - frontend op `service` transport
 - mock crypto nog actief
 - 1-op-1 chats end-to-end door de nieuwe flow laten lopen
+- attachments eerst via `remote_mock`
 
 ## Huidige Veilige Standaard
 
@@ -27,11 +28,13 @@ Zet naar:
 
 - `REACT_APP_E2EE_MODE=mock`
 - `REACT_APP_E2EE_TRANSPORT=service`
+- `REACT_APP_E2EE_ATTACHMENT_TRANSPORT=remote_mock`
 
 Dit betekent:
 
 - frontend gebruikt de nieuwe serviceflow
 - crypto blijft nog mock, zodat de integratie eerst technisch stabiel kan worden gemaakt
+- attachments lopen via de nieuwe mock-storage route in plaats van alleen inline data-urls
 
 ## Voorwaarden Vooraf
 
@@ -41,6 +44,8 @@ Voordat je deze switch doet, moeten minimaal klaar zijn:
 - `GET /users/:userId/key-bundle`
 - `POST /messages/send`
 - `POST /messages/receipt`
+- `POST /api/attachments/upload`
+- `GET /attachments/:attachmentId`
 - mixed `GET /api/messages/:convId`
 - parent policy checks op key bundle en send
 
@@ -61,6 +66,11 @@ Zie ook:
 8. controleer dat optimistic message van `sending` naar `sent` gaat
 9. controleer dat de ontvanger het bericht ziet
 10. controleer dat conversation previews niet leeg zijn
+11. stuur een kleine attachment
+12. controleer dat de composer `Bijlage voorbereiden...` en daarna `Bijlage geupload` toont
+13. controleer dat de attachmentkaart `Beveiligde opslaglink` toont
+14. controleer dat de conversatielijst `opslaglink` toont
+15. controleer dat openen/downloaden na refresh nog werkt
 
 ## Verwachte Frontendsignalen
 
@@ -71,15 +81,17 @@ Bij een gezonde eerste activatie:
 - binnenkomende berichten worden gehydrateerd
 - preview toont plaintext of `Versleuteld bericht`
 - retries blijven werken
+- remote attachments krijgen een echte backend-downloadlink
+- `npm run smoke:attachments` blijft groen
 
 ## Niet Meteen Doen
 
 Doe in deze fase nog niet:
 
 - `REACT_APP_E2EE_MODE=signal`
-- group encryption
+- group encryption buiten de huidige mock/serviceflow
 - encrypted edits
-- attachments encrypten
+- echte production media-encryptie met storage provider
 - call/video meenemen in de E2EE-migratie
 
 ## Rollback
@@ -99,6 +111,8 @@ Dan valt de app terug op de bestaande socketflow.
 - direct chat receive werkt
 - retries werken
 - previews zijn niet leeg
+- attachments openen na refresh nog steeds
+- `smoke:attachments` is groen
 - build, tests en lint blijven groen
 
 ## Daarna
@@ -107,7 +121,7 @@ Pas als fase 1 stabiel is:
 
 1. echte crypto-adapter voorbereiden
 2. sessie-opbouw per device aanscherpen
-3. attachments ontwerpen
+3. echte encrypted media/storage ontwerpen
 4. group model ontwerpen
 
 ## Lees Verder

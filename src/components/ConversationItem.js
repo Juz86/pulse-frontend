@@ -31,6 +31,7 @@ function ConversationItemBase({
   onMoreActionsEnter,
   onMoreActionsLeave,
 }) {
+  const showRemoteAttachmentBadge = conv.lastMessageType === 'attachment' && conv.lastAttachmentTransfer === 'remote';
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -58,7 +59,26 @@ function ConversationItemBase({
           {conv.updatedAt && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text3)', fontWeight: 400, flexShrink: 0 }}>{convTime(conv.updatedAt)}</span>}
         </div>
         <div className="conv-preview">
-          {conv.lastCallDirection ? callPreview(conv, currentUid) : (getConversationPreview(conv) || conv.lastMessage || 'Start een gesprek…')}
+          {conv.lastCallDirection ? callPreview(conv, currentUid) : (
+            <>
+              <span>{getConversationPreview(conv) || conv.lastMessage || 'Start een gesprek…'}</span>
+              {showRemoteAttachmentBadge && (
+                <span
+                  style={{
+                    marginLeft: 8,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '.04em',
+                    textTransform: 'uppercase',
+                    color: 'var(--accent)',
+                    opacity: 0.9,
+                  }}
+                >
+                  opslaglink
+                </span>
+              )}
+            </>
+          )}
         </div>
       </div>
       {unread > 0 && <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>}
@@ -81,6 +101,8 @@ function ConversationItemBase({
 const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.conv.id          === next.conv.id          &&
   prev.conv.lastMessage === next.conv.lastMessage  &&
+  prev.conv.lastMessageType === next.conv.lastMessageType &&
+  prev.conv.lastAttachmentTransfer === next.conv.lastAttachmentTransfer &&
   prev.conv.updatedAt   === next.conv.updatedAt    &&
   prev.conv.photoURL    === next.conv.photoURL     &&
   prev.isActive         === next.isActive          &&

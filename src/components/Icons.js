@@ -1,5 +1,6 @@
 // src/components/Icons.js
 // WhatsApp-stijl: Material Design Filled + Rounded via react-icons/md
+export { MdAdd           as Plus }          from 'react-icons/md';
 export { MdCall          as Phone }         from 'react-icons/md';
 export { MdCallReceived  as PhoneCall }     from 'react-icons/md';
 export { MdCallMade      as PhoneOutgoing } from 'react-icons/md';

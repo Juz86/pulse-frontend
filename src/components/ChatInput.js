@@ -1,5 +1,5 @@
 // src/components/ChatInput.js
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { getSocket } from '../services/socket';
 import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2ee/attachmentPayload';
 import { Send, PauseCircle, ImageIcon } from '../components/Icons';
@@ -28,6 +28,21 @@ const ChatInput = React.memo(function ChatInput({
   onSendAttachment,
 }) {
   const fileInputRef = useRef(null);
+  const attachmentStatusTimerRef = useRef(null);
+  const [attachmentStatus, setAttachmentStatus] = useState('');
+
+  const showAttachmentStatus = useCallback((message) => {
+    setAttachmentStatus(message);
+    if (attachmentStatusTimerRef.current) {
+      clearTimeout(attachmentStatusTimerRef.current);
+      attachmentStatusTimerRef.current = null;
+    }
+    if (message) {
+      attachmentStatusTimerRef.current = setTimeout(() => {
+        setAttachmentStatus('');
+      }, 2500);
+    }
+  }, []);
 
   const insertMention = useCallback((member) => {
     const cursorPos = textareaRef.current?.selectionStart ?? text.length;
@@ -100,13 +115,21 @@ const ChatInput = React.memo(function ChatInput({
 
     const reader = new FileReader();
     reader.onload = () => {
-      onSendAttachment?.(normalizeAttachmentPayload({
+      const normalizedAttachment = normalizeAttachmentPayload({
         name: file.name,
         url: typeof reader.result === 'string' ? reader.result : '',
         mimeType: file.type || 'application/octet-stream',
         size: file.size,
         caption: text.trim(),
-      }));
+      });
+      showAttachmentStatus('Bijlage voorbereiden…');
+      Promise.resolve(onSendAttachment?.(normalizedAttachment))
+        .then(() => {
+          showAttachmentStatus('Bijlage geupload');
+        })
+        .catch((error) => {
+          showAttachmentStatus(error?.message || 'Upload mislukt');
+        });
       setText('');
       setMentionSuggestions([]);
       setPendingMentions([]);
@@ -114,7 +137,7 @@ const ChatInput = React.memo(function ChatInput({
       stopTyping();
     };
     reader.readAsDataURL(file);
-  }, [onSendAttachment, setMentionSuggestions, setPendingMentions, setText, stopTyping, text, textareaRef]);
+  }, [onSendAttachment, setMentionSuggestions, setPendingMentions, setText, showAttachmentStatus, stopTyping, text, textareaRef]);
 
   const textareaDescribedBy = [
     editingMsg ? 'chat-compose-editing' : null,
@@ -161,6 +184,23 @@ const ChatInput = React.memo(function ChatInput({
               <span className="mention-name">{m.displayName}</span>
             </button>
           ))}
+        </div>
+      )}
+      {attachmentStatus && !pausedFeatures.chat && (
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            marginBottom: 10,
+            padding: '8px 12px',
+            borderRadius: 12,
+            background: 'rgba(124,58,237,0.12)',
+            border: '1px solid rgba(124,58,237,0.25)',
+            color: 'var(--text2)',
+            fontSize: 13,
+          }}
+        >
+          {attachmentStatus}
         </div>
       )}
       {pausedFeatures.chat ? (

@@ -3,20 +3,68 @@ import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 
-function deriveConversationPreview(message, fallback = '') {
-  if (!message) return fallback;
-  if (message.text) return message.text;
-  if (message.messageType === 'contact') return 'Contactpersoon gedeeld';
-  if (message.messageType === 'attachment') return 'Bijlage gedeeld';
-  if (message.messageType && message.messageType !== 'text') return 'Nieuw bericht';
+function deriveConversationSummary(message, fallback = '') {
+  if (!message) {
+    return {
+      lastMessage: fallback,
+      lastMessageType: null,
+      lastAttachmentTransfer: null,
+    };
+  }
+
+  if (message.text) {
+    return {
+      lastMessage: message.text,
+      lastMessageType: message.messageType || 'text',
+      lastAttachmentTransfer: message.messageType === 'attachment' ? (message.attachment?.transfer || null) : null,
+    };
+  }
+
+  if (message.messageType === 'contact') {
+    return {
+      lastMessage: 'Contactpersoon gedeeld',
+      lastMessageType: 'contact',
+      lastAttachmentTransfer: null,
+    };
+  }
+
+  if (message.messageType === 'attachment') {
+    return {
+      lastMessage: 'Bijlage gedeeld',
+      lastMessageType: 'attachment',
+      lastAttachmentTransfer: message.attachment?.transfer || null,
+    };
+  }
+
+  if (message.messageType && message.messageType !== 'text') {
+    return {
+      lastMessage: 'Nieuw bericht',
+      lastMessageType: message.messageType,
+      lastAttachmentTransfer: null,
+    };
+  }
+
   if (message.protocol === 'signal_v1' && message.ciphertext) {
     try {
-      return Buffer.from(message.ciphertext, 'base64').toString('utf8') || fallback || 'Versleuteld bericht';
+      return {
+        lastMessage: Buffer.from(message.ciphertext, 'base64').toString('utf8') || fallback || 'Versleuteld bericht',
+        lastMessageType: message.messageType || 'text',
+        lastAttachmentTransfer: null,
+      };
     } catch {
-      return fallback || 'Versleuteld bericht';
+      return {
+        lastMessage: fallback || 'Versleuteld bericht',
+        lastMessageType: message.messageType || 'text',
+        lastAttachmentTransfer: null,
+      };
     }
   }
-  return fallback;
+
+  return {
+    lastMessage: fallback,
+    lastMessageType: message.messageType || null,
+    lastAttachmentTransfer: null,
+  };
 }
 
 function sortByUpdatedDesc(items) {
@@ -53,9 +101,12 @@ conversationsRouter.get('/:uid', requireAuth, asyncRoute(async (req, res) => {
         .get();
 
       const latestMessage = latestMsgSnap.empty ? null : latestMsgSnap.docs[0].data();
+      const summary = deriveConversationSummary(latestMessage, data.lastMessage || '');
       return {
         ...data,
-        lastMessage: deriveConversationPreview(latestMessage, data.lastMessage || ''),
+        lastMessage: summary.lastMessage,
+        lastMessageType: summary.lastMessageType,
+        lastAttachmentTransfer: summary.lastAttachmentTransfer,
       };
     })
   );

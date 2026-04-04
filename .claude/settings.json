@@ -27,7 +27,8 @@
       "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/routes/users.js)",
       "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/routes/parent.js)",
       "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/routes/friends.js)",
-      "Bash(npx jest:*)"
+      "Bash(npx jest:*)",
+      "Bash(node -e \"const fs=require\\('fs'\\); require\\('@babel/parser'\\).parse\\(fs.readFileSync\\('src/components/ChatSidebar.js','utf8'\\),{sourceType:'module',plugins:['jsx']}\\); console.log\\('OK'\\);\")"
     ],
     "additionalDirectories": [
       "/home/yushuaabdulkadir/pulse-backend"

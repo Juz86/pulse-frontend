@@ -373,7 +373,16 @@ export default function useConversations({
     savePending(optimisticMsg.id, activeConv.id, msg);
     setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
     setConversations(prev => {
-      const updated = prev.map(c => c.id === activeConv.id ? { ...c, lastMessage: getConversationPreview(optimisticMsg), updatedAt: msg.createdAt, lastCallDirection: null, lastCallSenderId: null, lastCallIsVideo: null } : c);
+      const updated = prev.map(c => c.id === activeConv.id ? {
+        ...c,
+        lastMessage: getConversationPreview(optimisticMsg),
+        lastMessageType: optimisticMsg.type || optimisticMsg.messageType || 'text',
+        lastAttachmentTransfer: null,
+        updatedAt: msg.createdAt,
+        lastCallDirection: null,
+        lastCallSenderId: null,
+        lastCallIsVideo: null,
+      } : c);
       return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
     });
     const failTimer = setTimeout(() => {
@@ -455,6 +464,8 @@ export default function useConversations({
           ? {
               ...item,
               lastMessage: getConversationPreview(optimisticMsg),
+              lastMessageType: 'contact',
+              lastAttachmentTransfer: null,
               updatedAt: optimisticMsg.createdAt,
               lastCallDirection: null,
               lastCallSenderId: null,
@@ -500,13 +511,15 @@ export default function useConversations({
 
   async function sendAttachmentToConversation(conv, attachment) {
     const socket = getSocket();
-    if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !conv || !attachment) return;
+    if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !conv || !attachment) {
+      throw new Error('Geen verbinding voor bijlage.');
+    }
 
     const prevalidatedAttachment = normalizeAttachmentPayload(attachment);
     const attachmentError = validateAttachmentPayload(prevalidatedAttachment);
     if (attachmentError) {
       showErrToast(attachmentError);
-      return;
+      throw new Error(attachmentError);
     }
 
     let normalizedAttachment = prevalidatedAttachment;
@@ -519,7 +532,7 @@ export default function useConversations({
       });
     } catch (error) {
       showErrToast(error.message || 'Bijlage voorbereiden mislukt');
-      return;
+      throw error;
     }
     const tempId = `temp-${Date.now()}`;
     const optimisticMsg = {
@@ -552,6 +565,8 @@ export default function useConversations({
           ? {
               ...item,
               lastMessage: getConversationPreview(optimisticMsg),
+              lastMessageType: 'attachment',
+              lastAttachmentTransfer: normalizedAttachment.transfer || null,
               updatedAt: optimisticMsg.createdAt,
               lastCallDirection: null,
               lastCallSenderId: null,
@@ -564,7 +579,7 @@ export default function useConversations({
 
     if (shouldUseServiceTransport(conv)) {
       const recipientUserIds = getConversationRecipients(conv);
-      sendViaService({
+      return sendViaService({
         conv,
         plaintext: normalizedAttachment.caption || normalizedAttachment.name,
         recipientUserIds,
@@ -578,8 +593,8 @@ export default function useConversations({
       }).catch(() => {
         if (!isActiveConversation) return;
         patchMessageAsFailed(optimisticMsg.id);
+        throw new Error('Bijlage versturen mislukt');
       });
-      return;
     }
 
     socket.emit('message:send', {
@@ -594,6 +609,7 @@ export default function useConversations({
         createdAt: optimisticMsg.createdAt,
       },
     });
+    return normalizedAttachment;
   }
 
   function retryMessage(failedMsg) {

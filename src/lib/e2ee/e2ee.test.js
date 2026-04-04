@@ -192,6 +192,13 @@ describe('e2ee policy helpers', () => {
 });
 
 describe('e2ee attachment helpers', () => {
+  const originalFetch = global.fetch;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    jest.restoreAllMocks();
+  });
+
   test('normalizeAttachmentPayload sanitizes missing fields', () => {
     expect(normalizeAttachmentPayload({ url: 'data:text/plain;base64,SGVsbG8=' })).toEqual({
       name: 'Bestand',
@@ -302,5 +309,50 @@ describe('e2ee attachment helpers', () => {
     expect(attachment.transfer).toBe('remote');
     expect(attachment.downloadUrl).toBe('https://cdn.example.com/document.pdf');
     expect(attachment.storageKey).toBe('mock-e2ee/conv-2/user-9/document.pdf');
+  });
+
+  test('prepareAttachmentForSend uploads through backend when no custom uploader is provided', async () => {
+    const getIdToken = jest.fn().mockResolvedValue('token-123');
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        attachment: {
+          name: 'foto.png',
+          downloadUrl: 'http://localhost:3001/attachments/mock-1',
+          thumbnailUrl: 'http://localhost:3001/attachments/mock-1',
+          storageKey: 'mock-storage/mock-1/foto.png',
+          transfer: 'remote',
+          mimeType: 'image/png',
+          size: 321,
+          caption: 'Test',
+          encryption: {
+            alg: 'mock-storage-envelope',
+            keyId: 'mock-key-mock-1',
+            iv: 'mock-iv-mock-1',
+            sha256: 'mock-sha256-321',
+          },
+        },
+      }),
+    });
+
+    const attachment = await prepareAttachmentForSend({
+      attachment: {
+        name: 'foto.png',
+        url: 'data:image/png;base64,abc',
+        mimeType: 'image/png',
+        size: 321,
+        caption: 'Test',
+      },
+      conversationId: 'conv-5',
+      userId: 'user-5',
+      user: { getIdToken },
+      transportMode: 'remote_mock',
+    });
+
+    expect(getIdToken).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch.mock.calls[0][0]).toContain('/api/attachments/upload');
+    expect(attachment.transfer).toBe('remote');
+    expect(attachment.downloadUrl).toBe('http://localhost:3001/attachments/mock-1');
   });
 });

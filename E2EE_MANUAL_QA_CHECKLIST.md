@@ -12,10 +12,12 @@ Gebruik in deze fase:
 
 - `REACT_APP_E2EE_MODE=mock`
 - `REACT_APP_E2EE_TRANSPORT=service`
+- `REACT_APP_E2EE_ATTACHMENT_TRANSPORT=remote_mock`
 
 ## Voorwaarden
 
 - backend basisroutes zijn live
+- backend `/api/attachments/upload` en `/attachments/:attachmentId` werken lokaal
 - twee testaccounts bestaan
 - beide accounts mogen volgens parent policy met elkaar chatten
 - frontend start zonder build- of runtimefouten
@@ -54,26 +56,39 @@ Gebruik in deze fase:
 - [ ] frontend accepteert `message:new` of legacy realtime-event
 - [ ] statusupdates blijven zichtbaar
 
-## Scenario 6: Edit Policy
+## Scenario 6: Attachments Via Remote Mock
+
+- [ ] stuur een kleine afbeelding of tekstbestand vanuit account A
+- [ ] composer toont achtereenvolgens `Bijlage voorbereiden...` en `Bijlage geupload`
+- [ ] account B ontvangt een attachmentkaart zonder lege bubble
+- [ ] attachmentkaart toont `Beveiligde opslaglink`
+- [ ] conversatielijst toont bij het laatste bericht ook `opslaglink`
+- [ ] `Openen` werkt
+- [ ] `Downloaden` werkt
+- [ ] attachment blijft na pagina-refresh bruikbaar
+- [ ] attachment blijft bruikbaar na backend-herstart
+
+## Scenario 7: Edit Policy
 
 - [ ] legacy/plaintext berichten kunnen nog via bestaande flow bewerkt worden als die flow actief is
 - [ ] `signal_v1` berichten tonen geen editoptie
 - [ ] encrypted berichten worden niet overschreven door plaintext edit-events
 
-## Scenario 7: Parent Policy
+## Scenario 8: Parent Policy
 
 - [ ] toegestaan contact kan berichten uitwisselen
 - [ ] geblokkeerd of niet-goedgekeurd contact kan niet succesvol versturen
 - [ ] frontend crasht niet als backend een policy-deny teruggeeft
 
-## Scenario 8: UI Consistentie
+## Scenario 9: UI Consistentie
 
 - [ ] conversation previews tonen tekst of `Versleuteld bericht`
 - [ ] message bubbles tonen tekst of `Versleuteld bericht`
+- [ ] remote attachments tonen zichtbare storage-indicatoren in bubble en lijst
 - [ ] contextmenu blijft logisch
 - [ ] chat blijft scrollbaar en bruikbaar
 
-## Scenario 9: Regression Basics
+## Scenario 10: Regression Basics
 
 - [ ] marketingpagina's laden nog normaal
 - [ ] ParentDashboard blijft openen
@@ -86,6 +101,7 @@ Na succesvolle handmatige QA:
 - [ ] build blijft groen
 - [ ] tests blijven groen
 - [ ] lint blijft groen
+- [ ] `backend-skeleton npm run smoke:attachments` blijft groen
 - [ ] rollbackpad naar `socket` is bevestigd
 
 ## Lees Verder

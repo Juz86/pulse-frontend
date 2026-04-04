@@ -135,9 +135,62 @@ const MessageBubble = React.memo(function MessageBubble({
   if (msg.type === 'attachment') {
     const attachment = msg.attachment;
     const attachmentUrl = resolveAttachmentUrl(attachment);
+    const isRemoteAttachment = attachment?.transfer === 'remote';
     const openAttachment = () => {
       if (attachmentUrl) window.open(attachmentUrl, '_blank', 'noopener,noreferrer');
     };
+    const downloadAttachment = () => {
+      if (!attachmentUrl) return;
+      const link = document.createElement('a');
+      link.href = attachmentUrl;
+      link.download = attachment?.name || 'bijlage';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    };
+    const attachmentActions = attachmentUrl ? (
+      <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={(event) => {
+            event.stopPropagation();
+            openAttachment();
+          }}
+          style={{
+            minHeight: 32,
+            padding: '6px 10px',
+            borderRadius: 999,
+            fontSize: 12,
+            background: isOwn ? 'rgba(255,255,255,0.14)' : 'rgba(124,58,237,0.10)',
+            color: isOwn ? '#fff' : 'var(--accent)',
+            border: isOwn ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(124,58,237,0.22)',
+          }}
+        >
+          Openen
+        </button>
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={(event) => {
+            event.stopPropagation();
+            downloadAttachment();
+          }}
+          style={{
+            minHeight: 32,
+            padding: '6px 10px',
+            borderRadius: 999,
+            fontSize: 12,
+            background: 'transparent',
+            color: isOwn ? 'rgba(255,255,255,.82)' : 'var(--text2)',
+            border: isOwn ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(255,255,255,0.10)',
+          }}
+        >
+          Downloaden
+        </button>
+      </div>
+    ) : null;
 
     return (
       <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
@@ -170,6 +223,19 @@ const MessageBubble = React.memo(function MessageBubble({
               <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
                 {attachment?.caption || 'Afbeelding gedeeld'}
               </div>
+              {isRemoteAttachment && (
+                <div
+                  className="u-fs-12"
+                  style={{
+                    marginTop: 8,
+                    color: isOwn ? 'rgba(255,255,255,.78)' : 'var(--text3)',
+                    opacity: 0.9,
+                  }}
+                >
+                  Beveiligde opslaglink
+                </div>
+              )}
+              {attachmentActions}
             </div>
           ) : (
             <>
@@ -179,6 +245,19 @@ const MessageBubble = React.memo(function MessageBubble({
                 <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
                   {attachment?.caption || attachment?.mimeType || 'Bestand gedeeld'}
                 </div>
+                {isRemoteAttachment && (
+                  <div
+                    className="u-fs-12"
+                    style={{
+                      marginTop: 6,
+                      color: isOwn ? 'rgba(255,255,255,.78)' : 'var(--text3)',
+                      opacity: 0.9,
+                    }}
+                    >
+                      Beveiligde opslaglink
+                    </div>
+                  )}
+                  {attachmentActions}
               </div>
             </>
           )}

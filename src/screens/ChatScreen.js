@@ -282,8 +282,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     setSharingContact(null);
   }
   function sendAttachment(attachment) {
-    if (!activeConv) return;
-    sendAttachmentToConversation(activeConv, attachment);
+    if (!activeConv) return Promise.resolve();
+    return sendAttachmentToConversation(activeConv, attachment);
   }
   function getConvName(conv) {
     if (conv.isGroup) return conv.groupName || 'Groepsgesprek';

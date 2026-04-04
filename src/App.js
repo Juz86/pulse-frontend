@@ -427,6 +427,34 @@ function MainApp() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!user) return undefined;
+
+    let cancelled = false;
+
+    const refreshServiceTransportReady = async () => {
+      const ready = await probeE2EEServiceReady(BACKEND);
+      if (!cancelled) setServiceTransportReady(ready);
+    };
+
+    refreshServiceTransportReady();
+
+    const intervalId = window.setInterval(refreshServiceTransportReady, 30_000);
+    const onVisibilityRefresh = () => {
+      if (document.visibilityState === 'visible') {
+        refreshServiceTransportReady();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityRefresh);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibilityRefresh);
+    };
+  }, [user]);
+
   if (loading) return (
     <div className="splash">
       <div className="splash-logo"><PulseLogo size={40} textSize={28} /></div>

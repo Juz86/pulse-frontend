@@ -395,50 +395,6 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           </div>
         </section>
 
-        {/* ── OUDERS IN CONTROLE ── */}
-        <section className="hp-section hp-section--gray" id="controle">
-          <div className="hp-section-inner">
-            <SectionHeader
-              badge="Ouders in controle"
-              title="Jij bent de eigenaar van de data"
-              text="Pulse geeft ouders volledige zeggenschap. Geen verborgen systemen, geen algoritmes die beslissen. Jij bepaalt."
-              align="left"
-            />
-            <div className="hp-why-grid op-feature-grid" style={{ marginTop: 48 }}>
-              {[
-                {
-                  icon: <Users size={22} />,
-                  title: 'Jij beslist wie er contact heeft',
-                  text: 'Geen enkel contact kan jouw kind bereiken zonder jouw goedkeuring. Vertrouwde contacten voeg jij toe. Onbekenden bestaan niet in Pulse.',
-                },
-                {
-                  icon: <Shield size={22} />,
-                  title: 'Jij bent eigenaar van de data',
-                  text: 'De gegevens van jou en je kind zijn van jou. Je kunt op elk moment alles verwijderen. Direct, volledig, zonder vertraging.',
-                },
-                {
-                  icon: <Lock size={22} />,
-                  title: 'Geen verborgen systemen',
-                  text: 'Er is geen algoritme dat meebeslist. Geen systeem dat je kind "aanbevelingen" stuurt. Pulse doet precies wat jij ziet — niets meer, niets minder.',
-                },
-                {
-                  icon: <Bell size={22} />,
-                  title: 'Direct op de hoogte',
-                  text: 'Je krijgt een melding bij nieuwe contactverzoeken. Jij keurt goed of wijst af. Je kind kan niemand toevoegen zonder jouw akkoord.',
-                },
-              ].map((card) => (
-                <FadeCard key={card.title}>
-                  <div className="hp-why-card">
-                    <div className="op-feature-icon">{card.icon}</div>
-                    <h3>{card.title}</h3>
-                    <p>{card.text}</p>
-                  </div>
-                </FadeCard>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* ── AFSLUITING / BELOFTE ── */}
         <section className="hp-section" id="belofte">
           <div className="hp-section-inner">

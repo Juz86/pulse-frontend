@@ -133,6 +133,10 @@ const MessageBubble = React.memo(function MessageBubble({
 
   if (msg.type === 'attachment') {
     const attachment = msg.attachment;
+    const isImageAttachment = !!attachment?.url && (
+      attachment?.mimeType?.startsWith('image/') ||
+      attachment?.url?.startsWith('data:image/')
+    );
     const openAttachment = () => {
       if (attachment?.url) window.open(attachment.url, '_blank', 'noopener,noreferrer');
     };
@@ -148,13 +152,38 @@ const MessageBubble = React.memo(function MessageBubble({
           onClick={attachment?.url ? openAttachment : undefined}
           onKeyDown={attachment?.url ? (event) => handleActionCardKeyDown(event, openAttachment) : undefined}
         >
-          <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius: 12 }} aria-hidden="true">F</div>
-          <div className="u-flex-1 u-min-w-0">
-            <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Bijlage'}</div>
-            <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
-              {attachment?.caption || attachment?.mimeType || 'Bestand gedeeld'}
+          {isImageAttachment ? (
+            <div className="u-flex-1 u-min-w-0">
+              <img
+                src={attachment.url}
+                alt={attachment?.name || 'Gedeelde afbeelding'}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  maxWidth: 280,
+                  maxHeight: 240,
+                  objectFit: 'cover',
+                  borderRadius: 14,
+                  marginBottom: 10,
+                }}
+                loading="lazy"
+              />
+              <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Afbeelding'}</div>
+              <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
+                {attachment?.caption || 'Afbeelding gedeeld'}
+              </div>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius: 12 }} aria-hidden="true">F</div>
+              <div className="u-flex-1 u-min-w-0">
+                <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Bijlage'}</div>
+                <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
+                  {attachment?.caption || attachment?.mimeType || 'Bestand gedeeld'}
+                </div>
+              </div>
+            </>
+          )}
           <div className="u-flex-shrink" style={{ fontSize: '11px', color: isOwn ? 'rgba(255,255,255,.5)' : 'var(--text3)', alignSelf: 'flex-end' }}>
             {formatTime(msg.createdAt)}
           </div>

@@ -8,6 +8,7 @@ import {
   resolveAttachmentForAccess,
   triggerAttachmentDownload,
 } from '../lib/e2ee/attachmentAccessAdapter';
+import { getAttachmentContractPresentation } from '../lib/e2ee/attachmentPresentation';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { getInitials, formatTime } from '../utils';
 
@@ -155,11 +156,7 @@ const MessageBubble = React.memo(function MessageBubble({
     const attachmentPreviewUrl = attachmentAccess.isImage && attachment?.thumbnailUrl
       ? attachment.thumbnailUrl
       : attachmentUrl;
-    const isRemoteAttachment = attachment?.transfer === 'remote';
-    const attachmentMimeLabel = attachment?.originalMimeType || attachment?.mimeType || 'Bestand gedeeld';
-    const storageContractLabel = attachment?.contentEncoding === 'mock-e2ee-envelope-v1'
-      ? 'Mock versleutelde opslaglink'
-      : 'Beveiligde opslaglink';
+    const attachmentPresentation = getAttachmentContractPresentation(attachment);
     const resolveAttachment = async () => {
       if (!attachmentAccess.needsRemoteFetch) return attachment;
       if (!user) throw new Error('Geen gebruiker beschikbaar voor beveiligde bijlage.');
@@ -280,9 +277,9 @@ const MessageBubble = React.memo(function MessageBubble({
               />
               <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Afbeelding'}</div>
               <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
-                {attachment?.caption || attachmentMimeLabel}
+                {attachment?.caption || attachmentPresentation.mimeLabel}
               </div>
-              {isRemoteAttachment && (
+              {attachmentPresentation.isRemote && (
                 <div
                   className="u-fs-12"
                   style={{
@@ -291,7 +288,19 @@ const MessageBubble = React.memo(function MessageBubble({
                     opacity: 0.9,
                   }}
                 >
-                  {storageContractLabel}
+                  {attachmentPresentation.storageLabel}
+                </div>
+              )}
+              {attachmentPresentation.storageDetail && (
+                <div
+                  className="u-fs-12"
+                  style={{
+                    marginTop: 4,
+                    color: isOwn ? 'rgba(255,255,255,.62)' : 'var(--text3)',
+                    opacity: 0.85,
+                  }}
+                >
+                  {attachmentPresentation.storageDetail}
                 </div>
               )}
               {attachmentActionError && (
@@ -310,9 +319,9 @@ const MessageBubble = React.memo(function MessageBubble({
               <div className="u-flex-1 u-min-w-0">
                 <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Bijlage'}</div>
                 <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
-                  {attachment?.caption || attachmentMimeLabel}
+                  {attachment?.caption || attachmentPresentation.mimeLabel}
                 </div>
-                {isRemoteAttachment && (
+                {attachmentPresentation.isRemote && (
                   <div
                     className="u-fs-12"
                     style={{
@@ -321,7 +330,19 @@ const MessageBubble = React.memo(function MessageBubble({
                       opacity: 0.9,
                     }}
                     >
-                      {storageContractLabel}
+                      {attachmentPresentation.storageLabel}
+                    </div>
+                  )}
+                  {attachmentPresentation.storageDetail && (
+                    <div
+                      className="u-fs-12"
+                      style={{
+                        marginTop: 4,
+                        color: isOwn ? 'rgba(255,255,255,.62)' : 'var(--text3)',
+                        opacity: 0.85,
+                      }}
+                    >
+                      {attachmentPresentation.storageDetail}
                     </div>
                   )}
                   {attachmentActionError && (

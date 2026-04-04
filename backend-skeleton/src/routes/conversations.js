@@ -9,6 +9,8 @@ function deriveConversationSummary(message, fallback = '') {
       lastMessage: fallback,
       lastMessageType: null,
       lastAttachmentTransfer: null,
+      lastAttachmentEncoding: null,
+      lastAttachmentOriginalMimeType: null,
     };
   }
 
@@ -17,6 +19,8 @@ function deriveConversationSummary(message, fallback = '') {
       lastMessage: message.text,
       lastMessageType: message.messageType || 'text',
       lastAttachmentTransfer: message.messageType === 'attachment' ? (message.attachment?.transfer || null) : null,
+      lastAttachmentEncoding: message.messageType === 'attachment' ? (message.attachment?.contentEncoding || null) : null,
+      lastAttachmentOriginalMimeType: message.messageType === 'attachment' ? (message.attachment?.originalMimeType || message.attachment?.mimeType || null) : null,
     };
   }
 
@@ -25,6 +29,8 @@ function deriveConversationSummary(message, fallback = '') {
       lastMessage: 'Contactpersoon gedeeld',
       lastMessageType: 'contact',
       lastAttachmentTransfer: null,
+      lastAttachmentEncoding: null,
+      lastAttachmentOriginalMimeType: null,
     };
   }
 
@@ -33,6 +39,8 @@ function deriveConversationSummary(message, fallback = '') {
       lastMessage: 'Bijlage gedeeld',
       lastMessageType: 'attachment',
       lastAttachmentTransfer: message.attachment?.transfer || null,
+      lastAttachmentEncoding: message.attachment?.contentEncoding || null,
+      lastAttachmentOriginalMimeType: message.attachment?.originalMimeType || message.attachment?.mimeType || null,
     };
   }
 
@@ -41,6 +49,8 @@ function deriveConversationSummary(message, fallback = '') {
       lastMessage: 'Nieuw bericht',
       lastMessageType: message.messageType,
       lastAttachmentTransfer: null,
+      lastAttachmentEncoding: null,
+      lastAttachmentOriginalMimeType: null,
     };
   }
 
@@ -50,12 +60,16 @@ function deriveConversationSummary(message, fallback = '') {
         lastMessage: Buffer.from(message.ciphertext, 'base64').toString('utf8') || fallback || 'Versleuteld bericht',
         lastMessageType: message.messageType || 'text',
         lastAttachmentTransfer: null,
+        lastAttachmentEncoding: null,
+        lastAttachmentOriginalMimeType: null,
       };
     } catch {
       return {
         lastMessage: fallback || 'Versleuteld bericht',
         lastMessageType: message.messageType || 'text',
         lastAttachmentTransfer: null,
+        lastAttachmentEncoding: null,
+        lastAttachmentOriginalMimeType: null,
       };
     }
   }
@@ -64,6 +78,8 @@ function deriveConversationSummary(message, fallback = '') {
     lastMessage: fallback,
     lastMessageType: message.messageType || null,
     lastAttachmentTransfer: null,
+    lastAttachmentEncoding: null,
+    lastAttachmentOriginalMimeType: null,
   };
 }
 
@@ -107,6 +123,8 @@ conversationsRouter.get('/:uid', requireAuth, asyncRoute(async (req, res) => {
         lastMessage: summary.lastMessage,
         lastMessageType: summary.lastMessageType,
         lastAttachmentTransfer: summary.lastAttachmentTransfer,
+        lastAttachmentEncoding: summary.lastAttachmentEncoding,
+        lastAttachmentOriginalMimeType: summary.lastAttachmentOriginalMimeType,
       };
     })
   );

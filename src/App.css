@@ -2492,12 +2492,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 /* ── Hero chat bubbles animatie ── */
-@keyframes hp-bubble-appear {
-  0%   { opacity: 0; transform: translateY(14px) scale(0.94); }
-  10%  { opacity: 1; transform: translateY(0) scale(1); }
-  55%  { opacity: 1; transform: translateY(0) scale(1); }
-  70%  { opacity: 0; transform: translateY(-8px) scale(0.97); }
-  100% { opacity: 0; transform: translateY(-8px) scale(0.97); }
+@keyframes hp-bubble-fadein {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
 }
 .hp-hero-chat {
   position: absolute;
@@ -2509,6 +2506,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   position: absolute;
   display: inline-flex;
   align-items: baseline;
+  opacity: 0;
+  animation: hp-bubble-fadein 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--bubble-delay, 0s);
   gap: 6px;
   padding: 10px 14px;
   border-radius: 18px;
@@ -2516,7 +2516,6 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   font-weight: 500;
   line-height: 1.4;
   box-shadow: 0 4px 20px rgba(0,0,0,0.10);
-  opacity: 1;
   max-width: 230px;
 }
 .hp-hero-bubble--in {

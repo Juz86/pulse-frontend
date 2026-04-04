@@ -14,7 +14,7 @@ export async function passthroughDecryptAttachmentBlob(blob) {
 
 export async function decryptAttachmentBlob(blob, attachment) {
   if (attachment?.encryption?.alg === 'mock-e2ee-envelope-v1') {
-    return decryptMockAttachmentEnvelopeBlob(blob);
+    return decryptMockAttachmentEnvelopeBlob(blob, attachment?.encryption?.sha256 || '');
   }
 
   return passthroughDecryptAttachmentBlob(blob);

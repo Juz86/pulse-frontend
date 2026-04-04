@@ -16,7 +16,33 @@ function parseDataUrl(dataUrl = '') {
   };
 }
 
-export function createMockEncryptedAttachmentEnvelope(attachment) {
+function base64ToBytes(base64 = '') {
+  return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+}
+
+function bytesToHex(bytes) {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function computeDigestHex(bytes) {
+  const cryptoApi =
+    (typeof window !== 'undefined' && window.crypto?.subtle && window.crypto)
+    || null;
+
+  if (cryptoApi?.subtle) {
+    const digest = await cryptoApi.subtle.digest('SHA-256', bytes);
+    return bytesToHex(new Uint8Array(digest));
+  }
+
+  let hash = 2166136261;
+  bytes.forEach((byte) => {
+    hash ^= byte;
+    hash = Math.imul(hash, 16777619);
+  });
+  return `fallback-${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+export async function createMockEncryptedAttachmentEnvelope(attachment) {
   const sourceUrl = attachment?.downloadUrl || attachment?.url || '';
   const parsed = parseDataUrl(sourceUrl);
   if (!parsed) {
@@ -24,6 +50,7 @@ export function createMockEncryptedAttachmentEnvelope(attachment) {
   }
 
   const originalMimeType = attachment?.mimeType || parsed.mimeType || 'application/octet-stream';
+  const payloadSha256 = await computeDigestHex(base64ToBytes(parsed.base64));
   const envelope = {
     version: 1,
     kind: 'pulse_mock_media_envelope',
@@ -31,6 +58,7 @@ export function createMockEncryptedAttachmentEnvelope(attachment) {
     name: attachment?.name || 'Bestand',
     size: Number.isFinite(attachment?.size) ? Number(attachment.size) : null,
     payloadBase64: parsed.base64,
+    payloadSha256,
   };
 
   return {
@@ -39,7 +67,26 @@ export function createMockEncryptedAttachmentEnvelope(attachment) {
   };
 }
 
-export async function decryptMockAttachmentEnvelopeBlob(blob) {
+export async function verifyMockAttachmentEnvelope(envelope, expectedSha256 = '') {
+  if (envelope?.kind !== 'pulse_mock_media_envelope' || typeof envelope?.payloadBase64 !== 'string') {
+    throw new Error('Ongeldige mock media-envelope.');
+  }
+
+  const computedSha256 = await computeDigestHex(base64ToBytes(envelope.payloadBase64));
+  if (envelope.payloadSha256 && envelope.payloadSha256 !== computedSha256) {
+    throw new Error('Mock media-envelope integriteit mislukt.');
+  }
+  if (expectedSha256 && expectedSha256 !== computedSha256) {
+    throw new Error('Attachment integriteit komt niet overeen met metadata.');
+  }
+
+  return {
+    ...envelope,
+    payloadSha256: envelope.payloadSha256 || computedSha256,
+  };
+}
+
+export async function decryptMockAttachmentEnvelopeBlob(blob, expectedSha256 = '') {
   let envelopeText = '';
 
   if (typeof blob?.text === 'function') {
@@ -52,13 +99,10 @@ export async function decryptMockAttachmentEnvelopeBlob(blob) {
   }
 
   const envelope = JSON.parse(envelopeText || '{}');
+  const verifiedEnvelope = await verifyMockAttachmentEnvelope(envelope, expectedSha256);
 
-  if (envelope?.kind !== 'pulse_mock_media_envelope' || typeof envelope?.payloadBase64 !== 'string') {
-    throw new Error('Ongeldige mock media-envelope.');
-  }
-
-  const binary = Uint8Array.from(atob(envelope.payloadBase64), (char) => char.charCodeAt(0));
-  const mimeType = envelope.mimeType || 'application/octet-stream';
+  const binary = base64ToBytes(verifiedEnvelope.payloadBase64);
+  const mimeType = verifiedEnvelope.mimeType || 'application/octet-stream';
 
   return new Blob([binary], { type: mimeType });
 }

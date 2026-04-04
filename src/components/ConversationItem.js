@@ -1,6 +1,7 @@
 // src/components/ConversationItem.js
 import React from 'react';
 import { Pin, InfoIcon } from '../components/Icons';
+import { getAttachmentContractPresentation } from '../lib/e2ee/attachmentPresentation';
 import { getConversationPreview } from '../lib/e2ee/messageModel';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview } from '../utils';
@@ -31,7 +32,12 @@ function ConversationItemBase({
   onMoreActionsEnter,
   onMoreActionsLeave,
 }) {
-  const showRemoteAttachmentBadge = conv.lastMessageType === 'attachment' && conv.lastAttachmentTransfer === 'remote';
+  const attachmentPresentation = getAttachmentContractPresentation({
+    transfer: conv.lastAttachmentTransfer,
+    contentEncoding: conv.lastAttachmentEncoding,
+    originalMimeType: conv.lastAttachmentOriginalMimeType,
+  });
+  const showRemoteAttachmentBadge = conv.lastMessageType === 'attachment' && attachmentPresentation.isRemote;
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -63,19 +69,33 @@ function ConversationItemBase({
             <>
               <span>{getConversationPreview(conv) || conv.lastMessage || 'Start een gesprek…'}</span>
               {showRemoteAttachmentBadge && (
-                <span
-                  style={{
-                    marginLeft: 8,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: '.04em',
-                    textTransform: 'uppercase',
-                    color: 'var(--accent)',
-                    opacity: 0.9,
-                  }}
-                >
-                  opslaglink
-                </span>
+                <>
+                  <span
+                    style={{
+                      marginLeft: 8,
+                      fontSize: 10,
+                      fontWeight: 700,
+                      letterSpacing: '.04em',
+                      textTransform: 'uppercase',
+                      color: 'var(--accent)',
+                      opacity: 0.9,
+                    }}
+                  >
+                    {attachmentPresentation.storageShortLabel}
+                  </span>
+                  {attachmentPresentation.mimeLabel && (
+                    <span
+                      style={{
+                        marginLeft: 6,
+                        fontSize: 10,
+                        color: 'var(--text3)',
+                        opacity: 0.9,
+                      }}
+                    >
+                      {attachmentPresentation.mimeLabel}
+                    </span>
+                  )}
+                </>
               )}
             </>
           )}
@@ -103,6 +123,8 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.conv.lastMessage === next.conv.lastMessage  &&
   prev.conv.lastMessageType === next.conv.lastMessageType &&
   prev.conv.lastAttachmentTransfer === next.conv.lastAttachmentTransfer &&
+  prev.conv.lastAttachmentEncoding === next.conv.lastAttachmentEncoding &&
+  prev.conv.lastAttachmentOriginalMimeType === next.conv.lastAttachmentOriginalMimeType &&
   prev.conv.updatedAt   === next.conv.updatedAt    &&
   prev.conv.photoURL    === next.conv.photoURL     &&
   prev.isActive         === next.isActive          &&

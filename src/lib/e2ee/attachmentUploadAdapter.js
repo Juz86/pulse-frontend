@@ -17,10 +17,10 @@ function sanitizePathSegment(value, fallback) {
   return safe || fallback;
 }
 
-export function buildMockRemoteAttachmentPayload(attachment, { conversationId, userId } = {}) {
+export async function buildMockRemoteAttachmentPayload(attachment, { conversationId, userId } = {}) {
   const normalized = normalizeAttachmentPayload(attachment);
   if (!normalized) return null;
-  const encryptedEnvelope = createMockEncryptedAttachmentEnvelope(normalized);
+  const encryptedEnvelope = await createMockEncryptedAttachmentEnvelope(normalized);
 
   const safeConversationId = sanitizePathSegment(conversationId, 'conversation');
   const safeUserId = sanitizePathSegment(userId, 'user');
@@ -38,7 +38,7 @@ export function buildMockRemoteAttachmentPayload(attachment, { conversationId, u
       alg: 'mock-e2ee-envelope-v1',
       keyId: `mock-key-${safeUserId}`,
       iv: `mock-iv-${uniqueSuffix}`,
-      sha256: `mock-sha256-${normalized.size || 0}`,
+      sha256: encryptedEnvelope.envelope.payloadSha256,
       envelopeKind: encryptedEnvelope.envelope.kind,
       originalMimeType: normalized.mimeType || '',
     },
@@ -61,7 +61,7 @@ export async function prepareAttachmentForSend({
   }
 
   if (transportMode === 'remote_mock') {
-    const uploadPayload = buildMockRemoteAttachmentPayload(normalized, { conversationId, userId });
+    const uploadPayload = await buildMockRemoteAttachmentPayload(normalized, { conversationId, userId });
 
     if (typeof uploadAttachment === 'function') {
       const uploadedAttachment = await uploadAttachment(uploadPayload);

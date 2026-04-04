@@ -7,6 +7,10 @@ import {
   patchPendingMessageAsSent,
 } from './messageModel';
 import {
+  buildForwardServicePayload,
+  buildRetryServicePayload,
+} from './messageTransportPayload';
+import {
   ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE,
   canApplyPlaintextEditUpdate,
   canEditMessage,
@@ -27,7 +31,9 @@ import {
   createMockEncryptedAttachmentEnvelope,
   decodeMockAttachmentEnvelopeDataUrl,
   decryptMockAttachmentEnvelopeBlob,
+  verifyMockAttachmentEnvelope,
 } from './attachmentCrypto';
+import { getAttachmentContractPresentation } from './attachmentPresentation';
 import {
   buildAttachmentMetadataUrl,
   clearAttachmentMetadataCache,
@@ -280,6 +286,44 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
+  test('normalizeAttachmentPayload keeps attachment contract fields from backend metadata', () => {
+    expect(normalizeAttachmentPayload({
+      name: 'smoke-note.txt',
+      downloadUrl: 'http://localhost:3001/attachments/mock-2',
+      transfer: 'remote',
+      mimeType: 'application/pulse-e2ee-envelope+json',
+      originalMimeType: 'text/plain',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      encryption: {
+        alg: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'pulse_mock_media_envelope',
+        originalMimeType: 'text/plain',
+      },
+    })).toEqual({
+      name: 'smoke-note.txt',
+      url: '',
+      downloadUrl: 'http://localhost:3001/attachments/mock-2',
+      thumbnailUrl: '',
+      storageKey: '',
+      transfer: 'remote',
+      mimeType: 'application/pulse-e2ee-envelope+json',
+      originalMimeType: 'text/plain',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      size: null,
+      caption: '',
+      encryption: {
+        alg: 'mock-e2ee-envelope-v1',
+        keyId: '',
+        iv: '',
+        sha256: '',
+        envelopeKind: 'pulse_mock_media_envelope',
+        originalMimeType: 'text/plain',
+      },
+    });
+  });
+
   test('validateAttachmentPayload rejects oversized payloads', () => {
     const attachment = normalizeAttachmentPayload({
       name: 'grote-bijlage.pdf',
@@ -308,8 +352,8 @@ describe('e2ee attachment helpers', () => {
     })).toBe('https://cdn.example.com/image.png');
   });
 
-  test('buildMockRemoteAttachmentPayload creates future-proof remote metadata', () => {
-    const attachment = buildMockRemoteAttachmentPayload({
+  test('buildMockRemoteAttachmentPayload creates future-proof remote metadata', async () => {
+    const attachment = await buildMockRemoteAttachmentPayload({
       name: 'foto.png',
       url: 'data:image/png;base64,abc',
       mimeType: 'image/png',
@@ -324,10 +368,41 @@ describe('e2ee attachment helpers', () => {
     expect(attachment.thumbnailUrl).toBe('data:image/png;base64,abc');
     expect(attachment.storageKey).toContain('mock-e2ee/conv-1/user-1/');
     expect(attachment.encryption?.alg).toBe('mock-e2ee-envelope-v1');
+    expect(attachment.encryption?.sha256).toMatch(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/);
   });
 
-  test('createMockEncryptedAttachmentEnvelope wraps a data url in a mock envelope', () => {
-    const encrypted = createMockEncryptedAttachmentEnvelope({
+  test('getAttachmentContractPresentation derives consistent labels for encrypted remote attachments', () => {
+    expect(getAttachmentContractPresentation({
+      transfer: 'remote',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      originalMimeType: 'image/png',
+      envelopeKind: 'pulse_mock_media_envelope',
+    })).toEqual({
+      isRemote: true,
+      isEncryptedRemote: true,
+      mimeLabel: 'image/png',
+      storageLabel: 'Mock versleutelde opslaglink',
+      storageShortLabel: 'versleuteld',
+      storageDetail: 'Envelope: pulse_mock_media_envelope',
+    });
+  });
+
+  test('getAttachmentContractPresentation derives consistent labels for plain remote attachments', () => {
+    expect(getAttachmentContractPresentation({
+      transfer: 'remote',
+      mimeType: 'application/pdf',
+    })).toEqual({
+      isRemote: true,
+      isEncryptedRemote: false,
+      mimeLabel: 'application/pdf',
+      storageLabel: 'Beveiligde opslaglink',
+      storageShortLabel: 'opslaglink',
+      storageDetail: '',
+    });
+  });
+
+  test('createMockEncryptedAttachmentEnvelope wraps a data url in a mock envelope', async () => {
+    const encrypted = await createMockEncryptedAttachmentEnvelope({
       name: 'hello.txt',
       url: 'data:text/plain;base64,SGVsbG8=',
       mimeType: 'text/plain',
@@ -339,6 +414,7 @@ describe('e2ee attachment helpers', () => {
     expect(decoded.kind).toBe('pulse_mock_media_envelope');
     expect(decoded.mimeType).toBe('text/plain');
     expect(decoded.payloadBase64).toBe('SGVsbG8=');
+    expect(decoded.payloadSha256).toMatch(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/);
   });
 
   test('prepareAttachmentForSend supports remote_mock mode', async () => {
@@ -543,7 +619,7 @@ describe('e2ee attachment helpers', () => {
   });
 
   test('decryptMockAttachmentEnvelopeBlob restores the original attachment blob', async () => {
-    const { dataUrl } = createMockEncryptedAttachmentEnvelope({
+    const { dataUrl, envelope } = await createMockEncryptedAttachmentEnvelope({
       name: 'hello.txt',
       url: 'data:text/plain;base64,SGVsbG8=',
       mimeType: 'text/plain',
@@ -552,21 +628,36 @@ describe('e2ee attachment helpers', () => {
     const base64 = dataUrl.split(',')[1];
     const encryptedBlob = new Blob([atob(base64)], { type: 'application/pulse-e2ee-envelope+json' });
 
-    const decryptedBlob = await decryptMockAttachmentEnvelopeBlob(encryptedBlob);
+    const decryptedBlob = await decryptMockAttachmentEnvelopeBlob(encryptedBlob, envelope.payloadSha256);
 
     expect(decryptedBlob.type).toBe('text/plain');
     expect(await new Response(decryptedBlob).text()).toBe('Hello');
   });
 
+  test('verifyMockAttachmentEnvelope rejects integrity mismatches', async () => {
+    await expect(verifyMockAttachmentEnvelope({
+      kind: 'pulse_mock_media_envelope',
+      mimeType: 'text/plain',
+      payloadBase64: 'SGVsbG8=',
+      payloadSha256: 'deadbeef',
+    })).rejects.toThrow('Mock media-envelope integriteit mislukt.');
+  });
+
   test('decryptAttachmentBlob routes mock envelopes through the envelope decryptor', async () => {
+    const expectedSha256 = (await verifyMockAttachmentEnvelope({
+      kind: 'pulse_mock_media_envelope',
+      mimeType: 'text/plain',
+      payloadBase64: 'SGVsbG8=',
+    })).payloadSha256;
     const encryptedBlob = new Blob([JSON.stringify({
       kind: 'pulse_mock_media_envelope',
       mimeType: 'text/plain',
       payloadBase64: 'SGVsbG8=',
+      payloadSha256: expectedSha256,
     })], { type: 'application/pulse-e2ee-envelope+json' });
 
     const decryptedBlob = await decryptAttachmentBlob(encryptedBlob, {
-      encryption: { alg: 'mock-e2ee-envelope-v1' },
+      encryption: { alg: 'mock-e2ee-envelope-v1', sha256: expectedSha256 },
     });
 
     expect(await new Response(decryptedBlob).text()).toBe('Hello');
@@ -667,5 +758,93 @@ describe('e2ee attachment helpers', () => {
     expect(appendChild).toHaveBeenCalled();
     expect(click).toHaveBeenCalled();
     expect(remove).toHaveBeenCalled();
+  });
+});
+
+describe('e2ee transport payload helpers', () => {
+  test('buildRetryServicePayload keeps structured attachment data intact', () => {
+    const payload = buildRetryServicePayload({
+      text: 'Bijlage: foto.png',
+      type: 'attachment',
+      replyTo: { id: 'msg-parent-1' },
+      attachment: {
+        name: 'foto.png',
+        downloadUrl: 'http://localhost:3001/attachments/retry-1',
+        transfer: 'remote',
+        mimeType: 'application/pulse-e2ee-envelope+json',
+        originalMimeType: 'image/png',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'pulse_mock_media_envelope',
+      },
+    });
+
+    expect(payload).toEqual({
+      plaintext: 'Bijlage: foto.png',
+      messageType: 'attachment',
+      replyToMessageId: 'msg-parent-1',
+      sharedContact: null,
+      attachment: {
+        name: 'foto.png',
+        url: '',
+        downloadUrl: 'http://localhost:3001/attachments/retry-1',
+        thumbnailUrl: '',
+        storageKey: '',
+        transfer: 'remote',
+        mimeType: 'application/pulse-e2ee-envelope+json',
+        originalMimeType: 'image/png',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'pulse_mock_media_envelope',
+        size: null,
+        caption: '',
+        encryption: null,
+      },
+    });
+  });
+
+  test('buildForwardServicePayload preserves attachment contracts for forwarding', () => {
+    const payload = buildForwardServicePayload({
+      type: 'attachment',
+      text: 'foto.png',
+      attachment: {
+        name: 'foto.png',
+        downloadUrl: 'http://localhost:3001/attachments/fwd-1',
+        transfer: 'remote',
+        mimeType: 'application/pulse-e2ee-envelope+json',
+        originalMimeType: 'image/png',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'pulse_mock_media_envelope',
+        encryption: {
+          alg: 'mock-e2ee-envelope-v1',
+          envelopeKind: 'pulse_mock_media_envelope',
+          originalMimeType: 'image/png',
+        },
+      },
+    });
+
+    expect(payload.messageType).toBe('attachment');
+    expect(payload.plaintext).toBe('foto.png');
+    expect(payload.attachment.originalMimeType).toBe('image/png');
+    expect(payload.attachment.contentEncoding).toBe('mock-e2ee-envelope-v1');
+    expect(payload.attachment.envelopeKind).toBe('pulse_mock_media_envelope');
+  });
+
+  test('buildForwardServicePayload prefixes plain text forwards but not structured contact forwards', () => {
+    expect(buildForwardServicePayload({ text: 'Hallo' })).toEqual({
+      plaintext: '↪️ Hallo',
+      messageType: 'text',
+      sharedContact: null,
+      attachment: null,
+    });
+
+    expect(buildForwardServicePayload({
+      type: 'contact',
+      text: 'Contactpersoon: Habiba',
+      sharedContact: { uid: 'user-2', name: 'Habiba' },
+    })).toEqual({
+      plaintext: 'Contactpersoon: Habiba',
+      messageType: 'contact',
+      sharedContact: { uid: 'user-2', name: 'Habiba' },
+      attachment: null,
+    });
   });
 });

@@ -5,6 +5,10 @@ import { messagingService } from '../lib/e2ee/messagingService';
 import { normalizeAttachmentPayload, validateAttachmentPayload } from '../lib/e2ee/attachmentPayload';
 import { prepareAttachmentForSend } from '../lib/e2ee/attachmentUploadAdapter';
 import {
+  buildForwardServicePayload,
+  buildRetryServicePayload,
+} from '../lib/e2ee/messageTransportPayload';
+import {
   buildPendingMessage,
   getConversationPreview,
   normalizeIncomingMessage,
@@ -378,6 +382,8 @@ export default function useConversations({
         lastMessage: getConversationPreview(optimisticMsg),
         lastMessageType: optimisticMsg.type || optimisticMsg.messageType || 'text',
         lastAttachmentTransfer: null,
+        lastAttachmentEncoding: null,
+        lastAttachmentOriginalMimeType: null,
         updatedAt: msg.createdAt,
         lastCallDirection: null,
         lastCallSenderId: null,
@@ -466,6 +472,8 @@ export default function useConversations({
               lastMessage: getConversationPreview(optimisticMsg),
               lastMessageType: 'contact',
               lastAttachmentTransfer: null,
+              lastAttachmentEncoding: null,
+              lastAttachmentOriginalMimeType: null,
               updatedAt: optimisticMsg.createdAt,
               lastCallDirection: null,
               lastCallSenderId: null,
@@ -567,6 +575,8 @@ export default function useConversations({
               lastMessage: getConversationPreview(optimisticMsg),
               lastMessageType: 'attachment',
               lastAttachmentTransfer: normalizedAttachment.transfer || null,
+              lastAttachmentEncoding: normalizedAttachment.contentEncoding || null,
+              lastAttachmentOriginalMimeType: normalizedAttachment.originalMimeType || normalizedAttachment.mimeType || null,
               updatedAt: optimisticMsg.createdAt,
               lastCallDirection: null,
               lastCallSenderId: null,
@@ -617,6 +627,7 @@ export default function useConversations({
     if ((!socket?.connected && !shouldUseServiceTransport(activeConv)) || !activeConv) return;
     const retryCount = (failedMsg._retryCount || 0) + 1;
     const recipientUserIds = getConversationRecipients(activeConv);
+    const retryPayload = buildRetryServicePayload(failedMsg);
     patchMessageAsSending(failedMsg.id, retryCount);
     const failTimer = setTimeout(() => {
       patchMessageAsFailed(failedMsg.id);
@@ -624,9 +635,12 @@ export default function useConversations({
     if (shouldUseServiceTransport(activeConv)) {
       sendViaService({
         conv: activeConv,
-        plaintext: failedMsg.text,
+        plaintext: retryPayload.plaintext,
         recipientUserIds,
-        replyToMessageId: failedMsg.replyTo?.messageId || failedMsg.replyTo?.id || null,
+        replyToMessageId: retryPayload.replyToMessageId,
+        messageType: retryPayload.messageType,
+        sharedContact: retryPayload.sharedContact,
+        attachment: retryPayload.attachment,
       }).then((savedMsg) => {
         clearTimeout(failTimer);
         pendingTempIds.current.delete(failedMsg.id);
@@ -691,9 +705,11 @@ export default function useConversations({
     const socket = getSocket();
     if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !forwardMsg) return;
     const recipientUserIds = getConversationRecipients(conv);
+    const forwardPayload = buildForwardServicePayload(forwardMsg);
+    const forwardType = forwardPayload.messageType;
     const msg = {
       convId: conv.id, senderId: user.uid, senderName: user.displayName || user.email,
-      text: `↪️ ${forwardMsg.text}`, createdAt: new Date().toISOString(),
+      text: forwardPayload.plaintext,
       protocol: 'signal_v1',
       senderDeviceId: currentDeviceId,
     };
@@ -701,16 +717,31 @@ export default function useConversations({
       try {
         await sendViaService({
           conv,
-          plaintext: msg.text,
+          plaintext: forwardPayload.plaintext,
           recipientUserIds,
           replyToMessageId: null,
+          messageType: forwardPayload.messageType,
+          sharedContact: forwardPayload.sharedContact,
+          attachment: forwardPayload.attachment,
         });
       } catch {
         showErrToast('Doorsturen mislukt');
         return;
       }
     } else {
-      socket.emit('message:send', { convId: conv.id, message: msg });
+      socket.emit('message:send', {
+        convId: conv.id,
+        message: {
+          ...msg,
+          ...(forwardType === 'contact' ? { type: 'contact', sharedContact: forwardPayload.sharedContact } : {}),
+          ...(forwardType === 'attachment'
+            ? {
+                type: 'attachment',
+                attachment: forwardPayload.attachment,
+              }
+            : {}),
+        },
+      });
     }
     setForwardMsg(null);
     showErrToast('📋 Bericht doorgestuurd');

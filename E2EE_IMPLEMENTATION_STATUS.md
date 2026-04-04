@@ -40,6 +40,10 @@ Wat dit betekent:
   [src/lib/e2ee/policy.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/policy.js)
   [src/lib/e2ee/attachmentPayload.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentPayload.js)
   [src/lib/e2ee/attachmentUploadAdapter.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentUploadAdapter.js)
+  [src/lib/e2ee/attachmentCrypto.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentCrypto.js)
+  [src/lib/e2ee/attachmentAccessAdapter.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentAccessAdapter.js)
+  [src/lib/e2ee/attachmentPresentation.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentPresentation.js)
+  [src/lib/e2ee/messageTransportPayload.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/messageTransportPayload.js)
 
 ### Frontend integratie
 
@@ -130,7 +134,7 @@ Geslaagd:
 - echte crypto is nog niet actief
 - encrypted edit-flow is bewust uitgeschakeld
 - attachments gebruiken lokaal nu `remote_mock`, nog geen echte productie-storage
-- media-encryptie is nog mock metadata en nog geen echte decrypt-downloadketen
+- media-encryptie gebruikt nu een mock envelope/decrypt-keten, maar nog geen echte productie-encryptie of storageprovider
 
 ## Volgende stap
 
@@ -139,8 +143,9 @@ De volgende echte stap is nu afronding en hardening:
 1. doorloop de handmatige acceptatieronde
 2. valideer de attachment-flow via
    [E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md)
-3. vervang daarna mock media-opslag door echte encrypted media/storage
-4. bereid productie-activatie voor
+3. valideer expliciet attachment retry en forward met dezelfde runbook/checklist
+4. vervang daarna mock media-opslag door echte encrypted media/storage
+5. bereid productie-activatie voor
 
 ## Praktisch oordeel
 

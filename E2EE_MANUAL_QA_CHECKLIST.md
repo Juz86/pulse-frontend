@@ -61,26 +61,39 @@ Gebruik in deze fase:
 - [ ] stuur een kleine afbeelding of tekstbestand vanuit account A
 - [ ] composer toont achtereenvolgens `Bijlage voorbereiden...` en `Bijlage geupload`
 - [ ] account B ontvangt een attachmentkaart zonder lege bubble
-- [ ] attachmentkaart toont `Beveiligde opslaglink`
-- [ ] conversatielijst toont bij het laatste bericht ook `opslaglink`
+- [ ] attachmentkaart toont `Mock versleutelde opslaglink`
+- [ ] attachmentkaart toont ook `Envelope: pulse_mock_media_envelope`
+- [ ] conversatielijst toont bij het laatste bericht `versleuteld`
+- [ ] conversatielijst toont ook het oorspronkelijke mime type
 - [ ] `Openen` werkt
 - [ ] `Downloaden` werkt
 - [ ] attachment blijft na pagina-refresh bruikbaar
 - [ ] attachment blijft bruikbaar na backend-herstart
 
-## Scenario 7: Edit Policy
+## Scenario 7: Attachment Retry En Forward
+
+- [ ] forceer een mislukte attachment-send
+- [ ] attachment komt in failed-status
+- [ ] retry behoudt attachment-type en contractvelden
+- [ ] ontvanger krijgt daarna nog steeds een attachmentkaart
+- [ ] retryte attachment toont opnieuw `Mock versleutelde opslaglink`
+- [ ] forward een attachment naar een tweede gesprek of groep
+- [ ] forwarded attachment blijft `attachment` en valt niet terug naar plain text
+- [ ] forwarded attachment toont opnieuw `versleuteld` in de conversatielijst
+- [ ] forwarded attachment behoudt openen/downloaden
+## Scenario 8: Edit Policy
 
 - [ ] legacy/plaintext berichten kunnen nog via bestaande flow bewerkt worden als die flow actief is
 - [ ] `signal_v1` berichten tonen geen editoptie
 - [ ] encrypted berichten worden niet overschreven door plaintext edit-events
 
-## Scenario 8: Parent Policy
+## Scenario 9: Parent Policy
 
 - [ ] toegestaan contact kan berichten uitwisselen
 - [ ] geblokkeerd of niet-goedgekeurd contact kan niet succesvol versturen
 - [ ] frontend crasht niet als backend een policy-deny teruggeeft
 
-## Scenario 9: UI Consistentie
+## Scenario 10: UI Consistentie
 
 - [ ] conversation previews tonen tekst of `Versleuteld bericht`
 - [ ] message bubbles tonen tekst of `Versleuteld bericht`
@@ -88,7 +101,7 @@ Gebruik in deze fase:
 - [ ] contextmenu blijft logisch
 - [ ] chat blijft scrollbaar en bruikbaar
 
-## Scenario 10: Regression Basics
+## Scenario 11: Regression Basics
 
 - [ ] marketingpagina's laden nog normaal
 - [ ] ParentDashboard blijft openen

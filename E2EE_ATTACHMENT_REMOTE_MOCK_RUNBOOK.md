@@ -32,8 +32,12 @@ In `backend-skeleton`:
    - `transfer: remote`
    - `encryption`
 5. bericht wordt als attachment via de serviceflow verstuurd
-6. ontvanger ziet een attachmentkaart met `Beveiligde opslaglink`
-7. conversatielijst toont `opslaglink`
+6. backend bewaart de mock media-envelope en metadata zoals:
+   - `contentEncoding: mock-e2ee-envelope-v1`
+   - `envelopeKind: pulse_mock_media_envelope`
+   - `originalMimeType`
+7. ontvanger ziet een attachmentkaart met `Mock versleutelde opslaglink`
+8. conversatielijst toont `versleuteld`
 
 ## Handmatige Test
 
@@ -44,12 +48,16 @@ In `backend-skeleton`:
 - [ ] composer toont `Bijlage voorbereiden...`
 - [ ] composer toont daarna `Bijlage geupload`
 - [ ] ontvanger ziet attachmentkaart
-- [ ] attachmentkaart toont `Beveiligde opslaglink`
-- [ ] conversatielijst toont `opslaglink`
+- [ ] attachmentkaart toont `Mock versleutelde opslaglink`
+- [ ] attachmentkaart toont `Envelope: pulse_mock_media_envelope`
+- [ ] conversatielijst toont `versleuteld`
+- [ ] conversatielijst toont het originele mime type
 - [ ] `Openen` werkt
 - [ ] `Downloaden` werkt
 - [ ] attachment blijft werken na refresh
 - [ ] attachment blijft werken na backend-herstart
+- [ ] retry van een mislukte attachment behoudt dezelfde contractweergave
+- [ ] forward van een attachment behoudt dezelfde contractweergave
 
 ## Snelle Backend Checks
 
@@ -57,6 +65,11 @@ In `backend-skeleton`:
   `curl -s http://127.0.0.1:3001/health`
 - attachment smoke:
   `npm run smoke:attachments`
+- metadata-contract:
+  controleer in de smoke-output:
+  - `contentEncoding`
+  - `envelopeKind`
+  - `originalMimeType`
 - attachment cleanup:
   `npm run wipe:attachments`
 

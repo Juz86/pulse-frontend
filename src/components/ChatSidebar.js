@@ -244,7 +244,7 @@ export default function ChatSidebar({
                 onClick={() => setShowFriendRequestsPanel(prev => !prev)}
                 aria-expanded={showFriendRequestsPanel}
               >
-                Vriendschapsverzoeken
+                Verzoeken
                 <ChevronDown
                   size={16}
                   aria-hidden="true"
@@ -261,8 +261,13 @@ export default function ChatSidebar({
 
           {showFriendRequestsPanel && (
             <div style={{ padding: '0 12px 4px' }}>
-              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 6px 8px' }}>
-                Ontvangen verzoeken ({friendRequests.length})
+              <div style={{ display: 'flex', gap: 16, padding: '0 6px 8px' }}>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Ontvangen ({friendRequests.length})
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Verstuurd ({sentFriendRequests.length})
+                </div>
               </div>
               {friendRequests.map(req => (
                 <div key={req.id} aria-label={`Vriendschapsverzoek van ${req.fromName}${req.fromEmail ? `, ${req.fromEmail}` : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: 'rgba(124,111,255,0.08)', borderRadius: '10px', marginBottom: '8px', border: '1px solid rgba(124,111,255,0.2)' }}>
@@ -278,9 +283,6 @@ export default function ChatSidebar({
                 </div>
               ))}
 
-              <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '8px 6px 8px' }}>
-                Verstuurde verzoeken ({sentFriendRequests.length})
-              </div>
               {sentFriendRequests.map(req => {
                 const reminderCount = Number(req.reminderCount || 0);
                 const remindersRemaining = Math.max(0, 3 - reminderCount);

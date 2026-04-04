@@ -1,0 +1,24 @@
+[debug] [2026-04-04T10:32:40.443Z] ----------------------------------------------------------------------
+[debug] [2026-04-04T10:32:40.450Z] Command:       /usr/bin/node /usr/bin/firebase emulators:start --only firestore
+[debug] [2026-04-04T10:32:40.451Z] CLI Version:   15.10.1
+[debug] [2026-04-04T10:32:40.452Z] Platform:      linux
+[debug] [2026-04-04T10:32:40.452Z] Node Version:  v20.20.1
+[debug] [2026-04-04T10:32:40.452Z] Time:          Sat Apr 04 2026 12:32:40 GMT+0200 (Central European Summer Time)
+[debug] [2026-04-04T10:32:40.452Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-04-04T10:32:40.458Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-04-04T10:32:46.723Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-04T10:32:46.725Z] > authorizing via signed-in user (yousef.abdulkadir@gmail.com)
+[debug] [2026-04-04T10:32:47.082Z] openjdk version "17.0.18" 2026-01-20
+OpenJDK Runtime Environment (build 17.0.18+8-Debian-1deb12u1)
+
+[debug] [2026-04-04T10:32:47.083Z] OpenJDK 64-Bit Server VM (build 17.0.18+8-Debian-1deb12u1, mixed mode, sharing)
+
+[debug] [2026-04-04T10:32:47.100Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2026-04-04T10:32:47.101Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2026-04-04T10:32:47.110Z] Parsed Java major version: 17
+[debug] [2026-04-04T10:32:47.119Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[info] i  emulators: Shutting down emulators. {"metadata":{"emulator":{"name":"hub"},"message":"Shutting down emulators."}}
+[debug] [2026-04-04T10:32:47.126Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[error] 
+[error] Error: firebase-tools no longer supports Java version before 21. Please install a JDK at version 21 or above to get a compatible runtime.

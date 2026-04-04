@@ -2510,9 +2510,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   font-weight: 500;
   line-height: 1.4;
   box-shadow: 0 4px 20px rgba(0,0,0,0.10);
-  opacity: 0;
-  animation: hp-bubble-appear 6s ease-in-out infinite;
-  animation-delay: var(--bubble-delay, 0s);
+  opacity: 1;
   max-width: 230px;
 }
 .hp-hero-bubble--in {
@@ -4240,7 +4238,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .fp-deco-avatar--hero-bottom { bottom: 210px; }
   .fp-deco-avatar--chat { top: 92px; }
   .fp-deco-avatar--grid { top: 16px; }
-  .ot-phone { width: 180px !important; }
+  .ot-phone { width: 100% !important; }
   .ot-phone-screen { min-height: 260px !important; }
   .ot-hero-actions { flex-direction: column; align-items: stretch; }
   .ot-secondary-btn, .hp-cta-btn { width: 100%; text-align: center; }
@@ -4579,7 +4577,10 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
     pointer-events: auto;
     z-index: auto;
     justify-content: center;
+    width: 100%;
+    max-width: 100% !important;
   }
+  .hw-hero .ot-hero-visual .ot-dashboard-card { width: 100%; box-sizing: border-box; }
 
   .ot-hero,
   .hw-hero {
@@ -4671,7 +4672,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .hw-copy h3 { font-size: 22px; }
   .hw-hero .ot-hero-inner { padding: 16px 16px 24px !important; }
   .hw-hero-inner { gap: 14px; }
-  .hw-hero .ot-hero-visual { max-width: 220px; margin: -4px auto 0; opacity: 0.92; }
+  .hw-hero .ot-hero-visual { max-width: 100% !important; width: 100%; margin: 0; opacity: 1; }
+  .hw-hero .ot-hero-visual .ot-dashboard-card { width: 100%; box-sizing: border-box; }
 }
 
 /* ── Mobiel extra klein (≤375px) ── */
@@ -4708,7 +4710,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   }
   .hw-hero .ot-hero-inner { padding: 14px 16px 20px !important; }
   .hw-hero-inner { gap: 12px; }
-  .hw-hero .ot-hero-visual { max-width: 180px; margin: -6px auto 0; opacity: 0.88; }
+  .hw-hero .ot-hero-visual { max-width: 100% !important; width: 100%; margin: 0; opacity: 1; }
 
   /* Titels */
   .hp-hero-title { font-size: 24px; }
@@ -4779,7 +4781,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   /* Mockups */
   .hp-phone { width: 160px; }
-  .ot-phone { width: 140px !important; }
+  .ot-phone { width: 100% !important; }
   .ot-phone--notification,
   .ot-phone--pause {
     width: min(100%, 260px) !important;

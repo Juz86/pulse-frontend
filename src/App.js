@@ -208,9 +208,13 @@ function MainApp() {
         Sentry.setUser({ id: firebaseUser.uid });
         // Controleer ouder-rol — localStorage flag heeft prioriteit over Firestore
         let role = 'user';
+        let username = null;
         try {
           const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
-          if (snap.exists()) role = snap.data()?.role || 'user';
+          if (snap.exists()) {
+            role = snap.data()?.role || 'user';
+            username = snap.data()?.username || null;
+          }
           else {
             // Nieuw account — controleer of ouderregistratie bezig is (race condition met /api/users)
             const pendingRole = localStorage.getItem('pulse_pending_role');
@@ -228,6 +232,25 @@ function MainApp() {
         const idToken = await firebaseUser.getIdToken();
         const socket = connectSocket(firebaseUser.uid, idToken);
         const authHeader = { 'Authorization': `Bearer ${idToken}` };
+
+        try {
+          await fetch(`${BACKEND}/api/users/sync-self`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...authHeader,
+            },
+            body: JSON.stringify({
+              displayName: firebaseUser.displayName || firebaseUser.email || firebaseUser.uid,
+              email: firebaseUser.email || null,
+              photoURL: firebaseUser.photoURL || null,
+              username,
+              role,
+            }),
+          });
+        } catch (e) {
+          console.warn('[Pulse] Zelfregistratie backend mislukt:', e.message);
+        }
 
         // Notificatie-toestemming + FCM token
         const registerFcmToken = async (authHdr) => {

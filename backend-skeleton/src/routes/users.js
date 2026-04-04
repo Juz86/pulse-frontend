@@ -5,6 +5,35 @@ import { db } from '../services/firestore.js';
 
 export const usersRouter = Router();
 
+usersRouter.post('/sync-self', requireAuth, asyncRoute(async (req, res) => {
+  const uid = req.auth.uid;
+  const {
+    displayName = null,
+    email = null,
+    photoURL = null,
+    username = null,
+    role = 'user',
+  } = req.body || {};
+
+  const now = new Date().toISOString();
+  const userRef = db.collection('users').doc(uid);
+  const existingDoc = await userRef.get();
+
+  await userRef.set({
+    uid,
+    displayName: displayName || existingDoc.data()?.displayName || email || uid,
+    email: email || existingDoc.data()?.email || null,
+    photoURL: photoURL || existingDoc.data()?.photoURL || null,
+    username: username || existingDoc.data()?.username || null,
+    role: role || existingDoc.data()?.role || 'user',
+    status: existingDoc.data()?.status || 'active',
+    createdAt: existingDoc.data()?.createdAt || now,
+    updatedAt: now,
+  }, { merge: true });
+
+  return res.json({ ok: true, uid });
+}));
+
 usersRouter.get('/lookup-username', asyncRoute(async (req, res) => {
   const username = String(req.query.username || '').trim().toLowerCase();
   if (!username) {

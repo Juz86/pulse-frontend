@@ -2425,6 +2425,20 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   padding: 6px 10px; border-radius: 6px; transition: color 0.15s, background 0.15s;
 }
 .fp-nav-link:hover { color: #1a1a2e; background: rgba(108,99,255,0.08); }
+.hp-nav-highlight-link { padding: 0 !important; background: none !important; }
+.hp-nav-highlight {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.25);
+  color: var(--accent); border-radius: 999px;
+  padding: 5px 13px; font-size: 13px; font-weight: 700;
+  transition: background 0.15s, border-color 0.15s;
+}
+.hp-nav-highlight-link:hover .hp-nav-highlight {
+  background: rgba(108,99,255,0.18); border-color: rgba(108,99,255,0.45);
+}
+.fp-nav-active.hp-nav-highlight-link .hp-nav-highlight {
+  background: rgba(108,99,255,0.18); border-color: var(--accent);
+}
 .hp-nav-kind {
   background: #f0fdf4; border: 1px solid rgba(34,197,94,0.22);
   color: #16a34a; border-radius: 14px; padding: 7px 16px;

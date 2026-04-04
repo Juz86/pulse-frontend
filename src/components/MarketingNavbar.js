@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import PulseLogo from './PulseLogo';
 import AuthModal from './AuthModal';
 import ParentAuthModal from './ParentAuthModal';
-import { Heart, Users } from './Icons';
+import { Heart, Shield, Users } from './Icons';
 
 export default function MarketingNavbar({
   items,
@@ -77,17 +77,20 @@ export default function MarketingNavbar({
           {items.map((item) => {
             const isActive = item.key === activeKey;
             const className = isActive ? 'fp-nav-active' : (item.href ? 'fp-nav-link' : '');
+            const inner = item.highlight
+              ? <span className="hp-nav-highlight"><Shield size={13} aria-hidden="true" />{item.label}</span>
+              : item.label;
 
             if (item.href) {
               return (
                 <a
                   key={item.key}
                   href={item.href}
-                  className={className}
+                  className={`${className}${item.highlight ? ' hp-nav-highlight-link' : ''}`}
                   aria-current={isActive ? 'page' : undefined}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {item.label}
+                  {inner}
                 </a>
               );
             }
@@ -96,13 +99,13 @@ export default function MarketingNavbar({
               <button
                 key={item.key}
                 type="button"
-                className={className}
+                className={`${className}${item.highlight ? ' hp-nav-highlight-link' : ''}`}
                 onClick={() => {
                   item.onClick?.();
                   setMenuOpen(false);
                 }}
               >
-                {item.label}
+                {inner}
               </button>
             );
           })}

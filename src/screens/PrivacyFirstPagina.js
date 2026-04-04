@@ -116,7 +116,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
   }, []);
 
   const navItems = [
-    { key: 'privacy-first',      label: 'Privacy-First',      href: '/privacy-first' },
+    { key: 'privacy-first', label: 'Privacy-First', href: '/privacy-first', highlight: true },
     { key: 'ouderlijk-toezicht', label: 'Ouderlijk toezicht', href: '/ouderlijk-toezicht' },
     { key: 'hoe-werkt-het',      label: 'Hoe werkt het',      href: '/hoe-werkt-het' },
     { key: 'functies',           label: 'Functies',           href: '/functies' },

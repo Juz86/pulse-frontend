@@ -174,7 +174,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const { connected, reconnectIn, typing, typingName, pausedFeatures, mentionToast } = useChat({
     user, activeConvRef, conversationsRef, msgsAreaRef, dndRef, audioCtxRef,
     loadConversations, loadContacts, loadFriendRequests, setMessages, setConversations, setUnreadCounts,
-    setFriendRequests, setContactSuccess, setContacts, setActiveConv,
+    setFriendRequests, setContactSuccess, setShowFriendRequestsPanel, setContacts, setActiveConv,
     setBlockedContacts, setParentBlockedUids,
     onReconnect: retryAllFailed,
   });

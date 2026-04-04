@@ -23,6 +23,7 @@ export default function useChat({
   setUnreadCounts,
   setFriendRequests,
   setContactSuccess,
+  setShowFriendRequestsPanel,
   setContacts,
   setActiveConv,
   setBlockedContacts,
@@ -192,6 +193,8 @@ export default function useChat({
 
     const onFriendRequest = (req) => {
       setFriendRequests(prev => [req, ...prev.filter(r => r.id !== req.id)]);
+      setShowFriendRequestsPanel?.(true);
+      loadFriendRequests?.();
       if (dndRef.current) return;
       try {
         const ctx   = new (window.AudioContext || window.webkitAudioContext)();

@@ -12,6 +12,17 @@ import {
   canEditMessage,
   isEncryptedProtocol,
 } from './policy';
+import {
+  MAX_E2EE_ATTACHMENT_BYTES,
+  isImageAttachment,
+  normalizeAttachmentPayload,
+  resolveAttachmentUrl,
+  validateAttachmentPayload,
+} from './attachmentPayload';
+import {
+  buildMockRemoteAttachmentPayload,
+  prepareAttachmentForSend,
+} from './attachmentUploadAdapter';
 
 describe('e2ee message model helpers', () => {
   test('normalizeIncomingMessage maps senderUserId to senderId and marks ownership', () => {
@@ -177,5 +188,119 @@ describe('e2ee policy helpers', () => {
 
   test('edit unavailable message stays stable', () => {
     expect(ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE).toBe('Bewerken voor versleutelde berichten is nog niet beschikbaar.');
+  });
+});
+
+describe('e2ee attachment helpers', () => {
+  test('normalizeAttachmentPayload sanitizes missing fields', () => {
+    expect(normalizeAttachmentPayload({ url: 'data:text/plain;base64,SGVsbG8=' })).toEqual({
+      name: 'Bestand',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      downloadUrl: '',
+      thumbnailUrl: '',
+      storageKey: '',
+      transfer: 'inline',
+      mimeType: '',
+      size: null,
+      caption: '',
+      encryption: null,
+    });
+  });
+
+  test('normalizeAttachmentPayload keeps remote metadata for future encrypted storage', () => {
+    expect(normalizeAttachmentPayload({
+      name: 'foto.jpg',
+      downloadUrl: 'https://cdn.example.com/foto.jpg',
+      thumbnailUrl: 'https://cdn.example.com/foto-thumb.jpg',
+      storageKey: 'attachments/conv-1/foto.jpg',
+      mimeType: 'image/jpeg',
+      transfer: 'remote',
+      encryption: {
+        alg: 'aes-gcm',
+        keyId: 'key-1',
+        iv: 'iv-1',
+        sha256: 'hash-1',
+      },
+    })).toEqual({
+      name: 'foto.jpg',
+      url: '',
+      downloadUrl: 'https://cdn.example.com/foto.jpg',
+      thumbnailUrl: 'https://cdn.example.com/foto-thumb.jpg',
+      storageKey: 'attachments/conv-1/foto.jpg',
+      transfer: 'remote',
+      mimeType: 'image/jpeg',
+      size: null,
+      caption: '',
+      encryption: {
+        alg: 'aes-gcm',
+        keyId: 'key-1',
+        iv: 'iv-1',
+        sha256: 'hash-1',
+      },
+    });
+  });
+
+  test('validateAttachmentPayload rejects oversized payloads', () => {
+    const attachment = normalizeAttachmentPayload({
+      name: 'grote-bijlage.pdf',
+      url: 'https://example.com/large.pdf',
+      size: MAX_E2EE_ATTACHMENT_BYTES + 1,
+    });
+
+    expect(validateAttachmentPayload(attachment)).toBe('Bijlagen mogen lokaal maximaal 2 MB zijn in deze testfase.');
+  });
+
+  test('isImageAttachment recognizes mime type and data urls', () => {
+    expect(isImageAttachment({ mimeType: 'image/png', url: 'https://example.com/image.png' })).toBe(true);
+    expect(isImageAttachment({ mimeType: 'application/pdf', url: 'data:image/png;base64,abc' })).toBe(true);
+    expect(isImageAttachment({ mimeType: 'application/pdf', url: 'https://example.com/file.pdf' })).toBe(false);
+  });
+
+  test('resolveAttachmentUrl prefers remote download urls', () => {
+    expect(resolveAttachmentUrl({
+      url: 'data:image/png;base64,abc',
+      downloadUrl: 'https://cdn.example.com/image.png',
+    })).toBe('https://cdn.example.com/image.png');
+  });
+
+  test('buildMockRemoteAttachmentPayload creates future-proof remote metadata', () => {
+    const attachment = buildMockRemoteAttachmentPayload({
+      name: 'foto.png',
+      url: 'data:image/png;base64,abc',
+      mimeType: 'image/png',
+      size: 1234,
+    }, {
+      conversationId: 'conv-1',
+      userId: 'user-1',
+    });
+
+    expect(attachment.transfer).toBe('remote');
+    expect(attachment.downloadUrl).toBe('data:image/png;base64,abc');
+    expect(attachment.thumbnailUrl).toBe('data:image/png;base64,abc');
+    expect(attachment.storageKey).toContain('mock-e2ee/conv-1/user-1/');
+    expect(attachment.encryption?.alg).toBe('mock-e2ee-envelope');
+  });
+
+  test('prepareAttachmentForSend supports remote_mock mode', async () => {
+    const attachment = await prepareAttachmentForSend({
+      attachment: {
+        name: 'document.pdf',
+        url: 'data:application/pdf;base64,abc',
+        mimeType: 'application/pdf',
+        size: 456,
+      },
+      conversationId: 'conv-2',
+      userId: 'user-9',
+      transportMode: 'remote_mock',
+      uploadAttachment: async (payload) => ({
+        ...payload,
+        downloadUrl: 'https://cdn.example.com/document.pdf',
+        storageKey: 'mock-e2ee/conv-2/user-9/document.pdf',
+      }),
+    });
+
+    expect(attachment.transfer).toBe('remote');
+    expect(attachment.downloadUrl).toBe('https://cdn.example.com/document.pdf');
+    expect(attachment.storageKey).toBe('mock-e2ee/conv-2/user-9/document.pdf');
   });
 });

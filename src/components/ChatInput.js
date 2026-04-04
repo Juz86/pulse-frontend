@@ -1,6 +1,7 @@
 // src/components/ChatInput.js
 import React, { useCallback, useRef } from 'react';
 import { getSocket } from '../services/socket';
+import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2ee/attachmentPayload';
 import { Send, PauseCircle, ImageIcon } from '../components/Icons';
 
 const ChatInput = React.memo(function ChatInput({
@@ -92,20 +93,20 @@ const ChatInput = React.memo(function ChatInput({
     event.target.value = '';
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
+    if (file.size > MAX_E2EE_ATTACHMENT_BYTES) {
       window.alert('Bijlagen mogen lokaal maximaal 2 MB zijn in deze testfase.');
       return;
     }
 
     const reader = new FileReader();
     reader.onload = () => {
-      onSendAttachment?.({
+      onSendAttachment?.(normalizeAttachmentPayload({
         name: file.name,
         url: typeof reader.result === 'string' ? reader.result : '',
         mimeType: file.type || 'application/octet-stream',
         size: file.size,
         caption: text.trim(),
-      });
+      }));
       setText('');
       setMentionSuggestions([]);
       setPendingMentions([]);

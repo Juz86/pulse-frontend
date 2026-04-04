@@ -1,6 +1,7 @@
 // src/components/MessageBubble.js
 import React, { useRef, useState, useEffect } from 'react';
 import { Phone, Video, Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
+import { isImageAttachment, resolveAttachmentUrl } from '../lib/e2ee/attachmentPayload';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { getInitials, formatTime } from '../utils';
 
@@ -133,29 +134,26 @@ const MessageBubble = React.memo(function MessageBubble({
 
   if (msg.type === 'attachment') {
     const attachment = msg.attachment;
-    const isImageAttachment = !!attachment?.url && (
-      attachment?.mimeType?.startsWith('image/') ||
-      attachment?.url?.startsWith('data:image/')
-    );
+    const attachmentUrl = resolveAttachmentUrl(attachment);
     const openAttachment = () => {
-      if (attachment?.url) window.open(attachment.url, '_blank', 'noopener,noreferrer');
+      if (attachmentUrl) window.open(attachmentUrl, '_blank', 'noopener,noreferrer');
     };
 
     return (
       <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
         <div
           className="msg-contact-card"
-          role={attachment?.url ? 'button' : undefined}
-          tabIndex={attachment?.url ? 0 : undefined}
-          aria-label={attachment?.url ? `Open bijlage ${attachment?.name || 'Bestand'}` : undefined}
-          style={{ cursor: attachment?.url ? 'pointer' : 'default' }}
-          onClick={attachment?.url ? openAttachment : undefined}
-          onKeyDown={attachment?.url ? (event) => handleActionCardKeyDown(event, openAttachment) : undefined}
+          role={attachmentUrl ? 'button' : undefined}
+          tabIndex={attachmentUrl ? 0 : undefined}
+          aria-label={attachmentUrl ? `Open bijlage ${attachment?.name || 'Bestand'}` : undefined}
+          style={{ cursor: attachmentUrl ? 'pointer' : 'default' }}
+          onClick={attachmentUrl ? openAttachment : undefined}
+          onKeyDown={attachmentUrl ? (event) => handleActionCardKeyDown(event, openAttachment) : undefined}
         >
-          {isImageAttachment ? (
+          {isImageAttachment(attachment) ? (
             <div className="u-flex-1 u-min-w-0">
               <img
-                src={attachment.url}
+                src={attachmentUrl}
                 alt={attachment?.name || 'Gedeelde afbeelding'}
                 style={{
                   display: 'block',

@@ -1,6 +1,7 @@
 import { BACKEND_URL } from '../../services/socket';
 import { E2EE_MODE } from './config';
 import { pulseCryptoAdapter } from './adapter/pulseCryptoAdapter';
+import { normalizeAttachmentPayload } from './attachmentPayload';
 import { normalizeIncomingMessage } from './messageModel';
 import { secureKeyStore } from './secureKeyStore';
 import { sessionStore } from './sessionStore';
@@ -16,7 +17,7 @@ function serializeMessagePayload({ plaintext, messageType = 'text', sharedContac
   if (messageType === 'attachment') {
     return JSON.stringify({
       kind: 'attachment',
-      attachment: attachment || null,
+      attachment: normalizeAttachmentPayload(attachment),
       text: plaintext || '',
     });
   }
@@ -34,7 +35,7 @@ function deserializeMessagePayload({ plaintext, messageType = 'text' }) {
         text: parsed?.text || attachment?.name || 'Bijlage',
         type: 'attachment',
         sharedContact: null,
-        attachment,
+        attachment: normalizeAttachmentPayload(attachment),
       };
     } catch {
       return {
@@ -176,13 +177,16 @@ export const messagingService = {
     ));
     if (targetUserIds.length === 0) throw new Error('Geen ontvanger beschikbaar.');
 
+    const normalizedAttachment = messageType === 'attachment'
+      ? normalizeAttachmentPayload(attachment)
+      : null;
     const recipientPayloads = [];
     let primaryCiphertext = '';
     const payloadPlaintext = serializeMessagePayload({
       plaintext,
       messageType,
       sharedContact,
-      attachment,
+      attachment: normalizedAttachment,
     });
 
     for (const targetUserId of targetUserIds) {
@@ -225,7 +229,7 @@ export const messagingService = {
         ciphertext: primaryCiphertext,
         messageType,
         sharedContact,
-        attachment,
+        attachment: normalizedAttachment,
         mentions,
         protocol: 'signal_v1',
         protocolVersion: 1,

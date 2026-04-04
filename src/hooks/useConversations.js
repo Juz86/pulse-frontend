@@ -2,6 +2,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getSocket, BACKEND_URL } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
+import { normalizeAttachmentPayload, validateAttachmentPayload } from '../lib/e2ee/attachmentPayload';
+import { prepareAttachmentForSend } from '../lib/e2ee/attachmentUploadAdapter';
 import {
   buildPendingMessage,
   getConversationPreview,
@@ -496,17 +498,29 @@ export default function useConversations({
     });
   }
 
-  function sendAttachmentToConversation(conv, attachment) {
+  async function sendAttachmentToConversation(conv, attachment) {
     const socket = getSocket();
     if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !conv || !attachment) return;
 
-    const normalizedAttachment = {
-      name: attachment.name || 'Bestand',
-      url: attachment.url || '',
-      mimeType: attachment.mimeType || '',
-      size: attachment.size || null,
-      caption: attachment.caption || '',
-    };
+    const prevalidatedAttachment = normalizeAttachmentPayload(attachment);
+    const attachmentError = validateAttachmentPayload(prevalidatedAttachment);
+    if (attachmentError) {
+      showErrToast(attachmentError);
+      return;
+    }
+
+    let normalizedAttachment = prevalidatedAttachment;
+    try {
+      normalizedAttachment = await prepareAttachmentForSend({
+        attachment: prevalidatedAttachment,
+        conversationId: conv.id,
+        user,
+        userId: user.uid,
+      });
+    } catch (error) {
+      showErrToast(error.message || 'Bijlage voorbereiden mislukt');
+      return;
+    }
     const tempId = `temp-${Date.now()}`;
     const optimisticMsg = {
       ...buildPendingMessage({

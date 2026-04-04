@@ -1,10 +1,10 @@
 import { randomUUID } from 'crypto';
-import { mkdir, readFile, stat, writeFile } from 'fs/promises';
+import { mkdir, readFile, rm, stat, writeFile } from 'fs/promises';
 import path from 'path';
 
 const attachmentStore = new Map();
 
-function getMockStorageDir() {
+export function getMockStorageDir() {
   return path.resolve(process.env.PULSE_ATTACHMENT_MOCK_DIR || '/tmp/pulse-e2ee-attachments');
 }
 
@@ -134,4 +134,9 @@ export async function getStoredAttachment(id) {
   } catch {
     return null;
   }
+}
+
+export async function clearStoredAttachments() {
+  attachmentStore.clear();
+  await rm(getMockStorageDir(), { recursive: true, force: true });
 }

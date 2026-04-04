@@ -10,6 +10,7 @@
     "seed": "node src/scripts/seed.js",
     "seed:emulator": "node src/scripts/seedEmulator.js",
     "wipe:emulator": "node src/scripts/wipeEmulator.js",
+    "wipe:attachments": "node src/scripts/wipeAttachments.js",
     "smoke": "node src/scripts/smoke.js",
     "smoke:attachments": "node src/scripts/smokeAttachments.js",
     "smoke:socket": "node src/scripts/socketSmoke.js",

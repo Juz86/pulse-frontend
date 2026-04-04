@@ -113,6 +113,7 @@ Snelle lokale emulatorflow zonder losse env-export:
 - `npm run preflight:emulator`
 - `npm run seed:emulator`
 - `npm run dev:emulator`
+- `npm run wipe:attachments`
 
 Optioneel voorbeelddata laden:
 
@@ -157,6 +158,7 @@ Dat dekt nu ook de quiet-hours policyhelper mee.
 - send- en receiptflows valideren nu expliciet actieve sender- en recipient-devices
 - denied policychecks en parent-acties worden alvast gelogd naar `policy_events`
 - attachments hebben nu ook een lokale mock-storage route met persistente bestanden onder `/tmp/pulse-e2ee-attachments`
+- `npm run wipe:attachments` maakt die mock-storage weer leeg voor een schone testronde
 - dit is bedoeld als implementatiestart, niet als af productieontwerp
 
 ## Health En Readiness

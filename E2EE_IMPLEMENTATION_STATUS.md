@@ -14,7 +14,7 @@ Wat dit betekent:
 
 - de huidige app blijft werken met de bestaande socketflow
 - de codebase is voorbereid op een overstap naar service-based encrypted delivery
-- echte activatie hangt nu af van backend-endpoints
+- een lokale servicefase met backend-skeleton en `remote_mock` attachments werkt nu al
 
 ## Wat al gebouwd is
 
@@ -38,6 +38,8 @@ Wat dit betekent:
 - message/policy helpers:
   [src/lib/e2ee/messageModel.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/messageModel.js)
   [src/lib/e2ee/policy.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/policy.js)
+  [src/lib/e2ee/attachmentPayload.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentPayload.js)
+  [src/lib/e2ee/attachmentUploadAdapter.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentUploadAdapter.js)
 
 ### Frontend integratie
 
@@ -53,6 +55,7 @@ Wat dit betekent:
 - UI-fallbacks:
   [src/components/MessageBubble.js](/home/yushuaabdulkadir/pulse-frontend/src/components/MessageBubble.js)
   [src/components/ConversationItem.js](/home/yushuaabdulkadir/pulse-frontend/src/components/ConversationItem.js)
+  [src/components/ChatInput.js](/home/yushuaabdulkadir/pulse-frontend/src/components/ChatInput.js)
 
 - edit-policy voor encrypted berichten:
   [src/components/MsgContextMenu.js](/home/yushuaabdulkadir/pulse-frontend/src/components/MsgContextMenu.js)
@@ -72,6 +75,9 @@ Wat dit betekent:
 - Firestore/datastore plan:
   [BACKEND_E2EE_FIRESTORE_PLAN.md](/home/yushuaabdulkadir/pulse-frontend/BACKEND_E2EE_FIRESTORE_PLAN.md)
 
+- attachment remote mock:
+  [E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md)
+
 ## Feature flags
 
 Huidige veilige defaults:
@@ -84,11 +90,13 @@ Waarden:
 
 - `REACT_APP_E2EE_MODE=mock`
 - `REACT_APP_E2EE_TRANSPORT=socket`
+- `REACT_APP_E2EE_ATTACHMENT_TRANSPORT=inline`
 
 Betekenis:
 
 - `mock`: nog geen echte crypto-library actief
 - `socket`: bestaande verzendflow blijft leidend
+- `inline`: attachments blijven standaard lokaal/data-url gebaseerd tenzij bewust `remote_mock` wordt gekozen
 
 ## Wat geverifieerd is
 
@@ -108,6 +116,8 @@ Tests aanwezig:
 
 - [src/utils.test.js](/home/yushuaabdulkadir/pulse-frontend/src/utils.test.js)
 - [src/lib/e2ee/e2ee.test.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/e2ee.test.js)
+- `backend-skeleton npm test`
+- `backend-skeleton npm run smoke:attachments`
 
 ### Lint
 
@@ -119,23 +129,21 @@ Geslaagd:
 
 - echte crypto is nog niet actief
 - encrypted edit-flow is bewust uitgeschakeld
-- backendroutes voor device registration, key bundles en encrypted send ontbreken nog in deze repo
-- service transport is voorbereid, maar nog niet bedoeld om al aan te zetten zonder backend
+- attachments gebruiken lokaal nu `remote_mock`, nog geen echte productie-storage
+- media-encryptie is nog mock metadata en nog geen echte decrypt-downloadketen
 
 ## Volgende stap
 
-De volgende echte stap ligt buiten deze frontendrepo:
+De volgende echte stap is nu afronding en hardening:
 
-1. bouw backend-endpoints volgens
-   [BACKEND_E2EE_API_SPEC.md](/home/yushuaabdulkadir/pulse-frontend/BACKEND_E2EE_API_SPEC.md)
-2. gebruik datastore/indexplan uit
-   [BACKEND_E2EE_FIRESTORE_PLAN.md](/home/yushuaabdulkadir/pulse-frontend/BACKEND_E2EE_FIRESTORE_PLAN.md)
-3. zet daarna `REACT_APP_E2EE_TRANSPORT=service`
-4. test 1-op-1 direct chats met mock crypto
-5. vervang daarna pas mock adapter door echte crypto
+1. doorloop de handmatige acceptatieronde
+2. valideer de attachment-flow via
+   [E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md)
+3. vervang daarna mock media-opslag door echte encrypted media/storage
+4. bereid productie-activatie voor
 
 ## Praktisch oordeel
 
-De frontend is nu niet "af" qua echte E2EE, maar wel "klaar voor backend-aansluiting".
+De frontend is nu niet "af" qua echte E2EE, maar wel functioneel gekoppeld aan een lokale servicefase inclusief remote-mock attachments.
 
-Dat is precies de juiste toestand voor deze repo op dit moment.
+De grootste open technische stap is nu echte encrypted media/storage, niet meer de basis van chat/service-integratie.

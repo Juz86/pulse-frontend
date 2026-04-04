@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
-import { Mail, Shield, Check, Send, Message, Phone, Video, Users } from '../components/Icons';
+import AuthModal from '../components/AuthModal';
+import ParentAuthModal from '../components/ParentAuthModal';
+import { Mail, Shield, Check, Send, Message, Phone, Video, Users, Login } from '../components/Icons';
 
 function useFadeIn() {
   const ref = useRef(null);
@@ -438,6 +440,8 @@ function ContactForm() {
 export default function ContactPagina() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showParentModal, setShowParentModal] = useState(false);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
   useEffect(() => {
@@ -504,10 +508,20 @@ export default function ContactPagina() {
         {/* ── CTA ── */}
         <section className="ot-final-cta">
           <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
-          <p>Pulse helpt gezinnen communiceren op een manier die vertrouwd, veilig en rustig voelt.</p>
-          <a href="/" className="hp-cta-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-            Naar de homepage
-          </a>
+          <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
+              Ouderaccount aanmaken
+            </button>
+            <button
+              type="button"
+              className="hp-cta-btn"
+              style={{ background: '#fff', border: '1.5px solid rgba(108,99,255,0.4)', color: '#6c63ff', display: 'flex', alignItems: 'center', gap: 6 }}
+              onClick={() => setShowAuthModal(true)}
+            >
+              <Login size={18} /> Inloggen
+            </button>
+          </div>
         </section>
       </main>
 
@@ -527,6 +541,13 @@ export default function ContactPagina() {
       `}</style>
 
       <MarketingFooter />
+
+      {showAuthModal && (
+        <AuthModal onClose={() => setShowAuthModal(false)} />
+      )}
+      {showParentModal && (
+        <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
+      )}
     </div>
   );
 }

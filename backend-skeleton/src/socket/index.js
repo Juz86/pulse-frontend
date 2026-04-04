@@ -2,6 +2,7 @@ import { Server } from 'socket.io';
 import admin from 'firebase-admin';
 import { db } from '../services/firestore.js';
 import { getDevUidFromSocketAuth, isDevAuthBypassEnabled } from '../middleware/auth.js';
+import { canEditMessage, normalizeEditedText } from '../services/messageEdits.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
@@ -55,6 +56,71 @@ export function createSocketServer(server) {
       if (!Array.isArray(conv.members) || !conv.members.includes(uid)) return;
 
       socket.join(`conv:${convId}`);
+    });
+
+    socket.on('message:edit', async ({ convId, msgId, newText }, ack = () => {}) => {
+      if (!convId || !msgId || !uid) {
+        ack({ error: 'invalid_payload' });
+        return;
+      }
+
+      const trimmedText = normalizeEditedText(newText);
+      if (!trimmedText) {
+        ack({ error: 'invalid_payload' });
+        return;
+      }
+
+      const convDoc = await db.collection('conversations').doc(convId).get();
+      if (!convDoc.exists) {
+        ack({ error: 'conversation_not_found' });
+        return;
+      }
+
+      const conv = convDoc.data();
+      if (!Array.isArray(conv.members) || !conv.members.includes(uid)) {
+        ack({ error: 'not_allowed_in_conversation' });
+        return;
+      }
+
+      const msgDoc = await db.collection('messages').doc(msgId).get();
+      if (!msgDoc.exists) {
+        ack({ error: 'message_not_found' });
+        return;
+      }
+
+      const message = msgDoc.data();
+      if (message.conversationId !== convId) {
+        ack({ error: 'message_conversation_mismatch' });
+        return;
+      }
+
+      const decision = canEditMessage(message, uid);
+      if (!decision.allowed) {
+        ack({ error: decision.reason });
+        return;
+      }
+
+      const editedAt = new Date().toISOString();
+
+      await msgDoc.ref.set(
+        {
+          text: trimmedText,
+          editedAt,
+          updatedAt: editedAt,
+        },
+        { merge: true }
+      );
+
+      for (const memberUid of conv.members) {
+        emitToUser(io, memberUid, 'message:edited', {
+          msgId,
+          convId,
+          text: trimmedText,
+          editedAt,
+        });
+      }
+
+      ack({ ok: true, msgId, editedAt });
     });
 
     socket.on('call:offer', async ({ to, offer, isVideo, callerName }) => {

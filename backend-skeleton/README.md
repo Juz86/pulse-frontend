@@ -18,6 +18,7 @@ Deze map is geen complete productiebackend, maar een startpunt voor:
 - `DELETE /api/messages/:convId/:msgId`
 - `POST /calls/start`
 - socket auth en `message:new`
+- socket compat voor `message:edit` -> `message:edited`
 - parent policy admin-routes
 - friend requests en contact-compatibiliteitsroutes
 
@@ -94,6 +95,7 @@ Deze skeleton bevat nu ook:
 Belangrijk:
 
 - `call:offer` en `call:video-upgrade` worden door de policieservice gevalideerd
+- `message:edit` laat alleen legacy/plaintext edits toe; `signal_v1` wordt expliciet geweigerd
 
 ## Lokale Start
 

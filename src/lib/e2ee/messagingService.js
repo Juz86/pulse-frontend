@@ -5,6 +5,44 @@ import { normalizeIncomingMessage } from './messageModel';
 import { secureKeyStore } from './secureKeyStore';
 import { sessionStore } from './sessionStore';
 
+function serializeMessagePayload({ plaintext, messageType = 'text', sharedContact = null }) {
+  if (messageType === 'contact') {
+    return JSON.stringify({
+      kind: 'contact',
+      sharedContact: sharedContact || null,
+    });
+  }
+
+  return plaintext;
+}
+
+function deserializeMessagePayload({ plaintext, messageType = 'text' }) {
+  if (messageType !== 'contact') {
+    return {
+      text: plaintext,
+      type: 'text',
+      sharedContact: null,
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(plaintext);
+    const sharedContact = parsed?.sharedContact || null;
+
+    return {
+      text: `Contactpersoon: ${sharedContact?.name || 'Contactpersoon'}`,
+      type: 'contact',
+      sharedContact,
+    };
+  } catch {
+    return {
+      text: 'Contactpersoon gedeeld',
+      type: 'contact',
+      sharedContact: null,
+    };
+  }
+}
+
 async function getAuthToken(user) {
   return user.getIdToken();
 }
@@ -67,10 +105,16 @@ async function hydrateMockCiphertext(raw, currentUserId) {
       ciphertext: raw.ciphertext,
       encryptedMessageKey: raw.encryptedMessageKey || null,
     });
+    const structured = deserializeMessagePayload({
+      plaintext: decrypted.plaintext,
+      messageType: raw.messageType || 'text',
+    });
 
     return normalizeIncomingMessage({
       ...raw,
-      text: decrypted.plaintext,
+      text: structured.text,
+      type: structured.type,
+      sharedContact: structured.sharedContact,
       decryptedLocally: true,
       ciphertextAvailable: true,
     }, currentUserId);
@@ -80,7 +124,15 @@ async function hydrateMockCiphertext(raw, currentUserId) {
 }
 
 export const messagingService = {
-  async sendMessage({ user, conversationId, recipientUserId, plaintext, replyToMessageId = null }, currentDeviceId) {
+  async sendMessage({
+    user,
+    conversationId,
+    recipientUserId,
+    plaintext,
+    replyToMessageId = null,
+    messageType = 'text',
+    sharedContact = null,
+  }, currentDeviceId) {
     if (!user) throw new Error('Geen gebruiker beschikbaar.');
     if (!currentDeviceId) throw new Error('Geen huidig device beschikbaar.');
     if (!recipientUserId) throw new Error('Geen ontvanger beschikbaar.');
@@ -88,11 +140,16 @@ export const messagingService = {
     const sessions = await ensureSessions(user, recipientUserId);
     const recipientPayloads = [];
     let primaryCiphertext = '';
+    const payloadPlaintext = serializeMessagePayload({
+      plaintext,
+      messageType,
+      sharedContact,
+    });
 
     for (const session of sessions) {
       const encrypted = await pulseCryptoAdapter.encryptMessage({
         sessionData: session.sessionData,
-        plaintext,
+        plaintext: payloadPlaintext,
       });
 
       await sessionStore.save(user.uid, {
@@ -123,7 +180,8 @@ export const messagingService = {
         conversationId,
         senderDeviceId: currentDeviceId,
         ciphertext: primaryCiphertext,
-        messageType: 'text',
+        messageType,
+        sharedContact,
         protocol: 'signal_v1',
         protocolVersion: 1,
         replyToMessageId,
@@ -176,6 +234,10 @@ export const messagingService = {
       ciphertext: raw.ciphertext,
       encryptedMessageKey: raw.encryptedMessageKey,
     });
+    const structured = deserializeMessagePayload({
+      plaintext: decrypted.plaintext,
+      messageType: raw.messageType || 'text',
+    });
 
     await sessionStore.save(currentUserId, {
       ...sessionRecord,
@@ -185,7 +247,9 @@ export const messagingService = {
 
     return normalizeIncomingMessage({
       ...raw,
-      text: decrypted.plaintext,
+      text: structured.text,
+      type: structured.type,
+      sharedContact: structured.sharedContact,
       decryptedLocally: true,
       ciphertextAvailable: true,
     }, currentUserId);

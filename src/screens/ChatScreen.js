@@ -130,6 +130,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore,
     loadConversations, openConversation, deleteConversation, loadMoreMessages,
     sendMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
+    sendContactCardToConversation,
     forwardToConv, deleteMessage,
     toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
   } = useConversations({
@@ -270,14 +271,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // ── Helpers ───────────────────────────────────────────────────────────────
   function sendContactCard(toContact, sharedContact) {
     const conv = findConvWithUid(toContact.uid);
-    const socket = getSocket();
-    if (!conv || !socket) return;
-    socket.emit('conversation:join', { convId: conv.id });
-    socket.emit('message:send', { convId: conv.id, message: {
-      convId: conv.id, senderId: user.uid, senderName: user.displayName || user.email,
-      type: 'contact', sharedContact: { uid: sharedContact.uid, name: getContactDisplayName(sharedContact), email: sharedContact.email || '' },
-      createdAt: new Date().toISOString(),
-    }});
+    if (!conv) return;
+    sendContactCardToConversation(conv, {
+      uid: sharedContact.uid,
+      name: getContactDisplayName(sharedContact),
+      email: sharedContact.email || '',
+    });
     setSharingContact(null);
   }
   function getConvName(conv) {

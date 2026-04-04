@@ -144,13 +144,15 @@ export default function useConversations({
     )));
   }
 
-  async function sendViaService({ conv, plaintext, recipientUserId, replyToMessageId }) {
+  async function sendViaService({ conv, plaintext, recipientUserId, replyToMessageId, messageType = 'text', sharedContact = null }) {
     const result = await messagingService.sendMessage({
       user,
       conversationId: conv.id,
       recipientUserId,
       plaintext,
       replyToMessageId,
+      messageType,
+      sharedContact,
     }, currentDeviceId);
 
     return {
@@ -159,11 +161,16 @@ export default function useConversations({
       senderId: user.uid,
       senderUserId: user.uid,
       senderDeviceId: currentDeviceId,
-      text: plaintext,
+      text: messageType === 'contact'
+        ? `Contactpersoon: ${sharedContact?.name || 'Contactpersoon'}`
+        : plaintext,
       createdAt: new Date().toISOString(),
       protocol: 'signal_v1',
       deliveryState: 'sent',
       replyToMessageId,
+      type: messageType,
+      messageType,
+      sharedContact,
     };
   }
 
@@ -400,6 +407,89 @@ export default function useConversations({
     stopTyping();
   }
 
+  function sendContactCardToConversation(conv, sharedContact) {
+    const socket = getSocket();
+    if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !conv || !sharedContact) return;
+
+    const normalizedSharedContact = {
+      uid: sharedContact.uid || null,
+      name: sharedContact.name || 'Contactpersoon',
+      email: sharedContact.email || '',
+    };
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg = {
+      ...buildPendingMessage({
+        text: `Contactpersoon: ${normalizedSharedContact.name}`,
+        conversationId: conv.id,
+        userId: user.uid,
+        type: 'contact',
+        sharedContact: normalizedSharedContact,
+      }),
+      id: tempId,
+      convId: conv.id,
+      senderName: user.displayName || user.email,
+      _key: tempId,
+      _retryCount: 0,
+    };
+    const isActiveConversation = activeConvRef.current?.id === conv.id;
+
+    if (isActiveConversation) {
+      pendingTempIds.current.add(optimisticMsg.id);
+      setMessages(prev => [...prev, optimisticMsg]);
+      setTimeout(() => {
+        if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight;
+      }, 50);
+    }
+
+    setConversations(prev => {
+      const updated = prev.map((item) => (
+        item.id === conv.id
+          ? {
+              ...item,
+              lastMessage: getConversationPreview(optimisticMsg),
+              updatedAt: optimisticMsg.createdAt,
+              lastCallDirection: null,
+              lastCallSenderId: null,
+              lastCallIsVideo: null,
+            }
+          : item
+      ));
+      return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
+    });
+
+    if (shouldUseServiceTransport(conv)) {
+      const recipient = getConversationRecipient(conv);
+      sendViaService({
+        conv,
+        plaintext: optimisticMsg.text,
+        recipientUserId: recipient?.userId || null,
+        replyToMessageId: null,
+        messageType: 'contact',
+        sharedContact: normalizedSharedContact,
+      }).then((savedMsg) => {
+        if (!isActiveConversation) return;
+        pendingTempIds.current.delete(optimisticMsg.id);
+        patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
+      }).catch(() => {
+        if (!isActiveConversation) return;
+        patchMessageAsFailed(optimisticMsg.id);
+      });
+      return;
+    }
+
+    socket.emit('message:send', {
+      convId: conv.id,
+      message: {
+        convId: conv.id,
+        senderId: user.uid,
+        senderName: user.displayName || user.email,
+        type: 'contact',
+        sharedContact: normalizedSharedContact,
+        createdAt: optimisticMsg.createdAt,
+      },
+    });
+  }
+
   function retryMessage(failedMsg) {
     const socket = getSocket();
     if ((!socket?.connected && !shouldUseServiceTransport(activeConv)) || !activeConv) return;
@@ -546,6 +636,7 @@ export default function useConversations({
     currentDeviceId,
     loadConversations, openConversation, deleteConversation, loadMoreMessages,
     sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
+    sendContactCardToConversation,
     forwardToConv, deleteMessage,
     toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
   };

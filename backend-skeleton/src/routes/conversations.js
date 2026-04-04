@@ -6,6 +6,7 @@ import { db } from '../services/firestore.js';
 function deriveConversationPreview(message, fallback = '') {
   if (!message) return fallback;
   if (message.text) return message.text;
+  if (message.messageType === 'contact') return 'Contactpersoon gedeeld';
   if (message.messageType && message.messageType !== 'text') return 'Nieuw bericht';
   if (message.protocol === 'signal_v1' && message.ciphertext) {
     try {

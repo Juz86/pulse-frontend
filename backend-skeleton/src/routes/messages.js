@@ -9,6 +9,7 @@ import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
 function deriveMockPreview({ ciphertext, protocol, messageType }) {
+  if (messageType === 'contact') return 'Contactpersoon gedeeld';
   if (messageType && messageType !== 'text') return 'Nieuw bericht';
   if (protocol !== 'signal_v1' || !ciphertext) return '';
 
@@ -97,6 +98,7 @@ export function messagesRouter({ io, emitToUser }) {
       senderDeviceId,
       ciphertext,
       messageType: messageType || 'text',
+      sharedContact: req.body?.sharedContact || null,
       protocol: protocol || 'signal_v1',
       protocolVersion: protocolVersion || 1,
       replyToMessageId: replyToMessageId || null,
@@ -125,6 +127,7 @@ export function messagesRouter({ io, emitToUser }) {
         protocol: protocol || 'signal_v1',
         protocolVersion: protocolVersion || 1,
         messageType: messageType || 'text',
+        sharedContact: req.body?.sharedContact || null,
         replyToMessageId: replyToMessageId || null,
       });
     }

@@ -78,8 +78,34 @@ describe('e2ee message model helpers', () => {
     expect(getConversationPreview({ ciphertextAvailable: true, decryptedLocally: false })).toBe('Versleuteld bericht');
   });
 
+  test('contact messages keep their shared-contact preview', () => {
+    expect(getConversationPreview({
+      type: 'contact',
+      sharedContact: { name: 'Habiba' },
+    })).toBe('Contactpersoon: Habiba');
+  });
+
   test('getMessageDisplayText falls back to encrypted placeholder when text is unavailable', () => {
     expect(getMessageDisplayText({ ciphertextAvailable: true, decryptedLocally: false })).toBe('Versleuteld bericht');
+  });
+
+  test('normalizeIncomingMessage preserves structured contact metadata', () => {
+    const normalized = normalizeIncomingMessage(
+      {
+        id: 'msg-contact-1',
+        conversationId: 'conv-1',
+        senderUserId: 'user-2',
+        type: 'contact',
+        messageType: 'contact',
+        text: 'Contactpersoon: Habiba',
+        sharedContact: { uid: 'user-3', name: 'Habiba', email: 'habiba@example.com' },
+      },
+      'user-1'
+    );
+
+    expect(normalized.type).toBe('contact');
+    expect(normalized.messageType).toBe('contact');
+    expect(normalized.sharedContact?.name).toBe('Habiba');
   });
 });
 

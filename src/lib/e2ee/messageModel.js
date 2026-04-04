@@ -1,5 +1,6 @@
 export function normalizeIncomingMessage(raw, currentUserId) {
   const senderId = raw.senderId || raw.senderUserId;
+  const type = raw.type || raw.messageType || 'text';
 
   return {
     id: raw.id,
@@ -20,7 +21,9 @@ export function normalizeIncomingMessage(raw, currentUserId) {
     isLocalOnly: !!raw.isLocalOnly,
     isOwn: senderId === currentUserId,
 
-    messageType: raw.messageType || 'text',
+    type,
+    messageType: raw.messageType || type,
+    sharedContact: raw.sharedContact || null,
     attachment: raw.attachment || null,
 
     pending: !!raw.pending,
@@ -28,7 +31,14 @@ export function normalizeIncomingMessage(raw, currentUserId) {
   };
 }
 
-export function buildPendingMessage({ text, conversationId, userId, replyTo = null }) {
+export function buildPendingMessage({
+  text,
+  conversationId,
+  userId,
+  replyTo = null,
+  type = 'text',
+  sharedContact = null,
+}) {
   const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
   return {
@@ -50,7 +60,9 @@ export function buildPendingMessage({ text, conversationId, userId, replyTo = nu
     isLocalOnly: true,
     isOwn: true,
 
-    messageType: 'text',
+    type,
+    messageType: type,
+    sharedContact,
     attachment: null,
 
     pending: true,
@@ -83,6 +95,7 @@ export function getConversationPreview(msg) {
   if (!msg) return '';
   if (typeof msg.lastMessage === 'string' && msg.lastMessage) return msg.lastMessage;
   if (msg.deleted) return 'Bericht verwijderd';
+  if (msg.type === 'contact') return `Contactpersoon: ${msg.sharedContact?.name || 'Contactpersoon'}`;
   if (msg.text) return msg.text;
   if (msg.ciphertextAvailable) return 'Versleuteld bericht';
   return '';

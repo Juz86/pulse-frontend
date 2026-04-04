@@ -9,6 +9,7 @@
     "start": "node src/server.js",
     "seed": "node src/scripts/seed.js",
     "seed:emulator": "node src/scripts/seedEmulator.js",
+    "wipe:emulator": "node src/scripts/wipeEmulator.js",
     "smoke": "node src/scripts/smoke.js",
     "smoke:socket": "node src/scripts/socketSmoke.js",
     "preflight": "node src/scripts/preflight.js",

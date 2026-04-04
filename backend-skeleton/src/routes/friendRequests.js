@@ -82,9 +82,36 @@ export function friendRequestsRouter({ io, emitToUser }) {
       return res.status(400).json({ error: 'Je kunt jezelf niet toevoegen.' });
     }
 
-    const existingContact = await db.collection('users').doc(fromUid).collection('contacts').doc(toUid).get();
-    if (existingContact.exists) {
-      return res.json({ ok: true, restored: true, toUid });
+    const senderContactRef = db.collection('users').doc(fromUid).collection('contacts').doc(toUid);
+    const recipientContactRef = db.collection('users').doc(toUid).collection('contacts').doc(fromUid);
+    const [senderContactDoc, recipientContactDoc] = await Promise.all([
+      senderContactRef.get(),
+      recipientContactRef.get(),
+    ]);
+
+    if (senderContactDoc.exists || recipientContactDoc.exists) {
+      const restoredAt = new Date().toISOString();
+
+      await Promise.all([
+        senderContactRef.set({
+          uid: toUid,
+          displayName: target.displayName || target.username || target.email || toUid,
+          email: target.email || toEmail || null,
+          photoURL: target.photoURL || null,
+          createdAt: senderContactDoc.data()?.createdAt || restoredAt,
+          restoredAt,
+        }, { merge: true }),
+        recipientContactRef.set({
+          uid: fromUid,
+          displayName: fromName || fromEmail || fromUid,
+          email: fromEmail || null,
+          photoURL: fromPhoto || null,
+          createdAt: recipientContactDoc.data()?.createdAt || restoredAt,
+          restoredAt,
+        }, { merge: true }),
+      ]);
+
+      return res.json({ ok: true, restored: true, repairedBothSides: true, toUid });
     }
 
     const existingPendingSnap = await db

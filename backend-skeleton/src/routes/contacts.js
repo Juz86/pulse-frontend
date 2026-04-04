@@ -5,6 +5,18 @@ import { db } from '../services/firestore.js';
 
 export const contactsRouter = Router();
 
+contactsRouter.get('/:uid', requireAuth, asyncRoute(async (req, res) => {
+  const requesterUid = req.auth.uid;
+  const { uid } = req.params;
+
+  if (requesterUid !== uid) {
+    return res.status(403).json({ error: 'not_allowed' });
+  }
+
+  const snap = await db.collection('users').doc(uid).collection('contacts').get();
+  return res.json(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+}));
+
 contactsRouter.delete('/:uid/:targetUid', requireAuth, asyncRoute(async (req, res) => {
   const requesterUid = req.auth.uid;
   const { uid, targetUid } = req.params;

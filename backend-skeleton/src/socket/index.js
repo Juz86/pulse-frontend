@@ -3,10 +3,12 @@ import admin from 'firebase-admin';
 import { db } from '../services/firestore.js';
 import { getDevUidFromSocketAuth, isDevAuthBypassEnabled } from '../middleware/auth.js';
 import { canEditMessage, normalizeEditedText } from '../services/messageEdits.js';
+import { buildLegacyMessage } from '../services/legacyMessages.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
 const onlineUsers = new Map();
+const inactiveUsers = new Set();
 
 export function createSocketServer(server) {
   const io = new Server(server, {
@@ -46,6 +48,26 @@ export function createSocketServer(server) {
     }
     onlineUsers.get(uid).add(socket.id);
 
+    socket.on('user:online', () => {
+      inactiveUsers.delete(uid);
+      io.emit('user:status', { uid, online: true, inactive: false });
+    });
+
+    socket.on('user:inactive', () => {
+      inactiveUsers.add(uid);
+      io.emit('user:status', { uid, online: true, inactive: true });
+    });
+
+    socket.on('user:active', () => {
+      inactiveUsers.delete(uid);
+      io.emit('user:status', { uid, online: true, inactive: false });
+    });
+
+    socket.on('users:online:request', () => {
+      socket.emit('users:online', Array.from(onlineUsers.keys()));
+      socket.emit('users:inactive', Array.from(inactiveUsers));
+    });
+
     socket.on('conversation:join', async ({ convId }) => {
       if (!convId || !uid) return;
 
@@ -56,6 +78,138 @@ export function createSocketServer(server) {
       if (!Array.isArray(conv.members) || !conv.members.includes(uid)) return;
 
       socket.join(`conv:${convId}`);
+    });
+
+    socket.on('conversation:create', async (payload = {}, ack = () => {}) => {
+      const members = Array.from(new Set([...(payload.members || []), uid])).filter(Boolean);
+      if (members.length < 2) {
+        ack({ error: 'invalid_members' });
+        return;
+      }
+
+      const isGroup = !!payload.isGroup;
+      let existing = null;
+
+      if (!isGroup && members.length === 2) {
+        const snap = await db
+          .collection('conversations')
+          .where('isGroup', '==', false)
+          .where('members', 'array-contains', uid)
+          .get();
+
+        existing = snap.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .find((conv) => Array.isArray(conv.members) && conv.members.length === 2 && members.every((memberUid) => conv.members.includes(memberUid)));
+      }
+
+      if (existing) {
+        socket.join(`conv:${existing.id}`);
+        ack({ convId: existing.id });
+        return;
+      }
+
+      const convRef = db.collection('conversations').doc();
+      const now = new Date().toISOString();
+      const conversation = {
+        id: convRef.id,
+        members,
+        memberNames: payload.memberNames || {},
+        memberEmails: payload.memberEmails || {},
+        isGroup,
+        groupName: isGroup ? (payload.groupName || 'Groep') : null,
+        creatorId: uid,
+        lastMessage: '',
+        updatedAt: now,
+        createdAt: now,
+        lastCallDirection: null,
+        lastCallSenderId: null,
+        lastCallIsVideo: null,
+      };
+
+      await convRef.set(conversation);
+      for (const memberUid of members) {
+        emitToUser(io, memberUid, 'conversation:created', conversation);
+      }
+      socket.join(`conv:${convRef.id}`);
+      ack({ convId: convRef.id });
+    });
+
+    socket.on('message:send', async ({ convId, message }, ack = () => {}) => {
+      if (!convId || !message || !uid) {
+        ack({ error: 'invalid_payload' });
+        return;
+      }
+
+      const convDoc = await db.collection('conversations').doc(convId).get();
+      if (!convDoc.exists) {
+        ack({ error: 'conversation_not_found' });
+        return;
+      }
+
+      const conv = convDoc.data();
+      if (!Array.isArray(conv.members) || !conv.members.includes(uid)) {
+        ack({ error: 'not_allowed_in_conversation' });
+        return;
+      }
+
+      const messageRef = db.collection('messages').doc();
+      const savedMessage = buildLegacyMessage({
+        id: messageRef.id,
+        convId,
+        message: {
+          ...message,
+          senderId: uid,
+        },
+      });
+
+      await messageRef.set(savedMessage);
+      await convDoc.ref.set({
+        lastMessage: savedMessage.type === 'text' ? savedMessage.text : (savedMessage.type === 'contact' ? `Contactpersoon: ${savedMessage.sharedContact?.name || ''}` : 'Nieuw bericht'),
+        updatedAt: savedMessage.createdAt,
+      }, { merge: true });
+
+      for (const memberUid of conv.members) {
+        emitToUser(io, memberUid, 'message:received', savedMessage);
+      }
+
+      ack(savedMessage);
+    });
+
+    socket.on('messages:read', async ({ convId }) => {
+      if (!convId || !uid) return;
+      const convDoc = await db.collection('conversations').doc(convId).get();
+      if (!convDoc.exists) return;
+      const conv = convDoc.data();
+      if (!Array.isArray(conv.members) || !conv.members.includes(uid)) return;
+
+      for (const memberUid of conv.members.filter((memberUid) => memberUid !== uid)) {
+        emitToUser(io, memberUid, 'message:status', {
+          convId,
+          status: 'gelezen',
+        });
+      }
+    });
+
+    socket.on('message:react', async ({ convId, msgId, emoji }) => {
+      if (!convId || !msgId || !emoji || !uid) return;
+      const convDoc = await db.collection('conversations').doc(convId).get();
+      if (!convDoc.exists) return;
+      const conv = convDoc.data();
+      if (!Array.isArray(conv.members) || !conv.members.includes(uid)) return;
+
+      const msgDoc = await db.collection('messages').doc(msgId).get();
+      if (!msgDoc.exists) return;
+      const data = msgDoc.data();
+      const reactions = { ...(data.reactions || {}) };
+      const existingUsers = new Set(Array.isArray(reactions[emoji]) ? reactions[emoji] : []);
+      if (existingUsers.has(uid)) existingUsers.delete(uid);
+      else existingUsers.add(uid);
+      reactions[emoji] = Array.from(existingUsers);
+      if (reactions[emoji].length === 0) delete reactions[emoji];
+      await msgDoc.ref.set({ reactions }, { merge: true });
+      for (const memberUid of conv.members) {
+        emitToUser(io, memberUid, 'message:reaction', { convId, msgId, reactions });
+      }
     });
 
     socket.on('message:edit', async ({ convId, msgId, newText }, ack = () => {}) => {
@@ -196,6 +350,8 @@ export function createSocketServer(server) {
       sockets.delete(socket.id);
       if (sockets.size === 0) {
         onlineUsers.delete(uid);
+        inactiveUsers.delete(uid);
+        io.emit('user:status', { uid, online: false, inactive: false });
       }
     });
   });

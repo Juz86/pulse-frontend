@@ -127,11 +127,31 @@ export default function useContacts({
   // ── Data laden ───────────────────────────────────────────────────────────
   const loadContacts = useCallback(async () => {
     try {
-      const [contactsSnap, nicknamesSnap] = await Promise.all([
+      const [contactsSnap, nicknamesSnap, backendContactsRes] = await Promise.all([
         getDocs(collection(db, 'users', user.uid, 'contacts')),
         getDocs(collection(db, 'users', user.uid, 'nicknames')),
+        authFetch(`${BACKEND_URL}/api/contacts/${user.uid}`).catch(() => null),
       ]);
-      const raw = contactsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const firestoreContacts = contactsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const backendContactsData = backendContactsRes ? await backendContactsRes.json().catch(() => []) : [];
+      const backendContacts = Array.isArray(backendContactsData) ? backendContactsData : [];
+      const mergedMap = new Map();
+
+      [...backendContacts, ...firestoreContacts].forEach((contact) => {
+        const uid = contact.uid || contact.id;
+        if (!uid) return;
+        mergedMap.set(uid, {
+          id: contact.id || uid,
+          uid,
+          displayName: contact.displayName || contact.email || uid,
+          email: contact.email || null,
+          photoURL: contact.photoURL || null,
+          ...mergedMap.get(uid),
+          ...contact,
+        });
+      });
+
+      const raw = Array.from(mergedMap.values());
 
       // Laad nicknames uit Firestore en sync naar localStorage
       const firestoreNicknames = {};
@@ -158,7 +178,7 @@ export default function useContacts({
       }
       setContacts(raw.map(c => ({ ...c, photoURL: c.photoURL || photoMap[c.uid] || null })));
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-  }, [user.uid]);
+  }, [authFetch, user.uid]);
 
   const loadBlockedContacts = useCallback(async () => {
     try {

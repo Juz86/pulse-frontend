@@ -3,6 +3,8 @@ import express from 'express';
 import http from 'http';
 import { devicesRouter } from './routes/devices.js';
 import { apiMessagesRouter } from './routes/apiMessages.js';
+import { authRouter } from './routes/auth.js';
+import { conversationsRouter } from './routes/conversations.js';
 import { contactsRouter } from './routes/contacts.js';
 import { friendRequestsRouter } from './routes/friendRequests.js';
 import { keysRouter } from './routes/keys.js';
@@ -92,6 +94,8 @@ app.post('/api/fcm-token', (_req, res) => {
   });
 });
 
+app.use('/api', requireFirebaseReady, authRouter);
+app.use('/api/conversations', requireFirebaseReady, conversationsRouter);
 app.use('/devices', requireFirebaseReady, devicesRouter);
 app.use('/api/contacts', requireFirebaseReady, contactsRouter);
 app.use('/api/friend-requests', requireFirebaseReady, friendRequestsRouter({ io, emitToUser }));

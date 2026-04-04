@@ -4,6 +4,8 @@ import { Phone, Video, Check, CheckDouble, Clock, ErrorIcon } from '../component
 import {
   getAttachmentAccessInfo,
   openAttachmentInNewTab,
+  prepareAttachmentBinaryAccess,
+  resolveAttachmentForAccess,
   triggerAttachmentDownload,
 } from '../lib/e2ee/attachmentAccessAdapter';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
@@ -71,6 +73,7 @@ const MessageBubble = React.memo(function MessageBubble({
   isGroup,
   memberNames,
   currentUid,
+  user,
   chatSearch,
   onReact,
   onShowContextMenu,
@@ -81,6 +84,9 @@ const MessageBubble = React.memo(function MessageBubble({
   const longPressTimer    = useRef(null);
   const longPressFired    = useRef(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [resolvedAttachment, setResolvedAttachment] = useState(null);
+  const [attachmentActionError, setAttachmentActionError] = useState('');
+  const [attachmentBusy, setAttachmentBusy] = useState(false);
 
   useEffect(() => {
     if (!emojiPickerOpen) return;
@@ -88,6 +94,12 @@ const MessageBubble = React.memo(function MessageBubble({
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
   }, [emojiPickerOpen]);
+
+  useEffect(() => {
+    setResolvedAttachment(null);
+    setAttachmentActionError('');
+    setAttachmentBusy(false);
+  }, [msg.id]);
 
   function handleTouchStart(e) {
     longPressFired.current = false;
@@ -137,21 +149,62 @@ const MessageBubble = React.memo(function MessageBubble({
   }
 
   if (msg.type === 'attachment') {
-    const attachment = msg.attachment;
+    const attachment = resolvedAttachment || msg.attachment;
     const attachmentAccess = getAttachmentAccessInfo(attachment);
     const attachmentUrl = attachmentAccess.url;
     const isRemoteAttachment = attachment?.transfer === 'remote';
-    const openAttachment = () => {
-      openAttachmentInNewTab(attachment);
+    const resolveAttachment = async () => {
+      if (!attachmentAccess.needsRemoteFetch) return attachment;
+      if (!user) throw new Error('Geen gebruiker beschikbaar voor beveiligde bijlage.');
+
+      setAttachmentBusy(true);
+      setAttachmentActionError('');
+      try {
+        const refreshedAttachment = await resolveAttachmentForAccess(attachment, user);
+        setResolvedAttachment(refreshedAttachment);
+        return refreshedAttachment;
+      } finally {
+        setAttachmentBusy(false);
+      }
     };
-    const downloadAttachment = () => {
-      triggerAttachmentDownload(attachment);
+    const openAttachment = async () => {
+      try {
+        const readyAttachment = await resolveAttachment();
+        const preparedAccess = await prepareAttachmentBinaryAccess(readyAttachment, user);
+        openAttachmentInNewTab(
+          preparedAccess.isObjectUrl
+            ? { ...preparedAccess.attachment, downloadUrl: preparedAccess.url, url: '' }
+            : preparedAccess.attachment
+        );
+        if (preparedAccess.isObjectUrl) {
+          window.setTimeout(() => preparedAccess.revoke(), 60_000);
+        }
+      } catch (error) {
+        setAttachmentActionError(error?.message || 'Bijlage openen mislukt');
+      }
+    };
+    const downloadAttachment = async () => {
+      try {
+        const readyAttachment = await resolveAttachment();
+        const preparedAccess = await prepareAttachmentBinaryAccess(readyAttachment, user);
+        triggerAttachmentDownload(
+          preparedAccess.isObjectUrl
+            ? { ...preparedAccess.attachment, downloadUrl: preparedAccess.url, url: '' }
+            : preparedAccess.attachment
+        );
+        if (preparedAccess.isObjectUrl) {
+          window.setTimeout(() => preparedAccess.revoke(), 1_000);
+        }
+      } catch (error) {
+        setAttachmentActionError(error?.message || 'Bijlage downloaden mislukt');
+      }
     };
     const attachmentActions = attachmentAccess.canOpen ? (
       <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         <button
           type="button"
           className="icon-btn"
+          disabled={attachmentBusy}
           onClick={(event) => {
             event.stopPropagation();
             openAttachment();
@@ -166,11 +219,12 @@ const MessageBubble = React.memo(function MessageBubble({
             border: isOwn ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(124,58,237,0.22)',
           }}
         >
-          Openen
+          {attachmentBusy ? 'Voorbereiden…' : 'Openen'}
         </button>
         <button
           type="button"
           className="icon-btn"
+          disabled={attachmentBusy}
           onClick={(event) => {
             event.stopPropagation();
             downloadAttachment();
@@ -233,6 +287,14 @@ const MessageBubble = React.memo(function MessageBubble({
                   Beveiligde opslaglink
                 </div>
               )}
+              {attachmentActionError && (
+                <div
+                  className="u-fs-12"
+                  style={{ marginTop: 8, color: isOwn ? 'rgba(255,215,215,.92)' : '#ef4444' }}
+                >
+                  {attachmentActionError}
+                </div>
+              )}
               {attachmentActions}
             </div>
           ) : (
@@ -253,6 +315,14 @@ const MessageBubble = React.memo(function MessageBubble({
                     }}
                     >
                       Beveiligde opslaglink
+                    </div>
+                  )}
+                  {attachmentActionError && (
+                    <div
+                      className="u-fs-12"
+                      style={{ marginTop: 8, color: isOwn ? 'rgba(255,215,215,.92)' : '#ef4444' }}
+                    >
+                      {attachmentActionError}
                     </div>
                   )}
                   {attachmentActions}

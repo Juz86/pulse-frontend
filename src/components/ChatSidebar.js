@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Delete, Search, Message, Users, Moon, Lightbulb, Bell, BellOff, Shield, Logout, Pin, InfoIcon, ChevronDown, Plus } from '../components/Icons';
+import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, InfoIcon, ChevronDown, Plus } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
@@ -41,8 +41,6 @@ export default function ChatSidebar({
   photoPreview,
   isParent,
   parentActivityBadge,
-  lightMode,
-  onToggleTheme,
   onOpenDashboard,
   setLabelMenuConvId,
   // modal openers
@@ -166,7 +164,7 @@ export default function ChatSidebar({
       {/* Header */}
       <div className="sidebar-header">
         <div className="sidebar-top">
-          <PulseLogo size={30} textSize={20} color={lightMode ? '#2b2448' : '#fff'} />
+          <PulseLogo size={30} textSize={20} color="#fff" />
           <div style={{ display: 'flex', gap: '6px' }}>
             <button type="button" className="icon-btn" aria-label="Nieuw gesprek" onClick={onNewChat} title="Nieuw gesprek"><Message size={18} aria-hidden="true" /></button>
             <button type="button" className="icon-btn" aria-label={hasMissedCall ? 'Oproepen, gemiste oproep aanwezig' : 'Oproepen'} onClick={onShowCallModal} title="Oproepen" style={{ position: 'relative' }}>
@@ -563,10 +561,7 @@ export default function ChatSidebar({
             {parentActivityBadge > 0 && <span className="parent-badge" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
           </button>
         )}
-        <button type="button" className="icon-btn" aria-label={lightMode ? 'Schakel naar donker thema' : 'Schakel naar licht thema'} onClick={onToggleTheme} title={lightMode ? 'Donker thema' : 'Licht thema'}>
-          {lightMode ? <Moon size={18} aria-hidden="true" /> : <Lightbulb size={18} aria-hidden="true" />}
-        </button>
-        <button type="button" className="icon-btn danger" aria-label="Uitloggen" onClick={() => { handleLogout().catch(() => {}); }} title="Uitloggen"><Logout size={18} aria-hidden="true" /></button>
+<button type="button" className="icon-btn danger" aria-label="Uitloggen" onClick={() => { handleLogout().catch(() => {}); }} title="Uitloggen"><Logout size={18} aria-hidden="true" /></button>
       </div>
     </aside>
   );

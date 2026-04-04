@@ -24,10 +24,18 @@ import {
   prepareAttachmentForSend,
 } from './attachmentUploadAdapter';
 import {
+  buildAttachmentMetadataUrl,
+  clearAttachmentMetadataCache,
+  fetchAttachmentBlob,
+  getCachedAttachmentMetadata,
+  fetchAttachmentMetadata,
   getAttachmentAccessInfo,
   openAttachmentInNewTab,
+  prepareAttachmentBinaryAccess,
+  resolveAttachmentForAccess,
   triggerAttachmentDownload,
 } from './attachmentAccessAdapter';
+import { BACKEND_URL } from '../../services/socket';
 
 describe('e2ee message model helpers', () => {
   test('normalizeIncomingMessage maps senderUserId to senderId and marks ownership', () => {
@@ -201,6 +209,7 @@ describe('e2ee attachment helpers', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
+    clearAttachmentMetadataCache();
     jest.restoreAllMocks();
   });
 
@@ -377,6 +386,180 @@ describe('e2ee attachment helpers', () => {
     expect(info.canDownload).toBe(true);
     expect(info.isImage).toBe(true);
     expect(info.needsRemoteFetch).toBe(true);
+  });
+
+  test('buildAttachmentMetadataUrl points to the protected metadata endpoint', () => {
+    expect(buildAttachmentMetadataUrl({
+      downloadUrl: 'http://localhost:3001/attachments/mock-77',
+    })).toBe(`${BACKEND_URL}/api/attachments/mock-77/meta`);
+  });
+
+  test('fetchAttachmentMetadata merges protected metadata into the existing attachment', async () => {
+    const getIdToken = jest.fn().mockResolvedValue('token-abc');
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        attachment: {
+          name: 'rapport.pdf',
+          downloadUrl: 'http://localhost:3001/attachments/mock-99',
+          storageKey: 'mock-storage/mock-99/rapport.pdf',
+          transfer: 'remote',
+          mimeType: 'application/pdf',
+          size: 2048,
+          encryption: {
+            alg: 'mock-storage-envelope',
+            keyId: 'mock-key-99',
+            iv: 'mock-iv-99',
+            sha256: 'mock-sha256-2048',
+          },
+        },
+      }),
+    });
+
+    const attachment = await fetchAttachmentMetadata(
+      {
+        downloadUrl: 'http://localhost:3001/attachments/mock-99',
+        transfer: 'remote',
+        encryption: { alg: 'mock-storage-envelope', keyId: 'stale-key' },
+      },
+      { getIdToken },
+      fetchImpl
+    );
+
+    expect(getIdToken).toHaveBeenCalledTimes(1);
+    expect(fetchImpl).toHaveBeenCalledWith(
+      `${BACKEND_URL}/api/attachments/mock-99/meta`,
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer token-abc',
+        }),
+      })
+    );
+    expect(attachment.name).toBe('rapport.pdf');
+    expect(attachment.storageKey).toBe('mock-storage/mock-99/rapport.pdf');
+    expect(attachment.encryption?.keyId).toBe('mock-key-99');
+    expect(getCachedAttachmentMetadata({
+      downloadUrl: 'http://localhost:3001/attachments/mock-99',
+    })?.storageKey).toBe('mock-storage/mock-99/rapport.pdf');
+  });
+
+  test('fetchAttachmentMetadata reuses cache for the same attachment id', async () => {
+    const getIdToken = jest.fn().mockResolvedValue('token-abc');
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        attachment: {
+          name: 'foto.png',
+          downloadUrl: `${BACKEND_URL}/attachments/mock-cached`,
+          transfer: 'remote',
+          mimeType: 'image/png',
+          encryption: {
+            alg: 'mock-storage-envelope',
+            keyId: 'mock-key-cached',
+            iv: 'mock-iv-cached',
+            sha256: 'mock-sha256-cached',
+          },
+        },
+      }),
+    });
+
+    const baseAttachment = {
+      downloadUrl: `${BACKEND_URL}/attachments/mock-cached`,
+      transfer: 'remote',
+      encryption: { alg: 'mock-storage-envelope', keyId: 'stale-key' },
+    };
+
+    await fetchAttachmentMetadata(baseAttachment, { getIdToken }, fetchImpl);
+    const cached = await fetchAttachmentMetadata(baseAttachment, { getIdToken }, fetchImpl);
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(cached.encryption?.keyId).toBe('mock-key-cached');
+  });
+
+  test('resolveAttachmentForAccess returns the original normalized attachment when no remote metadata refresh is needed', async () => {
+    const attachment = await resolveAttachmentForAccess({
+      name: 'inline.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      transfer: 'inline',
+    });
+
+    expect(attachment.name).toBe('inline.txt');
+    expect(attachment.transfer).toBe('inline');
+  });
+
+  test('fetchAttachmentBlob downloads a blob from the resolved attachment url', async () => {
+    const blob = new Blob(['hello remote attachment'], { type: 'text/plain' });
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      blob: async () => blob,
+    });
+
+    const result = await fetchAttachmentBlob({
+      downloadUrl: 'https://cdn.example.com/blob.txt',
+    }, fetchImpl);
+
+    expect(fetchImpl).toHaveBeenCalledWith('https://cdn.example.com/blob.txt');
+    expect(await result.text()).toBe('hello remote attachment');
+  });
+
+  test('prepareAttachmentBinaryAccess creates a temporary object url for remote encrypted attachments', async () => {
+    const getIdToken = jest.fn().mockResolvedValue('token-xyz');
+    const blob = new Blob(['secret payload'], { type: 'text/plain' });
+    const fetchImpl = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          attachment: {
+            name: 'secret.txt',
+            downloadUrl: `${BACKEND_URL}/attachments/mock-binary`,
+            transfer: 'remote',
+            mimeType: 'text/plain',
+            encryption: {
+              alg: 'mock-storage-envelope',
+              keyId: 'mock-key-binary',
+              iv: 'mock-iv-binary',
+              sha256: 'mock-sha256-binary',
+            },
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        blob: async () => blob,
+      });
+    const decryptAttachmentBlob = jest.fn(async (inputBlob) => inputBlob);
+    const createObjectUrl = jest.fn(() => 'blob:prepared-access');
+    const revokeObjectUrl = jest.fn();
+
+    const prepared = await prepareAttachmentBinaryAccess(
+      {
+        downloadUrl: `${BACKEND_URL}/attachments/mock-binary`,
+        transfer: 'remote',
+        encryption: { alg: 'mock-storage-envelope', keyId: 'stale-binary-key' },
+      },
+      { getIdToken },
+      {
+        fetchImpl,
+        decryptAttachmentBlob,
+        createObjectUrl,
+        revokeObjectUrl,
+      }
+    );
+
+    expect(fetchImpl).toHaveBeenNthCalledWith(
+      1,
+      `${BACKEND_URL}/api/attachments/mock-binary/meta`,
+      expect.any(Object)
+    );
+    expect(fetchImpl).toHaveBeenNthCalledWith(2, `${BACKEND_URL}/attachments/mock-binary`);
+    expect(decryptAttachmentBlob).toHaveBeenCalledTimes(1);
+    expect(createObjectUrl).toHaveBeenCalledTimes(1);
+    expect(prepared.url).toBe('blob:prepared-access');
+    expect(prepared.isObjectUrl).toBe(true);
+    prepared.revoke();
+    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:prepared-access');
   });
 
   test('openAttachmentInNewTab uses provided opener', () => {

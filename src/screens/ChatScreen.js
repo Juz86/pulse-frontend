@@ -18,7 +18,7 @@ import { copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), lightMode, onToggleTheme, missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
   const [unreadCounts,   setUnreadCounts]   = useState({});
@@ -327,7 +327,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         convLabels={convLabels} pinnedContacts={pinnedContacts}
         unreadCounts={unreadCounts} photoPreview={photoPreview}
         isParent={isParent} parentActivityBadge={parentActivityBadge}
-        lightMode={lightMode} onToggleTheme={onToggleTheme}
         onOpenDashboard={onOpenDashboard}
         setLabelMenuConvId={clearLabelMenu}
         onNewChat={() => setShowNewChat(true)}
@@ -405,6 +404,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               );
             })()}
             <MessageList
+              user={user}
               messages={messages.filter(m => !blockedContacts.some(c => c.uid === m.senderId && m.senderId !== user.uid))}
               activeConv={activeConv} currentUid={user.uid}
               chatSearch={chatSearch} chatSearchIdx={chatSearchIdx}
@@ -520,7 +520,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         errToast={errToast} mentionToast={mentionToast} parentToast={parentToast}
         onOpenMentionConversation={openConversation}
         blockedContacts={blockedContacts} parentBlockedUids={parentBlockedUids} unblockContact={unblockContact}
-        lightMode={lightMode}
       />
       </Suspense>
 

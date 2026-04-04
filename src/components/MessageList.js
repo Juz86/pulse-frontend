@@ -4,6 +4,7 @@ import MessageBubble from './MessageBubble';
 import { formatDateLabel } from '../utils';
 
 const MessageList = React.memo(function MessageList({
+  user,
   messages,
   activeConv,
   currentUid,
@@ -59,6 +60,7 @@ const MessageList = React.memo(function MessageList({
           isGroup={!!activeConv.isGroup}
           memberNames={activeConv.memberNames}
           currentUid={currentUid}
+          user={user}
           chatSearch={chatSearch}
           onReact={emoji => onReact(msg.id, emoji)}
           onShowContextMenu={e => onShowContextMenu(e, msg)}
@@ -70,7 +72,7 @@ const MessageList = React.memo(function MessageList({
     });
 
     return result;
-  }, [messages, activeConv, currentUid, chatSearch, focusedMsgId,
+  }, [messages, activeConv, currentUid, user, chatSearch, focusedMsgId,
       onReact, onShowContextMenu, onRetry, onStartCall, onViewContact]);
 
   const bgStyle = useMemo(() => {

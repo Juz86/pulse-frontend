@@ -136,6 +136,19 @@ export async function getStoredAttachment(id) {
   }
 }
 
+export async function getStoredAttachmentMetadata(id) {
+  const storedAttachment = await getStoredAttachment(id);
+  if (!storedAttachment) return null;
+
+  return {
+    id: storedAttachment.id,
+    name: storedAttachment.name,
+    mimeType: storedAttachment.mimeType,
+    size: storedAttachment.size,
+    contentDisposition: storedAttachment.contentDisposition,
+  };
+}
+
 export function getAttachmentIdFromUrl(downloadUrl = '') {
   try {
     const parsed = new URL(downloadUrl);

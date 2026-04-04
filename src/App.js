@@ -144,7 +144,6 @@ function MainApp() {
   const [missedCallAlert, setMissedCallAlert] = useState(false);
   const [onlineUsers,   setOnlineUsers]   = useState(new Set());
   const [inactiveUsers, setInactiveUsers] = useState(new Set());
-  const [lightMode,    setLightMode]    = useState(localStorage.getItem('pulse_theme') === 'light');
   const [userRole,            setUserRole]            = useState(null);
   const [showParentAuth,      setShowParentAuth]      = useState(false);
   const [parentAuthDefaultTab, setParentAuthDefaultTab] = useState('login');
@@ -159,11 +158,6 @@ function MainApp() {
   const fcmVisibilityRef       = useRef(null);
   const onlineVisibilityRef    = useRef(null);
   const lastSignedInUidRef     = useRef(auth.currentUser?.uid || null);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('light', lightMode);
-    localStorage.setItem('pulse_theme', lightMode ? 'light' : 'dark');
-  }, [lightMode]);
 
   useEffect(() => scheduleIdleTask(() => {
     fetch(`${BACKEND}/`, { method: 'GET', keepalive: true }).catch((e) => {
@@ -471,7 +465,7 @@ function MainApp() {
           ? <ParentAuthScreen defaultTab={parentAuthDefaultTab} onBack={() => { if (parentAuthReferrer) { window.location.assign(getSafeInternalPath(parentAuthReferrer)); } else { setShowParentAuth(false); setParentAuthDefaultTab('login'); setParentAuthReferrer(null); } }} />
           : <Homepage onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} lightMode={lightMode} onToggleTheme={() => setLightMode(p => !p)} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} />
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} />
             {userRole === 'parent' && showParentDashboard && (
               <div className={`parent-dashboard-overlay${dashboardFading ? ' fading' : ''}`} onClick={e => { if (e.target === e.currentTarget) { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); } }}>
                 <ParentDashboard user={user} parentActivityBadge={parentActivityBadge} onActivitiesViewed={() => setParentActivityBadge(0)} onClose={() => { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); }} />

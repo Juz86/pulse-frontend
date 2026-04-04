@@ -1,7 +1,11 @@
 import { Router } from 'express';
 import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
-import { getStoredAttachment, storeMockAttachment } from '../services/attachmentStorage.js';
+import {
+  getStoredAttachment,
+  getStoredAttachmentMetadata,
+  storeMockAttachment,
+} from '../services/attachmentStorage.js';
 
 export const attachmentsRouter = Router();
 
@@ -21,6 +25,19 @@ attachmentsRouter.post('/upload', requireAuth, asyncRoute(async (req, res) => {
   return res.json({
     ok: true,
     attachment: storedAttachment,
+  });
+}));
+
+attachmentsRouter.get('/:attachmentId/meta', requireAuth, asyncRoute(async (req, res) => {
+  const metadata = await getStoredAttachmentMetadata(req.params.attachmentId);
+
+  if (!metadata) {
+    return res.status(404).json({ error: 'attachment_not_found' });
+  }
+
+  return res.json({
+    ok: true,
+    attachment: metadata,
   });
 }));
 

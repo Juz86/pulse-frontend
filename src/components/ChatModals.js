@@ -110,7 +110,6 @@ export default function ChatModals({
   blockedContacts, parentBlockedUids, unblockContact,
 
   // helpers
-  lightMode,
 }) {
   const [starredSearch,   setStarredSearch]   = useState('');
   const [profileClosing,  setProfileClosing]  = useState(false);
@@ -1226,7 +1225,7 @@ export default function ChatModals({
           uid={user.uid}
           currentOptions={avatarOptions}
           currentPhotoURL={photoPreview}
-          darkMode={!lightMode}
+          darkMode={true}
           onClose={() => setShowAvatarBuilder(false)}
           onSave={(photoURL, opts) => {
             setAvatarOptions(opts);

@@ -15,6 +15,8 @@ Frontendrepo voor Pulse, inclusief de huidige marketingpagina's, chat-UI en de v
 
 - build:
   `npm run build`
+- Cloudflare-veilige CI-build:
+  `npm run build:ci`
 - tests:
   `npm test -- --watchAll=false`
 - E2EE-helpertests:
@@ -23,6 +25,15 @@ Frontendrepo voor Pulse, inclusief de huidige marketingpagina's, chat-UI en de v
   `npm run lint`
 - gerichte E2EE-verificatie:
   `npm run verify:e2ee`
+- volledige Cloudflare-voorcontrole:
+  `npm run verify:cloudflare`
+
+Belangrijk voor Cloudflare Pages:
+
+- deze repo verwacht Node `20`
+- Create React App draait daar met `CI=true`
+- warnings tellen dan mee als build errors
+- `npm run verify:cloudflare` bootst dat lokaal na
 
 ## E2EE Status
 

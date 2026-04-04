@@ -18,11 +18,16 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:ci": "CI=true react-scripts build",
     "lint": "eslint src --ext .js,.jsx",
     "test": "react-scripts test --watchAll=false",
     "test:e2ee": "react-scripts test --watchAll=false src/lib/e2ee/e2ee.test.js",
     "verify": "npm run lint && npm run test -- --runInBand && npm run build",
-    "verify:e2ee": "npm run test:e2ee && npm run build"
+    "verify:e2ee": "npm run test:e2ee && npm run build",
+    "verify:cloudflare": "npm run lint && npm run test -- --runInBand && npm run build:ci"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "browserslist": {
     "production": [

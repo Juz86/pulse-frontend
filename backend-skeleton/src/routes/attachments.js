@@ -49,6 +49,15 @@ attachmentsRouter.get('/:attachmentId', asyncRoute(async (req, res) => {
   }
 
   res.setHeader('Content-Type', storedAttachment.mimeType || 'application/octet-stream');
+  if (storedAttachment.originalMimeType) {
+    res.setHeader('X-Pulse-Original-MimeType', storedAttachment.originalMimeType);
+  }
+  if (storedAttachment.contentEncoding && storedAttachment.contentEncoding !== 'identity') {
+    res.setHeader('X-Pulse-Content-Encoding', storedAttachment.contentEncoding);
+  }
+  if (storedAttachment.envelopeKind) {
+    res.setHeader('X-Pulse-Envelope-Kind', storedAttachment.envelopeKind);
+  }
   res.setHeader('Content-Length', String(storedAttachment.size || storedAttachment.buffer.length || 0));
   res.setHeader(
     'Content-Disposition',

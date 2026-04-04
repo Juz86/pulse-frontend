@@ -53,6 +53,8 @@ test('buildStoredAttachmentMetadata creates remote mock payload', () => {
   assert.equal(metadata.downloadUrl, 'http://localhost:3001/attachments/attachment-1');
   assert.equal(metadata.thumbnailUrl, 'http://localhost:3001/attachments/attachment-1');
   assert.equal(metadata.encryption.alg, 'mock-storage-envelope');
+  assert.equal(metadata.contentEncoding, 'identity');
+  assert.equal(metadata.originalMimeType, 'image/png');
 });
 
 test('storeMockAttachment persists inline data for retrieval', async () => {
@@ -72,6 +74,35 @@ test('storeMockAttachment persists inline data for retrieval', async () => {
   assert.ok(stored);
   assert.equal(stored.mimeType, 'text/plain');
   assert.equal(stored.buffer.toString('utf8'), 'Hello');
+  assert.equal(stored.contentEncoding, 'identity');
+});
+
+test('storeMockAttachment preserves mock envelope contract metadata', async () => {
+  const metadata = await storeMockAttachment({
+    baseUrl: 'http://localhost:3001',
+    attachment: {
+      name: 'photo.png',
+      url: 'data:application/pulse-e2ee-envelope+json;base64,eyJraW5kIjoicHVsc2VfbW9ja19tZWRpYV9lbnZlbG9wZSIsIm1pbWVUeXBlIjoiaW1hZ2UvcG5nIiwicGF5bG9hZEJhc2U2NCI6ImFiYyJ9',
+      mimeType: 'image/png',
+      size: 3,
+      encryption: {
+        alg: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'pulse_mock_media_envelope',
+        originalMimeType: 'image/png',
+      },
+    },
+  });
+
+  const attachmentId = metadata.downloadUrl.split('/').pop();
+  const stored = await getStoredAttachment(attachmentId);
+
+  assert.ok(stored);
+  assert.equal(stored.mimeType, 'application/pulse-e2ee-envelope+json');
+  assert.equal(stored.originalMimeType, 'image/png');
+  assert.equal(stored.contentEncoding, 'mock-e2ee-envelope-v1');
+  assert.equal(stored.envelopeKind, 'pulse_mock_media_envelope');
+  assert.equal(metadata.contentEncoding, 'mock-e2ee-envelope-v1');
+  assert.equal(metadata.originalMimeType, 'image/png');
 });
 
 test('getAttachmentIdFromUrl extracts the stored attachment id', () => {

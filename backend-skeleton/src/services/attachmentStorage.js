@@ -43,11 +43,26 @@ function isPreviewableMimeType(mimeType = '') {
   return mimeType.startsWith('image/') || mimeType === 'application/pdf' || mimeType.startsWith('text/');
 }
 
+function getAttachmentEnvelopeContract(attachment = {}, fallbackMimeType = 'application/octet-stream') {
+  const encryption = attachment?.encryption || {};
+  const isMockEnvelope = encryption.alg === 'mock-e2ee-envelope-v1';
+
+  return {
+    isMockEnvelope,
+    contentEncoding: isMockEnvelope ? 'mock-e2ee-envelope-v1' : 'identity',
+    envelopeKind: typeof encryption.envelopeKind === 'string' ? encryption.envelopeKind : '',
+    originalMimeType: typeof encryption.originalMimeType === 'string' && encryption.originalMimeType
+      ? encryption.originalMimeType
+      : (attachment?.mimeType || fallbackMimeType || 'application/octet-stream'),
+  };
+}
+
 export function buildStoredAttachmentMetadata({ id, baseUrl, attachment }) {
   const safeName = sanitizeFileName(attachment?.name || 'bestand');
   const downloadUrl = `${baseUrl}/attachments/${id}`;
   const mimeType = attachment?.mimeType || 'application/octet-stream';
-  const isImage = mimeType.startsWith('image/');
+  const contract = getAttachmentEnvelopeContract(attachment, mimeType);
+  const isImage = contract.originalMimeType.startsWith('image/');
 
   return {
     name: attachment?.name || 'Bestand',
@@ -57,6 +72,9 @@ export function buildStoredAttachmentMetadata({ id, baseUrl, attachment }) {
     storageKey: attachment?.storageKey || `mock-storage/${id}/${safeName}`,
     transfer: 'remote',
     mimeType,
+    originalMimeType: contract.originalMimeType,
+    contentEncoding: contract.contentEncoding,
+    envelopeKind: contract.envelopeKind,
     size: Number.isFinite(attachment?.size) ? Number(attachment.size) : null,
     caption: attachment?.caption || '',
     encryption: attachment?.encryption || {
@@ -85,12 +103,17 @@ export async function storeMockAttachment({ attachment, baseUrl }) {
     throw new Error('unsupported_attachment_source');
   }
 
+  const contract = getAttachmentEnvelopeContract(attachment, parsed.mimeType || 'application/octet-stream');
+
   const storedRecord = {
     id,
     name: attachment.name || 'Bestand',
-    mimeType: attachment.mimeType || parsed.mimeType || 'application/octet-stream',
+    mimeType: parsed.mimeType || 'application/octet-stream',
+    originalMimeType: contract.originalMimeType,
+    contentEncoding: contract.contentEncoding,
+    envelopeKind: contract.envelopeKind,
     size: Number.isFinite(attachment.size) ? Number(attachment.size) : parsed.buffer.length,
-    contentDisposition: isPreviewableMimeType(attachment.mimeType || parsed.mimeType || '')
+    contentDisposition: isPreviewableMimeType(contract.originalMimeType)
       ? 'inline'
       : 'attachment',
     buffer: parsed.buffer,
@@ -102,6 +125,9 @@ export async function storeMockAttachment({ attachment, baseUrl }) {
     id: storedRecord.id,
     name: storedRecord.name,
     mimeType: storedRecord.mimeType,
+    originalMimeType: storedRecord.originalMimeType,
+    contentEncoding: storedRecord.contentEncoding,
+    envelopeKind: storedRecord.envelopeKind,
     size: storedRecord.size,
     contentDisposition: storedRecord.contentDisposition,
   }, null, 2), 'utf8');
@@ -144,6 +170,9 @@ export async function getStoredAttachmentMetadata(id) {
     id: storedAttachment.id,
     name: storedAttachment.name,
     mimeType: storedAttachment.mimeType,
+    originalMimeType: storedAttachment.originalMimeType || storedAttachment.mimeType,
+    contentEncoding: storedAttachment.contentEncoding || 'identity',
+    envelopeKind: storedAttachment.envelopeKind || '',
     size: storedAttachment.size,
     contentDisposition: storedAttachment.contentDisposition,
   };

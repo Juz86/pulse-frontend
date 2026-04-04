@@ -1,4 +1,5 @@
 import { BACKEND_URL } from '../../services/socket';
+import { decryptMockAttachmentEnvelopeBlob } from './attachmentCrypto';
 import {
   isImageAttachment,
   normalizeAttachmentPayload,
@@ -9,6 +10,14 @@ const attachmentMetadataCache = new Map();
 
 export async function passthroughDecryptAttachmentBlob(blob) {
   return blob;
+}
+
+export async function decryptAttachmentBlob(blob, attachment) {
+  if (attachment?.encryption?.alg === 'mock-e2ee-envelope-v1') {
+    return decryptMockAttachmentEnvelopeBlob(blob);
+  }
+
+  return passthroughDecryptAttachmentBlob(blob);
 }
 
 export function getAttachmentIdFromAttachment(attachment) {
@@ -123,7 +132,7 @@ export async function prepareAttachmentBinaryAccess(
   user,
   {
     fetchImpl = fetch,
-    decryptAttachmentBlob = passthroughDecryptAttachmentBlob,
+    decryptAttachmentBlob: decryptAttachmentBlobOverride = decryptAttachmentBlob,
     createObjectUrl = (blob) => URL.createObjectURL(blob),
     revokeObjectUrl = (url) => URL.revokeObjectURL(url),
   } = {}
@@ -141,7 +150,7 @@ export async function prepareAttachmentBinaryAccess(
   }
 
   const encryptedBlob = await fetchAttachmentBlob(resolvedAttachment, fetchImpl);
-  const decryptedBlob = await decryptAttachmentBlob(encryptedBlob, resolvedAttachment);
+  const decryptedBlob = await decryptAttachmentBlobOverride(encryptedBlob, resolvedAttachment);
   const objectUrl = createObjectUrl(decryptedBlob);
 
   return {

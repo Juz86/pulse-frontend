@@ -11,12 +11,17 @@ export function normalizeAttachmentPayload(attachment) {
   const downloadUrl = typeof attachment.downloadUrl === 'string' ? attachment.downloadUrl : '';
   const thumbnailUrl = typeof attachment.thumbnailUrl === 'string' ? attachment.thumbnailUrl : '';
   const storageKey = typeof attachment.storageKey === 'string' ? attachment.storageKey : '';
+  const originalMimeType = typeof attachment.originalMimeType === 'string' ? attachment.originalMimeType : '';
+  const contentEncoding = typeof attachment.contentEncoding === 'string' ? attachment.contentEncoding : '';
+  const envelopeKind = typeof attachment.envelopeKind === 'string' ? attachment.envelopeKind : '';
   const encryption = attachment.encryption && typeof attachment.encryption === 'object'
     ? {
         alg: typeof attachment.encryption.alg === 'string' ? attachment.encryption.alg : '',
         keyId: typeof attachment.encryption.keyId === 'string' ? attachment.encryption.keyId : '',
         iv: typeof attachment.encryption.iv === 'string' ? attachment.encryption.iv : '',
         sha256: typeof attachment.encryption.sha256 === 'string' ? attachment.encryption.sha256 : '',
+        envelopeKind: typeof attachment.encryption.envelopeKind === 'string' ? attachment.encryption.envelopeKind : '',
+        originalMimeType: typeof attachment.encryption.originalMimeType === 'string' ? attachment.encryption.originalMimeType : '',
       }
     : null;
 
@@ -32,6 +37,9 @@ export function normalizeAttachmentPayload(attachment) {
       ? 'remote'
       : 'inline',
     mimeType: typeof attachment.mimeType === 'string' ? attachment.mimeType : '',
+    originalMimeType,
+    contentEncoding,
+    envelopeKind,
     size: normalizedSize,
     caption: typeof attachment.caption === 'string' ? attachment.caption.trim() : '',
     encryption,
@@ -52,7 +60,11 @@ export function validateAttachmentPayload(attachment) {
 export function isImageAttachment(attachment) {
   const resolvedUrl = resolveAttachmentUrl(attachment);
   if (!resolvedUrl) return false;
-  return attachment?.mimeType?.startsWith('image/') || resolvedUrl?.startsWith('data:image/');
+  return (
+    attachment?.originalMimeType?.startsWith('image/')
+    || attachment?.mimeType?.startsWith('image/')
+    || resolvedUrl?.startsWith('data:image/')
+  );
 }
 
 export function resolveAttachmentUrl(attachment) {

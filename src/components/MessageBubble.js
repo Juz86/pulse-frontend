@@ -152,7 +152,14 @@ const MessageBubble = React.memo(function MessageBubble({
     const attachment = resolvedAttachment || msg.attachment;
     const attachmentAccess = getAttachmentAccessInfo(attachment);
     const attachmentUrl = attachmentAccess.url;
+    const attachmentPreviewUrl = attachmentAccess.isImage && attachment?.thumbnailUrl
+      ? attachment.thumbnailUrl
+      : attachmentUrl;
     const isRemoteAttachment = attachment?.transfer === 'remote';
+    const attachmentMimeLabel = attachment?.originalMimeType || attachment?.mimeType || 'Bestand gedeeld';
+    const storageContractLabel = attachment?.contentEncoding === 'mock-e2ee-envelope-v1'
+      ? 'Mock versleutelde opslaglink'
+      : 'Beveiligde opslaglink';
     const resolveAttachment = async () => {
       if (!attachmentAccess.needsRemoteFetch) return attachment;
       if (!user) throw new Error('Geen gebruiker beschikbaar voor beveiligde bijlage.');
@@ -258,7 +265,7 @@ const MessageBubble = React.memo(function MessageBubble({
           {attachmentAccess.isImage ? (
             <div className="u-flex-1 u-min-w-0">
               <img
-                src={attachmentUrl}
+                src={attachmentPreviewUrl}
                 alt={attachment?.name || 'Gedeelde afbeelding'}
                 style={{
                   display: 'block',
@@ -273,7 +280,7 @@ const MessageBubble = React.memo(function MessageBubble({
               />
               <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Afbeelding'}</div>
               <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
-                {attachment?.caption || 'Afbeelding gedeeld'}
+                {attachment?.caption || attachmentMimeLabel}
               </div>
               {isRemoteAttachment && (
                 <div
@@ -284,7 +291,7 @@ const MessageBubble = React.memo(function MessageBubble({
                     opacity: 0.9,
                   }}
                 >
-                  Beveiligde opslaglink
+                  {storageContractLabel}
                 </div>
               )}
               {attachmentActionError && (
@@ -303,7 +310,7 @@ const MessageBubble = React.memo(function MessageBubble({
               <div className="u-flex-1 u-min-w-0">
                 <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Bijlage'}</div>
                 <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
-                  {attachment?.caption || attachment?.mimeType || 'Bestand gedeeld'}
+                  {attachment?.caption || attachmentMimeLabel}
                 </div>
                 {isRemoteAttachment && (
                   <div
@@ -314,7 +321,7 @@ const MessageBubble = React.memo(function MessageBubble({
                       opacity: 0.9,
                     }}
                     >
-                      Beveiligde opslaglink
+                      {storageContractLabel}
                     </div>
                   )}
                   {attachmentActionError && (

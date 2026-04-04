@@ -103,18 +103,34 @@ export default function Homepage({ onParentClick }) {
         <div className="hp-section-inner">
           <h2 id="homepage-features-title" className="sr-only">Belangrijkste Pulse functies</h2>
 
-          {/* Rij 1 */}
-          <article className="hp-feature-row" id="veiligheid" aria-labelledby="homepage-feature-communication">
+          {/* Rij 1 — Privacy-First */}
+          <article className="hp-feature-row" id="privacy" aria-labelledby="homepage-feature-privacy">
             <div className="hp-feature-text">
-              <div className="hp-feature-tag">Communicatie</div>
-              <h3 id="homepage-feature-communication">Chatten, bellen en videobellen</h3>
-              <p>Blijf verbonden met familie en vrienden via chat, bellen en videobellen.
-                Geen telefoonnummer, foto's, gifs of algoritmes. Pulse is pure communicatie.
-              </p>
-              <a href="/functies#chatten" className="hp-read-more-btn" aria-label="Lees meer over chatten, bellen en videobellen">
+              <div className="hp-feature-tag">Privacy-First</div>
+              <h3 id="homepage-feature-privacy">Jouw kind. Niet onze data.</h3>
+              <p>Pulse verzamelt niet wat niet nodig is. Geen algoritmes, geen profielen, geen gedragsanalyse. Berichten verdwijnen automatisch na 30 dagen. Verwijderen is echt verwijderen.</p>
+              <a href="/privacy-first" className="hp-read-more-btn" aria-label="Lees meer over Privacy-First bij Pulse">
                 Lees meer <span aria-hidden="true">→</span>
               </a>
             </div>
+            <div className="hp-feature-mockup">
+              <div className="hp-img-container hp-img-tilt-subtle">
+                <img
+                  src="/screenshots/avg.png"
+                  alt="Privacy-First bij Pulse"
+                  width="420"
+                  height="315"
+                  sizes="(max-width: 768px) 100vw, 420px"
+                  loading="lazy"
+                  decoding="async"
+                  style={{ objectPosition: 'center' }}
+                />
+              </div>
+            </div>
+          </article>
+
+          {/* Rij 2 */}
+          <article className="hp-feature-row hp-feature-row--reverse" id="veiligheid" aria-labelledby="homepage-feature-communication">
             <div className="hp-feature-mockup">
               <div className="hp-img-container hp-img-tilt-left">
                 <img
@@ -129,10 +145,28 @@ export default function Homepage({ onParentClick }) {
                 />
               </div>
             </div>
+            <div className="hp-feature-text">
+              <div className="hp-feature-tag">Communicatie</div>
+              <h3 id="homepage-feature-communication">Chatten, bellen en videobellen</h3>
+              <p>Blijf verbonden met familie en vrienden via chat, bellen en videobellen.
+                Geen telefoonnummer, foto's, gifs of algoritmes. Pulse is pure communicatie.
+              </p>
+              <a href="/functies#chatten" className="hp-read-more-btn" aria-label="Lees meer over chatten, bellen en videobellen">
+                Lees meer <span aria-hidden="true">→</span>
+              </a>
+            </div>
           </article>
 
-          {/* Rij 2 */}
-          <article className="hp-feature-row hp-feature-row--reverse" id="toezicht" aria-labelledby="homepage-feature-parental-controls">
+          {/* Rij 3 */}
+          <article className="hp-feature-row" id="toezicht" aria-labelledby="homepage-feature-parental-controls">
+            <div className="hp-feature-text">
+              <div className="hp-feature-tag">Ouderlijk toezicht</div>
+              <h3 id="homepage-feature-parental-controls">Volledig overzicht voor ouders</h3>
+              <p>Ouders hebben volledig toezicht via een eigen dashboard. Chat, bellen of videobellen pauzeren per functie. Direct meldingen bij nieuwe contacten.</p>
+              <a href="/ouderlijk-toezicht#dashboard" className="hp-read-more-btn" aria-label="Lees meer over ouderlijk toezicht">
+                Lees meer <span aria-hidden="true">→</span>
+              </a>
+            </div>
             <div className="hp-feature-mockup">
               <div className="hp-img-container hp-img-tilt-right">
                 <img
@@ -144,40 +178,6 @@ export default function Homepage({ onParentClick }) {
                   loading="lazy"
                   decoding="async"
                   style={{ objectPosition: '50% 80%' }}
-                />
-              </div>
-            </div>
-            <div className="hp-feature-text">
-              <div className="hp-feature-tag">Ouderlijk toezicht</div>
-              <h3 id="homepage-feature-parental-controls">Volledig overzicht voor ouders</h3>
-              <p>Ouders hebben volledig toezicht via een eigen dashboard. Chat, bellen of videobellen pauzeren per functie. Direct meldingen bij nieuwe contacten.</p>
-              <a href="/ouderlijk-toezicht#dashboard" className="hp-read-more-btn" aria-label="Lees meer over ouderlijk toezicht">
-                Lees meer <span aria-hidden="true">→</span>
-              </a>
-            </div>
-          </article>
-
-          {/* Rij 3 */}
-          <article className="hp-feature-row" aria-labelledby="homepage-feature-privacy">
-            <div className="hp-feature-text">
-              <div className="hp-feature-tag">Privacy &amp; AVG</div>
-              <h3 id="homepage-feature-privacy">AVG en privacy centraal</h3>
-              <p>Pulse brengt familie en vrienden dichter bij elkaar in één vertrouwde en beveiligde omgeving — met respect voor privacy: geen onnodige dataverzameling en berichten verdwijnen na 30 dagen.</p>
-              <a href="/over-pulse#privacy" className="hp-read-more-btn" aria-label="Lees meer over privacy en AVG bij Pulse">
-                Lees meer <span aria-hidden="true">→</span>
-              </a>
-            </div>
-            <div className="hp-feature-mockup">
-              <div className="hp-img-container hp-img-tilt-subtle">
-                <img
-                  src="/screenshots/avg.png"
-                  alt="AVG en privacy"
-                  width="420"
-                  height="315"
-                  sizes="(max-width: 768px) 100vw, 420px"
-                  loading="lazy"
-                  decoding="async"
-                  style={{ objectPosition: 'center' }}
                 />
               </div>
             </div>

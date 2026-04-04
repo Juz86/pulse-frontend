@@ -24,8 +24,14 @@ import {
   prepareAttachmentForSend,
 } from './attachmentUploadAdapter';
 import {
+  createMockEncryptedAttachmentEnvelope,
+  decodeMockAttachmentEnvelopeDataUrl,
+  decryptMockAttachmentEnvelopeBlob,
+} from './attachmentCrypto';
+import {
   buildAttachmentMetadataUrl,
   clearAttachmentMetadataCache,
+  decryptAttachmentBlob,
   fetchAttachmentBlob,
   getCachedAttachmentMetadata,
   fetchAttachmentMetadata,
@@ -222,6 +228,9 @@ describe('e2ee attachment helpers', () => {
       storageKey: '',
       transfer: 'inline',
       mimeType: '',
+      originalMimeType: '',
+      contentEncoding: '',
+      envelopeKind: '',
       size: null,
       caption: '',
       encryption: null,
@@ -235,12 +244,17 @@ describe('e2ee attachment helpers', () => {
       thumbnailUrl: 'https://cdn.example.com/foto-thumb.jpg',
       storageKey: 'attachments/conv-1/foto.jpg',
       mimeType: 'image/jpeg',
+      originalMimeType: 'image/jpeg',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
       transfer: 'remote',
       encryption: {
         alg: 'aes-gcm',
         keyId: 'key-1',
         iv: 'iv-1',
         sha256: 'hash-1',
+        envelopeKind: 'pulse_mock_media_envelope',
+        originalMimeType: 'image/jpeg',
       },
     })).toEqual({
       name: 'foto.jpg',
@@ -250,6 +264,9 @@ describe('e2ee attachment helpers', () => {
       storageKey: 'attachments/conv-1/foto.jpg',
       transfer: 'remote',
       mimeType: 'image/jpeg',
+      originalMimeType: 'image/jpeg',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
       size: null,
       caption: '',
       encryption: {
@@ -257,6 +274,8 @@ describe('e2ee attachment helpers', () => {
         keyId: 'key-1',
         iv: 'iv-1',
         sha256: 'hash-1',
+        envelopeKind: 'pulse_mock_media_envelope',
+        originalMimeType: 'image/jpeg',
       },
     });
   });
@@ -274,6 +293,11 @@ describe('e2ee attachment helpers', () => {
   test('isImageAttachment recognizes mime type and data urls', () => {
     expect(isImageAttachment({ mimeType: 'image/png', url: 'https://example.com/image.png' })).toBe(true);
     expect(isImageAttachment({ mimeType: 'application/pdf', url: 'data:image/png;base64,abc' })).toBe(true);
+    expect(isImageAttachment({
+      mimeType: 'application/pulse-e2ee-envelope+json',
+      originalMimeType: 'image/png',
+      downloadUrl: 'https://example.com/secure-image',
+    })).toBe(true);
     expect(isImageAttachment({ mimeType: 'application/pdf', url: 'https://example.com/file.pdf' })).toBe(false);
   });
 
@@ -296,10 +320,25 @@ describe('e2ee attachment helpers', () => {
     });
 
     expect(attachment.transfer).toBe('remote');
-    expect(attachment.downloadUrl).toBe('data:image/png;base64,abc');
+    expect(attachment.downloadUrl).toContain('data:application/pulse-e2ee-envelope+json;base64,');
     expect(attachment.thumbnailUrl).toBe('data:image/png;base64,abc');
     expect(attachment.storageKey).toContain('mock-e2ee/conv-1/user-1/');
-    expect(attachment.encryption?.alg).toBe('mock-e2ee-envelope');
+    expect(attachment.encryption?.alg).toBe('mock-e2ee-envelope-v1');
+  });
+
+  test('createMockEncryptedAttachmentEnvelope wraps a data url in a mock envelope', () => {
+    const encrypted = createMockEncryptedAttachmentEnvelope({
+      name: 'hello.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      size: 5,
+    });
+
+    expect(encrypted.dataUrl).toContain('data:application/pulse-e2ee-envelope+json;base64,');
+    const decoded = decodeMockAttachmentEnvelopeDataUrl(encrypted.dataUrl);
+    expect(decoded.kind).toBe('pulse_mock_media_envelope');
+    expect(decoded.mimeType).toBe('text/plain');
+    expect(decoded.payloadBase64).toBe('SGVsbG8=');
   });
 
   test('prepareAttachmentForSend supports remote_mock mode', async () => {
@@ -500,7 +539,37 @@ describe('e2ee attachment helpers', () => {
     }, fetchImpl);
 
     expect(fetchImpl).toHaveBeenCalledWith('https://cdn.example.com/blob.txt');
-    expect(await result.text()).toBe('hello remote attachment');
+    expect(result).toBe(blob);
+  });
+
+  test('decryptMockAttachmentEnvelopeBlob restores the original attachment blob', async () => {
+    const { dataUrl } = createMockEncryptedAttachmentEnvelope({
+      name: 'hello.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      size: 5,
+    });
+    const base64 = dataUrl.split(',')[1];
+    const encryptedBlob = new Blob([atob(base64)], { type: 'application/pulse-e2ee-envelope+json' });
+
+    const decryptedBlob = await decryptMockAttachmentEnvelopeBlob(encryptedBlob);
+
+    expect(decryptedBlob.type).toBe('text/plain');
+    expect(await new Response(decryptedBlob).text()).toBe('Hello');
+  });
+
+  test('decryptAttachmentBlob routes mock envelopes through the envelope decryptor', async () => {
+    const encryptedBlob = new Blob([JSON.stringify({
+      kind: 'pulse_mock_media_envelope',
+      mimeType: 'text/plain',
+      payloadBase64: 'SGVsbG8=',
+    })], { type: 'application/pulse-e2ee-envelope+json' });
+
+    const decryptedBlob = await decryptAttachmentBlob(encryptedBlob, {
+      encryption: { alg: 'mock-e2ee-envelope-v1' },
+    });
+
+    expect(await new Response(decryptedBlob).text()).toBe('Hello');
   });
 
   test('prepareAttachmentBinaryAccess creates a temporary object url for remote encrypted attachments', async () => {

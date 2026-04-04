@@ -1,5 +1,6 @@
 import { BACKEND_URL } from '../../services/socket';
 import { E2EE_ATTACHMENT_TRANSPORT } from './config';
+import { createMockEncryptedAttachmentEnvelope } from './attachmentCrypto';
 import {
   isImageAttachment,
   normalizeAttachmentPayload,
@@ -19,6 +20,7 @@ function sanitizePathSegment(value, fallback) {
 export function buildMockRemoteAttachmentPayload(attachment, { conversationId, userId } = {}) {
   const normalized = normalizeAttachmentPayload(attachment);
   if (!normalized) return null;
+  const encryptedEnvelope = createMockEncryptedAttachmentEnvelope(normalized);
 
   const safeConversationId = sanitizePathSegment(conversationId, 'conversation');
   const safeUserId = sanitizePathSegment(userId, 'user');
@@ -28,14 +30,17 @@ export function buildMockRemoteAttachmentPayload(attachment, { conversationId, u
   return {
     ...normalized,
     transfer: 'remote',
-    downloadUrl: normalized.downloadUrl || normalized.url,
+    url: encryptedEnvelope.dataUrl,
+    downloadUrl: encryptedEnvelope.dataUrl,
     thumbnailUrl: normalized.thumbnailUrl || (isImageAttachment(normalized) ? normalized.url : ''),
     storageKey: normalized.storageKey || `mock-e2ee/${safeConversationId}/${safeUserId}/${uniqueSuffix}-${safeName}`,
     encryption: normalized.encryption || {
-      alg: 'mock-e2ee-envelope',
+      alg: 'mock-e2ee-envelope-v1',
       keyId: `mock-key-${safeUserId}`,
       iv: `mock-iv-${uniqueSuffix}`,
       sha256: `mock-sha256-${normalized.size || 0}`,
+      envelopeKind: encryptedEnvelope.envelope.kind,
+      originalMimeType: normalized.mimeType || '',
     },
   };
 }

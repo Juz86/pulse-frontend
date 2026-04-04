@@ -85,7 +85,7 @@ app.get('/readyz', async (_req, res) => {
 
 app.use('/devices', requireFirebaseReady, devicesRouter);
 app.use('/api/contacts', requireFirebaseReady, contactsRouter);
-app.use('/api/friend-requests', requireFirebaseReady, friendRequestsRouter);
+app.use('/api/friend-requests', requireFirebaseReady, friendRequestsRouter({ io, emitToUser }));
 app.use('/api/messages', requireFirebaseReady, apiMessagesRouter({ io, emitToUser }));
 app.use('/api/users', requireFirebaseReady, usersRouter);
 app.use('/users', requireFirebaseReady, keysRouter);

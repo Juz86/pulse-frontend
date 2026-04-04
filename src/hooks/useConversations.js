@@ -84,6 +84,18 @@ export default function useConversations({
     );
   }
 
+  async function markConversationMessagesAsRead(items) {
+    const targets = items.filter((message) =>
+      message?.protocol === 'signal_v1' &&
+      message?.id &&
+      message?.senderId !== user.uid
+    );
+
+    await Promise.all(targets.map((message) =>
+      messagingService.sendReceipt({ user, messageId: message.id, type: 'read' }).catch(() => {})
+    ));
+  }
+
   function shouldUseServiceTransport(conv) {
     return isE2EEServiceTransportEnabled && !!currentDeviceId && !!getConversationRecipient(conv);
   }
@@ -215,6 +227,7 @@ export default function useConversations({
       const hydrated = await hydrateMessages(arr);
       if (activeConvRef.current?.id !== convId) return;
       msgCache.current[convId] = hydrated;
+      markConversationMessagesAsRead(hydrated).catch(() => {});
       setMessages(prev => {
         const fetchedIds = new Set(hydrated.map(m => m.id).filter(Boolean));
         const live = prev.filter(m => {

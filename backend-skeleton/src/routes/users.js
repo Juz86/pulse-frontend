@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
+import { resolveUserRole } from '../services/userRoles.js';
 
 export const usersRouter = Router();
 
@@ -18,16 +19,17 @@ async function syncSelfHandler(req, res) {
   const now = new Date().toISOString();
   const userRef = db.collection('users').doc(uid);
   const existingDoc = await userRef.get();
+  const existingUser = existingDoc.exists ? existingDoc.data() : null;
 
   await userRef.set({
     uid,
-    displayName: displayName || existingDoc.data()?.displayName || email || uid,
-    email: email || existingDoc.data()?.email || null,
-    photoURL: photoURL || existingDoc.data()?.photoURL || null,
-    username: username || existingDoc.data()?.username || null,
-    role: role || existingDoc.data()?.role || 'user',
-    status: existingDoc.data()?.status || 'active',
-    createdAt: existingDoc.data()?.createdAt || now,
+    displayName: displayName || existingUser?.displayName || email || uid,
+    email: email || existingUser?.email || null,
+    photoURL: photoURL || existingUser?.photoURL || null,
+    username: username || existingUser?.username || null,
+    role: resolveUserRole(existingUser?.role, role),
+    status: existingUser?.status || 'active',
+    createdAt: existingUser?.createdAt || now,
     updatedAt: now,
   }, { merge: true });
 

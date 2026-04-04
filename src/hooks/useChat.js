@@ -111,6 +111,9 @@ export default function useChat({
       const convId = hydratedMsg.convId || hydratedMsg.conversationId || msg.convId;
 
       if (current?.id === convId) {
+        if (hydratedMsg.protocol === 'signal_v1' && hydratedMsg.senderId !== user.uid && hydratedMsg.id) {
+          messagingService.sendReceipt({ user, messageId: hydratedMsg.id, type: 'read' }).catch(() => {});
+        }
         setMessages(prev => {
           if (hydratedMsg.type === 'call') {
             const callPendingIdx = prev.findIndex(m => m.pending && m.type === 'call' && m.senderId === hydratedMsg.senderId);
@@ -136,6 +139,9 @@ export default function useChat({
         }, 50);
         playMessageSound();
       } else if (hydratedMsg.senderId !== user.uid) {
+        if (hydratedMsg.protocol === 'signal_v1' && hydratedMsg.id) {
+          messagingService.sendReceipt({ user, messageId: hydratedMsg.id, type: 'delivered' }).catch(() => {});
+        }
         setUnreadCounts(prev => ({ ...prev, [convId]: (prev[convId] || 0) + 1 }));
         if (Notification.permission === 'granted' && document.hidden) {
           new Notification('Nieuw bericht in Pulse', {

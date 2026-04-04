@@ -190,4 +190,26 @@ export const messagingService = {
       ciphertextAvailable: true,
     }, currentUserId);
   },
+
+  async sendReceipt({ user, messageId, type }) {
+    if (!user || !messageId || !['delivered', 'read'].includes(type)) return;
+
+    const identity = await secureKeyStore.getIdentity(user.uid);
+    const currentDeviceId = identity?.deviceId || null;
+    if (!currentDeviceId) return;
+
+    const token = await getAuthToken(user);
+    await fetch(`${BACKEND_URL}/messages/receipt`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        messageId,
+        recipientDeviceId: currentDeviceId,
+        type,
+      }),
+    });
+  },
 };

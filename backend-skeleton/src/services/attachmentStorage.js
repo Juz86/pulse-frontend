@@ -1,6 +1,21 @@
 import { randomUUID } from 'crypto';
+import { mkdir, readFile, stat, writeFile } from 'fs/promises';
+import path from 'path';
 
 const attachmentStore = new Map();
+
+function getMockStorageDir() {
+  return path.resolve(process.env.PULSE_ATTACHMENT_MOCK_DIR || '/tmp/pulse-e2ee-attachments');
+}
+
+function getAttachmentPaths(id) {
+  const baseDir = getMockStorageDir();
+  return {
+    baseDir,
+    binaryPath: path.join(baseDir, `${id}.bin`),
+    metadataPath: path.join(baseDir, `${id}.json`),
+  };
+}
 
 export function isDataUrl(value = '') {
   return typeof value === 'string' && value.startsWith('data:');
@@ -53,7 +68,7 @@ export function buildStoredAttachmentMetadata({ id, baseUrl, attachment }) {
   };
 }
 
-export function storeMockAttachment({ attachment, baseUrl }) {
+export async function storeMockAttachment({ attachment, baseUrl }) {
   if (!attachment || typeof attachment !== 'object') {
     throw new Error('invalid_attachment_payload');
   }
@@ -70,7 +85,7 @@ export function storeMockAttachment({ attachment, baseUrl }) {
     throw new Error('unsupported_attachment_source');
   }
 
-  attachmentStore.set(id, {
+  const storedRecord = {
     id,
     name: attachment.name || 'Bestand',
     mimeType: attachment.mimeType || parsed.mimeType || 'application/octet-stream',
@@ -79,11 +94,44 @@ export function storeMockAttachment({ attachment, baseUrl }) {
       ? 'inline'
       : 'attachment',
     buffer: parsed.buffer,
-  });
+  };
+  const { baseDir, binaryPath, metadataPath } = getAttachmentPaths(id);
+  await mkdir(baseDir, { recursive: true });
+  await writeFile(binaryPath, storedRecord.buffer);
+  await writeFile(metadataPath, JSON.stringify({
+    id: storedRecord.id,
+    name: storedRecord.name,
+    mimeType: storedRecord.mimeType,
+    size: storedRecord.size,
+    contentDisposition: storedRecord.contentDisposition,
+  }, null, 2), 'utf8');
+
+  attachmentStore.set(id, storedRecord);
 
   return buildStoredAttachmentMetadata({ id, baseUrl, attachment });
 }
 
-export function getStoredAttachment(id) {
-  return attachmentStore.get(id) || null;
+export async function getStoredAttachment(id) {
+  if (attachmentStore.has(id)) {
+    return attachmentStore.get(id) || null;
+  }
+
+  const { binaryPath, metadataPath } = getAttachmentPaths(id);
+
+  try {
+    await stat(binaryPath);
+    const [buffer, metadataRaw] = await Promise.all([
+      readFile(binaryPath),
+      readFile(metadataPath, 'utf8'),
+    ]);
+    const metadata = JSON.parse(metadataRaw);
+    const storedRecord = {
+      ...metadata,
+      buffer,
+    };
+    attachmentStore.set(id, storedRecord);
+    return storedRecord;
+  } catch {
+    return null;
+  }
 }

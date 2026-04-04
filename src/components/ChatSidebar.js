@@ -235,7 +235,7 @@ export default function ChatSidebar({
           <div style={{ padding: '12px 18px' }}>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
               <button type="button" className="btn-primary" style={{ padding: '10px', fontSize: '13px', flex: 1, minWidth: 0 }} onClick={onShowAddContact}>
-                + Contact toevoegen
+                Nieuw contact
               </button>
               <button
                 type="button"
@@ -261,12 +261,18 @@ export default function ChatSidebar({
 
           {showFriendRequestsPanel && (
             <div style={{ padding: '0 12px 4px' }}>
-              <div style={{ display: 'flex', gap: 16, padding: '0 6px 8px' }}>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Ontvangen ({friendRequests.length})
+              <div style={{ display: 'flex', gap: 8, padding: '4px 6px 12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 999, background: 'rgba(124,111,255,0.12)', border: '1px solid rgba(124,111,255,0.2)' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--accent, #7c6fff)', letterSpacing: '0.04em' }}>Ontvangen</span>
+                  {friendRequests.length > 0 && (
+                    <span style={{ fontSize: '10px', fontWeight: '800', background: 'var(--accent, #7c6fff)', color: '#fff', borderRadius: 999, padding: '1px 6px', lineHeight: 1.6 }}>{friendRequests.length}</span>
+                  )}
                 </div>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  Verstuurd ({sentFriendRequests.length})
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', letterSpacing: '0.04em' }}>Verstuurd</span>
+                  {sentFriendRequests.length > 0 && (
+                    <span style={{ fontSize: '10px', fontWeight: '800', background: 'rgba(255,255,255,0.2)', color: 'var(--text-primary)', borderRadius: 999, padding: '1px 6px', lineHeight: 1.6 }}>{sentFriendRequests.length}</span>
+                  )}
                 </div>
               </div>
               {friendRequests.map(req => (

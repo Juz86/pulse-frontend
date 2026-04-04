@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'fs/promises';
+import os from 'os';
+import path from 'path';
 import {
   buildStoredAttachmentMetadata,
   isDataUrl,
@@ -7,6 +10,18 @@ import {
   storeMockAttachment,
   getStoredAttachment,
 } from './attachmentStorage.js';
+
+let storageDir;
+
+test.before(async () => {
+  storageDir = await mkdtemp(path.join(os.tmpdir(), 'pulse-e2ee-attachments-test-'));
+  process.env.PULSE_ATTACHMENT_MOCK_DIR = storageDir;
+});
+
+test.after(async () => {
+  await rm(storageDir, { recursive: true, force: true });
+  delete process.env.PULSE_ATTACHMENT_MOCK_DIR;
+});
 
 test('isDataUrl recognizes base64 data urls', () => {
   assert.equal(isDataUrl('data:text/plain;base64,SGVsbG8='), true);
@@ -38,8 +53,8 @@ test('buildStoredAttachmentMetadata creates remote mock payload', () => {
   assert.equal(metadata.encryption.alg, 'mock-storage-envelope');
 });
 
-test('storeMockAttachment persists inline data for retrieval', () => {
-  const metadata = storeMockAttachment({
+test('storeMockAttachment persists inline data for retrieval', async () => {
+  const metadata = await storeMockAttachment({
     baseUrl: 'http://localhost:3001',
     attachment: {
       name: 'document.txt',
@@ -50,7 +65,7 @@ test('storeMockAttachment persists inline data for retrieval', () => {
   });
 
   const attachmentId = metadata.downloadUrl.split('/').pop();
-  const stored = getStoredAttachment(attachmentId);
+  const stored = await getStoredAttachment(attachmentId);
 
   assert.ok(stored);
   assert.equal(stored.mimeType, 'text/plain');

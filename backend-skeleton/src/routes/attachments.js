@@ -13,7 +13,7 @@ attachmentsRouter.post('/upload', requireAuth, asyncRoute(async (req, res) => {
   }
 
   const baseUrl = `${req.protocol}://${req.get('host')}`;
-  const storedAttachment = storeMockAttachment({
+  const storedAttachment = await storeMockAttachment({
     attachment,
     baseUrl,
   });
@@ -25,7 +25,7 @@ attachmentsRouter.post('/upload', requireAuth, asyncRoute(async (req, res) => {
 }));
 
 attachmentsRouter.get('/:attachmentId', asyncRoute(async (req, res) => {
-  const storedAttachment = getStoredAttachment(req.params.attachmentId);
+  const storedAttachment = await getStoredAttachment(req.params.attachmentId);
 
   if (!storedAttachment) {
     return res.status(404).json({ error: 'attachment_not_found' });

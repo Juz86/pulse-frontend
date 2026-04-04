@@ -11,6 +11,7 @@
     "seed:emulator": "node src/scripts/seedEmulator.js",
     "wipe:emulator": "node src/scripts/wipeEmulator.js",
     "smoke": "node src/scripts/smoke.js",
+    "smoke:attachments": "node src/scripts/smokeAttachments.js",
     "smoke:socket": "node src/scripts/socketSmoke.js",
     "preflight": "node src/scripts/preflight.js",
     "preflight:emulator": "node src/scripts/preflightEmulator.js",

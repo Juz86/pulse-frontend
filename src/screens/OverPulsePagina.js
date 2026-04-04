@@ -132,10 +132,10 @@ export default function OverPulsePagina({ onParentClick }) {
   };
 
   const navItems = [
-    { key: 'functies',           label: 'Functies',           href: '/functies' },
-    { key: 'hoe-werkt-het',      label: 'Hoe werkt het',      href: '/hoe-werkt-het' },
+    { key: 'privacy-first',      label: 'Privacy-First',      href: '/privacy-first' },
     { key: 'ouderlijk-toezicht', label: 'Ouderlijk toezicht', href: '/ouderlijk-toezicht' },
-    { key: 'over-pulse',         label: 'Over Pulse',         onClick: () => scrollTo('footer') },
+    { key: 'hoe-werkt-het',      label: 'Hoe werkt het',      href: '/hoe-werkt-het' },
+    { key: 'functies',           label: 'Functies',           href: '/functies' },
   ];
 
   const problemCards = [

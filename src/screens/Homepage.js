@@ -45,10 +45,10 @@ export default function Homepage({ onParentClick }) {
   }, []);
 
   const navItems = [
-    { key: 'functies', label: 'Functies', href: '/functies' },
-    { key: 'hoe-werkt-het', label: 'Hoe werkt het', href: '/hoe-werkt-het' },
+    { key: 'privacy-first',      label: 'Privacy-First',      href: '/privacy-first' },
     { key: 'ouderlijk-toezicht', label: 'Ouderlijk toezicht', href: '/ouderlijk-toezicht' },
-    { key: 'over-pulse', label: 'Over Pulse', href: '/over-pulse' },
+    { key: 'hoe-werkt-het',      label: 'Hoe werkt het',      href: '/hoe-werkt-het' },
+    { key: 'functies',           label: 'Functies',           href: '/functies' },
   ];
 
   return (

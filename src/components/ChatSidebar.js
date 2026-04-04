@@ -234,13 +234,13 @@ export default function ChatSidebar({
         <div className="conv-list">
           <div style={{ padding: '12px 18px' }}>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
-              <button type="button" className="btn-primary" style={{ padding: '10px', fontSize: '13px', flex: 1 }} onClick={onShowAddContact}>
+              <button type="button" className="btn-primary" style={{ padding: '10px', fontSize: '13px', flex: 1, minWidth: 0 }} onClick={onShowAddContact}>
                 + Contact toevoegen
               </button>
               <button
                 type="button"
                 className="btn-secondary"
-                style={{ padding: '10px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap' }}
+                style={{ padding: '10px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
                 onClick={() => setShowFriendRequestsPanel(prev => !prev)}
                 aria-expanded={showFriendRequestsPanel}
               >

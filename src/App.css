@@ -2427,17 +2427,19 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .fp-nav-link:hover { color: #1a1a2e; background: rgba(108,99,255,0.08); }
 .hp-nav-highlight-link { padding: 0 !important; background: none !important; }
 .hp-nav-highlight {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: rgba(108,99,255,0.1); border: 1px solid rgba(108,99,255,0.25);
-  color: var(--accent); border-radius: 999px;
-  padding: 5px 13px; font-size: 13px; font-weight: 700;
-  transition: background 0.15s, border-color 0.15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(135deg, #6c63ff, #a78bfa);
+  color: #fff; border-radius: 999px;
+  padding: 6px 14px; font-size: 13px; font-weight: 700;
+  box-shadow: 0 2px 10px rgba(108,99,255,0.35);
+  transition: box-shadow 0.15s, transform 0.15s;
 }
 .hp-nav-highlight-link:hover .hp-nav-highlight {
-  background: rgba(108,99,255,0.18); border-color: rgba(108,99,255,0.45);
+  box-shadow: 0 4px 16px rgba(108,99,255,0.5);
+  transform: translateY(-1px);
 }
 .fp-nav-active.hp-nav-highlight-link .hp-nav-highlight {
-  background: rgba(108,99,255,0.18); border-color: var(--accent);
+  box-shadow: 0 4px 16px rgba(108,99,255,0.5);
 }
 .hp-nav-kind {
   background: #f0fdf4; border: 1px solid rgba(34,197,94,0.22);

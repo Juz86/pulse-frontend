@@ -22,7 +22,11 @@ export default function useContacts({
 }) {
   const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
-    return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
+    return fetch(url, {
+      cache: options.cache || 'no-store',
+      ...options,
+      headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` },
+    });
   }, [user]);
 
   async function resolveIdentifierToEmail(identifier) {

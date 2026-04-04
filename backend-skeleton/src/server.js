@@ -83,6 +83,15 @@ app.get('/readyz', async (_req, res) => {
   });
 });
 
+app.post('/api/fcm-token', (_req, res) => {
+  return res.json({
+    ok: true,
+    stored: false,
+    reason: 'not_implemented_in_backend_skeleton',
+    requestId: _req.requestId,
+  });
+});
+
 app.use('/devices', requireFirebaseReady, devicesRouter);
 app.use('/api/contacts', requireFirebaseReady, contactsRouter);
 app.use('/api/friend-requests', requireFirebaseReady, friendRequestsRouter({ io, emitToUser }));

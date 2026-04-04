@@ -5,7 +5,7 @@ import { db } from '../services/firestore.js';
 
 export const usersRouter = Router();
 
-usersRouter.post('/sync-self', requireAuth, asyncRoute(async (req, res) => {
+async function syncSelfHandler(req, res) {
   const uid = req.auth.uid;
   const {
     displayName = null,
@@ -32,7 +32,10 @@ usersRouter.post('/sync-self', requireAuth, asyncRoute(async (req, res) => {
   }, { merge: true });
 
   return res.json({ ok: true, uid });
-}));
+}
+
+usersRouter.post('/', requireAuth, asyncRoute(syncSelfHandler));
+usersRouter.post('/sync-self', requireAuth, asyncRoute(syncSelfHandler));
 
 usersRouter.get('/lookup-username', asyncRoute(async (req, res) => {
   const username = String(req.query.username || '').trim().toLowerCase();

@@ -1,7 +1,12 @@
 // src/components/ChatHeader.js
 import React, { useMemo } from 'react';
 import { Phone, Video, Users } from '../components/Icons';
-import { isE2EEServiceTransportEnabled } from '../lib/e2ee/config';
+import {
+  E2EE_ATTACHMENT_STRATEGY,
+  isE2EEServiceTransportEnabled,
+  isFutureAttachmentStrategyEnabled,
+  isRemoteMockAttachmentTransportEnabled,
+} from '../lib/e2ee/config';
 import UserAvatar from '../components/UserAvatar';
 
 const ChatHeader = React.memo(function ChatHeader({
@@ -30,6 +35,7 @@ const ChatHeader = React.memo(function ChatHeader({
   messages,
   chatSearchRef,
   serviceTransportReady,
+  showFutureMediaBanner = false,
 }) {
   const otherUid  = getOtherUid(activeConv);
   const isOnline  = otherUid && onlineUsers.has(otherUid);
@@ -163,6 +169,25 @@ const ChatHeader = React.memo(function ChatHeader({
           }}
         >
           Serviceversleuteling is tijdelijk niet beschikbaar. Pulse gebruikt nu automatisch socketfallback.
+        </div>
+      )}
+
+      {isRemoteMockAttachmentTransportEnabled && showFutureMediaBanner && isFutureAttachmentStrategyEnabled && (
+        <div
+          className="chat-future-media-banner"
+          role="status"
+          aria-live="polite"
+          style={{
+            margin: '0 12px 10px',
+            padding: '8px 12px',
+            borderRadius: 12,
+            background: 'rgba(59, 130, 246, 0.10)',
+            border: '1px solid rgba(59, 130, 246, 0.24)',
+            color: 'var(--text2)',
+            fontSize: 12,
+          }}
+        >
+          Pulse test nu het toekomstige attachment-profiel <strong>{E2EE_ATTACHMENT_STRATEGY}</strong> via de remote mock-opslagflow.
         </div>
       )}
 

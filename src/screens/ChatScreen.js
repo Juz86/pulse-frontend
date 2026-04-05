@@ -377,6 +377,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               chatSearchIdx={chatSearchIdx} setChatSearchIdx={setChatSearchIdx}
               messages={messages} chatSearchRef={chatSearchRef}
               serviceTransportReady={serviceTransportReady}
+              showFutureMediaBanner={Boolean(activeConv)}
             />
             {!isOnline && (
               <div className="offline-banner" role="status" aria-live="polite">

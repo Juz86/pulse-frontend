@@ -7,19 +7,7 @@ import { computeDeliveryState, computeReceiptSummary, toSocketStatus } from '../
 import { filterVisibleMessages } from '../services/messageVisibility.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
-
-function deriveMockPreview({ ciphertext, protocol, messageType }) {
-  if (messageType === 'contact') return 'Contactpersoon gedeeld';
-  if (messageType === 'attachment') return 'Bijlage gedeeld';
-  if (messageType && messageType !== 'text') return 'Nieuw bericht';
-  if (protocol !== 'signal_v1' || !ciphertext) return '';
-
-  try {
-    return Buffer.from(ciphertext, 'base64').toString('utf8') || 'Versleuteld bericht';
-  } catch {
-    return 'Versleuteld bericht';
-  }
-}
+import { deriveConversationSummary } from '../services/conversationSummaries.js';
 
 export function messagesRouter({ io, emitToUser }) {
   const router = Router();
@@ -162,8 +150,10 @@ export function messagesRouter({ io, emitToUser }) {
       }
     }
 
-    const conversationPreview = deriveMockPreview({
+    const summary = deriveConversationSummary({
       ciphertext,
+      sharedContact: req.body?.sharedContact || null,
+      attachment: req.body?.attachment || null,
       protocol: protocol || 'signal_v1',
       messageType: messageType || 'text',
     });
@@ -171,7 +161,7 @@ export function messagesRouter({ io, emitToUser }) {
     await db.collection('conversations').doc(conversationId).set(
       {
         updatedAt: createdAt,
-        lastMessage: conversationPreview || ((protocol || 'signal_v1') === 'signal_v1' ? 'Versleuteld bericht' : ''),
+        ...summary,
       },
       { merge: true }
     );

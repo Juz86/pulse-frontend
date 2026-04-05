@@ -10,13 +10,15 @@ import {
 } from '../lib/e2ee/messageTransportPayload';
 import {
   buildPendingMessage,
-  getConversationPreview,
   normalizeIncomingMessage,
 } from '../lib/e2ee/messageModel';
+import {
+  applyConversationSummaryToList,
+  normalizeConversationAttachmentSummary,
+} from '../lib/e2ee/conversationSummaries';
 import { isE2EEServiceTransportEnabled } from '../lib/e2ee/config';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
-import { toMs } from '../utils';
 
 const MSG_LIMIT = 30;
 
@@ -201,7 +203,7 @@ export default function useConversations({
         });
         if (updated) { localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(stored)); setConvLabels(stored); }
       }
-      setConversations(Array.isArray(data) ? data : []);
+      setConversations(Array.isArray(data) ? data.map(normalizeConversationAttachmentSummary) : []);
       const sock = getSocket();
       if (sock && Array.isArray(data)) {
         data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
@@ -376,22 +378,7 @@ export default function useConversations({
     setMessages(prev => [...prev, optimisticMsg]);
     savePending(optimisticMsg.id, activeConv.id, msg);
     setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
-    setConversations(prev => {
-      const updated = prev.map(c => c.id === activeConv.id ? {
-        ...c,
-        lastMessage: getConversationPreview(optimisticMsg),
-        lastMessageType: optimisticMsg.type || optimisticMsg.messageType || 'text',
-        lastAttachmentTransfer: null,
-        lastAttachmentEncoding: null,
-        lastAttachmentOriginalMimeType: null,
-        lastAttachmentExpectedPayloadSha256: null,
-        updatedAt: msg.createdAt,
-        lastCallDirection: null,
-        lastCallSenderId: null,
-        lastCallIsVideo: null,
-      } : c);
-      return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
-    });
+    setConversations(prev => applyConversationSummaryToList(prev, activeConv.id, optimisticMsg, msg.createdAt));
     const failTimer = setTimeout(() => {
       patchMessageAsFailed(optimisticMsg.id);
     }, 20000);
@@ -465,26 +452,7 @@ export default function useConversations({
       }, 50);
     }
 
-    setConversations(prev => {
-      const updated = prev.map((item) => (
-        item.id === conv.id
-          ? {
-              ...item,
-              lastMessage: getConversationPreview(optimisticMsg),
-              lastMessageType: 'contact',
-              lastAttachmentTransfer: null,
-              lastAttachmentEncoding: null,
-              lastAttachmentOriginalMimeType: null,
-              lastAttachmentExpectedPayloadSha256: null,
-              updatedAt: optimisticMsg.createdAt,
-              lastCallDirection: null,
-              lastCallSenderId: null,
-              lastCallIsVideo: null,
-            }
-          : item
-      ));
-      return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
-    });
+    setConversations(prev => applyConversationSummaryToList(prev, conv.id, optimisticMsg, optimisticMsg.createdAt));
 
     if (shouldUseServiceTransport(conv)) {
       const recipientUserIds = getConversationRecipients(conv);
@@ -569,26 +537,7 @@ export default function useConversations({
       }, 50);
     }
 
-    setConversations(prev => {
-      const updated = prev.map((item) => (
-        item.id === conv.id
-          ? {
-              ...item,
-              lastMessage: getConversationPreview(optimisticMsg),
-              lastMessageType: 'attachment',
-              lastAttachmentTransfer: normalizedAttachment.transfer || null,
-              lastAttachmentEncoding: normalizedAttachment.contentEncoding || null,
-              lastAttachmentOriginalMimeType: normalizedAttachment.originalMimeType || normalizedAttachment.mimeType || null,
-              lastAttachmentExpectedPayloadSha256: normalizedAttachment.expectedPayloadSha256 || normalizedAttachment.encryption?.sha256 || null,
-              updatedAt: optimisticMsg.createdAt,
-              lastCallDirection: null,
-              lastCallSenderId: null,
-              lastCallIsVideo: null,
-            }
-          : item
-      ));
-      return [...updated].sort((a, b) => toMs(b.updatedAt) - toMs(a.updatedAt));
-    });
+    setConversations(prev => applyConversationSummaryToList(prev, conv.id, optimisticMsg, optimisticMsg.createdAt));
 
     if (shouldUseServiceTransport(conv)) {
       const recipientUserIds = getConversationRecipients(conv);

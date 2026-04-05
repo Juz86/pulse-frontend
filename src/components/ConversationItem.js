@@ -1,8 +1,10 @@
 // src/components/ConversationItem.js
 import React from 'react';
 import { Pin, InfoIcon } from '../components/Icons';
-import { getConversationAttachmentSummaryPresentation } from '../lib/e2ee/attachmentPresentation';
-import { getConversationPreview } from '../lib/e2ee/messageModel';
+import {
+  getConversationAttachmentSummaryPresentation,
+  getConversationPreview,
+} from '../lib/e2ee/conversationSummaries';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview } from '../utils';
 

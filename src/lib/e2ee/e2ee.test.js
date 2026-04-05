@@ -1,11 +1,17 @@
 import {
   buildPendingMessage,
-  getConversationPreview,
   getMessageDisplayText,
   normalizeIncomingMessage,
   patchPendingMessageAsFailed,
   patchPendingMessageAsSent,
 } from './messageModel';
+import {
+  applyConversationSummaryToList,
+  buildConversationSummaryUpdate,
+  getConversationAttachmentSummaryPresentation,
+  getConversationPreview,
+  normalizeConversationAttachmentSummary,
+} from './conversationSummaries';
 import {
   buildTransportAttachmentPayload,
   buildForwardServicePayload,
@@ -41,7 +47,6 @@ import {
 import {
   getAttachmentAccessVerificationPresentation,
   getAttachmentContractPresentation,
-  getConversationAttachmentSummaryPresentation,
   getAttachmentPreviewText,
 } from './attachmentPresentation';
 import {
@@ -225,6 +230,27 @@ describe('e2ee message model helpers', () => {
         contentEncoding: 'mock-e2ee-envelope-v1',
       },
     })).toBe('Bijlage: foto.png');
+  });
+
+  test('buildConversationSummaryUpdate derives attachment summary fields from structured messages', () => {
+    expect(buildConversationSummaryUpdate({
+      type: 'attachment',
+      text: 'rapport.pdf',
+      attachment: {
+        name: 'rapport.pdf',
+        transfer: 'remote',
+        originalMimeType: 'application/pdf',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        expectedPayloadSha256: 'hash-1',
+      },
+    })).toEqual({
+      lastMessage: 'Bijlage: rapport.pdf · versleuteld',
+      lastMessageType: 'attachment',
+      lastAttachmentTransfer: 'remote',
+      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+      lastAttachmentOriginalMimeType: 'application/pdf',
+      lastAttachmentExpectedPayloadSha256: 'hash-1',
+    });
   });
 
   test('normalizeIncomingMessage preserves structured contact metadata', () => {
@@ -687,6 +713,57 @@ describe('e2ee attachment helpers', () => {
       storageShortLabel: 'versleuteld',
       mimeLabel: 'application/pdf',
     });
+  });
+
+  test('normalizeConversationAttachmentSummary fills attachment summary defaults', () => {
+    expect(normalizeConversationAttachmentSummary({
+      id: 'conv-1',
+      lastMessage: 'Hallo',
+    })).toEqual({
+      id: 'conv-1',
+      lastMessage: 'Hallo',
+      lastMessageType: null,
+      lastAttachmentTransfer: null,
+      lastAttachmentEncoding: null,
+      lastAttachmentOriginalMimeType: null,
+      lastAttachmentExpectedPayloadSha256: null,
+    });
+  });
+
+  test('applyConversationSummaryToList updates and sorts the targeted conversation', () => {
+    expect(applyConversationSummaryToList([
+      { id: 'conv-1', updatedAt: '2026-01-01T10:00:00.000Z', lastMessage: 'Oud' },
+      { id: 'conv-2', updatedAt: '2026-01-01T09:00:00.000Z', lastMessage: 'Ander' },
+    ], 'conv-2', {
+      type: 'attachment',
+      attachment: {
+        name: 'rapport.pdf',
+        transfer: 'remote',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        originalMimeType: 'application/pdf',
+        expectedPayloadSha256: 'hash-1',
+      },
+      createdAt: '2026-01-01T11:00:00.000Z',
+    })).toEqual([
+      {
+        id: 'conv-2',
+        updatedAt: '2026-01-01T11:00:00.000Z',
+        lastMessage: 'Bijlage: rapport.pdf · versleuteld',
+        lastMessageType: 'attachment',
+        lastAttachmentTransfer: 'remote',
+        lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+        lastAttachmentOriginalMimeType: 'application/pdf',
+        lastAttachmentExpectedPayloadSha256: 'hash-1',
+        lastCallDirection: null,
+        lastCallSenderId: null,
+        lastCallIsVideo: null,
+      },
+      {
+        id: 'conv-1',
+        updatedAt: '2026-01-01T10:00:00.000Z',
+        lastMessage: 'Oud',
+      },
+    ]);
   });
 
   test('createMockEncryptedAttachmentEnvelope wraps a data url in a mock envelope', async () => {

@@ -1,32 +1,9 @@
 import { normalizeAttachmentPayload } from './attachmentPayload';
 import { getAttachmentPreviewText } from './attachmentPresentation';
-
-function deriveAttachmentNameFromPreview(lastMessage = '') {
-  if (typeof lastMessage !== 'string') return '';
-  if (lastMessage.startsWith('Bijlage: ')) {
-    return lastMessage.slice('Bijlage: '.length).split(' · ')[0].trim();
-  }
-  return '';
-}
-
-function deriveAttachmentSummaryAttachment(message = {}) {
-  if (message?.attachment) {
-    return message.attachment;
-  }
-
-  if ((message?.type || message?.lastMessageType) !== 'attachment') {
-    return null;
-  }
-
-  return normalizeAttachmentPayload({
-    name: deriveAttachmentNameFromPreview(message.lastMessage) || 'Bestand',
-    transfer: message.lastAttachmentTransfer || '',
-    mimeType: message.lastAttachmentOriginalMimeType || '',
-    originalMimeType: message.lastAttachmentOriginalMimeType || '',
-    contentEncoding: message.lastAttachmentEncoding || '',
-    expectedPayloadSha256: message.lastAttachmentExpectedPayloadSha256 || '',
-  });
-}
+export {
+  buildConversationSummaryUpdate,
+  getConversationPreview,
+} from './conversationSummaries';
 
 export function normalizeIncomingMessage(raw, currentUserId) {
   const senderId = raw.senderId || raw.senderUserId;
@@ -130,18 +107,6 @@ export function patchPendingMessageAsFailed(msg) {
     pending: false,
     failed: true,
   };
-}
-
-export function getConversationPreview(msg) {
-  if (!msg) return '';
-  if (msg.deleted) return 'Bericht verwijderd';
-  if (msg.type === 'contact') return `Contactpersoon: ${msg.sharedContact?.name || 'Contactpersoon'}`;
-  const attachmentSummary = deriveAttachmentSummaryAttachment(msg);
-  if (attachmentSummary) return getAttachmentPreviewText(attachmentSummary, { includeStorageSignal: true });
-  if (typeof msg.lastMessage === 'string' && msg.lastMessage) return msg.lastMessage;
-  if (msg.text) return msg.text;
-  if (msg.ciphertextAvailable) return 'Versleuteld bericht';
-  return '';
 }
 
 export function getMessageDisplayText(msg) {

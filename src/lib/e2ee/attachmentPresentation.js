@@ -67,26 +67,3 @@ export function getAttachmentPreviewText(attachment = {}, { includeStorageSignal
 
   return `${baseLabel} · ${presentation.storageShortLabel}`;
 }
-
-export function getConversationAttachmentSummaryPresentation(conversation = {}) {
-  const previewName = typeof conversation?.lastMessage === 'string' && conversation.lastMessage.startsWith('Bijlage: ')
-    ? conversation.lastMessage.slice('Bijlage: '.length).split(' · ')[0].trim()
-    : '';
-  const attachment = {
-    name: previewName || 'Bestand',
-    transfer: conversation?.lastAttachmentTransfer || '',
-    mimeType: conversation?.lastAttachmentOriginalMimeType || '',
-    originalMimeType: conversation?.lastAttachmentOriginalMimeType || '',
-    contentEncoding: conversation?.lastAttachmentEncoding || '',
-    expectedPayloadSha256: conversation?.lastAttachmentExpectedPayloadSha256 || '',
-  };
-  const attachmentPresentation = getAttachmentContractPresentation(attachment);
-
-  return {
-    isAttachmentSummary: conversation?.lastMessageType === 'attachment',
-    showRemoteAttachmentBadge: conversation?.lastMessageType === 'attachment' && attachmentPresentation.isRemote,
-    previewText: getAttachmentPreviewText(attachment, { includeStorageSignal: true }),
-    storageShortLabel: attachmentPresentation.storageShortLabel,
-    mimeLabel: attachmentPresentation.mimeLabel,
-  };
-}

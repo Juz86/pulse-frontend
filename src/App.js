@@ -10,7 +10,7 @@ import './App.css';
 import PulseLogo from './components/PulseLogo';
 import { bootstrapDevice } from './lib/e2ee/deviceBootstrap';
 import {
-  getAttachmentStrategyRuntimeState,
+  getAttachmentRuntimeState,
   probeE2EEBackendCapabilities,
   probeE2EEServiceReady,
   E2EE_ATTACHMENT_STRATEGY,
@@ -161,7 +161,7 @@ function MainApp() {
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
   const [backendE2EECapabilities, setBackendE2EECapabilities] = useState(null);
-  const attachmentStrategyRuntime = getAttachmentStrategyRuntimeState({
+  const attachmentStrategyRuntime = getAttachmentRuntimeState({
     preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
     capabilities: backendE2EECapabilities,
   });

@@ -4,7 +4,7 @@ import { getSocket } from '../services/socket';
 import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2ee/attachmentPayload';
 import {
   getAttachmentStrategyComposerHintState,
-  getAttachmentStrategyRuntimeState,
+  getAttachmentRuntimeState,
 } from '../lib/e2ee/config';
 import { Send, PauseCircle, ImageIcon } from '../components/Icons';
 
@@ -148,7 +148,7 @@ const ChatInput = React.memo(function ChatInput({
     editingMsg ? 'chat-compose-editing' : null,
     replyTo ? 'chat-compose-reply' : null,
   ].filter(Boolean).join(' ') || undefined;
-  const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentStrategyRuntimeState({
+  const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentRuntimeState({
     preferredStrategy: undefined,
   });
   const attachmentStrategyHintState = getAttachmentStrategyComposerHintState({

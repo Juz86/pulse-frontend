@@ -5,7 +5,7 @@ import {
   E2EE_ATTACHMENT_STRATEGY,
   getFutureAttachmentStrategyBannerState,
   getServiceTransportFallbackBannerState,
-  getAttachmentStrategyRuntimeState,
+  getAttachmentRuntimeState,
   E2EE_TRANSPORT,
 } from '../lib/e2ee/config';
 import UserAvatar from '../components/UserAvatar';
@@ -59,7 +59,7 @@ const ChatHeader = React.memo(function ChatHeader({
 
   const searchTotal   = searchMatches.length;
   const searchCurrent = searchTotal > 0 ? chatSearchIdx % searchTotal : 0;
-  const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentStrategyRuntimeState({
+  const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentRuntimeState({
     preferredStrategy: undefined,
   });
   const futureAttachmentBannerState = getFutureAttachmentStrategyBannerState({

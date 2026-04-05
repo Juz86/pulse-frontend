@@ -82,6 +82,7 @@ import {
   getAttachmentStrategyPresentation,
 } from './attachmentPresentation';
 import {
+  getAttachmentRuntimeState,
   getAttachmentStrategyComposerHintState,
   getFutureAttachmentStrategyBannerState,
   getFutureAttachmentStrategyBannerCopy,
@@ -140,6 +141,10 @@ import {
   resolveAttachmentStorageProvider,
   resolveAttachmentStorageProviderEntry,
 } from './attachmentProviders';
+import {
+  createDefaultAttachmentProviderRegistries,
+  getDefaultAttachmentProviderRuntimeState,
+} from './attachmentDefaultProviders';
 import { BACKEND_URL } from '../../services/socket';
 
 describe('e2ee message model helpers', () => {
@@ -525,6 +530,30 @@ describe('e2ee backend capability helpers', () => {
       fallbackStrategy: 'external_contract',
       fallbackActive: true,
       preferredStrategySupported: false,
+    });
+  });
+
+  test('getAttachmentRuntimeState combines strategy fallback with default provider runtime', () => {
+    expect(getAttachmentRuntimeState({
+      preferredStrategy: 'pulse_media_v1',
+      capabilities: {
+        attachmentStrategies: ['mock_media_v1'],
+        defaultAttachmentStrategy: 'mock_media_v1',
+      },
+      attachmentTransport: 'remote_mock',
+      needsRemoteFetch: true,
+    })).toMatchObject({
+      preferredStrategy: 'pulse_media_v1',
+      effectiveStrategy: 'mock_media_v1',
+      fallbackActive: true,
+      providerRuntime: {
+        storageProviderKind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK,
+        accessProviderKind: ATTACHMENT_ACCESS_PROVIDER_REMOTE,
+        usesRemoteStorage: true,
+        usesRemoteFetch: true,
+        isFutureDraft: false,
+        supportsBinaryAccess: true,
+      },
     });
   });
 
@@ -2378,6 +2407,35 @@ describe('e2ee attachment helpers', () => {
         isFutureDraft: true,
         supportsBinaryAccess: false,
       },
+      usesRemoteStorage: true,
+      usesRemoteFetch: true,
+      isFutureDraft: true,
+      supportsBinaryAccess: false,
+    });
+  });
+
+  test('createDefaultAttachmentProviderRegistries exposes built-in storage and access registries together', () => {
+    const registries = createDefaultAttachmentProviderRegistries();
+
+    expect(typeof registries.storageRegistry[ATTACHMENT_STORAGE_PROVIDER_INLINE]).toBe('function');
+    expect(typeof registries.storageRegistry[ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK]).toBe('function');
+    expect(typeof registries.storageRegistry[ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT]).toBe('function');
+    expect(typeof registries.accessRegistry[ATTACHMENT_ACCESS_PROVIDER_DIRECT]).toBe('function');
+    expect(typeof registries.accessRegistry[ATTACHMENT_ACCESS_PROVIDER_REMOTE]).toBe('function');
+    expect(typeof registries.accessRegistry[ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT]).toBe('function');
+  });
+
+  test('getDefaultAttachmentProviderRuntimeState derives built-in future runtime state without manual registry wiring', () => {
+    expect(getDefaultAttachmentProviderRuntimeState({
+      transportMode: 'remote_mock',
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      needsRemoteFetch: true,
+    })).toMatchObject({
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      transportMode: 'remote_mock',
+      needsRemoteFetch: true,
+      storageProviderKind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT,
+      accessProviderKind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT,
       usesRemoteStorage: true,
       usesRemoteFetch: true,
       isFutureDraft: true,

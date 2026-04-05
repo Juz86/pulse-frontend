@@ -1,4 +1,5 @@
 import { getAttachmentStrategyDisplayName } from './attachmentStrategyConstants';
+import { getDefaultAttachmentProviderRuntimeState } from './attachmentDefaultProviders';
 
 export const E2EE_MODE = process.env.REACT_APP_E2EE_MODE || 'mock';
 export const E2EE_TRANSPORT = process.env.REACT_APP_E2EE_TRANSPORT || 'socket';
@@ -70,6 +71,30 @@ export function getAttachmentStrategyRuntimeState({
     fallbackActive,
     preferredStrategySupported,
     capabilities: normalized,
+  };
+}
+
+export function getAttachmentRuntimeState({
+  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
+  capabilities = null,
+  effectiveStrategyOverride = null,
+  attachmentTransport = E2EE_ATTACHMENT_TRANSPORT,
+  needsRemoteFetch = false,
+} = {}) {
+  const strategyRuntime = getAttachmentStrategyRuntimeState({
+    preferredStrategy,
+    capabilities,
+    effectiveStrategyOverride,
+  });
+  const providerRuntime = getDefaultAttachmentProviderRuntimeState({
+    transportMode: attachmentTransport,
+    strategyKey: strategyRuntime.effectiveStrategy,
+    needsRemoteFetch,
+  });
+
+  return {
+    ...strategyRuntime,
+    providerRuntime,
   };
 }
 

@@ -7,6 +7,7 @@ import {
 } from './messageModel';
 import {
   applyConversationSummaryToList,
+  buildConversationSummaryAttachmentSource,
   buildConversationSummaryAttachmentPayload,
   hasConversationAttachmentSummaryFields,
   buildConversationSummaryUpdate,
@@ -774,6 +775,28 @@ describe('e2ee attachment helpers', () => {
         originalMimeType: '',
       },
       accessVerification: null,
+    });
+  });
+
+  test('buildConversationSummaryAttachmentSource prefers explicit attachment name over preview text', () => {
+    expect(buildConversationSummaryAttachmentSource({
+      lastMessage: 'Bijlage: oud.pdf · versleuteld',
+      lastAttachmentName: 'nieuw.pdf',
+      lastAttachmentTransfer: 'remote',
+    })).toEqual({
+      name: 'nieuw.pdf',
+      transfer: 'remote',
+      mimeType: '',
+      originalMimeType: '',
+      contentEncoding: '',
+      envelopeKind: '',
+      expectedPayloadSha256: '',
+      encryption: {
+        mediaKeyId: '',
+        keyWrapAlg: '',
+        wrappedMediaKeyDigest: '',
+        envelopeKind: '',
+      },
     });
   });
 

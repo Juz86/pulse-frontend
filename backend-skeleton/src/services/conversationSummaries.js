@@ -57,6 +57,10 @@ export function buildConversationSummaryAttachmentPayload(summaryLike = {}) {
     return null;
   }
 
+  return buildConversationSummaryAttachmentSource(summaryLike);
+}
+
+export function buildConversationSummaryAttachmentSource(summaryLike = {}) {
   return {
     name: summaryLike.lastAttachmentName || 'Bestand',
     transfer: summaryLike.lastAttachmentTransfer || '',
@@ -78,7 +82,7 @@ export function applyConversationSummaryFields(target = {}, summary = {}) {
     ...target,
     lastMessage: summary.lastMessage ?? '',
     lastMessageType: summary.lastMessageType ?? null,
-    ...buildConversationAttachmentSummaryFields(buildConversationSummaryAttachmentPayload(summary)),
+    ...buildConversationAttachmentSummaryFields(buildConversationSummaryAttachmentSource(summary)),
   };
 }
 

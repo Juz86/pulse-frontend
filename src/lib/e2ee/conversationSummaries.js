@@ -59,6 +59,24 @@ function deriveAttachmentNameFromPreview(lastMessage = '') {
   return '';
 }
 
+export function buildConversationSummaryAttachmentSource(summaryLike = {}) {
+  return {
+    name: summaryLike.lastAttachmentName || deriveAttachmentNameFromPreview(summaryLike.lastMessage) || 'Bestand',
+    transfer: summaryLike.lastAttachmentTransfer || '',
+    mimeType: summaryLike.lastAttachmentOriginalMimeType || '',
+    originalMimeType: summaryLike.lastAttachmentOriginalMimeType || '',
+    contentEncoding: summaryLike.lastAttachmentEncoding || '',
+    envelopeKind: summaryLike.lastAttachmentEnvelopeKind || '',
+    expectedPayloadSha256: summaryLike.lastAttachmentExpectedPayloadSha256 || '',
+    encryption: {
+      mediaKeyId: summaryLike.lastAttachmentMediaKeyId || '',
+      keyWrapAlg: summaryLike.lastAttachmentKeyWrapAlg || '',
+      wrappedMediaKeyDigest: summaryLike.lastAttachmentWrappedMediaKeyDigest || '',
+      envelopeKind: summaryLike.lastAttachmentEnvelopeKind || '',
+    },
+  };
+}
+
 export function buildConversationSummaryAttachmentPayload(message = {}) {
   if (message?.attachment) {
     return normalizeAttachmentPayload(message.attachment);
@@ -68,21 +86,7 @@ export function buildConversationSummaryAttachmentPayload(message = {}) {
     return null;
   }
 
-  return normalizeAttachmentPayload({
-    name: message.lastAttachmentName || deriveAttachmentNameFromPreview(message.lastMessage) || 'Bestand',
-    transfer: message.lastAttachmentTransfer || '',
-    mimeType: message.lastAttachmentOriginalMimeType || '',
-    originalMimeType: message.lastAttachmentOriginalMimeType || '',
-    contentEncoding: message.lastAttachmentEncoding || '',
-    envelopeKind: message.lastAttachmentEnvelopeKind || '',
-    expectedPayloadSha256: message.lastAttachmentExpectedPayloadSha256 || '',
-    encryption: {
-      mediaKeyId: message.lastAttachmentMediaKeyId || '',
-      keyWrapAlg: message.lastAttachmentKeyWrapAlg || '',
-      wrappedMediaKeyDigest: message.lastAttachmentWrappedMediaKeyDigest || '',
-      envelopeKind: message.lastAttachmentEnvelopeKind || '',
-    },
-  });
+  return normalizeAttachmentPayload(buildConversationSummaryAttachmentSource(message));
 }
 
 export function buildConversationSummaryUpdate(message = {}) {
@@ -117,20 +121,7 @@ export function normalizeConversationAttachmentSummary(conversation = {}) {
     ...conversation,
     lastMessageType: conversation?.lastMessageType || null,
     ...(hasConversationAttachmentSummaryFields(conversation)
-      ? buildConversationAttachmentSummaryFields({
-          name: conversation?.lastAttachmentName || deriveAttachmentNameFromPreview(conversation?.lastMessage) || 'Bestand',
-          transfer: conversation?.lastAttachmentTransfer || '',
-          contentEncoding: conversation?.lastAttachmentEncoding || '',
-          envelopeKind: conversation?.lastAttachmentEnvelopeKind || '',
-          originalMimeType: conversation?.lastAttachmentOriginalMimeType || '',
-          expectedPayloadSha256: conversation?.lastAttachmentExpectedPayloadSha256 || '',
-          encryption: {
-            mediaKeyId: conversation?.lastAttachmentMediaKeyId || '',
-            keyWrapAlg: conversation?.lastAttachmentKeyWrapAlg || '',
-            wrappedMediaKeyDigest: conversation?.lastAttachmentWrappedMediaKeyDigest || '',
-            envelopeKind: conversation?.lastAttachmentEnvelopeKind || '',
-          },
-        })
+      ? buildConversationAttachmentSummaryFields(buildConversationSummaryAttachmentSource(conversation))
       : buildEmptyConversationAttachmentSummaryFields()),
   };
 }

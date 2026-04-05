@@ -1,8 +1,9 @@
 import { BACKEND_URL } from '../../services/socket';
 import { E2EE_ATTACHMENT_TRANSPORT } from './config';
 import {
-  buildMockAttachmentEncryptionMetadata,
+  buildAttachmentEncryptionMetadata,
   createMockEncryptedAttachmentEnvelope,
+  resolveAttachmentEncryptionStrategy,
 } from './attachmentCrypto';
 import {
   isImageAttachment,
@@ -23,6 +24,7 @@ function sanitizePathSegment(value, fallback) {
 export async function buildMockRemoteAttachmentPayload(attachment, { conversationId, userId } = {}) {
   const normalized = normalizeAttachmentPayload(attachment);
   if (!normalized) return null;
+  const strategy = resolveAttachmentEncryptionStrategy(normalized.encryption || {});
   const encryptedEnvelope = await createMockEncryptedAttachmentEnvelope(normalized);
 
   const safeConversationId = sanitizePathSegment(conversationId, 'conversation');
@@ -37,7 +39,9 @@ export async function buildMockRemoteAttachmentPayload(attachment, { conversatio
     downloadUrl: encryptedEnvelope.dataUrl,
     thumbnailUrl: normalized.thumbnailUrl || (isImageAttachment(normalized) ? normalized.url : ''),
     storageKey: normalized.storageKey || `mock-e2ee/${safeConversationId}/${safeUserId}/${uniqueSuffix}-${safeName}`,
-    encryption: normalized.encryption || await buildMockAttachmentEncryptionMetadata(normalized, encryptedEnvelope.envelope),
+    encryption: strategy.hasEncryption
+      ? normalized.encryption
+      : await buildAttachmentEncryptionMetadata(normalized, encryptedEnvelope.envelope),
   };
 }
 

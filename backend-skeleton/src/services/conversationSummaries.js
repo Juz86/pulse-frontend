@@ -77,6 +77,18 @@ export function buildConversationSummaryAttachmentSource(summaryLike = {}) {
   };
 }
 
+export function buildConversationSummaryAttachmentPreview(summaryLike = {}) {
+  const attachment = buildConversationSummaryAttachmentPayload(summaryLike);
+  if (!attachment) {
+    return null;
+  }
+
+  return {
+    attachment,
+    previewText: `Bijlage: ${attachment.name || 'Bestand'}`,
+  };
+}
+
 export function applyConversationSummaryFields(target = {}, summary = {}) {
   return {
     ...target,
@@ -110,9 +122,11 @@ export function deriveConversationSummary(message, fallback = '') {
   }
 
   if (message.messageType === 'attachment') {
-    const attachmentName = message.attachment?.name || 'Bestand';
+    const attachmentPreview = buildConversationSummaryAttachmentPreview(
+      buildConversationAttachmentSummaryFields(message.attachment)
+    );
     return {
-      lastMessage: `Bijlage: ${attachmentName}`,
+      lastMessage: attachmentPreview?.previewText || 'Bijlage: Bestand',
       lastMessageType: 'attachment',
       ...buildConversationAttachmentSummaryFields(message.attachment),
     };

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   applyConversationSummaryFields,
+  buildConversationSummaryAttachmentPreview,
   buildConversationSummaryAttachmentPayload,
   deriveConversationSummary,
 } from './conversationSummaries.js';
@@ -120,6 +121,33 @@ test('buildConversationSummaryAttachmentPayload reconstructs attachment contract
         wrappedMediaKeyDigest: 'wrapped-digest-1',
         envelopeKind: 'pulse_mock_media_envelope',
       },
+    }
+  );
+});
+
+test('buildConversationSummaryAttachmentPreview reconstructs preview text from summary fields', () => {
+  assert.deepEqual(
+    buildConversationSummaryAttachmentPreview({
+      lastAttachmentName: 'rapport.pdf',
+      lastAttachmentTransfer: 'remote',
+      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+    }),
+    {
+      attachment: {
+        name: 'rapport.pdf',
+        transfer: 'remote',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        envelopeKind: '',
+        originalMimeType: '',
+        expectedPayloadSha256: '',
+        encryption: {
+          mediaKeyId: '',
+          keyWrapAlg: '',
+          wrappedMediaKeyDigest: '',
+          envelopeKind: '',
+        },
+      },
+      previewText: 'Bijlage: rapport.pdf',
     }
   );
 });

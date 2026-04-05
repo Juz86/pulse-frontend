@@ -78,13 +78,10 @@ export default function Homepage({ onParentClick }) {
           <div className="hp-hero-text">
             <div className="hp-hero-badge">🇳🇱 100% Nederlands</div>
             <h1 id="homepage-hero-title" className="hp-hero-title">
-              Veilig chatten en (video)bellen voor elk kind
+              Veilig chatten en (video)bellen
             </h1>
             <p className="hp-hero-sub">
-              Pulse is de enige Nederlandse communicatie-app waarmee kinderen
-              zonder telefoonnummer kunnen bellen, videobellen en chatten — zonder
-              afleiding, zonder pesterij, volledig onder ouderlijk toezicht. Speciaal ontworpen voor de veiligheid van kinderen online.
-            </p>
+            Met Pulse kunnen kinderen zonder telefoonnummer chatten, bellen en videobellen. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
             <ul className="hp-hero-features" aria-label="Belangrijkste voordelen">
               <li className="hp-hero-feature"><span aria-hidden="true"><Shield size={16} /></span> Versleuteld &amp; privé</li>
               <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Chatten &amp; (video)bellen</li>

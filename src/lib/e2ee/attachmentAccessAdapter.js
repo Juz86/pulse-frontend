@@ -1,8 +1,9 @@
 import { BACKEND_URL } from '../../services/socket';
 import {
-  decryptMockAttachmentEnvelopeBlob,
-  unwrapMockWrappedMediaKey,
-  validateMockWrappedMediaKeyContract,
+  decryptAttachmentEnvelopeBlob,
+  resolveAttachmentEncryptionStrategy,
+  unwrapAttachmentMediaKey,
+  validateAttachmentMediaKeyContract,
 } from './attachmentCrypto';
 import {
   isImageAttachment,
@@ -35,12 +36,13 @@ export function resolveAttachmentContractFields(attachment) {
 
 export function buildResolvedAttachmentAccessContract(attachment) {
   const contract = resolveAttachmentContractFields(attachment);
+  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
 
   return {
     ...contract,
     integrityVerified: Boolean(contract.expectedPayloadSha256),
     wrappedKeyVerified: Boolean(
-      attachment?.encryption?.alg === 'mock-e2ee-envelope-v1'
+      strategy.canValidateWrappedMediaKey
       && contract.mediaKeyId
       && contract.keyWrapAlg
       && contract.wrappedMediaKey
@@ -58,17 +60,19 @@ export function buildAttachmentAccessVerification(contract = {}, unwrapContext =
 }
 
 export async function decryptAttachmentBlob(blob, attachment) {
-  if (attachment?.encryption?.alg === 'mock-e2ee-envelope-v1') {
-    await validateMockWrappedMediaKeyContract(attachment?.encryption || {});
-    return decryptMockAttachmentEnvelopeBlob(blob, resolveExpectedAttachmentSha256(attachment));
+  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  if (strategy.hasEncryption) {
+    await validateAttachmentMediaKeyContract(attachment?.encryption || {});
+    return decryptAttachmentEnvelopeBlob(blob, attachment);
   }
 
   return passthroughDecryptAttachmentBlob(blob);
 }
 
 export async function resolveAttachmentUnwrapContext(attachment) {
-  if (attachment?.encryption?.alg === 'mock-e2ee-envelope-v1') {
-    return unwrapMockWrappedMediaKey(attachment?.encryption || {});
+  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  if (strategy.hasEncryption) {
+    return unwrapAttachmentMediaKey(attachment?.encryption || {});
   }
 
   return {

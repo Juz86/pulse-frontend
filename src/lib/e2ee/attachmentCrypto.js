@@ -56,6 +56,25 @@ function buildMockWrappedMediaKey({ seed = '', mediaKeyId = '', keyWrapAlg = '' 
   }));
 }
 
+export function isMockAttachmentEncryption(encryption = {}) {
+  return encryption?.alg === 'mock-e2ee-envelope-v1';
+}
+
+export function resolveAttachmentEncryptionStrategy(encryption = {}) {
+  const alg = encryption?.alg || '';
+  const isMock = isMockAttachmentEncryption(encryption);
+
+  return {
+    alg,
+    isMock,
+    hasEncryption: Boolean(alg),
+    canEncryptEnvelope: !alg || isMock,
+    canDecryptEnvelope: isMock,
+    canValidateWrappedMediaKey: isMock,
+    strategyKey: isMock ? 'mock_media_v1' : (alg ? 'external_contract' : 'none'),
+  };
+}
+
 export function decodeMockWrappedMediaKey(wrappedMediaKey = '') {
   if (!wrappedMediaKey) return null;
 
@@ -76,6 +95,23 @@ export async function unwrapMockWrappedMediaKey(encryption = {}) {
     wrappedMediaKey: encryption?.wrappedMediaKey || '',
     wrappedMediaKeyDigest: encryption?.wrappedMediaKeyDigest || '',
     unwrapKind: 'pulse_mock_media_key_unwrap',
+  };
+}
+
+export async function unwrapAttachmentMediaKey(encryption = {}) {
+  const strategy = resolveAttachmentEncryptionStrategy(encryption);
+
+  if (strategy.isMock) {
+    return unwrapMockWrappedMediaKey(encryption);
+  }
+
+  return {
+    mediaKeyId: encryption?.mediaKeyId || '',
+    keyWrapAlg: encryption?.keyWrapAlg || '',
+    payloadSha256: encryption?.sha256 || '',
+    wrappedMediaKey: encryption?.wrappedMediaKey || '',
+    wrappedMediaKeyDigest: encryption?.wrappedMediaKeyDigest || '',
+    unwrapKind: strategy.hasEncryption ? 'attachment_encryption_contract' : 'none',
   };
 }
 
@@ -106,6 +142,20 @@ export async function validateMockWrappedMediaKeyContract(encryption = {}) {
   return wrappedKeyPayload;
 }
 
+export async function validateAttachmentMediaKeyContract(encryption = {}) {
+  const strategy = resolveAttachmentEncryptionStrategy(encryption);
+
+  if (strategy.isMock) {
+    return validateMockWrappedMediaKeyContract(encryption);
+  }
+
+  return {
+    mediaKeyId: encryption?.mediaKeyId || '',
+    keyWrapAlg: encryption?.keyWrapAlg || '',
+    seed: encryption?.sha256 || '',
+  };
+}
+
 export async function buildMockAttachmentEncryptionMetadata(attachment, envelope) {
   const originalMimeType = attachment?.mimeType || envelope?.mimeType || 'application/octet-stream';
   const payloadSha256 = envelope?.payloadSha256 || '';
@@ -130,6 +180,14 @@ export async function buildMockAttachmentEncryptionMetadata(attachment, envelope
     envelopeKind: envelope?.kind || 'pulse_mock_media_envelope',
     originalMimeType,
   };
+}
+
+export async function buildAttachmentEncryptionMetadata(attachment, envelope) {
+  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  if (!strategy.canEncryptEnvelope) {
+    return attachment?.encryption || null;
+  }
+  return buildMockAttachmentEncryptionMetadata(attachment, envelope);
 }
 
 export async function createMockEncryptedAttachmentEnvelope(attachment) {
@@ -195,6 +253,19 @@ export async function decryptMockAttachmentEnvelopeBlob(blob, expectedSha256 = '
   const mimeType = verifiedEnvelope.mimeType || 'application/octet-stream';
 
   return new Blob([binary], { type: mimeType });
+}
+
+export async function decryptAttachmentEnvelopeBlob(blob, attachment = {}) {
+  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+
+  if (strategy.isMock) {
+    return decryptMockAttachmentEnvelopeBlob(
+      blob,
+      attachment?.expectedPayloadSha256 || attachment?.encryption?.sha256 || ''
+    );
+  }
+
+  return blob;
 }
 
 export function decodeMockAttachmentEnvelopeDataUrl(dataUrl) {

@@ -39,12 +39,18 @@ import {
   prepareAttachmentForSend,
 } from './attachmentUploadAdapter';
 import {
+  buildAttachmentEncryptionMetadata,
   buildMockAttachmentEncryptionMetadata,
   createMockEncryptedAttachmentEnvelope,
   decodeMockWrappedMediaKey,
   decodeMockAttachmentEnvelopeDataUrl,
+  decryptAttachmentEnvelopeBlob,
   decryptMockAttachmentEnvelopeBlob,
+  isMockAttachmentEncryption,
+  resolveAttachmentEncryptionStrategy,
+  unwrapAttachmentMediaKey,
   unwrapMockWrappedMediaKey,
+  validateAttachmentMediaKeyContract,
   validateMockWrappedMediaKeyContract,
   verifyMockAttachmentEnvelope,
 } from './attachmentCrypto';
@@ -579,6 +585,67 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
+  test('buildAttachmentEncryptionMetadata routes through the current attachment encryption strategy', async () => {
+    const { envelope } = await createMockEncryptedAttachmentEnvelope({
+      name: 'hello.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      size: 5,
+    });
+
+    await expect(buildAttachmentEncryptionMetadata({
+      mimeType: 'text/plain',
+    }, envelope)).resolves.toEqual({
+      alg: 'mock-e2ee-envelope-v1',
+      keyId: expect.stringMatching(/^mock-key-/),
+      iv: expect.stringMatching(/^mock-iv-/),
+      sha256: envelope.payloadSha256,
+      mediaKeyId: expect.stringMatching(/^mock-media-key-/),
+      keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      wrappedMediaKey: expect.stringMatching(/^ey/),
+      wrappedMediaKeyDigest: expect.stringMatching(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/),
+      envelopeKind: 'pulse_mock_media_envelope',
+      originalMimeType: 'text/plain',
+    });
+  });
+
+  test('isMockAttachmentEncryption detects the current mock media algorithm', () => {
+    expect(isMockAttachmentEncryption({ alg: 'mock-e2ee-envelope-v1' })).toBe(true);
+    expect(isMockAttachmentEncryption({ alg: 'future-media-v1' })).toBe(false);
+  });
+
+  test('resolveAttachmentEncryptionStrategy classifies current media encryption strategies', () => {
+    expect(resolveAttachmentEncryptionStrategy({ alg: 'mock-e2ee-envelope-v1' })).toEqual({
+      alg: 'mock-e2ee-envelope-v1',
+      isMock: true,
+      hasEncryption: true,
+      canEncryptEnvelope: true,
+      canDecryptEnvelope: true,
+      canValidateWrappedMediaKey: true,
+      strategyKey: 'mock_media_v1',
+    });
+
+    expect(resolveAttachmentEncryptionStrategy({ alg: 'future-media-v1' })).toEqual({
+      alg: 'future-media-v1',
+      isMock: false,
+      hasEncryption: true,
+      canEncryptEnvelope: false,
+      canDecryptEnvelope: false,
+      canValidateWrappedMediaKey: false,
+      strategyKey: 'external_contract',
+    });
+
+    expect(resolveAttachmentEncryptionStrategy({})).toEqual({
+      alg: '',
+      isMock: false,
+      hasEncryption: false,
+      canEncryptEnvelope: true,
+      canDecryptEnvelope: false,
+      canValidateWrappedMediaKey: false,
+      strategyKey: 'none',
+    });
+  });
+
   test('decodeMockWrappedMediaKey reads wrapped media key payloads', async () => {
     const { envelope } = await createMockEncryptedAttachmentEnvelope({
       name: 'hello.txt',
@@ -613,6 +680,27 @@ describe('e2ee attachment helpers', () => {
     })).rejects.toThrow('Wrapped media key komt niet overeen met mediaKeyId.');
   });
 
+  test('validateAttachmentMediaKeyContract routes through the active media key strategy', async () => {
+    const { envelope } = await createMockEncryptedAttachmentEnvelope({
+      name: 'hello.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      size: 5,
+    });
+    const encryption = await buildMockAttachmentEncryptionMetadata({ mimeType: 'text/plain' }, envelope);
+
+    await expect(validateAttachmentMediaKeyContract({
+      alg: 'mock-e2ee-envelope-v1',
+      ...encryption,
+    })).resolves.toEqual({
+      version: 1,
+      kind: 'pulse_mock_wrapped_media_key',
+      seed: envelope.payloadSha256,
+      mediaKeyId: encryption.mediaKeyId,
+      keyWrapAlg: encryption.keyWrapAlg,
+    });
+  });
+
   test('unwrapMockWrappedMediaKey returns a reusable unwrap context', async () => {
     const { envelope } = await createMockEncryptedAttachmentEnvelope({
       name: 'hello.txt',
@@ -623,6 +711,28 @@ describe('e2ee attachment helpers', () => {
     const encryption = await buildMockAttachmentEncryptionMetadata({ mimeType: 'text/plain' }, envelope);
 
     await expect(unwrapMockWrappedMediaKey(encryption)).resolves.toEqual({
+      mediaKeyId: encryption.mediaKeyId,
+      keyWrapAlg: encryption.keyWrapAlg,
+      payloadSha256: encryption.sha256,
+      wrappedMediaKey: encryption.wrappedMediaKey,
+      wrappedMediaKeyDigest: encryption.wrappedMediaKeyDigest,
+      unwrapKind: 'pulse_mock_media_key_unwrap',
+    });
+  });
+
+  test('unwrapAttachmentMediaKey routes through the active media key strategy', async () => {
+    const { envelope } = await createMockEncryptedAttachmentEnvelope({
+      name: 'hello.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      size: 5,
+    });
+    const encryption = await buildMockAttachmentEncryptionMetadata({ mimeType: 'text/plain' }, envelope);
+
+    await expect(unwrapAttachmentMediaKey({
+      alg: 'mock-e2ee-envelope-v1',
+      ...encryption,
+    })).resolves.toEqual({
       mediaKeyId: encryption.mediaKeyId,
       keyWrapAlg: encryption.keyWrapAlg,
       payloadSha256: encryption.sha256,
@@ -1607,6 +1717,27 @@ describe('e2ee attachment helpers', () => {
     const encryptedBlob = new Blob([atob(base64)], { type: 'application/pulse-e2ee-envelope+json' });
 
     const decryptedBlob = await decryptMockAttachmentEnvelopeBlob(encryptedBlob, envelope.payloadSha256);
+
+    expect(decryptedBlob.type).toBe('text/plain');
+    expect(await new Response(decryptedBlob).text()).toBe('Hello');
+  });
+
+  test('decryptAttachmentEnvelopeBlob routes through the active envelope strategy', async () => {
+    const { dataUrl, envelope } = await createMockEncryptedAttachmentEnvelope({
+      name: 'hello.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      size: 5,
+    });
+    const base64 = dataUrl.split(',')[1];
+    const encryptedBlob = new Blob([atob(base64)], { type: 'application/pulse-e2ee-envelope+json' });
+
+    const decryptedBlob = await decryptAttachmentEnvelopeBlob(encryptedBlob, {
+      expectedPayloadSha256: envelope.payloadSha256,
+      encryption: {
+        alg: 'mock-e2ee-envelope-v1',
+      },
+    });
 
     expect(decryptedBlob.type).toBe('text/plain');
     expect(await new Response(decryptedBlob).text()).toBe('Hello');

@@ -78,9 +78,16 @@ import {
   buildAttachmentRenderState,
   buildAttachmentInteractionState,
   getAttachmentActionPresentation,
+  getAttachmentActionButtonStyle,
+  getAttachmentActionRowStyle,
   getAttachmentActionButtonsPresentation,
   getAttachmentAccessVerificationPresentation,
   getAttachmentDetailLines,
+  getAttachmentDetailLineStyle,
+  getAttachmentErrorStyle,
+  getAttachmentImagePreviewStyle,
+  getAttachmentMetaStyle,
+  getAttachmentTimestampStyle,
   getAttachmentCardPresentation,
   getAttachmentContractPresentation,
   getAttachmentInteractionPresentation,
@@ -1721,6 +1728,65 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
+  test('getAttachmentActionButtonStyle derives stable open and download button styles', () => {
+    expect(getAttachmentActionButtonStyle('open', true)).toMatchObject({
+      minHeight: 32,
+      background: 'rgba(255,255,255,0.14)',
+      color: '#fff',
+    });
+
+    expect(getAttachmentActionButtonStyle('download', false)).toMatchObject({
+      minHeight: 32,
+      background: 'transparent',
+      color: 'var(--text2)',
+    });
+  });
+
+  test('getAttachmentActionRowStyle derives stable layout for attachment action rows', () => {
+    expect(getAttachmentActionRowStyle()).toEqual({
+      display: 'flex',
+      gap: 8,
+      marginTop: 10,
+      flexWrap: 'wrap',
+    });
+  });
+
+  test('getAttachmentImagePreviewStyle derives stable image preview styling', () => {
+    expect(getAttachmentImagePreviewStyle()).toEqual({
+      display: 'block',
+      width: '100%',
+      maxWidth: 280,
+      maxHeight: 240,
+      objectFit: 'cover',
+      borderRadius: 14,
+      marginBottom: 10,
+    });
+  });
+
+  test('getAttachmentMetaStyle centralizes attachment metadata styling', () => {
+    expect(getAttachmentMetaStyle(true)).toEqual({
+      color: 'rgba(255,255,255,.65)',
+    });
+
+    expect(getAttachmentMetaStyle(false)).toEqual({
+      color: 'var(--text3)',
+    });
+  });
+
+  test('getAttachmentTimestampStyle centralizes attachment timestamp styling', () => {
+    expect(getAttachmentTimestampStyle(true)).toEqual({
+      fontSize: '11px',
+      color: 'rgba(255,255,255,.5)',
+      alignSelf: 'flex-end',
+    });
+
+    expect(getAttachmentTimestampStyle(false)).toEqual({
+      fontSize: '11px',
+      color: 'var(--text3)',
+      alignSelf: 'flex-end',
+    });
+  });
+
   test('buildAttachmentRenderState combines interaction card and button presentation', () => {
     expect(buildAttachmentRenderState(
       {
@@ -1782,6 +1848,32 @@ describe('e2ee attachment helpers', () => {
       { tone: 'availability', text: 'Openen en downloaden worden actief zodra deze decrypt-strategie beschikbaar is.' },
       { tone: 'availability', text: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap' },
     ]);
+  });
+
+  test('getAttachmentDetailLineStyle centralizes visual tone styles for attachment details', () => {
+    expect(getAttachmentDetailLineStyle(true, 'storage', 8)).toEqual({
+      marginTop: 8,
+      color: 'rgba(255,255,255,.78)',
+      opacity: 0.9,
+    });
+
+    expect(getAttachmentDetailLineStyle(false, 'availability', 4)).toEqual({
+      marginTop: 4,
+      color: 'var(--text3)',
+      opacity: 0.78,
+    });
+  });
+
+  test('getAttachmentErrorStyle centralizes attachment action error styling', () => {
+    expect(getAttachmentErrorStyle(true)).toEqual({
+      marginTop: 8,
+      color: 'rgba(255,215,215,.92)',
+    });
+
+    expect(getAttachmentErrorStyle(false)).toEqual({
+      marginTop: 8,
+      color: '#ef4444',
+    });
   });
 
   test('getAttachmentPreviewText derives list-friendly attachment labels', () => {

@@ -7,8 +7,15 @@ import {
   getInitialAttachmentActionState,
 } from '../lib/e2ee/attachmentAccessAdapter';
 import {
+  getAttachmentActionRowStyle,
+  getAttachmentImagePreviewStyle,
+  getAttachmentActionButtonStyle,
   buildAttachmentRenderState,
   getAttachmentDetailLines,
+  getAttachmentDetailLineStyle,
+  getAttachmentErrorStyle,
+  getAttachmentMetaStyle,
+  getAttachmentTimestampStyle,
 } from '../lib/e2ee/attachmentPresentation';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { getInitials, formatTime } from '../utils';
@@ -62,30 +69,6 @@ function highlightText(text, query) {
       ? <mark key={i} style={{ background: '#f59e0b', color: '#000', borderRadius: '2px', padding: '0 1px' }}>{p}</mark>
       : p
   );
-}
-
-function getAttachmentDetailLineStyle(isOwn, tone = 'detail', marginTop = 4) {
-  if (tone === 'storage') {
-    return {
-      marginTop,
-      color: isOwn ? 'rgba(255,255,255,.78)' : 'var(--text3)',
-      opacity: 0.9,
-    };
-  }
-
-  if (tone === 'availability') {
-    return {
-      marginTop,
-      color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
-      opacity: 0.78,
-    };
-  }
-
-  return {
-    marginTop,
-    color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
-    opacity: 0.82,
-  };
 }
 
 const QUICK_EMOJI = ['❤️', '👍', '😂', '😮', '😢', '👎'];
@@ -209,7 +192,7 @@ const MessageBubble = React.memo(function MessageBubble({
       setAttachmentActionError,
     });
     const attachmentActions = attachmentAccess.canOpen ? (
-      <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+      <div style={getAttachmentActionRowStyle()}>
         <button
           type="button"
           className="icon-btn"
@@ -218,15 +201,7 @@ const MessageBubble = React.memo(function MessageBubble({
             event.stopPropagation();
             runAttachmentAction('open');
           }}
-          style={{
-            minHeight: 32,
-            padding: '6px 10px',
-            borderRadius: 999,
-            fontSize: 12,
-            background: isOwn ? 'rgba(255,255,255,0.14)' : 'rgba(124,58,237,0.10)',
-            color: isOwn ? '#fff' : 'var(--accent)',
-            border: isOwn ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(124,58,237,0.22)',
-          }}
+          style={getAttachmentActionButtonStyle('open', isOwn)}
         >
           {attachmentButtonsPresentation.openLabel}
         </button>
@@ -238,15 +213,7 @@ const MessageBubble = React.memo(function MessageBubble({
             event.stopPropagation();
             runAttachmentAction('download');
           }}
-          style={{
-            minHeight: 32,
-            padding: '6px 10px',
-            borderRadius: 999,
-            fontSize: 12,
-            background: 'transparent',
-            color: isOwn ? 'rgba(255,255,255,.82)' : 'var(--text2)',
-            border: isOwn ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(255,255,255,0.10)',
-          }}
+          style={getAttachmentActionButtonStyle('download', isOwn)}
         >
           {attachmentButtonsPresentation.downloadLabel}
         </button>
@@ -269,19 +236,11 @@ const MessageBubble = React.memo(function MessageBubble({
               <img
                 src={attachmentPreviewUrl}
                 alt={attachment?.name || 'Gedeelde afbeelding'}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  maxWidth: 280,
-                  maxHeight: 240,
-                  objectFit: 'cover',
-                  borderRadius: 14,
-                  marginBottom: 10,
-                }}
+                style={getAttachmentImagePreviewStyle()}
                 loading="lazy"
               />
               <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Afbeelding'}</div>
-              <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
+              <div className="u-fs-12 u-ellipsis" style={getAttachmentMetaStyle(isOwn)}>
                 {attachment?.caption || attachmentPresentation.mimeLabel}
               </div>
               {attachmentDetailLines.map((line, index) => (
@@ -296,7 +255,7 @@ const MessageBubble = React.memo(function MessageBubble({
               {attachmentActionError && (
                 <div
                   className="u-fs-12"
-                  style={{ marginTop: 8, color: isOwn ? 'rgba(255,215,215,.92)' : '#ef4444' }}
+                  style={getAttachmentErrorStyle(isOwn)}
                 >
                   {attachmentActionError}
                 </div>
@@ -308,7 +267,7 @@ const MessageBubble = React.memo(function MessageBubble({
               <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius: 12 }} aria-hidden="true">F</div>
 	              <div className="u-flex-1 u-min-w-0">
 	                <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Bijlage'}</div>
-	                <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
+	                <div className="u-fs-12 u-ellipsis" style={getAttachmentMetaStyle(isOwn)}>
 	                  {attachment?.caption || attachmentPresentation.mimeLabel}
 	                </div>
                   {attachmentDetailLines.map((line, index) => (
@@ -323,7 +282,7 @@ const MessageBubble = React.memo(function MessageBubble({
 	                  {attachmentActionError && (
 	                    <div
 	                      className="u-fs-12"
-                      style={{ marginTop: 8, color: isOwn ? 'rgba(255,215,215,.92)' : '#ef4444' }}
+                      style={getAttachmentErrorStyle(isOwn)}
                     >
                       {attachmentActionError}
                     </div>
@@ -332,7 +291,7 @@ const MessageBubble = React.memo(function MessageBubble({
               </div>
             </>
           )}
-          <div className="u-flex-shrink" style={{ fontSize: '11px', color: isOwn ? 'rgba(255,255,255,.5)' : 'var(--text3)', alignSelf: 'flex-end' }}>
+          <div className="u-flex-shrink" style={getAttachmentTimestampStyle(isOwn)}>
             {formatTime(msg.createdAt)}
           </div>
         </div>

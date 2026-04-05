@@ -217,6 +217,66 @@ export function getAttachmentActionButtonsPresentation(
   };
 }
 
+export function getAttachmentActionButtonStyle(kind = 'open', isOwn = false) {
+  const baseStyle = {
+    minHeight: 32,
+    padding: '6px 10px',
+    borderRadius: 999,
+    fontSize: 12,
+  };
+
+  if (kind === 'download') {
+    return {
+      ...baseStyle,
+      background: 'transparent',
+      color: isOwn ? 'rgba(255,255,255,.82)' : 'var(--text2)',
+      border: isOwn ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(255,255,255,0.10)',
+    };
+  }
+
+  return {
+    ...baseStyle,
+    background: isOwn ? 'rgba(255,255,255,0.14)' : 'rgba(124,58,237,0.10)',
+    color: isOwn ? '#fff' : 'var(--accent)',
+    border: isOwn ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(124,58,237,0.22)',
+  };
+}
+
+export function getAttachmentActionRowStyle() {
+  return {
+    display: 'flex',
+    gap: 8,
+    marginTop: 10,
+    flexWrap: 'wrap',
+  };
+}
+
+export function getAttachmentImagePreviewStyle() {
+  return {
+    display: 'block',
+    width: '100%',
+    maxWidth: 280,
+    maxHeight: 240,
+    objectFit: 'cover',
+    borderRadius: 14,
+    marginBottom: 10,
+  };
+}
+
+export function getAttachmentMetaStyle(isOwn) {
+  return {
+    color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)',
+  };
+}
+
+export function getAttachmentTimestampStyle(isOwn) {
+  return {
+    fontSize: '11px',
+    color: isOwn ? 'rgba(255,255,255,.5)' : 'var(--text3)',
+    alignSelf: 'flex-end',
+  };
+}
+
 export function buildAttachmentRenderState(
   messageAttachment = {},
   resolvedAttachment = null,
@@ -273,6 +333,37 @@ export function getAttachmentDetailLines(
       ? { tone: 'availability', text: verificationPresentation.wrappedKeyAccessLabel }
       : null,
   ].filter(Boolean);
+}
+
+export function getAttachmentDetailLineStyle(isOwn, tone = 'detail', marginTop = 4) {
+  if (tone === 'storage') {
+    return {
+      marginTop,
+      color: isOwn ? 'rgba(255,255,255,.78)' : 'var(--text3)',
+      opacity: 0.9,
+    };
+  }
+
+  if (tone === 'availability') {
+    return {
+      marginTop,
+      color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
+      opacity: 0.78,
+    };
+  }
+
+  return {
+    marginTop,
+    color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
+    opacity: 0.82,
+  };
+}
+
+export function getAttachmentErrorStyle(isOwn) {
+  return {
+    marginTop: 8,
+    color: isOwn ? 'rgba(255,215,215,.92)' : '#ef4444',
+  };
 }
 
 export function getAttachmentPreviewText(attachment = {}, { includeStorageSignal = true } = {}) {

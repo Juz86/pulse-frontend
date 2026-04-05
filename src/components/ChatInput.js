@@ -3,6 +3,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { getSocket } from '../services/socket';
 import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2ee/attachmentPayload';
 import {
+  getAttachmentRuntimePresentation,
   getAttachmentStrategyComposerHintState,
   getAttachmentRuntimeState,
 } from '../lib/e2ee/config';
@@ -151,10 +152,16 @@ const ChatInput = React.memo(function ChatInput({
   const resolvedAttachmentRuntime = attachmentRuntime || getAttachmentRuntimeState({
     preferredStrategy: undefined,
   });
-  const attachmentStrategyHintState = getAttachmentStrategyComposerHintState({
+  const attachmentRuntimePresentation = getAttachmentRuntimePresentation({
     preferredStrategy: resolvedAttachmentRuntime.preferredStrategy,
-    effectiveStrategyOverride: resolvedAttachmentRuntime.effectiveStrategy,
     capabilities: resolvedAttachmentRuntime.capabilities,
+    effectiveStrategyOverride: resolvedAttachmentRuntime.effectiveStrategy,
+    needsRemoteFetch: resolvedAttachmentRuntime.providerRuntime?.usesRemoteFetch,
+  });
+  const attachmentStrategyHintState = getAttachmentStrategyComposerHintState({
+    preferredStrategy: attachmentRuntimePresentation.preferredStrategy,
+    effectiveStrategyOverride: attachmentRuntimePresentation.effectiveStrategy,
+    capabilities: attachmentRuntimePresentation.capabilities,
     paused: pausedFeatures.chat,
     attachmentStatus,
   });

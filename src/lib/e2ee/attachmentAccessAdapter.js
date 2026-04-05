@@ -23,6 +23,29 @@ import {
 
 const attachmentMetadataCache = new Map();
 
+export function getInitialAttachmentActionState() {
+  return {
+    resolvedAttachment: null,
+    resolvedAttachmentAccess: null,
+    attachmentActionError: '',
+    attachmentBusy: false,
+  };
+}
+
+export function buildAttachmentActionSuccessState(preparedAccess) {
+  return {
+    resolvedAttachment: preparedAccess?.attachment || null,
+    resolvedAttachmentAccess: preparedAccess || null,
+    attachmentActionError: '',
+  };
+}
+
+export function buildAttachmentActionErrorState(error, action = 'open') {
+  return {
+    attachmentActionError: error?.message || (action === 'download' ? 'Bijlage downloaden mislukt' : 'Bijlage openen mislukt'),
+  };
+}
+
 export async function passthroughDecryptAttachmentBlob(blob) {
   return blob;
 }
@@ -433,6 +456,47 @@ export async function resolveAttachmentForAccess(attachment, user, fetchImpl = f
   return accessProvider.resolveAttachment(attachment);
 }
 
+export async function resolveAttachmentForBinaryAction(
+  attachment,
+  user,
+  {
+    resolveAttachment = null,
+    fetchImpl = fetch,
+    onBusyChange = null,
+    onResolvedAttachment = null,
+    onErrorReset = null,
+  } = {}
+) {
+  if (typeof onErrorReset === 'function') {
+    onErrorReset();
+  }
+
+  if (typeof resolveAttachment === 'function') {
+    return resolveAttachment(attachment);
+  }
+
+  const accessInfo = getAttachmentAccessInfo(attachment);
+  if (!accessInfo.needsRemoteFetch) {
+    return normalizeAttachmentPayload(attachment);
+  }
+
+  if (typeof onBusyChange === 'function') {
+    onBusyChange(true);
+  }
+
+  try {
+    const resolvedAttachment = await resolveAttachmentForAccess(attachment, user, fetchImpl);
+    if (typeof onResolvedAttachment === 'function') {
+      onResolvedAttachment(resolvedAttachment);
+    }
+    return resolvedAttachment;
+  } finally {
+    if (typeof onBusyChange === 'function') {
+      onBusyChange(false);
+    }
+  }
+}
+
 export async function fetchAttachmentBlob(attachment, fetchImpl = fetch) {
   const { url } = getAttachmentAccessInfo(attachment);
   if (!url) {
@@ -529,6 +593,88 @@ export async function prepareAttachmentBinaryAccess(
     revoke: () => revokeObjectUrl(objectUrl),
     isObjectUrl: true,
     unwrapContext,
+  };
+}
+
+export function buildPreparedAttachmentActionTarget(preparedAccess) {
+  if (!preparedAccess?.attachment) return null;
+
+  return preparedAccess.isObjectUrl
+    ? { ...preparedAccess.attachment, downloadUrl: preparedAccess.url, url: '' }
+    : preparedAccess.attachment;
+}
+
+export function executePreparedAttachmentAction(
+  preparedAccess,
+  {
+    action = 'open',
+    opener = window.open,
+    doc = document,
+    scheduleCleanup = (callback, delayMs) => window.setTimeout(callback, delayMs),
+    openCleanupDelayMs = 60_000,
+    downloadCleanupDelayMs = 1_000,
+  } = {}
+) {
+  const actionTarget = buildPreparedAttachmentActionTarget(preparedAccess);
+  if (!actionTarget) return false;
+
+  const succeeded = action === 'download'
+    ? triggerAttachmentDownload(actionTarget, doc)
+    : openAttachmentInNewTab(actionTarget, opener);
+
+  if (succeeded && preparedAccess?.isObjectUrl) {
+    const cleanupDelayMs = action === 'download' ? downloadCleanupDelayMs : openCleanupDelayMs;
+    scheduleCleanup(() => preparedAccess.revoke(), cleanupDelayMs);
+  }
+
+  return succeeded;
+}
+
+export async function runAttachmentBinaryAction(
+  attachment,
+  user,
+  {
+    action = 'open',
+    resolveAttachment = null,
+    fetchImpl = fetch,
+    decryptAttachmentBlob: decryptAttachmentBlobOverride = decryptAttachmentBlob,
+    createObjectUrl = (blob) => URL.createObjectURL(blob),
+    revokeObjectUrl = (url) => URL.revokeObjectURL(url),
+    opener = window.open,
+    doc = document,
+    scheduleCleanup = (callback, delayMs) => window.setTimeout(callback, delayMs),
+    openCleanupDelayMs = 60_000,
+    downloadCleanupDelayMs = 1_000,
+    onBusyChange = null,
+    onResolvedAttachment = null,
+    onErrorReset = null,
+  } = {}
+) {
+  const readyAttachment = await resolveAttachmentForBinaryAction(attachment, user, {
+    resolveAttachment,
+    fetchImpl,
+    onBusyChange,
+    onResolvedAttachment,
+    onErrorReset,
+  });
+  const preparedAccess = await prepareAttachmentBinaryAccess(readyAttachment, user, {
+    fetchImpl,
+    decryptAttachmentBlob: decryptAttachmentBlobOverride,
+    createObjectUrl,
+    revokeObjectUrl,
+  });
+  const succeeded = executePreparedAttachmentAction(preparedAccess, {
+    action,
+    opener,
+    doc,
+    scheduleCleanup,
+    openCleanupDelayMs,
+    downloadCleanupDelayMs,
+  });
+
+  return {
+    preparedAccess,
+    succeeded,
   };
 }
 

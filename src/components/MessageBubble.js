@@ -2,16 +2,13 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Phone, Video, Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
 import {
-  getAttachmentAccessInfo,
-  openAttachmentInNewTab,
-  prepareAttachmentBinaryAccess,
-  resolveAttachmentForAccess,
-  triggerAttachmentDownload,
+  buildAttachmentActionErrorState,
+  buildAttachmentActionSuccessState,
+  getInitialAttachmentActionState,
+  runAttachmentBinaryAction,
 } from '../lib/e2ee/attachmentAccessAdapter';
 import {
-  getAttachmentActionPresentation,
-  getAttachmentAccessVerificationPresentation,
-  getAttachmentContractPresentation,
+  buildAttachmentInteractionState,
 } from '../lib/e2ee/attachmentPresentation';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { getInitials, formatTime } from '../utils';
@@ -102,10 +99,11 @@ const MessageBubble = React.memo(function MessageBubble({
   }, [emojiPickerOpen]);
 
   useEffect(() => {
-    setResolvedAttachment(null);
-    setResolvedAttachmentAccess(null);
-    setAttachmentActionError('');
-    setAttachmentBusy(false);
+    const initialActionState = getInitialAttachmentActionState();
+    setResolvedAttachment(initialActionState.resolvedAttachment);
+    setResolvedAttachmentAccess(initialActionState.resolvedAttachmentAccess);
+    setAttachmentActionError(initialActionState.attachmentActionError);
+    setAttachmentBusy(initialActionState.attachmentBusy);
   }, [msg.id]);
 
   function handleTouchStart(e) {
@@ -156,66 +154,32 @@ const MessageBubble = React.memo(function MessageBubble({
   }
 
   if (msg.type === 'attachment') {
-    const attachment = resolvedAttachment || msg.attachment;
-    const attachmentAccess = getAttachmentAccessInfo(attachment);
-    const attachmentActionPresentation = getAttachmentActionPresentation(attachmentAccess);
-    const attachmentUrl = attachmentAccess.url;
-    const attachmentPreviewUrl = attachmentAccess.isImage && attachment?.thumbnailUrl
-      ? attachment.thumbnailUrl
-      : attachmentUrl;
-    const attachmentPresentation = getAttachmentContractPresentation(attachment);
-    const attachmentAccessPresentation = getAttachmentAccessVerificationPresentation(
-      attachment,
-      resolvedAttachmentAccess?.unwrapContext
+    const attachmentInteractionState = buildAttachmentInteractionState(
+      msg.attachment,
+      resolvedAttachment,
+      resolvedAttachmentAccess
     );
-    const resolveAttachment = async () => {
-      if (!attachmentAccess.needsRemoteFetch) return attachment;
-      if (!user) throw new Error('Geen gebruiker beschikbaar voor beveiligde bijlage.');
-
-      setAttachmentBusy(true);
-      setAttachmentActionError('');
+    const attachment = attachmentInteractionState.attachment;
+    const attachmentAccess = attachmentInteractionState.access;
+    const attachmentActionPresentation = attachmentInteractionState.actions;
+    const attachmentPreviewUrl = attachmentInteractionState.previewUrl;
+    const attachmentPresentation = attachmentInteractionState.contract;
+    const attachmentAccessPresentation = attachmentInteractionState.verification;
+    const runAttachmentAction = async (action) => {
       try {
-        const refreshedAttachment = await resolveAttachmentForAccess(attachment, user);
-        setResolvedAttachment(refreshedAttachment);
-        return refreshedAttachment;
-      } finally {
-        setAttachmentBusy(false);
-      }
-    };
-    const openAttachment = async () => {
-      try {
-        const readyAttachment = await resolveAttachment();
-        const preparedAccess = await prepareAttachmentBinaryAccess(readyAttachment, user);
-        setResolvedAttachment(preparedAccess.attachment);
-        setResolvedAttachmentAccess(preparedAccess);
-        openAttachmentInNewTab(
-          preparedAccess.isObjectUrl
-            ? { ...preparedAccess.attachment, downloadUrl: preparedAccess.url, url: '' }
-            : preparedAccess.attachment
-        );
-        if (preparedAccess.isObjectUrl) {
-          window.setTimeout(() => preparedAccess.revoke(), 60_000);
-        }
+        const { preparedAccess } = await runAttachmentBinaryAction(attachment, user, {
+          action,
+          onBusyChange: setAttachmentBusy,
+          onResolvedAttachment: setResolvedAttachment,
+          onErrorReset: () => setAttachmentActionError(''),
+        });
+        const successState = buildAttachmentActionSuccessState(preparedAccess);
+        setResolvedAttachment(successState.resolvedAttachment);
+        setResolvedAttachmentAccess(successState.resolvedAttachmentAccess);
+        setAttachmentActionError(successState.attachmentActionError);
       } catch (error) {
-        setAttachmentActionError(error?.message || 'Bijlage openen mislukt');
-      }
-    };
-    const downloadAttachment = async () => {
-      try {
-        const readyAttachment = await resolveAttachment();
-        const preparedAccess = await prepareAttachmentBinaryAccess(readyAttachment, user);
-        setResolvedAttachment(preparedAccess.attachment);
-        setResolvedAttachmentAccess(preparedAccess);
-        triggerAttachmentDownload(
-          preparedAccess.isObjectUrl
-            ? { ...preparedAccess.attachment, downloadUrl: preparedAccess.url, url: '' }
-            : preparedAccess.attachment
-        );
-        if (preparedAccess.isObjectUrl) {
-          window.setTimeout(() => preparedAccess.revoke(), 1_000);
-        }
-      } catch (error) {
-        setAttachmentActionError(error?.message || 'Bijlage downloaden mislukt');
+        const errorState = buildAttachmentActionErrorState(error, action);
+        setAttachmentActionError(errorState.attachmentActionError);
       }
     };
     const attachmentActions = attachmentAccess.canOpen ? (
@@ -226,7 +190,7 @@ const MessageBubble = React.memo(function MessageBubble({
           disabled={attachmentBusy || !attachmentActionPresentation.actionsEnabled}
           onClick={(event) => {
             event.stopPropagation();
-            openAttachment();
+            runAttachmentAction('open');
           }}
           style={{
             minHeight: 32,
@@ -246,7 +210,7 @@ const MessageBubble = React.memo(function MessageBubble({
           disabled={attachmentBusy || !attachmentActionPresentation.actionsEnabled}
           onClick={(event) => {
             event.stopPropagation();
-            downloadAttachment();
+            runAttachmentAction('download');
           }}
           style={{
             minHeight: 32,
@@ -271,8 +235,8 @@ const MessageBubble = React.memo(function MessageBubble({
           tabIndex={attachmentActionPresentation.actionsEnabled ? 0 : undefined}
           aria-label={attachmentActionPresentation.actionsEnabled ? `Open bijlage ${attachment?.name || 'Bestand'}` : undefined}
           style={{ cursor: attachmentActionPresentation.actionsEnabled ? 'pointer' : 'default' }}
-          onClick={attachmentActionPresentation.actionsEnabled ? openAttachment : undefined}
-          onKeyDown={attachmentActionPresentation.actionsEnabled ? (event) => handleActionCardKeyDown(event, openAttachment) : undefined}
+          onClick={attachmentActionPresentation.actionsEnabled ? () => runAttachmentAction('open') : undefined}
+          onKeyDown={attachmentActionPresentation.actionsEnabled ? (event) => handleActionCardKeyDown(event, () => runAttachmentAction('open')) : undefined}
         >
           {attachmentAccess.isImage ? (
             <div className="u-flex-1 u-min-w-0">

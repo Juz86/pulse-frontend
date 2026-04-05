@@ -7,6 +7,7 @@ import {
   getAttachmentStrategyStoragePrefix,
 } from './attachmentStrategyConstants';
 import { getAttachmentEncryptionCapability } from './attachmentCrypto';
+import { getAttachmentAccessInfo } from './attachmentAccessAdapter';
 
 export function getAttachmentStrategyPresentation(attachment = {}) {
   const strategyKey =
@@ -146,6 +147,45 @@ export function getAttachmentActionPresentation(accessInfo = {}) {
       : blockedByUnsupportedStrategy
         ? 'Deze versleutelingsstrategie ondersteunt nu nog geen openen of downloaden in de client.'
       : '',
+  };
+}
+
+export function getAttachmentInteractionPresentation(attachment = {}, unwrapContext = null) {
+  const access = getAttachmentAccessInfo(attachment);
+  const contract = getAttachmentContractPresentation(attachment);
+  const verification = getAttachmentAccessVerificationPresentation(attachment, unwrapContext);
+  const actions = getAttachmentActionPresentation(access);
+
+  return {
+    access,
+    contract,
+    verification,
+    actions,
+  };
+}
+
+export function buildAttachmentInteractionState(
+  messageAttachment = {},
+  resolvedAttachment = null,
+  resolvedAttachmentAccess = null
+) {
+  const attachment = resolvedAttachment || messageAttachment;
+  const interaction = getAttachmentInteractionPresentation(
+    attachment,
+    resolvedAttachmentAccess?.unwrapContext
+  );
+  const previewUrl = interaction.access.isImage && attachment?.thumbnailUrl
+    ? attachment.thumbnailUrl
+    : interaction.access.url;
+
+  return {
+    attachment,
+    interaction,
+    access: interaction.access,
+    contract: interaction.contract,
+    verification: interaction.verification,
+    actions: interaction.actions,
+    previewUrl,
   };
 }
 

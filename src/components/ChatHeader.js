@@ -5,6 +5,7 @@ import {
   E2EE_ATTACHMENT_STRATEGY,
   getFutureAttachmentStrategyBannerState,
   getServiceTransportFallbackBannerState,
+  getAttachmentRuntimePresentation,
   getAttachmentRuntimeState,
   E2EE_TRANSPORT,
 } from '../lib/e2ee/config';
@@ -62,10 +63,16 @@ const ChatHeader = React.memo(function ChatHeader({
   const resolvedAttachmentRuntime = attachmentRuntime || getAttachmentRuntimeState({
     preferredStrategy: undefined,
   });
-  const futureAttachmentBannerState = getFutureAttachmentStrategyBannerState({
-    preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
+  const attachmentRuntimePresentation = getAttachmentRuntimePresentation({
+    preferredStrategy: resolvedAttachmentRuntime.preferredStrategy,
     capabilities: resolvedAttachmentRuntime.capabilities,
     effectiveStrategyOverride: resolvedAttachmentRuntime.effectiveStrategy,
+    needsRemoteFetch: resolvedAttachmentRuntime.providerRuntime?.usesRemoteFetch,
+  });
+  const futureAttachmentBannerState = getFutureAttachmentStrategyBannerState({
+    preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
+    capabilities: attachmentRuntimePresentation.capabilities,
+    effectiveStrategyOverride: attachmentRuntimePresentation.effectiveStrategy,
     showFutureMediaBanner,
   });
   const serviceFallbackBannerState = getServiceTransportFallbackBannerState({

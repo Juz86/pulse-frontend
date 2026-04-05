@@ -105,7 +105,7 @@ export default function Homepage({ onParentClick }) {
           <article className="hp-feature-row" id="privacy" aria-labelledby="homepage-feature-privacy">
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Privacy-First</div>
-              <h3 id="homepage-feature-privacy">Jouw kind. Niet onze data.</h3>
+              <h3 id="homepage-feature-privacy">Pulse staat voor privacy-first</h3>
               <p>Pulse verzamelt niet wat niet nodig is. Geen algoritmes, geen profielen, geen gedragsanalyse. Berichten verdwijnen automatisch na 30 dagen. Verwijderen is echt verwijderen.</p>
               <a href="/privacy-first" className="hp-read-more-btn" aria-label="Lees meer over Privacy-First bij Pulse">
                 Lees meer <span aria-hidden="true">→</span>

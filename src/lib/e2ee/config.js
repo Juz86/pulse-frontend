@@ -98,6 +98,55 @@ export function getAttachmentRuntimeState({
   };
 }
 
+export function getAttachmentRuntimePresentation({
+  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
+  capabilities = null,
+  effectiveStrategyOverride = null,
+  attachmentTransport = E2EE_ATTACHMENT_TRANSPORT,
+  needsRemoteFetch = false,
+} = {}) {
+  const runtimeState = getAttachmentRuntimeState({
+    preferredStrategy,
+    capabilities,
+    effectiveStrategyOverride,
+    attachmentTransport,
+    needsRemoteFetch,
+  });
+  const providerRuntime = runtimeState.providerRuntime || {};
+
+  return {
+    ...runtimeState,
+    strategyLabel: getAttachmentStrategyDisplayName(runtimeState.effectiveStrategy),
+    storageProviderLabel: providerRuntime.storageProviderKind || 'unknown',
+    accessProviderLabel: providerRuntime.accessProviderKind || 'unknown',
+    providerModeLabel: providerRuntime.usesRemoteStorage ? 'remote' : 'inline',
+    binaryAccessLabel: providerRuntime.supportsBinaryAccess ? 'binary-ready' : 'binary-disabled',
+  };
+}
+
+export function getAttachmentSendRuntimeConfig({
+  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
+  capabilities = null,
+  effectiveStrategyOverride = null,
+  attachmentTransport = E2EE_ATTACHMENT_TRANSPORT,
+} = {}) {
+  const runtimeState = getAttachmentRuntimeState({
+    preferredStrategy,
+    capabilities,
+    effectiveStrategyOverride,
+    attachmentTransport,
+    needsRemoteFetch: false,
+  });
+
+  return {
+    effectiveStrategy: runtimeState.effectiveStrategy,
+    transportMode: runtimeState.providerRuntime?.storageDescriptor?.transportMode || 'inline',
+    storageProviderKind: runtimeState.providerRuntime?.storageProviderKind || 'unknown',
+    usesRemoteStorage: Boolean(runtimeState.providerRuntime?.usesRemoteStorage),
+    runtimeState,
+  };
+}
+
 export function getAttachmentStrategyRuntimeCopy({
   preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
   capabilities = null,

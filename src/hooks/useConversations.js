@@ -16,7 +16,11 @@ import {
   applyConversationSummaryToList,
   normalizeConversationAttachmentSummary,
 } from '../lib/e2ee/conversationSummaries';
-import { getAttachmentRuntimeState, isE2EEServiceTransportEnabled } from '../lib/e2ee/config';
+import {
+  getAttachmentRuntimeState,
+  getAttachmentSendRuntimeConfig,
+  isE2EEServiceTransportEnabled,
+} from '../lib/e2ee/config';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
 
@@ -63,8 +67,12 @@ export default function useConversations({
   const resolvedAttachmentRuntime = attachmentRuntime || getAttachmentRuntimeState({
     preferredStrategy: undefined,
   });
-  const effectiveAttachmentStrategy = resolvedAttachmentRuntime.effectiveStrategy || 'mock_media_v1';
-  const effectiveAttachmentTransport = resolvedAttachmentRuntime.providerRuntime?.storageDescriptor?.transportMode || 'inline';
+  const attachmentSendRuntime = getAttachmentSendRuntimeConfig({
+    preferredStrategy: resolvedAttachmentRuntime.preferredStrategy,
+    capabilities: resolvedAttachmentRuntime.capabilities,
+    effectiveStrategyOverride: resolvedAttachmentRuntime.effectiveStrategy,
+    attachmentTransport: resolvedAttachmentRuntime.providerRuntime?.storageDescriptor?.transportMode || 'inline',
+  });
 
   // Sync refs owned by ChatScreen
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv, activeConvRef]);
@@ -513,8 +521,8 @@ export default function useConversations({
         conversationId: conv.id,
         user,
         userId: user.uid,
-        transportMode: effectiveAttachmentTransport,
-        attachmentStrategy: effectiveAttachmentStrategy,
+        transportMode: attachmentSendRuntime.transportMode,
+        attachmentStrategy: attachmentSendRuntime.effectiveStrategy,
       });
     } catch (error) {
       showErrToast(error.message || 'Bijlage voorbereiden mislukt');

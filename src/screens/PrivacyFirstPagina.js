@@ -254,7 +254,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
                 <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Veiligheid: End-to-End Encryptie</div>
-                <h3>Pulse is beveiligd met end-to-end encryptie.</h3>
+                <h3>Pulse is beveiligd met <br></br>End-to-End encryptie.</h3>
                 <p style={{ marginTop: 16 }}>Dat betekent:</p>
                 <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 0 }}>
                   {[
@@ -272,7 +272,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
               <div className="hp-feature-mockup">
                 <div className="op-privacy-card" style={{ textAlign: 'center' }}>
                   <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Lock size={36} /></div>
-                  <div className="op-privacy-title">End-to-end versleuteld</div>
+                  <div className="op-privacy-title">End-to-end encryptie</div>
                   <div className="op-privacy-sub" style={{ marginTop: 12 }}>
                     Van jou naar je kind.<br />
                     Van je kind naar jou.<br />

@@ -7,6 +7,7 @@ import {
 } from './messageModel';
 import {
   applyConversationSummaryToList,
+  buildConversationAttachmentSummaryPreview,
   buildConversationSummaryAttachmentSource,
   buildConversationSummaryAttachmentPayload,
   hasConversationAttachmentSummaryFields,
@@ -775,6 +776,63 @@ describe('e2ee attachment helpers', () => {
         originalMimeType: '',
       },
       accessVerification: null,
+    });
+  });
+
+  test('buildConversationAttachmentSummaryPreview centralizes attachment preview text and presentation', () => {
+    expect(buildConversationAttachmentSummaryPreview({
+      lastMessage: 'Bijlage: rapport.pdf',
+      lastMessageType: 'attachment',
+      lastAttachmentName: 'rapport.pdf',
+      lastAttachmentTransfer: 'remote',
+      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+      lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
+      lastAttachmentOriginalMimeType: 'application/pdf',
+      lastAttachmentExpectedPayloadSha256: 'hash-1',
+      lastAttachmentMediaKeyId: 'media-key-1',
+      lastAttachmentKeyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      lastAttachmentWrappedMediaKeyDigest: 'wrapped-digest-1',
+    })).toEqual({
+      attachment: {
+        name: 'rapport.pdf',
+        url: '',
+        downloadUrl: '',
+        thumbnailUrl: '',
+        storageKey: '',
+        transfer: 'remote',
+        mimeType: 'application/pdf',
+        originalMimeType: 'application/pdf',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'pulse_mock_media_envelope',
+        expectedPayloadSha256: 'hash-1',
+        size: null,
+        caption: '',
+        encryption: {
+          alg: '',
+          keyId: '',
+          iv: '',
+          sha256: '',
+          mediaKeyId: 'media-key-1',
+          keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+          wrappedMediaKey: '',
+          wrappedMediaKeyDigest: 'wrapped-digest-1',
+          envelopeKind: 'pulse_mock_media_envelope',
+          originalMimeType: '',
+        },
+        accessVerification: null,
+      },
+      presentation: {
+        isRemote: true,
+        isEncryptedRemote: true,
+        hasIntegrityContract: true,
+        hasWrappedMediaKeyContract: true,
+        mimeLabel: 'application/pdf',
+        storageLabel: 'Mock versleutelde opslaglink',
+        storageShortLabel: 'versleuteld',
+        storageDetail: 'Envelope: pulse_mock_media_envelope · integriteitscheck actief',
+        keyContractDetail: 'Media key: media-key-1 · wrap: pulse_mock_media_key_wrap_v1 · digest actief',
+      },
+      previewText: 'Bijlage: rapport.pdf · versleuteld',
     });
   });
 

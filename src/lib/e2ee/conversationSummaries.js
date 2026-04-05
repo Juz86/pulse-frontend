@@ -89,6 +89,21 @@ export function buildConversationSummaryAttachmentPayload(message = {}) {
   return normalizeAttachmentPayload(buildConversationSummaryAttachmentSource(message));
 }
 
+export function buildConversationAttachmentSummaryPreview(message = {}) {
+  const attachment = buildConversationSummaryAttachmentPayload(message);
+  if (!attachment) {
+    return null;
+  }
+
+  const presentation = getAttachmentContractPresentation(attachment);
+
+  return {
+    attachment,
+    presentation,
+    previewText: getAttachmentPreviewText(attachment, { includeStorageSignal: true }),
+  };
+}
+
 export function buildConversationSummaryUpdate(message = {}) {
   const type = message?.type || message?.messageType || 'text';
   const attachment = normalizeAttachmentPayload(message?.attachment) || null;
@@ -131,9 +146,9 @@ export function getConversationPreview(message = {}) {
   if (message.deleted) return 'Bericht verwijderd';
   if (message.type === 'contact') return `Contactpersoon: ${message.sharedContact?.name || 'Contactpersoon'}`;
 
-  const attachmentSummary = buildConversationSummaryAttachmentPayload(message);
+  const attachmentSummary = buildConversationAttachmentSummaryPreview(message);
   if (attachmentSummary) {
-    return getAttachmentPreviewText(attachmentSummary, { includeStorageSignal: true });
+    return attachmentSummary.previewText;
   }
 
   if (typeof message.lastMessage === 'string' && message.lastMessage) return message.lastMessage;
@@ -144,13 +159,13 @@ export function getConversationPreview(message = {}) {
 
 export function getConversationAttachmentSummaryPresentation(conversation = {}) {
   const normalizedConversation = normalizeConversationAttachmentSummary(conversation);
-  const attachment = buildConversationSummaryAttachmentPayload(normalizedConversation);
-  const attachmentPresentation = getAttachmentContractPresentation(attachment);
+  const attachmentSummary = buildConversationAttachmentSummaryPreview(normalizedConversation);
+  const attachmentPresentation = attachmentSummary?.presentation || getAttachmentContractPresentation(null);
 
   return {
     isAttachmentSummary: normalizedConversation.lastMessageType === 'attachment',
     showRemoteAttachmentBadge: normalizedConversation.lastMessageType === 'attachment' && attachmentPresentation.isRemote,
-    previewText: getAttachmentPreviewText(attachment, { includeStorageSignal: true }),
+    previewText: attachmentSummary?.previewText || '',
     storageShortLabel: attachmentPresentation.storageShortLabel,
     mimeLabel: attachmentPresentation.mimeLabel,
     storageDetail: attachmentPresentation.storageDetail,

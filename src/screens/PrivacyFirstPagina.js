@@ -104,7 +104,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
               <div className="fp-hero-badge">Privacy-First</div>
               <h1 className="ot-hero-title ot-hero-title--marketing">
                 Veilig verbonden.<br />
-                <span style={{ whiteSpace: 'nowrap' }}>Zonder ruis. Zonder zorgen.</span>
+                <span style={{ whiteSpace: 'nowrap' }}>Zonder zorgen.</span>
               </h1>
               <p className="ot-hero-sub">
                 Bij Pulse draait alles om één ding: rust en veiligheid voor ouder en kind.
@@ -145,7 +145,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
-                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Users size={14} /> Waarom Pulse bestaat</div>
+                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Waarom Pulse bestaat</div>
                 <h3>Pulse is bedacht door een vader.</h3>
                 <p>Een vader die zich zorgen maakte.</p>
                 <p style={{ marginTop: 16 }}>
@@ -178,7 +178,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
-                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Shield size={14} /> Wat Privacy-First betekent bij Pulse</div>
+                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Wat Privacy-First betekent bij Pulse</div>
                 <h3>Privacy is voor ons geen instelling. Het is de basis.</h3>
                 <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 0 }}>
                   {[
@@ -213,7 +213,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
-                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Lock size={14} /> Wat we wél opslaan en waarom</div>
+                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Wat we wél opslaan en waarom</div>
                 <h3>Zo weinig mogelijk. Zo kort mogelijk.</h3>
                 <p style={{ marginTop: 8, color: 'var(--text2)' }}>We slaan alleen op wat echt nodig is om de app te laten werken — en nooit langer dan nodig.</p>
                 <div style={{ marginTop: 24 }}>
@@ -253,7 +253,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
-                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Lock size={14} /> Veiligheid: End-to-End Encryptie</div>
+                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Veiligheid: End-to-End Encryptie</div>
                 <h3>Pulse is beveiligd met end-to-end encryptie.</h3>
                 <p style={{ marginTop: 16 }}>Dat betekent:</p>
                 <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 0 }}>

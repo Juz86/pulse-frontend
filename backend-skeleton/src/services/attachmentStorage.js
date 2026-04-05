@@ -46,14 +46,18 @@ function isPreviewableMimeType(mimeType = '') {
 function getAttachmentEnvelopeContract(attachment = {}, fallbackMimeType = 'application/octet-stream') {
   const encryption = attachment?.encryption || {};
   const isMockEnvelope = encryption.alg === 'mock-e2ee-envelope-v1';
+  const isFutureEnvelope = encryption.alg === 'pulse-media-envelope-v1' || encryption.strategyKey === 'pulse_media_v1';
   const strategyKey = typeof encryption.strategyKey === 'string' && encryption.strategyKey
     ? encryption.strategyKey
-    : (isMockEnvelope ? 'mock_media_v1' : (encryption.alg ? 'external_contract' : 'none'));
+    : (isMockEnvelope ? 'mock_media_v1' : (isFutureEnvelope ? 'pulse_media_v1' : (encryption.alg ? 'external_contract' : 'none')));
 
   return {
     isMockEnvelope,
+    isFutureEnvelope,
     strategyKey,
-    contentEncoding: isMockEnvelope ? 'mock-e2ee-envelope-v1' : 'identity',
+    contentEncoding: isMockEnvelope
+      ? 'mock-e2ee-envelope-v1'
+      : (isFutureEnvelope ? 'pulse-media-envelope-v1' : 'identity'),
     envelopeKind: typeof encryption.envelopeKind === 'string' ? encryption.envelopeKind : '',
     expectedPayloadSha256: typeof encryption.sha256 === 'string' ? encryption.sha256 : '',
     mediaKeyId: typeof encryption.mediaKeyId === 'string' ? encryption.mediaKeyId : '',
@@ -68,6 +72,7 @@ function getAttachmentEnvelopeContract(attachment = {}, fallbackMimeType = 'appl
 
 function buildStoredAttachmentEncryption(attachment = {}, id, fallbackSha = '') {
   const encryption = attachment?.encryption || {};
+  const isFutureEnvelope = typeof encryption.alg === 'string' && encryption.alg === 'pulse-media-envelope-v1';
 
   return {
     alg: typeof encryption.alg === 'string' && encryption.alg ? encryption.alg : 'mock-storage-envelope',
@@ -75,7 +80,7 @@ function buildStoredAttachmentEncryption(attachment = {}, id, fallbackSha = '') 
       ? encryption.strategyKey
       : (typeof encryption.alg === 'string' && encryption.alg === 'mock-e2ee-envelope-v1'
         ? 'mock_media_v1'
-        : (typeof encryption.alg === 'string' && encryption.alg ? 'external_contract' : 'none')),
+        : (isFutureEnvelope ? 'pulse_media_v1' : (typeof encryption.alg === 'string' && encryption.alg ? 'external_contract' : 'none'))),
     keyId: typeof encryption.keyId === 'string' && encryption.keyId ? encryption.keyId : `mock-key-${id}`,
     iv: typeof encryption.iv === 'string' && encryption.iv ? encryption.iv : `mock-iv-${id}`,
     sha256: typeof encryption.sha256 === 'string' ? encryption.sha256 : fallbackSha,
@@ -216,7 +221,11 @@ export async function getStoredAttachmentMetadata(id) {
     id: storedAttachment.id,
     name: storedAttachment.name,
     mimeType: storedAttachment.mimeType,
-    strategyKey: storedAttachment.strategyKey || (storedAttachment.contentEncoding === 'mock-e2ee-envelope-v1' ? 'mock_media_v1' : 'none'),
+    strategyKey: storedAttachment.strategyKey || (
+      storedAttachment.contentEncoding === 'mock-e2ee-envelope-v1'
+        ? 'mock_media_v1'
+        : (storedAttachment.contentEncoding === 'pulse-media-envelope-v1' ? 'pulse_media_v1' : 'none')
+    ),
     originalMimeType: storedAttachment.originalMimeType || storedAttachment.mimeType,
     contentEncoding: storedAttachment.contentEncoding || 'identity',
     envelopeKind: storedAttachment.envelopeKind || '',
@@ -228,8 +237,14 @@ export async function getStoredAttachmentMetadata(id) {
     size: storedAttachment.size,
     contentDisposition: storedAttachment.contentDisposition,
     encryption: {
-      alg: storedAttachment.contentEncoding === 'mock-e2ee-envelope-v1' ? 'mock-e2ee-envelope-v1' : 'mock-storage-envelope',
-      strategyKey: storedAttachment.strategyKey || (storedAttachment.contentEncoding === 'mock-e2ee-envelope-v1' ? 'mock_media_v1' : 'none'),
+      alg: storedAttachment.contentEncoding === 'mock-e2ee-envelope-v1'
+        ? 'mock-e2ee-envelope-v1'
+        : (storedAttachment.contentEncoding === 'pulse-media-envelope-v1' ? 'pulse-media-envelope-v1' : 'mock-storage-envelope'),
+      strategyKey: storedAttachment.strategyKey || (
+        storedAttachment.contentEncoding === 'mock-e2ee-envelope-v1'
+          ? 'mock_media_v1'
+          : (storedAttachment.contentEncoding === 'pulse-media-envelope-v1' ? 'pulse_media_v1' : 'none')
+      ),
       sha256: storedAttachment.expectedPayloadSha256 || '',
       mediaKeyId: storedAttachment.mediaKeyId || '',
       keyWrapAlg: storedAttachment.keyWrapAlg || '',

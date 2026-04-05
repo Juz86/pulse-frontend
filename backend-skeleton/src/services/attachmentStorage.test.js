@@ -166,6 +166,35 @@ test('storeMockAttachment preserves wrapped media key metadata', async () => {
   assert.equal(metadata.encryption.wrappedMediaKeyDigest, 'wrapped-digest-1');
 });
 
+test('buildStoredAttachmentMetadata preserves a future media storage draft contract', () => {
+  const metadata = buildStoredAttachmentMetadata({
+    id: 'attachment-future-1',
+    baseUrl: 'http://localhost:3001',
+    attachment: {
+      name: 'future-photo.png',
+      mimeType: 'application/octet-stream',
+      size: 321,
+      encryption: {
+        alg: 'pulse-media-envelope-v1',
+        strategyKey: 'pulse_media_v1',
+        envelopeKind: 'pulse_media_envelope',
+        originalMimeType: 'image/png',
+        sha256: 'future-sha-1',
+        keyWrapAlg: 'pulse_media_key_wrap_v1',
+      },
+    },
+  });
+
+  assert.equal(metadata.strategyKey, 'pulse_media_v1');
+  assert.equal(metadata.contentEncoding, 'pulse-media-envelope-v1');
+  assert.equal(metadata.envelopeKind, 'pulse_media_envelope');
+  assert.equal(metadata.originalMimeType, 'image/png');
+  assert.equal(metadata.expectedPayloadSha256, 'future-sha-1');
+  assert.equal(metadata.encryption.alg, 'pulse-media-envelope-v1');
+  assert.equal(metadata.encryption.strategyKey, 'pulse_media_v1');
+  assert.equal(metadata.encryption.keyWrapAlg, 'pulse_media_key_wrap_v1');
+});
+
 test('getAttachmentIdFromUrl extracts the stored attachment id', () => {
   assert.equal(
     getAttachmentIdFromUrl('http://localhost:3001/attachments/attachment-123'),

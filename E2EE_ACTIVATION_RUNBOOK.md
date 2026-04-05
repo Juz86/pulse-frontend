@@ -86,6 +86,7 @@ Bij een gezonde eerste activatie:
 - remote attachments krijgen een echte backend-downloadlink
 - metadata- en downloadheaders vertellen hetzelfde `mock_media_v1` profiel
 - `npm run smoke:attachments` blijft groen
+- `npm run smoke:attachments:future` bevestigt ook alvast het volgende profiel `pulse_media_v1`
 
 ## Niet Meteen Doen
 
@@ -117,6 +118,7 @@ Dan valt de app terug op de bestaande socketflow.
 - attachments openen na refresh nog steeds
 - `mock_media_v1` blijft zichtbaar in attachment access-signalen
 - `smoke:attachments` is groen
+- `smoke:attachments:future` is groen
 - build, tests en lint blijven groen
 
 ## Daarna

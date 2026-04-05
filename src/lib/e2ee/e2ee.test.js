@@ -35,6 +35,8 @@ import {
   validateAttachmentPayload,
 } from './attachmentPayload';
 import {
+  buildRemoteAttachmentUploadPayload,
+  buildFutureRemoteAttachmentDraftPayload,
   buildMockRemoteAttachmentPayload,
   prepareAttachmentForSend,
 } from './attachmentUploadAdapter';
@@ -153,6 +155,7 @@ describe('e2ee message model helpers', () => {
       storageKey: '',
       transfer: 'remote',
       mimeType: 'application/pulse-e2ee-envelope+json',
+      strategyKey: '',
       originalMimeType: 'image/png',
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: '',
@@ -410,6 +413,7 @@ describe('e2ee attachment helpers', () => {
       storageKey: '',
       transfer: 'inline',
       mimeType: '',
+      strategyKey: '',
       originalMimeType: '',
       contentEncoding: '',
       envelopeKind: '',
@@ -453,6 +457,7 @@ describe('e2ee attachment helpers', () => {
       storageKey: 'attachments/conv-1/foto.jpg',
       transfer: 'remote',
       mimeType: 'image/jpeg',
+      strategyKey: '',
       originalMimeType: 'image/jpeg',
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: 'pulse_mock_media_envelope',
@@ -482,6 +487,7 @@ describe('e2ee attachment helpers', () => {
       downloadUrl: 'http://localhost:3001/attachments/mock-2',
       transfer: 'remote',
       mimeType: 'application/pulse-e2ee-envelope+json',
+      strategyKey: '',
       originalMimeType: 'text/plain',
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: 'pulse_mock_media_envelope',
@@ -503,6 +509,7 @@ describe('e2ee attachment helpers', () => {
       storageKey: '',
       transfer: 'remote',
       mimeType: 'application/pulse-e2ee-envelope+json',
+      strategyKey: '',
       originalMimeType: 'text/plain',
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: 'pulse_mock_media_envelope',
@@ -577,6 +584,64 @@ describe('e2ee attachment helpers', () => {
     expect(attachment.encryption?.wrappedMediaKeyDigest).toMatch(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/);
   });
 
+  test('buildFutureRemoteAttachmentDraftPayload creates a pulse_media_v1 storage draft', async () => {
+    const attachment = await buildFutureRemoteAttachmentDraftPayload({
+      name: 'future-photo.png',
+      url: 'data:image/png;base64,abc',
+      mimeType: 'image/png',
+      size: 1234,
+    }, {
+      conversationId: 'conv-1',
+      userId: 'user-1',
+    });
+
+    expect(attachment.transfer).toBe('remote');
+    expect(attachment.url).toBe('');
+    expect(attachment.downloadUrl).toBe('');
+    expect(attachment.thumbnailUrl).toBe('data:image/png;base64,abc');
+    expect(attachment.storageKey).toContain('future-e2ee/conv-1/user-1/');
+    expect(attachment.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
+    expect(attachment.contentEncoding).toBe(ATTACHMENT_FUTURE_ENVELOPE_ALG);
+    expect(attachment.envelopeKind).toBe(ATTACHMENT_FUTURE_ENVELOPE_KIND);
+    expect(attachment.expectedPayloadSha256).toMatch(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/);
+    expect(attachment.encryption).toEqual({
+      alg: ATTACHMENT_FUTURE_ENVELOPE_ALG,
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      keyId: '',
+      iv: '',
+      sha256: expect.stringMatching(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/),
+      mediaKeyId: '',
+      keyWrapAlg: ATTACHMENT_FUTURE_KEY_WRAP_ALG,
+      wrappedMediaKey: '',
+      wrappedMediaKeyDigest: '',
+      envelopeKind: ATTACHMENT_FUTURE_ENVELOPE_KIND,
+      originalMimeType: 'image/png',
+    });
+  });
+
+  test('buildRemoteAttachmentUploadPayload supports pulse_media_v1 upload contracts', async () => {
+    const attachment = await buildRemoteAttachmentUploadPayload({
+      name: 'future-upload.png',
+      url: 'data:image/png;base64,abc',
+      mimeType: 'image/png',
+      size: 1234,
+    }, {
+      conversationId: 'conv-1',
+      userId: 'user-1',
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+    });
+
+    expect(attachment.transfer).toBe('remote');
+    expect(attachment.url).toContain('data:application/pulse-e2ee-envelope+json;base64,');
+    expect(attachment.downloadUrl).toContain('data:application/pulse-e2ee-envelope+json;base64,');
+    expect(attachment.storageKey).toContain('future-e2ee/conv-1/user-1/');
+    expect(attachment.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
+    expect(attachment.contentEncoding).toBe(ATTACHMENT_FUTURE_ENVELOPE_ALG);
+    expect(attachment.envelopeKind).toBe(ATTACHMENT_FUTURE_ENVELOPE_KIND);
+    expect(attachment.encryption?.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
+    expect(attachment.encryption?.keyWrapAlg).toBe(ATTACHMENT_FUTURE_KEY_WRAP_ALG);
+  });
+
   test('buildMockAttachmentEncryptionMetadata creates a stable mock media key contract', async () => {
     const { envelope } = await createMockEncryptedAttachmentEnvelope({
       name: 'hello.txt',
@@ -623,6 +688,25 @@ describe('e2ee attachment helpers', () => {
       wrappedMediaKey: expect.stringMatching(/^ey/),
       wrappedMediaKeyDigest: expect.stringMatching(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/),
       envelopeKind: 'pulse_mock_media_envelope',
+      originalMimeType: 'text/plain',
+    });
+
+    await expect(buildAttachmentEncryptionMetadata({
+      mimeType: 'text/plain',
+      encryption: {
+        strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      },
+    }, envelope)).resolves.toEqual({
+      alg: ATTACHMENT_FUTURE_ENVELOPE_ALG,
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      keyId: '',
+      iv: '',
+      sha256: envelope.payloadSha256,
+      mediaKeyId: '',
+      keyWrapAlg: ATTACHMENT_FUTURE_KEY_WRAP_ALG,
+      wrappedMediaKey: '',
+      wrappedMediaKeyDigest: '',
+      envelopeKind: ATTACHMENT_FUTURE_ENVELOPE_KIND,
       originalMimeType: 'text/plain',
     });
   });
@@ -796,7 +880,7 @@ describe('e2ee attachment helpers', () => {
   test('getAttachmentContractPresentation derives consistent labels for encrypted remote attachments', () => {
     expect(getAttachmentContractPresentation({
       transfer: 'remote',
-      strategyKey: 'mock_media_v1',
+      strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
       contentEncoding: 'mock-e2ee-envelope-v1',
       originalMimeType: 'image/png',
       envelopeKind: 'pulse_mock_media_envelope',
@@ -815,6 +899,32 @@ describe('e2ee attachment helpers', () => {
       storageShortLabel: 'versleuteld',
       storageDetail: 'Envelope: pulse_mock_media_envelope · strategie mock_media_v1 · integriteitscheck actief',
       keyContractDetail: 'Media key: mock-media-key-1 · wrap: pulse_mock_media_key_wrap_v1',
+    });
+  });
+
+  test('getAttachmentContractPresentation derives consistent labels for future encrypted remote attachments', () => {
+    expect(getAttachmentContractPresentation({
+      transfer: 'remote',
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      contentEncoding: ATTACHMENT_FUTURE_ENVELOPE_ALG,
+      originalMimeType: 'image/png',
+      envelopeKind: ATTACHMENT_FUTURE_ENVELOPE_KIND,
+      expectedPayloadSha256: 'future-deadbeef',
+      encryption: {
+        mediaKeyId: 'future-media-key-1',
+        keyWrapAlg: ATTACHMENT_FUTURE_KEY_WRAP_ALG,
+        wrappedMediaKeyDigest: 'future-digest-1',
+      },
+    })).toEqual({
+      isRemote: true,
+      isEncryptedRemote: true,
+      hasIntegrityContract: true,
+      hasWrappedMediaKeyContract: true,
+      mimeLabel: 'image/png',
+      storageLabel: 'Toekomstige versleutelde opslaglink',
+      storageShortLabel: 'versleuteld',
+      storageDetail: 'Envelope: pulse_media_envelope · strategie pulse_media_v1 · integriteitscheck actief',
+      keyContractDetail: 'Media key: future-media-key-1 · wrap: pulse_media_key_wrap_v1 · digest actief',
     });
   });
 
@@ -844,8 +954,22 @@ describe('e2ee attachment helpers', () => {
       unwrapKind: 'pulse_mock_media_key_unwrap',
     })).toEqual({
       strategyLabel: 'Media-strategie: mock_media_v1',
+      availabilityLabel: '',
       integrityAccessLabel: 'Downloadcontract bevestigd',
       wrappedKeyAccessLabel: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap',
+    });
+  });
+
+  test('getAttachmentAccessVerificationPresentation flags future media drafts before decrypt support exists', () => {
+    expect(getAttachmentAccessVerificationPresentation({
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      integrityVerified: false,
+      wrappedKeyVerified: false,
+    })).toEqual({
+      strategyLabel: 'Media-strategie: pulse_media_v1',
+      availabilityLabel: 'Decrypt-draft actief voor pulse_media_v1',
+      integrityAccessLabel: '',
+      wrappedKeyAccessLabel: '',
     });
   });
 
@@ -859,6 +983,7 @@ describe('e2ee attachment helpers', () => {
       },
     })).toEqual({
       strategyLabel: 'Media-strategie: mock_media_v1',
+      availabilityLabel: '',
       integrityAccessLabel: 'Downloadcontract bevestigd',
       wrappedKeyAccessLabel: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap',
     });
@@ -924,6 +1049,7 @@ describe('e2ee attachment helpers', () => {
       storageKey: '',
       transfer: 'remote',
       mimeType: 'application/pdf',
+      strategyKey: 'mock_media_v1',
       originalMimeType: 'application/pdf',
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: 'pulse_mock_media_envelope',
@@ -970,6 +1096,7 @@ describe('e2ee attachment helpers', () => {
         storageKey: '',
         transfer: 'remote',
         mimeType: 'application/pdf',
+        strategyKey: 'mock_media_v1',
         originalMimeType: 'application/pdf',
         contentEncoding: 'mock-e2ee-envelope-v1',
         envelopeKind: 'pulse_mock_media_envelope',
@@ -1140,6 +1267,31 @@ describe('e2ee attachment helpers', () => {
     expect(attachment.storageKey).toBe('mock-e2ee/conv-2/user-9/document.pdf');
   });
 
+  test('prepareAttachmentForSend supports pulse_media_v1 attachment strategy in remote_mock mode', async () => {
+    const attachment = await prepareAttachmentForSend({
+      attachment: {
+        name: 'future-document.pdf',
+        url: 'data:application/pdf;base64,abc',
+        mimeType: 'application/pdf',
+        size: 456,
+      },
+      conversationId: 'conv-2',
+      userId: 'user-9',
+      transportMode: 'remote_mock',
+      attachmentStrategy: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      uploadAttachment: async (payload) => ({
+        ...payload,
+        downloadUrl: 'https://cdn.example.com/future-document.pdf',
+      }),
+    });
+
+    expect(attachment.transfer).toBe('remote');
+    expect(attachment.downloadUrl).toBe('https://cdn.example.com/future-document.pdf');
+    expect(attachment.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
+    expect(attachment.contentEncoding).toBe(ATTACHMENT_FUTURE_ENVELOPE_ALG);
+    expect(attachment.encryption?.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
+  });
+
   test('prepareAttachmentForSend uploads through backend when no custom uploader is provided', async () => {
     const getIdToken = jest.fn().mockResolvedValue('token-123');
     global.fetch = jest.fn().mockResolvedValue({
@@ -1190,9 +1342,12 @@ describe('e2ee attachment helpers', () => {
       transfer: 'remote',
       downloadUrl: 'https://cdn.example.com/foto.png',
       mimeType: 'image/png',
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      contentEncoding: ATTACHMENT_FUTURE_ENVELOPE_ALG,
       encryption: {
-        alg: 'mock-storage-envelope',
+        alg: ATTACHMENT_FUTURE_ENVELOPE_ALG,
         keyId: 'key-1',
+        strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
       },
     });
 
@@ -1201,6 +1356,12 @@ describe('e2ee attachment helpers', () => {
     expect(info.canDownload).toBe(true);
     expect(info.isImage).toBe(true);
     expect(info.needsRemoteFetch).toBe(true);
+    expect(info.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
+    expect(info.isEncryptedRemote).toBe(true);
+    expect(info.isFutureEncryptedRemote).toBe(true);
+    expect(info.canDecryptEnvelope).toBe(false);
+    expect(info.canValidateWrappedMediaKey).toBe(false);
+    expect(info.requiresFutureStrategySupport).toBe(true);
   });
 
   test('buildAttachmentMetadataUrl points to the protected metadata endpoint', () => {
@@ -2048,6 +2209,7 @@ describe('e2ee transport payload helpers', () => {
       downloadUrl: 'http://localhost:3001/attachments/transport-1',
       transfer: 'remote',
       mimeType: 'application/pulse-e2ee-envelope+json',
+      strategyKey: '',
       originalMimeType: 'image/png',
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: 'pulse_mock_media_envelope',
@@ -2065,6 +2227,7 @@ describe('e2ee transport payload helpers', () => {
       storageKey: '',
       transfer: 'remote',
       mimeType: 'application/pulse-e2ee-envelope+json',
+      strategyKey: '',
       originalMimeType: 'image/png',
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: 'pulse_mock_media_envelope',
@@ -2092,6 +2255,7 @@ describe('e2ee transport payload helpers', () => {
         downloadUrl: 'http://localhost:3001/attachments/retry-1',
         transfer: 'remote',
         mimeType: 'application/pulse-e2ee-envelope+json',
+        strategyKey: '',
         originalMimeType: 'image/png',
         contentEncoding: 'mock-e2ee-envelope-v1',
         envelopeKind: 'pulse_mock_media_envelope',
@@ -2117,6 +2281,7 @@ describe('e2ee transport payload helpers', () => {
         storageKey: '',
         transfer: 'remote',
         mimeType: 'application/pulse-e2ee-envelope+json',
+        strategyKey: '',
         originalMimeType: 'image/png',
         contentEncoding: 'mock-e2ee-envelope-v1',
         envelopeKind: 'pulse_mock_media_envelope',

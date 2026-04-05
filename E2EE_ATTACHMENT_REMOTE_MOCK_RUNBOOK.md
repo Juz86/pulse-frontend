@@ -20,6 +20,7 @@ In `backend-skeleton`:
 - optioneel vooraf:
   - `npm run wipe:attachments`
   - `npm run smoke:attachments`
+  - `npm run smoke:attachments:future`
 
 ## Verwachte Flow
 
@@ -69,6 +70,8 @@ In `backend-skeleton`:
   `curl -s http://127.0.0.1:3001/health`
 - attachment smoke:
   `npm run smoke:attachments`
+- future attachment smoke:
+  `npm run smoke:attachments:future`
 - metadata-contract:
   controleer in de smoke-output:
   - `strategyKey`

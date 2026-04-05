@@ -123,6 +123,7 @@ Snelle smoke-checks tegen een draaiende lokale server:
 
 - `npm run smoke`
 - `npm run smoke:attachments`
+- `npm run smoke:attachments:future`
 - `npm run smoke:socket`
 
 Snelle configuratiecheck vóór starten of deploy:
@@ -159,6 +160,7 @@ Dat dekt nu ook de quiet-hours policyhelper mee.
 - denied policychecks en parent-acties worden alvast gelogd naar `policy_events`
 - attachments hebben nu ook een lokale mock-storage route met persistente bestanden onder `/tmp/pulse-e2ee-attachments`
 - `npm run wipe:attachments` maakt die mock-storage weer leeg voor een schone testronde
+- `npm run smoke:attachments:future` valideert nu ook alvast het draft media-profiel `pulse_media_v1`
 - dit is bedoeld als implementatiestart, niet als af productieontwerp
 
 ## Health En Readiness

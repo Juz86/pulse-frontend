@@ -18,6 +18,7 @@ Deze fase valideert al:
 - integrity checks via SHA-256
 - wrapped media key-contractvelden
 - open/download via access adapter
+- runtime smoke via `npm run smoke:attachments`
 
 ## Doel Fase
 
@@ -27,6 +28,17 @@ De volgende echte stap is een productiegericht media-profiel:
 - `alg: pulse-media-envelope-v1`
 - `envelopeKind: pulse_media_envelope`
 - `keyWrapAlg: pulse_media_key_wrap_v1`
+
+Voor dit toekomstige profiel bestaat nu ook al een backend smoke:
+
+- `npm run smoke:attachments:future`
+
+Die valideert lokaal al:
+
+- `strategyKey: pulse_media_v1`
+- `contentEncoding: pulse-media-envelope-v1`
+- `envelopeKind: pulse_media_envelope`
+- `mediaKeyId` en `keyWrapAlg` in metadata en downloadheaders
 
 ## Gewenst Contract
 

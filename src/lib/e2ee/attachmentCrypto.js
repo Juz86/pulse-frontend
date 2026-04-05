@@ -75,14 +75,16 @@ export function isMockAttachmentEncryption(encryption = {}) {
 
 export function resolveAttachmentEncryptionStrategy(encryption = {}) {
   const alg = encryption?.alg || '';
-  const isMock = isMockAttachmentEncryption(encryption);
-  const isFutureMedia = alg === ATTACHMENT_FUTURE_ENVELOPE_ALG;
+  const strategyKeyHint = encryption?.strategyKey || '';
+  const isMock = isMockAttachmentEncryption(encryption) || strategyKeyHint === ATTACHMENT_MOCK_MEDIA_STRATEGY;
+  const isFutureMedia = alg === ATTACHMENT_FUTURE_ENVELOPE_ALG || strategyKeyHint === ATTACHMENT_FUTURE_MEDIA_STRATEGY;
+  const hasEncryption = Boolean(alg || (strategyKeyHint && strategyKeyHint !== ATTACHMENT_NONE_STRATEGY));
 
   return {
     alg,
     isMock,
     isFutureMedia,
-    hasEncryption: Boolean(alg),
+    hasEncryption,
     canEncryptEnvelope: !alg || isMock,
     canDecryptEnvelope: isMock,
     canValidateWrappedMediaKey: isMock,
@@ -223,6 +225,12 @@ export function buildFutureAttachmentEncryptionDraft({
 
 export async function buildAttachmentEncryptionMetadata(attachment, envelope) {
   const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  if (strategy.isFutureMedia) {
+    return buildFutureAttachmentEncryptionDraft({
+      originalMimeType: attachment?.mimeType || envelope?.mimeType || 'application/octet-stream',
+      payloadSha256: envelope?.payloadSha256 || '',
+    });
+  }
   if (!strategy.canEncryptEnvelope) {
     return attachment?.encryption || null;
   }

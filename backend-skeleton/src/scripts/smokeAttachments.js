@@ -1,11 +1,40 @@
 import crypto from 'crypto';
 const baseUrl = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:3001';
 const devUid = process.env.SMOKE_ATTACHMENT_UID || 'uid_child_1';
+const smokeStrategy = process.env.SMOKE_ATTACHMENT_STRATEGY || 'mock_media_v1';
 const envelopePayloadBase64 = Buffer.from('Hello attachment smoke', 'utf8').toString('base64');
 const envelopePayloadSha256 = crypto.createHash('sha256').update('Hello attachment smoke', 'utf8').digest('hex');
+
+function getSmokeStrategyProfile(strategyKey) {
+  if (strategyKey === 'pulse_media_v1') {
+    return {
+      strategyKey: 'pulse_media_v1',
+      contentEncoding: 'pulse-media-envelope-v1',
+      envelopeKind: 'pulse_media_envelope',
+      keyWrapAlg: 'pulse_media_key_wrap_v1',
+      mediaKeyId: 'future-media-key-smoke',
+      wrappedMediaKey: 'eyJmdXR1cmUiOnRydWV9',
+      wrappedMediaKeyDigest: 'wrapped-digest-future',
+      storageLabel: 'future',
+    };
+  }
+
+  return {
+    strategyKey: 'mock_media_v1',
+    contentEncoding: 'mock-e2ee-envelope-v1',
+    envelopeKind: 'pulse_mock_media_envelope',
+    keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+    mediaKeyId: 'mock-media-key-smoke',
+    wrappedMediaKey: 'eyJzbW9rZSI6dHJ1ZX0=',
+    wrappedMediaKeyDigest: 'wrapped-digest-smoke',
+    storageLabel: 'mock',
+  };
+}
+
+const profile = getSmokeStrategyProfile(smokeStrategy);
 const envelopeJsonBase64 = Buffer.from(JSON.stringify({
   version: 1,
-  kind: 'pulse_mock_media_envelope',
+  kind: profile.envelopeKind,
   mimeType: 'text/plain',
   name: 'smoke-note.txt',
   size: 21,
@@ -28,14 +57,15 @@ async function main() {
         size: 21,
         caption: 'Smoke attachment',
         encryption: {
-          alg: 'mock-e2ee-envelope-v1',
-          envelopeKind: 'pulse_mock_media_envelope',
+          alg: profile.contentEncoding,
+          strategyKey: profile.strategyKey,
+          envelopeKind: profile.envelopeKind,
           originalMimeType: 'text/plain',
           sha256: envelopePayloadSha256,
-          mediaKeyId: 'mock-media-key-smoke',
-          keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
-          wrappedMediaKey: 'eyJzbW9rZSI6dHJ1ZX0=',
-          wrappedMediaKeyDigest: 'wrapped-digest-smoke',
+          mediaKeyId: profile.mediaKeyId,
+          keyWrapAlg: profile.keyWrapAlg,
+          wrappedMediaKey: profile.wrappedMediaKey,
+          wrappedMediaKeyDigest: profile.wrappedMediaKeyDigest,
         },
       },
     }),
@@ -73,28 +103,28 @@ async function main() {
     wrappedMediaKeyDigest: metadataResponse.headers.get('x-pulse-wrapped-media-key-digest'),
   };
 
-  if (metadataHeaders.strategyKey !== 'mock_media_v1') {
+  if (metadataHeaders.strategyKey !== profile.strategyKey) {
     throw new Error(`metadata_header_strategy_mismatch:${metadataHeaders.strategyKey || ''}`);
   }
   if (metadataHeaders.originalMimeType !== 'text/plain') {
     throw new Error(`metadata_header_original_mimetype_mismatch:${metadataHeaders.originalMimeType || ''}`);
   }
-  if (metadataHeaders.contentEncoding !== 'mock-e2ee-envelope-v1') {
+  if (metadataHeaders.contentEncoding !== profile.contentEncoding) {
     throw new Error(`metadata_header_content_encoding_mismatch:${metadataHeaders.contentEncoding || ''}`);
   }
-  if (metadataHeaders.envelopeKind !== 'pulse_mock_media_envelope') {
+  if (metadataHeaders.envelopeKind !== profile.envelopeKind) {
     throw new Error(`metadata_header_envelope_kind_mismatch:${metadataHeaders.envelopeKind || ''}`);
   }
   if (metadataHeaders.expectedSha256 !== envelopePayloadSha256) {
     throw new Error(`metadata_header_sha_mismatch:${metadataHeaders.expectedSha256 || ''}`);
   }
-  if (metadataHeaders.mediaKeyId !== 'mock-media-key-smoke') {
+  if (metadataHeaders.mediaKeyId !== profile.mediaKeyId) {
     throw new Error(`metadata_header_media_key_id_mismatch:${metadataHeaders.mediaKeyId || ''}`);
   }
-  if (metadataHeaders.keyWrapAlg !== 'pulse_mock_media_key_wrap_v1') {
+  if (metadataHeaders.keyWrapAlg !== profile.keyWrapAlg) {
     throw new Error(`metadata_header_key_wrap_alg_mismatch:${metadataHeaders.keyWrapAlg || ''}`);
   }
-  if (metadataHeaders.wrappedMediaKeyDigest !== 'wrapped-digest-smoke') {
+  if (metadataHeaders.wrappedMediaKeyDigest !== profile.wrappedMediaKeyDigest) {
     throw new Error(`metadata_header_wrapped_key_digest_mismatch:${metadataHeaders.wrappedMediaKeyDigest || ''}`);
   }
 
@@ -117,21 +147,22 @@ async function main() {
     wrappedMediaKeyDigest: downloadResponse.headers.get('x-pulse-wrapped-media-key-digest'),
   };
 
-  if (responseHeaders.strategyKey !== 'mock_media_v1') {
+  if (responseHeaders.strategyKey !== profile.strategyKey) {
     throw new Error(`download_header_strategy_mismatch:${responseHeaders.strategyKey || ''}`);
   }
-  if (responseHeaders.mediaKeyId !== 'mock-media-key-smoke') {
+  if (responseHeaders.mediaKeyId !== profile.mediaKeyId) {
     throw new Error(`download_header_media_key_id_mismatch:${responseHeaders.mediaKeyId || ''}`);
   }
-  if (responseHeaders.keyWrapAlg !== 'pulse_mock_media_key_wrap_v1') {
+  if (responseHeaders.keyWrapAlg !== profile.keyWrapAlg) {
     throw new Error(`download_header_key_wrap_alg_mismatch:${responseHeaders.keyWrapAlg || ''}`);
   }
-  if (responseHeaders.wrappedMediaKeyDigest !== 'wrapped-digest-smoke') {
+  if (responseHeaders.wrappedMediaKeyDigest !== profile.wrappedMediaKeyDigest) {
     throw new Error(`download_header_wrapped_key_digest_mismatch:${responseHeaders.wrappedMediaKeyDigest || ''}`);
   }
 
   console.log(JSON.stringify({
     ok: true,
+    strategyKey: profile.strategyKey,
     uploadStatus: uploadResponse.status,
     metadataStatus: metadataResponse.status,
     downloadStatus: downloadResponse.status,

@@ -5,6 +5,7 @@ import {
   unwrapAttachmentMediaKey,
   validateAttachmentMediaKeyContract,
 } from './attachmentCrypto';
+import { ATTACHMENT_FUTURE_MEDIA_STRATEGY } from './attachmentStrategyConstants';
 import {
   isImageAttachment,
   normalizeAttachmentPayload,
@@ -162,13 +163,25 @@ export function mapAttachmentContractError(error, {
 
 export function getAttachmentAccessInfo(attachment) {
   const resolvedUrl = resolveAttachmentUrl(attachment);
+  const contract = resolveAttachmentContractFields(attachment);
+  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  const strategyKey = contract.strategyKey || strategy.strategyKey;
+  const isRemote = attachment?.transfer === 'remote';
+  const isEncryptedRemote = Boolean(isRemote && (contract.contentEncoding || strategy.hasEncryption));
+  const isFutureEncryptedRemote = Boolean(isRemote && strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY);
 
   return {
     url: resolvedUrl,
     canOpen: !!resolvedUrl,
     canDownload: !!resolvedUrl,
     isImage: isImageAttachment(attachment),
-    needsRemoteFetch: attachment?.transfer === 'remote' && !!attachment?.encryption,
+    needsRemoteFetch: isRemote && !!attachment?.encryption,
+    strategyKey,
+    isEncryptedRemote,
+    isFutureEncryptedRemote,
+    canDecryptEnvelope: Boolean(strategy.canDecryptEnvelope),
+    canValidateWrappedMediaKey: Boolean(strategy.canValidateWrappedMediaKey),
+    requiresFutureStrategySupport: Boolean(isFutureEncryptedRemote && !strategy.canDecryptEnvelope),
   };
 }
 

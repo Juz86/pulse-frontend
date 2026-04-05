@@ -1,10 +1,13 @@
 import { BACKEND_URL } from '../../services/socket';
-import { E2EE_ATTACHMENT_TRANSPORT } from './config';
+import { E2EE_ATTACHMENT_STRATEGY, E2EE_ATTACHMENT_TRANSPORT } from './config';
 import {
   buildAttachmentEncryptionMetadata,
   createMockEncryptedAttachmentEnvelope,
   resolveAttachmentEncryptionStrategy,
 } from './attachmentCrypto';
+import {
+  ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+} from './attachmentStrategyConstants';
 import {
   isImageAttachment,
   normalizeAttachmentPayload,
@@ -45,12 +48,87 @@ export async function buildMockRemoteAttachmentPayload(attachment, { conversatio
   };
 }
 
+export async function buildRemoteAttachmentUploadPayload(
+  attachment,
+  {
+    conversationId,
+    userId,
+    strategyKey = E2EE_ATTACHMENT_STRATEGY,
+  } = {}
+) {
+  if (strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY) {
+    const normalized = normalizeAttachmentPayload(attachment);
+    if (!normalized) return null;
+    const encryptedEnvelope = await createMockEncryptedAttachmentEnvelope(normalized);
+    const safeConversationId = sanitizePathSegment(conversationId, 'conversation');
+    const safeUserId = sanitizePathSegment(userId, 'user');
+    const safeName = sanitizePathSegment(normalized.name, 'bestand');
+    const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const encryption = await buildAttachmentEncryptionMetadata({
+      ...normalized,
+      encryption: {
+        ...(normalized.encryption || {}),
+        strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      },
+    }, encryptedEnvelope.envelope);
+
+    return {
+      ...normalized,
+      transfer: 'remote',
+      url: encryptedEnvelope.dataUrl,
+      downloadUrl: encryptedEnvelope.dataUrl,
+      thumbnailUrl: normalized.thumbnailUrl || (isImageAttachment(normalized) ? normalized.url : ''),
+      storageKey: normalized.storageKey || `future-e2ee/${safeConversationId}/${safeUserId}/${uniqueSuffix}-${safeName}`,
+      strategyKey: encryption?.strategyKey || ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      contentEncoding: encryption?.alg || normalized.contentEncoding,
+      envelopeKind: encryption?.envelopeKind || normalized.envelopeKind,
+      expectedPayloadSha256: encryption?.sha256 || normalized.expectedPayloadSha256,
+      encryption,
+    };
+  }
+
+  return buildMockRemoteAttachmentPayload(attachment, { conversationId, userId });
+}
+
+export async function buildFutureRemoteAttachmentDraftPayload(attachment, { conversationId, userId } = {}) {
+  const normalized = normalizeAttachmentPayload(attachment);
+  if (!normalized) return null;
+
+  const safeConversationId = sanitizePathSegment(conversationId, 'conversation');
+  const safeUserId = sanitizePathSegment(userId, 'user');
+  const safeName = sanitizePathSegment(normalized.name, 'bestand');
+  const uniqueSuffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const encryptedEnvelope = await createMockEncryptedAttachmentEnvelope(normalized);
+  const encryption = await buildAttachmentEncryptionMetadata({
+    ...normalized,
+    encryption: {
+      ...(normalized.encryption || {}),
+      strategyKey: 'pulse_media_v1',
+    },
+  }, encryptedEnvelope.envelope);
+
+  return {
+    ...normalized,
+    url: '',
+    downloadUrl: '',
+    thumbnailUrl: normalized.thumbnailUrl || (isImageAttachment(normalized) ? normalized.url : ''),
+    transfer: 'remote',
+    storageKey: normalized.storageKey || `future-e2ee/${safeConversationId}/${safeUserId}/${uniqueSuffix}-${safeName}`,
+    strategyKey: encryption?.strategyKey || 'pulse_media_v1',
+    contentEncoding: encryption?.alg === 'pulse-media-envelope-v1' ? 'pulse-media-envelope-v1' : normalized.contentEncoding,
+    envelopeKind: encryption?.envelopeKind || normalized.envelopeKind,
+    expectedPayloadSha256: encryption?.sha256 || normalized.expectedPayloadSha256,
+    encryption,
+  };
+}
+
 export async function prepareAttachmentForSend({
   attachment,
   conversationId,
   user,
   userId,
   transportMode = E2EE_ATTACHMENT_TRANSPORT,
+  attachmentStrategy = E2EE_ATTACHMENT_STRATEGY,
   uploadAttachment = null,
 } = {}) {
   const normalized = normalizeAttachmentPayload(attachment);
@@ -61,7 +139,11 @@ export async function prepareAttachmentForSend({
   }
 
   if (transportMode === 'remote_mock') {
-    const uploadPayload = await buildMockRemoteAttachmentPayload(normalized, { conversationId, userId });
+    const uploadPayload = await buildRemoteAttachmentUploadPayload(normalized, {
+      conversationId,
+      userId,
+      strategyKey: attachmentStrategy,
+    });
 
     if (typeof uploadAttachment === 'function') {
       const uploadedAttachment = await uploadAttachment(uploadPayload);

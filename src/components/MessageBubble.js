@@ -352,6 +352,18 @@ const MessageBubble = React.memo(function MessageBubble({
                   {attachmentAccessPresentation.integrityAccessLabel}
                 </div>
               )}
+              {attachmentAccessPresentation.availabilityLabel && (
+                <div
+                  className="u-fs-12"
+                  style={{
+                    marginTop: 4,
+                    color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
+                    opacity: 0.78,
+                  }}
+                >
+                  {attachmentAccessPresentation.availabilityLabel}
+                </div>
+              )}
               {attachmentAccessPresentation.wrappedKeyAccessLabel && (
                 <div
                   className="u-fs-12"
@@ -438,8 +450,20 @@ const MessageBubble = React.memo(function MessageBubble({
                         color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
                         opacity: 0.82,
                       }}
+                  >
+                    {attachmentAccessPresentation.integrityAccessLabel}
+                  </div>
+                )}
+                  {attachmentAccessPresentation.availabilityLabel && (
+                    <div
+                      className="u-fs-12"
+                      style={{
+                        marginTop: 4,
+                        color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
+                        opacity: 0.78,
+                      }}
                     >
-                      {attachmentAccessPresentation.integrityAccessLabel}
+                      {attachmentAccessPresentation.availabilityLabel}
                     </div>
                   )}
                   {attachmentAccessPresentation.wrappedKeyAccessLabel && (

@@ -13,6 +13,7 @@
     "wipe:attachments": "node src/scripts/wipeAttachments.js",
     "smoke": "node src/scripts/smoke.js",
     "smoke:attachments": "node src/scripts/smokeAttachments.js",
+    "smoke:attachments:future": "SMOKE_ATTACHMENT_STRATEGY=pulse_media_v1 node src/scripts/smokeAttachments.js",
     "smoke:socket": "node src/scripts/socketSmoke.js",
     "preflight": "node src/scripts/preflight.js",
     "preflight:emulator": "node src/scripts/preflightEmulator.js",

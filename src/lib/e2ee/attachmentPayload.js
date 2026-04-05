@@ -11,6 +11,7 @@ export function normalizeAttachmentPayload(attachment) {
   const downloadUrl = typeof attachment.downloadUrl === 'string' ? attachment.downloadUrl : '';
   const thumbnailUrl = typeof attachment.thumbnailUrl === 'string' ? attachment.thumbnailUrl : '';
   const storageKey = typeof attachment.storageKey === 'string' ? attachment.storageKey : '';
+  const strategyKey = typeof attachment.strategyKey === 'string' ? attachment.strategyKey : '';
   const originalMimeType = typeof attachment.originalMimeType === 'string' ? attachment.originalMimeType : '';
   const contentEncoding = typeof attachment.contentEncoding === 'string' ? attachment.contentEncoding : '';
   const envelopeKind = typeof attachment.envelopeKind === 'string' ? attachment.envelopeKind : '';
@@ -57,6 +58,7 @@ export function normalizeAttachmentPayload(attachment) {
       ? 'remote'
       : 'inline',
     mimeType: typeof attachment.mimeType === 'string' ? attachment.mimeType : '',
+    strategyKey,
     originalMimeType,
     contentEncoding,
     envelopeKind,

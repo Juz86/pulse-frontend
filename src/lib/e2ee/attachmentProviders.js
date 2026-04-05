@@ -12,11 +12,12 @@ import {
 export function createAttachmentStorageProviderRegistry({
   createInlineProvider,
   createRemoteMockProvider,
+  createFutureDraftProvider = createRemoteMockProvider,
 }) {
   return {
     [ATTACHMENT_STORAGE_PROVIDER_INLINE]: () => createInlineProvider(),
     [ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK]: (options = {}) => createRemoteMockProvider(options),
-    [ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT]: (options = {}) => createRemoteMockProvider(options),
+    [ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT]: (options = {}) => createFutureDraftProvider(options),
   };
 }
 
@@ -44,11 +45,12 @@ export function resolveAttachmentStorageProvider(registry, {
 export function createAttachmentAccessProviderRegistry({
   createDirectProvider,
   createRemoteProvider,
+  createFutureDraftProvider = createRemoteProvider,
 }) {
   return {
     [ATTACHMENT_ACCESS_PROVIDER_DIRECT]: () => createDirectProvider(),
     [ATTACHMENT_ACCESS_PROVIDER_REMOTE]: (options = {}) => createRemoteProvider(options),
-    [ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT]: (options = {}) => createRemoteProvider(options),
+    [ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT]: (options = {}) => createFutureDraftProvider(options),
   };
 }
 

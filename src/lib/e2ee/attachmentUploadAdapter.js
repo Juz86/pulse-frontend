@@ -100,6 +100,19 @@ export function createRemoteMockAttachmentStorageProvider({
   };
 }
 
+export function createFutureDraftAttachmentStorageProvider({
+  uploadAttachment = null,
+  user = null,
+  fetchImpl = fetch,
+} = {}) {
+  return createRemoteMockAttachmentStorageProvider({
+    strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+    uploadAttachment,
+    user,
+    fetchImpl,
+  });
+}
+
 export function createAttachmentStorageProvider({
   transportMode = E2EE_ATTACHMENT_TRANSPORT,
   attachmentStrategy = E2EE_ATTACHMENT_STRATEGY,
@@ -110,6 +123,7 @@ export function createAttachmentStorageProvider({
   const registry = createAttachmentStorageProviderRegistry({
     createInlineProvider: createInlineAttachmentStorageProvider,
     createRemoteMockProvider: createRemoteMockAttachmentStorageProvider,
+    createFutureDraftProvider: createFutureDraftAttachmentStorageProvider,
   });
 
   return resolveAttachmentStorageProvider(registry, {

@@ -37,6 +37,7 @@ import {
 import {
   buildRemoteAttachmentUploadPayload,
   createAttachmentStorageProvider,
+  createFutureDraftAttachmentStorageProvider,
   createInlineAttachmentStorageProvider,
   createRemoteMockAttachmentStorageProvider,
   buildFutureRemoteAttachmentDraftPayload,
@@ -96,6 +97,7 @@ import {
   buildAttachmentAccessVerification,
   createAttachmentAccessProvider,
   createDirectAttachmentAccessProvider,
+  createFutureDraftAttachmentAccessProvider,
   createRemoteAttachmentAccessProvider,
   buildResolvedAttachmentAccessContract,
   buildAttachmentMetadataUrl,
@@ -946,6 +948,22 @@ describe('e2ee attachment helpers', () => {
     }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
   });
 
+  test('createFutureDraftAttachmentStorageProvider exposes a dedicated future provider factory', async () => {
+    const uploadAttachment = jest.fn(async (attachment) => attachment);
+    const provider = createFutureDraftAttachmentStorageProvider({ uploadAttachment });
+    const preparedAttachment = await provider.prepareAttachment({
+      name: 'future-draft.pdf',
+      url: 'data:application/pdf;base64,JVBERi0x',
+      mimeType: 'application/pdf',
+    }, {
+      conversationId: 'conv-future',
+      userId: 'user-future',
+    });
+
+    expect(provider.kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
+    expect(preparedAttachment.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
+  });
+
   test('buildAttachmentStorageProviderDescriptor exposes shared provider capabilities', () => {
     expect(buildAttachmentStorageProviderDescriptor(ATTACHMENT_STORAGE_PROVIDER_INLINE)).toEqual({
       kind: ATTACHMENT_STORAGE_PROVIDER_INLINE,
@@ -993,9 +1011,15 @@ describe('e2ee attachment helpers', () => {
         ? ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT
         : ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK,
     }));
+    const createFutureDraftProvider = jest.fn(({ strategyKey }) => ({
+      kind: strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY
+        ? ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT
+        : ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK,
+    }));
     const registry = createAttachmentStorageProviderRegistry({
       createInlineProvider,
       createRemoteMockProvider,
+      createFutureDraftProvider,
     });
 
     expect(resolveAttachmentStorageProvider(registry, {
@@ -1014,7 +1038,8 @@ describe('e2ee attachment helpers', () => {
     }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
 
     expect(createInlineProvider).toHaveBeenCalledTimes(1);
-    expect(createRemoteMockProvider).toHaveBeenCalledTimes(2);
+    expect(createRemoteMockProvider).toHaveBeenCalledTimes(1);
+    expect(createFutureDraftProvider).toHaveBeenCalledTimes(1);
   });
 
   test('buildMockAttachmentEncryptionMetadata creates a stable mock media key contract', async () => {
@@ -2163,6 +2188,13 @@ describe('e2ee attachment helpers', () => {
     }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
   });
 
+  test('createFutureDraftAttachmentAccessProvider exposes a dedicated future access provider factory', () => {
+    const provider = createFutureDraftAttachmentAccessProvider();
+
+    expect(provider.kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
+    expect(provider.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
+  });
+
   test('buildAttachmentAccessProviderDescriptor exposes shared access capabilities', () => {
     expect(buildAttachmentAccessProviderDescriptor(ATTACHMENT_ACCESS_PROVIDER_DIRECT)).toEqual({
       kind: ATTACHMENT_ACCESS_PROVIDER_DIRECT,
@@ -2208,9 +2240,15 @@ describe('e2ee attachment helpers', () => {
         ? ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT
         : ATTACHMENT_ACCESS_PROVIDER_REMOTE,
     }));
+    const createFutureDraftProvider = jest.fn(({ strategyKey }) => ({
+      kind: strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY
+        ? ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT
+        : ATTACHMENT_ACCESS_PROVIDER_REMOTE,
+    }));
     const registry = createAttachmentAccessProviderRegistry({
       createDirectProvider,
       createRemoteProvider,
+      createFutureDraftProvider,
     });
 
     expect(resolveAttachmentAccessProvider(registry, {
@@ -2229,7 +2267,8 @@ describe('e2ee attachment helpers', () => {
     }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
 
     expect(createDirectProvider).toHaveBeenCalledTimes(1);
-    expect(createRemoteProvider).toHaveBeenCalledTimes(2);
+    expect(createRemoteProvider).toHaveBeenCalledTimes(1);
+    expect(createFutureDraftProvider).toHaveBeenCalledTimes(1);
   });
 
   test('resolveAttachmentForAccess returns the original normalized attachment when no remote metadata refresh is needed', async () => {

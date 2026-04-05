@@ -348,6 +348,17 @@ export function createRemoteAttachmentAccessProvider({
   };
 }
 
+export function createFutureDraftAttachmentAccessProvider({
+  user = null,
+  fetchImpl = fetch,
+} = {}) {
+  return createRemoteAttachmentAccessProvider({
+    user,
+    fetchImpl,
+    strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+  });
+}
+
 export function createAttachmentAccessProvider(
   attachment,
   {
@@ -359,6 +370,7 @@ export function createAttachmentAccessProvider(
   const registry = createAttachmentAccessProviderRegistry({
     createDirectProvider: createDirectAttachmentAccessProvider,
     createRemoteProvider: createRemoteAttachmentAccessProvider,
+    createFutureDraftProvider: createFutureDraftAttachmentAccessProvider,
   });
 
   return resolveAttachmentAccessProvider(registry, {

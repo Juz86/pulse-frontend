@@ -78,7 +78,7 @@ export default function Homepage({ onParentClick }) {
           <div className="hp-hero-text">
             <div className="hp-hero-badge">🇳🇱 100% Nederlands</div>
             <h1 id="homepage-hero-title" className="hp-hero-title">
-              Veilig chatten en (video)bellen
+              Veilig chatten, bellen en videobellen
             </h1>
             <p className="hp-hero-sub">
             Met Pulse kunnen kinderen zonder telefoonnummer chatten, bellen en videobellen. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>

@@ -74,6 +74,8 @@ Belangrijk:
 
 - [src/lib/e2ee/messageModel.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/messageModel.js)
 - [src/lib/e2ee/policy.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/policy.js)
+- [src/lib/e2ee/attachmentCrypto.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentCrypto.js)
+- [src/lib/e2ee/attachmentStrategyConstants.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentStrategyConstants.js)
 
 `messageModel.js` centraliseert:
 
@@ -86,6 +88,12 @@ Belangrijk:
 
 - wanneer een bericht als encrypted telt
 - wanneer edits wel of niet zijn toegestaan
+
+`attachmentCrypto.js` en `attachmentStrategyConstants.js` centraliseren:
+
+- media strategy-profielen zoals `mock_media_v1`
+- envelope/key-wrap contracten
+- de voorbereidende overgang naar een toekomstig `pulse_media_v1` profiel
 
 ## App Integratie
 

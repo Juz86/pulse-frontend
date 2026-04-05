@@ -12,6 +12,7 @@ Volledig documentatie-overzicht:
 - Lokale identity- en session-opslag staat onder [src/lib/e2ee](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee).
 - Berichten worden bij laden en live ontvangst gehydrateerd via [src/lib/e2ee/messagingService.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/messagingService.js).
 - `useConversations` kan gefaseerd overschakelen van socket-transport naar service-transport voor 1-op-1 chats.
+- Attachments kunnen lokaal via `remote_mock` lopen met het expliciete media-profiel `mock_media_v1`.
 - Bewerken van `signal_v1`-berichten is bewust uitgeschakeld totdat daar een apart encrypted edit-model voor is.
 
 ## Feature flags
@@ -37,76 +38,38 @@ Voor de eerste backend-integratie:
 
 - laat `REACT_APP_E2EE_MODE=mock`
 - zet `REACT_APP_E2EE_TRANSPORT=service`
+- zet `REACT_APP_E2EE_ATTACHMENT_TRANSPORT=remote_mock`
 
 Dan gebruikt de frontend al de nieuwe REST/service-flow, maar nog met mock-crypto.
 
-## Backend endpoints die nog nodig zijn
+## Huidige lokale servicefase
 
-De frontend verwacht deze endpoints:
+Lokaal zijn inmiddels werkend en getest:
 
-1. `POST /devices/register`
-   Response:
-   ```json
-   {
-     "deviceId": "device_abc123",
-     "status": "registered"
-   }
-   ```
+- `POST /devices/register`
+- `GET /users/:userId/key-bundle`
+- `POST /messages/send`
+- `POST /messages/receipt`
+- `GET /api/messages/:convId`
+- `POST /api/attachments/upload`
+- `GET /api/attachments/:attachmentId/meta`
+- `GET /attachments/:attachmentId`
+- realtime `message:new` / `message:status`
+- attachment smoke voor `mock_media_v1`
 
-2. `GET /users/:userId/key-bundle`
-   Response:
-   ```json
-   {
-     "userId": "target_uid",
-     "devices": [
-       {
-         "deviceId": "device_target_1",
-         "identityPublicKey": "base64-or-string",
-         "signedPreKey": {
-           "keyId": 77,
-           "publicKey": "base64-or-string",
-           "signature": "base64-or-string"
-         },
-         "oneTimePreKey": {
-           "keyId": 9001,
-           "publicKey": "base64-or-string"
-         }
-       }
-     ],
-     "protocolVersion": 1
-   }
-   ```
+De volgende backend-/rolloutstap is daardoor niet meer “basisroutes bouwen”, maar:
 
-3. `POST /messages/send`
-   Response:
-   ```json
-   {
-     "messageId": "msg_123",
-     "accepted": true
-   }
-   ```
+1. `/readyz` en rollout-monitoring verder harden
+2. handmatige acceptatie over de volledige flow afronden
+3. echte encrypted media/storage bouwen bovenop het huidige `mock_media_v1` contract
 
-4. `GET /api/messages/:convId`
-   Deze endpoint moet zowel legacy plaintext als `signal_v1` wire messages kunnen teruggeven.
+## Volgende frontendstap na de huidige lokale fase
 
-5. Socket event `message:new`
-   De frontend luistert al naar zowel `message:received` als `message:new`.
+Nu de lokale servicefase staat:
 
-## Aanbevolen backendvolgorde
-
-1. Voeg `POST /devices/register` toe.
-2. Voeg `GET /users/:userId/key-bundle` toe met parent/trusted-contact checks.
-3. Voeg `POST /messages/send` toe.
-4. Laat `GET /api/messages/:convId` gemengde legacy + `signal_v1` records teruggeven.
-5. Introduceer daarna `message:new` voor realtime wire delivery.
-
-## Volgende frontendstap na backend
-
-Zodra de backend-endpoints er zijn:
-
-1. Zet `REACT_APP_E2EE_TRANSPORT=service`.
-2. Test 1-op-1 versturen en ontvangen met mock-crypto.
-3. Vervang daarna pas de mock adapter door een echte crypto-adapter.
+1. doorloop de handmatige acceptatieronde
+2. valideer retry/forward/refresh op `mock_media_v1` attachments
+3. vervang daarna pas de mock media-opslag door echte encrypted media/storage
 
 ## Belangrijke productnuance
 

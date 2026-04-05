@@ -46,11 +46,14 @@ Open vraag:
 
 Huidige status:
 
-- nog niet ontworpen
+- er is nu een werkend `remote_mock` contract
+- attachment metadata, headers, key-wrap en integrity lopen al via `mock_media_v1`
 
 Open vraag:
 
-- hoe worden file keys gegenereerd, verpakt en per device gedeeld?
+- welke echte storage provider gebruiken we?
+- hoe worden file keys echt gegenereerd, verpakt en per device gedeeld?
+- welke delen van het huidige `mock_media_v1` contract blijven exact behouden?
 
 ## 5. Hoe ziet group encryption eruit?
 

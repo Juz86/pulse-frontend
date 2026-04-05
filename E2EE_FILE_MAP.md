@@ -92,6 +92,17 @@ Status:
 
 - actief
 
+### [src/lib/e2ee/attachmentStrategyConstants.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentStrategyConstants.js)
+
+Rol:
+
+- centrale namen voor media-strategieën, envelope-profielen en key-wrap profielen
+
+Status:
+
+- actief
+- voorbereid op overgang van `mock_media_v1` naar `pulse_media_v1`
+
 ### [src/lib/e2ee/policy.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/policy.js)
 
 Rol:

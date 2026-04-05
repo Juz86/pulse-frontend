@@ -1,3 +1,16 @@
+import {
+  ATTACHMENT_EXTERNAL_CONTRACT_STRATEGY,
+  ATTACHMENT_FUTURE_ENVELOPE_ALG,
+  ATTACHMENT_FUTURE_ENVELOPE_KIND,
+  ATTACHMENT_FUTURE_KEY_WRAP_ALG,
+  ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+  ATTACHMENT_MOCK_ENVELOPE_ALG,
+  ATTACHMENT_MOCK_ENVELOPE_KIND,
+  ATTACHMENT_MOCK_KEY_WRAP_ALG,
+  ATTACHMENT_MOCK_MEDIA_STRATEGY,
+  ATTACHMENT_NONE_STRATEGY,
+} from './attachmentStrategyConstants';
+
 function toBase64Utf8(value) {
   return btoa(unescape(encodeURIComponent(value)));
 }
@@ -57,21 +70,27 @@ function buildMockWrappedMediaKey({ seed = '', mediaKeyId = '', keyWrapAlg = '' 
 }
 
 export function isMockAttachmentEncryption(encryption = {}) {
-  return encryption?.alg === 'mock-e2ee-envelope-v1';
+  return encryption?.alg === ATTACHMENT_MOCK_ENVELOPE_ALG;
 }
 
 export function resolveAttachmentEncryptionStrategy(encryption = {}) {
   const alg = encryption?.alg || '';
   const isMock = isMockAttachmentEncryption(encryption);
+  const isFutureMedia = alg === ATTACHMENT_FUTURE_ENVELOPE_ALG;
 
   return {
     alg,
     isMock,
+    isFutureMedia,
     hasEncryption: Boolean(alg),
     canEncryptEnvelope: !alg || isMock,
     canDecryptEnvelope: isMock,
     canValidateWrappedMediaKey: isMock,
-    strategyKey: isMock ? 'mock_media_v1' : (alg ? 'external_contract' : 'none'),
+    strategyKey: isMock
+      ? ATTACHMENT_MOCK_MEDIA_STRATEGY
+      : isFutureMedia
+        ? ATTACHMENT_FUTURE_MEDIA_STRATEGY
+        : (alg ? ATTACHMENT_EXTERNAL_CONTRACT_STRATEGY : ATTACHMENT_NONE_STRATEGY),
   };
 }
 
@@ -160,7 +179,7 @@ export async function buildMockAttachmentEncryptionMetadata(attachment, envelope
   const originalMimeType = attachment?.mimeType || envelope?.mimeType || 'application/octet-stream';
   const payloadSha256 = envelope?.payloadSha256 || '';
   const mediaKeyId = `mock-media-key-${payloadSha256.slice(0, 16) || 'attachment'}`;
-  const keyWrapAlg = 'pulse_mock_media_key_wrap_v1';
+  const keyWrapAlg = ATTACHMENT_MOCK_KEY_WRAP_ALG;
   const wrappedMediaKey = buildMockWrappedMediaKey({
     seed: payloadSha256,
     mediaKeyId,
@@ -169,8 +188,8 @@ export async function buildMockAttachmentEncryptionMetadata(attachment, envelope
   const wrappedMediaKeyDigest = await computeTextDigestHex(wrappedMediaKey);
 
   return {
-    alg: 'mock-e2ee-envelope-v1',
-    strategyKey: 'mock_media_v1',
+    alg: ATTACHMENT_MOCK_ENVELOPE_ALG,
+    strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
     keyId: attachment?.encryption?.keyId || `mock-key-${payloadSha256.slice(0, 12) || 'attachment'}`,
     iv: attachment?.encryption?.iv || `mock-iv-${payloadSha256.slice(0, 12) || 'attachment'}`,
     sha256: payloadSha256,
@@ -178,7 +197,26 @@ export async function buildMockAttachmentEncryptionMetadata(attachment, envelope
     keyWrapAlg,
     wrappedMediaKey,
     wrappedMediaKeyDigest,
-    envelopeKind: envelope?.kind || 'pulse_mock_media_envelope',
+    envelopeKind: envelope?.kind || ATTACHMENT_MOCK_ENVELOPE_KIND,
+    originalMimeType,
+  };
+}
+
+export function buildFutureAttachmentEncryptionDraft({
+  originalMimeType = '',
+  payloadSha256 = '',
+} = {}) {
+  return {
+    alg: ATTACHMENT_FUTURE_ENVELOPE_ALG,
+    strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+    keyId: '',
+    iv: '',
+    sha256: payloadSha256,
+    mediaKeyId: '',
+    keyWrapAlg: ATTACHMENT_FUTURE_KEY_WRAP_ALG,
+    wrappedMediaKey: '',
+    wrappedMediaKeyDigest: '',
+    envelopeKind: ATTACHMENT_FUTURE_ENVELOPE_KIND,
     originalMimeType,
   };
 }
@@ -202,7 +240,7 @@ export async function createMockEncryptedAttachmentEnvelope(attachment) {
   const payloadSha256 = await computeDigestHex(base64ToBytes(parsed.base64));
   const envelope = {
     version: 1,
-    kind: 'pulse_mock_media_envelope',
+    kind: ATTACHMENT_MOCK_ENVELOPE_KIND,
     mimeType: originalMimeType,
     name: attachment?.name || 'Bestand',
     size: Number.isFinite(attachment?.size) ? Number(attachment.size) : null,

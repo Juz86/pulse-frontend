@@ -77,6 +77,12 @@ Deze productcopy hoeft niet meteen aangepast te worden zolang:
 - echte crypto nog niet actief is
 - de frontend nog op `mock + socket` of `mock + service` zit
 
+Belangrijke nuance voor de huidige tussenfase:
+
+- `mock_media_v1` is een technische integratiefase
+- dat is nuttig voor testen van contracten, transport en storagegedrag
+- maar nog geen productclaim voor “echte encrypted media-opslag”
+
 Maar vóór een bredere productie-activatie moet dit wel opnieuw worden bekeken.
 
 ## Praktisch Advies
@@ -86,6 +92,7 @@ Voor fase 1 is dit genoeg:
 - hou productclaims voorzichtig
 - laat ParentDashboard metadata-only blijven
 - communiceer intern duidelijk dat mock crypto nog geen eindstaat is
+- benoem `mock_media_v1` alleen als interne/testtechnische fase, niet als marketingterm
 
 ## Lees Verder
 

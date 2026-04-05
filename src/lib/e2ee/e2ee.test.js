@@ -39,7 +39,17 @@ import {
   prepareAttachmentForSend,
 } from './attachmentUploadAdapter';
 import {
+  ATTACHMENT_EXTERNAL_CONTRACT_STRATEGY,
+  ATTACHMENT_FUTURE_ENVELOPE_ALG,
+  ATTACHMENT_FUTURE_ENVELOPE_KIND,
+  ATTACHMENT_FUTURE_KEY_WRAP_ALG,
+  ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+  ATTACHMENT_MOCK_MEDIA_STRATEGY,
+  ATTACHMENT_NONE_STRATEGY,
+} from './attachmentStrategyConstants';
+import {
   buildAttachmentEncryptionMetadata,
+  buildFutureAttachmentEncryptionDraft,
   buildMockAttachmentEncryptionMetadata,
   createMockEncryptedAttachmentEnvelope,
   decodeMockWrappedMediaKey,
@@ -626,31 +636,64 @@ describe('e2ee attachment helpers', () => {
     expect(resolveAttachmentEncryptionStrategy({ alg: 'mock-e2ee-envelope-v1' })).toEqual({
       alg: 'mock-e2ee-envelope-v1',
       isMock: true,
+      isFutureMedia: false,
       hasEncryption: true,
       canEncryptEnvelope: true,
       canDecryptEnvelope: true,
       canValidateWrappedMediaKey: true,
-      strategyKey: 'mock_media_v1',
+      strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
     });
 
     expect(resolveAttachmentEncryptionStrategy({ alg: 'future-media-v1' })).toEqual({
       alg: 'future-media-v1',
       isMock: false,
+      isFutureMedia: false,
       hasEncryption: true,
       canEncryptEnvelope: false,
       canDecryptEnvelope: false,
       canValidateWrappedMediaKey: false,
-      strategyKey: 'external_contract',
+      strategyKey: ATTACHMENT_EXTERNAL_CONTRACT_STRATEGY,
+    });
+
+    expect(resolveAttachmentEncryptionStrategy({ alg: ATTACHMENT_FUTURE_ENVELOPE_ALG })).toEqual({
+      alg: ATTACHMENT_FUTURE_ENVELOPE_ALG,
+      isMock: false,
+      isFutureMedia: true,
+      hasEncryption: true,
+      canEncryptEnvelope: false,
+      canDecryptEnvelope: false,
+      canValidateWrappedMediaKey: false,
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
     });
 
     expect(resolveAttachmentEncryptionStrategy({})).toEqual({
       alg: '',
       isMock: false,
+      isFutureMedia: false,
       hasEncryption: false,
       canEncryptEnvelope: true,
       canDecryptEnvelope: false,
       canValidateWrappedMediaKey: false,
-      strategyKey: 'none',
+      strategyKey: ATTACHMENT_NONE_STRATEGY,
+    });
+  });
+
+  test('buildFutureAttachmentEncryptionDraft creates a stable placeholder contract for real media storage', () => {
+    expect(buildFutureAttachmentEncryptionDraft({
+      originalMimeType: 'image/png',
+      payloadSha256: 'future-sha-1',
+    })).toEqual({
+      alg: ATTACHMENT_FUTURE_ENVELOPE_ALG,
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      keyId: '',
+      iv: '',
+      sha256: 'future-sha-1',
+      mediaKeyId: '',
+      keyWrapAlg: ATTACHMENT_FUTURE_KEY_WRAP_ALG,
+      wrappedMediaKey: '',
+      wrappedMediaKeyDigest: '',
+      envelopeKind: ATTACHMENT_FUTURE_ENVELOPE_KIND,
+      originalMimeType: 'image/png',
     });
   });
 

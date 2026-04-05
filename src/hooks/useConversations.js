@@ -42,7 +42,7 @@ export default function useConversations({
   showErrToast, setConfirmDialog,
   msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
   serviceTransportReady = false,
-  effectiveAttachmentStrategy = 'mock_media_v1',
+  attachmentStrategyRuntime = null,
 }) {
   const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
@@ -60,6 +60,7 @@ export default function useConversations({
   const [loadingMore,    setLoadingMore]    = useState(false);
   const [msgOffset,      setMsgOffset]      = useState(0);
   const [currentDeviceId, setCurrentDeviceId] = useState(null);
+  const effectiveAttachmentStrategy = attachmentStrategyRuntime?.effectiveStrategy || 'mock_media_v1';
 
   // Sync refs owned by ChatScreen
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv, activeConvRef]);

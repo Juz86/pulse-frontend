@@ -3,7 +3,6 @@ import React, { useCallback, useRef, useState } from 'react';
 import { getSocket } from '../services/socket';
 import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2ee/attachmentPayload';
 import {
-  E2EE_ATTACHMENT_STRATEGY,
   getAttachmentStrategyRuntimeCopy,
   getAttachmentStrategyRuntimeState,
   isRemoteMockAttachmentTransportEnabled,
@@ -33,7 +32,6 @@ const ChatInput = React.memo(function ChatInput({
   onSend,
   onSendAttachment,
   attachmentStrategyRuntime = null,
-  effectiveAttachmentStrategy = E2EE_ATTACHMENT_STRATEGY,
 }) {
   const fileInputRef = useRef(null);
   const attachmentStatusTimerRef = useRef(null);
@@ -152,8 +150,7 @@ const ChatInput = React.memo(function ChatInput({
     replyTo ? 'chat-compose-reply' : null,
   ].filter(Boolean).join(' ') || undefined;
   const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentStrategyRuntimeState({
-    preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
-    effectiveStrategyOverride: effectiveAttachmentStrategy,
+    preferredStrategy: undefined,
   });
   const attachmentStrategyCopy = getAttachmentStrategyRuntimeCopy({
     preferredStrategy: resolvedAttachmentStrategyRuntime.preferredStrategy,

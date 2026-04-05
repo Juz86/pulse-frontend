@@ -37,7 +37,6 @@ const ChatHeader = React.memo(function ChatHeader({
   serviceTransportReady,
   showFutureMediaBanner = false,
   attachmentStrategyRuntime = null,
-  effectiveAttachmentStrategy = E2EE_ATTACHMENT_STRATEGY,
 }) {
   const otherUid  = getOtherUid(activeConv);
   const isOnline  = otherUid && onlineUsers.has(otherUid);
@@ -60,8 +59,7 @@ const ChatHeader = React.memo(function ChatHeader({
   const searchTotal   = searchMatches.length;
   const searchCurrent = searchTotal > 0 ? chatSearchIdx % searchTotal : 0;
   const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentStrategyRuntimeState({
-    preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
-    effectiveStrategyOverride: effectiveAttachmentStrategy,
+    preferredStrategy: undefined,
   });
 
   function openContactProfile() {
@@ -196,8 +194,8 @@ const ChatHeader = React.memo(function ChatHeader({
           }}
         >
           {!resolvedAttachmentStrategyRuntime.fallbackActive
-            ? <>Pulse test nu het toekomstige attachment-profiel <strong>{effectiveAttachmentStrategy}</strong> via de remote mock-opslagflow.</>
-            : <>Het attachment-profiel <strong>{E2EE_ATTACHMENT_STRATEGY}</strong> staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via <code>/configz</code>. Pulse valt daarom nu terug op <strong>{effectiveAttachmentStrategy}</strong>.</>}
+            ? <>Pulse test nu het toekomstige attachment-profiel <strong>{resolvedAttachmentStrategyRuntime.effectiveStrategy}</strong> via de remote mock-opslagflow.</>
+            : <>Het attachment-profiel <strong>{E2EE_ATTACHMENT_STRATEGY}</strong> staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via <code>/configz</code>. Pulse valt daarom nu terug op <strong>{resolvedAttachmentStrategyRuntime.effectiveStrategy}</strong>.</>}
         </div>
       )}
 

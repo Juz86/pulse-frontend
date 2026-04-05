@@ -18,7 +18,7 @@ import { copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false, attachmentStrategyRuntime = null, effectiveAttachmentStrategy = 'mock_media_v1' }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false, attachmentStrategyRuntime = null }) {
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
   const [unreadCounts,   setUnreadCounts]   = useState({});
@@ -144,7 +144,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     showErrToast, setConfirmDialog,
     msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
     serviceTransportReady,
-    effectiveAttachmentStrategy,
+    attachmentStrategyRuntime,
   });
 
   const {
@@ -380,7 +380,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               serviceTransportReady={serviceTransportReady}
               showFutureMediaBanner={Boolean(activeConv)}
               attachmentStrategyRuntime={attachmentStrategyRuntime}
-              effectiveAttachmentStrategy={effectiveAttachmentStrategy}
             />
             {!isOnline && (
               <div className="offline-banner" role="status" aria-live="polite">
@@ -448,7 +447,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   typingTimerRef={typingTimer} stopTyping={stopTyping} onSend={sendMessage}
                   onSendAttachment={sendAttachment}
                   attachmentStrategyRuntime={attachmentStrategyRuntime}
-                  effectiveAttachmentStrategy={effectiveAttachmentStrategy}
                 />
               );
             })()}

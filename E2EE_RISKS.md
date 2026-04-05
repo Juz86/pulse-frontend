@@ -34,6 +34,7 @@ Mitigatie:
 
 - documentatie expliciet houden over `mock`
 - echte crypto pas na stabiele serviceflow
+- het media-profiel expliciet benoemen als `mock_media_v1`
 
 ## 3. Web Storage Is Niet Hard Genoeg Voor Sterke Claims
 
@@ -66,7 +67,26 @@ Mitigatie:
 - centralisatie in `messagingService.js`
 - handmatige QA op mixed flows
 
-## 5. Encrypted Edit-Model Bestaat Nog Niet
+## 5. Mock Media Contract Kan Uit Elkaar Lopen
+
+Risico:
+
+- metadatabody, metadataheaders, downloadheaders en UI-labels vertellen niet exact hetzelfde attachmentcontract
+
+Impact:
+
+- attachments openen deels wel, maar tonen afwijkende contractsignalen
+- troubleshooting en QA worden onnodig verwarrend
+
+Mitigatie:
+
+- `smoke:attachments` expliciet op:
+  - `mock_media_v1`
+  - `mock-e2ee-envelope-v1`
+  - `pulse_mock_media_envelope`
+- centrale helpers voor access, presentation en conversation summaries
+
+## 6. Encrypted Edit-Model Bestaat Nog Niet
 
 Risico:
 
@@ -81,7 +101,7 @@ Mitigatie:
 - edits voor `signal_v1` bewust blokkeren
 - later apart encrypted edit-model ontwerpen
 
-## 6. Parent Policy Moet Server-Side Hard Zijn
+## 7. Parent Policy Moet Server-Side Hard Zijn
 
 Risico:
 
@@ -97,7 +117,7 @@ Mitigatie:
 - policy enforcement in backendroutes
 - approved contacts en featuretoggles server-side afdwingen
 
-## 7. Multi-Device Gedrag Is Nog Niet Volwassen
+## 8. Multi-Device Gedrag Is Nog Niet Volwassen
 
 Risico:
 
@@ -112,7 +132,7 @@ Mitigatie:
 - fase 1 focust op werkende 1-op-1 flow
 - multi-device verfijning pas daarna
 
-## 8. Realtime Delivery Kan Achterlopen Op HTTP-Ingest
+## 9. Realtime Delivery Kan Achterlopen Op HTTP-Ingest
 
 Risico:
 
@@ -127,7 +147,7 @@ Mitigatie:
 - `message:new` als expliciet doel-event
 - socket auth en uid-binding opnemen in backendfase
 
-## 9. ParentDashboard Kan Onbedoeld Te Veel Willen Tonen
+## 10. ParentDashboard Kan Onbedoeld Te Veel Willen Tonen
 
 Risico:
 
@@ -142,7 +162,7 @@ Mitigatie:
 - metadata-only dashboard als uitgangspunt houden
 - policy en analytics scheiden van inhoud
 
-## 10. Rollout Kan Te Groot Worden
+## 11. Rollout Kan Te Groot Worden
 
 Risico:
 
@@ -161,8 +181,8 @@ Mitigatie:
 
 De grootste operationele risico's voor de eerstvolgende stap zijn:
 
-1. ontbrekende backend-endpoints
-2. verwarring tussen mock en echte E2EE
+1. verwarring tussen mock en echte E2EE
+2. contractdrift binnen `mock_media_v1`
 3. te brede scope tijdens activatie
 
 ## Lees Verder

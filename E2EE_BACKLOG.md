@@ -4,28 +4,24 @@ Deze backlog zet de volgende E2EE-stappen in een praktische uitvoervolgorde.
 
 ## Nu Eerst
 
-Deze items blokkeren de eerste werkende service-rollout.
+Deze items zijn nu de eerstvolgende echte afronders na de huidige lokale `mock_media_v1` fase.
 
-- bouw `POST /devices/register`
-- bouw `GET /users/:userId/key-bundle`
-- bouw `POST /messages/send`
-- bouw `POST /messages/receipt`
-- laat `GET /api/messages/:convId` mixed legacy + `signal_v1` data teruggeven
-- voeg server-side parent policy checks toe op key bundle en send
-- voeg socket auth en `message:new` delivery toe
-- test frontend met `REACT_APP_E2EE_MODE=mock`
-- test frontend met `REACT_APP_E2EE_TRANSPORT=service`
+- doorloop de handmatige acceptatieronde end-to-end
+- valideer `mock_media_v1` attachment flows op retry, forward en refresh
+- stabiliseer `/readyz` zodat de backend readiness niet meer op `firestore_timeout` uitkomt
+- leg rollout-monitoring vast voor service/fallback gedrag
+- bepaal wanneer `remote_mock` veilig genoeg is voor bredere interne testactivatie
 
 ## Daarna
 
 Deze items zijn logisch na een stabiele fase 1.
 
-- receipts nauwkeuriger maken voor multi-device scenario's
-- previewgedrag aanscherpen voor mixed gesprekken
+- echte storage provider aansluiten voor media
+- echte media-encryptie/decryptie bovenop het huidige contract ontwerpen
+- key lifecycle voor media (wrap/unwrap/rotatie) aanscherpen
+- rolloutmonitoring en rollbackprocedure verder operationaliseren
 - parent policy uitbreiden met quiet hours
 - admin routes koppelen aan echte policy-opslag
-- logging en audit events aanscherpen
-- rolloutmonitoring en rollbackprocedure verder operationaliseren
 
 ## Later
 
@@ -33,7 +29,6 @@ Deze items horen niet bij de eerste activatie, maar wel bij een volwassen E2EE-m
 
 - echte crypto-adapter implementeren
 - web storage hardening beoordelen
-- encrypted attachments ontwerpen
 - groepsencryptie ontwerpen
 - encrypted edit-model ontwerpen
 - multi-device synchronisatie verder uitwerken
@@ -43,20 +38,18 @@ Deze items horen niet bij de eerste activatie, maar wel bij een volwassen E2EE-m
 Deze onderwerpen zijn belangrijk, maar maken de eerste rollout onnodig groot als je ze te vroeg oppakt.
 
 - volledige group E2EE
-- encrypted attachments
+- echte productie-mediaopslag in dezelfde release als basisactivatie
 - encrypted edit support
 - video/call E2EE-herontwerp
 - productbrede claimaanpassingen zonder backendvalidatie
 
 ## Aanbevolen Werkvolgorde
 
-1. backend basisroutes
-2. parent policy enforcement
-3. realtime `message:new`
-4. frontend service-activatie met mock crypto
-5. handmatige QA
-6. productiegerichte rolloutbeslissing
-7. echte crypto-adapter
+1. handmatige QA op de huidige `mock_media_v1` fase
+2. backend readiness en rolloutmonitoring harden
+3. echte encrypted media/storage ontwerpen en inbouwen
+4. productiegerichte rolloutbeslissing
+5. echte crypto-adapter
 
 ## Lees Verder
 

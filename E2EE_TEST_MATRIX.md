@@ -137,7 +137,49 @@ Verwachte uitkomst:
 - of `Versleuteld bericht`
 - maar geen lege string bij relevante input
 
-## 9. Edit Policy
+## 9. Remote Mock Attachment Contract
+
+Scenario:
+
+- `REACT_APP_E2EE_ATTACHMENT_TRANSPORT=remote_mock`
+- attachment gaat via backend-upload, metadata en download terug
+
+Belangrijke bestanden:
+
+- [src/lib/e2ee/attachmentUploadAdapter.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentUploadAdapter.js)
+- [src/lib/e2ee/attachmentAccessAdapter.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentAccessAdapter.js)
+- [src/lib/e2ee/attachmentPresentation.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentPresentation.js)
+- [backend-skeleton/src/scripts/smokeAttachments.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/scripts/smokeAttachments.js)
+
+Verwachte uitkomst:
+
+- attachment gebruikt het expliciete profiel `mock_media_v1`
+- metadataheaders en downloadheaders vertellen hetzelfde contract
+- UI toont:
+  - `Mock versleutelde opslaglink`
+  - `Media-strategie: mock_media_v1`
+  - `Envelope: pulse_mock_media_envelope`
+
+## 10. Attachment Retry En Forward
+
+Scenario:
+
+- remote attachment faalt of wordt doorgestuurd
+
+Belangrijke bestanden:
+
+- [src/lib/e2ee/messageTransportPayload.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/messageTransportPayload.js)
+- [src/hooks/useConversations.js](/home/yushuaabdulkadir/pulse-frontend/src/hooks/useConversations.js)
+- [src/lib/e2ee/attachmentPayload.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentPayload.js)
+
+Verwachte uitkomst:
+
+- attachment blijft `attachment`
+- `accessVerification` blijft behouden waar relevant
+- tijdelijke `blob:` URL’s lekken niet mee
+- `mock_media_v1` contract blijft zichtbaar
+
+## 11. Edit Policy
 
 Scenario:
 
@@ -155,7 +197,7 @@ Verwachte uitkomst:
 - editoptie ontbreekt voor `signal_v1`
 - plaintext edit-event overschrijft encrypted bericht niet
 
-## 10. Parent Policy Deny
+## 12. Parent Policy Deny
 
 Scenario:
 

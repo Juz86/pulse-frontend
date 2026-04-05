@@ -88,4 +88,4 @@ Voor veilige voorbeeldconfiguratie zonder productiegeheimen:
 
 ## Praktisch
 
-De frontend is voorbereid, geverifieerd en gedocumenteerd. De volgende grote stap blijft backend-implementatie en daarna het activeren van `REACT_APP_E2EE_TRANSPORT=service`.
+De frontend is voorbereid, geverifieerd en gedocumenteerd. De lokale servicefase inclusief `remote_mock` attachments en het expliciete media-profiel `mock_media_v1` werkt al. De volgende grote stap blijft nu echte encrypted media/storage en daarna productie-activatie.

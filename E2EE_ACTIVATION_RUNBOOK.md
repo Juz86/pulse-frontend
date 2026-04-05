@@ -35,6 +35,7 @@ Dit betekent:
 - frontend gebruikt de nieuwe serviceflow
 - crypto blijft nog mock, zodat de integratie eerst technisch stabiel kan worden gemaakt
 - attachments lopen via de nieuwe mock-storage route in plaats van alleen inline data-urls
+- het expliciete encrypted media-profiel is in deze fase `mock_media_v1`
 
 ## Voorwaarden Vooraf
 
@@ -69,8 +70,9 @@ Zie ook:
 11. stuur een kleine attachment
 12. controleer dat de composer `Bijlage voorbereiden...` en daarna `Bijlage geupload` toont
 13. controleer dat de attachmentkaart `Beveiligde opslaglink` toont
-14. controleer dat de conversatielijst `opslaglink` toont
-15. controleer dat openen/downloaden na refresh nog werkt
+14. controleer dat de attachmentkaart na openen/downloaden ook `Media-strategie: mock_media_v1` toont
+15. controleer dat de conversatielijst `versleuteld` toont en hetzelfde `mock_media_v1` profiel blijft volgen
+16. controleer dat openen/downloaden na refresh nog werkt
 
 ## Verwachte Frontendsignalen
 
@@ -82,6 +84,7 @@ Bij een gezonde eerste activatie:
 - preview toont plaintext of `Versleuteld bericht`
 - retries blijven werken
 - remote attachments krijgen een echte backend-downloadlink
+- metadata- en downloadheaders vertellen hetzelfde `mock_media_v1` profiel
 - `npm run smoke:attachments` blijft groen
 
 ## Niet Meteen Doen
@@ -112,6 +115,7 @@ Dan valt de app terug op de bestaande socketflow.
 - retries werken
 - previews zijn niet leeg
 - attachments openen na refresh nog steeds
+- `mock_media_v1` blijft zichtbaar in attachment access-signalen
 - `smoke:attachments` is groen
 - build, tests en lint blijven groen
 

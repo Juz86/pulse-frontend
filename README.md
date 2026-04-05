@@ -27,6 +27,8 @@ Frontendrepo voor Pulse, inclusief de huidige marketingpagina's, chat-UI en de v
   `npm run verify:e2ee`
 - future media-profiel verificatie:
   `npm run verify:e2ee:future-media`
+- acceptatie-preflight:
+  `npm run verify:e2ee:acceptance-preflight`
 - volledige Cloudflare-voorcontrole:
   `npm run verify:cloudflare`
 
@@ -74,6 +76,7 @@ Belangrijkste documenten:
 - [E2EE_ROLLOUT.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ROLLOUT.md)
 - [E2EE_ACTIVATION_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ACTIVATION_RUNBOOK.md)
 - [E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md)
+- [E2EE_ACCEPTANCE_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ACCEPTANCE_RUNBOOK.md)
 - [E2EE_TROUBLESHOOTING.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_TROUBLESHOOTING.md)
 - [E2EE_MANUAL_QA_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_MANUAL_QA_CHECKLIST.md)
 - [E2EE_TEST_MATRIX.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_TEST_MATRIX.md)

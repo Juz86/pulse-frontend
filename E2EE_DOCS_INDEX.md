@@ -39,6 +39,7 @@ Voor praktische foutopsporing tijdens de eerste integratie:
 Voor handmatige validatie van de eerste service-rollout:
 
 - [E2EE_MANUAL_QA_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_MANUAL_QA_CHECKLIST.md)
+- [E2EE_ACCEPTANCE_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ACCEPTANCE_RUNBOOK.md)
 - [E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md)
 - [E2EE_MEDIA_STORAGE_PLAN.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_MEDIA_STORAGE_PLAN.md)
 - [E2EE_TEST_MATRIX.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_TEST_MATRIX.md)

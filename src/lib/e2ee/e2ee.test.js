@@ -80,6 +80,7 @@ import {
   resolveEffectiveAttachmentStrategy,
 } from './config';
 import {
+  assertAttachmentBinaryAccessSupported,
   assertAttachmentMetadataIntegrity,
   buildAttachmentAccessVerification,
   buildResolvedAttachmentAccessContract,
@@ -1498,6 +1499,20 @@ describe('e2ee attachment helpers', () => {
     expect(info.requiresFutureStrategySupport).toBe(true);
   });
 
+  test('assertAttachmentBinaryAccessSupported rejects future media drafts without decrypt support', () => {
+    expect(() => assertAttachmentBinaryAccessSupported({
+      transfer: 'remote',
+      downloadUrl: 'https://cdn.example.com/foto.png',
+      mimeType: 'image/png',
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      contentEncoding: ATTACHMENT_FUTURE_ENVELOPE_ALG,
+      encryption: {
+        alg: ATTACHMENT_FUTURE_ENVELOPE_ALG,
+        strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      },
+    })).toThrow('Decrypt voor pulse_media_v1 is nog niet beschikbaar.');
+  });
+
   test('buildAttachmentMetadataUrl points to the protected metadata endpoint', () => {
     expect(buildAttachmentMetadataUrl({
       downloadUrl: 'http://localhost:3001/attachments/mock-77',
@@ -2270,6 +2285,27 @@ describe('e2ee attachment helpers', () => {
     });
     prepared.revoke();
     expect(revokeObjectUrl).toHaveBeenCalledWith('blob:prepared-access');
+  });
+
+  test('prepareAttachmentBinaryAccess rejects future media drafts before binary fetch', async () => {
+    const fetchImpl = jest.fn();
+
+    await expect(prepareAttachmentBinaryAccess({
+      transfer: 'remote',
+      downloadUrl: 'https://cdn.example.com/future.bin',
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      contentEncoding: ATTACHMENT_FUTURE_ENVELOPE_ALG,
+      encryption: {
+        alg: ATTACHMENT_FUTURE_ENVELOPE_ALG,
+        strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      },
+    }, {
+      getIdToken: async () => 'token-1',
+    }, {
+      fetchImpl,
+    })).rejects.toThrow('Decrypt voor pulse_media_v1 is nog niet beschikbaar.');
+
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 
   test('resolveAttachmentUnwrapContext exposes wrapped media key contract for encrypted attachments', async () => {

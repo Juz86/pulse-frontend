@@ -185,6 +185,16 @@ export function getAttachmentAccessInfo(attachment) {
   };
 }
 
+export function assertAttachmentBinaryAccessSupported(attachment) {
+  const accessInfo = getAttachmentAccessInfo(attachment);
+
+  if (accessInfo.requiresFutureStrategySupport) {
+    throw new Error(`Decrypt voor ${accessInfo.strategyKey || ATTACHMENT_FUTURE_MEDIA_STRATEGY} is nog niet beschikbaar.`);
+  }
+
+  return accessInfo;
+}
+
 export function mergeAttachmentMetadata(baseAttachment, metadataAttachment) {
   return normalizeAttachmentPayload({
     ...baseAttachment,
@@ -403,8 +413,9 @@ export async function prepareAttachmentBinaryAccess(
     revokeObjectUrl = (url) => URL.revokeObjectURL(url),
   } = {}
 ) {
+  assertAttachmentBinaryAccessSupported(attachment);
   const resolvedAttachment = await resolveAttachmentForAccess(attachment, user, fetchImpl);
-  const accessInfo = getAttachmentAccessInfo(resolvedAttachment);
+  const accessInfo = assertAttachmentBinaryAccessSupported(resolvedAttachment);
 
   if (!accessInfo.needsRemoteFetch) {
     const unwrapContext = await resolveAttachmentUnwrapContext(resolvedAttachment);

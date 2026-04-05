@@ -16,6 +16,8 @@ Gebruik in deze fase:
 
 ## Voorwaarden
 
+- draai eerst:
+  `npm run verify:e2ee:acceptance-preflight`
 - backend basisroutes zijn live
 - backend `/api/attachments/upload` en `/attachments/:attachmentId` werken lokaal
 - twee testaccounts bestaan
@@ -123,6 +125,7 @@ Na succesvolle handmatige QA:
 
 ## Lees Verder
 
+- [E2EE_ACCEPTANCE_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ACCEPTANCE_RUNBOOK.md)
 - [E2EE_ACTIVATION_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ACTIVATION_RUNBOOK.md)
 - [E2EE_TROUBLESHOOTING.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_TROUBLESHOOTING.md)
 - [E2EE_BACKEND_HANDOFF_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BACKEND_HANDOFF_CHECKLIST.md)

@@ -96,6 +96,23 @@ export function resolveAttachmentEncryptionStrategy(encryption = {}) {
   };
 }
 
+export function getAttachmentEncryptionCapability(encryption = {}) {
+  const strategy = resolveAttachmentEncryptionStrategy(encryption);
+  const binaryAccessSupported = Boolean(!strategy.hasEncryption || strategy.canDecryptEnvelope);
+  const binaryAccessSupportLabel = binaryAccessSupported
+    ? 'supported'
+    : strategy.isFutureMedia
+      ? 'future_strategy_required'
+      : 'unsupported';
+
+  return {
+    ...strategy,
+    binaryAccessSupported,
+    binaryAccessSupportLabel,
+    requiresFutureStrategySupport: Boolean(strategy.isFutureMedia && !binaryAccessSupported),
+  };
+}
+
 export function decodeMockWrappedMediaKey(wrappedMediaKey = '') {
   if (!wrappedMediaKey) return null;
 
@@ -120,7 +137,7 @@ export async function unwrapMockWrappedMediaKey(encryption = {}) {
 }
 
 export async function unwrapAttachmentMediaKey(encryption = {}) {
-  const strategy = resolveAttachmentEncryptionStrategy(encryption);
+  const strategy = getAttachmentEncryptionCapability(encryption);
 
   if (strategy.isMock) {
     return unwrapMockWrappedMediaKey(encryption);
@@ -164,7 +181,7 @@ export async function validateMockWrappedMediaKeyContract(encryption = {}) {
 }
 
 export async function validateAttachmentMediaKeyContract(encryption = {}) {
-  const strategy = resolveAttachmentEncryptionStrategy(encryption);
+  const strategy = getAttachmentEncryptionCapability(encryption);
 
   if (strategy.isMock) {
     return validateMockWrappedMediaKeyContract(encryption);
@@ -224,7 +241,7 @@ export function buildFutureAttachmentEncryptionDraft({
 }
 
 export async function buildAttachmentEncryptionMetadata(attachment, envelope) {
-  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  const strategy = getAttachmentEncryptionCapability(attachment?.encryption || {});
   if (strategy.isFutureMedia) {
     return buildFutureAttachmentEncryptionDraft({
       originalMimeType: attachment?.mimeType || envelope?.mimeType || 'application/octet-stream',
@@ -303,7 +320,7 @@ export async function decryptMockAttachmentEnvelopeBlob(blob, expectedSha256 = '
 }
 
 export async function decryptAttachmentEnvelopeBlob(blob, attachment = {}) {
-  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  const strategy = getAttachmentEncryptionCapability(attachment?.encryption || {});
 
   if (strategy.isMock) {
     return decryptMockAttachmentEnvelopeBlob(

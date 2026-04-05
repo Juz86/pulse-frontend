@@ -9,6 +9,7 @@ import {
   triggerAttachmentDownload,
 } from '../lib/e2ee/attachmentAccessAdapter';
 import {
+  getAttachmentActionPresentation,
   getAttachmentAccessVerificationPresentation,
   getAttachmentContractPresentation,
 } from '../lib/e2ee/attachmentPresentation';
@@ -157,7 +158,7 @@ const MessageBubble = React.memo(function MessageBubble({
   if (msg.type === 'attachment') {
     const attachment = resolvedAttachment || msg.attachment;
     const attachmentAccess = getAttachmentAccessInfo(attachment);
-    const attachmentBinaryActionsBlocked = attachmentAccess.requiresFutureStrategySupport;
+    const attachmentActionPresentation = getAttachmentActionPresentation(attachmentAccess);
     const attachmentUrl = attachmentAccess.url;
     const attachmentPreviewUrl = attachmentAccess.isImage && attachment?.thumbnailUrl
       ? attachment.thumbnailUrl
@@ -222,7 +223,7 @@ const MessageBubble = React.memo(function MessageBubble({
         <button
           type="button"
           className="icon-btn"
-          disabled={attachmentBusy || attachmentBinaryActionsBlocked}
+          disabled={attachmentBusy || !attachmentActionPresentation.actionsEnabled}
           onClick={(event) => {
             event.stopPropagation();
             openAttachment();
@@ -237,12 +238,12 @@ const MessageBubble = React.memo(function MessageBubble({
             border: isOwn ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(124,58,237,0.22)',
           }}
         >
-          {attachmentBinaryActionsBlocked ? 'Nog niet beschikbaar' : attachmentBusy ? 'Voorbereiden…' : 'Openen'}
+          {attachmentBusy ? 'Voorbereiden…' : attachmentActionPresentation.openLabel}
         </button>
         <button
           type="button"
           className="icon-btn"
-          disabled={attachmentBusy || attachmentBinaryActionsBlocked}
+          disabled={attachmentBusy || !attachmentActionPresentation.actionsEnabled}
           onClick={(event) => {
             event.stopPropagation();
             downloadAttachment();
@@ -266,12 +267,12 @@ const MessageBubble = React.memo(function MessageBubble({
       <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
         <div
           className="msg-contact-card"
-          role={attachmentAccess.canOpen && !attachmentBinaryActionsBlocked ? 'button' : undefined}
-          tabIndex={attachmentAccess.canOpen && !attachmentBinaryActionsBlocked ? 0 : undefined}
-          aria-label={attachmentAccess.canOpen && !attachmentBinaryActionsBlocked ? `Open bijlage ${attachment?.name || 'Bestand'}` : undefined}
-          style={{ cursor: attachmentAccess.canOpen && !attachmentBinaryActionsBlocked ? 'pointer' : 'default' }}
-          onClick={attachmentAccess.canOpen && !attachmentBinaryActionsBlocked ? openAttachment : undefined}
-          onKeyDown={attachmentAccess.canOpen && !attachmentBinaryActionsBlocked ? (event) => handleActionCardKeyDown(event, openAttachment) : undefined}
+          role={attachmentActionPresentation.actionsEnabled ? 'button' : undefined}
+          tabIndex={attachmentActionPresentation.actionsEnabled ? 0 : undefined}
+          aria-label={attachmentActionPresentation.actionsEnabled ? `Open bijlage ${attachment?.name || 'Bestand'}` : undefined}
+          style={{ cursor: attachmentActionPresentation.actionsEnabled ? 'pointer' : 'default' }}
+          onClick={attachmentActionPresentation.actionsEnabled ? openAttachment : undefined}
+          onKeyDown={attachmentActionPresentation.actionsEnabled ? (event) => handleActionCardKeyDown(event, openAttachment) : undefined}
         >
           {attachmentAccess.isImage ? (
             <div className="u-flex-1 u-min-w-0">
@@ -365,7 +366,7 @@ const MessageBubble = React.memo(function MessageBubble({
                   {attachmentAccessPresentation.availabilityLabel}
                 </div>
               )}
-              {attachmentBinaryActionsBlocked && (
+              {attachmentActionPresentation.availabilityDetail && (
                 <div
                   className="u-fs-12"
                   style={{
@@ -374,7 +375,7 @@ const MessageBubble = React.memo(function MessageBubble({
                     opacity: 0.78,
                   }}
                 >
-                  Openen en downloaden worden actief zodra deze decrypt-strategie beschikbaar is.
+                  {attachmentActionPresentation.availabilityDetail}
                 </div>
               )}
               {attachmentAccessPresentation.wrappedKeyAccessLabel && (
@@ -479,7 +480,7 @@ const MessageBubble = React.memo(function MessageBubble({
                   {attachmentAccessPresentation.availabilityLabel}
                     </div>
                   )}
-                  {attachmentBinaryActionsBlocked && (
+                  {attachmentActionPresentation.availabilityDetail && (
                     <div
                       className="u-fs-12"
                       style={{
@@ -488,7 +489,7 @@ const MessageBubble = React.memo(function MessageBubble({
                         opacity: 0.78,
                       }}
                     >
-                      Openen en downloaden worden actief zodra deze decrypt-strategie beschikbaar is.
+                      {attachmentActionPresentation.availabilityDetail}
                     </div>
                   )}
                   {attachmentAccessPresentation.wrappedKeyAccessLabel && (

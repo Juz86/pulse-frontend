@@ -90,6 +90,24 @@ export function getAttachmentAccessVerificationPresentation(attachmentOrContract
   };
 }
 
+export function getAttachmentActionPresentation(accessInfo = {}) {
+  const binaryAccessSupportLabel = accessInfo?.binaryAccessSupportLabel || '';
+  const blockedByFutureDraft = binaryAccessSupportLabel === 'future_strategy_required';
+  const blockedByUnsupportedStrategy = binaryAccessSupportLabel === 'unsupported';
+  const actionsEnabled = Boolean(accessInfo?.canOpen) && !blockedByFutureDraft && !blockedByUnsupportedStrategy;
+
+  return {
+    actionsEnabled,
+    openLabel: blockedByFutureDraft || blockedByUnsupportedStrategy ? 'Nog niet beschikbaar' : 'Openen',
+    downloadLabel: 'Downloaden',
+    availabilityDetail: blockedByFutureDraft
+      ? 'Openen en downloaden worden actief zodra deze decrypt-strategie beschikbaar is.'
+      : blockedByUnsupportedStrategy
+        ? 'Deze versleutelingsstrategie ondersteunt nu nog geen openen of downloaden in de client.'
+      : '',
+  };
+}
+
 export function getAttachmentPreviewText(attachment = {}, { includeStorageSignal = true } = {}) {
   const presentation = getAttachmentContractPresentation(attachment);
   const baseLabel = `Bijlage: ${attachment?.name || 'Bestand'}`;

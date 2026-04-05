@@ -1,7 +1,7 @@
 import { BACKEND_URL } from '../../services/socket';
 import {
   decryptAttachmentEnvelopeBlob,
-  resolveAttachmentEncryptionStrategy,
+  getAttachmentEncryptionCapability,
   unwrapAttachmentMediaKey,
   validateAttachmentMediaKeyContract,
 } from './attachmentCrypto';
@@ -38,7 +38,7 @@ export function resolveAttachmentContractFields(attachment) {
 
 export function buildResolvedAttachmentAccessContract(attachment) {
   const contract = resolveAttachmentContractFields(attachment);
-  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  const strategy = getAttachmentEncryptionCapability(attachment?.encryption || {});
   const strategyKey = contract.strategyKey || strategy.strategyKey;
 
   return {
@@ -67,7 +67,7 @@ export function buildAttachmentAccessVerification(contract = {}, unwrapContext =
 }
 
 export async function decryptAttachmentBlob(blob, attachment) {
-  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  const strategy = getAttachmentEncryptionCapability(attachment?.encryption || {});
   if (strategy.hasEncryption) {
     await validateAttachmentMediaKeyContract(attachment?.encryption || {});
     return decryptAttachmentEnvelopeBlob(blob, attachment);
@@ -77,7 +77,7 @@ export async function decryptAttachmentBlob(blob, attachment) {
 }
 
 export async function resolveAttachmentUnwrapContext(attachment) {
-  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  const strategy = getAttachmentEncryptionCapability(attachment?.encryption || {});
   if (strategy.hasEncryption) {
     return unwrapAttachmentMediaKey(attachment?.encryption || {});
   }
@@ -164,7 +164,7 @@ export function mapAttachmentContractError(error, {
 export function getAttachmentAccessInfo(attachment) {
   const resolvedUrl = resolveAttachmentUrl(attachment);
   const contract = resolveAttachmentContractFields(attachment);
-  const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  const strategy = getAttachmentEncryptionCapability(attachment?.encryption || {});
   const strategyKey = contract.strategyKey || strategy.strategyKey;
   const isRemote = attachment?.transfer === 'remote';
   const isEncryptedRemote = Boolean(isRemote && (contract.contentEncoding || strategy.hasEncryption));
@@ -181,7 +181,9 @@ export function getAttachmentAccessInfo(attachment) {
     isFutureEncryptedRemote,
     canDecryptEnvelope: Boolean(strategy.canDecryptEnvelope),
     canValidateWrappedMediaKey: Boolean(strategy.canValidateWrappedMediaKey),
-    requiresFutureStrategySupport: Boolean(isFutureEncryptedRemote && !strategy.canDecryptEnvelope),
+    binaryAccessSupported: Boolean(strategy.binaryAccessSupported),
+    binaryAccessSupportLabel: strategy.binaryAccessSupportLabel,
+    requiresFutureStrategySupport: Boolean(strategy.requiresFutureStrategySupport),
   };
 }
 

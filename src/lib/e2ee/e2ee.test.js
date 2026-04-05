@@ -46,6 +46,7 @@ import {
   ATTACHMENT_FUTURE_ENVELOPE_KIND,
   ATTACHMENT_FUTURE_KEY_WRAP_ALG,
   ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+  ATTACHMENT_MOCK_ENVELOPE_ALG,
   ATTACHMENT_MOCK_MEDIA_STRATEGY,
   ATTACHMENT_NONE_STRATEGY,
 } from './attachmentStrategyConstants';
@@ -58,6 +59,7 @@ import {
   decodeMockAttachmentEnvelopeDataUrl,
   decryptAttachmentEnvelopeBlob,
   decryptMockAttachmentEnvelopeBlob,
+  getAttachmentEncryptionCapability,
   isMockAttachmentEncryption,
   resolveAttachmentEncryptionStrategy,
   unwrapAttachmentMediaKey,
@@ -67,6 +69,7 @@ import {
   verifyMockAttachmentEnvelope,
 } from './attachmentCrypto';
 import {
+  getAttachmentActionPresentation,
   getAttachmentAccessVerificationPresentation,
   getAttachmentContractPresentation,
   getAttachmentPreviewText,
@@ -896,6 +899,22 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
+  test('getAttachmentEncryptionCapability exposes binary access support state', () => {
+    expect(getAttachmentEncryptionCapability({ alg: ATTACHMENT_MOCK_ENVELOPE_ALG })).toMatchObject({
+      strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
+      binaryAccessSupported: true,
+      binaryAccessSupportLabel: 'supported',
+      requiresFutureStrategySupport: false,
+    });
+
+    expect(getAttachmentEncryptionCapability({ alg: ATTACHMENT_FUTURE_ENVELOPE_ALG })).toMatchObject({
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      binaryAccessSupported: false,
+      binaryAccessSupportLabel: 'future_strategy_required',
+      requiresFutureStrategySupport: true,
+    });
+  });
+
   test('buildFutureAttachmentEncryptionDraft creates a stable placeholder contract for real media storage', () => {
     expect(buildFutureAttachmentEncryptionDraft({
       originalMimeType: 'image/png',
@@ -1120,6 +1139,43 @@ describe('e2ee attachment helpers', () => {
       availabilityLabel: '',
       integrityAccessLabel: 'Downloadcontract bevestigd',
       wrappedKeyAccessLabel: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap',
+    });
+  });
+
+  test('getAttachmentActionPresentation keeps binary actions enabled for supported attachments', () => {
+    expect(getAttachmentActionPresentation({
+      canOpen: true,
+      requiresFutureStrategySupport: false,
+    })).toEqual({
+      actionsEnabled: true,
+      openLabel: 'Openen',
+      downloadLabel: 'Downloaden',
+      availabilityDetail: '',
+    });
+  });
+
+  test('getAttachmentActionPresentation disables binary actions for future draft attachments', () => {
+    expect(getAttachmentActionPresentation({
+      canOpen: true,
+      binaryAccessSupportLabel: 'future_strategy_required',
+      requiresFutureStrategySupport: true,
+    })).toEqual({
+      actionsEnabled: false,
+      openLabel: 'Nog niet beschikbaar',
+      downloadLabel: 'Downloaden',
+      availabilityDetail: 'Openen en downloaden worden actief zodra deze decrypt-strategie beschikbaar is.',
+    });
+  });
+
+  test('getAttachmentActionPresentation disables binary actions for unsupported attachment strategies', () => {
+    expect(getAttachmentActionPresentation({
+      canOpen: true,
+      binaryAccessSupportLabel: 'unsupported',
+    })).toEqual({
+      actionsEnabled: false,
+      openLabel: 'Nog niet beschikbaar',
+      downloadLabel: 'Downloaden',
+      availabilityDetail: 'Deze versleutelingsstrategie ondersteunt nu nog geen openen of downloaden in de client.',
     });
   });
 

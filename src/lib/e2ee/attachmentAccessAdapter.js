@@ -7,6 +7,12 @@ import {
 } from './attachmentCrypto';
 import { ATTACHMENT_FUTURE_MEDIA_STRATEGY } from './attachmentStrategyConstants';
 import {
+  ATTACHMENT_ACCESS_PROVIDER_DIRECT,
+  buildAttachmentAccessProviderDescriptor,
+  getAttachmentAccessProviderKind,
+  resolveAttachmentAccessProviderKind,
+} from './attachmentProviderKinds';
+import {
   isImageAttachment,
   normalizeAttachmentPayload,
   resolveAttachmentUrl,
@@ -305,8 +311,10 @@ export function clearAttachmentMetadataCache() {
 }
 
 export function createDirectAttachmentAccessProvider() {
+  const descriptor = buildAttachmentAccessProviderDescriptor(ATTACHMENT_ACCESS_PROVIDER_DIRECT);
+
   return {
-    kind: 'direct',
+    ...descriptor,
     async resolveAttachment(attachment) {
       return normalizeAttachmentPayload(attachment);
     },
@@ -319,9 +327,15 @@ export function createDirectAttachmentAccessProvider() {
 export function createRemoteAttachmentAccessProvider({
   user = null,
   fetchImpl = fetch,
+  strategyKey = '',
 } = {}) {
+  const descriptor = buildAttachmentAccessProviderDescriptor(
+    getAttachmentAccessProviderKind(strategyKey),
+    strategyKey
+  );
+
   return {
-    kind: 'remote',
+    ...descriptor,
     async resolveAttachment(attachment) {
       return fetchAttachmentMetadata(attachment, user, fetchImpl);
     },
@@ -339,9 +353,17 @@ export function createAttachmentAccessProvider(
   } = {}
 ) {
   const accessInfo = getAttachmentAccessInfo(attachment);
+  const providerKind = resolveAttachmentAccessProviderKind({
+    needsRemoteFetch: accessInfo.needsRemoteFetch,
+    strategyKey: accessInfo.strategyKey,
+  });
 
-  if (accessInfo.needsRemoteFetch) {
-    return createRemoteAttachmentAccessProvider({ user, fetchImpl });
+  if (providerKind !== ATTACHMENT_ACCESS_PROVIDER_DIRECT) {
+    return createRemoteAttachmentAccessProvider({
+      user,
+      fetchImpl,
+      strategyKey: accessInfo.strategyKey,
+    });
   }
 
   return createDirectAttachmentAccessProvider();

@@ -9,6 +9,12 @@ import {
   ATTACHMENT_FUTURE_MEDIA_STRATEGY,
 } from './attachmentStrategyConstants';
 import {
+  ATTACHMENT_STORAGE_PROVIDER_INLINE,
+  buildAttachmentStorageProviderDescriptor,
+  getAttachmentStorageProviderKind,
+  resolveAttachmentStorageProviderKind,
+} from './attachmentProviderKinds';
+import {
   isImageAttachment,
   normalizeAttachmentPayload,
   validateAttachmentPayload,
@@ -25,8 +31,10 @@ function sanitizePathSegment(value, fallback) {
 }
 
 export function createInlineAttachmentStorageProvider() {
+  const descriptor = buildAttachmentStorageProviderDescriptor(ATTACHMENT_STORAGE_PROVIDER_INLINE);
+
   return {
-    kind: 'inline',
+    ...descriptor,
     async prepareAttachment(normalizedAttachment) {
       return normalizedAttachment;
     },
@@ -42,9 +50,13 @@ export function createRemoteMockAttachmentStorageProvider({
   user = null,
   fetchImpl = fetch,
 } = {}) {
+  const descriptor = buildAttachmentStorageProviderDescriptor(
+    getAttachmentStorageProviderKind(strategyKey),
+    strategyKey
+  );
+
   return {
-    kind: 'remote_mock',
-    strategyKey,
+    ...descriptor,
     async prepareAttachment(attachment, { conversationId, userId } = {}) {
       return buildRemoteAttachmentUploadPayload(attachment, {
         conversationId,
@@ -92,7 +104,12 @@ export function createAttachmentStorageProvider({
   user = null,
   fetchImpl = fetch,
 } = {}) {
-  if (transportMode === 'remote_mock') {
+  const providerKind = resolveAttachmentStorageProviderKind({
+    transportMode,
+    strategyKey: attachmentStrategy,
+  });
+
+  if (providerKind !== ATTACHMENT_STORAGE_PROVIDER_INLINE) {
     return createRemoteMockAttachmentStorageProvider({
       strategyKey: attachmentStrategy,
       uploadAttachment,

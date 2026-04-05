@@ -2,6 +2,7 @@ import { normalizeAttachmentPayload } from './attachmentPayload';
 import {
   getAttachmentContractPresentation,
   getAttachmentPreviewText,
+  getAttachmentStrategyHintLabel,
 } from './attachmentPresentation';
 
 export function buildEmptyConversationAttachmentSummaryFields() {
@@ -172,6 +173,7 @@ export function getConversationAttachmentSummaryPresentation(conversation = {}) 
     showRemoteAttachmentBadge: normalizedConversation.lastMessageType === 'attachment' && attachmentPresentation.isRemote,
     previewText: attachmentSummary?.previewText || '',
     storageShortLabel: attachmentPresentation.storageShortLabel,
+    strategyHintLabel: attachmentSummary?.attachment ? getAttachmentStrategyHintLabel(attachmentSummary.attachment) : '',
     mimeLabel: attachmentPresentation.mimeLabel,
     storageDetail: attachmentPresentation.storageDetail,
     keyContractDetail: attachmentPresentation.keyContractDetail,

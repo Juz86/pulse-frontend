@@ -1022,6 +1022,7 @@ describe('e2ee attachment helpers', () => {
       showRemoteAttachmentBadge: true,
       previewText: 'Bijlage: rapport.pdf · versleuteld',
       storageShortLabel: 'versleuteld',
+      strategyHintLabel: 'mock-profiel',
       mimeLabel: 'application/pdf',
       storageDetail: 'Envelope: pulse_mock_media_envelope · integriteitscheck actief',
       keyContractDetail: 'Media key: media-key-1 · wrap: pulse_mock_media_key_wrap_v1 · digest actief',

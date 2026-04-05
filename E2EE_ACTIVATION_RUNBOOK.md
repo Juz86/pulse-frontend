@@ -29,6 +29,7 @@ Zet naar:
 - `REACT_APP_E2EE_MODE=mock`
 - `REACT_APP_E2EE_TRANSPORT=service`
 - `REACT_APP_E2EE_ATTACHMENT_TRANSPORT=remote_mock`
+- `REACT_APP_E2EE_ATTACHMENT_STRATEGY=mock_media_v1`
 
 Dit betekent:
 
@@ -36,6 +37,12 @@ Dit betekent:
 - crypto blijft nog mock, zodat de integratie eerst technisch stabiel kan worden gemaakt
 - attachments lopen via de nieuwe mock-storage route in plaats van alleen inline data-urls
 - het expliciete encrypted media-profiel is in deze fase `mock_media_v1`
+
+Voor een bewuste draftronde naar de volgende mediafase kun je lokaal ook testen met:
+
+- `REACT_APP_E2EE_ATTACHMENT_STRATEGY=pulse_media_v1`
+
+Dan blijft de storageflow `remote_mock`, maar gebruikt de attachmentlaag al het toekomstige contractprofiel.
 
 ## Voorwaarden Vooraf
 
@@ -87,6 +94,7 @@ Bij een gezonde eerste activatie:
 - metadata- en downloadheaders vertellen hetzelfde `mock_media_v1` profiel
 - `npm run smoke:attachments` blijft groen
 - `npm run smoke:attachments:future` bevestigt ook alvast het volgende profiel `pulse_media_v1`
+- `npm run verify:e2ee:future-media` combineert frontend helpertests met de future attachment smoke
 
 ## Niet Meteen Doen
 

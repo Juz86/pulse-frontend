@@ -40,6 +40,10 @@ Die valideert lokaal al:
 - `envelopeKind: pulse_media_envelope`
 - `mediaKeyId` en `keyWrapAlg` in metadata en downloadheaders
 
+Er is nu ook een gecombineerde frontend+backend check:
+
+- `npm run verify:e2ee:future-media`
+
 ## Gewenst Contract
 
 Een echte media-attachment hoort uiteindelijk minimaal te dragen:

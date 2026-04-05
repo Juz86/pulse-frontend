@@ -100,3 +100,18 @@ export function getAttachmentPreviewText(attachment = {}, { includeStorageSignal
 
   return `${baseLabel} · ${presentation.storageShortLabel}`;
 }
+
+export function getAttachmentStrategyHintLabel(attachment = {}) {
+  const strategyKey =
+    attachment?.strategyKey
+    || attachment?.encryption?.strategyKey
+    || (attachment?.contentEncoding === ATTACHMENT_FUTURE_ENVELOPE_ALG
+      ? ATTACHMENT_FUTURE_MEDIA_STRATEGY
+      : (attachment?.contentEncoding === ATTACHMENT_MOCK_ENVELOPE_ALG
+        ? ATTACHMENT_MOCK_MEDIA_STRATEGY
+        : ''));
+  if (!strategyKey) return '';
+  if (strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY) return 'future-draft';
+  if (strategyKey === ATTACHMENT_MOCK_MEDIA_STRATEGY) return 'mock-profiel';
+  return strategyKey;
+}

@@ -2,7 +2,11 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { getSocket } from '../services/socket';
 import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2ee/attachmentPayload';
-import { isRemoteMockAttachmentTransportEnabled } from '../lib/e2ee/config';
+import {
+  E2EE_ATTACHMENT_STRATEGY,
+  isFutureAttachmentStrategyEnabled,
+  isRemoteMockAttachmentTransportEnabled,
+} from '../lib/e2ee/config';
 import { Send, PauseCircle, ImageIcon } from '../components/Icons';
 
 const ChatInput = React.memo(function ChatInput({
@@ -217,7 +221,9 @@ const ChatInput = React.memo(function ChatInput({
             fontSize: 12,
           }}
         >
-          Bijlagen gebruiken nu de remote mock-opslagtest.
+          {isFutureAttachmentStrategyEnabled
+            ? `Bijlagen gebruiken nu de remote mock-opslagtest met draftprofiel ${E2EE_ATTACHMENT_STRATEGY}.`
+            : `Bijlagen gebruiken nu de remote mock-opslagtest met profiel ${E2EE_ATTACHMENT_STRATEGY}.`}
         </div>
       )}
       {pausedFeatures.chat ? (

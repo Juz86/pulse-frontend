@@ -25,6 +25,8 @@ Frontendrepo voor Pulse, inclusief de huidige marketingpagina's, chat-UI en de v
   `npm run lint`
 - gerichte E2EE-verificatie:
   `npm run verify:e2ee`
+- future media-profiel verificatie:
+  `npm run verify:e2ee:future-media`
 - volledige Cloudflare-voorcontrole:
   `npm run verify:cloudflare`
 
@@ -51,6 +53,11 @@ Voor lokale acceptatie van de nieuwe attachment-route kun je nu ook gebruiken:
 - `REACT_APP_E2EE_MODE=mock`
 - `REACT_APP_E2EE_TRANSPORT=service`
 - `REACT_APP_E2EE_ATTACHMENT_TRANSPORT=remote_mock`
+- `REACT_APP_E2EE_ATTACHMENT_STRATEGY=mock_media_v1`
+
+Voor de volgende mediadraft kun je lokaal ook al bewust testen met:
+
+- `REACT_APP_E2EE_ATTACHMENT_STRATEGY=pulse_media_v1`
 
 Start hier voor het volledige overzicht:
 

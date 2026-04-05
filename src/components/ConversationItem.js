@@ -92,6 +92,18 @@ function ConversationItemBase({
                       {attachmentSummary.mimeLabel}
                     </span>
                   )}
+                  {attachmentSummary.strategyHintLabel && (
+                    <span
+                      style={{
+                        marginLeft: 6,
+                        fontSize: 10,
+                        color: 'var(--text3)',
+                        opacity: 0.9,
+                      }}
+                    >
+                      {attachmentSummary.strategyHintLabel}
+                    </span>
+                  )}
                   {(attachmentSummary.storageDetail || attachmentSummary.keyContractDetail) && (
                     <span
                       style={{

@@ -3,9 +3,8 @@ import React, { useCallback, useRef, useState } from 'react';
 import { getSocket } from '../services/socket';
 import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2ee/attachmentPayload';
 import {
-  getAttachmentStrategyRuntimeCopy,
+  getAttachmentStrategyComposerHintState,
   getAttachmentStrategyRuntimeState,
-  isRemoteMockAttachmentTransportEnabled,
 } from '../lib/e2ee/config';
 import { Send, PauseCircle, ImageIcon } from '../components/Icons';
 
@@ -152,10 +151,12 @@ const ChatInput = React.memo(function ChatInput({
   const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentStrategyRuntimeState({
     preferredStrategy: undefined,
   });
-  const attachmentStrategyCopy = getAttachmentStrategyRuntimeCopy({
+  const attachmentStrategyHintState = getAttachmentStrategyComposerHintState({
     preferredStrategy: resolvedAttachmentStrategyRuntime.preferredStrategy,
     effectiveStrategyOverride: resolvedAttachmentStrategyRuntime.effectiveStrategy,
     capabilities: resolvedAttachmentStrategyRuntime.capabilities,
+    paused: pausedFeatures.chat,
+    attachmentStatus,
   });
 
   return (
@@ -217,7 +218,7 @@ const ChatInput = React.memo(function ChatInput({
           {attachmentStatus}
         </div>
       )}
-      {!attachmentStatus && !pausedFeatures.chat && isRemoteMockAttachmentTransportEnabled && (
+      {attachmentStrategyHintState.visible && (
         <div
           role="note"
           style={{
@@ -230,7 +231,7 @@ const ChatInput = React.memo(function ChatInput({
             fontSize: 12,
           }}
         >
-          {attachmentStrategyCopy.text}
+          {attachmentStrategyHintState.text}
         </div>
       )}
       {pausedFeatures.chat ? (

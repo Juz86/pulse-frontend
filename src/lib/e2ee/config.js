@@ -165,6 +165,26 @@ export function getServiceTransportFallbackBannerState({
   };
 }
 
+export function getAttachmentStrategyComposerHintState({
+  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
+  capabilities = null,
+  effectiveStrategyOverride = null,
+  attachmentTransport = E2EE_ATTACHMENT_TRANSPORT,
+  paused = false,
+  attachmentStatus = '',
+} = {}) {
+  const runtimeCopy = getAttachmentStrategyRuntimeCopy({
+    preferredStrategy,
+    capabilities,
+    effectiveStrategyOverride,
+  });
+
+  return {
+    visible: Boolean(!paused && !attachmentStatus && attachmentTransport === 'remote_mock'),
+    ...runtimeCopy,
+  };
+}
+
 export async function probeE2EEServiceReady(baseUrl) {
   if (!isE2EEServiceTransportEnabled || !baseUrl) return false;
 

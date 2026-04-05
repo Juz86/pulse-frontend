@@ -94,6 +94,9 @@ import {
   assertAttachmentBinaryAccessSupported,
   assertAttachmentMetadataIntegrity,
   buildAttachmentAccessVerification,
+  createAttachmentAccessProvider,
+  createDirectAttachmentAccessProvider,
+  createRemoteAttachmentAccessProvider,
   buildResolvedAttachmentAccessContract,
   buildAttachmentMetadataUrl,
   clearAttachmentMetadataCache,
@@ -1986,6 +1989,76 @@ describe('e2ee attachment helpers', () => {
 
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(cached.encryption?.keyId).toBe('mock-key-cached');
+  });
+
+  test('createDirectAttachmentAccessProvider returns normalized local attachments', async () => {
+    const provider = createDirectAttachmentAccessProvider();
+    const attachment = await provider.resolveAttachment({
+      name: 'inline.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+    });
+
+    expect(provider.kind).toBe('direct');
+    expect(attachment.name).toBe('inline.txt');
+    await expect(provider.fetchBinaryBlob()).rejects.toThrow('Direct attachment provider heeft geen remote blob-download.');
+  });
+
+  test('createRemoteAttachmentAccessProvider resolves metadata and downloads binary blobs', async () => {
+    const getIdToken = jest.fn().mockResolvedValue('token-123');
+    const fetchImpl = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: jest.fn(() => '') },
+        json: async () => ({
+          attachment: {
+            name: 'remote.txt',
+            downloadUrl: `${BACKEND_URL}/attachments/remote-1`,
+            transfer: 'remote',
+            mimeType: 'text/plain',
+            encryption: {
+              alg: 'mock-storage-envelope',
+            },
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: jest.fn(() => '') },
+        blob: async () => new Blob(['remote payload'], { type: 'text/plain' }),
+      });
+    const provider = createRemoteAttachmentAccessProvider({
+      user: { getIdToken },
+      fetchImpl,
+    });
+    const baseAttachment = {
+      downloadUrl: `${BACKEND_URL}/attachments/remote-1`,
+      transfer: 'remote',
+      encryption: { alg: 'mock-storage-envelope' },
+    };
+
+    const resolvedAttachment = await provider.resolveAttachment(baseAttachment);
+    const blob = await provider.fetchBinaryBlob(resolvedAttachment);
+
+    expect(provider.kind).toBe('remote');
+    expect(getIdToken).toHaveBeenCalled();
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(resolvedAttachment.name).toBe('remote.txt');
+    expect(await new Response(blob).text()).toBe('remote payload');
+  });
+
+  test('createAttachmentAccessProvider selects direct or remote providers from attachment access info', () => {
+    expect(createAttachmentAccessProvider({
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+    }).kind).toBe('direct');
+
+    expect(createAttachmentAccessProvider({
+      downloadUrl: `${BACKEND_URL}/attachments/remote-2`,
+      transfer: 'remote',
+      encryption: { alg: 'mock-storage-envelope' },
+    }).kind).toBe('remote');
   });
 
   test('resolveAttachmentForAccess returns the original normalized attachment when no remote metadata refresh is needed', async () => {

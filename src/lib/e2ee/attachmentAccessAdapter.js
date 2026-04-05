@@ -304,6 +304,49 @@ export function clearAttachmentMetadataCache() {
   attachmentMetadataCache.clear();
 }
 
+export function createDirectAttachmentAccessProvider() {
+  return {
+    kind: 'direct',
+    async resolveAttachment(attachment) {
+      return normalizeAttachmentPayload(attachment);
+    },
+    async fetchBinaryBlob() {
+      throw new Error('Direct attachment provider heeft geen remote blob-download.');
+    },
+  };
+}
+
+export function createRemoteAttachmentAccessProvider({
+  user = null,
+  fetchImpl = fetch,
+} = {}) {
+  return {
+    kind: 'remote',
+    async resolveAttachment(attachment) {
+      return fetchAttachmentMetadata(attachment, user, fetchImpl);
+    },
+    async fetchBinaryBlob(attachment) {
+      return fetchAttachmentBlob(attachment, fetchImpl);
+    },
+  };
+}
+
+export function createAttachmentAccessProvider(
+  attachment,
+  {
+    user = null,
+    fetchImpl = fetch,
+  } = {}
+) {
+  const accessInfo = getAttachmentAccessInfo(attachment);
+
+  if (accessInfo.needsRemoteFetch) {
+    return createRemoteAttachmentAccessProvider({ user, fetchImpl });
+  }
+
+  return createDirectAttachmentAccessProvider();
+}
+
 export async function fetchAttachmentMetadata(attachment, user, fetchImpl = fetch) {
   const cachedMetadata = getCachedAttachmentMetadata(attachment);
   if (cachedMetadata) {
@@ -350,12 +393,8 @@ export async function fetchAttachmentMetadata(attachment, user, fetchImpl = fetc
 }
 
 export async function resolveAttachmentForAccess(attachment, user, fetchImpl = fetch) {
-  const accessInfo = getAttachmentAccessInfo(attachment);
-  if (!accessInfo.needsRemoteFetch) {
-    return normalizeAttachmentPayload(attachment);
-  }
-
-  return fetchAttachmentMetadata(attachment, user, fetchImpl);
+  const accessProvider = createAttachmentAccessProvider(attachment, { user, fetchImpl });
+  return accessProvider.resolveAttachment(attachment);
 }
 
 export async function fetchAttachmentBlob(attachment, fetchImpl = fetch) {
@@ -416,7 +455,8 @@ export async function prepareAttachmentBinaryAccess(
   } = {}
 ) {
   assertAttachmentBinaryAccessSupported(attachment);
-  const resolvedAttachment = await resolveAttachmentForAccess(attachment, user, fetchImpl);
+  const accessProvider = createAttachmentAccessProvider(attachment, { user, fetchImpl });
+  const resolvedAttachment = await accessProvider.resolveAttachment(attachment);
   const accessInfo = assertAttachmentBinaryAccessSupported(resolvedAttachment);
 
   if (!accessInfo.needsRemoteFetch) {
@@ -436,7 +476,7 @@ export async function prepareAttachmentBinaryAccess(
     };
   }
 
-  const encryptedBlob = await fetchAttachmentBlob(resolvedAttachment, fetchImpl);
+  const encryptedBlob = await accessProvider.fetchBinaryBlob(resolvedAttachment);
   const decryptedBlob = await decryptAttachmentBlobOverride(encryptedBlob, resolvedAttachment);
   const objectUrl = createObjectUrl(decryptedBlob);
   const unwrapContext = await resolveAttachmentUnwrapContext(resolvedAttachment);

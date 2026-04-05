@@ -135,6 +135,7 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.conv.lastAttachmentTransfer === next.conv.lastAttachmentTransfer &&
   prev.conv.lastAttachmentEncoding === next.conv.lastAttachmentEncoding &&
   prev.conv.lastAttachmentEnvelopeKind === next.conv.lastAttachmentEnvelopeKind &&
+  prev.conv.lastAttachmentName === next.conv.lastAttachmentName &&
   prev.conv.lastAttachmentOriginalMimeType === next.conv.lastAttachmentOriginalMimeType &&
   prev.conv.lastAttachmentExpectedPayloadSha256 === next.conv.lastAttachmentExpectedPayloadSha256 &&
   prev.conv.lastAttachmentMediaKeyId === next.conv.lastAttachmentMediaKeyId &&

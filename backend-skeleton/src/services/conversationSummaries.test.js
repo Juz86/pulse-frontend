@@ -27,6 +27,7 @@ test('deriveConversationSummary keeps attachment contract metadata and file name
   assert.deepEqual(summary, {
     lastMessage: 'Bijlage: rapport.pdf',
     lastMessageType: 'attachment',
+    lastAttachmentName: 'rapport.pdf',
     lastAttachmentTransfer: 'remote',
     lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
     lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
@@ -57,6 +58,7 @@ test('deriveConversationSummary falls back cleanly when no visible message remai
   assert.deepEqual(summary, {
     lastMessage: '',
     lastMessageType: null,
+    lastAttachmentName: null,
     lastAttachmentTransfer: null,
     lastAttachmentEncoding: null,
     lastAttachmentEnvelopeKind: null,
@@ -80,6 +82,7 @@ test('applyConversationSummaryFields projects a stable conversation summary shap
       custom: true,
       lastMessage: 'Hallo',
       lastMessageType: 'text',
+      lastAttachmentName: null,
       lastAttachmentTransfer: null,
       lastAttachmentEncoding: null,
       lastAttachmentEnvelopeKind: null,
@@ -105,6 +108,7 @@ test('buildConversationSummaryAttachmentPayload reconstructs attachment contract
       lastAttachmentWrappedMediaKeyDigest: 'wrapped-digest-1',
     }),
     {
+      name: 'Bestand',
       transfer: 'remote',
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: 'pulse_mock_media_envelope',

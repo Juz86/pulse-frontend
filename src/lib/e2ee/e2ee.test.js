@@ -254,6 +254,7 @@ describe('e2ee message model helpers', () => {
     })).toEqual({
       lastMessage: 'Bijlage: rapport.pdf · versleuteld',
       lastMessageType: 'attachment',
+      lastAttachmentName: 'rapport.pdf',
       lastAttachmentTransfer: 'remote',
       lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
       lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
@@ -714,6 +715,7 @@ describe('e2ee attachment helpers', () => {
     expect(getConversationAttachmentSummaryPresentation({
       lastMessage: 'Bijlage: rapport.pdf',
       lastMessageType: 'attachment',
+      lastAttachmentName: 'rapport.pdf',
       lastAttachmentTransfer: 'remote',
       lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
       lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
@@ -790,6 +792,7 @@ describe('e2ee attachment helpers', () => {
       id: 'conv-1',
       lastMessage: 'Hallo',
       lastMessageType: null,
+      lastAttachmentName: null,
       lastAttachmentTransfer: null,
       lastAttachmentEncoding: null,
       lastAttachmentEnvelopeKind: null,
@@ -821,6 +824,7 @@ describe('e2ee attachment helpers', () => {
         updatedAt: '2026-01-01T11:00:00.000Z',
         lastMessage: 'Bijlage: rapport.pdf · versleuteld',
         lastMessageType: 'attachment',
+        lastAttachmentName: 'rapport.pdf',
         lastAttachmentTransfer: 'remote',
         lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
         lastAttachmentEnvelopeKind: null,

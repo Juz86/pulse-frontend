@@ -1,5 +1,6 @@
 export function buildEmptyConversationAttachmentSummaryFields() {
   return {
+    lastAttachmentName: null,
     lastAttachmentTransfer: null,
     lastAttachmentEncoding: null,
     lastAttachmentEnvelopeKind: null,
@@ -25,6 +26,7 @@ export function buildConversationAttachmentSummaryFields(attachment = null) {
   }
 
   return {
+    lastAttachmentName: attachment.name || 'Bestand',
     lastAttachmentTransfer: attachment.transfer || null,
     lastAttachmentEncoding: attachment.contentEncoding || null,
     lastAttachmentEnvelopeKind: attachment.envelopeKind || attachment.encryption?.envelopeKind || null,
@@ -39,6 +41,7 @@ export function buildConversationAttachmentSummaryFields(attachment = null) {
 export function hasConversationAttachmentSummaryFields(summaryLike = {}) {
   return Boolean(
     summaryLike?.lastAttachmentTransfer
+    || summaryLike?.lastAttachmentName
     || summaryLike?.lastAttachmentEncoding
     || summaryLike?.lastAttachmentEnvelopeKind
     || summaryLike?.lastAttachmentOriginalMimeType
@@ -55,6 +58,7 @@ export function buildConversationSummaryAttachmentPayload(summaryLike = {}) {
   }
 
   return {
+    name: summaryLike.lastAttachmentName || 'Bestand',
     transfer: summaryLike.lastAttachmentTransfer || '',
     contentEncoding: summaryLike.lastAttachmentEncoding || '',
     envelopeKind: summaryLike.lastAttachmentEnvelopeKind || '',

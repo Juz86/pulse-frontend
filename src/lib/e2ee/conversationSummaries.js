@@ -6,6 +6,7 @@ import {
 
 export function buildEmptyConversationAttachmentSummaryFields() {
   return {
+    lastAttachmentName: null,
     lastAttachmentTransfer: null,
     lastAttachmentEncoding: null,
     lastAttachmentEnvelopeKind: null,
@@ -24,6 +25,7 @@ export function buildConversationAttachmentSummaryFields(attachmentLike) {
   }
 
   return {
+    lastAttachmentName: attachment.name || 'Bestand',
     lastAttachmentTransfer: attachment.transfer || null,
     lastAttachmentEncoding: attachment.contentEncoding || null,
     lastAttachmentEnvelopeKind: attachment.envelopeKind || attachment.encryption?.envelopeKind || null,
@@ -38,6 +40,7 @@ export function buildConversationAttachmentSummaryFields(attachmentLike) {
 export function hasConversationAttachmentSummaryFields(summaryLike = {}) {
   return Boolean(
     summaryLike?.lastAttachmentTransfer
+    || summaryLike?.lastAttachmentName
     || summaryLike?.lastAttachmentEncoding
     || summaryLike?.lastAttachmentEnvelopeKind
     || summaryLike?.lastAttachmentOriginalMimeType
@@ -66,7 +69,7 @@ export function buildConversationSummaryAttachmentPayload(message = {}) {
   }
 
   return normalizeAttachmentPayload({
-    name: deriveAttachmentNameFromPreview(message.lastMessage) || 'Bestand',
+    name: message.lastAttachmentName || deriveAttachmentNameFromPreview(message.lastMessage) || 'Bestand',
     transfer: message.lastAttachmentTransfer || '',
     mimeType: message.lastAttachmentOriginalMimeType || '',
     originalMimeType: message.lastAttachmentOriginalMimeType || '',
@@ -115,6 +118,7 @@ export function normalizeConversationAttachmentSummary(conversation = {}) {
     lastMessageType: conversation?.lastMessageType || null,
     ...(hasConversationAttachmentSummaryFields(conversation)
       ? buildConversationAttachmentSummaryFields({
+          name: conversation?.lastAttachmentName || deriveAttachmentNameFromPreview(conversation?.lastMessage) || 'Bestand',
           transfer: conversation?.lastAttachmentTransfer || '',
           contentEncoding: conversation?.lastAttachmentEncoding || '',
           envelopeKind: conversation?.lastAttachmentEnvelopeKind || '',

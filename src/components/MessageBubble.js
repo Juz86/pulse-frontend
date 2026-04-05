@@ -2,13 +2,13 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Phone, Video, Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
 import {
-  buildAttachmentActionErrorState,
-  buildAttachmentActionSuccessState,
+  createAttachmentActionRunner,
+  createAttachmentActionCallbacks,
   getInitialAttachmentActionState,
-  runAttachmentBinaryAction,
 } from '../lib/e2ee/attachmentAccessAdapter';
 import {
-  buildAttachmentInteractionState,
+  buildAttachmentRenderState,
+  getAttachmentDetailLines,
 } from '../lib/e2ee/attachmentPresentation';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { getInitials, formatTime } from '../utils';
@@ -62,6 +62,30 @@ function highlightText(text, query) {
       ? <mark key={i} style={{ background: '#f59e0b', color: '#000', borderRadius: '2px', padding: '0 1px' }}>{p}</mark>
       : p
   );
+}
+
+function getAttachmentDetailLineStyle(isOwn, tone = 'detail', marginTop = 4) {
+  if (tone === 'storage') {
+    return {
+      marginTop,
+      color: isOwn ? 'rgba(255,255,255,.78)' : 'var(--text3)',
+      opacity: 0.9,
+    };
+  }
+
+  if (tone === 'availability') {
+    return {
+      marginTop,
+      color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
+      opacity: 0.78,
+    };
+  }
+
+  return {
+    marginTop,
+    color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
+    opacity: 0.82,
+  };
 }
 
 const QUICK_EMOJI = ['❤️', '👍', '😂', '😮', '😢', '👎'];
@@ -154,40 +178,42 @@ const MessageBubble = React.memo(function MessageBubble({
   }
 
   if (msg.type === 'attachment') {
-    const attachmentInteractionState = buildAttachmentInteractionState(
+    const attachmentRenderState = buildAttachmentRenderState(
       msg.attachment,
       resolvedAttachment,
-      resolvedAttachmentAccess
+      resolvedAttachmentAccess,
+      { busy: attachmentBusy }
     );
-    const attachment = attachmentInteractionState.attachment;
-    const attachmentAccess = attachmentInteractionState.access;
-    const attachmentActionPresentation = attachmentInteractionState.actions;
-    const attachmentPreviewUrl = attachmentInteractionState.previewUrl;
-    const attachmentPresentation = attachmentInteractionState.contract;
-    const attachmentAccessPresentation = attachmentInteractionState.verification;
-    const runAttachmentAction = async (action) => {
-      try {
-        const { preparedAccess } = await runAttachmentBinaryAction(attachment, user, {
-          action,
-          onBusyChange: setAttachmentBusy,
-          onResolvedAttachment: setResolvedAttachment,
-          onErrorReset: () => setAttachmentActionError(''),
-        });
-        const successState = buildAttachmentActionSuccessState(preparedAccess);
-        setResolvedAttachment(successState.resolvedAttachment);
-        setResolvedAttachmentAccess(successState.resolvedAttachmentAccess);
-        setAttachmentActionError(successState.attachmentActionError);
-      } catch (error) {
-        const errorState = buildAttachmentActionErrorState(error, action);
-        setAttachmentActionError(errorState.attachmentActionError);
-      }
-    };
+    const attachment = attachmentRenderState.attachment;
+    const attachmentAccess = attachmentRenderState.access;
+    const attachmentPreviewUrl = attachmentRenderState.previewUrl;
+    const attachmentPresentation = attachmentRenderState.contract;
+    const attachmentAccessPresentation = attachmentRenderState.verification;
+    const attachmentActionPresentation = attachmentRenderState.actions;
+    const attachmentCardPresentation = attachmentRenderState.card;
+    const attachmentButtonsPresentation = attachmentRenderState.buttons;
+    const attachmentDetailLines = getAttachmentDetailLines(
+      attachmentPresentation,
+      attachmentAccessPresentation,
+      attachmentActionPresentation
+    );
+    const attachmentActionCallbacks = createAttachmentActionCallbacks({
+      setAttachmentBusy,
+      setResolvedAttachment,
+      setAttachmentActionError,
+    });
+    const runAttachmentAction = createAttachmentActionRunner(attachment, user, {
+      ...attachmentActionCallbacks,
+      setResolvedAttachment,
+      setResolvedAttachmentAccess,
+      setAttachmentActionError,
+    });
     const attachmentActions = attachmentAccess.canOpen ? (
       <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
         <button
           type="button"
           className="icon-btn"
-          disabled={attachmentBusy || !attachmentActionPresentation.actionsEnabled}
+          disabled={attachmentButtonsPresentation.openDisabled}
           onClick={(event) => {
             event.stopPropagation();
             runAttachmentAction('open');
@@ -202,12 +228,12 @@ const MessageBubble = React.memo(function MessageBubble({
             border: isOwn ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(124,58,237,0.22)',
           }}
         >
-          {attachmentBusy ? 'Voorbereiden…' : attachmentActionPresentation.openLabel}
+          {attachmentButtonsPresentation.openLabel}
         </button>
         <button
           type="button"
           className="icon-btn"
-          disabled={attachmentBusy || !attachmentActionPresentation.actionsEnabled}
+          disabled={attachmentButtonsPresentation.downloadDisabled}
           onClick={(event) => {
             event.stopPropagation();
             runAttachmentAction('download');
@@ -222,7 +248,7 @@ const MessageBubble = React.memo(function MessageBubble({
             border: isOwn ? '1px solid rgba(255,255,255,0.18)' : '1px solid rgba(255,255,255,0.10)',
           }}
         >
-          Downloaden
+          {attachmentButtonsPresentation.downloadLabel}
         </button>
       </div>
     ) : null;
@@ -231,12 +257,12 @@ const MessageBubble = React.memo(function MessageBubble({
       <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
         <div
           className="msg-contact-card"
-          role={attachmentActionPresentation.actionsEnabled ? 'button' : undefined}
-          tabIndex={attachmentActionPresentation.actionsEnabled ? 0 : undefined}
-          aria-label={attachmentActionPresentation.actionsEnabled ? `Open bijlage ${attachment?.name || 'Bestand'}` : undefined}
-          style={{ cursor: attachmentActionPresentation.actionsEnabled ? 'pointer' : 'default' }}
-          onClick={attachmentActionPresentation.actionsEnabled ? () => runAttachmentAction('open') : undefined}
-          onKeyDown={attachmentActionPresentation.actionsEnabled ? (event) => handleActionCardKeyDown(event, () => runAttachmentAction('open')) : undefined}
+          role={attachmentCardPresentation.role}
+          tabIndex={attachmentCardPresentation.tabIndex}
+          aria-label={attachmentCardPresentation.ariaLabel}
+          style={{ cursor: attachmentCardPresentation.cursor }}
+          onClick={attachmentCardPresentation.interactive ? () => runAttachmentAction('open') : undefined}
+          onKeyDown={attachmentCardPresentation.interactive ? (event) => handleActionCardKeyDown(event, () => runAttachmentAction('open')) : undefined}
         >
           {attachmentAccess.isImage ? (
             <div className="u-flex-1 u-min-w-0">
@@ -258,102 +284,15 @@ const MessageBubble = React.memo(function MessageBubble({
               <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
                 {attachment?.caption || attachmentPresentation.mimeLabel}
               </div>
-              {attachmentPresentation.isRemote && (
+              {attachmentDetailLines.map((line, index) => (
                 <div
+                  key={`${line.tone}-${index}`}
                   className="u-fs-12"
-                  style={{
-                    marginTop: 8,
-                    color: isOwn ? 'rgba(255,255,255,.78)' : 'var(--text3)',
-                    opacity: 0.9,
-                  }}
+                  style={getAttachmentDetailLineStyle(isOwn, line.tone, line.tone === 'storage' ? 8 : 4)}
                 >
-                  {attachmentPresentation.storageLabel}
+                  {line.text}
                 </div>
-              )}
-              {attachmentPresentation.storageDetail && (
-                <div
-                  className="u-fs-12"
-                  style={{
-                    marginTop: 4,
-                    color: isOwn ? 'rgba(255,255,255,.62)' : 'var(--text3)',
-                    opacity: 0.85,
-                  }}
-                >
-                  {attachmentPresentation.storageDetail}
-                </div>
-              )}
-              {attachmentPresentation.hasIntegrityContract && (
-                <div
-                  className="u-fs-12"
-                  style={{
-                    marginTop: 4,
-                    color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
-                    opacity: 0.82,
-                  }}
-                >
-                  Integriteit bevestigd via SHA-256 metadata
-                </div>
-              )}
-              {attachmentPresentation.keyContractDetail && (
-                <div
-                  className="u-fs-12"
-                  style={{
-                    marginTop: 4,
-                    color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
-                    opacity: 0.82,
-                  }}
-                >
-                  {attachmentPresentation.keyContractDetail}
-                </div>
-              )}
-              {attachmentAccessPresentation.integrityAccessLabel && (
-                <div
-                  className="u-fs-12"
-                  style={{
-                    marginTop: 4,
-                    color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
-                    opacity: 0.82,
-                  }}
-                >
-                  {attachmentAccessPresentation.integrityAccessLabel}
-                </div>
-              )}
-              {attachmentAccessPresentation.availabilityLabel && (
-                <div
-                  className="u-fs-12"
-                  style={{
-                    marginTop: 4,
-                    color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
-                    opacity: 0.78,
-                  }}
-                >
-                  {attachmentAccessPresentation.availabilityLabel}
-                </div>
-              )}
-              {attachmentActionPresentation.availabilityDetail && (
-                <div
-                  className="u-fs-12"
-                  style={{
-                    marginTop: 4,
-                    color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
-                    opacity: 0.78,
-                  }}
-                >
-                  {attachmentActionPresentation.availabilityDetail}
-                </div>
-              )}
-              {attachmentAccessPresentation.wrappedKeyAccessLabel && (
-                <div
-                  className="u-fs-12"
-                  style={{
-                    marginTop: 4,
-                    color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
-                    opacity: 0.78,
-                  }}
-                >
-                  {attachmentAccessPresentation.wrappedKeyAccessLabel}
-                </div>
-              )}
+              ))}
               {attachmentActionError && (
                 <div
                   className="u-fs-12"
@@ -367,110 +306,23 @@ const MessageBubble = React.memo(function MessageBubble({
           ) : (
             <>
               <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius: 12 }} aria-hidden="true">F</div>
-              <div className="u-flex-1 u-min-w-0">
-                <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Bijlage'}</div>
-                <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
-                  {attachment?.caption || attachmentPresentation.mimeLabel}
-                </div>
-                {attachmentPresentation.isRemote && (
-                  <div
-                    className="u-fs-12"
-                    style={{
-                      marginTop: 6,
-                      color: isOwn ? 'rgba(255,255,255,.78)' : 'var(--text3)',
-                      opacity: 0.9,
-                    }}
+	              <div className="u-flex-1 u-min-w-0">
+	                <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Bijlage'}</div>
+	                <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
+	                  {attachment?.caption || attachmentPresentation.mimeLabel}
+	                </div>
+                  {attachmentDetailLines.map((line, index) => (
+                    <div
+                      key={`${line.tone}-${index}`}
+                      className="u-fs-12"
+                      style={getAttachmentDetailLineStyle(isOwn, line.tone, line.tone === 'storage' ? 6 : 4)}
                     >
-                      {attachmentPresentation.storageLabel}
+                      {line.text}
                     </div>
-                  )}
-                  {attachmentPresentation.storageDetail && (
-                    <div
-                      className="u-fs-12"
-                      style={{
-                        marginTop: 4,
-                        color: isOwn ? 'rgba(255,255,255,.62)' : 'var(--text3)',
-                        opacity: 0.85,
-                      }}
-                  >
-                    {attachmentPresentation.storageDetail}
-                  </div>
-                )}
-                  {attachmentPresentation.hasIntegrityContract && (
-                    <div
-                      className="u-fs-12"
-                      style={{
-                        marginTop: 4,
-                        color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
-                        opacity: 0.82,
-                      }}
-                    >
-                      Integriteit bevestigd via SHA-256 metadata
-                    </div>
-                  )}
-                  {attachmentPresentation.keyContractDetail && (
-                    <div
-                      className="u-fs-12"
-                      style={{
-                        marginTop: 4,
-                        color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
-                        opacity: 0.82,
-                      }}
-                    >
-                  {attachmentPresentation.keyContractDetail}
-                    </div>
-                  )}
-                  {attachmentAccessPresentation.integrityAccessLabel && (
-                    <div
-                      className="u-fs-12"
-                      style={{
-                        marginTop: 4,
-                        color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
-                        opacity: 0.82,
-                      }}
-                  >
-                    {attachmentAccessPresentation.integrityAccessLabel}
-                  </div>
-                )}
-                  {attachmentAccessPresentation.availabilityLabel && (
-                    <div
-                      className="u-fs-12"
-                      style={{
-                        marginTop: 4,
-                        color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
-                        opacity: 0.78,
-                      }}
-                    >
-                  {attachmentAccessPresentation.availabilityLabel}
-                    </div>
-                  )}
-                  {attachmentActionPresentation.availabilityDetail && (
-                    <div
-                      className="u-fs-12"
-                      style={{
-                        marginTop: 4,
-                        color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
-                        opacity: 0.78,
-                      }}
-                    >
-                      {attachmentActionPresentation.availabilityDetail}
-                    </div>
-                  )}
-                  {attachmentAccessPresentation.wrappedKeyAccessLabel && (
-                    <div
-                      className="u-fs-12"
-                      style={{
-                        marginTop: 4,
-                        color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
-                        opacity: 0.78,
-                      }}
-                    >
-                      {attachmentAccessPresentation.wrappedKeyAccessLabel}
-                    </div>
-                  )}
-                  {attachmentActionError && (
-                    <div
-                      className="u-fs-12"
+                  ))}
+	                  {attachmentActionError && (
+	                    <div
+	                      className="u-fs-12"
                       style={{ marginTop: 8, color: isOwn ? 'rgba(255,215,215,.92)' : '#ef4444' }}
                     >
                       {attachmentActionError}

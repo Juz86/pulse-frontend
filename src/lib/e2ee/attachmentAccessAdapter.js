@@ -46,6 +46,46 @@ export function buildAttachmentActionErrorState(error, action = 'open') {
   };
 }
 
+export function createAttachmentActionCallbacks({
+  setAttachmentBusy = null,
+  setResolvedAttachment = null,
+  setAttachmentActionError = null,
+} = {}) {
+  return {
+    onBusyChange: typeof setAttachmentBusy === 'function' ? setAttachmentBusy : null,
+    onResolvedAttachment: typeof setResolvedAttachment === 'function' ? setResolvedAttachment : null,
+    onErrorReset: typeof setAttachmentActionError === 'function'
+      ? () => setAttachmentActionError('')
+      : null,
+  };
+}
+
+export function applyAttachmentActionResultState(
+  result,
+  {
+    setResolvedAttachment = null,
+    setResolvedAttachmentAccess = null,
+    setAttachmentActionError = null,
+  } = {}
+) {
+  if (result?.successState) {
+    if (typeof setResolvedAttachment === 'function') {
+      setResolvedAttachment(result.successState.resolvedAttachment);
+    }
+    if (typeof setResolvedAttachmentAccess === 'function') {
+      setResolvedAttachmentAccess(result.successState.resolvedAttachmentAccess);
+    }
+    if (typeof setAttachmentActionError === 'function') {
+      setAttachmentActionError(result.successState.attachmentActionError);
+    }
+    return;
+  }
+
+  if (result?.errorState && typeof setAttachmentActionError === 'function') {
+    setAttachmentActionError(result.errorState.attachmentActionError);
+  }
+}
+
 export async function passthroughDecryptAttachmentBlob(blob) {
   return blob;
 }
@@ -676,6 +716,72 @@ export async function runAttachmentBinaryAction(
     preparedAccess,
     succeeded,
   };
+}
+
+export async function runAttachmentBinaryActionWithState(
+  attachment,
+  user,
+  options = {}
+) {
+  try {
+    const result = await runAttachmentBinaryAction(attachment, user, options);
+    return {
+      ...result,
+      error: null,
+      successState: buildAttachmentActionSuccessState(result.preparedAccess),
+      errorState: null,
+    };
+  } catch (error) {
+    return {
+      preparedAccess: null,
+      succeeded: false,
+      error,
+      successState: null,
+      errorState: buildAttachmentActionErrorState(error, options?.action),
+    };
+  }
+}
+
+export async function runAttachmentActionFlow(
+  attachment,
+  user,
+  {
+    action = 'open',
+    onBusyChange = null,
+    onResolvedAttachment = null,
+    onErrorReset = null,
+    setResolvedAttachment = null,
+    setResolvedAttachmentAccess = null,
+    setAttachmentActionError = null,
+    ...options
+  } = {}
+) {
+  const result = await runAttachmentBinaryActionWithState(attachment, user, {
+    action,
+    onBusyChange,
+    onResolvedAttachment,
+    onErrorReset,
+    ...options,
+  });
+
+  applyAttachmentActionResultState(result, {
+    setResolvedAttachment,
+    setResolvedAttachmentAccess,
+    setAttachmentActionError,
+  });
+
+  return result;
+}
+
+export function createAttachmentActionRunner(
+  attachment,
+  user,
+  options = {}
+) {
+  return async (action = 'open') => runAttachmentActionFlow(attachment, user, {
+    action,
+    ...options,
+  });
 }
 
 export function openAttachmentInNewTab(attachment, opener = window.open) {

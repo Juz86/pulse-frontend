@@ -189,6 +189,92 @@ export function buildAttachmentInteractionState(
   };
 }
 
+export function getAttachmentCardPresentation(attachment = {}, actionPresentation = {}) {
+  const interactive = Boolean(actionPresentation?.actionsEnabled);
+  const attachmentName = attachment?.name || 'Bestand';
+
+  return {
+    interactive,
+    role: interactive ? 'button' : undefined,
+    tabIndex: interactive ? 0 : undefined,
+    ariaLabel: interactive ? `Open bijlage ${attachmentName}` : undefined,
+    cursor: interactive ? 'pointer' : 'default',
+  };
+}
+
+export function getAttachmentActionButtonsPresentation(
+  actionPresentation = {},
+  { busy = false } = {}
+) {
+  const buttonsEnabled = Boolean(actionPresentation?.actionsEnabled) && !busy;
+
+  return {
+    buttonsEnabled,
+    openDisabled: !buttonsEnabled,
+    downloadDisabled: !buttonsEnabled,
+    openLabel: busy ? 'Voorbereiden…' : (actionPresentation?.openLabel || 'Openen'),
+    downloadLabel: actionPresentation?.downloadLabel || 'Downloaden',
+  };
+}
+
+export function buildAttachmentRenderState(
+  messageAttachment = {},
+  resolvedAttachment = null,
+  resolvedAttachmentAccess = null,
+  { busy = false } = {}
+) {
+  const interactionState = buildAttachmentInteractionState(
+    messageAttachment,
+    resolvedAttachment,
+    resolvedAttachmentAccess
+  );
+
+  return {
+    ...interactionState,
+    card: getAttachmentCardPresentation(
+      interactionState.attachment,
+      interactionState.actions
+    ),
+    buttons: getAttachmentActionButtonsPresentation(
+      interactionState.actions,
+      { busy }
+    ),
+  };
+}
+
+export function getAttachmentDetailLines(
+  contractPresentation = {},
+  verificationPresentation = {},
+  actionPresentation = {}
+) {
+  return [
+    contractPresentation.isRemote && contractPresentation.storageLabel
+      ? { tone: 'storage', text: contractPresentation.storageLabel }
+      : null,
+    contractPresentation.storageDetail
+      ? { tone: 'detail', text: contractPresentation.storageDetail }
+      : null,
+    contractPresentation.hasIntegrityContract
+      ? { tone: 'detail', text: 'Integriteit bevestigd via SHA-256 metadata' }
+      : null,
+    contractPresentation.keyContractDetail
+      ? { tone: 'detail', text: contractPresentation.keyContractDetail }
+      : null,
+    verificationPresentation.integrityAccessLabel
+      ? { tone: 'detail', text: verificationPresentation.integrityAccessLabel }
+      : null,
+    verificationPresentation.availabilityLabel
+      ? { tone: 'availability', text: verificationPresentation.availabilityLabel }
+      : null,
+    actionPresentation.availabilityDetail
+      ? { tone: 'availability', text: actionPresentation.availabilityDetail }
+      : null,
+    verificationPresentation.wrappedKeyAccessLabel
+      ? { tone: 'availability', text: verificationPresentation.wrappedKeyAccessLabel }
+      : null,
+  ].filter(Boolean);
+}
+
 export function getAttachmentPreviewText(attachment = {}, { includeStorageSignal = true } = {}) {
   const presentation = getAttachmentContractPresentation(attachment);
   const baseLabel = `Bijlage: ${attachment?.name || 'Bestand'}`;

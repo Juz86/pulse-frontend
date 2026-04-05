@@ -75,9 +75,13 @@ import {
   verifyMockAttachmentEnvelope,
 } from './attachmentCrypto';
 import {
+  buildAttachmentRenderState,
   buildAttachmentInteractionState,
   getAttachmentActionPresentation,
+  getAttachmentActionButtonsPresentation,
   getAttachmentAccessVerificationPresentation,
+  getAttachmentDetailLines,
+  getAttachmentCardPresentation,
   getAttachmentContractPresentation,
   getAttachmentInteractionPresentation,
   getAttachmentPreviewText,
@@ -98,11 +102,14 @@ import {
   resolveEffectiveAttachmentStrategy,
 } from './config';
 import {
+  applyAttachmentActionResultState,
   assertAttachmentBinaryAccessSupported,
   assertAttachmentMetadataIntegrity,
   buildAttachmentAccessVerification,
   buildAttachmentActionErrorState,
   buildAttachmentActionSuccessState,
+  createAttachmentActionRunner,
+  createAttachmentActionCallbacks,
   createAttachmentAccessProvider,
   createDefaultAttachmentAccessProviderRegistry,
   createDirectAttachmentAccessProvider,
@@ -128,7 +135,9 @@ import {
   resolveAttachmentForBinaryAction,
   resolveExpectedAttachmentSha256,
   resolveAttachmentForAccess,
+  runAttachmentActionFlow,
   runAttachmentBinaryAction,
+  runAttachmentBinaryActionWithState,
   triggerAttachmentDownload,
 } from './attachmentAccessAdapter';
 import {
@@ -1656,6 +1665,125 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
+  test('getAttachmentCardPresentation derives stable card interactivity props', () => {
+    expect(getAttachmentCardPresentation(
+      { name: 'foto.png' },
+      { actionsEnabled: true }
+    )).toEqual({
+      interactive: true,
+      role: 'button',
+      tabIndex: 0,
+      ariaLabel: 'Open bijlage foto.png',
+      cursor: 'pointer',
+    });
+
+    expect(getAttachmentCardPresentation(
+      { name: 'draft.png' },
+      { actionsEnabled: false }
+    )).toEqual({
+      interactive: false,
+      role: undefined,
+      tabIndex: undefined,
+      ariaLabel: undefined,
+      cursor: 'default',
+    });
+  });
+
+  test('getAttachmentActionButtonsPresentation derives button state from action availability and busy state', () => {
+    expect(getAttachmentActionButtonsPresentation(
+      {
+        actionsEnabled: true,
+        openLabel: 'Openen',
+        downloadLabel: 'Downloaden',
+      },
+      { busy: false }
+    )).toEqual({
+      buttonsEnabled: true,
+      openDisabled: false,
+      downloadDisabled: false,
+      openLabel: 'Openen',
+      downloadLabel: 'Downloaden',
+    });
+
+    expect(getAttachmentActionButtonsPresentation(
+      {
+        actionsEnabled: true,
+        openLabel: 'Openen',
+        downloadLabel: 'Downloaden',
+      },
+      { busy: true }
+    )).toEqual({
+      buttonsEnabled: false,
+      openDisabled: true,
+      downloadDisabled: true,
+      openLabel: 'Voorbereiden…',
+      downloadLabel: 'Downloaden',
+    });
+  });
+
+  test('buildAttachmentRenderState combines interaction card and button presentation', () => {
+    expect(buildAttachmentRenderState(
+      {
+        name: 'foto.png',
+        downloadUrl: 'https://cdn.example.com/foto.png',
+        thumbnailUrl: 'https://cdn.example.com/thumb.png',
+        transfer: 'remote',
+        mimeType: 'application/pulse-e2ee-envelope+json',
+        originalMimeType: 'image/png',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+      },
+      null,
+      null,
+      { busy: true }
+    )).toMatchObject({
+      attachment: {
+        name: 'foto.png',
+      },
+      previewUrl: 'https://cdn.example.com/thumb.png',
+      access: {
+        isImage: true,
+      },
+      card: {
+        interactive: true,
+        role: 'button',
+      },
+      buttons: {
+        openDisabled: true,
+        downloadDisabled: true,
+        openLabel: 'Voorbereiden…',
+      },
+    });
+  });
+
+  test('getAttachmentDetailLines centralizes attachment contract and availability copy', () => {
+    expect(getAttachmentDetailLines(
+      {
+        isRemote: true,
+        storageLabel: 'Mock versleutelde opslaglink',
+        storageDetail: 'Envelope: pulse_mock_media_envelope',
+        hasIntegrityContract: true,
+        keyContractDetail: 'Media key: key-1 · wrap: pulse_mock_media_key_wrap_v1',
+      },
+      {
+        integrityAccessLabel: 'Downloadcontract bevestigd',
+        availabilityLabel: 'Decrypt-draft actief voor pulse_media_v1',
+        wrappedKeyAccessLabel: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap',
+      },
+      {
+        availabilityDetail: 'Openen en downloaden worden actief zodra deze decrypt-strategie beschikbaar is.',
+      }
+    )).toEqual([
+      { tone: 'storage', text: 'Mock versleutelde opslaglink' },
+      { tone: 'detail', text: 'Envelope: pulse_mock_media_envelope' },
+      { tone: 'detail', text: 'Integriteit bevestigd via SHA-256 metadata' },
+      { tone: 'detail', text: 'Media key: key-1 · wrap: pulse_mock_media_key_wrap_v1' },
+      { tone: 'detail', text: 'Downloadcontract bevestigd' },
+      { tone: 'availability', text: 'Decrypt-draft actief voor pulse_media_v1' },
+      { tone: 'availability', text: 'Openen en downloaden worden actief zodra deze decrypt-strategie beschikbaar is.' },
+      { tone: 'availability', text: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap' },
+    ]);
+  });
+
   test('getAttachmentPreviewText derives list-friendly attachment labels', () => {
     expect(getAttachmentPreviewText({
       name: 'foto.png',
@@ -2629,6 +2757,59 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
+  test('createAttachmentActionCallbacks derives stable adapter callbacks from state setters', () => {
+    const setAttachmentBusy = jest.fn();
+    const setResolvedAttachment = jest.fn();
+    const setAttachmentActionError = jest.fn();
+
+    const callbacks = createAttachmentActionCallbacks({
+      setAttachmentBusy,
+      setResolvedAttachment,
+      setAttachmentActionError,
+    });
+
+    callbacks.onBusyChange(true);
+    callbacks.onResolvedAttachment({ name: 'foto.png' });
+    callbacks.onErrorReset();
+
+    expect(setAttachmentBusy).toHaveBeenCalledWith(true);
+    expect(setResolvedAttachment).toHaveBeenCalledWith({ name: 'foto.png' });
+    expect(setAttachmentActionError).toHaveBeenCalledWith('');
+  });
+
+  test('applyAttachmentActionResultState applies success and error payloads through state setters', () => {
+    const setResolvedAttachment = jest.fn();
+    const setResolvedAttachmentAccess = jest.fn();
+    const setAttachmentActionError = jest.fn();
+
+    applyAttachmentActionResultState({
+      successState: {
+        resolvedAttachment: { name: 'foto.png' },
+        resolvedAttachmentAccess: { url: 'blob:abc' },
+        attachmentActionError: '',
+      },
+    }, {
+      setResolvedAttachment,
+      setResolvedAttachmentAccess,
+      setAttachmentActionError,
+    });
+
+    applyAttachmentActionResultState({
+      errorState: {
+        attachmentActionError: 'kapot',
+      },
+    }, {
+      setResolvedAttachment,
+      setResolvedAttachmentAccess,
+      setAttachmentActionError,
+    });
+
+    expect(setResolvedAttachment).toHaveBeenCalledWith({ name: 'foto.png' });
+    expect(setResolvedAttachmentAccess).toHaveBeenCalledWith({ url: 'blob:abc' });
+    expect(setAttachmentActionError).toHaveBeenNthCalledWith(1, '');
+    expect(setAttachmentActionError).toHaveBeenNthCalledWith(2, 'kapot');
+  });
+
   test('assertAttachmentMetadataIntegrity accepts matching metadata contracts', () => {
     expect(() => assertAttachmentMetadataIntegrity(
       {
@@ -3283,6 +3464,121 @@ describe('e2ee attachment helpers', () => {
     expect(onResolvedAttachment).not.toHaveBeenCalled();
     expect(opener).toHaveBeenCalledWith('https://cdn.example.com/hello.txt', '_blank', 'noopener,noreferrer');
     expect(scheduleCleanup).toHaveBeenCalledTimes(0);
+  });
+
+  test('runAttachmentBinaryActionWithState returns success state for successful actions', async () => {
+    const result = await runAttachmentBinaryActionWithState({
+      name: 'hello.txt',
+      downloadUrl: 'https://cdn.example.com/hello.txt',
+      transfer: 'remote',
+    }, null, {
+      action: 'open',
+      resolveAttachment: async (attachment) => ({
+        ...attachment,
+        expectedPayloadSha256: 'mock-sha256-binary',
+      }),
+      opener: jest.fn(),
+    });
+
+    expect(result.succeeded).toBe(true);
+    expect(result.error).toBeNull();
+    expect(result.successState).toMatchObject({
+      resolvedAttachment: {
+        name: 'hello.txt',
+        downloadUrl: 'https://cdn.example.com/hello.txt',
+        transfer: 'remote',
+        expectedPayloadSha256: 'mock-sha256-binary',
+        accessVerification: {
+          strategyKey: 'none',
+          integrityVerified: true,
+          wrappedKeyVerified: false,
+          unwrapKind: 'none',
+        },
+      },
+      resolvedAttachmentAccess: expect.objectContaining({
+        isObjectUrl: false,
+      }),
+      attachmentActionError: '',
+    });
+    expect(result.errorState).toBeNull();
+  });
+
+  test('runAttachmentBinaryActionWithState returns error state for failed actions', async () => {
+    const result = await runAttachmentBinaryActionWithState({
+      name: 'future.png',
+      transfer: 'remote',
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      contentEncoding: ATTACHMENT_FUTURE_ENVELOPE_ALG,
+      encryption: { alg: ATTACHMENT_FUTURE_ENVELOPE_ALG },
+    }, null, {
+      action: 'download',
+      resolveAttachment: async (attachment) => attachment,
+    });
+
+    expect(result.succeeded).toBe(false);
+    expect(result.successState).toBeNull();
+    expect(result.error).toBeInstanceOf(Error);
+    expect(result.errorState).toEqual({
+      attachmentActionError: `Decrypt voor ${ATTACHMENT_FUTURE_MEDIA_STRATEGY} is nog niet beschikbaar.`,
+    });
+  });
+
+  test('runAttachmentActionFlow executes action and applies attachment state setters', async () => {
+    const setResolvedAttachment = jest.fn();
+    const setResolvedAttachmentAccess = jest.fn();
+    const setAttachmentActionError = jest.fn();
+    const setAttachmentBusy = jest.fn();
+
+    const result = await runAttachmentActionFlow({
+      name: 'hello.txt',
+      downloadUrl: 'https://cdn.example.com/hello.txt',
+      transfer: 'remote',
+    }, null, {
+      action: 'open',
+      resolveAttachment: async (attachment) => ({
+        ...attachment,
+        expectedPayloadSha256: 'mock-sha256-binary',
+      }),
+      onBusyChange: setAttachmentBusy,
+      onResolvedAttachment: setResolvedAttachment,
+      onErrorReset: () => setAttachmentActionError(''),
+      setResolvedAttachment,
+      setResolvedAttachmentAccess,
+      setAttachmentActionError,
+      opener: jest.fn(),
+    });
+
+    expect(result.succeeded).toBe(true);
+    expect(setResolvedAttachment).toHaveBeenCalled();
+    expect(setResolvedAttachmentAccess).toHaveBeenCalledWith(
+      expect.objectContaining({ isObjectUrl: false })
+    );
+    expect(setAttachmentActionError).toHaveBeenCalledWith('');
+    expect(setAttachmentBusy).not.toHaveBeenCalled();
+  });
+
+  test('createAttachmentActionRunner builds a reusable action dispatcher', async () => {
+    const runner = createAttachmentActionRunner({
+      name: 'hello.txt',
+      downloadUrl: 'https://cdn.example.com/hello.txt',
+      transfer: 'remote',
+    }, null, {
+      resolveAttachment: async (attachment) => ({
+        ...attachment,
+        expectedPayloadSha256: 'mock-sha256-binary',
+      }),
+      opener: jest.fn(),
+    });
+
+    const result = await runner('open');
+
+    expect(result.succeeded).toBe(true);
+    expect(result.successState).toMatchObject({
+      resolvedAttachment: {
+        name: 'hello.txt',
+        expectedPayloadSha256: 'mock-sha256-binary',
+      },
+    });
   });
 
   test('resolveAttachmentUnwrapContext exposes wrapped media key contract for encrypted attachments', async () => {

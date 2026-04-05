@@ -4,6 +4,7 @@ import {
   ATTACHMENT_MOCK_ENVELOPE_ALG,
   ATTACHMENT_MOCK_MEDIA_STRATEGY,
 } from './attachmentStrategyConstants';
+import { getAttachmentEncryptionCapability } from './attachmentCrypto';
 
 export function getAttachmentStrategyPresentation(attachment = {}) {
   const strategyKey =
@@ -43,6 +44,11 @@ export function getAttachmentContractPresentation(attachment = {}) {
   const strategyPresentation = getAttachmentStrategyPresentation(attachment);
   const strategyKey = strategyPresentation.strategyKey;
   const contentEncoding = attachment?.contentEncoding || '';
+  const strategyCapability = getAttachmentEncryptionCapability({
+    ...(attachment?.encryption || {}),
+    strategyKey,
+    alg: attachment?.encryption?.alg || contentEncoding || '',
+  });
   const originalMimeType = attachment?.originalMimeType || attachment?.mimeType || '';
   const envelopeKind = attachment?.envelopeKind || attachment?.encryption?.envelopeKind || '';
   const expectedPayloadSha256 = attachment?.expectedPayloadSha256 || attachment?.encryption?.sha256 || '';
@@ -65,12 +71,22 @@ export function getAttachmentContractPresentation(attachment = {}) {
   const isEncryptedRemote = isMockEncryptedRemote || isFutureEncryptedRemote;
   const hasIntegrityContract = Boolean(isEncryptedRemote && expectedPayloadSha256);
   const hasWrappedMediaKeyContract = Boolean(isEncryptedRemote && mediaKeyId && keyWrapAlg);
+  const hasUnsupportedBinaryAccess = Boolean(
+    isEncryptedRemote && !strategyCapability.binaryAccessSupported
+  );
+  const availabilityHintLabel = strategyCapability.requiresFutureStrategySupport
+    ? 'binary access volgt later'
+    : hasUnsupportedBinaryAccess
+      ? 'clientondersteuning ontbreekt'
+      : '';
 
   return {
     isRemote,
     isEncryptedRemote,
     hasIntegrityContract,
     hasWrappedMediaKeyContract,
+    hasUnsupportedBinaryAccess,
+    availabilityHintLabel,
     strategyHintLabel: strategyPresentation.strategyHintLabel,
     mimeLabel: originalMimeType || 'Bestand gedeeld',
     storageLabel: isMockEncryptedRemote

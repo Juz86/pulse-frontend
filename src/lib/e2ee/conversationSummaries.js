@@ -173,6 +173,7 @@ export function getConversationAttachmentSummaryPresentation(conversation = {}) 
     previewText: attachmentSummary?.previewText || '',
     storageShortLabel: attachmentPresentation.storageShortLabel,
     strategyHintLabel: attachmentPresentation.strategyHintLabel || '',
+    availabilityHintLabel: attachmentPresentation.availabilityHintLabel || '',
     mimeLabel: attachmentPresentation.mimeLabel,
     storageDetail: attachmentPresentation.storageDetail,
     keyContractDetail: attachmentPresentation.keyContractDetail,

@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { Phone, Video, Users } from '../components/Icons';
 import {
   E2EE_ATTACHMENT_STRATEGY,
+  getFutureAttachmentStrategyBannerCopy,
   getAttachmentStrategyRuntimeState,
   isE2EEServiceTransportEnabled,
   isRemoteMockAttachmentTransportEnabled,
@@ -60,6 +61,11 @@ const ChatHeader = React.memo(function ChatHeader({
   const searchCurrent = searchTotal > 0 ? chatSearchIdx % searchTotal : 0;
   const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentStrategyRuntimeState({
     preferredStrategy: undefined,
+  });
+  const futureAttachmentBannerCopy = getFutureAttachmentStrategyBannerCopy({
+    preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
+    capabilities: resolvedAttachmentStrategyRuntime.capabilities,
+    effectiveStrategyOverride: resolvedAttachmentStrategyRuntime.effectiveStrategy,
   });
 
   function openContactProfile() {
@@ -185,15 +191,15 @@ const ChatHeader = React.memo(function ChatHeader({
             margin: '0 12px 10px',
             padding: '8px 12px',
             borderRadius: 12,
-            background: resolvedAttachmentStrategyRuntime.fallbackActive ? 'rgba(245, 158, 11, 0.14)' : 'rgba(59, 130, 246, 0.10)',
-            border: resolvedAttachmentStrategyRuntime.fallbackActive
+            background: futureAttachmentBannerCopy.tone === 'fallback' ? 'rgba(245, 158, 11, 0.14)' : 'rgba(59, 130, 246, 0.10)',
+            border: futureAttachmentBannerCopy.tone === 'fallback'
               ? '1px solid rgba(245, 158, 11, 0.28)'
               : '1px solid rgba(59, 130, 246, 0.24)',
             color: 'var(--text2)',
             fontSize: 12,
           }}
         >
-          {!resolvedAttachmentStrategyRuntime.fallbackActive
+          {futureAttachmentBannerCopy.tone === 'future'
             ? <>Pulse test nu het toekomstige attachment-profiel <strong>{resolvedAttachmentStrategyRuntime.effectiveStrategy}</strong> via de remote mock-opslagflow.</>
             : <>Het attachment-profiel <strong>{E2EE_ATTACHMENT_STRATEGY}</strong> staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via <code>/configz</code>. Pulse valt daarom nu terug op <strong>{resolvedAttachmentStrategyRuntime.effectiveStrategy}</strong>.</>}
         </div>

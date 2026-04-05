@@ -72,6 +72,7 @@ import {
   getAttachmentPreviewText,
 } from './attachmentPresentation';
 import {
+  getFutureAttachmentStrategyBannerCopy,
   getAttachmentStrategyRuntimeCopy,
   getAttachmentStrategyRuntimeState,
   isAttachmentStrategySupportedByBackend,
@@ -497,6 +498,32 @@ describe('e2ee backend capability helpers', () => {
     })).toEqual({
       tone: 'fallback',
       text: 'Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel mock_media_v1. Backendondersteuning voor pulse_media_v1 ontbreekt nog.',
+    });
+  });
+
+  test('getFutureAttachmentStrategyBannerCopy describes supported future media banners consistently', () => {
+    expect(getFutureAttachmentStrategyBannerCopy({
+      preferredStrategy: 'pulse_media_v1',
+      capabilities: {
+        attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
+      },
+      effectiveStrategyOverride: 'pulse_media_v1',
+    })).toEqual({
+      tone: 'future',
+      text: 'Pulse test nu het toekomstige attachment-profiel pulse_media_v1 via de remote mock-opslagflow.',
+    });
+  });
+
+  test('getFutureAttachmentStrategyBannerCopy describes fallback future media banners consistently', () => {
+    expect(getFutureAttachmentStrategyBannerCopy({
+      preferredStrategy: 'pulse_media_v1',
+      capabilities: {
+        attachmentStrategies: ['mock_media_v1'],
+      },
+      effectiveStrategyOverride: 'mock_media_v1',
+    })).toEqual({
+      tone: 'fallback',
+      text: 'Het attachment-profiel pulse_media_v1 staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via /configz. Pulse valt daarom nu terug op mock_media_v1.',
     });
   });
 });

@@ -103,6 +103,30 @@ export function getAttachmentStrategyRuntimeCopy({
   };
 }
 
+export function getFutureAttachmentStrategyBannerCopy({
+  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
+  capabilities = null,
+  effectiveStrategyOverride = null,
+} = {}) {
+  const runtimeState = getAttachmentStrategyRuntimeState({
+    preferredStrategy,
+    capabilities,
+    effectiveStrategyOverride,
+  });
+
+  if (!runtimeState.fallbackActive) {
+    return {
+      tone: 'future',
+      text: `Pulse test nu het toekomstige attachment-profiel ${runtimeState.effectiveStrategy} via de remote mock-opslagflow.`,
+    };
+  }
+
+  return {
+    tone: 'fallback',
+    text: `Het attachment-profiel ${runtimeState.preferredStrategy} staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via /configz. Pulse valt daarom nu terug op ${runtimeState.effectiveStrategy}.`,
+  };
+}
+
 export async function probeE2EEServiceReady(baseUrl) {
   if (!isE2EEServiceTransportEnabled || !baseUrl) return false;
 

@@ -1,7 +1,5 @@
-function buildEmptyConversationSummary(fallback = '') {
+export function buildEmptyConversationAttachmentSummaryFields() {
   return {
-    lastMessage: fallback,
-    lastMessageType: null,
     lastAttachmentTransfer: null,
     lastAttachmentEncoding: null,
     lastAttachmentEnvelopeKind: null,
@@ -13,19 +11,70 @@ function buildEmptyConversationSummary(fallback = '') {
   };
 }
 
+function buildEmptyConversationSummary(fallback = '') {
+  return {
+    lastMessage: fallback,
+    lastMessageType: null,
+    ...buildEmptyConversationAttachmentSummaryFields(),
+  };
+}
+
+export function buildConversationAttachmentSummaryFields(attachment = null) {
+  if (!attachment || typeof attachment !== 'object') {
+    return buildEmptyConversationAttachmentSummaryFields();
+  }
+
+  return {
+    lastAttachmentTransfer: attachment.transfer || null,
+    lastAttachmentEncoding: attachment.contentEncoding || null,
+    lastAttachmentEnvelopeKind: attachment.envelopeKind || attachment.encryption?.envelopeKind || null,
+    lastAttachmentOriginalMimeType: attachment.originalMimeType || attachment.mimeType || null,
+    lastAttachmentExpectedPayloadSha256: attachment.expectedPayloadSha256 || attachment.encryption?.sha256 || null,
+    lastAttachmentMediaKeyId: attachment.encryption?.mediaKeyId || null,
+    lastAttachmentKeyWrapAlg: attachment.encryption?.keyWrapAlg || null,
+    lastAttachmentWrappedMediaKeyDigest: attachment.encryption?.wrappedMediaKeyDigest || null,
+  };
+}
+
+export function hasConversationAttachmentSummaryFields(summaryLike = {}) {
+  return Boolean(
+    summaryLike?.lastAttachmentTransfer
+    || summaryLike?.lastAttachmentEncoding
+    || summaryLike?.lastAttachmentEnvelopeKind
+    || summaryLike?.lastAttachmentOriginalMimeType
+    || summaryLike?.lastAttachmentExpectedPayloadSha256
+    || summaryLike?.lastAttachmentMediaKeyId
+    || summaryLike?.lastAttachmentKeyWrapAlg
+    || summaryLike?.lastAttachmentWrappedMediaKeyDigest
+  );
+}
+
+export function buildConversationSummaryAttachmentPayload(summaryLike = {}) {
+  if (!hasConversationAttachmentSummaryFields(summaryLike)) {
+    return null;
+  }
+
+  return {
+    transfer: summaryLike.lastAttachmentTransfer || '',
+    contentEncoding: summaryLike.lastAttachmentEncoding || '',
+    envelopeKind: summaryLike.lastAttachmentEnvelopeKind || '',
+    originalMimeType: summaryLike.lastAttachmentOriginalMimeType || '',
+    expectedPayloadSha256: summaryLike.lastAttachmentExpectedPayloadSha256 || '',
+    encryption: {
+      mediaKeyId: summaryLike.lastAttachmentMediaKeyId || '',
+      keyWrapAlg: summaryLike.lastAttachmentKeyWrapAlg || '',
+      wrappedMediaKeyDigest: summaryLike.lastAttachmentWrappedMediaKeyDigest || '',
+      envelopeKind: summaryLike.lastAttachmentEnvelopeKind || '',
+    },
+  };
+}
+
 export function applyConversationSummaryFields(target = {}, summary = {}) {
   return {
     ...target,
     lastMessage: summary.lastMessage ?? '',
     lastMessageType: summary.lastMessageType ?? null,
-    lastAttachmentTransfer: summary.lastAttachmentTransfer ?? null,
-    lastAttachmentEncoding: summary.lastAttachmentEncoding ?? null,
-    lastAttachmentEnvelopeKind: summary.lastAttachmentEnvelopeKind ?? null,
-    lastAttachmentOriginalMimeType: summary.lastAttachmentOriginalMimeType ?? null,
-    lastAttachmentExpectedPayloadSha256: summary.lastAttachmentExpectedPayloadSha256 ?? null,
-    lastAttachmentMediaKeyId: summary.lastAttachmentMediaKeyId ?? null,
-    lastAttachmentKeyWrapAlg: summary.lastAttachmentKeyWrapAlg ?? null,
-    lastAttachmentWrappedMediaKeyDigest: summary.lastAttachmentWrappedMediaKeyDigest ?? null,
+    ...buildConversationAttachmentSummaryFields(buildConversationSummaryAttachmentPayload(summary)),
   };
 }
 
@@ -38,26 +87,9 @@ export function deriveConversationSummary(message, fallback = '') {
     return {
       lastMessage: message.text,
       lastMessageType: message.messageType || 'text',
-      lastAttachmentTransfer: message.messageType === 'attachment' ? (message.attachment?.transfer || null) : null,
-      lastAttachmentEncoding: message.messageType === 'attachment' ? (message.attachment?.contentEncoding || null) : null,
-      lastAttachmentEnvelopeKind: message.messageType === 'attachment'
-        ? (message.attachment?.envelopeKind || message.attachment?.encryption?.envelopeKind || null)
-        : null,
-      lastAttachmentOriginalMimeType: message.messageType === 'attachment'
-        ? (message.attachment?.originalMimeType || message.attachment?.mimeType || null)
-        : null,
-      lastAttachmentExpectedPayloadSha256: message.messageType === 'attachment'
-        ? (message.attachment?.expectedPayloadSha256 || message.attachment?.encryption?.sha256 || null)
-        : null,
-      lastAttachmentMediaKeyId: message.messageType === 'attachment'
-        ? (message.attachment?.encryption?.mediaKeyId || null)
-        : null,
-      lastAttachmentKeyWrapAlg: message.messageType === 'attachment'
-        ? (message.attachment?.encryption?.keyWrapAlg || null)
-        : null,
-      lastAttachmentWrappedMediaKeyDigest: message.messageType === 'attachment'
-        ? (message.attachment?.encryption?.wrappedMediaKeyDigest || null)
-        : null,
+      ...buildConversationAttachmentSummaryFields(
+        message.messageType === 'attachment' ? message.attachment : null
+      ),
     };
   }
 
@@ -65,14 +97,7 @@ export function deriveConversationSummary(message, fallback = '') {
     return {
       lastMessage: 'Contactpersoon gedeeld',
       lastMessageType: 'contact',
-      lastAttachmentTransfer: null,
-      lastAttachmentEncoding: null,
-      lastAttachmentEnvelopeKind: null,
-      lastAttachmentOriginalMimeType: null,
-      lastAttachmentExpectedPayloadSha256: null,
-      lastAttachmentMediaKeyId: null,
-      lastAttachmentKeyWrapAlg: null,
-      lastAttachmentWrappedMediaKeyDigest: null,
+      ...buildEmptyConversationAttachmentSummaryFields(),
     };
   }
 
@@ -81,14 +106,7 @@ export function deriveConversationSummary(message, fallback = '') {
     return {
       lastMessage: `Bijlage: ${attachmentName}`,
       lastMessageType: 'attachment',
-      lastAttachmentTransfer: message.attachment?.transfer || null,
-      lastAttachmentEncoding: message.attachment?.contentEncoding || null,
-      lastAttachmentEnvelopeKind: message.attachment?.envelopeKind || message.attachment?.encryption?.envelopeKind || null,
-      lastAttachmentOriginalMimeType: message.attachment?.originalMimeType || message.attachment?.mimeType || null,
-      lastAttachmentExpectedPayloadSha256: message.attachment?.expectedPayloadSha256 || message.attachment?.encryption?.sha256 || null,
-      lastAttachmentMediaKeyId: message.attachment?.encryption?.mediaKeyId || null,
-      lastAttachmentKeyWrapAlg: message.attachment?.encryption?.keyWrapAlg || null,
-      lastAttachmentWrappedMediaKeyDigest: message.attachment?.encryption?.wrappedMediaKeyDigest || null,
+      ...buildConversationAttachmentSummaryFields(message.attachment),
     };
   }
 
@@ -96,14 +114,7 @@ export function deriveConversationSummary(message, fallback = '') {
     return {
       lastMessage: 'Nieuw bericht',
       lastMessageType: message.messageType,
-      lastAttachmentTransfer: null,
-      lastAttachmentEncoding: null,
-      lastAttachmentEnvelopeKind: null,
-      lastAttachmentOriginalMimeType: null,
-      lastAttachmentExpectedPayloadSha256: null,
-      lastAttachmentMediaKeyId: null,
-      lastAttachmentKeyWrapAlg: null,
-      lastAttachmentWrappedMediaKeyDigest: null,
+      ...buildEmptyConversationAttachmentSummaryFields(),
     };
   }
 
@@ -112,27 +123,13 @@ export function deriveConversationSummary(message, fallback = '') {
       return {
         lastMessage: Buffer.from(message.ciphertext, 'base64').toString('utf8') || fallback || 'Versleuteld bericht',
         lastMessageType: message.messageType || 'text',
-        lastAttachmentTransfer: null,
-        lastAttachmentEncoding: null,
-        lastAttachmentEnvelopeKind: null,
-        lastAttachmentOriginalMimeType: null,
-        lastAttachmentExpectedPayloadSha256: null,
-        lastAttachmentMediaKeyId: null,
-        lastAttachmentKeyWrapAlg: null,
-        lastAttachmentWrappedMediaKeyDigest: null,
+        ...buildEmptyConversationAttachmentSummaryFields(),
       };
     } catch {
       return {
         lastMessage: fallback || 'Versleuteld bericht',
         lastMessageType: message.messageType || 'text',
-        lastAttachmentTransfer: null,
-        lastAttachmentEncoding: null,
-        lastAttachmentEnvelopeKind: null,
-        lastAttachmentOriginalMimeType: null,
-        lastAttachmentExpectedPayloadSha256: null,
-        lastAttachmentMediaKeyId: null,
-        lastAttachmentKeyWrapAlg: null,
-        lastAttachmentWrappedMediaKeyDigest: null,
+        ...buildEmptyConversationAttachmentSummaryFields(),
       };
     }
   }

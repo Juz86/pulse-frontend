@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyConversationSummaryFields, deriveConversationSummary } from './conversationSummaries.js';
+import {
+  applyConversationSummaryFields,
+  buildConversationSummaryAttachmentPayload,
+  deriveConversationSummary,
+} from './conversationSummaries.js';
 
 test('deriveConversationSummary keeps attachment contract metadata and file name', () => {
   const summary = deriveConversationSummary({
@@ -84,6 +88,34 @@ test('applyConversationSummaryFields projects a stable conversation summary shap
       lastAttachmentMediaKeyId: null,
       lastAttachmentKeyWrapAlg: null,
       lastAttachmentWrappedMediaKeyDigest: null,
+    }
+  );
+});
+
+test('buildConversationSummaryAttachmentPayload reconstructs attachment contract fields from a summary', () => {
+  assert.deepEqual(
+    buildConversationSummaryAttachmentPayload({
+      lastAttachmentTransfer: 'remote',
+      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+      lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
+      lastAttachmentOriginalMimeType: 'application/pdf',
+      lastAttachmentExpectedPayloadSha256: 'hash-1',
+      lastAttachmentMediaKeyId: 'media-key-1',
+      lastAttachmentKeyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      lastAttachmentWrappedMediaKeyDigest: 'wrapped-digest-1',
+    }),
+    {
+      transfer: 'remote',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      originalMimeType: 'application/pdf',
+      expectedPayloadSha256: 'hash-1',
+      encryption: {
+        mediaKeyId: 'media-key-1',
+        keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+        wrappedMediaKeyDigest: 'wrapped-digest-1',
+        envelopeKind: 'pulse_mock_media_envelope',
+      },
     }
   );
 });

@@ -3,10 +3,11 @@ import React, { useState, useEffect } from 'react';
 import AuthScreen from './AuthScreen';
 import AuthModal from '../components/AuthModal';
 import ParentAuthModal from '../components/ParentAuthModal';
-import { Shield, PhoneIcon, Wifi, Login } from '../components/Icons';
+import { Shield, PhoneIcon, Login } from '../components/Icons';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
+import { Users } from 'lucide-react';
 
 
 function HeroChatBubbles() {
@@ -87,7 +88,7 @@ export default function Homepage({ onParentClick }) {
             <ul className="hp-hero-features" aria-label="Belangrijkste voordelen">
               <li className="hp-hero-feature"><span aria-hidden="true"><Shield size={16} /></span> Versleuteld &amp; privé</li>
               <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Chatten &amp; (video)bellen</li>
-              <li className="hp-hero-feature"><span aria-hidden="true"><Wifi size={16} /></span> Ouderlijk toezicht</li>
+              <li className="hp-hero-feature"><span aria-hidden="true"><Users size={16} /></span> Ouderlijk toezicht</li>
             </ul>
           </div>
 

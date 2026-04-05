@@ -292,7 +292,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
         {/* ── CTA ── */}
         <section className="ot-final-cta">
           <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Zonder zorgen.</h2>
-          <p>Geef je kind een veilige plek om te communiceren — zonder dat een bedrijf meekijkt, meeluistert of verdient aan het gedrag van je kind.</p>
+          <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
               Ouderaccount aanmaken

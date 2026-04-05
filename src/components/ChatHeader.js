@@ -3,10 +3,9 @@ import React, { useMemo } from 'react';
 import { Phone, Video, Users } from '../components/Icons';
 import {
   E2EE_ATTACHMENT_STRATEGY,
-  getFutureAttachmentStrategyBannerCopy,
+  getFutureAttachmentStrategyBannerState,
   getAttachmentStrategyRuntimeState,
   isE2EEServiceTransportEnabled,
-  isRemoteMockAttachmentTransportEnabled,
 } from '../lib/e2ee/config';
 import UserAvatar from '../components/UserAvatar';
 
@@ -62,10 +61,11 @@ const ChatHeader = React.memo(function ChatHeader({
   const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentStrategyRuntimeState({
     preferredStrategy: undefined,
   });
-  const futureAttachmentBannerCopy = getFutureAttachmentStrategyBannerCopy({
+  const futureAttachmentBannerState = getFutureAttachmentStrategyBannerState({
     preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
     capabilities: resolvedAttachmentStrategyRuntime.capabilities,
     effectiveStrategyOverride: resolvedAttachmentStrategyRuntime.effectiveStrategy,
+    showFutureMediaBanner,
   });
 
   function openContactProfile() {
@@ -182,7 +182,7 @@ const ChatHeader = React.memo(function ChatHeader({
         </div>
       )}
 
-      {isRemoteMockAttachmentTransportEnabled && showFutureMediaBanner && E2EE_ATTACHMENT_STRATEGY === 'pulse_media_v1' && (
+      {futureAttachmentBannerState.visible && (
         <div
           className="chat-future-media-banner"
           role="status"
@@ -191,15 +191,15 @@ const ChatHeader = React.memo(function ChatHeader({
             margin: '0 12px 10px',
             padding: '8px 12px',
             borderRadius: 12,
-            background: futureAttachmentBannerCopy.tone === 'fallback' ? 'rgba(245, 158, 11, 0.14)' : 'rgba(59, 130, 246, 0.10)',
-            border: futureAttachmentBannerCopy.tone === 'fallback'
+            background: futureAttachmentBannerState.tone === 'fallback' ? 'rgba(245, 158, 11, 0.14)' : 'rgba(59, 130, 246, 0.10)',
+            border: futureAttachmentBannerState.tone === 'fallback'
               ? '1px solid rgba(245, 158, 11, 0.28)'
               : '1px solid rgba(59, 130, 246, 0.24)',
             color: 'var(--text2)',
             fontSize: 12,
           }}
         >
-          {futureAttachmentBannerCopy.text}
+          {futureAttachmentBannerState.text}
         </div>
       )}
 

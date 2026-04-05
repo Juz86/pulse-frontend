@@ -129,6 +129,29 @@ export function getFutureAttachmentStrategyBannerCopy({
   };
 }
 
+export function getFutureAttachmentStrategyBannerState({
+  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
+  capabilities = null,
+  effectiveStrategyOverride = null,
+  showFutureMediaBanner = false,
+  attachmentTransport = E2EE_ATTACHMENT_TRANSPORT,
+} = {}) {
+  const visible = Boolean(
+    attachmentTransport === 'remote_mock'
+    && showFutureMediaBanner
+    && preferredStrategy === 'pulse_media_v1'
+  );
+
+  return {
+    visible,
+    ...getFutureAttachmentStrategyBannerCopy({
+      preferredStrategy,
+      capabilities,
+      effectiveStrategyOverride,
+    }),
+  };
+}
+
 export async function probeE2EEServiceReady(baseUrl) {
   if (!isE2EEServiceTransportEnabled || !baseUrl) return false;
 

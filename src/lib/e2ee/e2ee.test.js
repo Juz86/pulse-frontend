@@ -77,6 +77,7 @@ import {
   getAttachmentStrategyPresentation,
 } from './attachmentPresentation';
 import {
+  getFutureAttachmentStrategyBannerState,
   getFutureAttachmentStrategyBannerCopy,
   getAttachmentStrategyRuntimeCopy,
   getAttachmentStrategyRuntimeState,
@@ -523,6 +524,36 @@ describe('e2ee backend capability helpers', () => {
     })).toEqual({
       tone: 'future',
       text: 'Pulse test nu het toekomstige attachment-profiel future-draft (pulse_media_v1) via de remote mock-opslagflow.',
+    });
+  });
+
+  test('getFutureAttachmentStrategyBannerState derives visibility and copy together', () => {
+    expect(getFutureAttachmentStrategyBannerState({
+      preferredStrategy: 'pulse_media_v1',
+      capabilities: {
+        attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
+      },
+      effectiveStrategyOverride: 'pulse_media_v1',
+      showFutureMediaBanner: true,
+      attachmentTransport: 'remote_mock',
+    })).toEqual({
+      visible: true,
+      tone: 'future',
+      text: 'Pulse test nu het toekomstige attachment-profiel future-draft (pulse_media_v1) via de remote mock-opslagflow.',
+    });
+
+    expect(getFutureAttachmentStrategyBannerState({
+      preferredStrategy: 'pulse_media_v1',
+      capabilities: {
+        attachmentStrategies: ['mock_media_v1'],
+      },
+      effectiveStrategyOverride: 'mock_media_v1',
+      showFutureMediaBanner: false,
+      attachmentTransport: 'remote_mock',
+    })).toEqual({
+      visible: false,
+      tone: 'fallback',
+      text: 'Het attachment-profiel future-draft (pulse_media_v1) staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via /configz. Pulse valt daarom nu terug op mock-profiel (mock_media_v1).',
     });
   });
 

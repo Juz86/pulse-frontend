@@ -42,6 +42,96 @@ async function computeDigestHex(bytes) {
   return `fallback-${(hash >>> 0).toString(16).padStart(8, '0')}`;
 }
 
+async function computeTextDigestHex(text = '') {
+  return computeDigestHex(Uint8Array.from(unescape(encodeURIComponent(text)), (char) => char.charCodeAt(0)));
+}
+
+function buildMockWrappedMediaKey({ seed = '', mediaKeyId = '', keyWrapAlg = '' } = {}) {
+  return toBase64Utf8(JSON.stringify({
+    version: 1,
+    kind: 'pulse_mock_wrapped_media_key',
+    seed,
+    mediaKeyId,
+    keyWrapAlg,
+  }));
+}
+
+export function decodeMockWrappedMediaKey(wrappedMediaKey = '') {
+  if (!wrappedMediaKey) return null;
+
+  try {
+    return JSON.parse(fromBase64Utf8(wrappedMediaKey));
+  } catch {
+    return null;
+  }
+}
+
+export async function unwrapMockWrappedMediaKey(encryption = {}) {
+  const wrappedKeyPayload = await validateMockWrappedMediaKeyContract(encryption);
+
+  return {
+    mediaKeyId: wrappedKeyPayload.mediaKeyId || encryption?.mediaKeyId || '',
+    keyWrapAlg: wrappedKeyPayload.keyWrapAlg || encryption?.keyWrapAlg || '',
+    payloadSha256: wrappedKeyPayload.seed || encryption?.sha256 || '',
+    wrappedMediaKey: encryption?.wrappedMediaKey || '',
+    wrappedMediaKeyDigest: encryption?.wrappedMediaKeyDigest || '',
+    unwrapKind: 'pulse_mock_media_key_unwrap',
+  };
+}
+
+export async function validateMockWrappedMediaKeyContract(encryption = {}) {
+  const wrappedKeyPayload = decodeMockWrappedMediaKey(encryption?.wrappedMediaKey || '');
+  if (!wrappedKeyPayload || wrappedKeyPayload.kind !== 'pulse_mock_wrapped_media_key') {
+    throw new Error('Ongeldige mock wrapped media key.');
+  }
+
+  if (encryption?.mediaKeyId && wrappedKeyPayload.mediaKeyId && encryption.mediaKeyId !== wrappedKeyPayload.mediaKeyId) {
+    throw new Error('Wrapped media key komt niet overeen met mediaKeyId.');
+  }
+
+  if (encryption?.keyWrapAlg && wrappedKeyPayload.keyWrapAlg && encryption.keyWrapAlg !== wrappedKeyPayload.keyWrapAlg) {
+    throw new Error('Wrapped media key komt niet overeen met keyWrapAlg.');
+  }
+
+  if (encryption?.sha256 && wrappedKeyPayload.seed && encryption.sha256 !== wrappedKeyPayload.seed) {
+    throw new Error('Wrapped media key komt niet overeen met attachment hash.');
+  }
+  if (encryption?.wrappedMediaKeyDigest && encryption?.wrappedMediaKey) {
+    const actualDigest = await computeTextDigestHex(encryption.wrappedMediaKey);
+    if (actualDigest !== encryption.wrappedMediaKeyDigest) {
+      throw new Error('Wrapped media key digest komt niet overeen.');
+    }
+  }
+
+  return wrappedKeyPayload;
+}
+
+export async function buildMockAttachmentEncryptionMetadata(attachment, envelope) {
+  const originalMimeType = attachment?.mimeType || envelope?.mimeType || 'application/octet-stream';
+  const payloadSha256 = envelope?.payloadSha256 || '';
+  const mediaKeyId = `mock-media-key-${payloadSha256.slice(0, 16) || 'attachment'}`;
+  const keyWrapAlg = 'pulse_mock_media_key_wrap_v1';
+  const wrappedMediaKey = buildMockWrappedMediaKey({
+    seed: payloadSha256,
+    mediaKeyId,
+    keyWrapAlg,
+  });
+  const wrappedMediaKeyDigest = await computeTextDigestHex(wrappedMediaKey);
+
+  return {
+    alg: 'mock-e2ee-envelope-v1',
+    keyId: attachment?.encryption?.keyId || `mock-key-${payloadSha256.slice(0, 12) || 'attachment'}`,
+    iv: attachment?.encryption?.iv || `mock-iv-${payloadSha256.slice(0, 12) || 'attachment'}`,
+    sha256: payloadSha256,
+    mediaKeyId,
+    keyWrapAlg,
+    wrappedMediaKey,
+    wrappedMediaKeyDigest,
+    envelopeKind: envelope?.kind || 'pulse_mock_media_envelope',
+    originalMimeType,
+  };
+}
+
 export async function createMockEncryptedAttachmentEnvelope(attachment) {
   const sourceUrl = attachment?.downloadUrl || attachment?.url || '';
   const parsed = parseDataUrl(sourceUrl);

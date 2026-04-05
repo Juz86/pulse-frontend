@@ -23,6 +23,10 @@ export function normalizeAttachmentPayload(attachment) {
         keyId: typeof attachment.encryption.keyId === 'string' ? attachment.encryption.keyId : '',
         iv: typeof attachment.encryption.iv === 'string' ? attachment.encryption.iv : '',
         sha256: typeof attachment.encryption.sha256 === 'string' ? attachment.encryption.sha256 : '',
+        mediaKeyId: typeof attachment.encryption.mediaKeyId === 'string' ? attachment.encryption.mediaKeyId : '',
+        keyWrapAlg: typeof attachment.encryption.keyWrapAlg === 'string' ? attachment.encryption.keyWrapAlg : '',
+        wrappedMediaKey: typeof attachment.encryption.wrappedMediaKey === 'string' ? attachment.encryption.wrappedMediaKey : '',
+        wrappedMediaKeyDigest: typeof attachment.encryption.wrappedMediaKeyDigest === 'string' ? attachment.encryption.wrappedMediaKeyDigest : '',
         envelopeKind: typeof attachment.encryption.envelopeKind === 'string' ? attachment.encryption.envelopeKind : '',
         originalMimeType: typeof attachment.encryption.originalMimeType === 'string' ? attachment.encryption.originalMimeType : '',
       }

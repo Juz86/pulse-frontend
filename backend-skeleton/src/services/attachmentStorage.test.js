@@ -56,6 +56,10 @@ test('buildStoredAttachmentMetadata creates remote mock payload', () => {
   assert.equal(metadata.contentEncoding, 'identity');
   assert.equal(metadata.originalMimeType, 'image/png');
   assert.equal(metadata.expectedPayloadSha256, '');
+  assert.equal(metadata.encryption.mediaKeyId, '');
+  assert.equal(metadata.encryption.keyWrapAlg, '');
+  assert.equal(metadata.encryption.wrappedMediaKey, '');
+  assert.equal(metadata.encryption.wrappedMediaKeyDigest, '');
 });
 
 test('storeMockAttachment persists inline data for retrieval', async () => {
@@ -105,9 +109,52 @@ test('storeMockAttachment preserves mock envelope contract metadata', async () =
   assert.equal(stored.contentEncoding, 'mock-e2ee-envelope-v1');
   assert.equal(stored.envelopeKind, 'pulse_mock_media_envelope');
   assert.equal(stored.expectedPayloadSha256, 'abcd1234');
+  assert.equal(stored.mediaKeyId, '');
+  assert.equal(stored.keyWrapAlg, '');
+  assert.equal(stored.wrappedMediaKey, '');
+  assert.equal(stored.wrappedMediaKeyDigest, '');
   assert.equal(metadata.contentEncoding, 'mock-e2ee-envelope-v1');
   assert.equal(metadata.originalMimeType, 'image/png');
   assert.equal(metadata.expectedPayloadSha256, 'abcd1234');
+  assert.equal(metadata.encryption.alg, 'mock-e2ee-envelope-v1');
+  assert.equal(metadata.encryption.mediaKeyId, '');
+  assert.equal(metadata.encryption.keyWrapAlg, '');
+  assert.equal(metadata.encryption.wrappedMediaKey, '');
+  assert.equal(metadata.encryption.wrappedMediaKeyDigest, '');
+});
+
+test('storeMockAttachment preserves wrapped media key metadata', async () => {
+  const metadata = await storeMockAttachment({
+    baseUrl: 'http://localhost:3001',
+    attachment: {
+      name: 'photo.png',
+      url: 'data:application/pulse-e2ee-envelope+json;base64,eyJraW5kIjoicHVsc2VfbW9ja19tZWRpYV9lbnZlbG9wZSIsIm1pbWVUeXBlIjoiaW1hZ2UvcG5nIiwicGF5bG9hZEJhc2U2NCI6ImFiYyJ9',
+      mimeType: 'image/png',
+      size: 3,
+      encryption: {
+        alg: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'pulse_mock_media_envelope',
+        originalMimeType: 'image/png',
+        sha256: 'abcd1234',
+        mediaKeyId: 'mock-media-key-1',
+        keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+        wrappedMediaKey: 'eyJrZXkiOiJtb2NrIn0=',
+        wrappedMediaKeyDigest: 'wrapped-digest-1',
+      },
+    },
+  });
+
+  const attachmentId = metadata.downloadUrl.split('/').pop();
+  const stored = await getStoredAttachment(attachmentId);
+
+  assert.equal(stored.mediaKeyId, 'mock-media-key-1');
+  assert.equal(stored.keyWrapAlg, 'pulse_mock_media_key_wrap_v1');
+  assert.equal(stored.wrappedMediaKey, 'eyJrZXkiOiJtb2NrIn0=');
+  assert.equal(stored.wrappedMediaKeyDigest, 'wrapped-digest-1');
+  assert.equal(metadata.encryption.mediaKeyId, 'mock-media-key-1');
+  assert.equal(metadata.encryption.keyWrapAlg, 'pulse_mock_media_key_wrap_v1');
+  assert.equal(metadata.encryption.wrappedMediaKey, 'eyJrZXkiOiJtb2NrIn0=');
+  assert.equal(metadata.encryption.wrappedMediaKeyDigest, 'wrapped-digest-1');
 });
 
 test('getAttachmentIdFromUrl extracts the stored attachment id', () => {

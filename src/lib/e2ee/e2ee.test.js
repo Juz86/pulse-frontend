@@ -28,23 +28,35 @@ import {
   prepareAttachmentForSend,
 } from './attachmentUploadAdapter';
 import {
+  buildMockAttachmentEncryptionMetadata,
   createMockEncryptedAttachmentEnvelope,
+  decodeMockWrappedMediaKey,
   decodeMockAttachmentEnvelopeDataUrl,
   decryptMockAttachmentEnvelopeBlob,
+  unwrapMockWrappedMediaKey,
+  validateMockWrappedMediaKeyContract,
   verifyMockAttachmentEnvelope,
 } from './attachmentCrypto';
-import { getAttachmentContractPresentation } from './attachmentPresentation';
+import {
+  getAttachmentAccessVerificationPresentation,
+  getAttachmentContractPresentation,
+} from './attachmentPresentation';
 import {
   assertAttachmentMetadataIntegrity,
+  buildResolvedAttachmentAccessContract,
   buildAttachmentMetadataUrl,
   clearAttachmentMetadataCache,
   decryptAttachmentBlob,
   fetchAttachmentBlob,
   getCachedAttachmentMetadata,
+  getAttachmentContractFromHeaders,
   fetchAttachmentMetadata,
   getAttachmentAccessInfo,
+  mapAttachmentContractError,
   openAttachmentInNewTab,
   prepareAttachmentBinaryAccess,
+  resolveAttachmentUnwrapContext,
+  resolveAttachmentContractFields,
   resolveExpectedAttachmentSha256,
   resolveAttachmentForAccess,
   triggerAttachmentDownload,
@@ -262,6 +274,10 @@ describe('e2ee attachment helpers', () => {
         keyId: 'key-1',
         iv: 'iv-1',
         sha256: 'hash-1',
+        mediaKeyId: '',
+        keyWrapAlg: '',
+        wrappedMediaKey: '',
+        wrappedMediaKeyDigest: '',
         envelopeKind: 'pulse_mock_media_envelope',
         originalMimeType: 'image/jpeg',
       },
@@ -284,6 +300,10 @@ describe('e2ee attachment helpers', () => {
         keyId: 'key-1',
         iv: 'iv-1',
         sha256: 'hash-1',
+        mediaKeyId: '',
+        keyWrapAlg: '',
+        wrappedMediaKey: '',
+        wrappedMediaKeyDigest: '',
         envelopeKind: 'pulse_mock_media_envelope',
         originalMimeType: 'image/jpeg',
       },
@@ -302,6 +322,10 @@ describe('e2ee attachment helpers', () => {
       expectedPayloadSha256: 'abcd1234',
       encryption: {
         alg: 'mock-e2ee-envelope-v1',
+        mediaKeyId: '',
+        keyWrapAlg: '',
+        wrappedMediaKey: '',
+        wrappedMediaKeyDigest: '',
         envelopeKind: 'pulse_mock_media_envelope',
         originalMimeType: 'text/plain',
       },
@@ -324,6 +348,10 @@ describe('e2ee attachment helpers', () => {
         keyId: '',
         iv: '',
         sha256: '',
+        mediaKeyId: '',
+        keyWrapAlg: '',
+        wrappedMediaKey: '',
+        wrappedMediaKeyDigest: '',
         envelopeKind: 'pulse_mock_media_envelope',
         originalMimeType: 'text/plain',
       },
@@ -375,6 +403,87 @@ describe('e2ee attachment helpers', () => {
     expect(attachment.storageKey).toContain('mock-e2ee/conv-1/user-1/');
     expect(attachment.encryption?.alg).toBe('mock-e2ee-envelope-v1');
     expect(attachment.encryption?.sha256).toMatch(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/);
+    expect(attachment.encryption?.mediaKeyId).toMatch(/^mock-media-key-/);
+    expect(attachment.encryption?.keyWrapAlg).toBe('pulse_mock_media_key_wrap_v1');
+    expect(attachment.encryption?.wrappedMediaKey).toMatch(/^ey/);
+    expect(attachment.encryption?.wrappedMediaKeyDigest).toMatch(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/);
+  });
+
+  test('buildMockAttachmentEncryptionMetadata creates a stable mock media key contract', async () => {
+    const { envelope } = await createMockEncryptedAttachmentEnvelope({
+      name: 'hello.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      size: 5,
+    });
+
+    await expect(buildMockAttachmentEncryptionMetadata({
+      mimeType: 'text/plain',
+    }, envelope)).resolves.toEqual({
+      alg: 'mock-e2ee-envelope-v1',
+      keyId: expect.stringMatching(/^mock-key-/),
+      iv: expect.stringMatching(/^mock-iv-/),
+      sha256: envelope.payloadSha256,
+      mediaKeyId: expect.stringMatching(/^mock-media-key-/),
+      keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      wrappedMediaKey: expect.stringMatching(/^ey/),
+      wrappedMediaKeyDigest: expect.stringMatching(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/),
+      envelopeKind: 'pulse_mock_media_envelope',
+      originalMimeType: 'text/plain',
+    });
+  });
+
+  test('decodeMockWrappedMediaKey reads wrapped media key payloads', async () => {
+    const { envelope } = await createMockEncryptedAttachmentEnvelope({
+      name: 'hello.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      size: 5,
+    });
+    const encryption = await buildMockAttachmentEncryptionMetadata({ mimeType: 'text/plain' }, envelope);
+
+    expect(decodeMockWrappedMediaKey(encryption.wrappedMediaKey)).toEqual({
+      version: 1,
+      kind: 'pulse_mock_wrapped_media_key',
+      seed: envelope.payloadSha256,
+      mediaKeyId: encryption.mediaKeyId,
+      keyWrapAlg: encryption.keyWrapAlg,
+    });
+    expect(encryption.wrappedMediaKeyDigest).toMatch(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/);
+  });
+
+  test('validateMockWrappedMediaKeyContract rejects mismatched wrapped media keys', async () => {
+    const { envelope } = await createMockEncryptedAttachmentEnvelope({
+      name: 'hello.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      size: 5,
+    });
+    const encryption = await buildMockAttachmentEncryptionMetadata({ mimeType: 'text/plain' }, envelope);
+
+    await expect(validateMockWrappedMediaKeyContract({
+      ...encryption,
+      mediaKeyId: 'other-media-key',
+    })).rejects.toThrow('Wrapped media key komt niet overeen met mediaKeyId.');
+  });
+
+  test('unwrapMockWrappedMediaKey returns a reusable unwrap context', async () => {
+    const { envelope } = await createMockEncryptedAttachmentEnvelope({
+      name: 'hello.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+      size: 5,
+    });
+    const encryption = await buildMockAttachmentEncryptionMetadata({ mimeType: 'text/plain' }, envelope);
+
+    await expect(unwrapMockWrappedMediaKey(encryption)).resolves.toEqual({
+      mediaKeyId: encryption.mediaKeyId,
+      keyWrapAlg: encryption.keyWrapAlg,
+      payloadSha256: encryption.sha256,
+      wrappedMediaKey: encryption.wrappedMediaKey,
+      wrappedMediaKeyDigest: encryption.wrappedMediaKeyDigest,
+      unwrapKind: 'pulse_mock_media_key_unwrap',
+    });
   });
 
   test('getAttachmentContractPresentation derives consistent labels for encrypted remote attachments', () => {
@@ -384,14 +493,20 @@ describe('e2ee attachment helpers', () => {
       originalMimeType: 'image/png',
       envelopeKind: 'pulse_mock_media_envelope',
       expectedPayloadSha256: 'deadbeef',
+      encryption: {
+        mediaKeyId: 'mock-media-key-1',
+        keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      },
     })).toEqual({
       isRemote: true,
       isEncryptedRemote: true,
       hasIntegrityContract: true,
+      hasWrappedMediaKeyContract: true,
       mimeLabel: 'image/png',
       storageLabel: 'Mock versleutelde opslaglink',
       storageShortLabel: 'versleuteld',
       storageDetail: 'Envelope: pulse_mock_media_envelope · integriteitscheck actief',
+      keyContractDetail: 'Media key: mock-media-key-1 · wrap: pulse_mock_media_key_wrap_v1',
     });
   });
 
@@ -403,10 +518,24 @@ describe('e2ee attachment helpers', () => {
       isRemote: true,
       isEncryptedRemote: false,
       hasIntegrityContract: false,
+      hasWrappedMediaKeyContract: false,
       mimeLabel: 'application/pdf',
       storageLabel: 'Beveiligde opslaglink',
       storageShortLabel: 'opslaglink',
       storageDetail: '',
+      keyContractDetail: '',
+    });
+  });
+
+  test('getAttachmentAccessVerificationPresentation derives labels for verified remote access', () => {
+    expect(getAttachmentAccessVerificationPresentation({
+      integrityVerified: true,
+      wrappedKeyVerified: true,
+    }, {
+      unwrapKind: 'pulse_mock_media_key_unwrap',
+    })).toEqual({
+      integrityAccessLabel: 'Downloadcontract bevestigd',
+      wrappedKeyAccessLabel: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap',
     });
   });
 
@@ -522,6 +651,14 @@ describe('e2ee attachment helpers', () => {
     const getIdToken = jest.fn().mockResolvedValue('token-abc');
     const fetchImpl = jest.fn().mockResolvedValue({
       ok: true,
+      headers: {
+        get: jest.fn((name) => ({
+          'X-Pulse-Expected-Sha256': '',
+          'X-Pulse-Content-Encoding': '',
+          'X-Pulse-Envelope-Kind': '',
+          'X-Pulse-Original-MimeType': '',
+        }[name] || '')),
+      },
       json: async () => ({
         attachment: {
           name: 'rapport.pdf',
@@ -571,6 +708,14 @@ describe('e2ee attachment helpers', () => {
     const getIdToken = jest.fn().mockResolvedValue('token-abc');
     const fetchImpl = jest.fn().mockResolvedValue({
       ok: true,
+      headers: {
+        get: jest.fn((name) => ({
+          'X-Pulse-Expected-Sha256': 'server-sha-1',
+          'X-Pulse-Content-Encoding': 'mock-e2ee-envelope-v1',
+          'X-Pulse-Envelope-Kind': '',
+          'X-Pulse-Original-MimeType': '',
+        }[name] || '')),
+      },
       json: async () => ({
         attachment: {
           name: 'rapport.pdf',
@@ -597,6 +742,110 @@ describe('e2ee attachment helpers', () => {
       { getIdToken },
       fetchImpl
     )).rejects.toThrow('Attachment metadata-integriteit komt niet overeen');
+  });
+
+  test('fetchAttachmentMetadata rejects mismatched attachment envelope metadata', async () => {
+    const getIdToken = jest.fn().mockResolvedValue('token-abc');
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      headers: {
+        get: jest.fn((name) => ({
+          'X-Pulse-Expected-Sha256': 'same-sha',
+          'X-Pulse-Content-Encoding': 'mock-e2ee-envelope-v1',
+          'X-Pulse-Envelope-Kind': 'server-envelope',
+          'X-Pulse-Original-MimeType': 'image/png',
+        }[name] || '')),
+      },
+      json: async () => ({
+        attachment: {
+          name: 'rapport.pdf',
+          downloadUrl: 'http://localhost:3001/attachments/mock-99',
+          transfer: 'remote',
+          mimeType: 'application/pulse-e2ee-envelope+json',
+          contentEncoding: 'mock-e2ee-envelope-v1',
+          envelopeKind: 'server-envelope',
+          originalMimeType: 'image/png',
+          expectedPayloadSha256: 'same-sha',
+          encryption: {
+            alg: 'mock-e2ee-envelope-v1',
+            sha256: 'same-sha',
+            envelopeKind: 'server-envelope',
+            originalMimeType: 'image/png',
+          },
+        },
+      }),
+    });
+
+    await expect(fetchAttachmentMetadata(
+      {
+        downloadUrl: 'http://localhost:3001/attachments/mock-99',
+        transfer: 'remote',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'client-envelope',
+        originalMimeType: 'image/png',
+        expectedPayloadSha256: 'same-sha',
+        encryption: {
+          alg: 'mock-e2ee-envelope-v1',
+          sha256: 'same-sha',
+          envelopeKind: 'client-envelope',
+          originalMimeType: 'image/png',
+        },
+      },
+      { getIdToken },
+      fetchImpl
+    )).rejects.toThrow('Attachment metadata envelope-kind komt niet overeen');
+  });
+
+  test('fetchAttachmentMetadata rejects mismatched metadata headers', async () => {
+    const getIdToken = jest.fn().mockResolvedValue('token-abc');
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      headers: {
+        get: jest.fn((name) => ({
+          'X-Pulse-Expected-Sha256': 'same-sha',
+          'X-Pulse-Content-Encoding': 'mock-e2ee-envelope-v1',
+          'X-Pulse-Envelope-Kind': 'header-envelope',
+          'X-Pulse-Original-MimeType': 'image/png',
+        }[name] || '')),
+      },
+      json: async () => ({
+        attachment: {
+          name: 'rapport.pdf',
+          downloadUrl: 'http://localhost:3001/attachments/mock-99',
+          transfer: 'remote',
+          mimeType: 'application/pulse-e2ee-envelope+json',
+          contentEncoding: 'mock-e2ee-envelope-v1',
+          envelopeKind: 'body-envelope',
+          originalMimeType: 'image/png',
+          expectedPayloadSha256: 'same-sha',
+          encryption: {
+            alg: 'mock-e2ee-envelope-v1',
+            sha256: 'same-sha',
+            envelopeKind: 'body-envelope',
+            originalMimeType: 'image/png',
+          },
+        },
+      }),
+    });
+
+    await expect(fetchAttachmentMetadata(
+      {
+        downloadUrl: 'http://localhost:3001/attachments/mock-99',
+        transfer: 'remote',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'body-envelope',
+        originalMimeType: 'image/png',
+        expectedPayloadSha256: 'same-sha',
+        encryption: {
+          alg: 'mock-e2ee-envelope-v1',
+          sha256: 'same-sha',
+          envelopeKind: 'body-envelope',
+          originalMimeType: 'image/png',
+        },
+      },
+      { getIdToken },
+      fetchImpl
+    )).rejects.toThrow('Attachment metadata envelope-kind komt niet overeen');
   });
 
   test('fetchAttachmentMetadata reuses cache for the same attachment id', async () => {
@@ -646,9 +895,175 @@ describe('e2ee attachment helpers', () => {
 
   test('assertAttachmentMetadataIntegrity accepts matching metadata contracts', () => {
     expect(() => assertAttachmentMetadataIntegrity(
-      { expectedPayloadSha256: 'same-sha' },
-      { expectedPayloadSha256: 'same-sha' }
+      {
+        expectedPayloadSha256: 'same-sha',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'pulse_mock_media_envelope',
+        originalMimeType: 'image/png',
+        encryption: {
+          mediaKeyId: 'key-1',
+          keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+          wrappedMediaKey: 'wrapped-key',
+          wrappedMediaKeyDigest: 'wrapped-digest',
+        },
+      },
+      {
+        expectedPayloadSha256: 'same-sha',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'pulse_mock_media_envelope',
+        originalMimeType: 'image/png',
+        encryption: {
+          mediaKeyId: 'key-1',
+          keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+          wrappedMediaKey: 'wrapped-key',
+          wrappedMediaKeyDigest: 'wrapped-digest',
+        },
+      }
     )).not.toThrow();
+  });
+
+  test('resolveAttachmentContractFields normalizes attachment contract fields', () => {
+    expect(resolveAttachmentContractFields({
+      expectedPayloadSha256: 'sha-top',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      originalMimeType: 'image/png',
+      mediaKeyId: 'ignored-top-level',
+      keyWrapAlg: 'ignored-top-level',
+      wrappedMediaKey: 'ignored-top-level',
+      encryption: {
+        sha256: 'sha-nested',
+        mediaKeyId: 'media-key-1',
+        keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+        wrappedMediaKey: 'wrapped-key-1',
+        wrappedMediaKeyDigest: 'wrapped-digest-1',
+        envelopeKind: 'ignored-envelope',
+        originalMimeType: 'ignored/type',
+      },
+    })).toEqual({
+      expectedPayloadSha256: 'sha-top',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      originalMimeType: 'image/png',
+      mediaKeyId: 'media-key-1',
+      keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      wrappedMediaKey: 'wrapped-key-1',
+      wrappedMediaKeyDigest: 'wrapped-digest-1',
+    });
+  });
+
+  test('buildResolvedAttachmentAccessContract derives verification hints', () => {
+    expect(buildResolvedAttachmentAccessContract({
+      expectedPayloadSha256: 'hash-1',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      originalMimeType: 'text/plain',
+      encryption: {
+        alg: 'mock-e2ee-envelope-v1',
+        mediaKeyId: 'mock-media-key-1',
+        keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+        wrappedMediaKey: 'wrapped-key',
+        wrappedMediaKeyDigest: 'wrapped-digest',
+      },
+    })).toEqual({
+      expectedPayloadSha256: 'hash-1',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      originalMimeType: 'text/plain',
+      mediaKeyId: 'mock-media-key-1',
+      keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      wrappedMediaKey: 'wrapped-key',
+      wrappedMediaKeyDigest: 'wrapped-digest',
+      integrityVerified: true,
+      wrappedKeyVerified: true,
+    });
+  });
+
+  test('getAttachmentContractFromHeaders reads attachment contract headers', () => {
+    expect(getAttachmentContractFromHeaders({
+      get: jest.fn((name) => ({
+        'X-Pulse-Expected-Sha256': 'sha-top',
+        'X-Pulse-Content-Encoding': 'mock-e2ee-envelope-v1',
+        'X-Pulse-Envelope-Kind': 'pulse_mock_media_envelope',
+        'X-Pulse-Original-MimeType': 'image/png',
+        'X-Pulse-Media-Key-Id': 'media-key-1',
+        'X-Pulse-Key-Wrap-Alg': 'pulse_mock_media_key_wrap_v1',
+        'X-Pulse-Wrapped-Media-Key-Digest': 'wrapped-digest-1',
+      }[name] || '')),
+    })).toEqual({
+      expectedPayloadSha256: 'sha-top',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      originalMimeType: 'image/png',
+      mediaKeyId: 'media-key-1',
+      keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      wrappedMediaKey: '',
+      wrappedMediaKeyDigest: 'wrapped-digest-1',
+    });
+  });
+
+  test('mapAttachmentContractError remaps low-level contract errors', () => {
+    expect(mapAttachmentContractError(new Error('Attachment envelope-kind komt niet overeen'), {
+      envelopeKindMessage: 'Aangepaste envelope mismatch',
+    }).message).toBe('Aangepaste envelope mismatch');
+  });
+
+  test('fetchAttachmentMetadata rejects mismatched wrapped media key metadata', async () => {
+    const getIdToken = jest.fn().mockResolvedValue('token-abc');
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      headers: {
+        get: jest.fn((name) => ({
+          'X-Pulse-Expected-Sha256': 'same-sha',
+          'X-Pulse-Content-Encoding': 'mock-e2ee-envelope-v1',
+          'X-Pulse-Envelope-Kind': 'pulse_mock_media_envelope',
+          'X-Pulse-Original-MimeType': 'image/png',
+        }[name] || '')),
+      },
+      json: async () => ({
+        attachment: {
+          name: 'rapport.pdf',
+          downloadUrl: 'http://localhost:3001/attachments/mock-99',
+          transfer: 'remote',
+          mimeType: 'application/pulse-e2ee-envelope+json',
+          contentEncoding: 'mock-e2ee-envelope-v1',
+          envelopeKind: 'pulse_mock_media_envelope',
+          originalMimeType: 'image/png',
+          expectedPayloadSha256: 'same-sha',
+          encryption: {
+            alg: 'mock-e2ee-envelope-v1',
+            sha256: 'same-sha',
+            envelopeKind: 'pulse_mock_media_envelope',
+            originalMimeType: 'image/png',
+            mediaKeyId: 'server-media-key',
+            keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+            wrappedMediaKey: 'server-wrapped-key',
+          },
+        },
+      }),
+    });
+
+    await expect(fetchAttachmentMetadata(
+      {
+        downloadUrl: 'http://localhost:3001/attachments/mock-99',
+        transfer: 'remote',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'pulse_mock_media_envelope',
+        originalMimeType: 'image/png',
+        expectedPayloadSha256: 'same-sha',
+        encryption: {
+          alg: 'mock-e2ee-envelope-v1',
+          sha256: 'same-sha',
+          envelopeKind: 'pulse_mock_media_envelope',
+          originalMimeType: 'image/png',
+          mediaKeyId: 'client-media-key',
+          keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+          wrappedMediaKey: 'client-wrapped-key',
+        },
+      },
+      { getIdToken },
+      fetchImpl
+    )).rejects.toThrow('Attachment metadata media-key-id komt niet overeen');
   });
 
   test('fetchAttachmentBlob downloads a blob from the resolved attachment url', async () => {
@@ -656,7 +1071,12 @@ describe('e2ee attachment helpers', () => {
     const fetchImpl = jest.fn().mockResolvedValue({
       ok: true,
       headers: {
-        get: jest.fn().mockReturnValue(''),
+        get: jest.fn((name) => ({
+          'X-Pulse-Expected-Sha256': '',
+          'X-Pulse-Content-Encoding': '',
+          'X-Pulse-Envelope-Kind': '',
+          'X-Pulse-Original-MimeType': '',
+        }[name] || '')),
       },
       blob: async () => blob,
     });
@@ -673,7 +1093,12 @@ describe('e2ee attachment helpers', () => {
     const fetchImpl = jest.fn().mockResolvedValue({
       ok: true,
       headers: {
-        get: jest.fn().mockReturnValue('header-sha-1'),
+        get: jest.fn((name) => ({
+          'X-Pulse-Expected-Sha256': 'header-sha-1',
+          'X-Pulse-Content-Encoding': '',
+          'X-Pulse-Envelope-Kind': '',
+          'X-Pulse-Original-MimeType': '',
+        }[name] || '')),
       },
       blob: async () => new Blob(['hello remote attachment'], { type: 'text/plain' }),
     });
@@ -682,6 +1107,93 @@ describe('e2ee attachment helpers', () => {
       downloadUrl: 'https://cdn.example.com/blob.txt',
       expectedPayloadSha256: 'local-sha-2',
     }, fetchImpl)).rejects.toThrow('Attachment-integriteitsmetadata komt niet overeen');
+  });
+
+  test('fetchAttachmentBlob rejects mismatched backend envelope headers', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      headers: {
+        get: jest.fn((name) => ({
+          'X-Pulse-Expected-Sha256': 'same-sha',
+          'X-Pulse-Content-Encoding': 'mock-e2ee-envelope-v1',
+          'X-Pulse-Envelope-Kind': 'server-envelope',
+          'X-Pulse-Original-MimeType': 'image/png',
+          'X-Pulse-Media-Key-Id': 'same-media-key',
+          'X-Pulse-Key-Wrap-Alg': 'pulse_mock_media_key_wrap_v1',
+        }[name] || '')),
+      },
+      blob: async () => new Blob(['hello remote attachment'], { type: 'text/plain' }),
+    });
+
+    await expect(fetchAttachmentBlob({
+      downloadUrl: 'https://cdn.example.com/blob.txt',
+      expectedPayloadSha256: 'same-sha',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'client-envelope',
+      originalMimeType: 'image/png',
+      encryption: {
+        mediaKeyId: 'same-media-key',
+        keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      },
+    }, fetchImpl)).rejects.toThrow('Attachment envelope-kind header komt niet overeen');
+  });
+
+  test('fetchAttachmentBlob rejects mismatched backend media key headers', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      headers: {
+        get: jest.fn((name) => ({
+          'X-Pulse-Expected-Sha256': 'same-sha',
+          'X-Pulse-Content-Encoding': 'mock-e2ee-envelope-v1',
+          'X-Pulse-Envelope-Kind': 'pulse_mock_media_envelope',
+          'X-Pulse-Original-MimeType': 'image/png',
+          'X-Pulse-Media-Key-Id': 'server-media-key',
+          'X-Pulse-Key-Wrap-Alg': 'pulse_mock_media_key_wrap_v1',
+        }[name] || '')),
+      },
+      blob: async () => new Blob(['hello remote attachment'], { type: 'text/plain' }),
+    });
+
+    await expect(fetchAttachmentBlob({
+      downloadUrl: 'https://cdn.example.com/blob.txt',
+      expectedPayloadSha256: 'same-sha',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      originalMimeType: 'image/png',
+      encryption: {
+        mediaKeyId: 'client-media-key',
+        keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      },
+    }, fetchImpl)).rejects.toThrow('Attachment media-key-id header komt niet overeen');
+  });
+
+  test('fetchAttachmentBlob rejects mismatched backend key wrap headers', async () => {
+    const fetchImpl = jest.fn().mockResolvedValue({
+      ok: true,
+      headers: {
+        get: jest.fn((name) => ({
+          'X-Pulse-Expected-Sha256': 'same-sha',
+          'X-Pulse-Content-Encoding': 'mock-e2ee-envelope-v1',
+          'X-Pulse-Envelope-Kind': 'pulse_mock_media_envelope',
+          'X-Pulse-Original-MimeType': 'image/png',
+          'X-Pulse-Media-Key-Id': 'same-media-key',
+          'X-Pulse-Key-Wrap-Alg': 'server-wrap-alg',
+        }[name] || '')),
+      },
+      blob: async () => new Blob(['hello remote attachment'], { type: 'text/plain' }),
+    });
+
+    await expect(fetchAttachmentBlob({
+      downloadUrl: 'https://cdn.example.com/blob.txt',
+      expectedPayloadSha256: 'same-sha',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      originalMimeType: 'image/png',
+      encryption: {
+        mediaKeyId: 'same-media-key',
+        keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      },
+    }, fetchImpl)).rejects.toThrow('Attachment key-wrap-algoritme header komt niet overeen');
   });
 
   test('decryptMockAttachmentEnvelopeBlob restores the original attachment blob', async () => {
@@ -723,10 +1235,43 @@ describe('e2ee attachment helpers', () => {
     })], { type: 'application/pulse-e2ee-envelope+json' });
 
     const decryptedBlob = await decryptAttachmentBlob(encryptedBlob, {
-      encryption: { alg: 'mock-e2ee-envelope-v1', sha256: expectedSha256 },
+      encryption: {
+        ...(await buildMockAttachmentEncryptionMetadata({ mimeType: 'text/plain' }, {
+          kind: 'pulse_mock_media_envelope',
+          mimeType: 'text/plain',
+          payloadSha256: expectedSha256,
+        })),
+      },
+      expectedPayloadSha256: expectedSha256,
     });
 
     expect(await new Response(decryptedBlob).text()).toBe('Hello');
+  });
+
+  test('decryptAttachmentBlob rejects mismatched wrapped media key contracts', async () => {
+    const expectedSha256 = (await verifyMockAttachmentEnvelope({
+      kind: 'pulse_mock_media_envelope',
+      mimeType: 'text/plain',
+      payloadBase64: 'SGVsbG8=',
+    })).payloadSha256;
+    const encryptedBlob = new Blob([JSON.stringify({
+      kind: 'pulse_mock_media_envelope',
+      mimeType: 'text/plain',
+      payloadBase64: 'SGVsbG8=',
+      payloadSha256: expectedSha256,
+    })], { type: 'application/pulse-e2ee-envelope+json' });
+
+    await expect(decryptAttachmentBlob(encryptedBlob, {
+      encryption: {
+        ...(await buildMockAttachmentEncryptionMetadata({ mimeType: 'text/plain' }, {
+          kind: 'pulse_mock_media_envelope',
+          mimeType: 'text/plain',
+          payloadSha256: expectedSha256,
+        })),
+        mediaKeyId: 'wrong-media-key',
+      },
+      expectedPayloadSha256: expectedSha256,
+    })).rejects.toThrow('Wrapped media key komt niet overeen met mediaKeyId.');
   });
 
   test('resolveExpectedAttachmentSha256 prefers explicit attachment metadata', () => {
@@ -795,8 +1340,52 @@ describe('e2ee attachment helpers', () => {
     expect(createObjectUrl).toHaveBeenCalledTimes(1);
     expect(prepared.url).toBe('blob:prepared-access');
     expect(prepared.isObjectUrl).toBe(true);
+    expect(prepared.contract).toEqual({
+      expectedPayloadSha256: 'mock-sha256-binary',
+      contentEncoding: '',
+      envelopeKind: '',
+      originalMimeType: '',
+      mediaKeyId: '',
+      keyWrapAlg: '',
+      wrappedMediaKey: '',
+      wrappedMediaKeyDigest: '',
+      integrityVerified: true,
+      wrappedKeyVerified: false,
+    });
+    expect(prepared.unwrapContext).toEqual({
+      mediaKeyId: '',
+      keyWrapAlg: '',
+      payloadSha256: 'mock-sha256-binary',
+      wrappedMediaKey: '',
+      wrappedMediaKeyDigest: '',
+      unwrapKind: 'attachment_encryption_contract',
+    });
     prepared.revoke();
     expect(revokeObjectUrl).toHaveBeenCalledWith('blob:prepared-access');
+  });
+
+  test('resolveAttachmentUnwrapContext exposes wrapped media key contract for encrypted attachments', async () => {
+    const { envelope } = await createMockEncryptedAttachmentEnvelope({
+      name: 'secure.txt',
+      url: 'data:text/plain;base64,U2VjdXJl',
+      mimeType: 'text/plain',
+      size: 6,
+    });
+    const encryption = await buildMockAttachmentEncryptionMetadata({ mimeType: 'text/plain' }, envelope);
+
+    await expect(resolveAttachmentUnwrapContext({
+      transfer: 'remote',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      expectedPayloadSha256: encryption.sha256,
+      encryption,
+    })).resolves.toEqual({
+      mediaKeyId: encryption.mediaKeyId,
+      keyWrapAlg: encryption.keyWrapAlg,
+      payloadSha256: encryption.sha256,
+      wrappedMediaKey: encryption.wrappedMediaKey,
+      wrappedMediaKeyDigest: encryption.wrappedMediaKeyDigest,
+      unwrapKind: 'pulse_mock_media_key_unwrap',
+    });
   });
 
   test('openAttachmentInNewTab uses provided opener', () => {

@@ -1,5 +1,9 @@
 import { BACKEND_URL } from '../../services/socket';
-import { decryptMockAttachmentEnvelopeBlob } from './attachmentCrypto';
+import {
+  decryptMockAttachmentEnvelopeBlob,
+  unwrapMockWrappedMediaKey,
+  validateMockWrappedMediaKeyContract,
+} from './attachmentCrypto';
 import {
   isImageAttachment,
   normalizeAttachmentPayload,
@@ -22,15 +26,51 @@ export function resolveAttachmentContractFields(attachment) {
     contentEncoding: attachment?.contentEncoding || '',
     envelopeKind: attachment?.envelopeKind || attachment?.encryption?.envelopeKind || '',
     originalMimeType: attachment?.originalMimeType || attachment?.encryption?.originalMimeType || '',
+    mediaKeyId: attachment?.encryption?.mediaKeyId || '',
+    keyWrapAlg: attachment?.encryption?.keyWrapAlg || '',
+    wrappedMediaKey: attachment?.encryption?.wrappedMediaKey || '',
+    wrappedMediaKeyDigest: attachment?.encryption?.wrappedMediaKeyDigest || '',
+  };
+}
+
+export function buildResolvedAttachmentAccessContract(attachment) {
+  const contract = resolveAttachmentContractFields(attachment);
+
+  return {
+    ...contract,
+    integrityVerified: Boolean(contract.expectedPayloadSha256),
+    wrappedKeyVerified: Boolean(
+      attachment?.encryption?.alg === 'mock-e2ee-envelope-v1'
+      && contract.mediaKeyId
+      && contract.keyWrapAlg
+      && contract.wrappedMediaKey
+      && contract.wrappedMediaKeyDigest
+    ),
   };
 }
 
 export async function decryptAttachmentBlob(blob, attachment) {
   if (attachment?.encryption?.alg === 'mock-e2ee-envelope-v1') {
+    await validateMockWrappedMediaKeyContract(attachment?.encryption || {});
     return decryptMockAttachmentEnvelopeBlob(blob, resolveExpectedAttachmentSha256(attachment));
   }
 
   return passthroughDecryptAttachmentBlob(blob);
+}
+
+export async function resolveAttachmentUnwrapContext(attachment) {
+  if (attachment?.encryption?.alg === 'mock-e2ee-envelope-v1') {
+    return unwrapMockWrappedMediaKey(attachment?.encryption || {});
+  }
+
+  return {
+    mediaKeyId: attachment?.encryption?.mediaKeyId || '',
+    keyWrapAlg: attachment?.encryption?.keyWrapAlg || '',
+    payloadSha256: resolveExpectedAttachmentSha256(attachment),
+    wrappedMediaKey: attachment?.encryption?.wrappedMediaKey || '',
+    wrappedMediaKeyDigest: attachment?.encryption?.wrappedMediaKeyDigest || '',
+    unwrapKind: attachment?.encryption ? 'attachment_encryption_contract' : 'none',
+  };
 }
 
 export function getAttachmentIdFromAttachment(attachment) {
@@ -44,6 +84,57 @@ export function getAttachmentIdFromAttachment(attachment) {
   } catch {
     return null;
   }
+}
+
+export function getAttachmentContractFromHeaders(headers) {
+  return {
+    expectedPayloadSha256: headers?.get?.('X-Pulse-Expected-Sha256') || '',
+    contentEncoding: headers?.get?.('X-Pulse-Content-Encoding') || '',
+    envelopeKind: headers?.get?.('X-Pulse-Envelope-Kind') || '',
+    originalMimeType: headers?.get?.('X-Pulse-Original-MimeType') || '',
+    mediaKeyId: headers?.get?.('X-Pulse-Media-Key-Id') || '',
+    keyWrapAlg: headers?.get?.('X-Pulse-Key-Wrap-Alg') || '',
+    wrappedMediaKey: '',
+    wrappedMediaKeyDigest: headers?.get?.('X-Pulse-Wrapped-Media-Key-Digest') || '',
+  };
+}
+
+export function mapAttachmentContractError(error, {
+  hashMessage = 'Attachment metadata-integriteit komt niet overeen',
+  contentEncodingMessage = 'Attachment content-encoding komt niet overeen',
+  envelopeKindMessage = 'Attachment envelope-kind komt niet overeen',
+  originalMimeTypeMessage = 'Attachment original mime type komt niet overeen',
+  mediaKeyIdMessage = 'Attachment media-key-id komt niet overeen',
+  keyWrapAlgMessage = 'Attachment key-wrap-algoritme komt niet overeen',
+  wrappedMediaKeyMessage = 'Attachment wrapped media key komt niet overeen',
+  wrappedMediaKeyDigestMessage = 'Attachment wrapped media key digest komt niet overeen',
+} = {}) {
+  if (error?.message === 'Attachment metadata-integriteit komt niet overeen') {
+    return new Error(hashMessage);
+  }
+  if (error?.message === 'Attachment content-encoding komt niet overeen') {
+    return new Error(contentEncodingMessage);
+  }
+  if (error?.message === 'Attachment envelope-kind komt niet overeen') {
+    return new Error(envelopeKindMessage);
+  }
+  if (error?.message === 'Attachment original mime type komt niet overeen') {
+    return new Error(originalMimeTypeMessage);
+  }
+  if (error?.message === 'Attachment media-key-id komt niet overeen') {
+    return new Error(mediaKeyIdMessage);
+  }
+  if (error?.message === 'Attachment key-wrap-algoritme komt niet overeen') {
+    return new Error(keyWrapAlgMessage);
+  }
+  if (error?.message === 'Attachment wrapped media key komt niet overeen') {
+    return new Error(wrappedMediaKeyMessage);
+  }
+  if (error?.message === 'Attachment wrapped media key digest komt niet overeen') {
+    return new Error(wrappedMediaKeyDigestMessage);
+  }
+
+  return error;
 }
 
 export function getAttachmentAccessInfo(attachment) {
@@ -100,6 +191,38 @@ export function assertAttachmentMetadataIntegrity(baseAttachment, metadataAttach
   ) {
     throw new Error('Attachment original mime type komt niet overeen');
   }
+
+  if (
+    baseContract.mediaKeyId
+    && metadataContract.mediaKeyId
+    && baseContract.mediaKeyId !== metadataContract.mediaKeyId
+  ) {
+    throw new Error('Attachment media-key-id komt niet overeen');
+  }
+
+  if (
+    baseContract.keyWrapAlg
+    && metadataContract.keyWrapAlg
+    && baseContract.keyWrapAlg !== metadataContract.keyWrapAlg
+  ) {
+    throw new Error('Attachment key-wrap-algoritme komt niet overeen');
+  }
+
+  if (
+    baseContract.wrappedMediaKey
+    && metadataContract.wrappedMediaKey
+    && baseContract.wrappedMediaKey !== metadataContract.wrappedMediaKey
+  ) {
+    throw new Error('Attachment wrapped media key komt niet overeen');
+  }
+
+  if (
+    baseContract.wrappedMediaKeyDigest
+    && metadataContract.wrappedMediaKeyDigest
+    && baseContract.wrappedMediaKeyDigest !== metadataContract.wrappedMediaKeyDigest
+  ) {
+    throw new Error('Attachment wrapped media key digest komt niet overeen');
+  }
 }
 
 export function buildAttachmentMetadataUrl(attachment) {
@@ -151,7 +274,21 @@ export async function fetchAttachmentMetadata(attachment, user, fetchImpl = fetc
     throw new Error(data?.error || 'Attachment metadata ophalen mislukt');
   }
 
-  assertAttachmentMetadataIntegrity(attachment, data.attachment);
+  try {
+    assertAttachmentMetadataIntegrity(attachment, data.attachment);
+    assertAttachmentMetadataIntegrity(data.attachment, getAttachmentContractFromHeaders(response.headers));
+  } catch (error) {
+    throw mapAttachmentContractError(error, {
+      hashMessage: 'Attachment metadata-integriteit komt niet overeen',
+      contentEncodingMessage: 'Attachment metadata content-encoding komt niet overeen',
+      envelopeKindMessage: 'Attachment metadata envelope-kind komt niet overeen',
+      originalMimeTypeMessage: 'Attachment metadata original mime type komt niet overeen',
+      mediaKeyIdMessage: 'Attachment metadata media-key-id komt niet overeen',
+      keyWrapAlgMessage: 'Attachment metadata key-wrap-algoritme komt niet overeen',
+      wrappedMediaKeyMessage: 'Attachment metadata wrapped media key komt niet overeen',
+      wrappedMediaKeyDigestMessage: 'Attachment metadata wrapped media key digest komt niet overeen',
+    });
+  }
 
   return cacheAttachmentMetadata(attachment, data.attachment);
 }
@@ -176,29 +313,37 @@ export async function fetchAttachmentBlob(attachment, fetchImpl = fetch) {
     throw new Error('Attachment downloaden mislukt');
   }
 
-  const responseContract = {
-    expectedPayloadSha256: response.headers?.get?.('X-Pulse-Expected-Sha256') || '',
-    contentEncoding: response.headers?.get?.('X-Pulse-Content-Encoding') || '',
-    envelopeKind: response.headers?.get?.('X-Pulse-Envelope-Kind') || '',
-    originalMimeType: response.headers?.get?.('X-Pulse-Original-MimeType') || '',
-  };
+  const responseContract = getAttachmentContractFromHeaders(response.headers);
+  const localContract = resolveAttachmentContractFields(attachment);
 
   try {
     assertAttachmentMetadataIntegrity(attachment, responseContract);
+
+    if (
+      localContract.mediaKeyId
+      && responseContract.mediaKeyId
+      && localContract.mediaKeyId !== responseContract.mediaKeyId
+    ) {
+      throw new Error('Attachment media-key-id komt niet overeen');
+    }
+
+    if (
+      localContract.keyWrapAlg
+      && responseContract.keyWrapAlg
+      && localContract.keyWrapAlg !== responseContract.keyWrapAlg
+    ) {
+      throw new Error('Attachment key-wrap-algoritme komt niet overeen');
+    }
   } catch (error) {
-    if (error?.message === 'Attachment metadata-integriteit komt niet overeen') {
-      throw new Error('Attachment-integriteitsmetadata komt niet overeen');
-    }
-    if (error?.message === 'Attachment content-encoding komt niet overeen') {
-      throw new Error('Attachment content-encoding header komt niet overeen');
-    }
-    if (error?.message === 'Attachment envelope-kind komt niet overeen') {
-      throw new Error('Attachment envelope-kind header komt niet overeen');
-    }
-    if (error?.message === 'Attachment original mime type komt niet overeen') {
-      throw new Error('Attachment original mime type header komt niet overeen');
-    }
-    throw error;
+    throw mapAttachmentContractError(error, {
+      hashMessage: 'Attachment-integriteitsmetadata komt niet overeen',
+      contentEncodingMessage: 'Attachment content-encoding header komt niet overeen',
+      envelopeKindMessage: 'Attachment envelope-kind header komt niet overeen',
+      originalMimeTypeMessage: 'Attachment original mime type header komt niet overeen',
+      mediaKeyIdMessage: 'Attachment media-key-id header komt niet overeen',
+      keyWrapAlgMessage: 'Attachment key-wrap-algoritme header komt niet overeen',
+      wrappedMediaKeyDigestMessage: 'Attachment wrapped media key digest header komt niet overeen',
+    });
   }
 
   return response.blob();
@@ -218,23 +363,29 @@ export async function prepareAttachmentBinaryAccess(
   const accessInfo = getAttachmentAccessInfo(resolvedAttachment);
 
   if (!accessInfo.needsRemoteFetch) {
+    const unwrapContext = await resolveAttachmentUnwrapContext(resolvedAttachment);
     return {
       attachment: resolvedAttachment,
+      contract: buildResolvedAttachmentAccessContract(resolvedAttachment),
       url: accessInfo.url,
       revoke: () => {},
       isObjectUrl: false,
+      unwrapContext,
     };
   }
 
   const encryptedBlob = await fetchAttachmentBlob(resolvedAttachment, fetchImpl);
   const decryptedBlob = await decryptAttachmentBlobOverride(encryptedBlob, resolvedAttachment);
   const objectUrl = createObjectUrl(decryptedBlob);
+  const unwrapContext = await resolveAttachmentUnwrapContext(resolvedAttachment);
 
   return {
     attachment: resolvedAttachment,
+    contract: buildResolvedAttachmentAccessContract(resolvedAttachment),
     url: objectUrl,
     revoke: () => revokeObjectUrl(objectUrl),
     isObjectUrl: true,
+    unwrapContext,
   };
 }
 

@@ -52,9 +52,32 @@ function getAttachmentEnvelopeContract(attachment = {}, fallbackMimeType = 'appl
     contentEncoding: isMockEnvelope ? 'mock-e2ee-envelope-v1' : 'identity',
     envelopeKind: typeof encryption.envelopeKind === 'string' ? encryption.envelopeKind : '',
     expectedPayloadSha256: typeof encryption.sha256 === 'string' ? encryption.sha256 : '',
+    mediaKeyId: typeof encryption.mediaKeyId === 'string' ? encryption.mediaKeyId : '',
+    keyWrapAlg: typeof encryption.keyWrapAlg === 'string' ? encryption.keyWrapAlg : '',
+    wrappedMediaKey: typeof encryption.wrappedMediaKey === 'string' ? encryption.wrappedMediaKey : '',
+    wrappedMediaKeyDigest: typeof encryption.wrappedMediaKeyDigest === 'string' ? encryption.wrappedMediaKeyDigest : '',
     originalMimeType: typeof encryption.originalMimeType === 'string' && encryption.originalMimeType
       ? encryption.originalMimeType
       : (attachment?.mimeType || fallbackMimeType || 'application/octet-stream'),
+  };
+}
+
+function buildStoredAttachmentEncryption(attachment = {}, id, fallbackSha = '') {
+  const encryption = attachment?.encryption || {};
+
+  return {
+    alg: typeof encryption.alg === 'string' && encryption.alg ? encryption.alg : 'mock-storage-envelope',
+    keyId: typeof encryption.keyId === 'string' && encryption.keyId ? encryption.keyId : `mock-key-${id}`,
+    iv: typeof encryption.iv === 'string' && encryption.iv ? encryption.iv : `mock-iv-${id}`,
+    sha256: typeof encryption.sha256 === 'string' ? encryption.sha256 : fallbackSha,
+    mediaKeyId: typeof encryption.mediaKeyId === 'string' ? encryption.mediaKeyId : '',
+    keyWrapAlg: typeof encryption.keyWrapAlg === 'string' ? encryption.keyWrapAlg : '',
+    wrappedMediaKey: typeof encryption.wrappedMediaKey === 'string' ? encryption.wrappedMediaKey : '',
+    wrappedMediaKeyDigest: typeof encryption.wrappedMediaKeyDigest === 'string' ? encryption.wrappedMediaKeyDigest : '',
+    envelopeKind: typeof encryption.envelopeKind === 'string' ? encryption.envelopeKind : '',
+    originalMimeType: typeof encryption.originalMimeType === 'string'
+      ? encryption.originalMimeType
+      : (attachment?.mimeType || 'application/octet-stream'),
   };
 }
 
@@ -79,12 +102,11 @@ export function buildStoredAttachmentMetadata({ id, baseUrl, attachment }) {
     expectedPayloadSha256: contract.expectedPayloadSha256,
     size: Number.isFinite(attachment?.size) ? Number(attachment.size) : null,
     caption: attachment?.caption || '',
-    encryption: attachment?.encryption || {
-      alg: 'mock-storage-envelope',
-      keyId: `mock-key-${id}`,
-      iv: `mock-iv-${id}`,
-      sha256: `mock-sha256-${Number.isFinite(attachment?.size) ? Number(attachment.size) : 0}`,
-    },
+    encryption: buildStoredAttachmentEncryption(
+      attachment,
+      id,
+      `mock-sha256-${Number.isFinite(attachment?.size) ? Number(attachment.size) : 0}`
+    ),
   };
 }
 
@@ -115,6 +137,10 @@ export async function storeMockAttachment({ attachment, baseUrl }) {
     contentEncoding: contract.contentEncoding,
     envelopeKind: contract.envelopeKind,
     expectedPayloadSha256: contract.expectedPayloadSha256,
+    mediaKeyId: contract.mediaKeyId,
+    keyWrapAlg: contract.keyWrapAlg,
+    wrappedMediaKey: contract.wrappedMediaKey,
+    wrappedMediaKeyDigest: contract.wrappedMediaKeyDigest,
     size: Number.isFinite(attachment.size) ? Number(attachment.size) : parsed.buffer.length,
     contentDisposition: isPreviewableMimeType(contract.originalMimeType)
       ? 'inline'
@@ -132,6 +158,10 @@ export async function storeMockAttachment({ attachment, baseUrl }) {
     contentEncoding: storedRecord.contentEncoding,
     envelopeKind: storedRecord.envelopeKind,
     expectedPayloadSha256: storedRecord.expectedPayloadSha256,
+    mediaKeyId: storedRecord.mediaKeyId,
+    keyWrapAlg: storedRecord.keyWrapAlg,
+    wrappedMediaKey: storedRecord.wrappedMediaKey,
+    wrappedMediaKeyDigest: storedRecord.wrappedMediaKeyDigest,
     size: storedRecord.size,
     contentDisposition: storedRecord.contentDisposition,
   }, null, 2), 'utf8');
@@ -178,8 +208,22 @@ export async function getStoredAttachmentMetadata(id) {
     contentEncoding: storedAttachment.contentEncoding || 'identity',
     envelopeKind: storedAttachment.envelopeKind || '',
     expectedPayloadSha256: storedAttachment.expectedPayloadSha256 || '',
+    mediaKeyId: storedAttachment.mediaKeyId || '',
+    keyWrapAlg: storedAttachment.keyWrapAlg || '',
+    wrappedMediaKey: storedAttachment.wrappedMediaKey || '',
+    wrappedMediaKeyDigest: storedAttachment.wrappedMediaKeyDigest || '',
     size: storedAttachment.size,
     contentDisposition: storedAttachment.contentDisposition,
+    encryption: {
+      alg: storedAttachment.contentEncoding === 'mock-e2ee-envelope-v1' ? 'mock-e2ee-envelope-v1' : 'mock-storage-envelope',
+      sha256: storedAttachment.expectedPayloadSha256 || '',
+      mediaKeyId: storedAttachment.mediaKeyId || '',
+      keyWrapAlg: storedAttachment.keyWrapAlg || '',
+      wrappedMediaKey: storedAttachment.wrappedMediaKey || '',
+      wrappedMediaKeyDigest: storedAttachment.wrappedMediaKeyDigest || '',
+      envelopeKind: storedAttachment.envelopeKind || '',
+      originalMimeType: storedAttachment.originalMimeType || storedAttachment.mimeType,
+    },
   };
 }
 

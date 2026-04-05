@@ -8,7 +8,10 @@ import {
   resolveAttachmentForAccess,
   triggerAttachmentDownload,
 } from '../lib/e2ee/attachmentAccessAdapter';
-import { getAttachmentContractPresentation } from '../lib/e2ee/attachmentPresentation';
+import {
+  getAttachmentAccessVerificationPresentation,
+  getAttachmentContractPresentation,
+} from '../lib/e2ee/attachmentPresentation';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { getInitials, formatTime } from '../utils';
 
@@ -86,6 +89,7 @@ const MessageBubble = React.memo(function MessageBubble({
   const longPressFired    = useRef(false);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [resolvedAttachment, setResolvedAttachment] = useState(null);
+  const [resolvedAttachmentAccess, setResolvedAttachmentAccess] = useState(null);
   const [attachmentActionError, setAttachmentActionError] = useState('');
   const [attachmentBusy, setAttachmentBusy] = useState(false);
 
@@ -98,6 +102,7 @@ const MessageBubble = React.memo(function MessageBubble({
 
   useEffect(() => {
     setResolvedAttachment(null);
+    setResolvedAttachmentAccess(null);
     setAttachmentActionError('');
     setAttachmentBusy(false);
   }, [msg.id]);
@@ -157,6 +162,10 @@ const MessageBubble = React.memo(function MessageBubble({
       ? attachment.thumbnailUrl
       : attachmentUrl;
     const attachmentPresentation = getAttachmentContractPresentation(attachment);
+    const attachmentAccessPresentation = getAttachmentAccessVerificationPresentation(
+      resolvedAttachmentAccess?.contract,
+      resolvedAttachmentAccess?.unwrapContext
+    );
     const resolveAttachment = async () => {
       if (!attachmentAccess.needsRemoteFetch) return attachment;
       if (!user) throw new Error('Geen gebruiker beschikbaar voor beveiligde bijlage.');
@@ -175,6 +184,7 @@ const MessageBubble = React.memo(function MessageBubble({
       try {
         const readyAttachment = await resolveAttachment();
         const preparedAccess = await prepareAttachmentBinaryAccess(readyAttachment, user);
+        setResolvedAttachmentAccess(preparedAccess);
         openAttachmentInNewTab(
           preparedAccess.isObjectUrl
             ? { ...preparedAccess.attachment, downloadUrl: preparedAccess.url, url: '' }
@@ -191,6 +201,7 @@ const MessageBubble = React.memo(function MessageBubble({
       try {
         const readyAttachment = await resolveAttachment();
         const preparedAccess = await prepareAttachmentBinaryAccess(readyAttachment, user);
+        setResolvedAttachmentAccess(preparedAccess);
         triggerAttachmentDownload(
           preparedAccess.isObjectUrl
             ? { ...preparedAccess.attachment, downloadUrl: preparedAccess.url, url: '' }
@@ -315,6 +326,42 @@ const MessageBubble = React.memo(function MessageBubble({
                   Integriteit bevestigd via SHA-256 metadata
                 </div>
               )}
+              {attachmentPresentation.keyContractDetail && (
+                <div
+                  className="u-fs-12"
+                  style={{
+                    marginTop: 4,
+                    color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
+                    opacity: 0.82,
+                  }}
+                >
+                  {attachmentPresentation.keyContractDetail}
+                </div>
+              )}
+              {attachmentAccessPresentation.integrityAccessLabel && (
+                <div
+                  className="u-fs-12"
+                  style={{
+                    marginTop: 4,
+                    color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
+                    opacity: 0.82,
+                  }}
+                >
+                  {attachmentAccessPresentation.integrityAccessLabel}
+                </div>
+              )}
+              {attachmentAccessPresentation.wrappedKeyAccessLabel && (
+                <div
+                  className="u-fs-12"
+                  style={{
+                    marginTop: 4,
+                    color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
+                    opacity: 0.78,
+                  }}
+                >
+                  {attachmentAccessPresentation.wrappedKeyAccessLabel}
+                </div>
+              )}
               {attachmentActionError && (
                 <div
                   className="u-fs-12"
@@ -367,6 +414,42 @@ const MessageBubble = React.memo(function MessageBubble({
                       }}
                     >
                       Integriteit bevestigd via SHA-256 metadata
+                    </div>
+                  )}
+                  {attachmentPresentation.keyContractDetail && (
+                    <div
+                      className="u-fs-12"
+                      style={{
+                        marginTop: 4,
+                        color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
+                        opacity: 0.82,
+                      }}
+                    >
+                  {attachmentPresentation.keyContractDetail}
+                    </div>
+                  )}
+                  {attachmentAccessPresentation.integrityAccessLabel && (
+                    <div
+                      className="u-fs-12"
+                      style={{
+                        marginTop: 4,
+                        color: isOwn ? 'rgba(255,255,255,.58)' : 'var(--text3)',
+                        opacity: 0.82,
+                      }}
+                    >
+                      {attachmentAccessPresentation.integrityAccessLabel}
+                    </div>
+                  )}
+                  {attachmentAccessPresentation.wrappedKeyAccessLabel && (
+                    <div
+                      className="u-fs-12"
+                      style={{
+                        marginTop: 4,
+                        color: isOwn ? 'rgba(255,255,255,.54)' : 'var(--text3)',
+                        opacity: 0.78,
+                      }}
+                    >
+                      {attachmentAccessPresentation.wrappedKeyAccessLabel}
                     </div>
                   )}
                   {attachmentActionError && (

@@ -1,6 +1,9 @@
 import { BACKEND_URL } from '../../services/socket';
 import { E2EE_ATTACHMENT_TRANSPORT } from './config';
-import { createMockEncryptedAttachmentEnvelope } from './attachmentCrypto';
+import {
+  buildMockAttachmentEncryptionMetadata,
+  createMockEncryptedAttachmentEnvelope,
+} from './attachmentCrypto';
 import {
   isImageAttachment,
   normalizeAttachmentPayload,
@@ -34,14 +37,7 @@ export async function buildMockRemoteAttachmentPayload(attachment, { conversatio
     downloadUrl: encryptedEnvelope.dataUrl,
     thumbnailUrl: normalized.thumbnailUrl || (isImageAttachment(normalized) ? normalized.url : ''),
     storageKey: normalized.storageKey || `mock-e2ee/${safeConversationId}/${safeUserId}/${uniqueSuffix}-${safeName}`,
-    encryption: normalized.encryption || {
-      alg: 'mock-e2ee-envelope-v1',
-      keyId: `mock-key-${safeUserId}`,
-      iv: `mock-iv-${uniqueSuffix}`,
-      sha256: encryptedEnvelope.envelope.payloadSha256,
-      envelopeKind: encryptedEnvelope.envelope.kind,
-      originalMimeType: normalized.mimeType || '',
-    },
+    encryption: normalized.encryption || await buildMockAttachmentEncryptionMetadata(normalized, encryptedEnvelope.envelope),
   };
 }
 

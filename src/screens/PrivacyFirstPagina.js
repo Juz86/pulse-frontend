@@ -7,14 +7,18 @@ import ParentAuthModal from '../components/ParentAuthModal';
 import PageMeta from '../components/PageMeta';
 import DecorativeAvatar, { avatarSvgs } from '../components/DecorativeAvatars';
 import {
-  Bell,
   Check,
   Clock,
   Lock,
   Login,
-  Message,
   Shield,
   Users,
+  User,
+  Message,
+  Activity,
+  Mail,
+  Trash2,
+  Child,
 } from '../components/Icons';
 
 function useFadeIn() {
@@ -33,15 +37,6 @@ function useFadeIn() {
   return [ref, visible];
 }
 
-function FadeCard({ children }) {
-  const [ref, visible] = useFadeIn();
-  return (
-    <div ref={ref} className={`ot-row${visible ? ' fp-visible' : ''}`}>
-      {children}
-    </div>
-  );
-}
-
 function FadeRow({ children, className = '' }) {
   const [ref, visible] = useFadeIn();
   return (
@@ -51,54 +46,13 @@ function FadeRow({ children, className = '' }) {
   );
 }
 
-function SectionHeader({ badge, title, text, align }) {
-  const [ref, visible] = useFadeIn();
-  return (
-    <div ref={ref} className={`hp-section-header fp-section-header${align === 'left' ? ' hp-section-header--left' : ''}${visible ? ' fp-visible' : ''}`}>
-      {badge && <div className="fp-hero-badge" style={{ marginBottom: 16 }}>{badge}</div>}
-      <h2>{title}</h2>
-      {text && <p style={{ marginTop: 12 }}>{text}</p>}
-    </div>
-  );
-}
-
 const retentionRows = [
-  {
-    label: 'Ouderaccount',
-    duration: 'Zolang actief',
-    why: 'Zodat je kunt inloggen en je kind kunt beheren.',
-    onDelete: 'Direct verwijderd bij accountverwijdering',
-  },
-  {
-    label: 'Kindaccount',
-    duration: 'Zolang actief',
-    why: 'Zodat je kind kan communiceren met vertrouwde contacten.',
-    onDelete: 'Direct verwijderd bij accountverwijdering',
-  },
-  {
-    label: 'Vertrouwde contacten',
-    duration: 'Zolang verbonden',
-    why: 'Zodat je kind weet met wie het mag communiceren.',
-    onDelete: 'Direct verwijderd bij verwijdering van contact',
-  },
-  {
-    label: 'Berichten & gesprekken',
-    duration: '30 dagen',
-    why: 'Zodat recente gesprekken leesbaar blijven.',
-    onDelete: 'Automatisch verwijderd na 30 dagen',
-  },
-  {
-    label: 'Logbestanden',
-    duration: '7 dagen',
-    why: 'Voor beveiliging en stabiliteit van de app.',
-    onDelete: 'Automatisch verwijderd na 7 dagen',
-  },
-  {
-    label: 'Supportverzoeken',
-    duration: '30 dagen',
-    why: 'Zodat we je vraag kunnen afhandelen.',
-    onDelete: 'Automatisch verwijderd na 30 dagen',
-  },
+  { label: 'Accountgegevens ouders',       Icon: User,     duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
+  { label: 'Accountgegevens kinderen',     Icon: Child,   duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
+  { label: 'Vertrouwde contacten',         Icon: Users,    duration: 'Zolang gekoppeld',  onDelete: 'Bij ontkoppelen → direct weg' },
+  { label: 'Berichten en communicatie',    Icon: Message,  duration: 'Maximaal 30 dagen', why: 'Zodat je recente gesprekken kunt teruglezen',           onDelete: 'Daarna → automatisch verwijderd' },
+  { label: 'Logbestanden',                 Icon: Activity, duration: 'Maximaal 7 dagen',  why: 'Alleen voor veiligheid en technische stabiliteit',      onDelete: 'Daarna → automatisch verwijderd' },
+  { label: 'Support- en privacyverzoeken', Icon: Mail,     duration: 'Maximaal 30 dagen', why: 'Om je goed te kunnen helpen',                           onDelete: 'Daarna → automatisch verwijderd' },
 ];
 
 export default function PrivacyFirstPagina({ onParentClick }) {
@@ -148,11 +102,15 @@ export default function PrivacyFirstPagina({ onParentClick }) {
             <div className="ot-hero-copy hw-hero-copy marketing-hero-copy">
               <div className="fp-hero-badge">Privacy-First</div>
               <h1 className="ot-hero-title ot-hero-title--marketing">
-                Jouw kind.<br />
-                <span style={{ whiteSpace: 'nowrap' }}>Niet onze data.</span>
+                Veilig verbonden.<br />
+                <span style={{ whiteSpace: 'nowrap' }}>Zonder ruis. Zonder zorgen.</span>
               </h1>
               <p className="ot-hero-sub">
-                Pulse is gebouwd op één overtuiging: kinderen hebben recht op veilige communicatie — zonder dat iemand meekijkt, meeschrijft of hun gedrag analyseert. Wij ook niet.
+                Bij Pulse draait alles om één ding: rust en veiligheid voor ouder en kind.
+              </p>
+              <p className="ot-hero-sub" style={{ marginTop: 12 }}>
+                Geen social media. Geen algoritmes. Geen dataverzameling.<br />
+                Gewoon communiceren — zoals het bedoeld is.
               </p>
               <div className="ot-hero-actions">
                 <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
@@ -168,14 +126,14 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                 <div className="op-privacy-icon"><Shield size={36} /></div>
                 <div className="op-privacy-title">100% Privacy-First</div>
                 <div className="op-privacy-sub">
-                  Geen dataverzameling.<br />
+                  Geen social media.<br />
                   Geen algoritmes.<br />
-                  Geen profielen.<br />
-                  Verwijderen = echt verwijderen.
+                  Geen dataverzameling.<br />
+                  Gewoon communiceren.
                 </div>
                 <div className="op-privacy-badges" style={{ marginTop: 20 }}>
-                  <span>🇳🇱 Nederlands</span>
-                  <span><Lock size={12} /> E2EE</span>
+                  <span><Users size={12} /> Toezicht</span>
+                  <span><Lock size={12} /> End-to-End</span>
                   <span><Clock size={12} /> 30 dagen</span>
                 </div>
               </div>
@@ -188,24 +146,24 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
-                <div className="hp-feature-tag">Het verhaal achter Pulse</div>
-                <h3>Gemaakt door een vader die zich zorgen maakte</h3>
-                <p>
-                  Pulse is niet ontstaan in een vergaderzaal. Het begon met een simpele vraag van een vader: <em>"Waarom bestaat er geen communicatie-app die echt veilig is voor kinderen?"</em>
-                </p>
+                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Users size={14} /> Waarom Pulse bestaat</div>
+                <h3>Pulse is bedacht door een vader.</h3>
+                <p>Een vader die zich zorgen maakte.</p>
                 <p style={{ marginTop: 16 }}>
-                  Hij zag hoe kinderen steeds vroeger smartphones kregen. Hoe ze blootgesteld werden aan dataverzameling, algoritmes en sociale druk — zonder dat ouders het doorhadden. Hoe grote techbedrijven winst maakten van het gedrag van kinderen.
+                  Over hoe kinderen vandaag opgroeien in een digitale wereld vol prikkels. Over apps die alles volgen, analyseren en opslaan. Over hoe weinig controle ouders eigenlijk hebben.
                 </p>
-                <p style={{ marginTop: 16 }}>
-                  Dat kon anders. Dat moest anders. Pulse is het antwoord.
+                <p style={{ marginTop: 16 }}>Hij wilde iets anders.</p>
+                <p style={{ marginTop: 8 }}>
+                  Iets simpels. Iets veiligs. Iets wat alleen draait om contact tussen ouder en kind.
                 </p>
+                <p style={{ marginTop: 16, fontWeight: 700, color: 'var(--text)' }}>Zo is Pulse ontstaan.</p>
               </div>
               <div className="hp-feature-mockup">
                 <div className="op-privacy-card">
-                  <div style={{ fontSize: 36, marginBottom: 12 }}>💬</div>
+                  <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Message size={32} /></div>
                   <div className="op-privacy-title">Een belofte aan ouders</div>
                   <div className="op-privacy-sub">
-                    "Ik wil dat ouders hun kind een telefoon kunnen geven zonder te hoeven nadenken over wat er met de data gebeurt. Dat gevoel van controle — dat is wat Pulse geeft."
+                    "Iets simpels. Iets veiligs. Iets wat alleen draait om contact tussen ouder en kind."
                   </div>
                   <div style={{ marginTop: 16, fontSize: 13, color: 'var(--text3)', fontStyle: 'italic' }}>
                     — Oprichter van Pulse
@@ -219,128 +177,53 @@ export default function PrivacyFirstPagina({ onParentClick }) {
         {/* ── WAT PRIVACY-FIRST BETEKENT ── */}
         <section className="hp-section hp-section--gray" id="privacy-first">
           <div className="hp-section-inner">
-            <SectionHeader
-              badge="Wat Privacy-First betekent"
-              title="Wij hebben geen interesse in jouw data"
-              text="Die zin menen we letterlijk. Pulse wil zo min mogelijk gegevens. Onze database moet schoon blijven. Wat niet nodig is, bewaren we niet."
-              align="left"
-            />
-            <div className="hp-why-grid op-feature-grid" style={{ marginTop: 48 }}>
-              {[
-                {
-                  icon: <Shield size={22} />,
-                  title: 'Geen onnodige data',
-                  text: 'We verzamelen alleen wat strikt nodig is om de app te laten werken. Geen extra velden, geen verborgen trackers, geen statistieken over jouw kind.',
-                },
-                {
-                  icon: <Lock size={22} />,
-                  title: 'Geen verkoop van data',
-                  text: 'Jouw gegevens worden nooit verkocht, gedeeld of doorgegeven aan derden. Niet voor geld. Niet voor een "partnership". Nooit.',
-                },
-                {
-                  icon: <Message size={22} />,
-                  title: 'Geen gedragsanalyse',
-                  text: 'We analyseren niet wat je kind schrijft, hoe vaak het chat of wanneer het online is. Dat gaat ons niets aan.',
-                },
-                {
-                  icon: <Bell size={22} />,
-                  title: 'Geen algoritmes',
-                  text: 'Er is geen aanbevelingssysteem, geen "misschien ken je dit persoon", geen notificatietrucjes. Pulse werkt niet op afhankelijkheid.',
-                },
-                {
-                  icon: <Users size={22} />,
-                  title: 'Geen profielen',
-                  text: 'We bouwen geen profiel op van jou of je kind. Geen interesses, geen gedragspatronen, geen scoresystemen.',
-                },
-                {
-                  icon: <Clock size={22} />,
-                  title: 'Geen eeuwige opslag',
-                  text: 'Berichten verdwijnen automatisch na 30 dagen. Logbestanden na 7 dagen. Wat niet meer nodig is, wordt verwijderd. Punt.',
-                },
-              ].map((card) => (
-                <FadeCard key={card.title}>
-                  <div className="hp-why-card">
-                    <div className="op-feature-icon">{card.icon}</div>
-                    <h3>{card.title}</h3>
-                    <p>{card.text}</p>
+            <FadeRow className="op-privacy-row">
+              <div className="hp-feature-text">
+                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Shield size={14} /> Wat Privacy-First betekent bij Pulse</div>
+                <h3>Privacy is voor ons geen instelling. Het is de basis.</h3>
+                <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 0 }}>
+                  {[
+                    'Wij verzamelen geen onnodige data',
+                    'Wij verkopen geen data',
+                    'Wij analyseren geen gedrag',
+                    'Wij bouwen geen profielen',
+                    'Wij gebruiken geen algoritmes',
+                  ].map((item) => (
+                    <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 0', borderRadius: 14 }}>
+                      <span style={{ color: 'var(--accent)', fontWeight: 800, fontSize: 18 }}>✕</span>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="hp-feature-mockup">
+                <div className="op-privacy-card">
+                  <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Shield size={32} /></div>
+                  <div className="op-privacy-title">Pulse heeft niets aan jouw data — en wil het ook niet.</div>
+                  <div className="op-privacy-sub" style={{ marginTop: 12 }}>
+                    Sterker nog: wat we niet nodig hebben, slaan we niet op.
                   </div>
-                </FadeCard>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── WAT WE NIET DOEN ── */}
-        <section className="hp-section" id="wat-niet">
-          <div className="hp-section-inner">
-            <SectionHeader
-              badge="Wat wij niet doen"
-              title="Geen datahonger. Geen verborgen opslag."
-              align="left"
-            />
-            <div className="op-compare-row" style={{ marginTop: 40 }}>
-              <div className="op-compare-col op-compare-col--no" style={{ flex: 1 }}>
-                <div className="op-compare-label op-compare-label--no">Pulse doet dit nooit</div>
-                <ul className="ot-feature-list">
-                  {[
-                    'Jouw data verkopen aan adverteerders',
-                    'Gedrag van kinderen analyseren',
-                    'Profielen aanmaken van gebruikers',
-                    'Algoritmes inzetten om aandacht te stelen',
-                    'Berichten langer bewaren dan nodig',
-                    'Telefoonnummers vereisen of opslaan',
-                    'Foto\'s of media opslaan',
-                    'Data delen met derden',
-                    'Kinderen targeten met aanbevelingen',
-                  ].map((item) => (
-                    <li key={item} className="op-not-item">
-                      <span className="op-not-check">✕</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+                </div>
               </div>
-              <div className="op-compare-col op-compare-col--yes" style={{ flex: 1 }}>
-                <div className="op-compare-label op-compare-label--yes">Pulse doet dit wel</div>
-                <ul className="ot-feature-list">
-                  {[
-                    'Veilig communiceren mogelijk maken',
-                    'Data direct verwijderen als je dat wilt',
-                    'Ouders volledig in controle houden',
-                    'Berichten end-to-end versleutelen',
-                    'Automatisch opschonen na de bewaartermijn',
-                    'Transparant zijn over wat we opslaan',
-                    'Werken zonder advertenties',
-                    'AVG-compliant blijven',
-                    'Jou als eigenaar van jouw data behandelen',
-                  ].map((item) => (
-                    <li key={item}>
-                      <span className="ot-feature-check"><Check size={14} /></span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+            </FadeRow>
           </div>
         </section>
 
         {/* ── WAT WE WEL OPSLAAN ── */}
-        <section className="hp-section hp-section--gray" id="wat-opslaan">
+        <section className="hp-section" id="wat-opslaan">
           <div className="hp-section-inner">
-            <SectionHeader
-              badge="Wat we opslaan — en waarom"
-              title="Eerlijk en transparant"
-              text="We bewaren alleen wat noodzakelijk is. Hieronder zie je precies wat, hoe lang, en waarom. Verwijderen = echt verwijderen."
-              align="left"
-            />
-            <div style={{ marginTop: 40 }}>
-              {retentionRows.map((row) => (
-                <FadeCard key={row.label}>
-                  <div className="pf-retention-row">
-                    <div className="pf-retention-label">{row.label}</div>
-                    <div className="pf-retention-body">
-                      <div className="pf-retention-why">{row.why}</div>
+            <FadeRow className="op-privacy-row">
+              <div className="hp-feature-text">
+                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Lock size={14} /> Wat we wél opslaan en waarom</div>
+                <h3>Zo weinig mogelijk. Zo kort mogelijk.</h3>
+                <p style={{ marginTop: 8, color: 'var(--text2)' }}>We slaan alleen op wat echt nodig is om de app te laten werken — en nooit langer dan nodig.</p>
+                <div style={{ marginTop: 24 }}>
+                  {retentionRows.map((row) => (
+                    <div key={row.label} className="pf-retention-row">
+                      <div className="pf-retention-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ color: 'var(--accent)', display: 'flex' }}><row.Icon size={18} /></span>{row.label}
+                      </div>
+                      {row.why && <div className="pf-retention-why">{row.why}</div>}
                       <div className="pf-retention-meta">
                         <span className="pf-retention-badge pf-retention-badge--duration">
                           <Clock size={12} /> {row.duration}
@@ -350,10 +233,19 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                         </span>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </div>
+              <div className="hp-feature-mockup">
+                <div className="op-privacy-card">
+                  <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Trash2 size={32} /></div>
+                  <div className="op-privacy-title">Verwijderen = echt verwijderen</div>
+                  <div className="op-privacy-sub" style={{ marginTop: 12 }}>
+                    Geen archieven.<br />Geen kopieën.<br />Geen verborgen opslag.
                   </div>
-                </FadeCard>
-              ))}
-            </div>
+                </div>
+              </div>
+            </FadeRow>
           </div>
         </section>
 
@@ -362,24 +254,25 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
-                <div className="hp-feature-tag">End-to-end versleuteling</div>
-                <h3>Alleen jij en je kind kunnen meelezen. Wij niet.</h3>
-                <p>
-                  Alle berichten in Pulse zijn end-to-end versleuteld (E2EE). Dat betekent: een bericht wordt versleuteld op het apparaat van de afzender, en pas ontsleuteld op het apparaat van de ontvanger.
-                </p>
-                <p style={{ marginTop: 16 }}>
-                  Onderweg ziet niemand de inhoud. Geen hacker, geen overheid, geen Pulse-medewerker. Niemand.
-                </p>
-                <ul className="ot-feature-list" style={{ marginTop: 24 }}>
-                  <li><span className="ot-feature-check"><Check size={14} /></span>Berichten versleuteld op jouw apparaat</li>
-                  <li><span className="ot-feature-check"><Check size={14} /></span>Alleen leesbaar voor afzender en ontvanger</li>
-                  <li><span className="ot-feature-check"><Check size={14} /></span>Pulse kan jouw berichten niet inzien</li>
-                  <li><span className="ot-feature-check"><Check size={14} /></span>Geldt voor chat, bellen én videobellen</li>
-                </ul>
+                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Lock size={14} /> Veiligheid: End-to-End Encryptie</div>
+                <h3>Alles wat je verstuurt via Pulse is beveiligd met end-to-end encryptie (E2EE).</h3>
+                <p style={{ marginTop: 16 }}>Dat betekent:</p>
+                <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 0 }}>
+                  {[
+                    'Alleen jij en de ontvanger kunnen berichten lezen',
+                    'Niemand anders — ook Pulse niet',
+                    'Geen toegang. Geen inzage. Geen meelezen',
+                  ].map((item) => (
+                    <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 0', borderRadius: 14 }}>
+                      <span style={{ color: 'var(--accent)', display: 'flex' }}><Check size={18} /></span>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="hp-feature-mockup">
                 <div className="op-privacy-card" style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 48, marginBottom: 12 }}>🔒</div>
+                  <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Lock size={36} /></div>
                   <div className="op-privacy-title">End-to-end versleuteld</div>
                   <div className="op-privacy-sub" style={{ marginTop: 12 }}>
                     Van jou naar je kind.<br />
@@ -395,22 +288,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           </div>
         </section>
 
-        {/* ── AFSLUITING / BELOFTE ── */}
-        <section className="hp-section" id="belofte">
-          <div className="hp-section-inner">
-            <FadeCard>
-              <div className="op-statement" style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
-                <blockquote>
-                  "Privacy is voor ons geen marketingterm. Het is de reden waarom Pulse bestaat. Wij bouwen een app waarbij jij nooit hoeft na te denken over wat er met jouw gegevens gebeurt."
-                </blockquote>
-                <p style={{ marginTop: 24, color: 'var(--text2)', fontSize: 15, lineHeight: 1.7 }}>
-                  Pulse verzamelt niet. Pulse analyseert niet. Pulse verkoopt niet.<br />
-                  <strong style={{ color: 'var(--text)' }}>Pulse beschermt.</strong>
-                </p>
-              </div>
-            </FadeCard>
-          </div>
-        </section>
+
 
         {/* ── CTA ── */}
         <section className="ot-final-cta">
@@ -445,34 +323,25 @@ export default function PrivacyFirstPagina({ onParentClick }) {
       <style>{`
         .pf-retention-row {
           display: flex;
-          gap: 24px;
+          flex-direction: column;
           align-items: flex-start;
-          background: var(--surface, #fff);
-          border: 1px solid rgba(108,99,255,0.1);
-          border-radius: 18px;
-          padding: 20px 24px;
-          margin-bottom: 12px;
+          gap: 6px;
+          padding: 4px 0;
+          margin-bottom: 5px;
         }
         .pf-retention-label {
           font-weight: 700;
           font-size: 15px;
-          color: var(--text);
-          min-width: 180px;
-          flex-shrink: 0;
-          padding-top: 2px;
-        }
-        .pf-retention-body {
-          flex: 1;
-          min-width: 0;
+          color: #1a1a2e;
         }
         .pf-retention-why {
-          font-size: 14px;
-          color: var(--text2);
-          line-height: 1.55;
-          margin-bottom: 10px;
+          font-size: 13px;
+          color: #3d3a5c;
+          line-height: 1.5;
         }
         .pf-retention-meta {
           display: flex;
+          flex-direction: row;
           flex-wrap: wrap;
           gap: 8px;
         }
@@ -486,22 +355,16 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           border-radius: 999px;
         }
         .pf-retention-badge--duration {
-          background: rgba(108,99,255,0.1);
-          color: var(--accent);
+          background: rgba(108,99,255,0.12);
+          color: #5b45e0;
         }
         .pf-retention-badge--delete {
-          background: rgba(34,197,94,0.1);
+          background: rgba(34,197,94,0.12);
           color: #16a34a;
         }
         @media (max-width: 600px) {
           .pf-retention-row {
-            flex-direction: column;
-            gap: 10px;
-            padding: 16px 18px;
-          }
-          .pf-retention-label {
-            min-width: unset;
-            font-size: 14px;
+            padding: 4px 0;
           }
         }
       `}</style>

@@ -18,7 +18,7 @@ import { copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false, futureAttachmentStrategySupported = false, effectiveAttachmentStrategy = 'mock_media_v1' }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false, backendE2EECapabilities = null, effectiveAttachmentStrategy = 'mock_media_v1' }) {
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
   const [unreadCounts,   setUnreadCounts]   = useState({});
@@ -145,7 +145,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
     serviceTransportReady,
     effectiveAttachmentStrategy,
-    futureAttachmentStrategySupported,
   });
 
   const {
@@ -380,7 +379,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               messages={messages} chatSearchRef={chatSearchRef}
               serviceTransportReady={serviceTransportReady}
               showFutureMediaBanner={Boolean(activeConv)}
-              futureAttachmentStrategySupported={futureAttachmentStrategySupported}
+              backendE2EECapabilities={backendE2EECapabilities}
               effectiveAttachmentStrategy={effectiveAttachmentStrategy}
             />
             {!isOnline && (
@@ -448,8 +447,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   textareaRef={textareaRef} activeConvRef={activeConvRef}
                   typingTimerRef={typingTimer} stopTyping={stopTyping} onSend={sendMessage}
                   onSendAttachment={sendAttachment}
+                  backendE2EECapabilities={backendE2EECapabilities}
                   effectiveAttachmentStrategy={effectiveAttachmentStrategy}
-                  futureAttachmentStrategySupported={futureAttachmentStrategySupported}
                 />
               );
             })()}

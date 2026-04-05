@@ -36,7 +36,7 @@ const ChatHeader = React.memo(function ChatHeader({
   chatSearchRef,
   serviceTransportReady,
   showFutureMediaBanner = false,
-  futureAttachmentStrategySupported = false,
+  backendE2EECapabilities = null,
   effectiveAttachmentStrategy = E2EE_ATTACHMENT_STRATEGY,
 }) {
   const otherUid  = getOtherUid(activeConv);
@@ -62,11 +62,7 @@ const ChatHeader = React.memo(function ChatHeader({
   const attachmentStrategyRuntime = getAttachmentStrategyRuntimeState({
     preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
     effectiveStrategyOverride: effectiveAttachmentStrategy,
-    capabilities: {
-      attachmentStrategies: futureAttachmentStrategySupported
-        ? ['mock_media_v1', 'pulse_media_v1']
-        : ['mock_media_v1'],
-    },
+    capabilities: backendE2EECapabilities,
   });
 
   function openContactProfile() {

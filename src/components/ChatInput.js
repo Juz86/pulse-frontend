@@ -31,8 +31,8 @@ const ChatInput = React.memo(function ChatInput({
   stopTyping,
   onSend,
   onSendAttachment,
+  backendE2EECapabilities = null,
   effectiveAttachmentStrategy = E2EE_ATTACHMENT_STRATEGY,
-  futureAttachmentStrategySupported = false,
 }) {
   const fileInputRef = useRef(null);
   const attachmentStatusTimerRef = useRef(null);
@@ -153,11 +153,7 @@ const ChatInput = React.memo(function ChatInput({
   const attachmentStrategyCopy = getAttachmentStrategyRuntimeCopy({
     preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
     effectiveStrategyOverride: effectiveAttachmentStrategy,
-    capabilities: {
-      attachmentStrategies: futureAttachmentStrategySupported
-        ? ['mock_media_v1', 'pulse_media_v1']
-        : ['mock_media_v1'],
-    },
+    capabilities: backendE2EECapabilities,
   });
 
   return (

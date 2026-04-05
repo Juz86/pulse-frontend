@@ -36,6 +36,9 @@ import {
 } from './attachmentPayload';
 import {
   buildRemoteAttachmentUploadPayload,
+  createAttachmentStorageProvider,
+  createInlineAttachmentStorageProvider,
+  createRemoteMockAttachmentStorageProvider,
   buildFutureRemoteAttachmentDraftPayload,
   buildMockRemoteAttachmentPayload,
   prepareAttachmentForSend,
@@ -867,6 +870,55 @@ describe('e2ee attachment helpers', () => {
     expect(attachment.envelopeKind).toBe(ATTACHMENT_FUTURE_ENVELOPE_KIND);
     expect(attachment.encryption?.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
     expect(attachment.encryption?.keyWrapAlg).toBe(ATTACHMENT_FUTURE_KEY_WRAP_ALG);
+  });
+
+  test('createInlineAttachmentStorageProvider keeps inline attachments unchanged', async () => {
+    const provider = createInlineAttachmentStorageProvider();
+    const inlineAttachment = normalizeAttachmentPayload({
+      name: 'inline.txt',
+      url: 'data:text/plain;base64,SGVsbG8=',
+      mimeType: 'text/plain',
+    });
+
+    const preparedAttachment = await provider.prepareAttachment(inlineAttachment);
+    const uploadedAttachment = await provider.uploadPreparedAttachment(preparedAttachment);
+
+    expect(provider.kind).toBe('inline');
+    expect(uploadedAttachment).toEqual(inlineAttachment);
+  });
+
+  test('createRemoteMockAttachmentStorageProvider prepares and uploads remote mock attachments', async () => {
+    const uploadAttachment = jest.fn(async (attachment) => ({
+      ...attachment,
+      downloadUrl: 'https://cdn.example.com/attachment-1',
+    }));
+    const provider = createRemoteMockAttachmentStorageProvider({
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      uploadAttachment,
+    });
+
+    const preparedAttachment = await provider.prepareAttachment({
+      name: 'future-upload.png',
+      url: 'data:image/png;base64,abc',
+      mimeType: 'image/png',
+    }, {
+      conversationId: 'conv-1',
+      userId: 'user-1',
+    });
+    const uploadedAttachment = await provider.uploadPreparedAttachment(preparedAttachment, {
+      conversationId: 'conv-1',
+    });
+
+    expect(provider.kind).toBe('remote_mock');
+    expect(uploadAttachment).toHaveBeenCalledTimes(1);
+    expect(uploadedAttachment.transfer).toBe('remote');
+    expect(uploadedAttachment.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
+    expect(uploadedAttachment.downloadUrl).toBe('https://cdn.example.com/attachment-1');
+  });
+
+  test('createAttachmentStorageProvider resolves the correct provider for each transport mode', () => {
+    expect(createAttachmentStorageProvider({ transportMode: 'inline' }).kind).toBe('inline');
+    expect(createAttachmentStorageProvider({ transportMode: 'remote_mock' }).kind).toBe('remote_mock');
   });
 
   test('buildMockAttachmentEncryptionMetadata creates a stable mock media key contract', async () => {

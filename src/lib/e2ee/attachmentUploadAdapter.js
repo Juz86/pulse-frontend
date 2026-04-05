@@ -24,6 +24,86 @@ function sanitizePathSegment(value, fallback) {
   return safe || fallback;
 }
 
+export function createInlineAttachmentStorageProvider() {
+  return {
+    kind: 'inline',
+    async prepareAttachment(normalizedAttachment) {
+      return normalizedAttachment;
+    },
+    async uploadPreparedAttachment(preparedAttachment) {
+      return normalizeAttachmentPayload(preparedAttachment);
+    },
+  };
+}
+
+export function createRemoteMockAttachmentStorageProvider({
+  strategyKey = E2EE_ATTACHMENT_STRATEGY,
+  uploadAttachment = null,
+  user = null,
+  fetchImpl = fetch,
+} = {}) {
+  return {
+    kind: 'remote_mock',
+    strategyKey,
+    async prepareAttachment(attachment, { conversationId, userId } = {}) {
+      return buildRemoteAttachmentUploadPayload(attachment, {
+        conversationId,
+        userId,
+        strategyKey,
+      });
+    },
+    async uploadPreparedAttachment(preparedAttachment, { conversationId } = {}) {
+      if (typeof uploadAttachment === 'function') {
+        const uploadedAttachment = await uploadAttachment(preparedAttachment);
+        return normalizeAttachmentPayload(uploadedAttachment);
+      }
+
+      if (!user) {
+        throw new Error('Geen gebruiker beschikbaar voor attachment upload.');
+      }
+
+      const token = await user.getIdToken();
+      const response = await fetchImpl(`${BACKEND_URL}/api/attachments/upload`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          conversationId,
+          attachment: preparedAttachment,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.attachment) {
+        throw new Error(data?.error || 'Bijlage uploaden mislukt');
+      }
+
+      return normalizeAttachmentPayload(data.attachment);
+    },
+  };
+}
+
+export function createAttachmentStorageProvider({
+  transportMode = E2EE_ATTACHMENT_TRANSPORT,
+  attachmentStrategy = E2EE_ATTACHMENT_STRATEGY,
+  uploadAttachment = null,
+  user = null,
+  fetchImpl = fetch,
+} = {}) {
+  if (transportMode === 'remote_mock') {
+    return createRemoteMockAttachmentStorageProvider({
+      strategyKey: attachmentStrategy,
+      uploadAttachment,
+      user,
+      fetchImpl,
+    });
+  }
+
+  return createInlineAttachmentStorageProvider();
+}
+
 export async function buildMockRemoteAttachmentPayload(attachment, { conversationId, userId } = {}) {
   const normalized = normalizeAttachmentPayload(attachment);
   if (!normalized) return null;
@@ -137,43 +217,19 @@ export async function prepareAttachmentForSend({
   if (validationError) {
     throw new Error(validationError);
   }
+  const storageProvider = createAttachmentStorageProvider({
+    transportMode,
+    attachmentStrategy,
+    uploadAttachment,
+    user,
+  });
+  const preparedAttachment = await storageProvider.prepareAttachment(normalized, {
+    conversationId,
+    userId,
+  });
 
-  if (transportMode === 'remote_mock') {
-    const uploadPayload = await buildRemoteAttachmentUploadPayload(normalized, {
-      conversationId,
-      userId,
-      strategyKey: attachmentStrategy,
-    });
-
-    if (typeof uploadAttachment === 'function') {
-      const uploadedAttachment = await uploadAttachment(uploadPayload);
-      return normalizeAttachmentPayload(uploadedAttachment);
-    }
-
-    if (!user) {
-      throw new Error('Geen gebruiker beschikbaar voor attachment upload.');
-    }
-
-    const token = await user.getIdToken();
-    const response = await fetch(`${BACKEND_URL}/api/attachments/upload`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        conversationId,
-        attachment: uploadPayload,
-      }),
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data?.attachment) {
-      throw new Error(data?.error || 'Bijlage uploaden mislukt');
-    }
-
-    return normalizeAttachmentPayload(data.attachment);
-  }
-
-  return normalized;
+  return storageProvider.uploadPreparedAttachment(preparedAttachment, {
+    conversationId,
+    userId,
+  });
 }

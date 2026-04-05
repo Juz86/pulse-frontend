@@ -365,7 +365,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .sidebar-header {
   padding:20px 18px 14px;
   border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg, rgba(108,99,255,.04) 0%, transparent 100%);
+  background:linear-gradient(180deg, rgba(108,99,255,.07) 0%, transparent 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
 }
 .sidebar-top    { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
 .app-brand {
@@ -607,9 +608,10 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .chat-header {
   padding:14px 22px; display:flex; align-items:center; gap:14px;
-  background:var(--surface);
-  border-bottom:1px solid var(--border);
-  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  background:rgba(39,36,80,0.92);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+  box-shadow:0 4px 20px rgba(0,0,0,.16), 0 1px 0 rgba(255,255,255,0.05) inset;
   position:relative;
 }
 .chat-header::after {
@@ -2377,10 +2379,11 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .hp-nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 900;
   height: 64px;
-  background: rgba(255,255,255,0.82);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  background: rgba(250,249,255,0.85);
+  backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid rgba(108,99,255,0.08);
-  transition: background 0.3s, border-color 0.3s;
+  box-shadow: 0 1px 0 rgba(108,99,255,0.05), 0 4px 20px rgba(108,99,255,0.04);
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 .hp-nav-inner {
   max-width: 1200px; margin: 0 auto; padding: 0 40px;
@@ -2388,8 +2391,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 .hp-nav-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-shrink: 0; }
 .hp-nav--scrolled {
-  background: rgba(255,255,255,0.97);
-  border-bottom-color: rgba(108,99,255,0.16);
+  background: rgba(255,255,255,0.96);
+  border-bottom-color: rgba(108,99,255,0.12);
+  box-shadow: 0 1px 0 rgba(108,99,255,0.08), 0 8px 24px rgba(108,99,255,0.06);
 }
 .hp-nav-logo {
   display: flex; align-items: center; gap: 10px;
@@ -2515,11 +2519,13 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   font-size: 13.5px;
   font-weight: 500;
   line-height: 1.4;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+  box-shadow: 0 4px 20px rgba(108,99,255,0.10), 0 1px 0 rgba(255,255,255,0.8) inset;
   max-width: 230px;
 }
 .hp-hero-bubble--in {
-  background: #fff;
+  background: rgba(255,255,255,0.90);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(108,99,255,0.08);
   color: #1a1a2e;
   border-bottom-left-radius: 5px;
 }
@@ -2551,11 +2557,12 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .hp-hero-text { flex: 1.4; min-width: 0; }
 .hp-hero-badge {
   display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(255,255,255,0.92); border: 1px solid rgba(167,139,250,0.16);
+  background: rgba(255,255,255,0.88); border: 1px solid rgba(108,99,255,0.12);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   color: #7c72f2; font-size: 12px; font-weight: 600;
   padding: 5px 12px; border-radius: 20px; margin-bottom: 24px;
   letter-spacing: 0.3px;
-  box-shadow: 0 10px 24px rgba(124,114,242,0.08);
+  box-shadow: 0 2px 12px rgba(108,99,255,0.08), 0 1px 0 rgba(255,255,255,0.9) inset;
 }
 .hp-hero-title {
   font-size: clamp(var(--text-h1), 5vw, var(--text-hero)); font-weight: var(--font-bold);
@@ -2599,8 +2606,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 /* ── SECTIONS ── */
 .hp-section { padding: 96px 0; background: #fff; }
-.hp-section--gray { background: #f9fafb; }
-.hp-section--steps { background: #f9fafb; }
+.hp-section--gray { background: #f7f5ff; }
+.hp-section--steps { background: #f7f5ff; }
 .hp-section[id],
 .hp-feature-row[id],
 .ot-final-cta[id] {
@@ -2620,14 +2627,18 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
 }
 .hp-why-card {
-  background: #fff; border: 1.5px solid #e5e7eb; border-radius: 20px;
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(108,99,255,0.09);
+  border-radius: 20px;
   padding: 32px 28px;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 12px rgba(108,99,255,0.05), 0 1px 0 rgba(255,255,255,0.9) inset;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
 .hp-why-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(108,99,255,0.1);
-  border-color: rgba(108,99,255,0.3);
+  box-shadow: 0 16px 40px rgba(108,99,255,0.10), 0 1px 0 rgba(255,255,255,0.9) inset;
+  border-color: rgba(108,99,255,0.18);
 }
 .hp-section--gray .hp-why-card { background: #fff; }
 .hp-why-icon { font-size: 36px; margin-bottom: 16px; }
@@ -2637,7 +2648,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 /* ── FEATURE ROWS ── */
 .hp-feature-row {
   display: flex; align-items: center; gap: 80px;
-  padding: 64px 0; border-top: 1px solid #e5e7eb;
+  padding: 64px 0; border-top: 1px solid rgba(108,99,255,0.08);
 }
 .hp-feature-row:first-of-type { border-top: none; padding-top: 0; }
 .hp-feature-row--reverse { flex-direction: row-reverse; }
@@ -4405,12 +4416,13 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 /* Privacy visuele kaart */
 .op-privacy-card {
-  background: #fff;
-  border: 1.5px solid #ece7fb;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(108,99,255,0.10);
   border-radius: 28px;
   padding: 40px 36px;
   max-width: 360px;
-  box-shadow: 0 24px 60px rgba(108,99,255,0.1);
+  backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%);
+  box-shadow: 0 2px 16px rgba(108,99,255,0.06), 0 16px 48px rgba(108,99,255,0.08), 0 1px 0 rgba(255,255,255,0.95) inset;
   text-align: center;
 }
 

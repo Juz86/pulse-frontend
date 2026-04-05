@@ -163,7 +163,7 @@ const MessageBubble = React.memo(function MessageBubble({
       : attachmentUrl;
     const attachmentPresentation = getAttachmentContractPresentation(attachment);
     const attachmentAccessPresentation = getAttachmentAccessVerificationPresentation(
-      resolvedAttachmentAccess?.contract,
+      attachment,
       resolvedAttachmentAccess?.unwrapContext
     );
     const resolveAttachment = async () => {
@@ -184,6 +184,7 @@ const MessageBubble = React.memo(function MessageBubble({
       try {
         const readyAttachment = await resolveAttachment();
         const preparedAccess = await prepareAttachmentBinaryAccess(readyAttachment, user);
+        setResolvedAttachment(preparedAccess.attachment);
         setResolvedAttachmentAccess(preparedAccess);
         openAttachmentInNewTab(
           preparedAccess.isObjectUrl
@@ -201,6 +202,7 @@ const MessageBubble = React.memo(function MessageBubble({
       try {
         const readyAttachment = await resolveAttachment();
         const preparedAccess = await prepareAttachmentBinaryAccess(readyAttachment, user);
+        setResolvedAttachment(preparedAccess.attachment);
         setResolvedAttachmentAccess(preparedAccess);
         triggerAttachmentDownload(
           preparedAccess.isObjectUrl

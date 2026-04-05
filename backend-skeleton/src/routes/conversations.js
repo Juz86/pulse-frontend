@@ -38,8 +38,9 @@ function deriveConversationSummary(message, fallback = '') {
   }
 
   if (message.messageType === 'attachment') {
+    const attachmentName = message.attachment?.name || 'Bestand';
     return {
-      lastMessage: 'Bijlage gedeeld',
+      lastMessage: `Bijlage: ${attachmentName}`,
       lastMessageType: 'attachment',
       lastAttachmentTransfer: message.attachment?.transfer || null,
       lastAttachmentEncoding: message.attachment?.contentEncoding || null,

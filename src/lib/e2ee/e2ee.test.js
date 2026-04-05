@@ -7,6 +7,7 @@ import {
   patchPendingMessageAsSent,
 } from './messageModel';
 import {
+  buildTransportAttachmentPayload,
   buildForwardServicePayload,
   buildRetryServicePayload,
 } from './messageTransportPayload';
@@ -40,9 +41,12 @@ import {
 import {
   getAttachmentAccessVerificationPresentation,
   getAttachmentContractPresentation,
+  getConversationAttachmentSummaryPresentation,
+  getAttachmentPreviewText,
 } from './attachmentPresentation';
 import {
   assertAttachmentMetadataIntegrity,
+  buildAttachmentAccessVerification,
   buildResolvedAttachmentAccessContract,
   buildAttachmentMetadataUrl,
   clearAttachmentMetadataCache,
@@ -95,6 +99,50 @@ describe('e2ee message model helpers', () => {
     expect(pending.failed).toBe(false);
   });
 
+  test('buildPendingMessage normalizes structured attachment payloads', () => {
+    const pending = buildPendingMessage({
+      text: 'Bijlage: foto.png',
+      conversationId: 'conv-1',
+      userId: 'user-1',
+      type: 'attachment',
+      attachment: {
+        name: 'foto.png',
+        downloadUrl: 'http://localhost:3001/attachments/pending-1',
+        transfer: 'remote',
+        mimeType: 'application/pulse-e2ee-envelope+json',
+        originalMimeType: 'image/png',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+        accessVerification: {
+          integrityVerified: true,
+          wrappedKeyVerified: false,
+          unwrapKind: 'attachment_encryption_contract',
+        },
+      },
+    });
+
+    expect(pending.attachment).toEqual({
+      name: 'foto.png',
+      url: '',
+      downloadUrl: 'http://localhost:3001/attachments/pending-1',
+      thumbnailUrl: '',
+      storageKey: '',
+      transfer: 'remote',
+      mimeType: 'application/pulse-e2ee-envelope+json',
+      originalMimeType: 'image/png',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: '',
+      expectedPayloadSha256: '',
+      size: null,
+      caption: '',
+      encryption: null,
+      accessVerification: {
+        integrityVerified: true,
+        wrappedKeyVerified: false,
+        unwrapKind: 'attachment_encryption_contract',
+      },
+    });
+  });
+
   test('patchPendingMessageAsSent marks a pending message as sent', () => {
     const pending = buildPendingMessage({
       text: 'Hallo',
@@ -128,6 +176,35 @@ describe('e2ee message model helpers', () => {
     expect(getConversationPreview({ ciphertextAvailable: true, decryptedLocally: false })).toBe('Versleuteld bericht');
   });
 
+  test('getConversationPreview includes encrypted storage signal for attachment messages', () => {
+    expect(getConversationPreview({
+      type: 'attachment',
+      attachment: {
+        name: 'foto.png',
+        transfer: 'remote',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+      },
+    })).toBe('Bijlage: foto.png · versleuteld');
+  });
+
+  test('getConversationPreview prefers attachment summary fields over stale lastMessage text', () => {
+    expect(getConversationPreview({
+      lastMessage: 'Bijlage gedeeld',
+      lastMessageType: 'attachment',
+      lastAttachmentTransfer: 'remote',
+      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+      lastAttachmentOriginalMimeType: 'image/png',
+    })).toBe('Bijlage: Bestand · versleuteld');
+
+    expect(getConversationPreview({
+      lastMessage: 'Bijlage: rapport.pdf',
+      lastMessageType: 'attachment',
+      lastAttachmentTransfer: 'remote',
+      lastAttachmentEncoding: '',
+      lastAttachmentOriginalMimeType: 'application/pdf',
+    })).toBe('Bijlage: rapport.pdf · opslaglink');
+  });
+
   test('contact messages keep their shared-contact preview', () => {
     expect(getConversationPreview({
       type: 'contact',
@@ -137,6 +214,17 @@ describe('e2ee message model helpers', () => {
 
   test('getMessageDisplayText falls back to encrypted placeholder when text is unavailable', () => {
     expect(getMessageDisplayText({ ciphertextAvailable: true, decryptedLocally: false })).toBe('Versleuteld bericht');
+  });
+
+  test('getMessageDisplayText keeps attachment text compact without storage suffix', () => {
+    expect(getMessageDisplayText({
+      type: 'attachment',
+      attachment: {
+        name: 'foto.png',
+        transfer: 'remote',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+      },
+    })).toBe('Bijlage: foto.png');
   });
 
   test('normalizeIncomingMessage preserves structured contact metadata', () => {
@@ -167,13 +255,27 @@ describe('e2ee message model helpers', () => {
         type: 'attachment',
         messageType: 'attachment',
         text: 'document.pdf',
-        attachment: { name: 'document.pdf', url: 'https://example.com/document.pdf', mimeType: 'application/pdf' },
+        attachment: {
+          name: 'document.pdf',
+          url: 'https://example.com/document.pdf',
+          mimeType: 'application/pdf',
+          accessVerification: {
+            integrityVerified: true,
+            wrappedKeyVerified: false,
+            unwrapKind: 'attachment_encryption_contract',
+          },
+        },
       },
       'user-1'
     );
 
     expect(normalized.type).toBe('attachment');
     expect(normalized.attachment?.name).toBe('document.pdf');
+    expect(normalized.attachment?.accessVerification).toEqual({
+      integrityVerified: true,
+      wrappedKeyVerified: false,
+      unwrapKind: 'attachment_encryption_contract',
+    });
   });
 
   test('normalizeIncomingMessage preserves reaction objects', () => {
@@ -255,6 +357,7 @@ describe('e2ee attachment helpers', () => {
       size: null,
       caption: '',
       encryption: null,
+      accessVerification: null,
     });
   });
 
@@ -307,6 +410,7 @@ describe('e2ee attachment helpers', () => {
         envelopeKind: 'pulse_mock_media_envelope',
         originalMimeType: 'image/jpeg',
       },
+      accessVerification: null,
     });
   });
 
@@ -355,6 +459,7 @@ describe('e2ee attachment helpers', () => {
         envelopeKind: 'pulse_mock_media_envelope',
         originalMimeType: 'text/plain',
       },
+      accessVerification: null,
     });
   });
 
@@ -536,6 +641,51 @@ describe('e2ee attachment helpers', () => {
     })).toEqual({
       integrityAccessLabel: 'Downloadcontract bevestigd',
       wrappedKeyAccessLabel: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap',
+    });
+  });
+
+  test('getAttachmentAccessVerificationPresentation reuses persisted attachment verification state', () => {
+    expect(getAttachmentAccessVerificationPresentation({
+      accessVerification: {
+        integrityVerified: true,
+        wrappedKeyVerified: true,
+        unwrapKind: 'pulse_mock_media_key_unwrap',
+      },
+    })).toEqual({
+      integrityAccessLabel: 'Downloadcontract bevestigd',
+      wrappedKeyAccessLabel: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap',
+    });
+  });
+
+  test('getAttachmentPreviewText derives list-friendly attachment labels', () => {
+    expect(getAttachmentPreviewText({
+      name: 'foto.png',
+      transfer: 'remote',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+    })).toBe('Bijlage: foto.png · versleuteld');
+
+    expect(getAttachmentPreviewText({
+      name: 'document.pdf',
+      transfer: 'remote',
+    }, {
+      includeStorageSignal: false,
+    })).toBe('Bijlage: document.pdf');
+  });
+
+  test('getConversationAttachmentSummaryPresentation derives preview and badge state', () => {
+    expect(getConversationAttachmentSummaryPresentation({
+      lastMessage: 'Bijlage: rapport.pdf',
+      lastMessageType: 'attachment',
+      lastAttachmentTransfer: 'remote',
+      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+      lastAttachmentOriginalMimeType: 'application/pdf',
+      lastAttachmentExpectedPayloadSha256: 'hash-1',
+    })).toEqual({
+      isAttachmentSummary: true,
+      showRemoteAttachmentBadge: true,
+      previewText: 'Bijlage: rapport.pdf · versleuteld',
+      storageShortLabel: 'versleuteld',
+      mimeLabel: 'application/pdf',
     });
   });
 
@@ -979,6 +1129,19 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
+  test('buildAttachmentAccessVerification derives session-level access state', () => {
+    expect(buildAttachmentAccessVerification({
+      integrityVerified: true,
+      wrappedKeyVerified: true,
+    }, {
+      unwrapKind: 'pulse_mock_media_key_unwrap',
+    })).toEqual({
+      integrityVerified: true,
+      wrappedKeyVerified: true,
+      unwrapKind: 'pulse_mock_media_key_unwrap',
+    });
+  });
+
   test('getAttachmentContractFromHeaders reads attachment contract headers', () => {
     expect(getAttachmentContractFromHeaders({
       get: jest.fn((name) => ({
@@ -1340,6 +1503,11 @@ describe('e2ee attachment helpers', () => {
     expect(createObjectUrl).toHaveBeenCalledTimes(1);
     expect(prepared.url).toBe('blob:prepared-access');
     expect(prepared.isObjectUrl).toBe(true);
+    expect(prepared.attachment.accessVerification).toEqual({
+      integrityVerified: true,
+      wrappedKeyVerified: false,
+      unwrapKind: 'attachment_encryption_contract',
+    });
     expect(prepared.contract).toEqual({
       expectedPayloadSha256: 'mock-sha256-binary',
       contentEncoding: '',
@@ -1428,6 +1596,44 @@ describe('e2ee attachment helpers', () => {
 });
 
 describe('e2ee transport payload helpers', () => {
+  test('buildTransportAttachmentPayload strips transient urls but keeps verification state', () => {
+    expect(buildTransportAttachmentPayload({
+      name: 'foto.png',
+      url: 'blob:temporary-preview',
+      downloadUrl: 'http://localhost:3001/attachments/transport-1',
+      transfer: 'remote',
+      mimeType: 'application/pulse-e2ee-envelope+json',
+      originalMimeType: 'image/png',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      accessVerification: {
+        integrityVerified: true,
+        wrappedKeyVerified: true,
+        unwrapKind: 'pulse_mock_media_key_unwrap',
+      },
+    })).toEqual({
+      name: 'foto.png',
+      url: '',
+      downloadUrl: 'http://localhost:3001/attachments/transport-1',
+      thumbnailUrl: '',
+      storageKey: '',
+      transfer: 'remote',
+      mimeType: 'application/pulse-e2ee-envelope+json',
+      originalMimeType: 'image/png',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
+      expectedPayloadSha256: '',
+      size: null,
+      caption: '',
+      encryption: null,
+      accessVerification: {
+        integrityVerified: true,
+        wrappedKeyVerified: true,
+        unwrapKind: 'pulse_mock_media_key_unwrap',
+      },
+    });
+  });
+
   test('buildRetryServicePayload keeps structured attachment data intact', () => {
     const payload = buildRetryServicePayload({
       text: 'Bijlage: foto.png',
@@ -1435,12 +1641,18 @@ describe('e2ee transport payload helpers', () => {
       replyTo: { id: 'msg-parent-1' },
       attachment: {
         name: 'foto.png',
+        url: 'blob:temporary-preview',
         downloadUrl: 'http://localhost:3001/attachments/retry-1',
         transfer: 'remote',
         mimeType: 'application/pulse-e2ee-envelope+json',
         originalMimeType: 'image/png',
         contentEncoding: 'mock-e2ee-envelope-v1',
         envelopeKind: 'pulse_mock_media_envelope',
+        accessVerification: {
+          integrityVerified: true,
+          wrappedKeyVerified: false,
+          unwrapKind: 'attachment_encryption_contract',
+        },
       },
     });
 
@@ -1464,6 +1676,11 @@ describe('e2ee transport payload helpers', () => {
         size: null,
         caption: '',
         encryption: null,
+        accessVerification: {
+          integrityVerified: true,
+          wrappedKeyVerified: false,
+          unwrapKind: 'attachment_encryption_contract',
+        },
       },
     });
   });
@@ -1474,12 +1691,18 @@ describe('e2ee transport payload helpers', () => {
       text: 'foto.png',
       attachment: {
         name: 'foto.png',
+        url: 'blob:temporary-preview',
         downloadUrl: 'http://localhost:3001/attachments/fwd-1',
         transfer: 'remote',
         mimeType: 'application/pulse-e2ee-envelope+json',
         originalMimeType: 'image/png',
         contentEncoding: 'mock-e2ee-envelope-v1',
         envelopeKind: 'pulse_mock_media_envelope',
+        accessVerification: {
+          integrityVerified: true,
+          wrappedKeyVerified: true,
+          unwrapKind: 'pulse_mock_media_key_unwrap',
+        },
         encryption: {
           alg: 'mock-e2ee-envelope-v1',
           envelopeKind: 'pulse_mock_media_envelope',
@@ -1494,6 +1717,12 @@ describe('e2ee transport payload helpers', () => {
     expect(payload.attachment.contentEncoding).toBe('mock-e2ee-envelope-v1');
     expect(payload.attachment.envelopeKind).toBe('pulse_mock_media_envelope');
     expect(payload.attachment.expectedPayloadSha256).toBe('');
+    expect(payload.attachment.url).toBe('');
+    expect(payload.attachment.accessVerification).toEqual({
+      integrityVerified: true,
+      wrappedKeyVerified: true,
+      unwrapKind: 'pulse_mock_media_key_unwrap',
+    });
   });
 
   test('buildForwardServicePayload prefixes plain text forwards but not structured contact forwards', () => {

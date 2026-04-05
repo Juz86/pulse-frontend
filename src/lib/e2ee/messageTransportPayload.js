@@ -4,6 +4,21 @@ export function getStructuredMessageType(message) {
   return message?.type || message?.messageType || 'text';
 }
 
+export function buildTransportAttachmentPayload(attachment) {
+  const normalized = normalizeAttachmentPayload(attachment);
+  if (!normalized) return null;
+
+  if (normalized.transfer === 'remote') {
+    return {
+      ...normalized,
+      // Never forward transient local object URLs back into the service transport.
+      url: '',
+    };
+  }
+
+  return normalized;
+}
+
 export function buildRetryServicePayload(message = {}) {
   const messageType = getStructuredMessageType(message);
 
@@ -12,7 +27,7 @@ export function buildRetryServicePayload(message = {}) {
     messageType,
     replyToMessageId: message.replyTo?.messageId || message.replyTo?.id || null,
     sharedContact: messageType === 'contact' ? (message.sharedContact || null) : null,
-    attachment: messageType === 'attachment' ? normalizeAttachmentPayload(message.attachment) : null,
+    attachment: messageType === 'attachment' ? buildTransportAttachmentPayload(message.attachment) : null,
   };
 }
 
@@ -32,7 +47,6 @@ export function buildForwardServicePayload(message = {}) {
     plaintext: message.text || '',
     messageType,
     sharedContact: messageType === 'contact' ? (message.sharedContact || null) : null,
-    attachment: messageType === 'attachment' ? normalizeAttachmentPayload(message.attachment) : null,
+    attachment: messageType === 'attachment' ? buildTransportAttachmentPayload(message.attachment) : null,
   };
 }
-

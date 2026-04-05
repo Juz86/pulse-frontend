@@ -19,6 +19,7 @@ import {
   Mail,
   Trash2,
   Child,
+  XIcon,
 } from '../components/Icons';
 
 function useFadeIn() {
@@ -47,12 +48,12 @@ function FadeRow({ children, className = '' }) {
 }
 
 const retentionRows = [
-  { label: 'Accountgegevens ouders',       Icon: User,     duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
-  { label: 'Accountgegevens kinderen',     Icon: Child,   duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
+  { label: 'Accountgegevens ouder',       Icon: User,     duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
+  { label: 'Accountgegevens kind',     Icon: Child,   duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
   { label: 'Vertrouwde contacten',         Icon: Users,    duration: 'Zolang gekoppeld',  onDelete: 'Bij ontkoppelen → direct weg' },
-  { label: 'Berichten en communicatie',    Icon: Message,  duration: 'Maximaal 30 dagen', why: 'Zodat je recente gesprekken kunt teruglezen',           onDelete: 'Daarna → automatisch verwijderd' },
-  { label: 'Logbestanden',                 Icon: Activity, duration: 'Maximaal 7 dagen',  why: 'Alleen voor veiligheid en technische stabiliteit',      onDelete: 'Daarna → automatisch verwijderd' },
-  { label: 'Support- en privacyverzoeken', Icon: Mail,     duration: 'Maximaal 30 dagen', why: 'Om je goed te kunnen helpen',                           onDelete: 'Daarna → automatisch verwijderd' },
+  { label: 'Berichten en communicatie',    Icon: Message,  duration: 'Maximaal 30 dagen', why: 'Zodat je recente gesprekken kunt teruglezen.',           onDelete: 'Daarna → automatisch verwijderd' },
+  { label: 'Logbestanden',                 Icon: Activity, duration: 'Maximaal 7 dagen',  why: 'Alleen voor veiligheid en technische stabiliteit.',      onDelete: 'Daarna → automatisch verwijderd' },
+  { label: 'Support- en privacyverzoeken', Icon: Mail,     duration: 'Maximaal 30 dagen', why: 'Om je goed te kunnen helpen.',                           onDelete: 'Daarna → automatisch verwijderd' },
 ];
 
 export default function PrivacyFirstPagina({ onParentClick }) {
@@ -107,9 +108,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
               </h1>
               <p className="ot-hero-sub">
                 Bij Pulse draait alles om één ding: rust en veiligheid voor ouder en kind.
-              </p>
-              <p className="ot-hero-sub" style={{ marginTop: 12 }}>
-                Geen social media. Geen algoritmes. Geen dataverzameling.<br />
+                 Geen social media. Geen algoritmes. Geen dataverzameling.<br />
                 Gewoon communiceren — zoals het bedoeld is.
               </p>
               <div className="ot-hero-actions">
@@ -189,8 +188,8 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                     'Wij bouwen geen profielen',
                     'Wij gebruiken geen algoritmes',
                   ].map((item) => (
-                    <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 0', borderRadius: 14 }}>
-                      <span style={{ color: 'var(--accent)', fontWeight: 800, fontSize: 18 }}>✕</span>
+                    <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 0' }}>
+                      <span style={{ color: 'var(--accent)', display: 'flex', flexShrink: 0 }}><XIcon size={18} /></span>
                       <span style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>{item}</span>
                     </div>
                   ))}
@@ -220,8 +219,8 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                 <div style={{ marginTop: 24 }}>
                   {retentionRows.map((row) => (
                     <div key={row.label} className="pf-retention-row">
-                      <div className="pf-retention-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ color: 'var(--accent)', display: 'flex' }}><row.Icon size={18} /></span>{row.label}
+                      <div className="pf-retention-label" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <span style={{ color: 'var(--accent)', display: 'flex', flexShrink: 0 }}><row.Icon size={18} /></span>{row.label}
                       </div>
                       {row.why && <div className="pf-retention-why">{row.why}</div>}
                       <div className="pf-retention-meta">
@@ -250,21 +249,21 @@ export default function PrivacyFirstPagina({ onParentClick }) {
         </section>
 
         {/* ── BEVEILIGING / E2EE ── */}
-        <section className="hp-section" id="beveiliging">
+        <section className="hp-section hp-section--gray" id="beveiliging">
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
                 <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Lock size={14} /> Veiligheid: End-to-End Encryptie</div>
-                <h3>Alles wat je verstuurt via Pulse is beveiligd met end-to-end encryptie (E2EE).</h3>
+                <h3>Pulse is beveiligd met end-to-end encryptie.</h3>
                 <p style={{ marginTop: 16 }}>Dat betekent:</p>
                 <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 0 }}>
                   {[
-                    'Alleen jij en de ontvanger kunnen berichten lezen',
-                    'Niemand anders — ook Pulse niet',
-                    'Geen toegang. Geen inzage. Geen meelezen',
+                    'Alleen jij en de ontvanger kunnen berichten lezen.',
+                    'Niemand anders — ook Pulse niet.',
+                    'Geen toegang. Geen inzage. Geen meelezen.',
                   ].map((item) => (
                     <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 0', borderRadius: 14 }}>
-                      <span style={{ color: 'var(--accent)', display: 'flex' }}><Check size={18} /></span>
+                      <span style={{ color: 'var(--accent)', display: 'flex', flexShrink: 0 }}><Check size={18} /></span>
                       <span style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>{item}</span>
                     </div>
                   ))}
@@ -326,11 +325,11 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           flex-direction: column;
           align-items: flex-start;
           gap: 6px;
-          padding: 4px 0;
+          padding: 4px 0 10px 0;
           margin-bottom: 5px;
         }
         .pf-retention-label {
-          font-weight: 700;
+          font-weight: 600;
           font-size: 15px;
           color: #1a1a2e;
         }

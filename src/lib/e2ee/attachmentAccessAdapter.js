@@ -49,6 +49,14 @@ export function buildResolvedAttachmentAccessContract(attachment) {
   };
 }
 
+export function buildAttachmentAccessVerification(contract = {}, unwrapContext = null) {
+  return {
+    integrityVerified: Boolean(contract?.integrityVerified),
+    wrappedKeyVerified: Boolean(contract?.wrappedKeyVerified),
+    unwrapKind: unwrapContext?.unwrapKind || '',
+  };
+}
+
 export async function decryptAttachmentBlob(blob, attachment) {
   if (attachment?.encryption?.alg === 'mock-e2ee-envelope-v1') {
     await validateMockWrappedMediaKeyContract(attachment?.encryption || {});
@@ -364,9 +372,14 @@ export async function prepareAttachmentBinaryAccess(
 
   if (!accessInfo.needsRemoteFetch) {
     const unwrapContext = await resolveAttachmentUnwrapContext(resolvedAttachment);
+    const contract = buildResolvedAttachmentAccessContract(resolvedAttachment);
+    const verifiedAttachment = normalizeAttachmentPayload({
+      ...resolvedAttachment,
+      accessVerification: buildAttachmentAccessVerification(contract, unwrapContext),
+    });
     return {
-      attachment: resolvedAttachment,
-      contract: buildResolvedAttachmentAccessContract(resolvedAttachment),
+      attachment: verifiedAttachment,
+      contract,
       url: accessInfo.url,
       revoke: () => {},
       isObjectUrl: false,
@@ -378,10 +391,15 @@ export async function prepareAttachmentBinaryAccess(
   const decryptedBlob = await decryptAttachmentBlobOverride(encryptedBlob, resolvedAttachment);
   const objectUrl = createObjectUrl(decryptedBlob);
   const unwrapContext = await resolveAttachmentUnwrapContext(resolvedAttachment);
+  const contract = buildResolvedAttachmentAccessContract(resolvedAttachment);
+  const verifiedAttachment = normalizeAttachmentPayload({
+    ...resolvedAttachment,
+    accessVerification: buildAttachmentAccessVerification(contract, unwrapContext),
+  });
 
   return {
-    attachment: resolvedAttachment,
-    contract: buildResolvedAttachmentAccessContract(resolvedAttachment),
+    attachment: verifiedAttachment,
+    contract,
     url: objectUrl,
     revoke: () => revokeObjectUrl(objectUrl),
     isObjectUrl: true,

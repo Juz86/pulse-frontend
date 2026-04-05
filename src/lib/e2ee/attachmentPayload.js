@@ -31,6 +31,15 @@ export function normalizeAttachmentPayload(attachment) {
         originalMimeType: typeof attachment.encryption.originalMimeType === 'string' ? attachment.encryption.originalMimeType : '',
       }
     : null;
+  const accessVerification = attachment.accessVerification && typeof attachment.accessVerification === 'object'
+    ? {
+        integrityVerified: Boolean(attachment.accessVerification.integrityVerified),
+        wrappedKeyVerified: Boolean(attachment.accessVerification.wrappedKeyVerified),
+        unwrapKind: typeof attachment.accessVerification.unwrapKind === 'string'
+          ? attachment.accessVerification.unwrapKind
+          : '',
+      }
+    : null;
 
   return {
     name: typeof attachment.name === 'string' && attachment.name.trim()
@@ -51,6 +60,7 @@ export function normalizeAttachmentPayload(attachment) {
     size: normalizedSize,
     caption: typeof attachment.caption === 'string' ? attachment.caption.trim() : '',
     encryption,
+    accessVerification,
   };
 }
 

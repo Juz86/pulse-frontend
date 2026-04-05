@@ -1,7 +1,7 @@
 // src/components/ConversationItem.js
 import React from 'react';
 import { Pin, InfoIcon } from '../components/Icons';
-import { getAttachmentContractPresentation } from '../lib/e2ee/attachmentPresentation';
+import { getConversationAttachmentSummaryPresentation } from '../lib/e2ee/attachmentPresentation';
 import { getConversationPreview } from '../lib/e2ee/messageModel';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview } from '../utils';
@@ -32,13 +32,7 @@ function ConversationItemBase({
   onMoreActionsEnter,
   onMoreActionsLeave,
 }) {
-  const attachmentPresentation = getAttachmentContractPresentation({
-    transfer: conv.lastAttachmentTransfer,
-    contentEncoding: conv.lastAttachmentEncoding,
-    originalMimeType: conv.lastAttachmentOriginalMimeType,
-    expectedPayloadSha256: conv.lastAttachmentExpectedPayloadSha256,
-  });
-  const showRemoteAttachmentBadge = conv.lastMessageType === 'attachment' && attachmentPresentation.isRemote;
+  const attachmentSummary = getConversationAttachmentSummaryPresentation(conv);
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -68,8 +62,8 @@ function ConversationItemBase({
         <div className="conv-preview">
           {conv.lastCallDirection ? callPreview(conv, currentUid) : (
             <>
-              <span>{getConversationPreview(conv) || conv.lastMessage || 'Start een gesprek…'}</span>
-              {showRemoteAttachmentBadge && (
+              <span>{attachmentSummary.isAttachmentSummary ? attachmentSummary.previewText : (getConversationPreview(conv) || conv.lastMessage || 'Start een gesprek…')}</span>
+              {attachmentSummary.showRemoteAttachmentBadge && (
                 <>
                   <span
                     style={{
@@ -82,9 +76,9 @@ function ConversationItemBase({
                       opacity: 0.9,
                     }}
                   >
-                    {attachmentPresentation.storageShortLabel}
+                    {attachmentSummary.storageShortLabel}
                   </span>
-                  {attachmentPresentation.mimeLabel && (
+                  {attachmentSummary.mimeLabel && (
                     <span
                       style={{
                         marginLeft: 6,
@@ -93,7 +87,7 @@ function ConversationItemBase({
                         opacity: 0.9,
                       }}
                     >
-                      {attachmentPresentation.mimeLabel}
+                      {attachmentSummary.mimeLabel}
                     </span>
                   )}
                 </>

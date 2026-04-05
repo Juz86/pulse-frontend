@@ -36,15 +36,57 @@ export function getAttachmentContractPresentation(attachment = {}) {
   };
 }
 
-export function getAttachmentAccessVerificationPresentation(contract = {}, unwrapContext = null) {
+export function getAttachmentAccessVerificationPresentation(attachmentOrContract = {}, unwrapContext = null) {
+  const accessVerification = attachmentOrContract?.accessVerification || null;
+  const contract = accessVerification
+    ? {
+        integrityVerified: Boolean(accessVerification.integrityVerified),
+        wrappedKeyVerified: Boolean(accessVerification.wrappedKeyVerified),
+      }
+    : attachmentOrContract;
+  const resolvedUnwrapKind = unwrapContext?.unwrapKind || accessVerification?.unwrapKind || '';
   const integrityVerified = Boolean(contract?.integrityVerified);
   const wrappedKeyVerified = Boolean(contract?.wrappedKeyVerified);
-  const hasUnwrapContext = Boolean(unwrapContext?.unwrapKind && unwrapContext.unwrapKind !== 'none');
+  const hasUnwrapContext = Boolean(resolvedUnwrapKind && resolvedUnwrapKind !== 'none');
 
   return {
     integrityAccessLabel: integrityVerified ? 'Downloadcontract bevestigd' : '',
     wrappedKeyAccessLabel: wrappedKeyVerified
-      ? `Wrapped media key gevalideerd${hasUnwrapContext ? ` · ${unwrapContext.unwrapKind}` : ''}`
+      ? `Wrapped media key gevalideerd${hasUnwrapContext ? ` · ${resolvedUnwrapKind}` : ''}`
       : '',
+  };
+}
+
+export function getAttachmentPreviewText(attachment = {}, { includeStorageSignal = true } = {}) {
+  const presentation = getAttachmentContractPresentation(attachment);
+  const baseLabel = `Bijlage: ${attachment?.name || 'Bestand'}`;
+
+  if (!includeStorageSignal || !presentation.storageShortLabel) {
+    return baseLabel;
+  }
+
+  return `${baseLabel} · ${presentation.storageShortLabel}`;
+}
+
+export function getConversationAttachmentSummaryPresentation(conversation = {}) {
+  const previewName = typeof conversation?.lastMessage === 'string' && conversation.lastMessage.startsWith('Bijlage: ')
+    ? conversation.lastMessage.slice('Bijlage: '.length).split(' · ')[0].trim()
+    : '';
+  const attachment = {
+    name: previewName || 'Bestand',
+    transfer: conversation?.lastAttachmentTransfer || '',
+    mimeType: conversation?.lastAttachmentOriginalMimeType || '',
+    originalMimeType: conversation?.lastAttachmentOriginalMimeType || '',
+    contentEncoding: conversation?.lastAttachmentEncoding || '',
+    expectedPayloadSha256: conversation?.lastAttachmentExpectedPayloadSha256 || '',
+  };
+  const attachmentPresentation = getAttachmentContractPresentation(attachment);
+
+  return {
+    isAttachmentSummary: conversation?.lastMessageType === 'attachment',
+    showRemoteAttachmentBadge: conversation?.lastMessageType === 'attachment' && attachmentPresentation.isRemote,
+    previewText: getAttachmentPreviewText(attachment, { includeStorageSignal: true }),
+    storageShortLabel: attachmentPresentation.storageShortLabel,
+    mimeLabel: attachmentPresentation.mimeLabel,
   };
 }

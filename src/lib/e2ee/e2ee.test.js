@@ -73,6 +73,7 @@ import {
   getAttachmentAccessVerificationPresentation,
   getAttachmentContractPresentation,
   getAttachmentPreviewText,
+  getAttachmentStrategyPresentation,
 } from './attachmentPresentation';
 import {
   getFutureAttachmentStrategyBannerCopy,
@@ -1050,6 +1051,7 @@ describe('e2ee attachment helpers', () => {
       mimeLabel: 'image/png',
       storageLabel: 'Mock versleutelde opslaglink',
       storageShortLabel: 'versleuteld',
+      strategyHintLabel: 'mock-profiel',
       storageDetail: 'Envelope: pulse_mock_media_envelope · strategie mock_media_v1 · integriteitscheck actief',
       keyContractDetail: 'Media key: mock-media-key-1 · wrap: pulse_mock_media_key_wrap_v1',
     });
@@ -1076,6 +1078,7 @@ describe('e2ee attachment helpers', () => {
       mimeLabel: 'image/png',
       storageLabel: 'Toekomstige versleutelde opslaglink',
       storageShortLabel: 'versleuteld',
+      strategyHintLabel: 'future-draft',
       storageDetail: 'Envelope: pulse_media_envelope · strategie pulse_media_v1 · integriteitscheck actief',
       keyContractDetail: 'Media key: future-media-key-1 · wrap: pulse_media_key_wrap_v1 · digest actief',
     });
@@ -1093,8 +1096,33 @@ describe('e2ee attachment helpers', () => {
       mimeLabel: 'application/pdf',
       storageLabel: 'Beveiligde opslaglink',
       storageShortLabel: 'opslaglink',
+      strategyHintLabel: '',
       storageDetail: '',
       keyContractDetail: '',
+    });
+  });
+
+  test('getAttachmentStrategyPresentation derives strategy-aware labels from attachment contracts', () => {
+    expect(getAttachmentStrategyPresentation({
+      transfer: 'remote',
+      contentEncoding: 'mock-e2ee-envelope-v1',
+    })).toEqual({
+      strategyKey: 'mock_media_v1',
+      isMockStrategy: true,
+      isFutureStrategy: false,
+      strategyHintLabel: 'mock-profiel',
+      storageLabelPrefix: 'Mock',
+    });
+
+    expect(getAttachmentStrategyPresentation({
+      strategyKey: 'pulse_media_v1',
+      transfer: 'remote',
+    })).toEqual({
+      strategyKey: 'pulse_media_v1',
+      isMockStrategy: false,
+      isFutureStrategy: true,
+      strategyHintLabel: 'future-draft',
+      storageLabelPrefix: 'Toekomstige',
     });
   });
 
@@ -1214,7 +1242,7 @@ describe('e2ee attachment helpers', () => {
       storageShortLabel: 'versleuteld',
       strategyHintLabel: 'mock-profiel',
       mimeLabel: 'application/pdf',
-      storageDetail: 'Envelope: pulse_mock_media_envelope · integriteitscheck actief',
+      storageDetail: 'Envelope: pulse_mock_media_envelope · strategie mock_media_v1 · integriteitscheck actief',
       keyContractDetail: 'Media key: media-key-1 · wrap: pulse_mock_media_key_wrap_v1 · digest actief',
     });
   });
@@ -1314,6 +1342,7 @@ describe('e2ee attachment helpers', () => {
         isEncryptedRemote: true,
         hasIntegrityContract: true,
         hasWrappedMediaKeyContract: true,
+        strategyHintLabel: 'mock-profiel',
         mimeLabel: 'application/pdf',
         storageLabel: 'Mock versleutelde opslaglink',
         storageShortLabel: 'versleuteld',

@@ -5,9 +5,43 @@ import {
   ATTACHMENT_MOCK_MEDIA_STRATEGY,
 } from './attachmentStrategyConstants';
 
+export function getAttachmentStrategyPresentation(attachment = {}) {
+  const strategyKey =
+    attachment?.strategyKey
+    || attachment?.encryption?.strategyKey
+    || (attachment?.contentEncoding === ATTACHMENT_FUTURE_ENVELOPE_ALG
+      ? ATTACHMENT_FUTURE_MEDIA_STRATEGY
+      : (attachment?.contentEncoding === ATTACHMENT_MOCK_ENVELOPE_ALG
+        ? ATTACHMENT_MOCK_MEDIA_STRATEGY
+        : ''));
+  const isMockStrategy = strategyKey === ATTACHMENT_MOCK_MEDIA_STRATEGY;
+  const isFutureStrategy = strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY;
+
+  return {
+    strategyKey,
+    isMockStrategy,
+    isFutureStrategy,
+    strategyHintLabel: !strategyKey
+      ? ''
+      : isFutureStrategy
+        ? 'future-draft'
+        : isMockStrategy
+          ? 'mock-profiel'
+          : strategyKey,
+    storageLabelPrefix: isMockStrategy
+      ? 'Mock'
+      : isFutureStrategy
+        ? 'Toekomstige'
+        : strategyKey
+          ? 'Versleutelde'
+          : '',
+  };
+}
+
 export function getAttachmentContractPresentation(attachment = {}) {
   const transfer = attachment?.transfer || null;
-  const strategyKey = attachment?.strategyKey || attachment?.encryption?.strategyKey || '';
+  const strategyPresentation = getAttachmentStrategyPresentation(attachment);
+  const strategyKey = strategyPresentation.strategyKey;
   const contentEncoding = attachment?.contentEncoding || '';
   const originalMimeType = attachment?.originalMimeType || attachment?.mimeType || '';
   const envelopeKind = attachment?.envelopeKind || attachment?.encryption?.envelopeKind || '';
@@ -37,11 +71,12 @@ export function getAttachmentContractPresentation(attachment = {}) {
     isEncryptedRemote,
     hasIntegrityContract,
     hasWrappedMediaKeyContract,
+    strategyHintLabel: strategyPresentation.strategyHintLabel,
     mimeLabel: originalMimeType || 'Bestand gedeeld',
     storageLabel: isMockEncryptedRemote
-      ? 'Mock versleutelde opslaglink'
+      ? `${strategyPresentation.storageLabelPrefix} versleutelde opslaglink`
       : isFutureEncryptedRemote
-        ? 'Toekomstige versleutelde opslaglink'
+        ? `${strategyPresentation.storageLabelPrefix} versleutelde opslaglink`
         : isEncryptedRemote
           ? 'Versleutelde opslaglink'
           : isRemote
@@ -120,16 +155,5 @@ export function getAttachmentPreviewText(attachment = {}, { includeStorageSignal
 }
 
 export function getAttachmentStrategyHintLabel(attachment = {}) {
-  const strategyKey =
-    attachment?.strategyKey
-    || attachment?.encryption?.strategyKey
-    || (attachment?.contentEncoding === ATTACHMENT_FUTURE_ENVELOPE_ALG
-      ? ATTACHMENT_FUTURE_MEDIA_STRATEGY
-      : (attachment?.contentEncoding === ATTACHMENT_MOCK_ENVELOPE_ALG
-        ? ATTACHMENT_MOCK_MEDIA_STRATEGY
-        : ''));
-  if (!strategyKey) return '';
-  if (strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY) return 'future-draft';
-  if (strategyKey === ATTACHMENT_MOCK_MEDIA_STRATEGY) return 'mock-profiel';
-  return strategyKey;
+  return getAttachmentStrategyPresentation(attachment).strategyHintLabel;
 }

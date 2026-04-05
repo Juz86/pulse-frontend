@@ -37,7 +37,7 @@ const ChatHeader = React.memo(function ChatHeader({
   chatSearchRef,
   serviceTransportReady,
   showFutureMediaBanner = false,
-  attachmentStrategyRuntime = null,
+  attachmentRuntime = null,
 }) {
   const otherUid  = getOtherUid(activeConv);
   const isOnline  = otherUid && onlineUsers.has(otherUid);
@@ -59,13 +59,13 @@ const ChatHeader = React.memo(function ChatHeader({
 
   const searchTotal   = searchMatches.length;
   const searchCurrent = searchTotal > 0 ? chatSearchIdx % searchTotal : 0;
-  const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentRuntimeState({
+  const resolvedAttachmentRuntime = attachmentRuntime || getAttachmentRuntimeState({
     preferredStrategy: undefined,
   });
   const futureAttachmentBannerState = getFutureAttachmentStrategyBannerState({
     preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
-    capabilities: resolvedAttachmentStrategyRuntime.capabilities,
-    effectiveStrategyOverride: resolvedAttachmentStrategyRuntime.effectiveStrategy,
+    capabilities: resolvedAttachmentRuntime.capabilities,
+    effectiveStrategyOverride: resolvedAttachmentRuntime.effectiveStrategy,
     showFutureMediaBanner,
   });
   const serviceFallbackBannerState = getServiceTransportFallbackBannerState({

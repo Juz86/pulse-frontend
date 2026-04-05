@@ -161,7 +161,7 @@ function MainApp() {
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
   const [backendE2EECapabilities, setBackendE2EECapabilities] = useState(null);
-  const attachmentStrategyRuntime = getAttachmentRuntimeState({
+  const attachmentRuntime = getAttachmentRuntimeState({
     preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
     capabilities: backendE2EECapabilities,
   });
@@ -488,7 +488,7 @@ function MainApp() {
           ? <ParentAuthScreen defaultTab={parentAuthDefaultTab} onBack={() => { if (parentAuthReferrer) { window.location.assign(getSafeInternalPath(parentAuthReferrer)); } else { setShowParentAuth(false); setParentAuthDefaultTab('login'); setParentAuthReferrer(null); } }} />
           : <Homepage onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} attachmentStrategyRuntime={attachmentStrategyRuntime} />
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} attachmentRuntime={attachmentRuntime} />
             {userRole === 'parent' && showParentDashboard && (
               <div className={`parent-dashboard-overlay${dashboardFading ? ' fading' : ''}`} onClick={e => { if (e.target === e.currentTarget) { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); } }}>
                 <ParentDashboard user={user} parentActivityBadge={parentActivityBadge} onActivitiesViewed={() => setParentActivityBadge(0)} onClose={() => { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); }} />

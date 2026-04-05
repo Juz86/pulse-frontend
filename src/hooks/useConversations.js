@@ -16,7 +16,7 @@ import {
   applyConversationSummaryToList,
   normalizeConversationAttachmentSummary,
 } from '../lib/e2ee/conversationSummaries';
-import { isE2EEServiceTransportEnabled } from '../lib/e2ee/config';
+import { getAttachmentRuntimeState, isE2EEServiceTransportEnabled } from '../lib/e2ee/config';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
 
@@ -42,7 +42,7 @@ export default function useConversations({
   showErrToast, setConfirmDialog,
   msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
   serviceTransportReady = false,
-  attachmentStrategyRuntime = null,
+  attachmentRuntime = null,
 }) {
   const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
@@ -60,7 +60,11 @@ export default function useConversations({
   const [loadingMore,    setLoadingMore]    = useState(false);
   const [msgOffset,      setMsgOffset]      = useState(0);
   const [currentDeviceId, setCurrentDeviceId] = useState(null);
-  const effectiveAttachmentStrategy = attachmentStrategyRuntime?.effectiveStrategy || 'mock_media_v1';
+  const resolvedAttachmentRuntime = attachmentRuntime || getAttachmentRuntimeState({
+    preferredStrategy: undefined,
+  });
+  const effectiveAttachmentStrategy = resolvedAttachmentRuntime.effectiveStrategy || 'mock_media_v1';
+  const effectiveAttachmentTransport = resolvedAttachmentRuntime.providerRuntime?.storageDescriptor?.transportMode || 'inline';
 
   // Sync refs owned by ChatScreen
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv, activeConvRef]);
@@ -509,6 +513,7 @@ export default function useConversations({
         conversationId: conv.id,
         user,
         userId: user.uid,
+        transportMode: effectiveAttachmentTransport,
         attachmentStrategy: effectiveAttachmentStrategy,
       });
     } catch (error) {

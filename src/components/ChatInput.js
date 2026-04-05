@@ -30,7 +30,7 @@ const ChatInput = React.memo(function ChatInput({
   stopTyping,
   onSend,
   onSendAttachment,
-  attachmentStrategyRuntime = null,
+  attachmentRuntime = null,
 }) {
   const fileInputRef = useRef(null);
   const attachmentStatusTimerRef = useRef(null);
@@ -148,13 +148,13 @@ const ChatInput = React.memo(function ChatInput({
     editingMsg ? 'chat-compose-editing' : null,
     replyTo ? 'chat-compose-reply' : null,
   ].filter(Boolean).join(' ') || undefined;
-  const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentRuntimeState({
+  const resolvedAttachmentRuntime = attachmentRuntime || getAttachmentRuntimeState({
     preferredStrategy: undefined,
   });
   const attachmentStrategyHintState = getAttachmentStrategyComposerHintState({
-    preferredStrategy: resolvedAttachmentStrategyRuntime.preferredStrategy,
-    effectiveStrategyOverride: resolvedAttachmentStrategyRuntime.effectiveStrategy,
-    capabilities: resolvedAttachmentStrategyRuntime.capabilities,
+    preferredStrategy: resolvedAttachmentRuntime.preferredStrategy,
+    effectiveStrategyOverride: resolvedAttachmentRuntime.effectiveStrategy,
+    capabilities: resolvedAttachmentRuntime.capabilities,
     paused: pausedFeatures.chat,
     attachmentStatus,
   });

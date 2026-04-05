@@ -72,6 +72,8 @@ import {
   getAttachmentPreviewText,
 } from './attachmentPresentation';
 import {
+  getAttachmentStrategyRuntimeCopy,
+  getAttachmentStrategyRuntimeState,
   isAttachmentStrategySupportedByBackend,
   normalizeE2EEBackendCapabilities,
   resolveEffectiveAttachmentStrategy,
@@ -467,6 +469,35 @@ describe('e2ee backend capability helpers', () => {
         defaultAttachmentStrategy: 'external_contract',
       },
     })).toBe('mock_media_v1');
+  });
+
+  test('getAttachmentStrategyRuntimeState exposes fallback status and effective strategy', () => {
+    expect(getAttachmentStrategyRuntimeState({
+      preferredStrategy: 'pulse_media_v1',
+      capabilities: {
+        attachmentStrategies: ['mock_media_v1', 'external_contract'],
+        defaultAttachmentStrategy: 'external_contract',
+      },
+    })).toMatchObject({
+      preferredStrategy: 'pulse_media_v1',
+      effectiveStrategy: 'external_contract',
+      fallbackStrategy: 'external_contract',
+      fallbackActive: true,
+      preferredStrategySupported: false,
+    });
+  });
+
+  test('getAttachmentStrategyRuntimeCopy describes fallback selection consistently', () => {
+    expect(getAttachmentStrategyRuntimeCopy({
+      preferredStrategy: 'pulse_media_v1',
+      capabilities: {
+        attachmentStrategies: ['mock_media_v1'],
+      },
+      effectiveStrategyOverride: 'mock_media_v1',
+    })).toEqual({
+      tone: 'fallback',
+      text: 'Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel mock_media_v1. Backendondersteuning voor pulse_media_v1 ontbreekt nog.',
+    });
   });
 });
 

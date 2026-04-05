@@ -36,22 +36,71 @@ export function resolveEffectiveAttachmentStrategy({
   preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
   capabilities = null,
 } = {}) {
+  return getAttachmentStrategyRuntimeState({ preferredStrategy, capabilities }).effectiveStrategy;
+}
+
+export function getAttachmentStrategyRuntimeState({
+  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
+  capabilities = null,
+  effectiveStrategyOverride = null,
+} = {}) {
   const normalized = normalizeE2EEBackendCapabilities(capabilities);
   const fallbackStrategy = normalized.defaultAttachmentStrategy || 'mock_media_v1';
+  const preferred = preferredStrategy || fallbackStrategy;
+  let effectiveStrategy = effectiveStrategyOverride || 'mock_media_v1';
 
-  if (!preferredStrategy) {
-    return fallbackStrategy;
+  if (effectiveStrategyOverride) {
+    effectiveStrategy = effectiveStrategyOverride;
+  } else if (!preferredStrategy) {
+    effectiveStrategy = fallbackStrategy;
+  } else if (isAttachmentStrategySupportedByBackend(normalized, preferred)) {
+    effectiveStrategy = preferred;
+  } else if (isAttachmentStrategySupportedByBackend(normalized, fallbackStrategy)) {
+    effectiveStrategy = fallbackStrategy;
+  }
+  const fallbackActive = preferred !== effectiveStrategy;
+  const preferredStrategySupported = isAttachmentStrategySupportedByBackend(normalized, preferred);
+
+  return {
+    preferredStrategy: preferred,
+    effectiveStrategy,
+    fallbackStrategy,
+    fallbackActive,
+    preferredStrategySupported,
+    capabilities: normalized,
+  };
+}
+
+export function getAttachmentStrategyRuntimeCopy({
+  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
+  capabilities = null,
+  effectiveStrategyOverride = null,
+} = {}) {
+  const runtimeState = getAttachmentStrategyRuntimeState({
+    preferredStrategy,
+    capabilities,
+    effectiveStrategyOverride,
+  });
+  const { preferredStrategy: preferred, effectiveStrategy, fallbackActive } = runtimeState;
+
+  if (fallbackActive) {
+    return {
+      tone: 'fallback',
+      text: `Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel ${effectiveStrategy}. Backendondersteuning voor ${preferred} ontbreekt nog.`,
+    };
   }
 
-  if (isAttachmentStrategySupportedByBackend(normalized, preferredStrategy)) {
-    return preferredStrategy;
+  if (effectiveStrategy === 'pulse_media_v1') {
+    return {
+      tone: runtimeState.preferredStrategySupported ? 'future' : 'draft',
+      text: `Bijlagen gebruiken nu de remote mock-opslagtest met draftprofiel ${effectiveStrategy}.`,
+    };
   }
 
-  if (isAttachmentStrategySupportedByBackend(normalized, fallbackStrategy)) {
-    return fallbackStrategy;
-  }
-
-  return 'mock_media_v1';
+  return {
+    tone: 'default',
+    text: `Bijlagen gebruiken nu de remote mock-opslagtest met profiel ${effectiveStrategy}.`,
+  };
 }
 
 export async function probeE2EEServiceReady(baseUrl) {

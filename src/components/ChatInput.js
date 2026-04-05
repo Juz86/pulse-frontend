@@ -4,6 +4,7 @@ import { getSocket } from '../services/socket';
 import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2ee/attachmentPayload';
 import {
   E2EE_ATTACHMENT_STRATEGY,
+  getAttachmentStrategyRuntimeCopy,
   isRemoteMockAttachmentTransportEnabled,
 } from '../lib/e2ee/config';
 import { Send, PauseCircle, ImageIcon } from '../components/Icons';
@@ -149,10 +150,15 @@ const ChatInput = React.memo(function ChatInput({
     editingMsg ? 'chat-compose-editing' : null,
     replyTo ? 'chat-compose-reply' : null,
   ].filter(Boolean).join(' ') || undefined;
-  const attachmentStrategyFallbackActive =
-    E2EE_ATTACHMENT_STRATEGY !== effectiveAttachmentStrategy;
-  const isFutureAttachmentStrategyEffective =
-    effectiveAttachmentStrategy === 'pulse_media_v1';
+  const attachmentStrategyCopy = getAttachmentStrategyRuntimeCopy({
+    preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
+    effectiveStrategyOverride: effectiveAttachmentStrategy,
+    capabilities: {
+      attachmentStrategies: futureAttachmentStrategySupported
+        ? ['mock_media_v1', 'pulse_media_v1']
+        : ['mock_media_v1'],
+    },
+  });
 
   return (
     <div className="chat-input-area">
@@ -226,13 +232,7 @@ const ChatInput = React.memo(function ChatInput({
             fontSize: 12,
           }}
         >
-          {attachmentStrategyFallbackActive
-            ? `Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel ${effectiveAttachmentStrategy}. Backendondersteuning voor ${E2EE_ATTACHMENT_STRATEGY} ontbreekt nog.`
-            : isFutureAttachmentStrategyEffective
-              ? futureAttachmentStrategySupported
-                ? `Bijlagen gebruiken nu de remote mock-opslagtest met draftprofiel ${effectiveAttachmentStrategy}.`
-                : `Bijlagen gebruiken nu de remote mock-opslagtest met lokaal draftprofiel ${effectiveAttachmentStrategy}.`
-              : `Bijlagen gebruiken nu de remote mock-opslagtest met profiel ${effectiveAttachmentStrategy}.`}
+          {attachmentStrategyCopy.text}
         </div>
       )}
       {pausedFeatures.chat ? (

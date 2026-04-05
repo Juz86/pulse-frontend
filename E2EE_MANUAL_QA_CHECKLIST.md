@@ -62,8 +62,10 @@ Gebruik in deze fase:
 - [ ] composer toont achtereenvolgens `Bijlage voorbereiden...` en `Bijlage geupload`
 - [ ] account B ontvangt een attachmentkaart zonder lege bubble
 - [ ] attachmentkaart toont `Mock versleutelde opslaglink`
+- [ ] attachmentkaart toont na access-verificatie `Media-strategie: mock_media_v1`
 - [ ] attachmentkaart toont ook `Envelope: pulse_mock_media_envelope`
 - [ ] conversatielijst toont bij het laatste bericht `versleuteld`
+- [ ] conversatielijst behoudt hetzelfde `mock_media_v1` encrypted media-profiel
 - [ ] conversatielijst toont ook het oorspronkelijke mime type
 - [ ] `Openen` werkt
 - [ ] `Downloaden` werkt
@@ -77,9 +79,11 @@ Gebruik in deze fase:
 - [ ] retry behoudt attachment-type en contractvelden
 - [ ] ontvanger krijgt daarna nog steeds een attachmentkaart
 - [ ] retryte attachment toont opnieuw `Mock versleutelde opslaglink`
+- [ ] retryte attachment behoudt `mock_media_v1` als media-strategie
 - [ ] forward een attachment naar een tweede gesprek of groep
 - [ ] forwarded attachment blijft `attachment` en valt niet terug naar plain text
 - [ ] forwarded attachment toont opnieuw `versleuteld` in de conversatielijst
+- [ ] forwarded attachment behoudt `mock_media_v1` als media-strategie
 - [ ] forwarded attachment behoudt openen/downloaden
 ## Scenario 8: Edit Policy
 

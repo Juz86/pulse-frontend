@@ -133,6 +133,7 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.conv.lastMessage === next.conv.lastMessage  &&
   prev.conv.lastMessageType === next.conv.lastMessageType &&
   prev.conv.lastAttachmentTransfer === next.conv.lastAttachmentTransfer &&
+  prev.conv.lastAttachmentStrategyKey === next.conv.lastAttachmentStrategyKey &&
   prev.conv.lastAttachmentEncoding === next.conv.lastAttachmentEncoding &&
   prev.conv.lastAttachmentEnvelopeKind === next.conv.lastAttachmentEnvelopeKind &&
   prev.conv.lastAttachmentName === next.conv.lastAttachmentName &&

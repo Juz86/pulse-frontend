@@ -52,7 +52,9 @@ test('buildStoredAttachmentMetadata creates remote mock payload', () => {
   assert.equal(metadata.transfer, 'remote');
   assert.equal(metadata.downloadUrl, 'http://localhost:3001/attachments/attachment-1');
   assert.equal(metadata.thumbnailUrl, 'http://localhost:3001/attachments/attachment-1');
+  assert.equal(metadata.strategyKey, 'none');
   assert.equal(metadata.encryption.alg, 'mock-storage-envelope');
+  assert.equal(metadata.encryption.strategyKey, 'none');
   assert.equal(metadata.contentEncoding, 'identity');
   assert.equal(metadata.originalMimeType, 'image/png');
   assert.equal(metadata.expectedPayloadSha256, '');
@@ -79,6 +81,7 @@ test('storeMockAttachment persists inline data for retrieval', async () => {
   assert.ok(stored);
   assert.equal(stored.mimeType, 'text/plain');
   assert.equal(stored.buffer.toString('utf8'), 'Hello');
+  assert.equal(stored.strategyKey, 'none');
   assert.equal(stored.contentEncoding, 'identity');
   assert.equal(stored.expectedPayloadSha256, '');
 });
@@ -105,6 +108,7 @@ test('storeMockAttachment preserves mock envelope contract metadata', async () =
 
   assert.ok(stored);
   assert.equal(stored.mimeType, 'application/pulse-e2ee-envelope+json');
+  assert.equal(stored.strategyKey, 'mock_media_v1');
   assert.equal(stored.originalMimeType, 'image/png');
   assert.equal(stored.contentEncoding, 'mock-e2ee-envelope-v1');
   assert.equal(stored.envelopeKind, 'pulse_mock_media_envelope');
@@ -114,9 +118,11 @@ test('storeMockAttachment preserves mock envelope contract metadata', async () =
   assert.equal(stored.wrappedMediaKey, '');
   assert.equal(stored.wrappedMediaKeyDigest, '');
   assert.equal(metadata.contentEncoding, 'mock-e2ee-envelope-v1');
+  assert.equal(metadata.strategyKey, 'mock_media_v1');
   assert.equal(metadata.originalMimeType, 'image/png');
   assert.equal(metadata.expectedPayloadSha256, 'abcd1234');
   assert.equal(metadata.encryption.alg, 'mock-e2ee-envelope-v1');
+  assert.equal(metadata.encryption.strategyKey, 'mock_media_v1');
   assert.equal(metadata.encryption.mediaKeyId, '');
   assert.equal(metadata.encryption.keyWrapAlg, '');
   assert.equal(metadata.encryption.wrappedMediaKey, '');
@@ -151,6 +157,9 @@ test('storeMockAttachment preserves wrapped media key metadata', async () => {
   assert.equal(stored.keyWrapAlg, 'pulse_mock_media_key_wrap_v1');
   assert.equal(stored.wrappedMediaKey, 'eyJrZXkiOiJtb2NrIn0=');
   assert.equal(stored.wrappedMediaKeyDigest, 'wrapped-digest-1');
+  assert.equal(stored.strategyKey, 'mock_media_v1');
+  assert.equal(metadata.strategyKey, 'mock_media_v1');
+  assert.equal(metadata.encryption.strategyKey, 'mock_media_v1');
   assert.equal(metadata.encryption.mediaKeyId, 'mock-media-key-1');
   assert.equal(metadata.encryption.keyWrapAlg, 'pulse_mock_media_key_wrap_v1');
   assert.equal(metadata.encryption.wrappedMediaKey, 'eyJrZXkiOiJtb2NrIn0=');

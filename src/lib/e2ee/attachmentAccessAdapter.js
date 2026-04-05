@@ -24,6 +24,7 @@ export function resolveExpectedAttachmentSha256(attachment) {
 export function resolveAttachmentContractFields(attachment) {
   return {
     expectedPayloadSha256: resolveExpectedAttachmentSha256(attachment),
+    strategyKey: attachment?.strategyKey || attachment?.encryption?.strategyKey || '',
     contentEncoding: attachment?.contentEncoding || '',
     envelopeKind: attachment?.envelopeKind || attachment?.encryption?.envelopeKind || '',
     originalMimeType: attachment?.originalMimeType || attachment?.encryption?.originalMimeType || '',
@@ -37,9 +38,13 @@ export function resolveAttachmentContractFields(attachment) {
 export function buildResolvedAttachmentAccessContract(attachment) {
   const contract = resolveAttachmentContractFields(attachment);
   const strategy = resolveAttachmentEncryptionStrategy(attachment?.encryption || {});
+  const strategyKey = contract.strategyKey || strategy.strategyKey;
 
   return {
     ...contract,
+    strategyKey,
+    canDecryptEnvelope: Boolean(strategy.canDecryptEnvelope),
+    canValidateWrappedMediaKey: Boolean(strategy.canValidateWrappedMediaKey),
     integrityVerified: Boolean(contract.expectedPayloadSha256),
     wrappedKeyVerified: Boolean(
       strategy.canValidateWrappedMediaKey
@@ -53,6 +58,7 @@ export function buildResolvedAttachmentAccessContract(attachment) {
 
 export function buildAttachmentAccessVerification(contract = {}, unwrapContext = null) {
   return {
+    strategyKey: typeof contract?.strategyKey === 'string' ? contract.strategyKey : '',
     integrityVerified: Boolean(contract?.integrityVerified),
     wrappedKeyVerified: Boolean(contract?.wrappedKeyVerified),
     unwrapKind: unwrapContext?.unwrapKind || '',
@@ -101,6 +107,7 @@ export function getAttachmentIdFromAttachment(attachment) {
 export function getAttachmentContractFromHeaders(headers) {
   return {
     expectedPayloadSha256: headers?.get?.('X-Pulse-Expected-Sha256') || '',
+    strategyKey: headers?.get?.('X-Pulse-Encryption-Strategy') || '',
     contentEncoding: headers?.get?.('X-Pulse-Content-Encoding') || '',
     envelopeKind: headers?.get?.('X-Pulse-Envelope-Kind') || '',
     originalMimeType: headers?.get?.('X-Pulse-Original-MimeType') || '',
@@ -113,6 +120,7 @@ export function getAttachmentContractFromHeaders(headers) {
 
 export function mapAttachmentContractError(error, {
   hashMessage = 'Attachment metadata-integriteit komt niet overeen',
+  strategyMessage = 'Attachment encryptiestrategie komt niet overeen',
   contentEncodingMessage = 'Attachment content-encoding komt niet overeen',
   envelopeKindMessage = 'Attachment envelope-kind komt niet overeen',
   originalMimeTypeMessage = 'Attachment original mime type komt niet overeen',
@@ -123,6 +131,9 @@ export function mapAttachmentContractError(error, {
 } = {}) {
   if (error?.message === 'Attachment metadata-integriteit komt niet overeen') {
     return new Error(hashMessage);
+  }
+  if (error?.message === 'Attachment encryptiestrategie komt niet overeen') {
+    return new Error(strategyMessage);
   }
   if (error?.message === 'Attachment content-encoding komt niet overeen') {
     return new Error(contentEncodingMessage);
@@ -178,6 +189,14 @@ export function assertAttachmentMetadataIntegrity(baseAttachment, metadataAttach
     && baseContract.expectedPayloadSha256 !== metadataContract.expectedPayloadSha256
   ) {
     throw new Error('Attachment metadata-integriteit komt niet overeen');
+  }
+
+  if (
+    baseContract.strategyKey
+    && metadataContract.strategyKey
+    && baseContract.strategyKey !== metadataContract.strategyKey
+  ) {
+    throw new Error('Attachment encryptiestrategie komt niet overeen');
   }
 
   if (

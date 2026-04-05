@@ -135,6 +135,7 @@ Geslaagd:
 - encrypted edit-flow is bewust uitgeschakeld
 - attachments gebruiken lokaal nu `remote_mock`, nog geen echte productie-storage
 - media-encryptie gebruikt nu een mock envelope/decrypt-keten, maar nog geen echte productie-encryptie of storageprovider
+- het actieve mock media-profiel is nu expliciet `mock_media_v1` in metadata, headers, access-validatie en previews
 
 ## Volgende stap
 

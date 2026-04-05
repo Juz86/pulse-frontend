@@ -30,6 +30,7 @@ test('deriveConversationSummary keeps attachment contract metadata and file name
     lastMessageType: 'attachment',
     lastAttachmentName: 'rapport.pdf',
     lastAttachmentTransfer: 'remote',
+    lastAttachmentStrategyKey: null,
     lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
     lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
     lastAttachmentOriginalMimeType: 'application/pdf',
@@ -61,6 +62,7 @@ test('deriveConversationSummary falls back cleanly when no visible message remai
     lastMessageType: null,
     lastAttachmentName: null,
     lastAttachmentTransfer: null,
+    lastAttachmentStrategyKey: null,
     lastAttachmentEncoding: null,
     lastAttachmentEnvelopeKind: null,
     lastAttachmentOriginalMimeType: null,
@@ -85,6 +87,7 @@ test('applyConversationSummaryFields projects a stable conversation summary shap
       lastMessageType: 'text',
       lastAttachmentName: null,
       lastAttachmentTransfer: null,
+      lastAttachmentStrategyKey: null,
       lastAttachmentEncoding: null,
       lastAttachmentEnvelopeKind: null,
       lastAttachmentOriginalMimeType: null,
@@ -100,6 +103,7 @@ test('buildConversationSummaryAttachmentPayload reconstructs attachment contract
   assert.deepEqual(
     buildConversationSummaryAttachmentPayload({
       lastAttachmentTransfer: 'remote',
+      lastAttachmentStrategyKey: 'mock_media_v1',
       lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
       lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
       lastAttachmentOriginalMimeType: 'application/pdf',
@@ -111,11 +115,13 @@ test('buildConversationSummaryAttachmentPayload reconstructs attachment contract
     {
       name: 'Bestand',
       transfer: 'remote',
+      strategyKey: 'mock_media_v1',
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: 'pulse_mock_media_envelope',
       originalMimeType: 'application/pdf',
       expectedPayloadSha256: 'hash-1',
       encryption: {
+        strategyKey: 'mock_media_v1',
         mediaKeyId: 'media-key-1',
         keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
         wrappedMediaKeyDigest: 'wrapped-digest-1',
@@ -136,11 +142,13 @@ test('buildConversationSummaryAttachmentPreview reconstructs preview text from s
       attachment: {
         name: 'rapport.pdf',
         transfer: 'remote',
+        strategyKey: null,
         contentEncoding: 'mock-e2ee-envelope-v1',
         envelopeKind: '',
         originalMimeType: '',
         expectedPayloadSha256: '',
         encryption: {
+          strategyKey: null,
           mediaKeyId: '',
           keyWrapAlg: '',
           wrappedMediaKeyDigest: '',

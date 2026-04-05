@@ -2,6 +2,7 @@ export function buildEmptyConversationAttachmentSummaryFields() {
   return {
     lastAttachmentName: null,
     lastAttachmentTransfer: null,
+    lastAttachmentStrategyKey: null,
     lastAttachmentEncoding: null,
     lastAttachmentEnvelopeKind: null,
     lastAttachmentOriginalMimeType: null,
@@ -28,6 +29,7 @@ export function buildConversationAttachmentSummaryFields(attachment = null) {
   return {
     lastAttachmentName: attachment.name || 'Bestand',
     lastAttachmentTransfer: attachment.transfer || null,
+    lastAttachmentStrategyKey: attachment.strategyKey || attachment.encryption?.strategyKey || null,
     lastAttachmentEncoding: attachment.contentEncoding || null,
     lastAttachmentEnvelopeKind: attachment.envelopeKind || attachment.encryption?.envelopeKind || null,
     lastAttachmentOriginalMimeType: attachment.originalMimeType || attachment.mimeType || null,
@@ -42,6 +44,7 @@ export function hasConversationAttachmentSummaryFields(summaryLike = {}) {
   return Boolean(
     summaryLike?.lastAttachmentTransfer
     || summaryLike?.lastAttachmentName
+    || summaryLike?.lastAttachmentStrategyKey
     || summaryLike?.lastAttachmentEncoding
     || summaryLike?.lastAttachmentEnvelopeKind
     || summaryLike?.lastAttachmentOriginalMimeType
@@ -64,11 +67,13 @@ export function buildConversationSummaryAttachmentSource(summaryLike = {}) {
   return {
     name: summaryLike.lastAttachmentName || 'Bestand',
     transfer: summaryLike.lastAttachmentTransfer || '',
+    strategyKey: summaryLike.lastAttachmentStrategyKey || '',
     contentEncoding: summaryLike.lastAttachmentEncoding || '',
     envelopeKind: summaryLike.lastAttachmentEnvelopeKind || '',
     originalMimeType: summaryLike.lastAttachmentOriginalMimeType || '',
     expectedPayloadSha256: summaryLike.lastAttachmentExpectedPayloadSha256 || '',
     encryption: {
+      strategyKey: summaryLike.lastAttachmentStrategyKey || '',
       mediaKeyId: summaryLike.lastAttachmentMediaKeyId || '',
       keyWrapAlg: summaryLike.lastAttachmentKeyWrapAlg || '',
       wrappedMediaKeyDigest: summaryLike.lastAttachmentWrappedMediaKeyDigest || '',

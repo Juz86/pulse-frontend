@@ -8,6 +8,7 @@ export function buildEmptyConversationAttachmentSummaryFields() {
   return {
     lastAttachmentName: null,
     lastAttachmentTransfer: null,
+    lastAttachmentStrategyKey: null,
     lastAttachmentEncoding: null,
     lastAttachmentEnvelopeKind: null,
     lastAttachmentOriginalMimeType: null,
@@ -27,6 +28,7 @@ export function buildConversationAttachmentSummaryFields(attachmentLike) {
   return {
     lastAttachmentName: attachment.name || 'Bestand',
     lastAttachmentTransfer: attachment.transfer || null,
+    lastAttachmentStrategyKey: attachment.strategyKey || attachment.encryption?.strategyKey || null,
     lastAttachmentEncoding: attachment.contentEncoding || null,
     lastAttachmentEnvelopeKind: attachment.envelopeKind || attachment.encryption?.envelopeKind || null,
     lastAttachmentOriginalMimeType: attachment.originalMimeType || attachment.mimeType || null,
@@ -41,6 +43,7 @@ export function hasConversationAttachmentSummaryFields(summaryLike = {}) {
   return Boolean(
     summaryLike?.lastAttachmentTransfer
     || summaryLike?.lastAttachmentName
+    || summaryLike?.lastAttachmentStrategyKey
     || summaryLike?.lastAttachmentEncoding
     || summaryLike?.lastAttachmentEnvelopeKind
     || summaryLike?.lastAttachmentOriginalMimeType
@@ -63,12 +66,14 @@ export function buildConversationSummaryAttachmentSource(summaryLike = {}) {
   return {
     name: summaryLike.lastAttachmentName || deriveAttachmentNameFromPreview(summaryLike.lastMessage) || 'Bestand',
     transfer: summaryLike.lastAttachmentTransfer || '',
+    strategyKey: summaryLike.lastAttachmentStrategyKey || '',
     mimeType: summaryLike.lastAttachmentOriginalMimeType || '',
     originalMimeType: summaryLike.lastAttachmentOriginalMimeType || '',
     contentEncoding: summaryLike.lastAttachmentEncoding || '',
     envelopeKind: summaryLike.lastAttachmentEnvelopeKind || '',
     expectedPayloadSha256: summaryLike.lastAttachmentExpectedPayloadSha256 || '',
     encryption: {
+      strategyKey: summaryLike.lastAttachmentStrategyKey || '',
       mediaKeyId: summaryLike.lastAttachmentMediaKeyId || '',
       keyWrapAlg: summaryLike.lastAttachmentKeyWrapAlg || '',
       wrappedMediaKeyDigest: summaryLike.lastAttachmentWrappedMediaKeyDigest || '',

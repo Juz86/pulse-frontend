@@ -46,9 +46,13 @@ function isPreviewableMimeType(mimeType = '') {
 function getAttachmentEnvelopeContract(attachment = {}, fallbackMimeType = 'application/octet-stream') {
   const encryption = attachment?.encryption || {};
   const isMockEnvelope = encryption.alg === 'mock-e2ee-envelope-v1';
+  const strategyKey = typeof encryption.strategyKey === 'string' && encryption.strategyKey
+    ? encryption.strategyKey
+    : (isMockEnvelope ? 'mock_media_v1' : (encryption.alg ? 'external_contract' : 'none'));
 
   return {
     isMockEnvelope,
+    strategyKey,
     contentEncoding: isMockEnvelope ? 'mock-e2ee-envelope-v1' : 'identity',
     envelopeKind: typeof encryption.envelopeKind === 'string' ? encryption.envelopeKind : '',
     expectedPayloadSha256: typeof encryption.sha256 === 'string' ? encryption.sha256 : '',
@@ -67,6 +71,11 @@ function buildStoredAttachmentEncryption(attachment = {}, id, fallbackSha = '') 
 
   return {
     alg: typeof encryption.alg === 'string' && encryption.alg ? encryption.alg : 'mock-storage-envelope',
+    strategyKey: typeof encryption.strategyKey === 'string' && encryption.strategyKey
+      ? encryption.strategyKey
+      : (typeof encryption.alg === 'string' && encryption.alg === 'mock-e2ee-envelope-v1'
+        ? 'mock_media_v1'
+        : (typeof encryption.alg === 'string' && encryption.alg ? 'external_contract' : 'none')),
     keyId: typeof encryption.keyId === 'string' && encryption.keyId ? encryption.keyId : `mock-key-${id}`,
     iv: typeof encryption.iv === 'string' && encryption.iv ? encryption.iv : `mock-iv-${id}`,
     sha256: typeof encryption.sha256 === 'string' ? encryption.sha256 : fallbackSha,
@@ -96,6 +105,7 @@ export function buildStoredAttachmentMetadata({ id, baseUrl, attachment }) {
     storageKey: attachment?.storageKey || `mock-storage/${id}/${safeName}`,
     transfer: 'remote',
     mimeType,
+    strategyKey: contract.strategyKey,
     originalMimeType: contract.originalMimeType,
     contentEncoding: contract.contentEncoding,
     envelopeKind: contract.envelopeKind,
@@ -133,6 +143,7 @@ export async function storeMockAttachment({ attachment, baseUrl }) {
     id,
     name: attachment.name || 'Bestand',
     mimeType: parsed.mimeType || 'application/octet-stream',
+    strategyKey: contract.strategyKey,
     originalMimeType: contract.originalMimeType,
     contentEncoding: contract.contentEncoding,
     envelopeKind: contract.envelopeKind,
@@ -154,6 +165,7 @@ export async function storeMockAttachment({ attachment, baseUrl }) {
     id: storedRecord.id,
     name: storedRecord.name,
     mimeType: storedRecord.mimeType,
+    strategyKey: storedRecord.strategyKey,
     originalMimeType: storedRecord.originalMimeType,
     contentEncoding: storedRecord.contentEncoding,
     envelopeKind: storedRecord.envelopeKind,
@@ -204,6 +216,7 @@ export async function getStoredAttachmentMetadata(id) {
     id: storedAttachment.id,
     name: storedAttachment.name,
     mimeType: storedAttachment.mimeType,
+    strategyKey: storedAttachment.strategyKey || (storedAttachment.contentEncoding === 'mock-e2ee-envelope-v1' ? 'mock_media_v1' : 'none'),
     originalMimeType: storedAttachment.originalMimeType || storedAttachment.mimeType,
     contentEncoding: storedAttachment.contentEncoding || 'identity',
     envelopeKind: storedAttachment.envelopeKind || '',
@@ -216,6 +229,7 @@ export async function getStoredAttachmentMetadata(id) {
     contentDisposition: storedAttachment.contentDisposition,
     encryption: {
       alg: storedAttachment.contentEncoding === 'mock-e2ee-envelope-v1' ? 'mock-e2ee-envelope-v1' : 'mock-storage-envelope',
+      strategyKey: storedAttachment.strategyKey || (storedAttachment.contentEncoding === 'mock-e2ee-envelope-v1' ? 'mock_media_v1' : 'none'),
       sha256: storedAttachment.expectedPayloadSha256 || '',
       mediaKeyId: storedAttachment.mediaKeyId || '',
       keyWrapAlg: storedAttachment.keyWrapAlg || '',

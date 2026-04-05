@@ -31,10 +31,12 @@ In `backend-skeleton`:
    - `storageKey`
    - `transfer: remote`
    - `encryption`
+   - `strategyKey: mock_media_v1`
 5. bericht wordt als attachment via de serviceflow verstuurd
 6. backend bewaart de mock media-envelope en metadata zoals:
    - `contentEncoding: mock-e2ee-envelope-v1`
    - `envelopeKind: pulse_mock_media_envelope`
+   - `strategyKey: mock_media_v1`
    - `originalMimeType`
 7. ontvanger ziet een attachmentkaart met `Mock versleutelde opslaglink`
 8. conversatielijst toont `versleuteld`
@@ -49,8 +51,10 @@ In `backend-skeleton`:
 - [ ] composer toont daarna `Bijlage geupload`
 - [ ] ontvanger ziet attachmentkaart
 - [ ] attachmentkaart toont `Mock versleutelde opslaglink`
+- [ ] attachmentkaart toont ook `Media-strategie: mock_media_v1` na openen/downloaden
 - [ ] attachmentkaart toont `Envelope: pulse_mock_media_envelope`
 - [ ] conversatielijst toont `versleuteld`
+- [ ] conversatielijst/samenvatting blijft op `mock_media_v1`-contract staan
 - [ ] conversatielijst toont het originele mime type
 - [ ] `Openen` werkt
 - [ ] `Downloaden` werkt
@@ -67,6 +71,7 @@ In `backend-skeleton`:
   `npm run smoke:attachments`
 - metadata-contract:
   controleer in de smoke-output:
+  - `strategyKey`
   - `contentEncoding`
   - `envelopeKind`
   - `originalMimeType`
@@ -77,6 +82,7 @@ In `backend-skeleton`:
 
 - dit is nog geen echte productie-storage
 - encryptievelden zijn nog mock metadata
+- strategieprofiel hoort in deze fase expliciet `mock_media_v1` te zijn
 - bestanden landen lokaal onder `/tmp/pulse-e2ee-attachments`
 - dit is bedoeld als tussenfase vóór echte encrypted media-opslag
 

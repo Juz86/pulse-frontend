@@ -63,6 +63,7 @@ async function main() {
   }
 
   const metadataHeaders = {
+    strategyKey: metadataResponse.headers.get('x-pulse-encryption-strategy'),
     originalMimeType: metadataResponse.headers.get('x-pulse-original-mimetype'),
     contentEncoding: metadataResponse.headers.get('x-pulse-content-encoding'),
     envelopeKind: metadataResponse.headers.get('x-pulse-envelope-kind'),
@@ -72,6 +73,9 @@ async function main() {
     wrappedMediaKeyDigest: metadataResponse.headers.get('x-pulse-wrapped-media-key-digest'),
   };
 
+  if (metadataHeaders.strategyKey !== 'mock_media_v1') {
+    throw new Error(`metadata_header_strategy_mismatch:${metadataHeaders.strategyKey || ''}`);
+  }
   if (metadataHeaders.originalMimeType !== 'text/plain') {
     throw new Error(`metadata_header_original_mimetype_mismatch:${metadataHeaders.originalMimeType || ''}`);
   }
@@ -102,6 +106,7 @@ async function main() {
   }
 
   const responseHeaders = {
+    strategyKey: downloadResponse.headers.get('x-pulse-encryption-strategy'),
     contentType: downloadResponse.headers.get('content-type'),
     originalMimeType: downloadResponse.headers.get('x-pulse-original-mimetype'),
     contentEncoding: downloadResponse.headers.get('x-pulse-content-encoding'),
@@ -112,6 +117,9 @@ async function main() {
     wrappedMediaKeyDigest: downloadResponse.headers.get('x-pulse-wrapped-media-key-digest'),
   };
 
+  if (responseHeaders.strategyKey !== 'mock_media_v1') {
+    throw new Error(`download_header_strategy_mismatch:${responseHeaders.strategyKey || ''}`);
+  }
   if (responseHeaders.mediaKeyId !== 'mock-media-key-smoke') {
     throw new Error(`download_header_media_key_id_mismatch:${responseHeaders.mediaKeyId || ''}`);
   }

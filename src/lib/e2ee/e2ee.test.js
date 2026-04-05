@@ -151,6 +151,7 @@ describe('e2ee message model helpers', () => {
       caption: '',
       encryption: null,
       accessVerification: {
+        strategyKey: '',
         integrityVerified: true,
         wrappedKeyVerified: false,
         unwrapKind: 'attachment_encryption_contract',
@@ -264,6 +265,7 @@ describe('e2ee message model helpers', () => {
       lastMessageType: 'attachment',
       lastAttachmentName: 'rapport.pdf',
       lastAttachmentTransfer: 'remote',
+      lastAttachmentStrategyKey: null,
       lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
       lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
       lastAttachmentOriginalMimeType: 'application/pdf',
@@ -319,6 +321,7 @@ describe('e2ee message model helpers', () => {
     expect(normalized.type).toBe('attachment');
     expect(normalized.attachment?.name).toBe('document.pdf');
     expect(normalized.attachment?.accessVerification).toEqual({
+      strategyKey: '',
       integrityVerified: true,
       wrappedKeyVerified: false,
       unwrapKind: 'attachment_encryption_contract',
@@ -421,6 +424,7 @@ describe('e2ee attachment helpers', () => {
       transfer: 'remote',
       encryption: {
         alg: 'aes-gcm',
+        strategyKey: '',
         keyId: 'key-1',
         iv: 'iv-1',
         sha256: 'hash-1',
@@ -447,6 +451,7 @@ describe('e2ee attachment helpers', () => {
       caption: '',
       encryption: {
         alg: 'aes-gcm',
+        strategyKey: '',
         keyId: 'key-1',
         iv: 'iv-1',
         sha256: 'hash-1',
@@ -496,6 +501,7 @@ describe('e2ee attachment helpers', () => {
       caption: '',
       encryption: {
         alg: 'mock-e2ee-envelope-v1',
+        strategyKey: '',
         keyId: '',
         iv: '',
         sha256: '',
@@ -573,6 +579,7 @@ describe('e2ee attachment helpers', () => {
       mimeType: 'text/plain',
     }, envelope)).resolves.toEqual({
       alg: 'mock-e2ee-envelope-v1',
+      strategyKey: 'mock_media_v1',
       keyId: expect.stringMatching(/^mock-key-/),
       iv: expect.stringMatching(/^mock-iv-/),
       sha256: envelope.payloadSha256,
@@ -597,6 +604,7 @@ describe('e2ee attachment helpers', () => {
       mimeType: 'text/plain',
     }, envelope)).resolves.toEqual({
       alg: 'mock-e2ee-envelope-v1',
+      strategyKey: 'mock_media_v1',
       keyId: expect.stringMatching(/^mock-key-/),
       iv: expect.stringMatching(/^mock-iv-/),
       sha256: envelope.payloadSha256,
@@ -745,6 +753,7 @@ describe('e2ee attachment helpers', () => {
   test('getAttachmentContractPresentation derives consistent labels for encrypted remote attachments', () => {
     expect(getAttachmentContractPresentation({
       transfer: 'remote',
+      strategyKey: 'mock_media_v1',
       contentEncoding: 'mock-e2ee-envelope-v1',
       originalMimeType: 'image/png',
       envelopeKind: 'pulse_mock_media_envelope',
@@ -761,7 +770,7 @@ describe('e2ee attachment helpers', () => {
       mimeLabel: 'image/png',
       storageLabel: 'Mock versleutelde opslaglink',
       storageShortLabel: 'versleuteld',
-      storageDetail: 'Envelope: pulse_mock_media_envelope · integriteitscheck actief',
+      storageDetail: 'Envelope: pulse_mock_media_envelope · strategie mock_media_v1 · integriteitscheck actief',
       keyContractDetail: 'Media key: mock-media-key-1 · wrap: pulse_mock_media_key_wrap_v1',
     });
   });
@@ -785,11 +794,13 @@ describe('e2ee attachment helpers', () => {
 
   test('getAttachmentAccessVerificationPresentation derives labels for verified remote access', () => {
     expect(getAttachmentAccessVerificationPresentation({
+      strategyKey: 'mock_media_v1',
       integrityVerified: true,
       wrappedKeyVerified: true,
     }, {
       unwrapKind: 'pulse_mock_media_key_unwrap',
     })).toEqual({
+      strategyLabel: 'Media-strategie: mock_media_v1',
       integrityAccessLabel: 'Downloadcontract bevestigd',
       wrappedKeyAccessLabel: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap',
     });
@@ -798,11 +809,13 @@ describe('e2ee attachment helpers', () => {
   test('getAttachmentAccessVerificationPresentation reuses persisted attachment verification state', () => {
     expect(getAttachmentAccessVerificationPresentation({
       accessVerification: {
+        strategyKey: 'mock_media_v1',
         integrityVerified: true,
         wrappedKeyVerified: true,
         unwrapKind: 'pulse_mock_media_key_unwrap',
       },
     })).toEqual({
+      strategyLabel: 'Media-strategie: mock_media_v1',
       integrityAccessLabel: 'Downloadcontract bevestigd',
       wrappedKeyAccessLabel: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap',
     });
@@ -852,6 +865,7 @@ describe('e2ee attachment helpers', () => {
       lastMessage: 'Bijlage: rapport.pdf',
       lastMessageType: 'attachment',
       lastAttachmentTransfer: 'remote',
+      lastAttachmentStrategyKey: 'mock_media_v1',
       lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
       lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
       lastAttachmentOriginalMimeType: 'application/pdf',
@@ -875,6 +889,7 @@ describe('e2ee attachment helpers', () => {
       caption: '',
       encryption: {
         alg: '',
+        strategyKey: 'mock_media_v1',
         keyId: '',
         iv: '',
         sha256: '',
@@ -895,6 +910,7 @@ describe('e2ee attachment helpers', () => {
       lastMessageType: 'attachment',
       lastAttachmentName: 'rapport.pdf',
       lastAttachmentTransfer: 'remote',
+      lastAttachmentStrategyKey: 'mock_media_v1',
       lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
       lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
       lastAttachmentOriginalMimeType: 'application/pdf',
@@ -919,6 +935,7 @@ describe('e2ee attachment helpers', () => {
         caption: '',
         encryption: {
           alg: '',
+          strategyKey: 'mock_media_v1',
           keyId: '',
           iv: '',
           sha256: '',
@@ -939,7 +956,7 @@ describe('e2ee attachment helpers', () => {
         mimeLabel: 'application/pdf',
         storageLabel: 'Mock versleutelde opslaglink',
         storageShortLabel: 'versleuteld',
-        storageDetail: 'Envelope: pulse_mock_media_envelope · integriteitscheck actief',
+        storageDetail: 'Envelope: pulse_mock_media_envelope · strategie mock_media_v1 · integriteitscheck actief',
         keyContractDetail: 'Media key: media-key-1 · wrap: pulse_mock_media_key_wrap_v1 · digest actief',
       },
       previewText: 'Bijlage: rapport.pdf · versleuteld',
@@ -951,15 +968,18 @@ describe('e2ee attachment helpers', () => {
       lastMessage: 'Bijlage: oud.pdf · versleuteld',
       lastAttachmentName: 'nieuw.pdf',
       lastAttachmentTransfer: 'remote',
+      lastAttachmentStrategyKey: 'mock_media_v1',
     })).toEqual({
       name: 'nieuw.pdf',
       transfer: 'remote',
+      strategyKey: 'mock_media_v1',
       mimeType: '',
       originalMimeType: '',
       contentEncoding: '',
       envelopeKind: '',
       expectedPayloadSha256: '',
       encryption: {
+        strategyKey: 'mock_media_v1',
         mediaKeyId: '',
         keyWrapAlg: '',
         wrappedMediaKeyDigest: '',
@@ -971,7 +991,7 @@ describe('e2ee attachment helpers', () => {
   test('hasConversationAttachmentSummaryFields detects when summary contract data exists', () => {
     expect(hasConversationAttachmentSummaryFields({})).toBe(false);
     expect(hasConversationAttachmentSummaryFields({
-      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+      lastAttachmentStrategyKey: 'mock_media_v1',
     })).toBe(true);
   });
 
@@ -985,6 +1005,7 @@ describe('e2ee attachment helpers', () => {
       lastMessageType: null,
       lastAttachmentName: null,
       lastAttachmentTransfer: null,
+      lastAttachmentStrategyKey: null,
       lastAttachmentEncoding: null,
       lastAttachmentEnvelopeKind: null,
       lastAttachmentOriginalMimeType: null,
@@ -1017,6 +1038,7 @@ describe('e2ee attachment helpers', () => {
         lastMessageType: 'attachment',
         lastAttachmentName: 'rapport.pdf',
         lastAttachmentTransfer: 'remote',
+        lastAttachmentStrategyKey: null,
         lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
         lastAttachmentEnvelopeKind: null,
         lastAttachmentOriginalMimeType: 'application/pdf',
@@ -1439,6 +1461,7 @@ describe('e2ee attachment helpers', () => {
       },
     })).toEqual({
       expectedPayloadSha256: 'sha-top',
+      strategyKey: '',
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: 'pulse_mock_media_envelope',
       originalMimeType: 'image/png',
@@ -1471,6 +1494,9 @@ describe('e2ee attachment helpers', () => {
       keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
       wrappedMediaKey: 'wrapped-key',
       wrappedMediaKeyDigest: 'wrapped-digest',
+      strategyKey: 'mock_media_v1',
+      canDecryptEnvelope: true,
+      canValidateWrappedMediaKey: true,
       integrityVerified: true,
       wrappedKeyVerified: true,
     });
@@ -1478,11 +1504,13 @@ describe('e2ee attachment helpers', () => {
 
   test('buildAttachmentAccessVerification derives session-level access state', () => {
     expect(buildAttachmentAccessVerification({
+      strategyKey: 'mock_media_v1',
       integrityVerified: true,
       wrappedKeyVerified: true,
     }, {
       unwrapKind: 'pulse_mock_media_key_unwrap',
     })).toEqual({
+      strategyKey: 'mock_media_v1',
       integrityVerified: true,
       wrappedKeyVerified: true,
       unwrapKind: 'pulse_mock_media_key_unwrap',
@@ -1493,6 +1521,7 @@ describe('e2ee attachment helpers', () => {
     expect(getAttachmentContractFromHeaders({
       get: jest.fn((name) => ({
         'X-Pulse-Expected-Sha256': 'sha-top',
+        'X-Pulse-Encryption-Strategy': 'mock_media_v1',
         'X-Pulse-Content-Encoding': 'mock-e2ee-envelope-v1',
         'X-Pulse-Envelope-Kind': 'pulse_mock_media_envelope',
         'X-Pulse-Original-MimeType': 'image/png',
@@ -1502,6 +1531,7 @@ describe('e2ee attachment helpers', () => {
       }[name] || '')),
     })).toEqual({
       expectedPayloadSha256: 'sha-top',
+      strategyKey: 'mock_media_v1',
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: 'pulse_mock_media_envelope',
       originalMimeType: 'image/png',
@@ -1872,6 +1902,7 @@ describe('e2ee attachment helpers', () => {
     expect(prepared.url).toBe('blob:prepared-access');
     expect(prepared.isObjectUrl).toBe(true);
     expect(prepared.attachment.accessVerification).toEqual({
+      strategyKey: 'external_contract',
       integrityVerified: true,
       wrappedKeyVerified: false,
       unwrapKind: 'attachment_encryption_contract',
@@ -1885,6 +1916,9 @@ describe('e2ee attachment helpers', () => {
       keyWrapAlg: '',
       wrappedMediaKey: '',
       wrappedMediaKeyDigest: '',
+      strategyKey: 'external_contract',
+      canDecryptEnvelope: false,
+      canValidateWrappedMediaKey: false,
       integrityVerified: true,
       wrappedKeyVerified: false,
     });
@@ -1975,6 +2009,7 @@ describe('e2ee transport payload helpers', () => {
       contentEncoding: 'mock-e2ee-envelope-v1',
       envelopeKind: 'pulse_mock_media_envelope',
       accessVerification: {
+        strategyKey: '',
         integrityVerified: true,
         wrappedKeyVerified: true,
         unwrapKind: 'pulse_mock_media_key_unwrap',
@@ -1995,6 +2030,7 @@ describe('e2ee transport payload helpers', () => {
       caption: '',
       encryption: null,
       accessVerification: {
+        strategyKey: '',
         integrityVerified: true,
         wrappedKeyVerified: true,
         unwrapKind: 'pulse_mock_media_key_unwrap',
@@ -2017,6 +2053,7 @@ describe('e2ee transport payload helpers', () => {
         contentEncoding: 'mock-e2ee-envelope-v1',
         envelopeKind: 'pulse_mock_media_envelope',
         accessVerification: {
+          strategyKey: '',
           integrityVerified: true,
           wrappedKeyVerified: false,
           unwrapKind: 'attachment_encryption_contract',
@@ -2045,6 +2082,7 @@ describe('e2ee transport payload helpers', () => {
         caption: '',
         encryption: null,
         accessVerification: {
+          strategyKey: '',
           integrityVerified: true,
           wrappedKeyVerified: false,
           unwrapKind: 'attachment_encryption_contract',
@@ -2067,6 +2105,7 @@ describe('e2ee transport payload helpers', () => {
         contentEncoding: 'mock-e2ee-envelope-v1',
         envelopeKind: 'pulse_mock_media_envelope',
         accessVerification: {
+          strategyKey: '',
           integrityVerified: true,
           wrappedKeyVerified: true,
           unwrapKind: 'pulse_mock_media_key_unwrap',
@@ -2087,6 +2126,7 @@ describe('e2ee transport payload helpers', () => {
     expect(payload.attachment.expectedPayloadSha256).toBe('');
     expect(payload.attachment.url).toBe('');
     expect(payload.attachment.accessVerification).toEqual({
+      strategyKey: '',
       integrityVerified: true,
       wrappedKeyVerified: true,
       unwrapKind: 'pulse_mock_media_key_unwrap',

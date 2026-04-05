@@ -10,6 +10,9 @@ import {
 export const attachmentsRouter = Router();
 
 function setAttachmentContractHeaders(res, attachmentLike) {
+  if (attachmentLike?.strategyKey) {
+    res.setHeader('X-Pulse-Encryption-Strategy', attachmentLike.strategyKey);
+  }
   if (attachmentLike?.originalMimeType) {
     res.setHeader('X-Pulse-Original-MimeType', attachmentLike.originalMimeType);
   }

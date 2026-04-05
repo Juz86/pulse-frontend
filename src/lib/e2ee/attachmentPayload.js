@@ -20,6 +20,7 @@ export function normalizeAttachmentPayload(attachment) {
   const encryption = attachment.encryption && typeof attachment.encryption === 'object'
     ? {
         alg: typeof attachment.encryption.alg === 'string' ? attachment.encryption.alg : '',
+        strategyKey: typeof attachment.encryption.strategyKey === 'string' ? attachment.encryption.strategyKey : '',
         keyId: typeof attachment.encryption.keyId === 'string' ? attachment.encryption.keyId : '',
         iv: typeof attachment.encryption.iv === 'string' ? attachment.encryption.iv : '',
         sha256: typeof attachment.encryption.sha256 === 'string' ? attachment.encryption.sha256 : '',
@@ -33,6 +34,9 @@ export function normalizeAttachmentPayload(attachment) {
     : null;
   const accessVerification = attachment.accessVerification && typeof attachment.accessVerification === 'object'
     ? {
+        strategyKey: typeof attachment.accessVerification.strategyKey === 'string'
+          ? attachment.accessVerification.strategyKey
+          : '',
         integrityVerified: Boolean(attachment.accessVerification.integrityVerified),
         wrappedKeyVerified: Boolean(attachment.accessVerification.wrappedKeyVerified),
         unwrapKind: typeof attachment.accessVerification.unwrapKind === 'string'

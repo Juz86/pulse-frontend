@@ -170,6 +170,7 @@ export async function buildMockAttachmentEncryptionMetadata(attachment, envelope
 
   return {
     alg: 'mock-e2ee-envelope-v1',
+    strategyKey: 'mock_media_v1',
     keyId: attachment?.encryption?.keyId || `mock-key-${payloadSha256.slice(0, 12) || 'attachment'}`,
     iv: attachment?.encryption?.iv || `mock-iv-${payloadSha256.slice(0, 12) || 'attachment'}`,
     sha256: payloadSha256,

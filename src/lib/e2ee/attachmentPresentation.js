@@ -1,5 +1,6 @@
 export function getAttachmentContractPresentation(attachment = {}) {
   const transfer = attachment?.transfer || null;
+  const strategyKey = attachment?.strategyKey || attachment?.encryption?.strategyKey || '';
   const contentEncoding = attachment?.contentEncoding || '';
   const originalMimeType = attachment?.originalMimeType || attachment?.mimeType || '';
   const envelopeKind = attachment?.envelopeKind || attachment?.encryption?.envelopeKind || '';
@@ -29,7 +30,7 @@ export function getAttachmentContractPresentation(attachment = {}) {
         ? 'opslaglink'
         : '',
     storageDetail: isEncryptedRemote
-      ? `Envelope: ${envelopeKind || 'mock media'}${hasIntegrityContract ? ' · integriteitscheck actief' : ''}`
+      ? `Envelope: ${envelopeKind || 'mock media'}${strategyKey ? ` · strategie ${strategyKey}` : ''}${hasIntegrityContract ? ' · integriteitscheck actief' : ''}`
       : '',
     keyContractDetail: hasWrappedMediaKeyContract
       ? `Media key: ${mediaKeyId} · wrap: ${keyWrapAlg}${wrappedMediaKeyDigest ? ' · digest actief' : ''}`
@@ -41,16 +42,19 @@ export function getAttachmentAccessVerificationPresentation(attachmentOrContract
   const accessVerification = attachmentOrContract?.accessVerification || null;
   const contract = accessVerification
     ? {
+        strategyKey: typeof accessVerification.strategyKey === 'string' ? accessVerification.strategyKey : '',
         integrityVerified: Boolean(accessVerification.integrityVerified),
         wrappedKeyVerified: Boolean(accessVerification.wrappedKeyVerified),
       }
     : attachmentOrContract;
+  const strategyKey = typeof contract?.strategyKey === 'string' ? contract.strategyKey : '';
   const resolvedUnwrapKind = unwrapContext?.unwrapKind || accessVerification?.unwrapKind || '';
   const integrityVerified = Boolean(contract?.integrityVerified);
   const wrappedKeyVerified = Boolean(contract?.wrappedKeyVerified);
   const hasUnwrapContext = Boolean(resolvedUnwrapKind && resolvedUnwrapKind !== 'none');
 
   return {
+    strategyLabel: strategyKey ? `Media-strategie: ${strategyKey}` : '',
     integrityAccessLabel: integrityVerified ? 'Downloadcontract bevestigd' : '',
     wrappedKeyAccessLabel: wrappedKeyVerified
       ? `Wrapped media key gevalideerd${hasUnwrapContext ? ` · ${resolvedUnwrapKind}` : ''}`

@@ -199,9 +199,7 @@ const ChatHeader = React.memo(function ChatHeader({
             fontSize: 12,
           }}
         >
-          {futureAttachmentBannerCopy.tone === 'future'
-            ? <>Pulse test nu het toekomstige attachment-profiel <strong>{resolvedAttachmentStrategyRuntime.effectiveStrategy}</strong> via de remote mock-opslagflow.</>
-            : <>Het attachment-profiel <strong>{E2EE_ATTACHMENT_STRATEGY}</strong> staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via <code>/configz</code>. Pulse valt daarom nu terug op <strong>{resolvedAttachmentStrategyRuntime.effectiveStrategy}</strong>.</>}
+          {futureAttachmentBannerCopy.text}
         </div>
       )}
 

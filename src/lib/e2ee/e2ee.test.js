@@ -79,6 +79,7 @@ import {
 import {
   getFutureAttachmentStrategyBannerState,
   getFutureAttachmentStrategyBannerCopy,
+  getServiceTransportFallbackBannerState,
   getAttachmentStrategyRuntimeCopy,
   getAttachmentStrategyRuntimeState,
   isAttachmentStrategySupportedByBackend,
@@ -554,6 +555,26 @@ describe('e2ee backend capability helpers', () => {
       visible: false,
       tone: 'fallback',
       text: 'Het attachment-profiel future-draft (pulse_media_v1) staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via /configz. Pulse valt daarom nu terug op mock-profiel (mock_media_v1).',
+    });
+  });
+
+  test('getServiceTransportFallbackBannerState derives visibility and copy together', () => {
+    expect(getServiceTransportFallbackBannerState({
+      transport: 'service',
+      serviceTransportReady: false,
+    })).toEqual({
+      visible: true,
+      tone: 'fallback',
+      text: 'Serviceversleuteling is tijdelijk niet beschikbaar. Pulse gebruikt nu automatisch socketfallback.',
+    });
+
+    expect(getServiceTransportFallbackBannerState({
+      transport: 'socket',
+      serviceTransportReady: false,
+    })).toEqual({
+      visible: false,
+      tone: 'fallback',
+      text: 'Serviceversleuteling is tijdelijk niet beschikbaar. Pulse gebruikt nu automatisch socketfallback.',
     });
   });
 

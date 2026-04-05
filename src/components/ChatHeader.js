@@ -4,8 +4,9 @@ import { Phone, Video, Users } from '../components/Icons';
 import {
   E2EE_ATTACHMENT_STRATEGY,
   getFutureAttachmentStrategyBannerState,
+  getServiceTransportFallbackBannerState,
   getAttachmentStrategyRuntimeState,
-  isE2EEServiceTransportEnabled,
+  E2EE_TRANSPORT,
 } from '../lib/e2ee/config';
 import UserAvatar from '../components/UserAvatar';
 
@@ -66,6 +67,10 @@ const ChatHeader = React.memo(function ChatHeader({
     capabilities: resolvedAttachmentStrategyRuntime.capabilities,
     effectiveStrategyOverride: resolvedAttachmentStrategyRuntime.effectiveStrategy,
     showFutureMediaBanner,
+  });
+  const serviceFallbackBannerState = getServiceTransportFallbackBannerState({
+    transport: E2EE_TRANSPORT,
+    serviceTransportReady,
   });
 
   function openContactProfile() {
@@ -163,7 +168,7 @@ const ChatHeader = React.memo(function ChatHeader({
         </div>
       </div>
 
-      {isE2EEServiceTransportEnabled && !serviceTransportReady && (
+      {serviceFallbackBannerState.visible && (
         <div
           className="chat-service-fallback-banner"
           role="status"
@@ -178,7 +183,7 @@ const ChatHeader = React.memo(function ChatHeader({
             fontSize: 12,
           }}
         >
-          Serviceversleuteling is tijdelijk niet beschikbaar. Pulse gebruikt nu automatisch socketfallback.
+          {serviceFallbackBannerState.text}
         </div>
       )}
 

@@ -152,6 +152,19 @@ export function getFutureAttachmentStrategyBannerState({
   };
 }
 
+export function getServiceTransportFallbackBannerState({
+  transport = E2EE_TRANSPORT,
+  serviceTransportReady = true,
+} = {}) {
+  const visible = Boolean(transport === 'service' && !serviceTransportReady);
+
+  return {
+    visible,
+    tone: 'fallback',
+    text: 'Serviceversleuteling is tijdelijk niet beschikbaar. Pulse gebruikt nu automatisch socketfallback.',
+  };
+}
+
 export async function probeE2EEServiceReady(baseUrl) {
   if (!isE2EEServiceTransportEnabled || !baseUrl) return false;
 

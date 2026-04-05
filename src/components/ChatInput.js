@@ -4,7 +4,6 @@ import { getSocket } from '../services/socket';
 import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2ee/attachmentPayload';
 import {
   E2EE_ATTACHMENT_STRATEGY,
-  isFutureAttachmentStrategyEnabled,
   isRemoteMockAttachmentTransportEnabled,
 } from '../lib/e2ee/config';
 import { Send, PauseCircle, ImageIcon } from '../components/Icons';
@@ -31,6 +30,8 @@ const ChatInput = React.memo(function ChatInput({
   stopTyping,
   onSend,
   onSendAttachment,
+  effectiveAttachmentStrategy = E2EE_ATTACHMENT_STRATEGY,
+  futureAttachmentStrategySupported = false,
 }) {
   const fileInputRef = useRef(null);
   const attachmentStatusTimerRef = useRef(null);
@@ -148,6 +149,10 @@ const ChatInput = React.memo(function ChatInput({
     editingMsg ? 'chat-compose-editing' : null,
     replyTo ? 'chat-compose-reply' : null,
   ].filter(Boolean).join(' ') || undefined;
+  const attachmentStrategyFallbackActive =
+    E2EE_ATTACHMENT_STRATEGY !== effectiveAttachmentStrategy;
+  const isFutureAttachmentStrategyEffective =
+    effectiveAttachmentStrategy === 'pulse_media_v1';
 
   return (
     <div className="chat-input-area">
@@ -221,9 +226,13 @@ const ChatInput = React.memo(function ChatInput({
             fontSize: 12,
           }}
         >
-          {isFutureAttachmentStrategyEnabled
-            ? `Bijlagen gebruiken nu de remote mock-opslagtest met draftprofiel ${E2EE_ATTACHMENT_STRATEGY}.`
-            : `Bijlagen gebruiken nu de remote mock-opslagtest met profiel ${E2EE_ATTACHMENT_STRATEGY}.`}
+          {attachmentStrategyFallbackActive
+            ? `Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel ${effectiveAttachmentStrategy}. Backendondersteuning voor ${E2EE_ATTACHMENT_STRATEGY} ontbreekt nog.`
+            : isFutureAttachmentStrategyEffective
+              ? futureAttachmentStrategySupported
+                ? `Bijlagen gebruiken nu de remote mock-opslagtest met draftprofiel ${effectiveAttachmentStrategy}.`
+                : `Bijlagen gebruiken nu de remote mock-opslagtest met lokaal draftprofiel ${effectiveAttachmentStrategy}.`
+              : `Bijlagen gebruiken nu de remote mock-opslagtest met profiel ${effectiveAttachmentStrategy}.`}
         </div>
       )}
       {pausedFeatures.chat ? (

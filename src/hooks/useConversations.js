@@ -42,6 +42,7 @@ export default function useConversations({
   showErrToast, setConfirmDialog,
   msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
   serviceTransportReady = false,
+  effectiveAttachmentStrategy = 'mock_media_v1',
 }) {
   const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
@@ -507,6 +508,7 @@ export default function useConversations({
         conversationId: conv.id,
         user,
         userId: user.uid,
+        attachmentStrategy: effectiveAttachmentStrategy,
       });
     } catch (error) {
       showErrToast(error.message || 'Bijlage voorbereiden mislukt');

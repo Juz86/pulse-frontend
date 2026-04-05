@@ -9,7 +9,14 @@ import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket'
 import './App.css';
 import PulseLogo from './components/PulseLogo';
 import { bootstrapDevice } from './lib/e2ee/deviceBootstrap';
-import { probeE2EEServiceReady, shouldBootstrapE2EEDevice } from './lib/e2ee/config';
+import {
+  isAttachmentStrategySupportedByBackend,
+  resolveEffectiveAttachmentStrategy,
+  probeE2EEBackendCapabilities,
+  probeE2EEServiceReady,
+  E2EE_ATTACHMENT_STRATEGY,
+  shouldBootstrapE2EEDevice,
+} from './lib/e2ee/config';
 import { clearPulseUserStorage, getSafeInternalPath, scheduleIdleTask } from './utils';
 
 const Homepage           = lazy(() => import('./screens/Homepage'));
@@ -154,6 +161,7 @@ function MainApp() {
   const [parentToast,         setParentToast]         = useState(null);
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
+  const [backendE2EECapabilities, setBackendE2EECapabilities] = useState(null);
   const toastTimerRef          = useRef(null);
   const fcmVisibilityRef       = useRef(null);
   const onlineVisibilityRef    = useRef(null);
@@ -217,7 +225,12 @@ function MainApp() {
           }
         } catch (e) { console.warn('[Pulse] Fout:', e.message); }
         setUserRole(role);
-        setServiceTransportReady(await probeE2EEServiceReady(BACKEND));
+        const [ready, capabilities] = await Promise.all([
+          probeE2EEServiceReady(BACKEND),
+          probeE2EEBackendCapabilities(BACKEND),
+        ]);
+        setServiceTransportReady(ready);
+        setBackendE2EECapabilities(capabilities);
         if (shouldBootstrapE2EEDevice) {
           try {
             await bootstrapDevice(firebaseUser);
@@ -393,6 +406,7 @@ function MainApp() {
         setInactiveUsers(new Set());
         setUserRole(null);
         setServiceTransportReady(false);
+        setBackendE2EECapabilities(null);
         setShowParentDashboard(false);
         // Controleer of we direct ouder-auth moeten openen na redirect
         const pendingParentTab = localStorage.getItem('pulse_parent_default_tab');
@@ -427,8 +441,14 @@ function MainApp() {
     let cancelled = false;
 
     const refreshServiceTransportReady = async () => {
-      const ready = await probeE2EEServiceReady(BACKEND);
-      if (!cancelled) setServiceTransportReady(ready);
+      const [ready, capabilities] = await Promise.all([
+        probeE2EEServiceReady(BACKEND),
+        probeE2EEBackendCapabilities(BACKEND),
+      ]);
+      if (!cancelled) {
+        setServiceTransportReady(ready);
+        setBackendE2EECapabilities(capabilities);
+      }
     };
 
     refreshServiceTransportReady();
@@ -465,7 +485,7 @@ function MainApp() {
           ? <ParentAuthScreen defaultTab={parentAuthDefaultTab} onBack={() => { if (parentAuthReferrer) { window.location.assign(getSafeInternalPath(parentAuthReferrer)); } else { setShowParentAuth(false); setParentAuthDefaultTab('login'); setParentAuthReferrer(null); } }} />
           : <Homepage onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} />
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} futureAttachmentStrategySupported={isAttachmentStrategySupportedByBackend(backendE2EECapabilities, E2EE_ATTACHMENT_STRATEGY)} effectiveAttachmentStrategy={resolveEffectiveAttachmentStrategy({ preferredStrategy: E2EE_ATTACHMENT_STRATEGY, capabilities: backendE2EECapabilities })} />
             {userRole === 'parent' && showParentDashboard && (
               <div className={`parent-dashboard-overlay${dashboardFading ? ' fading' : ''}`} onClick={e => { if (e.target === e.currentTarget) { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); } }}>
                 <ParentDashboard user={user} parentActivityBadge={parentActivityBadge} onActivitiesViewed={() => setParentActivityBadge(0)} onClose={() => { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); }} />

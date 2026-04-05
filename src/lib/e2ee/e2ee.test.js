@@ -72,6 +72,11 @@ import {
   getAttachmentPreviewText,
 } from './attachmentPresentation';
 import {
+  isAttachmentStrategySupportedByBackend,
+  normalizeE2EEBackendCapabilities,
+  resolveEffectiveAttachmentStrategy,
+} from './config';
+import {
   assertAttachmentMetadataIntegrity,
   buildAttachmentAccessVerification,
   buildResolvedAttachmentAccessContract,
@@ -392,6 +397,76 @@ describe('e2ee policy helpers', () => {
 
   test('edit unavailable message stays stable', () => {
     expect(ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE).toBe('Bewerken voor versleutelde berichten is nog niet beschikbaar.');
+  });
+});
+
+describe('e2ee backend capability helpers', () => {
+  test('normalizeE2EEBackendCapabilities extracts attachment strategy support from config payloads', () => {
+    expect(normalizeE2EEBackendCapabilities({
+      e2ee: {
+        attachmentTransport: 'remote_mock',
+        attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
+        defaultAttachmentStrategy: 'mock_media_v1',
+        draftAttachmentStrategy: 'pulse_media_v1',
+      },
+    })).toEqual({
+      attachmentTransport: 'remote_mock',
+      attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
+      defaultAttachmentStrategy: 'mock_media_v1',
+      draftAttachmentStrategy: 'pulse_media_v1',
+    });
+  });
+
+  test('isAttachmentStrategySupportedByBackend checks advertised backend strategy support', () => {
+    expect(isAttachmentStrategySupportedByBackend({
+      e2ee: {
+        attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
+      },
+    }, 'pulse_media_v1')).toBe(true);
+
+    expect(isAttachmentStrategySupportedByBackend({
+      e2ee: {
+        attachmentStrategies: ['mock_media_v1'],
+      },
+    }, 'pulse_media_v1')).toBe(false);
+  });
+
+  test('resolveEffectiveAttachmentStrategy falls back when pulse_media_v1 is not advertised', () => {
+    expect(resolveEffectiveAttachmentStrategy({
+      preferredStrategy: 'pulse_media_v1',
+      capabilities: {
+        attachmentStrategies: ['mock_media_v1'],
+      },
+    })).toBe('mock_media_v1');
+  });
+
+  test('resolveEffectiveAttachmentStrategy keeps pulse_media_v1 when backend support is advertised', () => {
+    expect(resolveEffectiveAttachmentStrategy({
+      preferredStrategy: 'pulse_media_v1',
+      capabilities: {
+        attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
+      },
+    })).toBe('pulse_media_v1');
+  });
+
+  test('resolveEffectiveAttachmentStrategy prefers the backend default strategy when the preferred one is unsupported', () => {
+    expect(resolveEffectiveAttachmentStrategy({
+      preferredStrategy: 'pulse_media_v1',
+      capabilities: {
+        attachmentStrategies: ['mock_media_v1', 'external_contract'],
+        defaultAttachmentStrategy: 'external_contract',
+      },
+    })).toBe('external_contract');
+  });
+
+  test('resolveEffectiveAttachmentStrategy falls back to mock_media_v1 when backend default is unsupported too', () => {
+    expect(resolveEffectiveAttachmentStrategy({
+      preferredStrategy: 'pulse_media_v1',
+      capabilities: {
+        attachmentStrategies: ['mock_media_v1'],
+        defaultAttachmentStrategy: 'external_contract',
+      },
+    })).toBe('mock_media_v1');
   });
 });
 

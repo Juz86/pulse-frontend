@@ -3,6 +3,8 @@ import {
   ATTACHMENT_FUTURE_MEDIA_STRATEGY,
   ATTACHMENT_MOCK_ENVELOPE_ALG,
   ATTACHMENT_MOCK_MEDIA_STRATEGY,
+  getAttachmentStrategyHint,
+  getAttachmentStrategyStoragePrefix,
 } from './attachmentStrategyConstants';
 import { getAttachmentEncryptionCapability } from './attachmentCrypto';
 
@@ -22,20 +24,8 @@ export function getAttachmentStrategyPresentation(attachment = {}) {
     strategyKey,
     isMockStrategy,
     isFutureStrategy,
-    strategyHintLabel: !strategyKey
-      ? ''
-      : isFutureStrategy
-        ? 'future-draft'
-        : isMockStrategy
-          ? 'mock-profiel'
-          : strategyKey,
-    storageLabelPrefix: isMockStrategy
-      ? 'Mock'
-      : isFutureStrategy
-        ? 'Toekomstige'
-        : strategyKey
-          ? 'Versleutelde'
-          : '',
+    strategyHintLabel: getAttachmentStrategyHint(strategyKey),
+    storageLabelPrefix: getAttachmentStrategyStoragePrefix(strategyKey),
   };
 }
 

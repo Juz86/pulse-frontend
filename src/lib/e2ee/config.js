@@ -1,3 +1,5 @@
+import { getAttachmentStrategyDisplayName } from './attachmentStrategyConstants';
+
 export const E2EE_MODE = process.env.REACT_APP_E2EE_MODE || 'mock';
 export const E2EE_TRANSPORT = process.env.REACT_APP_E2EE_TRANSPORT || 'socket';
 export const E2EE_ATTACHMENT_TRANSPORT = process.env.REACT_APP_E2EE_ATTACHMENT_TRANSPORT || 'inline';
@@ -86,20 +88,20 @@ export function getAttachmentStrategyRuntimeCopy({
   if (fallbackActive) {
     return {
       tone: 'fallback',
-      text: `Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel ${effectiveStrategy}. Backendondersteuning voor ${preferred} ontbreekt nog.`,
+      text: `Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel ${getAttachmentStrategyDisplayName(effectiveStrategy)}. Backendondersteuning voor ${getAttachmentStrategyDisplayName(preferred)} ontbreekt nog.`,
     };
   }
 
   if (effectiveStrategy === 'pulse_media_v1') {
     return {
       tone: runtimeState.preferredStrategySupported ? 'future' : 'draft',
-      text: `Bijlagen gebruiken nu de remote mock-opslagtest met draftprofiel ${effectiveStrategy}.`,
+      text: `Bijlagen gebruiken nu de remote mock-opslagtest met draftprofiel ${getAttachmentStrategyDisplayName(effectiveStrategy)}.`,
     };
   }
 
   return {
     tone: 'default',
-    text: `Bijlagen gebruiken nu de remote mock-opslagtest met profiel ${effectiveStrategy}.`,
+    text: `Bijlagen gebruiken nu de remote mock-opslagtest met profiel ${getAttachmentStrategyDisplayName(effectiveStrategy)}.`,
   };
 }
 
@@ -117,13 +119,13 @@ export function getFutureAttachmentStrategyBannerCopy({
   if (!runtimeState.fallbackActive) {
     return {
       tone: 'future',
-      text: `Pulse test nu het toekomstige attachment-profiel ${runtimeState.effectiveStrategy} via de remote mock-opslagflow.`,
+      text: `Pulse test nu het toekomstige attachment-profiel ${getAttachmentStrategyDisplayName(runtimeState.effectiveStrategy)} via de remote mock-opslagflow.`,
     };
   }
 
   return {
     tone: 'fallback',
-    text: `Het attachment-profiel ${runtimeState.preferredStrategy} staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via /configz. Pulse valt daarom nu terug op ${runtimeState.effectiveStrategy}.`,
+    text: `Het attachment-profiel ${getAttachmentStrategyDisplayName(runtimeState.preferredStrategy)} staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via /configz. Pulse valt daarom nu terug op ${getAttachmentStrategyDisplayName(runtimeState.effectiveStrategy)}.`,
   };
 }
 

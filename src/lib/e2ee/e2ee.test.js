@@ -49,6 +49,7 @@ import {
   ATTACHMENT_MOCK_ENVELOPE_ALG,
   ATTACHMENT_MOCK_MEDIA_STRATEGY,
   ATTACHMENT_NONE_STRATEGY,
+  getAttachmentStrategyDisplayName,
 } from './attachmentStrategyConstants';
 import {
   buildAttachmentEncryptionMetadata,
@@ -493,6 +494,12 @@ describe('e2ee backend capability helpers', () => {
     });
   });
 
+  test('getAttachmentStrategyDisplayName derives human-readable strategy labels', () => {
+    expect(getAttachmentStrategyDisplayName('mock_media_v1')).toBe('mock-profiel (mock_media_v1)');
+    expect(getAttachmentStrategyDisplayName('pulse_media_v1')).toBe('future-draft (pulse_media_v1)');
+    expect(getAttachmentStrategyDisplayName('external_contract')).toBe('external_contract');
+  });
+
   test('getAttachmentStrategyRuntimeCopy describes fallback selection consistently', () => {
     expect(getAttachmentStrategyRuntimeCopy({
       preferredStrategy: 'pulse_media_v1',
@@ -502,7 +509,7 @@ describe('e2ee backend capability helpers', () => {
       effectiveStrategyOverride: 'mock_media_v1',
     })).toEqual({
       tone: 'fallback',
-      text: 'Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel mock_media_v1. Backendondersteuning voor pulse_media_v1 ontbreekt nog.',
+      text: 'Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel mock-profiel (mock_media_v1). Backendondersteuning voor future-draft (pulse_media_v1) ontbreekt nog.',
     });
   });
 
@@ -515,7 +522,7 @@ describe('e2ee backend capability helpers', () => {
       effectiveStrategyOverride: 'pulse_media_v1',
     })).toEqual({
       tone: 'future',
-      text: 'Pulse test nu het toekomstige attachment-profiel pulse_media_v1 via de remote mock-opslagflow.',
+      text: 'Pulse test nu het toekomstige attachment-profiel future-draft (pulse_media_v1) via de remote mock-opslagflow.',
     });
   });
 
@@ -528,7 +535,7 @@ describe('e2ee backend capability helpers', () => {
       effectiveStrategyOverride: 'mock_media_v1',
     })).toEqual({
       tone: 'fallback',
-      text: 'Het attachment-profiel pulse_media_v1 staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via /configz. Pulse valt daarom nu terug op mock_media_v1.',
+      text: 'Het attachment-profiel future-draft (pulse_media_v1) staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via /configz. Pulse valt daarom nu terug op mock-profiel (mock_media_v1).',
     });
   });
 });

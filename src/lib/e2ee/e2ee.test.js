@@ -37,6 +37,7 @@ import {
 import {
   buildRemoteAttachmentUploadPayload,
   createAttachmentStorageProvider,
+  createDefaultAttachmentStorageProviderRegistry,
   createFutureDraftAttachmentStorageProvider,
   createInlineAttachmentStorageProvider,
   createRemoteMockAttachmentStorageProvider,
@@ -96,6 +97,7 @@ import {
   assertAttachmentMetadataIntegrity,
   buildAttachmentAccessVerification,
   createAttachmentAccessProvider,
+  createDefaultAttachmentAccessProviderRegistry,
   createDirectAttachmentAccessProvider,
   createFutureDraftAttachmentAccessProvider,
   createRemoteAttachmentAccessProvider,
@@ -132,8 +134,11 @@ import {
 import {
   createAttachmentAccessProviderRegistry,
   createAttachmentStorageProviderRegistry,
+  getAttachmentProviderRuntimeState,
   resolveAttachmentAccessProvider,
+  resolveAttachmentAccessProviderEntry,
   resolveAttachmentStorageProvider,
+  resolveAttachmentStorageProviderEntry,
 } from './attachmentProviders';
 import { BACKEND_URL } from '../../services/socket';
 
@@ -948,6 +953,14 @@ describe('e2ee attachment helpers', () => {
     }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
   });
 
+  test('createDefaultAttachmentStorageProviderRegistry exposes all built-in storage providers', () => {
+    const registry = createDefaultAttachmentStorageProviderRegistry();
+
+    expect(typeof registry[ATTACHMENT_STORAGE_PROVIDER_INLINE]).toBe('function');
+    expect(typeof registry[ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK]).toBe('function');
+    expect(typeof registry[ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT]).toBe('function');
+  });
+
   test('createFutureDraftAttachmentStorageProvider exposes a dedicated future provider factory', async () => {
     const uploadAttachment = jest.fn(async (attachment) => attachment);
     const provider = createFutureDraftAttachmentStorageProvider({ uploadAttachment });
@@ -1040,6 +1053,30 @@ describe('e2ee attachment helpers', () => {
     expect(createInlineProvider).toHaveBeenCalledTimes(1);
     expect(createRemoteMockProvider).toHaveBeenCalledTimes(1);
     expect(createFutureDraftProvider).toHaveBeenCalledTimes(1);
+  });
+
+  test('attachment storage provider registry exposes a resolved entry with descriptor', () => {
+    const registry = createAttachmentStorageProviderRegistry({
+      createInlineProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_INLINE }),
+      createRemoteMockProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK }),
+      createFutureDraftProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT }),
+    });
+
+    const entry = resolveAttachmentStorageProviderEntry(registry, {
+      transportMode: 'remote_mock',
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+    });
+
+    expect(entry.kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
+    expect(entry.descriptor).toEqual({
+      kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT,
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      transportMode: 'remote_mock',
+      usesRemoteStorage: true,
+      isFutureDraft: true,
+      supportsUpload: true,
+    });
+    expect(typeof entry.factory).toBe('function');
   });
 
   test('buildMockAttachmentEncryptionMetadata creates a stable mock media key contract', async () => {
@@ -2188,6 +2225,14 @@ describe('e2ee attachment helpers', () => {
     }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
   });
 
+  test('createDefaultAttachmentAccessProviderRegistry exposes all built-in access providers', () => {
+    const registry = createDefaultAttachmentAccessProviderRegistry();
+
+    expect(typeof registry[ATTACHMENT_ACCESS_PROVIDER_DIRECT]).toBe('function');
+    expect(typeof registry[ATTACHMENT_ACCESS_PROVIDER_REMOTE]).toBe('function');
+    expect(typeof registry[ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT]).toBe('function');
+  });
+
   test('createFutureDraftAttachmentAccessProvider exposes a dedicated future access provider factory', () => {
     const provider = createFutureDraftAttachmentAccessProvider();
 
@@ -2269,6 +2314,75 @@ describe('e2ee attachment helpers', () => {
     expect(createDirectProvider).toHaveBeenCalledTimes(1);
     expect(createRemoteProvider).toHaveBeenCalledTimes(1);
     expect(createFutureDraftProvider).toHaveBeenCalledTimes(1);
+  });
+
+  test('attachment access provider registry exposes a resolved entry with descriptor', () => {
+    const registry = createAttachmentAccessProviderRegistry({
+      createDirectProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_DIRECT }),
+      createRemoteProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE }),
+      createFutureDraftProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT }),
+    });
+
+    const entry = resolveAttachmentAccessProviderEntry(registry, {
+      needsRemoteFetch: true,
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+    });
+
+    expect(entry.kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
+    expect(entry.descriptor).toEqual({
+      kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT,
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      usesRemoteFetch: true,
+      isFutureDraft: true,
+      supportsBinaryAccess: false,
+    });
+    expect(typeof entry.factory).toBe('function');
+  });
+
+  test('getAttachmentProviderRuntimeState combines storage and access descriptors for future drafts', () => {
+    const storageRegistry = createAttachmentStorageProviderRegistry({
+      createInlineProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_INLINE }),
+      createRemoteMockProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK }),
+      createFutureDraftProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT }),
+    });
+    const accessRegistry = createAttachmentAccessProviderRegistry({
+      createDirectProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_DIRECT }),
+      createRemoteProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE }),
+      createFutureDraftProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT }),
+    });
+
+    expect(getAttachmentProviderRuntimeState({
+      storageRegistry,
+      accessRegistry,
+      transportMode: 'remote_mock',
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      needsRemoteFetch: true,
+    })).toEqual({
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+      transportMode: 'remote_mock',
+      needsRemoteFetch: true,
+      storageProviderKind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT,
+      accessProviderKind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT,
+      storageDescriptor: {
+        kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT,
+        strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+        transportMode: 'remote_mock',
+        usesRemoteStorage: true,
+        isFutureDraft: true,
+        supportsUpload: true,
+      },
+      accessDescriptor: {
+        kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT,
+        strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+        usesRemoteFetch: true,
+        isFutureDraft: true,
+        supportsBinaryAccess: false,
+      },
+      usesRemoteStorage: true,
+      usesRemoteFetch: true,
+      isFutureDraft: true,
+      supportsBinaryAccess: false,
+    });
   });
 
   test('resolveAttachmentForAccess returns the original normalized attachment when no remote metadata refresh is needed', async () => {

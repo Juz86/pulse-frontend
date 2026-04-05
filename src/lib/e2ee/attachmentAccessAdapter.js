@@ -359,6 +359,14 @@ export function createFutureDraftAttachmentAccessProvider({
   });
 }
 
+export function createDefaultAttachmentAccessProviderRegistry() {
+  return createAttachmentAccessProviderRegistry({
+    createDirectProvider: createDirectAttachmentAccessProvider,
+    createRemoteProvider: createRemoteAttachmentAccessProvider,
+    createFutureDraftProvider: createFutureDraftAttachmentAccessProvider,
+  });
+}
+
 export function createAttachmentAccessProvider(
   attachment,
   {
@@ -367,13 +375,7 @@ export function createAttachmentAccessProvider(
   } = {}
 ) {
   const accessInfo = getAttachmentAccessInfo(attachment);
-  const registry = createAttachmentAccessProviderRegistry({
-    createDirectProvider: createDirectAttachmentAccessProvider,
-    createRemoteProvider: createRemoteAttachmentAccessProvider,
-    createFutureDraftProvider: createFutureDraftAttachmentAccessProvider,
-  });
-
-  return resolveAttachmentAccessProvider(registry, {
+  return resolveAttachmentAccessProvider(createDefaultAttachmentAccessProviderRegistry(), {
     needsRemoteFetch: accessInfo.needsRemoteFetch,
     strategyKey: accessInfo.strategyKey,
     user,

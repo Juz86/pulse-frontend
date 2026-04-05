@@ -5,6 +5,7 @@ import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2
 import {
   E2EE_ATTACHMENT_STRATEGY,
   getAttachmentStrategyRuntimeCopy,
+  getAttachmentStrategyRuntimeState,
   isRemoteMockAttachmentTransportEnabled,
 } from '../lib/e2ee/config';
 import { Send, PauseCircle, ImageIcon } from '../components/Icons';
@@ -31,7 +32,7 @@ const ChatInput = React.memo(function ChatInput({
   stopTyping,
   onSend,
   onSendAttachment,
-  backendE2EECapabilities = null,
+  attachmentStrategyRuntime = null,
   effectiveAttachmentStrategy = E2EE_ATTACHMENT_STRATEGY,
 }) {
   const fileInputRef = useRef(null);
@@ -150,10 +151,14 @@ const ChatInput = React.memo(function ChatInput({
     editingMsg ? 'chat-compose-editing' : null,
     replyTo ? 'chat-compose-reply' : null,
   ].filter(Boolean).join(' ') || undefined;
-  const attachmentStrategyCopy = getAttachmentStrategyRuntimeCopy({
+  const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentStrategyRuntimeState({
     preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
     effectiveStrategyOverride: effectiveAttachmentStrategy,
-    capabilities: backendE2EECapabilities,
+  });
+  const attachmentStrategyCopy = getAttachmentStrategyRuntimeCopy({
+    preferredStrategy: resolvedAttachmentStrategyRuntime.preferredStrategy,
+    effectiveStrategyOverride: resolvedAttachmentStrategyRuntime.effectiveStrategy,
+    capabilities: resolvedAttachmentStrategyRuntime.capabilities,
   });
 
   return (

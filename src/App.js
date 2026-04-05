@@ -10,7 +10,7 @@ import './App.css';
 import PulseLogo from './components/PulseLogo';
 import { bootstrapDevice } from './lib/e2ee/deviceBootstrap';
 import {
-  resolveEffectiveAttachmentStrategy,
+  getAttachmentStrategyRuntimeState,
   probeE2EEBackendCapabilities,
   probeE2EEServiceReady,
   E2EE_ATTACHMENT_STRATEGY,
@@ -161,6 +161,10 @@ function MainApp() {
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
   const [backendE2EECapabilities, setBackendE2EECapabilities] = useState(null);
+  const attachmentStrategyRuntime = getAttachmentStrategyRuntimeState({
+    preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
+    capabilities: backendE2EECapabilities,
+  });
   const toastTimerRef          = useRef(null);
   const fcmVisibilityRef       = useRef(null);
   const onlineVisibilityRef    = useRef(null);
@@ -484,7 +488,7 @@ function MainApp() {
           ? <ParentAuthScreen defaultTab={parentAuthDefaultTab} onBack={() => { if (parentAuthReferrer) { window.location.assign(getSafeInternalPath(parentAuthReferrer)); } else { setShowParentAuth(false); setParentAuthDefaultTab('login'); setParentAuthReferrer(null); } }} />
           : <Homepage onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} backendE2EECapabilities={backendE2EECapabilities} effectiveAttachmentStrategy={resolveEffectiveAttachmentStrategy({ preferredStrategy: E2EE_ATTACHMENT_STRATEGY, capabilities: backendE2EECapabilities })} />
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} attachmentStrategyRuntime={attachmentStrategyRuntime} effectiveAttachmentStrategy={attachmentStrategyRuntime.effectiveStrategy} />
             {userRole === 'parent' && showParentDashboard && (
               <div className={`parent-dashboard-overlay${dashboardFading ? ' fading' : ''}`} onClick={e => { if (e.target === e.currentTarget) { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); } }}>
                 <ParentDashboard user={user} parentActivityBadge={parentActivityBadge} onActivitiesViewed={() => setParentActivityBadge(0)} onClose={() => { setDashboardFading(true); setTimeout(() => { setShowParentDashboard(false); setDashboardFading(false); }, 150); }} />

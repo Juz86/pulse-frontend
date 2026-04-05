@@ -36,7 +36,7 @@ const ChatHeader = React.memo(function ChatHeader({
   chatSearchRef,
   serviceTransportReady,
   showFutureMediaBanner = false,
-  backendE2EECapabilities = null,
+  attachmentStrategyRuntime = null,
   effectiveAttachmentStrategy = E2EE_ATTACHMENT_STRATEGY,
 }) {
   const otherUid  = getOtherUid(activeConv);
@@ -59,10 +59,9 @@ const ChatHeader = React.memo(function ChatHeader({
 
   const searchTotal   = searchMatches.length;
   const searchCurrent = searchTotal > 0 ? chatSearchIdx % searchTotal : 0;
-  const attachmentStrategyRuntime = getAttachmentStrategyRuntimeState({
+  const resolvedAttachmentStrategyRuntime = attachmentStrategyRuntime || getAttachmentStrategyRuntimeState({
     preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
     effectiveStrategyOverride: effectiveAttachmentStrategy,
-    capabilities: backendE2EECapabilities,
   });
 
   function openContactProfile() {
@@ -188,15 +187,15 @@ const ChatHeader = React.memo(function ChatHeader({
             margin: '0 12px 10px',
             padding: '8px 12px',
             borderRadius: 12,
-            background: attachmentStrategyRuntime.fallbackActive ? 'rgba(245, 158, 11, 0.14)' : 'rgba(59, 130, 246, 0.10)',
-            border: attachmentStrategyRuntime.fallbackActive
+            background: resolvedAttachmentStrategyRuntime.fallbackActive ? 'rgba(245, 158, 11, 0.14)' : 'rgba(59, 130, 246, 0.10)',
+            border: resolvedAttachmentStrategyRuntime.fallbackActive
               ? '1px solid rgba(245, 158, 11, 0.28)'
               : '1px solid rgba(59, 130, 246, 0.24)',
             color: 'var(--text2)',
             fontSize: 12,
           }}
         >
-          {!attachmentStrategyRuntime.fallbackActive
+          {!resolvedAttachmentStrategyRuntime.fallbackActive
             ? <>Pulse test nu het toekomstige attachment-profiel <strong>{effectiveAttachmentStrategy}</strong> via de remote mock-opslagflow.</>
             : <>Het attachment-profiel <strong>{E2EE_ATTACHMENT_STRATEGY}</strong> staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via <code>/configz</code>. Pulse valt daarom nu terug op <strong>{effectiveAttachmentStrategy}</strong>.</>}
         </div>

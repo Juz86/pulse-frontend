@@ -127,6 +127,12 @@ import {
   resolveAttachmentAccessProviderKind,
   resolveAttachmentStorageProviderKind,
 } from './attachmentProviderKinds';
+import {
+  createAttachmentAccessProviderRegistry,
+  createAttachmentStorageProviderRegistry,
+  resolveAttachmentAccessProvider,
+  resolveAttachmentStorageProvider,
+} from './attachmentProviders';
 import { BACKEND_URL } from '../../services/socket';
 
 describe('e2ee message model helpers', () => {
@@ -978,6 +984,37 @@ describe('e2ee attachment helpers', () => {
       transportMode: 'remote_mock',
       strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
     })).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
+  });
+
+  test('attachment storage provider registry resolves inline and remote providers centrally', () => {
+    const createInlineProvider = jest.fn(() => ({ kind: ATTACHMENT_STORAGE_PROVIDER_INLINE }));
+    const createRemoteMockProvider = jest.fn(({ strategyKey }) => ({
+      kind: strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY
+        ? ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT
+        : ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK,
+    }));
+    const registry = createAttachmentStorageProviderRegistry({
+      createInlineProvider,
+      createRemoteMockProvider,
+    });
+
+    expect(resolveAttachmentStorageProvider(registry, {
+      transportMode: 'inline',
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+    }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_INLINE);
+
+    expect(resolveAttachmentStorageProvider(registry, {
+      transportMode: 'remote_mock',
+      strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
+    }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK);
+
+    expect(resolveAttachmentStorageProvider(registry, {
+      transportMode: 'remote_mock',
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+    }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
+
+    expect(createInlineProvider).toHaveBeenCalledTimes(1);
+    expect(createRemoteMockProvider).toHaveBeenCalledTimes(2);
   });
 
   test('buildMockAttachmentEncryptionMetadata creates a stable mock media key contract', async () => {
@@ -2162,6 +2199,37 @@ describe('e2ee attachment helpers', () => {
       needsRemoteFetch: true,
       strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
     })).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
+  });
+
+  test('attachment access provider registry resolves direct and remote providers centrally', () => {
+    const createDirectProvider = jest.fn(() => ({ kind: ATTACHMENT_ACCESS_PROVIDER_DIRECT }));
+    const createRemoteProvider = jest.fn(({ strategyKey }) => ({
+      kind: strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY
+        ? ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT
+        : ATTACHMENT_ACCESS_PROVIDER_REMOTE,
+    }));
+    const registry = createAttachmentAccessProviderRegistry({
+      createDirectProvider,
+      createRemoteProvider,
+    });
+
+    expect(resolveAttachmentAccessProvider(registry, {
+      needsRemoteFetch: false,
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+    }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_DIRECT);
+
+    expect(resolveAttachmentAccessProvider(registry, {
+      needsRemoteFetch: true,
+      strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
+    }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE);
+
+    expect(resolveAttachmentAccessProvider(registry, {
+      needsRemoteFetch: true,
+      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
+    }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
+
+    expect(createDirectProvider).toHaveBeenCalledTimes(1);
+    expect(createRemoteProvider).toHaveBeenCalledTimes(2);
   });
 
   test('resolveAttachmentForAccess returns the original normalized attachment when no remote metadata refresh is needed', async () => {

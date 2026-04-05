@@ -12,8 +12,11 @@ import {
   ATTACHMENT_STORAGE_PROVIDER_INLINE,
   buildAttachmentStorageProviderDescriptor,
   getAttachmentStorageProviderKind,
-  resolveAttachmentStorageProviderKind,
 } from './attachmentProviderKinds';
+import {
+  createAttachmentStorageProviderRegistry,
+  resolveAttachmentStorageProvider,
+} from './attachmentProviders';
 import {
   isImageAttachment,
   normalizeAttachmentPayload,
@@ -104,21 +107,18 @@ export function createAttachmentStorageProvider({
   user = null,
   fetchImpl = fetch,
 } = {}) {
-  const providerKind = resolveAttachmentStorageProviderKind({
-    transportMode,
-    strategyKey: attachmentStrategy,
+  const registry = createAttachmentStorageProviderRegistry({
+    createInlineProvider: createInlineAttachmentStorageProvider,
+    createRemoteMockProvider: createRemoteMockAttachmentStorageProvider,
   });
 
-  if (providerKind !== ATTACHMENT_STORAGE_PROVIDER_INLINE) {
-    return createRemoteMockAttachmentStorageProvider({
-      strategyKey: attachmentStrategy,
-      uploadAttachment,
-      user,
-      fetchImpl,
-    });
-  }
-
-  return createInlineAttachmentStorageProvider();
+  return resolveAttachmentStorageProvider(registry, {
+    transportMode,
+    strategyKey: attachmentStrategy,
+    uploadAttachment,
+    user,
+    fetchImpl,
+  });
 }
 
 export async function buildMockRemoteAttachmentPayload(attachment, { conversationId, userId } = {}) {

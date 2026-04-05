@@ -10,8 +10,11 @@ import {
   ATTACHMENT_ACCESS_PROVIDER_DIRECT,
   buildAttachmentAccessProviderDescriptor,
   getAttachmentAccessProviderKind,
-  resolveAttachmentAccessProviderKind,
 } from './attachmentProviderKinds';
+import {
+  createAttachmentAccessProviderRegistry,
+  resolveAttachmentAccessProvider,
+} from './attachmentProviders';
 import {
   isImageAttachment,
   normalizeAttachmentPayload,
@@ -353,20 +356,17 @@ export function createAttachmentAccessProvider(
   } = {}
 ) {
   const accessInfo = getAttachmentAccessInfo(attachment);
-  const providerKind = resolveAttachmentAccessProviderKind({
-    needsRemoteFetch: accessInfo.needsRemoteFetch,
-    strategyKey: accessInfo.strategyKey,
+  const registry = createAttachmentAccessProviderRegistry({
+    createDirectProvider: createDirectAttachmentAccessProvider,
+    createRemoteProvider: createRemoteAttachmentAccessProvider,
   });
 
-  if (providerKind !== ATTACHMENT_ACCESS_PROVIDER_DIRECT) {
-    return createRemoteAttachmentAccessProvider({
-      user,
-      fetchImpl,
-      strategyKey: accessInfo.strategyKey,
-    });
-  }
-
-  return createDirectAttachmentAccessProvider();
+  return resolveAttachmentAccessProvider(registry, {
+    needsRemoteFetch: accessInfo.needsRemoteFetch,
+    strategyKey: accessInfo.strategyKey,
+    user,
+    fetchImpl,
+  });
 }
 
 export async function fetchAttachmentMetadata(attachment, user, fetchImpl = fetch) {

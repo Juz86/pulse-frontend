@@ -6,6 +6,7 @@ export function getAttachmentContractPresentation(attachment = {}) {
   const expectedPayloadSha256 = attachment?.expectedPayloadSha256 || attachment?.encryption?.sha256 || '';
   const mediaKeyId = attachment?.encryption?.mediaKeyId || '';
   const keyWrapAlg = attachment?.encryption?.keyWrapAlg || '';
+  const wrappedMediaKeyDigest = attachment?.encryption?.wrappedMediaKeyDigest || '';
   const isRemote = transfer === 'remote';
   const isEncryptedRemote = isRemote && contentEncoding === 'mock-e2ee-envelope-v1';
   const hasIntegrityContract = Boolean(isEncryptedRemote && expectedPayloadSha256);
@@ -31,7 +32,7 @@ export function getAttachmentContractPresentation(attachment = {}) {
       ? `Envelope: ${envelopeKind || 'mock media'}${hasIntegrityContract ? ' · integriteitscheck actief' : ''}`
       : '',
     keyContractDetail: hasWrappedMediaKeyContract
-      ? `Media key: ${mediaKeyId} · wrap: ${keyWrapAlg}`
+      ? `Media key: ${mediaKeyId} · wrap: ${keyWrapAlg}${wrappedMediaKeyDigest ? ' · digest actief' : ''}`
       : '',
   };
 }

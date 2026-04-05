@@ -3,7 +3,8 @@ import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { deleteStoredAttachmentFromMessageAttachment } from '../services/attachmentStorage.js';
-import { filterVisibleMessages, toConversationPreview } from '../services/messageVisibility.js';
+import { applyConversationSummaryFields, deriveConversationSummary } from '../services/conversationSummaries.js';
+import { filterVisibleMessages } from '../services/messageVisibility.js';
 
 export function apiMessagesRouter({ io, emitToUser }) {
 const router = Router();
@@ -105,10 +106,10 @@ router.delete('/:convId/:msgId', requireAuth, asyncRoute(async (req, res) => {
   )[0] || null;
 
   await db.collection('conversations').doc(convId).set(
-    {
-      updatedAt: new Date().toISOString(),
-      lastMessage: latestVisible ? toConversationPreview(latestVisible) : '',
-    },
+    applyConversationSummaryFields(
+      { updatedAt: new Date().toISOString() },
+      deriveConversationSummary(latestVisible, '')
+    ),
     { merge: true }
   );
 

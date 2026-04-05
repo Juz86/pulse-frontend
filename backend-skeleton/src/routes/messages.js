@@ -7,7 +7,7 @@ import { computeDeliveryState, computeReceiptSummary, toSocketStatus } from '../
 import { filterVisibleMessages } from '../services/messageVisibility.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
-import { deriveConversationSummary } from '../services/conversationSummaries.js';
+import { applyConversationSummaryFields, deriveConversationSummary } from '../services/conversationSummaries.js';
 
 export function messagesRouter({ io, emitToUser }) {
   const router = Router();
@@ -159,10 +159,7 @@ export function messagesRouter({ io, emitToUser }) {
     });
 
     await db.collection('conversations').doc(conversationId).set(
-      {
-        updatedAt: createdAt,
-        ...summary,
-      },
+      applyConversationSummaryFields({ updatedAt: createdAt }, summary),
       { merge: true }
     );
 

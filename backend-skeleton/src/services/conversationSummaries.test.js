@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { deriveConversationSummary } from './conversationSummaries.js';
+import { applyConversationSummaryFields, deriveConversationSummary } from './conversationSummaries.js';
 
 test('deriveConversationSummary keeps attachment contract metadata and file name', () => {
   const summary = deriveConversationSummary({
@@ -9,8 +9,14 @@ test('deriveConversationSummary keeps attachment contract metadata and file name
       name: 'rapport.pdf',
       transfer: 'remote',
       contentEncoding: 'mock-e2ee-envelope-v1',
+      envelopeKind: 'pulse_mock_media_envelope',
       originalMimeType: 'application/pdf',
       expectedPayloadSha256: 'hash-1',
+      encryption: {
+        mediaKeyId: 'media-key-1',
+        keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+        wrappedMediaKeyDigest: 'wrapped-digest-1',
+      },
     },
   });
 
@@ -19,8 +25,12 @@ test('deriveConversationSummary keeps attachment contract metadata and file name
     lastMessageType: 'attachment',
     lastAttachmentTransfer: 'remote',
     lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+    lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
     lastAttachmentOriginalMimeType: 'application/pdf',
     lastAttachmentExpectedPayloadSha256: 'hash-1',
+    lastAttachmentMediaKeyId: 'media-key-1',
+    lastAttachmentKeyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+    lastAttachmentWrappedMediaKeyDigest: 'wrapped-digest-1',
   });
 });
 
@@ -34,4 +44,46 @@ test('deriveConversationSummary decodes signal_v1 text payloads for previews', (
   assert.equal(summary.lastMessage, 'Hallo wereld');
   assert.equal(summary.lastMessageType, 'text');
   assert.equal(summary.lastAttachmentTransfer, null);
+  assert.equal(summary.lastAttachmentEnvelopeKind, null);
+});
+
+test('deriveConversationSummary falls back cleanly when no visible message remains', () => {
+  const summary = deriveConversationSummary(null, '');
+
+  assert.deepEqual(summary, {
+    lastMessage: '',
+    lastMessageType: null,
+    lastAttachmentTransfer: null,
+    lastAttachmentEncoding: null,
+    lastAttachmentEnvelopeKind: null,
+    lastAttachmentOriginalMimeType: null,
+    lastAttachmentExpectedPayloadSha256: null,
+    lastAttachmentMediaKeyId: null,
+    lastAttachmentKeyWrapAlg: null,
+    lastAttachmentWrappedMediaKeyDigest: null,
+  });
+});
+
+test('applyConversationSummaryFields projects a stable conversation summary shape', () => {
+  assert.deepEqual(
+    applyConversationSummaryFields(
+      { id: 'conv-1', updatedAt: '2026-01-01T10:00:00.000Z', custom: true },
+      { lastMessage: 'Hallo', lastMessageType: 'text' }
+    ),
+    {
+      id: 'conv-1',
+      updatedAt: '2026-01-01T10:00:00.000Z',
+      custom: true,
+      lastMessage: 'Hallo',
+      lastMessageType: 'text',
+      lastAttachmentTransfer: null,
+      lastAttachmentEncoding: null,
+      lastAttachmentEnvelopeKind: null,
+      lastAttachmentOriginalMimeType: null,
+      lastAttachmentExpectedPayloadSha256: null,
+      lastAttachmentMediaKeyId: null,
+      lastAttachmentKeyWrapAlg: null,
+      lastAttachmentWrappedMediaKeyDigest: null,
+    }
+  );
 });

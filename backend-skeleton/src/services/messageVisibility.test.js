@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {
   filterVisibleMessages,
   shouldHideMessageForUser,
-  toConversationPreview,
 } from './messageVisibility.js';
 
 test('shouldHideMessageForUser hides globally deleted messages', () => {
@@ -28,9 +27,4 @@ test('filterVisibleMessages keeps only messages visible to the user', () => {
     ),
     [{ id: 'a' }]
   );
-});
-
-test('toConversationPreview returns encrypted fallback for signal messages', () => {
-  assert.equal(toConversationPreview({ protocol: 'signal_v1' }), 'Versleuteld bericht');
-  assert.equal(toConversationPreview({ protocol: 'legacy_plaintext', text: 'Hallo' }), 'Hallo');
 });

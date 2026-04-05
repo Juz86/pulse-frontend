@@ -241,15 +241,25 @@ describe('e2ee message model helpers', () => {
         transfer: 'remote',
         originalMimeType: 'application/pdf',
         contentEncoding: 'mock-e2ee-envelope-v1',
+        envelopeKind: 'pulse_mock_media_envelope',
         expectedPayloadSha256: 'hash-1',
+        encryption: {
+          mediaKeyId: 'media-key-1',
+          keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+          wrappedMediaKeyDigest: 'wrapped-digest-1',
+        },
       },
     })).toEqual({
       lastMessage: 'Bijlage: rapport.pdf · versleuteld',
       lastMessageType: 'attachment',
       lastAttachmentTransfer: 'remote',
       lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+      lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
       lastAttachmentOriginalMimeType: 'application/pdf',
       lastAttachmentExpectedPayloadSha256: 'hash-1',
+      lastAttachmentMediaKeyId: 'media-key-1',
+      lastAttachmentKeyWrapAlg: 'pulse_mock_media_key_wrap_v1',
+      lastAttachmentWrappedMediaKeyDigest: 'wrapped-digest-1',
     });
   });
 
@@ -704,14 +714,20 @@ describe('e2ee attachment helpers', () => {
       lastMessageType: 'attachment',
       lastAttachmentTransfer: 'remote',
       lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+      lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
       lastAttachmentOriginalMimeType: 'application/pdf',
       lastAttachmentExpectedPayloadSha256: 'hash-1',
+      lastAttachmentWrappedMediaKeyDigest: 'wrapped-digest-1',
+      lastAttachmentMediaKeyId: 'media-key-1',
+      lastAttachmentKeyWrapAlg: 'pulse_mock_media_key_wrap_v1',
     })).toEqual({
       isAttachmentSummary: true,
       showRemoteAttachmentBadge: true,
       previewText: 'Bijlage: rapport.pdf · versleuteld',
       storageShortLabel: 'versleuteld',
       mimeLabel: 'application/pdf',
+      storageDetail: 'Envelope: pulse_mock_media_envelope · integriteitscheck actief',
+      keyContractDetail: 'Media key: media-key-1 · wrap: pulse_mock_media_key_wrap_v1 · digest actief',
     });
   });
 
@@ -725,8 +741,12 @@ describe('e2ee attachment helpers', () => {
       lastMessageType: null,
       lastAttachmentTransfer: null,
       lastAttachmentEncoding: null,
+      lastAttachmentEnvelopeKind: null,
       lastAttachmentOriginalMimeType: null,
       lastAttachmentExpectedPayloadSha256: null,
+      lastAttachmentMediaKeyId: null,
+      lastAttachmentKeyWrapAlg: null,
+      lastAttachmentWrappedMediaKeyDigest: null,
     });
   });
 
@@ -752,8 +772,12 @@ describe('e2ee attachment helpers', () => {
         lastMessageType: 'attachment',
         lastAttachmentTransfer: 'remote',
         lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+        lastAttachmentEnvelopeKind: null,
         lastAttachmentOriginalMimeType: 'application/pdf',
         lastAttachmentExpectedPayloadSha256: 'hash-1',
+        lastAttachmentMediaKeyId: null,
+        lastAttachmentKeyWrapAlg: null,
+        lastAttachmentWrappedMediaKeyDigest: null,
         lastCallDirection: null,
         lastCallSenderId: null,
         lastCallIsVideo: null,

@@ -87,7 +87,7 @@ export default function Homepage({ onParentClick }) {
             <ul className="hp-hero-features" aria-label="Belangrijkste voordelen">
               <li className="hp-hero-feature"><span aria-hidden="true"><Shield size={16} /></span> Versleuteld &amp; privé</li>
               <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Chatten &amp; (video)bellen</li>
-              <li className="hp-hero-feature"><span aria-hidden="true"><Wifi size={16} /></span> Wi-Fi &amp; data</li>
+              <li className="hp-hero-feature"><span aria-hidden="true"><Wifi size={16} /></span> Ouderlijk toezicht</li>
             </ul>
           </div>
 

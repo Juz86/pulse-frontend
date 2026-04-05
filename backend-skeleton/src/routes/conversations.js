@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
-import { deriveConversationSummary } from '../services/conversationSummaries.js';
+import { applyConversationSummaryFields, deriveConversationSummary } from '../services/conversationSummaries.js';
 
 function sortByUpdatedDesc(items) {
   return [...items].sort((a, b) => {
@@ -39,15 +39,7 @@ conversationsRouter.get('/:uid', requireAuth, asyncRoute(async (req, res) => {
 
       const latestMessage = latestMsgSnap.empty ? null : latestMsgSnap.docs[0].data();
       const summary = deriveConversationSummary(latestMessage, data.lastMessage || '');
-      return {
-        ...data,
-        lastMessage: summary.lastMessage,
-        lastMessageType: summary.lastMessageType,
-        lastAttachmentTransfer: summary.lastAttachmentTransfer,
-        lastAttachmentEncoding: summary.lastAttachmentEncoding,
-        lastAttachmentOriginalMimeType: summary.lastAttachmentOriginalMimeType,
-        lastAttachmentExpectedPayloadSha256: summary.lastAttachmentExpectedPayloadSha256,
-      };
+      return applyConversationSummaryFields(data, summary);
     })
   );
   return res.json(sortByUpdatedDesc(rows));

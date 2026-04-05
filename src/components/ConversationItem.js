@@ -92,6 +92,19 @@ function ConversationItemBase({
                       {attachmentSummary.mimeLabel}
                     </span>
                   )}
+                  {(attachmentSummary.storageDetail || attachmentSummary.keyContractDetail) && (
+                    <span
+                      style={{
+                        marginLeft: 6,
+                        fontSize: 10,
+                        color: 'var(--text3)',
+                        opacity: 0.82,
+                      }}
+                      title={[attachmentSummary.storageDetail, attachmentSummary.keyContractDetail].filter(Boolean).join(' · ')}
+                    >
+                      {attachmentSummary.keyContractDetail ? 'key-contract' : 'envelope'}
+                    </span>
+                  )}
                 </>
               )}
             </>
@@ -121,8 +134,12 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.conv.lastMessageType === next.conv.lastMessageType &&
   prev.conv.lastAttachmentTransfer === next.conv.lastAttachmentTransfer &&
   prev.conv.lastAttachmentEncoding === next.conv.lastAttachmentEncoding &&
+  prev.conv.lastAttachmentEnvelopeKind === next.conv.lastAttachmentEnvelopeKind &&
   prev.conv.lastAttachmentOriginalMimeType === next.conv.lastAttachmentOriginalMimeType &&
   prev.conv.lastAttachmentExpectedPayloadSha256 === next.conv.lastAttachmentExpectedPayloadSha256 &&
+  prev.conv.lastAttachmentMediaKeyId === next.conv.lastAttachmentMediaKeyId &&
+  prev.conv.lastAttachmentKeyWrapAlg === next.conv.lastAttachmentKeyWrapAlg &&
+  prev.conv.lastAttachmentWrappedMediaKeyDigest === next.conv.lastAttachmentWrappedMediaKeyDigest &&
   prev.conv.updatedAt   === next.conv.updatedAt    &&
   prev.conv.photoURL    === next.conv.photoURL     &&
   prev.isActive         === next.isActive          &&

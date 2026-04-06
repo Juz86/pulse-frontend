@@ -1,8 +1,9 @@
 import React from 'react';
 import MessageBubbleGroup from './MessageBubbleGroup';
+import { buildMessageBubbleCardRenderConfig } from './messageBubbleCardRendererHelpers';
 
 export default function MessageBubbleCardRenderer({ runtime }) {
-  const { renderConfig } = runtime;
+  const renderConfig = buildMessageBubbleCardRenderConfig(runtime);
   if (!renderConfig) return null;
 
   const CardComponent = renderConfig.component;

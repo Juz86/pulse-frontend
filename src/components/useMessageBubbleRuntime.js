@@ -1,6 +1,5 @@
 import useMessageBubbleInteractions from './useMessageBubbleInteractions';
 import useMessageBubbleCardPresentation from './useMessageBubbleCardPresentation';
-import { buildMessageBubbleCardRenderConfig } from './messageBubbleCardRendererHelpers';
 import {
   buildMessageBubbleHandlers,
   buildMessageBubbleMessageContext,
@@ -60,16 +59,9 @@ export default function useMessageBubbleRuntime({
     handleTouchMove,
     handleActionCardKeyDown,
   });
-  const renderConfig = buildMessageBubbleCardRenderConfig({
-    card,
-    message,
-    handlers,
-  });
-
   return {
     card,
     message,
     handlers,
-    renderConfig,
   };
 }

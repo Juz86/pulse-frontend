@@ -163,7 +163,7 @@ export default function OverPulsePagina({ onParentClick }) {
           <FadeRow className="op-privacy-row">
             <div className="hp-feature-text">
               <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Waarom Pulse bestaat</div>
-              <h3>Pulse is bedacht door een vader.</h3>
+              <h3>Pulse is bedacht door een vader</h3>
               <p>Een vader die zich zorgen maakte.</p>
               <p style={{ marginTop: 16 }}>
                 Over hoe kinderen vandaag opgroeien in een digitale wereld vol prikkels. Over apps die alles volgen, analyseren en opslaan. Over hoe weinig controle ouders eigenlijk hebben.

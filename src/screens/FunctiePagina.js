@@ -629,7 +629,6 @@ export default function FunctiePagina({ onParentClick }) {
         { icon: <Message size={15} />, label: '1-op-1 en groepsgesprekken' },
         { icon: <CheckDouble size={15} />, label: 'Bezorgd- en leesbevestiging' },
         { icon: <Clock size={15} />, label: 'Typ-indicator' },
-        { icon: <Wifi size={15} />, label: 'Offline berichten via Redis' },
       ],
     },
     {

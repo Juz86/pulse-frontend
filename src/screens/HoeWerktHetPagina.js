@@ -184,14 +184,14 @@ function ContactsOverviewMockup() {
         <div className="hw-contact-avatar">S</div>
         <div>
           <strong>Stephan</strong>
-          <span>@stephan</span>
+          <span>stephan@pulse.internal</span>
         </div>
       </div>
       <div className="hw-contact-card">
         <div className="hw-contact-avatar hw-contact-avatar--soft">K</div>
         <div>
           <strong>Kamilah</strong>
-          <span>@kamilah</span>
+          <span>kamilah@pulse.internal</span>
         </div>
       </div>
     </BrowserMockup>
@@ -214,13 +214,13 @@ function AddContactButtonMockup() {
       <div className="hw-choice-row">
         <span>E-mailadres</span>
         <span>Gebruikersnaam</span>
-        <span>Zoekresultaat</span>
+        <span>@pulse.internal</span>
       </div>
       <div className="hw-contact-card hw-contact-card--muted">
         <div className="hw-contact-avatar">N</div>
         <div>
-          <strong>Stephan</strong>
-          <span>@stephan</span>
+          <strong>Nick</strong>
+          <span>nick@pulse.internal</span>
         </div>
       </div>
     </BrowserMockup>
@@ -245,7 +245,7 @@ function SearchContactMockup() {
           <div className="hw-contact-avatar">N</div>
           <div>
             <strong>Nick</strong>
-            <span>@nick</span>
+            <span>nick@pulse.internal</span>
           </div>
         </div>
         <button type="button" className="hw-primary-btn hw-primary-btn--wide">Verzoek sturen</button>

@@ -2500,6 +2500,13 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   from { opacity: 0; transform: translateY(10px) scale(0.96); }
   to   { opacity: 1; transform: translateY(0)    scale(1); }
 }
+@keyframes hp-bubble-loop {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.97); }
+  5%   { opacity: 1; transform: translateY(0)   scale(1);    }
+  28%  { opacity: 1; transform: translateY(0)   scale(1);    }
+  35%  { opacity: 0; transform: translateY(6px) scale(0.98); }
+  100% { opacity: 0; transform: translateY(6px) scale(0.98); }
+}
 .hp-hero-chat {
   position: absolute;
   inset: 0;

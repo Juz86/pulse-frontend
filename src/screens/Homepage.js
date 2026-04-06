@@ -87,6 +87,14 @@ export default function Homepage({ onParentClick }) {
               <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Chatten &amp; (video)bellen</li>
               <li className="hp-hero-feature"><span aria-hidden="true"><Users size={16} /></span> Ouderlijk toezicht</li>
             </ul>
+            <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
+              <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
+                Start met Pulse
+              </button>
+              <a href="/hoe-werkt-het" className="hp-cta-btn" style={{ background: '#fff', border: '1.5px solid rgba(108,99,255,0.4)', color: '#6c63ff', textDecoration: 'none' }}>
+                Bekijk hoe het werkt
+              </a>
+            </div>
           </div>
 
           <div className="hp-hero-card" id="login" aria-label="Inloggen bij Pulse">

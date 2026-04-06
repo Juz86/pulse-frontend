@@ -2,6 +2,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Phone, Video, Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
 import AttachmentMessageCard from './AttachmentMessageCard';
+import SharedContactMessageCard from './SharedContactMessageCard';
 import {
   createAttachmentMessageActionRuntime,
   getInitialAttachmentActionState,
@@ -10,7 +11,7 @@ import {
   buildAttachmentMessageCardPresentation,
 } from '../lib/e2ee/attachmentPresentation';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
-import { getInitials, formatTime } from '../utils';
+import { formatTime } from '../utils';
 
 // ── Helpers (pure, buiten component voor stabiele referentie) ─────────────────
 
@@ -191,31 +192,15 @@ const MessageBubble = React.memo(function MessageBubble({
   if (msg.type === 'contact') {
     const sc = msg.sharedContact;
     if (!sc?.uid && !sc?.name) return null;
-    const canOpenSharedContact = !isOwn;
     return (
       <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
-        <div
-          className="msg-contact-card"
-          role={canOpenSharedContact ? 'button' : undefined}
-          tabIndex={canOpenSharedContact ? 0 : undefined}
-          aria-label={canOpenSharedContact ? `Open gedeeld contact ${sc?.name || 'Contactpersoon'}` : undefined}
-          style={{ cursor: canOpenSharedContact ? 'pointer' : 'default' }}
-          onClick={canOpenSharedContact ? () => onViewContact(sc) : undefined}
-          onKeyDown={canOpenSharedContact ? (event) => handleActionCardKeyDown(event, () => onViewContact(sc)) : undefined}
-        >
-          <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius: 12 }} aria-hidden="true">{getInitials(sc?.name || '')}</div>
-          <div className="u-flex-1 u-min-w-0">
-            <div className="u-fw-600 u-fs-14 u-ellipsis">{sc?.name || 'Contactpersoon'}</div>
-            {sc?.email && (
-              <div className="u-fs-12 u-ellipsis" style={{ color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)' }}>
-                {sc.email}
-              </div>
-            )}
-          </div>
-          <div className="u-flex-shrink" style={{ fontSize: '11px', color: isOwn ? 'rgba(255,255,255,.5)' : 'var(--text3)', alignSelf: 'flex-end' }}>
-            {formatTime(msg.createdAt)}
-          </div>
-        </div>
+        <SharedContactMessageCard
+          contact={sc}
+          isOwn={isOwn}
+          onViewContact={onViewContact}
+          onActionCardKeyDown={handleActionCardKeyDown}
+          createdAt={msg.createdAt}
+        />
       </div>
     );
   }

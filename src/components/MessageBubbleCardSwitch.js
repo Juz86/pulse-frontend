@@ -5,9 +5,10 @@ import MessageBubbleGroup from './MessageBubbleGroup';
 import SharedContactMessageCard from './SharedContactMessageCard';
 import StandardMessageBubble from './StandardMessageBubble';
 import SystemMessageNote from './SystemMessageNote';
-import { deriveCallMessagePresentation } from './callMessageHelpers';
+import { buildCallMessageCardPresentation } from './callMessageHelpers';
 import {
-  buildTextMessageCardPresentation,
+  buildSharedContactMessageCardPresentation,
+  buildStandardMessageBubblePresentation,
 } from './messageBubbleHelpers';
 import useAttachmentMessageRuntime from './useAttachmentMessageRuntime';
 
@@ -54,13 +55,10 @@ export default function MessageBubbleCardSwitch({
   }
 
   if (msg.type === 'contact') {
-    const sc = msg.sharedContact;
-    if (!sc?.uid && !sc?.name) return null;
-    const contactPresentation = {
-      contact: sc,
+    const contactPresentation = buildSharedContactMessageCardPresentation(msg, {
       isOwn,
-      createdAt: msg.createdAt,
-    };
+    });
+    if (!contactPresentation) return null;
 
     return (
       <MessageBubbleGroup isOwn={isOwn}>
@@ -74,11 +72,10 @@ export default function MessageBubbleCardSwitch({
   }
 
   if (msg.type === 'call') {
-    const callPresentation = {
-      ...deriveCallMessagePresentation(msg, isOwn),
+    const callPresentation = buildCallMessageCardPresentation(msg, {
       isOwn,
       isFocused,
-    };
+    });
 
     return (
       <CallMessageCard
@@ -90,23 +87,18 @@ export default function MessageBubbleCardSwitch({
     );
   }
 
-  const textCardPresentation = buildTextMessageCardPresentation(msg, {
+  const standardMessagePresentation = buildStandardMessageBubblePresentation(msg, {
     isOwn,
+    isFocused,
     isGroup,
     memberNames,
+    currentUid,
     chatSearch,
   });
 
   return (
     <StandardMessageBubble
-      msg={msg}
-      isOwn={isOwn}
-      isFocused={isFocused}
-      isGroup={isGroup}
-      currentUid={currentUid}
-      renderedContent={textCardPresentation.renderedContent}
-      status={textCardPresentation.status}
-      receiptSummaryLabel={textCardPresentation.receiptSummaryLabel}
+      presentation={standardMessagePresentation}
       onContextMenu={onContextMenu}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}

@@ -3,14 +3,7 @@ import MessageReactionBar from './MessageReactionBar';
 import TextMessageCard from './TextMessageCard';
 
 export default function StandardMessageBubble({
-  msg,
-  isOwn,
-  isFocused,
-  isGroup,
-  currentUid,
-  renderedContent,
-  status,
-  receiptSummaryLabel,
+  presentation,
   onContextMenu,
   onTouchStart,
   onTouchEnd,
@@ -19,6 +12,17 @@ export default function StandardMessageBubble({
   onReact,
   onShowContextMenu,
 }) {
+  const {
+    msg,
+    isOwn,
+    isFocused,
+    isGroup,
+    currentUid,
+    renderedContent,
+    status,
+    receiptSummaryLabel,
+  } = presentation;
+
   return (
     <div
       className={`msg-group ${isOwn ? 'out' : 'in'}`}

@@ -16,6 +16,7 @@ import {
   Login,
   Message,
   Phone,
+  PhoneIcon,
   School,
   Shield,
   User,
@@ -104,7 +105,7 @@ function FeatureStrip() {
       </div>
       <div className="op-strip-footer">
         <span><Shield size={16} />Versleuteld & privé</span>
-        <span><Users size={16} />Chatten & (video)bellen</span>
+        <span><PhoneIcon size={16} />Chatten & (video)bellen</span>
         <span><Users size={16} />Ouderlijk toezicht</span>
       </div>
     </div>

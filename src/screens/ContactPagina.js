@@ -4,7 +4,7 @@ import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
 import AuthModal from '../components/AuthModal';
 import ParentAuthModal from '../components/ParentAuthModal';
-import { Mail, Shield, Check, Send, Message, Phone, Video, Users, Login } from '../components/Icons';
+import { Mail, Shield, Check, Send, Message, Phone, Video, Users, Login, PhoneIcon } from '../components/Icons';
 
 function useFadeIn() {
   const ref = useRef(null);
@@ -23,9 +23,9 @@ function useFadeIn() {
 }
 
 const BADGES = [
-  { icon: <Shield size={14} />, label: 'Versleuteld' },
-  { icon: <Users size={14} />,  label: 'Toezicht' },
-  { icon: <span style={{ fontSize: 13 }}>🇳🇱</span>, label: '100% Nederlands' },
+  { icon: <Shield size={16} />,   label: 'Versleuteld & privé' },
+  { icon: <PhoneIcon size={16} />, label: 'Chatten & (video)bellen' },
+  { icon: <Users size={16} />,    label: 'Ouderlijk toezicht' },
 ];
 
 function BadgeStrip() {
@@ -40,11 +40,11 @@ function BadgeStrip() {
   return (
     <>
       {/* Desktop: naast elkaar */}
-      <div className="badge-strip--desktop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, paddingTop: 4 }}>
+      <div className="badge-strip--desktop" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-around', gap: 4, paddingTop: 4 }}>
         {BADGES.map(({ icon, label }) => (
-          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--accent)' }}>
+          <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 1, color: 'var(--accent)' }}>
             {icon}
-            <span style={{ fontSize: 13, color: 'var(--text3)' }}>{label}</span>
+            <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text3)', textAlign: 'center', lineHeight: 1.4 }}>{label}</span>
           </div>
         ))}
       </div>
@@ -58,11 +58,11 @@ function BadgeStrip() {
           {BADGES.map(({ icon, label }) => (
             <div key={label} style={{
               minWidth: '100%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
               color: 'var(--accent)',
             }}>
               {icon}
-              <span style={{ fontSize: 13, color: 'var(--text3)' }}>{label}</span>
+              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text3)' }}>{label}</span>
             </div>
           ))}
         </div>

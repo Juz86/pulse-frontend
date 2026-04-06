@@ -73,3 +73,39 @@ export function buildTextMessageCardPresentation(msg, {
     renderedContent,
   };
 }
+
+export function buildStandardMessageBubblePresentation(msg, {
+  isOwn = false,
+  isFocused = false,
+  isGroup = false,
+  memberNames = null,
+  currentUid = null,
+  chatSearch = '',
+} = {}) {
+  return {
+    ...buildTextMessageCardPresentation(msg, {
+      isOwn,
+      isGroup,
+      memberNames,
+      chatSearch,
+    }),
+    msg,
+    isOwn,
+    isFocused,
+    isGroup,
+    currentUid,
+  };
+}
+
+export function buildSharedContactMessageCardPresentation(msg, {
+  isOwn = false,
+} = {}) {
+  const contact = msg?.sharedContact;
+  if (!contact?.uid && !contact?.name) return null;
+
+  return {
+    contact,
+    isOwn,
+    createdAt: msg?.createdAt,
+  };
+}

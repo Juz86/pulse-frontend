@@ -28,3 +28,14 @@ export function deriveCallMessagePresentation(msg, isOwn) {
     callCardLabel,
   };
 }
+
+export function buildCallMessageCardPresentation(msg, {
+  isOwn = false,
+  isFocused = false,
+} = {}) {
+  return {
+    ...deriveCallMessagePresentation(msg, isOwn),
+    isOwn,
+    isFocused,
+  };
+}

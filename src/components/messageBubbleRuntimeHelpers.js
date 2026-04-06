@@ -57,3 +57,33 @@ export function buildMessageBubbleRuntimeState({
     handlers,
   };
 }
+
+export function buildMessageBubbleRuntime({
+  message,
+  card,
+  onReact,
+  onShowContextMenu,
+  onRetry,
+  onStartCall,
+  onViewContact,
+  interactions,
+}) {
+  const handlers = buildMessageBubbleHandlers({
+    onReact,
+    onShowContextMenu,
+    onRetry,
+    onStartCall,
+    onViewContact,
+    handleContextMenu: interactions.handleContextMenu,
+    handleTouchStart: interactions.handleTouchStart,
+    handleTouchEnd: interactions.handleTouchEnd,
+    handleTouchMove: interactions.handleTouchMove,
+    handleActionCardKeyDown: interactions.handleActionCardKeyDown,
+  });
+
+  return buildMessageBubbleRuntimeState({
+    card,
+    message,
+    handlers,
+  });
+}

@@ -1,9 +1,8 @@
 import useMessageBubbleInteractions from './useMessageBubbleInteractions';
 import useMessageBubbleCardPresentation from './useMessageBubbleCardPresentation';
 import {
-  buildMessageBubbleHandlers,
   buildMessageBubbleMessageContext,
-  buildMessageBubbleRuntimeState,
+  buildMessageBubbleRuntime,
 } from './messageBubbleRuntimeHelpers';
 
 export default function useMessageBubbleRuntime({
@@ -21,23 +20,7 @@ export default function useMessageBubbleRuntime({
   onStartCall,
   onViewContact,
 }) {
-  const {
-    handleTouchStart,
-    handleTouchEnd,
-    handleTouchMove,
-    handleContextMenu,
-    handleActionCardKeyDown,
-  } = useMessageBubbleInteractions(onShowContextMenu);
-  const card = useMessageBubbleCardPresentation({
-    msg,
-    isOwn,
-    isFocused,
-    isGroup,
-    memberNames,
-    currentUid,
-    user,
-    chatSearch,
-  });
+  const interactions = useMessageBubbleInteractions(onShowContextMenu);
   const message = buildMessageBubbleMessageContext({
     msg,
     isOwn,
@@ -48,22 +31,17 @@ export default function useMessageBubbleRuntime({
     user,
     chatSearch,
   });
-  const handlers = buildMessageBubbleHandlers({
+  const card = useMessageBubbleCardPresentation({
+    message,
+  });
+  return buildMessageBubbleRuntime({
+    message,
+    card,
     onReact,
     onShowContextMenu,
     onRetry,
     onStartCall,
     onViewContact,
-    handleContextMenu,
-    handleTouchStart,
-    handleTouchEnd,
-    handleTouchMove,
-    handleActionCardKeyDown,
-  });
-
-  return buildMessageBubbleRuntimeState({
-    card,
-    message,
-    handlers,
+    interactions,
   });
 }

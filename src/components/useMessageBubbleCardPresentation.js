@@ -95,15 +95,18 @@ function buildMessageBubbleCardPresentation({
 }
 
 export default function useMessageBubbleCardPresentation({
-  msg,
-  isOwn,
-  isFocused,
-  isGroup,
-  memberNames,
-  currentUid,
-  user,
-  chatSearch,
+  message,
 }) {
+  const {
+    msg,
+    isOwn,
+    isFocused,
+    isGroup,
+    memberNames,
+    currentUid,
+    user,
+    chatSearch,
+  } = message;
   const attachmentRuntime = useAttachmentMessageRuntime({
     messageAttachment: msg.type === 'attachment' ? msg.attachment : null,
     messageId: msg.id,

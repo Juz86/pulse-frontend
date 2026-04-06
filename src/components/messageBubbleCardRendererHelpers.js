@@ -1,5 +1,7 @@
+import React from 'react';
 import AttachmentMessageCard from './AttachmentMessageCard';
 import CallMessageCard from './CallMessageCard';
+import MessageBubbleGroup from './MessageBubbleGroup';
 import SharedContactMessageCard from './SharedContactMessageCard';
 import StandardMessageBubble from './StandardMessageBubble';
 import SystemMessageNote from './SystemMessageNote';
@@ -67,19 +69,43 @@ function buildTextMessageRenderConfig(card, handlers) {
   };
 }
 
+function buildDefaultMessageRenderConfig(runtime) {
+  return buildTextMessageRenderConfig(runtime.card, runtime.handlers);
+}
+
 const MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS = {
   system: ({ card }) => buildSystemMessageRenderConfig(card),
   attachment: ({ card }) => buildAttachmentMessageRenderConfig(card),
   contact: ({ card, handlers }) => buildContactMessageRenderConfig(card, handlers),
   call: ({ card, handlers }) => buildCallMessageRenderConfig(card, handlers),
+  text: buildDefaultMessageRenderConfig,
 };
 
 export function buildMessageBubbleCardRenderConfig(runtime) {
-  const builder = MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS[runtime.card.type];
+  return (
+    MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS[runtime.card.type]
+    || buildDefaultMessageRenderConfig
+  )(runtime);
+}
 
-  if (builder) {
-    return builder(runtime);
+function renderMessageBubbleCardContent(renderConfig) {
+  const CardComponent = renderConfig.component;
+  return <CardComponent {...renderConfig.props} />;
+}
+
+function renderWrappedMessageBubbleCard(runtime, content) {
+  return <MessageBubbleGroup isOwn={runtime.message.isOwn}>{content}</MessageBubbleGroup>;
+}
+
+export function renderMessageBubbleCard(runtime) {
+  const renderConfig = buildMessageBubbleCardRenderConfig(runtime);
+  if (!renderConfig) return null;
+
+  const content = renderMessageBubbleCardContent(renderConfig);
+
+  if (!renderConfig.wrapInGroup) {
+    return content;
   }
 
-  return buildTextMessageRenderConfig(runtime.card, runtime.handlers);
+  return renderWrappedMessageBubbleCard(runtime, content);
 }

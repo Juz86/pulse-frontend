@@ -108,7 +108,7 @@ function ContactInfoCard() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
             <img src="/logo192.png" alt="" aria-hidden="true" width={32} height={32} style={{ borderRadius: 8 }} />
-            <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>Pulse Messenger</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>Pulse</span>
           </div>
           <p style={{ color: 'var(--text2)', fontSize: 15, lineHeight: 1.7 }}>
             Veilige communicatie voor kinderen en gezinnen. Wij helpen je graag verder.

@@ -1,13 +1,7 @@
 // src/components/ChatInput.js
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback } from 'react';
 import { getSocket } from '../services/socket';
-import { MAX_E2EE_ATTACHMENT_BYTES, normalizeAttachmentPayload } from '../lib/e2ee/attachmentPayload';
-import {
-  getAttachmentRuntimePresentation,
-  getAttachmentStrategyComposerHintState,
-  getAttachmentRuntimeState,
-} from '../lib/e2ee/config';
-import { Send, PauseCircle, ImageIcon } from '../components/Icons';
+import { Send, PauseCircle } from '../components/Icons';
 
 const ChatInput = React.memo(function ChatInput({
   text,
@@ -30,26 +24,7 @@ const ChatInput = React.memo(function ChatInput({
   typingTimerRef,
   stopTyping,
   onSend,
-  onSendAttachment,
-  attachmentRuntime = null,
 }) {
-  const fileInputRef = useRef(null);
-  const attachmentStatusTimerRef = useRef(null);
-  const [attachmentStatus, setAttachmentStatus] = useState('');
-
-  const showAttachmentStatus = useCallback((message) => {
-    setAttachmentStatus(message);
-    if (attachmentStatusTimerRef.current) {
-      clearTimeout(attachmentStatusTimerRef.current);
-      attachmentStatusTimerRef.current = null;
-    }
-    if (message) {
-      attachmentStatusTimerRef.current = setTimeout(() => {
-        setAttachmentStatus('');
-      }, 2500);
-    }
-  }, []);
-
   const insertMention = useCallback((member) => {
     const cursorPos = textareaRef.current?.selectionStart ?? text.length;
     const textBefore = text.slice(0, cursorPos);
@@ -109,62 +84,10 @@ const ChatInput = React.memo(function ChatInput({
     typingTimerRef.current = setTimeout(stopTyping, 2000);
   }, [activeConv, user, contacts, setText, setMentionSuggestions, setMentionSelIdx, textareaRef, activeConvRef, typingTimerRef, stopTyping]);
 
-  const handleAttachmentChange = useCallback((event) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-
-    if (file.size > MAX_E2EE_ATTACHMENT_BYTES) {
-      window.alert('Bijlagen mogen lokaal maximaal 2 MB zijn in deze testfase.');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const normalizedAttachment = normalizeAttachmentPayload({
-        name: file.name,
-        url: typeof reader.result === 'string' ? reader.result : '',
-        mimeType: file.type || 'application/octet-stream',
-        size: file.size,
-        caption: text.trim(),
-      });
-      showAttachmentStatus('Bijlage voorbereiden…');
-      Promise.resolve(onSendAttachment?.(normalizedAttachment))
-        .then(() => {
-          showAttachmentStatus('Bijlage geupload');
-        })
-        .catch((error) => {
-          showAttachmentStatus(error?.message || 'Upload mislukt');
-        });
-      setText('');
-      setMentionSuggestions([]);
-      setPendingMentions([]);
-      if (textareaRef.current) textareaRef.current.style.height = 'auto';
-      stopTyping();
-    };
-    reader.readAsDataURL(file);
-  }, [onSendAttachment, setMentionSuggestions, setPendingMentions, setText, showAttachmentStatus, stopTyping, text, textareaRef]);
-
   const textareaDescribedBy = [
     editingMsg ? 'chat-compose-editing' : null,
     replyTo ? 'chat-compose-reply' : null,
   ].filter(Boolean).join(' ') || undefined;
-  const resolvedAttachmentRuntime = attachmentRuntime || getAttachmentRuntimeState({
-    preferredStrategy: undefined,
-  });
-  const attachmentRuntimePresentation = getAttachmentRuntimePresentation({
-    preferredStrategy: resolvedAttachmentRuntime.preferredStrategy,
-    capabilities: resolvedAttachmentRuntime.capabilities,
-    effectiveStrategyOverride: resolvedAttachmentRuntime.effectiveStrategy,
-    needsRemoteFetch: resolvedAttachmentRuntime.providerRuntime?.usesRemoteFetch,
-  });
-  const attachmentStrategyHintState = getAttachmentStrategyComposerHintState({
-    preferredStrategy: attachmentRuntimePresentation.preferredStrategy,
-    effectiveStrategyOverride: attachmentRuntimePresentation.effectiveStrategy,
-    capabilities: attachmentRuntimePresentation.capabilities,
-    paused: pausedFeatures.chat,
-    attachmentStatus,
-  });
 
   return (
     <div className="chat-input-area">
@@ -208,39 +131,6 @@ const ChatInput = React.memo(function ChatInput({
           ))}
         </div>
       )}
-      {attachmentStatus && !pausedFeatures.chat && (
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            marginBottom: 10,
-            padding: '8px 12px',
-            borderRadius: 12,
-            background: 'rgba(124,58,237,0.12)',
-            border: '1px solid rgba(124,58,237,0.25)',
-            color: 'var(--text2)',
-            fontSize: 13,
-          }}
-        >
-          {attachmentStatus}
-        </div>
-      )}
-      {attachmentStrategyHintState.visible && (
-        <div
-          role="note"
-          style={{
-            marginBottom: 10,
-            padding: '7px 11px',
-            borderRadius: 12,
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            color: 'var(--text3)',
-            fontSize: 12,
-          }}
-        >
-          {attachmentStrategyHintState.text}
-        </div>
-      )}
       {pausedFeatures.chat ? (
         <div className="chat-paused-notice" role="status" aria-live="polite">
           <PauseCircle size={16} style={{ flexShrink: 0 }} aria-hidden="true" />
@@ -251,22 +141,6 @@ const ChatInput = React.memo(function ChatInput({
         </div>
       ) : (
         <div className="input-row">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,.pdf,.txt,.doc,.docx"
-            style={{ display: 'none' }}
-            onChange={handleAttachmentChange}
-          />
-          <button
-            type="button"
-            className="send-btn"
-            aria-label="Bijlage toevoegen"
-            onClick={() => fileInputRef.current?.click()}
-            style={{ marginRight: 8 }}
-          >
-            <ImageIcon size={18} aria-hidden="true" />
-          </button>
           <textarea
             ref={textareaRef}
             className="chat-textarea"

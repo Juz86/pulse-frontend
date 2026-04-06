@@ -2,8 +2,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getSocket, BACKEND_URL } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
-import { normalizeAttachmentPayload, validateAttachmentPayload } from '../lib/e2ee/attachmentPayload';
-import { prepareAttachmentForSend } from '../lib/e2ee/attachmentUploadAdapter';
 import {
   buildForwardServicePayload,
   buildRetryServicePayload,
@@ -17,8 +15,6 @@ import {
   normalizeConversationAttachmentSummary,
 } from '../lib/e2ee/conversationSummaries';
 import {
-  getAttachmentRuntimeState,
-  getAttachmentSendRuntimeConfig,
   isE2EEServiceTransportEnabled,
 } from '../lib/e2ee/config';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
@@ -46,7 +42,6 @@ export default function useConversations({
   showErrToast, setConfirmDialog,
   msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
   serviceTransportReady = false,
-  attachmentRuntime = null,
 }) {
   const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
@@ -64,16 +59,6 @@ export default function useConversations({
   const [loadingMore,    setLoadingMore]    = useState(false);
   const [msgOffset,      setMsgOffset]      = useState(0);
   const [currentDeviceId, setCurrentDeviceId] = useState(null);
-  const resolvedAttachmentRuntime = attachmentRuntime || getAttachmentRuntimeState({
-    preferredStrategy: undefined,
-  });
-  const attachmentSendRuntime = getAttachmentSendRuntimeConfig({
-    preferredStrategy: resolvedAttachmentRuntime.preferredStrategy,
-    capabilities: resolvedAttachmentRuntime.capabilities,
-    effectiveStrategyOverride: resolvedAttachmentRuntime.effectiveStrategy,
-    attachmentTransport: resolvedAttachmentRuntime.providerRuntime?.storageDescriptor?.transportMode || 'inline',
-  });
-
   // Sync refs owned by ChatScreen
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv, activeConvRef]);
   useEffect(() => { conversationsRef.current = conversations; }, [conversations, conversationsRef]);
@@ -501,95 +486,6 @@ export default function useConversations({
     });
   }
 
-  async function sendAttachmentToConversation(conv, attachment) {
-    const socket = getSocket();
-    if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !conv || !attachment) {
-      throw new Error('Geen verbinding voor bijlage.');
-    }
-
-    const prevalidatedAttachment = normalizeAttachmentPayload(attachment);
-    const attachmentError = validateAttachmentPayload(prevalidatedAttachment);
-    if (attachmentError) {
-      showErrToast(attachmentError);
-      throw new Error(attachmentError);
-    }
-
-    let normalizedAttachment = prevalidatedAttachment;
-    try {
-      normalizedAttachment = await prepareAttachmentForSend({
-        attachment: prevalidatedAttachment,
-        conversationId: conv.id,
-        user,
-        userId: user.uid,
-        transportMode: attachmentSendRuntime.transportMode,
-        attachmentStrategy: attachmentSendRuntime.effectiveStrategy,
-      });
-    } catch (error) {
-      showErrToast(error.message || 'Bijlage voorbereiden mislukt');
-      throw error;
-    }
-    const tempId = `temp-${Date.now()}`;
-    const optimisticMsg = {
-      ...buildPendingMessage({
-        text: normalizedAttachment.caption || normalizedAttachment.name,
-        conversationId: conv.id,
-        userId: user.uid,
-        type: 'attachment',
-        attachment: normalizedAttachment,
-      }),
-      id: tempId,
-      convId: conv.id,
-      senderName: user.displayName || user.email,
-      _key: tempId,
-      _retryCount: 0,
-    };
-    const isActiveConversation = activeConvRef.current?.id === conv.id;
-
-    if (isActiveConversation) {
-      pendingTempIds.current.add(optimisticMsg.id);
-      setMessages(prev => [...prev, optimisticMsg]);
-      setTimeout(() => {
-        if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight;
-      }, 50);
-    }
-
-    setConversations(prev => applyConversationSummaryToList(prev, conv.id, optimisticMsg, optimisticMsg.createdAt));
-
-    if (shouldUseServiceTransport(conv)) {
-      const recipientUserIds = getConversationRecipients(conv);
-      return sendViaService({
-        conv,
-        plaintext: normalizedAttachment.caption || normalizedAttachment.name,
-        recipientUserIds,
-        replyToMessageId: null,
-        messageType: 'attachment',
-        attachment: normalizedAttachment,
-      }).then((savedMsg) => {
-        if (!isActiveConversation) return;
-        pendingTempIds.current.delete(optimisticMsg.id);
-        patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
-      }).catch(() => {
-        if (!isActiveConversation) return;
-        patchMessageAsFailed(optimisticMsg.id);
-        throw new Error('Bijlage versturen mislukt');
-      });
-    }
-
-    socket.emit('message:send', {
-      convId: conv.id,
-      message: {
-        convId: conv.id,
-        senderId: user.uid,
-        senderName: user.displayName || user.email,
-        type: 'attachment',
-        text: normalizedAttachment.caption || normalizedAttachment.name,
-        attachment: normalizedAttachment,
-        createdAt: optimisticMsg.createdAt,
-      },
-    });
-    return normalizedAttachment;
-  }
-
   function retryMessage(failedMsg) {
     const socket = getSocket();
     if ((!socket?.connected && !shouldUseServiceTransport(activeConv)) || !activeConv) return;
@@ -781,7 +677,7 @@ export default function useConversations({
     currentDeviceId,
     loadConversations, openConversation, deleteConversation, loadMoreMessages,
     sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
-    sendContactCardToConversation, sendAttachmentToConversation,
+    sendContactCardToConversation,
     forwardToConv, deleteMessage,
     toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
   };

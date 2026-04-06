@@ -100,6 +100,57 @@ function AttachmentBodyContent({ bodyPresentation }) {
   );
 }
 
+function AttachmentMessageCard({
+  attachmentBodyLayoutPresentation,
+  attachmentBodyPresentation,
+  attachmentCardInteractionProps,
+  attachmentCardPresentation,
+  attachmentVariantPresentation,
+  attachmentTimestampStyle,
+  createdAt,
+}) {
+  return (
+    <div className="msg-contact-card"
+      role={attachmentCardPresentation.role}
+      tabIndex={attachmentCardPresentation.tabIndex}
+      aria-label={attachmentCardPresentation.ariaLabel}
+      style={attachmentCardInteractionProps.style}
+      onClick={attachmentCardInteractionProps.onClick}
+      onKeyDown={attachmentCardInteractionProps.onKeyDown}
+    >
+      {attachmentVariantPresentation.showsImagePreview ? (
+        <div className={attachmentBodyLayoutPresentation.wrapperClassName}>
+          <img
+            src={attachmentBodyLayoutPresentation.preview.src}
+            alt={attachmentBodyLayoutPresentation.preview.alt}
+            style={attachmentBodyLayoutPresentation.preview.style}
+            loading="lazy"
+          />
+          <AttachmentBodyContent bodyPresentation={attachmentBodyPresentation} />
+        </div>
+      ) : (
+        <>
+          {attachmentBodyLayoutPresentation.fileBadge && (
+            <div
+              className="avatar-circle sm u-flex-shrink"
+              style={attachmentBodyLayoutPresentation.fileBadge.style}
+              aria-hidden="true"
+            >
+              {attachmentBodyLayoutPresentation.fileBadge.label}
+            </div>
+          )}
+          <div className={attachmentBodyLayoutPresentation.wrapperClassName}>
+            <AttachmentBodyContent bodyPresentation={attachmentBodyPresentation} />
+          </div>
+        </>
+      )}
+      <div className="u-flex-shrink" style={attachmentTimestampStyle}>
+        {formatTime(createdAt)}
+      </div>
+    </div>
+  );
+}
+
 // ── MessageBubble ─────────────────────────────────────────────────────────────
 
 const MessageBubble = React.memo(function MessageBubble({
@@ -262,45 +313,15 @@ const MessageBubble = React.memo(function MessageBubble({
 
     return (
       <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
-        <div
-          className="msg-contact-card"
-          role={attachmentCardPresentation.role}
-          tabIndex={attachmentCardPresentation.tabIndex}
-          aria-label={attachmentCardPresentation.ariaLabel}
-          style={attachmentCardInteractionProps.style}
-          onClick={attachmentCardInteractionProps.onClick}
-          onKeyDown={attachmentCardInteractionProps.onKeyDown}
-        >
-          {attachmentVariantPresentation.showsImagePreview ? (
-            <div className={attachmentBodyLayoutPresentation.wrapperClassName}>
-              <img
-                src={attachmentBodyLayoutPresentation.preview.src}
-                alt={attachmentBodyLayoutPresentation.preview.alt}
-                style={attachmentBodyLayoutPresentation.preview.style}
-                loading="lazy"
-              />
-              <AttachmentBodyContent bodyPresentation={attachmentBodyPresentation} />
-            </div>
-          ) : (
-            <>
-              {attachmentBodyLayoutPresentation.fileBadge && (
-                <div
-                  className="avatar-circle sm u-flex-shrink"
-                  style={attachmentBodyLayoutPresentation.fileBadge.style}
-                  aria-hidden="true"
-                >
-                  {attachmentBodyLayoutPresentation.fileBadge.label}
-                </div>
-              )}
-	              <div className={attachmentBodyLayoutPresentation.wrapperClassName}>
-	                <AttachmentBodyContent bodyPresentation={attachmentBodyPresentation} />
-              </div>
-            </>
-          )}
-          <div className="u-flex-shrink" style={getAttachmentTimestampStyle(isOwn)}>
-            {formatTime(msg.createdAt)}
-          </div>
-        </div>
+        <AttachmentMessageCard
+          attachmentBodyLayoutPresentation={attachmentBodyLayoutPresentation}
+          attachmentBodyPresentation={attachmentBodyPresentation}
+          attachmentCardInteractionProps={attachmentCardInteractionProps}
+          attachmentCardPresentation={attachmentCardPresentation}
+          attachmentVariantPresentation={attachmentVariantPresentation}
+          attachmentTimestampStyle={getAttachmentTimestampStyle(isOwn)}
+          createdAt={msg.createdAt}
+        />
       </div>
     );
   }

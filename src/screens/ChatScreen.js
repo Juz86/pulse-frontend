@@ -18,7 +18,7 @@ import { copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false, attachmentRuntime = null }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
   const [unreadCounts,   setUnreadCounts]   = useState({});
@@ -130,7 +130,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore,
     loadConversations, openConversation, deleteConversation, loadMoreMessages,
     sendMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
-    sendContactCardToConversation, sendAttachmentToConversation,
+    sendContactCardToConversation,
     forwardToConv, deleteMessage,
     toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
   } = useConversations({
@@ -144,7 +144,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     showErrToast, setConfirmDialog,
     msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
     serviceTransportReady,
-    attachmentStrategyRuntime: attachmentRuntime,
   });
 
   const {
@@ -282,10 +281,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     });
     setSharingContact(null);
   }
-  function sendAttachment(attachment) {
-    if (!activeConv) return Promise.resolve();
-    return sendAttachmentToConversation(activeConv, attachment);
-  }
   function getConvName(conv) {
     if (conv.isGroup) return conv.groupName || 'Groepsgesprek';
     const otherUid = conv.members?.find(m => m !== user.uid);
@@ -378,8 +373,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               chatSearchIdx={chatSearchIdx} setChatSearchIdx={setChatSearchIdx}
               messages={messages} chatSearchRef={chatSearchRef}
               serviceTransportReady={serviceTransportReady}
-              showFutureMediaBanner={Boolean(activeConv)}
-              attachmentRuntime={attachmentRuntime}
             />
             {!isOnline && (
               <div className="offline-banner" role="status" aria-live="polite">
@@ -445,8 +438,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   user={user} contacts={contacts}
                   textareaRef={textareaRef} activeConvRef={activeConvRef}
                   typingTimerRef={typingTimer} stopTyping={stopTyping} onSend={sendMessage}
-                  onSendAttachment={sendAttachment}
-                  attachmentRuntime={attachmentRuntime}
                 />
               );
             })()}

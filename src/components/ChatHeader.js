@@ -2,11 +2,7 @@
 import React, { useMemo } from 'react';
 import { Phone, Video, Users } from '../components/Icons';
 import {
-  E2EE_ATTACHMENT_STRATEGY,
-  getFutureAttachmentStrategyBannerState,
   getServiceTransportFallbackBannerState,
-  getAttachmentRuntimePresentation,
-  getAttachmentRuntimeState,
   E2EE_TRANSPORT,
 } from '../lib/e2ee/config';
 import UserAvatar from '../components/UserAvatar';
@@ -37,8 +33,6 @@ const ChatHeader = React.memo(function ChatHeader({
   messages,
   chatSearchRef,
   serviceTransportReady,
-  showFutureMediaBanner = false,
-  attachmentRuntime = null,
 }) {
   const otherUid  = getOtherUid(activeConv);
   const isOnline  = otherUid && onlineUsers.has(otherUid);
@@ -60,21 +54,6 @@ const ChatHeader = React.memo(function ChatHeader({
 
   const searchTotal   = searchMatches.length;
   const searchCurrent = searchTotal > 0 ? chatSearchIdx % searchTotal : 0;
-  const resolvedAttachmentRuntime = attachmentRuntime || getAttachmentRuntimeState({
-    preferredStrategy: undefined,
-  });
-  const attachmentRuntimePresentation = getAttachmentRuntimePresentation({
-    preferredStrategy: resolvedAttachmentRuntime.preferredStrategy,
-    capabilities: resolvedAttachmentRuntime.capabilities,
-    effectiveStrategyOverride: resolvedAttachmentRuntime.effectiveStrategy,
-    needsRemoteFetch: resolvedAttachmentRuntime.providerRuntime?.usesRemoteFetch,
-  });
-  const futureAttachmentBannerState = getFutureAttachmentStrategyBannerState({
-    preferredStrategy: E2EE_ATTACHMENT_STRATEGY,
-    capabilities: attachmentRuntimePresentation.capabilities,
-    effectiveStrategyOverride: attachmentRuntimePresentation.effectiveStrategy,
-    showFutureMediaBanner,
-  });
   const serviceFallbackBannerState = getServiceTransportFallbackBannerState({
     transport: E2EE_TRANSPORT,
     serviceTransportReady,
@@ -191,27 +170,6 @@ const ChatHeader = React.memo(function ChatHeader({
           }}
         >
           {serviceFallbackBannerState.text}
-        </div>
-      )}
-
-      {futureAttachmentBannerState.visible && (
-        <div
-          className="chat-future-media-banner"
-          role="status"
-          aria-live="polite"
-          style={{
-            margin: '0 12px 10px',
-            padding: '8px 12px',
-            borderRadius: 12,
-            background: futureAttachmentBannerState.tone === 'fallback' ? 'rgba(245, 158, 11, 0.14)' : 'rgba(59, 130, 246, 0.10)',
-            border: futureAttachmentBannerState.tone === 'fallback'
-              ? '1px solid rgba(245, 158, 11, 0.28)'
-              : '1px solid rgba(59, 130, 246, 0.24)',
-            color: 'var(--text2)',
-            fontSize: 12,
-          }}
-        >
-          {futureAttachmentBannerState.text}
         </div>
       )}
 

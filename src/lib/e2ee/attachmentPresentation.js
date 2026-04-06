@@ -354,7 +354,7 @@ export function getAttachmentBodyPresentation(
   actionError = '',
   {
     isOwn = false,
-    actions = null,
+    actionsPresentation = null,
   } = {}
 ) {
   return {
@@ -375,7 +375,7 @@ export function getAttachmentBodyPresentation(
     })),
     errorText: actionError || '',
     errorStyle: actionError ? getAttachmentErrorStyle(isOwn) : null,
-    actions,
+    actionsPresentation,
   };
 }
 
@@ -456,6 +456,60 @@ export function buildAttachmentRenderState(
       interactionState.actions,
       { busy }
     ),
+  };
+}
+
+export function buildAttachmentMessageCardPresentation(
+  messageAttachment = {},
+  resolvedAttachment = null,
+  resolvedAttachmentAccess = null,
+  {
+    busy = false,
+    isOwn = false,
+    actionError = '',
+    onOpen = null,
+    onAction = null,
+  } = {}
+) {
+  const renderState = buildAttachmentRenderState(
+    messageAttachment,
+    resolvedAttachment,
+    resolvedAttachmentAccess,
+    { busy }
+  );
+  const detailLines = getAttachmentDetailLines(
+    renderState.contract,
+    renderState.verification,
+    renderState.actions
+  );
+  const actionsPresentation = getAttachmentActionsPresentation(
+    renderState.buttons,
+    { isOwn, onAction }
+  );
+  const actions = renderState.access.canOpen ? (
+    actionsPresentation.buttons
+  ) : null;
+
+  return {
+    ...renderState,
+    detailLines,
+    actionsPresentation,
+    cardInteraction: getAttachmentCardInteractionProps(renderState.card, onOpen),
+    body: getAttachmentBodyPresentation(
+      renderState.content,
+      detailLines,
+      actionError,
+      { isOwn, actionsPresentation: actions }
+    ),
+    bodyLayout: getAttachmentBodyLayoutPresentation(
+      renderState.variant,
+      renderState.content,
+      {
+        previewUrl: renderState.previewUrl,
+        fileBadgePresentation: renderState.fileBadge,
+      }
+    ),
+    timestampStyle: getAttachmentTimestampStyle(isOwn),
   };
 }
 

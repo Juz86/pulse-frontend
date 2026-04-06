@@ -75,6 +75,7 @@ import {
   verifyMockAttachmentEnvelope,
 } from './attachmentCrypto';
 import {
+  buildAttachmentMessageCardPresentation,
   buildAttachmentRenderState,
   buildAttachmentInteractionState,
   getAttachmentActionPresentation,
@@ -123,6 +124,7 @@ import {
   buildAttachmentAccessVerification,
   buildAttachmentActionErrorState,
   buildAttachmentActionSuccessState,
+  createAttachmentMessageActionRuntime,
   createAttachmentActionRunner,
   createAttachmentActionCallbacks,
   createAttachmentAccessProvider,
@@ -1913,7 +1915,7 @@ describe('e2ee attachment helpers', () => {
         { tone: 'detail', text: 'Integriteit bevestigd via SHA-256 metadata' },
       ],
       'Download mislukt',
-      { isOwn: true, actions: 'actions-node' }
+      { isOwn: true, actionsPresentation: { buttons: [{ key: 'open' }] } }
     );
 
     expect(bodyPresentation.title).toBe('foto.png');
@@ -1948,7 +1950,9 @@ describe('e2ee attachment helpers', () => {
       marginTop: 8,
       color: 'rgba(255,215,215,.92)',
     });
-    expect(bodyPresentation.actions).toBe('actions-node');
+    expect(bodyPresentation.actionsPresentation).toEqual({
+      buttons: [{ key: 'open' }],
+    });
   });
 
   test('getAttachmentBodyLayoutPresentation centralizes image and file wrapper layout', () => {
@@ -2084,6 +2088,46 @@ describe('e2ee attachment helpers', () => {
       fileBadge: {
         label: 'F',
       },
+    });
+  });
+
+  test('buildAttachmentMessageCardPresentation centralizes the full attachment message card state', () => {
+    const presentation = buildAttachmentMessageCardPresentation(
+      {
+        name: 'foto.png',
+        downloadUrl: 'https://cdn.example.com/foto.png',
+        thumbnailUrl: 'https://cdn.example.com/thumb.png',
+        transfer: 'remote',
+        mimeType: 'application/pulse-e2ee-envelope+json',
+        originalMimeType: 'image/png',
+        contentEncoding: 'mock-e2ee-envelope-v1',
+      },
+      null,
+      null,
+      {
+        busy: false,
+        isOwn: true,
+        actionError: '',
+        onOpen: jest.fn(),
+        onAction: jest.fn(),
+      }
+    );
+
+    expect(presentation.variant).toMatchObject({
+      layout: 'image',
+      showsImagePreview: true,
+    });
+    expect(presentation.cardInteraction.style).toEqual({ cursor: 'pointer' });
+    expect(presentation.body.title).toBe('foto.png');
+    expect(presentation.bodyLayout.preview).toMatchObject({
+      src: 'https://cdn.example.com/thumb.png',
+      alt: 'foto.png',
+    });
+    expect(presentation.actionsPresentation.buttons).toHaveLength(2);
+    expect(presentation.timestampStyle).toEqual({
+      fontSize: '11px',
+      color: 'rgba(255,255,255,.5)',
+      alignSelf: 'flex-end',
     });
   });
 
@@ -3132,6 +3176,47 @@ describe('e2ee attachment helpers', () => {
 
     expect(setAttachmentBusy).toHaveBeenCalledWith(true);
     expect(setResolvedAttachment).toHaveBeenCalledWith({ name: 'foto.png' });
+    expect(setAttachmentActionError).toHaveBeenCalledWith('');
+  });
+
+  test('createAttachmentMessageActionRuntime centralizes runner setup for message attachments', async () => {
+    const setAttachmentBusy = jest.fn();
+    const setResolvedAttachment = jest.fn();
+    const setResolvedAttachmentAccess = jest.fn();
+    const setAttachmentActionError = jest.fn();
+
+    const runtime = createAttachmentMessageActionRuntime(
+      {
+        name: 'hello.txt',
+        downloadUrl: 'https://cdn.example.com/hello.txt',
+        transfer: 'remote',
+      },
+      null,
+      null,
+      {
+        setAttachmentBusy,
+        setResolvedAttachment,
+        setResolvedAttachmentAccess,
+        setAttachmentActionError,
+        resolveAttachment: async (attachment) => ({
+          ...attachment,
+          expectedPayloadSha256: 'mock-sha256-binary',
+        }),
+        opener: jest.fn(),
+      }
+    );
+
+    expect(runtime.activeAttachment).toMatchObject({
+      name: 'hello.txt',
+    });
+    expect(typeof runtime.runAttachmentAction).toBe('function');
+
+    const result = await runtime.runAttachmentAction('open');
+
+    expect(result.succeeded).toBe(true);
+    expect(setAttachmentBusy).not.toHaveBeenCalled();
+    expect(setResolvedAttachment).toHaveBeenCalled();
+    expect(setResolvedAttachmentAccess).toHaveBeenCalled();
     expect(setAttachmentActionError).toHaveBeenCalledWith('');
   });
 

@@ -2,18 +2,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Phone, Video, Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
 import {
-  createAttachmentActionRunner,
-  createAttachmentActionCallbacks,
+  createAttachmentMessageActionRuntime,
   getInitialAttachmentActionState,
 } from '../lib/e2ee/attachmentAccessAdapter';
 import {
-  buildAttachmentRenderState,
-  getAttachmentDetailLines,
-  getAttachmentCardInteractionProps,
-  getAttachmentTimestampStyle,
-  getAttachmentActionsPresentation,
-  getAttachmentBodyPresentation,
-  getAttachmentBodyLayoutPresentation,
+  buildAttachmentMessageCardPresentation,
 } from '../lib/e2ee/attachmentPresentation';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { getInitials, formatTime } from '../utils';
@@ -71,6 +64,27 @@ function highlightText(text, query) {
 
 const QUICK_EMOJI = ['❤️', '👍', '😂', '😮', '😢', '👎'];
 
+function AttachmentActionsRow({ actionsPresentation }) {
+  if (!actionsPresentation?.buttons?.length) return null;
+
+  return (
+    <div style={actionsPresentation.rowStyle}>
+      {actionsPresentation.buttons.map((button) => (
+        <button
+          key={button.key}
+          type="button"
+          className="icon-btn"
+          disabled={button.disabled}
+          onClick={button.props.onClick}
+          style={button.style}
+        >
+          {button.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function AttachmentBodyContent({ bodyPresentation }) {
   return (
     <>
@@ -95,56 +109,57 @@ function AttachmentBodyContent({ bodyPresentation }) {
           {bodyPresentation.errorText}
         </div>
       )}
-      {bodyPresentation.actions}
+      <AttachmentActionsRow actionsPresentation={bodyPresentation.actionsPresentation} />
     </>
   );
 }
 
-function AttachmentMessageCard({
-  attachmentBodyLayoutPresentation,
-  attachmentBodyPresentation,
-  attachmentCardInteractionProps,
-  attachmentCardPresentation,
-  attachmentVariantPresentation,
-  attachmentTimestampStyle,
-  createdAt,
-}) {
+function AttachmentMessageCard({ presentation, createdAt }) {
+  const {
+    bodyLayout,
+    body,
+    cardInteraction,
+    card,
+    variant,
+    timestampStyle,
+  } = presentation;
+
   return (
     <div className="msg-contact-card"
-      role={attachmentCardPresentation.role}
-      tabIndex={attachmentCardPresentation.tabIndex}
-      aria-label={attachmentCardPresentation.ariaLabel}
-      style={attachmentCardInteractionProps.style}
-      onClick={attachmentCardInteractionProps.onClick}
-      onKeyDown={attachmentCardInteractionProps.onKeyDown}
+      role={card.role}
+      tabIndex={card.tabIndex}
+      aria-label={card.ariaLabel}
+      style={cardInteraction.style}
+      onClick={cardInteraction.onClick}
+      onKeyDown={cardInteraction.onKeyDown}
     >
-      {attachmentVariantPresentation.showsImagePreview ? (
-        <div className={attachmentBodyLayoutPresentation.wrapperClassName}>
+      {variant.showsImagePreview ? (
+        <div className={bodyLayout.wrapperClassName}>
           <img
-            src={attachmentBodyLayoutPresentation.preview.src}
-            alt={attachmentBodyLayoutPresentation.preview.alt}
-            style={attachmentBodyLayoutPresentation.preview.style}
+            src={bodyLayout.preview.src}
+            alt={bodyLayout.preview.alt}
+            style={bodyLayout.preview.style}
             loading="lazy"
           />
-          <AttachmentBodyContent bodyPresentation={attachmentBodyPresentation} />
+          <AttachmentBodyContent bodyPresentation={body} />
         </div>
       ) : (
         <>
-          {attachmentBodyLayoutPresentation.fileBadge && (
+          {bodyLayout.fileBadge && (
             <div
               className="avatar-circle sm u-flex-shrink"
-              style={attachmentBodyLayoutPresentation.fileBadge.style}
+              style={bodyLayout.fileBadge.style}
               aria-hidden="true"
             >
-              {attachmentBodyLayoutPresentation.fileBadge.label}
+              {bodyLayout.fileBadge.label}
             </div>
           )}
-          <div className={attachmentBodyLayoutPresentation.wrapperClassName}>
-            <AttachmentBodyContent bodyPresentation={attachmentBodyPresentation} />
+          <div className={bodyLayout.wrapperClassName}>
+            <AttachmentBodyContent bodyPresentation={body} />
           </div>
         </>
       )}
-      <div className="u-flex-shrink" style={attachmentTimestampStyle}>
+      <div className="u-flex-shrink" style={timestampStyle}>
         {formatTime(createdAt)}
       </div>
     </div>
@@ -239,87 +254,34 @@ const MessageBubble = React.memo(function MessageBubble({
   }
 
   if (msg.type === 'attachment') {
-    const attachmentRenderState = buildAttachmentRenderState(
+    const { runAttachmentAction } = createAttachmentMessageActionRuntime(
+      msg.attachment,
+      resolvedAttachment,
+      user,
+      {
+      setAttachmentBusy,
+      setResolvedAttachment,
+        setResolvedAttachmentAccess,
+      setAttachmentActionError,
+      }
+    );
+    const attachmentCardPresentation = buildAttachmentMessageCardPresentation(
       msg.attachment,
       resolvedAttachment,
       resolvedAttachmentAccess,
-      { busy: attachmentBusy }
-    );
-    const attachment = attachmentRenderState.attachment;
-    const attachmentAccess = attachmentRenderState.access;
-    const attachmentPreviewUrl = attachmentRenderState.previewUrl;
-    const attachmentVariantPresentation = attachmentRenderState.variant;
-    const attachmentPresentation = attachmentRenderState.contract;
-    const attachmentAccessPresentation = attachmentRenderState.verification;
-    const attachmentActionPresentation = attachmentRenderState.actions;
-    const attachmentContentPresentation = attachmentRenderState.content;
-    const attachmentFileBadgePresentation = attachmentRenderState.fileBadge;
-    const attachmentCardPresentation = attachmentRenderState.card;
-    const attachmentButtonsPresentation = attachmentRenderState.buttons;
-    const attachmentDetailLines = getAttachmentDetailLines(
-      attachmentPresentation,
-      attachmentAccessPresentation,
-      attachmentActionPresentation
-    );
-    const attachmentActionCallbacks = createAttachmentActionCallbacks({
-      setAttachmentBusy,
-      setResolvedAttachment,
-      setAttachmentActionError,
-    });
-    const runAttachmentAction = createAttachmentActionRunner(attachment, user, {
-      ...attachmentActionCallbacks,
-      setResolvedAttachment,
-      setResolvedAttachmentAccess,
-      setAttachmentActionError,
-    });
-    const attachmentCardInteractionProps = getAttachmentCardInteractionProps(
-      attachmentCardPresentation,
-      () => runAttachmentAction('open')
-    );
-    const attachmentActionsPresentation = getAttachmentActionsPresentation(
-      attachmentButtonsPresentation,
-      { isOwn, onAction: runAttachmentAction }
-    );
-    const attachmentActions = attachmentAccess.canOpen ? (
-      <div style={attachmentActionsPresentation.rowStyle}>
-        {attachmentActionsPresentation.buttons.map((button) => (
-          <button
-            key={button.key}
-            type="button"
-            className="icon-btn"
-            disabled={button.disabled}
-            onClick={button.props.onClick}
-            style={button.style}
-          >
-            {button.label}
-          </button>
-        ))}
-      </div>
-    ) : null;
-    const attachmentBodyPresentation = getAttachmentBodyPresentation(
-      attachmentContentPresentation,
-      attachmentDetailLines,
-      attachmentActionError,
-      { isOwn, actions: attachmentActions }
-    );
-    const attachmentBodyLayoutPresentation = getAttachmentBodyLayoutPresentation(
-      attachmentVariantPresentation,
-      attachmentContentPresentation,
       {
-        previewUrl: attachmentPreviewUrl,
-        fileBadgePresentation: attachmentFileBadgePresentation,
+        busy: attachmentBusy,
+        isOwn,
+        actionError: attachmentActionError,
+        onOpen: () => runAttachmentAction('open'),
+        onAction: runAttachmentAction,
       }
     );
 
     return (
       <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
         <AttachmentMessageCard
-          attachmentBodyLayoutPresentation={attachmentBodyLayoutPresentation}
-          attachmentBodyPresentation={attachmentBodyPresentation}
-          attachmentCardInteractionProps={attachmentCardInteractionProps}
-          attachmentCardPresentation={attachmentCardPresentation}
-          attachmentVariantPresentation={attachmentVariantPresentation}
-          attachmentTimestampStyle={getAttachmentTimestampStyle(isOwn)}
+          presentation={attachmentCardPresentation}
           createdAt={msg.createdAt}
         />
       </div>

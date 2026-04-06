@@ -17,9 +17,9 @@ import {
   Message,
   Activity,
   Mail,
-  Trash2,
   Child,
   XIcon,
+  Heart,
 } from '../components/Icons';
 
 function useFadeIn() {
@@ -155,11 +155,11 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                 <p style={{ marginTop: 8 }}>
                   Iets simpels. Iets veiligs. Iets wat alleen draait om contact tussen ouder en kind.
                 </p>
-                <p style={{ marginTop: 16, fontWeight: 700, color: 'var(--text)' }}>Zo is Pulse ontstaan.</p>
+                <p style={{ marginTop: 16, fontWeight: 700, color: '#1a1a2e' }}>Zo is Pulse ontstaan.</p>
               </div>
               <div className="hp-feature-mockup">
                 <div className="op-privacy-card">
-                  <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Message size={32} /></div>
+                  <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Heart size={32} /></div>
                   <div className="op-privacy-title">Een belofte aan ouders</div>
                   <div className="op-privacy-sub">
                     "Iets simpels. Iets veiligs. Iets wat alleen draait om contact tussen ouder en kind."
@@ -198,7 +198,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
               <div className="hp-feature-mockup">
                 <div className="op-privacy-card">
                   <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Shield size={32} /></div>
-                  <div className="op-privacy-title">Pulse heeft niets aan jouw data — en wil het ook niet.</div>
+                  <div className="op-privacy-title">Bij Pulse draait het om contact, niet om data.</div>
                   <div className="op-privacy-sub" style={{ marginTop: 12 }}>
                     Sterker nog: wat we niet nodig hebben, slaan we niet op.
                   </div>
@@ -211,40 +211,28 @@ export default function PrivacyFirstPagina({ onParentClick }) {
         {/* ── WAT WE WEL OPSLAAN ── */}
         <section className="hp-section" id="wat-opslaan">
           <div className="hp-section-inner">
-            <FadeRow className="op-privacy-row">
-              <div className="hp-feature-text">
-                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Wat we wél opslaan en waarom</div>
-                <h3>Zo weinig mogelijk. Zo kort mogelijk.</h3>
-                <p style={{ marginTop: 8, color: 'var(--text2)' }}>We slaan alleen op wat echt nodig is om de app te laten werken — en nooit langer dan nodig.</p>
-                <div style={{ marginTop: 24 }}>
-                  {retentionRows.map((row) => (
-                    <div key={row.label} className="pf-retention-row">
-                      <div className="pf-retention-label" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <span style={{ color: 'var(--accent)', display: 'flex', flexShrink: 0 }}><row.Icon size={18} /></span>{row.label}
-                      </div>
-                      {row.why && <div className="pf-retention-why">{row.why}</div>}
-                      <div className="pf-retention-meta">
-                        <span className="pf-retention-badge pf-retention-badge--duration">
-                          <Clock size={12} /> {row.duration}
-                        </span>
-                        <span className="pf-retention-badge pf-retention-badge--delete">
-                          ✓ {row.onDelete}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="hp-feature-mockup">
-                <div className="op-privacy-card">
-                  <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Trash2 size={32} /></div>
-                  <div className="op-privacy-title">Verwijderen = echt verwijderen</div>
-                  <div className="op-privacy-sub" style={{ marginTop: 12 }}>
-                    Geen archieven.<br />Geen kopieën.<br />Geen verborgen opslag.
+            <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>Wat we wél opslaan en waarom</div>
+            <h3 style={{ fontSize: 'clamp(var(--text-h3), 3vw, var(--text-h2))', fontWeight: 700, color: '#1a1a2e', marginBottom: 8, letterSpacing: '-0.5px' }}>Zo weinig mogelijk. Zo kort mogelijk.</h3>
+            <p style={{ color: '#6b7280', marginBottom: 32 }}>We slaan alleen op wat echt nodig is om de app te laten werken — en nooit langer dan nodig. <br></br>Wanneer je je account verwijdert, worden al je gegevens permanent gewist. Zo blijft onze database schoon.</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              {retentionRows.map((row) => (
+                <div key={row.label} style={{ border: '1px solid #e5e7eb', borderRadius: 16, padding: '20px 20px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: 'var(--accent)', display: 'flex', flexShrink: 0 }}><row.Icon size={18} /></span>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>{row.label}</span>
+                  </div>
+                  {row.why && <div className="pf-retention-why">{row.why}</div>}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 'auto' }}>
+                    <span className="pf-retention-badge pf-retention-badge--duration" style={{ alignSelf: 'flex-start' }}>
+                      <Clock size={12} /> {row.duration}
+                    </span>
+                    <span className="pf-retention-badge pf-retention-badge--delete" style={{ alignSelf: 'flex-start' }}>
+                      ✓ {row.onDelete}
+                    </span>
                   </div>
                 </div>
-              </div>
-            </FadeRow>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -287,7 +275,9 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           </div>
         </section>
 
-
+        <div style={{ padding: '0 0' }}>
+          <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb' }} />
+        </div>
 
         {/* ── CTA ── */}
         <section className="ot-final-cta">
@@ -361,10 +351,14 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           background: rgba(34,197,94,0.12);
           color: #16a34a;
         }
+        .pf-retention-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        @media (max-width: 900px) {
+          .pf-retention-grid { grid-template-columns: repeat(2, 1fr); }
+        }
         @media (max-width: 600px) {
-          .pf-retention-row {
-            padding: 4px 0;
-          }
+          .pf-retention-grid { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>

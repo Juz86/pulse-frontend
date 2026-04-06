@@ -784,6 +784,38 @@ export function createAttachmentActionRunner(
   });
 }
 
+export function createAttachmentMessageActionRuntime(
+  messageAttachment,
+  resolvedAttachment,
+  user,
+  {
+    setAttachmentBusy = null,
+    setResolvedAttachment = null,
+    setResolvedAttachmentAccess = null,
+    setAttachmentActionError = null,
+    ...options
+  } = {}
+) {
+  const actionCallbacks = createAttachmentActionCallbacks({
+    setAttachmentBusy,
+    setResolvedAttachment,
+    setAttachmentActionError,
+  });
+  const activeAttachment = resolvedAttachment || messageAttachment;
+
+  return {
+    activeAttachment,
+    actionCallbacks,
+    runAttachmentAction: createAttachmentActionRunner(activeAttachment, user, {
+      ...actionCallbacks,
+      setResolvedAttachment,
+      setResolvedAttachmentAccess,
+      setAttachmentActionError,
+      ...options,
+    }),
+  };
+}
+
 export function openAttachmentInNewTab(attachment, opener = window.open) {
   const { url } = getAttachmentAccessInfo(attachment);
   if (!url) return false;

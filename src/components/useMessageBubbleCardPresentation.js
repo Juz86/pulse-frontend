@@ -5,10 +5,13 @@ import {
 } from './messageBubbleHelpers';
 import useAttachmentMessageRuntime from './useAttachmentMessageRuntime';
 
-function buildAttachmentCardPresentation(attachmentRuntime) {
+function buildAttachmentCardPresentation(msg, attachmentRuntime) {
   return {
     type: 'attachment',
-    presentation: attachmentRuntime.presentation,
+    presentation: {
+      ...attachmentRuntime.presentation,
+      createdAt: msg.createdAt,
+    },
   };
 }
 
@@ -24,10 +27,13 @@ function buildContactCardPresentation(msg, isOwn) {
 function buildCallCardPresentation(msg, isOwn, isFocused) {
   return {
     type: 'call',
-    presentation: buildCallMessageCardPresentation(msg, {
-      isOwn,
-      isFocused,
-    }),
+    presentation: {
+      ...buildCallMessageCardPresentation(msg, {
+        isOwn,
+        isFocused,
+      }),
+      createdAt: msg.createdAt,
+    },
   };
 }
 
@@ -69,7 +75,7 @@ function buildMessageBubbleCardPresentation({
 }) {
   switch (msg.type) {
     case 'attachment':
-      return buildAttachmentCardPresentation(attachmentRuntime);
+      return buildAttachmentCardPresentation(msg, attachmentRuntime);
     case 'contact':
       return buildContactCardPresentation(msg, isOwn);
     case 'call':

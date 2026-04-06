@@ -45,7 +45,7 @@ function AttachmentMessageBody({ bodyPresentation }) {
   );
 }
 
-export default function AttachmentMessageCard({ presentation, createdAt }) {
+export default function AttachmentMessageCard({ presentation }) {
   const {
     bodyLayout,
     body,
@@ -53,6 +53,7 @@ export default function AttachmentMessageCard({ presentation, createdAt }) {
     card,
     variant,
     timestampStyle,
+    createdAt,
   } = presentation;
 
   return (

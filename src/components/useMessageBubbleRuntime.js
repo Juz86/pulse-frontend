@@ -3,6 +3,7 @@ import useMessageBubbleCardPresentation from './useMessageBubbleCardPresentation
 import {
   buildMessageBubbleHandlers,
   buildMessageBubbleMessageContext,
+  buildMessageBubbleRuntimeState,
 } from './messageBubbleRuntimeHelpers';
 
 export default function useMessageBubbleRuntime({
@@ -59,9 +60,10 @@ export default function useMessageBubbleRuntime({
     handleTouchMove,
     handleActionCardKeyDown,
   });
-  return {
+
+  return buildMessageBubbleRuntimeState({
     card,
     message,
     handlers,
-  };
+  });
 }

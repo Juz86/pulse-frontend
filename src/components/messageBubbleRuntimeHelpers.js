@@ -45,3 +45,15 @@ export function buildMessageBubbleHandlers({
     onActionCardKeyDown: handleActionCardKeyDown,
   };
 }
+
+export function buildMessageBubbleRuntimeState({
+  card,
+  message,
+  handlers,
+}) {
+  return {
+    card,
+    message,
+    handlers,
+  };
+}

@@ -14,12 +14,11 @@ function buildSystemMessageRenderConfig(card) {
   };
 }
 
-function buildAttachmentMessageRenderConfig(card, msg) {
+function buildAttachmentMessageRenderConfig(card) {
   return {
     component: AttachmentMessageCard,
     props: {
       presentation: card.presentation,
-      createdAt: msg.createdAt,
     },
     wrapInGroup: true,
   };
@@ -39,14 +38,13 @@ function buildContactMessageRenderConfig(card, handlers) {
   };
 }
 
-function buildCallMessageRenderConfig(card, msg, handlers) {
+function buildCallMessageRenderConfig(card, handlers) {
   return {
     component: CallMessageCard,
     props: {
       presentation: card.presentation,
       onStartCall: handlers.onStartCall,
       onActionCardKeyDown: handlers.onActionCardKeyDown,
-      createdAt: msg.createdAt,
     },
     wrapInGroup: false,
   };
@@ -71,9 +69,9 @@ function buildTextMessageRenderConfig(card, handlers) {
 
 const MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS = {
   system: ({ card }) => buildSystemMessageRenderConfig(card),
-  attachment: ({ card, message }) => buildAttachmentMessageRenderConfig(card, message.msg),
+  attachment: ({ card }) => buildAttachmentMessageRenderConfig(card),
   contact: ({ card, handlers }) => buildContactMessageRenderConfig(card, handlers),
-  call: ({ card, message, handlers }) => buildCallMessageRenderConfig(card, message.msg, handlers),
+  call: ({ card, handlers }) => buildCallMessageRenderConfig(card, handlers),
 };
 
 export function buildMessageBubbleCardRenderConfig(runtime) {

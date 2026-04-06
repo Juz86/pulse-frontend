@@ -6,7 +6,6 @@ export default function CallMessageCard({
   presentation,
   onStartCall,
   onActionCardKeyDown,
-  createdAt,
 }) {
   const {
     isOwn,
@@ -17,6 +16,7 @@ export default function CallMessageCard({
     callSub,
     callCardLabel,
     iconType,
+    createdAt,
   } = presentation;
 
   return (

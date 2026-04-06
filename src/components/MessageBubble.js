@@ -1,8 +1,12 @@
 // src/components/MessageBubble.js
 import React, { useRef, useState, useEffect } from 'react';
-import { Phone, Video, Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
+import { Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
 import AttachmentMessageCard from './AttachmentMessageCard';
+import CallMessageCard from './CallMessageCard';
+import MessageBubbleActions from './MessageBubbleActions';
+import MessageReactionBar from './MessageReactionBar';
 import SharedContactMessageCard from './SharedContactMessageCard';
+import SystemMessageNote from './SystemMessageNote';
 import {
   createAttachmentMessageActionRuntime,
   getInitialAttachmentActionState,
@@ -64,8 +68,6 @@ function highlightText(text, query) {
   );
 }
 
-const QUICK_EMOJI = ['❤️', '👍', '😂', '😮', '😢', '👎'];
-
 // ── MessageBubble ─────────────────────────────────────────────────────────────
 
 const MessageBubble = React.memo(function MessageBubble({
@@ -85,18 +87,10 @@ const MessageBubble = React.memo(function MessageBubble({
 }) {
   const longPressTimer    = useRef(null);
   const longPressFired    = useRef(false);
-  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [resolvedAttachment, setResolvedAttachment] = useState(null);
   const [resolvedAttachmentAccess, setResolvedAttachmentAccess] = useState(null);
   const [attachmentActionError, setAttachmentActionError] = useState('');
   const [attachmentBusy, setAttachmentBusy] = useState(false);
-
-  useEffect(() => {
-    if (!emojiPickerOpen) return;
-    const close = () => setEmojiPickerOpen(false);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
-  }, [emojiPickerOpen]);
 
   useEffect(() => {
     const initialActionState = getInitialAttachmentActionState();
@@ -131,26 +125,7 @@ const MessageBubble = React.memo(function MessageBubble({
   }
 
   if (msg.type === 'system') {
-    return (
-      <div className="msg-group system" role="listitem">
-        <div
-          className="msg-system-note"
-          style={{
-            alignSelf: 'center',
-            maxWidth: '85%',
-            padding: '8px 12px',
-            borderRadius: 999,
-            background: 'rgba(255,255,255,0.06)',
-            color: 'var(--text3)',
-            fontSize: 12,
-            lineHeight: 1.4,
-            textAlign: 'center',
-          }}
-        >
-          {msg.text}
-        </div>
-      </div>
-    );
+    return <SystemMessageNote text={msg.text} />;
   }
 
   if (msg.type === 'attachment') {
@@ -219,30 +194,19 @@ const MessageBubble = React.memo(function MessageBubble({
       ? `${callLabel}. Activeer om terug te bellen`
       : callSub ? `${callLabel}. ${callSub}` : callLabel;
     return (
-      <div
-        className={`msg-group ${isOwn ? 'out' : 'in'}`}
-        role="listitem"
-        ref={isFocused ? el => el?.scrollIntoView({ behavior: 'smooth', block: 'center' }) : null}
-      >
-        <div
-          className={`msg-call-card ${isOwn ? 'out' : 'in'}${isMissed ? ' missed' : ''}`}
-          role={isMissed ? 'button' : undefined}
-          tabIndex={isMissed ? 0 : undefined}
-          aria-label={isMissed ? callCardLabel : undefined}
-          onClick={isMissed ? () => onStartCall(msg.isVideo) : undefined}
-          onKeyDown={isMissed ? (event) => handleActionCardKeyDown(event, () => onStartCall(msg.isVideo)) : undefined}
-          style={isMissed ? { cursor: 'pointer' } : undefined}
-        >
-          <div className={`msg-call-icon ${iconType}`} aria-hidden="true">
-            {msg.isVideo ? <Video size={20} aria-hidden="true" /> : <Phone size={20} aria-hidden="true" />}
-          </div>
-          <div className="msg-call-info">
-            <div className="msg-call-label">{callLabel}</div>
-            {callSub && <div className="msg-call-sub">{callSub}</div>}
-          </div>
-          <div className="msg-call-time">{formatTime(msg.createdAt)}</div>
-        </div>
-      </div>
+      <CallMessageCard
+        isOwn={isOwn}
+        isFocused={isFocused}
+        isMissed={isMissed}
+        isVideo={msg.isVideo}
+        callLabel={callLabel}
+        callSub={callSub}
+        callCardLabel={callCardLabel}
+        iconType={iconType}
+        onStartCall={onStartCall}
+        onActionCardKeyDown={handleActionCardKeyDown}
+        createdAt={msg.createdAt}
+      />
     );
   }
 
@@ -313,54 +277,17 @@ const MessageBubble = React.memo(function MessageBubble({
           </div>
         )}
 
-        {/* Acties (zichtbaar bij hover) */}
-        <div className="msg-actions" onClick={e => e.stopPropagation()}>
-          <div style={{ position: 'relative' }}>
-            <button
-              type="button"
-              className="msg-action-btn"
-              aria-label="Reageren"
-              onClick={e => { e.stopPropagation(); setEmojiPickerOpen(v => !v); }}
-            ><span aria-hidden="true">😊</span></button>
-            {emojiPickerOpen && (
-              <div className="msg-emoji-picker">
-                {QUICK_EMOJI.map(emoji => (
-                  <button type="button" key={emoji} aria-label={`Reageer met ${emoji}`} onClick={() => { onReact(emoji); setEmojiPickerOpen(false); }}>{emoji}</button>
-                ))}
-              </div>
-            )}
-          </div>
-          <button
-            type="button"
-            className="msg-action-btn"
-            aria-label="Berichtopties"
-            onClick={e => { e.stopPropagation(); onShowContextMenu(e); }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M7 10l5 5 5-5z"/>
-            </svg>
-          </button>
-        </div>
+        <MessageBubbleActions
+          onReact={onReact}
+          onShowContextMenu={onShowContextMenu}
+        />
       </div>
 
-      {/* Reacties */}
-      {msg.reactions && Object.entries(msg.reactions).some(([, uids]) => uids?.length > 0) && (
-        <div className="msg-reactions">
-          {Object.entries(msg.reactions)
-            .filter(([, uids]) => uids?.length > 0)
-            .map(([emoji, uids]) => (
-              <button
-                type="button"
-                key={emoji}
-                className={`msg-reaction-pill${uids.includes(currentUid) ? ' mine' : ''}`}
-                aria-label={`${uids.includes(currentUid) ? 'Verwijder je reactie' : 'Reageer met'} ${emoji}${uids.length > 1 ? `, ${uids.length} reacties totaal` : ''}`}
-                onClick={() => onReact(emoji)}
-              >
-                <span aria-hidden="true">{emoji}</span>{uids.length > 1 && <span aria-hidden="true">{uids.length}</span>}
-              </button>
-            ))}
-        </div>
-      )}
+      <MessageReactionBar
+        reactions={msg.reactions}
+        currentUid={currentUid}
+        onReact={onReact}
+      />
 
     </div>
   );

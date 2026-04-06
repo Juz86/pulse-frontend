@@ -8,7 +8,7 @@ export default function MarketingFooter() {
       <div className="hp-footer-inner">
         <div className="hp-footer-brand">
           <div className="hp-footer-logo">
-            <PulseLogo size={28} textSize={18} color="#fff" gap={8} />
+            <PulseLogo size={30} textSize={20} color="#6c63ff" gap={10} />
           </div>
           <p>
             Pulse houdt ouder en kind veilig verbonden.
@@ -24,7 +24,6 @@ export default function MarketingFooter() {
               <li><a href="/functies#chatten">Chatten</a></li>
               <li><a href="/functies#bellen">Bellen</a></li>
               <li><a href="/functies#videobellen">Videobellen</a></li>
-              <li><a href="/hoe-werkt-het#hoe-werkt-pulse">Hoe werkt het</a></li>
               <li><a href="/ouderlijk-toezicht#dashboard">Ouderlijk toezicht</a></li>
             </ul>
           </nav>

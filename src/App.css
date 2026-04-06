@@ -2518,7 +2518,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   display: inline-flex;
   align-items: baseline;
   opacity: 0;
-  animation: hp-bubble-fadein 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: hp-bubble-loop 9s ease-in-out infinite;
   animation-delay: var(--bubble-delay, 0s);
   gap: 6px;
   padding: 10px 14px;
@@ -2544,7 +2544,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 /* Posities rondom de loginkaart: boven logo, rechts-midden, links-onder */
 .hp-hero-bubble:nth-child(1) { top: calc(10% + 20px); right: 38%; }
 .hp-hero-bubble:nth-child(2) { top: 42%;    right: 2%;  }
-.hp-hero-bubble:nth-child(3) { bottom: 12%; right: 36%; }
+.hp-hero-bubble:nth-child(3) { bottom: 23%; right: 36%; }
 .hp-hero-bubble-text { flex: 1; }
 .hp-hero-bubble-time {
   font-size: 10px;
@@ -3203,11 +3203,11 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 .ot-secondary-btn {
   padding: 15px 28px; border-radius: 999px; font-size: 16px; font-weight: 700;
-  border: 1.5px solid rgba(255,255,255,0.18); background: transparent; color: #fff;
+  border: 1.5px solid rgba(108,99,255,0.4); background: #fff; color: #6c63ff;
   cursor: pointer; transition: transform .18s, background .18s, border-color .18s;
   text-decoration: none; display: inline-block;
 }
-.ot-secondary-btn:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.32); }
+.ot-secondary-btn:hover { transform: translateY(-1px); border-color: rgba(108,99,255,0.6); background: #f4f1ff; }
 .ot-hero-visual { display: flex; justify-content: center; }
 .ot-row { opacity: 0; transform: translateY(28px); transition: opacity .55s ease, transform .55s ease; }
 .ot-row.fp-visible { opacity: 1; transform: translateY(0); }

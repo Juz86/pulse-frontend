@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import LegalPageLayout from '../components/LegalPageLayout';
 import ParentAuthModal from '../components/ParentAuthModal';
+import AuthModal from '../components/AuthModal';
+import { Login } from '../components/Icons';
 
 const SITEMAP = [
   {
@@ -112,6 +114,7 @@ function SitemapSection({ title, links }) {
 
 export default function SitemapPagina() {
   const [showParentModal, setShowParentModal] = useState(false);
+  const [showAuthModal,   setShowAuthModal]   = useState(false);
 
   return (
     <>
@@ -127,9 +130,17 @@ export default function SitemapPagina() {
           <section className="ot-final-cta">
             <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
             <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
-            <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
-              Ouderaccount aanmaken
-            </button>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+              <button
+                type="button"
+                className="hp-cta-btn"
+                style={{ background: '#fff', border: '1.5px solid rgba(108,99,255,0.4)', color: '#6c63ff', display: 'flex', alignItems: 'center', gap: 6 }}
+                onClick={() => setShowAuthModal(true)}
+              >
+                <Login size={18} /> Inloggen
+              </button>
+            </div>
           </section>
         }
       >
@@ -158,6 +169,9 @@ export default function SitemapPagina() {
 
       {showParentModal && (
         <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
+      )}
+      {showAuthModal && (
+        <AuthModal onClose={() => setShowAuthModal(false)} />
       )}
     </>
   );

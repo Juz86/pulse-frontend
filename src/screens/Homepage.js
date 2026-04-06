@@ -17,11 +17,11 @@ function HeroChatBubbles() {
         <span className="hp-hero-bubble-text">Hoi! Ben je al thuis? 🏠</span>
         <span className="hp-hero-bubble-time">17:02</span>
       </div>
-      <div className="hp-hero-bubble hp-hero-bubble--out" style={{ '--bubble-delay': '2s' }}>
+      <div className="hp-hero-bubble hp-hero-bubble--out" style={{ '--bubble-delay': '3s' }}>
         <span className="hp-hero-bubble-text">Bijna! 10 minuutjes 😊</span>
         <span className="hp-hero-bubble-time">17:02</span>
       </div>
-      <div className="hp-hero-bubble hp-hero-bubble--in" style={{ '--bubble-delay': '4s' }}>
+      <div className="hp-hero-bubble hp-hero-bubble--in" style={{ '--bubble-delay': '6s' }}>
         <span className="hp-hero-bubble-text">Oké, ik wacht! ❤️</span>
         <span className="hp-hero-bubble-time">17:03</span>
       </div>
@@ -76,18 +76,17 @@ export default function Homepage({ onParentClick }) {
         <HeroChatBubbles />
         <div className="hp-hero-inner">
           <div className="hp-hero-text">
-            <div className="hp-hero-badge">🇳🇱 100% Nederlands</div>
+            <ul className="hp-hero-features" aria-label="Belangrijkste voordelen" style={{ marginBottom: 20 }}>
+              <li className="hp-hero-feature"><span aria-hidden="true"><Shield size={16} /></span> Versleuteld &amp; privé</li>
+              <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Chatten &amp; (video)bellen</li>
+              <li className="hp-hero-feature"><span aria-hidden="true"><Users size={16} /></span> Ouderlijk toezicht</li>
+            </ul>
             <h1 id="homepage-hero-title" className="hp-hero-title">
               Veilig chatten, bellen en videobellen
             </h1>
             <p className="hp-hero-sub">
             Met Pulse kunnen kinderen zonder telefoonnummer chatten, bellen en videobellen. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
-            <ul className="hp-hero-features" aria-label="Belangrijkste voordelen">
-              <li className="hp-hero-feature"><span aria-hidden="true"><Shield size={16} /></span> Versleuteld &amp; privé</li>
-              <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Chatten &amp; (video)bellen</li>
-              <li className="hp-hero-feature"><span aria-hidden="true"><Users size={16} /></span> Ouderlijk toezicht</li>
-            </ul>
-            <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 12, marginTop: 42, flexWrap: 'wrap' }}>
               <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
                 Start met Pulse
               </button>

@@ -69,30 +69,19 @@ function buildTextMessageRenderConfig(card, handlers) {
   };
 }
 
+const MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS = {
+  system: ({ card }) => buildSystemMessageRenderConfig(card),
+  attachment: ({ card, message }) => buildAttachmentMessageRenderConfig(card, message.msg),
+  contact: ({ card, handlers }) => buildContactMessageRenderConfig(card, handlers),
+  call: ({ card, message, handlers }) => buildCallMessageRenderConfig(card, message.msg, handlers),
+};
+
 export function buildMessageBubbleCardRenderConfig(runtime) {
-  const {
-    card,
-    message: {
-      msg,
-    },
-    handlers,
-  } = runtime;
+  const builder = MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS[runtime.card.type];
 
-  if (card.type === 'system') {
-    return buildSystemMessageRenderConfig(card);
+  if (builder) {
+    return builder(runtime);
   }
 
-  if (card.type === 'attachment') {
-    return buildAttachmentMessageRenderConfig(card, msg);
-  }
-
-  if (card.type === 'contact') {
-    return buildContactMessageRenderConfig(card, handlers);
-  }
-
-  if (card.type === 'call') {
-    return buildCallMessageRenderConfig(card, msg, handlers);
-  }
-
-  return buildTextMessageRenderConfig(card, handlers);
+  return buildTextMessageRenderConfig(runtime.card, runtime.handlers);
 }

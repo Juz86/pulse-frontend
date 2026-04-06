@@ -6,11 +6,8 @@ import DecorativeAvatar, { avatarSvgs } from '../components/DecorativeAvatars';
 import ParentAuthModal from '../components/ParentAuthModal';
 import PageMeta from '../components/PageMeta';
 import {
-  Bell,
   Check,
-  Clock,
   Heart,
-  Lock,
   Login,
   Message,
   Phone,
@@ -42,26 +39,6 @@ function useFadeIn() {
   }, []);
 
   return [ref, visible];
-}
-
-function SectionHeader({ badge, title, text, align }) {
-  const [ref, visible] = useFadeIn();
-  return (
-    <div ref={ref} className={`hp-section-header fp-section-header${align === 'left' ? ' hp-section-header--left' : ''}${visible ? ' fp-visible' : ''}`}>
-      {badge && <div className="fp-hero-badge" style={{ marginBottom: 16 }}>{badge}</div>}
-      <h2>{title}</h2>
-      {text && <p style={{ marginTop: 12 }}>{text}</p>}
-    </div>
-  );
-}
-
-function FadeCard({ children }) {
-  const [ref, visible] = useFadeIn();
-  return (
-    <div ref={ref} className={`ot-row${visible ? ' fp-visible' : ''}`}>
-      {children}
-    </div>
-  );
 }
 
 function FadeRow({ children, className = '' }) {
@@ -136,47 +113,6 @@ export default function OverPulsePagina({ onParentClick }) {
     { key: 'functies',           label: 'Functies',           href: '/functies' },
   ];
 
-  const pulseIs = [
-    'Chatten met vertrouwde contacten',
-    'Bellen en videobellen zonder telefoonnummer',
-    'Ouderlijk toezicht en contactbeheer',
-    'AVG-compliant en privacy-first',
-    'Rustig, overzichtelijk en afleidingsvrij',
-    'Berichten die na 30 dagen automatisch verdwijnen',
-  ];
-
-  const pulseIsNot = [
-    'Geen foto\'s of GIFs',
-    'Geen algoritmes of aanbevelingen',
-    'Geen advertenties of dataverzameling',
-    'Geen onbekende contacten mogelijk',
-    'Geen entertainment of spelletjes',
-    'Geen social media-elementen',
-  ];
-
-  const coreFeatures = [
-    {
-      icon: <Shield size={22} />,
-      title: 'Veiligheid by design',
-      text: 'Pulse is gebouwd met veiligheid als startpunt, niet als nagedachte. Geen media-deling betekent: cyberpesten via foto\'s of gif\'s is structureel onmogelijk.',
-    },
-    {
-      icon: <Lock size={22} />,
-      title: 'Alleen vertrouwde contacten',
-      text: 'Kinderen communiceren uitsluitend met mensen die door de ouder zijn goedgekeurd. Geen onbekenden, geen verzoeken van vreemden.',
-    },
-    {
-      icon: <Users size={22} />,
-      title: 'Ouders in regie',
-      text: 'Het ouderportaal geeft real-time inzicht. Chat, bellen of videobellen pauzeren per functie. Direct een melding bij nieuwe contacten.',
-    },
-    {
-      icon: <Bell size={22} />,
-      title: 'Rust en overzicht',
-      text: 'Geen notificatieregen, geen eindeloos scrollen. Pulse is kalm, helder en gericht — precies wat kinderen en ouders nodig hebben.',
-    },
-  ];
-
   return (
     <div className="hp-root">
       <PageMeta
@@ -221,7 +157,7 @@ export default function OverPulsePagina({ onParentClick }) {
       {/* ── WAAROM PULSE BESTAAT ── */}
 
 
-      {/* ── PULSE IS BEDACHT DOOR EEN VADER ── */}
+      {/* ── WAAROM PULSE BESTAAT & ZIJN MISSIE ── */}
       <section className="hp-section hp-section--gray" id="pulse-ontstaan">
         <div className="hp-section-inner">
           <FadeRow className="op-privacy-row">
@@ -271,13 +207,13 @@ export default function OverPulsePagina({ onParentClick }) {
                 {['Zonder filters', 'Zonder gifs of memes', 'Zonder social media prikkels'].map((item) => (
                   <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ color: '#ef4444', display: 'flex', flexShrink: 0 }}><XIcon size={18} /></span>
-                    <span style={{ fontSize: 15, color: '#1a1a2e' }}>{item}</span>
+                    <span>{item}</span>
                   </div>
                 ))}
               </div>
-              <p style={{ marginTop: 16, fontWeight: 700, color: '#1a1a2e' }}>
-                Terug naar de kern:<br />
-                <span style={{ fontWeight: 400 }}>gewoon contact, zoals het bedoeld is.</span>
+              <p style={{ marginTop: 16 }}>
+                Terug naar de kern:
+                <span> gewoon contact, zoals het bedoeld is.</span>
               </p>
             </div>
             <div className="hp-feature-mockup" style={{ flex: '1' }}>
@@ -288,9 +224,9 @@ export default function OverPulsePagina({ onParentClick }) {
                   {[
                     'Chatten met vertrouwde contacten',
                     'Bellen en videobellen zonder telefoonnummer',
-                    'Ouderlijk toezicht en contactbeheer',
+                    'Ouderlijk toezicht',
                     'AVG-compliant en privacy-first',
-                    'Rustig, overzichtelijk en afleidingsvrij',
+                    'Geen data-verzameling',
                   ].map((item) => (
                     <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span style={{
@@ -308,131 +244,6 @@ export default function OverPulsePagina({ onParentClick }) {
               </div>
             </div>
           </FadeRow>
-        </div>
-      </section>
-
-      {/* ── EEN VEILIG ALTERNATIEF ── */}
-      <section className="hp-section" id="veilig-alternatief">
-        <div className="hp-section-inner">
-          <SectionHeader
-            badge="Een veilig alternatief"
-            title="Pure communicatie, zonder afleiding"
-            text="Pulse is bewust gestript van alles wat niet bijdraagt aan veilig contact. Het resultaat: een app die doet wat het belooft — en niets meer dan dat."
-            align="left"
-          />
-          <div className="op-compare-row">
-            <div className="op-compare-col op-compare-col--yes">
-              <div className="op-compare-label op-compare-label--yes">Pulse is</div>
-              <ul className="ot-feature-list">
-                {pulseIs.map((item) => (
-                  <li key={item}>
-                    <span className="ot-feature-check"><Check size={14} /></span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="op-compare-col op-compare-col--no">
-              <div className="op-compare-label op-compare-label--no">Pulse is niet</div>
-              <ul className="ot-feature-list">
-                {pulseIsNot.map((item) => (
-                  <li key={item} className="op-not-item">
-                    <span className="op-not-check">✕</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── ONTWORPEN VOOR KINDEREN ── */}
-      <section className="hp-section" id="voor-kinderen">
-        <div className="hp-section-inner">
-          <SectionHeader
-            badge="Ontworpen voor kinderen"
-            title="Met ouders in regie, voor kinderen in vrijheid"
-            text="Pulse geeft kinderen de vrijheid om contact te houden met de mensen die echt belangrijk zijn — binnen een veilige omgeving die ouders volledig in de hand hebben."
-            align="left"
-          />
-          <div className="hp-why-grid op-feature-grid">
-            {coreFeatures.map((f) => (
-              <FadeCard key={f.title}>
-                <div className="hp-why-card">
-                  <div className="op-feature-icon">{f.icon}</div>
-                  <h3>{f.title}</h3>
-                  <p>{f.text}</p>
-                </div>
-              </FadeCard>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PRIVACY EN VEILIGHEID ── */}
-      <section className="hp-section hp-section--gray" id="privacy">
-        <div className="hp-section-inner">
-          <FadeRow className="op-privacy-row">
-            <div className="hp-feature-text">
-              <div className="hp-feature-tag">Privacy &amp; AVG</div>
-              <h3>Privacy als fundament, niet als bijzaak</h3>
-              <p>Bij Pulse is privacy geen checkbox. Het is het vertrekpunt van elke ontwerpbeslissing. We verzamelen alleen wat strikt noodzakelijk is, en bewaren het niet langer dan nodig.</p>
-              <ul className="ot-feature-list" style={{ marginTop: 24 }}>
-                <li><span className="ot-feature-check"><Check size={14} /></span>Volledig AVG-compliant</li>
-                <li><span className="ot-feature-check"><Check size={14} /></span>Geen profilering of dataverzameling voor advertenties</li>
-                <li><span className="ot-feature-check"><Check size={14} /></span>Berichten verdwijnen automatisch na 30 dagen</li>
-                <li><span className="ot-feature-check"><Check size={14} /></span>Geen telefoonnummer vereist</li>
-                <li><span className="ot-feature-check"><Check size={14} /></span>Geen media-deling — geen risico op verspreiding van beelden</li>
-                <li><span className="ot-feature-check"><Check size={14} /></span>100% Nederlands, 100% transparant</li>
-              </ul>
-            </div>
-            <div className="hp-feature-mockup">
-              <div className="op-privacy-card">
-                <div className="op-privacy-icon"><Lock size={32} /></div>
-                <div className="op-privacy-title">AVG-compliant</div>
-                <div className="op-privacy-sub">
-                  Gebouwd voor de Nederlandse markt, met naleving van Europese privacywetgeving als basis. Geen dataverzameling voor commerciële doeleinden.
-                </div>
-                <div className="op-privacy-badges">
-                  <span>🇳🇱 Nederlands</span>
-                  <span><Lock size={12} /> Versleuteld</span>
-                  <span><Clock size={12} /> 30 dagen</span>
-                </div>
-              </div>
-            </div>
-          </FadeRow>
-        </div>
-      </section>
-
-      {/* ── WAAROM JUIST NU ── */}
-      <section className="hp-section" id="juist-nu">
-        <div className="hp-section-inner">
-          <SectionHeader
-            badge="Waarom juist nu"
-            title="De wereld vraagt om een rustiger digitaal alternatief"
-            text="De discussie over schermtijd, online veiligheid en verslavend app-design staat hoog op de agenda — van de Tweede Kamer tot ouderavonden op school. Er is een breed gedeeld gevoel dat het anders moet. Pulse is dat alternatief."
-            align="left"
-          />
-          <div className="op-quote-scene">
-            {[
-              { label: 'Schermtijd bij kinderen',       style: { top: '8%',  left: '2%',   transform: 'rotate(-4deg)' } },
-              { label: 'Verslavend app-design',         style: { top: '4%',  left: 'calc(32% + 50px)',  transform: 'rotate(2deg)'  } },
-              { label: 'Online veiligheid',             style: { top: '6%',  right: '4%',  transform: 'rotate(-3deg)' } },
-              { label: 'Cyberpesten',                   style: { top: '38%', right: '1%',  transform: 'rotate(4deg)'  } },
-              { label: 'Privacy & AVG',                 style: { bottom: '8%',  left: '3%',  transform: 'rotate(3deg)'  } },
-              { label: 'Smartphonegebruik op scholen',  style: { bottom: '4%', left: 'calc(28% + 50px)', transform: 'rotate(-2deg)' } },
-              { label: 'Kinderen en sociale media',     style: { bottom: '5%',  right: '3%', transform: 'rotate(-4deg)' } },
-              { label: 'Digitaal welzijn',              style: { top: '38%', left: '1%',  transform: 'rotate(-3deg)' } },
-            ].map(({ label, style }) => (
-              <span key={label} className="op-topic-pill op-topic-pill--deco" style={style} aria-hidden="true">{label}</span>
-            ))}
-            <div className="op-statement">
-              <blockquote>
-                "Kinderen hebben geen sociale media nodig. Ze hebben contact nodig — met opa en oma, met hun beste vriend, met de ouder die op het werk is. Dat is waar Pulse voor is."
-              </blockquote>
-            </div>
-          </div>
         </div>
       </section>
 

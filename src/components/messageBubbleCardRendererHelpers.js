@@ -59,16 +59,20 @@ const MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS = {
   }),
 };
 
+function resolveMessageBubbleRenderConfigBuilder(cardType) {
+  return MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS[cardType]
+    || MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS.text;
+}
+
 export function renderMessageBubbleCard(runtime) {
   const renderRuntime = {
     card: runtime.card,
     handlers: runtime.handlers,
     isOwn: runtime.message.isOwn,
   };
-  const renderConfig = (
-    MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS[renderRuntime.card.type]
-    || MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS.text
-  )(renderRuntime);
+  const renderConfig = resolveMessageBubbleRenderConfigBuilder(renderRuntime.card.type)(
+    renderRuntime,
+  );
   if (!renderConfig) return null;
 
   const CardComponent = renderConfig.component;

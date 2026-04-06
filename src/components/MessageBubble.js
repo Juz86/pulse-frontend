@@ -1,13 +1,15 @@
 // src/components/MessageBubble.js
 import React from 'react';
 import { renderMessageBubbleCard } from './messageBubbleCardRendererHelpers';
+import {
+  buildAttachmentMessageRuntimeInput,
+  buildMessageBubbleCard,
+  buildMessageBubbleContext,
+  buildMessageBubbleHandlers,
+  buildMessageBubbleRenderInput,
+} from './messageBubbleCardHelpers';
 import useMessageBubbleInteractions from './useMessageBubbleInteractions';
 import useAttachmentMessageRuntime from './useAttachmentMessageRuntime';
-import { buildCallMessageCardPresentation } from './callMessageHelpers';
-import {
-  buildSharedContactMessageCardPresentation,
-  buildStandardMessageBubblePresentation,
-} from './messageBubbleHelpers';
 
 // ── MessageBubble ─────────────────────────────────────────────────────────────
 
@@ -27,7 +29,7 @@ const MessageBubble = React.memo(function MessageBubble({
   onViewContact,
 }) {
   const interactions = useMessageBubbleInteractions(onShowContextMenu);
-  const message = {
+  const message = buildMessageBubbleContext({
     msg,
     isOwn,
     isFocused,
@@ -36,84 +38,25 @@ const MessageBubble = React.memo(function MessageBubble({
     currentUid,
     user,
     chatSearch,
-  };
-  const attachmentRuntime = useAttachmentMessageRuntime({
-    messageAttachment: message.msg.type === 'attachment' ? message.msg.attachment : null,
-    messageId: message.msg.id,
-    user: message.user,
-    isOwn: message.isOwn,
   });
-  let card;
+  const attachmentRuntime = useAttachmentMessageRuntime(
+    buildAttachmentMessageRuntimeInput(message),
+  );
+  const card = buildMessageBubbleCard(message, attachmentRuntime);
+  const handlers = buildMessageBubbleHandlers({
+    onReact,
+    onShowContextMenu,
+    onRetry,
+    onStartCall,
+    onViewContact,
+    interactions,
+  });
 
-  switch (message.msg.type) {
-    case 'attachment':
-      card = {
-        type: 'attachment',
-        presentation: {
-          ...attachmentRuntime.presentation,
-          createdAt: message.msg.createdAt,
-        },
-      };
-      break;
-    case 'contact':
-      card = {
-        type: 'contact',
-        presentation: buildSharedContactMessageCardPresentation(message.msg, {
-          isOwn: message.isOwn,
-        }),
-      };
-      break;
-    case 'call':
-      card = {
-        type: 'call',
-        presentation: {
-          ...buildCallMessageCardPresentation(message.msg, {
-            isOwn: message.isOwn,
-            isFocused: message.isFocused,
-          }),
-          createdAt: message.msg.createdAt,
-        },
-      };
-      break;
-    case 'system':
-      card = {
-        type: 'system',
-        presentation: {
-          text: message.msg.text,
-        },
-      };
-      break;
-    default:
-      card = {
-        type: 'text',
-        presentation: buildStandardMessageBubblePresentation(message.msg, {
-          isOwn: message.isOwn,
-          isFocused: message.isFocused,
-          isGroup: message.isGroup,
-          memberNames: message.memberNames,
-          currentUid: message.currentUid,
-          chatSearch: message.chatSearch,
-        }),
-      };
-      break;
-  }
-
-  return renderMessageBubbleCard({
+  return renderMessageBubbleCard(buildMessageBubbleRenderInput({
     card,
     message,
-    handlers: {
-      onReact,
-      onShowContextMenu,
-      onRetry,
-      onStartCall,
-      onViewContact,
-      onContextMenu: interactions.handleContextMenu,
-      onTouchStart: interactions.handleTouchStart,
-      onTouchEnd: interactions.handleTouchEnd,
-      onTouchMove: interactions.handleTouchMove,
-      onActionCardKeyDown: interactions.handleActionCardKeyDown,
-    },
-  });
+    handlers,
+  }));
 });
 
 export default MessageBubble;

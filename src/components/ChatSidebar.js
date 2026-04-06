@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, InfoIcon, ChevronDown, Plus } from '../components/Icons';
+import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, ChevronDown, Plus } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
@@ -103,7 +103,7 @@ export default function ChatSidebar({
     }
     const rect = anchorEl?.getBoundingClientRect?.();
     if (!rect) return;
-    const menuWidth = 188;
+    const menuWidth = 160;
     const menuHeight = 320;
     const spacing = 8;
     const direction = rect.top < 420 ? 'down' : 'up';
@@ -166,16 +166,16 @@ export default function ChatSidebar({
         <div className="sidebar-top">
           <PulseLogo size={30} textSize={20} color="#fff" />
           <div style={{ display: 'flex', gap: '6px' }}>
-            <button type="button" className="icon-btn" aria-label="Nieuw gesprek" onClick={onNewChat} title="Nieuw gesprek"><Message size={18} aria-hidden="true" /></button>
-            <button type="button" className="icon-btn" aria-label={hasMissedCall ? 'Oproepen, gemiste oproep aanwezig' : 'Oproepen'} onClick={onShowCallModal} title="Oproepen" style={{ position: 'relative' }}>
-              <Phone size={18} aria-hidden="true" />
+            <button type="button" className="icon-btn" aria-label="Nieuw gesprek" onClick={onNewChat} title="Nieuw gesprek" style={{ width: 34, height: 34 }}><Message size={16} aria-hidden="true" /></button>
+            <button type="button" className="icon-btn" aria-label={hasMissedCall ? 'Oproepen, gemiste oproep aanwezig' : 'Oproepen'} onClick={onShowCallModal} title="Oproepen" style={{ position: 'relative', width: 34, height: 34 }}>
+              <Phone size={16} aria-hidden="true" />
               {hasMissedCall && (
                 <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
               )}
             </button>
-            <button type="button" className="icon-btn" aria-label="Nieuwe groep" onClick={onNewGroup} title="Nieuwe groep"><Users size={18} aria-hidden="true" /></button>
-            <button type="button" className={`icon-btn${dnd ? ' dnd-active' : ''}`} aria-label={dnd ? 'Meldingen inschakelen' : 'Niet gestoord inschakelen'} aria-pressed={dnd} onClick={onToggleDnd} title={dnd ? 'Meldingen inschakelen' : 'Niet gestoord'}>
-              {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
+            <button type="button" className="icon-btn" aria-label="Nieuwe groep" onClick={onNewGroup} title="Nieuwe groep" style={{ width: 34, height: 34 }}><Users size={16} aria-hidden="true" /></button>
+            <button type="button" className={`icon-btn${dnd ? ' dnd-active' : ''}`} aria-label={dnd ? 'Meldingen inschakelen' : 'Niet gestoord inschakelen'} aria-pressed={dnd} onClick={onToggleDnd} title={dnd ? 'Meldingen inschakelen' : 'Niet gestoord'} style={{ width: 34, height: 34 }}>
+              {dnd ? <BellOff size={16} aria-hidden="true" /> : <Bell size={16} aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -244,7 +244,7 @@ export default function ChatSidebar({
       {activeTab === 'contacts' && (
         <div className="conv-list">
           <div ref={requestsPanelRef}>
-          <div style={{ padding: '12px 18px' }}>
+          <div style={{ padding: '0 18px 12px' }}>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
               <button type="button" className="btn-primary" style={{ padding: '10px', fontSize: '13px', flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }} onClick={onShowAddContact}>
                 <Plus size={16} aria-hidden="true" />Nieuw contact
@@ -252,7 +252,7 @@ export default function ChatSidebar({
               <button
                 type="button"
                 className="btn-secondary"
-                style={{ padding: '10px 14px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
+                style={{ padding: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
                 onClick={() => setShowFriendRequestsPanel(prev => !prev)}
                 aria-expanded={showFriendRequestsPanel}
               >
@@ -394,7 +394,7 @@ export default function ChatSidebar({
                     title="Meer acties"
                     style={parentBlockedUids?.includes(contact.uid) ? { color: 'var(--danger, #ef4444)' } : undefined}
                   >
-                    <InfoIcon size={18} aria-hidden="true" />
+                    <MoreHoriz size={18} aria-hidden="true" />
                   </button>
                 </div>
               </div>

@@ -3,18 +3,22 @@ import { Phone, Video } from '../components/Icons';
 import { formatTime } from '../utils';
 
 export default function CallMessageCard({
-  isOwn,
-  isFocused,
-  isMissed,
-  isVideo,
-  callLabel,
-  callSub,
-  callCardLabel,
-  iconType,
+  presentation,
   onStartCall,
   onActionCardKeyDown,
   createdAt,
 }) {
+  const {
+    isOwn,
+    isFocused,
+    isMissed,
+    isVideo,
+    callLabel,
+    callSub,
+    callCardLabel,
+    iconType,
+  } = presentation;
+
   return (
     <div
       className={`msg-group ${isOwn ? 'out' : 'in'}`}

@@ -2,12 +2,15 @@ import React from 'react';
 import { getInitials, formatTime } from '../utils';
 
 export default function SharedContactMessageCard({
-  contact,
-  isOwn,
+  presentation,
   onViewContact,
   onActionCardKeyDown,
-  createdAt,
 }) {
+  const {
+    contact,
+    isOwn,
+    createdAt,
+  } = presentation;
   const canOpenSharedContact = !isOwn;
 
   return (

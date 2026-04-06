@@ -1,25 +1,16 @@
 // src/components/MessageBubble.js
-import React, { useRef, useState, useEffect } from 'react';
+import React from 'react';
 import AttachmentMessageCard from './AttachmentMessageCard';
 import CallMessageCard from './CallMessageCard';
-import MessageReactionBar from './MessageReactionBar';
 import SharedContactMessageCard from './SharedContactMessageCard';
+import StandardMessageBubble from './StandardMessageBubble';
 import SystemMessageNote from './SystemMessageNote';
-import TextMessageCard from './TextMessageCard';
+import { deriveCallMessagePresentation } from './callMessageHelpers';
+import useAttachmentMessageRuntime from './useAttachmentMessageRuntime';
+import useMessageBubbleInteractions from './useMessageBubbleInteractions';
 import {
-  getMessageReceiptSummaryLabel,
-  getMessageStatusInfo,
-  highlightMessageSearch,
-  renderMessageTextWithMentions,
+  buildTextMessageCardPresentation,
 } from './messageBubbleHelpers';
-import {
-  createAttachmentMessageActionRuntime,
-  getInitialAttachmentActionState,
-} from '../lib/e2ee/attachmentAccessAdapter';
-import {
-  buildAttachmentMessageCardPresentation,
-} from '../lib/e2ee/attachmentPresentation';
-import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 
 // ── MessageBubble ─────────────────────────────────────────────────────────────
 
@@ -38,73 +29,26 @@ const MessageBubble = React.memo(function MessageBubble({
   onStartCall,
   onViewContact,
 }) {
-  const longPressTimer    = useRef(null);
-  const longPressFired    = useRef(false);
-  const [resolvedAttachment, setResolvedAttachment] = useState(null);
-  const [resolvedAttachmentAccess, setResolvedAttachmentAccess] = useState(null);
-  const [attachmentActionError, setAttachmentActionError] = useState('');
-  const [attachmentBusy, setAttachmentBusy] = useState(false);
-
-  useEffect(() => {
-    const initialActionState = getInitialAttachmentActionState();
-    setResolvedAttachment(initialActionState.resolvedAttachment);
-    setResolvedAttachmentAccess(initialActionState.resolvedAttachmentAccess);
-    setAttachmentActionError(initialActionState.attachmentActionError);
-    setAttachmentBusy(initialActionState.attachmentBusy);
-  }, [msg.id]);
-
-  function handleTouchStart(e) {
-    longPressFired.current = false;
-    longPressTimer.current = setTimeout(() => {
-      longPressFired.current = true;
-      const touch = e.touches[0];
-      onShowContextMenu({ clientX: touch.clientX, clientY: touch.clientY, preventDefault: () => {} });
-    }, 500);
-  }
-  function handleTouchEnd(e) {
-    clearTimeout(longPressTimer.current);
-    if (longPressFired.current) e.preventDefault();
-  }
-  function handleContextMenu(e) {
-    e.preventDefault();
-    onShowContextMenu(e);
-  }
-
-  function handleActionCardKeyDown(event, action) {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      action();
-    }
-  }
+  const attachmentRuntime = useAttachmentMessageRuntime({
+    messageAttachment: msg.type === 'attachment' ? msg.attachment : null,
+    messageId: msg.id,
+    user,
+    isOwn,
+  });
+  const {
+    handleTouchStart,
+    handleTouchEnd,
+    handleTouchMove,
+    handleContextMenu,
+    handleActionCardKeyDown,
+  } = useMessageBubbleInteractions(onShowContextMenu);
 
   if (msg.type === 'system') {
     return <SystemMessageNote text={msg.text} />;
   }
 
   if (msg.type === 'attachment') {
-    const { runAttachmentAction } = createAttachmentMessageActionRuntime(
-      msg.attachment,
-      resolvedAttachment,
-      user,
-      {
-      setAttachmentBusy,
-      setResolvedAttachment,
-        setResolvedAttachmentAccess,
-      setAttachmentActionError,
-      }
-    );
-    const attachmentCardPresentation = buildAttachmentMessageCardPresentation(
-      msg.attachment,
-      resolvedAttachment,
-      resolvedAttachmentAccess,
-      {
-        busy: attachmentBusy,
-        isOwn,
-        actionError: attachmentActionError,
-        onOpen: () => runAttachmentAction('open'),
-        onAction: runAttachmentAction,
-      }
-    );
+    const attachmentCardPresentation = attachmentRuntime.presentation;
 
     return (
       <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
@@ -135,27 +79,17 @@ const MessageBubble = React.memo(function MessageBubble({
 
   // ── Oproep bericht ────────────────────────────────────────────────────────
   if (msg.type === 'call') {
-    const isMissed    = !isOwn && (msg.direction === 'no-answer' || msg.direction === 'declined');
-    const durSec      = msg.duration || 0;
-    const durationStr = durSec > 0 ? (durSec >= 60 ? `${Math.floor(durSec / 60)} min` : `${durSec} sec`) : '';
-    const callLabel   = isOwn
-      ? (msg.direction === 'completed' ? (msg.isVideo ? 'Video-oproep' : 'Spraakoproep') : msg.direction === 'declined' ? 'Geweigerd' : 'Geen antwoord')
-      : (isMissed ? (msg.isVideo ? 'Gemiste video-oproep' : 'Gemiste spraakoproep') : (msg.isVideo ? 'Video-oproep' : 'Spraakoproep'));
-    const callSub     = durationStr || (isMissed ? 'Tik om terug te bellen' : '');
-    const iconType    = isMissed ? 'missed' : isOwn ? 'outgoing' : 'incoming';
-    const callCardLabel = isMissed
-      ? `${callLabel}. Activeer om terug te bellen`
-      : callSub ? `${callLabel}. ${callSub}` : callLabel;
+    const callPresentation = deriveCallMessagePresentation(msg, isOwn);
     return (
       <CallMessageCard
         isOwn={isOwn}
         isFocused={isFocused}
-        isMissed={isMissed}
-        isVideo={msg.isVideo}
-        callLabel={callLabel}
-        callSub={callSub}
-        callCardLabel={callCardLabel}
-        iconType={iconType}
+        isMissed={callPresentation.isMissed}
+        isVideo={callPresentation.isVideo}
+        callLabel={callPresentation.callLabel}
+        callSub={callPresentation.callSub}
+        callCardLabel={callPresentation.callCardLabel}
+        iconType={callPresentation.iconType}
         onStartCall={onStartCall}
         onActionCardKeyDown={handleActionCardKeyDown}
         createdAt={msg.createdAt}
@@ -164,43 +98,31 @@ const MessageBubble = React.memo(function MessageBubble({
   }
 
   // ── Standaard tekst bericht ───────────────────────────────────────────────
-  const status = isOwn ? getMessageStatusInfo(msg) : null;
-  const displayText = getMessageDisplayText(msg);
-  const receiptSummaryLabel = getMessageReceiptSummaryLabel(msg, isGroup);
-  const renderedContent = chatSearch.trim()
-    ? highlightMessageSearch(displayText, chatSearch)
-    : renderMessageTextWithMentions(displayText, msg.mentions, memberNames);
+  const textCardPresentation = buildTextMessageCardPresentation(msg, {
+    isOwn,
+    isGroup,
+    memberNames,
+    chatSearch,
+  });
 
   return (
-    <div
-      className={`msg-group ${isOwn ? 'out' : 'in'}`}
-      role="listitem"
-      ref={isFocused ? el => el?.scrollIntoView({ behavior: 'smooth', block: 'center' }) : null}
+    <StandardMessageBubble
+      msg={msg}
+      isOwn={isOwn}
+      isFocused={isFocused}
+      isGroup={isGroup}
+      currentUid={currentUid}
+      renderedContent={textCardPresentation.renderedContent}
+      status={textCardPresentation.status}
+      receiptSummaryLabel={textCardPresentation.receiptSummaryLabel}
       onContextMenu={handleContextMenu}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      onTouchMove={() => clearTimeout(longPressTimer.current)}
-    >
-      {!isOwn && isGroup && <div className="msg-sender">{msg.senderName}</div>}
-      <TextMessageCard
-        msg={msg}
-        isOwn={isOwn}
-        isFocused={isFocused}
-        renderedContent={renderedContent}
-        status={status}
-        receiptSummaryLabel={receiptSummaryLabel}
-        onRetry={onRetry}
-        onReact={onReact}
-        onShowContextMenu={onShowContextMenu}
-      />
-
-      <MessageReactionBar
-        reactions={msg.reactions}
-        currentUid={currentUid}
-        onReact={onReact}
-      />
-
-    </div>
+      onTouchMove={handleTouchMove}
+      onRetry={onRetry}
+      onReact={onReact}
+      onShowContextMenu={onShowContextMenu}
+    />
   );
 });
 

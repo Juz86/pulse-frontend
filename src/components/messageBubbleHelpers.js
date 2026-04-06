@@ -1,3 +1,5 @@
+import { getMessageDisplayText } from '../lib/e2ee/messageModel';
+
 import React from 'react';
 
 export function getMessageStatusInfo(msg) {
@@ -49,4 +51,25 @@ export function highlightMessageSearch(text, query) {
       ? <mark key={i} style={{ background: '#f59e0b', color: '#000', borderRadius: '2px', padding: '0 1px' }}>{part}</mark>
       : part
   );
+}
+
+export function buildTextMessageCardPresentation(msg, {
+  isOwn = false,
+  isGroup = false,
+  memberNames = null,
+  chatSearch = '',
+} = {}) {
+  const status = isOwn ? getMessageStatusInfo(msg) : null;
+  const displayText = getMessageDisplayText(msg);
+  const receiptSummaryLabel = getMessageReceiptSummaryLabel(msg, isGroup);
+  const renderedContent = chatSearch.trim()
+    ? highlightMessageSearch(displayText, chatSearch)
+    : renderMessageTextWithMentions(displayText, msg.mentions, memberNames);
+
+  return {
+    status,
+    displayText,
+    receiptSummaryLabel,
+    renderedContent,
+  };
 }

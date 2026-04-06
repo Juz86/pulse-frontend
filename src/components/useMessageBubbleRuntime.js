@@ -1,5 +1,10 @@
 import useMessageBubbleInteractions from './useMessageBubbleInteractions';
 import useMessageBubbleCardPresentation from './useMessageBubbleCardPresentation';
+import useMessageBubbleRenderConfig from './useMessageBubbleRenderConfig';
+import {
+  buildMessageBubbleHandlers,
+  buildMessageBubbleMessageContext,
+} from './messageBubbleRuntimeHelpers';
 
 export default function useMessageBubbleRuntime({
   msg,
@@ -33,9 +38,7 @@ export default function useMessageBubbleRuntime({
     user,
     chatSearch,
   });
-
-  return {
-    card,
+  const message = buildMessageBubbleMessageContext({
     msg,
     isOwn,
     isFocused,
@@ -44,15 +47,29 @@ export default function useMessageBubbleRuntime({
     currentUid,
     user,
     chatSearch,
+  });
+  const handlers = buildMessageBubbleHandlers({
     onReact,
     onShowContextMenu,
     onRetry,
     onStartCall,
     onViewContact,
-    onContextMenu: handleContextMenu,
-    onTouchStart: handleTouchStart,
-    onTouchEnd: handleTouchEnd,
-    onTouchMove: handleTouchMove,
-    onActionCardKeyDown: handleActionCardKeyDown,
+    handleContextMenu,
+    handleTouchStart,
+    handleTouchEnd,
+    handleTouchMove,
+    handleActionCardKeyDown,
+  });
+  const renderConfig = useMessageBubbleRenderConfig({
+    card,
+    message,
+    handlers,
+  });
+
+  return {
+    card,
+    message,
+    handlers,
+    renderConfig,
   };
 }

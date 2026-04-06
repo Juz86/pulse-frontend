@@ -6,7 +6,11 @@ import DecorativeAvatar, { avatarSvgs } from '../components/DecorativeAvatars';
 import ParentAuthModal from '../components/ParentAuthModal';
 import PageMeta from '../components/PageMeta';
 import {
+  Bell,
   Check,
+  Clock,
+  Heart,
+  Lock,
   Login,
   Message,
   Phone,
@@ -14,6 +18,7 @@ import {
   Shield,
   Users,
   Video,
+  XIcon,
 } from '../components/Icons';
 
 function useFadeIn() {
@@ -131,6 +136,47 @@ export default function OverPulsePagina({ onParentClick }) {
     { key: 'functies',           label: 'Functies',           href: '/functies' },
   ];
 
+  const pulseIs = [
+    'Chatten met vertrouwde contacten',
+    'Bellen en videobellen zonder telefoonnummer',
+    'Ouderlijk toezicht en contactbeheer',
+    'AVG-compliant en privacy-first',
+    'Rustig, overzichtelijk en afleidingsvrij',
+    'Berichten die na 30 dagen automatisch verdwijnen',
+  ];
+
+  const pulseIsNot = [
+    'Geen foto\'s of GIFs',
+    'Geen algoritmes of aanbevelingen',
+    'Geen advertenties of dataverzameling',
+    'Geen onbekende contacten mogelijk',
+    'Geen entertainment of spelletjes',
+    'Geen social media-elementen',
+  ];
+
+  const coreFeatures = [
+    {
+      icon: <Shield size={22} />,
+      title: 'Veiligheid by design',
+      text: 'Pulse is gebouwd met veiligheid als startpunt, niet als nagedachte. Geen media-deling betekent: cyberpesten via foto\'s of gif\'s is structureel onmogelijk.',
+    },
+    {
+      icon: <Lock size={22} />,
+      title: 'Alleen vertrouwde contacten',
+      text: 'Kinderen communiceren uitsluitend met mensen die door de ouder zijn goedgekeurd. Geen onbekenden, geen verzoeken van vreemden.',
+    },
+    {
+      icon: <Users size={22} />,
+      title: 'Ouders in regie',
+      text: 'Het ouderportaal geeft real-time inzicht. Chat, bellen of videobellen pauzeren per functie. Direct een melding bij nieuwe contacten.',
+    },
+    {
+      icon: <Bell size={22} />,
+      title: 'Rust en overzicht',
+      text: 'Geen notificatieregen, geen eindeloos scrollen. Pulse is kalm, helder en gericht — precies wat kinderen en ouders nodig hebben.',
+    },
+  ];
+
   return (
     <div className="hp-root">
       <PageMeta
@@ -156,13 +202,13 @@ export default function OverPulsePagina({ onParentClick }) {
           <div className="ot-hero-copy hw-hero-copy marketing-hero-copy">
             <div className="fp-hero-badge">Over Pulse</div>
             <h1 className="ot-hero-title ot-hero-title--marketing">
-              Rustige communicatie.<br /><span style={{ whiteSpace: 'nowrap' }}>Voor ouder en kind.</span>
+              Geen social media.<br /><span style={{ whiteSpace: 'nowrap' }}>Wel verbinding.</span>
             </h1>
             <p className="ot-hero-sub">
-              Pulse is gemaakt voor veilig contact tussen ouder en kind. Gewoon chatten, bellen en videobellen, zonder social media en zonder onnodige afleiding.
+              Wij geloven dat kinderen recht hebben op veilige, rustgevende communicatie — zonder algoritmes, zonder verslaving, zonder zorgen. Pulse is daarvoor gebouwd.
             </p>
             <div className="ot-hero-actions">
-              <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Account maken</button>
+              <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
               <button type="button" className="ot-secondary-btn" onClick={() => scrollTo('waarom-pulse')}>Meer lezen</button>
             </div>
           </div>
@@ -173,51 +219,112 @@ export default function OverPulsePagina({ onParentClick }) {
       </section>
 
       {/* ── WAAROM PULSE BESTAAT ── */}
-      <section className="hp-section" id="waarom-pulse">
+
+
+      {/* ── PULSE IS BEDACHT DOOR EEN VADER ── */}
+      <section className="hp-section hp-section--gray" id="pulse-ontstaan">
         <div className="hp-section-inner">
-          <SectionHeader
-            badge="Waarom Pulse bestaat"
-            title="Waarom Pulse bestaat"
-            text="Pulse is ontstaan vanuit een simpele vraag van een vader: “Waarom bestaat er geen veilige manier voor mijn kind om gewoon contact te hebben?”"
-            align="left"
-          />
-          <div className="op-compare-row" style={{ marginTop: 32 }}>
-            <div className="op-compare-col op-compare-col--yes">
-              <ul className="ot-feature-list">
-                {[
-                  'Zonder social media',
-                  'Zonder afleiding',
-                  'Zonder dat alles wordt opgeslagen',
-                ].map((item) => (
-                  <li key={item}>
-                    <span className="ot-feature-check"><Check size={14} /></span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+          <FadeRow className="op-privacy-row">
+            <div className="hp-feature-text">
+              <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Waarom Pulse bestaat</div>
+              <h3>Pulse is bedacht door een vader.</h3>
+              <p>Een vader die zich zorgen maakte.</p>
+              <p style={{ marginTop: 16 }}>
+                Over hoe kinderen vandaag opgroeien in een digitale wereld vol prikkels. Over apps die alles volgen, analyseren en opslaan. Over hoe weinig controle ouders eigenlijk hebben.
+              </p>
+              <p style={{ marginTop: 16 }}>Hij wilde iets anders.</p>
+              <p style={{ marginTop: 8 }}>
+                Iets simpels. Iets veiligs. Iets wat alleen draait om contact tussen ouder en kind.
+              </p>
+              <p style={{ marginTop: 16, fontWeight: 700, color: '#1a1a2e' }}>Zo is Pulse ontstaan.</p>
             </div>
-          </div>
+            <div className="hp-feature-mockup">
+              <div className="op-privacy-card">
+                <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Heart size={32} /></div>
+                <div className="op-privacy-title">Een belofte aan ouders</div>
+                <div className="op-privacy-sub">
+                  "Iets simpels. Iets veiligs. Iets wat alleen draait om contact tussen ouder en kind."
+                </div>
+                <div style={{ marginTop: 16, fontSize: 13, color: 'var(--text3)', fontStyle: 'italic' }}>
+                  — Oprichter van Pulse
+                </div>
+              </div>
+            </div>
+          </FadeRow>
         </div>
       </section>
 
-      {/* ── WAT IS PULSE ── */}
-      <section className="hp-section hp-section--gray" id="veilig-alternatief">
+      {/* ── ZIJN MISSIE ── */}
+      <section className="hp-section" id="zijn-missie">
+        <div className="hp-section-inner">
+          <FadeRow className="op-privacy-row">
+            <div className="hp-feature-text">
+              <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Zijn missie</div>
+              <h3>Een veilig alternatief</h3>
+              <p style={{ marginTop: 16 }}>
+                Hij heeft het zijn missie gemaakt om een veilige manier van communiceren terug te brengen.
+              </p>
+              <p style={{ marginTop: 16 }}>
+                Een plek waar kinderen kunnen chatten, bellen en videobellen met hun ouders, familie en vertrouwde mensen om hen heen.
+              </p>
+              <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {['Zonder filters', 'Zonder gifs of memes', 'Zonder social media prikkels'].map((item) => (
+                  <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ color: '#ef4444', display: 'flex', flexShrink: 0 }}><XIcon size={18} /></span>
+                    <span style={{ fontSize: 15, color: '#1a1a2e' }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <p style={{ marginTop: 16, fontWeight: 700, color: '#1a1a2e' }}>
+                Terug naar de kern:<br />
+                <span style={{ fontWeight: 400 }}>gewoon contact, zoals het bedoeld is.</span>
+              </p>
+            </div>
+            <div className="hp-feature-mockup" style={{ flex: '1' }}>
+              <div className="op-privacy-card" style={{ textAlign: 'left', width: '100%' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 12 }}>Pulse is anders</div>
+                <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: 16 }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {[
+                    'Chatten met vertrouwde contacten',
+                    'Bellen en videobellen zonder telefoonnummer',
+                    'Ouderlijk toezicht en contactbeheer',
+                    'AVG-compliant en privacy-first',
+                    'Rustig, overzichtelijk en afleidingsvrij',
+                  ].map((item) => (
+                    <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{
+                        width: 28, height: 28, borderRadius: '50%',
+                        background: 'rgba(108,99,255,0.1)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0, color: 'var(--accent)',
+                      }}>
+                        <Check size={14} />
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 500, color: '#1a1a2e' }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </FadeRow>
+        </div>
+      </section>
+
+      {/* ── EEN VEILIG ALTERNATIEF ── */}
+      <section className="hp-section" id="veilig-alternatief">
         <div className="hp-section-inner">
           <SectionHeader
-            badge="Wat is Pulse"
-            title="Wat is Pulse"
-            text="Pulse is een communicatie-app voor ouder en kind."
+            badge="Een veilig alternatief"
+            title="Pure communicatie, zonder afleiding"
+            text="Pulse is bewust gestript van alles wat niet bijdraagt aan veilig contact. Het resultaat: een app die doet wat het belooft — en niets meer dan dat."
             align="left"
           />
           <div className="op-compare-row">
             <div className="op-compare-col op-compare-col--yes">
-              <div className="op-compare-label op-compare-label--yes">Kinderen kunnen</div>
+              <div className="op-compare-label op-compare-label--yes">Pulse is</div>
               <ul className="ot-feature-list">
-                {[
-                  'chatten',
-                  'bellen',
-                  'videobellen',
-                ].map((item) => (
+                {pulseIs.map((item) => (
                   <li key={item}>
                     <span className="ot-feature-check"><Check size={14} /></span>
                     {item}
@@ -226,34 +333,36 @@ export default function OverPulsePagina({ onParentClick }) {
               </ul>
             </div>
             <div className="op-compare-col op-compare-col--no">
-              <p style={{ margin: 0 }}>
-                Zonder telefoonnummer, in een rustige en veilige omgeving.
-              </p>
+              <div className="op-compare-label op-compare-label--no">Pulse is niet</div>
+              <ul className="ot-feature-list">
+                {pulseIsNot.map((item) => (
+                  <li key={item} className="op-not-item">
+                    <span className="op-not-check">✕</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── WAAROM PULSE ANDERS IS ── */}
+      {/* ── ONTWORPEN VOOR KINDEREN ── */}
       <section className="hp-section" id="voor-kinderen">
         <div className="hp-section-inner">
           <SectionHeader
-            badge="Waarom Pulse anders is"
-            title="Waarom Pulse anders is"
-            text="De meeste apps zijn gemaakt om aandacht vast te houden. Pulse is gemaakt om rust te brengen."
+            badge="Ontworpen voor kinderen"
+            title="Met ouders in regie, voor kinderen in vrijheid"
+            text="Pulse geeft kinderen de vrijheid om contact te houden met de mensen die echt belangrijk zijn — binnen een veilige omgeving die ouders volledig in de hand hebben."
             align="left"
           />
           <div className="hp-why-grid op-feature-grid">
-            {[
-              { icon: <Shield size={22} />, title: 'Geen social media' },
-              { icon: <Users size={22} />, title: 'Geen algoritmes' },
-              { icon: <PhoneIcon size={22} />, title: 'Geen onnodige dataverzameling' },
-              { icon: <Message size={22} />, title: 'Alleen contact met vertrouwde personen' },
-            ].map((item) => (
-              <FadeCard key={item.title}>
+            {coreFeatures.map((f) => (
+              <FadeCard key={f.title}>
                 <div className="hp-why-card">
-                  <div className="op-feature-icon">{item.icon}</div>
-                  <h3>{item.title}</h3>
+                  <div className="op-feature-icon">{f.icon}</div>
+                  <h3>{f.title}</h3>
+                  <p>{f.text}</p>
                 </div>
               </FadeCard>
             ))}
@@ -261,34 +370,34 @@ export default function OverPulsePagina({ onParentClick }) {
         </div>
       </section>
 
-      {/* ── WAT DIT BETEKENT ── */}
+      {/* ── PRIVACY EN VEILIGHEID ── */}
       <section className="hp-section hp-section--gray" id="privacy">
         <div className="hp-section-inner">
           <FadeRow className="op-privacy-row">
             <div className="hp-feature-text">
-              <div className="hp-feature-tag">Wat dit betekent voor jullie</div>
-              <h3>Wat dit betekent voor jullie</h3>
-              <p>Pulse geeft kinderen ruimte om veilig contact te houden, terwijl ouders overzicht en rust behouden.</p>
+              <div className="hp-feature-tag">Privacy &amp; AVG</div>
+              <h3>Privacy als fundament, niet als bijzaak</h3>
+              <p>Bij Pulse is privacy geen checkbox. Het is het vertrekpunt van elke ontwerpbeslissing. We verzamelen alleen wat strikt noodzakelijk is, en bewaren het niet langer dan nodig.</p>
               <ul className="ot-feature-list" style={{ marginTop: 24 }}>
-                <li><strong>Voor kinderen:</strong></li>
-                <li><span className="ot-feature-check"><Check size={14} /></span>veilig communiceren</li>
-                <li><span className="ot-feature-check"><Check size={14} /></span>geen druk of afleiding</li>
-                <li style={{ marginTop: 12 }}><strong>Voor ouders:</strong></li>
-                <li><span className="ot-feature-check"><Check size={14} /></span>volledige controle</li>
-                <li><span className="ot-feature-check"><Check size={14} /></span>overzicht en rust</li>
+                <li><span className="ot-feature-check"><Check size={14} /></span>Volledig AVG-compliant</li>
+                <li><span className="ot-feature-check"><Check size={14} /></span>Geen profilering of dataverzameling voor advertenties</li>
+                <li><span className="ot-feature-check"><Check size={14} /></span>Berichten verdwijnen automatisch na 30 dagen</li>
+                <li><span className="ot-feature-check"><Check size={14} /></span>Geen telefoonnummer vereist</li>
+                <li><span className="ot-feature-check"><Check size={14} /></span>Geen media-deling — geen risico op verspreiding van beelden</li>
+                <li><span className="ot-feature-check"><Check size={14} /></span>100% Nederlands, 100% transparant</li>
               </ul>
             </div>
             <div className="hp-feature-mockup">
               <div className="op-privacy-card">
-                <div className="op-privacy-icon"><Shield size={32} /></div>
-                <div className="op-privacy-title">Rustig en veilig contact</div>
+                <div className="op-privacy-icon"><Lock size={32} /></div>
+                <div className="op-privacy-title">AVG-compliant</div>
                 <div className="op-privacy-sub">
-                  Chatten, bellen en videobellen in een omgeving die simpel, vertrouwd en overzichtelijk voelt.
+                  Gebouwd voor de Nederlandse markt, met naleving van Europese privacywetgeving als basis. Geen dataverzameling voor commerciële doeleinden.
                 </div>
                 <div className="op-privacy-badges">
-                  <span><Shield size={12} /> Veilig</span>
-                  <span><Users size={12} /> Vertrouwd</span>
-                  <span><PhoneIcon size={12} /> Rustig contact</span>
+                  <span>🇳🇱 Nederlands</span>
+                  <span><Lock size={12} /> Versleuteld</span>
+                  <span><Clock size={12} /> 30 dagen</span>
                 </div>
               </div>
             </div>
@@ -296,12 +405,44 @@ export default function OverPulsePagina({ onParentClick }) {
         </div>
       </section>
 
+      {/* ── WAAROM JUIST NU ── */}
+      <section className="hp-section" id="juist-nu">
+        <div className="hp-section-inner">
+          <SectionHeader
+            badge="Waarom juist nu"
+            title="De wereld vraagt om een rustiger digitaal alternatief"
+            text="De discussie over schermtijd, online veiligheid en verslavend app-design staat hoog op de agenda — van de Tweede Kamer tot ouderavonden op school. Er is een breed gedeeld gevoel dat het anders moet. Pulse is dat alternatief."
+            align="left"
+          />
+          <div className="op-quote-scene">
+            {[
+              { label: 'Schermtijd bij kinderen',       style: { top: '8%',  left: '2%',   transform: 'rotate(-4deg)' } },
+              { label: 'Verslavend app-design',         style: { top: '4%',  left: 'calc(32% + 50px)',  transform: 'rotate(2deg)'  } },
+              { label: 'Online veiligheid',             style: { top: '6%',  right: '4%',  transform: 'rotate(-3deg)' } },
+              { label: 'Cyberpesten',                   style: { top: '38%', right: '1%',  transform: 'rotate(4deg)'  } },
+              { label: 'Privacy & AVG',                 style: { bottom: '8%',  left: '3%',  transform: 'rotate(3deg)'  } },
+              { label: 'Smartphonegebruik op scholen',  style: { bottom: '4%', left: 'calc(28% + 50px)', transform: 'rotate(-2deg)' } },
+              { label: 'Kinderen en sociale media',     style: { bottom: '5%',  right: '3%', transform: 'rotate(-4deg)' } },
+              { label: 'Digitaal welzijn',              style: { top: '38%', left: '1%',  transform: 'rotate(-3deg)' } },
+            ].map(({ label, style }) => (
+              <span key={label} className="op-topic-pill op-topic-pill--deco" style={style} aria-hidden="true">{label}</span>
+            ))}
+            <div className="op-statement">
+              <blockquote>
+                "Kinderen hebben geen sociale media nodig. Ze hebben contact nodig — met opa en oma, met hun beste vriend, met de ouder die op het werk is. Dat is waar Pulse voor is."
+              </blockquote>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── VOOR GEZINNEN, SCHOLEN EN PARTNERS ── */}
       {/* ── CTA ── */}
       <section className="ot-final-cta">
         <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
-        <p>Pulse helpt ouder en kind om rustig en veilig in contact te blijven.</p>
+        <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Account maken</button>
+          <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
           <button
             type="button"
             className="hp-cta-btn"

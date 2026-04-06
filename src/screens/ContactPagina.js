@@ -299,7 +299,7 @@ function ContactForm() {
           </div>
         ) : (
           <>
-            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6 }}>Stuur ons een bericht</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6, color: '#fff' }}>Stuur ons een bericht</h2>
             <p style={{ color: 'var(--text2)', fontSize: 15, marginBottom: 28, lineHeight: 1.6 }}>
               We reageren doorgaans binnen één werkdag.
             </p>
@@ -481,8 +481,10 @@ export default function ContactPagina() {
             <h1 className="legal-hero-title">
               Hoe kunnen we je helpen?
             </h1>
-            <p className="legal-hero-intro" style={{ maxWidth: 520 }}>
+            <p className="legal-hero-intro" style={{ maxWidth: 640 }}>
               Heb je een vraag over Pulse, ouderlijk toezicht, privacy of samenwerking?
+            </p>
+            <p className="legal-hero-intro" style={{ maxWidth: 640, marginTop: 8 }}>
               Stuur ons een bericht — we reageren zo snel mogelijk.
             </p>
           </div>

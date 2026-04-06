@@ -30,7 +30,7 @@ export default function MarketingFooter() {
           <nav className="hp-footer-col" aria-labelledby="footer-about-title">
             <h4 id="footer-about-title">Over Pulse</h4>
             <ul className="hp-footer-list">
-              <li><a href="/over-pulse#waarom-pulse">Over ons</a></li>
+              <li><a href="/over-pulse">Over ons</a></li>
               <li><a href="/privacy-first">Privacy-First</a></li>
               <li><a href="/hoe-werkt-het#hoe-werkt-pulse">Hoe werkt het</a></li>
               <li><a href="/contact">Contact</a></li>

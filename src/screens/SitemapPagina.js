@@ -35,7 +35,7 @@ const SITEMAP = [
   {
     title: 'Over Pulse',
     links: [
-      { label: 'Ons verhaal',          href: '/over-pulse#waarom-pulse' },
+      { label: 'Ons verhaal',          href: '/over-pulse' },
       { label: 'Privacy & AVG',        href: '/over-pulse#privacy' },
       { label: 'Voor gezinnen',        href: '/over-pulse#voor-wie' },
       { label: 'Voor scholen',         href: '/over-pulse#voor-wie' },

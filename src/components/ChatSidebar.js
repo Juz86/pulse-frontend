@@ -498,7 +498,7 @@ export default function ChatSidebar({
               position: 'fixed',
               top: contactMenu.top,
               left: contactMenu.left,
-              width: 188,
+              width: 160,
               background: 'var(--surface2)',
               border: '1px solid var(--border)',
               borderRadius: 12,
@@ -510,34 +510,34 @@ export default function ChatSidebar({
               gap: 4,
             }}
           >
-            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onViewContact(contact); setContactMenu(null); }} title="Profiel">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
+            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onViewContact(contact); setContactMenu(null); }} title="Profiel">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
               <span>Profiel</span>
             </button>
             {!isParentBlocked && <>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onStartChat(contact); setContactMenu(null); }} title="Bericht sturen">
-                <Message size={16} aria-hidden="true" />
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onStartChat(contact); setContactMenu(null); }} title="Bericht sturen">
+                <Message size={14} aria-hidden="true" />
                 <span>Bericht sturen</span>
               </button>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
-                <Phone size={16} aria-hidden="true" />
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
+                <Phone size={14} aria-hidden="true" />
                 <span>Bellen</span>
               </button>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
-                <Video size={16} aria-hidden="true" />
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
+                <Video size={14} aria-hidden="true" />
                 <span>Videobellen</span>
               </button>
-              <button type="button" role="menuitem" className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
-                <Pin size={17} aria-hidden="true" />
+              <button type="button" role="menuitem" className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
+                <Pin size={14} aria-hidden="true" />
                 <span>{pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}</span>
               </button>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }} onClick={() => { onBlockContact(contact); setContactMenu(null); }} title="Blokkeren">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0, color: 'var(--danger)' }} onClick={() => { onBlockContact(contact); setContactMenu(null); }} title="Blokkeren">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
                 <span>Blokkeren</span>
               </button>
             </>}
-            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }} onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
-              <Delete size={18} aria-hidden="true" />
+            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0, color: 'var(--danger)' }} onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
+              <Delete size={14} aria-hidden="true" />
               <span>Prullenbak</span>
             </button>
           </div>

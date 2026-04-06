@@ -6,42 +6,35 @@ import SharedContactMessageCard from './SharedContactMessageCard';
 import StandardMessageBubble from './StandardMessageBubble';
 import SystemMessageNote from './SystemMessageNote';
 
-function buildSystemMessageRenderConfig(card) {
-  return {
+const MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS = {
+  system: ({ card }) => ({
     component: SystemMessageNote,
     props: {
       text: card.presentation.text,
     },
     wrapInGroup: false,
-  };
-}
-
-function buildAttachmentMessageRenderConfig(card) {
-  return {
+  }),
+  attachment: ({ card }) => ({
     component: AttachmentMessageCard,
     props: {
       presentation: card.presentation,
     },
     wrapInGroup: true,
-  };
-}
+  }),
+  contact: ({ card, handlers }) => {
+    if (!card.presentation) return null;
 
-function buildContactMessageRenderConfig(card, handlers) {
-  if (!card.presentation) return null;
-
-  return {
-    component: SharedContactMessageCard,
-    props: {
-      presentation: card.presentation,
-      onViewContact: handlers.onViewContact,
-      onActionCardKeyDown: handlers.onActionCardKeyDown,
-    },
-    wrapInGroup: true,
-  };
-}
-
-function buildCallMessageRenderConfig(card, handlers) {
-  return {
+    return {
+      component: SharedContactMessageCard,
+      props: {
+        presentation: card.presentation,
+        onViewContact: handlers.onViewContact,
+        onActionCardKeyDown: handlers.onActionCardKeyDown,
+      },
+      wrapInGroup: true,
+    };
+  },
+  call: ({ card, handlers }) => ({
     component: CallMessageCard,
     props: {
       presentation: card.presentation,
@@ -49,11 +42,8 @@ function buildCallMessageRenderConfig(card, handlers) {
       onActionCardKeyDown: handlers.onActionCardKeyDown,
     },
     wrapInGroup: false,
-  };
-}
-
-function buildTextMessageRenderConfig(card, handlers) {
-  return {
+  }),
+  text: ({ card, handlers }) => ({
     component: StandardMessageBubble,
     props: {
       presentation: card.presentation,
@@ -66,55 +56,27 @@ function buildTextMessageRenderConfig(card, handlers) {
       onShowContextMenu: handlers.onShowContextMenu,
     },
     wrapInGroup: false,
-  };
-}
-
-function buildDefaultMessageRenderConfig(runtime) {
-  return buildTextMessageRenderConfig(runtime.card, runtime.handlers);
-}
-
-const MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS = {
-  system: ({ card }) => buildSystemMessageRenderConfig(card),
-  attachment: ({ card }) => buildAttachmentMessageRenderConfig(card),
-  contact: ({ card, handlers }) => buildContactMessageRenderConfig(card, handlers),
-  call: ({ card, handlers }) => buildCallMessageRenderConfig(card, handlers),
-  text: buildDefaultMessageRenderConfig,
+  }),
 };
 
-export function buildMessageBubbleCardRenderConfig(runtime) {
-  const builder = MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS[runtime.card.type]
-    || buildDefaultMessageRenderConfig;
-
-  return builder(runtime);
-}
-
-function renderMessageBubbleCardContent(renderConfig) {
-  const CardComponent = renderConfig.component;
-  return <CardComponent {...renderConfig.props} />;
-}
-
-function renderWrappedMessageBubbleCard(runtime, content) {
-  return <MessageBubbleGroup isOwn={runtime.isOwn}>{content}</MessageBubbleGroup>;
-}
-
-function buildMessageBubbleRenderRuntime(runtime) {
-  return {
+export function renderMessageBubbleCard(runtime) {
+  const renderRuntime = {
     card: runtime.card,
     handlers: runtime.handlers,
     isOwn: runtime.message.isOwn,
   };
-}
-
-export function renderMessageBubbleCard(runtime) {
-  const renderRuntime = buildMessageBubbleRenderRuntime(runtime);
-  const renderConfig = buildMessageBubbleCardRenderConfig(renderRuntime);
+  const renderConfig = (
+    MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS[renderRuntime.card.type]
+    || MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS.text
+  )(renderRuntime);
   if (!renderConfig) return null;
 
-  const content = renderMessageBubbleCardContent(renderConfig);
+  const CardComponent = renderConfig.component;
+  const content = <CardComponent {...renderConfig.props} />;
 
   if (!renderConfig.wrapInGroup) {
     return content;
   }
 
-  return renderWrappedMessageBubbleCard(renderRuntime, content);
+  return <MessageBubbleGroup isOwn={renderRuntime.isOwn}>{content}</MessageBubbleGroup>;
 }

@@ -1,4 +1,5 @@
 import useMessageBubbleInteractions from './useMessageBubbleInteractions';
+import useMessageBubbleCardPresentation from './useMessageBubbleCardPresentation';
 
 export default function useMessageBubbleRuntime({
   msg,
@@ -22,8 +23,19 @@ export default function useMessageBubbleRuntime({
     handleContextMenu,
     handleActionCardKeyDown,
   } = useMessageBubbleInteractions(onShowContextMenu);
+  const card = useMessageBubbleCardPresentation({
+    msg,
+    isOwn,
+    isFocused,
+    isGroup,
+    memberNames,
+    currentUid,
+    user,
+    chatSearch,
+  });
 
   return {
+    card,
     msg,
     isOwn,
     isFocused,

@@ -5,6 +5,89 @@ import {
 } from './messageBubbleHelpers';
 import useAttachmentMessageRuntime from './useAttachmentMessageRuntime';
 
+function buildAttachmentCardPresentation(attachmentRuntime) {
+  return {
+    type: 'attachment',
+    presentation: attachmentRuntime.presentation,
+  };
+}
+
+function buildContactCardPresentation(msg, isOwn) {
+  return {
+    type: 'contact',
+    presentation: buildSharedContactMessageCardPresentation(msg, {
+      isOwn,
+    }),
+  };
+}
+
+function buildCallCardPresentation(msg, isOwn, isFocused) {
+  return {
+    type: 'call',
+    presentation: buildCallMessageCardPresentation(msg, {
+      isOwn,
+      isFocused,
+    }),
+  };
+}
+
+function buildSystemCardPresentation(msg) {
+  return {
+    type: 'system',
+    presentation: {
+      text: msg.text,
+    },
+  };
+}
+
+function buildTextCardPresentation(
+  msg,
+  { isOwn, isFocused, isGroup, memberNames, currentUid, chatSearch },
+) {
+  return {
+    type: 'text',
+    presentation: buildStandardMessageBubblePresentation(msg, {
+      isOwn,
+      isFocused,
+      isGroup,
+      memberNames,
+      currentUid,
+      chatSearch,
+    }),
+  };
+}
+
+function buildMessageBubbleCardPresentation({
+  msg,
+  attachmentRuntime,
+  isOwn,
+  isFocused,
+  isGroup,
+  memberNames,
+  currentUid,
+  chatSearch,
+}) {
+  switch (msg.type) {
+    case 'attachment':
+      return buildAttachmentCardPresentation(attachmentRuntime);
+    case 'contact':
+      return buildContactCardPresentation(msg, isOwn);
+    case 'call':
+      return buildCallCardPresentation(msg, isOwn, isFocused);
+    case 'system':
+      return buildSystemCardPresentation(msg);
+    default:
+      return buildTextCardPresentation(msg, {
+        isOwn,
+        isFocused,
+        isGroup,
+        memberNames,
+        currentUid,
+        chatSearch,
+      });
+  }
+}
+
 export default function useMessageBubbleCardPresentation({
   msg,
   isOwn,
@@ -22,50 +105,14 @@ export default function useMessageBubbleCardPresentation({
     isOwn,
   });
 
-  if (msg.type === 'attachment') {
-    return {
-      type: 'attachment',
-      presentation: attachmentRuntime.presentation,
-    };
-  }
-
-  if (msg.type === 'contact') {
-    return {
-      type: 'contact',
-      presentation: buildSharedContactMessageCardPresentation(msg, {
-        isOwn,
-      }),
-    };
-  }
-
-  if (msg.type === 'call') {
-    return {
-      type: 'call',
-      presentation: buildCallMessageCardPresentation(msg, {
-        isOwn,
-        isFocused,
-      }),
-    };
-  }
-
-  if (msg.type === 'system') {
-    return {
-      type: 'system',
-      presentation: {
-        text: msg.text,
-      },
-    };
-  }
-
-  return {
-    type: 'text',
-    presentation: buildStandardMessageBubblePresentation(msg, {
-      isOwn,
-      isFocused,
-      isGroup,
-      memberNames,
-      currentUid,
-      chatSearch,
-    }),
-  };
+  return buildMessageBubbleCardPresentation({
+    msg,
+    attachmentRuntime,
+    isOwn,
+    isFocused,
+    isGroup,
+    memberNames,
+    currentUid,
+    chatSearch,
+  });
 }

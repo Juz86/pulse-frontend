@@ -53,7 +53,7 @@ function FadeRow({ children, className = '' }) {
 function FeatureStrip() {
   return (
     <div className="op-feature-strip" aria-hidden="true">
-      <div className="op-strip-header">Pulse doet drie dingen</div>
+      <div className="op-strip-header">Pulse houdt contact simpel</div>
       <div className="op-strip-item">
         <div className="op-strip-icon"><Message size={20} /></div>
         <div>

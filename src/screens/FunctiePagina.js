@@ -14,7 +14,7 @@ import {
   Message, Users, User, Search, Bell,
   Pin, StarFilled, CheckDouble, Shield,
   Forward, Reply, ImageIcon, Palette,
-  Clock, Wifi, Logout, Login,
+  Clock, Logout, Login,
   Lightbulb, PhoneCall, PhoneMissed, PhoneEnd,
 } from '../components/Icons';
 import { MdAlternateEmail, MdSend, MdSmartphone } from 'react-icons/md';

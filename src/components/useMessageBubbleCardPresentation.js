@@ -5,123 +5,97 @@ import {
 } from './messageBubbleHelpers';
 import useAttachmentMessageRuntime from './useAttachmentMessageRuntime';
 
-function buildAttachmentCardPresentation(msg, attachmentRuntime) {
+function buildAttachmentCardPresentation(message, attachmentRuntime) {
   return {
     type: 'attachment',
     presentation: {
       ...attachmentRuntime.presentation,
-      createdAt: msg.createdAt,
+      createdAt: message.msg.createdAt,
     },
   };
 }
 
-function buildContactCardPresentation(msg, isOwn) {
+function buildContactCardPresentation(message) {
   return {
     type: 'contact',
-    presentation: buildSharedContactMessageCardPresentation(msg, {
-      isOwn,
+    presentation: buildSharedContactMessageCardPresentation(message.msg, {
+      isOwn: message.isOwn,
     }),
   };
 }
 
-function buildCallCardPresentation(msg, isOwn, isFocused) {
+function buildCallCardPresentation(message) {
   return {
     type: 'call',
     presentation: {
-      ...buildCallMessageCardPresentation(msg, {
-        isOwn,
-        isFocused,
+      ...buildCallMessageCardPresentation(message.msg, {
+        isOwn: message.isOwn,
+        isFocused: message.isFocused,
       }),
-      createdAt: msg.createdAt,
+      createdAt: message.msg.createdAt,
     },
   };
 }
 
-function buildSystemCardPresentation(msg) {
+function buildSystemCardPresentation(message) {
   return {
     type: 'system',
     presentation: {
-      text: msg.text,
+      text: message.msg.text,
     },
   };
 }
 
-function buildTextCardPresentation(
-  msg,
-  { isOwn, isFocused, isGroup, memberNames, currentUid, chatSearch },
-) {
+function buildTextCardPresentation(message) {
   return {
     type: 'text',
-    presentation: buildStandardMessageBubblePresentation(msg, {
-      isOwn,
-      isFocused,
-      isGroup,
-      memberNames,
-      currentUid,
-      chatSearch,
+    presentation: buildStandardMessageBubblePresentation(message.msg, {
+      isOwn: message.isOwn,
+      isFocused: message.isFocused,
+      isGroup: message.isGroup,
+      memberNames: message.memberNames,
+      currentUid: message.currentUid,
+      chatSearch: message.chatSearch,
     }),
+  };
+}
+
+function buildAttachmentMessageRuntimeInput(message) {
+  return {
+    messageAttachment: message.msg.type === 'attachment' ? message.msg.attachment : null,
+    messageId: message.msg.id,
+    user: message.user,
+    isOwn: message.isOwn,
   };
 }
 
 function buildMessageBubbleCardPresentation({
-  msg,
+  message,
   attachmentRuntime,
-  isOwn,
-  isFocused,
-  isGroup,
-  memberNames,
-  currentUid,
-  chatSearch,
 }) {
-  switch (msg.type) {
+  switch (message.msg.type) {
     case 'attachment':
-      return buildAttachmentCardPresentation(msg, attachmentRuntime);
+      return buildAttachmentCardPresentation(message, attachmentRuntime);
     case 'contact':
-      return buildContactCardPresentation(msg, isOwn);
+      return buildContactCardPresentation(message);
     case 'call':
-      return buildCallCardPresentation(msg, isOwn, isFocused);
+      return buildCallCardPresentation(message);
     case 'system':
-      return buildSystemCardPresentation(msg);
+      return buildSystemCardPresentation(message);
     default:
-      return buildTextCardPresentation(msg, {
-        isOwn,
-        isFocused,
-        isGroup,
-        memberNames,
-        currentUid,
-        chatSearch,
-      });
+      return buildTextCardPresentation(message);
   }
 }
 
 export default function useMessageBubbleCardPresentation({
   message,
 }) {
-  const {
-    msg,
-    isOwn,
-    isFocused,
-    isGroup,
-    memberNames,
-    currentUid,
-    user,
-    chatSearch,
-  } = message;
-  const attachmentRuntime = useAttachmentMessageRuntime({
-    messageAttachment: msg.type === 'attachment' ? msg.attachment : null,
-    messageId: msg.id,
-    user,
-    isOwn,
-  });
+  const attachmentRuntime = useAttachmentMessageRuntime(
+    buildAttachmentMessageRuntimeInput(message)
+  );
 
   return buildMessageBubbleCardPresentation({
-    msg,
+    message,
     attachmentRuntime,
-    isOwn,
-    isFocused,
-    isGroup,
-    memberNames,
-    currentUid,
-    chatSearch,
   });
 }

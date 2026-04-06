@@ -82,10 +82,10 @@ const MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS = {
 };
 
 export function buildMessageBubbleCardRenderConfig(runtime) {
-  return (
-    MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS[runtime.card.type]
-    || buildDefaultMessageRenderConfig
-  )(runtime);
+  const builder = MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS[runtime.card.type]
+    || buildDefaultMessageRenderConfig;
+
+  return builder(runtime);
 }
 
 function renderMessageBubbleCardContent(renderConfig) {
@@ -94,11 +94,20 @@ function renderMessageBubbleCardContent(renderConfig) {
 }
 
 function renderWrappedMessageBubbleCard(runtime, content) {
-  return <MessageBubbleGroup isOwn={runtime.message.isOwn}>{content}</MessageBubbleGroup>;
+  return <MessageBubbleGroup isOwn={runtime.isOwn}>{content}</MessageBubbleGroup>;
+}
+
+function buildMessageBubbleRenderRuntime(runtime) {
+  return {
+    card: runtime.card,
+    handlers: runtime.handlers,
+    isOwn: runtime.message.isOwn,
+  };
 }
 
 export function renderMessageBubbleCard(runtime) {
-  const renderConfig = buildMessageBubbleCardRenderConfig(runtime);
+  const renderRuntime = buildMessageBubbleRenderRuntime(runtime);
+  const renderConfig = buildMessageBubbleCardRenderConfig(renderRuntime);
   if (!renderConfig) return null;
 
   const content = renderMessageBubbleCardContent(renderConfig);
@@ -107,5 +116,5 @@ export function renderMessageBubbleCard(runtime) {
     return content;
   }
 
-  return renderWrappedMessageBubbleCard(runtime, content);
+  return renderWrappedMessageBubbleCard(renderRuntime, content);
 }

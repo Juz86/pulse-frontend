@@ -475,7 +475,7 @@ export default function ContactPagina() {
 
       <main id="main-content">
         {/* ── HERO ── */}
-        <section className="legal-hero" style={{ paddingBottom: 48 }}>
+        <section className="legal-hero" style={{ paddingBottom: 48, background: '#fff' }}>
           <div className="legal-hero-inner">
             <div className="fp-hero-badge legal-hero-badge">Contact</div>
             <h1 className="legal-hero-title">

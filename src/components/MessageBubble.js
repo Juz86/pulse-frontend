@@ -1,6 +1,6 @@
 // src/components/MessageBubble.js
 import React from 'react';
-import MessageBubbleCardRenderer from './MessageBubbleCardRenderer';
+import { renderMessageBubbleCard } from './messageBubbleCardRendererHelpers';
 import useMessageBubbleRuntime from './useMessageBubbleRuntime';
 
 // ── MessageBubble ─────────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ const MessageBubble = React.memo(function MessageBubble({
     onViewContact,
   });
 
-  return <MessageBubbleCardRenderer runtime={bubbleRuntime} />;
+  return renderMessageBubbleCard(bubbleRuntime);
 });
 
 export default MessageBubble;

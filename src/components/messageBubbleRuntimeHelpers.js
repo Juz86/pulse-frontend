@@ -46,18 +46,6 @@ export function buildMessageBubbleHandlers({
   };
 }
 
-export function buildMessageBubbleRuntimeState({
-  card,
-  message,
-  handlers,
-}) {
-  return {
-    card,
-    message,
-    handlers,
-  };
-}
-
 export function buildMessageBubbleRuntime({
   message,
   card,
@@ -81,9 +69,9 @@ export function buildMessageBubbleRuntime({
     handleActionCardKeyDown: interactions.handleActionCardKeyDown,
   });
 
-  return buildMessageBubbleRuntimeState({
+  return {
     card,
     message,
     handlers,
-  });
+  };
 }

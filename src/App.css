@@ -298,7 +298,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   text-align: center; margin: 16px 0 0;
 }
 .auth-features { display:flex; gap:12px; margin-top:28px; padding:24px 0 0; border-top:1px solid var(--border); list-style:none; }
-.auth-feature  { flex:1; text-align:center; font-size:11px; color:var(--text3); line-height:1.6; }
+.auth-feature  { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; font-size:11px; color:var(--text3); line-height:1.6; }
 
 /* ── AUTH MODAL ── */
 .auth-modal-overlay {
@@ -4352,18 +4352,22 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid rgba(255,255,255,0.07);
-  font-size: 12px;
-  color: rgba(255,255,255,0.45);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-around;
+  gap: 4px;
 }
 .op-strip-footer span {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  white-space: nowrap;
+  gap: 6px;
+  flex: 1;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.55);
+  text-align: center;
+  line-height: 1.4;
 }
 
 /* Vergelijking: Pulse is / Pulse is niet */

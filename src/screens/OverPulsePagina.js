@@ -103,9 +103,9 @@ function FeatureStrip() {
         </div>
       </div>
       <div className="op-strip-footer">
-        <span><Shield size={13} /> Versleuteld</span>
-        <span><Users size={13} /> Toezicht</span>
-        <span>🇳🇱 100% Nederlands</span>
+        <span><Shield size={16} />Versleuteld & privé</span>
+        <span><Users size={16} />Chatten & (video)bellen</span>
+        <span><Users size={16} />Ouderlijk toezicht</span>
       </div>
     </div>
   );

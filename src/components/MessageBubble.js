@@ -1,12 +1,17 @@
 // src/components/MessageBubble.js
 import React, { useRef, useState, useEffect } from 'react';
-import { Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
 import AttachmentMessageCard from './AttachmentMessageCard';
 import CallMessageCard from './CallMessageCard';
-import MessageBubbleActions from './MessageBubbleActions';
 import MessageReactionBar from './MessageReactionBar';
 import SharedContactMessageCard from './SharedContactMessageCard';
 import SystemMessageNote from './SystemMessageNote';
+import TextMessageCard from './TextMessageCard';
+import {
+  getMessageReceiptSummaryLabel,
+  getMessageStatusInfo,
+  highlightMessageSearch,
+  renderMessageTextWithMentions,
+} from './messageBubbleHelpers';
 import {
   createAttachmentMessageActionRuntime,
   getInitialAttachmentActionState,
@@ -15,58 +20,6 @@ import {
   buildAttachmentMessageCardPresentation,
 } from '../lib/e2ee/attachmentPresentation';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
-import { formatTime } from '../utils';
-
-// ── Helpers (pure, buiten component voor stabiele referentie) ─────────────────
-
-function getMsgStatusInfo(msg) {
-  if (msg.failed)  return { icon: 'cancel', label: 'Mislukt', failed: true };
-  if (msg.pending) return { icon: 'clock',  label: 'verstuurd', failed: false };
-  if (msg.deliveryState === 'read') return { icon: 'double', label: 'gelezen', read: true };
-  if (msg.deliveryState === 'delivered') return { icon: 'double', label: 'bezorgd', read: false };
-  if (msg.deliveryState === 'failed') return { icon: 'cancel', label: 'Mislukt', failed: true };
-  if (msg.deliveryState === 'sending') return { icon: 'clock', label: 'verstuurd', failed: false };
-  if (msg.status === 'gelezen') return { icon: 'double', label: 'gelezen', read: true };
-  if (msg.status === 'bezorgd') return { icon: 'double', label: 'bezorgd', read: false };
-  return { icon: 'check', label: 'verstuurd', failed: false };
-}
-
-function getReceiptSummaryLabel(msg, isGroup) {
-  if (!isGroup || !msg?.receiptSummary || !msg?.isOwn) return '';
-
-  const {
-    recipientCount = 0,
-    deliveredCount = 0,
-    readCount = 0,
-  } = msg.receiptSummary;
-
-  if (!recipientCount) return '';
-  if (readCount > 0) return `gelezen door ${readCount}/${recipientCount}`;
-  if (deliveredCount > 0) return `bezorgd bij ${deliveredCount}/${recipientCount}`;
-  return '';
-}
-
-function renderMsgText(text, mentions, memberNames) {
-  const parts = text.split(/(@\S+)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith('@') && mentions?.length) {
-      const name    = part.slice(1).replace(/[^\w\s]/g, '');
-      const matched = mentions.find(uid => (memberNames?.[uid] || '').toLowerCase() === name.toLowerCase());
-      if (matched) return <span key={i} className="mention-tag">{part}</span>;
-    }
-    return part;
-  });
-}
-
-function highlightText(text, query) {
-  if (!query.trim()) return text;
-  const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
-  return parts.map((p, i) =>
-    p.toLowerCase() === query.toLowerCase()
-      ? <mark key={i} style={{ background: '#f59e0b', color: '#000', borderRadius: '2px', padding: '0 1px' }}>{p}</mark>
-      : p
-  );
-}
 
 // ── MessageBubble ─────────────────────────────────────────────────────────────
 
@@ -211,9 +164,12 @@ const MessageBubble = React.memo(function MessageBubble({
   }
 
   // ── Standaard tekst bericht ───────────────────────────────────────────────
-  const status = isOwn ? getMsgStatusInfo(msg) : null;
+  const status = isOwn ? getMessageStatusInfo(msg) : null;
   const displayText = getMessageDisplayText(msg);
-  const receiptSummaryLabel = getReceiptSummaryLabel(msg, isGroup);
+  const receiptSummaryLabel = getMessageReceiptSummaryLabel(msg, isGroup);
+  const renderedContent = chatSearch.trim()
+    ? highlightMessageSearch(displayText, chatSearch)
+    : renderMessageTextWithMentions(displayText, msg.mentions, memberNames);
 
   return (
     <div
@@ -226,62 +182,17 @@ const MessageBubble = React.memo(function MessageBubble({
       onTouchMove={() => clearTimeout(longPressTimer.current)}
     >
       {!isOwn && isGroup && <div className="msg-sender">{msg.senderName}</div>}
-      <div className="msg-bubble-wrap">
-        {msg.replyTo && (
-          <div className="msg-reply-quote" aria-label={`Antwoord op bericht van ${msg.replyTo.senderName}`}>
-            <span className="msg-reply-name">{msg.replyTo.senderName}</span>
-            <span className="msg-reply-text">{msg.replyTo.text}</span>
-          </div>
-        )}
-        <div className="msg-bubble" style={isFocused ? { outline: '2px solid #f59e0b', outlineOffset: '2px' } : {}}>
-          <span className="msg-bubble-text">
-            {chatSearch.trim()
-              ? highlightText(displayText, chatSearch)
-              : renderMsgText(displayText, msg.mentions, memberNames)}
-            {msg.editedAt && <span className="msg-edited" aria-label="Bewerkt"><span aria-hidden="true">(bewerkt)</span></span>}
-          </span>
-          {/* Tijd + status binnen de bubble */}
-          <span className="msg-time">
-            {formatTime(msg.createdAt)}
-            {isOwn && status && (
-              status.failed
-                ? (
-                  <button type="button" className="msg-ticks failed" onClick={onRetry} title="Opnieuw versturen" aria-label="Bericht niet verzonden, probeer opnieuw">
-                    <span className="msg-ticks-label">Niet verzonden.</span>
-                    <span aria-hidden="true"><ErrorIcon size={12} /></span>
-                  </button>
-                ) : (
-                  <span className={`msg-ticks${status.read ? ' read' : ''}`} aria-label={`Bericht ${status.label}`}>
-                    <span className="msg-ticks-label">{status.label}</span>
-                    {status.icon === 'clock'
-                      ? <span className={msg._retrying ? 'msg-clock-spin' : ''} aria-hidden="true"><Clock size={11} /></span>
-                      : status.icon === 'double'
-                        ? <span aria-hidden="true"><CheckDouble size={11} /></span>
-                        : <span aria-hidden="true"><Check size={11} /></span>}
-                  </span>
-                )
-            )}
-          </span>
-        </div>
-        {receiptSummaryLabel && (
-          <div
-            className="msg-group-receipt-summary"
-            style={{
-              marginTop: 4,
-              fontSize: 11,
-              color: isOwn ? 'rgba(255,255,255,.62)' : 'var(--text3)',
-              textAlign: isOwn ? 'right' : 'left',
-            }}
-          >
-            {receiptSummaryLabel}
-          </div>
-        )}
-
-        <MessageBubbleActions
-          onReact={onReact}
-          onShowContextMenu={onShowContextMenu}
-        />
-      </div>
+      <TextMessageCard
+        msg={msg}
+        isOwn={isOwn}
+        isFocused={isFocused}
+        renderedContent={renderedContent}
+        status={status}
+        receiptSummaryLabel={receiptSummaryLabel}
+        onRetry={onRetry}
+        onReact={onReact}
+        onShowContextMenu={onShowContextMenu}
+      />
 
       <MessageReactionBar
         reactions={msg.reactions}

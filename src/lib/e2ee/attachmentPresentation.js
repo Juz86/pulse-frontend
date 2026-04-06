@@ -202,6 +202,23 @@ export function getAttachmentCardPresentation(attachment = {}, actionPresentatio
   };
 }
 
+export function getAttachmentCardInteractionProps(cardPresentation = {}, onOpen = null) {
+  const interactive = Boolean(cardPresentation?.interactive && typeof onOpen === 'function');
+
+  return {
+    style: { cursor: cardPresentation?.cursor || 'default' },
+    onClick: interactive ? () => onOpen() : undefined,
+    onKeyDown: interactive
+      ? (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onOpen();
+          }
+        }
+      : undefined,
+  };
+}
+
 export function getAttachmentActionButtonsPresentation(
   actionPresentation = {},
   { busy = false } = {}
@@ -214,6 +231,42 @@ export function getAttachmentActionButtonsPresentation(
     downloadDisabled: !buttonsEnabled,
     openLabel: busy ? 'Voorbereiden…' : (actionPresentation?.openLabel || 'Openen'),
     downloadLabel: actionPresentation?.downloadLabel || 'Downloaden',
+  };
+}
+
+export function getAttachmentActionButtonProps(action = 'open', onAction = null) {
+  return {
+    onClick: (event) => {
+      event.stopPropagation();
+      if (typeof onAction === 'function') {
+        onAction(action);
+      }
+    },
+  };
+}
+
+export function getAttachmentActionsPresentation(
+  buttonsPresentation = {},
+  { isOwn = false, onAction = null } = {}
+) {
+  return {
+    rowStyle: getAttachmentActionRowStyle(),
+    buttons: [
+      {
+        key: 'open',
+        disabled: Boolean(buttonsPresentation?.openDisabled),
+        label: buttonsPresentation?.openLabel || 'Openen',
+        style: getAttachmentActionButtonStyle('open', isOwn),
+        props: getAttachmentActionButtonProps('open', onAction),
+      },
+      {
+        key: 'download',
+        disabled: Boolean(buttonsPresentation?.downloadDisabled),
+        label: buttonsPresentation?.downloadLabel || 'Downloaden',
+        style: getAttachmentActionButtonStyle('download', isOwn),
+        props: getAttachmentActionButtonProps('download', onAction),
+      },
+    ],
   };
 }
 
@@ -277,6 +330,101 @@ export function getAttachmentTimestampStyle(isOwn) {
   };
 }
 
+export function getAttachmentContentPresentation(
+  attachment = {},
+  contractPresentation = {},
+  { isImage = false } = {}
+) {
+  return {
+    title: attachment?.name || (isImage ? 'Afbeelding' : 'Bijlage'),
+    subtitle: attachment?.caption || contractPresentation?.mimeLabel || '',
+    imageAlt: attachment?.name || 'Gedeelde afbeelding',
+    detailMarginTopForTone: (tone = 'detail') => {
+      if (tone === 'storage') {
+        return isImage ? 8 : 6;
+      }
+      return 4;
+    },
+  };
+}
+
+export function getAttachmentBodyPresentation(
+  contentPresentation = {},
+  detailLines = [],
+  actionError = '',
+  {
+    isOwn = false,
+    actions = null,
+  } = {}
+) {
+  return {
+    title: contentPresentation?.title || '',
+    subtitle: contentPresentation?.subtitle || '',
+    subtitleStyle: getAttachmentMetaStyle(isOwn),
+    details: detailLines.map((line, index) => ({
+      key: `${line.tone}-${index}`,
+      text: line.text,
+      className: 'u-fs-12',
+      style: getAttachmentDetailLineStyle(
+        isOwn,
+        line.tone,
+        typeof contentPresentation?.detailMarginTopForTone === 'function'
+          ? contentPresentation.detailMarginTopForTone(line.tone)
+          : 4
+      ),
+    })),
+    errorText: actionError || '',
+    errorStyle: actionError ? getAttachmentErrorStyle(isOwn) : null,
+    actions,
+  };
+}
+
+export function getAttachmentBodyLayoutPresentation(
+  variantPresentation = {},
+  contentPresentation = {},
+  {
+    previewUrl = '',
+    fileBadgePresentation = null,
+  } = {}
+) {
+  return {
+    wrapperClassName: 'u-flex-1 u-min-w-0',
+    preview: variantPresentation?.showsImagePreview
+      ? {
+          src: previewUrl,
+          alt: contentPresentation?.imageAlt || 'Gedeelde afbeelding',
+          style: getAttachmentImagePreviewStyle(),
+        }
+      : null,
+    fileBadge: variantPresentation?.showsFileBadge
+      ? {
+          label: fileBadgePresentation?.label || 'F',
+          style: fileBadgePresentation?.style || { borderRadius: 12 },
+        }
+      : null,
+  };
+}
+
+export function getAttachmentFileBadgePresentation() {
+  return {
+    label: 'F',
+    style: {
+      borderRadius: 12,
+    },
+  };
+}
+
+export function getAttachmentVariantPresentation(access = {}) {
+  const isImage = Boolean(access?.isImage);
+
+  return {
+    isImage,
+    layout: isImage ? 'image' : 'file',
+    showsImagePreview: isImage,
+    showsFileBadge: !isImage,
+  };
+}
+
 export function buildAttachmentRenderState(
   messageAttachment = {},
   resolvedAttachment = null,
@@ -291,6 +439,15 @@ export function buildAttachmentRenderState(
 
   return {
     ...interactionState,
+    variant: getAttachmentVariantPresentation(interactionState.access),
+    content: getAttachmentContentPresentation(
+      interactionState.attachment,
+      interactionState.contract,
+      { isImage: interactionState.access.isImage }
+    ),
+    fileBadge: interactionState.access.isImage
+      ? null
+      : getAttachmentFileBadgePresentation(),
     card: getAttachmentCardPresentation(
       interactionState.attachment,
       interactionState.actions

@@ -88,9 +88,17 @@ import {
   getAttachmentImagePreviewStyle,
   getAttachmentMetaStyle,
   getAttachmentTimestampStyle,
+  getAttachmentContentPresentation,
+  getAttachmentBodyPresentation,
+  getAttachmentBodyLayoutPresentation,
+  getAttachmentFileBadgePresentation,
+  getAttachmentVariantPresentation,
   getAttachmentCardPresentation,
+  getAttachmentCardInteractionProps,
   getAttachmentContractPresentation,
   getAttachmentInteractionPresentation,
+  getAttachmentActionsPresentation,
+  getAttachmentActionButtonProps,
   getAttachmentPreviewText,
   getAttachmentStrategyPresentation,
 } from './attachmentPresentation';
@@ -1696,6 +1704,37 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
+  test('getAttachmentCardInteractionProps centralizes attachment card event wiring', () => {
+    const onOpen = jest.fn();
+    const preventDefault = jest.fn();
+    const interactiveProps = getAttachmentCardInteractionProps(
+      {
+        interactive: true,
+        cursor: 'pointer',
+      },
+      onOpen
+    );
+
+    interactiveProps.onClick();
+    interactiveProps.onKeyDown({ key: 'Enter', preventDefault });
+
+    expect(interactiveProps.style).toEqual({ cursor: 'pointer' });
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(onOpen).toHaveBeenCalledTimes(2);
+
+    expect(getAttachmentCardInteractionProps(
+      {
+        interactive: false,
+        cursor: 'default',
+      },
+      onOpen
+    )).toEqual({
+      style: { cursor: 'default' },
+      onClick: undefined,
+      onKeyDown: undefined,
+    });
+  });
+
   test('getAttachmentActionButtonsPresentation derives button state from action availability and busy state', () => {
     expect(getAttachmentActionButtonsPresentation(
       {
@@ -1725,6 +1764,48 @@ describe('e2ee attachment helpers', () => {
       downloadDisabled: true,
       openLabel: 'Voorbereiden…',
       downloadLabel: 'Downloaden',
+    });
+  });
+
+  test('getAttachmentActionButtonProps centralizes open and download button interaction wiring', () => {
+    const onAction = jest.fn();
+    const stopPropagation = jest.fn();
+    const openButtonProps = getAttachmentActionButtonProps('open', onAction);
+
+    openButtonProps.onClick({ stopPropagation });
+
+    expect(stopPropagation).toHaveBeenCalledTimes(1);
+    expect(onAction).toHaveBeenCalledWith('open');
+  });
+
+  test('getAttachmentActionsPresentation centralizes the full action row configuration', () => {
+    const onAction = jest.fn();
+    const presentation = getAttachmentActionsPresentation(
+      {
+        openDisabled: false,
+        downloadDisabled: true,
+        openLabel: 'Openen',
+        downloadLabel: 'Downloaden',
+      },
+      { isOwn: true, onAction }
+    );
+
+    expect(presentation.rowStyle).toEqual({
+      display: 'flex',
+      gap: 8,
+      marginTop: 10,
+      flexWrap: 'wrap',
+    });
+    expect(presentation.buttons).toHaveLength(2);
+    expect(presentation.buttons[0]).toMatchObject({
+      key: 'open',
+      disabled: false,
+      label: 'Openen',
+    });
+    expect(presentation.buttons[1]).toMatchObject({
+      key: 'download',
+      disabled: true,
+      label: 'Downloaden',
     });
   });
 
@@ -1787,6 +1868,153 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
+  test('getAttachmentContentPresentation centralizes attachment titles subtitles and detail spacing', () => {
+    const imagePresentation = getAttachmentContentPresentation(
+      {
+        name: 'foto.png',
+        caption: 'Omslagfoto',
+      },
+      {
+        mimeLabel: 'image/png',
+      },
+      { isImage: true }
+    );
+
+    expect(imagePresentation.title).toBe('foto.png');
+    expect(imagePresentation.subtitle).toBe('Omslagfoto');
+    expect(imagePresentation.imageAlt).toBe('foto.png');
+    expect(imagePresentation.detailMarginTopForTone('storage')).toBe(8);
+    expect(imagePresentation.detailMarginTopForTone('detail')).toBe(4);
+
+    const filePresentation = getAttachmentContentPresentation(
+      {},
+      {
+        mimeLabel: 'application/pdf',
+      },
+      { isImage: false }
+    );
+
+    expect(filePresentation.title).toBe('Bijlage');
+    expect(filePresentation.subtitle).toBe('application/pdf');
+    expect(filePresentation.imageAlt).toBe('Gedeelde afbeelding');
+    expect(filePresentation.detailMarginTopForTone('storage')).toBe(6);
+    expect(filePresentation.detailMarginTopForTone('availability')).toBe(4);
+  });
+
+  test('getAttachmentBodyPresentation centralizes attachment body copy detail rows and errors', () => {
+    const bodyPresentation = getAttachmentBodyPresentation(
+      {
+        title: 'foto.png',
+        subtitle: 'image/png',
+        detailMarginTopForTone: (tone) => (tone === 'storage' ? 8 : 4),
+      },
+      [
+        { tone: 'storage', text: 'Mock versleutelde opslaglink' },
+        { tone: 'detail', text: 'Integriteit bevestigd via SHA-256 metadata' },
+      ],
+      'Download mislukt',
+      { isOwn: true, actions: 'actions-node' }
+    );
+
+    expect(bodyPresentation.title).toBe('foto.png');
+    expect(bodyPresentation.subtitle).toBe('image/png');
+    expect(bodyPresentation.subtitleStyle).toEqual({
+      color: 'rgba(255,255,255,.65)',
+    });
+    expect(bodyPresentation.details).toEqual([
+      {
+        key: 'storage-0',
+        text: 'Mock versleutelde opslaglink',
+        className: 'u-fs-12',
+        style: {
+          marginTop: 8,
+          color: 'rgba(255,255,255,.78)',
+          opacity: 0.9,
+        },
+      },
+      {
+        key: 'detail-1',
+        text: 'Integriteit bevestigd via SHA-256 metadata',
+        className: 'u-fs-12',
+        style: {
+          marginTop: 4,
+          color: 'rgba(255,255,255,.58)',
+          opacity: 0.82,
+        },
+      },
+    ]);
+    expect(bodyPresentation.errorText).toBe('Download mislukt');
+    expect(bodyPresentation.errorStyle).toEqual({
+      marginTop: 8,
+      color: 'rgba(255,215,215,.92)',
+    });
+    expect(bodyPresentation.actions).toBe('actions-node');
+  });
+
+  test('getAttachmentBodyLayoutPresentation centralizes image and file wrapper layout', () => {
+    expect(getAttachmentBodyLayoutPresentation(
+      { showsImagePreview: true, showsFileBadge: false },
+      { imageAlt: 'foto.png' },
+      { previewUrl: 'https://cdn.example.com/foto.png' }
+    )).toEqual({
+      wrapperClassName: 'u-flex-1 u-min-w-0',
+      preview: {
+        src: 'https://cdn.example.com/foto.png',
+        alt: 'foto.png',
+        style: {
+          display: 'block',
+          width: '100%',
+          maxWidth: 280,
+          maxHeight: 240,
+          objectFit: 'cover',
+          borderRadius: 14,
+          marginBottom: 10,
+        },
+      },
+      fileBadge: null,
+    });
+
+    expect(getAttachmentBodyLayoutPresentation(
+      { showsImagePreview: false, showsFileBadge: true },
+      {},
+      { fileBadgePresentation: { label: 'F', style: { borderRadius: 12 } } }
+    )).toEqual({
+      wrapperClassName: 'u-flex-1 u-min-w-0',
+      preview: null,
+      fileBadge: {
+        label: 'F',
+        style: {
+          borderRadius: 12,
+        },
+      },
+    });
+  });
+
+  test('getAttachmentFileBadgePresentation centralizes file badge defaults', () => {
+    expect(getAttachmentFileBadgePresentation()).toEqual({
+      label: 'F',
+      style: {
+        borderRadius: 12,
+      },
+    });
+  });
+
+  test('getAttachmentVariantPresentation centralizes image versus file layout state', () => {
+    expect(getAttachmentVariantPresentation({ isImage: true })).toEqual({
+      isImage: true,
+      layout: 'image',
+      showsImagePreview: true,
+      showsFileBadge: false,
+    });
+
+    expect(getAttachmentVariantPresentation({ isImage: false })).toEqual({
+      isImage: false,
+      layout: 'file',
+      showsImagePreview: false,
+      showsFileBadge: true,
+    });
+  });
+
   test('buildAttachmentRenderState combines interaction card and button presentation', () => {
     expect(buildAttachmentRenderState(
       {
@@ -1809,6 +2037,16 @@ describe('e2ee attachment helpers', () => {
       access: {
         isImage: true,
       },
+      variant: {
+        layout: 'image',
+        showsImagePreview: true,
+      },
+      content: {
+        title: 'foto.png',
+        subtitle: 'image/png',
+        imageAlt: 'foto.png',
+      },
+      fileBadge: null,
       card: {
         interactive: true,
         role: 'button',
@@ -1817,6 +2055,34 @@ describe('e2ee attachment helpers', () => {
         openDisabled: true,
         downloadDisabled: true,
         openLabel: 'Voorbereiden…',
+      },
+    });
+  });
+
+  test('buildAttachmentRenderState includes file badge and file-specific content defaults', () => {
+    expect(buildAttachmentRenderState(
+      {
+        transfer: 'remote',
+        mimeType: 'application/pdf',
+      },
+      null,
+      null,
+      { busy: false }
+    )).toMatchObject({
+      access: {
+        isImage: false,
+      },
+      variant: {
+        layout: 'file',
+        showsFileBadge: true,
+      },
+      content: {
+        title: 'Bijlage',
+        subtitle: 'application/pdf',
+        imageAlt: 'Gedeelde afbeelding',
+      },
+      fileBadge: {
+        label: 'F',
       },
     });
   });

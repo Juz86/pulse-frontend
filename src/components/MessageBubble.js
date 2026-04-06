@@ -7,15 +7,13 @@ import {
   getInitialAttachmentActionState,
 } from '../lib/e2ee/attachmentAccessAdapter';
 import {
-  getAttachmentActionRowStyle,
-  getAttachmentImagePreviewStyle,
-  getAttachmentActionButtonStyle,
   buildAttachmentRenderState,
   getAttachmentDetailLines,
-  getAttachmentDetailLineStyle,
-  getAttachmentErrorStyle,
-  getAttachmentMetaStyle,
+  getAttachmentCardInteractionProps,
   getAttachmentTimestampStyle,
+  getAttachmentActionsPresentation,
+  getAttachmentBodyPresentation,
+  getAttachmentBodyLayoutPresentation,
 } from '../lib/e2ee/attachmentPresentation';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { getInitials, formatTime } from '../utils';
@@ -72,6 +70,35 @@ function highlightText(text, query) {
 }
 
 const QUICK_EMOJI = ['❤️', '👍', '😂', '😮', '😢', '👎'];
+
+function AttachmentBodyContent({ bodyPresentation }) {
+  return (
+    <>
+      <div className="u-fw-600 u-fs-14 u-ellipsis">{bodyPresentation.title}</div>
+      <div className="u-fs-12 u-ellipsis" style={bodyPresentation.subtitleStyle}>
+        {bodyPresentation.subtitle}
+      </div>
+      {bodyPresentation.details.map((line) => (
+        <div
+          key={line.key}
+          className={line.className}
+          style={line.style}
+        >
+          {line.text}
+        </div>
+      ))}
+      {bodyPresentation.errorText && (
+        <div
+          className="u-fs-12"
+          style={bodyPresentation.errorStyle}
+        >
+          {bodyPresentation.errorText}
+        </div>
+      )}
+      {bodyPresentation.actions}
+    </>
+  );
+}
 
 // ── MessageBubble ─────────────────────────────────────────────────────────────
 
@@ -170,9 +197,12 @@ const MessageBubble = React.memo(function MessageBubble({
     const attachment = attachmentRenderState.attachment;
     const attachmentAccess = attachmentRenderState.access;
     const attachmentPreviewUrl = attachmentRenderState.previewUrl;
+    const attachmentVariantPresentation = attachmentRenderState.variant;
     const attachmentPresentation = attachmentRenderState.contract;
     const attachmentAccessPresentation = attachmentRenderState.verification;
     const attachmentActionPresentation = attachmentRenderState.actions;
+    const attachmentContentPresentation = attachmentRenderState.content;
+    const attachmentFileBadgePresentation = attachmentRenderState.fileBadge;
     const attachmentCardPresentation = attachmentRenderState.card;
     const attachmentButtonsPresentation = attachmentRenderState.buttons;
     const attachmentDetailLines = getAttachmentDetailLines(
@@ -191,34 +221,44 @@ const MessageBubble = React.memo(function MessageBubble({
       setResolvedAttachmentAccess,
       setAttachmentActionError,
     });
+    const attachmentCardInteractionProps = getAttachmentCardInteractionProps(
+      attachmentCardPresentation,
+      () => runAttachmentAction('open')
+    );
+    const attachmentActionsPresentation = getAttachmentActionsPresentation(
+      attachmentButtonsPresentation,
+      { isOwn, onAction: runAttachmentAction }
+    );
     const attachmentActions = attachmentAccess.canOpen ? (
-      <div style={getAttachmentActionRowStyle()}>
-        <button
-          type="button"
-          className="icon-btn"
-          disabled={attachmentButtonsPresentation.openDisabled}
-          onClick={(event) => {
-            event.stopPropagation();
-            runAttachmentAction('open');
-          }}
-          style={getAttachmentActionButtonStyle('open', isOwn)}
-        >
-          {attachmentButtonsPresentation.openLabel}
-        </button>
-        <button
-          type="button"
-          className="icon-btn"
-          disabled={attachmentButtonsPresentation.downloadDisabled}
-          onClick={(event) => {
-            event.stopPropagation();
-            runAttachmentAction('download');
-          }}
-          style={getAttachmentActionButtonStyle('download', isOwn)}
-        >
-          {attachmentButtonsPresentation.downloadLabel}
-        </button>
+      <div style={attachmentActionsPresentation.rowStyle}>
+        {attachmentActionsPresentation.buttons.map((button) => (
+          <button
+            key={button.key}
+            type="button"
+            className="icon-btn"
+            disabled={button.disabled}
+            onClick={button.props.onClick}
+            style={button.style}
+          >
+            {button.label}
+          </button>
+        ))}
       </div>
     ) : null;
+    const attachmentBodyPresentation = getAttachmentBodyPresentation(
+      attachmentContentPresentation,
+      attachmentDetailLines,
+      attachmentActionError,
+      { isOwn, actions: attachmentActions }
+    );
+    const attachmentBodyLayoutPresentation = getAttachmentBodyLayoutPresentation(
+      attachmentVariantPresentation,
+      attachmentContentPresentation,
+      {
+        previewUrl: attachmentPreviewUrl,
+        fileBadgePresentation: attachmentFileBadgePresentation,
+      }
+    );
 
     return (
       <div className={`msg-group ${isOwn ? 'out' : 'in'}`} role="listitem">
@@ -227,67 +267,33 @@ const MessageBubble = React.memo(function MessageBubble({
           role={attachmentCardPresentation.role}
           tabIndex={attachmentCardPresentation.tabIndex}
           aria-label={attachmentCardPresentation.ariaLabel}
-          style={{ cursor: attachmentCardPresentation.cursor }}
-          onClick={attachmentCardPresentation.interactive ? () => runAttachmentAction('open') : undefined}
-          onKeyDown={attachmentCardPresentation.interactive ? (event) => handleActionCardKeyDown(event, () => runAttachmentAction('open')) : undefined}
+          style={attachmentCardInteractionProps.style}
+          onClick={attachmentCardInteractionProps.onClick}
+          onKeyDown={attachmentCardInteractionProps.onKeyDown}
         >
-          {attachmentAccess.isImage ? (
-            <div className="u-flex-1 u-min-w-0">
+          {attachmentVariantPresentation.showsImagePreview ? (
+            <div className={attachmentBodyLayoutPresentation.wrapperClassName}>
               <img
-                src={attachmentPreviewUrl}
-                alt={attachment?.name || 'Gedeelde afbeelding'}
-                style={getAttachmentImagePreviewStyle()}
+                src={attachmentBodyLayoutPresentation.preview.src}
+                alt={attachmentBodyLayoutPresentation.preview.alt}
+                style={attachmentBodyLayoutPresentation.preview.style}
                 loading="lazy"
               />
-              <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Afbeelding'}</div>
-              <div className="u-fs-12 u-ellipsis" style={getAttachmentMetaStyle(isOwn)}>
-                {attachment?.caption || attachmentPresentation.mimeLabel}
-              </div>
-              {attachmentDetailLines.map((line, index) => (
-                <div
-                  key={`${line.tone}-${index}`}
-                  className="u-fs-12"
-                  style={getAttachmentDetailLineStyle(isOwn, line.tone, line.tone === 'storage' ? 8 : 4)}
-                >
-                  {line.text}
-                </div>
-              ))}
-              {attachmentActionError && (
-                <div
-                  className="u-fs-12"
-                  style={getAttachmentErrorStyle(isOwn)}
-                >
-                  {attachmentActionError}
-                </div>
-              )}
-              {attachmentActions}
+              <AttachmentBodyContent bodyPresentation={attachmentBodyPresentation} />
             </div>
           ) : (
             <>
-              <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius: 12 }} aria-hidden="true">F</div>
-	              <div className="u-flex-1 u-min-w-0">
-	                <div className="u-fw-600 u-fs-14 u-ellipsis">{attachment?.name || 'Bijlage'}</div>
-	                <div className="u-fs-12 u-ellipsis" style={getAttachmentMetaStyle(isOwn)}>
-	                  {attachment?.caption || attachmentPresentation.mimeLabel}
-	                </div>
-                  {attachmentDetailLines.map((line, index) => (
-                    <div
-                      key={`${line.tone}-${index}`}
-                      className="u-fs-12"
-                      style={getAttachmentDetailLineStyle(isOwn, line.tone, line.tone === 'storage' ? 6 : 4)}
-                    >
-                      {line.text}
-                    </div>
-                  ))}
-	                  {attachmentActionError && (
-	                    <div
-	                      className="u-fs-12"
-                      style={getAttachmentErrorStyle(isOwn)}
-                    >
-                      {attachmentActionError}
-                    </div>
-                  )}
-                  {attachmentActions}
+              {attachmentBodyLayoutPresentation.fileBadge && (
+                <div
+                  className="avatar-circle sm u-flex-shrink"
+                  style={attachmentBodyLayoutPresentation.fileBadge.style}
+                  aria-hidden="true"
+                >
+                  {attachmentBodyLayoutPresentation.fileBadge.label}
+                </div>
+              )}
+	              <div className={attachmentBodyLayoutPresentation.wrapperClassName}>
+	                <AttachmentBodyContent bodyPresentation={attachmentBodyPresentation} />
               </div>
             </>
           )}

@@ -1,6 +1,7 @@
 // src/components/MessageBubble.js
 import React, { useRef, useState, useEffect } from 'react';
 import { Phone, Video, Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
+import AttachmentMessageCard from './AttachmentMessageCard';
 import {
   createAttachmentMessageActionRuntime,
   getInitialAttachmentActionState,
@@ -63,108 +64,6 @@ function highlightText(text, query) {
 }
 
 const QUICK_EMOJI = ['❤️', '👍', '😂', '😮', '😢', '👎'];
-
-function AttachmentActionsRow({ actionsPresentation }) {
-  if (!actionsPresentation?.buttons?.length) return null;
-
-  return (
-    <div style={actionsPresentation.rowStyle}>
-      {actionsPresentation.buttons.map((button) => (
-        <button
-          key={button.key}
-          type="button"
-          className="icon-btn"
-          disabled={button.disabled}
-          onClick={button.props.onClick}
-          style={button.style}
-        >
-          {button.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function AttachmentBodyContent({ bodyPresentation }) {
-  return (
-    <>
-      <div className="u-fw-600 u-fs-14 u-ellipsis">{bodyPresentation.title}</div>
-      <div className="u-fs-12 u-ellipsis" style={bodyPresentation.subtitleStyle}>
-        {bodyPresentation.subtitle}
-      </div>
-      {bodyPresentation.details.map((line) => (
-        <div
-          key={line.key}
-          className={line.className}
-          style={line.style}
-        >
-          {line.text}
-        </div>
-      ))}
-      {bodyPresentation.errorText && (
-        <div
-          className="u-fs-12"
-          style={bodyPresentation.errorStyle}
-        >
-          {bodyPresentation.errorText}
-        </div>
-      )}
-      <AttachmentActionsRow actionsPresentation={bodyPresentation.actionsPresentation} />
-    </>
-  );
-}
-
-function AttachmentMessageCard({ presentation, createdAt }) {
-  const {
-    bodyLayout,
-    body,
-    cardInteraction,
-    card,
-    variant,
-    timestampStyle,
-  } = presentation;
-
-  return (
-    <div className="msg-contact-card"
-      role={card.role}
-      tabIndex={card.tabIndex}
-      aria-label={card.ariaLabel}
-      style={cardInteraction.style}
-      onClick={cardInteraction.onClick}
-      onKeyDown={cardInteraction.onKeyDown}
-    >
-      {variant.showsImagePreview ? (
-        <div className={bodyLayout.wrapperClassName}>
-          <img
-            src={bodyLayout.preview.src}
-            alt={bodyLayout.preview.alt}
-            style={bodyLayout.preview.style}
-            loading="lazy"
-          />
-          <AttachmentBodyContent bodyPresentation={body} />
-        </div>
-      ) : (
-        <>
-          {bodyLayout.fileBadge && (
-            <div
-              className="avatar-circle sm u-flex-shrink"
-              style={bodyLayout.fileBadge.style}
-              aria-hidden="true"
-            >
-              {bodyLayout.fileBadge.label}
-            </div>
-          )}
-          <div className={bodyLayout.wrapperClassName}>
-            <AttachmentBodyContent bodyPresentation={body} />
-          </div>
-        </>
-      )}
-      <div className="u-flex-shrink" style={timestampStyle}>
-        {formatTime(createdAt)}
-      </div>
-    </div>
-  );
-}
 
 // ── MessageBubble ─────────────────────────────────────────────────────────────
 

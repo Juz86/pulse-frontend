@@ -1,3 +1,5 @@
+import PulseLogo from './PulseLogo';
+
 export default function MarketingFooter() {
   const currentYear = new Date().getFullYear();
 
@@ -6,8 +8,7 @@ export default function MarketingFooter() {
       <div className="hp-footer-inner">
         <div className="hp-footer-brand">
           <div className="hp-footer-logo">
-            <img src="/logo192.png" alt="" aria-hidden="true" width={28} height={28} />
-            <span>Pulse</span>
+            <PulseLogo size={28} textSize={18} color="#fff" gap={8} />
           </div>
           <p>
             Pulse houdt ouder en kind veilig verbonden.
@@ -32,10 +33,8 @@ export default function MarketingFooter() {
             <ul className="hp-footer-list">
               <li><a href="/over-pulse#waarom-pulse">Over ons</a></li>
               <li><a href="/privacy-first">Privacy-First</a></li>
-              <li><a href="/privacybeleid">Privacybeleid</a></li>
-              <li><a href="/avg-beleid-elektronische-communicatie">AVG-beleid</a></li>
+              <li><a href="/hoe-werkt-het#hoe-werkt-pulse">Hoe werkt het</a></li>
               <li><a href="/contact">Contact</a></li>
-              <li><a href="/sitemap">Sitemap</a></li>
             </ul>
           </nav>
         </div>
@@ -58,7 +57,14 @@ export default function MarketingFooter() {
           </div>
         </div>
       </div>
-      <div className="hp-footer-copy">© {currentYear} Pulse — Voor ouder en kind. Veilig verbonden.</div>
+      <div className="hp-footer-copy">
+        <span>© {currentYear} Pulse — Voor ouder en kind. Veilig verbonden.</span>
+        <div className="hp-footer-copy-links">
+          <a href="/privacybeleid">Privacybeleid</a>
+          <a href="/avg-beleid-elektronische-communicatie">AVG-beleid</a>
+          <a href="/sitemap">Sitemap</a>
+        </div>
+      </div>
     </footer>
   );
 }

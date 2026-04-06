@@ -200,7 +200,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                   <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Shield size={32} /></div>
                   <div className="op-privacy-title">Bij Pulse draait het om contact, niet om data.</div>
                   <div className="op-privacy-sub" style={{ marginTop: 12 }}>
-                    Sterker nog: wat we niet nodig hebben, slaan we niet op.
+                    Zo simpel is het.
                   </div>
                 </div>
               </div>

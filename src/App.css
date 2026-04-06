@@ -2950,14 +2950,14 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
-.hp-footer-brand p { font-size: 14px; color: rgba(255,255,255,0.4); margin-top: 12px; }
+.hp-footer-brand p { font-size: 14px; color: #fff; margin-top: 12px; }
 .hp-footer-logo {
   display: flex; align-items: center; gap: 8px;
   color: #fff; font-size: 18px; font-weight: 800;
 }
 .hp-footer-logo img { border-radius: 6px; }
 .hp-footer-col { display: flex; flex-direction: column; gap: 10px; }
-.hp-footer-col h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+.hp-footer-col h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #fff; margin-bottom: 4px; }
 .hp-footer-list {
   list-style: none;
   margin: 0;
@@ -2967,11 +2967,18 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   gap: 10px;
 }
 .hp-footer-list li { margin: 0; }
-.hp-footer-col p, .hp-footer-col a { font-size: 14px; color: rgba(255,255,255,0.6); transition: color 0.15s; text-decoration: none; }
+.hp-footer-col p, .hp-footer-col a { font-size: 14px; color: #fff; transition: color 0.15s; text-decoration: none; }
 .hp-footer-col a { cursor: pointer; }
-.hp-footer-col a:hover { color: #fff; }
+.hp-footer-col a:hover { color: rgba(255,255,255,0.7); }
 .hp-footer-text { margin: 0; }
-.hp-footer-copy { text-align: center; padding: 20px; font-size: 13px; color: rgba(255,255,255,0.3); }
+.hp-footer-copy {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 40px; font-size: 13px; color: rgba(255,255,255,0.75);
+  max-width: 1200px; margin: 0 auto; width: 100%;
+}
+.hp-footer-copy-links { display: flex; gap: 20px; }
+.hp-footer-copy-links a { font-size: 13px; color: rgba(255,255,255,0.75); text-decoration: none; transition: color 0.15s; }
+.hp-footer-copy-links a:hover { color: #fff; }
 .hp-footer-nav-group { display: contents; }
 .hp-footer-download-row { display: flex; flex-wrap: nowrap; gap: 8px; }
 .hp-footer-download-chip {

@@ -67,24 +67,22 @@ Mitigatie:
 - centralisatie in `messagingService.js`
 - handmatige QA op mixed flows
 
-## 5. Mock Media Contract Kan Uit Elkaar Lopen
+## 5. Scope Kan Onbedoeld Weer Richting Chatmedia Groeien
 
 Risico:
 
-- metadatabody, metadataheaders, downloadheaders en UI-labels vertellen niet exact hetzelfde attachmentcontract
+- nieuwe UI- of servicewijzigingen maken onbedoeld chatmedia of attachments weer zichtbaar
 
 Impact:
 
-- attachments openen deels wel, maar tonen afwijkende contractsignalen
-- troubleshooting en QA worden onnodig verwarrend
+- productscope verschuift zonder bewuste keuze
+- UX en policy rond kindveilig communiceren worden diffuser
 
 Mitigatie:
 
-- `smoke:attachments` expliciet op:
-  - `mock_media_v1`
-  - `mock-e2ee-envelope-v1`
-  - `pulse_mock_media_envelope`
-- centrale helpers voor access, presentation en conversation summaries
+- acceptatiedocs expliciet houden op chat, bel en video
+- composer en sendflow attachment-vrij houden
+- regressiecheck opnemen dat media niet verstuurd kunnen worden
 
 ## 6. Encrypted Edit-Model Bestaat Nog Niet
 
@@ -166,7 +164,7 @@ Mitigatie:
 
 Risico:
 
-- teveel tegelijk willen oplossen: groups, attachments, edits, calls
+- teveel tegelijk willen oplossen: groups, edits, extra policy, bredere claims
 
 Impact:
 
@@ -175,14 +173,14 @@ Impact:
 Mitigatie:
 
 - vasthouden aan fase 1-scope:
-  direct chats + mock crypto + service transport + policy enforcement
+  direct chats + calls/video + mock crypto + service transport + policy enforcement
 
 ## Samenvatting
 
 De grootste operationele risico's voor de eerstvolgende stap zijn:
 
 1. verwarring tussen mock en echte E2EE
-2. contractdrift binnen `mock_media_v1`
+2. onbedoelde scopegroei buiten chat/bel/video
 3. te brede scope tijdens activatie
 
 ## Lees Verder

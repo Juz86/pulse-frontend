@@ -4,21 +4,19 @@ Deze backlog zet de volgende E2EE-stappen in een praktische uitvoervolgorde.
 
 ## Nu Eerst
 
-Deze items zijn nu de eerstvolgende echte afronders na de huidige lokale `mock_media_v1` fase.
+Deze items zijn nu de eerstvolgende echte afronders binnen de huidige E2EE-scope.
 
 - doorloop de handmatige acceptatieronde end-to-end
-- valideer `mock_media_v1` attachment flows op retry, forward en refresh
+- valideer chat, bel en video end-to-end
+- bevestig expliciet dat chatmedia/attachments niet verstuurd kunnen worden
 - stabiliseer `/readyz` zodat de backend readiness niet meer op `firestore_timeout` uitkomt
 - leg rollout-monitoring vast voor service/fallback gedrag
-- bepaal wanneer `remote_mock` veilig genoeg is voor bredere interne testactivatie
+- bepaal wanneer de serviceflow veilig genoeg is voor bredere interne testactivatie
 
 ## Daarna
 
-Deze items zijn logisch na een stabiele fase 1.
+Deze items zijn logisch na een stabiele fase 1 voor chat, bel en video.
 
-- echte storage provider aansluiten voor media
-- echte media-encryptie/decryptie bovenop het huidige contract ontwerpen
-- key lifecycle voor media (wrap/unwrap/rotatie) aanscherpen
 - rolloutmonitoring en rollbackprocedure verder operationaliseren
 - parent policy uitbreiden met quiet hours
 - admin routes koppelen aan echte policy-opslag
@@ -27,7 +25,7 @@ Deze items zijn logisch na een stabiele fase 1.
 
 Deze items horen niet bij de eerste activatie, maar wel bij een volwassen E2EE-model.
 
-- echte crypto-adapter implementeren
+- echte crypto-adapter verder aanscherpen
 - web storage hardening beoordelen
 - groepsencryptie ontwerpen
 - encrypted edit-model ontwerpen
@@ -38,18 +36,16 @@ Deze items horen niet bij de eerste activatie, maar wel bij een volwassen E2EE-m
 Deze onderwerpen zijn belangrijk, maar maken de eerste rollout onnodig groot als je ze te vroeg oppakt.
 
 - volledige group E2EE
-- echte productie-mediaopslag in dezelfde release als basisactivatie
 - encrypted edit support
-- video/call E2EE-herontwerp
 - productbrede claimaanpassingen zonder backendvalidatie
 
 ## Aanbevolen Werkvolgorde
 
-1. handmatige QA op de huidige `mock_media_v1` fase
+1. handmatige QA op de chat/bel/video-scope
 2. backend readiness en rolloutmonitoring harden
-3. echte encrypted media/storage ontwerpen en inbouwen
-4. productiegerichte rolloutbeslissing
-5. echte crypto-adapter
+3. productiegerichte rolloutbeslissing
+4. echte crypto-adapter verder aanscherpen
+5. langere-termijn uitbreidingen zoals groups en edits
 
 ## Lees Verder
 

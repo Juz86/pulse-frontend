@@ -2,6 +2,10 @@
 @token = REPLACE_WITH_FIREBASE_ID_TOKEN
 @devUid = uid_child_1
 
+# Actieve scope:
+# chatten, bellen en videobellen.
+# Attachment- of media-endpoints horen niet meer bij de standaard backend-runtime.
+
 # Socket.IO dev bypass voorbeeld (in je client):
 # io(baseUrl, { auth: { devUid: 'uid_child_1' } })
 

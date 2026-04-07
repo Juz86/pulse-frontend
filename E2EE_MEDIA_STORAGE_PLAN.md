@@ -24,7 +24,7 @@ Deze fase valideert al:
 - integrity checks via SHA-256
 - wrapped media key-contractvelden
 - open/download via access adapter
-- runtime smoke via `npm run smoke:attachments`
+- historische runtime smoke via een oude attachment-scriptlaag buiten de actieve standaardflow
 
 ## Historisch Doel
 
@@ -35,9 +35,7 @@ De volgende echte stap is een productiegericht media-profiel:
 - `envelopeKind: pulse_media_envelope`
 - `keyWrapAlg: pulse_media_key_wrap_v1`
 
-Voor dit toekomstige profiel bestaat nu ook al een backend smoke:
-
-- `npm run smoke:attachments:future`
+Voor dit toekomstige profiel bestond historisch ook al een backend smoke via een aparte attachment-scriptlaag buiten de actieve standaardflow.
 
 Die valideert lokaal al:
 

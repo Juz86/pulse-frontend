@@ -171,8 +171,6 @@ export default function useConversations({
       senderDeviceId: currentDeviceId,
       text: messageType === 'contact'
         ? `Contactpersoon: ${sharedContact?.name || 'Contactpersoon'}`
-        : messageType === 'attachment'
-          ? (attachment?.caption || attachment?.name || 'Bijlage')
         : plaintext,
       createdAt: new Date().toISOString(),
       protocol: 'signal_v1',
@@ -492,6 +490,10 @@ export default function useConversations({
     const retryCount = (failedMsg._retryCount || 0) + 1;
     const recipientUserIds = getConversationRecipients(activeConv);
     const retryPayload = buildRetryServicePayload(failedMsg);
+    if (retryPayload.messageType === 'attachment') {
+      showErrToast('Bijlagen versturen is niet beschikbaar in Pulse');
+      return;
+    }
     patchMessageAsSending(failedMsg.id, retryCount);
     const failTimer = setTimeout(() => {
       patchMessageAsFailed(failedMsg.id);
@@ -571,6 +573,10 @@ export default function useConversations({
     const recipientUserIds = getConversationRecipients(conv);
     const forwardPayload = buildForwardServicePayload(forwardMsg);
     const forwardType = forwardPayload.messageType;
+    if (forwardType === 'attachment') {
+      showErrToast('Bijlagen versturen is niet beschikbaar in Pulse');
+      return;
+    }
     const msg = {
       convId: conv.id, senderId: user.uid, senderName: user.displayName || user.email,
       text: forwardPayload.plaintext,
@@ -598,12 +604,6 @@ export default function useConversations({
         message: {
           ...msg,
           ...(forwardType === 'contact' ? { type: 'contact', sharedContact: forwardPayload.sharedContact } : {}),
-          ...(forwardType === 'attachment'
-            ? {
-                type: 'attachment',
-                attachment: forwardPayload.attachment,
-              }
-            : {}),
         },
       });
     }

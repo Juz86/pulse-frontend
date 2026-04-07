@@ -1,5 +1,4 @@
 import { BACKEND_URL } from '../../services/socket';
-import { E2EE_ATTACHMENT_STRATEGY, E2EE_ATTACHMENT_TRANSPORT } from './attachmentConfig';
 import {
   buildAttachmentEncryptionMetadata,
   createMockEncryptedAttachmentEnvelope,
@@ -22,6 +21,9 @@ import {
   normalizeAttachmentPayload,
   validateAttachmentPayload,
 } from './attachmentPayload';
+
+const E2EE_ATTACHMENT_TRANSPORT = process.env.REACT_APP_E2EE_ATTACHMENT_TRANSPORT || 'inline';
+const E2EE_ATTACHMENT_STRATEGY = process.env.REACT_APP_E2EE_ATTACHMENT_STRATEGY || 'mock_media_v1';
 
 function sanitizePathSegment(value, fallback) {
   const safe = String(value || fallback || '')

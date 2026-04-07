@@ -2,6 +2,12 @@
 
 Deze voorbeelden helpen om de belangrijkste backendroutes handmatig te testen.
 
+Belangrijk:
+
+- deze voorbeelden volgen de actieve productscope voor chatten, bellen en videobellen
+- attachment- of media-endpoints horen niet meer bij de standaard backend-runtime
+- oudere attachment-smokes of routes kunnen alleen nog als historisch of intern referentiemateriaal bestaan
+
 ## Variabelen
 
 Vervang in de voorbeelden:

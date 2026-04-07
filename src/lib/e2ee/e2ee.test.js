@@ -167,6 +167,7 @@ import {
   resolveAttachmentStorageProvider,
   resolveAttachmentStorageProviderEntry,
 } from './attachmentProviders';
+import { messagingService } from './messagingService';
 import { BACKEND_URL } from '../../services/socket';
 
 describe('e2ee message model helpers', () => {
@@ -442,6 +443,27 @@ describe('e2ee message model helpers', () => {
     );
 
     expect(normalized.mentions).toEqual(['user-1', 'user-4']);
+  });
+});
+
+describe('e2ee messaging service scope guards', () => {
+  test('sendMessage rejects attachment messages in the active Pulse scope', async () => {
+    await expect(
+      messagingService.sendMessage({
+        user: {
+          uid: 'user-1',
+          getIdToken: async () => 'token',
+        },
+        conversationId: 'conv-1',
+        recipientUserIds: ['user-2'],
+        plaintext: 'Bijlage',
+        messageType: 'attachment',
+        attachment: {
+          name: 'foto.png',
+          url: 'data:image/png;base64,AA==',
+        },
+      }, 'device-1')
+    ).rejects.toThrow('Bijlagen versturen is niet beschikbaar in Pulse.');
   });
 });
 

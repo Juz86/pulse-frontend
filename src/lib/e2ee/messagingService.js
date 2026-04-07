@@ -14,14 +14,6 @@ function serializeMessagePayload({ plaintext, messageType = 'text', sharedContac
     });
   }
 
-  if (messageType === 'attachment') {
-    return JSON.stringify({
-      kind: 'attachment',
-      attachment: normalizeAttachmentPayload(attachment),
-      text: plaintext || '',
-    });
-  }
-
   return plaintext;
 }
 
@@ -176,6 +168,9 @@ export const messagingService = {
       (Array.isArray(recipientUserIds) ? recipientUserIds : [recipientUserId]).filter(Boolean)
     ));
     if (targetUserIds.length === 0) throw new Error('Geen ontvanger beschikbaar.');
+    if (messageType === 'attachment') {
+      throw new Error('Bijlagen versturen is niet beschikbaar in Pulse.');
+    }
 
     const normalizedAttachment = messageType === 'attachment'
       ? normalizeAttachmentPayload(attachment)

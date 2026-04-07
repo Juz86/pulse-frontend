@@ -23,10 +23,7 @@ Valideren dat attachments niet meer alleen inline data-urls gebruiken, maar via 
 In `backend-skeleton`:
 
 - `npm run dev:emulator`
-- optioneel vooraf:
-  - `npm run wipe:attachments`
-  - `npm run smoke:attachments`
-  - `npm run smoke:attachments:future`
+- historische attachment-scripts zijn niet meer onderdeel van de actieve standaard npm-flow
 
 ## Verwachte Flow
 
@@ -74,18 +71,13 @@ In `backend-skeleton`:
 
 - health:
   `curl -s http://127.0.0.1:3001/health`
-- attachment smoke:
-  `npm run smoke:attachments`
-- future attachment smoke:
-  `npm run smoke:attachments:future`
 - metadata-contract:
   controleer in de smoke-output:
   - `strategyKey`
   - `contentEncoding`
   - `envelopeKind`
   - `originalMimeType`
-- attachment cleanup:
-  `npm run wipe:attachments`
+- eventuele historische smoke- of wipe-scripts vallen buiten de actieve standaardflow
 
 ## Bekende Grenzen
 

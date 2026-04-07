@@ -27,6 +27,8 @@ Belangrijk:
 - media of bestanden versturen tussen gebruikers hoort niet bij de actieve productscope
 - profielafbeeldingen of avatar-keuze vallen buiten deze berichten- en callskeleton
 - oudere attachment-routes of smokes kunnen nog aanwezig zijn als historisch of intern referentiemateriaal
+- de standaard backend-runtime mount geen attachment-routes meer
+- de standaard backend-package exposeert ook geen attachment npm-scripts meer
 
 ## Structuur
 
@@ -127,6 +129,8 @@ Snelle smoke-checks tegen een draaiende lokale server:
 - `npm run smoke`
 - `npm run smoke:socket`
 
+Historische attachment-smokes bestaan alleen nog als intern referentiemateriaal en horen niet bij de actieve standaardflow. Ze worden ook niet meer via de standaard npm-scripts van deze skeleton aangeboden.
+
 Snelle configuratiecheck vóór starten of deploy:
 
 - `npm run preflight`
@@ -178,6 +182,8 @@ For local development, you can also use `FIRESTORE_EMULATOR_HOST` plus `FIREBASE
 `/configz` geeft een veilige diagnose van de Firebase-config terug zonder secrets te echoën.
 
 `/readyz` probeert ook Firestore-bereikbaarheid te valideren en geeft `503` terug als die check faalt.
+
+De standaard runtime adverteert hier ook geen attachment-capabilities meer.
 
 ## Firestore Hulp
 

@@ -7,15 +7,6 @@ import {
 } from './attachmentCrypto';
 import { ATTACHMENT_FUTURE_MEDIA_STRATEGY } from './attachmentStrategyConstants';
 import {
-  ATTACHMENT_ACCESS_PROVIDER_DIRECT,
-  buildAttachmentAccessProviderDescriptor,
-  getAttachmentAccessProviderKind,
-} from './attachmentProviderKinds';
-import {
-  createAttachmentAccessProviderRegistry,
-  resolveAttachmentAccessProvider,
-} from './attachmentProviders';
-import {
   isImageAttachment,
   normalizeAttachmentPayload,
   resolveAttachmentUrl,
@@ -376,32 +367,21 @@ export function clearAttachmentMetadataCache() {
   attachmentMetadataCache.clear();
 }
 
-export function createDirectAttachmentAccessProvider() {
-  const descriptor = buildAttachmentAccessProviderDescriptor(ATTACHMENT_ACCESS_PROVIDER_DIRECT);
-
-  return {
-    ...descriptor,
-    async resolveAttachment(attachment) {
-      return normalizeAttachmentPayload(attachment);
-    },
-    async fetchBinaryBlob() {
-      throw new Error('Direct attachment provider heeft geen remote blob-download.');
-    },
-  };
-}
-
-export function createRemoteAttachmentAccessProvider({
+function createRemoteAttachmentAccessProvider({
   user = null,
   fetchImpl = fetch,
   strategyKey = '',
 } = {}) {
-  const descriptor = buildAttachmentAccessProviderDescriptor(
-    getAttachmentAccessProviderKind(strategyKey),
-    strategyKey
-  );
+  const isFutureDraft = strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY;
 
   return {
-    ...descriptor,
+    kind: isFutureDraft
+      ? 'remote_future_draft'
+      : 'remote',
+    strategyKey,
+    usesRemoteFetch: true,
+    isFutureDraft,
+    supportsBinaryAccess: !isFutureDraft,
     async resolveAttachment(attachment) {
       return fetchAttachmentMetadata(attachment, user, fetchImpl);
     },
@@ -411,7 +391,7 @@ export function createRemoteAttachmentAccessProvider({
   };
 }
 
-export function createFutureDraftAttachmentAccessProvider({
+function createFutureDraftAttachmentAccessProvider({
   user = null,
   fetchImpl = fetch,
 } = {}) {
@@ -419,30 +399,6 @@ export function createFutureDraftAttachmentAccessProvider({
     user,
     fetchImpl,
     strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-  });
-}
-
-export function createDefaultAttachmentAccessProviderRegistry() {
-  return createAttachmentAccessProviderRegistry({
-    createDirectProvider: createDirectAttachmentAccessProvider,
-    createRemoteProvider: createRemoteAttachmentAccessProvider,
-    createFutureDraftProvider: createFutureDraftAttachmentAccessProvider,
-  });
-}
-
-export function createAttachmentAccessProvider(
-  attachment,
-  {
-    user = null,
-    fetchImpl = fetch,
-  } = {}
-) {
-  const accessInfo = getAttachmentAccessInfo(attachment);
-  return resolveAttachmentAccessProvider(createDefaultAttachmentAccessProviderRegistry(), {
-    needsRemoteFetch: accessInfo.needsRemoteFetch,
-    strategyKey: accessInfo.strategyKey,
-    user,
-    fetchImpl,
   });
 }
 
@@ -492,8 +448,20 @@ export async function fetchAttachmentMetadata(attachment, user, fetchImpl = fetc
 }
 
 export async function resolveAttachmentForAccess(attachment, user, fetchImpl = fetch) {
-  const accessProvider = createAttachmentAccessProvider(attachment, { user, fetchImpl });
-  return accessProvider.resolveAttachment(attachment);
+  const accessInfo = getAttachmentAccessInfo(attachment);
+  if (!accessInfo.needsRemoteFetch) {
+    return normalizeAttachmentPayload(attachment);
+  }
+
+  if (accessInfo.strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY) {
+    return createFutureDraftAttachmentAccessProvider({ user, fetchImpl }).resolveAttachment(attachment);
+  }
+
+  return createRemoteAttachmentAccessProvider({
+    user,
+    fetchImpl,
+    strategyKey: accessInfo.strategyKey,
+  }).resolveAttachment(attachment);
 }
 
 export async function resolveAttachmentForBinaryAction(
@@ -595,8 +563,8 @@ export async function prepareAttachmentBinaryAccess(
   } = {}
 ) {
   assertAttachmentBinaryAccessSupported(attachment);
-  const accessProvider = createAttachmentAccessProvider(attachment, { user, fetchImpl });
-  const resolvedAttachment = await accessProvider.resolveAttachment(attachment);
+  const initialAccessInfo = getAttachmentAccessInfo(attachment);
+  const resolvedAttachment = await resolveAttachmentForAccess(attachment, user, fetchImpl);
   const accessInfo = assertAttachmentBinaryAccessSupported(resolvedAttachment);
 
   if (!accessInfo.needsRemoteFetch) {
@@ -616,7 +584,11 @@ export async function prepareAttachmentBinaryAccess(
     };
   }
 
-  const encryptedBlob = await accessProvider.fetchBinaryBlob(resolvedAttachment);
+  const encryptedBlob = await createRemoteAttachmentAccessProvider({
+    user,
+    fetchImpl,
+    strategyKey: initialAccessInfo.strategyKey,
+  }).fetchBinaryBlob(resolvedAttachment);
   const decryptedBlob = await decryptAttachmentBlobOverride(encryptedBlob, resolvedAttachment);
   const objectUrl = createObjectUrl(decryptedBlob);
   const unwrapContext = await resolveAttachmentUnwrapContext(resolvedAttachment);

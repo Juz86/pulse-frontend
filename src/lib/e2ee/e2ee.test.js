@@ -107,11 +107,6 @@ import {
   createAttachmentMessageActionRuntime,
   createAttachmentActionRunner,
   createAttachmentActionCallbacks,
-  createAttachmentAccessProvider,
-  createDefaultAttachmentAccessProviderRegistry,
-  createDirectAttachmentAccessProvider,
-  createFutureDraftAttachmentAccessProvider,
-  createRemoteAttachmentAccessProvider,
   buildResolvedAttachmentAccessContract,
   buildAttachmentMetadataUrl,
   clearAttachmentMetadataCache,
@@ -137,18 +132,6 @@ import {
   runAttachmentBinaryActionWithState,
   triggerAttachmentDownload,
 } from './attachmentAccessAdapter';
-import {
-  ATTACHMENT_ACCESS_PROVIDER_DIRECT,
-  ATTACHMENT_ACCESS_PROVIDER_REMOTE,
-  ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT,
-  buildAttachmentAccessProviderDescriptor,
-  resolveAttachmentAccessProviderKind,
-} from './attachmentProviderKinds';
-import {
-  createAttachmentAccessProviderRegistry,
-  resolveAttachmentAccessProvider,
-  resolveAttachmentAccessProviderEntry,
-} from './attachmentProviders';
 import { messagingService } from './messagingService';
 import { BACKEND_URL } from '../../services/socket';
 
@@ -2217,20 +2200,7 @@ describe('e2ee attachment helpers', () => {
     expect(cached.encryption?.keyId).toBe('mock-key-cached');
   });
 
-  test('createDirectAttachmentAccessProvider returns normalized local attachments', async () => {
-    const provider = createDirectAttachmentAccessProvider();
-    const attachment = await provider.resolveAttachment({
-      name: 'inline.txt',
-      url: 'data:text/plain;base64,SGVsbG8=',
-      mimeType: 'text/plain',
-    });
-
-    expect(provider.kind).toBe('direct');
-    expect(attachment.name).toBe('inline.txt');
-    await expect(provider.fetchBinaryBlob()).rejects.toThrow('Direct attachment provider heeft geen remote blob-download.');
-  });
-
-  test('createRemoteAttachmentAccessProvider resolves metadata and downloads binary blobs', async () => {
+  test('resolveAttachmentForAccess refreshes remote attachment metadata when needed', async () => {
     const getIdToken = jest.fn().mockResolvedValue('token-123');
     const fetchImpl = jest
       .fn()
@@ -2249,165 +2219,19 @@ describe('e2ee attachment helpers', () => {
           },
         }),
       })
-      .mockResolvedValueOnce({
-        ok: true,
-        headers: { get: jest.fn(() => '') },
-        blob: async () => new Blob(['remote payload'], { type: 'text/plain' }),
-      });
-    const provider = createRemoteAttachmentAccessProvider({
-      user: { getIdToken },
-      fetchImpl,
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    });
+      ;
     const baseAttachment = {
       downloadUrl: `${BACKEND_URL}/attachments/remote-1`,
       transfer: 'remote',
       encryption: { alg: 'mock-storage-envelope' },
     };
 
-    const resolvedAttachment = await provider.resolveAttachment(baseAttachment);
-    const blob = await provider.fetchBinaryBlob(resolvedAttachment);
+    const resolvedAttachment = await resolveAttachmentForAccess(baseAttachment, { getIdToken }, fetchImpl);
 
-    expect(provider.kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
     expect(getIdToken).toHaveBeenCalled();
-    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
     expect(resolvedAttachment.name).toBe('remote.txt');
-    expect(await new Response(blob).text()).toBe('remote payload');
-  });
-
-  test('createAttachmentAccessProvider selects direct or remote providers from attachment access info', () => {
-    expect(createAttachmentAccessProvider({
-      url: 'data:text/plain;base64,SGVsbG8=',
-      mimeType: 'text/plain',
-    }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_DIRECT);
-
-    expect(createAttachmentAccessProvider({
-      downloadUrl: `${BACKEND_URL}/attachments/remote-2`,
-      transfer: 'remote',
-      encryption: { alg: 'mock-storage-envelope' },
-    }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE);
-
-    expect(createAttachmentAccessProvider({
-      downloadUrl: `${BACKEND_URL}/attachments/future-2`,
-      transfer: 'remote',
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      contentEncoding: ATTACHMENT_FUTURE_ENVELOPE_ALG,
-      encryption: { alg: ATTACHMENT_FUTURE_ENVELOPE_ALG },
-    }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
-  });
-
-  test('createDefaultAttachmentAccessProviderRegistry exposes all built-in access providers', () => {
-    const registry = createDefaultAttachmentAccessProviderRegistry();
-
-    expect(typeof registry[ATTACHMENT_ACCESS_PROVIDER_DIRECT]).toBe('function');
-    expect(typeof registry[ATTACHMENT_ACCESS_PROVIDER_REMOTE]).toBe('function');
-    expect(typeof registry[ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT]).toBe('function');
-  });
-
-  test('createFutureDraftAttachmentAccessProvider exposes a dedicated future access provider factory', () => {
-    const provider = createFutureDraftAttachmentAccessProvider();
-
-    expect(provider.kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
-    expect(provider.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
-  });
-
-  test('buildAttachmentAccessProviderDescriptor exposes shared access capabilities', () => {
-    expect(buildAttachmentAccessProviderDescriptor(ATTACHMENT_ACCESS_PROVIDER_DIRECT)).toEqual({
-      kind: ATTACHMENT_ACCESS_PROVIDER_DIRECT,
-      strategyKey: '',
-      usesRemoteFetch: false,
-      isFutureDraft: false,
-      supportsBinaryAccess: true,
-    });
-
-    expect(buildAttachmentAccessProviderDescriptor(
-      ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT,
-      ATTACHMENT_FUTURE_MEDIA_STRATEGY
-    )).toEqual({
-      kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT,
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      usesRemoteFetch: true,
-      isFutureDraft: true,
-      supportsBinaryAccess: false,
-    });
-  });
-
-  test('resolveAttachmentAccessProviderKind centralizes access-driven provider selection', () => {
-    expect(resolveAttachmentAccessProviderKind({
-      needsRemoteFetch: false,
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    })).toBe(ATTACHMENT_ACCESS_PROVIDER_DIRECT);
-
-    expect(resolveAttachmentAccessProviderKind({
-      needsRemoteFetch: true,
-      strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
-    })).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE);
-
-    expect(resolveAttachmentAccessProviderKind({
-      needsRemoteFetch: true,
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    })).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
-  });
-
-  test('attachment access provider registry resolves direct and remote providers centrally', () => {
-    const createDirectProvider = jest.fn(() => ({ kind: ATTACHMENT_ACCESS_PROVIDER_DIRECT }));
-    const createRemoteProvider = jest.fn(({ strategyKey }) => ({
-      kind: strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY
-        ? ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT
-        : ATTACHMENT_ACCESS_PROVIDER_REMOTE,
-    }));
-    const createFutureDraftProvider = jest.fn(({ strategyKey }) => ({
-      kind: strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY
-        ? ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT
-        : ATTACHMENT_ACCESS_PROVIDER_REMOTE,
-    }));
-    const registry = createAttachmentAccessProviderRegistry({
-      createDirectProvider,
-      createRemoteProvider,
-      createFutureDraftProvider,
-    });
-
-    expect(resolveAttachmentAccessProvider(registry, {
-      needsRemoteFetch: false,
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_DIRECT);
-
-    expect(resolveAttachmentAccessProvider(registry, {
-      needsRemoteFetch: true,
-      strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
-    }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE);
-
-    expect(resolveAttachmentAccessProvider(registry, {
-      needsRemoteFetch: true,
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    }).kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
-
-    expect(createDirectProvider).toHaveBeenCalledTimes(1);
-    expect(createRemoteProvider).toHaveBeenCalledTimes(1);
-    expect(createFutureDraftProvider).toHaveBeenCalledTimes(1);
-  });
-
-  test('attachment access provider registry exposes a resolved entry with descriptor', () => {
-    const registry = createAttachmentAccessProviderRegistry({
-      createDirectProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_DIRECT }),
-      createRemoteProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE }),
-      createFutureDraftProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT }),
-    });
-
-    const entry = resolveAttachmentAccessProviderEntry(registry, {
-      needsRemoteFetch: true,
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    });
-
-    expect(entry.kind).toBe(ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT);
-    expect(entry.descriptor).toEqual({
-      kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT,
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      usesRemoteFetch: true,
-      isFutureDraft: true,
-      supportsBinaryAccess: false,
-    });
-    expect(typeof entry.factory).toBe('function');
+    expect(resolvedAttachment.transfer).toBe('remote');
   });
 
   test('resolveAttachmentForAccess returns the original normalized attachment when no remote metadata refresh is needed', async () => {

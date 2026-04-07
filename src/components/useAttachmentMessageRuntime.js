@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
   createAttachmentMessageActionRuntime,
-  getInitialAttachmentActionState,
 } from '../lib/e2ee/attachmentAccessAdapter';
 import { buildAttachmentMessageCardPresentation } from '../lib/e2ee/attachmentPresentation';
 
@@ -17,11 +16,10 @@ export default function useAttachmentMessageRuntime({
   const [attachmentBusy, setAttachmentBusy] = useState(false);
 
   useEffect(() => {
-    const initialActionState = getInitialAttachmentActionState();
-    setResolvedAttachment(initialActionState.resolvedAttachment);
-    setResolvedAttachmentAccess(initialActionState.resolvedAttachmentAccess);
-    setAttachmentActionError(initialActionState.attachmentActionError);
-    setAttachmentBusy(initialActionState.attachmentBusy);
+    setResolvedAttachment(null);
+    setResolvedAttachmentAccess(null);
+    setAttachmentActionError('');
+    setAttachmentBusy(false);
   }, [messageId]);
 
   if (!messageAttachment) {

@@ -14,15 +14,6 @@ import {
 
 const attachmentMetadataCache = new Map();
 
-export function getInitialAttachmentActionState() {
-  return {
-    resolvedAttachment: null,
-    resolvedAttachmentAccess: null,
-    attachmentActionError: '',
-    attachmentBusy: false,
-  };
-}
-
 function buildAttachmentActionSuccessState(preparedAccess) {
   return {
     resolvedAttachment: preparedAccess?.attachment || null,
@@ -81,11 +72,11 @@ export async function passthroughDecryptAttachmentBlob(blob) {
   return blob;
 }
 
-export function resolveExpectedAttachmentSha256(attachment) {
+function resolveExpectedAttachmentSha256(attachment) {
   return attachment?.expectedPayloadSha256 || attachment?.encryption?.sha256 || '';
 }
 
-export function resolveAttachmentContractFields(attachment) {
+function resolveAttachmentContractFields(attachment) {
   return {
     expectedPayloadSha256: resolveExpectedAttachmentSha256(attachment),
     strategyKey: attachment?.strategyKey || attachment?.encryption?.strategyKey || '',
@@ -99,7 +90,7 @@ export function resolveAttachmentContractFields(attachment) {
   };
 }
 
-export function buildResolvedAttachmentAccessContract(attachment) {
+function buildResolvedAttachmentAccessContract(attachment) {
   const contract = resolveAttachmentContractFields(attachment);
   const strategy = getAttachmentEncryptionCapability(attachment?.encryption || {});
   const strategyKey = contract.strategyKey || strategy.strategyKey;
@@ -120,7 +111,7 @@ export function buildResolvedAttachmentAccessContract(attachment) {
   };
 }
 
-export function buildAttachmentAccessVerification(contract = {}, unwrapContext = null) {
+function buildAttachmentAccessVerification(contract = {}, unwrapContext = null) {
   return {
     strategyKey: typeof contract?.strategyKey === 'string' ? contract.strategyKey : '',
     integrityVerified: Boolean(contract?.integrityVerified),
@@ -129,7 +120,7 @@ export function buildAttachmentAccessVerification(contract = {}, unwrapContext =
   };
 }
 
-export async function decryptAttachmentBlob(blob, attachment) {
+async function decryptAttachmentBlob(blob, attachment) {
   const strategy = getAttachmentEncryptionCapability(attachment?.encryption || {});
   if (strategy.hasEncryption) {
     await validateAttachmentMediaKeyContract(attachment?.encryption || {});
@@ -139,7 +130,7 @@ export async function decryptAttachmentBlob(blob, attachment) {
   return passthroughDecryptAttachmentBlob(blob);
 }
 
-export async function resolveAttachmentUnwrapContext(attachment) {
+async function resolveAttachmentUnwrapContext(attachment) {
   const strategy = getAttachmentEncryptionCapability(attachment?.encryption || {});
   if (strategy.hasEncryption) {
     return unwrapAttachmentMediaKey(attachment?.encryption || {});
@@ -168,7 +159,7 @@ export function getAttachmentIdFromAttachment(attachment) {
   }
 }
 
-export function getAttachmentContractFromHeaders(headers) {
+function getAttachmentContractFromHeaders(headers) {
   return {
     expectedPayloadSha256: headers?.get?.('X-Pulse-Expected-Sha256') || '',
     strategyKey: headers?.get?.('X-Pulse-Encryption-Strategy') || '',
@@ -182,7 +173,7 @@ export function getAttachmentContractFromHeaders(headers) {
   };
 }
 
-export function mapAttachmentContractError(error, {
+function mapAttachmentContractError(error, {
   hashMessage = 'Attachment metadata-integriteit komt niet overeen',
   strategyMessage = 'Attachment encryptiestrategie komt niet overeen',
   contentEncodingMessage = 'Attachment content-encoding komt niet overeen',
@@ -267,7 +258,7 @@ export function mergeAttachmentMetadata(baseAttachment, metadataAttachment) {
   });
 }
 
-export function assertAttachmentMetadataIntegrity(baseAttachment, metadataAttachment) {
+function assertAttachmentMetadataIntegrity(baseAttachment, metadataAttachment) {
   const baseContract = resolveAttachmentContractFields(baseAttachment);
   const metadataContract = resolveAttachmentContractFields(metadataAttachment);
 
@@ -344,12 +335,12 @@ export function assertAttachmentMetadataIntegrity(baseAttachment, metadataAttach
   }
 }
 
-export function buildAttachmentMetadataUrl(attachment) {
+function buildAttachmentMetadataUrl(attachment) {
   const attachmentId = getAttachmentIdFromAttachment(attachment);
   return attachmentId ? `${BACKEND_URL}/api/attachments/${attachmentId}/meta` : '';
 }
 
-export function getCachedAttachmentMetadata(attachment) {
+function getCachedAttachmentMetadata(attachment) {
   const attachmentId = getAttachmentIdFromAttachment(attachment);
   return attachmentId ? attachmentMetadataCache.get(attachmentId) || null : null;
 }
@@ -402,7 +393,7 @@ function createFutureDraftAttachmentAccessProvider({
   });
 }
 
-export async function fetchAttachmentMetadata(attachment, user, fetchImpl = fetch) {
+async function fetchAttachmentMetadata(attachment, user, fetchImpl = fetch) {
   const cachedMetadata = getCachedAttachmentMetadata(attachment);
   if (cachedMetadata) {
     return cachedMetadata;
@@ -447,7 +438,7 @@ export async function fetchAttachmentMetadata(attachment, user, fetchImpl = fetc
   return cacheAttachmentMetadata(attachment, data.attachment);
 }
 
-export async function resolveAttachmentForAccess(attachment, user, fetchImpl = fetch) {
+async function resolveAttachmentForAccess(attachment, user, fetchImpl = fetch) {
   const accessInfo = getAttachmentAccessInfo(attachment);
   if (!accessInfo.needsRemoteFetch) {
     return normalizeAttachmentPayload(attachment);
@@ -464,7 +455,7 @@ export async function resolveAttachmentForAccess(attachment, user, fetchImpl = f
   }).resolveAttachment(attachment);
 }
 
-export async function resolveAttachmentForBinaryAction(
+async function resolveAttachmentForBinaryAction(
   attachment,
   user,
   {
@@ -505,7 +496,7 @@ export async function resolveAttachmentForBinaryAction(
   }
 }
 
-export async function fetchAttachmentBlob(attachment, fetchImpl = fetch) {
+async function fetchAttachmentBlob(attachment, fetchImpl = fetch) {
   const { url } = getAttachmentAccessInfo(attachment);
   if (!url) {
     throw new Error('Geen attachment download-url beschikbaar.');
@@ -552,7 +543,7 @@ export async function fetchAttachmentBlob(attachment, fetchImpl = fetch) {
   return response.blob();
 }
 
-export async function prepareAttachmentBinaryAccess(
+async function prepareAttachmentBinaryAccess(
   attachment,
   user,
   {
@@ -608,7 +599,7 @@ export async function prepareAttachmentBinaryAccess(
   };
 }
 
-export function buildPreparedAttachmentActionTarget(preparedAccess) {
+function buildPreparedAttachmentActionTarget(preparedAccess) {
   if (!preparedAccess?.attachment) return null;
 
   return preparedAccess.isObjectUrl
@@ -616,7 +607,7 @@ export function buildPreparedAttachmentActionTarget(preparedAccess) {
     : preparedAccess.attachment;
 }
 
-export function executePreparedAttachmentAction(
+function executePreparedAttachmentAction(
   preparedAccess,
   {
     action = 'open',
@@ -642,7 +633,7 @@ export function executePreparedAttachmentAction(
   return succeeded;
 }
 
-export async function runAttachmentBinaryAction(
+async function runAttachmentBinaryAction(
   attachment,
   user,
   {
@@ -690,7 +681,7 @@ export async function runAttachmentBinaryAction(
   };
 }
 
-export async function runAttachmentBinaryActionWithState(
+async function runAttachmentBinaryActionWithState(
   attachment,
   user,
   options = {}
@@ -714,7 +705,7 @@ export async function runAttachmentBinaryActionWithState(
   }
 }
 
-export async function runAttachmentActionFlow(
+async function runAttachmentActionFlow(
   attachment,
   user,
   {
@@ -745,7 +736,7 @@ export async function runAttachmentActionFlow(
   return result;
 }
 
-export function createAttachmentActionRunner(
+function createAttachmentActionRunner(
   attachment,
   user,
   options = {}
@@ -788,14 +779,14 @@ export function createAttachmentMessageActionRuntime(
   };
 }
 
-export function openAttachmentInNewTab(attachment, opener = window.open) {
+function openAttachmentInNewTab(attachment, opener = window.open) {
   const { url } = getAttachmentAccessInfo(attachment);
   if (!url) return false;
   opener(url, '_blank', 'noopener,noreferrer');
   return true;
 }
 
-export function triggerAttachmentDownload(attachment, doc = document) {
+function triggerAttachmentDownload(attachment, doc = document) {
   const { url } = getAttachmentAccessInfo(attachment);
   if (!url) return false;
 

@@ -7,7 +7,7 @@ import { getOutgoingMessageScopeError } from './messageTransportPayload';
 import { secureKeyStore } from './secureKeyStore';
 import { sessionStore } from './sessionStore';
 
-function serializeMessagePayload({ plaintext, messageType = 'text', sharedContact = null, attachment = null }) {
+function serializeMessagePayload({ plaintext, messageType = 'text', sharedContact = null }) {
   if (messageType === 'contact') {
     return JSON.stringify({
       kind: 'contact',
@@ -160,7 +160,6 @@ export const messagingService = {
     replyToMessageId = null,
     messageType = 'text',
     sharedContact = null,
-    attachment = null,
     mentions = [],
   }, currentDeviceId) {
     if (!user) throw new Error('Geen gebruiker beschikbaar.');
@@ -174,16 +173,12 @@ export const messagingService = {
       throw new Error(outgoingScopeError);
     }
 
-    const normalizedAttachment = messageType === 'attachment'
-      ? normalizeAttachmentPayload(attachment)
-      : null;
     const recipientPayloads = [];
     let primaryCiphertext = '';
     const payloadPlaintext = serializeMessagePayload({
       plaintext,
       messageType,
       sharedContact,
-      attachment: normalizedAttachment,
     });
 
     for (const targetUserId of targetUserIds) {
@@ -226,7 +221,6 @@ export const messagingService = {
         ciphertext: primaryCiphertext,
         messageType,
         sharedContact,
-        attachment: normalizedAttachment,
         mentions,
         protocol: 'signal_v1',
         protocolVersion: 1,

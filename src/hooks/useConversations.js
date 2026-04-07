@@ -5,7 +5,6 @@ import { messagingService } from '../lib/e2ee/messagingService';
 import {
   buildForwardServicePayload,
   buildRetryServicePayload,
-  getOutgoingMessageScopeError,
 } from '../lib/e2ee/messageTransportPayload';
 import {
   buildPendingMessage,
@@ -152,7 +151,7 @@ export default function useConversations({
     )));
   }
 
-  async function sendViaService({ conv, plaintext, recipientUserIds, replyToMessageId, messageType = 'text', sharedContact = null, attachment = null }) {
+  async function sendViaService({ conv, plaintext, recipientUserIds, replyToMessageId, messageType = 'text', sharedContact = null, mentions = [] }) {
     const result = await messagingService.sendMessage({
       user,
       conversationId: conv.id,
@@ -161,7 +160,7 @@ export default function useConversations({
       replyToMessageId,
       messageType,
       sharedContact,
-      attachment,
+      mentions,
     }, currentDeviceId);
 
     return {
@@ -180,7 +179,7 @@ export default function useConversations({
       type: messageType,
       messageType,
       sharedContact,
-      attachment,
+      attachment: null,
     };
   }
 
@@ -491,7 +490,7 @@ export default function useConversations({
     const retryCount = (failedMsg._retryCount || 0) + 1;
     const recipientUserIds = getConversationRecipients(activeConv);
     const retryPayload = buildRetryServicePayload(failedMsg);
-    const retryScopeError = getOutgoingMessageScopeError(retryPayload.messageType);
+    const retryScopeError = retryPayload.scopeError;
     if (retryScopeError) {
       showErrToast(retryScopeError);
       return;
@@ -508,7 +507,6 @@ export default function useConversations({
         replyToMessageId: retryPayload.replyToMessageId,
         messageType: retryPayload.messageType,
         sharedContact: retryPayload.sharedContact,
-        attachment: retryPayload.attachment,
       }).then((savedMsg) => {
         clearTimeout(failTimer);
         pendingTempIds.current.delete(failedMsg.id);
@@ -575,7 +573,7 @@ export default function useConversations({
     const recipientUserIds = getConversationRecipients(conv);
     const forwardPayload = buildForwardServicePayload(forwardMsg);
     const forwardType = forwardPayload.messageType;
-    const forwardScopeError = getOutgoingMessageScopeError(forwardType);
+    const forwardScopeError = forwardPayload.scopeError;
     if (forwardScopeError) {
       showErrToast(forwardScopeError);
       return;
@@ -595,7 +593,6 @@ export default function useConversations({
           replyToMessageId: null,
           messageType: forwardPayload.messageType,
           sharedContact: forwardPayload.sharedContact,
-          attachment: forwardPayload.attachment,
         });
       } catch {
         showErrToast('Doorsturen mislukt');

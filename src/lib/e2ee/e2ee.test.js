@@ -3880,7 +3880,7 @@ describe('e2ee transport payload helpers', () => {
     });
   });
 
-  test('buildRetryServicePayload keeps structured attachment data intact', () => {
+  test('buildRetryServicePayload flags unsupported attachment messages in the active scope', () => {
     const payload = buildRetryServicePayload({
       text: 'Bijlage: foto.png',
       type: 'attachment',
@@ -3907,35 +3907,14 @@ describe('e2ee transport payload helpers', () => {
     expect(payload).toEqual({
       plaintext: 'Bijlage: foto.png',
       messageType: 'attachment',
+      scopeError: OUTGOING_ATTACHMENT_SCOPE_ERROR,
       replyToMessageId: 'msg-parent-1',
       sharedContact: null,
-      attachment: {
-        name: 'foto.png',
-        url: '',
-        downloadUrl: 'http://localhost:3001/attachments/retry-1',
-        thumbnailUrl: '',
-        storageKey: '',
-        transfer: 'remote',
-        mimeType: 'application/pulse-e2ee-envelope+json',
-        strategyKey: '',
-        originalMimeType: 'image/png',
-        contentEncoding: 'mock-e2ee-envelope-v1',
-        envelopeKind: 'pulse_mock_media_envelope',
-        expectedPayloadSha256: '',
-        size: null,
-        caption: '',
-        encryption: null,
-        accessVerification: {
-          strategyKey: '',
-          integrityVerified: true,
-          wrappedKeyVerified: false,
-          unwrapKind: 'attachment_encryption_contract',
-        },
-      },
+      attachment: null,
     });
   });
 
-  test('buildForwardServicePayload preserves attachment contracts for forwarding', () => {
+  test('buildForwardServicePayload flags unsupported attachment forwards in the active scope', () => {
     const payload = buildForwardServicePayload({
       type: 'attachment',
       text: 'foto.png',
@@ -3962,18 +3941,12 @@ describe('e2ee transport payload helpers', () => {
       },
     });
 
-    expect(payload.messageType).toBe('attachment');
-    expect(payload.plaintext).toBe('foto.png');
-    expect(payload.attachment.originalMimeType).toBe('image/png');
-    expect(payload.attachment.contentEncoding).toBe('mock-e2ee-envelope-v1');
-    expect(payload.attachment.envelopeKind).toBe('pulse_mock_media_envelope');
-    expect(payload.attachment.expectedPayloadSha256).toBe('');
-    expect(payload.attachment.url).toBe('');
-    expect(payload.attachment.accessVerification).toEqual({
-      strategyKey: '',
-      integrityVerified: true,
-      wrappedKeyVerified: true,
-      unwrapKind: 'pulse_mock_media_key_unwrap',
+    expect(payload).toEqual({
+      plaintext: 'foto.png',
+      messageType: 'attachment',
+      scopeError: OUTGOING_ATTACHMENT_SCOPE_ERROR,
+      sharedContact: null,
+      attachment: null,
     });
   });
 
@@ -3981,6 +3954,7 @@ describe('e2ee transport payload helpers', () => {
     expect(buildForwardServicePayload({ text: 'Hallo' })).toEqual({
       plaintext: '↪️ Hallo',
       messageType: 'text',
+      scopeError: '',
       sharedContact: null,
       attachment: null,
     });
@@ -3992,6 +3966,7 @@ describe('e2ee transport payload helpers', () => {
     })).toEqual({
       plaintext: 'Contactpersoon: Habiba',
       messageType: 'contact',
+      scopeError: '',
       sharedContact: { uid: 'user-2', name: 'Habiba' },
       attachment: null,
     });

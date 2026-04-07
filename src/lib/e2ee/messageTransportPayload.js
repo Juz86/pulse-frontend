@@ -33,23 +33,27 @@ export function buildTransportAttachmentPayload(attachment) {
 
 export function buildRetryServicePayload(message = {}) {
   const messageType = getStructuredMessageType(message);
+  const scopeError = getOutgoingMessageScopeError(messageType);
 
   return {
     plaintext: message.text || '',
     messageType,
+    scopeError,
     replyToMessageId: message.replyTo?.messageId || message.replyTo?.id || null,
     sharedContact: messageType === 'contact' ? (message.sharedContact || null) : null,
-    attachment: messageType === 'attachment' ? buildTransportAttachmentPayload(message.attachment) : null,
+    attachment: scopeError ? null : (messageType === 'attachment' ? buildTransportAttachmentPayload(message.attachment) : null),
   };
 }
 
 export function buildForwardServicePayload(message = {}) {
   const messageType = getStructuredMessageType(message);
+  const scopeError = getOutgoingMessageScopeError(messageType);
 
   if (messageType === 'text') {
     return {
       plaintext: `↪️ ${message.text || ''}`,
       messageType: 'text',
+      scopeError: '',
       sharedContact: null,
       attachment: null,
     };
@@ -58,7 +62,8 @@ export function buildForwardServicePayload(message = {}) {
   return {
     plaintext: message.text || '',
     messageType,
+    scopeError,
     sharedContact: messageType === 'contact' ? (message.sharedContact || null) : null,
-    attachment: messageType === 'attachment' ? buildTransportAttachmentPayload(message.attachment) : null,
+    attachment: scopeError ? null : (messageType === 'attachment' ? buildTransportAttachmentPayload(message.attachment) : null),
   };
 }

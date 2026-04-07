@@ -137,47 +137,41 @@ Verwachte uitkomst:
 - of `Versleuteld bericht`
 - maar geen lege string bij relevante input
 
-## 9. Remote Mock Attachment Contract
+## 9. Bel En Videobel Kaarten
 
 Scenario:
 
-- `REACT_APP_E2EE_ATTACHMENT_TRANSPORT=remote_mock`
-- attachment gaat via backend-upload, metadata en download terug
+- gebruiker start of mist een spraak- of videogesprek
 
 Belangrijke bestanden:
 
-- [src/lib/e2ee/attachmentUploadAdapter.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentUploadAdapter.js)
-- [src/lib/e2ee/attachmentAccessAdapter.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentAccessAdapter.js)
-- [src/lib/e2ee/attachmentPresentation.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentPresentation.js)
-- [backend-skeleton/src/scripts/smokeAttachments.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/scripts/smokeAttachments.js)
+- [src/components/CallMessageCard.js](/home/yushuaabdulkadir/pulse-frontend/src/components/CallMessageCard.js)
+- [src/components/callMessageHelpers.js](/home/yushuaabdulkadir/pulse-frontend/src/components/callMessageHelpers.js)
+- [src/components/MessageBubble.js](/home/yushuaabdulkadir/pulse-frontend/src/components/MessageBubble.js)
 
 Verwachte uitkomst:
 
-- attachment gebruikt het expliciete profiel `mock_media_v1`
-- metadataheaders en downloadheaders vertellen hetzelfde contract
-- UI toont:
-  - `Mock versleutelde opslaglink`
-  - `Media-strategie: mock_media_v1`
-  - `Envelope: pulse_mock_media_envelope`
+- call card toont logische labels en status
+- gemiste oproepen blijven klikbaar waar bedoeld
+- spraak en video gebruiken dezelfde stabiele renderflow
 
-## 10. Attachment Retry En Forward
+## 10. Geen Chatmedia Of Attachments
 
 Scenario:
 
-- remote attachment faalt of wordt doorgestuurd
+- gebruiker probeert media of bestanden te delen in een gesprek
 
 Belangrijke bestanden:
 
-- [src/lib/e2ee/messageTransportPayload.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/messageTransportPayload.js)
+- [src/components/ChatInput.js](/home/yushuaabdulkadir/pulse-frontend/src/components/ChatInput.js)
+- [src/screens/ChatScreen.js](/home/yushuaabdulkadir/pulse-frontend/src/screens/ChatScreen.js)
 - [src/hooks/useConversations.js](/home/yushuaabdulkadir/pulse-frontend/src/hooks/useConversations.js)
-- [src/lib/e2ee/attachmentPayload.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentPayload.js)
 
 Verwachte uitkomst:
 
-- attachment blijft `attachment`
-- `accessVerification` blijft behouden waar relevant
-- tijdelijke `blob:` URL’s lekken niet mee
-- `mock_media_v1` contract blijft zichtbaar
+- er is geen gebruikersflow om chatmedia te versturen
+- de composer blijft tekstgericht
+- E2EE-scope blijft beperkt tot chat, bel en video
 
 ## 11. Edit Policy
 

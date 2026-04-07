@@ -4,7 +4,7 @@ Deze checklist is bedoeld voor de eerste handmatige validatie van de E2EE-rollou
 
 ## Testdoel
 
-Valideren dat de frontend correct overschakelt van de huidige socketflow naar de nieuwe serviceflow, eerst met mock crypto.
+Valideren dat de frontend correct overschakelt van de huidige socketflow naar de nieuwe serviceflow, eerst met mock crypto, voor chatten, bellen en videobellen.
 
 ## Testconfiguratie
 
@@ -12,14 +12,12 @@ Gebruik in deze fase:
 
 - `REACT_APP_E2EE_MODE=mock`
 - `REACT_APP_E2EE_TRANSPORT=service`
-- `REACT_APP_E2EE_ATTACHMENT_TRANSPORT=remote_mock`
 
 ## Voorwaarden
 
 - draai eerst:
   `npm run verify:e2ee:acceptance-preflight`
 - backend basisroutes zijn live
-- backend `/api/attachments/upload` en `/attachments/:attachmentId` werken lokaal
 - twee testaccounts bestaan
 - beide accounts mogen volgens parent policy met elkaar chatten
 - frontend start zonder build- of runtimefouten
@@ -58,35 +56,21 @@ Gebruik in deze fase:
 - [ ] frontend accepteert `message:new` of legacy realtime-event
 - [ ] statusupdates blijven zichtbaar
 
-## Scenario 6: Attachments Via Remote Mock
+## Scenario 6: Bellen En Videobellen
 
-- [ ] stuur een kleine afbeelding of tekstbestand vanuit account A
-- [ ] composer toont achtereenvolgens `Bijlage voorbereiden...` en `Bijlage geupload`
-- [ ] account B ontvangt een attachmentkaart zonder lege bubble
-- [ ] attachmentkaart toont `Mock versleutelde opslaglink`
-- [ ] attachmentkaart toont na access-verificatie `Media-strategie: mock_media_v1`
-- [ ] attachmentkaart toont ook `Envelope: pulse_mock_media_envelope`
-- [ ] conversatielijst toont bij het laatste bericht `versleuteld`
-- [ ] conversatielijst behoudt hetzelfde `mock_media_v1` encrypted media-profiel
-- [ ] conversatielijst toont ook het oorspronkelijke mime type
-- [ ] `Openen` werkt
-- [ ] `Downloaden` werkt
-- [ ] attachment blijft na pagina-refresh bruikbaar
-- [ ] attachment blijft bruikbaar na backend-herstart
+- [ ] start een spraakoproep vanuit account A
+- [ ] account B ontvangt een inkomende oproep
+- [ ] een gemiste oproep blijft zichtbaar als gemiste oproepkaart
+- [ ] start een videogesprek vanuit account A
+- [ ] account B ontvangt een inkomend videogesprek
+- [ ] call cards blijven bruikbaar en tonen logische labels
 
-## Scenario 7: Attachment Retry En Forward
+## Scenario 7: Geen Media Versturen
 
-- [ ] forceer een mislukte attachment-send
-- [ ] attachment komt in failed-status
-- [ ] retry behoudt attachment-type en contractvelden
-- [ ] ontvanger krijgt daarna nog steeds een attachmentkaart
-- [ ] retryte attachment toont opnieuw `Mock versleutelde opslaglink`
-- [ ] retryte attachment behoudt `mock_media_v1` als media-strategie
-- [ ] forward een attachment naar een tweede gesprek of groep
-- [ ] forwarded attachment blijft `attachment` en valt niet terug naar plain text
-- [ ] forwarded attachment toont opnieuw `versleuteld` in de conversatielijst
-- [ ] forwarded attachment behoudt `mock_media_v1` als media-strategie
-- [ ] forwarded attachment behoudt openen/downloaden
+- [ ] de chatcomposer toont geen knop om media of attachments te versturen
+- [ ] er bestaat geen werkende flow om afbeeldingen of bestanden naar andere gebruikers te sturen
+- [ ] retry/forward maakt geen chatmediaflow zichtbaar
+
 ## Scenario 8: Edit Policy
 
 - [ ] legacy/plaintext berichten kunnen nog via bestaande flow bewerkt worden als die flow actief is
@@ -103,7 +87,6 @@ Gebruik in deze fase:
 
 - [ ] conversation previews tonen tekst of `Versleuteld bericht`
 - [ ] message bubbles tonen tekst of `Versleuteld bericht`
-- [ ] remote attachments tonen zichtbare storage-indicatoren in bubble en lijst
 - [ ] contextmenu blijft logisch
 - [ ] chat blijft scrollbaar en bruikbaar
 
@@ -120,7 +103,6 @@ Na succesvolle handmatige QA:
 - [ ] build blijft groen
 - [ ] tests blijven groen
 - [ ] lint blijft groen
-- [ ] `backend-skeleton npm run smoke:attachments` blijft groen
 - [ ] rollbackpad naar `socket` is bevestigd
 
 ## Lees Verder

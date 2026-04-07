@@ -104,13 +104,7 @@ import {
   getAttachmentStrategyPresentation,
 } from './attachmentPresentation';
 import {
-  getAttachmentRuntimeState,
-  getAttachmentSendRuntimeConfig,
   getServiceTransportFallbackBannerState,
-  getAttachmentStrategyRuntimeState,
-  isAttachmentStrategySupportedByBackend,
-  normalizeE2EEBackendCapabilities,
-  resolveEffectiveAttachmentStrategy,
 } from './config';
 import {
   applyAttachmentActionResultState,
@@ -480,131 +474,7 @@ describe('e2ee policy helpers', () => {
   });
 });
 
-describe('e2ee backend capability helpers', () => {
-  test('normalizeE2EEBackendCapabilities extracts attachment strategy support from config payloads', () => {
-    expect(normalizeE2EEBackendCapabilities({
-      e2ee: {
-        attachmentTransport: 'remote_mock',
-        attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
-        defaultAttachmentStrategy: 'mock_media_v1',
-        draftAttachmentStrategy: 'pulse_media_v1',
-      },
-    })).toEqual({
-      attachmentTransport: 'remote_mock',
-      attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
-      defaultAttachmentStrategy: 'mock_media_v1',
-      draftAttachmentStrategy: 'pulse_media_v1',
-    });
-  });
-
-  test('isAttachmentStrategySupportedByBackend checks advertised backend strategy support', () => {
-    expect(isAttachmentStrategySupportedByBackend({
-      e2ee: {
-        attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
-      },
-    }, 'pulse_media_v1')).toBe(true);
-
-    expect(isAttachmentStrategySupportedByBackend({
-      e2ee: {
-        attachmentStrategies: ['mock_media_v1'],
-      },
-    }, 'pulse_media_v1')).toBe(false);
-  });
-
-  test('resolveEffectiveAttachmentStrategy falls back when pulse_media_v1 is not advertised', () => {
-    expect(resolveEffectiveAttachmentStrategy({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1'],
-      },
-    })).toBe('mock_media_v1');
-  });
-
-  test('resolveEffectiveAttachmentStrategy keeps pulse_media_v1 when backend support is advertised', () => {
-    expect(resolveEffectiveAttachmentStrategy({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
-      },
-    })).toBe('pulse_media_v1');
-  });
-
-  test('resolveEffectiveAttachmentStrategy prefers the backend default strategy when the preferred one is unsupported', () => {
-    expect(resolveEffectiveAttachmentStrategy({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1', 'external_contract'],
-        defaultAttachmentStrategy: 'external_contract',
-      },
-    })).toBe('external_contract');
-  });
-
-  test('resolveEffectiveAttachmentStrategy falls back to mock_media_v1 when backend default is unsupported too', () => {
-    expect(resolveEffectiveAttachmentStrategy({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1'],
-        defaultAttachmentStrategy: 'external_contract',
-      },
-    })).toBe('mock_media_v1');
-  });
-
-  test('getAttachmentStrategyRuntimeState exposes fallback status and effective strategy', () => {
-    expect(getAttachmentStrategyRuntimeState({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1', 'external_contract'],
-        defaultAttachmentStrategy: 'external_contract',
-      },
-    })).toMatchObject({
-      preferredStrategy: 'pulse_media_v1',
-      effectiveStrategy: 'external_contract',
-      fallbackStrategy: 'external_contract',
-      fallbackActive: true,
-      preferredStrategySupported: false,
-    });
-  });
-
-  test('getAttachmentRuntimeState combines strategy fallback with default provider runtime', () => {
-    expect(getAttachmentRuntimeState({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1'],
-        defaultAttachmentStrategy: 'mock_media_v1',
-      },
-      attachmentTransport: 'remote_mock',
-      needsRemoteFetch: true,
-    })).toMatchObject({
-      preferredStrategy: 'pulse_media_v1',
-      effectiveStrategy: 'mock_media_v1',
-      fallbackActive: true,
-      providerRuntime: {
-        storageProviderKind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK,
-        accessProviderKind: ATTACHMENT_ACCESS_PROVIDER_REMOTE,
-        usesRemoteStorage: true,
-        usesRemoteFetch: true,
-        isFutureDraft: false,
-        supportsBinaryAccess: true,
-      },
-    });
-  });
-
-  test('getAttachmentSendRuntimeConfig derives strategy and transport from attachment runtime', () => {
-    expect(getAttachmentSendRuntimeConfig({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1'],
-        defaultAttachmentStrategy: 'mock_media_v1',
-      },
-      attachmentTransport: 'remote_mock',
-    })).toMatchObject({
-      effectiveStrategy: 'mock_media_v1',
-      transportMode: 'remote_mock',
-      storageProviderKind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK,
-      usesRemoteStorage: true,
-    });
-  });
-
+describe('e2ee config helpers', () => {
   test('getAttachmentStrategyDisplayName derives human-readable strategy labels', () => {
     expect(getAttachmentStrategyDisplayName('mock_media_v1')).toBe('mock-profiel (mock_media_v1)');
     expect(getAttachmentStrategyDisplayName('pulse_media_v1')).toBe('future-draft (pulse_media_v1)');

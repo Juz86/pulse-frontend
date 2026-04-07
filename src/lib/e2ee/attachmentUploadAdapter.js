@@ -1,5 +1,5 @@
 import { BACKEND_URL } from '../../services/socket';
-import { E2EE_ATTACHMENT_STRATEGY, E2EE_ATTACHMENT_TRANSPORT } from './config';
+import { E2EE_ATTACHMENT_STRATEGY, E2EE_ATTACHMENT_TRANSPORT } from './attachmentConfig';
 import {
   buildAttachmentEncryptionMetadata,
   createMockEncryptedAttachmentEnvelope,

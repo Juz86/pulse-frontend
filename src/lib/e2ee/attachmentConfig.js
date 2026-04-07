@@ -1,0 +1,2 @@
+export const E2EE_ATTACHMENT_TRANSPORT = process.env.REACT_APP_E2EE_ATTACHMENT_TRANSPORT || 'inline';
+export const E2EE_ATTACHMENT_STRATEGY = process.env.REACT_APP_E2EE_ATTACHMENT_STRATEGY || 'mock_media_v1';

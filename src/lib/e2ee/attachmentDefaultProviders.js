@@ -1,4 +1,4 @@
-import { E2EE_ATTACHMENT_STRATEGY, E2EE_ATTACHMENT_TRANSPORT } from './config';
+import { E2EE_ATTACHMENT_STRATEGY, E2EE_ATTACHMENT_TRANSPORT } from './attachmentConfig';
 import { createDefaultAttachmentAccessProviderRegistry } from './attachmentAccessAdapter';
 import { createDefaultAttachmentStorageProviderRegistry } from './attachmentUploadAdapter';
 import { getAttachmentProviderRuntimeState } from './attachmentProviders';

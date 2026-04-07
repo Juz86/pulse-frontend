@@ -144,18 +144,43 @@ function renderGroupedMessageBubbleCardOutput(content, isOwn) {
   return <MessageBubbleGroup isOwn={isOwn}>{content}</MessageBubbleGroup>;
 }
 
+function renderDirectMessageBubbleCardOutput(content) {
+  return content;
+}
+
+function shouldSkipMessageBubbleCardRender(renderConfig) {
+  return !renderConfig;
+}
+
+function buildMessageBubbleCardOutputState(renderConfig) {
+  return {
+    content: renderMessageBubbleCardContent(renderConfig),
+    isGrouped: renderConfig.wrapInGroup,
+  };
+}
+
+function resolveMessageBubbleCardOutputRenderer(isGrouped) {
+  return isGrouped
+    ? renderGroupedMessageBubbleCardOutput
+    : renderDirectMessageBubbleCardOutput;
+}
+
 function renderMessageBubbleCardOutput(renderConfig, isOwn) {
-  const content = renderMessageBubbleCardContent(renderConfig);
-  if (!renderConfig.wrapInGroup) {
-    return content;
+  const outputState = buildMessageBubbleCardOutputState(renderConfig);
+  const renderOutput = resolveMessageBubbleCardOutputRenderer(outputState.isGrouped);
+
+  return renderOutput(outputState.content, isOwn);
+}
+
+function buildMessageBubbleCardRenderResult(runtime) {
+  const { renderRuntime, renderConfig } = buildResolvedMessageBubbleRenderState(runtime);
+  if (shouldSkipMessageBubbleCardRender(renderConfig)) {
+    return null;
   }
 
-  return renderGroupedMessageBubbleCardOutput(content, isOwn);
+  return renderMessageBubbleCardOutput(renderConfig, renderRuntime.isOwn);
 }
 
 export function renderMessageBubbleCard(runtime) {
-  const { renderRuntime, renderConfig } = buildResolvedMessageBubbleRenderState(runtime);
-  if (!renderConfig) return null;
-
-  return renderMessageBubbleCardOutput(renderConfig, renderRuntime.isOwn);
+  return buildMessageBubbleCardRenderResult(runtime);
 }

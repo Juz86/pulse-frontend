@@ -105,13 +105,8 @@ import {
 } from './attachmentPresentation';
 import {
   getAttachmentRuntimeState,
-  getAttachmentRuntimePresentation,
   getAttachmentSendRuntimeConfig,
-  getAttachmentStrategyComposerHintState,
-  getFutureAttachmentStrategyBannerState,
-  getFutureAttachmentStrategyBannerCopy,
   getServiceTransportFallbackBannerState,
-  getAttachmentStrategyRuntimeCopy,
   getAttachmentStrategyRuntimeState,
   isAttachmentStrategySupportedByBackend,
   normalizeE2EEBackendCapabilities,
@@ -594,24 +589,6 @@ describe('e2ee backend capability helpers', () => {
     });
   });
 
-  test('getAttachmentRuntimePresentation exposes stable provider-facing labels', () => {
-    expect(getAttachmentRuntimePresentation({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1'],
-        defaultAttachmentStrategy: 'mock_media_v1',
-      },
-      attachmentTransport: 'remote_mock',
-      needsRemoteFetch: true,
-    })).toMatchObject({
-      strategyLabel: 'mock-profiel (mock_media_v1)',
-      storageProviderLabel: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK,
-      accessProviderLabel: ATTACHMENT_ACCESS_PROVIDER_REMOTE,
-      providerModeLabel: 'remote',
-      binaryAccessLabel: 'binary-ready',
-    });
-  });
-
   test('getAttachmentSendRuntimeConfig derives strategy and transport from attachment runtime', () => {
     expect(getAttachmentSendRuntimeConfig({
       preferredStrategy: 'pulse_media_v1',
@@ -634,91 +611,6 @@ describe('e2ee backend capability helpers', () => {
     expect(getAttachmentStrategyDisplayName('external_contract')).toBe('external_contract');
   });
 
-  test('getAttachmentStrategyRuntimeCopy describes fallback selection consistently', () => {
-    expect(getAttachmentStrategyRuntimeCopy({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1'],
-      },
-      effectiveStrategyOverride: 'mock_media_v1',
-    })).toEqual({
-      tone: 'fallback',
-      text: 'Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel mock-profiel (mock_media_v1). Backendondersteuning voor future-draft (pulse_media_v1) ontbreekt nog.',
-    });
-  });
-
-  test('getAttachmentStrategyComposerHintState derives visibility and runtime copy together', () => {
-    expect(getAttachmentStrategyComposerHintState({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1'],
-      },
-      effectiveStrategyOverride: 'mock_media_v1',
-      attachmentTransport: 'remote_mock',
-      paused: false,
-      attachmentStatus: '',
-    })).toEqual({
-      visible: true,
-      tone: 'fallback',
-      text: 'Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel mock-profiel (mock_media_v1). Backendondersteuning voor future-draft (pulse_media_v1) ontbreekt nog.',
-    });
-
-    expect(getAttachmentStrategyComposerHintState({
-      attachmentTransport: 'remote_mock',
-      paused: true,
-      attachmentStatus: '',
-    }).visible).toBe(false);
-
-    expect(getAttachmentStrategyComposerHintState({
-      attachmentTransport: 'remote_mock',
-      paused: false,
-      attachmentStatus: 'Bijlage voorbereiden…',
-    }).visible).toBe(false);
-  });
-
-  test('getFutureAttachmentStrategyBannerCopy describes supported future media banners consistently', () => {
-    expect(getFutureAttachmentStrategyBannerCopy({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
-      },
-      effectiveStrategyOverride: 'pulse_media_v1',
-    })).toEqual({
-      tone: 'future',
-      text: 'Pulse test nu het toekomstige attachment-profiel future-draft (pulse_media_v1) via de remote mock-opslagflow.',
-    });
-  });
-
-  test('getFutureAttachmentStrategyBannerState derives visibility and copy together', () => {
-    expect(getFutureAttachmentStrategyBannerState({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
-      },
-      effectiveStrategyOverride: 'pulse_media_v1',
-      showFutureMediaBanner: true,
-      attachmentTransport: 'remote_mock',
-    })).toEqual({
-      visible: true,
-      tone: 'future',
-      text: 'Pulse test nu het toekomstige attachment-profiel future-draft (pulse_media_v1) via de remote mock-opslagflow.',
-    });
-
-    expect(getFutureAttachmentStrategyBannerState({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1'],
-      },
-      effectiveStrategyOverride: 'mock_media_v1',
-      showFutureMediaBanner: false,
-      attachmentTransport: 'remote_mock',
-    })).toEqual({
-      visible: false,
-      tone: 'fallback',
-      text: 'Het attachment-profiel future-draft (pulse_media_v1) staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via /configz. Pulse valt daarom nu terug op mock-profiel (mock_media_v1).',
-    });
-  });
-
   test('getServiceTransportFallbackBannerState derives visibility and copy together', () => {
     expect(getServiceTransportFallbackBannerState({
       transport: 'service',
@@ -739,18 +631,6 @@ describe('e2ee backend capability helpers', () => {
     });
   });
 
-  test('getFutureAttachmentStrategyBannerCopy describes fallback future media banners consistently', () => {
-    expect(getFutureAttachmentStrategyBannerCopy({
-      preferredStrategy: 'pulse_media_v1',
-      capabilities: {
-        attachmentStrategies: ['mock_media_v1'],
-      },
-      effectiveStrategyOverride: 'mock_media_v1',
-    })).toEqual({
-      tone: 'fallback',
-      text: 'Het attachment-profiel future-draft (pulse_media_v1) staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via /configz. Pulse valt daarom nu terug op mock-profiel (mock_media_v1).',
-    });
-  });
 });
 
 describe('e2ee attachment helpers', () => {

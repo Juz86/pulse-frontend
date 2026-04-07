@@ -1,6 +1,6 @@
 # Pulse Backend Skeleton
 
-Dit is een minimale backend-skeleton voor de eerste E2EE-serviceflow van Pulse.
+Dit is een minimale backend-skeleton voor de eerste E2EE-serviceflow van Pulse voor chatten, bellen en videobellen.
 
 ## Doel
 
@@ -14,8 +14,6 @@ Deze map is geen complete productiebackend, maar een startpunt voor:
 - `GET /users/:userId/key-bundle`
 - `POST /messages/send`
 - `POST /messages/receipt`
-- `POST /api/attachments/upload`
-- `GET /attachments/:attachmentId`
 - mixed `GET /api/messages/:convId`
 - `DELETE /api/messages/:convId/:msgId`
 - `POST /calls/start`
@@ -23,6 +21,12 @@ Deze map is geen complete productiebackend, maar een startpunt voor:
 - socket compat voor `message:edit` -> `message:edited`
 - parent policy admin-routes
 - friend requests en contact-compatibiliteitsroutes
+
+Belangrijk:
+
+- media of bestanden versturen tussen gebruikers hoort niet bij de actieve productscope
+- profielafbeeldingen of avatar-keuze vallen buiten deze berichten- en callskeleton
+- oudere attachment-routes of smokes kunnen nog aanwezig zijn als historisch of intern referentiemateriaal
 
 ## Structuur
 
@@ -113,7 +117,6 @@ Snelle lokale emulatorflow zonder losse env-export:
 - `npm run preflight:emulator`
 - `npm run seed:emulator`
 - `npm run dev:emulator`
-- `npm run wipe:attachments`
 
 Optioneel voorbeelddata laden:
 
@@ -122,8 +125,6 @@ Optioneel voorbeelddata laden:
 Snelle smoke-checks tegen een draaiende lokale server:
 
 - `npm run smoke`
-- `npm run smoke:attachments`
-- `npm run smoke:attachments:future`
 - `npm run smoke:socket`
 
 Snelle configuratiecheck vóór starten of deploy:
@@ -158,9 +159,6 @@ Dat dekt nu ook de quiet-hours policyhelper mee.
 - `DELETE /api/messages/:convId/:msgId?scope=self|all` ondersteunt nu self-hide en all-delete met realtime `message:deleted`
 - send- en receiptflows valideren nu expliciet actieve sender- en recipient-devices
 - denied policychecks en parent-acties worden alvast gelogd naar `policy_events`
-- attachments hebben nu ook een lokale mock-storage route met persistente bestanden onder `/tmp/pulse-e2ee-attachments`
-- `npm run wipe:attachments` maakt die mock-storage weer leeg voor een schone testronde
-- `npm run smoke:attachments:future` valideert nu ook alvast het draft media-profiel `pulse_media_v1`
 - dit is bedoeld als implementatiestart, niet als af productieontwerp
 
 ## Health En Readiness

@@ -1,6 +1,6 @@
 # Pulse E2EE Troubleshooting
 
-Deze gids helpt bij de eerste backendintegratie en de overgang van `socket` naar `service` transport.
+Deze gids helpt bij de eerste backendintegratie en de overgang van `socket` naar `service` transport voor chatten, bellen en videobellen.
 
 ## Snelle Context
 
@@ -13,11 +13,11 @@ De eerste echte integratiefase is meestal:
 
 - `REACT_APP_E2EE_MODE=mock`
 - `REACT_APP_E2EE_TRANSPORT=service`
-- `REACT_APP_E2EE_ATTACHMENT_TRANSPORT=remote_mock`
 
-Het attachment-profiel hoort in die fase expliciet:
+Belangrijk:
 
-- `strategyKey: mock_media_v1`
+- chatmedia of attachments versturen tussen gebruikers hoort niet bij deze actieve productscope
+- profielafbeeldingen of avatar-keuze vallen buiten deze bericht-troubleshooting
 
 ## Probleem: device bootstrap gebeurt niet
 
@@ -69,7 +69,6 @@ Verwacht gedrag:
 
 - preview toont plaintext
 - of fallback `Versleuteld bericht`
-- attachment summaries blijven consistent met `mock_media_v1` als het om remote mock media gaat
 
 ## Probleem: message bubble toont niets
 
@@ -87,31 +86,6 @@ Verwacht gedrag:
 
 - bubble toont plaintext
 - of fallback `Versleuteld bericht`
-
-## Probleem: remote attachment opent wel, maar contractlabels wijken af
-
-Mogelijke oorzaak:
-
-- metadataheaders en downloadheaders vertellen niet hetzelfde attachmentcontract
-- backend draait nog een oude instantie zonder `X-Pulse-Encryption-Strategy`
-- de attachment is geen `mock_media_v1` payload meer
-
-Check:
-
-- `backend-skeleton npm run smoke:attachments`
-- [backend-skeleton/src/scripts/smokeAttachments.js](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/src/scripts/smokeAttachments.js)
-- [src/lib/e2ee/attachmentAccessAdapter.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentAccessAdapter.js)
-- [src/lib/e2ee/attachmentPresentation.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentPresentation.js)
-
-Verwacht gedrag:
-
-- metadataheaders en downloadheaders tonen hetzelfde:
-  - `X-Pulse-Encryption-Strategy: mock_media_v1`
-  - `X-Pulse-Content-Encoding: mock-e2ee-envelope-v1`
-  - `X-Pulse-Envelope-Kind: pulse_mock_media_envelope`
-- de bubble toont daarna:
-  - `Mock versleutelde opslaglink`
-  - `Media-strategie: mock_media_v1`
 
 ## Probleem: live binnenkomende berichten verschijnen niet
 
@@ -187,8 +161,7 @@ Verwacht gedrag:
 3. check of backend basisroutes live zijn
 4. check of loaded messages de verwachte shape hebben
 5. check of realtime events `message:received` of `message:new` leveren
-6. check of attachment smoke groen is en `mock_media_v1` in metadata/downloadheaders terugkomt
-7. check of optimistic messages op `sent` of `failed` eindigen
+6. check of optimistic messages op `sent` of `failed` eindigen
 
 ## Lees Verder
 

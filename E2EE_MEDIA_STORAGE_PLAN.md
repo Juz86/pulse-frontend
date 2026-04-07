@@ -1,8 +1,14 @@
 # Pulse E2EE Media Storage Plan
 
-Dit document beschrijft de overgang van de huidige `mock_media_v1` tussenfase naar echte encrypted media/storage.
+Dit document beschrijft een ouder intern plan voor de overgang van `mock_media_v1` naar echte encrypted media/storage.
 
-## Huidige Fase
+Belangrijk:
+
+- dit document is alleen historisch of intern referentiemateriaal
+- media of bestanden versturen tussen gebruikers hoort niet bij de actieve productscope van Pulse
+- de actieve E2EE-scope blijft chatten, bellen en videobellen
+
+## Historische Fase
 
 Vandaag gebruikt Pulse lokaal:
 
@@ -20,7 +26,7 @@ Deze fase valideert al:
 - open/download via access adapter
 - runtime smoke via `npm run smoke:attachments`
 
-## Doel Fase
+## Historisch Doel
 
 De volgende echte stap is een productiegericht media-profiel:
 
@@ -40,11 +46,9 @@ Die valideert lokaal al:
 - `envelopeKind: pulse_media_envelope`
 - `mediaKeyId` en `keyWrapAlg` in metadata en downloadheaders
 
-Er is nu ook een gecombineerde frontend+backend check:
+Historisch hoorde daar ook een gecombineerde frontend+backend check bij via een aparte verify-scriptlaag.
 
-- `npm run verify:e2ee:future-media`
-
-## Gewenst Contract
+## Historisch Gewenst Contract
 
 Een echte media-attachment hoort uiteindelijk minimaal te dragen:
 
@@ -60,7 +64,7 @@ Een echte media-attachment hoort uiteindelijk minimaal te dragen:
 - `wrappedMediaKey`
 - `wrappedMediaKeyDigest`
 
-## Beoogde Runtimeflow
+## Historische Runtimeflow
 
 1. client maakt een willekeurige media key
 2. bestand wordt lokaal encrypted naar een media-envelope
@@ -71,7 +75,7 @@ Een echte media-attachment hoort uiteindelijk minimaal te dragen:
 7. access-adapter haalt binary op
 8. unwrap + decrypt gebeurt client-side
 
-## Wat Al Klaarstaat
+## Wat Historisch Al Klaarstond
 
 De huidige codebase heeft al voorbereid:
 
@@ -83,7 +87,7 @@ De huidige codebase heeft al voorbereid:
   - [attachmentUploadAdapter.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentUploadAdapter.js)
   - [attachmentPresentation.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentPresentation.js)
 
-## Nog Open
+## Historisch Nog Open
 
 - keuze van echte storage provider
 - keuze van echte media-encryptie primitive
@@ -91,7 +95,7 @@ De huidige codebase heeft al voorbereid:
 - keuze of wrapped media keys per user of per device gaan
 - cache-/retentiebeleid voor object URLs en binaries
 
-## Aanbevolen Bouwvolgorde
+## Historische Bouwvolgorde
 
 1. `pulse_media_v1` contract definitief maken
 2. echte encrypt/decrypt adapter toevoegen achter de bestaande strategy-resolver

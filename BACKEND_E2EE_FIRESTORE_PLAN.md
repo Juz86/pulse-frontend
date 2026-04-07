@@ -1,12 +1,17 @@
 # Pulse Backend E2EE Firestore Plan
 
-Dit document beschrijft een praktisch Firestore-plan voor de backendroutes en services die de frontend inmiddels verwacht.
+Dit document beschrijft een praktisch Firestore-plan voor de backendroutes en services die de frontend inmiddels verwacht voor chatten, bellen en videobellen.
 
 Het doel is:
 
 - encrypted message delivery mogelijk maken
 - ouderbeleid centraal server-side afdwingen
 - bestaande ParentDashboard-shapes zo veel mogelijk compatibel houden
+
+Belangrijk:
+
+- media of bestanden versturen tussen gebruikers valt niet binnen deze actieve productscope
+- profielafbeeldingen of avatar-keuze vallen buiten dit berichten- en Firestore-plan
 
 ## Uitgangspunten
 

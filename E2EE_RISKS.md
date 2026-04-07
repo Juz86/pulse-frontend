@@ -34,7 +34,7 @@ Mitigatie:
 
 - documentatie expliciet houden over `mock`
 - echte crypto pas na stabiele serviceflow
-- het media-profiel expliciet benoemen als `mock_media_v1`
+- productscope expliciet houden op chat, bel en video
 
 ## 3. Web Storage Is Niet Hard Genoeg Voor Sterke Claims
 

@@ -1,8 +1,14 @@
 # Pulse E2EE Attachment Remote Mock Runbook
 
-Dit document beschrijft de lokale testflow voor attachments via de nieuwe `remote_mock` route.
+Dit document beschrijft een oudere lokale testflow voor attachments via de `remote_mock` route.
 
-## Doel
+Belangrijk:
+
+- dit document is alleen historisch of intern referentiemateriaal
+- media of bestanden versturen tussen gebruikers hoort niet bij de actieve productscope van Pulse
+- de actieve E2EE-scope blijft chatten, bellen en videobellen
+
+## Oorspronkelijk Doel
 
 Valideren dat attachments niet meer alleen inline data-urls gebruiken, maar via de backend een echte download-URL krijgen.
 
@@ -89,7 +95,7 @@ In `backend-skeleton`:
 - bestanden landen lokaal onder `/tmp/pulse-e2ee-attachments`
 - dit is bedoeld als tussenfase vóór echte encrypted media-opslag
 
-## Daarna
+## Historische Vervolgstap
 
 Als deze flow stabiel is, is de volgende technische stap:
 

@@ -1,4 +1,3 @@
-import { getAttachmentStrategyDisplayName } from './attachmentStrategyConstants';
 import { getDefaultAttachmentProviderRuntimeState } from './attachmentDefaultProviders';
 
 export const E2EE_MODE = process.env.REACT_APP_E2EE_MODE || 'mock';
@@ -7,8 +6,6 @@ export const E2EE_ATTACHMENT_TRANSPORT = process.env.REACT_APP_E2EE_ATTACHMENT_T
 export const E2EE_ATTACHMENT_STRATEGY = process.env.REACT_APP_E2EE_ATTACHMENT_STRATEGY || 'mock_media_v1';
 
 export const isE2EEServiceTransportEnabled = E2EE_TRANSPORT === 'service';
-export const isRemoteMockAttachmentTransportEnabled = E2EE_ATTACHMENT_TRANSPORT === 'remote_mock';
-export const isFutureAttachmentStrategyEnabled = E2EE_ATTACHMENT_STRATEGY === 'pulse_media_v1';
 export const shouldBootstrapE2EEDevice = isE2EEServiceTransportEnabled || E2EE_MODE === 'signal';
 
 export function normalizeE2EEBackendCapabilities(payload = {}) {
@@ -98,32 +95,6 @@ export function getAttachmentRuntimeState({
   };
 }
 
-export function getAttachmentRuntimePresentation({
-  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
-  capabilities = null,
-  effectiveStrategyOverride = null,
-  attachmentTransport = E2EE_ATTACHMENT_TRANSPORT,
-  needsRemoteFetch = false,
-} = {}) {
-  const runtimeState = getAttachmentRuntimeState({
-    preferredStrategy,
-    capabilities,
-    effectiveStrategyOverride,
-    attachmentTransport,
-    needsRemoteFetch,
-  });
-  const providerRuntime = runtimeState.providerRuntime || {};
-
-  return {
-    ...runtimeState,
-    strategyLabel: getAttachmentStrategyDisplayName(runtimeState.effectiveStrategy),
-    storageProviderLabel: providerRuntime.storageProviderKind || 'unknown',
-    accessProviderLabel: providerRuntime.accessProviderKind || 'unknown',
-    providerModeLabel: providerRuntime.usesRemoteStorage ? 'remote' : 'inline',
-    binaryAccessLabel: providerRuntime.supportsBinaryAccess ? 'binary-ready' : 'binary-disabled',
-  };
-}
-
 export function getAttachmentSendRuntimeConfig({
   preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
   capabilities = null,
@@ -147,85 +118,6 @@ export function getAttachmentSendRuntimeConfig({
   };
 }
 
-export function getAttachmentStrategyRuntimeCopy({
-  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
-  capabilities = null,
-  effectiveStrategyOverride = null,
-} = {}) {
-  const runtimeState = getAttachmentStrategyRuntimeState({
-    preferredStrategy,
-    capabilities,
-    effectiveStrategyOverride,
-  });
-  const { preferredStrategy: preferred, effectiveStrategy, fallbackActive } = runtimeState;
-
-  if (fallbackActive) {
-    return {
-      tone: 'fallback',
-      text: `Bijlagen gebruiken nu de remote mock-opslagtest met fallbackprofiel ${getAttachmentStrategyDisplayName(effectiveStrategy)}. Backendondersteuning voor ${getAttachmentStrategyDisplayName(preferred)} ontbreekt nog.`,
-    };
-  }
-
-  if (effectiveStrategy === 'pulse_media_v1') {
-    return {
-      tone: runtimeState.preferredStrategySupported ? 'future' : 'draft',
-      text: `Bijlagen gebruiken nu de remote mock-opslagtest met draftprofiel ${getAttachmentStrategyDisplayName(effectiveStrategy)}.`,
-    };
-  }
-
-  return {
-    tone: 'default',
-    text: `Bijlagen gebruiken nu de remote mock-opslagtest met profiel ${getAttachmentStrategyDisplayName(effectiveStrategy)}.`,
-  };
-}
-
-export function getFutureAttachmentStrategyBannerCopy({
-  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
-  capabilities = null,
-  effectiveStrategyOverride = null,
-} = {}) {
-  const runtimeState = getAttachmentStrategyRuntimeState({
-    preferredStrategy,
-    capabilities,
-    effectiveStrategyOverride,
-  });
-
-  if (!runtimeState.fallbackActive) {
-    return {
-      tone: 'future',
-      text: `Pulse test nu het toekomstige attachment-profiel ${getAttachmentStrategyDisplayName(runtimeState.effectiveStrategy)} via de remote mock-opslagflow.`,
-    };
-  }
-
-  return {
-    tone: 'fallback',
-    text: `Het attachment-profiel ${getAttachmentStrategyDisplayName(runtimeState.preferredStrategy)} staat lokaal aan, maar deze backend adverteert die draftondersteuning nog niet via /configz. Pulse valt daarom nu terug op ${getAttachmentStrategyDisplayName(runtimeState.effectiveStrategy)}.`,
-  };
-}
-
-export function getFutureAttachmentStrategyBannerState({
-  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
-  capabilities = null,
-  effectiveStrategyOverride = null,
-  showFutureMediaBanner = false,
-  attachmentTransport = E2EE_ATTACHMENT_TRANSPORT,
-} = {}) {
-  const visible = Boolean(
-    attachmentTransport === 'remote_mock'
-    && showFutureMediaBanner
-    && preferredStrategy === 'pulse_media_v1'
-  );
-
-  return {
-    visible,
-    ...getFutureAttachmentStrategyBannerCopy({
-      preferredStrategy,
-      capabilities,
-      effectiveStrategyOverride,
-    }),
-  };
-}
-
 export function getServiceTransportFallbackBannerState({
   transport = E2EE_TRANSPORT,
   serviceTransportReady = true,
@@ -236,26 +128,6 @@ export function getServiceTransportFallbackBannerState({
     visible,
     tone: 'fallback',
     text: 'Serviceversleuteling is tijdelijk niet beschikbaar. Pulse gebruikt nu automatisch socketfallback.',
-  };
-}
-
-export function getAttachmentStrategyComposerHintState({
-  preferredStrategy = E2EE_ATTACHMENT_STRATEGY,
-  capabilities = null,
-  effectiveStrategyOverride = null,
-  attachmentTransport = E2EE_ATTACHMENT_TRANSPORT,
-  paused = false,
-  attachmentStatus = '',
-} = {}) {
-  const runtimeCopy = getAttachmentStrategyRuntimeCopy({
-    preferredStrategy,
-    capabilities,
-    effectiveStrategyOverride,
-  });
-
-  return {
-    visible: Boolean(!paused && !attachmentStatus && attachmentTransport === 'remote_mock'),
-    ...runtimeCopy,
   };
 }
 
@@ -273,27 +145,5 @@ export async function probeE2EEServiceReady(baseUrl) {
     return !!data?.ok;
   } catch {
     return false;
-  }
-}
-
-export async function probeE2EEBackendCapabilities(baseUrl) {
-  if (!baseUrl) {
-    return normalizeE2EEBackendCapabilities();
-  }
-
-  try {
-    const response = await fetch(`${baseUrl}/configz`, {
-      method: 'GET',
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      return normalizeE2EEBackendCapabilities();
-    }
-
-    const data = await response.json().catch(() => ({}));
-    return normalizeE2EEBackendCapabilities(data);
-  } catch {
-    return normalizeE2EEBackendCapabilities();
   }
 }

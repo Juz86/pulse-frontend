@@ -89,3 +89,5 @@ Voor veilige voorbeeldconfiguratie zonder productiegeheimen:
 ## Praktisch
 
 De frontend is voorbereid, geverifieerd en gedocumenteerd voor chatten, bellen en videobellen. De volgende grote stap is nu acceptatie en gecontroleerde activatie van die scope, zonder chatmedia toe te voegen.
+
+Oudere attachment- of media-runbooks kunnen nog in de repo staan als historisch of intern referentiemateriaal, maar horen niet bij de actieve productscope.

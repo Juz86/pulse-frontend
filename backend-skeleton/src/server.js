@@ -3,7 +3,6 @@ import express from 'express';
 import http from 'http';
 import { devicesRouter } from './routes/devices.js';
 import { apiMessagesRouter } from './routes/apiMessages.js';
-import { attachmentsRouter } from './routes/attachments.js';
 import { authRouter } from './routes/auth.js';
 import { conversationsRouter } from './routes/conversations.js';
 import { contactsRouter } from './routes/contacts.js';
@@ -29,12 +28,6 @@ const app = express();
 const server = http.createServer(app);
 const { io, emitToUser } = createSocketServer(server);
 const startedAt = new Date().toISOString();
-const e2eeCapabilities = {
-  attachmentTransport: 'remote_mock',
-  attachmentStrategies: ['mock_media_v1', 'pulse_media_v1'],
-  defaultAttachmentStrategy: 'mock_media_v1',
-  draftAttachmentStrategy: 'pulse_media_v1',
-};
 
 app.use(cors());
 app.use(express.json());
@@ -65,7 +58,6 @@ app.get('/configz', (_req, res) => {
     service: 'pulse-e2ee-backend-skeleton',
     requestId: _req.requestId,
     firebase: getFirebaseConfigDiagnostics(),
-    e2ee: e2eeCapabilities,
   });
 });
 
@@ -90,7 +82,6 @@ app.get('/readyz', async (_req, res) => {
     firestore,
     firebaseCredentialMode: getFirebaseCredentialMode(),
     firebase: getFirebaseConfigDiagnostics(),
-    e2ee: e2eeCapabilities,
   });
 });
 
@@ -103,8 +94,6 @@ app.post('/api/fcm-token', (_req, res) => {
   });
 });
 
-app.use('/api/attachments', attachmentsRouter);
-app.use('/attachments', attachmentsRouter);
 app.use('/api', requireFirebaseReady, authRouter);
 app.use('/api/conversations', requireFirebaseReady, conversationsRouter);
 app.use('/devices', requireFirebaseReady, devicesRouter);

@@ -29,20 +29,36 @@ function buildGroupedPresentationCardRenderConfig(component, presentation, extra
   return buildPresentationCardRenderConfig(component, presentation, extraProps, true);
 }
 
+function buildSystemMessageCardRenderProps(text) {
+  return {
+    text,
+  };
+}
+
 function buildSystemMessageCardRenderConfig(text) {
   return buildMessageBubbleCardRenderConfig(
     SystemMessageNote,
-    {
-      text,
-    },
+    buildSystemMessageCardRenderProps(text),
   );
+}
+
+function buildAttachmentMessageCardRenderProps() {
+  return {};
 }
 
 function buildAttachmentMessageCardRenderConfig(presentation) {
   return buildGroupedPresentationCardRenderConfig(
     AttachmentMessageCard,
     presentation,
+    buildAttachmentMessageCardRenderProps(),
   );
+}
+
+function buildContactMessageCardRenderProps(handlers) {
+  return {
+    onViewContact: handlers.onViewContact,
+    onActionCardKeyDown: handlers.onActionCardKeyDown,
+  };
 }
 
 function buildContactMessageCardRenderConfig(presentation, handlers) {
@@ -51,37 +67,42 @@ function buildContactMessageCardRenderConfig(presentation, handlers) {
   return buildGroupedPresentationCardRenderConfig(
     SharedContactMessageCard,
     presentation,
-    {
-      onViewContact: handlers.onViewContact,
-      onActionCardKeyDown: handlers.onActionCardKeyDown,
-    },
+    buildContactMessageCardRenderProps(handlers),
   );
+}
+
+function buildCallMessageCardRenderProps(handlers) {
+  return {
+    onStartCall: handlers.onStartCall,
+    onActionCardKeyDown: handlers.onActionCardKeyDown,
+  };
 }
 
 function buildCallMessageCardRenderConfig(presentation, handlers) {
   return buildPresentationCardRenderConfig(
     CallMessageCard,
     presentation,
-    {
-      onStartCall: handlers.onStartCall,
-      onActionCardKeyDown: handlers.onActionCardKeyDown,
-    },
+    buildCallMessageCardRenderProps(handlers),
   );
+}
+
+function buildTextMessageCardRenderProps(handlers) {
+  return {
+    onContextMenu: handlers.onContextMenu,
+    onTouchStart: handlers.onTouchStart,
+    onTouchEnd: handlers.onTouchEnd,
+    onTouchMove: handlers.onTouchMove,
+    onRetry: handlers.onRetry,
+    onReact: handlers.onReact,
+    onShowContextMenu: handlers.onShowContextMenu,
+  };
 }
 
 function buildTextMessageCardRenderConfig(presentation, handlers) {
   return buildPresentationCardRenderConfig(
     StandardMessageBubble,
     presentation,
-    {
-      onContextMenu: handlers.onContextMenu,
-      onTouchStart: handlers.onTouchStart,
-      onTouchEnd: handlers.onTouchEnd,
-      onTouchMove: handlers.onTouchMove,
-      onRetry: handlers.onRetry,
-      onReact: handlers.onReact,
-      onShowContextMenu: handlers.onShowContextMenu,
-    },
+    buildTextMessageCardRenderProps(handlers),
   );
 }
 
@@ -106,9 +127,21 @@ function buildMessageBubbleRenderRuntime(runtime) {
   };
 }
 
+function buildResolvedMessageBubbleRenderState(runtime) {
+  const renderRuntime = buildMessageBubbleRenderRuntime(runtime);
+  return {
+    renderRuntime,
+    renderConfig: resolveMessageBubbleRenderConfigBuilder(renderRuntime.card.type)(renderRuntime),
+  };
+}
+
 function renderMessageBubbleCardContent(renderConfig) {
   const CardComponent = renderConfig.component;
   return <CardComponent {...renderConfig.props} />;
+}
+
+function renderGroupedMessageBubbleCardOutput(content, isOwn) {
+  return <MessageBubbleGroup isOwn={isOwn}>{content}</MessageBubbleGroup>;
 }
 
 function renderMessageBubbleCardOutput(renderConfig, isOwn) {
@@ -117,14 +150,11 @@ function renderMessageBubbleCardOutput(renderConfig, isOwn) {
     return content;
   }
 
-  return <MessageBubbleGroup isOwn={isOwn}>{content}</MessageBubbleGroup>;
+  return renderGroupedMessageBubbleCardOutput(content, isOwn);
 }
 
 export function renderMessageBubbleCard(runtime) {
-  const renderRuntime = buildMessageBubbleRenderRuntime(runtime);
-  const renderConfig = resolveMessageBubbleRenderConfigBuilder(renderRuntime.card.type)(
-    renderRuntime,
-  );
+  const { renderRuntime, renderConfig } = buildResolvedMessageBubbleRenderState(runtime);
   if (!renderConfig) return null;
 
   return renderMessageBubbleCardOutput(renderConfig, renderRuntime.isOwn);

@@ -25,8 +25,6 @@ Frontendrepo voor Pulse, inclusief de huidige marketingpagina's, chat-UI en de v
   `npm run lint`
 - gerichte E2EE-verificatie:
   `npm run verify:e2ee`
-- future media-profiel verificatie:
-  `npm run verify:e2ee:future-media`
 - acceptatie-preflight:
   `npm run verify:e2ee:acceptance-preflight`
 - volledige Cloudflare-voorcontrole:
@@ -43,23 +41,23 @@ Belangrijk voor Cloudflare Pages:
 
 ## E2EE Status
 
-De frontend bevat een gecontroleerde tussenfase voor E2EE:
+De frontend bevat een gecontroleerde tussenfase voor E2EE voor:
 
-- huidige veilige defaults:
-  `REACT_APP_E2EE_MODE=mock`
-  `REACT_APP_E2EE_TRANSPORT=socket`
-- service-based encrypted delivery is voorbereid, maar hangt nog af van backend-endpoints
+- chatten
+- bellen
+- videobellen
 
-Voor lokale acceptatie van de nieuwe attachment-route kun je nu ook gebruiken:
+Huidige veilige defaults:
 
 - `REACT_APP_E2EE_MODE=mock`
-- `REACT_APP_E2EE_TRANSPORT=service`
-- `REACT_APP_E2EE_ATTACHMENT_TRANSPORT=remote_mock`
-- `REACT_APP_E2EE_ATTACHMENT_STRATEGY=mock_media_v1`
+- `REACT_APP_E2EE_TRANSPORT=socket`
 
-Voor de volgende mediadraft kun je lokaal ook al bewust testen met:
+Service-based encrypted delivery is voorbereid, maar hangt nog af van backend-endpoints.
 
-- `REACT_APP_E2EE_ATTACHMENT_STRATEGY=pulse_media_v1`
+Belangrijk:
+
+- media of bestanden versturen tussen gebruikers valt niet binnen de actieve productscope
+- profielfoto of avatar-keuze staat hier los van als profielinstelling
 
 Start hier voor het volledige overzicht:
 
@@ -75,7 +73,6 @@ Belangrijkste documenten:
 - [E2EE_OPEN_QUESTIONS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_OPEN_QUESTIONS.md)
 - [E2EE_ROLLOUT.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ROLLOUT.md)
 - [E2EE_ACTIVATION_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ACTIVATION_RUNBOOK.md)
-- [E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md)
 - [E2EE_ACCEPTANCE_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ACCEPTANCE_RUNBOOK.md)
 - [E2EE_TROUBLESHOOTING.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_TROUBLESHOOTING.md)
 - [E2EE_MANUAL_QA_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_MANUAL_QA_CHECKLIST.md)
@@ -91,6 +88,7 @@ Belangrijkste documenten:
 
 - frontendvoorbereiding voor E2EE is ingebouwd
 - build, tests en lint zijn eerder succesvol gedraaid
+- de actieve scope is chat, bel en video
 - de volgende grote stap ligt aan backendkant
 
 ## Backend Startpunt

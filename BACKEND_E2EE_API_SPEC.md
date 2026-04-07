@@ -1,8 +1,13 @@
 # Pulse Backend E2EE API Spec
 
-Dit document beschrijft het minimale backendcontract dat de huidige frontend verwacht voor de gefaseerde E2EE-rollout.
+Dit document beschrijft het minimale backendcontract dat de huidige frontend verwacht voor de gefaseerde E2EE-rollout voor chatten, bellen en videobellen.
 
 De frontend is bewust voorbereid op een overgangsfase waarin legacy plaintext en `signal_v1` naast elkaar bestaan.
+
+Belangrijk:
+
+- media of bestanden versturen tussen gebruikers valt niet binnen deze actieve productscope
+- profielafbeeldingen of avatar-instellingen vallen buiten deze bericht-API
 
 ## Feature flags
 

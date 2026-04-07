@@ -92,17 +92,6 @@ Status:
 
 - actief
 
-### [src/lib/e2ee/attachmentStrategyConstants.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentStrategyConstants.js)
-
-Rol:
-
-- centrale namen voor media-strategieën, envelope-profielen en key-wrap profielen
-
-Status:
-
-- actief
-- voorbereid op overgang van `mock_media_v1` naar `pulse_media_v1`
-
 ### [src/lib/e2ee/policy.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/policy.js)
 
 Rol:
@@ -204,3 +193,8 @@ Gebruik deze file map samen met:
 - [E2EE_ARCHITECTURE_OVERVIEW.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ARCHITECTURE_OVERVIEW.md)
 - [E2EE_BACKLOG.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BACKLOG.md)
 - [E2EE_TEST_MATRIX.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_TEST_MATRIX.md)
+
+Belangrijk:
+
+- deze file map volgt de actieve E2EE-scope voor chatten, bellen en videobellen
+- chatmedia of attachments versturen tussen gebruikers hoort niet bij deze productscope

@@ -74,8 +74,6 @@ Belangrijk:
 
 - [src/lib/e2ee/messageModel.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/messageModel.js)
 - [src/lib/e2ee/policy.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/policy.js)
-- [src/lib/e2ee/attachmentCrypto.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentCrypto.js)
-- [src/lib/e2ee/attachmentStrategyConstants.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentStrategyConstants.js)
 
 `messageModel.js` centraliseert:
 
@@ -88,12 +86,6 @@ Belangrijk:
 
 - wanneer een bericht als encrypted telt
 - wanneer edits wel of niet zijn toegestaan
-
-`attachmentCrypto.js` en `attachmentStrategyConstants.js` centraliseren:
-
-- media strategy-profielen zoals `mock_media_v1`
-- envelope/key-wrap contracten
-- de voorbereidende overgang naar een toekomstig `pulse_media_v1` profiel
 
 ## App Integratie
 
@@ -136,6 +128,7 @@ Verantwoordelijk voor:
 - renderen van fallbacktekst zoals `Versleuteld bericht`
 - tonen van consistente previews
 - blokkeren van legacy edit-acties op encrypted berichten
+- stabiele weergave van chat-, bel- en videokaarten
 
 ## Huidige Runtime Modus
 
@@ -155,8 +148,8 @@ De bedoelde volgorde is:
 
 1. backend bouwt de benodigde endpoints
 2. frontend zet `REACT_APP_E2EE_TRANSPORT=service`
-3. direct chats worden getest met mock crypto
-4. daarna pas echte crypto-adapter inpluggen
+3. direct chats, bellen en videobellen worden getest met mock crypto
+4. daarna pas echte crypto-adapter verder aanscherpen
 
 ## Lees Verder
 

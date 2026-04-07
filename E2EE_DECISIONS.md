@@ -131,12 +131,29 @@ Gevolg:
 
 - `message:new` is het beoogde realtime event voor wire payloads
 
+## 9. Productscope blijft bewust bij chat, bel en video
+
+Besluit:
+
+- de E2EE-productscope blijft gericht op chatten, bellen en videobellen
+- media of bestanden tussen gebruikers versturen hoort daar niet bij
+
+Waarom:
+
+- het houdt Pulse rustiger en duidelijker voor kinderen
+- het voorkomt scopegroei tijdens activatie
+- het sluit beter aan op de bestaande productrichting
+
+Gevolg:
+
+- chatmedia blijft uit composer- en serviceflows
+- acceptatie en rollout toetsen expliciet dat dit zo blijft
+
 ## Open Beslissingen
 
 Deze punten zijn bewust nog niet definitief gemaakt:
 
 - keuze voor echte crypto-library
-- encrypted attachments
 - group encryption model
 - encrypted edit-model
 - web-specifieke hardening van key storage

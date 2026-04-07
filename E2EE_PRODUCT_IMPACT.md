@@ -27,6 +27,7 @@ Gebruik liever formuleringen zoals:
 - ouders beheren chat-, bel- en videotoegang
 - ouders zien activiteit, contacten en gebruikspatronen
 - gesprekken zijn ontworpen met sterke privacy van inhoud
+- Pulse is gericht op rustig contact, niet op media delen tussen gebruikers
 
 ## ParentDashboard Richting
 
@@ -67,6 +68,7 @@ Support en interne documentatie moeten voorbereid zijn op vragen zoals:
 - waarom kan een ouder niet standaard berichtinhoud lezen?
 - waarom kan een kind een contact niet bereiken?
 - waarom is bewerken van encrypted berichten nog niet beschikbaar?
+- waarom kunnen gebruikers geen media of bestanden naar elkaar sturen?
 
 Daarom is het handig om rollout, policy en troubleshootingdocs ook buiten engineering zichtbaar te maken.
 
@@ -77,13 +79,11 @@ Deze productcopy hoeft niet meteen aangepast te worden zolang:
 - echte crypto nog niet actief is
 - de frontend nog op `mock + socket` of `mock + service` zit
 
-Belangrijke nuance voor de huidige tussenfase:
+Belangrijke nuance voor de huidige fase:
 
-- `mock_media_v1` is een technische integratiefase
-- dat is nuttig voor testen van contracten, transport en storagegedrag
-- maar nog geen productclaim voor “echte encrypted media-opslag”
-
-Maar vóór een bredere productie-activatie moet dit wel opnieuw worden bekeken.
+- de scope is bewust beperkt tot chat, bel en video
+- chatmedia hoort daar niet bij
+- productcopy moet die begrenzing expliciet respecteren
 
 ## Praktisch Advies
 
@@ -92,7 +92,7 @@ Voor fase 1 is dit genoeg:
 - hou productclaims voorzichtig
 - laat ParentDashboard metadata-only blijven
 - communiceer intern duidelijk dat mock crypto nog geen eindstaat is
-- benoem `mock_media_v1` alleen als interne/testtechnische fase, niet als marketingterm
+- benadruk dat media delen tussen gebruikers geen onderdeel van deze productscope is
 
 ## Lees Verder
 

@@ -130,6 +130,15 @@ De server-side regels die bepalen:
 - of chat/call/video toegestaan is
 - of key bundle lookup of message send toegestaan is
 
+## Productscope
+
+De expliciete functionele grens van deze E2EE-fase.
+
+In deze repo betekent dat:
+
+- chatten, bellen en videobellen horen binnen scope
+- media of bestanden tussen gebruikers versturen horen buiten scope
+
 ## Metadata-Only Dashboard
 
 Een ouderdashboard dat zicht heeft op contacten, gebruik en activiteit, maar niet standaard afhankelijk is van server-side inhoudsinzage.

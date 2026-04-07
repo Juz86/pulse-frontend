@@ -40,8 +40,6 @@ Voor handmatige validatie van de eerste service-rollout:
 
 - [E2EE_MANUAL_QA_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_MANUAL_QA_CHECKLIST.md)
 - [E2EE_ACCEPTANCE_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ACCEPTANCE_RUNBOOK.md)
-- [E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ATTACHMENT_REMOTE_MOCK_RUNBOOK.md)
-- [E2EE_MEDIA_STORAGE_PLAN.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_MEDIA_STORAGE_PLAN.md)
 - [E2EE_TEST_MATRIX.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_TEST_MATRIX.md)
 
 Voor prioritering van het resterende werk:
@@ -90,4 +88,4 @@ Voor veilige voorbeeldconfiguratie zonder productiegeheimen:
 
 ## Praktisch
 
-De frontend is voorbereid, geverifieerd en gedocumenteerd. De lokale servicefase inclusief `remote_mock` attachments en het expliciete media-profiel `mock_media_v1` werkt al. De volgende grote stap blijft nu echte encrypted media/storage en daarna productie-activatie.
+De frontend is voorbereid, geverifieerd en gedocumenteerd voor chatten, bellen en videobellen. De volgende grote stap is nu acceptatie en gecontroleerde activatie van die scope, zonder chatmedia toe te voegen.

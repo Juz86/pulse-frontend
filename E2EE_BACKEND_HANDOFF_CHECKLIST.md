@@ -61,8 +61,10 @@ Acceptatie:
 
 - [ ] `REACT_APP_E2EE_TRANSPORT=service` lokaal getest
 - [ ] 1-op-1 chat send/receive getest
+- [ ] call/video-basics getest
 - [ ] retries getest
 - [ ] conversation previews tonen geen lege waarden
+- [ ] composer blijft vrij van chatmedia/attachments
 
 Acceptatie:
 
@@ -75,7 +77,6 @@ Acceptatie:
 
 - [ ] mock adapter vervangen door echte crypto-adapter
 - [ ] echte sessie-opbouw per device
-- [ ] attachments encrypten
 - [ ] groepsmodel ontwerpen
 
 ## Definition of done voor de eerste release
@@ -84,6 +85,8 @@ Acceptatie:
 - key bundle lookup werkt
 - encrypted send werkt voor 1-op-1 direct chats
 - receipts werken
+- call/video-UI blijft stabiel binnen dezelfde appflow
 - parent policy blokkeert ongeautoriseerde contacten
 - ParentDashboard blijft metadata-only bruikbaar
 - frontend draait met `REACT_APP_E2EE_TRANSPORT=service`
+- chatmedia blijft buiten scope

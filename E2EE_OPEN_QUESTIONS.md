@@ -42,20 +42,7 @@ Open vraag:
 - worden edits later een nieuw encrypted eventtype?
 - of worden edits helemaal niet ondersteund voor encrypted chats?
 
-## 4. Hoe zien encrypted attachments eruit?
-
-Huidige status:
-
-- er is nu een werkend `remote_mock` contract
-- attachment metadata, headers, key-wrap en integrity lopen al via `mock_media_v1`
-
-Open vraag:
-
-- welke echte storage provider gebruiken we?
-- hoe worden file keys echt gegenereerd, verpakt en per device gedeeld?
-- welke delen van het huidige `mock_media_v1` contract blijven exact behouden?
-
-## 5. Hoe ziet group encryption eruit?
+## 4. Hoe ziet group encryption eruit?
 
 Huidige status:
 
@@ -66,7 +53,7 @@ Open vraag:
 - welk groepsmodel wordt gekozen?
 - hoe worden group membership changes en key rotation afgehandeld?
 
-## 6. Hoe fijnmazig wordt parent policy?
+## 5. Hoe fijnmazig wordt parent policy?
 
 Huidige status:
 
@@ -77,7 +64,7 @@ Open vraag:
 - komen er ook quiet hours per feature?
 - komen er verschillende regels voor chat, audio en video per contact?
 
-## 7. Welke metadata blijft zichtbaar in ParentDashboard?
+## 6. Welke metadata blijft zichtbaar in ParentDashboard?
 
 Huidige status:
 
@@ -87,7 +74,7 @@ Open vraag:
 
 - welke analytics zijn productmatig wenselijk zonder E2EE te ondermijnen?
 
-## 8. Hoe gaan receipts precies werken in multi-device scenario's?
+## 7. Hoe gaan receipts precies werken in multi-device scenario's?
 
 Huidige status:
 
@@ -96,6 +83,17 @@ Huidige status:
 Open vraag:
 
 - hoe worden delivered/read states samengevat voor de UI als meerdere devices meedoen?
+
+## 8. Hoe scherp bewaken we de productscope zonder chatmedia?
+
+Huidige status:
+
+- de afgesproken scope is chatten, bellen en videobellen
+
+Open vraag:
+
+- hoe borgen we in productbeslissingen en UI-reviews dat chatmedia buiten scope blijft?
+- welke profielmediafeatures zijn wel toegestaan zonder die grens te vervagen?
 
 ## 9. Welke rolloutstrategie gebruiken we voor productie?
 

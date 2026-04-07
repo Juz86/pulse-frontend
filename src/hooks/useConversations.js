@@ -179,7 +179,6 @@ export default function useConversations({
       type: messageType,
       messageType,
       sharedContact,
-      attachment: null,
     };
   }
 

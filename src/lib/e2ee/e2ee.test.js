@@ -17,7 +17,6 @@ import {
   normalizeConversationAttachmentSummary,
 } from './conversationSummaries';
 import {
-  buildTransportAttachmentPayload,
   buildForwardServicePayload,
   buildRetryServicePayload,
   getOutgoingMessageScopeError,
@@ -37,17 +36,6 @@ import {
   resolveAttachmentUrl,
   validateAttachmentPayload,
 } from './attachmentPayload';
-import {
-  buildRemoteAttachmentUploadPayload,
-  createAttachmentStorageProvider,
-  createDefaultAttachmentStorageProviderRegistry,
-  createFutureDraftAttachmentStorageProvider,
-  createInlineAttachmentStorageProvider,
-  createRemoteMockAttachmentStorageProvider,
-  buildFutureRemoteAttachmentDraftPayload,
-  buildMockRemoteAttachmentPayload,
-  prepareAttachmentForSend,
-} from './attachmentUploadAdapter';
 import {
   ATTACHMENT_EXTERNAL_CONTRACT_STRATEGY,
   ATTACHMENT_FUTURE_ENVELOPE_ALG,
@@ -153,22 +141,13 @@ import {
   ATTACHMENT_ACCESS_PROVIDER_DIRECT,
   ATTACHMENT_ACCESS_PROVIDER_REMOTE,
   ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT,
-  ATTACHMENT_STORAGE_PROVIDER_INLINE,
-  ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK,
-  ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT,
   buildAttachmentAccessProviderDescriptor,
-  buildAttachmentStorageProviderDescriptor,
   resolveAttachmentAccessProviderKind,
-  resolveAttachmentStorageProviderKind,
 } from './attachmentProviderKinds';
 import {
   createAttachmentAccessProviderRegistry,
-  createAttachmentStorageProviderRegistry,
-  getAttachmentProviderRuntimeState,
   resolveAttachmentAccessProvider,
   resolveAttachmentAccessProviderEntry,
-  resolveAttachmentStorageProvider,
-  resolveAttachmentStorageProviderEntry,
 } from './attachmentProviders';
 import { messagingService } from './messagingService';
 import { BACKEND_URL } from '../../services/socket';
@@ -688,266 +667,6 @@ describe('e2ee attachment helpers', () => {
       url: 'data:image/png;base64,abc',
       downloadUrl: 'https://cdn.example.com/image.png',
     })).toBe('https://cdn.example.com/image.png');
-  });
-
-  test('buildMockRemoteAttachmentPayload creates future-proof remote metadata', async () => {
-    const attachment = await buildMockRemoteAttachmentPayload({
-      name: 'foto.png',
-      url: 'data:image/png;base64,abc',
-      mimeType: 'image/png',
-      size: 1234,
-    }, {
-      conversationId: 'conv-1',
-      userId: 'user-1',
-    });
-
-    expect(attachment.transfer).toBe('remote');
-    expect(attachment.downloadUrl).toContain('data:application/pulse-e2ee-envelope+json;base64,');
-    expect(attachment.thumbnailUrl).toBe('data:image/png;base64,abc');
-    expect(attachment.storageKey).toContain('mock-e2ee/conv-1/user-1/');
-    expect(attachment.encryption?.alg).toBe('mock-e2ee-envelope-v1');
-    expect(attachment.encryption?.sha256).toMatch(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/);
-    expect(attachment.encryption?.mediaKeyId).toMatch(/^mock-media-key-/);
-    expect(attachment.encryption?.keyWrapAlg).toBe('pulse_mock_media_key_wrap_v1');
-    expect(attachment.encryption?.wrappedMediaKey).toMatch(/^ey/);
-    expect(attachment.encryption?.wrappedMediaKeyDigest).toMatch(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/);
-  });
-
-  test('buildFutureRemoteAttachmentDraftPayload creates a pulse_media_v1 storage draft', async () => {
-    const attachment = await buildFutureRemoteAttachmentDraftPayload({
-      name: 'future-photo.png',
-      url: 'data:image/png;base64,abc',
-      mimeType: 'image/png',
-      size: 1234,
-    }, {
-      conversationId: 'conv-1',
-      userId: 'user-1',
-    });
-
-    expect(attachment.transfer).toBe('remote');
-    expect(attachment.url).toBe('');
-    expect(attachment.downloadUrl).toBe('');
-    expect(attachment.thumbnailUrl).toBe('data:image/png;base64,abc');
-    expect(attachment.storageKey).toContain('future-e2ee/conv-1/user-1/');
-    expect(attachment.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
-    expect(attachment.contentEncoding).toBe(ATTACHMENT_FUTURE_ENVELOPE_ALG);
-    expect(attachment.envelopeKind).toBe(ATTACHMENT_FUTURE_ENVELOPE_KIND);
-    expect(attachment.expectedPayloadSha256).toMatch(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/);
-    expect(attachment.encryption).toEqual({
-      alg: ATTACHMENT_FUTURE_ENVELOPE_ALG,
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      keyId: '',
-      iv: '',
-      sha256: expect.stringMatching(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/),
-      mediaKeyId: '',
-      keyWrapAlg: ATTACHMENT_FUTURE_KEY_WRAP_ALG,
-      wrappedMediaKey: '',
-      wrappedMediaKeyDigest: '',
-      envelopeKind: ATTACHMENT_FUTURE_ENVELOPE_KIND,
-      originalMimeType: 'image/png',
-    });
-  });
-
-  test('buildRemoteAttachmentUploadPayload supports pulse_media_v1 upload contracts', async () => {
-    const attachment = await buildRemoteAttachmentUploadPayload({
-      name: 'future-upload.png',
-      url: 'data:image/png;base64,abc',
-      mimeType: 'image/png',
-      size: 1234,
-    }, {
-      conversationId: 'conv-1',
-      userId: 'user-1',
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    });
-
-    expect(attachment.transfer).toBe('remote');
-    expect(attachment.url).toContain('data:application/pulse-e2ee-envelope+json;base64,');
-    expect(attachment.downloadUrl).toContain('data:application/pulse-e2ee-envelope+json;base64,');
-    expect(attachment.storageKey).toContain('future-e2ee/conv-1/user-1/');
-    expect(attachment.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
-    expect(attachment.contentEncoding).toBe(ATTACHMENT_FUTURE_ENVELOPE_ALG);
-    expect(attachment.envelopeKind).toBe(ATTACHMENT_FUTURE_ENVELOPE_KIND);
-    expect(attachment.encryption?.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
-    expect(attachment.encryption?.keyWrapAlg).toBe(ATTACHMENT_FUTURE_KEY_WRAP_ALG);
-  });
-
-  test('createInlineAttachmentStorageProvider keeps inline attachments unchanged', async () => {
-    const provider = createInlineAttachmentStorageProvider();
-    const inlineAttachment = normalizeAttachmentPayload({
-      name: 'inline.txt',
-      url: 'data:text/plain;base64,SGVsbG8=',
-      mimeType: 'text/plain',
-    });
-
-    const preparedAttachment = await provider.prepareAttachment(inlineAttachment);
-    const uploadedAttachment = await provider.uploadPreparedAttachment(preparedAttachment);
-
-    expect(provider.kind).toBe('inline');
-    expect(uploadedAttachment).toEqual(inlineAttachment);
-  });
-
-  test('createRemoteMockAttachmentStorageProvider prepares and uploads remote mock attachments', async () => {
-    const uploadAttachment = jest.fn(async (attachment) => ({
-      ...attachment,
-      downloadUrl: 'https://cdn.example.com/attachment-1',
-    }));
-    const provider = createRemoteMockAttachmentStorageProvider({
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      uploadAttachment,
-    });
-
-    const preparedAttachment = await provider.prepareAttachment({
-      name: 'future-upload.png',
-      url: 'data:image/png;base64,abc',
-      mimeType: 'image/png',
-    }, {
-      conversationId: 'conv-1',
-      userId: 'user-1',
-    });
-    const uploadedAttachment = await provider.uploadPreparedAttachment(preparedAttachment, {
-      conversationId: 'conv-1',
-    });
-
-    expect(provider.kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
-    expect(uploadAttachment).toHaveBeenCalledTimes(1);
-    expect(uploadedAttachment.transfer).toBe('remote');
-    expect(uploadedAttachment.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
-    expect(uploadedAttachment.downloadUrl).toBe('https://cdn.example.com/attachment-1');
-  });
-
-  test('createAttachmentStorageProvider resolves the correct provider for each transport mode', () => {
-    expect(createAttachmentStorageProvider({ transportMode: 'inline' }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_INLINE);
-    expect(createAttachmentStorageProvider({ transportMode: 'remote_mock' }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK);
-    expect(createAttachmentStorageProvider({
-      transportMode: 'remote_mock',
-      attachmentStrategy: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
-  });
-
-  test('createDefaultAttachmentStorageProviderRegistry exposes all built-in storage providers', () => {
-    const registry = createDefaultAttachmentStorageProviderRegistry();
-
-    expect(typeof registry[ATTACHMENT_STORAGE_PROVIDER_INLINE]).toBe('function');
-    expect(typeof registry[ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK]).toBe('function');
-    expect(typeof registry[ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT]).toBe('function');
-  });
-
-  test('createFutureDraftAttachmentStorageProvider exposes a dedicated future provider factory', async () => {
-    const uploadAttachment = jest.fn(async (attachment) => attachment);
-    const provider = createFutureDraftAttachmentStorageProvider({ uploadAttachment });
-    const preparedAttachment = await provider.prepareAttachment({
-      name: 'future-draft.pdf',
-      url: 'data:application/pdf;base64,JVBERi0x',
-      mimeType: 'application/pdf',
-    }, {
-      conversationId: 'conv-future',
-      userId: 'user-future',
-    });
-
-    expect(provider.kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
-    expect(preparedAttachment.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
-  });
-
-  test('buildAttachmentStorageProviderDescriptor exposes shared provider capabilities', () => {
-    expect(buildAttachmentStorageProviderDescriptor(ATTACHMENT_STORAGE_PROVIDER_INLINE)).toEqual({
-      kind: ATTACHMENT_STORAGE_PROVIDER_INLINE,
-      strategyKey: '',
-      transportMode: 'inline',
-      usesRemoteStorage: false,
-      isFutureDraft: false,
-      supportsUpload: true,
-    });
-
-    expect(buildAttachmentStorageProviderDescriptor(
-      ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT,
-      ATTACHMENT_FUTURE_MEDIA_STRATEGY
-    )).toEqual({
-      kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT,
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      transportMode: 'remote_mock',
-      usesRemoteStorage: true,
-      isFutureDraft: true,
-      supportsUpload: true,
-    });
-  });
-
-  test('resolveAttachmentStorageProviderKind centralizes transport-driven provider selection', () => {
-    expect(resolveAttachmentStorageProviderKind({
-      transportMode: 'inline',
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    })).toBe(ATTACHMENT_STORAGE_PROVIDER_INLINE);
-
-    expect(resolveAttachmentStorageProviderKind({
-      transportMode: 'remote_mock',
-      strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
-    })).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK);
-
-    expect(resolveAttachmentStorageProviderKind({
-      transportMode: 'remote_mock',
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    })).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
-  });
-
-  test('attachment storage provider registry resolves inline and remote providers centrally', () => {
-    const createInlineProvider = jest.fn(() => ({ kind: ATTACHMENT_STORAGE_PROVIDER_INLINE }));
-    const createRemoteMockProvider = jest.fn(({ strategyKey }) => ({
-      kind: strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY
-        ? ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT
-        : ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK,
-    }));
-    const createFutureDraftProvider = jest.fn(({ strategyKey }) => ({
-      kind: strategyKey === ATTACHMENT_FUTURE_MEDIA_STRATEGY
-        ? ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT
-        : ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK,
-    }));
-    const registry = createAttachmentStorageProviderRegistry({
-      createInlineProvider,
-      createRemoteMockProvider,
-      createFutureDraftProvider,
-    });
-
-    expect(resolveAttachmentStorageProvider(registry, {
-      transportMode: 'inline',
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_INLINE);
-
-    expect(resolveAttachmentStorageProvider(registry, {
-      transportMode: 'remote_mock',
-      strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
-    }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK);
-
-    expect(resolveAttachmentStorageProvider(registry, {
-      transportMode: 'remote_mock',
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    }).kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
-
-    expect(createInlineProvider).toHaveBeenCalledTimes(1);
-    expect(createRemoteMockProvider).toHaveBeenCalledTimes(1);
-    expect(createFutureDraftProvider).toHaveBeenCalledTimes(1);
-  });
-
-  test('attachment storage provider registry exposes a resolved entry with descriptor', () => {
-    const registry = createAttachmentStorageProviderRegistry({
-      createInlineProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_INLINE }),
-      createRemoteMockProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK }),
-      createFutureDraftProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT }),
-    });
-
-    const entry = resolveAttachmentStorageProviderEntry(registry, {
-      transportMode: 'remote_mock',
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-    });
-
-    expect(entry.kind).toBe(ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT);
-    expect(entry.descriptor).toEqual({
-      kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT,
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      transportMode: 'remote_mock',
-      usesRemoteStorage: true,
-      isFutureDraft: true,
-      supportsUpload: true,
-    });
-    expect(typeof entry.factory).toBe('function');
   });
 
   test('buildMockAttachmentEncryptionMetadata creates a stable mock media key contract', async () => {
@@ -2217,99 +1936,6 @@ describe('e2ee attachment helpers', () => {
     expect(decoded.payloadSha256).toMatch(/^[a-f0-9]{64}$|^fallback-[a-f0-9]{8}$/);
   });
 
-  test('prepareAttachmentForSend supports remote_mock mode', async () => {
-    const attachment = await prepareAttachmentForSend({
-      attachment: {
-        name: 'document.pdf',
-        url: 'data:application/pdf;base64,abc',
-        mimeType: 'application/pdf',
-        size: 456,
-      },
-      conversationId: 'conv-2',
-      userId: 'user-9',
-      transportMode: 'remote_mock',
-      uploadAttachment: async (payload) => ({
-        ...payload,
-        downloadUrl: 'https://cdn.example.com/document.pdf',
-        storageKey: 'mock-e2ee/conv-2/user-9/document.pdf',
-      }),
-    });
-
-    expect(attachment.transfer).toBe('remote');
-    expect(attachment.downloadUrl).toBe('https://cdn.example.com/document.pdf');
-    expect(attachment.storageKey).toBe('mock-e2ee/conv-2/user-9/document.pdf');
-  });
-
-  test('prepareAttachmentForSend supports pulse_media_v1 attachment strategy in remote_mock mode', async () => {
-    const attachment = await prepareAttachmentForSend({
-      attachment: {
-        name: 'future-document.pdf',
-        url: 'data:application/pdf;base64,abc',
-        mimeType: 'application/pdf',
-        size: 456,
-      },
-      conversationId: 'conv-2',
-      userId: 'user-9',
-      transportMode: 'remote_mock',
-      attachmentStrategy: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      uploadAttachment: async (payload) => ({
-        ...payload,
-        downloadUrl: 'https://cdn.example.com/future-document.pdf',
-      }),
-    });
-
-    expect(attachment.transfer).toBe('remote');
-    expect(attachment.downloadUrl).toBe('https://cdn.example.com/future-document.pdf');
-    expect(attachment.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
-    expect(attachment.contentEncoding).toBe(ATTACHMENT_FUTURE_ENVELOPE_ALG);
-    expect(attachment.encryption?.strategyKey).toBe(ATTACHMENT_FUTURE_MEDIA_STRATEGY);
-  });
-
-  test('prepareAttachmentForSend uploads through backend when no custom uploader is provided', async () => {
-    const getIdToken = jest.fn().mockResolvedValue('token-123');
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        attachment: {
-          name: 'foto.png',
-          downloadUrl: 'http://localhost:3001/attachments/mock-1',
-          thumbnailUrl: 'http://localhost:3001/attachments/mock-1',
-          storageKey: 'mock-storage/mock-1/foto.png',
-          transfer: 'remote',
-          mimeType: 'image/png',
-          size: 321,
-          caption: 'Test',
-          encryption: {
-            alg: 'mock-storage-envelope',
-            keyId: 'mock-key-mock-1',
-            iv: 'mock-iv-mock-1',
-            sha256: 'mock-sha256-321',
-          },
-        },
-      }),
-    });
-
-    const attachment = await prepareAttachmentForSend({
-      attachment: {
-        name: 'foto.png',
-        url: 'data:image/png;base64,abc',
-        mimeType: 'image/png',
-        size: 321,
-        caption: 'Test',
-      },
-      conversationId: 'conv-5',
-      userId: 'user-5',
-      user: { getIdToken },
-      transportMode: 'remote_mock',
-    });
-
-    expect(getIdToken).toHaveBeenCalledTimes(1);
-    expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(global.fetch.mock.calls[0][0]).toContain('/api/attachments/upload');
-    expect(attachment.transfer).toBe('remote');
-    expect(attachment.downloadUrl).toBe('http://localhost:3001/attachments/mock-1');
-  });
-
   test('getAttachmentAccessInfo exposes future decrypt-related access hints', () => {
     const info = getAttachmentAccessInfo({
       transfer: 'remote',
@@ -2782,52 +2408,6 @@ describe('e2ee attachment helpers', () => {
       supportsBinaryAccess: false,
     });
     expect(typeof entry.factory).toBe('function');
-  });
-
-  test('getAttachmentProviderRuntimeState combines storage and access descriptors for future drafts', () => {
-    const storageRegistry = createAttachmentStorageProviderRegistry({
-      createInlineProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_INLINE }),
-      createRemoteMockProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK }),
-      createFutureDraftProvider: () => ({ kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT }),
-    });
-    const accessRegistry = createAttachmentAccessProviderRegistry({
-      createDirectProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_DIRECT }),
-      createRemoteProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE }),
-      createFutureDraftProvider: () => ({ kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT }),
-    });
-
-    expect(getAttachmentProviderRuntimeState({
-      storageRegistry,
-      accessRegistry,
-      transportMode: 'remote_mock',
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      needsRemoteFetch: true,
-    })).toEqual({
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      transportMode: 'remote_mock',
-      needsRemoteFetch: true,
-      storageProviderKind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT,
-      accessProviderKind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT,
-      storageDescriptor: {
-        kind: ATTACHMENT_STORAGE_PROVIDER_REMOTE_MOCK_FUTURE_DRAFT,
-        strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-        transportMode: 'remote_mock',
-        usesRemoteStorage: true,
-        isFutureDraft: true,
-        supportsUpload: true,
-      },
-      accessDescriptor: {
-        kind: ATTACHMENT_ACCESS_PROVIDER_REMOTE_FUTURE_DRAFT,
-        strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-        usesRemoteFetch: true,
-        isFutureDraft: true,
-        supportsBinaryAccess: false,
-      },
-      usesRemoteStorage: true,
-      usesRemoteFetch: true,
-      isFutureDraft: true,
-      supportsBinaryAccess: false,
-    });
   });
 
   test('resolveAttachmentForAccess returns the original normalized attachment when no remote metadata refresh is needed', async () => {
@@ -3838,48 +3418,6 @@ describe('e2ee transport payload helpers', () => {
     expect(getOutgoingMessageScopeError('attachment')).toBe(OUTGOING_ATTACHMENT_SCOPE_ERROR);
   });
 
-  test('buildTransportAttachmentPayload strips transient urls but keeps verification state', () => {
-    expect(buildTransportAttachmentPayload({
-      name: 'foto.png',
-      url: 'blob:temporary-preview',
-      downloadUrl: 'http://localhost:3001/attachments/transport-1',
-      transfer: 'remote',
-      mimeType: 'application/pulse-e2ee-envelope+json',
-      strategyKey: '',
-      originalMimeType: 'image/png',
-      contentEncoding: 'mock-e2ee-envelope-v1',
-      envelopeKind: 'pulse_mock_media_envelope',
-      accessVerification: {
-        strategyKey: '',
-        integrityVerified: true,
-        wrappedKeyVerified: true,
-        unwrapKind: 'pulse_mock_media_key_unwrap',
-      },
-    })).toEqual({
-      name: 'foto.png',
-      url: '',
-      downloadUrl: 'http://localhost:3001/attachments/transport-1',
-      thumbnailUrl: '',
-      storageKey: '',
-      transfer: 'remote',
-      mimeType: 'application/pulse-e2ee-envelope+json',
-      strategyKey: '',
-      originalMimeType: 'image/png',
-      contentEncoding: 'mock-e2ee-envelope-v1',
-      envelopeKind: 'pulse_mock_media_envelope',
-      expectedPayloadSha256: '',
-      size: null,
-      caption: '',
-      encryption: null,
-      accessVerification: {
-        strategyKey: '',
-        integrityVerified: true,
-        wrappedKeyVerified: true,
-        unwrapKind: 'pulse_mock_media_key_unwrap',
-      },
-    });
-  });
-
   test('buildRetryServicePayload flags unsupported attachment messages in the active scope', () => {
     const payload = buildRetryServicePayload({
       text: 'Bijlage: foto.png',
@@ -3910,7 +3448,6 @@ describe('e2ee transport payload helpers', () => {
       scopeError: OUTGOING_ATTACHMENT_SCOPE_ERROR,
       replyToMessageId: 'msg-parent-1',
       sharedContact: null,
-      attachment: null,
     });
   });
 
@@ -3946,7 +3483,6 @@ describe('e2ee transport payload helpers', () => {
       messageType: 'attachment',
       scopeError: OUTGOING_ATTACHMENT_SCOPE_ERROR,
       sharedContact: null,
-      attachment: null,
     });
   });
 
@@ -3956,7 +3492,6 @@ describe('e2ee transport payload helpers', () => {
       messageType: 'text',
       scopeError: '',
       sharedContact: null,
-      attachment: null,
     });
 
     expect(buildForwardServicePayload({
@@ -3968,7 +3503,6 @@ describe('e2ee transport payload helpers', () => {
       messageType: 'contact',
       scopeError: '',
       sharedContact: { uid: 'user-2', name: 'Habiba' },
-      attachment: null,
     });
   });
 });

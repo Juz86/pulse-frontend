@@ -1,5 +1,3 @@
-import { normalizeAttachmentPayload } from './attachmentPayload';
-
 export const OUTGOING_ATTACHMENT_SCOPE_ERROR = 'Bijlagen versturen is niet beschikbaar in Pulse.';
 
 export function getStructuredMessageType(message) {
@@ -16,21 +14,6 @@ export function getOutgoingMessageScopeError(messageType = 'text') {
     : OUTGOING_ATTACHMENT_SCOPE_ERROR;
 }
 
-export function buildTransportAttachmentPayload(attachment) {
-  const normalized = normalizeAttachmentPayload(attachment);
-  if (!normalized) return null;
-
-  if (normalized.transfer === 'remote') {
-    return {
-      ...normalized,
-      // Never forward transient local object URLs back into the service transport.
-      url: '',
-    };
-  }
-
-  return normalized;
-}
-
 export function buildRetryServicePayload(message = {}) {
   const messageType = getStructuredMessageType(message);
   const scopeError = getOutgoingMessageScopeError(messageType);
@@ -41,7 +24,6 @@ export function buildRetryServicePayload(message = {}) {
     scopeError,
     replyToMessageId: message.replyTo?.messageId || message.replyTo?.id || null,
     sharedContact: messageType === 'contact' ? (message.sharedContact || null) : null,
-    attachment: scopeError ? null : (messageType === 'attachment' ? buildTransportAttachmentPayload(message.attachment) : null),
   };
 }
 
@@ -55,7 +37,6 @@ export function buildForwardServicePayload(message = {}) {
       messageType: 'text',
       scopeError: '',
       sharedContact: null,
-      attachment: null,
     };
   }
 
@@ -64,6 +45,5 @@ export function buildForwardServicePayload(message = {}) {
     messageType,
     scopeError,
     sharedContact: messageType === 'contact' ? (message.sharedContact || null) : null,
-    attachment: scopeError ? null : (messageType === 'attachment' ? buildTransportAttachmentPayload(message.attachment) : null),
   };
 }

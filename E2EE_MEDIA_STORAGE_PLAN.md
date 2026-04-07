@@ -82,8 +82,9 @@ De huidige codebase heeft al voorbereid:
 - access-validatie in [attachmentAccessAdapter.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentAccessAdapter.js)
 - transport-/normalisatiehelpers in:
   - [attachmentPayload.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentPayload.js)
-  - [attachmentUploadAdapter.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentUploadAdapter.js)
   - [attachmentPresentation.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/attachmentPresentation.js)
+
+De oudere uploadadapterlaag uit die historische fase hoort niet meer bij de actieve codebasis.
 
 ## Historisch Nog Open
 

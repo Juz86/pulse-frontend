@@ -23,7 +23,7 @@ export function getInitialAttachmentActionState() {
   };
 }
 
-export function buildAttachmentActionSuccessState(preparedAccess) {
+function buildAttachmentActionSuccessState(preparedAccess) {
   return {
     resolvedAttachment: preparedAccess?.attachment || null,
     resolvedAttachmentAccess: preparedAccess || null,
@@ -31,13 +31,13 @@ export function buildAttachmentActionSuccessState(preparedAccess) {
   };
 }
 
-export function buildAttachmentActionErrorState(error, action = 'open') {
+function buildAttachmentActionErrorState(error, action = 'open') {
   return {
     attachmentActionError: error?.message || (action === 'download' ? 'Bijlage downloaden mislukt' : 'Bijlage openen mislukt'),
   };
 }
 
-export function createAttachmentActionCallbacks({
+function createAttachmentActionCallbacks({
   setAttachmentBusy = null,
   setResolvedAttachment = null,
   setAttachmentActionError = null,
@@ -51,7 +51,7 @@ export function createAttachmentActionCallbacks({
   };
 }
 
-export function applyAttachmentActionResultState(
+function applyAttachmentActionResultState(
   result,
   {
     setResolvedAttachment = null,

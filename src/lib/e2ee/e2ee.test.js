@@ -98,15 +98,11 @@ import {
   getServiceTransportFallbackBannerState,
 } from './config';
 import {
-  applyAttachmentActionResultState,
   assertAttachmentBinaryAccessSupported,
   assertAttachmentMetadataIntegrity,
   buildAttachmentAccessVerification,
-  buildAttachmentActionErrorState,
-  buildAttachmentActionSuccessState,
   createAttachmentMessageActionRuntime,
   createAttachmentActionRunner,
-  createAttachmentActionCallbacks,
   buildResolvedAttachmentAccessContract,
   buildAttachmentMetadataUrl,
   clearAttachmentMetadataCache,
@@ -2282,49 +2278,6 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
-  test('buildAttachmentActionSuccessState derives resolved attachment UI state', () => {
-    expect(buildAttachmentActionSuccessState({
-      attachment: { name: 'hello.txt' },
-      unwrapContext: { unwrapKind: 'none' },
-    })).toEqual({
-      resolvedAttachment: { name: 'hello.txt' },
-      resolvedAttachmentAccess: {
-        attachment: { name: 'hello.txt' },
-        unwrapContext: { unwrapKind: 'none' },
-      },
-      attachmentActionError: '',
-    });
-  });
-
-  test('buildAttachmentActionErrorState derives stable open/download error copy', () => {
-    expect(buildAttachmentActionErrorState(new Error('kapot'), 'open')).toEqual({
-      attachmentActionError: 'kapot',
-    });
-    expect(buildAttachmentActionErrorState(null, 'download')).toEqual({
-      attachmentActionError: 'Bijlage downloaden mislukt',
-    });
-  });
-
-  test('createAttachmentActionCallbacks derives stable adapter callbacks from state setters', () => {
-    const setAttachmentBusy = jest.fn();
-    const setResolvedAttachment = jest.fn();
-    const setAttachmentActionError = jest.fn();
-
-    const callbacks = createAttachmentActionCallbacks({
-      setAttachmentBusy,
-      setResolvedAttachment,
-      setAttachmentActionError,
-    });
-
-    callbacks.onBusyChange(true);
-    callbacks.onResolvedAttachment({ name: 'foto.png' });
-    callbacks.onErrorReset();
-
-    expect(setAttachmentBusy).toHaveBeenCalledWith(true);
-    expect(setResolvedAttachment).toHaveBeenCalledWith({ name: 'foto.png' });
-    expect(setAttachmentActionError).toHaveBeenCalledWith('');
-  });
-
   test('createAttachmentMessageActionRuntime centralizes runner setup for message attachments', async () => {
     const setAttachmentBusy = jest.fn();
     const setResolvedAttachment = jest.fn();
@@ -2364,39 +2317,6 @@ describe('e2ee attachment helpers', () => {
     expect(setResolvedAttachment).toHaveBeenCalled();
     expect(setResolvedAttachmentAccess).toHaveBeenCalled();
     expect(setAttachmentActionError).toHaveBeenCalledWith('');
-  });
-
-  test('applyAttachmentActionResultState applies success and error payloads through state setters', () => {
-    const setResolvedAttachment = jest.fn();
-    const setResolvedAttachmentAccess = jest.fn();
-    const setAttachmentActionError = jest.fn();
-
-    applyAttachmentActionResultState({
-      successState: {
-        resolvedAttachment: { name: 'foto.png' },
-        resolvedAttachmentAccess: { url: 'blob:abc' },
-        attachmentActionError: '',
-      },
-    }, {
-      setResolvedAttachment,
-      setResolvedAttachmentAccess,
-      setAttachmentActionError,
-    });
-
-    applyAttachmentActionResultState({
-      errorState: {
-        attachmentActionError: 'kapot',
-      },
-    }, {
-      setResolvedAttachment,
-      setResolvedAttachmentAccess,
-      setAttachmentActionError,
-    });
-
-    expect(setResolvedAttachment).toHaveBeenCalledWith({ name: 'foto.png' });
-    expect(setResolvedAttachmentAccess).toHaveBeenCalledWith({ url: 'blob:abc' });
-    expect(setAttachmentActionError).toHaveBeenNthCalledWith(1, '');
-    expect(setAttachmentActionError).toHaveBeenNthCalledWith(2, 'kapot');
   });
 
   test('assertAttachmentMetadataIntegrity accepts matching metadata contracts', () => {

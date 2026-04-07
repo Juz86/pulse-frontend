@@ -3,6 +3,7 @@ import { E2EE_MODE } from './config';
 import { pulseCryptoAdapter } from './adapter/pulseCryptoAdapter';
 import { normalizeAttachmentPayload } from './attachmentPayload';
 import { normalizeIncomingMessage } from './messageModel';
+import { getOutgoingMessageScopeError } from './messageTransportPayload';
 import { secureKeyStore } from './secureKeyStore';
 import { sessionStore } from './sessionStore';
 
@@ -168,8 +169,9 @@ export const messagingService = {
       (Array.isArray(recipientUserIds) ? recipientUserIds : [recipientUserId]).filter(Boolean)
     ));
     if (targetUserIds.length === 0) throw new Error('Geen ontvanger beschikbaar.');
-    if (messageType === 'attachment') {
-      throw new Error('Bijlagen versturen is niet beschikbaar in Pulse.');
+    const outgoingScopeError = getOutgoingMessageScopeError(messageType);
+    if (outgoingScopeError) {
+      throw new Error(outgoingScopeError);
     }
 
     const normalizedAttachment = messageType === 'attachment'

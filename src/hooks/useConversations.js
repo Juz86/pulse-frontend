@@ -5,6 +5,7 @@ import { messagingService } from '../lib/e2ee/messagingService';
 import {
   buildForwardServicePayload,
   buildRetryServicePayload,
+  getOutgoingMessageScopeError,
 } from '../lib/e2ee/messageTransportPayload';
 import {
   buildPendingMessage,
@@ -490,8 +491,9 @@ export default function useConversations({
     const retryCount = (failedMsg._retryCount || 0) + 1;
     const recipientUserIds = getConversationRecipients(activeConv);
     const retryPayload = buildRetryServicePayload(failedMsg);
-    if (retryPayload.messageType === 'attachment') {
-      showErrToast('Bijlagen versturen is niet beschikbaar in Pulse');
+    const retryScopeError = getOutgoingMessageScopeError(retryPayload.messageType);
+    if (retryScopeError) {
+      showErrToast(retryScopeError);
       return;
     }
     patchMessageAsSending(failedMsg.id, retryCount);
@@ -573,8 +575,9 @@ export default function useConversations({
     const recipientUserIds = getConversationRecipients(conv);
     const forwardPayload = buildForwardServicePayload(forwardMsg);
     const forwardType = forwardPayload.messageType;
-    if (forwardType === 'attachment') {
-      showErrToast('Bijlagen versturen is niet beschikbaar in Pulse');
+    const forwardScopeError = getOutgoingMessageScopeError(forwardType);
+    if (forwardScopeError) {
+      showErrToast(forwardScopeError);
       return;
     }
     const msg = {

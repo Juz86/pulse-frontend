@@ -1,7 +1,19 @@
 import { normalizeAttachmentPayload } from './attachmentPayload';
 
+export const OUTGOING_ATTACHMENT_SCOPE_ERROR = 'Bijlagen versturen is niet beschikbaar in Pulse.';
+
 export function getStructuredMessageType(message) {
   return message?.type || message?.messageType || 'text';
+}
+
+export function isSupportedOutgoingMessageType(messageType = 'text') {
+  return messageType === 'text' || messageType === 'contact';
+}
+
+export function getOutgoingMessageScopeError(messageType = 'text') {
+  return isSupportedOutgoingMessageType(messageType)
+    ? ''
+    : OUTGOING_ATTACHMENT_SCOPE_ERROR;
 }
 
 export function buildTransportAttachmentPayload(attachment) {

@@ -20,6 +20,9 @@ import {
   buildTransportAttachmentPayload,
   buildForwardServicePayload,
   buildRetryServicePayload,
+  getOutgoingMessageScopeError,
+  isSupportedOutgoingMessageType,
+  OUTGOING_ATTACHMENT_SCOPE_ERROR,
 } from './messageTransportPayload';
 import {
   ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE,
@@ -3827,6 +3830,14 @@ describe('e2ee attachment helpers', () => {
 });
 
 describe('e2ee transport payload helpers', () => {
+  test('outgoing message scope helpers only allow text and contact messages', () => {
+    expect(isSupportedOutgoingMessageType('text')).toBe(true);
+    expect(isSupportedOutgoingMessageType('contact')).toBe(true);
+    expect(isSupportedOutgoingMessageType('attachment')).toBe(false);
+    expect(getOutgoingMessageScopeError('text')).toBe('');
+    expect(getOutgoingMessageScopeError('attachment')).toBe(OUTGOING_ATTACHMENT_SCOPE_ERROR);
+  });
+
   test('buildTransportAttachmentPayload strips transient urls but keeps verification state', () => {
     expect(buildTransportAttachmentPayload({
       name: 'foto.png',

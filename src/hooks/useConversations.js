@@ -4,6 +4,7 @@ import { getSocket, BACKEND_URL } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
 import {
   buildSocketMessagePayload,
+  buildServiceMessageResult,
   buildForwardServicePayload,
   buildRetryServicePayload,
 } from '../lib/e2ee/messageTransportPayload';
@@ -164,21 +165,16 @@ export default function useConversations({
       mentions,
     }, currentDeviceId);
 
-    return {
-      id: result.messageId,
+    return buildServiceMessageResult({
+      messageId: result.messageId,
       conversationId: conv.id,
       senderId: user.uid,
-      senderUserId: user.uid,
       senderDeviceId: currentDeviceId,
-      text: messageType === 'contact' ? getSharedContactDisplayText(sharedContact) : plaintext,
-      createdAt: new Date().toISOString(),
-      protocol: 'signal_v1',
-      deliveryState: 'sent',
-      replyToMessageId,
-      type: messageType,
+      plaintext: messageType === 'contact' ? getSharedContactDisplayText(sharedContact) : plaintext,
       messageType,
       sharedContact,
-    };
+      replyToMessageId,
+    });
   }
 
   // ── Gesprekken laden ──────────────────────────────────────────────────────

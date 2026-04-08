@@ -15,6 +15,7 @@ import {
 } from './conversationSummaries';
 import {
   buildForwardServicePayload,
+  buildServiceMessageResult,
   buildRetryServicePayload,
   buildSocketMessagePayload,
   getOutgoingMessageScopeError,
@@ -1279,6 +1280,55 @@ describe('e2ee transport payload helpers', () => {
       conversationId: 'conv-1',
       senderId: 'user-1',
       senderName: 'Yushua',
+      plaintext: 'Bijlage: foto.png',
+      messageType: 'attachment',
+    })).toMatchObject({
+      type: 'text',
+      messageType: 'text',
+      text: 'Bijlage: foto.png',
+    });
+  });
+
+  test('buildServiceMessageResult centralizes the active service result shape', () => {
+    expect(buildServiceMessageResult({
+      messageId: 'msg-1',
+      conversationId: 'conv-1',
+      senderId: 'user-1',
+      senderDeviceId: 'device-1',
+      plaintext: 'Hallo',
+      createdAt: '2026-04-08T10:00:00.000Z',
+      replyToMessageId: 'msg-parent-1',
+    })).toMatchObject({
+      id: 'msg-1',
+      conversationId: 'conv-1',
+      senderId: 'user-1',
+      senderUserId: 'user-1',
+      senderDeviceId: 'device-1',
+      text: 'Hallo',
+      protocol: 'signal_v1',
+      deliveryState: 'sent',
+      replyToMessageId: 'msg-parent-1',
+      type: 'text',
+      messageType: 'text',
+    });
+
+    expect(buildServiceMessageResult({
+      messageId: 'msg-2',
+      conversationId: 'conv-1',
+      senderId: 'user-1',
+      plaintext: 'Contactpersoon: Habiba',
+      messageType: 'contact',
+      sharedContact: { name: 'Habiba' },
+    })).toMatchObject({
+      type: 'contact',
+      messageType: 'contact',
+      sharedContact: { name: 'Habiba' },
+    });
+
+    expect(buildServiceMessageResult({
+      messageId: 'msg-3',
+      conversationId: 'conv-1',
+      senderId: 'user-1',
       plaintext: 'Bijlage: foto.png',
       messageType: 'attachment',
     })).toMatchObject({

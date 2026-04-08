@@ -16,6 +16,7 @@ import {
 import {
   buildForwardServicePayload,
   buildRetryServicePayload,
+  buildSocketMessagePayload,
   getOutgoingMessageScopeError,
   isSupportedOutgoingMessageType,
   OUTGOING_ATTACHMENT_SCOPE_ERROR,
@@ -1062,6 +1063,39 @@ describe('e2ee attachment helpers', () => {
     expect(setAttachmentActionError).toHaveBeenCalledWith('');
   });
 
+  test('createAttachmentActionRunner centralizes attachment action failure copy', async () => {
+    const setAttachmentBusy = jest.fn();
+    const setResolvedAttachment = jest.fn();
+    const setResolvedAttachmentAccess = jest.fn();
+    const setAttachmentActionError = jest.fn();
+
+    const runAttachmentAction = createAttachmentActionRunner(
+      {
+        name: 'hello.txt',
+        downloadUrl: 'https://cdn.example.com/hello.txt',
+        transfer: 'remote',
+      },
+      null,
+      {
+        setAttachmentBusy,
+        setResolvedAttachment,
+        setResolvedAttachmentAccess,
+        setAttachmentActionError,
+        resolveAttachment: async () => {
+          throw new Error('');
+        },
+        opener: jest.fn(),
+      }
+    );
+
+    const result = await runAttachmentAction('download');
+
+    expect(result.succeeded).toBe(false);
+    expect(setResolvedAttachment).not.toHaveBeenCalled();
+    expect(setResolvedAttachmentAccess).not.toHaveBeenCalled();
+    expect(setAttachmentActionError).toHaveBeenCalledWith('Bijlage downloaden mislukt');
+  });
+
   test('decryptMockAttachmentEnvelopeBlob restores the original attachment blob', async () => {
     const { dataUrl, envelope } = await createMockEncryptedAttachmentEnvelope({
       name: 'hello.txt',
@@ -1204,6 +1238,53 @@ describe('e2ee transport payload helpers', () => {
       messageType: 'contact',
       scopeError: '',
       sharedContact: { uid: 'user-2', name: 'Habiba' },
+    });
+  });
+
+  test('buildSocketMessagePayload centralizes the active socket fallback message shape', () => {
+    expect(buildSocketMessagePayload({
+      conversationId: 'conv-1',
+      senderId: 'user-1',
+      senderName: 'Yushua',
+      senderDeviceId: 'device-1',
+      plaintext: 'Hallo',
+      createdAt: '2026-04-08T10:00:00.000Z',
+      mentions: ['user-2'],
+    })).toMatchObject({
+      convId: 'conv-1',
+      senderId: 'user-1',
+      senderName: 'Yushua',
+      senderDeviceId: 'device-1',
+      text: 'Hallo',
+      protocol: 'signal_v1',
+      type: 'text',
+      messageType: 'text',
+      mentions: ['user-2'],
+    });
+
+    expect(buildSocketMessagePayload({
+      conversationId: 'conv-1',
+      senderId: 'user-1',
+      senderName: 'Yushua',
+      plaintext: 'Contactpersoon: Habiba',
+      messageType: 'contact',
+      sharedContact: { name: 'Habiba' },
+    })).toMatchObject({
+      type: 'contact',
+      messageType: 'contact',
+      sharedContact: { name: 'Habiba' },
+    });
+
+    expect(buildSocketMessagePayload({
+      conversationId: 'conv-1',
+      senderId: 'user-1',
+      senderName: 'Yushua',
+      plaintext: 'Bijlage: foto.png',
+      messageType: 'attachment',
+    })).toMatchObject({
+      type: 'text',
+      messageType: 'text',
+      text: 'Bijlage: foto.png',
     });
   });
 });

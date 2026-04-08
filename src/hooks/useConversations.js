@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { getSocket, BACKEND_URL } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
 import {
+  buildSocketMessagePayload,
   buildForwardServicePayload,
   buildRetryServicePayload,
 } from '../lib/e2ee/messageTransportPayload';
@@ -396,14 +397,16 @@ export default function useConversations({
       _key: tempId,
       _retryCount: 0,
     };
-    const msg = {
-      convId: activeConv.id, senderId: user.uid, senderName: user.displayName || user.email,
-      text: trimmedText, createdAt: optimisticMsg.createdAt,
-      protocol: 'signal_v1',
+    const msg = buildSocketMessagePayload({
+      conversationId: activeConv.id,
+      senderId: user.uid,
+      senderName: user.displayName || user.email,
       senderDeviceId: currentDeviceId,
-      ...(replyTo ? { replyTo } : {}),
-      ...(mentions.length > 0 ? { mentions } : {}),
-    };
+      plaintext: trimmedText,
+      createdAt: optimisticMsg.createdAt,
+      replyTo: replyTo || null,
+      mentions,
+    });
     setReplyTo(null);
     pendingTempIds.current.add(optimisticMsg.id);
     setMessages(prev => [...prev, optimisticMsg]);
@@ -507,14 +510,16 @@ export default function useConversations({
 
     socket.emit('message:send', {
       convId: conv.id,
-      message: {
-        convId: conv.id,
+      message: buildSocketMessagePayload({
+        conversationId: conv.id,
         senderId: user.uid,
         senderName: user.displayName || user.email,
-        type: 'contact',
+        senderDeviceId: currentDeviceId,
+        plaintext: optimisticMsg.text,
+        messageType: 'contact',
         sharedContact: normalizedSharedContact,
         createdAt: optimisticMsg.createdAt,
-      },
+      }),
     });
   }
 
@@ -551,7 +556,21 @@ export default function useConversations({
         patchMessageAsFailed(failedMsg.id);
       });
     } else {
-      socket.emit('message:send', { convId: activeConv.id, message: { ...failedMsg, createdAt: new Date().toISOString() } }, (savedMsg) => {
+      socket.emit('message:send', {
+        convId: activeConv.id,
+        message: buildSocketMessagePayload({
+          conversationId: activeConv.id,
+          senderId: user.uid,
+          senderName: user.displayName || user.email,
+          senderDeviceId: currentDeviceId,
+          plaintext: retryPayload.plaintext,
+          messageType: retryPayload.messageType,
+          sharedContact: retryPayload.sharedContact,
+          createdAt: new Date().toISOString(),
+          replyTo: failedMsg.replyTo || null,
+          mentions: Array.isArray(failedMsg.mentions) ? failedMsg.mentions : [],
+        }),
+      }, (savedMsg) => {
         clearTimeout(failTimer);
         if (savedMsg?.id) {
           pendingTempIds.current.delete(failedMsg.id);
@@ -606,18 +625,20 @@ export default function useConversations({
     if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !forwardMsg) return;
     const recipientUserIds = getConversationRecipients(conv);
     const forwardPayload = buildForwardServicePayload(forwardMsg);
-    const forwardType = forwardPayload.messageType;
     const forwardScopeError = forwardPayload.scopeError;
     if (forwardScopeError) {
       showErrToast(forwardScopeError);
       return;
     }
-    const msg = {
-      convId: conv.id, senderId: user.uid, senderName: user.displayName || user.email,
-      text: forwardPayload.plaintext,
-      protocol: 'signal_v1',
+    const msg = buildSocketMessagePayload({
+      conversationId: conv.id,
+      senderId: user.uid,
+      senderName: user.displayName || user.email,
       senderDeviceId: currentDeviceId,
-    };
+      plaintext: forwardPayload.plaintext,
+      messageType: forwardPayload.messageType,
+      sharedContact: forwardPayload.sharedContact,
+    });
     if (shouldUseServiceTransport(conv)) {
       try {
         await sendViaService({
@@ -635,10 +656,7 @@ export default function useConversations({
     } else {
       socket.emit('message:send', {
         convId: conv.id,
-        message: {
-          ...msg,
-          ...(forwardType === 'contact' ? { type: 'contact', sharedContact: forwardPayload.sharedContact } : {}),
-        },
+        message: msg,
       });
     }
     setForwardMsg(null);

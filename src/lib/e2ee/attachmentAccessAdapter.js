@@ -14,6 +14,12 @@ import {
 
 const attachmentMetadataCache = new Map();
 
+function getAttachmentActionFailureMessage(action = 'open') {
+  return action === 'download'
+    ? 'Bijlage downloaden mislukt'
+    : 'Bijlage openen mislukt';
+}
+
 function buildAttachmentActionSuccessState(preparedAccess) {
   return {
     resolvedAttachment: preparedAccess?.attachment || null,
@@ -24,7 +30,7 @@ function buildAttachmentActionSuccessState(preparedAccess) {
 
 function buildAttachmentActionErrorState(error, action = 'open') {
   return {
-    attachmentActionError: error?.message || (action === 'download' ? 'Bijlage downloaden mislukt' : 'Bijlage openen mislukt'),
+    attachmentActionError: error?.message || getAttachmentActionFailureMessage(action),
   };
 }
 
@@ -486,7 +492,7 @@ async function fetchAttachmentBlob(attachment, fetchImpl = fetch) {
 
   const response = await fetchImpl(url);
   if (!response.ok) {
-    throw new Error('Attachment downloaden mislukt');
+    throw new Error(getAttachmentActionFailureMessage('download'));
   }
 
   const responseContract = getAttachmentContractFromHeaders(response.headers);

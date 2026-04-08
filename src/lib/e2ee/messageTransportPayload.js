@@ -47,3 +47,33 @@ export function buildForwardServicePayload(message = {}) {
     sharedContact: messageType === 'contact' ? (message.sharedContact || null) : null,
   };
 }
+
+export function buildSocketMessagePayload({
+  conversationId,
+  senderId,
+  senderName,
+  senderDeviceId = null,
+  plaintext = '',
+  messageType = 'text',
+  sharedContact = null,
+  createdAt = new Date().toISOString(),
+  replyTo = null,
+  mentions = [],
+} = {}) {
+  const resolvedMessageType = isSupportedOutgoingMessageType(messageType) ? messageType : 'text';
+
+  return {
+    convId: conversationId,
+    senderId,
+    senderName,
+    text: plaintext,
+    createdAt,
+    protocol: 'signal_v1',
+    senderDeviceId,
+    type: resolvedMessageType,
+    messageType: resolvedMessageType,
+    ...(replyTo ? { replyTo } : {}),
+    ...(mentions.length > 0 ? { mentions } : {}),
+    ...(resolvedMessageType === 'contact' ? { sharedContact: sharedContact || null } : {}),
+  };
+}

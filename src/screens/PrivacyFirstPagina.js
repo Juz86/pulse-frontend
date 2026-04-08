@@ -216,9 +216,9 @@ export default function PrivacyFirstPagina({ onParentClick }) {
             <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>Wat we wél opslaan en waarom</div>
             <h3 style={{ fontSize: 'clamp(var(--text-h3), 3vw, var(--text-h2))', fontWeight: 700, color: '#1a1a2e', marginBottom: 8, letterSpacing: '-0.5px' }}>Zo weinig mogelijk. Zo kort mogelijk.</h3>
             <p style={{ color: '#6b7280', marginBottom: 32 }}>We slaan alleen op wat echt nodig is om de app te laten werken — en nooit langer dan nodig. <br></br>Wanneer je je account verwijdert, worden al je gegevens permanent gewist. Zo blijft onze database schoon.</p>
-            <div ref={retentionRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-              {(showAllRetention ? retentionRows : retentionRows.slice(0, 2)).map((row) => (
-                <div key={row.label} style={{ border: '1px solid #e5e7eb', borderRadius: 16, padding: '20px 20px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div ref={retentionRef} className="pf-retention-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              {retentionRows.map((row, i) => (
+                <div key={row.label} className={i >= 2 && !showAllRetention ? 'pf-retention-item pf-retention-item--hidden' : 'pf-retention-item'} style={{ border: '1px solid #e5e7eb', borderRadius: 16, padding: '20px 20px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ color: 'var(--accent)', display: 'flex', flexShrink: 0 }}><row.Icon size={18} /></span>
                     <span style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>{row.label}</span>
@@ -235,13 +235,16 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={() => setShowAllRetention(true)}
-              style={{ marginTop: 16, background: 'none', border: '1.5px solid rgba(108,99,255,0.3)', borderRadius: 10, padding: '8px 20px', fontSize: 14, fontWeight: 600, color: 'var(--accent)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            >
-              Bekijk meer
-            </button>
+            {!showAllRetention && (
+              <button
+                type="button"
+                className="pf-retention-more-btn"
+                onClick={() => setShowAllRetention(true)}
+                style={{ marginTop: 16, background: 'none', border: '1.5px solid rgba(108,99,255,0.3)', borderRadius: 10, padding: '8px 20px', fontSize: 14, fontWeight: 600, color: 'var(--accent)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                Bekijk meer
+              </button>
+            )}
           </div>
         </section>
 
@@ -319,6 +322,16 @@ export default function PrivacyFirstPagina({ onParentClick }) {
       )}
 
       <style>{`
+        /* Op grote schermen altijd alle items tonen, knop verbergen */
+        @media (min-width: 769px) {
+          .pf-retention-item--hidden { display: flex !important; }
+          .pf-retention-more-btn { display: none !important; }
+        }
+        /* Op kleine schermen 1 kolom, verborgen items weghalen */
+        @media (max-width: 768px) {
+          .pf-retention-item--hidden { display: none !important; }
+          .pf-retention-grid { grid-template-columns: 1fr !important; }
+        }
         .pf-retention-row {
           display: flex;
           flex-direction: column;

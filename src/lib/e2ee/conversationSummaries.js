@@ -156,6 +156,18 @@ function normalizeConversationAttachmentSummary(conversation = {}) {
   };
 }
 
+function sortConversationSummaryList(conversations = []) {
+  return [...conversations].sort((a, b) => {
+    const aTime = Date.parse(a.updatedAt || a.createdAt || 0);
+    const bTime = Date.parse(b.updatedAt || b.createdAt || 0);
+    return bTime - aTime;
+  });
+}
+
+function resolveConversationSummaryUpdatedAt(conversation = {}, message = {}, updatedAt = null) {
+  return updatedAt || message?.createdAt || conversation.updatedAt;
+}
+
 export function normalizeConversationSummaryRecord(conversation = {}) {
   return normalizeConversationAttachmentSummary(conversation);
 }
@@ -219,22 +231,18 @@ export function buildConversationPreviewPresentation(
 export function applyConversationSummaryToList(conversations = [], conversationId, message = {}, updatedAt = null) {
   const summary = normalizeConversationAttachmentSummary(buildConversationSummaryUpdate(message));
 
-  return [...conversations.map((conversation) => (
+  return sortConversationSummaryList(conversations.map((conversation) => (
     conversation.id === conversationId
       ? {
           ...conversation,
           ...summary,
-          updatedAt: updatedAt || message?.createdAt || conversation.updatedAt,
+          updatedAt: resolveConversationSummaryUpdatedAt(conversation, message, updatedAt),
           lastCallDirection: null,
           lastCallSenderId: null,
           lastCallIsVideo: null,
         }
       : conversation
-  ))].sort((a, b) => {
-    const aTime = Date.parse(a.updatedAt || a.createdAt || 0);
-    const bTime = Date.parse(b.updatedAt || b.createdAt || 0);
-    return bTime - aTime;
-  });
+  )));
 }
 
 export function applyCallConversationSummaryToList(
@@ -249,22 +257,18 @@ export function applyCallConversationSummaryToList(
     message?.senderId === currentUserId
   ).callLabel;
 
-  return [...conversations.map((conversation) => (
+  return sortConversationSummaryList(conversations.map((conversation) => (
     conversation.id === conversationId
       ? {
           ...conversation,
           ...buildEmptyConversationAttachmentSummaryFields(),
           lastMessage: callLabel,
           lastMessageType: 'call',
-          updatedAt: updatedAt || message?.createdAt || conversation.updatedAt,
+          updatedAt: resolveConversationSummaryUpdatedAt(conversation, message, updatedAt),
           lastCallDirection: message?.direction || null,
           lastCallSenderId: message?.senderId || null,
           lastCallIsVideo: !!message?.isVideo,
         }
       : conversation
-  ))].sort((a, b) => {
-    const aTime = Date.parse(a.updatedAt || a.createdAt || 0);
-    const bTime = Date.parse(b.updatedAt || b.createdAt || 0);
-    return bTime - aTime;
-  });
+  )));
 }

@@ -155,6 +155,10 @@ function normalizeConversationAttachmentSummary(conversation = {}) {
   };
 }
 
+export function normalizeConversationSummaryRecord(conversation = {}) {
+  return normalizeConversationAttachmentSummary(conversation);
+}
+
 export function buildConversationPreviewPresentation(
   message = {},
   { includeStorageSignal = true } = {}

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getSocket, BACKEND_URL } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
+import { getAttachmentDisplayName } from '../lib/e2ee/attachmentPayload';
 import {
   buildSocketMessagePayload,
   buildServiceMessageResult,
@@ -208,7 +209,7 @@ export default function useConversations({
           || conversation?.lastAttachmentKeyWrapAlg
           || conversation?.lastAttachmentWrappedMediaKeyDigest
           ? {
-              lastAttachmentName: conversation.lastAttachmentName || 'Bestand',
+              lastAttachmentName: conversation.lastAttachmentName || getAttachmentDisplayName(),
               lastAttachmentTransfer: conversation.lastAttachmentTransfer || '',
               lastAttachmentStrategyKey: conversation.lastAttachmentStrategyKey || '',
               lastAttachmentEncoding: conversation.lastAttachmentEncoding || '',

@@ -231,6 +231,51 @@ describe('e2ee message model helpers', () => {
     expect(normalized.sharedContact?.name).toBe('Habiba');
   });
 
+  test('normalizeIncomingMessage normalizes unsupported and conflicting message types', () => {
+    const normalized = normalizeIncomingMessage(
+      {
+        id: 'msg-weird-1',
+        conversationId: 'conv-1',
+        senderUserId: 'user-2',
+        type: 'sticker',
+        messageType: 'attachment',
+        text: 'Hallo',
+        attachment: {
+          name: 'foto.png',
+          mimeType: 'image/png',
+          dataUrl: 'data:image/png;base64,abcd',
+        },
+      },
+      'user-1'
+    );
+
+    expect(normalized.type).toBe('text');
+    expect(normalized.messageType).toBe('text');
+    expect(normalized.attachment).toBeNull();
+  });
+
+  test('normalizeIncomingMessage drops structured payloads that do not match the message type', () => {
+    const normalized = normalizeIncomingMessage(
+      {
+        id: 'msg-text-1',
+        conversationId: 'conv-1',
+        senderUserId: 'user-2',
+        type: 'text',
+        messageType: 'text',
+        text: 'Hallo',
+        sharedContact: { uid: 'user-3', name: 'Habiba' },
+        attachment: {
+          name: 'document.pdf',
+          transfer: 'remote',
+        },
+      },
+      'user-1'
+    );
+
+    expect(normalized.sharedContact).toBeNull();
+    expect(normalized.attachment).toBeNull();
+  });
+
   test('normalizeIncomingMessage preserves structured attachment metadata', () => {
     const normalized = normalizeIncomingMessage(
       {

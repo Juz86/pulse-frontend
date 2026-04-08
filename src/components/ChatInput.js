@@ -2,6 +2,7 @@
 import React, { useCallback } from 'react';
 import { getSocket } from '../services/socket';
 import { Send, PauseCircle } from '../components/Icons';
+import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 
 const ChatInput = React.memo(function ChatInput({
   text,
@@ -95,7 +96,7 @@ const ChatInput = React.memo(function ChatInput({
         <div className="reply-preview" id="chat-compose-editing" role="status" aria-live="polite">
           <div className="reply-preview-inner">
             <span className="reply-preview-name"><span aria-hidden="true">✏️ </span>Bewerken</span>
-            <span className="reply-preview-text">{editingMsg.text}</span>
+            <span className="reply-preview-text">{getMessageDisplayText(editingMsg)}</span>
           </div>
           <button type="button" className="reply-preview-close" aria-label="Bewerken annuleren" onClick={() => { setEditingMsg(null); setText(''); }}><span aria-hidden="true">✕</span></button>
         </div>
@@ -104,7 +105,7 @@ const ChatInput = React.memo(function ChatInput({
         <div className="reply-preview" id="chat-compose-reply" role="status" aria-live="polite">
           <div className="reply-preview-inner">
             <span className="reply-preview-name">{replyTo.senderName}</span>
-            <span className="reply-preview-text">{replyTo.text}</span>
+            <span className="reply-preview-text">{getMessageDisplayText(replyTo)}</span>
           </div>
           <button type="button" className="reply-preview-close" aria-label="Antwoord annuleren" onClick={() => setReplyTo(null)}><span aria-hidden="true">✕</span></button>
         </div>

@@ -5,6 +5,7 @@ import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
 import UserAvatar from '../components/UserAvatar';
+import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 
 export default function ChatModals({
   // contact rename
@@ -898,7 +899,7 @@ export default function ChatModals({
                         <span className="starred-msg-name">{msg.senderName}</span>
                         <span className="starred-msg-time">{formatTime(msg.createdAt)}</span>
                       </div>
-                      <div className="starred-msg-text">{msg.text}</div>
+                      <div className="starred-msg-text">{getMessageDisplayText(msg)}</div>
                     </div>
                   ))}
                 </div>
@@ -1160,7 +1161,7 @@ export default function ChatModals({
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setForwardMsg(null)}><span aria-hidden="true">✕</span></button>
             <h3 id="forward-message-title" className="modal-title"><span aria-hidden="true">↪️</span> Doorsturen naar…</h3>
             <div id="forward-message-description" style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 12, padding: '8px 12px', background: 'var(--surface2)', borderRadius: 8, maxHeight: 60, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {forwardMsg.text}
+              {getMessageDisplayText(forwardMsg)}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 320, overflowY: 'auto' }}>
               {conversations.filter(c => c.id !== activeConv?.id).map(conv => (

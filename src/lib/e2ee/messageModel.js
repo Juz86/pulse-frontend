@@ -1,9 +1,19 @@
 import { normalizeAttachmentPayload } from './attachmentPayload';
 import { buildConversationPreviewPresentation } from './conversationSummaries';
 
+function normalizeIncomingMessageType(rawType) {
+  return ['text', 'contact', 'attachment', 'call', 'system'].includes(rawType)
+    ? rawType
+    : 'text';
+}
+
 export function normalizeIncomingMessage(raw, currentUserId) {
   const senderId = raw.senderId || raw.senderUserId;
-  const type = raw.type || raw.messageType || 'text';
+  const type = normalizeIncomingMessageType(raw.type || raw.messageType || 'text');
+  const normalizedSharedContact = type === 'contact' ? (raw.sharedContact || null) : null;
+  const normalizedAttachment = type === 'attachment'
+    ? (normalizeAttachmentPayload(raw.attachment) || null)
+    : null;
   const reactions = raw.reactions && typeof raw.reactions === 'object' && !Array.isArray(raw.reactions)
     ? raw.reactions
     : {};
@@ -30,9 +40,9 @@ export function normalizeIncomingMessage(raw, currentUserId) {
     isOwn: senderId === currentUserId,
 
     type,
-    messageType: raw.messageType || type,
-    sharedContact: raw.sharedContact || null,
-    attachment: normalizeAttachmentPayload(raw.attachment) || null,
+    messageType: type,
+    sharedContact: normalizedSharedContact,
+    attachment: normalizedAttachment,
 
     pending: !!raw.pending,
     failed: !!raw.failed,

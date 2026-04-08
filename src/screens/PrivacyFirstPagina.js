@@ -240,7 +240,12 @@ export default function PrivacyFirstPagina({ onParentClick }) {
               onClick={() => {
                 if (showAllRetention) {
                   setShowAllRetention(false);
-                  setTimeout(() => retentionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                  setTimeout(() => {
+                    const el = retentionRef.current;
+                    if (!el) return;
+                    const top = el.getBoundingClientRect().top + window.scrollY - 100;
+                    window.scrollTo({ top, behavior: 'smooth' });
+                  }, 50);
                 } else {
                   setShowAllRetention(true);
                 }

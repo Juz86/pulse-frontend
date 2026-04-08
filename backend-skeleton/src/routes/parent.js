@@ -23,10 +23,83 @@ function buildChildEmail(username) {
   return `${username}@kind.pulse.local`;
 }
 
+function toPausedFeatures(policy = null) {
+  return {
+    chat: policy ? policy.featureRules?.chat === false : false,
+    call: policy ? policy.featureRules?.call === false : false,
+    video: policy ? policy.featureRules?.video === false : false,
+  };
+}
+
+function resolveFeaturePatch(feature, paused) {
+  if (!['chat', 'call', 'video', 'all'].includes(feature)) {
+    return null;
+  }
+
+  if (feature === 'all') {
+    return {
+      chat: !paused,
+      call: !paused,
+      video: !paused,
+    };
+  }
+
+  return {
+    [feature]: !paused,
+  };
+}
+
 function getFirebaseWebApiKey() {
   return process.env.FIREBASE_WEB_API_KEY
     || process.env.REACT_APP_FIREBASE_API_KEY
     || DEFAULT_FIREBASE_WEB_API_KEY;
+}
+
+async function postFirebaseAuthJson(endpoint, body) {
+  const apiKey = getFirebaseWebApiKey();
+  const response = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/${endpoint}?key=${encodeURIComponent(apiKey)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = data?.error?.message || 'firebase_auth_request_failed';
+    const error = new Error(message);
+    error.code = message;
+    throw error;
+  }
+
+  return data;
+}
+
+async function exchangeRefreshTokenForIdToken(refreshToken) {
+  const apiKey = getFirebaseWebApiKey();
+  const response = await fetch(
+    `https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(apiKey)}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+      }),
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = data?.error?.message || 'secure_token_exchange_failed';
+    const error = new Error(message);
+    error.code = message;
+    throw error;
+  }
+
+  return data;
 }
 
 async function createChildAuthUser({ displayName, email, password }) {
@@ -57,7 +130,7 @@ async function createChildAuthUser({ displayName, email, password }) {
       body: JSON.stringify({
         email,
         password,
-        returnSecureToken: false,
+        returnSecureToken: true,
       }),
     }
   );
@@ -78,6 +151,7 @@ async function createChildAuthUser({ displayName, email, password }) {
     uid: data.localId,
     email: data.email || email,
     displayName,
+    refreshToken: data.refreshToken || null,
   };
 }
 
@@ -112,11 +186,7 @@ parentRouter.get('/children', requireAuth, asyncRoute(async (req, res) => {
       displayName: child.displayName || child.username || child.uid,
       username: child.username || null,
       online: false,
-      pausedFeatures: {
-        chat: policy ? policy.featureRules?.chat === false : false,
-        call: policy ? policy.featureRules?.call === false : false,
-        video: policy ? policy.featureRules?.video === false : false,
-      },
+      pausedFeatures: toPausedFeatures(policy),
     };
   }));
 
@@ -180,6 +250,12 @@ parentRouter.post('/create-child', requireAuth, asyncRoute(async (req, res) => {
       status: 'active',
       createdAt: now,
       updatedAt: now,
+      ...(authUser.refreshToken
+        ? {
+            devAuthRefreshToken: authUser.refreshToken,
+            devAuthProvider: 'identitytoolkit',
+          }
+        : {}),
     }, { merge: true });
 
     await db.collection('child_policies').doc(authUser.uid).set({
@@ -230,6 +306,258 @@ parentRouter.post('/create-child', requireAuth, asyncRoute(async (req, res) => {
     username,
     email,
   });
+}));
+
+parentRouter.post('/pause/:childUid', requireAuth, asyncRoute(async (req, res) => {
+  const parentUid = req.auth.uid;
+  const { childUid } = req.params;
+  const feature = String(req.body?.feature || '').trim().toLowerCase();
+  const patch = resolveFeaturePatch(feature, true);
+
+  if (!(await ensureParentAccess(parentUid, childUid, res))) {
+    return;
+  }
+
+  if (!patch) {
+    return res.status(400).json({ error: 'invalid_feature' });
+  }
+
+  await db.collection('child_policies').doc(childUid).set(
+    {
+      childId: childUid,
+      managedByParentId: parentUid,
+      featureRules: patch,
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+
+  const doc = await db.collection('child_policies').doc(childUid).get();
+  const policy = doc.exists ? doc.data() : null;
+
+  await logPolicyEvent({
+    actorUid: parentUid,
+    childUid,
+    action: 'pause_feature',
+    allowed: true,
+    metadata: { feature },
+  });
+
+  return res.json({ ok: true, pausedFeatures: toPausedFeatures(policy) });
+}));
+
+parentRouter.post('/resume/:childUid', requireAuth, asyncRoute(async (req, res) => {
+  const parentUid = req.auth.uid;
+  const { childUid } = req.params;
+  const feature = String(req.body?.feature || '').trim().toLowerCase();
+  const patch = resolveFeaturePatch(feature, false);
+
+  if (!(await ensureParentAccess(parentUid, childUid, res))) {
+    return;
+  }
+
+  if (!patch) {
+    return res.status(400).json({ error: 'invalid_feature' });
+  }
+
+  await db.collection('child_policies').doc(childUid).set(
+    {
+      childId: childUid,
+      managedByParentId: parentUid,
+      featureRules: patch,
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+
+  const doc = await db.collection('child_policies').doc(childUid).get();
+  const policy = doc.exists ? doc.data() : null;
+
+  await logPolicyEvent({
+    actorUid: parentUid,
+    childUid,
+    action: 'resume_feature',
+    allowed: true,
+    metadata: { feature },
+  });
+
+  return res.json({ ok: true, pausedFeatures: toPausedFeatures(policy) });
+}));
+
+parentRouter.post('/change-child-password/:childUid', requireAuth, asyncRoute(async (req, res) => {
+  const parentUid = req.auth.uid;
+  const { childUid } = req.params;
+  const password = String(req.body?.password || '');
+
+  if (!(await ensureParentAccess(parentUid, childUid, res))) {
+    return;
+  }
+
+  if (password.trim().length < 6) {
+    return res.status(400).json({ error: 'Wachtwoord moet minimaal 6 tekens zijn.' });
+  }
+
+  try {
+    await admin.auth().updateUser(childUid, { password: password.trim() });
+  } catch (error) {
+    if (error?.code === 'app/invalid-credential') {
+      const childDoc = await db.collection('users').doc(childUid).get();
+      const childData = childDoc.exists ? childDoc.data() : null;
+      const refreshToken = childData?.devAuthRefreshToken || null;
+
+      if (!refreshToken) {
+        return res.status(503).json({ error: 'Wachtwoord wijzigen vereist Firebase Admin-auth of een lokaal aangemaakt kindaccount.' });
+      }
+
+      try {
+        const tokenData = await exchangeRefreshTokenForIdToken(refreshToken);
+        const updateData = await postFirebaseAuthJson('accounts:update', {
+          idToken: tokenData.id_token,
+          password: password.trim(),
+          returnSecureToken: true,
+        });
+
+        await childDoc.ref.set({
+          devAuthRefreshToken: updateData.refreshToken || refreshToken,
+          updatedAt: new Date().toISOString(),
+        }, { merge: true });
+      } catch (restError) {
+        console.error('[Pulse parent] kindwachtwoord wijzigen via REST mislukt:', restError);
+        return res.status(503).json({ error: 'Wachtwoord wijzigen lukt lokaal nog niet voor dit account.' });
+      }
+    } else {
+      console.error('[Pulse parent] kindwachtwoord wijzigen mislukt:', error);
+      return res.status(500).json({ error: 'Wachtwoord wijzigen mislukt.' });
+    }
+  }
+
+  await logPolicyEvent({
+    actorUid: parentUid,
+    childUid,
+    action: 'change_child_password',
+    allowed: true,
+  });
+
+  return res.json({ ok: true });
+}));
+
+parentRouter.post('/change-child-username/:childUid', requireAuth, asyncRoute(async (req, res) => {
+  const parentUid = req.auth.uid;
+  const { childUid } = req.params;
+  const username = normalizeChildUsername(req.body?.username);
+
+  if (!(await ensureParentAccess(parentUid, childUid, res))) {
+    return;
+  }
+
+  if (!CHILD_USERNAME_RE.test(username)) {
+    return res.status(400).json({ error: 'Gebruik 3–20 tekens met alleen letters, cijfers en _.' });
+  }
+
+  const childDoc = await db.collection('users').doc(childUid).get();
+  if (!childDoc.exists) {
+    return res.status(404).json({ error: 'kind_niet_gevonden' });
+  }
+
+  const existingUserSnap = await db.collection('users').where('username', '==', username).limit(1).get();
+  if (!existingUserSnap.empty && existingUserSnap.docs[0].id !== childUid) {
+    return res.status(409).json({ error: 'Deze gebruikersnaam is al in gebruik.' });
+  }
+
+  await childDoc.ref.set({
+    username,
+    updatedAt: new Date().toISOString(),
+  }, { merge: true });
+
+  await logPolicyEvent({
+    actorUid: parentUid,
+    childUid,
+    action: 'change_child_username',
+    allowed: true,
+    metadata: { username },
+  });
+
+  const nextData = (await childDoc.ref.get()).data() || {};
+  return res.json({
+    ok: true,
+    uid: childUid,
+    username: nextData.username || username,
+    email: nextData.email || null,
+  });
+}));
+
+parentRouter.delete('/delete-child/:childUid', requireAuth, asyncRoute(async (req, res) => {
+  const parentUid = req.auth.uid;
+  const { childUid } = req.params;
+
+  if (!(await ensureParentAccess(parentUid, childUid, res))) {
+    return;
+  }
+
+  const childDoc = await db.collection('users').doc(childUid).get();
+  if (!childDoc.exists) {
+    return res.status(404).json({ error: 'kind_niet_gevonden' });
+  }
+
+  const childData = childDoc.data() || {};
+
+  await db.collection('child_policies').doc(childUid).delete().catch(() => {});
+
+  const approvedAsChild = await db.collection('approved_contacts').where('childId', '==', childUid).get();
+  await Promise.all(approvedAsChild.docs.map((doc) => doc.ref.delete()));
+
+  const approvedAsTarget = await db.collection('approved_contacts').where('targetUid', '==', childUid).get();
+  await Promise.all(approvedAsTarget.docs.map((doc) => doc.ref.delete()));
+
+  const devicesSnap = await db.collection('devices').where('userId', '==', childUid).get();
+  await Promise.all(devicesSnap.docs.map((doc) => doc.ref.delete()));
+
+  const convSnap = await db.collection('conversations').where('members', 'array-contains', childUid).get();
+  await Promise.all(convSnap.docs.map((doc) => doc.ref.delete()));
+
+  const sentMessagesSnap = await db.collection('messages').where('senderUserId', '==', childUid).get();
+  await Promise.all(sentMessagesSnap.docs.map((doc) => doc.ref.delete()));
+
+  await childDoc.ref.delete();
+
+  let authDeleted = true;
+  try {
+    await admin.auth().deleteUser(childUid);
+  } catch (error) {
+    if (error?.code === 'app/invalid-credential') {
+      const refreshToken = childData.devAuthRefreshToken || null;
+      if (!refreshToken) {
+        authDeleted = false;
+      } else {
+        try {
+          const tokenData = await exchangeRefreshTokenForIdToken(refreshToken);
+          await postFirebaseAuthJson('accounts:delete', {
+            idToken: tokenData.id_token,
+          });
+          authDeleted = true;
+        } catch (restError) {
+          console.error('[Pulse parent] kindauth verwijderen via REST mislukt:', restError);
+          authDeleted = false;
+        }
+      }
+    } else {
+      console.error('[Pulse parent] kindauth verwijderen mislukt:', error);
+      authDeleted = false;
+    }
+  }
+
+  await logPolicyEvent({
+    actorUid: parentUid,
+    childUid,
+    action: 'delete_child',
+    allowed: true,
+    metadata: {
+      username: childData.username || null,
+      authDeleted,
+    },
+  });
+
+  return res.json({ ok: true, authDeleted });
 }));
 
 parentRouter.get('/analytics/:childUid', requireAuth, asyncRoute(async (req, res) => {

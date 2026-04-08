@@ -102,52 +102,6 @@ describe('e2ee message model helpers', () => {
     expect(pending.failed).toBe(false);
   });
 
-  test('buildPendingMessage normalizes structured attachment payloads', () => {
-    const pending = buildPendingMessage({
-      text: 'Bijlage: foto.png',
-      conversationId: 'conv-1',
-      userId: 'user-1',
-      type: 'attachment',
-      attachment: {
-        name: 'foto.png',
-        downloadUrl: 'http://localhost:3001/attachments/pending-1',
-        transfer: 'remote',
-        mimeType: 'application/pulse-e2ee-envelope+json',
-        originalMimeType: 'image/png',
-        contentEncoding: 'mock-e2ee-envelope-v1',
-        accessVerification: {
-          integrityVerified: true,
-          wrappedKeyVerified: false,
-          unwrapKind: 'attachment_encryption_contract',
-        },
-      },
-    });
-
-    expect(pending.attachment).toEqual({
-      name: 'foto.png',
-      url: '',
-      downloadUrl: 'http://localhost:3001/attachments/pending-1',
-      thumbnailUrl: '',
-      storageKey: '',
-      transfer: 'remote',
-      mimeType: 'application/pulse-e2ee-envelope+json',
-      strategyKey: '',
-      originalMimeType: 'image/png',
-      contentEncoding: 'mock-e2ee-envelope-v1',
-      envelopeKind: '',
-      expectedPayloadSha256: '',
-      size: null,
-      caption: '',
-      encryption: null,
-      accessVerification: {
-        strategyKey: '',
-        integrityVerified: true,
-        wrappedKeyVerified: false,
-        unwrapKind: 'attachment_encryption_contract',
-      },
-    });
-  });
-
   test('patchPendingMessageAsSent marks a pending message as sent', () => {
     const pending = buildPendingMessage({
       text: 'Hallo',

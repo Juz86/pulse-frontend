@@ -46,7 +46,6 @@ export function buildPendingMessage({
   replyTo = null,
   type = 'text',
   sharedContact = null,
-  attachment = null,
   mentions = [],
 }) {
   const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -75,7 +74,7 @@ export function buildPendingMessage({
     type,
     messageType: type,
     sharedContact,
-    attachment: normalizeAttachmentPayload(attachment) || null,
+    attachment: null,
 
     pending: true,
     failed: false,

@@ -1,6 +1,8 @@
 import {
   buildPendingMessage,
+  getDeletedMessageDisplayText,
   getEncryptedMessageDisplayText,
+  getSharedContactFallbackDisplayText,
   getSharedContactDisplayText,
   getMessageDisplayText,
   normalizeIncomingMessage,
@@ -25,6 +27,7 @@ import {
   isEncryptedProtocol,
 } from './policy';
 import {
+  getAttachmentDisplayName,
   MAX_E2EE_ATTACHMENT_BYTES,
   isImageAttachment,
   normalizeAttachmentPayload,
@@ -61,6 +64,7 @@ import {
   verifyMockAttachmentEnvelope,
 } from './attachmentCrypto';
 import {
+  getAttachmentBaseDisplayText,
   buildAttachmentMessageCardPresentation,
 } from './attachmentPresentation';
 import {
@@ -155,6 +159,13 @@ describe('e2ee message model helpers', () => {
     });
   });
 
+  test('buildConversationPreviewPresentation centralizes deleted message copy', () => {
+    expect(buildConversationPreviewPresentation({ deleted: true })).toMatchObject({
+      previewText: getDeletedMessageDisplayText(),
+      attachmentSummary: null,
+    });
+  });
+
   test('buildConversationPreviewPresentation includes encrypted storage signal for attachment messages', () => {
     expect(buildConversationPreviewPresentation({
       type: 'attachment',
@@ -169,6 +180,20 @@ describe('e2ee message model helpers', () => {
         previewText: 'Bijlage: foto.png · versleuteld',
       },
     });
+  });
+
+  test('attachment base display text stays centralized across preview flows', () => {
+    expect(getAttachmentBaseDisplayText({ name: 'foto.png' })).toBe('Bijlage: foto.png');
+    expect(getMessageDisplayText({
+      type: 'attachment',
+      attachment: { name: 'foto.png' },
+    })).toBe(getAttachmentBaseDisplayText({ name: 'foto.png' }));
+  });
+
+  test('attachment display name stays centralized across attachment helpers', () => {
+    expect(getAttachmentDisplayName({ name: ' rapport.pdf ' })).toBe('rapport.pdf');
+    expect(getAttachmentDisplayName()).toBe('Bestand');
+    expect(getAttachmentBaseDisplayText()).toBe('Bijlage: Bestand');
   });
 
   test('buildConversationPreviewPresentation prefers attachment summary fields over stale lastMessage text', () => {
@@ -201,6 +226,7 @@ describe('e2ee message model helpers', () => {
 
   test('shared contact display text stays centralized across the active message flow', () => {
     expect(getSharedContactDisplayText({ name: 'Habiba' })).toBe('Contactpersoon: Habiba');
+    expect(getSharedContactFallbackDisplayText()).toBe('Contactpersoon gedeeld');
     expect(getMessageDisplayText({
       type: 'contact',
       text: 'Afwijkende tekst',

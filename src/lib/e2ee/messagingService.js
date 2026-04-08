@@ -2,8 +2,10 @@ import { BACKEND_URL } from '../../services/socket';
 import { E2EE_MODE } from './config';
 import { pulseCryptoAdapter } from './adapter/pulseCryptoAdapter';
 import { normalizeAttachmentPayload } from './attachmentPayload';
+import { getAttachmentBaseDisplayText } from './attachmentPresentation';
 import {
   getEncryptedMessageDisplayText,
+  getSharedContactFallbackDisplayText,
   getSharedContactDisplayText,
   normalizeIncomingMessage,
 } from './messageModel';
@@ -29,14 +31,14 @@ function deserializeMessagePayload({ plaintext, messageType = 'text' }) {
       const attachment = parsed?.attachment || null;
 
       return {
-        text: parsed?.text || attachment?.name || 'Bijlage',
+        text: parsed?.text || getAttachmentBaseDisplayText(attachment),
         type: 'attachment',
         sharedContact: null,
         attachment: normalizeAttachmentPayload(attachment),
       };
     } catch {
       return {
-        text: 'Bijlage',
+        text: getAttachmentBaseDisplayText(),
         type: 'attachment',
         sharedContact: null,
         attachment: null,
@@ -65,7 +67,7 @@ function deserializeMessagePayload({ plaintext, messageType = 'text' }) {
     };
   } catch {
     return {
-      text: 'Contactpersoon gedeeld',
+      text: getSharedContactFallbackDisplayText(),
       type: 'contact',
       sharedContact: null,
       attachment: null,

@@ -1,8 +1,9 @@
-import { normalizeAttachmentPayload } from './attachmentPayload';
+import { getAttachmentDisplayName, normalizeAttachmentPayload } from './attachmentPayload';
 import {
   buildAttachmentSummaryPresentation,
 } from './attachmentPresentation';
 import {
+  getDeletedMessageDisplayText,
   getEncryptedMessageDisplayText,
   getSharedContactDisplayText,
 } from './messageModel';
@@ -29,7 +30,7 @@ function buildConversationAttachmentSummaryFields(attachmentLike) {
   }
 
   return {
-    lastAttachmentName: attachment.name || 'Bestand',
+    lastAttachmentName: getAttachmentDisplayName(attachment),
     lastAttachmentTransfer: attachment.transfer || null,
     lastAttachmentStrategyKey: attachment.strategyKey || attachment.encryption?.strategyKey || null,
     lastAttachmentEncoding: attachment.contentEncoding || null,
@@ -67,7 +68,7 @@ function deriveAttachmentNameFromPreview(lastMessage = '') {
 
 function buildConversationSummaryAttachmentSource(summaryLike = {}) {
   return {
-    name: summaryLike.lastAttachmentName || deriveAttachmentNameFromPreview(summaryLike.lastMessage) || 'Bestand',
+    name: summaryLike.lastAttachmentName || deriveAttachmentNameFromPreview(summaryLike.lastMessage) || getAttachmentDisplayName(),
     transfer: summaryLike.lastAttachmentTransfer || '',
     strategyKey: summaryLike.lastAttachmentStrategyKey || '',
     mimeType: summaryLike.lastAttachmentOriginalMimeType || '',
@@ -173,7 +174,7 @@ export function buildConversationPreviewPresentation(
   });
 
   if (!message) return buildBasePreview();
-  if (message.deleted) return buildBasePreview('Bericht verwijderd');
+  if (message.deleted) return buildBasePreview(getDeletedMessageDisplayText());
   if (message.type === 'contact') {
     return buildBasePreview(getSharedContactDisplayText(message.sharedContact));
   }

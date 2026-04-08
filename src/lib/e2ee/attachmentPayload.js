@@ -1,5 +1,11 @@
 export const MAX_E2EE_ATTACHMENT_BYTES = 2 * 1024 * 1024;
 
+export function getAttachmentDisplayName(attachment) {
+  return typeof attachment?.name === 'string' && attachment.name.trim()
+    ? attachment.name.trim()
+    : 'Bestand';
+}
+
 export function normalizeAttachmentPayload(attachment) {
   if (!attachment || typeof attachment !== 'object') return null;
 
@@ -47,9 +53,7 @@ export function normalizeAttachmentPayload(attachment) {
     : null;
 
   return {
-    name: typeof attachment.name === 'string' && attachment.name.trim()
-      ? attachment.name.trim()
-      : 'Bestand',
+    name: getAttachmentDisplayName(attachment),
     url,
     downloadUrl,
     thumbnailUrl,

@@ -6,6 +6,7 @@ import {
   getAttachmentStrategyHint,
   getAttachmentStrategyStoragePrefix,
 } from './attachmentStrategyConstants';
+import { getAttachmentDisplayName } from './attachmentPayload';
 import { getAttachmentEncryptionCapability } from './attachmentCrypto';
 import { getAttachmentAccessInfo } from './attachmentAccessAdapter';
 
@@ -191,7 +192,7 @@ function buildAttachmentInteractionState(
 
 function getAttachmentCardPresentation(attachment = {}, actionPresentation = {}) {
   const interactive = Boolean(actionPresentation?.actionsEnabled);
-  const attachmentName = attachment?.name || 'Bestand';
+  const attachmentName = getAttachmentDisplayName(attachment);
 
   return {
     interactive,
@@ -577,9 +578,13 @@ function getAttachmentErrorStyle(isOwn) {
   };
 }
 
+export function getAttachmentBaseDisplayText(attachment = {}) {
+  return `Bijlage: ${getAttachmentDisplayName(attachment)}`;
+}
+
 function getAttachmentPreviewText(attachment = {}, { includeStorageSignal = true } = {}) {
   const presentation = getAttachmentContractPresentation(attachment);
-  const baseLabel = `Bijlage: ${attachment?.name || 'Bestand'}`;
+  const baseLabel = getAttachmentBaseDisplayText(attachment);
 
   if (!includeStorageSignal || !presentation.storageShortLabel) {
     return baseLabel;

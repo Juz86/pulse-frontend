@@ -105,16 +105,20 @@ function buildConversationAttachmentSummaryPreview(message = {}) {
     return null;
   }
 
-  const {
-    presentation,
-    previewText,
-  } = buildAttachmentSummaryPresentation(attachment, { includeStorageSignal: true });
+  const attachmentSummaryPresentation = buildConversationAttachmentSummaryPresentation(attachment);
 
   return {
     attachment,
-    presentation,
-    previewText,
+    presentation: attachmentSummaryPresentation.presentation,
+    previewText: attachmentSummaryPresentation.previewText,
   };
+}
+
+function buildConversationAttachmentSummaryPresentation(attachment) {
+  return buildAttachmentSummaryPresentation(
+    attachment,
+    { includeStorageSignal: true }
+  );
 }
 
 function buildConversationSummaryUpdate(message = {}) {
@@ -123,25 +127,26 @@ function buildConversationSummaryUpdate(message = {}) {
 
   if (type === 'contact') {
     return {
-      lastMessage: getSharedContactDisplayText(message?.sharedContact),
-      lastMessageType: 'contact',
+      ...buildConversationMessageSummaryFields(
+        getSharedContactDisplayText(message?.sharedContact),
+        'contact'
+      ),
       ...buildEmptyConversationAttachmentSummaryFields(),
     };
   }
 
   if (type === 'attachment') {
-    const { previewText } = buildAttachmentSummaryPresentation(attachment, { includeStorageSignal: true });
-
     return {
-      lastMessage: previewText,
-      lastMessageType: 'attachment',
+      ...buildConversationMessageSummaryFields(
+        buildConversationAttachmentSummaryPresentation(attachment).previewText,
+        'attachment'
+      ),
       ...buildConversationAttachmentSummaryFields(attachment),
     };
   }
 
   return {
-    lastMessage: message?.text || '',
-    lastMessageType: type,
+    ...buildConversationMessageSummaryFields(message?.text || '', type),
     ...buildEmptyConversationAttachmentSummaryFields(),
   };
 }
@@ -166,6 +171,42 @@ function sortConversationSummaryList(conversations = []) {
 
 function resolveConversationSummaryUpdatedAt(conversation = {}, message = {}, updatedAt = null) {
   return updatedAt || message?.createdAt || conversation.updatedAt;
+}
+
+function buildEmptyConversationCallSummaryFields() {
+  return {
+    lastCallDirection: null,
+    lastCallSenderId: null,
+    lastCallIsVideo: null,
+  };
+}
+
+function buildConversationCallSummaryFields(message = {}) {
+  return {
+    lastCallDirection: message?.direction || null,
+    lastCallSenderId: message?.senderId || null,
+    lastCallIsVideo: !!message?.isVideo,
+  };
+}
+
+function buildConversationMessageSummaryFields(lastMessage = '', lastMessageType = 'text') {
+  return {
+    lastMessage,
+    lastMessageType,
+  };
+}
+
+function buildConversationPreviewAttachmentFields(attachmentPresentation) {
+  return {
+    isAttachmentSummary: true,
+    showRemoteAttachmentBadge: attachmentPresentation.isRemote,
+    storageShortLabel: attachmentPresentation.storageShortLabel,
+    strategyHintLabel: attachmentPresentation.strategyHintLabel || '',
+    availabilityHintLabel: attachmentPresentation.availabilityHintLabel || '',
+    mimeLabel: attachmentPresentation.mimeLabel,
+    storageDetail: attachmentPresentation.storageDetail,
+    keyContractDetail: attachmentPresentation.keyContractDetail,
+  };
 }
 
 export function normalizeConversationSummaryRecord(conversation = {}) {
@@ -207,14 +248,7 @@ export function buildConversationPreviewPresentation(
         ).previewText;
     return {
       ...buildBasePreview(previewText, attachmentSummary),
-      isAttachmentSummary: true,
-      showRemoteAttachmentBadge: attachmentPresentation.isRemote,
-      storageShortLabel: attachmentPresentation.storageShortLabel,
-      strategyHintLabel: attachmentPresentation.strategyHintLabel || '',
-      availabilityHintLabel: attachmentPresentation.availabilityHintLabel || '',
-      mimeLabel: attachmentPresentation.mimeLabel,
-      storageDetail: attachmentPresentation.storageDetail,
-      keyContractDetail: attachmentPresentation.keyContractDetail,
+      ...buildConversationPreviewAttachmentFields(attachmentPresentation),
     };
   }
 
@@ -237,9 +271,7 @@ export function applyConversationSummaryToList(conversations = [], conversationI
           ...conversation,
           ...summary,
           updatedAt: resolveConversationSummaryUpdatedAt(conversation, message, updatedAt),
-          lastCallDirection: null,
-          lastCallSenderId: null,
-          lastCallIsVideo: null,
+          ...buildEmptyConversationCallSummaryFields(),
         }
       : conversation
   )));
@@ -262,12 +294,9 @@ export function applyCallConversationSummaryToList(
       ? {
           ...conversation,
           ...buildEmptyConversationAttachmentSummaryFields(),
-          lastMessage: callLabel,
-          lastMessageType: 'call',
+          ...buildConversationMessageSummaryFields(callLabel, 'call'),
           updatedAt: resolveConversationSummaryUpdatedAt(conversation, message, updatedAt),
-          lastCallDirection: message?.direction || null,
-          lastCallSenderId: message?.senderId || null,
-          lastCallIsVideo: !!message?.isVideo,
+          ...buildConversationCallSummaryFields(message),
         }
       : conversation
   )));

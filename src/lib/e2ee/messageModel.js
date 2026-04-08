@@ -1,5 +1,10 @@
 import { normalizeAttachmentPayload } from './attachmentPayload';
 import { buildConversationPreviewPresentation } from './conversationSummaries';
+import {
+  getEncryptedMessageDisplayText,
+  getSharedContactDisplayText,
+} from './messageCopy';
+import { resolveSupportedOutgoingMessageType } from './messageTransportPayload';
 
 function normalizeIncomingMessageType(rawType) {
   return ['text', 'contact', 'attachment', 'call', 'system'].includes(rawType)
@@ -7,21 +12,12 @@ function normalizeIncomingMessageType(rawType) {
     : 'text';
 }
 
-export function getSharedContactDisplayText(sharedContact = null) {
-  return `Contactpersoon: ${sharedContact?.name || 'Contactpersoon'}`;
-}
-
-export function getSharedContactFallbackDisplayText() {
-  return 'Contactpersoon gedeeld';
-}
-
-export function getEncryptedMessageDisplayText() {
-  return 'Versleuteld bericht';
-}
-
-export function getDeletedMessageDisplayText() {
-  return 'Bericht verwijderd';
-}
+export {
+  getDeletedMessageDisplayText,
+  getEncryptedMessageDisplayText,
+  getSharedContactDisplayText,
+  getSharedContactFallbackDisplayText,
+} from './messageCopy';
 
 export function normalizeIncomingMessage(raw, currentUserId) {
   const senderId = raw.senderId || raw.senderUserId;
@@ -75,7 +71,7 @@ export function buildPendingMessage({
   mentions = [],
 }) {
   const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  const normalizedType = type === 'contact' ? 'contact' : 'text';
+  const normalizedType = resolveSupportedOutgoingMessageType(type);
   const normalizedSharedContact = normalizedType === 'contact' ? sharedContact : null;
 
   return {

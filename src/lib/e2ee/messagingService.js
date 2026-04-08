@@ -7,8 +7,8 @@ import {
   getEncryptedMessageDisplayText,
   getSharedContactFallbackDisplayText,
   getSharedContactDisplayText,
-  normalizeIncomingMessage,
-} from './messageModel';
+} from './messageCopy';
+import { normalizeIncomingMessage } from './messageModel';
 import { getOutgoingMessageScopeError } from './messageTransportPayload';
 import { secureKeyStore } from './secureKeyStore';
 import { sessionStore } from './sessionStore';

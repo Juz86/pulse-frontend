@@ -1,3 +1,5 @@
+import { getSharedContactDisplayText } from './messageCopy';
+
 export const OUTGOING_ATTACHMENT_SCOPE_ERROR = 'Bijlagen versturen is niet beschikbaar in Pulse.';
 
 export function getStructuredMessageType(message) {
@@ -8,10 +10,24 @@ export function isSupportedOutgoingMessageType(messageType = 'text') {
   return messageType === 'text' || messageType === 'contact';
 }
 
+export function resolveSupportedOutgoingMessageType(messageType = 'text') {
+  return isSupportedOutgoingMessageType(messageType) ? messageType : 'text';
+}
+
 export function getOutgoingMessageScopeError(messageType = 'text') {
   return isSupportedOutgoingMessageType(messageType)
     ? ''
     : OUTGOING_ATTACHMENT_SCOPE_ERROR;
+}
+
+export function resolveOutgoingMessageDisplayText({
+  plaintext = '',
+  messageType = 'text',
+  sharedContact = null,
+} = {}) {
+  return resolveSupportedOutgoingMessageType(messageType) === 'contact'
+    ? getSharedContactDisplayText(sharedContact)
+    : plaintext;
 }
 
 export function buildRetryServicePayload(message = {}) {
@@ -19,7 +35,11 @@ export function buildRetryServicePayload(message = {}) {
   const scopeError = getOutgoingMessageScopeError(messageType);
 
   return {
-    plaintext: message.text || '',
+    plaintext: resolveOutgoingMessageDisplayText({
+      plaintext: message.text || '',
+      messageType,
+      sharedContact: message.sharedContact || null,
+    }),
     messageType,
     scopeError,
     replyToMessageId: message.replyTo?.messageId || message.replyTo?.id || null,
@@ -41,7 +61,11 @@ export function buildForwardServicePayload(message = {}) {
   }
 
   return {
-    plaintext: message.text || '',
+    plaintext: resolveOutgoingMessageDisplayText({
+      plaintext: message.text || '',
+      messageType,
+      sharedContact: message.sharedContact || null,
+    }),
     messageType,
     scopeError,
     sharedContact: messageType === 'contact' ? (message.sharedContact || null) : null,
@@ -60,13 +84,13 @@ export function buildSocketMessagePayload({
   replyTo = null,
   mentions = [],
 } = {}) {
-  const resolvedMessageType = isSupportedOutgoingMessageType(messageType) ? messageType : 'text';
+  const resolvedMessageType = resolveSupportedOutgoingMessageType(messageType);
 
   return {
     convId: conversationId,
     senderId,
     senderName,
-    text: plaintext,
+    text: resolveOutgoingMessageDisplayText({ plaintext, messageType, sharedContact }),
     createdAt,
     protocol: 'signal_v1',
     senderDeviceId,
@@ -89,7 +113,7 @@ export function buildServiceMessageResult({
   replyToMessageId = null,
   createdAt = new Date().toISOString(),
 } = {}) {
-  const resolvedMessageType = isSupportedOutgoingMessageType(messageType) ? messageType : 'text';
+  const resolvedMessageType = resolveSupportedOutgoingMessageType(messageType);
 
   return {
     id: messageId,
@@ -97,7 +121,7 @@ export function buildServiceMessageResult({
     senderId,
     senderUserId: senderId,
     senderDeviceId,
-    text: plaintext,
+    text: resolveOutgoingMessageDisplayText({ plaintext, messageType, sharedContact }),
     createdAt,
     protocol: 'signal_v1',
     deliveryState: 'sent',

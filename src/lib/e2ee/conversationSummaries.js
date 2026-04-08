@@ -6,7 +6,7 @@ import {
   getDeletedMessageDisplayText,
   getEncryptedMessageDisplayText,
   getSharedContactDisplayText,
-} from './messageModel';
+} from './messageCopy';
 
 function buildEmptyConversationAttachmentSummaryFields() {
   return {

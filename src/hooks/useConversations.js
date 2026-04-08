@@ -7,10 +7,10 @@ import {
   buildServiceMessageResult,
   buildForwardServicePayload,
   buildRetryServicePayload,
+  resolveOutgoingMessageDisplayText,
 } from '../lib/e2ee/messageTransportPayload';
 import {
   buildPendingMessage,
-  getSharedContactDisplayText,
   normalizeIncomingMessage,
 } from '../lib/e2ee/messageModel';
 import {
@@ -170,7 +170,7 @@ export default function useConversations({
       conversationId: conv.id,
       senderId: user.uid,
       senderDeviceId: currentDeviceId,
-      plaintext: messageType === 'contact' ? getSharedContactDisplayText(sharedContact) : plaintext,
+      plaintext: resolveOutgoingMessageDisplayText({ plaintext, messageType, sharedContact }),
       messageType,
       sharedContact,
       replyToMessageId,
@@ -460,7 +460,11 @@ export default function useConversations({
     const tempId = `temp-${Date.now()}`;
     const optimisticMsg = {
       ...buildPendingMessage({
-        text: getSharedContactDisplayText(normalizedSharedContact),
+        text: resolveOutgoingMessageDisplayText({
+          plaintext: '',
+          messageType: 'contact',
+          sharedContact: normalizedSharedContact,
+        }),
         conversationId: conv.id,
         userId: user.uid,
         type: 'contact',

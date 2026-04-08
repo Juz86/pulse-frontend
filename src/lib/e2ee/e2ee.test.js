@@ -21,6 +21,7 @@ import {
   getOutgoingMessageScopeError,
   isSupportedOutgoingMessageType,
   OUTGOING_ATTACHMENT_SCOPE_ERROR,
+  resolveSupportedOutgoingMessageType,
 } from './messageTransportPayload';
 import {
   ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE,
@@ -1150,6 +1151,8 @@ describe('e2ee transport payload helpers', () => {
     expect(isSupportedOutgoingMessageType('text')).toBe(true);
     expect(isSupportedOutgoingMessageType('contact')).toBe(true);
     expect(isSupportedOutgoingMessageType('attachment')).toBe(false);
+    expect(resolveSupportedOutgoingMessageType('contact')).toBe('contact');
+    expect(resolveSupportedOutgoingMessageType('attachment')).toBe('text');
     expect(getOutgoingMessageScopeError('text')).toBe('');
     expect(getOutgoingMessageScopeError('attachment')).toBe(OUTGOING_ATTACHMENT_SCOPE_ERROR);
   });

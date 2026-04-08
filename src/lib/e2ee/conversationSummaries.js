@@ -93,9 +93,8 @@ function buildConversationSummaryAttachmentEncryptionSource(summaryLike = {}) {
   };
 }
 
-function buildConversationSummaryAttachmentSource(summaryLike = {}) {
+function buildConversationSummaryAttachmentMetadataSource(summaryLike = {}) {
   return {
-    name: resolveConversationSummaryAttachmentName(summaryLike),
     transfer: summaryLike.lastAttachmentTransfer || '',
     strategyKey: summaryLike.lastAttachmentStrategyKey || '',
     mimeType: summaryLike.lastAttachmentOriginalMimeType || '',
@@ -103,6 +102,13 @@ function buildConversationSummaryAttachmentSource(summaryLike = {}) {
     contentEncoding: summaryLike.lastAttachmentEncoding || '',
     envelopeKind: summaryLike.lastAttachmentEnvelopeKind || '',
     expectedPayloadSha256: summaryLike.lastAttachmentExpectedPayloadSha256 || '',
+  };
+}
+
+function buildConversationSummaryAttachmentSource(summaryLike = {}) {
+  return {
+    name: resolveConversationSummaryAttachmentName(summaryLike),
+    ...buildConversationSummaryAttachmentMetadataSource(summaryLike),
     encryption: buildConversationSummaryAttachmentEncryptionSource(summaryLike),
   };
 }

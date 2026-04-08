@@ -1,14 +1,16 @@
 import {
   buildPendingMessage,
-  getDeletedMessageDisplayText,
-  getEncryptedMessageDisplayText,
-  getSharedContactFallbackDisplayText,
-  getSharedContactDisplayText,
   getMessageDisplayText,
   normalizeIncomingMessage,
   patchPendingMessageAsFailed,
   patchPendingMessageAsSent,
 } from './messageModel';
+import {
+  getDeletedMessageDisplayText,
+  getEncryptedMessageDisplayText,
+  getSharedContactFallbackDisplayText,
+  getSharedContactDisplayText,
+} from './messageCopy';
 import {
   applyConversationSummaryToList,
   buildConversationPreviewPresentation,
@@ -37,6 +39,11 @@ import {
   resolveAttachmentUrl,
   validateAttachmentPayload,
 } from './attachmentPayload';
+import {
+  ACTIVE_OUTGOING_MESSAGE_TYPES,
+  KNOWN_PULSE_MESSAGE_TYPES,
+  resolveKnownPulseMessageType,
+} from './messageTypeConstants';
 import {
   ATTACHMENT_EXTERNAL_CONTRACT_STRATEGY,
   ATTACHMENT_FUTURE_ENVELOPE_ALG,
@@ -1148,6 +1155,10 @@ describe('e2ee attachment helpers', () => {
 
 describe('e2ee transport payload helpers', () => {
   test('outgoing message scope helpers only allow text and contact messages', () => {
+    expect(ACTIVE_OUTGOING_MESSAGE_TYPES).toEqual(['text', 'contact']);
+    expect(KNOWN_PULSE_MESSAGE_TYPES).toEqual(['text', 'contact', 'attachment', 'call', 'system']);
+    expect(resolveKnownPulseMessageType('call')).toBe('call');
+    expect(resolveKnownPulseMessageType('sticker')).toBe('text');
     expect(isSupportedOutgoingMessageType('text')).toBe(true);
     expect(isSupportedOutgoingMessageType('contact')).toBe(true);
     expect(isSupportedOutgoingMessageType('attachment')).toBe(false);

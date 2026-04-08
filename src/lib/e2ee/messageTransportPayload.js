@@ -1,4 +1,5 @@
 import { getSharedContactDisplayText } from './messageCopy';
+import { ACTIVE_OUTGOING_MESSAGE_TYPES } from './messageTypeConstants';
 
 export const OUTGOING_ATTACHMENT_SCOPE_ERROR = 'Bijlagen versturen is niet beschikbaar in Pulse.';
 
@@ -7,7 +8,7 @@ export function getStructuredMessageType(message) {
 }
 
 export function isSupportedOutgoingMessageType(messageType = 'text') {
-  return messageType === 'text' || messageType === 'contact';
+  return ACTIVE_OUTGOING_MESSAGE_TYPES.includes(messageType);
 }
 
 export function resolveSupportedOutgoingMessageType(messageType = 'text') {

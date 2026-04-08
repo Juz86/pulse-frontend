@@ -4,24 +4,12 @@ import {
   getEncryptedMessageDisplayText,
   getSharedContactDisplayText,
 } from './messageCopy';
+import { resolveKnownPulseMessageType } from './messageTypeConstants';
 import { resolveSupportedOutgoingMessageType } from './messageTransportPayload';
-
-function normalizeIncomingMessageType(rawType) {
-  return ['text', 'contact', 'attachment', 'call', 'system'].includes(rawType)
-    ? rawType
-    : 'text';
-}
-
-export {
-  getDeletedMessageDisplayText,
-  getEncryptedMessageDisplayText,
-  getSharedContactDisplayText,
-  getSharedContactFallbackDisplayText,
-} from './messageCopy';
 
 export function normalizeIncomingMessage(raw, currentUserId) {
   const senderId = raw.senderId || raw.senderUserId;
-  const type = normalizeIncomingMessageType(raw.type || raw.messageType || 'text');
+  const type = resolveKnownPulseMessageType(raw.type || raw.messageType || 'text');
   const normalizedSharedContact = type === 'contact' ? (raw.sharedContact || null) : null;
   const normalizedAttachment = type === 'attachment'
     ? (normalizeAttachmentPayload(raw.attachment) || null)

@@ -75,6 +75,14 @@ function deriveAttachmentNameFromPreview(lastMessage = '') {
   return '';
 }
 
+function resolveConversationSummaryAttachmentName(summaryLike = {}) {
+  return (
+    summaryLike.lastAttachmentName
+    || deriveAttachmentNameFromPreview(summaryLike.lastMessage)
+    || getAttachmentDisplayName()
+  );
+}
+
 function buildConversationSummaryAttachmentEncryptionSource(summaryLike = {}) {
   return {
     strategyKey: summaryLike.lastAttachmentStrategyKey || '',
@@ -87,7 +95,7 @@ function buildConversationSummaryAttachmentEncryptionSource(summaryLike = {}) {
 
 function buildConversationSummaryAttachmentSource(summaryLike = {}) {
   return {
-    name: summaryLike.lastAttachmentName || deriveAttachmentNameFromPreview(summaryLike.lastMessage) || getAttachmentDisplayName(),
+    name: resolveConversationSummaryAttachmentName(summaryLike),
     transfer: summaryLike.lastAttachmentTransfer || '',
     strategyKey: summaryLike.lastAttachmentStrategyKey || '',
     mimeType: summaryLike.lastAttachmentOriginalMimeType || '',
@@ -99,16 +107,32 @@ function buildConversationSummaryAttachmentSource(summaryLike = {}) {
   };
 }
 
-function buildConversationSummaryAttachmentPayload(message = {}) {
+function resolveConversationSummaryAttachmentPayloadSource(message = {}) {
   if (message?.attachment) {
-    return normalizeAttachmentPayload(message.attachment);
+    return message.attachment;
   }
 
   if ((message?.type || message?.lastMessageType) !== 'attachment') {
     return null;
   }
 
-  return normalizeAttachmentPayload(buildConversationSummaryAttachmentSource(message));
+  return buildConversationSummaryAttachmentSource(message);
+}
+
+function buildConversationSummaryAttachmentPayload(message = {}) {
+  return normalizeAttachmentPayload(
+    resolveConversationSummaryAttachmentPayloadSource(message)
+  );
+}
+
+function buildConversationAttachmentSummaryState(attachment) {
+  const attachmentSummaryPresentation = buildConversationAttachmentSummaryPresentation(attachment);
+
+  return {
+    attachment,
+    presentation: attachmentSummaryPresentation.presentation,
+    previewText: attachmentSummaryPresentation.previewText,
+  };
 }
 
 function buildConversationAttachmentSummaryPreview(message = {}) {
@@ -117,13 +141,7 @@ function buildConversationAttachmentSummaryPreview(message = {}) {
     return null;
   }
 
-  const attachmentSummaryPresentation = buildConversationAttachmentSummaryPresentation(attachment);
-
-  return {
-    attachment,
-    presentation: attachmentSummaryPresentation.presentation,
-    previewText: attachmentSummaryPresentation.previewText,
-  };
+  return buildConversationAttachmentSummaryState(attachment);
 }
 
 function buildConversationAttachmentSummaryPresentation(
@@ -141,10 +159,7 @@ function buildConversationSummaryUpdate(message = {}) {
   const attachment = normalizeAttachmentPayload(message?.attachment) || null;
 
   if (type === 'contact') {
-    return {
-      ...buildConversationSummaryMessageFields(message, 'contact'),
-      ...buildEmptyConversationAttachmentSummaryFields(),
-    };
+    return buildConversationSummaryMessageState(message, 'contact');
   }
 
   if (type === 'attachment') {
@@ -154,10 +169,7 @@ function buildConversationSummaryUpdate(message = {}) {
     };
   }
 
-  return {
-    ...buildConversationSummaryMessageFields(message, type),
-    ...buildEmptyConversationAttachmentSummaryFields(),
-  };
+  return buildConversationSummaryMessageState(message, type);
 }
 
 function normalizeConversationAttachmentSummary(conversation = {}) {
@@ -230,6 +242,17 @@ function buildConversationSummaryMessageFields(
   }
 
   return buildConversationMessageSummaryFields(message?.text || '', messageType);
+}
+
+function buildConversationSummaryMessageState(
+  message = {},
+  messageType = 'text',
+  attachment = null
+) {
+  return {
+    ...buildConversationSummaryMessageFields(message, messageType, attachment),
+    ...buildEmptyConversationAttachmentSummaryFields(),
+  };
 }
 
 function buildConversationPreviewAttachmentFields(attachmentPresentation) {

@@ -2,7 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { getSocket } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
-import { getConversationPreview, normalizeIncomingMessage } from '../lib/e2ee/messageModel';
+import { normalizeIncomingMessage } from '../lib/e2ee/messageModel';
+import { getConversationPreview } from '../lib/e2ee/conversationSummaries';
 import { canApplyPlaintextEditUpdate } from '../lib/e2ee/policy';
 
 const PRIVATE_NOTIFICATION_BODY = 'Open Pulse om het bericht veilig te bekijken.';

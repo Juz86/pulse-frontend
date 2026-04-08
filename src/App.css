@@ -2953,9 +2953,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 /* ── FOOTER ── */
 .hp-footer { background: #0a0816; padding: 64px 0 0; }
 .hp-footer-inner {
-  max-width: 1200px; margin: 0 auto; padding: 0 40px 48px;
+  max-width: 1200px; margin: 0 auto; padding: 0 40px 0;
   display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 .hp-footer-brand p { font-size: 14px; color: #fff; margin-top: 12px; }
 .hp-footer-logo {
@@ -2979,9 +2978,10 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .hp-footer-col a:hover { color: rgba(255,255,255,0.7); }
 .hp-footer-text { margin: 0; }
 .hp-footer-copy {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 40px; font-size: 13px; color: rgba(255,255,255,0.75);
-  max-width: 1200px; margin: 0 auto; width: 100%;
+  grid-column: 1 / -1;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  padding: 20px 0 32px; font-size: 13px; color: rgba(255,255,255,0.75);
+  border-top: 1px solid rgba(255,255,255,0.08); margin-top: 8px;
 }
 .hp-footer-copy-links { display: flex; gap: 20px; }
 .hp-footer-copy-links a { font-size: 13px; color: rgba(255,255,255,0.75); text-decoration: none; transition: color 0.15s; }
@@ -4832,9 +4832,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   /* Footer */
   .hp-footer-inner { padding: 0 16px 40px; }
-  .hp-footer-copy { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px 16px; align-items: start; }
-  .hp-footer-copy > span { order: 2; }
-  .hp-footer-copy-links { order: 1; flex-direction: column; gap: 8px; }
+  .hp-footer-copy { padding: 16px 0 24px; }
 
   /* Hoe werkt het */
   .hw-row--stacked { padding: 14px 12px; gap: 14px; }

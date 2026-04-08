@@ -7,11 +7,6 @@ import {
 } from './messageModel';
 import {
   applyConversationSummaryToList,
-  buildConversationAttachmentSummaryPreview,
-  buildConversationSummaryAttachmentSource,
-  buildConversationSummaryAttachmentPayload,
-  hasConversationAttachmentSummaryFields,
-  buildConversationSummaryUpdate,
   getConversationAttachmentSummaryPresentation,
   getConversationPreview,
   normalizeConversationAttachmentSummary,
@@ -66,9 +61,8 @@ import {
   verifyMockAttachmentEnvelope,
 } from './attachmentCrypto';
 import {
+  buildAttachmentSummaryPresentation,
   buildAttachmentMessageCardPresentation,
-  getAttachmentContractPresentation,
-  getAttachmentPreviewText,
 } from './attachmentPresentation';
 import {
   getServiceTransportFallbackBannerState,
@@ -239,39 +233,6 @@ describe('e2ee message model helpers', () => {
         contentEncoding: 'mock-e2ee-envelope-v1',
       },
     })).toBe('Bijlage: foto.png');
-  });
-
-  test('buildConversationSummaryUpdate derives attachment summary fields from structured messages', () => {
-    expect(buildConversationSummaryUpdate({
-      type: 'attachment',
-      text: 'rapport.pdf',
-      attachment: {
-        name: 'rapport.pdf',
-        transfer: 'remote',
-        originalMimeType: 'application/pdf',
-        contentEncoding: 'mock-e2ee-envelope-v1',
-        envelopeKind: 'pulse_mock_media_envelope',
-        expectedPayloadSha256: 'hash-1',
-        encryption: {
-          mediaKeyId: 'media-key-1',
-          keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
-          wrappedMediaKeyDigest: 'wrapped-digest-1',
-        },
-      },
-    })).toEqual({
-      lastMessage: 'Bijlage: rapport.pdf · versleuteld',
-      lastMessageType: 'attachment',
-      lastAttachmentName: 'rapport.pdf',
-      lastAttachmentTransfer: 'remote',
-      lastAttachmentStrategyKey: null,
-      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
-      lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
-      lastAttachmentOriginalMimeType: 'application/pdf',
-      lastAttachmentExpectedPayloadSha256: 'hash-1',
-      lastAttachmentMediaKeyId: 'media-key-1',
-      lastAttachmentKeyWrapAlg: 'pulse_mock_media_key_wrap_v1',
-      lastAttachmentWrappedMediaKeyDigest: 'wrapped-digest-1',
-    });
   });
 
   test('normalizeIncomingMessage preserves structured contact metadata', () => {
@@ -846,8 +807,8 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
-  test('getAttachmentContractPresentation derives consistent labels for encrypted remote attachments', () => {
-    expect(getAttachmentContractPresentation({
+  test('buildAttachmentSummaryPresentation derives consistent labels and preview for encrypted remote attachments', () => {
+    expect(buildAttachmentSummaryPresentation({
       transfer: 'remote',
       strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
       contentEncoding: 'mock-e2ee-envelope-v1',
@@ -859,23 +820,26 @@ describe('e2ee attachment helpers', () => {
         keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
       },
     })).toEqual({
-      isRemote: true,
-      isEncryptedRemote: true,
-      hasIntegrityContract: true,
-      hasWrappedMediaKeyContract: true,
-      hasUnsupportedBinaryAccess: false,
-      availabilityHintLabel: '',
-      mimeLabel: 'image/png',
-      storageLabel: 'Mock versleutelde opslaglink',
-      storageShortLabel: 'versleuteld',
-      strategyHintLabel: 'mock-profiel',
-      storageDetail: 'Envelope: pulse_mock_media_envelope · strategie mock_media_v1 · integriteitscheck actief',
-      keyContractDetail: 'Media key: mock-media-key-1 · wrap: pulse_mock_media_key_wrap_v1',
+      presentation: {
+        isRemote: true,
+        isEncryptedRemote: true,
+        hasIntegrityContract: true,
+        hasWrappedMediaKeyContract: true,
+        hasUnsupportedBinaryAccess: false,
+        availabilityHintLabel: '',
+        mimeLabel: 'image/png',
+        storageLabel: 'Mock versleutelde opslaglink',
+        storageShortLabel: 'versleuteld',
+        strategyHintLabel: 'mock-profiel',
+        storageDetail: 'Envelope: pulse_mock_media_envelope · strategie mock_media_v1 · integriteitscheck actief',
+        keyContractDetail: 'Media key: mock-media-key-1 · wrap: pulse_mock_media_key_wrap_v1',
+      },
+      previewText: 'Bijlage: Bestand · versleuteld',
     });
   });
 
-  test('getAttachmentContractPresentation derives consistent labels for future encrypted remote attachments', () => {
-    expect(getAttachmentContractPresentation({
+  test('buildAttachmentSummaryPresentation derives consistent labels for future encrypted remote attachments', () => {
+    expect(buildAttachmentSummaryPresentation({
       transfer: 'remote',
       strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
       contentEncoding: ATTACHMENT_FUTURE_ENVELOPE_ALG,
@@ -888,38 +852,44 @@ describe('e2ee attachment helpers', () => {
         wrappedMediaKeyDigest: 'future-digest-1',
       },
     })).toEqual({
-      isRemote: true,
-      isEncryptedRemote: true,
-      hasIntegrityContract: true,
-      hasWrappedMediaKeyContract: true,
-      hasUnsupportedBinaryAccess: true,
-      availabilityHintLabel: 'binary access volgt later',
-      mimeLabel: 'image/png',
-      storageLabel: 'Toekomstige versleutelde opslaglink',
-      storageShortLabel: 'versleuteld',
-      strategyHintLabel: 'future-draft',
-      storageDetail: 'Envelope: pulse_media_envelope · strategie pulse_media_v1 · integriteitscheck actief',
-      keyContractDetail: 'Media key: future-media-key-1 · wrap: pulse_media_key_wrap_v1 · digest actief',
+      presentation: {
+        isRemote: true,
+        isEncryptedRemote: true,
+        hasIntegrityContract: true,
+        hasWrappedMediaKeyContract: true,
+        hasUnsupportedBinaryAccess: true,
+        availabilityHintLabel: 'binary access volgt later',
+        mimeLabel: 'image/png',
+        storageLabel: 'Toekomstige versleutelde opslaglink',
+        storageShortLabel: 'versleuteld',
+        strategyHintLabel: 'future-draft',
+        storageDetail: 'Envelope: pulse_media_envelope · strategie pulse_media_v1 · integriteitscheck actief',
+        keyContractDetail: 'Media key: future-media-key-1 · wrap: pulse_media_key_wrap_v1 · digest actief',
+      },
+      previewText: 'Bijlage: Bestand · versleuteld',
     });
   });
 
-  test('getAttachmentContractPresentation derives consistent labels for plain remote attachments', () => {
-    expect(getAttachmentContractPresentation({
+  test('buildAttachmentSummaryPresentation derives consistent labels for plain remote attachments', () => {
+    expect(buildAttachmentSummaryPresentation({
       transfer: 'remote',
       mimeType: 'application/pdf',
     })).toEqual({
-      isRemote: true,
-      isEncryptedRemote: false,
-      hasIntegrityContract: false,
-      hasWrappedMediaKeyContract: false,
-      hasUnsupportedBinaryAccess: false,
-      availabilityHintLabel: '',
-      mimeLabel: 'application/pdf',
-      storageLabel: 'Beveiligde opslaglink',
-      storageShortLabel: 'opslaglink',
-      strategyHintLabel: '',
-      storageDetail: '',
-      keyContractDetail: '',
+      presentation: {
+        isRemote: true,
+        isEncryptedRemote: false,
+        hasIntegrityContract: false,
+        hasWrappedMediaKeyContract: false,
+        hasUnsupportedBinaryAccess: false,
+        availabilityHintLabel: '',
+        mimeLabel: 'application/pdf',
+        storageLabel: 'Beveiligde opslaglink',
+        storageShortLabel: 'opslaglink',
+        strategyHintLabel: '',
+        storageDetail: '',
+        keyContractDetail: '',
+      },
+      previewText: 'Bijlage: Bestand · opslaglink',
     });
   });
 
@@ -963,19 +933,19 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
-  test('getAttachmentPreviewText derives list-friendly attachment labels', () => {
-    expect(getAttachmentPreviewText({
+  test('buildAttachmentSummaryPresentation derives list-friendly attachment labels', () => {
+    expect(buildAttachmentSummaryPresentation({
       name: 'foto.png',
       transfer: 'remote',
       contentEncoding: 'mock-e2ee-envelope-v1',
-    })).toBe('Bijlage: foto.png · versleuteld');
+    }).previewText).toBe('Bijlage: foto.png · versleuteld');
 
-    expect(getAttachmentPreviewText({
+    expect(buildAttachmentSummaryPresentation({
       name: 'document.pdf',
       transfer: 'remote',
     }, {
       includeStorageSignal: false,
-    })).toBe('Bijlage: document.pdf');
+    }).previewText).toBe('Bijlage: document.pdf');
   });
 
   test('getConversationAttachmentSummaryPresentation derives preview and badge state', () => {
@@ -1002,146 +972,6 @@ describe('e2ee attachment helpers', () => {
       storageDetail: 'Envelope: pulse_mock_media_envelope · strategie mock_media_v1 · integriteitscheck actief',
       keyContractDetail: 'Media key: media-key-1 · wrap: pulse_mock_media_key_wrap_v1 · digest actief',
     });
-  });
-
-  test('buildConversationSummaryAttachmentPayload reconstructs attachment contracts from conversation summaries', () => {
-    expect(buildConversationSummaryAttachmentPayload({
-      lastMessage: 'Bijlage: rapport.pdf',
-      lastMessageType: 'attachment',
-      lastAttachmentTransfer: 'remote',
-      lastAttachmentStrategyKey: 'mock_media_v1',
-      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
-      lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
-      lastAttachmentOriginalMimeType: 'application/pdf',
-      lastAttachmentExpectedPayloadSha256: 'hash-1',
-      lastAttachmentMediaKeyId: 'media-key-1',
-      lastAttachmentKeyWrapAlg: 'pulse_mock_media_key_wrap_v1',
-      lastAttachmentWrappedMediaKeyDigest: 'wrapped-digest-1',
-    })).toEqual({
-      name: 'rapport.pdf',
-      url: '',
-      downloadUrl: '',
-      thumbnailUrl: '',
-      storageKey: '',
-      transfer: 'remote',
-      mimeType: 'application/pdf',
-      strategyKey: 'mock_media_v1',
-      originalMimeType: 'application/pdf',
-      contentEncoding: 'mock-e2ee-envelope-v1',
-      envelopeKind: 'pulse_mock_media_envelope',
-      expectedPayloadSha256: 'hash-1',
-      size: null,
-      caption: '',
-      encryption: {
-        alg: '',
-        strategyKey: 'mock_media_v1',
-        keyId: '',
-        iv: '',
-        sha256: '',
-        mediaKeyId: 'media-key-1',
-        keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
-        wrappedMediaKey: '',
-        wrappedMediaKeyDigest: 'wrapped-digest-1',
-        envelopeKind: 'pulse_mock_media_envelope',
-        originalMimeType: '',
-      },
-      accessVerification: null,
-    });
-  });
-
-  test('buildConversationAttachmentSummaryPreview centralizes attachment preview text and presentation', () => {
-    expect(buildConversationAttachmentSummaryPreview({
-      lastMessage: 'Bijlage: rapport.pdf',
-      lastMessageType: 'attachment',
-      lastAttachmentName: 'rapport.pdf',
-      lastAttachmentTransfer: 'remote',
-      lastAttachmentStrategyKey: 'mock_media_v1',
-      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
-      lastAttachmentEnvelopeKind: 'pulse_mock_media_envelope',
-      lastAttachmentOriginalMimeType: 'application/pdf',
-      lastAttachmentExpectedPayloadSha256: 'hash-1',
-      lastAttachmentMediaKeyId: 'media-key-1',
-      lastAttachmentKeyWrapAlg: 'pulse_mock_media_key_wrap_v1',
-      lastAttachmentWrappedMediaKeyDigest: 'wrapped-digest-1',
-    })).toEqual({
-      attachment: {
-        name: 'rapport.pdf',
-        url: '',
-        downloadUrl: '',
-        thumbnailUrl: '',
-        storageKey: '',
-        transfer: 'remote',
-        mimeType: 'application/pdf',
-        strategyKey: 'mock_media_v1',
-        originalMimeType: 'application/pdf',
-        contentEncoding: 'mock-e2ee-envelope-v1',
-        envelopeKind: 'pulse_mock_media_envelope',
-        expectedPayloadSha256: 'hash-1',
-        size: null,
-        caption: '',
-        encryption: {
-          alg: '',
-          strategyKey: 'mock_media_v1',
-          keyId: '',
-          iv: '',
-          sha256: '',
-          mediaKeyId: 'media-key-1',
-          keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
-          wrappedMediaKey: '',
-          wrappedMediaKeyDigest: 'wrapped-digest-1',
-          envelopeKind: 'pulse_mock_media_envelope',
-          originalMimeType: '',
-        },
-        accessVerification: null,
-      },
-      presentation: {
-        isRemote: true,
-        isEncryptedRemote: true,
-        hasIntegrityContract: true,
-        hasWrappedMediaKeyContract: true,
-        hasUnsupportedBinaryAccess: false,
-        availabilityHintLabel: '',
-        strategyHintLabel: 'mock-profiel',
-        mimeLabel: 'application/pdf',
-        storageLabel: 'Mock versleutelde opslaglink',
-        storageShortLabel: 'versleuteld',
-        storageDetail: 'Envelope: pulse_mock_media_envelope · strategie mock_media_v1 · integriteitscheck actief',
-        keyContractDetail: 'Media key: media-key-1 · wrap: pulse_mock_media_key_wrap_v1 · digest actief',
-      },
-      previewText: 'Bijlage: rapport.pdf · versleuteld',
-    });
-  });
-
-  test('buildConversationSummaryAttachmentSource prefers explicit attachment name over preview text', () => {
-    expect(buildConversationSummaryAttachmentSource({
-      lastMessage: 'Bijlage: oud.pdf · versleuteld',
-      lastAttachmentName: 'nieuw.pdf',
-      lastAttachmentTransfer: 'remote',
-      lastAttachmentStrategyKey: 'mock_media_v1',
-    })).toEqual({
-      name: 'nieuw.pdf',
-      transfer: 'remote',
-      strategyKey: 'mock_media_v1',
-      mimeType: '',
-      originalMimeType: '',
-      contentEncoding: '',
-      envelopeKind: '',
-      expectedPayloadSha256: '',
-      encryption: {
-        strategyKey: 'mock_media_v1',
-        mediaKeyId: '',
-        keyWrapAlg: '',
-        wrappedMediaKeyDigest: '',
-        envelopeKind: '',
-      },
-    });
-  });
-
-  test('hasConversationAttachmentSummaryFields detects when summary contract data exists', () => {
-    expect(hasConversationAttachmentSummaryFields({})).toBe(false);
-    expect(hasConversationAttachmentSummaryFields({
-      lastAttachmentStrategyKey: 'mock_media_v1',
-    })).toBe(true);
   });
 
   test('normalizeConversationAttachmentSummary fills attachment summary defaults', () => {

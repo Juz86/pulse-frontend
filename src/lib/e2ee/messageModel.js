@@ -1,9 +1,5 @@
 import { normalizeAttachmentPayload } from './attachmentPayload';
-import { getAttachmentPreviewText } from './attachmentPresentation';
-export {
-  buildConversationSummaryUpdate,
-  getConversationPreview,
-} from './conversationSummaries';
+import { buildAttachmentSummaryPresentation } from './attachmentPresentation';
 
 export function normalizeIncomingMessage(raw, currentUserId) {
   const senderId = raw.senderId || raw.senderUserId;
@@ -111,7 +107,12 @@ export function patchPendingMessageAsFailed(msg) {
 
 export function getMessageDisplayText(msg) {
   if (!msg) return '';
-  if (msg.type === 'attachment') return getAttachmentPreviewText(msg.attachment, { includeStorageSignal: false });
+  if (msg.type === 'attachment') {
+    return buildAttachmentSummaryPresentation(
+      msg.attachment,
+      { includeStorageSignal: false }
+    ).previewText;
+  }
   if (msg.text) return msg.text;
   if (msg.ciphertextAvailable && msg.decryptedLocally === false) return 'Versleuteld bericht';
   return '';

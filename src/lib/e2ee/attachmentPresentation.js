@@ -30,7 +30,7 @@ function getAttachmentStrategyPresentation(attachment = {}) {
   };
 }
 
-export function getAttachmentContractPresentation(attachment = {}) {
+function getAttachmentContractPresentation(attachment = {}) {
   const transfer = attachment?.transfer || null;
   const strategyPresentation = getAttachmentStrategyPresentation(attachment);
   const strategyKey = strategyPresentation.strategyKey;
@@ -577,7 +577,7 @@ function getAttachmentErrorStyle(isOwn) {
   };
 }
 
-export function getAttachmentPreviewText(attachment = {}, { includeStorageSignal = true } = {}) {
+function getAttachmentPreviewText(attachment = {}, { includeStorageSignal = true } = {}) {
   const presentation = getAttachmentContractPresentation(attachment);
   const baseLabel = `Bijlage: ${attachment?.name || 'Bestand'}`;
 
@@ -586,4 +586,16 @@ export function getAttachmentPreviewText(attachment = {}, { includeStorageSignal
   }
 
   return `${baseLabel} · ${presentation.storageShortLabel}`;
+}
+
+export function buildAttachmentSummaryPresentation(
+  attachment = {},
+  { includeStorageSignal = true } = {}
+) {
+  const presentation = getAttachmentContractPresentation(attachment);
+
+  return {
+    presentation,
+    previewText: getAttachmentPreviewText(attachment, { includeStorageSignal }),
+  };
 }

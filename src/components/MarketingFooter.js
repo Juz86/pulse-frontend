@@ -55,13 +55,14 @@ export default function MarketingFooter() {
             </span>
           </div>
         </div>
-      </div>
-      <div className="hp-footer-copy">
-        <span>© {currentYear} Pulse — Voor ouder en kind. Veilig verbonden.</span>
-        <div className="hp-footer-copy-links">
-          <a href="/privacybeleid">Privacybeleid</a>
-          <a href="/avg-beleid-elektronische-communicatie">AVG-beleid</a>
-          <a href="/sitemap">Sitemap</a>
+
+        <div className="hp-footer-copy">
+          <div className="hp-footer-copy-links">
+            <a href="/privacybeleid">Privacybeleid</a>
+            <a href="/avg-beleid-elektronische-communicatie">AVG-beleid</a>
+            <a href="/sitemap">Sitemap</a>
+          </div>
+          <span>© {currentYear} Pulse — Voor ouder en kind. Veilig verbonden.</span>
         </div>
       </div>
     </footer>

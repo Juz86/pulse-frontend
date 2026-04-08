@@ -1,10 +1,9 @@
 import { normalizeAttachmentPayload } from './attachmentPayload';
 import {
-  getAttachmentContractPresentation,
-  getAttachmentPreviewText,
+  buildAttachmentSummaryPresentation,
 } from './attachmentPresentation';
 
-export function buildEmptyConversationAttachmentSummaryFields() {
+function buildEmptyConversationAttachmentSummaryFields() {
   return {
     lastAttachmentName: null,
     lastAttachmentTransfer: null,
@@ -19,7 +18,7 @@ export function buildEmptyConversationAttachmentSummaryFields() {
   };
 }
 
-export function buildConversationAttachmentSummaryFields(attachmentLike) {
+function buildConversationAttachmentSummaryFields(attachmentLike) {
   const attachment = normalizeAttachmentPayload(attachmentLike);
   if (!attachment) {
     return buildEmptyConversationAttachmentSummaryFields();
@@ -39,7 +38,7 @@ export function buildConversationAttachmentSummaryFields(attachmentLike) {
   };
 }
 
-export function hasConversationAttachmentSummaryFields(summaryLike = {}) {
+function hasConversationAttachmentSummaryFields(summaryLike = {}) {
   return Boolean(
     summaryLike?.lastAttachmentTransfer
     || summaryLike?.lastAttachmentName
@@ -62,7 +61,7 @@ function deriveAttachmentNameFromPreview(lastMessage = '') {
   return '';
 }
 
-export function buildConversationSummaryAttachmentSource(summaryLike = {}) {
+function buildConversationSummaryAttachmentSource(summaryLike = {}) {
   return {
     name: summaryLike.lastAttachmentName || deriveAttachmentNameFromPreview(summaryLike.lastMessage) || 'Bestand',
     transfer: summaryLike.lastAttachmentTransfer || '',
@@ -82,7 +81,7 @@ export function buildConversationSummaryAttachmentSource(summaryLike = {}) {
   };
 }
 
-export function buildConversationSummaryAttachmentPayload(message = {}) {
+function buildConversationSummaryAttachmentPayload(message = {}) {
   if (message?.attachment) {
     return normalizeAttachmentPayload(message.attachment);
   }
@@ -94,22 +93,25 @@ export function buildConversationSummaryAttachmentPayload(message = {}) {
   return normalizeAttachmentPayload(buildConversationSummaryAttachmentSource(message));
 }
 
-export function buildConversationAttachmentSummaryPreview(message = {}) {
+function buildConversationAttachmentSummaryPreview(message = {}) {
   const attachment = buildConversationSummaryAttachmentPayload(message);
   if (!attachment) {
     return null;
   }
 
-  const presentation = getAttachmentContractPresentation(attachment);
+  const {
+    presentation,
+    previewText,
+  } = buildAttachmentSummaryPresentation(attachment, { includeStorageSignal: true });
 
   return {
     attachment,
     presentation,
-    previewText: getAttachmentPreviewText(attachment, { includeStorageSignal: true }),
+    previewText,
   };
 }
 
-export function buildConversationSummaryUpdate(message = {}) {
+function buildConversationSummaryUpdate(message = {}) {
   const type = message?.type || message?.messageType || 'text';
   const attachment = normalizeAttachmentPayload(message?.attachment) || null;
 
@@ -122,8 +124,10 @@ export function buildConversationSummaryUpdate(message = {}) {
   }
 
   if (type === 'attachment') {
+    const { previewText } = buildAttachmentSummaryPresentation(attachment, { includeStorageSignal: true });
+
     return {
-      lastMessage: getAttachmentPreviewText(attachment, { includeStorageSignal: true }),
+      lastMessage: previewText,
       lastMessageType: 'attachment',
       ...buildConversationAttachmentSummaryFields(attachment),
     };
@@ -165,7 +169,9 @@ export function getConversationPreview(message = {}) {
 export function getConversationAttachmentSummaryPresentation(conversation = {}) {
   const normalizedConversation = normalizeConversationAttachmentSummary(conversation);
   const attachmentSummary = buildConversationAttachmentSummaryPreview(normalizedConversation);
-  const attachmentPresentation = attachmentSummary?.presentation || getAttachmentContractPresentation(null);
+  const attachmentPresentation =
+    attachmentSummary?.presentation
+    || buildAttachmentSummaryPresentation(null).presentation;
 
   return {
     isAttachmentSummary: normalizedConversation.lastMessageType === 'attachment',

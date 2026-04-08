@@ -2,7 +2,11 @@ import { BACKEND_URL } from '../../services/socket';
 import { E2EE_MODE } from './config';
 import { pulseCryptoAdapter } from './adapter/pulseCryptoAdapter';
 import { normalizeAttachmentPayload } from './attachmentPayload';
-import { normalizeIncomingMessage } from './messageModel';
+import {
+  getEncryptedMessageDisplayText,
+  getSharedContactDisplayText,
+  normalizeIncomingMessage,
+} from './messageModel';
 import { getOutgoingMessageScopeError } from './messageTransportPayload';
 import { secureKeyStore } from './secureKeyStore';
 import { sessionStore } from './sessionStore';
@@ -54,7 +58,7 @@ function deserializeMessagePayload({ plaintext, messageType = 'text' }) {
     const sharedContact = parsed?.sharedContact || null;
 
     return {
-      text: `Contactpersoon: ${sharedContact?.name || 'Contactpersoon'}`,
+      text: getSharedContactDisplayText(sharedContact),
       type: 'contact',
       sharedContact,
       attachment: null,
@@ -245,7 +249,7 @@ export const messagingService = {
 
       return normalizeIncomingMessage({
         ...raw,
-        text: 'Versleuteld bericht',
+        text: getEncryptedMessageDisplayText(),
         decryptedLocally: false,
         ciphertextAvailable: true,
       }, currentUserId);
@@ -263,7 +267,7 @@ export const messagingService = {
 
       return normalizeIncomingMessage({
         ...raw,
-        text: 'Versleuteld bericht',
+        text: getEncryptedMessageDisplayText(),
         decryptedLocally: false,
         ciphertextAvailable: true,
       }, currentUserId);

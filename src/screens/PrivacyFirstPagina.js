@@ -237,22 +237,10 @@ export default function PrivacyFirstPagina({ onParentClick }) {
             </div>
             <button
               type="button"
-              onClick={() => {
-                if (showAllRetention) {
-                  setShowAllRetention(false);
-                  setTimeout(() => {
-                    const el = retentionRef.current;
-                    if (!el) return;
-                    const top = el.getBoundingClientRect().top + window.scrollY - 100;
-                    window.scrollTo({ top, behavior: 'smooth' });
-                  }, 50);
-                } else {
-                  setShowAllRetention(true);
-                }
-              }}
+              onClick={() => setShowAllRetention(true)}
               style={{ marginTop: 16, background: 'none', border: '1.5px solid rgba(108,99,255,0.3)', borderRadius: 10, padding: '8px 20px', fontSize: 14, fontWeight: 600, color: 'var(--accent)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
-              {showAllRetention ? 'Bekijk minder' : 'Bekijk meer'}
+              Bekijk meer
             </button>
           </div>
         </section>

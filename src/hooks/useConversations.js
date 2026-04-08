@@ -8,6 +8,7 @@ import {
 } from '../lib/e2ee/messageTransportPayload';
 import {
   buildPendingMessage,
+  getSharedContactDisplayText,
   normalizeIncomingMessage,
 } from '../lib/e2ee/messageModel';
 import {
@@ -168,9 +169,7 @@ export default function useConversations({
       senderId: user.uid,
       senderUserId: user.uid,
       senderDeviceId: currentDeviceId,
-      text: messageType === 'contact'
-        ? `Contactpersoon: ${sharedContact?.name || 'Contactpersoon'}`
-        : plaintext,
+      text: messageType === 'contact' ? getSharedContactDisplayText(sharedContact) : plaintext,
       createdAt: new Date().toISOString(),
       protocol: 'signal_v1',
       deliveryState: 'sent',
@@ -462,7 +461,7 @@ export default function useConversations({
     const tempId = `temp-${Date.now()}`;
     const optimisticMsg = {
       ...buildPendingMessage({
-        text: `Contactpersoon: ${normalizedSharedContact.name}`,
+        text: getSharedContactDisplayText(normalizedSharedContact),
         conversationId: conv.id,
         userId: user.uid,
         type: 'contact',

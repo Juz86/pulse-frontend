@@ -7,6 +7,14 @@ function normalizeIncomingMessageType(rawType) {
     : 'text';
 }
 
+export function getSharedContactDisplayText(sharedContact = null) {
+  return `Contactpersoon: ${sharedContact?.name || 'Contactpersoon'}`;
+}
+
+export function getEncryptedMessageDisplayText() {
+  return 'Versleuteld bericht';
+}
+
 export function normalizeIncomingMessage(raw, currentUserId) {
   const senderId = raw.senderId || raw.senderUserId;
   const type = normalizeIncomingMessageType(raw.type || raw.messageType || 'text');
@@ -118,6 +126,9 @@ export function patchPendingMessageAsFailed(msg) {
 
 export function getMessageDisplayText(msg) {
   if (!msg) return '';
+  if (msg.type === 'contact') {
+    return getSharedContactDisplayText(msg.sharedContact);
+  }
   if (msg.type === 'attachment') {
     return buildConversationPreviewPresentation(
       { type: 'attachment', attachment: msg.attachment },
@@ -125,6 +136,6 @@ export function getMessageDisplayText(msg) {
     ).previewText;
   }
   if (msg.text) return msg.text;
-  if (msg.ciphertextAvailable && msg.decryptedLocally === false) return 'Versleuteld bericht';
+  if (msg.ciphertextAvailable && msg.decryptedLocally === false) return getEncryptedMessageDisplayText();
   return '';
 }

@@ -5,6 +5,7 @@ import { messagingService } from '../lib/e2ee/messagingService';
 import { normalizeIncomingMessage } from '../lib/e2ee/messageModel';
 import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
 import { canApplyPlaintextEditUpdate } from '../lib/e2ee/policy';
+import { deriveCallMessagePresentation } from '../components/callMessageHelpers';
 
 const PRIVATE_NOTIFICATION_BODY = 'Open Pulse om het bericht veilig te bekijken.';
 const PRIVATE_REQUEST_NOTIFICATION_BODY = 'Open Pulse om de uitnodiging te bekijken.';
@@ -154,17 +155,9 @@ export default function useChat({
         playMessageSound();
       }
 
-      const previewText = hydratedMsg.type === 'contact'
-        ? `Contactpersoon: ${hydratedMsg.sharedContact?.name || ''}`
-        : hydratedMsg.type === 'call'
-          ? (() => {
-              const isOwn = hydratedMsg.senderId === user.uid;
-              const iv    = hydratedMsg.isVideo;
-              if (hydratedMsg.direction === 'completed') return iv ? 'Video-oproep' : 'Spraakoproep';
-              if (hydratedMsg.direction === 'declined')  return isOwn ? 'Geweigerd' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
-              return isOwn ? 'Geen antwoord' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
-            })()
-          : buildConversationPreviewPresentation(hydratedMsg).previewText;
+      const previewText = hydratedMsg.type === 'call'
+        ? deriveCallMessagePresentation(hydratedMsg, hydratedMsg.senderId === user.uid).callLabel
+        : buildConversationPreviewPresentation(hydratedMsg).previewText;
 
       setConversations(prev => {
         const exists = prev.some(c => c.id === convId);

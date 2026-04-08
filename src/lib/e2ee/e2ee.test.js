@@ -1,5 +1,7 @@
 import {
   buildPendingMessage,
+  getEncryptedMessageDisplayText,
+  getSharedContactDisplayText,
   getMessageDisplayText,
   normalizeIncomingMessage,
   patchPendingMessageAsFailed,
@@ -195,6 +197,22 @@ describe('e2ee message model helpers', () => {
       previewText: 'Contactpersoon: Habiba',
       attachmentSummary: null,
     });
+  });
+
+  test('shared contact display text stays centralized across the active message flow', () => {
+    expect(getSharedContactDisplayText({ name: 'Habiba' })).toBe('Contactpersoon: Habiba');
+    expect(getMessageDisplayText({
+      type: 'contact',
+      text: 'Afwijkende tekst',
+      sharedContact: { name: 'Habiba' },
+    })).toBe('Contactpersoon: Habiba');
+  });
+
+  test('encrypted placeholder display text stays centralized across the active message flow', () => {
+    expect(getEncryptedMessageDisplayText()).toBe('Versleuteld bericht');
+    expect(getMessageDisplayText({ ciphertextAvailable: true, decryptedLocally: false })).toBe(
+      getEncryptedMessageDisplayText()
+    );
   });
 
   test('getMessageDisplayText falls back to encrypted placeholder when text is unavailable', () => {

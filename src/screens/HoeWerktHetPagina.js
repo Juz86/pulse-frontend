@@ -335,7 +335,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
       key: '2',
       step: '2',
       title: 'Zoek een contactpersoon',
-      text: 'Voeg familie en vrienden eenvoudig toe via e-mailadres of gebruikersnaam.',
+      text: 'Voeg familie en vrienden eenvoudig toe via e-mailadres, @pulse.internal of gebruikersnaam.',
       mockup: <AddContactButtonMockup />,
     },
     {

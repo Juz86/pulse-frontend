@@ -2,6 +2,10 @@ import { normalizeAttachmentPayload } from './attachmentPayload';
 import {
   buildAttachmentSummaryPresentation,
 } from './attachmentPresentation';
+import {
+  getEncryptedMessageDisplayText,
+  getSharedContactDisplayText,
+} from './messageModel';
 
 function buildEmptyConversationAttachmentSummaryFields() {
   return {
@@ -117,7 +121,7 @@ function buildConversationSummaryUpdate(message = {}) {
 
   if (type === 'contact') {
     return {
-      lastMessage: `Contactpersoon: ${message?.sharedContact?.name || 'Contactpersoon'}`,
+      lastMessage: getSharedContactDisplayText(message?.sharedContact),
       lastMessageType: 'contact',
       ...buildEmptyConversationAttachmentSummaryFields(),
     };
@@ -171,7 +175,7 @@ export function buildConversationPreviewPresentation(
   if (!message) return buildBasePreview();
   if (message.deleted) return buildBasePreview('Bericht verwijderd');
   if (message.type === 'contact') {
-    return buildBasePreview(`Contactpersoon: ${message.sharedContact?.name || 'Contactpersoon'}`);
+    return buildBasePreview(getSharedContactDisplayText(message.sharedContact));
   }
 
   const attachmentSummary = buildConversationAttachmentSummaryPreview(message);
@@ -201,7 +205,7 @@ export function buildConversationPreviewPresentation(
   }
   if (message.text) return buildBasePreview(message.text);
   if (message.ciphertextAvailable) {
-    return buildBasePreview('Versleuteld bericht');
+    return buildBasePreview(getEncryptedMessageDisplayText());
   }
   return buildBasePreview();
 }

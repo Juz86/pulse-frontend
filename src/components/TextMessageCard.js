@@ -2,6 +2,7 @@ import React from 'react';
 import { Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
 import MessageBubbleActions from './MessageBubbleActions';
 import { formatTime } from '../utils';
+import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 
 export default function TextMessageCard({
   msg,
@@ -19,7 +20,7 @@ export default function TextMessageCard({
       {msg.replyTo && (
         <div className="msg-reply-quote" aria-label={`Antwoord op bericht van ${msg.replyTo.senderName}`}>
           <span className="msg-reply-name">{msg.replyTo.senderName}</span>
-          <span className="msg-reply-text">{msg.replyTo.text}</span>
+          <span className="msg-reply-text">{getMessageDisplayText(msg.replyTo)}</span>
         </div>
       )}
       <div className="msg-bubble" style={isFocused ? { outline: '2px solid #f59e0b', outlineOffset: '2px' } : {}}>

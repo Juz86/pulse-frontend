@@ -59,12 +59,30 @@ function hasConversationAttachmentSummaryFields(summaryLike = {}) {
   );
 }
 
+function buildNormalizedConversationAttachmentSummaryFields(summaryLike = {}) {
+  return hasConversationAttachmentSummaryFields(summaryLike)
+    ? buildConversationAttachmentSummaryFields(
+        buildConversationSummaryAttachmentSource(summaryLike)
+      )
+    : buildEmptyConversationAttachmentSummaryFields();
+}
+
 function deriveAttachmentNameFromPreview(lastMessage = '') {
   if (typeof lastMessage !== 'string') return '';
   if (lastMessage.startsWith('Bijlage: ')) {
     return lastMessage.slice('Bijlage: '.length).split(' · ')[0].trim();
   }
   return '';
+}
+
+function buildConversationSummaryAttachmentEncryptionSource(summaryLike = {}) {
+  return {
+    strategyKey: summaryLike.lastAttachmentStrategyKey || '',
+    mediaKeyId: summaryLike.lastAttachmentMediaKeyId || '',
+    keyWrapAlg: summaryLike.lastAttachmentKeyWrapAlg || '',
+    wrappedMediaKeyDigest: summaryLike.lastAttachmentWrappedMediaKeyDigest || '',
+    envelopeKind: summaryLike.lastAttachmentEnvelopeKind || '',
+  };
 }
 
 function buildConversationSummaryAttachmentSource(summaryLike = {}) {
@@ -77,13 +95,7 @@ function buildConversationSummaryAttachmentSource(summaryLike = {}) {
     contentEncoding: summaryLike.lastAttachmentEncoding || '',
     envelopeKind: summaryLike.lastAttachmentEnvelopeKind || '',
     expectedPayloadSha256: summaryLike.lastAttachmentExpectedPayloadSha256 || '',
-    encryption: {
-      strategyKey: summaryLike.lastAttachmentStrategyKey || '',
-      mediaKeyId: summaryLike.lastAttachmentMediaKeyId || '',
-      keyWrapAlg: summaryLike.lastAttachmentKeyWrapAlg || '',
-      wrappedMediaKeyDigest: summaryLike.lastAttachmentWrappedMediaKeyDigest || '',
-      envelopeKind: summaryLike.lastAttachmentEnvelopeKind || '',
-    },
+    encryption: buildConversationSummaryAttachmentEncryptionSource(summaryLike),
   };
 }
 
@@ -114,10 +126,13 @@ function buildConversationAttachmentSummaryPreview(message = {}) {
   };
 }
 
-function buildConversationAttachmentSummaryPresentation(attachment) {
+function buildConversationAttachmentSummaryPresentation(
+  attachment,
+  { includeStorageSignal = true } = {}
+) {
   return buildAttachmentSummaryPresentation(
     attachment,
-    { includeStorageSignal: true }
+    { includeStorageSignal }
   );
 }
 
@@ -127,26 +142,20 @@ function buildConversationSummaryUpdate(message = {}) {
 
   if (type === 'contact') {
     return {
-      ...buildConversationMessageSummaryFields(
-        getSharedContactDisplayText(message?.sharedContact),
-        'contact'
-      ),
+      ...buildConversationSummaryMessageFields(message, 'contact'),
       ...buildEmptyConversationAttachmentSummaryFields(),
     };
   }
 
   if (type === 'attachment') {
     return {
-      ...buildConversationMessageSummaryFields(
-        buildConversationAttachmentSummaryPresentation(attachment).previewText,
-        'attachment'
-      ),
+      ...buildConversationSummaryMessageFields(message, 'attachment', attachment),
       ...buildConversationAttachmentSummaryFields(attachment),
     };
   }
 
   return {
-    ...buildConversationMessageSummaryFields(message?.text || '', type),
+    ...buildConversationSummaryMessageFields(message, type),
     ...buildEmptyConversationAttachmentSummaryFields(),
   };
 }
@@ -155,9 +164,7 @@ function normalizeConversationAttachmentSummary(conversation = {}) {
   return {
     ...conversation,
     lastMessageType: conversation?.lastMessageType || null,
-    ...(hasConversationAttachmentSummaryFields(conversation)
-      ? buildConversationAttachmentSummaryFields(buildConversationSummaryAttachmentSource(conversation))
-      : buildEmptyConversationAttachmentSummaryFields()),
+    ...buildNormalizedConversationAttachmentSummaryFields(conversation),
   };
 }
 
@@ -189,11 +196,40 @@ function buildConversationCallSummaryFields(message = {}) {
   };
 }
 
+function resolveConversationCallSummaryLabel(message = {}, currentUserId) {
+  return deriveCallMessagePresentation(
+    message,
+    message?.senderId === currentUserId
+  ).callLabel;
+}
+
 function buildConversationMessageSummaryFields(lastMessage = '', lastMessageType = 'text') {
   return {
     lastMessage,
     lastMessageType,
   };
+}
+
+function buildConversationSummaryMessageFields(
+  message = {},
+  messageType = 'text',
+  attachment = null
+) {
+  if (messageType === 'contact') {
+    return buildConversationMessageSummaryFields(
+      getSharedContactDisplayText(message?.sharedContact),
+      'contact'
+    );
+  }
+
+  if (messageType === 'attachment') {
+    return buildConversationMessageSummaryFields(
+      buildConversationAttachmentSummaryPresentation(attachment).previewText,
+      'attachment'
+    );
+  }
+
+  return buildConversationMessageSummaryFields(message?.text || '', messageType);
 }
 
 function buildConversationPreviewAttachmentFields(attachmentPresentation) {
@@ -206,6 +242,47 @@ function buildConversationPreviewAttachmentFields(attachmentPresentation) {
     mimeLabel: attachmentPresentation.mimeLabel,
     storageDetail: attachmentPresentation.storageDetail,
     keyContractDetail: attachmentPresentation.keyContractDetail,
+  };
+}
+
+function buildConversationAttachmentPreviewState(
+  attachmentSummary,
+  { includeStorageSignal = true } = {}
+) {
+  return {
+    previewText: buildConversationAttachmentSummaryPresentation(
+      attachmentSummary.attachment,
+      { includeStorageSignal }
+    ).previewText,
+    attachmentFields: buildConversationPreviewAttachmentFields(
+      attachmentSummary.presentation
+    ),
+  };
+}
+
+function buildEmptyConversationPreviewAttachmentFields() {
+  const emptyAttachmentPresentation = buildAttachmentSummaryPresentation(null).presentation;
+
+  return {
+    isAttachmentSummary: false,
+    showRemoteAttachmentBadge: false,
+    storageShortLabel: emptyAttachmentPresentation.storageShortLabel,
+    strategyHintLabel: emptyAttachmentPresentation.strategyHintLabel || '',
+    availabilityHintLabel: emptyAttachmentPresentation.availabilityHintLabel || '',
+    mimeLabel: emptyAttachmentPresentation.mimeLabel,
+    storageDetail: emptyAttachmentPresentation.storageDetail,
+    keyContractDetail: emptyAttachmentPresentation.keyContractDetail,
+  };
+}
+
+function buildConversationBasePreview(
+  previewText = '',
+  attachmentSummary = null
+) {
+  return {
+    previewText,
+    attachmentSummary,
+    ...buildEmptyConversationPreviewAttachmentFields(),
   };
 }
 
@@ -240,42 +317,25 @@ export function buildConversationPreviewPresentation(
   message = {},
   { includeStorageSignal = true } = {}
 ) {
-  const emptyAttachmentPresentation = buildAttachmentSummaryPresentation(null).presentation;
-  const buildBasePreview = (previewText = '', attachmentSummary = null) => ({
-    previewText,
-    attachmentSummary,
-    isAttachmentSummary: false,
-    showRemoteAttachmentBadge: false,
-    storageShortLabel: emptyAttachmentPresentation.storageShortLabel,
-    strategyHintLabel: emptyAttachmentPresentation.strategyHintLabel || '',
-    availabilityHintLabel: emptyAttachmentPresentation.availabilityHintLabel || '',
-    mimeLabel: emptyAttachmentPresentation.mimeLabel,
-    storageDetail: emptyAttachmentPresentation.storageDetail,
-    keyContractDetail: emptyAttachmentPresentation.keyContractDetail,
-  });
-
-  if (!message) return buildBasePreview();
+  if (!message) return buildConversationBasePreview();
   const specialCasePreviewText = resolveConversationPreviewSpecialCaseText(message);
   if (specialCasePreviewText) {
-    return buildBasePreview(specialCasePreviewText);
+    return buildConversationBasePreview(specialCasePreviewText);
   }
 
   const attachmentSummary = buildConversationAttachmentSummaryPreview(message);
   if (attachmentSummary) {
-    const attachmentPresentation = attachmentSummary.presentation;
-    const previewText = includeStorageSignal
-      ? attachmentSummary.previewText
-      : buildAttachmentSummaryPresentation(
-          attachmentSummary.attachment,
-          { includeStorageSignal: false }
-        ).previewText;
+    const attachmentPreviewState = buildConversationAttachmentPreviewState(
+      attachmentSummary,
+      { includeStorageSignal }
+    );
     return {
-      ...buildBasePreview(previewText, attachmentSummary),
-      ...buildConversationPreviewAttachmentFields(attachmentPresentation),
+      ...buildConversationBasePreview(attachmentPreviewState.previewText, attachmentSummary),
+      ...attachmentPreviewState.attachmentFields,
     };
   }
 
-  return buildBasePreview(resolveConversationPreviewText(message));
+  return buildConversationBasePreview(resolveConversationPreviewText(message));
 }
 
 export function applyConversationSummaryToList(conversations = [], conversationId, message = {}, updatedAt = null) {
@@ -300,17 +360,15 @@ export function applyCallConversationSummaryToList(
   currentUserId,
   updatedAt = null
 ) {
-  const callLabel = deriveCallMessagePresentation(
-    message,
-    message?.senderId === currentUserId
-  ).callLabel;
-
   return sortConversationSummaryList(conversations.map((conversation) => (
     conversation.id === conversationId
       ? {
           ...conversation,
           ...buildEmptyConversationAttachmentSummaryFields(),
-          ...buildConversationMessageSummaryFields(callLabel, 'call'),
+          ...buildConversationMessageSummaryFields(
+            resolveConversationCallSummaryLabel(message, currentUserId),
+            'call'
+          ),
           updatedAt: resolveConversationSummaryUpdatedAt(conversation, message, updatedAt),
           ...buildConversationCallSummaryFields(message),
         }

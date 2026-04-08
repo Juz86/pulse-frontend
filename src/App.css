@@ -4832,8 +4832,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   /* Footer */
   .hp-footer-inner { padding: 0 16px 40px; }
-  .hp-footer-copy { flex-direction: column; align-items: flex-start; gap: 12px; padding: 20px 16px; }
-  .hp-footer-copy-links { flex-wrap: wrap; gap: 12px; }
+  .hp-footer-copy { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px 16px; align-items: start; }
+  .hp-footer-copy > span { order: 2; }
+  .hp-footer-copy-links { order: 1; flex-direction: column; gap: 8px; }
 
   /* Hoe werkt het */
   .hw-row--stacked { padding: 14px 12px; gap: 14px; }

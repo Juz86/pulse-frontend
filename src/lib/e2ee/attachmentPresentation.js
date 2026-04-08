@@ -189,7 +189,7 @@ function buildAttachmentInteractionState(
   };
 }
 
-export function getAttachmentCardPresentation(attachment = {}, actionPresentation = {}) {
+function getAttachmentCardPresentation(attachment = {}, actionPresentation = {}) {
   const interactive = Boolean(actionPresentation?.actionsEnabled);
   const attachmentName = attachment?.name || 'Bestand';
 
@@ -202,7 +202,7 @@ export function getAttachmentCardPresentation(attachment = {}, actionPresentatio
   };
 }
 
-export function getAttachmentCardInteractionProps(cardPresentation = {}, onOpen = null) {
+function getAttachmentCardInteractionProps(cardPresentation = {}, onOpen = null) {
   const interactive = Boolean(cardPresentation?.interactive && typeof onOpen === 'function');
 
   return {
@@ -219,7 +219,7 @@ export function getAttachmentCardInteractionProps(cardPresentation = {}, onOpen 
   };
 }
 
-export function getAttachmentActionButtonsPresentation(
+function getAttachmentActionButtonsPresentation(
   actionPresentation = {},
   { busy = false } = {}
 ) {
@@ -234,7 +234,7 @@ export function getAttachmentActionButtonsPresentation(
   };
 }
 
-export function getAttachmentActionButtonProps(action = 'open', onAction = null) {
+function getAttachmentActionButtonProps(action = 'open', onAction = null) {
   return {
     onClick: (event) => {
       event.stopPropagation();
@@ -245,7 +245,7 @@ export function getAttachmentActionButtonProps(action = 'open', onAction = null)
   };
 }
 
-export function getAttachmentActionsPresentation(
+function getAttachmentActionsPresentation(
   buttonsPresentation = {},
   { isOwn = false, onAction = null } = {}
 ) {
@@ -270,7 +270,7 @@ export function getAttachmentActionsPresentation(
   };
 }
 
-export function getAttachmentActionButtonStyle(kind = 'open', isOwn = false) {
+function getAttachmentActionButtonStyle(kind = 'open', isOwn = false) {
   const baseStyle = {
     minHeight: 32,
     padding: '6px 10px',
@@ -295,7 +295,7 @@ export function getAttachmentActionButtonStyle(kind = 'open', isOwn = false) {
   };
 }
 
-export function getAttachmentActionRowStyle() {
+function getAttachmentActionRowStyle() {
   return {
     display: 'flex',
     gap: 8,
@@ -304,7 +304,7 @@ export function getAttachmentActionRowStyle() {
   };
 }
 
-export function getAttachmentImagePreviewStyle() {
+function getAttachmentImagePreviewStyle() {
   return {
     display: 'block',
     width: '100%',
@@ -316,13 +316,13 @@ export function getAttachmentImagePreviewStyle() {
   };
 }
 
-export function getAttachmentMetaStyle(isOwn) {
+function getAttachmentMetaStyle(isOwn) {
   return {
     color: isOwn ? 'rgba(255,255,255,.65)' : 'var(--text3)',
   };
 }
 
-export function getAttachmentTimestampStyle(isOwn) {
+function getAttachmentTimestampStyle(isOwn) {
   return {
     fontSize: '11px',
     color: isOwn ? 'rgba(255,255,255,.5)' : 'var(--text3)',
@@ -330,7 +330,7 @@ export function getAttachmentTimestampStyle(isOwn) {
   };
 }
 
-export function getAttachmentContentPresentation(
+function getAttachmentContentPresentation(
   attachment = {},
   contractPresentation = {},
   { isImage = false } = {}
@@ -348,7 +348,7 @@ export function getAttachmentContentPresentation(
   };
 }
 
-export function getAttachmentBodyPresentation(
+function getAttachmentBodyPresentation(
   contentPresentation = {},
   detailLines = [],
   actionError = '',
@@ -379,7 +379,7 @@ export function getAttachmentBodyPresentation(
   };
 }
 
-export function getAttachmentBodyLayoutPresentation(
+function getAttachmentBodyLayoutPresentation(
   variantPresentation = {},
   contentPresentation = {},
   {
@@ -405,7 +405,7 @@ export function getAttachmentBodyLayoutPresentation(
   };
 }
 
-export function getAttachmentFileBadgePresentation() {
+function getAttachmentFileBadgePresentation() {
   return {
     label: 'F',
     style: {
@@ -414,7 +414,7 @@ export function getAttachmentFileBadgePresentation() {
   };
 }
 
-export function getAttachmentVariantPresentation(access = {}) {
+function getAttachmentVariantPresentation(access = {}) {
   const isImage = Boolean(access?.isImage);
 
   return {
@@ -513,7 +513,7 @@ export function buildAttachmentMessageCardPresentation(
   };
 }
 
-export function getAttachmentDetailLines(
+function getAttachmentDetailLines(
   contractPresentation = {},
   verificationPresentation = {},
   actionPresentation = {}
@@ -546,7 +546,7 @@ export function getAttachmentDetailLines(
   ].filter(Boolean);
 }
 
-export function getAttachmentDetailLineStyle(isOwn, tone = 'detail', marginTop = 4) {
+function getAttachmentDetailLineStyle(isOwn, tone = 'detail', marginTop = 4) {
   if (tone === 'storage') {
     return {
       marginTop,
@@ -570,7 +570,7 @@ export function getAttachmentDetailLineStyle(isOwn, tone = 'detail', marginTop =
   };
 }
 
-export function getAttachmentErrorStyle(isOwn) {
+function getAttachmentErrorStyle(isOwn) {
   return {
     marginTop: 8,
     color: isOwn ? 'rgba(255,215,215,.92)' : '#ef4444',

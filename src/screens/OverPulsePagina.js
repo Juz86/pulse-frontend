@@ -213,7 +213,7 @@ export default function OverPulsePagina({ onParentClick }) {
               </div>
               <p style={{ marginTop: 16 }}>
                 Terug naar de kern:
-                <span> gewoon contact, zoals het bedoeld is.</span>
+                <span> gewoon contact, zoals het bedoeld is.</span>                  
               </p>
             </div>
             <div className="hp-feature-mockup" style={{ flex: '1' }}>

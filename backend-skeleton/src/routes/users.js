@@ -39,6 +39,20 @@ async function syncSelfHandler(req, res) {
 usersRouter.post('/', requireAuth, asyncRoute(syncSelfHandler));
 usersRouter.post('/sync-self', requireAuth, asyncRoute(syncSelfHandler));
 
+usersRouter.get('/check-username', asyncRoute(async (req, res) => {
+  const username = String(req.query.username || '').trim().toLowerCase();
+  if (!username) {
+    return res.status(400).json({ error: 'missing_username' });
+  }
+
+  const snap = await db.collection('users').where('username', '==', username).limit(1).get();
+  return res.json({
+    ok: true,
+    username,
+    available: snap.empty,
+  });
+}));
+
 usersRouter.get('/lookup-username', asyncRoute(async (req, res) => {
   const username = String(req.query.username || '').trim().toLowerCase();
   if (!username) {

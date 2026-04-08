@@ -75,12 +75,13 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     if (excludeUsername && clean === excludeUsername.trim().toLowerCase()) {
       return { ok: true, clean };
     }
-    const res = await fetch(`${BACKEND}/api/users/lookup-username?username=${encodeURIComponent(clean)}`);
-    if (res.status === 404) return { ok: true, clean };
+    const res = await fetch(`${BACKEND}/api/users/check-username?username=${encodeURIComponent(clean)}`);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       return { ok: false, message: data.error || 'Controleren van gebruikersnaam mislukt.' };
     }
+    const data = await res.json().catch(() => ({}));
+    if (data.available) return { ok: true, clean };
     return { ok: false, message: 'Deze gebruikersnaam is al in gebruik.' };
   }
 

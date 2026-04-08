@@ -1,10 +1,7 @@
 // src/components/ConversationItem.js
 import React from 'react';
 import { Pin, InfoIcon } from '../components/Icons';
-import {
-  buildConversationPreviewPresentation,
-  getConversationAttachmentSummaryPresentation,
-} from '../lib/e2ee/conversationSummaries';
+import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview } from '../utils';
 
@@ -34,7 +31,6 @@ function ConversationItemBase({
   onMoreActionsEnter,
   onMoreActionsLeave,
 }) {
-  const attachmentSummary = getConversationAttachmentSummaryPresentation(conv);
   const conversationPreview = buildConversationPreviewPresentation(conv);
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -65,8 +61,8 @@ function ConversationItemBase({
         <div className="conv-preview">
           {conv.lastCallDirection ? callPreview(conv, currentUid) : (
             <>
-              <span>{attachmentSummary.isAttachmentSummary ? attachmentSummary.previewText : (conversationPreview.previewText || conv.lastMessage || 'Start een gesprek…')}</span>
-              {attachmentSummary.showRemoteAttachmentBadge && (
+              <span>{conversationPreview.previewText || conv.lastMessage || 'Start een gesprek…'}</span>
+              {conversationPreview.showRemoteAttachmentBadge && (
                 <>
                   <span
                     style={{
@@ -79,9 +75,9 @@ function ConversationItemBase({
                       opacity: 0.9,
                     }}
                   >
-                    {attachmentSummary.storageShortLabel}
+                    {conversationPreview.storageShortLabel}
                   </span>
-                  {attachmentSummary.mimeLabel && (
+                  {conversationPreview.mimeLabel && (
                     <span
                       style={{
                         marginLeft: 6,
@@ -90,10 +86,10 @@ function ConversationItemBase({
                         opacity: 0.9,
                       }}
                     >
-                      {attachmentSummary.mimeLabel}
+                      {conversationPreview.mimeLabel}
                     </span>
                   )}
-                  {attachmentSummary.strategyHintLabel && (
+                  {conversationPreview.strategyHintLabel && (
                     <span
                       style={{
                         marginLeft: 6,
@@ -102,10 +98,10 @@ function ConversationItemBase({
                         opacity: 0.9,
                       }}
                     >
-                      {attachmentSummary.strategyHintLabel}
+                      {conversationPreview.strategyHintLabel}
                     </span>
                   )}
-                  {attachmentSummary.availabilityHintLabel && (
+                  {conversationPreview.availabilityHintLabel && (
                     <span
                       style={{
                         marginLeft: 6,
@@ -114,10 +110,10 @@ function ConversationItemBase({
                         opacity: 0.82,
                       }}
                     >
-                      {attachmentSummary.availabilityHintLabel}
+                      {conversationPreview.availabilityHintLabel}
                     </span>
                   )}
-                  {(attachmentSummary.storageDetail || attachmentSummary.keyContractDetail) && (
+                  {(conversationPreview.storageDetail || conversationPreview.keyContractDetail) && (
                     <span
                       style={{
                         marginLeft: 6,
@@ -125,9 +121,9 @@ function ConversationItemBase({
                         color: 'var(--text3)',
                         opacity: 0.82,
                       }}
-                      title={[attachmentSummary.storageDetail, attachmentSummary.keyContractDetail].filter(Boolean).join(' · ')}
+                      title={[conversationPreview.storageDetail, conversationPreview.keyContractDetail].filter(Boolean).join(' · ')}
                     >
-                      {attachmentSummary.keyContractDetail ? 'key-contract' : 'envelope'}
+                      {conversationPreview.keyContractDetail ? 'key-contract' : 'envelope'}
                     </span>
                   )}
                 </>

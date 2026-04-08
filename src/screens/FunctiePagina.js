@@ -127,9 +127,9 @@ function useFadeIn() {
 }
 
 // ── Phone frame ──────────────────────────────────────────────────────────────
-function PhoneMockup({ children, tall }) {
+function PhoneMockup({ children, tall, style }) {
   return (
-    <div className={`hp-phone fp-phone${tall ? ' fp-phone--tall' : ''}`}>
+    <div className={`hp-phone fp-phone${tall ? ' fp-phone--tall' : ''}`} style={style}>
       <div className="hp-phone-notch" />
       <div className="hp-phone-screen fp-phone-screen">
         {children}
@@ -193,7 +193,7 @@ function ChatHeader({ letter, name, gradient = 'linear-gradient(135deg,#7c3aed,#
 // ── Mockup 1: Sidebar (hoofd chatscherm) ─────────────────────────────────────
 function SidebarMockup() {
   return (
-    <PhoneMockup tall>
+    <PhoneMockup tall style={{ width: 240 }}>
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <PulseLogo size={16} textSize={12} color="#fff" />
@@ -263,7 +263,7 @@ function SidebarMockup() {
 // ── Mockup 3: Groep ──────────────────────────────────────────────────────────
 function GroupMockup() {
   return (
-    <PhoneMockup>
+    <PhoneMockup style={{ width: 240 }}>
       <ChatHeader letter="GR" name="Groep Familie" gradient="linear-gradient(135deg,#059669,#34d399)" isGroup />
       <div className="hp-mock-msgs">
         <div className="hp-mock-msg hp-mock-msg--in">
@@ -293,7 +293,7 @@ function GroupMockup() {
 // ── Mockup 4: Berichten beheren ──────────────────────────────────────────────
 function ManageMockup() {
   return (
-    <PhoneMockup>
+    <PhoneMockup style={{ width: 240 }}>
       <ChatHeader letter="S" name="Sara" online />
       <div className="hp-mock-msgs">
         <div className="hp-mock-msg hp-mock-msg--out" style={{ position: 'relative' }}>
@@ -318,7 +318,7 @@ function ManageMockup() {
 // ── Mockup 5: Chatachtergrond ────────────────────────────────────────────────
 function BgMockup() {
   return (
-    <PhoneMockup>
+    <PhoneMockup style={{ width: 240 }}>
       <ChatHeader letter="S" name="Sara" online />
       <div style={{ flex: 1, background: 'linear-gradient(135deg,#4c1d95,#7c3aed)', borderRadius: 8, display: 'flex', flexDirection: 'column', padding: 8, gap: 6, margin: '4px 0', position: 'relative', overflow: 'hidden' }}>
         <SafeSvgImage

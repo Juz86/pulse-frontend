@@ -28,20 +28,6 @@ function buildAttachmentActionErrorState(error, action = 'open') {
   };
 }
 
-function createAttachmentActionCallbacks({
-  setAttachmentBusy = null,
-  setResolvedAttachment = null,
-  setAttachmentActionError = null,
-} = {}) {
-  return {
-    onBusyChange: typeof setAttachmentBusy === 'function' ? setAttachmentBusy : null,
-    onResolvedAttachment: typeof setResolvedAttachment === 'function' ? setResolvedAttachment : null,
-    onErrorReset: typeof setAttachmentActionError === 'function'
-      ? () => setAttachmentActionError('')
-      : null,
-  };
-}
-
 function applyAttachmentActionResultState(
   result,
   {
@@ -732,7 +718,7 @@ async function runAttachmentActionFlow(
   return result;
 }
 
-function createAttachmentActionRunner(
+export function createAttachmentActionRunner(
   attachment,
   user,
   options = {}
@@ -741,38 +727,6 @@ function createAttachmentActionRunner(
     action,
     ...options,
   });
-}
-
-export function createAttachmentMessageActionRuntime(
-  messageAttachment,
-  resolvedAttachment,
-  user,
-  {
-    setAttachmentBusy = null,
-    setResolvedAttachment = null,
-    setResolvedAttachmentAccess = null,
-    setAttachmentActionError = null,
-    ...options
-  } = {}
-) {
-  const actionCallbacks = createAttachmentActionCallbacks({
-    setAttachmentBusy,
-    setResolvedAttachment,
-    setAttachmentActionError,
-  });
-  const activeAttachment = resolvedAttachment || messageAttachment;
-
-  return {
-    activeAttachment,
-    actionCallbacks,
-    runAttachmentAction: createAttachmentActionRunner(activeAttachment, user, {
-      ...actionCallbacks,
-      setResolvedAttachment,
-      setResolvedAttachmentAccess,
-      setAttachmentActionError,
-      ...options,
-    }),
-  };
 }
 
 function openAttachmentInNewTab(attachment, opener = window.open) {

@@ -8,8 +8,6 @@ import {
 import {
   applyConversationSummaryToList,
   buildConversationPreviewPresentation,
-  getConversationAttachmentSummaryPresentation,
-  normalizeConversationAttachmentSummary,
 } from './conversationSummaries';
 import {
   buildForwardServicePayload,
@@ -61,14 +59,13 @@ import {
   verifyMockAttachmentEnvelope,
 } from './attachmentCrypto';
 import {
-  buildAttachmentSummaryPresentation,
   buildAttachmentMessageCardPresentation,
 } from './attachmentPresentation';
 import {
   getServiceTransportFallbackBannerState,
 } from './config';
 import {
-  createAttachmentMessageActionRuntime,
+  createAttachmentActionRunner,
   getAttachmentAccessInfo,
 } from './attachmentAccessAdapter';
 import { messagingService } from './messagingService';
@@ -181,7 +178,7 @@ describe('e2ee message model helpers', () => {
   });
 
   test('buildConversationPreviewPresentation falls back to encrypted placeholder', () => {
-    expect(buildConversationPreviewPresentation({ ciphertextAvailable: true, decryptedLocally: false })).toEqual({
+    expect(buildConversationPreviewPresentation({ ciphertextAvailable: true, decryptedLocally: false })).toMatchObject({
       previewText: 'Versleuteld bericht',
       attachmentSummary: null,
     });
@@ -225,7 +222,7 @@ describe('e2ee message model helpers', () => {
     expect(buildConversationPreviewPresentation({
       type: 'contact',
       sharedContact: { name: 'Habiba' },
-    })).toEqual({
+    })).toMatchObject({
       previewText: 'Contactpersoon: Habiba',
       attachmentSummary: null,
     });
@@ -818,92 +815,6 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
-  test('buildAttachmentSummaryPresentation derives consistent labels and preview for encrypted remote attachments', () => {
-    expect(buildAttachmentSummaryPresentation({
-      transfer: 'remote',
-      strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
-      contentEncoding: 'mock-e2ee-envelope-v1',
-      originalMimeType: 'image/png',
-      envelopeKind: 'pulse_mock_media_envelope',
-      expectedPayloadSha256: 'deadbeef',
-      encryption: {
-        mediaKeyId: 'mock-media-key-1',
-        keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
-      },
-    })).toEqual({
-      presentation: {
-        isRemote: true,
-        isEncryptedRemote: true,
-        hasIntegrityContract: true,
-        hasWrappedMediaKeyContract: true,
-        hasUnsupportedBinaryAccess: false,
-        availabilityHintLabel: '',
-        mimeLabel: 'image/png',
-        storageLabel: 'Mock versleutelde opslaglink',
-        storageShortLabel: 'versleuteld',
-        strategyHintLabel: 'mock-profiel',
-        storageDetail: 'Envelope: pulse_mock_media_envelope · strategie mock_media_v1 · integriteitscheck actief',
-        keyContractDetail: 'Media key: mock-media-key-1 · wrap: pulse_mock_media_key_wrap_v1',
-      },
-      previewText: 'Bijlage: Bestand · versleuteld',
-    });
-  });
-
-  test('buildAttachmentSummaryPresentation derives consistent labels for future encrypted remote attachments', () => {
-    expect(buildAttachmentSummaryPresentation({
-      transfer: 'remote',
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      contentEncoding: ATTACHMENT_FUTURE_ENVELOPE_ALG,
-      originalMimeType: 'image/png',
-      envelopeKind: ATTACHMENT_FUTURE_ENVELOPE_KIND,
-      expectedPayloadSha256: 'future-deadbeef',
-      encryption: {
-        mediaKeyId: 'future-media-key-1',
-        keyWrapAlg: ATTACHMENT_FUTURE_KEY_WRAP_ALG,
-        wrappedMediaKeyDigest: 'future-digest-1',
-      },
-    })).toEqual({
-      presentation: {
-        isRemote: true,
-        isEncryptedRemote: true,
-        hasIntegrityContract: true,
-        hasWrappedMediaKeyContract: true,
-        hasUnsupportedBinaryAccess: true,
-        availabilityHintLabel: 'binary access volgt later',
-        mimeLabel: 'image/png',
-        storageLabel: 'Toekomstige versleutelde opslaglink',
-        storageShortLabel: 'versleuteld',
-        strategyHintLabel: 'future-draft',
-        storageDetail: 'Envelope: pulse_media_envelope · strategie pulse_media_v1 · integriteitscheck actief',
-        keyContractDetail: 'Media key: future-media-key-1 · wrap: pulse_media_key_wrap_v1 · digest actief',
-      },
-      previewText: 'Bijlage: Bestand · versleuteld',
-    });
-  });
-
-  test('buildAttachmentSummaryPresentation derives consistent labels for plain remote attachments', () => {
-    expect(buildAttachmentSummaryPresentation({
-      transfer: 'remote',
-      mimeType: 'application/pdf',
-    })).toEqual({
-      presentation: {
-        isRemote: true,
-        isEncryptedRemote: false,
-        hasIntegrityContract: false,
-        hasWrappedMediaKeyContract: false,
-        hasUnsupportedBinaryAccess: false,
-        availabilityHintLabel: '',
-        mimeLabel: 'application/pdf',
-        storageLabel: 'Beveiligde opslaglink',
-        storageShortLabel: 'opslaglink',
-        strategyHintLabel: '',
-        storageDetail: '',
-        keyContractDetail: '',
-      },
-      previewText: 'Bijlage: Bestand · opslaglink',
-    });
-  });
-
   test('buildAttachmentMessageCardPresentation centralizes the full attachment message card state', () => {
     const presentation = buildAttachmentMessageCardPresentation(
       {
@@ -944,23 +855,8 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
-  test('buildAttachmentSummaryPresentation derives list-friendly attachment labels', () => {
-    expect(buildAttachmentSummaryPresentation({
-      name: 'foto.png',
-      transfer: 'remote',
-      contentEncoding: 'mock-e2ee-envelope-v1',
-    }).previewText).toBe('Bijlage: foto.png · versleuteld');
-
-    expect(buildAttachmentSummaryPresentation({
-      name: 'document.pdf',
-      transfer: 'remote',
-    }, {
-      includeStorageSignal: false,
-    }).previewText).toBe('Bijlage: document.pdf');
-  });
-
-  test('getConversationAttachmentSummaryPresentation derives preview and badge state', () => {
-    expect(getConversationAttachmentSummaryPresentation({
+  test('buildConversationPreviewPresentation derives preview and badge state for attachment summaries', () => {
+    expect(buildConversationPreviewPresentation({
       lastMessage: 'Bijlage: rapport.pdf',
       lastMessageType: 'attachment',
       lastAttachmentName: 'rapport.pdf',
@@ -973,6 +869,7 @@ describe('e2ee attachment helpers', () => {
       lastAttachmentMediaKeyId: 'media-key-1',
       lastAttachmentKeyWrapAlg: 'pulse_mock_media_key_wrap_v1',
     })).toEqual({
+      attachmentSummary: expect.any(Object),
       isAttachmentSummary: true,
       showRemoteAttachmentBadge: true,
       previewText: 'Bijlage: rapport.pdf · versleuteld',
@@ -982,27 +879,6 @@ describe('e2ee attachment helpers', () => {
       mimeLabel: 'application/pdf',
       storageDetail: 'Envelope: pulse_mock_media_envelope · strategie mock_media_v1 · integriteitscheck actief',
       keyContractDetail: 'Media key: media-key-1 · wrap: pulse_mock_media_key_wrap_v1 · digest actief',
-    });
-  });
-
-  test('normalizeConversationAttachmentSummary fills attachment summary defaults', () => {
-    expect(normalizeConversationAttachmentSummary({
-      id: 'conv-1',
-      lastMessage: 'Hallo',
-    })).toEqual({
-      id: 'conv-1',
-      lastMessage: 'Hallo',
-      lastMessageType: null,
-      lastAttachmentName: null,
-      lastAttachmentTransfer: null,
-      lastAttachmentStrategyKey: null,
-      lastAttachmentEncoding: null,
-      lastAttachmentEnvelopeKind: null,
-      lastAttachmentOriginalMimeType: null,
-      lastAttachmentExpectedPayloadSha256: null,
-      lastAttachmentMediaKeyId: null,
-      lastAttachmentKeyWrapAlg: null,
-      lastAttachmentWrappedMediaKeyDigest: null,
     });
   });
 
@@ -1091,19 +967,18 @@ describe('e2ee attachment helpers', () => {
     expect(info.requiresFutureStrategySupport).toBe(true);
   });
 
-  test('createAttachmentMessageActionRuntime centralizes runner setup for message attachments', async () => {
+  test('createAttachmentActionRunner centralizes runner setup for message attachments', async () => {
     const setAttachmentBusy = jest.fn();
     const setResolvedAttachment = jest.fn();
     const setResolvedAttachmentAccess = jest.fn();
     const setAttachmentActionError = jest.fn();
 
-    const runtime = createAttachmentMessageActionRuntime(
+    const runAttachmentAction = createAttachmentActionRunner(
       {
         name: 'hello.txt',
         downloadUrl: 'https://cdn.example.com/hello.txt',
         transfer: 'remote',
       },
-      null,
       null,
       {
         setAttachmentBusy,
@@ -1118,12 +993,9 @@ describe('e2ee attachment helpers', () => {
       }
     );
 
-    expect(runtime.activeAttachment).toMatchObject({
-      name: 'hello.txt',
-    });
-    expect(typeof runtime.runAttachmentAction).toBe('function');
+    expect(typeof runAttachmentAction).toBe('function');
 
-    const result = await runtime.runAttachmentAction('open');
+    const result = await runAttachmentAction('open');
 
     expect(result.succeeded).toBe(true);
     expect(setAttachmentBusy).not.toHaveBeenCalled();

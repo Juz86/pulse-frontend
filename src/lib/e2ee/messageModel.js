@@ -1,5 +1,5 @@
 import { normalizeAttachmentPayload } from './attachmentPayload';
-import { buildAttachmentSummaryPresentation } from './attachmentPresentation';
+import { buildConversationPreviewPresentation } from './conversationSummaries';
 
 export function normalizeIncomingMessage(raw, currentUserId) {
   const senderId = raw.senderId || raw.senderUserId;
@@ -108,8 +108,8 @@ export function patchPendingMessageAsFailed(msg) {
 export function getMessageDisplayText(msg) {
   if (!msg) return '';
   if (msg.type === 'attachment') {
-    return buildAttachmentSummaryPresentation(
-      msg.attachment,
+    return buildConversationPreviewPresentation(
+      { type: 'attachment', attachment: msg.attachment },
       { includeStorageSignal: false }
     ).previewText;
   }

@@ -140,7 +140,7 @@ function buildConversationSummaryUpdate(message = {}) {
   };
 }
 
-export function normalizeConversationAttachmentSummary(conversation = {}) {
+function normalizeConversationAttachmentSummary(conversation = {}) {
   return {
     ...conversation,
     lastMessageType: conversation?.lastMessageType || null,
@@ -150,53 +150,60 @@ export function normalizeConversationAttachmentSummary(conversation = {}) {
   };
 }
 
-export function buildConversationPreviewPresentation(message = {}) {
-  if (!message) return { previewText: '', attachmentSummary: null };
-  if (message.deleted) return { previewText: 'Bericht verwijderd', attachmentSummary: null };
+export function buildConversationPreviewPresentation(
+  message = {},
+  { includeStorageSignal = true } = {}
+) {
+  const emptyAttachmentPresentation = buildAttachmentSummaryPresentation(null).presentation;
+  const buildBasePreview = (previewText = '', attachmentSummary = null) => ({
+    previewText,
+    attachmentSummary,
+    isAttachmentSummary: false,
+    showRemoteAttachmentBadge: false,
+    storageShortLabel: emptyAttachmentPresentation.storageShortLabel,
+    strategyHintLabel: emptyAttachmentPresentation.strategyHintLabel || '',
+    availabilityHintLabel: emptyAttachmentPresentation.availabilityHintLabel || '',
+    mimeLabel: emptyAttachmentPresentation.mimeLabel,
+    storageDetail: emptyAttachmentPresentation.storageDetail,
+    keyContractDetail: emptyAttachmentPresentation.keyContractDetail,
+  });
+
+  if (!message) return buildBasePreview();
+  if (message.deleted) return buildBasePreview('Bericht verwijderd');
   if (message.type === 'contact') {
-    return {
-      previewText: `Contactpersoon: ${message.sharedContact?.name || 'Contactpersoon'}`,
-      attachmentSummary: null,
-    };
+    return buildBasePreview(`Contactpersoon: ${message.sharedContact?.name || 'Contactpersoon'}`);
   }
 
   const attachmentSummary = buildConversationAttachmentSummaryPreview(message);
   if (attachmentSummary) {
+    const attachmentPresentation = attachmentSummary.presentation;
+    const previewText = includeStorageSignal
+      ? attachmentSummary.previewText
+      : buildAttachmentSummaryPresentation(
+          attachmentSummary.attachment,
+          { includeStorageSignal: false }
+        ).previewText;
     return {
-      previewText: attachmentSummary.previewText,
-      attachmentSummary,
+      ...buildBasePreview(previewText, attachmentSummary),
+      isAttachmentSummary: true,
+      showRemoteAttachmentBadge: attachmentPresentation.isRemote,
+      storageShortLabel: attachmentPresentation.storageShortLabel,
+      strategyHintLabel: attachmentPresentation.strategyHintLabel || '',
+      availabilityHintLabel: attachmentPresentation.availabilityHintLabel || '',
+      mimeLabel: attachmentPresentation.mimeLabel,
+      storageDetail: attachmentPresentation.storageDetail,
+      keyContractDetail: attachmentPresentation.keyContractDetail,
     };
   }
 
   if (typeof message.lastMessage === 'string' && message.lastMessage) {
-    return { previewText: message.lastMessage, attachmentSummary: null };
+    return buildBasePreview(message.lastMessage);
   }
-  if (message.text) return { previewText: message.text, attachmentSummary: null };
+  if (message.text) return buildBasePreview(message.text);
   if (message.ciphertextAvailable) {
-    return { previewText: 'Versleuteld bericht', attachmentSummary: null };
+    return buildBasePreview('Versleuteld bericht');
   }
-  return { previewText: '', attachmentSummary: null };
-}
-
-export function getConversationAttachmentSummaryPresentation(conversation = {}) {
-  const normalizedConversation = normalizeConversationAttachmentSummary(conversation);
-  const previewPresentation = buildConversationPreviewPresentation(normalizedConversation);
-  const attachmentSummary = previewPresentation.attachmentSummary;
-  const attachmentPresentation =
-    attachmentSummary?.presentation
-    || buildAttachmentSummaryPresentation(null).presentation;
-
-  return {
-    isAttachmentSummary: normalizedConversation.lastMessageType === 'attachment',
-    showRemoteAttachmentBadge: normalizedConversation.lastMessageType === 'attachment' && attachmentPresentation.isRemote,
-    previewText: previewPresentation.previewText || '',
-    storageShortLabel: attachmentPresentation.storageShortLabel,
-    strategyHintLabel: attachmentPresentation.strategyHintLabel || '',
-    availabilityHintLabel: attachmentPresentation.availabilityHintLabel || '',
-    mimeLabel: attachmentPresentation.mimeLabel,
-    storageDetail: attachmentPresentation.storageDetail,
-    keyContractDetail: attachmentPresentation.keyContractDetail,
-  };
+  return buildBasePreview();
 }
 
 export function applyConversationSummaryToList(conversations = [], conversationId, message = {}, updatedAt = null) {

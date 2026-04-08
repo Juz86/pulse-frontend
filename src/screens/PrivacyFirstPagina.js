@@ -115,7 +115,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                 <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
                   Ouderaccount aanmaken
                 </button>
-                <a href="/privacybeleid" className="ot-secondary-btn" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <a href="/privacybeleid" className="ot-secondary-btn" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                   Privacybeleid lezen
                 </a>
               </div>

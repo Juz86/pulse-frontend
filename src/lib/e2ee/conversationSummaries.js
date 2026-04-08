@@ -209,6 +209,29 @@ function buildConversationPreviewAttachmentFields(attachmentPresentation) {
   };
 }
 
+function resolveConversationPreviewText(message = {}) {
+  if (typeof message.lastMessage === 'string' && message.lastMessage) {
+    return message.lastMessage;
+  }
+  if (message.text) {
+    return message.text;
+  }
+  if (message.ciphertextAvailable) {
+    return getEncryptedMessageDisplayText();
+  }
+  return '';
+}
+
+function resolveConversationPreviewSpecialCaseText(message = {}) {
+  if (message.deleted) {
+    return getDeletedMessageDisplayText();
+  }
+  if (message.type === 'contact') {
+    return getSharedContactDisplayText(message.sharedContact);
+  }
+  return null;
+}
+
 export function normalizeConversationSummaryRecord(conversation = {}) {
   return normalizeConversationAttachmentSummary(conversation);
 }
@@ -232,9 +255,9 @@ export function buildConversationPreviewPresentation(
   });
 
   if (!message) return buildBasePreview();
-  if (message.deleted) return buildBasePreview(getDeletedMessageDisplayText());
-  if (message.type === 'contact') {
-    return buildBasePreview(getSharedContactDisplayText(message.sharedContact));
+  const specialCasePreviewText = resolveConversationPreviewSpecialCaseText(message);
+  if (specialCasePreviewText) {
+    return buildBasePreview(specialCasePreviewText);
   }
 
   const attachmentSummary = buildConversationAttachmentSummaryPreview(message);
@@ -252,14 +275,7 @@ export function buildConversationPreviewPresentation(
     };
   }
 
-  if (typeof message.lastMessage === 'string' && message.lastMessage) {
-    return buildBasePreview(message.lastMessage);
-  }
-  if (message.text) return buildBasePreview(message.text);
-  if (message.ciphertextAvailable) {
-    return buildBasePreview(getEncryptedMessageDisplayText());
-  }
-  return buildBasePreview();
+  return buildBasePreview(resolveConversationPreviewText(message));
 }
 
 export function applyConversationSummaryToList(conversations = [], conversationId, message = {}, updatedAt = null) {

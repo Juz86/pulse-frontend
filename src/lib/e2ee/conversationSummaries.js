@@ -7,6 +7,7 @@ import {
   getEncryptedMessageDisplayText,
   getSharedContactDisplayText,
 } from './messageCopy';
+import { deriveCallMessagePresentation } from '../../components/callMessageHelpers';
 
 function buildEmptyConversationAttachmentSummaryFields() {
   return {
@@ -227,6 +228,38 @@ export function applyConversationSummaryToList(conversations = [], conversationI
           lastCallDirection: null,
           lastCallSenderId: null,
           lastCallIsVideo: null,
+        }
+      : conversation
+  ))].sort((a, b) => {
+    const aTime = Date.parse(a.updatedAt || a.createdAt || 0);
+    const bTime = Date.parse(b.updatedAt || b.createdAt || 0);
+    return bTime - aTime;
+  });
+}
+
+export function applyCallConversationSummaryToList(
+  conversations = [],
+  conversationId,
+  message = {},
+  currentUserId,
+  updatedAt = null
+) {
+  const callLabel = deriveCallMessagePresentation(
+    message,
+    message?.senderId === currentUserId
+  ).callLabel;
+
+  return [...conversations.map((conversation) => (
+    conversation.id === conversationId
+      ? {
+          ...conversation,
+          ...buildEmptyConversationAttachmentSummaryFields(),
+          lastMessage: callLabel,
+          lastMessageType: 'call',
+          updatedAt: updatedAt || message?.createdAt || conversation.updatedAt,
+          lastCallDirection: message?.direction || null,
+          lastCallSenderId: message?.senderId || null,
+          lastCallIsVideo: !!message?.isVideo,
         }
       : conversation
   ))].sort((a, b) => {

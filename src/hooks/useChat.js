@@ -3,9 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 import { getSocket } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
 import { normalizeIncomingMessage } from '../lib/e2ee/messageModel';
-import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
+import {
+  applyCallConversationSummaryToList,
+  applyConversationSummaryToList,
+} from '../lib/e2ee/conversationSummaries';
 import { canApplyPlaintextEditUpdate } from '../lib/e2ee/policy';
-import { deriveCallMessagePresentation } from '../components/callMessageHelpers';
 
 const PRIVATE_NOTIFICATION_BODY = 'Open Pulse om het bericht veilig te bekijken.';
 const PRIVATE_REQUEST_NOTIFICATION_BODY = 'Open Pulse om de uitnodiging te bekijken.';
@@ -155,19 +157,25 @@ export default function useChat({
         playMessageSound();
       }
 
-      const previewText = hydratedMsg.type === 'call'
-        ? deriveCallMessagePresentation(hydratedMsg, hydratedMsg.senderId === user.uid).callLabel
-        : buildConversationPreviewPresentation(hydratedMsg).previewText;
-
       setConversations(prev => {
         const exists = prev.some(c => c.id === convId);
         if (!exists) return prev;
-        const callMeta = hydratedMsg.type === 'call'
-          ? { lastCallSenderId: hydratedMsg.senderId, lastCallDirection: hydratedMsg.direction, lastCallIsVideo: !!hydratedMsg.isVideo }
-          : { lastCallDirection: null, lastCallSenderId: null, lastCallIsVideo: null };
-        const target = prev.find(c => c.id === convId);
-        const rest   = prev.filter(c => c.id !== convId);
-        return [{ ...target, lastMessage: previewText, updatedAt: hydratedMsg.createdAt || new Date().toISOString(), ...callMeta }, ...rest];
+        if (hydratedMsg.type !== 'call') {
+          return applyConversationSummaryToList(
+            prev,
+            convId,
+            hydratedMsg,
+            hydratedMsg.createdAt || new Date().toISOString()
+          );
+        }
+
+        return applyCallConversationSummaryToList(
+          prev,
+          convId,
+          hydratedMsg,
+          user.uid,
+          hydratedMsg.createdAt || new Date().toISOString()
+        );
       });
     };
 

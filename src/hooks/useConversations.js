@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { getSocket, BACKEND_URL } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
-import { getAttachmentDisplayName } from '../lib/e2ee/attachmentPayload';
 import {
   buildSocketMessagePayload,
   buildServiceMessageResult,
@@ -16,6 +15,7 @@ import {
 } from '../lib/e2ee/messageModel';
 import {
   applyConversationSummaryToList,
+  normalizeConversationSummaryRecord,
 } from '../lib/e2ee/conversationSummaries';
 import {
   isE2EEServiceTransportEnabled,
@@ -195,44 +195,7 @@ export default function useConversations({
         });
         if (updated) { localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(stored)); setConvLabels(stored); }
       }
-      setConversations(Array.isArray(data) ? data.map((conversation) => ({
-        ...conversation,
-        lastMessageType: conversation?.lastMessageType || null,
-        ...(conversation?.lastAttachmentTransfer
-          || conversation?.lastAttachmentName
-          || conversation?.lastAttachmentStrategyKey
-          || conversation?.lastAttachmentEncoding
-          || conversation?.lastAttachmentEnvelopeKind
-          || conversation?.lastAttachmentOriginalMimeType
-          || conversation?.lastAttachmentExpectedPayloadSha256
-          || conversation?.lastAttachmentMediaKeyId
-          || conversation?.lastAttachmentKeyWrapAlg
-          || conversation?.lastAttachmentWrappedMediaKeyDigest
-          ? {
-              lastAttachmentName: conversation.lastAttachmentName || getAttachmentDisplayName(),
-              lastAttachmentTransfer: conversation.lastAttachmentTransfer || '',
-              lastAttachmentStrategyKey: conversation.lastAttachmentStrategyKey || '',
-              lastAttachmentEncoding: conversation.lastAttachmentEncoding || '',
-              lastAttachmentEnvelopeKind: conversation.lastAttachmentEnvelopeKind || '',
-              lastAttachmentOriginalMimeType: conversation.lastAttachmentOriginalMimeType || '',
-              lastAttachmentExpectedPayloadSha256: conversation.lastAttachmentExpectedPayloadSha256 || '',
-              lastAttachmentMediaKeyId: conversation.lastAttachmentMediaKeyId || '',
-              lastAttachmentKeyWrapAlg: conversation.lastAttachmentKeyWrapAlg || '',
-              lastAttachmentWrappedMediaKeyDigest: conversation.lastAttachmentWrappedMediaKeyDigest || '',
-            }
-          : {
-              lastAttachmentName: null,
-              lastAttachmentTransfer: null,
-              lastAttachmentStrategyKey: null,
-              lastAttachmentEncoding: null,
-              lastAttachmentEnvelopeKind: null,
-              lastAttachmentOriginalMimeType: null,
-              lastAttachmentExpectedPayloadSha256: null,
-              lastAttachmentMediaKeyId: null,
-              lastAttachmentKeyWrapAlg: null,
-              lastAttachmentWrappedMediaKeyDigest: null,
-            }),
-      })) : []);
+      setConversations(Array.isArray(data) ? data.map(normalizeConversationSummaryRecord) : []);
       const sock = getSocket();
       if (sock && Array.isArray(data)) {
         data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));

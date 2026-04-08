@@ -216,7 +216,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
             <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>Wat we wél opslaan en waarom</div>
             <h3 style={{ fontSize: 'clamp(var(--text-h3), 3vw, var(--text-h2))', fontWeight: 700, color: '#1a1a2e', marginBottom: 8, letterSpacing: '-0.5px' }}>Zo weinig mogelijk. Zo kort mogelijk.</h3>
             <p style={{ color: '#6b7280', marginBottom: 32 }}>We slaan alleen op wat echt nodig is om de app te laten werken — en nooit langer dan nodig. <br></br>Wanneer je je account verwijdert, worden al je gegevens permanent gewist. Zo blijft onze database schoon.</p>
-            <div ref={retentionRef} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div ref={retentionRef} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
               {(showAllRetention ? retentionRows : retentionRows.slice(0, 2)).map((row) => (
                 <div key={row.label} style={{ border: '1px solid #e5e7eb', borderRadius: 16, padding: '20px 20px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

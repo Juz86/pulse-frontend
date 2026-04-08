@@ -12,8 +12,10 @@ import {
   getSharedContactDisplayText,
 } from './messageCopy';
 import {
+  applyCallConversationSummaryToList,
   applyConversationSummaryToList,
   buildConversationPreviewPresentation,
+  normalizeConversationSummaryRecord,
 } from './conversationSummaries';
 import {
   buildForwardServicePayload,
@@ -222,6 +224,25 @@ describe('e2ee message model helpers', () => {
       lastAttachmentEncoding: '',
       lastAttachmentOriginalMimeType: 'application/pdf',
     }).previewText).toBe('Bijlage: rapport.pdf · opslaglink');
+  });
+
+  test('normalizeConversationSummaryRecord centralizes attachment summary field normalization', () => {
+    expect(normalizeConversationSummaryRecord({
+      id: 'conv-1',
+      lastMessage: 'Bijlage gedeeld',
+      lastMessageType: 'attachment',
+      lastAttachmentTransfer: 'remote',
+      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+      lastAttachmentOriginalMimeType: 'image/png',
+    })).toMatchObject({
+      id: 'conv-1',
+      lastMessage: 'Bijlage gedeeld',
+      lastMessageType: 'attachment',
+      lastAttachmentName: 'Bestand',
+      lastAttachmentTransfer: 'remote',
+      lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
+      lastAttachmentOriginalMimeType: 'image/png',
+    });
   });
 
   test('contact messages keep their shared-contact preview', () => {
@@ -988,6 +1009,52 @@ describe('e2ee attachment helpers', () => {
         id: 'conv-1',
         updatedAt: '2026-01-01T10:00:00.000Z',
         lastMessage: 'Oud',
+      },
+    ]);
+  });
+
+  test('applyCallConversationSummaryToList updates call preview and call metadata centrally', () => {
+    expect(applyCallConversationSummaryToList([
+      {
+        id: 'conv-1',
+        updatedAt: '2026-01-01T10:00:00.000Z',
+        lastMessage: 'Oud',
+        lastAttachmentName: 'rapport.pdf',
+        lastAttachmentTransfer: 'remote',
+      },
+      { id: 'conv-2', updatedAt: '2026-01-01T09:00:00.000Z', lastMessage: 'Ander' },
+    ], 'conv-2', {
+      type: 'call',
+      senderId: 'user-2',
+      direction: 'completed',
+      isVideo: true,
+      createdAt: '2026-01-01T11:00:00.000Z',
+    }, 'user-1')).toEqual([
+      {
+        id: 'conv-2',
+        updatedAt: '2026-01-01T11:00:00.000Z',
+        lastMessage: 'Video-oproep',
+        lastMessageType: 'call',
+        lastAttachmentName: null,
+        lastAttachmentTransfer: null,
+        lastAttachmentStrategyKey: null,
+        lastAttachmentEncoding: null,
+        lastAttachmentEnvelopeKind: null,
+        lastAttachmentOriginalMimeType: null,
+        lastAttachmentExpectedPayloadSha256: null,
+        lastAttachmentMediaKeyId: null,
+        lastAttachmentKeyWrapAlg: null,
+        lastAttachmentWrappedMediaKeyDigest: null,
+        lastCallDirection: 'completed',
+        lastCallSenderId: 'user-2',
+        lastCallIsVideo: true,
+      },
+      {
+        id: 'conv-1',
+        updatedAt: '2026-01-01T10:00:00.000Z',
+        lastMessage: 'Oud',
+        lastAttachmentName: 'rapport.pdf',
+        lastAttachmentTransfer: 'remote',
       },
     ]);
   });

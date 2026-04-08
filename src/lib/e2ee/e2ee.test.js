@@ -7,8 +7,8 @@ import {
 } from './messageModel';
 import {
   applyConversationSummaryToList,
+  buildConversationPreviewPresentation,
   getConversationAttachmentSummaryPresentation,
-  getConversationPreview,
   normalizeConversationAttachmentSummary,
 } from './conversationSummaries';
 import {
@@ -180,44 +180,55 @@ describe('e2ee message model helpers', () => {
     expect(failed.failed).toBe(true);
   });
 
-  test('getConversationPreview falls back to encrypted placeholder', () => {
-    expect(getConversationPreview({ ciphertextAvailable: true, decryptedLocally: false })).toBe('Versleuteld bericht');
+  test('buildConversationPreviewPresentation falls back to encrypted placeholder', () => {
+    expect(buildConversationPreviewPresentation({ ciphertextAvailable: true, decryptedLocally: false })).toEqual({
+      previewText: 'Versleuteld bericht',
+      attachmentSummary: null,
+    });
   });
 
-  test('getConversationPreview includes encrypted storage signal for attachment messages', () => {
-    expect(getConversationPreview({
+  test('buildConversationPreviewPresentation includes encrypted storage signal for attachment messages', () => {
+    expect(buildConversationPreviewPresentation({
       type: 'attachment',
       attachment: {
         name: 'foto.png',
         transfer: 'remote',
         contentEncoding: 'mock-e2ee-envelope-v1',
       },
-    })).toBe('Bijlage: foto.png · versleuteld');
+    })).toMatchObject({
+      previewText: 'Bijlage: foto.png · versleuteld',
+      attachmentSummary: {
+        previewText: 'Bijlage: foto.png · versleuteld',
+      },
+    });
   });
 
-  test('getConversationPreview prefers attachment summary fields over stale lastMessage text', () => {
-    expect(getConversationPreview({
+  test('buildConversationPreviewPresentation prefers attachment summary fields over stale lastMessage text', () => {
+    expect(buildConversationPreviewPresentation({
       lastMessage: 'Bijlage gedeeld',
       lastMessageType: 'attachment',
       lastAttachmentTransfer: 'remote',
       lastAttachmentEncoding: 'mock-e2ee-envelope-v1',
       lastAttachmentOriginalMimeType: 'image/png',
-    })).toBe('Bijlage: Bestand · versleuteld');
+    }).previewText).toBe('Bijlage: Bestand · versleuteld');
 
-    expect(getConversationPreview({
+    expect(buildConversationPreviewPresentation({
       lastMessage: 'Bijlage: rapport.pdf',
       lastMessageType: 'attachment',
       lastAttachmentTransfer: 'remote',
       lastAttachmentEncoding: '',
       lastAttachmentOriginalMimeType: 'application/pdf',
-    })).toBe('Bijlage: rapport.pdf · opslaglink');
+    }).previewText).toBe('Bijlage: rapport.pdf · opslaglink');
   });
 
   test('contact messages keep their shared-contact preview', () => {
-    expect(getConversationPreview({
+    expect(buildConversationPreviewPresentation({
       type: 'contact',
       sharedContact: { name: 'Habiba' },
-    })).toBe('Contactpersoon: Habiba');
+    })).toEqual({
+      previewText: 'Contactpersoon: Habiba',
+      attachmentSummary: null,
+    });
   });
 
   test('getMessageDisplayText falls back to encrypted placeholder when text is unavailable', () => {

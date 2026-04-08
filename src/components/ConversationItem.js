@@ -2,8 +2,8 @@
 import React from 'react';
 import { Pin, InfoIcon } from '../components/Icons';
 import {
+  buildConversationPreviewPresentation,
   getConversationAttachmentSummaryPresentation,
-  getConversationPreview,
 } from '../lib/e2ee/conversationSummaries';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview } from '../utils';
@@ -35,6 +35,7 @@ function ConversationItemBase({
   onMoreActionsLeave,
 }) {
   const attachmentSummary = getConversationAttachmentSummaryPresentation(conv);
+  const conversationPreview = buildConversationPreviewPresentation(conv);
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -64,7 +65,7 @@ function ConversationItemBase({
         <div className="conv-preview">
           {conv.lastCallDirection ? callPreview(conv, currentUid) : (
             <>
-              <span>{attachmentSummary.isAttachmentSummary ? attachmentSummary.previewText : (getConversationPreview(conv) || conv.lastMessage || 'Start een gesprek…')}</span>
+              <span>{attachmentSummary.isAttachmentSummary ? attachmentSummary.previewText : (conversationPreview.previewText || conv.lastMessage || 'Start een gesprek…')}</span>
               {attachmentSummary.showRemoteAttachmentBadge && (
                 <>
                   <span

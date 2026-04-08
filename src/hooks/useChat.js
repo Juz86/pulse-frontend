@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getSocket } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
 import { normalizeIncomingMessage } from '../lib/e2ee/messageModel';
-import { getConversationPreview } from '../lib/e2ee/conversationSummaries';
+import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
 import { canApplyPlaintextEditUpdate } from '../lib/e2ee/policy';
 
 const PRIVATE_NOTIFICATION_BODY = 'Open Pulse om het bericht veilig te bekijken.';
@@ -164,7 +164,7 @@ export default function useChat({
               if (hydratedMsg.direction === 'declined')  return isOwn ? 'Geweigerd' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
               return isOwn ? 'Geen antwoord' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
             })()
-          : getConversationPreview(hydratedMsg);
+          : buildConversationPreviewPresentation(hydratedMsg).previewText;
 
       setConversations(prev => {
         const exists = prev.some(c => c.id === convId);

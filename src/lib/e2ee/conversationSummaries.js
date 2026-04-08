@@ -150,25 +150,38 @@ export function normalizeConversationAttachmentSummary(conversation = {}) {
   };
 }
 
-export function getConversationPreview(message = {}) {
-  if (!message) return '';
-  if (message.deleted) return 'Bericht verwijderd';
-  if (message.type === 'contact') return `Contactpersoon: ${message.sharedContact?.name || 'Contactpersoon'}`;
+export function buildConversationPreviewPresentation(message = {}) {
+  if (!message) return { previewText: '', attachmentSummary: null };
+  if (message.deleted) return { previewText: 'Bericht verwijderd', attachmentSummary: null };
+  if (message.type === 'contact') {
+    return {
+      previewText: `Contactpersoon: ${message.sharedContact?.name || 'Contactpersoon'}`,
+      attachmentSummary: null,
+    };
+  }
 
   const attachmentSummary = buildConversationAttachmentSummaryPreview(message);
   if (attachmentSummary) {
-    return attachmentSummary.previewText;
+    return {
+      previewText: attachmentSummary.previewText,
+      attachmentSummary,
+    };
   }
 
-  if (typeof message.lastMessage === 'string' && message.lastMessage) return message.lastMessage;
-  if (message.text) return message.text;
-  if (message.ciphertextAvailable) return 'Versleuteld bericht';
-  return '';
+  if (typeof message.lastMessage === 'string' && message.lastMessage) {
+    return { previewText: message.lastMessage, attachmentSummary: null };
+  }
+  if (message.text) return { previewText: message.text, attachmentSummary: null };
+  if (message.ciphertextAvailable) {
+    return { previewText: 'Versleuteld bericht', attachmentSummary: null };
+  }
+  return { previewText: '', attachmentSummary: null };
 }
 
 export function getConversationAttachmentSummaryPresentation(conversation = {}) {
   const normalizedConversation = normalizeConversationAttachmentSummary(conversation);
-  const attachmentSummary = buildConversationAttachmentSummaryPreview(normalizedConversation);
+  const previewPresentation = buildConversationPreviewPresentation(normalizedConversation);
+  const attachmentSummary = previewPresentation.attachmentSummary;
   const attachmentPresentation =
     attachmentSummary?.presentation
     || buildAttachmentSummaryPresentation(null).presentation;
@@ -176,7 +189,7 @@ export function getConversationAttachmentSummaryPresentation(conversation = {}) 
   return {
     isAttachmentSummary: normalizedConversation.lastMessageType === 'attachment',
     showRemoteAttachmentBadge: normalizedConversation.lastMessageType === 'attachment' && attachmentPresentation.isRemote,
-    previewText: attachmentSummary?.previewText || '',
+    previewText: previewPresentation.previewText || '',
     storageShortLabel: attachmentPresentation.storageShortLabel,
     strategyHintLabel: attachmentPresentation.strategyHintLabel || '',
     availabilityHintLabel: attachmentPresentation.availabilityHintLabel || '',

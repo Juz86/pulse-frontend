@@ -102,6 +102,21 @@ describe('e2ee message model helpers', () => {
     expect(pending.failed).toBe(false);
   });
 
+  test('buildPendingMessage limits outgoing pending types to the active Pulse scope', () => {
+    const pending = buildPendingMessage({
+      text: 'Bijlage: foto.png',
+      conversationId: 'conv-1',
+      userId: 'user-1',
+      type: 'attachment',
+      sharedContact: { name: 'Habiba' },
+    });
+
+    expect(pending.type).toBe('text');
+    expect(pending.messageType).toBe('text');
+    expect(pending.sharedContact).toBeNull();
+    expect(pending.attachment).toBeNull();
+  });
+
   test('patchPendingMessageAsSent marks a pending message as sent', () => {
     const pending = buildPendingMessage({
       text: 'Hallo',

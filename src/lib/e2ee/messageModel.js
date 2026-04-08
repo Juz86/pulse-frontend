@@ -49,6 +49,8 @@ export function buildPendingMessage({
   mentions = [],
 }) {
   const localId = `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const normalizedType = type === 'contact' ? 'contact' : 'text';
+  const normalizedSharedContact = normalizedType === 'contact' ? sharedContact : null;
 
   return {
     id: localId,
@@ -71,9 +73,9 @@ export function buildPendingMessage({
     isLocalOnly: true,
     isOwn: true,
 
-    type,
-    messageType: type,
-    sharedContact,
+    type: normalizedType,
+    messageType: normalizedType,
+    sharedContact: normalizedSharedContact,
     attachment: null,
 
     pending: true,

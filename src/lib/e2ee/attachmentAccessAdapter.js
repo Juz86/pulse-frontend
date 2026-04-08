@@ -68,7 +68,7 @@ function applyAttachmentActionResultState(
   }
 }
 
-export async function passthroughDecryptAttachmentBlob(blob) {
+async function passthroughDecryptAttachmentBlob(blob) {
   return blob;
 }
 
@@ -146,7 +146,7 @@ async function resolveAttachmentUnwrapContext(attachment) {
   };
 }
 
-export function getAttachmentIdFromAttachment(attachment) {
+function getAttachmentIdFromAttachment(attachment) {
   const url = resolveAttachmentUrl(attachment);
   if (!url) return null;
 
@@ -241,7 +241,7 @@ export function getAttachmentAccessInfo(attachment) {
   };
 }
 
-export function assertAttachmentBinaryAccessSupported(attachment) {
+function assertAttachmentBinaryAccessSupported(attachment) {
   const accessInfo = getAttachmentAccessInfo(attachment);
 
   if (accessInfo.requiresFutureStrategySupport) {
@@ -251,7 +251,7 @@ export function assertAttachmentBinaryAccessSupported(attachment) {
   return accessInfo;
 }
 
-export function mergeAttachmentMetadata(baseAttachment, metadataAttachment) {
+function mergeAttachmentMetadata(baseAttachment, metadataAttachment) {
   return normalizeAttachmentPayload({
     ...baseAttachment,
     ...metadataAttachment,
@@ -345,17 +345,13 @@ function getCachedAttachmentMetadata(attachment) {
   return attachmentId ? attachmentMetadataCache.get(attachmentId) || null : null;
 }
 
-export function cacheAttachmentMetadata(attachment, metadataAttachment) {
+function cacheAttachmentMetadata(attachment, metadataAttachment) {
   const attachmentId = getAttachmentIdFromAttachment(attachment) || getAttachmentIdFromAttachment(metadataAttachment);
   if (!attachmentId) return metadataAttachment;
 
   const merged = mergeAttachmentMetadata(attachment, metadataAttachment);
   attachmentMetadataCache.set(attachmentId, merged);
   return merged;
-}
-
-export function clearAttachmentMetadataCache() {
-  attachmentMetadataCache.clear();
 }
 
 function createRemoteAttachmentAccessProvider({

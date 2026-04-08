@@ -9,7 +9,7 @@ import {
 import { getAttachmentEncryptionCapability } from './attachmentCrypto';
 import { getAttachmentAccessInfo } from './attachmentAccessAdapter';
 
-export function getAttachmentStrategyPresentation(attachment = {}) {
+function getAttachmentStrategyPresentation(attachment = {}) {
   const strategyKey =
     attachment?.strategyKey
     || attachment?.encryption?.strategyKey
@@ -103,7 +103,7 @@ export function getAttachmentContractPresentation(attachment = {}) {
   };
 }
 
-export function getAttachmentAccessVerificationPresentation(attachmentOrContract = {}, unwrapContext = null) {
+function getAttachmentAccessVerificationPresentation(attachmentOrContract = {}, unwrapContext = null) {
   const accessVerification = attachmentOrContract?.accessVerification || null;
   const contract = accessVerification
     ? {
@@ -132,7 +132,7 @@ export function getAttachmentAccessVerificationPresentation(attachmentOrContract
   };
 }
 
-export function getAttachmentActionPresentation(accessInfo = {}) {
+function getAttachmentActionPresentation(accessInfo = {}) {
   const binaryAccessSupportLabel = accessInfo?.binaryAccessSupportLabel || '';
   const blockedByFutureDraft = binaryAccessSupportLabel === 'future_strategy_required';
   const blockedByUnsupportedStrategy = binaryAccessSupportLabel === 'unsupported';
@@ -150,7 +150,7 @@ export function getAttachmentActionPresentation(accessInfo = {}) {
   };
 }
 
-export function getAttachmentInteractionPresentation(attachment = {}, unwrapContext = null) {
+function getAttachmentInteractionPresentation(attachment = {}, unwrapContext = null) {
   const access = getAttachmentAccessInfo(attachment);
   const contract = getAttachmentContractPresentation(attachment);
   const verification = getAttachmentAccessVerificationPresentation(attachment, unwrapContext);
@@ -164,7 +164,7 @@ export function getAttachmentInteractionPresentation(attachment = {}, unwrapCont
   };
 }
 
-export function buildAttachmentInteractionState(
+function buildAttachmentInteractionState(
   messageAttachment = {},
   resolvedAttachment = null,
   resolvedAttachmentAccess = null
@@ -425,7 +425,7 @@ export function getAttachmentVariantPresentation(access = {}) {
   };
 }
 
-export function buildAttachmentRenderState(
+function buildAttachmentRenderState(
   messageAttachment = {},
   resolvedAttachment = null,
   resolvedAttachmentAccess = null,
@@ -586,8 +586,4 @@ export function getAttachmentPreviewText(attachment = {}, { includeStorageSignal
   }
 
   return `${baseLabel} · ${presentation.storageShortLabel}`;
-}
-
-export function getAttachmentStrategyHintLabel(attachment = {}) {
-  return getAttachmentStrategyPresentation(attachment).strategyHintLabel;
 }

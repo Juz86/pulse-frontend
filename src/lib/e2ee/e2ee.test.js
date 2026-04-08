@@ -67,13 +67,9 @@ import {
 } from './attachmentCrypto';
 import {
   buildAttachmentMessageCardPresentation,
-  buildAttachmentRenderState,
-  buildAttachmentInteractionState,
-  getAttachmentActionPresentation,
   getAttachmentActionButtonStyle,
   getAttachmentActionRowStyle,
   getAttachmentActionButtonsPresentation,
-  getAttachmentAccessVerificationPresentation,
   getAttachmentDetailLines,
   getAttachmentDetailLineStyle,
   getAttachmentErrorStyle,
@@ -88,19 +84,15 @@ import {
   getAttachmentCardPresentation,
   getAttachmentCardInteractionProps,
   getAttachmentContractPresentation,
-  getAttachmentInteractionPresentation,
   getAttachmentActionsPresentation,
   getAttachmentActionButtonProps,
   getAttachmentPreviewText,
-  getAttachmentStrategyPresentation,
 } from './attachmentPresentation';
 import {
   getServiceTransportFallbackBannerState,
 } from './config';
 import {
-  assertAttachmentBinaryAccessSupported,
   createAttachmentMessageActionRuntime,
-  clearAttachmentMetadataCache,
   getAttachmentAccessInfo,
 } from './attachmentAccessAdapter';
 import { messagingService } from './messagingService';
@@ -461,7 +453,6 @@ describe('e2ee attachment helpers', () => {
 
   afterEach(() => {
     global.fetch = originalFetch;
-    clearAttachmentMetadataCache();
     jest.restoreAllMocks();
   });
 
@@ -950,181 +941,6 @@ describe('e2ee attachment helpers', () => {
     });
   });
 
-  test('getAttachmentStrategyPresentation derives strategy-aware labels from attachment contracts', () => {
-    expect(getAttachmentStrategyPresentation({
-      transfer: 'remote',
-      contentEncoding: 'mock-e2ee-envelope-v1',
-    })).toEqual({
-      strategyKey: 'mock_media_v1',
-      isMockStrategy: true,
-      isFutureStrategy: false,
-      strategyHintLabel: 'mock-profiel',
-      storageLabelPrefix: 'Mock',
-    });
-
-    expect(getAttachmentStrategyPresentation({
-      strategyKey: 'pulse_media_v1',
-      transfer: 'remote',
-    })).toEqual({
-      strategyKey: 'pulse_media_v1',
-      isMockStrategy: false,
-      isFutureStrategy: true,
-      strategyHintLabel: 'future-draft',
-      storageLabelPrefix: 'Toekomstige',
-    });
-  });
-
-  test('getAttachmentAccessVerificationPresentation derives labels for verified remote access', () => {
-    expect(getAttachmentAccessVerificationPresentation({
-      strategyKey: 'mock_media_v1',
-      integrityVerified: true,
-      wrappedKeyVerified: true,
-    }, {
-      unwrapKind: 'pulse_mock_media_key_unwrap',
-    })).toEqual({
-      strategyLabel: 'Media-strategie: mock_media_v1',
-      availabilityLabel: '',
-      integrityAccessLabel: 'Downloadcontract bevestigd',
-      wrappedKeyAccessLabel: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap',
-    });
-  });
-
-  test('getAttachmentAccessVerificationPresentation flags future media drafts before decrypt support exists', () => {
-    expect(getAttachmentAccessVerificationPresentation({
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      integrityVerified: false,
-      wrappedKeyVerified: false,
-    })).toEqual({
-      strategyLabel: 'Media-strategie: pulse_media_v1',
-      availabilityLabel: 'Decrypt-draft actief voor pulse_media_v1',
-      integrityAccessLabel: '',
-      wrappedKeyAccessLabel: '',
-    });
-  });
-
-  test('getAttachmentAccessVerificationPresentation reuses persisted attachment verification state', () => {
-    expect(getAttachmentAccessVerificationPresentation({
-      accessVerification: {
-        strategyKey: 'mock_media_v1',
-        integrityVerified: true,
-        wrappedKeyVerified: true,
-        unwrapKind: 'pulse_mock_media_key_unwrap',
-      },
-    })).toEqual({
-      strategyLabel: 'Media-strategie: mock_media_v1',
-      availabilityLabel: '',
-      integrityAccessLabel: 'Downloadcontract bevestigd',
-      wrappedKeyAccessLabel: 'Wrapped media key gevalideerd · pulse_mock_media_key_unwrap',
-    });
-  });
-
-  test('getAttachmentActionPresentation keeps binary actions enabled for supported attachments', () => {
-    expect(getAttachmentActionPresentation({
-      canOpen: true,
-      requiresFutureStrategySupport: false,
-    })).toEqual({
-      actionsEnabled: true,
-      openLabel: 'Openen',
-      downloadLabel: 'Downloaden',
-      availabilityDetail: '',
-    });
-  });
-
-  test('getAttachmentActionPresentation disables binary actions for future draft attachments', () => {
-    expect(getAttachmentActionPresentation({
-      canOpen: true,
-      binaryAccessSupportLabel: 'future_strategy_required',
-      requiresFutureStrategySupport: true,
-    })).toEqual({
-      actionsEnabled: false,
-      openLabel: 'Nog niet beschikbaar',
-      downloadLabel: 'Downloaden',
-      availabilityDetail: 'Openen en downloaden worden actief zodra deze decrypt-strategie beschikbaar is.',
-    });
-  });
-
-  test('getAttachmentActionPresentation disables binary actions for unsupported attachment strategies', () => {
-    expect(getAttachmentActionPresentation({
-      canOpen: true,
-      binaryAccessSupportLabel: 'unsupported',
-    })).toEqual({
-      actionsEnabled: false,
-      openLabel: 'Nog niet beschikbaar',
-      downloadLabel: 'Downloaden',
-      availabilityDetail: 'Deze versleutelingsstrategie ondersteunt nu nog geen openen of downloaden in de client.',
-    });
-  });
-
-  test('getAttachmentInteractionPresentation combines access contract verification and actions', () => {
-    expect(getAttachmentInteractionPresentation({
-      name: 'future.png',
-      transfer: 'remote',
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      contentEncoding: ATTACHMENT_FUTURE_ENVELOPE_ALG,
-      encryption: { alg: ATTACHMENT_FUTURE_ENVELOPE_ALG },
-    })).toMatchObject({
-      access: {
-        isFutureEncryptedRemote: true,
-        requiresFutureStrategySupport: true,
-      },
-      contract: {
-        isEncryptedRemote: true,
-        hasUnsupportedBinaryAccess: true,
-      },
-      actions: {
-        actionsEnabled: false,
-        openLabel: 'Nog niet beschikbaar',
-      },
-      verification: {
-        availabilityLabel: 'Decrypt-draft actief voor pulse_media_v1',
-      },
-    });
-  });
-
-  test('buildAttachmentInteractionState centralizes attachment preview and interaction derivation', () => {
-    expect(buildAttachmentInteractionState(
-      {
-        name: 'foto.png',
-        downloadUrl: 'https://cdn.example.com/foto.png',
-        thumbnailUrl: 'https://cdn.example.com/thumb.png',
-        transfer: 'remote',
-        mimeType: 'application/pulse-e2ee-envelope+json',
-        originalMimeType: 'image/png',
-        contentEncoding: 'mock-e2ee-envelope-v1',
-        expectedPayloadSha256: 'mock-sha256',
-        encryption: {
-          strategyKey: ATTACHMENT_MOCK_MEDIA_STRATEGY,
-          mediaKeyId: 'key-1',
-          keyWrapAlg: 'pulse_mock_media_key_wrap_v1',
-          wrappedMediaKeyDigest: 'digest-1',
-        },
-      },
-      null,
-      {
-        unwrapContext: {
-          unwrapKind: 'pulse_mock_media_key_unwrap',
-        },
-      }
-    )).toMatchObject({
-      attachment: {
-        name: 'foto.png',
-      },
-      previewUrl: 'https://cdn.example.com/thumb.png',
-      access: {
-        isImage: true,
-      },
-      contract: {
-        storageShortLabel: 'versleuteld',
-      },
-      verification: {
-        integrityAccessLabel: '',
-      },
-      actions: {
-        actionsEnabled: true,
-      },
-    });
-  });
-
   test('getAttachmentCardPresentation derives stable card interactivity props', () => {
     expect(getAttachmentCardPresentation(
       { name: 'foto.png' },
@@ -1459,78 +1275,6 @@ describe('e2ee attachment helpers', () => {
       layout: 'file',
       showsImagePreview: false,
       showsFileBadge: true,
-    });
-  });
-
-  test('buildAttachmentRenderState combines interaction card and button presentation', () => {
-    expect(buildAttachmentRenderState(
-      {
-        name: 'foto.png',
-        downloadUrl: 'https://cdn.example.com/foto.png',
-        thumbnailUrl: 'https://cdn.example.com/thumb.png',
-        transfer: 'remote',
-        mimeType: 'application/pulse-e2ee-envelope+json',
-        originalMimeType: 'image/png',
-        contentEncoding: 'mock-e2ee-envelope-v1',
-      },
-      null,
-      null,
-      { busy: true }
-    )).toMatchObject({
-      attachment: {
-        name: 'foto.png',
-      },
-      previewUrl: 'https://cdn.example.com/thumb.png',
-      access: {
-        isImage: true,
-      },
-      variant: {
-        layout: 'image',
-        showsImagePreview: true,
-      },
-      content: {
-        title: 'foto.png',
-        subtitle: 'image/png',
-        imageAlt: 'foto.png',
-      },
-      fileBadge: null,
-      card: {
-        interactive: true,
-        role: 'button',
-      },
-      buttons: {
-        openDisabled: true,
-        downloadDisabled: true,
-        openLabel: 'Voorbereiden…',
-      },
-    });
-  });
-
-  test('buildAttachmentRenderState includes file badge and file-specific content defaults', () => {
-    expect(buildAttachmentRenderState(
-      {
-        transfer: 'remote',
-        mimeType: 'application/pdf',
-      },
-      null,
-      null,
-      { busy: false }
-    )).toMatchObject({
-      access: {
-        isImage: false,
-      },
-      variant: {
-        layout: 'file',
-        showsFileBadge: true,
-      },
-      content: {
-        title: 'Bijlage',
-        subtitle: 'application/pdf',
-        imageAlt: 'Gedeelde afbeelding',
-      },
-      fileBadge: {
-        label: 'F',
-      },
     });
   });
 
@@ -1914,20 +1658,6 @@ describe('e2ee attachment helpers', () => {
     expect(info.canDecryptEnvelope).toBe(false);
     expect(info.canValidateWrappedMediaKey).toBe(false);
     expect(info.requiresFutureStrategySupport).toBe(true);
-  });
-
-  test('assertAttachmentBinaryAccessSupported rejects future media drafts without decrypt support', () => {
-    expect(() => assertAttachmentBinaryAccessSupported({
-      transfer: 'remote',
-      downloadUrl: 'https://cdn.example.com/foto.png',
-      mimeType: 'image/png',
-      strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      contentEncoding: ATTACHMENT_FUTURE_ENVELOPE_ALG,
-      encryption: {
-        alg: ATTACHMENT_FUTURE_ENVELOPE_ALG,
-        strategyKey: ATTACHMENT_FUTURE_MEDIA_STRATEGY,
-      },
-    })).toThrow('Decrypt voor pulse_media_v1 is nog niet beschikbaar.');
   });
 
   test('createAttachmentMessageActionRuntime centralizes runner setup for message attachments', async () => {

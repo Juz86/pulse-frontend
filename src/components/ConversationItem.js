@@ -27,6 +27,9 @@ function ConversationItemBase({
   unread,
   isPinned,
   currentUid,
+  selectionMode,
+  isSelected,
+  onToggleSelect,
   onOpen,
   onMoreActionsEnter,
   onMoreActionsLeave,
@@ -39,15 +42,36 @@ function ConversationItemBase({
     }
   };
 
+  const handleOpen = () => {
+    if (selectionMode) {
+      onToggleSelect?.(conv.id);
+      return;
+    }
+    onOpen();
+  };
+
   return (
     <div
       className={`conv-item ${isActive ? 'active' : ''}`}
       role="button"
       tabIndex={0}
       aria-pressed={isActive}
-      onClick={onOpen}
+      onClick={handleOpen}
       onKeyDown={handleKeyDown}
     >
+      {selectionMode && (
+        <label
+          style={{ display: 'flex', alignItems: 'center', marginRight: 10 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            checked={!!isSelected}
+            onChange={() => onToggleSelect?.(conv.id)}
+            aria-label={`${conv.name} selecteren`}
+          />
+        </label>
+      )}
       <div className="avatar-wrap">
         <UserAvatar photoURL={conv.photoURL || null} displayName={conv.name || conv.id} decorative />
         {isOnline && <span className={`online-dot${isInactive ? ' inactive' : ''}`} aria-hidden="true" />}
@@ -133,18 +157,20 @@ function ConversationItemBase({
         </div>
       </div>
       {unread > 0 && <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>}
-      <button
-        type="button"
-        className="icon-btn"
-        aria-label={`Meer acties voor ${conv.name}`}
-        title="Meer acties"
-        onClick={e => e.stopPropagation()}
-        onMouseEnter={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
-        onMouseLeave={e => { e.stopPropagation(); onMoreActionsLeave?.(); }}
-        onFocus={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
-      >
-        <MoreHoriz size={18} aria-hidden="true" />
-      </button>
+      {!selectionMode && (
+        <button
+          type="button"
+          className="icon-btn"
+          aria-label={`Meer acties voor ${conv.name}`}
+          title="Meer acties"
+          onClick={e => e.stopPropagation()}
+          onMouseEnter={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
+          onMouseLeave={e => { e.stopPropagation(); onMoreActionsLeave?.(); }}
+          onFocus={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
+        >
+          <MoreHoriz size={18} aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }
@@ -169,7 +195,9 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.isOnline         === next.isOnline          &&
   prev.isInactive       === next.isInactive        &&
   prev.unread           === next.unread            &&
-  prev.isPinned         === next.isPinned
+  prev.isPinned         === next.isPinned          &&
+  prev.selectionMode    === next.selectionMode     &&
+  prev.isSelected       === next.isSelected
 );
 
 export default ConversationItem;

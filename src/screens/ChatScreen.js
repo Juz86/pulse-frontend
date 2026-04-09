@@ -58,6 +58,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [showStarredMsgs, setShowStarredMsgs] = useState(false);
   const [jumpToMsgId,     setJumpToMsgId]     = useState(null);
   const [isOnline,        setIsOnline]        = useState(navigator.onLine);
+  const [conversationSelectionMode, setConversationSelectionMode] = useState(false);
+  const [selectedConversationIds, setSelectedConversationIds] = useState([]);
   const jumpTimer = useRef(null);
   const clearLabelMenu = () => {};
 
@@ -115,6 +117,30 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }
   function handleDeleteRequest(msg) {
     setDeleteConfirm({ msgId: msg.id, isOwn: msg.senderId === user.uid });
+  }
+  function toggleConversationSelection(convId) {
+    setSelectedConversationIds((prev) => prev.includes(convId) ? prev.filter((id) => id !== convId) : [...prev, convId]);
+  }
+  function enterConversationSelection() {
+    setConversationSelectionMode(true);
+    setSelectedConversationIds([]);
+  }
+  function cancelConversationSelection() {
+    setConversationSelectionMode(false);
+    setSelectedConversationIds([]);
+  }
+  function deleteSelectedConversations() {
+    if (!selectedConversationIds.length) return;
+    setConfirmDialog({
+      message: `${selectedConversationIds.length} gesprek${selectedConversationIds.length === 1 ? '' : 'ken'} verwijderen?`,
+      onConfirm: async () => {
+        for (const convId of selectedConversationIds) {
+          // eslint-disable-next-line no-await-in-loop
+          await deleteConversation(null, convId);
+        }
+        cancelConversationSelection();
+      },
+    });
   }
   const setConvLabel = (convId, label) => {
     const next = label ? { ...convLabels, [convId]: label } : Object.fromEntries(Object.entries(convLabels).filter(([k]) => k !== convId));
@@ -341,6 +367,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         parentBlockedUids={parentBlockedUids}
         onOpenConversation={openConversation}
         onCallFromConv={initiateCallFromConv} onDeleteConversation={deleteConversation}
+        selectionMode={conversationSelectionMode}
+        selectedConversationIds={selectedConversationIds}
+        onToggleConversationSelection={toggleConversationSelection}
+        onEnterConversationSelection={enterConversationSelection}
+        onCancelConversationSelection={cancelConversationSelection}
+        onDeleteSelectedConversations={deleteSelectedConversations}
         getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         getContactDisplayName={getContactDisplayName}
       />
@@ -468,6 +500,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         remindPendingFriendRequest={remindPendingFriendRequest}
         cancelPendingFriendRequest={cancelPendingFriendRequest}
         clearPendingFriendRequestState={clearPendingFriendRequestState}
+        friendRequests={friendRequests}
+        sentFriendRequests={sentFriendRequests}
+        showFriendRequestsPanel={showFriendRequestsPanel} setShowFriendRequestsPanel={setShowFriendRequestsPanel}
+        onAcceptFriendRequest={acceptFriendRequest}
+        onDeclineFriendRequest={declineFriendRequest}
+        onRemindFriendRequest={remindFriendRequestById}
+        onCancelFriendRequest={cancelFriendRequestById}
         showNewChat={showNewChat} setShowNewChat={setShowNewChat}
         searchEmail={searchEmail} setSearchEmail={setSearchEmail}
         searchErr={searchErr} searchResult={searchResult}

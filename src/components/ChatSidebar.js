@@ -2,11 +2,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, ChevronDown, Plus } from '../components/Icons';
+import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
-import { clearPulseUserStorage, getInitials } from '../utils';
+import { clearPulseUserStorage } from '../utils';
 
 export default function ChatSidebar({
   user,
@@ -67,6 +67,12 @@ export default function ChatSidebar({
   onOpenConversation,
   onCallFromConv,
   onDeleteConversation,
+  selectionMode,
+  selectedConversationIds,
+  onToggleConversationSelection,
+  onEnterConversationSelection,
+  onCancelConversationSelection,
+  onDeleteSelectedConversations,
   // helpers
   getConvName,
   getOtherUid,
@@ -75,20 +81,20 @@ export default function ChatSidebar({
 }) {
   const [contactMenu, setContactMenu] = useState(null);
   const [convMenu, setConvMenu]       = useState(null); // { conv, otherUid, direction, top, left }
-  const [requestsTab, setRequestsTab] = useState('ontvangen');
+  const [moreActionsMenuOpen, setMoreActionsMenuOpen] = useState(false);
   const closeMenuTimerRef = useRef(null);
-  const requestsPanelRef = useRef(null);
+  const moreActionsMenuRef = useRef(null);
 
   useEffect(() => {
-    if (!showFriendRequestsPanel) return;
+    if (!moreActionsMenuOpen) return;
     function handleClickOutside(e) {
-      if (requestsPanelRef.current && !requestsPanelRef.current.contains(e.target)) {
-        setShowFriendRequestsPanel(false);
+      if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {
+        setMoreActionsMenuOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showFriendRequestsPanel, setShowFriendRequestsPanel]);
+  }, [moreActionsMenuOpen]);
   const hasMissedCall = (!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert;
 
   async function handleLogout() {
@@ -165,18 +171,80 @@ export default function ChatSidebar({
       <div className="sidebar-header">
         <div className="sidebar-top">
           <PulseLogo size={30} textSize={20} color="#fff" />
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <button type="button" className="icon-btn" aria-label="Nieuw gesprek" onClick={onNewChat} title="Nieuw gesprek" style={{ width: 34, height: 34 }}><Message size={16} aria-hidden="true" /></button>
-            <button type="button" className="icon-btn" aria-label={hasMissedCall ? 'Oproepen, gemiste oproep aanwezig' : 'Oproepen'} onClick={onShowCallModal} title="Oproepen" style={{ position: 'relative', width: 34, height: 34 }}>
-              <Phone size={16} aria-hidden="true" />
+          <div style={{ display: 'flex', gap: '6px', position: 'relative' }} ref={moreActionsMenuRef}>
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Nieuw bericht"
+              onClick={onNewChat}
+              title="Nieuw bericht"
+              style={{ width: 34, height: 34 }}
+            >
+              <Message size={16} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Meer acties"
+              aria-expanded={moreActionsMenuOpen}
+              onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
+              title="Meer acties"
+              style={{ position: 'relative', width: 34, height: 34 }}
+            >
+              <MoreHoriz size={18} aria-hidden="true" />
               {hasMissedCall && (
                 <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
               )}
             </button>
-            <button type="button" className="icon-btn" aria-label="Nieuwe groep" onClick={onNewGroup} title="Nieuwe groep" style={{ width: 34, height: 34 }}><Users size={16} aria-hidden="true" /></button>
-            <button type="button" className={`icon-btn${dnd ? ' dnd-active' : ''}`} aria-label={dnd ? 'Meldingen inschakelen' : 'Niet gestoord inschakelen'} aria-pressed={dnd} onClick={onToggleDnd} title={dnd ? 'Meldingen inschakelen' : 'Niet gestoord'} style={{ width: 34, height: 34 }}>
-              {dnd ? <BellOff size={16} aria-hidden="true" /> : <Bell size={16} aria-hidden="true" />}
-            </button>
+            {moreActionsMenuOpen && (
+              <div
+                role="menu"
+                aria-label="Meer acties"
+                style={{
+                  position: 'absolute',
+                  top: 42,
+                  right: 0,
+                  minWidth: 220,
+                  background: 'var(--surface2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 14,
+                  padding: 8,
+                  boxShadow: '0 14px 30px rgba(0,0,0,0.24)',
+                  zIndex: 500,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 4,
+                }}
+              >
+                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); onShowAddContact(); }}>
+                  <Plus size={15} aria-hidden="true" />
+                  <span>Nieuw contact</span>
+                </button>
+                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); onNewGroup(); }}>
+                  <Users size={15} aria-hidden="true" />
+                  <span>Nieuwe groep</span>
+                </button>
+                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
+                  <Users size={15} aria-hidden="true" />
+                  <span>Vriendschapsverzoeken</span>
+                  {(friendRequests.length + sentFriendRequests.length) > 0 && (
+                    <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
+                  )}
+                </button>
+                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
+                  <Message size={15} aria-hidden="true" />
+                  <span>{selectionMode ? 'Chats selecteren stoppen' : 'Chats selecteren'}</span>
+                </button>
+                <button type="button" role="menuitem" className={`icon-btn${dnd ? ' dnd-active' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); onToggleDnd(); }}>
+                  {dnd ? <BellOff size={15} aria-hidden="true" /> : <Bell size={15} aria-hidden="true" />}
+                  <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
+                </button>
+                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); onShowCallModal(); }}>
+                  <Phone size={15} aria-hidden="true" />
+                  <span>Oproepen</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
         <div className="search-box">
@@ -217,146 +285,55 @@ export default function ChatSidebar({
 
       {/* Chats tab */}
       {activeTab === 'chats' && (
-        <ConversationList
-          conversations={conversations}
-          activeConv={activeConv}
-          loadingConvs={loadingConvs}
-          searchQuery={searchQuery}
-          chatFilter={chatFilter}
-          selectedGroupId={selectedGroupId}
-          convLabels={convLabels}
-          pinnedContacts={pinnedContacts}
-          unreadCounts={unreadCounts}
-          onlineUsers={onlineUsers}
-          inactiveUsers={inactiveUsers}
-          currentUid={user.uid}
-          getConvName={getConvName}
-          getOtherUid={getOtherUid}
-          getConvPhoto={getConvPhoto}
-          onOpen={onOpenConversation}
-          onMoreActionsEnter={(conv, otherUid, el) => openConvMenu(conv, otherUid, el)}
-          onMoreActionsLeave={scheduleCloseConvMenu}
-          setLabelMenuConvId={setLabelMenuConvId}
-        />
+        <>
+          {selectionMode && (
+            <div style={{ padding: '0 18px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
+                <div style={{ fontSize: 12, color: 'var(--text2)', flex: 1 }}>
+                  {selectedConversationIds.length > 0 ? `${selectedConversationIds.length} gesprek${selectedConversationIds.length === 1 ? '' : 'ken'} geselecteerd` : 'Selecteer gesprekken om te verwijderen'}
+                </div>
+                <button type="button" className="btn-secondary" style={{ padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={onCancelConversationSelection}>Annuleren</button>
+                <button type="button" className="btn-danger" style={{ padding: '6px 10px', fontSize: 12, minWidth: 0 }} disabled={selectedConversationIds.length === 0} onClick={onDeleteSelectedConversations}>Verwijderen</button>
+              </div>
+            </div>
+          )}
+          <ConversationList
+            conversations={conversations}
+            activeConv={activeConv}
+            loadingConvs={loadingConvs}
+            searchQuery={searchQuery}
+            chatFilter={chatFilter}
+            selectedGroupId={selectedGroupId}
+            convLabels={convLabels}
+            pinnedContacts={pinnedContacts}
+            unreadCounts={unreadCounts}
+            onlineUsers={onlineUsers}
+            inactiveUsers={inactiveUsers}
+            currentUid={user.uid}
+            selectionMode={selectionMode}
+            selectedConversationIds={selectedConversationIds}
+            onToggleSelectConversation={onToggleConversationSelection}
+            getConvName={getConvName}
+            getOtherUid={getOtherUid}
+            getConvPhoto={getConvPhoto}
+            onOpen={onOpenConversation}
+            onMoreActionsEnter={(conv, otherUid, el) => openConvMenu(conv, otherUid, el)}
+            onMoreActionsLeave={scheduleCloseConvMenu}
+            setLabelMenuConvId={setLabelMenuConvId}
+          />
+        </>
       )}
 
       {/* Contacten tab */}
       {activeTab === 'contacts' && (
         <div className="conv-list">
-          <div ref={requestsPanelRef}>
-          <div style={{ padding: '0 18px 12px' }}>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'stretch' }}>
-              <button type="button" className="btn-primary" style={{ padding: '10px', fontSize: '13px', flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }} onClick={onShowAddContact}>
-                <Plus size={16} aria-hidden="true" />Nieuw contact
-              </button>
-              <button
-                type="button"
-                className="btn-secondary"
-                style={{ padding: '10px', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
-                onClick={() => setShowFriendRequestsPanel(prev => !prev)}
-                aria-expanded={showFriendRequestsPanel}
-              >
-                Verzoeken
-                <ChevronDown
-                  size={16}
-                  aria-hidden="true"
-                  style={{ transform: showFriendRequestsPanel ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 160ms ease' }}
-                />
-              </button>
-            </div>
-            {contactSuccess && (
-              <div role="status" aria-live="polite" style={{ marginTop: '10px', padding: '8px 12px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', color: '#4ade80', fontSize: '13px' }}>
+          {contactSuccess && (
+            <div style={{ padding: '0 18px 12px' }}>
+              <div role="status" aria-live="polite" style={{ padding: '8px 12px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', color: '#4ade80', fontSize: '13px' }}>
                 <span aria-hidden="true">✅ </span>{contactSuccess}
               </div>
-            )}
-          </div>
-
-          <div style={{ overflow: 'hidden', maxHeight: showFriendRequestsPanel ? '600px' : '0', opacity: showFriendRequestsPanel ? 1 : 0, transition: 'max-height 220ms ease, opacity 180ms ease', pointerEvents: showFriendRequestsPanel ? 'auto' : 'none' }}>
-            <div style={{ padding: '0 12px 4px' }}>
-              <div style={{ display: 'flex', gap: 6, padding: '4px 6px 10px', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setRequestsTab('ontvangen')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 13px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', background: requestsTab === 'ontvangen' ? 'var(--accent, #7c6fff)' : 'rgba(255,255,255,0.06)', color: requestsTab === 'ontvangen' ? '#fff' : 'var(--text-muted)', fontSize: '13px', fontWeight: '600' }}>
-                  Ontvangen
-                  {friendRequests.length > 0 && (
-                    <span style={{ fontSize: '10px', fontWeight: '800', background: requestsTab === 'ontvangen' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.15)', color: '#fff', borderRadius: 999, padding: '1px 6px', lineHeight: 1.6 }}>{friendRequests.length}</span>
-                  )}
-                </button>
-                <button type="button" onClick={() => setRequestsTab('verstuurd')} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 13px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', background: requestsTab === 'verstuurd' ? 'var(--accent, #7c6fff)' : 'rgba(255,255,255,0.06)', color: requestsTab === 'verstuurd' ? '#fff' : 'var(--text-muted)', fontSize: '13px', fontWeight: '600' }}>
-                  Verstuurd
-                  {sentFriendRequests.length > 0 && (
-                    <span style={{ fontSize: '10px', fontWeight: '800', background: requestsTab === 'verstuurd' ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.15)', color: '#fff', borderRadius: 999, padding: '1px 6px', lineHeight: 1.6 }}>{sentFriendRequests.length}</span>
-                  )}
-                </button>
-              </div>
-
-              {requestsTab === 'ontvangen' && (<>
-                {friendRequests.map(req => (
-                  <div key={req.id} aria-label={`Vriendschapsverzoek van ${req.fromName}${req.fromEmail ? `, ${req.fromEmail}` : ''}`} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: 'rgba(124,111,255,0.08)', borderRadius: '10px', marginBottom: '8px', border: '1px solid rgba(124,111,255,0.2)' }}>
-                    <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.fromName)}</div>
-                    <div style={{ flex: 1, minWidth: 0 }} aria-hidden="true">
-                      <div style={{ fontWeight: '600', fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.fromName}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.fromEmail}</div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '5px', flexShrink: 0 }}>
-                      <button type="button" className="btn-primary" aria-label={`Accepteer verzoek van ${req.fromName}`} style={{ padding: '4px 10px', fontSize: '12px', minWidth: 0 }} onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
-                      <button type="button" className="btn-secondary" aria-label={`Weiger verzoek van ${req.fromName}`} style={{ padding: '4px 10px', fontSize: '12px', minWidth: 0 }} onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
-                    </div>
-                  </div>
-                ))}
-                {friendRequests.length === 0 && (
-                  <div className="empty-convs" style={{ paddingTop: 4, paddingBottom: 12 }}>
-                    <p>Geen ontvangen vriendschapsverzoeken.</p>
-                  </div>
-                )}
-              </>)}
-
-              {requestsTab === 'verstuurd' && (<>
-                {sentFriendRequests.map(req => {
-                  const reminderCount = Number(req.reminderCount || 0);
-                  const remindersRemaining = Math.max(0, 3 - reminderCount);
-                  return (
-                    <div key={req.id} aria-label={`Verstuurd vriendschapsverzoek naar ${req.toEmail || req.toUid}`} style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '10px', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', marginBottom: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.toEmail || req.toUid)}</div>
-                        <div style={{ flex: 1, minWidth: 0 }} aria-hidden="true">
-                          <div style={{ fontWeight: '600', fontSize: '13px', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.toEmail || req.toIdentifier || req.toUid}</div>
-                          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                            {remindersRemaining > 0 ? `Nog ${remindersRemaining} ${remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} over` : 'Geen herinneringen meer over'}
-                          </div>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button
-                          type="button"
-                          className="btn-secondary"
-                          style={{ flex: 1, padding: '6px 10px', fontSize: '12px', minWidth: 0 }}
-                          onClick={() => onCancelFriendRequest(req.id)}
-                        >
-                          Annuleren
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-primary"
-                          style={{ flex: 1, padding: '6px 10px', fontSize: '12px', minWidth: 0 }}
-                          onClick={() => onRemindFriendRequest(req.id)}
-                          disabled={remindersRemaining <= 0}
-                        >
-                          Herinneren
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-                {sentFriendRequests.length === 0 && (
-                  <div className="empty-convs" style={{ paddingTop: 4, paddingBottom: 12 }}>
-                    <p>Geen verstuurde vriendschapsverzoeken.</p>
-                  </div>
-                )}
-              </>)}
-
-              <div style={{ height: '1px', background: 'rgba(255,255,255,0.08)', margin: '4px 6px 12px' }} />
             </div>
-          </div>
-          </div>
+          )}
 
           {contacts.length === 0 && friendRequests.length === 0 && sentFriendRequests.length === 0 && (
             <div className="empty-convs">

@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useState } from 'react';
-import { Phone, Video, Camera, Delete, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, Clock, Refresh } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, Clock } from '../components/Icons';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
@@ -44,6 +44,13 @@ export default function ChatModals({
   remindPendingFriendRequest,
   cancelPendingFriendRequest,
   clearPendingFriendRequestState,
+  friendRequests,
+  sentFriendRequests,
+  showFriendRequestsPanel, setShowFriendRequestsPanel,
+  onAcceptFriendRequest,
+  onDeclineFriendRequest,
+  onRemindFriendRequest,
+  onCancelFriendRequest,
 
   // new chat
   showNewChat, setShowNewChat,
@@ -123,6 +130,7 @@ export default function ChatModals({
   const [profileClosing,  setProfileClosing]  = useState(false);
   const [pendingColor,    setPendingColor]    = useState(null);
   const [pendingPhoto,    setPendingPhoto]    = useState(null);   // { file, url }
+  const [requestsTab,     setRequestsTab]     = useState('ontvangen');
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
 
 
@@ -132,7 +140,7 @@ export default function ChatModals({
   }
 
   const anyModalOpen = !!(renamingContact || sharingContact || viewingSharedContact || viewingContact ||
-    confirmDialog || showAddContact || showNewChat || showNewGroup || showProfile ||
+    confirmDialog || showAddContact || showNewChat || showNewGroup || showProfile || showFriendRequestsPanel ||
     showCallModal || showGroupInfo || forwardMsg || showContactProfile || showAvatarBuilder || showStarredMsgs);
 
   useEffect(() => {
@@ -235,6 +243,87 @@ export default function ChatModals({
                 onClick={() => { shareRecipients.forEach(uid => { const c = contacts.find(x => x.uid === uid); if (c) sendContactCard(c, sharingContact); }); setSharingContact(null); setShareRecipients([]); }}>
                 Versturen{shareRecipients.length > 1 ? ` (${shareRecipients.length})` : ''}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── VRIENDSCHAPSVERZOEKEN ── */}
+      {showFriendRequestsPanel && (
+        <div className="modal-overlay" onClick={() => setShowFriendRequestsPanel(false)}>
+          <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="friend-requests-title" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setShowFriendRequestsPanel(false)}><span aria-hidden="true">✕</span></button>
+            <h3 id="friend-requests-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Vriendschapsverzoeken</h3>
+
+            <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+              <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
+                Ontvangen
+                {friendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{friendRequests.length}</span>}
+              </button>
+              <button type="button" onClick={() => setRequestsTab('verstuurd')} className={requestsTab === 'verstuurd' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
+                Verstuurd
+                {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 360, overflowY: 'auto' }}>
+              {requestsTab === 'ontvangen' && (
+                <>
+                  {friendRequests.map(req => (
+                    <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'rgba(124,111,255,0.08)', borderRadius: 10, border: '1px solid rgba(124,111,255,0.2)' }}>
+                      <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.fromName)}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.fromName}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.fromEmail}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                        <button type="button" className="btn-primary" style={{ padding: '4px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
+                        <button type="button" className="btn-secondary" style={{ padding: '4px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
+                      </div>
+                    </div>
+                  ))}
+                  {friendRequests.length === 0 && (
+                    <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
+                      <p>Geen ontvangen vriendschapsverzoeken.</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {requestsTab === 'verstuurd' && (
+                <>
+                  {sentFriendRequests.map(req => {
+                    const reminderCount = Number(req.reminderCount || 0);
+                    const remindersRemaining = Math.max(0, 3 - reminderCount);
+                    return (
+                      <div key={req.id} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.toEmail || req.toUid)}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.toEmail || req.toIdentifier || req.toUid}</div>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                              {remindersRemaining > 0 ? `Nog ${remindersRemaining} ${remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} over` : 'Geen herinneringen meer over'}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button type="button" className="btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onCancelFriendRequest(req.id)}>
+                            Annuleren
+                          </button>
+                          <button type="button" className="btn-primary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onRemindFriendRequest(req.id)} disabled={remindersRemaining <= 0}>
+                            Herinneren
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {sentFriendRequests.length === 0 && (
+                    <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
+                      <p>Geen verstuurde vriendschapsverzoeken.</p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -610,17 +699,17 @@ export default function ChatModals({
                 )}
                 {profileTab === 'geschiedenis' && isParent && (
                   <div>
-                    <div style={{ marginBottom: '18px' }}>
-                      <h4 style={{ fontFamily: "'Syne',sans-serif", fontSize: '18px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>Geschiedenis</h4>
-                      <p style={{ fontSize: '13px', color: 'var(--text2)', lineHeight: 1.6 }}>
+                    <div style={{ marginBottom: '16px' }}>
+                      <h4 style={{ fontFamily: "'Syne',sans-serif", fontSize: '16px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>Geschiedenis</h4>
+                      <p style={{ fontSize: '12px', color: 'var(--text2)', lineHeight: 1.5 }}>
                         Beheer hoe lang chatberichten, belgeschiedenis en videogeschiedenis worden bewaard. Stel een eigen timer in voor je ouderaccount en desgewenst een andere timer per kindaccount.
                       </p>
                     </div>
 
                     <div style={{ display: 'grid', gap: '14px' }}>
                       <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px' }}>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>Ouderaccount</div>
-                        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '12px' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>Ouderaccount</div>
+                        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '12px', lineHeight: 1.45 }}>
                           Kies een bewaartermijn voor jouw eigen geschiedenis. Zonder keuze blijft de standaard op 30 dagen.
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
@@ -633,7 +722,7 @@ export default function ChatModals({
                                 className={isActive ? 'btn-primary' : 'btn-secondary'}
                                 onClick={() => setHistoryRetentionDays(days)}
                                 disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
-                                style={{ width: '100%' }}
+                                style={{ width: '100%', fontSize: '12px', minHeight: 42 }}
                               >
                                 {days === 1 ? '24 uur' : `${days} dagen`}
                               </button>
@@ -644,9 +733,6 @@ export default function ChatModals({
                           <button type="button" className="btn-primary" onClick={saveHistorySettings} disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}>
                             {historySettingsSavingTarget === 'parent' ? 'Opslaan…' : 'Opslaan ouderaccount'}
                           </button>
-                          <button type="button" className="btn-secondary" onClick={loadHistorySettings} disabled={historySettingsLoading || Boolean(historySettingsSavingTarget)}>
-                            <Refresh size={14} aria-hidden="true" /> Opnieuw laden
-                          </button>
                         </div>
                       </div>
 
@@ -655,8 +741,8 @@ export default function ChatModals({
                         const isSaving = historySettingsSavingTarget === child.uid;
                         return (
                           <div key={child.uid} style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px' }}>
-                            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>{child.displayName}</div>
-                            <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '12px' }}>
+                            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>{child.displayName}</div>
+                            <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '12px', lineHeight: 1.45 }}>
                               Kies de bewaartermijn voor dit kindaccount.
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
@@ -669,7 +755,7 @@ export default function ChatModals({
                                     className={isActive ? 'btn-primary' : 'btn-secondary'}
                                     onClick={() => setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [child.uid]: days }))}
                                     disabled={historySettingsLoading || isSaving}
-                                    style={{ width: '100%' }}
+                                    style={{ width: '100%', fontSize: '12px', minHeight: 42 }}
                                   >
                                     {days === 1 ? '24 uur' : `${days} dagen`}
                                   </button>
@@ -686,7 +772,7 @@ export default function ChatModals({
                       })}
 
                       {historySettingsMsg && (
-                        <div style={{ fontSize: '12px', color: historySettingsMsg.startsWith('Fout:') ? 'var(--danger)' : 'var(--success)' }}>
+                        <div style={{ fontSize: '11px', color: historySettingsMsg.startsWith('Fout:') ? 'var(--danger)' : 'var(--success)' }}>
                           {historySettingsMsg}
                         </div>
                       )}

@@ -16,6 +16,9 @@ const ConversationList = React.memo(function ConversationList({
   onlineUsers,
   inactiveUsers,
   currentUid,
+  selectionMode,
+  selectedConversationIds,
+  onToggleSelectConversation,
   getConvName,
   getOtherUid,
   getConvPhoto,
@@ -94,6 +97,9 @@ const ConversationList = React.memo(function ConversationList({
             unread={unread}
             isPinned={isPinned}
             currentUid={currentUid}
+            selectionMode={selectionMode}
+            isSelected={selectedConversationIds?.includes(conv.id)}
+            onToggleSelect={onToggleSelectConversation}
             onOpen={() => onOpen(conv)}
             onMoreActionsEnter={el => onMoreActionsEnter?.(conv, otherUid, el)}
             onMoreActionsLeave={onMoreActionsLeave}

@@ -21,6 +21,16 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   const localStreamRef  = useRef(null);
   const remoteStreamRef = useRef(null);
 
+  async function attachMediaStream(element, stream) {
+    if (!element || !stream) return;
+    element.srcObject = stream;
+    try {
+      await element.play?.();
+    } catch (error) {
+      console.warn('[Pulse] Fout: media afspelen mislukt:', error?.message || error);
+    }
+  }
+
   // ── Inkomend gesprek beantwoorden ────────────────────────────────────────
   async function handleAccept() {
     setCallState('connecting');
@@ -32,9 +42,9 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         onStream: (remoteStream, localStream) => {
           localStreamRef.current  = localStream;
           remoteStreamRef.current = remoteStream;
-          if (localVideoRef.current)  localVideoRef.current.srcObject  = localStream;
-          if (remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStream;
-          if (remoteAudioRef.current) remoteAudioRef.current.srcObject = remoteStream;
+          if (localVideoRef.current)  attachMediaStream(localVideoRef.current, localStream);
+          if (remoteVideoRef.current) attachMediaStream(remoteVideoRef.current, remoteStream);
+          if (remoteAudioRef.current) attachMediaStream(remoteAudioRef.current, remoteStream);
           setCallState('active');
           startTimer();
         },
@@ -43,7 +53,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         onConnectionFallback: (message) => setCallMsg(message),
       });
       localStreamRef.current = localStream;
-      if (localVideoRef.current) localVideoRef.current.srcObject = localStream;
+      if (localVideoRef.current) attachMediaStream(localVideoRef.current, localStream);
     } catch (e) {
       setCallMsg(e.message || 'Kan geen toegang krijgen tot microfoon/camera.');
       setCallState('ended');
@@ -114,12 +124,12 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   useEffect(() => {
     if (active?.localStream) {
       localStreamRef.current = active.localStream;
-      if (localVideoRef.current) localVideoRef.current.srcObject = active.localStream;
+      if (localVideoRef.current) attachMediaStream(localVideoRef.current, active.localStream);
     }
     if (active?.remoteStream) {
       remoteStreamRef.current = active.remoteStream;
-      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = active.remoteStream;
-      if (remoteAudioRef.current) remoteAudioRef.current.srcObject = active.remoteStream;
+      if (remoteVideoRef.current) attachMediaStream(remoteVideoRef.current, active.remoteStream);
+      if (remoteAudioRef.current) attachMediaStream(remoteAudioRef.current, active.remoteStream);
     }
     if (active?.remoteStream && callState === 'calling') {
       setCallState('active');
@@ -169,9 +179,9 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   // Zodra video-upgrade actief is, zet streams opnieuw op de nieuw-gemounte video-elementen
   useEffect(() => {
     if (!videoUpgraded) return;
-    if (localStreamRef.current  && localVideoRef.current)  localVideoRef.current.srcObject  = localStreamRef.current;
-    if (remoteStreamRef.current && remoteVideoRef.current) remoteVideoRef.current.srcObject = remoteStreamRef.current;
-    if (remoteStreamRef.current && remoteAudioRef.current) remoteAudioRef.current.srcObject = remoteStreamRef.current;
+    if (localStreamRef.current  && localVideoRef.current)  attachMediaStream(localVideoRef.current, localStreamRef.current);
+    if (remoteStreamRef.current && remoteVideoRef.current) attachMediaStream(remoteVideoRef.current, remoteStreamRef.current);
+    if (remoteStreamRef.current && remoteAudioRef.current) attachMediaStream(remoteAudioRef.current, remoteStreamRef.current);
   }, [videoUpgraded]);
 
   const isVideo   = incoming?.isVideo || active?.isVideo || videoUpgraded;

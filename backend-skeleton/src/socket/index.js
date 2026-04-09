@@ -3,7 +3,7 @@ import admin from 'firebase-admin';
 import { db } from '../services/firestore.js';
 import { getDevUidFromSocketAuth, isDevAuthBypassEnabled } from '../middleware/auth.js';
 import { canEditMessage, normalizeEditedText } from '../services/messageEdits.js';
-import { buildLegacyMessage, buildSystemMessage } from '../services/legacyMessages.js';
+import { buildCallMessage, buildLegacyMessage, buildSystemMessage } from '../services/legacyMessages.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
@@ -418,6 +418,48 @@ export function createSocketServer(server) {
           convId,
           status: 'gelezen',
         });
+      }
+    });
+
+    socket.on('call:log', async ({
+      convId,
+      isVideo = false,
+      direction = 'completed',
+      duration = 0,
+      senderId,
+      senderName,
+    } = {}) => {
+      if (!convId || !uid) return;
+
+      const convDoc = await db.collection('conversations').doc(convId).get();
+      if (!convDoc.exists) return;
+
+      const conv = convDoc.data();
+      if (!Array.isArray(conv.members) || !conv.members.includes(uid)) return;
+
+      const messageRef = db.collection('messages').doc();
+      const savedMessage = buildCallMessage({
+        id: messageRef.id,
+        convId,
+        senderId: senderId || uid,
+        senderName: senderName || uid,
+        isVideo: !!isVideo,
+        direction,
+        duration,
+      });
+
+      await messageRef.set(savedMessage);
+      await convDoc.ref.set({
+        lastMessage: '',
+        lastMessageType: 'call',
+        lastCallDirection: savedMessage.direction,
+        lastCallSenderId: savedMessage.senderId,
+        lastCallIsVideo: savedMessage.isVideo,
+        updatedAt: savedMessage.createdAt,
+      }, { merge: true });
+
+      for (const memberUid of conv.members) {
+        emitToUser(io, memberUid, 'message:received', savedMessage);
       }
     });
 

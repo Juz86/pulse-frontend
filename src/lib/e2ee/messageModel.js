@@ -18,6 +18,9 @@ export function normalizeIncomingMessage(raw, currentUserId) {
   const normalizedAttachment = type === 'attachment'
     ? (normalizeAttachmentPayload(raw.attachment) || null)
     : null;
+  const normalizedCallDirection = type === 'call' ? (raw.direction || null) : null;
+  const normalizedCallDuration = type === 'call' ? (Number(raw.duration) || 0) : 0;
+  const normalizedCallIsVideo = type === 'call' ? !!raw.isVideo : false;
   const reactions = raw.reactions && typeof raw.reactions === 'object' && !Array.isArray(raw.reactions)
     ? raw.reactions
     : {};
@@ -47,6 +50,9 @@ export function normalizeIncomingMessage(raw, currentUserId) {
     messageType: type,
     sharedContact: normalizedSharedContact,
     attachment: normalizedAttachment,
+    direction: normalizedCallDirection,
+    duration: normalizedCallDuration,
+    isVideo: normalizedCallIsVideo,
 
     pending: !!raw.pending,
     failed: !!raw.failed,

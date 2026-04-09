@@ -50,3 +50,37 @@ export function buildSystemMessage({
     reactions: {},
   };
 }
+
+export function buildCallMessage({
+  id,
+  convId,
+  senderId,
+  senderName = null,
+  isVideo = false,
+  direction = 'completed',
+  duration = 0,
+  createdAt = new Date().toISOString(),
+}) {
+  return {
+    id,
+    conversationId: convId,
+    convId,
+    senderId,
+    senderUserId: senderId,
+    senderName,
+    text: '',
+    type: 'call',
+    sharedContact: null,
+    mentions: [],
+    protocol: 'legacy',
+    senderDeviceId: null,
+    replyTo: null,
+    createdAt,
+    status: 'verzonden',
+    deliveryState: 'sent',
+    reactions: {},
+    isVideo: !!isVideo,
+    direction: direction || 'completed',
+    duration: Number(duration) || 0,
+  };
+}

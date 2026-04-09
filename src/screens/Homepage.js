@@ -1,5 +1,5 @@
 // src/screens/Homepage.js
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import AuthScreen from './AuthScreen';
 import AuthModal from '../components/AuthModal';
 import ParentAuthModal from '../components/ParentAuthModal';
@@ -7,7 +7,7 @@ import { Shield, PhoneIcon, Login } from '../components/Icons';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
-import { Users } from 'lucide-react';
+import { Users } from '../components/Icons';
 
 
 function HeroChatBubbles() {

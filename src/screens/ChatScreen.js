@@ -63,7 +63,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [conversationSelectionMode, setConversationSelectionMode] = useState(false);
   const [selectedConversationIds, setSelectedConversationIds] = useState([]);
   const jumpTimer = useRef(null);
-  const clearLabelMenu = () => {};
 
   function handleJumpToMsg(msgId) {
     clearTimeout(jumpTimer.current);
@@ -148,7 +147,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const next = label ? { ...convLabels, [convId]: label } : Object.fromEntries(Object.entries(convLabels).filter(([k]) => k !== convId));
     setConvLabels(next);
     localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(next));
-    clearLabelMenu();
   };
 
   // ── Hooks ─────────────────────────────────────────────────────────────────
@@ -349,7 +347,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         unreadCounts={unreadCounts} photoPreview={photoPreview}
         isParent={isParent} parentActivityBadge={parentActivityBadge}
         onOpenDashboard={onOpenDashboard}
-        setLabelMenuConvId={clearLabelMenu}
+        setLabelMenuConvId={() => {}}
         onNewChat={() => setShowNewChat(true)}
         onNewGroup={() => setShowNewGroup(true)}
         onShowCallModal={() => { setShowCallModal(true); setCallLogRead(true); onCallLogRead?.(); }}
@@ -608,7 +606,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             copyTextToClipboard(contextMenu.msg.text || '')
               .then(() => showErrToast('📋 Bericht gekopieerd'))
               .catch((e) => {
-                console.warn('[Pulse] Fout:', e.message);
                 showErrToast('Kopieren lukt niet in deze browser.');
               });
           }}

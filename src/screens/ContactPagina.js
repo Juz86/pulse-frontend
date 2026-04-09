@@ -40,44 +40,41 @@ function BadgeStrip() {
   return (
     <>
       {/* Desktop: naast elkaar */}
-      <div className="badge-strip--desktop" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-around', gap: 4, paddingTop: 4 }}>
+      <div className="badge-strip--desktop">
         {BADGES.map(({ icon, label }) => (
-          <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flex: 1, color: 'var(--accent)' }}>
+          <div key={label} className="contact-badge-desktop-item">
             {icon}
-            <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text3)', textAlign: 'center', lineHeight: 1.4 }}>{label}</span>
+            <span className="contact-badge-desktop-label">{label}</span>
           </div>
         ))}
       </div>
       {/* Mobiel: auto-slide */}
-      <div className="badge-strip--mobile" style={{ paddingTop: 4, overflow: 'hidden', textAlign: 'center' }}>
-        <div style={{
-          display: 'flex',
-          transform: `translateX(${-active * 100}%)`,
-          transition: 'transform 0.5s cubic-bezier(0.4,0,0.2,1)',
-        }}>
+      <div className="badge-strip--mobile">
+        <div
+          className="contact-badge-mobile-slider"
+          style={{
+            transform: `translateX(${-active * 100}%)`,
+            transition: 'transform 0.5s cubic-bezier(0.4,0,0.2,1)',
+          }}
+        >
           {BADGES.map(({ icon, label }) => (
-            <div key={label} style={{
-              minWidth: '100%',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
-              color: 'var(--accent)',
-            }}>
+            <div key={label} className="contact-badge-mobile-slide">
               {icon}
-              <span style={{ fontSize: 11, fontWeight: 500, color: 'var(--text3)' }}>{label}</span>
+              <span className="contact-badge-mobile-label">{label}</span>
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 5, marginTop: 8, justifyContent: 'center' }}>
-          {BADGES.map((_, i) => (
+        <div className="contact-badge-dots">
+          {BADGES.map((badge, i) => (
             <button
-              key={i}
+              key={badge.label}
               type="button"
-              onClick={() => { setActive(i); clearInterval(timerRef.current); timerRef.current = setInterval(() => setActive(j => (j + 1) % BADGES.length), 2500); }}
-              style={{
-                width: i === active ? 16 : 6, height: 6, borderRadius: 3,
-                background: i === active ? 'var(--accent)' : 'var(--border)',
-                border: 'none', cursor: 'pointer', padding: 0,
-                transition: 'width 0.3s, background 0.3s',
+              onClick={() => {
+                setActive(i);
+                clearInterval(timerRef.current);
+                timerRef.current = setInterval(() => setActive(j => (j + 1) % BADGES.length), 2500);
               }}
+              className={`contact-badge-dot ${i === active ? 'contact-badge-dot--active' : 'contact-badge-dot--inactive'}`}
               aria-label={BADGES[i].label}
             />
           ))}
@@ -95,50 +92,29 @@ function ContactInfoCard() {
       className={`ot-row${visible ? ' fp-visible' : ''}`}
       style={{ display: 'block' }}
     >
-      <div style={{
-        background: 'var(--surface2)',
-        border: '1px solid var(--border)',
-        borderRadius: 20,
-        padding: '36px 32px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 32,
-      }}>
+      <div className="contact-info-card">
         {/* Brand */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <img src="/logo192.png" alt="" aria-hidden="true" width={32} height={32} style={{ borderRadius: 8 }} />
-            <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>Pulse</span>
+          <div className="contact-brand-header">
+            <img src="/logo192.png" alt="" aria-hidden="true" width={32} height={32} className="contact-brand-logo" />
+            <span className="contact-brand-name">Pulse</span>
           </div>
           <p style={{ color: 'var(--text2)', fontSize: 15, lineHeight: 1.7 }}>
             Veilige communicatie voor kinderen en gezinnen. Wij helpen je graag verder.
           </p>
 
           {/* Feature strip */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 16 }}>
+          <div className="contact-feature-list">
             {[
               { icon: <Message size={18} />, label: 'Chatten', sub: 'Veilig berichten sturen' },
               { icon: <Phone size={18} />,   label: 'Bellen',  sub: 'Zonder telefoonnummer' },
               { icon: <Video size={18} />,   label: 'Videobellen', sub: 'Met vertrouwde contacten' },
-            ].map(({ icon, label, sub }, i, arr) => (
-              <div key={label} style={{
-                display: 'flex', alignItems: 'center', gap: 14,
-                padding: '13px 16px',
-                background: 'var(--surface)',
-                borderRadius: 12,
-                border: '1px solid var(--border)',
-              }}>
-                <span style={{
-                  width: 36, height: 36, flexShrink: 0, borderRadius: 10,
-                  background: 'rgba(108,99,255,0.15)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: 'var(--accent)',
-                }}>
-                  {icon}
-                </span>
+            ].map(({ icon, label, sub }) => (
+              <div key={label} className="contact-feature-item">
+                <span className="contact-feature-icon">{icon}</span>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{label}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text3)' }}>{sub}</div>
+                  <div className="contact-feature-label">{label}</div>
+                  <div className="contact-feature-sub">{sub}</div>
                 </div>
               </div>
             ))}
@@ -146,36 +122,18 @@ function ContactInfoCard() {
         </div>
 
         {/* E-mail */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            background: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 12,
-            padding: '14px 18px',
-          }}>
-            <span style={{
-              width: 36, height: 36,
-              background: 'rgba(108,99,255,0.12)',
-              borderRadius: 10,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'var(--accent)', flexShrink: 0,
-            }}>
+        <div className="contact-email-block">
+          <div className="contact-email-row">
+            <span className="contact-email-icon">
               <Mail size={18} />
             </span>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>E-mail</div>
-              <a
-                href="mailto:info@pulse-messenger.com"
-                style={{ color: 'var(--text)', fontSize: 15, fontWeight: 500, textDecoration: 'none' }}
-              >
+              <div className="contact-email-eyebrow">E-mail</div>
+              <a href="mailto:info@pulse-messenger.com" className="contact-email-link">
                 info@pulse-messenger.com
               </a>
             </div>
           </div>
-
         </div>
 
         {/* Badge */}
@@ -233,8 +191,20 @@ function ContactForm() {
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setLoading(true);
     try {
-      // Contactformulier — backend-koppeling wordt later toegevoegd
-      await new Promise(r => setTimeout(r, 900));
+      const res = await fetch(
+        `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/api/contact`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            naam: form.naam.trim(),
+            email: form.email.trim().toLowerCase(),
+            onderwerp: form.onderwerp,
+            bericht: form.bericht.trim(),
+          }),
+        }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setSuccess(true);
     } catch {
       setErrors({ form: 'Er is iets misgegaan. Probeer het opnieuw of stuur een e-mail naar info@pulse-messenger.com.' });
@@ -243,53 +213,16 @@ function ContactForm() {
     }
   }
 
-  const inputStyle = (hasError) => ({
-    width: '100%',
-    background: 'var(--surface)',
-    border: `1.5px solid ${hasError ? 'var(--danger)' : 'var(--border)'}`,
-    borderRadius: 12,
-    padding: '12px 16px',
-    color: 'var(--text)',
-    fontSize: 15,
-    fontFamily: 'var(--font-primary)',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-  });
-
-  const labelStyle = {
-    display: 'block',
-    fontSize: 13,
-    fontWeight: 600,
-    color: 'var(--text2)',
-    marginBottom: 7,
-  };
-
-  const errorStyle = {
-    fontSize: 12,
-    color: 'var(--danger)',
-    marginTop: 5,
-  };
-
   return (
     <div
       ref={ref}
       className={`ot-row${visible ? ' fp-visible' : ''}`}
       style={{ display: 'block' }}
     >
-      <div style={{
-        background: 'var(--surface2)',
-        border: '1px solid var(--border)',
-        borderRadius: 20,
-        padding: '36px 32px',
-      }}>
+      <div className="contact-form-card">
         {success ? (
-          <div style={{ textAlign: 'center', padding: '32px 0' }}>
-            <div style={{
-              width: 64, height: 64, borderRadius: '50%',
-              background: 'rgba(67,233,123,0.12)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 20px',
-            }}>
+          <div className="contact-success">
+            <div className="contact-success-icon">
               <Check size={32} style={{ color: 'var(--success)' }} />
             </div>
             <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Bericht ontvangen!</h3>
@@ -305,89 +238,65 @@ function ContactForm() {
             </p>
 
             {errors.form && (
-              <div style={{
-                background: 'rgba(255,71,87,0.1)',
-                border: '1px solid rgba(255,71,87,0.3)',
-                borderRadius: 10,
-                padding: '12px 16px',
-                fontSize: 14,
-                color: 'var(--danger)',
-                marginBottom: 20,
-              }}>
-                {errors.form}
-              </div>
+              <div className="contact-form-error">{errors.form}</div>
             )}
 
-            <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <form onSubmit={handleSubmit} noValidate className="contact-form">
+              <div className="contact-form-grid">
                 <div>
-                  <label htmlFor="contact-naam" style={labelStyle}>Naam</label>
+                  <label htmlFor="contact-naam" className="contact-label">Naam</label>
                   <input
                     id="contact-naam"
                     type="text"
                     placeholder="Je naam"
                     value={form.naam}
                     onChange={e => set('naam', e.target.value)}
-                    style={inputStyle(errors.naam)}
+                    className={`contact-input${errors.naam ? ' contact-input--error' : ''}`}
                     autoComplete="name"
                   />
-                  {errors.naam && <div style={errorStyle}>{errors.naam}</div>}
+                  {errors.naam && <div className="contact-error">{errors.naam}</div>}
                 </div>
                 <div>
-                  <label htmlFor="contact-email" style={labelStyle}>E-mailadres</label>
+                  <label htmlFor="contact-email" className="contact-label">E-mailadres</label>
                   <input
                     id="contact-email"
                     type="email"
                     placeholder="je@email.com"
                     value={form.email}
                     onChange={e => set('email', e.target.value)}
-                    style={inputStyle(errors.email)}
+                    className={`contact-input${errors.email ? ' contact-input--error' : ''}`}
                     autoComplete="email"
                   />
-                  {errors.email && <div style={errorStyle}>{errors.email}</div>}
+                  {errors.email && <div className="contact-error">{errors.email}</div>}
                 </div>
               </div>
 
               <div>
-                <label style={labelStyle}>Onderwerp</label>
-                <div ref={dropdownRef} style={{ position: 'relative' }}>
+                <label className="contact-label">Onderwerp</label>
+                <div ref={dropdownRef} className="contact-dropdown-wrapper">
                   <button
                     type="button"
                     onClick={() => setDropdownOpen(o => !o)}
-                    style={{
-                      ...inputStyle(errors.onderwerp),
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      cursor: 'pointer', textAlign: 'left',
-                      color: form.onderwerp ? 'var(--text)' : 'var(--text3)',
-                    }}
+                    className={`contact-input contact-dropdown-trigger${!form.onderwerp ? ' contact-dropdown-trigger--placeholder' : ''}${errors.onderwerp ? ' contact-input--error' : ''}`}
                   >
                     <span>{form.onderwerp || 'Selecteer een onderwerp'}</span>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, transition: 'transform 0.2s', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', color: 'var(--text3)' }}><polyline points="6 9 12 15 18 9"/></svg>
+                    <svg
+                      width="16" height="16" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round"
+                      className={`contact-dropdown-chevron${dropdownOpen ? ' contact-dropdown-chevron--open' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
                   </button>
                   {dropdownOpen && (
-                    <div style={{
-                      position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 50,
-                      background: 'var(--surface2)',
-                      border: '1.5px solid var(--border)',
-                      borderRadius: 12,
-                      overflow: 'hidden',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
-                    }}>
+                    <div className="contact-dropdown-menu">
                       {ONDERWERPEN.slice(1).map((o, i, arr) => (
                         <button
                           key={o}
                           type="button"
                           onClick={() => { set('onderwerp', o); setDropdownOpen(false); }}
-                          style={{
-                            display: 'block', width: '100%', textAlign: 'left',
-                            padding: '11px 16px', fontSize: 15,
-                            background: form.onderwerp === o ? 'rgba(108,99,255,0.12)' : 'transparent',
-                            color: form.onderwerp === o ? 'var(--accent)' : 'var(--text)',
-                            border: 'none', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
-                            cursor: 'pointer', fontFamily: 'var(--font-primary)',
-                          }}
-                          onMouseEnter={e => { if (form.onderwerp !== o) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-                          onMouseLeave={e => { if (form.onderwerp !== o) e.currentTarget.style.background = 'transparent'; }}
+                          className={`contact-dropdown-item${form.onderwerp === o ? ' contact-dropdown-item--selected' : ''}${i < arr.length - 1 ? ' contact-dropdown-item--bordered' : ''}`}
                         >
                           {o}
                         </button>
@@ -395,31 +304,31 @@ function ContactForm() {
                     </div>
                   )}
                 </div>
-                {errors.onderwerp && <div style={errorStyle}>{errors.onderwerp}</div>}
+                {errors.onderwerp && <div className="contact-error">{errors.onderwerp}</div>}
               </div>
 
               <div>
-                <label htmlFor="contact-bericht" style={labelStyle}>Bericht</label>
+                <label htmlFor="contact-bericht" className="contact-label">Bericht</label>
                 <textarea
                   id="contact-bericht"
                   placeholder="Hoe kunnen we je helpen?"
                   value={form.bericht}
                   onChange={e => set('bericht', e.target.value)}
                   rows={5}
-                  style={{ ...inputStyle(errors.bericht), resize: 'vertical', minHeight: 130 }}
+                  className={`contact-input${errors.bericht ? ' contact-input--error' : ''}`}
+                  style={{ resize: 'vertical', minHeight: 130 }}
                 />
-                {errors.bericht && <div style={errorStyle}>{errors.bericht}</div>}
+                {errors.bericht && <div className="contact-error">{errors.bericht}</div>}
               </div>
 
               <button
                 type="submit"
-                className="hp-cta-btn"
+                className="hp-cta-btn contact-submit-btn"
                 disabled={loading}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
               >
                 {loading ? (
                   <>
-                    <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+                    <span className="contact-spinner" />
                     Versturen…
                   </>
                 ) : (
@@ -475,7 +384,7 @@ export default function ContactPagina() {
 
       <main id="main-content">
         {/* ── HERO ── */}
-        <section className="legal-hero" style={{ paddingBottom: 48, background: '#fff' }}>
+        <section className="legal-hero contact-hero-section">
           <div className="legal-hero-inner">
             <div className="fp-hero-badge legal-hero-badge">Contact</div>
             <h1 className="legal-hero-title">
@@ -491,16 +400,9 @@ export default function ContactPagina() {
         </section>
 
         {/* ── CONTENT ── */}
-        <section className="hp-section" style={{ paddingTop: 0 }}>
+        <section className="hp-section contact-content-section">
           <div className="hp-section-inner">
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1.6fr',
-              gap: 28,
-              alignItems: 'start',
-            }}
-              className="contact-grid"
-            >
+            <div className="contact-grid">
               <ContactInfoCard />
               <ContactForm />
             </div>
@@ -511,14 +413,13 @@ export default function ContactPagina() {
         <section className="ot-final-cta">
           <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
           <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="contact-cta-row">
             <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
               Ouderaccount aanmaken
             </button>
             <button
               type="button"
-              className="hp-cta-btn"
-              style={{ background: '#fff', border: '1.5px solid rgba(108,99,255,0.4)', color: '#6c63ff', display: 'flex', alignItems: 'center', gap: 6 }}
+              className="hp-cta-btn contact-cta-btn-login"
               onClick={() => setShowAuthModal(true)}
             >
               <Login size={18} /> Inloggen
@@ -529,12 +430,6 @@ export default function ContactPagina() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        .badge-strip--mobile { display: none; }
-        @media (max-width: 768px) {
-          .contact-grid { grid-template-columns: 1fr !important; }
-          .badge-strip--desktop { display: none !important; }
-          .badge-strip--mobile { display: block; }
-        }
         input::placeholder, textarea::placeholder { color: var(--text3); }
         input:focus, textarea:focus {
           border-color: var(--accent) !important;

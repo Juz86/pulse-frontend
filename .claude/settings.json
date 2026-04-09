@@ -29,7 +29,8 @@
       "Bash(node --check /home/yushuaabdulkadir/pulse-backend/src/routes/friends.js)",
       "Bash(npx jest:*)",
       "Bash(node -e \"const fs=require\\('fs'\\); require\\('@babel/parser'\\).parse\\(fs.readFileSync\\('src/components/ChatSidebar.js','utf8'\\),{sourceType:'module',plugins:['jsx']}\\); console.log\\('OK'\\);\")",
-      "Bash(node -e \"const fs=require\\('fs'\\); require\\('@babel/parser'\\).parse\\(fs.readFileSync\\('src/screens/PrivacyFirstPagina.js','utf8'\\),{sourceType:'module',plugins:['jsx']}\\); console.log\\('OK'\\);\")"
+      "Bash(node -e \"const fs=require\\('fs'\\); require\\('@babel/parser'\\).parse\\(fs.readFileSync\\('src/screens/PrivacyFirstPagina.js','utf8'\\),{sourceType:'module',plugins:['jsx']}\\); console.log\\('OK'\\);\")",
+      "Bash(grep -r \"width.*px\\\\|height.*px\" src/screens/*.js)"
     ],
     "additionalDirectories": [
       "/home/yushuaabdulkadir/pulse-backend"

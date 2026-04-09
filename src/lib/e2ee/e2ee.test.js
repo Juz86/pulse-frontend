@@ -1338,7 +1338,7 @@ describe('e2ee transport payload helpers', () => {
       senderName: 'Yushua',
       senderDeviceId: 'device-1',
       text: 'Hallo',
-      protocol: 'signal_v1',
+      protocol: 'legacy_plaintext',
       type: 'text',
       messageType: 'text',
       mentions: ['user-2'],

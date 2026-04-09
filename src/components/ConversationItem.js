@@ -1,6 +1,6 @@
 // src/components/ConversationItem.js
 import React from 'react';
-import { Pin, InfoIcon } from '../components/Icons';
+import { Pin, MoreHoriz } from '../components/Icons';
 import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview } from '../utils';
@@ -143,7 +143,7 @@ function ConversationItemBase({
         onMouseLeave={e => { e.stopPropagation(); onMoreActionsLeave?.(); }}
         onFocus={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
       >
-        <InfoIcon size={18} aria-hidden="true" />
+        <MoreHoriz size={18} aria-hidden="true" />
       </button>
     </div>
   );

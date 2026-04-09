@@ -367,10 +367,16 @@ function MainApp() {
 
         // Inkomende oproepen
         socket.off('call:incoming');
+        socket.off('call:offer');
         socket.off('call:ended');
-        socket.on('call:incoming', (data) => {
-          setIncomingCall(data);
-        });
+        const onIncomingCall = (data = {}) => {
+          setIncomingCall({
+            ...data,
+            from: data.from || data.fromUid || null,
+          });
+        };
+        socket.on('call:incoming', onIncomingCall);
+        socket.on('call:offer', onIncomingCall);
         // Beller hangt op voor de ontvanger opneemt → gemiste oproep loggen + overlay sluiten
         socket.on('call:ended', () => {
           setIncomingCall(prev => {

@@ -433,50 +433,50 @@ export default function ChatSidebar({
               borderRadius: '14px', padding: '6px',
               boxShadow: '0 8px 32px rgba(0,0,0,.35)',
               display: 'flex', flexDirection: 'column',
-              minWidth: 188, gap: 2,
+              minWidth: 160, gap: 2,
             }}
           >
             {contact && (
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }}
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
                 onClick={() => { onViewContact(contact); setConvMenu(null); }} title="Profiel">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
                 <span>Profiel</span>
               </button>
             )}
             {!isParentBlocked && <>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }}
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
                 onClick={() => { onOpenConversation(conv); setConvMenu(null); }} title="Bericht sturen">
-                <Message size={16} aria-hidden="true" />
+                <Message size={14} aria-hidden="true" />
                 <span>Bericht sturen</span>
               </button>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }}
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
                 onClick={() => { onCallFromConv(conv, false); setConvMenu(null); }} title="Bellen">
-                <Phone size={16} aria-hidden="true" />
+                <Phone size={14} aria-hidden="true" />
                 <span>Bellen</span>
               </button>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }}
+              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
                 onClick={() => { onCallFromConv(conv, true); setConvMenu(null); }} title="Videobellen">
-                <Video size={16} aria-hidden="true" />
+                <Video size={14} aria-hidden="true" />
                 <span>Videobellen</span>
               </button>
               {otherUid && (
-                <button type="button" role="menuitem" className={`icon-btn${isPinned ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px' }}
+                <button type="button" role="menuitem" className={`icon-btn${isPinned ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
                   onClick={() => { onTogglePin(otherUid); setConvMenu(null); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
-                  <Pin size={17} aria-hidden="true" />
+                  <Pin size={14} aria-hidden="true" />
                   <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
                 </button>
               )}
               {contact && (
-                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }}
+                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0, color: 'var(--danger)' }}
                   onClick={() => { onBlockContact(contact); setConvMenu(null); }} title="Blokkeren">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
                   <span>Blokkeren</span>
                 </button>
               )}
             </>}
-            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 10, padding: '10px 12px', color: 'var(--danger)' }}
+            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0, color: 'var(--danger)' }}
               onClick={() => { onDeleteConversation(null, conv.id); setConvMenu(null); }} title="Gesprek verwijderen">
-              <Delete size={18} aria-hidden="true" />
+              <Delete size={14} aria-hidden="true" />
               <span>Prullenbak</span>
             </button>
           </div>

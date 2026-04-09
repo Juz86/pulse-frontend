@@ -23,6 +23,51 @@ function buildChildEmail(username) {
   return `${username}@kind.pulse.local`;
 }
 
+async function setUserContact(userId, targetUid, data) {
+  await db.collection('users').doc(userId).collection('contacts').doc(targetUid).set(
+    {
+      uid: targetUid,
+      ...data,
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+}
+
+async function ensureParentChildContactLinks({ parentUid, childUid, parentData, childData }) {
+  await setUserContact(parentUid, childUid, {
+    displayName: childData.displayName || childData.username || childUid,
+    email: childData.email || null,
+    photoURL: childData.photoURL || null,
+    username: childData.username || null,
+    relation: 'child',
+  });
+
+  await setUserContact(childUid, parentUid, {
+    displayName: parentData.displayName || parentData.username || parentUid,
+    email: parentData.email || null,
+    photoURL: parentData.photoURL || null,
+    username: parentData.username || null,
+    relation: 'parent',
+  });
+
+  await db.collection('approved_contacts').doc(`${childUid}_${parentUid}`).set(
+    {
+      childId: childUid,
+      targetUid: parentUid,
+      displayName: parentData.displayName || parentData.username || parentUid,
+      approved: true,
+      approvedByParentId: parentUid,
+      chat: true,
+      call: true,
+      video: true,
+      blocked: false,
+      createdAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+}
+
 function toPausedFeatures(policy = null) {
   return {
     chat: policy ? policy.featureRules?.chat === false : false,
@@ -237,9 +282,17 @@ parentRouter.post('/create-child', requireAuth, asyncRoute(async (req, res) => {
   }
 
   const now = new Date().toISOString();
+  const parentDoc = await db.collection('users').doc(parentUid).get();
+  const parentData = parentDoc.exists ? parentDoc.data() : {
+    uid: parentUid,
+    displayName: parentUid,
+    email: null,
+    photoURL: null,
+    username: null,
+  };
 
   try {
-    await db.collection('users').doc(authUser.uid).set({
+    const childRecord = {
       uid: authUser.uid,
       displayName,
       username,
@@ -256,7 +309,9 @@ parentRouter.post('/create-child', requireAuth, asyncRoute(async (req, res) => {
             devAuthProvider: 'identitytoolkit',
           }
         : {}),
-    }, { merge: true });
+    };
+
+    await db.collection('users').doc(authUser.uid).set(childRecord, { merge: true });
 
     await db.collection('child_policies').doc(authUser.uid).set({
       childId: authUser.uid,
@@ -283,6 +338,13 @@ parentRouter.post('/create-child', requireAuth, asyncRoute(async (req, res) => {
       },
       updatedAt: now,
     }, { merge: true });
+
+    await ensureParentChildContactLinks({
+      parentUid,
+      childUid: authUser.uid,
+      parentData,
+      childData: childRecord,
+    });
 
     await logPolicyEvent({
       actorUid: parentUid,

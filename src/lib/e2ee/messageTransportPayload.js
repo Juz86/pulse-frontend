@@ -2,6 +2,7 @@ import { getSharedContactDisplayText } from './messageCopy';
 import { ACTIVE_OUTGOING_MESSAGE_TYPES } from './messageTypeConstants';
 
 export const OUTGOING_ATTACHMENT_SCOPE_ERROR = 'Bijlagen versturen is niet beschikbaar in Pulse.';
+export const SOCKET_FALLBACK_PROTOCOL = 'legacy_plaintext';
 
 export function getStructuredMessageType(message) {
   return message?.type || message?.messageType || 'text';
@@ -93,7 +94,9 @@ export function buildSocketMessagePayload({
     senderName,
     text: resolveOutgoingMessageDisplayText({ plaintext, messageType, sharedContact }),
     createdAt,
-    protocol: 'signal_v1',
+    // Socket fallback carries plaintext UI content, so recipients should not treat it
+    // as an undecryptable Signal envelope.
+    protocol: SOCKET_FALLBACK_PROTOCOL,
     senderDeviceId,
     type: resolvedMessageType,
     messageType: resolvedMessageType,

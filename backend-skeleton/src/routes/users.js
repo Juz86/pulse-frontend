@@ -6,6 +6,59 @@ import { resolveUserRole } from '../services/userRoles.js';
 
 export const usersRouter = Router();
 
+async function setUserContact(userId, targetUid, data) {
+  await db.collection('users').doc(userId).collection('contacts').doc(targetUid).set(
+    {
+      uid: targetUid,
+      ...data,
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+}
+
+async function ensureParentChildContacts(userId, userRecord) {
+  const parentUid = userRecord.parentUid || userRecord.managedByParentId || null;
+  if (!parentUid || parentUid === userId) return;
+
+  const parentDoc = await db.collection('users').doc(parentUid).get();
+  if (!parentDoc.exists) return;
+
+  const parentData = parentDoc.data() || {};
+
+  await setUserContact(userId, parentUid, {
+    displayName: parentData.displayName || parentData.username || parentUid,
+    email: parentData.email || null,
+    photoURL: parentData.photoURL || null,
+    username: parentData.username || null,
+    relation: 'parent',
+  });
+
+  await setUserContact(parentUid, userId, {
+    displayName: userRecord.displayName || userRecord.username || userId,
+    email: userRecord.email || null,
+    photoURL: userRecord.photoURL || null,
+    username: userRecord.username || null,
+    relation: 'child',
+  });
+
+  await db.collection('approved_contacts').doc(`${userId}_${parentUid}`).set(
+    {
+      childId: userId,
+      targetUid: parentUid,
+      displayName: parentData.displayName || parentData.username || parentUid,
+      approved: true,
+      approvedByParentId: parentUid,
+      chat: true,
+      call: true,
+      video: true,
+      blocked: false,
+      createdAt: new Date().toISOString(),
+    },
+    { merge: true }
+  );
+}
+
 async function syncSelfHandler(req, res) {
   const uid = req.auth.uid;
   const {
@@ -21,7 +74,7 @@ async function syncSelfHandler(req, res) {
   const existingDoc = await userRef.get();
   const existingUser = existingDoc.exists ? existingDoc.data() : null;
 
-  await userRef.set({
+  const nextUser = {
     uid,
     displayName: displayName || existingUser?.displayName || email || uid,
     email: email || existingUser?.email || null,
@@ -31,7 +84,15 @@ async function syncSelfHandler(req, res) {
     status: existingUser?.status || 'active',
     createdAt: existingUser?.createdAt || now,
     updatedAt: now,
-  }, { merge: true });
+    parentUid: existingUser?.parentUid || null,
+    managedByParentId: existingUser?.managedByParentId || null,
+  };
+
+  await userRef.set(nextUser, { merge: true });
+  await ensureParentChildContacts(uid, {
+    ...existingUser,
+    ...nextUser,
+  });
 
   return res.json({ ok: true, uid });
 }

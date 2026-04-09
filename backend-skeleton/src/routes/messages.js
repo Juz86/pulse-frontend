@@ -9,6 +9,19 @@ import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 import { applyConversationSummaryFields, deriveConversationSummary } from '../services/conversationSummaries.js';
 
+function isMissingFirestoreIndexError(error) {
+  const message = String(error?.message || '');
+  return error?.code === 9 || message.includes('FAILED_PRECONDITION') || message.includes('requires an index');
+}
+
+function sortMessagesByCreatedAtDesc(items = []) {
+  return [...items].sort((a, b) => {
+    const aTime = Date.parse(a?.createdAt || 0);
+    const bTime = Date.parse(b?.createdAt || 0);
+    return bTime - aTime;
+  });
+}
+
 export function messagesRouter({ io, emitToUser }) {
   const router = Router();
 
@@ -308,18 +321,35 @@ export function messagesRouter({ io, emitToUser }) {
       return res.status(403).json({ error: 'not_allowed_in_conversation' });
     }
 
-    const snap = await db
-      .collection('messages')
-      .where('conversationId', '==', convId)
-      .orderBy('createdAt', 'desc')
-      .offset(offset)
-      .limit(limit)
-      .get();
+    let messageRows = [];
 
-    const items = filterVisibleMessages(
-      snap.docs.map((doc) => doc.data()).reverse(),
-      uid
-    );
+    try {
+      const snap = await db
+        .collection('messages')
+        .where('conversationId', '==', convId)
+        .orderBy('createdAt', 'desc')
+        .offset(offset)
+        .limit(limit)
+        .get();
+
+      messageRows = snap.docs.map((doc) => doc.data()).reverse();
+    } catch (error) {
+      if (!isMissingFirestoreIndexError(error)) {
+        throw error;
+      }
+
+      const fallbackSnap = await db
+        .collection('messages')
+        .where('conversationId', '==', convId)
+        .get();
+
+      const sorted = sortMessagesByCreatedAtDesc(
+        fallbackSnap.docs.map((doc) => doc.data())
+      );
+      messageRows = sorted.slice(offset, offset + limit).reverse();
+    }
+
+    const items = filterVisibleMessages(messageRows, uid);
     return res.json(items);
   }));
 

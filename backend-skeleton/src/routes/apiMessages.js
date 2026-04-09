@@ -8,6 +8,19 @@ import { filterVisibleMessages } from '../services/messageVisibility.js';
 export function apiMessagesRouter({ io, emitToUser }) {
 const router = Router();
 
+function isMissingFirestoreIndexError(error) {
+  const message = String(error?.message || '');
+  return error?.code === 9 || message.includes('FAILED_PRECONDITION') || message.includes('requires an index');
+}
+
+function sortMessagesByCreatedAtDesc(items = []) {
+  return [...items].sort((a, b) => {
+    const aTime = Date.parse(a?.createdAt || 0);
+    const bTime = Date.parse(b?.createdAt || 0);
+    return bTime - aTime;
+  });
+}
+
 router.get('/:convId', requireAuth, asyncRoute(async (req, res) => {
   const uid = req.auth.uid;
   const { convId } = req.params;
@@ -24,18 +37,35 @@ router.get('/:convId', requireAuth, asyncRoute(async (req, res) => {
     return res.status(403).json({ error: 'not_allowed_in_conversation' });
   }
 
-  const snap = await db
-    .collection('messages')
-    .where('conversationId', '==', convId)
-    .orderBy('createdAt', 'desc')
-    .offset(offset)
-    .limit(limit)
-    .get();
+  let messageRows = [];
 
-  const items = filterVisibleMessages(
-    snap.docs.map((doc) => doc.data()).reverse(),
-    uid
-  );
+  try {
+    const snap = await db
+      .collection('messages')
+      .where('conversationId', '==', convId)
+      .orderBy('createdAt', 'desc')
+      .offset(offset)
+      .limit(limit)
+      .get();
+
+    messageRows = snap.docs.map((doc) => doc.data()).reverse();
+  } catch (error) {
+    if (!isMissingFirestoreIndexError(error)) {
+      throw error;
+    }
+
+    const fallbackSnap = await db
+      .collection('messages')
+      .where('conversationId', '==', convId)
+      .get();
+
+    const sorted = sortMessagesByCreatedAtDesc(
+      fallbackSnap.docs.map((doc) => doc.data())
+    );
+    messageRows = sorted.slice(offset, offset + limit).reverse();
+  }
+
+  const items = filterVisibleMessages(messageRows, uid);
   return res.json(items);
 }));
 
@@ -91,17 +121,33 @@ router.delete('/:convId/:msgId', requireAuth, asyncRoute(async (req, res) => {
   const recipients = await db.collection('message_recipients').where('messageId', '==', msgId).get();
   await Promise.all(recipients.docs.map((doc) => doc.ref.delete()));
 
-  const latestVisibleSnap = await db
-    .collection('messages')
-    .where('conversationId', '==', convId)
-    .orderBy('createdAt', 'desc')
-    .limit(20)
-    .get();
+  let latestVisibleRows = [];
 
-  const latestVisible = filterVisibleMessages(
-    latestVisibleSnap.docs.map((doc) => doc.data()),
-    null
-  )[0] || null;
+  try {
+    const latestVisibleSnap = await db
+      .collection('messages')
+      .where('conversationId', '==', convId)
+      .orderBy('createdAt', 'desc')
+      .limit(20)
+      .get();
+
+    latestVisibleRows = latestVisibleSnap.docs.map((doc) => doc.data());
+  } catch (error) {
+    if (!isMissingFirestoreIndexError(error)) {
+      throw error;
+    }
+
+    const fallbackSnap = await db
+      .collection('messages')
+      .where('conversationId', '==', convId)
+      .get();
+
+    latestVisibleRows = sortMessagesByCreatedAtDesc(
+      fallbackSnap.docs.map((doc) => doc.data())
+    ).slice(0, 20);
+  }
+
+  const latestVisible = filterVisibleMessages(latestVisibleRows, null)[0] || null;
 
   await db.collection('conversations').doc(convId).set(
     applyConversationSummaryFields(

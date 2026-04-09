@@ -20,10 +20,30 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   const closeTimeoutRef = useRef(null);
   const localStreamRef  = useRef(null);
   const remoteStreamRef = useRef(null);
+  const remoteAudioStreamRef = useRef(null);
 
   async function attachMediaStream(element, stream) {
     if (!element || !stream) return;
-    element.srcObject = stream;
+    const isAudioElement = element instanceof HTMLAudioElement;
+    const audioTracks = typeof stream.getAudioTracks === 'function' ? stream.getAudioTracks() : [];
+    const mediaStream = isAudioElement && audioTracks.length
+      ? new MediaStream(audioTracks)
+      : stream;
+
+    if (isAudioElement) {
+      remoteAudioStreamRef.current = mediaStream;
+      element.autoplay = true;
+      element.muted = false;
+      element.volume = 1;
+      element.playsInline = true;
+    }
+
+    element.srcObject = mediaStream;
+    element.onloadedmetadata = () => {
+      element.play?.().catch((error) => {
+        console.warn('[Pulse] Fout: media metadata afspelen mislukt:', error?.message || error);
+      });
+    };
     try {
       await element.play?.();
     } catch (error) {
@@ -85,6 +105,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
     clearInterval(timerRef.current);
     clearTimeout(closeTimeoutRef.current);
     localStreamRef.current?.getTracks().forEach(t => t.stop());
+    remoteAudioStreamRef.current = null;
   }
 
   function toggleMute() {
@@ -210,7 +231,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
     <div className={`call-overlay ${isVideo && callState === 'active' ? 'video-mode' : ''}`}>
 
       {/* Verborgen audio element voor spraakgesprekken */}
-      <audio ref={remoteAudioRef} autoPlay />
+      <audio ref={remoteAudioRef} autoPlay playsInline />
 
       {/* ── VIDEO STREAMS ── */}
       {isVideo && (

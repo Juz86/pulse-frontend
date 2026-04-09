@@ -3,6 +3,7 @@ import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { canTargetRecipientDevice, canUseSenderDevice } from '../services/deviceValidation.js';
+import { computeHistoryExpiresAt, purgeExpiredConversationHistory, resolveConversationRetentionDays } from '../services/historyRetention.js';
 import { computeDeliveryState, computeReceiptSummary, toSocketStatus } from '../services/messageReceipts.js';
 import { filterVisibleMessages } from '../services/messageVisibility.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
@@ -97,6 +98,8 @@ export function messagesRouter({ io, emitToUser }) {
 
     const messageRef = db.collection('messages').doc();
     const createdAt = new Date().toISOString();
+    const retentionDays = await resolveConversationRetentionDays(conv.members || []);
+    const expiresAt = computeHistoryExpiresAt(createdAt, retentionDays);
 
     await messageRef.set({
       id: messageRef.id,
@@ -112,6 +115,7 @@ export function messagesRouter({ io, emitToUser }) {
       protocolVersion: protocolVersion || 1,
       replyToMessageId: replyToMessageId || null,
       createdAt,
+      expiresAt,
       deliveryState: 'sent',
     });
 
@@ -320,6 +324,12 @@ export function messagesRouter({ io, emitToUser }) {
     if (!Array.isArray(conv.members) || !conv.members.includes(uid)) {
       return res.status(403).json({ error: 'not_allowed_in_conversation' });
     }
+
+    await purgeExpiredConversationHistory({
+      convId,
+      members: conv.members || [],
+      conversationData: { id: convId, ...conv },
+    });
 
     let messageRows = [];
 

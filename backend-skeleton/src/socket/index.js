@@ -4,6 +4,7 @@ import { db } from '../services/firestore.js';
 import { getDevUidFromSocketAuth, isDevAuthBypassEnabled } from '../middleware/auth.js';
 import { canEditMessage, normalizeEditedText } from '../services/messageEdits.js';
 import { buildCallMessage, buildLegacyMessage, buildSystemMessage } from '../services/legacyMessages.js';
+import { computeHistoryExpiresAt, resolveConversationRetentionDays } from '../services/historyRetention.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
@@ -376,6 +377,8 @@ export function createSocketServer(server) {
           senderId: uid,
         },
       });
+      const retentionDays = await resolveConversationRetentionDays(conv.members || []);
+      savedMessage.expiresAt = computeHistoryExpiresAt(savedMessage.createdAt, retentionDays);
 
       await messageRef.set(savedMessage);
       await convDoc.ref.set({
@@ -447,6 +450,8 @@ export function createSocketServer(server) {
         direction,
         duration,
       });
+      const retentionDays = await resolveConversationRetentionDays(conv.members || []);
+      savedMessage.expiresAt = computeHistoryExpiresAt(savedMessage.createdAt, retentionDays);
 
       await messageRef.set(savedMessage);
       await convDoc.ref.set({

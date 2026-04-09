@@ -3,6 +3,7 @@ import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { applyConversationSummaryFields } from '../services/conversationSummaries.js';
+import { purgeExpiredConversationHistory } from '../services/historyRetention.js';
 
 function sortByUpdatedDesc(items) {
   return [...items].sort((a, b) => {
@@ -27,19 +28,26 @@ conversationsRouter.get('/:uid', requireAuth, asyncRoute(async (req, res) => {
     .where('members', 'array-contains', uid)
     .get();
 
-  const rows = snap.docs.map((doc) => {
+  const rows = [];
+  for (const doc of snap.docs) {
     const data = { id: doc.id, ...doc.data() };
+    const purgeResult = await purgeExpiredConversationHistory({
+      convId: doc.id,
+      members: data.members || [],
+      conversationData: data,
+    });
+    const nextData = purgeResult.conversation || data;
 
     // Conversation docs already persist last-message summary fields during
     // send/update flows. Reusing them here avoids an extra per-conversation
     // messages query that can fail in production when the required Firestore
     // composite index is missing.
-    return applyConversationSummaryFields(data, {
-      ...data,
-      lastMessage: data.lastMessage || '',
-      lastMessageType: data.lastMessageType || null,
-    });
-  });
+    rows.push(applyConversationSummaryFields(nextData, {
+      ...nextData,
+      lastMessage: nextData.lastMessage || '',
+      lastMessageType: nextData.lastMessageType || null,
+    }));
+  }
   return res.json(sortByUpdatedDesc(rows));
 }));
 

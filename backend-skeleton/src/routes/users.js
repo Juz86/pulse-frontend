@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
+import { resolveUserHistoryRetentionDays } from '../services/historyRetention.js';
 import { resolveUserRole } from '../services/userRoles.js';
 
 export const usersRouter = Router();
@@ -190,6 +191,22 @@ usersRouter.get('/:uid/blocked', requireAuth, asyncRoute(async (req, res) => {
   return res.json({
     contacts,
     parentBlockedUids: contacts.map((contact) => contact.uid),
+  });
+}));
+
+usersRouter.get('/:uid/history-settings', requireAuth, asyncRoute(async (req, res) => {
+  const requesterUid = req.auth.uid;
+  const { uid } = req.params;
+
+  if (requesterUid !== uid) {
+    return res.status(403).json({ error: 'not_allowed' });
+  }
+
+  const retentionDays = await resolveUserHistoryRetentionDays(uid);
+  return res.json({
+    historyRules: {
+      retentionDays,
+    },
   });
 }));
 

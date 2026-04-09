@@ -3,6 +3,7 @@ import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { applyConversationSummaryFields, deriveConversationSummary } from '../services/conversationSummaries.js';
+import { purgeExpiredConversationHistory } from '../services/historyRetention.js';
 import { filterVisibleMessages } from '../services/messageVisibility.js';
 
 export function apiMessagesRouter({ io, emitToUser }) {
@@ -36,6 +37,12 @@ router.get('/:convId', requireAuth, asyncRoute(async (req, res) => {
   if (!Array.isArray(conv.members) || !conv.members.includes(uid)) {
     return res.status(403).json({ error: 'not_allowed_in_conversation' });
   }
+
+  await purgeExpiredConversationHistory({
+    convId,
+    members: conv.members || [],
+    conversationData: { id: convId, ...conv },
+  });
 
   let messageRows = [];
 

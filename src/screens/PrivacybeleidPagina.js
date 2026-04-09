@@ -211,7 +211,7 @@ export default function PrivacybeleidPagina() {
           </div>
           <div className="legal-card">
             <h3>Berichten en communicatie-inhoud</h3>
-            <p>30 dagen</p>
+            <p>Standaard 30 dagen, ouder kan 24 uur, 7 dagen of 14 dagen kiezen.</p>
           </div>
           <div className="legal-card">
             <h3>Logbestanden</h3>

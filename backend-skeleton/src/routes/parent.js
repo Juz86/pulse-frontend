@@ -3,6 +3,14 @@ import { Router } from 'express';
 import { asyncRoute } from '../middleware/asyncRoute.js';
 import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
+import {
+  DEFAULT_HISTORY_RETENTION_DAYS,
+  HISTORY_RETENTION_OPTIONS_DAYS,
+  getChildHistorySettings,
+  getParentHistorySettings,
+  setChildHistorySettings,
+  setParentHistorySettings,
+} from '../services/historyRetention.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
@@ -236,6 +244,93 @@ parentRouter.get('/children', requireAuth, asyncRoute(async (req, res) => {
   }));
 
   return res.json(withPolicies);
+}));
+
+parentRouter.get('/settings', requireAuth, asyncRoute(async (req, res) => {
+  const parentUid = req.auth.uid;
+  const historySettings = await getParentHistorySettings(parentUid);
+  const children = await listChildrenForParent(parentUid);
+  const childHistoryRules = await Promise.all(children.map(async (child) => {
+    const childSettings = await getChildHistorySettings(child.uid);
+    return {
+      childUid: child.uid,
+      retentionDays: childSettings.retentionDays,
+    };
+  }));
+
+  return res.json({
+    historyRules: {
+      retentionDays: historySettings.retentionDays,
+      options: HISTORY_RETENTION_OPTIONS_DAYS,
+      defaultRetentionDays: DEFAULT_HISTORY_RETENTION_DAYS,
+    },
+    childHistoryRules,
+  });
+}));
+
+parentRouter.post('/settings/history', requireAuth, asyncRoute(async (req, res) => {
+  const parentUid = req.auth.uid;
+  const retentionDays = Number(req.body?.retentionDays);
+
+  if (!HISTORY_RETENTION_OPTIONS_DAYS.includes(retentionDays)) {
+    return res.status(400).json({ error: 'invalid_retention_days' });
+  }
+
+  const historySettings = await setParentHistorySettings(parentUid, retentionDays);
+
+  await logPolicyEvent({
+    actorUid: parentUid,
+    action: 'update_history_retention',
+    allowed: true,
+    metadata: {
+      retentionDays: historySettings.retentionDays,
+    },
+  });
+
+  return res.json({
+    ok: true,
+    historyRules: {
+      retentionDays: historySettings.retentionDays,
+      options: HISTORY_RETENTION_OPTIONS_DAYS,
+      defaultRetentionDays: DEFAULT_HISTORY_RETENTION_DAYS,
+    },
+  });
+}));
+
+parentRouter.post('/child/:childUid/settings/history', requireAuth, asyncRoute(async (req, res) => {
+  const parentUid = req.auth.uid;
+  const { childUid } = req.params;
+  const retentionDays = Number(req.body?.retentionDays);
+
+  if (!(await ensureParentAccess(parentUid, childUid, res))) {
+    return;
+  }
+
+  if (!HISTORY_RETENTION_OPTIONS_DAYS.includes(retentionDays)) {
+    return res.status(400).json({ error: 'invalid_retention_days' });
+  }
+
+  const historySettings = await setChildHistorySettings(childUid, retentionDays, parentUid);
+
+  await logPolicyEvent({
+    actorUid: parentUid,
+    childUid,
+    action: 'update_child_history_retention',
+    allowed: true,
+    metadata: {
+      retentionDays: historySettings.retentionDays,
+    },
+  });
+
+  return res.json({
+    ok: true,
+    childUid,
+    historyRules: {
+      retentionDays: historySettings.retentionDays,
+      options: HISTORY_RETENTION_OPTIONS_DAYS,
+      defaultRetentionDays: DEFAULT_HISTORY_RETENTION_DAYS,
+    },
+  });
 }));
 
 parentRouter.post('/create-child', requireAuth, asyncRoute(async (req, res) => {

@@ -51,7 +51,7 @@ const retentionRows = [
   { label: 'Accountgegevens ouder',       Icon: User,     duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
   { label: 'Accountgegevens kind',     Icon: Child,   duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
   { label: 'Vertrouwde contacten',         Icon: Users,    duration: 'Zolang gekoppeld',  onDelete: 'Bij ontkoppelen → direct weg' },
-  { label: 'Berichten en communicatie',    Icon: Message,  duration: 'Maximaal 30 dagen', why: 'Zodat je recente gesprekken kunt teruglezen.',           onDelete: 'Daarna → automatisch verwijderd' },
+  { label: 'Berichten en communicatie',    Icon: Message,  duration: 'Standaard 30 dagen, ouder kan korter kiezen', why: 'Zodat je recente gesprekken kunt teruglezen.',           onDelete: 'Daarna → automatisch verwijderd' },
   { label: 'Logbestanden',                 Icon: Activity, duration: 'Maximaal 7 dagen',  why: 'Alleen voor veiligheid en technische stabiliteit.',      onDelete: 'Daarna → automatisch verwijderd' },
   { label: 'Support- en privacyverzoeken', Icon: Mail,     duration: 'Maximaal 30 dagen', why: 'Om je goed te kunnen helpen.',                           onDelete: 'Daarna → automatisch verwijderd' },
 ];

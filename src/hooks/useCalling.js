@@ -1,7 +1,7 @@
 // src/hooks/useCalling.js
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { getSocket } from '../services/socket';
-import { startCall } from '../services/socket';
+import { BACKEND_URL, startCall } from '../services/socket';
 
 export default function useCalling({
   user,
@@ -18,22 +18,62 @@ export default function useCalling({
   const socket = getSocket();
 
   const [activeCall,  setActiveCall]  = useState(null);
+  const [historyRetentionDays, setHistoryRetentionDays] = useState(() => Number(localStorage.getItem(`pulse_history_retention_${user.uid}`) || 30));
 
   const callStartTimeRef = useRef(null);
   const callIsVideoRef   = useRef(false);
   const callConvIdRef    = useRef(null);
   const fallbackNoticeShownRef = useRef(false);
 
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadHistoryRetention() {
+      try {
+        const cachedDays = Number(localStorage.getItem(`pulse_history_retention_${user.uid}`) || 30);
+        if (mounted) setHistoryRetentionDays(cachedDays);
+        const token = await user.getIdToken();
+        const res = await fetch(`${BACKEND_URL}/api/users/${user.uid}/history-settings`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) return;
+        if (mounted) {
+          const nextDays = Number(data?.historyRules?.retentionDays || 30);
+          localStorage.setItem(`pulse_history_retention_${user.uid}`, String(nextDays));
+          setHistoryRetentionDays(nextDays);
+        }
+      } catch {
+        if (mounted) setHistoryRetentionDays(30);
+      }
+    }
+
+    function handleRetentionUpdate(event) {
+      if (event?.detail?.uid !== user.uid) return;
+      setHistoryRetentionDays(Number(event.detail.retentionDays || 30));
+    }
+
+    loadHistoryRetention();
+    window.addEventListener('pulse:history-retention-updated', handleRetentionUpdate);
+    return () => {
+      mounted = false;
+      window.removeEventListener('pulse:history-retention-updated', handleRetentionUpdate);
+    };
+  }, [user, user.uid]);
+
   function logCall({ uid, name, photoURL, isVideo, direction }) {
     const key      = `pulse_calls_${user.uid}`;
-    const cutoff   = Date.now() - 30 * 24 * 60 * 60 * 1000; // 30 dagen
+    const cutoff   = Date.now() - historyRetentionDays * 24 * 60 * 60 * 1000;
     const existing = JSON.parse(localStorage.getItem(key) || '[]').filter(e => e.ts > cutoff);
     const entry    = { uid, name, photoURL: photoURL || '', isVideo, direction, ts: Date.now() };
     localStorage.setItem(key, JSON.stringify([entry, ...existing].slice(0, 50)));
   }
 
   function getCallLog() {
-    return JSON.parse(localStorage.getItem(`pulse_calls_${user.uid}`) || '[]');
+    const cutoff = Date.now() - historyRetentionDays * 24 * 60 * 60 * 1000;
+    return JSON.parse(localStorage.getItem(`pulse_calls_${user.uid}`) || '[]').filter(e => e.ts > cutoff);
   }
 
   function sendCallMessage({ isVideo, direction, duration }) {

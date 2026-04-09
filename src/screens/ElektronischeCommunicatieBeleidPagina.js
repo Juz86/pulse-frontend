@@ -197,15 +197,15 @@ export default function ElektronischeCommunicatieBeleidPagina() {
         <div className="legal-grid">
           <div className="legal-card">
             <h3>Berichteninhoud</h3>
-            <p>30 dagen</p>
+            <p>Standaard 30 dagen, ouder kan 24 uur, 7 dagen of 14 dagen kiezen.</p>
           </div>
           <div className="legal-card">
             <h3>Oproepgegevens</h3>
-            <p>30 dagen</p>
+            <p>Standaard 30 dagen, ouder kan 24 uur, 7 dagen of 14 dagen kiezen.</p>
           </div>
           <div className="legal-card">
             <h3>Videocommunicatiegerelateerde data</h3>
-            <p>14 dagen</p>
+            <p>Standaard 30 dagen, ouder kan 24 uur, 7 dagen of 14 dagen kiezen.</p>
           </div>
           <div className="legal-card">
             <h3>Technische metadata</h3>
@@ -222,11 +222,12 @@ export default function ElektronischeCommunicatieBeleidPagina() {
         </div>
       </LegalSection>
 
-      <LegalSection title="Verwijdering van berichten na 30 dagen">
+      <LegalSection title="Verwijdering van berichten volgens ingestelde timer">
         <p>
           Indien Pulse werkt met automatisch verwijderde berichten, wordt die werking transparant beschreven. Het uitgangspunt is
           dat communicatie-inhoud niet langer wordt bewaard dan nodig is voor aflevering, synchronisatie, beveiliging, redelijke
-          herstelprocessen en toepasselijke wettelijke verplichtingen.
+          herstelprocessen en toepasselijke wettelijke verplichtingen. Ouders kunnen daarbij een kortere bewaartermijn instellen
+          van 24 uur, 7 dagen of 14 dagen; zonder keuze blijft de standaard 30 dagen.
         </p>
       </LegalSection>
 

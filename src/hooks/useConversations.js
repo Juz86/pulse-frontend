@@ -267,7 +267,7 @@ export default function useConversations({
 
   // ── Gesprek verwijderen ───────────────────────────────────────────────────
   async function deleteConversation(e, convId) {
-    e.stopPropagation();
+    e?.stopPropagation?.();
     setConfirmDialog({
       message: 'Weet je zeker dat je dit gesprek wilt verwijderen?',
       onConfirm: async () => {

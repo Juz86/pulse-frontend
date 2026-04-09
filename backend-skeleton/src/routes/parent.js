@@ -20,7 +20,7 @@ function sanitizeChildDisplayName(value) {
 }
 
 function buildChildEmail(username) {
-  return `${username}@kind.pulse.local`;
+  return `${username}@pulse.internal`;
 }
 
 async function setUserContact(userId, targetUid, data) {

@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useState } from 'react';
-import { Phone, Video, Camera, Delete, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, Clock, Refresh } from '../components/Icons';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
@@ -69,9 +69,16 @@ export default function ChatModals({
   passwordLoading, passwordMsg,
   profileMsg, profileLoading,
   usernameLoading: _usernameLoading, usernameMsg: _usernameMsg,
+  historyRetentionDays, setHistoryRetentionDays,
+  childHistoryRetentionDaysByUid, setChildHistoryRetentionDaysByUid,
+  historyChildren,
+  historySettingsLoading,
+  historySettingsSavingTarget,
+  historySettingsMsg,
   chatBgTab, setChatBgTab,
   chatBgMsg, chatBg, chatBgLoading,
   saveProfile, saveUsername: _saveUsername, changePassword,
+  loadHistorySettings, saveHistorySettings, saveChildHistorySettings,
   uploadChatBgPhoto, saveChatBgColor, removeChatBg,
   handlePhotoChange, handleDeleteAccount,
   photoInputRef, bgInputRef,
@@ -507,12 +514,16 @@ export default function ChatModals({
               <div className="profile-sidebar">
                 {[
                   ['account', <User size={16} />, 'Mijn account'],
+                  ...(isParent ? [['geschiedenis', <Clock size={16} />, 'Geschiedenis']] : []),
                   ['styling', <Palette size={16} />, 'Styling'],
                   ['geblokkeerd', <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>, 'Geblokkeerd'],
                   ['verwijderen', <Delete size={16} />, 'Verwijderen'],
                 ].map(([id, icon, label]) => (
                   <button key={id} type="button" className={`profile-sidebar-tab${profileTab === id ? ' active' : ''}${id === 'verwijderen' ? ' danger' : ''}`}
-                    onClick={() => setProfileTab(id)}>
+                    onClick={() => {
+                      setProfileTab(id);
+                      if (id === 'geschiedenis') loadHistorySettings();
+                    }}>
                     {icon}<span>{label}</span>
                   </button>
                 ))}
@@ -594,6 +605,91 @@ export default function ChatModals({
                         onClick={saveProfile}>
                         {profileLoading ? 'Opslaan…' : 'Opslaan →'}
                       </button>
+                    </div>
+                  </div>
+                )}
+                {profileTab === 'geschiedenis' && isParent && (
+                  <div>
+                    <div style={{ marginBottom: '18px' }}>
+                      <h4 style={{ fontFamily: "'Syne',sans-serif", fontSize: '18px', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>Geschiedenis</h4>
+                      <p style={{ fontSize: '13px', color: 'var(--text2)', lineHeight: 1.6 }}>
+                        Beheer hoe lang chatberichten, belgeschiedenis en videogeschiedenis worden bewaard. Stel een eigen timer in voor je ouderaccount en desgewenst een andere timer per kindaccount.
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'grid', gap: '14px' }}>
+                      <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>Ouderaccount</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '12px' }}>
+                          Kies een bewaartermijn voor jouw eigen geschiedenis. Zonder keuze blijft de standaard op 30 dagen.
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
+                          {[1, 7, 14, 30].map((days) => {
+                            const isActive = historyRetentionDays === days;
+                            return (
+                              <button
+                                key={`parent-${days}`}
+                                type="button"
+                                className={isActive ? 'btn-primary' : 'btn-secondary'}
+                                onClick={() => setHistoryRetentionDays(days)}
+                                disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
+                                style={{ width: '100%' }}
+                              >
+                                {days === 1 ? '24 uur' : `${days} dagen`}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
+                          <button type="button" className="btn-primary" onClick={saveHistorySettings} disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}>
+                            {historySettingsSavingTarget === 'parent' ? 'Opslaan…' : 'Opslaan ouderaccount'}
+                          </button>
+                          <button type="button" className="btn-secondary" onClick={loadHistorySettings} disabled={historySettingsLoading || Boolean(historySettingsSavingTarget)}>
+                            <Refresh size={14} aria-hidden="true" /> Opnieuw laden
+                          </button>
+                        </div>
+                      </div>
+
+                      {historyChildren.map((child) => {
+                        const selectedDays = Number(childHistoryRetentionDaysByUid?.[child.uid] || 30);
+                        const isSaving = historySettingsSavingTarget === child.uid;
+                        return (
+                          <div key={child.uid} style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px' }}>
+                            <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>{child.displayName}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--text3)', marginBottom: '12px' }}>
+                              Kies de bewaartermijn voor dit kindaccount.
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
+                              {[1, 7, 14, 30].map((days) => {
+                                const isActive = selectedDays === days;
+                                return (
+                                  <button
+                                    key={`${child.uid}-${days}`}
+                                    type="button"
+                                    className={isActive ? 'btn-primary' : 'btn-secondary'}
+                                    onClick={() => setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [child.uid]: days }))}
+                                    disabled={historySettingsLoading || isSaving}
+                                    style={{ width: '100%' }}
+                                  >
+                                    {days === 1 ? '24 uur' : `${days} dagen`}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <div style={{ marginTop: '12px' }}>
+                              <button type="button" className="btn-primary" onClick={() => saveChildHistorySettings(child.uid)} disabled={historySettingsLoading || isSaving}>
+                                {isSaving ? 'Opslaan…' : `Opslaan voor ${child.displayName}`}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {historySettingsMsg && (
+                        <div style={{ fontSize: '12px', color: historySettingsMsg.startsWith('Fout:') ? 'var(--danger)' : 'var(--success)' }}>
+                          {historySettingsMsg}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

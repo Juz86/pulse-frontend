@@ -1,7 +1,7 @@
 // src/screens/ParentDashboard.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { getInitials, timeAgo } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit, Clock, AdminIcon } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 
 export default function ParentDashboard({ user, onClose, parentActivityBadge = 0, onActivitiesViewed }) {
@@ -57,12 +57,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError,   setAnalyticsError]   = useState('');
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
-  const [parentHistoryRetentionDays, setParentHistoryRetentionDays] = useState(30);
-  const [childHistoryRetentionDaysByUid, setChildHistoryRetentionDaysByUid] = useState({});
-  const [historySettingsLoading, setHistorySettingsLoading] = useState(false);
-  const [historySettingsSavingTarget, setHistorySettingsSavingTarget] = useState('');
-  const [historySettingsError, setHistorySettingsError] = useState('');
-  const [historySettingsSuccess, setHistorySettingsSuccess] = useState('');
 
   const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 
@@ -174,30 +168,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }, [authFetch]);
 
-  const loadHistorySettings = useCallback(async () => {
-    setHistorySettingsLoading(true);
-    setHistorySettingsError('');
-    try {
-      const res = await authFetch(`${BACKEND}/api/parent/settings`);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Instellingen laden mislukt.');
-      const nextDays = Number(data?.historyRules?.retentionDays || 30);
-      const nextChildDays = Object.fromEntries(
-        (Array.isArray(data?.childHistoryRules) ? data.childHistoryRules : []).map((rule) => [
-          rule.childUid,
-          Number(rule?.retentionDays || 30),
-        ])
-      );
-      setParentHistoryRetentionDays(nextDays);
-      setChildHistoryRetentionDaysByUid(nextChildDays);
-      localStorage.setItem(`pulse_history_retention_${user.uid}`, String(nextDays));
-    } catch (err) {
-      setHistorySettingsError(err.message);
-    } finally {
-      setHistorySettingsLoading(false);
-    }
-  }, [authFetch, user.uid]);
-
   const loadAnalytics = useCallback(async (childUid) => {
     if (!childUid) { setAnalytics(null); setSelectedChildUid(null); return; }
     setSelectedChildUid(childUid);
@@ -212,7 +182,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     setAnalyticsLoading(false);
   }, [authFetch]);
 
-  useEffect(() => { loadChildren(); loadActivities(); loadHistorySettings(); }, [loadChildren, loadActivities, loadHistorySettings]);
+  useEffect(() => { loadChildren(); loadActivities(); }, [loadChildren, loadActivities]);
 
   useEffect(() => {
     if (!pauseMenuUid && !resumeMenuUid && !childDropdownOpen) return;
@@ -363,53 +333,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     } catch (err) { setDeleteError(err.message); }
   }
 
-  async function saveHistorySettings() {
-    setHistorySettingsSavingTarget('parent');
-    setHistorySettingsError('');
-    setHistorySettingsSuccess('');
-    try {
-      const res = await authFetch(`${BACKEND}/api/parent/settings/history`, {
-        method: 'POST',
-        body: JSON.stringify({ retentionDays: parentHistoryRetentionDays }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Geschiedenisinstellingen opslaan mislukt.');
-      const nextDays = Number(data?.historyRules?.retentionDays || parentHistoryRetentionDays);
-      setParentHistoryRetentionDays(nextDays);
-      localStorage.setItem(`pulse_history_retention_${user.uid}`, String(nextDays));
-      window.dispatchEvent(new CustomEvent('pulse:history-retention-updated', {
-        detail: { uid: user.uid, retentionDays: nextDays },
-      }));
-      setHistorySettingsSuccess('Geschiedenis van ouderaccount opgeslagen.');
-    } catch (err) {
-      setHistorySettingsError(err.message);
-    } finally {
-      setHistorySettingsSavingTarget('');
-    }
-  }
-
-  async function saveChildHistorySettings(childUid) {
-    const retentionDays = Number(childHistoryRetentionDaysByUid[childUid] || 30);
-    setHistorySettingsSavingTarget(childUid);
-    setHistorySettingsError('');
-    setHistorySettingsSuccess('');
-    try {
-      const res = await authFetch(`${BACKEND}/api/parent/child/${childUid}/settings/history`, {
-        method: 'POST',
-        body: JSON.stringify({ retentionDays }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || 'Geschiedenisinstellingen voor kind opslaan mislukt.');
-      const nextDays = Number(data?.historyRules?.retentionDays || retentionDays);
-      setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [childUid]: nextDays }));
-      setHistorySettingsSuccess('Geschiedenis van kindaccount opgeslagen.');
-    } catch (err) {
-      setHistorySettingsError(err.message);
-    } finally {
-      setHistorySettingsSavingTarget('');
-    }
-  }
-
   const activityTabBadge = parentActivityBadge > 9 ? '9+' : parentActivityBadge;
 
   const TABS = [
@@ -417,7 +340,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     { id: 'children',   icon: <Users     size={16} aria-hidden="true" />, label: 'Mijn kinderen'   },
     { id: 'contacts',   icon: <UserCheck size={16} aria-hidden="true" />, label: 'Contacten'       },
     { id: 'activities', icon: <Activity  size={16} aria-hidden="true" />, label: 'Activiteiten', badge: parentActivityBadge > 0 ? activityTabBadge : null },
-    { id: 'settings',   icon: <AdminIcon size={16} aria-hidden="true" />, label: 'Instellingen' },
   ];
 
   const createUsernameReady = createUsernameStatus === 'Beschikbaar';
@@ -1023,134 +945,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                       </div>
                     </div>
                   ))}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'settings' && (
-              <div>
-                <h2 className="parent-section-title">Instellingen</h2>
-                <p className="parent-section-sub" style={{ marginBottom: 18 }}>
-                  Beheer afzonderlijk hoe lang chatberichten, belgeschiedenis en videogeschiedenis worden bewaard voor uw ouderaccount en voor ieder kindaccount.
-                </p>
-
-                <div className="parent-usage-card analytics-section" style={{ maxWidth: 760 }}>
-                  <div className="analytics-section-title"><Clock size={15} aria-hidden="true" /> Geschiedenis ouderaccount</div>
-                  <p style={{ fontSize: 14, color: '#6b7280', margin: '0 0 14px' }}>
-                    Kies hoe lang chatberichten, belgeschiedenis en videogeschiedenis voor uw eigen ouderaccount bewaard blijven. Als u geen keuze maakt, blijft de standaard op 30 dagen staan.
-                  </p>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-                    {[1, 7, 14, 30].map((days) => {
-                      const isActive = parentHistoryRetentionDays === days;
-                      return (
-                        <button
-                          key={days}
-                          type="button"
-                          className={isActive ? 'parent-btn-primary' : 'parent-btn-outline'}
-                          onClick={() => {
-                            setParentHistoryRetentionDays(days);
-                            setHistorySettingsError('');
-                            setHistorySettingsSuccess('');
-                          }}
-                          disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
-                          style={{
-                            minHeight: 52,
-                            justifyContent: 'center',
-                            opacity: historySettingsLoading ? 0.7 : 1,
-                          }}
-                        >
-                          {days === 1 ? '24 uur' : `${days} dagen`}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div style={{ marginTop: 14, fontSize: 13, color: '#6b7280' }}>
-                    Huidige bewaartermijn: <strong>{parentHistoryRetentionDays === 1 ? '24 uur' : `${parentHistoryRetentionDays} dagen`}</strong>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-                    <button
-                      type="button"
-                      className="parent-btn-primary"
-                      onClick={saveHistorySettings}
-                      disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
-                    >
-                      {historySettingsSavingTarget === 'parent' ? 'Opslaan…' : 'Geschiedenis ouderaccount opslaan'}
-                    </button>
-                    <button
-                      type="button"
-                      className="parent-btn-outline"
-                      onClick={loadHistorySettings}
-                      disabled={historySettingsLoading || Boolean(historySettingsSavingTarget)}
-                    >
-                      <Refresh size={14} aria-hidden="true" /> Opnieuw laden
-                    </button>
-                  </div>
-
-                  {historySettingsError && (
-                    <div className="parent-error" role="alert" aria-live="assertive" style={{ marginTop: 12 }}>
-                      <span aria-hidden="true">⚠️ </span>{historySettingsError}
-                    </div>
-                  )}
-                  {historySettingsSuccess && (
-                    <div className="parent-success" role="status" aria-live="polite" style={{ marginTop: 12 }}>
-                      <span aria-hidden="true">✓ </span>{historySettingsSuccess}
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ display: 'grid', gap: 16, marginTop: 16, maxWidth: 760 }}>
-                  {children.map((child) => {
-                    const selectedDays = Number(childHistoryRetentionDaysByUid[child.uid] || 30);
-                    const isSaving = historySettingsSavingTarget === child.uid;
-                    return (
-                      <div key={child.uid} className="parent-usage-card analytics-section">
-                        <div className="analytics-section-title"><Clock size={15} aria-hidden="true" /> Geschiedenis kindaccount: {child.displayName}</div>
-                        <p style={{ fontSize: 14, color: '#6b7280', margin: '0 0 14px' }}>
-                          Kies hoe lang chatberichten, belgeschiedenis en videogeschiedenis voor dit kindaccount bewaard blijven.
-                        </p>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-                          {[1, 7, 14, 30].map((days) => {
-                            const isActive = selectedDays === days;
-                            return (
-                              <button
-                                key={`${child.uid}-${days}`}
-                                type="button"
-                                className={isActive ? 'parent-btn-primary' : 'parent-btn-outline'}
-                                onClick={() => {
-                                  setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [child.uid]: days }));
-                                  setHistorySettingsError('');
-                                  setHistorySettingsSuccess('');
-                                }}
-                                disabled={historySettingsLoading || isSaving}
-                                style={{ minHeight: 52, justifyContent: 'center', opacity: historySettingsLoading ? 0.7 : 1 }}
-                              >
-                                {days === 1 ? '24 uur' : `${days} dagen`}
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        <div style={{ marginTop: 14, fontSize: 13, color: '#6b7280' }}>
-                          Huidige bewaartermijn voor {child.displayName}: <strong>{selectedDays === 1 ? '24 uur' : `${selectedDays} dagen`}</strong>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
-                          <button
-                            type="button"
-                            className="parent-btn-primary"
-                            onClick={() => saveChildHistorySettings(child.uid)}
-                            disabled={historySettingsLoading || isSaving}
-                          >
-                            {isSaving ? 'Opslaan…' : `Geschiedenis van ${child.displayName} opslaan`}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
             )}

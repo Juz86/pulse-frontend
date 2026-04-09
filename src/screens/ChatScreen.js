@@ -193,10 +193,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     confirmPassword, setConfirmPassword, showNewPassword, setShowNewPassword,
     passwordLoading, passwordMsg, chatBg, chatBgLoading, chatBgTab, setChatBgTab,
     chatBgMsg, showAvatarBuilder, setShowAvatarBuilder, avatarOptions, setAvatarOptions,
-    groupPhotoLoading, photoInputRef, bgInputRef, openProfile,
+    groupPhotoLoading, historyRetentionDays, setHistoryRetentionDays,
+    childHistoryRetentionDaysByUid, setChildHistoryRetentionDaysByUid,
+    historyChildren, historySettingsLoading, historySettingsSavingTarget, historySettingsMsg,
+    photoInputRef, bgInputRef, openProfile,
     handlePhotoChange, saveProfile, saveUsername, changePassword,
     uploadChatBgPhoto, saveChatBgColor, removeChatBg, uploadGroupPhoto, handleDeleteAccount,
-  } = useProfile({ user, activeConv, setActiveConv, setConversations, showErrToast, setConfirmDialog });
+    loadHistorySettings, saveHistorySettings, saveChildHistorySettings,
+  } = useProfile({ user, activeConv, setActiveConv, setConversations, showErrToast, setConfirmDialog, isParent });
 
   // ── Effects ───────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -483,9 +487,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         passwordLoading={passwordLoading} passwordMsg={passwordMsg}
         profileMsg={profileMsg} setProfileMsg={setProfileMsg} profileLoading={profileLoading}
         usernameLoading={usernameLoading} usernameMsg={usernameMsg}
+        historyRetentionDays={historyRetentionDays} setHistoryRetentionDays={setHistoryRetentionDays}
+        childHistoryRetentionDaysByUid={childHistoryRetentionDaysByUid} setChildHistoryRetentionDaysByUid={setChildHistoryRetentionDaysByUid}
+        historyChildren={historyChildren}
+        historySettingsLoading={historySettingsLoading}
+        historySettingsSavingTarget={historySettingsSavingTarget}
+        historySettingsMsg={historySettingsMsg}
         chatBgTab={chatBgTab} setChatBgTab={setChatBgTab}
         chatBgMsg={chatBgMsg} chatBg={chatBg} chatBgLoading={chatBgLoading}
         saveProfile={saveProfile} saveUsername={saveUsername} changePassword={changePassword}
+        loadHistorySettings={loadHistorySettings} saveHistorySettings={saveHistorySettings} saveChildHistorySettings={saveChildHistorySettings}
         uploadChatBgPhoto={uploadChatBgPhoto} saveChatBgColor={saveChatBgColor} removeChatBg={removeChatBg}
         handlePhotoChange={handlePhotoChange} handleDeleteAccount={handleDeleteAccount}
         photoInputRef={photoInputRef} bgInputRef={bgInputRef}

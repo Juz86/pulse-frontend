@@ -7,7 +7,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'fi
 import { getSocket, BACKEND_URL } from '../services/socket';
 import { clearPulseUserStorage } from '../utils';
 
-export default function useProfile({ user, activeConv, setActiveConv, setConversations, showErrToast, setConfirmDialog }) {
+export default function useProfile({ user, activeConv, setActiveConv, setConversations, showErrToast, setConfirmDialog, isParent = false }) {
   const socket = getSocket();
 
   async function authFetch(url, options = {}) {
@@ -42,6 +42,12 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
   const [avatarOptions,     setAvatarOptions]     = useState(null);
 
   const [groupPhotoLoading, setGroupPhotoLoading] = useState(false);
+  const [historyRetentionDays, setHistoryRetentionDays] = useState(30);
+  const [childHistoryRetentionDaysByUid, setChildHistoryRetentionDaysByUid] = useState({});
+  const [historyChildren, setHistoryChildren] = useState([]);
+  const [historySettingsLoading, setHistorySettingsLoading] = useState(false);
+  const [historySettingsSavingTarget, setHistorySettingsSavingTarget] = useState('');
+  const [historySettingsMsg, setHistorySettingsMsg] = useState('');
 
   const photoInputRef = useRef(null);
   const bgInputRef    = useRef(null);
@@ -277,6 +283,109 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
         localStorage.removeItem(`pulse_photo_${user.uid}`);
       }
     }).catch(e => { console.warn('[Pulse] Fout:', e.message); });
+
+    if (isParent) {
+      authFetch(`${BACKEND_URL}/api/parent/settings`).then(async (res) => {
+        if (!res.ok) return null;
+        const data = await res.json().catch(() => ({}));
+        const nextDays = Number(data?.historyRules?.retentionDays || 30);
+        const nextChildDays = Object.fromEntries(
+          (Array.isArray(data?.childHistoryRules) ? data.childHistoryRules : []).map((rule) => [
+            rule.childUid,
+            Number(rule?.retentionDays || 30),
+          ])
+        );
+        setHistoryRetentionDays(nextDays);
+        setChildHistoryRetentionDaysByUid(nextChildDays);
+        setHistorySettingsMsg('');
+        localStorage.setItem(`pulse_history_retention_${user.uid}`, String(nextDays));
+      }).catch(() => {});
+
+      authFetch(`${BACKEND_URL}/api/parent/children`).then(async (res) => {
+        if (!res.ok) return null;
+        const data = await res.json().catch(() => ([]));
+        setHistoryChildren(Array.isArray(data) ? data : []);
+      }).catch(() => {});
+    }
+  }
+
+  async function loadHistorySettings() {
+    if (!isParent) return;
+    setHistorySettingsLoading(true);
+    setHistorySettingsMsg('');
+    try {
+      const [settingsRes, childrenRes] = await Promise.all([
+        authFetch(`${BACKEND_URL}/api/parent/settings`),
+        authFetch(`${BACKEND_URL}/api/parent/children`),
+      ]);
+      const settingsData = await settingsRes.json().catch(() => ({}));
+      const childrenData = await childrenRes.json().catch(() => ([]));
+      if (!settingsRes.ok) throw new Error(settingsData.error || 'Geschiedenisinstellingen laden mislukt.');
+      const nextDays = Number(settingsData?.historyRules?.retentionDays || 30);
+      const nextChildDays = Object.fromEntries(
+        (Array.isArray(settingsData?.childHistoryRules) ? settingsData.childHistoryRules : []).map((rule) => [
+          rule.childUid,
+          Number(rule?.retentionDays || 30),
+        ])
+      );
+      setHistoryRetentionDays(nextDays);
+      setChildHistoryRetentionDaysByUid(nextChildDays);
+      setHistoryChildren(Array.isArray(childrenData) ? childrenData : []);
+      localStorage.setItem(`pulse_history_retention_${user.uid}`, String(nextDays));
+    } catch (err) {
+      setHistorySettingsMsg(`Fout: ${err.message}`);
+    } finally {
+      setHistorySettingsLoading(false);
+    }
+  }
+
+  async function saveHistorySettings() {
+    if (!isParent) return;
+    setHistorySettingsSavingTarget('parent');
+    setHistorySettingsMsg('');
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/parent/settings/history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ retentionDays: historyRetentionDays }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Geschiedenisinstellingen opslaan mislukt.');
+      const nextDays = Number(data?.historyRules?.retentionDays || historyRetentionDays);
+      setHistoryRetentionDays(nextDays);
+      localStorage.setItem(`pulse_history_retention_${user.uid}`, String(nextDays));
+      window.dispatchEvent(new CustomEvent('pulse:history-retention-updated', {
+        detail: { uid: user.uid, retentionDays: nextDays },
+      }));
+      setHistorySettingsMsg('Geschiedenis van ouderaccount opgeslagen.');
+    } catch (err) {
+      setHistorySettingsMsg(`Fout: ${err.message}`);
+    } finally {
+      setHistorySettingsSavingTarget('');
+    }
+  }
+
+  async function saveChildHistorySettings(childUid) {
+    if (!isParent) return;
+    const retentionDays = Number(childHistoryRetentionDaysByUid[childUid] || 30);
+    setHistorySettingsSavingTarget(childUid);
+    setHistorySettingsMsg('');
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/parent/child/${childUid}/settings/history`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ retentionDays }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Geschiedenisinstellingen voor kind opslaan mislukt.');
+      const nextDays = Number(data?.historyRules?.retentionDays || retentionDays);
+      setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [childUid]: nextDays }));
+      setHistorySettingsMsg('Geschiedenis van kindaccount opgeslagen.');
+    } catch (err) {
+      setHistorySettingsMsg(`Fout: ${err.message}`);
+    } finally {
+      setHistorySettingsSavingTarget('');
+    }
   }
 
   return {
@@ -295,6 +404,12 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
     showAvatarBuilder, setShowAvatarBuilder,
     avatarOptions, setAvatarOptions,
     groupPhotoLoading,
+    historyRetentionDays, setHistoryRetentionDays,
+    childHistoryRetentionDaysByUid, setChildHistoryRetentionDaysByUid,
+    historyChildren,
+    historySettingsLoading,
+    historySettingsSavingTarget,
+    historySettingsMsg,
     // refs
     photoInputRef, bgInputRef,
     // functions
@@ -302,5 +417,6 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
     handlePhotoChange, saveProfile, saveUsername, changePassword,
     uploadChatBgPhoto, saveChatBgColor, removeChatBg,
     uploadGroupPhoto, handleDeleteAccount,
+    loadHistorySettings, saveHistorySettings, saveChildHistorySettings,
   };
 }

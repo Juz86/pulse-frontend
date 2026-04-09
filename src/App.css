@@ -751,8 +751,10 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 /* ── Bericht acties (😊 + ▾, zichtbaar bij hover) ── */
 .msg-actions {
   display:none; position:absolute; top:50%; transform:translateY(-50%);
-  align-items:center; gap:4px; left:-54px;
+  align-items:center; gap:4px;
 }
+.msg-group.out .msg-actions { left:-54px; }
+.msg-group.in  .msg-actions { right:-54px; }
 .msg-group:hover .msg-actions { display:flex; }
 .msg-action-btn {
   background:var(--surface2); border:none; border-radius:50%;

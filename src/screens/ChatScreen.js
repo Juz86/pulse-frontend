@@ -298,12 +298,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="app-screen">
-      {!connected && (
-        <div className="connection-banner" role="status" aria-live="polite">
-          <span>Verbinding verbroken{reconnectIn ? ` — opnieuw verbinden in ${reconnectIn}s` : ' — verbinden\u2026'}</span>
-          <button type="button" className="connection-retry-btn" onClick={() => { const s = getSocket(); s?.connect(); }}>Nu verbinden</button>
-        </div>
-      )}
 
       <ChatSidebar
         user={user}

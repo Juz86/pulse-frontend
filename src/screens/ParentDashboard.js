@@ -74,14 +74,30 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     if (excludeUsername && clean === excludeUsername.trim().toLowerCase()) {
       return { ok: true, clean };
     }
-    const res = await fetch(`${BACKEND}/api/users/check-username?username=${encodeURIComponent(clean)}`);
-    if (!res.ok) {
+    const availabilityUrl = `${BACKEND}/api/users/check-username?username=${encodeURIComponent(clean)}`;
+    const res = await fetch(availabilityUrl);
+    if (res.ok) {
       const data = await res.json().catch(() => ({}));
-      return { ok: false, message: data.error || 'Controleren van gebruikersnaam mislukt.' };
+      if (data.available) return { ok: true, clean };
+      return { ok: false, message: 'Deze gebruikersnaam is al in gebruik.' };
     }
+
+    // Backward-compatible fallback for older live backends that only expose
+    // lookup-username. In that shape, 404 means "available" and 200 means
+    // "already taken".
+    if (res.status === 404) {
+      const lookupUrl = `${BACKEND}/api/users/lookup-username?username=${encodeURIComponent(clean)}`;
+      const lookupRes = await fetch(lookupUrl);
+      if (lookupRes.status === 404) {
+        return { ok: true, clean };
+      }
+      if (lookupRes.ok) {
+        return { ok: false, message: 'Deze gebruikersnaam is al in gebruik.' };
+      }
+    }
+
     const data = await res.json().catch(() => ({}));
-    if (data.available) return { ok: true, clean };
-    return { ok: false, message: 'Deze gebruikersnaam is al in gebruik.' };
+    return { ok: false, message: data.error || 'Controleren van gebruikersnaam mislukt.' };
   }
 
   const loadChildren = useCallback(async () => {

@@ -185,7 +185,11 @@ export function messagesRouter({ io, emitToUser }) {
       .get();
 
     if (snap.empty) {
-      return res.status(404).json({ error: 'receipt_target_not_found' });
+      return res.json({
+        ok: true,
+        skipped: true,
+        reason: 'receipt_target_not_found',
+      });
     }
 
     const recipientDeviceDoc = await db.collection('devices').doc(recipientDeviceId).get();

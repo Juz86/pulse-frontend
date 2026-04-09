@@ -45,12 +45,21 @@ class ParentPolicyService {
       return { allowed: false, reason: 'chat_disabled_for_contact' };
     }
 
-    const policy = await this.getChildPolicyIfManaged(senderId);
-    if (policy && policy.featureRules?.chat === false) {
+    const senderPolicy = await this.getChildPolicyIfManaged(senderId);
+    if (senderPolicy && senderPolicy.featureRules?.chat === false) {
       return { allowed: false, reason: 'chat_disabled_by_parent' };
     }
 
-    if (policy && isWithinQuietHours(policy.scheduleRules, new Date())) {
+    if (senderPolicy && isWithinQuietHours(senderPolicy.scheduleRules, new Date())) {
+      return { allowed: false, reason: 'quiet_hours' };
+    }
+
+    const recipientPolicy = await this.getChildPolicyIfManaged(recipientUserId);
+    if (recipientPolicy && recipientPolicy.featureRules?.chat === false) {
+      return { allowed: false, reason: 'chat_disabled_by_parent' };
+    }
+
+    if (recipientPolicy && isWithinQuietHours(recipientPolicy.scheduleRules, new Date())) {
       return { allowed: false, reason: 'quiet_hours' };
     }
 
@@ -107,17 +116,32 @@ class ParentPolicyService {
       return { allowed: false, reason: 'call_disabled_for_contact' };
     }
 
-    const policy = await this.getChildPolicyIfManaged(senderId);
-    if (policy) {
-      if (isVideo && policy.featureRules?.video === false) {
+    const senderPolicy = await this.getChildPolicyIfManaged(senderId);
+    if (senderPolicy) {
+      if (isVideo && senderPolicy.featureRules?.video === false) {
         return { allowed: false, reason: 'video_disabled_by_parent' };
       }
 
-      if (!isVideo && policy.featureRules?.call === false) {
+      if (!isVideo && senderPolicy.featureRules?.call === false) {
         return { allowed: false, reason: 'call_disabled_by_parent' };
       }
 
-      if (isWithinQuietHours(policy.scheduleRules, new Date())) {
+      if (isWithinQuietHours(senderPolicy.scheduleRules, new Date())) {
+        return { allowed: false, reason: 'quiet_hours' };
+      }
+    }
+
+    const recipientPolicy = await this.getChildPolicyIfManaged(targetUserId);
+    if (recipientPolicy) {
+      if (isVideo && recipientPolicy.featureRules?.video === false) {
+        return { allowed: false, reason: 'video_disabled_by_parent' };
+      }
+
+      if (!isVideo && recipientPolicy.featureRules?.call === false) {
+        return { allowed: false, reason: 'call_disabled_by_parent' };
+      }
+
+      if (isWithinQuietHours(recipientPolicy.scheduleRules, new Date())) {
         return { allowed: false, reason: 'quiet_hours' };
       }
     }
@@ -142,12 +166,39 @@ class ParentPolicyService {
       return this.getApprovedContact(userIdB, userIdA);
     }
 
+    const explicitBlocks = await this.getExplicitUserBlocks(userIdA, userIdB);
+    if (explicitBlocks.blocked) {
+      return {
+        approved: true,
+        chat: false,
+        call: false,
+        video: false,
+        blocked: true,
+      };
+    }
+
     return {
       approved: true,
       chat: true,
       call: true,
       video: true,
       blocked: false,
+    };
+  }
+
+  async getExplicitUserBlocks(userIdA, userIdB) {
+    const [docAB, docBA] = await Promise.all([
+      db.collection('approved_contacts').doc(`${userIdA}_${userIdB}`).get(),
+      db.collection('approved_contacts').doc(`${userIdB}_${userIdA}`).get(),
+    ]);
+
+    const relationAB = docAB.exists ? (docAB.data() || null) : null;
+    const relationBA = docBA.exists ? (docBA.data() || null) : null;
+
+    return {
+      blocked: !!(relationAB?.blocked || relationBA?.blocked),
+      relationAB,
+      relationBA,
     };
   }
 

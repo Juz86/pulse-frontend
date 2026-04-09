@@ -94,6 +94,19 @@ app.post('/api/fcm-token', (_req, res) => {
   });
 });
 
+app.get('/api/turn-credentials', (_req, res) => {
+  return res.json({
+    ok: true,
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      { urls: 'stun:global.stun.twilio.com:3478' },
+    ],
+    source: 'backend_fallback',
+    requestId: _req.requestId,
+  });
+});
+
 app.use('/api', requireFirebaseReady, authRouter);
 app.use('/api/conversations', requireFirebaseReady, conversationsRouter);
 app.use('/devices', requireFirebaseReady, devicesRouter);

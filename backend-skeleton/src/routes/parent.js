@@ -1020,12 +1020,121 @@ parentRouter.post('/child/:childUid/remove-contact', requireAuth, asyncRoute(asy
 parentRouter.get('/activities', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
 
-  const snap = await db
+  const parentEventsSnap = await db
     .collection('policy_events')
     .where('actorUid', '==', parentUid)
     .orderBy('createdAt', 'desc')
     .limit(100)
     .get();
 
-  return res.json(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+  const childrenSnap = await db
+    .collection('users')
+    .where('parentUid', '==', parentUid)
+    .get();
+
+  const managedChildren = childrenSnap.docs.map((doc) => ({
+    uid: doc.id,
+    ...doc.data(),
+  }));
+  const managedChildIds = new Set(managedChildren.map((child) => child.uid));
+  const childNameByUid = new Map(managedChildren.map((child) => [
+    child.uid,
+    child.displayName || child.username || child.email || child.uid,
+  ]));
+
+  const childEventGroups = await Promise.all(
+    managedChildren.map(async (child) => {
+      const [actorEventsSnap, scopedChildEventsSnap] = await Promise.all([
+        db.collection('policy_events')
+          .where('actorUid', '==', child.uid)
+          .orderBy('createdAt', 'desc')
+          .limit(50)
+          .get(),
+        db.collection('policy_events')
+          .where('childUid', '==', child.uid)
+          .orderBy('createdAt', 'desc')
+          .limit(50)
+          .get(),
+      ]);
+
+      return [...actorEventsSnap.docs, ...scopedChildEventsSnap.docs];
+    })
+  );
+
+  const deduped = new Map();
+  [...parentEventsSnap.docs, ...childEventGroups.flat()].forEach((doc) => {
+    if (!deduped.has(doc.id)) {
+      deduped.set(doc.id, { id: doc.id, ...doc.data() });
+    }
+  });
+
+  function resolveActivityChildUid(event) {
+    if (event.childUid) return event.childUid;
+    if (managedChildIds.has(event.actorUid)) return event.actorUid;
+    return null;
+  }
+
+  function buildActivityDescription(event, childUid) {
+    const childName = childNameByUid.get(childUid) || 'dit kind';
+    const targetName = event.metadata?.targetName || event.metadata?.displayName || event.targetUid || 'een contact';
+
+    switch (event.action) {
+      case 'create_child':
+        return `Account voor ${childName} aangemaakt.`;
+      case 'delete_child':
+        return `Account van ${childName} verwijderd.`;
+      case 'change_child_password':
+        return `Wachtwoord van ${childName} gewijzigd.`;
+      case 'change_child_username':
+        return `Gebruikersnaam van ${childName} gewijzigd.`;
+      case 'pause_feature':
+        return `${childName}: ${event.metadata?.feature || 'functie'} gepauzeerd.`;
+      case 'resume_feature':
+        return `${childName}: ${event.metadata?.feature || 'functie'} hervat.`;
+      case 'update_feature_policy':
+        return `Functieregels van ${childName} bijgewerkt.`;
+      case 'update_schedule_policy':
+        return `Roosterregels van ${childName} bijgewerkt.`;
+      case 'send_message':
+        return event.allowed
+          ? `${childName} stuurde een bericht.`
+          : `${childName} kon geen bericht sturen${event.reason ? ` (${event.reason})` : ''}.`;
+      case 'start_audio_call':
+        return event.allowed
+          ? `${childName} startte een spraakoproep.`
+          : `${childName} kon geen spraakoproep starten${event.reason ? ` (${event.reason})` : ''}.`;
+      case 'start_video_call':
+        return event.allowed
+          ? `${childName} startte een video-oproep.`
+          : `${childName} kon geen video-oproep starten${event.reason ? ` (${event.reason})` : ''}.`;
+      case 'approve_contact':
+        return `${targetName} goedgekeurd voor ${childName}.`;
+      case 'block_contact':
+        return `${targetName} geblokkeerd voor ${childName}.`;
+      case 'unblock_contact':
+        return `${targetName} gedeblokkeerd voor ${childName}.`;
+      case 'remove_contact':
+        return `${targetName} verwijderd uit contacten van ${childName}.`;
+      default:
+        return event.allowed === false
+          ? `${childName}: actie ${event.action || 'onbekend'} geblokkeerd${event.reason ? ` (${event.reason})` : ''}.`
+          : `${childName}: ${event.action || 'activiteit'}.`;
+    }
+  }
+
+  const activities = Array.from(deduped.values())
+    .map((event) => {
+      const childUid = resolveActivityChildUid(event);
+      return {
+        ...event,
+        childUid,
+        type: event.action || 'activity',
+        description: buildActivityDescription(event, childUid),
+      };
+    })
+    .filter((event) => event.childUid || event.actorUid === parentUid)
+    .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))
+    .slice(0, 100);
+
+  return res.json(activities);
 }));

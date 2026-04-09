@@ -56,7 +56,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const [analytics,        setAnalytics]        = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError,   setAnalyticsError]   = useState('');
-  const [contactFilter,    setContactFilter]    = useState('alles');
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
 
   const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
@@ -804,207 +803,104 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                   </div>
                 </div>
 
-                {/* Analyserapport voor geselecteerd kind */}
+                {/* Compact activiteitenoverzicht voor geselecteerd kind */}
                 {selectedChildUid && (
                   <div style={{ marginBottom: 24 }}>
                     {analyticsLoading && <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Rapport laden…</div>}
                     {analyticsError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{analyticsError}</div>}
                     {analytics && !analyticsLoading && (() => {
-                      const { profile, contacts, friendRequests, sessions, messaging } = analytics;
-                      if (!profile || !sessions?.daily || !messaging?.topContacts || !contacts?.list || !friendRequests) return null;
+                      const { profile, contacts, sessions, messaging } = analytics;
+                      if (!profile || !sessions?.daily || !messaging || !contacts) return null;
                       const fmtSecs = s => { if (!s) return '0m'; const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h > 0 ? `${h}u ${m}m` : `${m}m`; };
-                      const maxBar = Math.max(...sessions.daily.map(d => d.seconds), 1);
-                      const dayLabels = { 0:'Zo', 1:'Ma', 2:'Di', 3:'Wo', 4:'Do', 5:'Vr', 6:'Za' };
+                      const todayKey = new Date().toISOString().slice(0, 10);
+                      const todaySession = sessions.daily.find(d => d.date === todayKey);
+                      const topContacts = Array.isArray(messaging.topContacts) ? messaging.topContacts.slice(0, 3) : [];
                       const statusDot = profile.online
                         ? { background: '#22c55e', boxShadow: '0 0 0 2px #dcfce7' }
                         : { background: '#9ca3af' };
+                      const usageCards = [
+                        {
+                          label: 'Schermtijd vandaag',
+                          value: fmtSecs(todaySession?.seconds || 0),
+                        },
+                        {
+                          label: 'Berichten',
+                          value: messaging.totalMessagesSent || 0,
+                        },
+                        {
+                          label: 'Oproepen',
+                          value: fmtSecs((messaging.totalCallSecs || 0) + (messaging.totalVideoSecs || 0)),
+                        },
+                        {
+                          label: 'Contacten',
+                          value: contacts.total || 0,
+                        },
+                      ];
                       return (
-                        <div className="analytics-report">
-
-                          {/* Profiel */}
+                        <div className="parent-activity-overview">
                           <div className="analytics-profile-card">
                             <div style={{ position: 'relative', flexShrink: 0 }}>
                               {profile.photoURL
-                                ? <img src={profile.photoURL} alt={profile.displayName} style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '3px solid #e9e9f5' }} />
-                                : <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 22, fontWeight: 700, border: '3px solid #e9e9f5' }}>{getInitials(profile.displayName)}</div>
+                                ? <img src={profile.photoURL} alt={profile.displayName} style={{ width: 72, height: 72, borderRadius: 24, objectFit: 'cover', border: '3px solid #ece9ff' }} />
+                                : <div style={{ width: 72, height: 72, borderRadius: 24, background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 24, fontWeight: 700, border: '3px solid #ece9ff' }}>{getInitials(profile.displayName)}</div>
                               }
-                              <span style={{ position: 'absolute', bottom: 2, right: 2, width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', ...statusDot }} />
+                              <span style={{ position: 'absolute', bottom: 4, right: 4, width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', ...statusDot }} />
                             </div>
-                            <div className="analytics-profile-info">
-                              <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
-                                <span style={{ fontWeight: 700, fontSize: 18, color: 'var(--text1,#1a1a1a)' }}>{profile.displayName}</span>
-                                {profile.username && <span style={{ fontSize: 13, color: '#888' }}>@{profile.username}</span>}
-                              </div>
-                              <div style={{ fontSize: 12, color: profile.online ? '#22c55e' : '#9ca3af', marginTop:4, whiteSpace:'nowrap' }}>{profile.online ? <><span aria-hidden="true">● </span>Online</> : `Offline · ${timeAgo(profile.lastSeen, 'Onbekend')}`}</div>
-                            </div>
-                          </div>
-
-                          {/* Gebruik - sessies */}
-                          <div className="analytics-section">
-                            <div className="analytics-section-title"><Activity size={15} aria-hidden="true" /> App-gebruik (afgelopen 7 dagen)</div>
-                            <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
-                              <div className="analytics-stat-box">
-                                <div className="analytics-stat-value">{fmtSecs(sessions.totalSecondsLast7Days)}</div>
-                                <div className="analytics-stat-label">Totale schermtijd</div>
-                              </div>
-                              <div className="analytics-stat-box">
-                                <div className="analytics-stat-value">{sessions.daily.filter(d => d.seconds > 0).length} / 7</div>
-                                <div className="analytics-stat-label">Actieve dagen</div>
-                              </div>
-                              <div className="analytics-stat-box">
-                                <div className="analytics-stat-value">{fmtSecs(sessions.daily.filter(d=>d.seconds>0).length ? Math.round(sessions.totalSecondsLast7Days / Math.max(sessions.daily.filter(d=>d.seconds>0).length,1)) : 0)}</div>
-                                <div className="analytics-stat-label">Gem. per dag</div>
-                              </div>
-                            </div>
-                            {/* 7-daagse staafgrafiek */}
-                            {(() => {
-                              const avgSeconds = sessions.totalSecondsLast7Days / 7;
-                              const avgPct = maxBar > 0 ? (avgSeconds / maxBar) * 100 : 0;
-                              return (
-                                <div className="analytics-bar-chart-wrap">
-                                  {/* Y-as */}
-                                  <div className="analytics-bar-yaxis">
-                                    <span>{fmtSecs(maxBar)}</span>
-                                    <span>0</span>
-                                  </div>
-                                  {/* Grafiek */}
-                                  <div className="analytics-bar-chart-inner">
-                                    {/* Gemiddeldenlijn */}
-                                    {avgSeconds > 0 && (
-                                      <div className="analytics-avg-line" style={{ bottom: `${avgPct}%` }}>
-                                        <span className="analytics-avg-label">gemid.</span>
-                                      </div>
-                                    )}
-                                    {/* Staven */}
-                                    {sessions.daily.map((day) => {
-                                      const dt = new Date(day.date + 'T12:00:00');
-                                      const label = dayLabels[dt.getDay()];
-                                      const pct = maxBar > 0 ? Math.round((day.seconds / maxBar) * 100) : 0;
-                                      return (
-                                        <div key={day.date} className="analytics-bar-col">
-                                          <div className="analytics-bar-wrap">
-                                            {day.seconds > 0 && <div className="analytics-bar-tooltip">{fmtSecs(day.seconds)}</div>}
-                                            <div className="analytics-bar" style={{ height: `${Math.max(pct, day.seconds > 0 ? 3 : 0)}%`, opacity: day.seconds > 0 ? 1 : 0.15 }} />
-                                          </div>
-                                          <div className="analytics-bar-label">{label}</div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
+                            <div className="analytics-profile-main">
+                              <div className="analytics-profile-info">
+                                <div style={{ display:'flex', alignItems:'baseline', gap:6, flexWrap:'wrap' }}>
+                                  <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--text1,#1a1a1a)' }}>{profile.displayName}</span>
+                                  {profile.username && <span style={{ fontSize: 13, color: '#888' }}>@{profile.username}</span>}
                                 </div>
-                              );
-                            })()}
-                          </div>
-
-                          {/* Communicatie */}
-                          <div className="analytics-section">
-                            <div className="analytics-section-title"><Message size={15} aria-hidden="true" /> Communicatie (afgelopen 30 dagen)</div>
-                            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                              <div className="analytics-stat-box">
-                                <div className="analytics-stat-value">{messaging.totalMessagesSent}</div>
-                                <div className="analytics-stat-label"><Message size={13} aria-hidden="true" /> Chatten</div>
+                                <div style={{ fontSize: 13, color: profile.online ? '#22c55e' : '#9ca3af', marginTop: 6, whiteSpace:'nowrap' }}>
+                                  {profile.online ? <><span aria-hidden="true">● </span>Online</> : `Offline · ${timeAgo(profile.lastSeen, 'Onbekend')}`}
+                                </div>
                               </div>
-                              <div className="analytics-stat-box">
-                                <div className="analytics-stat-value">{fmtSecs(messaging.totalCallSecs)}</div>
-                                <div className="analytics-stat-label"><Phone size={13} aria-hidden="true" /> Bellen</div>
-                              </div>
-                              <div className="analytics-stat-box">
-                                <div className="analytics-stat-value">{fmtSecs(messaging.totalVideoSecs)}</div>
-                                <div className="analytics-stat-label"><Video size={13} aria-hidden="true" /> Videobellen</div>
+                              <div className="analytics-profile-summary">
+                                <div className="analytics-profile-summary-item">
+                                  <strong>{contacts.total || 0}</strong>
+                                  <span>contacten</span>
+                                </div>
+                                <div className="analytics-profile-summary-item">
+                                  <strong>{messaging.totalMessagesSent || 0}</strong>
+                                  <span>berichten</span>
+                                </div>
+                                <div className="analytics-profile-summary-item">
+                                  <strong>{sessions.daily.filter(d => d.seconds > 0).length}</strong>
+                                  <span>actieve dagen</span>
+                                </div>
                               </div>
                             </div>
                           </div>
 
-                          {/* Top contacten */}
-                          {messaging.topContacts.length > 0 && (
-                            <div className="analytics-section">
+                          <div className="parent-usage-card analytics-section">
+                            <div className="analytics-section-title"><Activity size={15} aria-hidden="true" /> Gebruik vandaag</div>
+                            <div className="parent-usage-grid">
+                              {usageCards.map(card => (
+                                <div key={card.label} className="parent-usage-stat">
+                                  <div className="parent-usage-value">{card.value}</div>
+                                  <div className="parent-usage-label">{card.label}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {topContacts.length > 0 && (
+                            <div className="analytics-section parent-top-contacts-card">
                               <div className="analytics-section-title"><Users size={15} aria-hidden="true" /> Meest contact mee</div>
-                              {messaging.topContacts.map((c, i) => {
-                                const info = contacts.list.find(l => l.uid === c.uid) || {};
-                                const photoURL = info.photoURL || null;
-                                const displayEmail = info.email || c.email || null;
-                                return (
-                                  <div key={c.uid || i} className="analytics-contact-row" style={{ alignItems:'center', gap:12, flexWrap:'nowrap', borderTop: i > 0 ? '1px solid #f0f0f8' : 'none', paddingTop: i > 0 ? 12 : 0 }}>
-                                    {/* Rang */}
-                                    <div className="analytics-contact-rank" style={{ alignSelf:'center', flexShrink:0 }}>#{i + 1}</div>
-
-                                    {/* Avatar */}
-                                    <div className="analytics-contact-avatar" style={{ flexShrink:0 }}>
-                                      {photoURL
-                                        ? <img src={photoURL} alt={c.name} style={{ width:'100%', height:'100%', borderRadius:'50%', objectFit:'cover' }}/>
-                                        : getInitials(c.name)}
-                                    </div>
-
-                                    {/* Naam+email links, stats rechts (mobiel: gestapeld) */}
-                                    <div className="analytics-contact-info">
-                                      <div className="analytics-contact-name-col">
-                                        <div className="analytics-contact-name">
-                                          {c.name}{c.isGroup && <span style={{ fontSize:11, color:'#888', marginLeft:4 }}>(groep)</span>}
-                                        </div>
-                                        {displayEmail && <div className="analytics-contact-email">{displayEmail}</div>}
-                                      </div>
-                                      <div className="analytics-contact-stats">
-                                        {[
-                                          { value: c.messagesSent || 0,           icon: <Message size={11} aria-hidden="true" />, label: 'Chatberichten' },
-                                          { value: fmtSecs(c.totalCallSecs || 0), icon: <Phone size={11} aria-hidden="true" />,   label: 'Bellen' },
-                                          { value: fmtSecs(c.totalVideoSecs || 0),icon: <Video size={11} aria-hidden="true" />,   label: 'Videobellen' },
-                                        ].map(({ value, icon, label }) => (
-                                          <div key={label} style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:1 }}>
-                                            <div style={{ fontWeight:700, fontSize:14, color:'#7c3aed' }}>{value}</div>
-                                            <div style={{ fontSize:10, color:'#888', display:'flex', alignItems:'center', gap:2 }}>{icon} {label}</div>
-                                          </div>
-                                        ))}
-                                      </div>
+                              <div className="parent-top-contacts-list">
+                                {topContacts.map((c, i) => (
+                                  <div key={c.uid || i} className="parent-top-contact-pill">
+                                    <div className="parent-top-contact-avatar" aria-hidden="true">{getInitials(c.name)}</div>
+                                    <div className="parent-top-contact-copy">
+                                      <strong>{c.name}</strong>
+                                      <span>{c.messagesSent || 0} chats</span>
                                     </div>
                                   </div>
-                                );
-                              })}
+                                ))}
+                              </div>
                             </div>
                           )}
-
-
-                          {/* Contactenlijst */}
-                          {contacts.list.length > 0 && (() => {
-                            const filtered = contactFilter === 'alles'
-                              ? contacts.list
-                              : contacts.list.filter(c => c.relation === contactFilter);
-                            return (
-                              <div className="analytics-section">
-                                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10, flexWrap:'wrap', gap:8 }}>
-                                  <div className="analytics-section-title" style={{ margin:0 }}><Users size={15} aria-hidden="true" /> Contacten ({contacts.total})</div>
-                                  <div style={{ display:'flex', gap:6 }} role="group" aria-label="Contactfilters">
-                                    {['alles','familie','vrienden'].map(f => (
-                                      <button key={f} type="button" aria-pressed={contactFilter === f} onClick={() => setContactFilter(f)}
-                                        style={{ padding:'4px 10px', borderRadius:20, border:'1.5px solid', fontSize:12, fontWeight:600, cursor:'pointer', transition:'all .15s',
-                                          borderColor: contactFilter === f ? '#7c3aed' : '#e5e7eb',
-                                          background: contactFilter === f ? '#7c3aed' : 'transparent',
-                                          color: contactFilter === f ? '#fff' : '#6b7280' }}>
-                                        {f.charAt(0).toUpperCase() + f.slice(1)}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                                  {filtered.length === 0
-                                    ? <div role="status" aria-live="polite" style={{ fontSize:13, color:'#aaa' }}>Geen contacten in deze categorie.</div>
-                                    : filtered.map(c => (
-                                      <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#f8f8fc', borderRadius: 20, padding: '4px 10px 4px 4px', fontSize: 13 }}>
-                                        {c.photoURL
-                                          ? <img src={c.photoURL} alt={c.displayName} style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} />
-                                          : <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#e0e0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#7c3aed' }}>{getInitials(c.displayName)}</div>
-                                        }
-                                        <span style={{ color: 'var(--text1,#1a1a1a)' }}>{c.displayName}</span>
-                                      </div>
-                                    ))
-                                  }
-                                  {contactFilter === 'alles' && contacts.total > contacts.list.length && (
-                                    <div style={{ fontSize: 12, color: '#aaa', display: 'flex', alignItems: 'center' }}>+{contacts.total - contacts.list.length} meer</div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })()}
-
                         </div>
                       );
                     })()}
@@ -1012,7 +908,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                 )}
 
                 {/* Activiteitenlogboek */}
-                <div className="analytics-section">
+                <div className="analytics-section parent-activity-log-card">
                   <div className="analytics-section-title"><Activity size={15} aria-hidden="true" /> Activiteitenlog</div>
                   {filteredActivities.length === 0 ? (
                     <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>

@@ -55,6 +55,7 @@ export function buildPendingMessage({
   userId,
   replyTo = null,
   type = 'text',
+  protocol = 'signal_v1',
   sharedContact = null,
   mentions = [],
 }) {
@@ -75,7 +76,7 @@ export function buildPendingMessage({
     reactions: {},
     deleted: false,
 
-    protocol: 'signal_v1',
+    protocol,
     deliveryState: 'sending',
     receiptSummary: null,
     decryptedLocally: true,

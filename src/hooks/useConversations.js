@@ -8,6 +8,7 @@ import {
   buildForwardServicePayload,
   buildRetryServicePayload,
   resolveOutgoingMessageDisplayText,
+  SOCKET_FALLBACK_PROTOCOL,
 } from '../lib/e2ee/messageTransportPayload';
 import {
   buildPendingMessage,
@@ -108,6 +109,10 @@ export default function useConversations({
 
   function shouldUseServiceTransport(conv) {
     return isE2EEServiceTransportEnabled && serviceTransportReady && !!currentDeviceId && getConversationRecipients(conv).length > 0;
+  }
+
+  function resolvePendingMessageProtocol(conv) {
+    return shouldUseServiceTransport(conv) ? 'signal_v1' : SOCKET_FALLBACK_PROTOCOL;
   }
 
   function patchMessageAsSending(messageId, retryCount = 0) {
@@ -348,6 +353,7 @@ export default function useConversations({
         conversationId: activeConv.id,
         userId: user.uid,
         replyTo: replyTo || null,
+        protocol: resolvePendingMessageProtocol(activeConv),
         mentions,
       }),
       id: tempId,
@@ -432,6 +438,7 @@ export default function useConversations({
         conversationId: conv.id,
         userId: user.uid,
         type: 'contact',
+        protocol: resolvePendingMessageProtocol(conv),
         sharedContact: normalizedSharedContact,
       }),
       id: tempId,

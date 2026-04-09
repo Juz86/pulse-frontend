@@ -120,6 +120,18 @@ describe('e2ee message model helpers', () => {
     expect(pending.failed).toBe(false);
   });
 
+  test('buildPendingMessage can reflect plaintext socket fallback protocol', () => {
+    const pending = buildPendingMessage({
+      text: 'Hallo',
+      conversationId: 'conv-1',
+      userId: 'user-1',
+      protocol: 'legacy_plaintext',
+    });
+
+    expect(pending.protocol).toBe('legacy_plaintext');
+    expect(pending.deliveryState).toBe('sending');
+  });
+
   test('buildPendingMessage limits outgoing pending types to the active Pulse scope', () => {
     const pending = buildPendingMessage({
       text: 'Bijlage: foto.png',

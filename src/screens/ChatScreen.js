@@ -1,6 +1,5 @@
 // src/screens/ChatScreen.js
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { getSocket } from '../services/socket';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { Bell, BellOff, Message, Delete, Trash2 } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
@@ -173,7 +172,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     showErrToast, setConfirmDialog,
   });
 
-  const { connected, reconnectIn, typing, typingName, pausedFeatures, mentionToast } = useChat({
+  const { typing, typingName, pausedFeatures, mentionToast } = useChat({
     user, activeConvRef, conversationsRef, msgsAreaRef, dndRef, audioCtxRef,
     loadConversations, loadContacts, loadFriendRequests, setMessages, setConversations, setUnreadCounts,
     setFriendRequests, setContactSuccess, setShowFriendRequestsPanel, setContacts, setActiveConv,

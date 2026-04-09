@@ -1,5 +1,5 @@
 // src/components/CallOverlay.js
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade } from '../services/socket';
 import { Phone, Video, Mic, MicOff, Camera, Cancel } from './Icons';
 
@@ -21,8 +21,9 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   const localStreamRef  = useRef(null);
   const remoteStreamRef = useRef(null);
   const remoteAudioStreamRef = useRef(null);
+  const remoteTrackListenerCleanupRef = useRef(null);
 
-  async function attachMediaStream(element, stream) {
+  const attachMediaStream = useCallback(async (element, stream) => {
     if (!element || !stream) return;
     const isAudioElement = element instanceof HTMLAudioElement;
     const audioTracks = typeof stream.getAudioTracks === 'function' ? stream.getAudioTracks() : [];
@@ -49,7 +50,22 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
     } catch (error) {
       console.warn('[Pulse] Fout: media afspelen mislukt:', error?.message || error);
     }
-  }
+  }, []);
+
+  const bindRemoteAudioStream = useCallback((stream) => {
+    if (!stream) return;
+    remoteTrackListenerCleanupRef.current?.();
+    const syncAudio = () => {
+      if (remoteAudioRef.current) attachMediaStream(remoteAudioRef.current, stream);
+    };
+    stream.addEventListener?.('addtrack', syncAudio);
+    stream.addEventListener?.('removetrack', syncAudio);
+    remoteTrackListenerCleanupRef.current = () => {
+      stream.removeEventListener?.('addtrack', syncAudio);
+      stream.removeEventListener?.('removetrack', syncAudio);
+    };
+    syncAudio();
+  }, [attachMediaStream]);
 
   // ── Inkomend gesprek beantwoorden ────────────────────────────────────────
   async function handleAccept() {
@@ -64,7 +80,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
           remoteStreamRef.current = remoteStream;
           if (localVideoRef.current)  attachMediaStream(localVideoRef.current, localStream);
           if (remoteVideoRef.current) attachMediaStream(remoteVideoRef.current, remoteStream);
-          if (remoteAudioRef.current) attachMediaStream(remoteAudioRef.current, remoteStream);
+          bindRemoteAudioStream(remoteStream);
           setCallState('active');
           startTimer();
         },
@@ -105,6 +121,8 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
     clearInterval(timerRef.current);
     clearTimeout(closeTimeoutRef.current);
     localStreamRef.current?.getTracks().forEach(t => t.stop());
+    remoteTrackListenerCleanupRef.current?.();
+    remoteTrackListenerCleanupRef.current = null;
     remoteAudioStreamRef.current = null;
   }
 
@@ -150,7 +168,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
     if (active?.remoteStream) {
       remoteStreamRef.current = active.remoteStream;
       if (remoteVideoRef.current) attachMediaStream(remoteVideoRef.current, active.remoteStream);
-      if (remoteAudioRef.current) attachMediaStream(remoteAudioRef.current, active.remoteStream);
+      bindRemoteAudioStream(active.remoteStream);
     }
     if (active?.remoteStream && callState === 'calling') {
       setCallState('active');
@@ -169,7 +187,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
       cleanup();
       closeTimeoutRef.current = setTimeout(() => onClose?.(), 3000);
     }
-  }, [active, callState, onClose]);
+  }, [active, callState, onClose, attachMediaStream, bindRemoteAudioStream]);
 
   // ── Beltoon bij inkomend gesprek ─────────────────────────────────────────
   useEffect(() => {
@@ -202,8 +220,8 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
     if (!videoUpgraded) return;
     if (localStreamRef.current  && localVideoRef.current)  attachMediaStream(localVideoRef.current, localStreamRef.current);
     if (remoteStreamRef.current && remoteVideoRef.current) attachMediaStream(remoteVideoRef.current, remoteStreamRef.current);
-    if (remoteStreamRef.current && remoteAudioRef.current) attachMediaStream(remoteAudioRef.current, remoteStreamRef.current);
-  }, [videoUpgraded]);
+    if (remoteStreamRef.current) bindRemoteAudioStream(remoteStreamRef.current);
+  }, [videoUpgraded, attachMediaStream, bindRemoteAudioStream]);
 
   const isVideo   = incoming?.isVideo || active?.isVideo || videoUpgraded;
   const callName  = incoming?.callerName || active?.name || 'Contactpersoon';

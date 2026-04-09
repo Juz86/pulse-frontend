@@ -34,6 +34,10 @@ import {
   isEncryptedProtocol,
 } from './policy';
 import {
+  ENCRYPTED_MESSAGE_PROTOCOL,
+  PLAINTEXT_MESSAGE_PROTOCOL,
+} from './messageProtocolConstants';
+import {
   getAttachmentDisplayName,
   MAX_E2EE_ATTACHMENT_BYTES,
   isImageAttachment,
@@ -96,7 +100,7 @@ describe('e2ee message model helpers', () => {
         conversationId: 'conv-1',
         senderUserId: 'user-1',
         ciphertext: 'abc',
-        protocol: 'signal_v1',
+        protocol: ENCRYPTED_MESSAGE_PROTOCOL,
       },
       'user-1'
     );
@@ -114,7 +118,7 @@ describe('e2ee message model helpers', () => {
     });
 
     expect(pending.text).toBe('Hallo');
-    expect(pending.protocol).toBe('signal_v1');
+    expect(pending.protocol).toBe(ENCRYPTED_MESSAGE_PROTOCOL);
     expect(pending.deliveryState).toBe('sending');
     expect(pending.pending).toBe(true);
     expect(pending.failed).toBe(false);
@@ -125,10 +129,10 @@ describe('e2ee message model helpers', () => {
       text: 'Hallo',
       conversationId: 'conv-1',
       userId: 'user-1',
-      protocol: 'legacy_plaintext',
+      protocol: PLAINTEXT_MESSAGE_PROTOCOL,
     });
 
-    expect(pending.protocol).toBe('legacy_plaintext');
+    expect(pending.protocol).toBe(PLAINTEXT_MESSAGE_PROTOCOL);
     expect(pending.deliveryState).toBe('sending');
   });
 
@@ -448,19 +452,19 @@ describe('e2ee messaging service scope guards', () => {
 
 describe('e2ee policy helpers', () => {
   test('signal_v1 is treated as encrypted protocol', () => {
-    expect(isEncryptedProtocol('signal_v1')).toBe(true);
-    expect(isEncryptedProtocol('legacy_plaintext')).toBe(false);
+    expect(isEncryptedProtocol(ENCRYPTED_MESSAGE_PROTOCOL)).toBe(true);
+    expect(isEncryptedProtocol(PLAINTEXT_MESSAGE_PROTOCOL)).toBe(false);
   });
 
   test('encrypted messages cannot be edited or plaintext-updated', () => {
-    const message = { protocol: 'signal_v1' };
+    const message = { protocol: ENCRYPTED_MESSAGE_PROTOCOL };
 
     expect(canEditMessage(message)).toBe(false);
     expect(canApplyPlaintextEditUpdate(message)).toBe(false);
   });
 
   test('legacy messages can still be edited', () => {
-    const message = { protocol: 'legacy_plaintext' };
+    const message = { protocol: PLAINTEXT_MESSAGE_PROTOCOL };
 
     expect(canEditMessage(message)).toBe(true);
     expect(canApplyPlaintextEditUpdate(message)).toBe(true);
@@ -1350,7 +1354,7 @@ describe('e2ee transport payload helpers', () => {
       senderName: 'Yushua',
       senderDeviceId: 'device-1',
       text: 'Hallo',
-      protocol: 'legacy_plaintext',
+      protocol: PLAINTEXT_MESSAGE_PROTOCOL,
       type: 'text',
       messageType: 'text',
       mentions: ['user-2'],
@@ -1398,7 +1402,7 @@ describe('e2ee transport payload helpers', () => {
       senderUserId: 'user-1',
       senderDeviceId: 'device-1',
       text: 'Hallo',
-      protocol: 'signal_v1',
+      protocol: ENCRYPTED_MESSAGE_PROTOCOL,
       deliveryState: 'sent',
       replyToMessageId: 'msg-parent-1',
       type: 'text',

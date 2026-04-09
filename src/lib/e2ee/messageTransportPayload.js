@@ -1,8 +1,12 @@
 import { getSharedContactDisplayText } from './messageCopy';
+import {
+  ENCRYPTED_MESSAGE_PROTOCOL,
+  PLAINTEXT_MESSAGE_PROTOCOL,
+} from './messageProtocolConstants';
 import { ACTIVE_OUTGOING_MESSAGE_TYPES } from './messageTypeConstants';
 
 export const OUTGOING_ATTACHMENT_SCOPE_ERROR = 'Bijlagen versturen is niet beschikbaar in Pulse.';
-export const SOCKET_FALLBACK_PROTOCOL = 'legacy_plaintext';
+export const SOCKET_FALLBACK_PROTOCOL = PLAINTEXT_MESSAGE_PROTOCOL;
 
 export function getStructuredMessageType(message) {
   return message?.type || message?.messageType || 'text';
@@ -127,7 +131,7 @@ export function buildServiceMessageResult({
     senderDeviceId,
     text: resolveOutgoingMessageDisplayText({ plaintext, messageType, sharedContact }),
     createdAt,
-    protocol: 'signal_v1',
+    protocol: ENCRYPTED_MESSAGE_PROTOCOL,
     deliveryState: 'sent',
     replyToMessageId,
     type: resolvedMessageType,

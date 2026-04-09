@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getSocket } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
 import { normalizeIncomingMessage } from '../lib/e2ee/messageModel';
+import { ENCRYPTED_MESSAGE_PROTOCOL } from '../lib/e2ee/messageProtocolConstants';
 import {
   applyCallConversationSummaryToList,
   applyConversationSummaryToList,
@@ -116,7 +117,7 @@ export default function useChat({
       const convId = hydratedMsg.convId || hydratedMsg.conversationId || msg.convId;
 
       if (current?.id === convId) {
-        if (hydratedMsg.protocol === 'signal_v1' && hydratedMsg.senderId !== user.uid && hydratedMsg.id) {
+        if (hydratedMsg.protocol === ENCRYPTED_MESSAGE_PROTOCOL && hydratedMsg.senderId !== user.uid && hydratedMsg.id) {
           messagingService.sendReceipt({ user, messageId: hydratedMsg.id, type: 'read' }).catch(() => {});
         }
         setMessages(prev => {
@@ -144,7 +145,7 @@ export default function useChat({
         }, 50);
         playMessageSound();
       } else if (hydratedMsg.senderId !== user.uid) {
-        if (hydratedMsg.protocol === 'signal_v1' && hydratedMsg.id) {
+        if (hydratedMsg.protocol === ENCRYPTED_MESSAGE_PROTOCOL && hydratedMsg.id) {
           messagingService.sendReceipt({ user, messageId: hydratedMsg.id, type: 'delivered' }).catch(() => {});
         }
         setUnreadCounts(prev => ({ ...prev, [convId]: (prev[convId] || 0) + 1 }));

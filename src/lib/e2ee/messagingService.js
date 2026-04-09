@@ -3,6 +3,7 @@ import { E2EE_MODE } from './config';
 import { pulseCryptoAdapter } from './adapter/pulseCryptoAdapter';
 import { normalizeAttachmentPayload } from './attachmentPayload';
 import { getAttachmentBaseDisplayText } from './attachmentPresentation';
+import { ENCRYPTED_MESSAGE_PROTOCOL } from './messageProtocolConstants';
 import {
   getEncryptedMessageDisplayText,
   getSharedContactFallbackDisplayText,
@@ -228,7 +229,7 @@ export const messagingService = {
         messageType,
         sharedContact,
         mentions,
-        protocol: 'signal_v1',
+        protocol: ENCRYPTED_MESSAGE_PROTOCOL,
         protocolVersion: 1,
         replyToMessageId,
         recipientPayloads,
@@ -240,7 +241,7 @@ export const messagingService = {
   },
 
   async hydrateIncomingMessage(raw, currentUserId) {
-    if (raw.protocol !== 'signal_v1') {
+    if (raw.protocol !== ENCRYPTED_MESSAGE_PROTOCOL) {
       return normalizeIncomingMessage(raw, currentUserId);
     }
 

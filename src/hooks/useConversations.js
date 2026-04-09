@@ -10,6 +10,7 @@ import {
   resolveOutgoingMessageDisplayText,
   SOCKET_FALLBACK_PROTOCOL,
 } from '../lib/e2ee/messageTransportPayload';
+import { ENCRYPTED_MESSAGE_PROTOCOL } from '../lib/e2ee/messageProtocolConstants';
 import {
   buildPendingMessage,
   normalizeIncomingMessage,
@@ -97,7 +98,7 @@ export default function useConversations({
 
   async function markConversationMessagesAsRead(items) {
     const targets = items.filter((message) =>
-      message?.protocol === 'signal_v1' &&
+      message?.protocol === ENCRYPTED_MESSAGE_PROTOCOL &&
       message?.id &&
       message?.senderId !== user.uid
     );
@@ -112,7 +113,7 @@ export default function useConversations({
   }
 
   function resolvePendingMessageProtocol(conv) {
-    return shouldUseServiceTransport(conv) ? 'signal_v1' : SOCKET_FALLBACK_PROTOCOL;
+    return shouldUseServiceTransport(conv) ? ENCRYPTED_MESSAGE_PROTOCOL : SOCKET_FALLBACK_PROTOCOL;
   }
 
   function patchMessageAsSending(messageId, retryCount = 0) {

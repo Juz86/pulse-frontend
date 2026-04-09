@@ -1,6 +1,10 @@
 import { normalizeAttachmentPayload } from './attachmentPayload';
 import { buildConversationPreviewPresentation } from './conversationSummaries';
 import {
+  ENCRYPTED_MESSAGE_PROTOCOL,
+  PLAINTEXT_MESSAGE_PROTOCOL,
+} from './messageProtocolConstants';
+import {
   getEncryptedMessageDisplayText,
   getSharedContactDisplayText,
 } from './messageCopy';
@@ -31,7 +35,7 @@ export function normalizeIncomingMessage(raw, currentUserId) {
     reactions,
     deleted: !!raw.deleted,
 
-    protocol: raw.protocol || 'legacy_plaintext',
+    protocol: raw.protocol || PLAINTEXT_MESSAGE_PROTOCOL,
     deliveryState: raw.deliveryState || 'sent',
     receiptSummary: raw.receiptSummary || null,
     decryptedLocally: raw.decryptedLocally ?? true,
@@ -55,7 +59,7 @@ export function buildPendingMessage({
   userId,
   replyTo = null,
   type = 'text',
-  protocol = 'signal_v1',
+  protocol = ENCRYPTED_MESSAGE_PROTOCOL,
   sharedContact = null,
   mentions = [],
 }) {

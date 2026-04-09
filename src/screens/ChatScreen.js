@@ -14,10 +14,12 @@ import useCalling from '../hooks/useCalling';
 import useProfile from '../hooks/useProfile';
 import useContacts from '../hooks/useContacts';
 import { copyTextToClipboard } from '../utils';
+import { isPulseWebBrowser } from '../lib/platform/runtime';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
 export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
+  const callsAvailable = !isPulseWebBrowser();
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
   const [unreadCounts,   setUnreadCounts]   = useState({});
@@ -375,6 +377,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onDeleteSelectedConversations={deleteSelectedConversations}
         getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         getContactDisplayName={getContactDisplayName}
+        callsAvailable={callsAvailable}
       />
 
       <main className="chat-main" aria-label={activeConv ? `Chatvenster voor ${getConvName(activeConv)}` : 'Chatvenster'}>
@@ -402,6 +405,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               chatSearchIdx={chatSearchIdx} setChatSearchIdx={setChatSearchIdx}
               messages={messages} chatSearchRef={chatSearchRef}
               serviceTransportReady={serviceTransportReady}
+              callsAvailable={callsAvailable}
             />
             {!isOnline && (
               <div className="offline-banner" role="status" aria-live="polite">
@@ -442,6 +446,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onShowContextMenu={handleShowContextMenu}
               jumpToMsgId={jumpToMsgId}
               onRetry={msg => retryMessage(msg)}
+              onStartCall={callsAvailable ? ({ toUid, convId, name, isVideo }) => initiateCallFromConv({ id: convId, members: [user.uid, toUid], memberNames: { [toUid]: name } }, isVideo) : undefined}
               onViewContact={sc => { setFriendReqSent(false); setViewingSharedContact({ ...sc, isAlreadyContact: contacts.some(c => c.uid === sc?.uid) }); }}
             />
             {(() => {
@@ -558,6 +563,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         errToast={errToast} mentionToast={mentionToast} parentToast={parentToast}
         onOpenMentionConversation={openConversation}
         blockedContacts={blockedContacts} parentBlockedUids={parentBlockedUids} unblockContact={unblockContact}
+        callsAvailable={callsAvailable}
       />
       </Suspense>
 

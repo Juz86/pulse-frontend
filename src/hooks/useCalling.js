@@ -2,6 +2,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { getSocket } from '../services/socket';
 import { BACKEND_URL, startCall } from '../services/socket';
+import {
+  isPulseWebBrowser,
+  PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE,
+} from '../lib/platform/runtime';
 
 export default function useCalling({
   user,
@@ -103,6 +107,10 @@ export default function useCalling({
   }
 
   async function startCallTo({ toUid, convId, name, isVideo }) {
+    if (isPulseWebBrowser()) {
+      showErrToast(`📱 ${PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE}`);
+      return;
+    }
     if (isVideo ? pausedFeatures.video : pausedFeatures.call) {
       const canChat   = !pausedFeatures.chat;
       const canCall   = !pausedFeatures.call;

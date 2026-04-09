@@ -18,6 +18,7 @@ export default function CallMessageCard({
     iconType,
     createdAt,
   } = presentation;
+  const canRestartCall = isMissed && typeof onStartCall === 'function';
 
   return (
     <div
@@ -27,12 +28,12 @@ export default function CallMessageCard({
     >
       <div
         className={`msg-call-card ${isOwn ? 'out' : 'in'}${isMissed ? ' missed' : ''}`}
-        role={isMissed ? 'button' : undefined}
-        tabIndex={isMissed ? 0 : undefined}
-        aria-label={isMissed ? callCardLabel : undefined}
-        onClick={isMissed ? () => onStartCall(isVideo) : undefined}
-        onKeyDown={isMissed ? (event) => onActionCardKeyDown(event, () => onStartCall(isVideo)) : undefined}
-        style={isMissed ? { cursor: 'pointer' } : undefined}
+        role={canRestartCall ? 'button' : undefined}
+        tabIndex={canRestartCall ? 0 : undefined}
+        aria-label={canRestartCall ? callCardLabel : undefined}
+        onClick={canRestartCall ? () => onStartCall(isVideo) : undefined}
+        onKeyDown={canRestartCall ? (event) => onActionCardKeyDown(event, () => onStartCall(isVideo)) : undefined}
+        style={canRestartCall ? { cursor: 'pointer' } : undefined}
       >
         <div className={`msg-call-icon ${iconType}`} aria-hidden="true">
           {isVideo ? <Video size={20} aria-hidden="true" /> : <Phone size={20} aria-hidden="true" />}

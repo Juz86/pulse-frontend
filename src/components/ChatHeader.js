@@ -33,6 +33,7 @@ const ChatHeader = React.memo(function ChatHeader({
   messages,
   chatSearchRef,
   serviceTransportReady,
+  callsAvailable = true,
 }) {
   const otherUid  = getOtherUid(activeConv);
   const isOnline  = otherUid && onlineUsers.has(otherUid);
@@ -129,7 +130,7 @@ const ChatHeader = React.memo(function ChatHeader({
 
         {/* Actieknoppen */}
         <div className="chat-header-actions">
-          {!activeConv.isGroup && !parentBlockedOtherUid && (
+          {!activeConv.isGroup && !parentBlockedOtherUid && callsAvailable && (
             <>
               <button type="button" className="call-btn voice" aria-label={`Bel ${getConvName(activeConv)}`} onClick={() => onInitiateCall(false)} title="Bellen"><Phone size={18} aria-hidden="true" /></button>
               <button type="button" className="call-btn video" aria-label={`Videobel ${getConvName(activeConv)}`} onClick={() => onInitiateCall(true)} title="Videobellen"><Video size={18} aria-hidden="true" /></button>

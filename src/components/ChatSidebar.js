@@ -78,6 +78,7 @@ export default function ChatSidebar({
   getOtherUid,
   getConvPhoto,
   getContactDisplayName,
+  callsAvailable = true,
 }) {
   const [contactMenu, setContactMenu] = useState(null);
   const [convMenu, setConvMenu]       = useState(null); // { conv, otherUid, direction, top, left }
@@ -95,7 +96,7 @@ export default function ChatSidebar({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [moreActionsMenuOpen]);
-  const hasMissedCall = (!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert;
+  const hasMissedCall = callsAvailable && (((!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert));
 
   async function handleLogout() {
     clearPulseUserStorage(user.uid);
@@ -239,10 +240,12 @@ export default function ChatSidebar({
                   {dnd ? <BellOff size={15} aria-hidden="true" /> : <Bell size={15} aria-hidden="true" />}
                   <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
                 </button>
-                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); onShowCallModal(); }}>
-                  <Phone size={15} aria-hidden="true" />
-                  <span>Oproepen</span>
-                </button>
+                {callsAvailable && (
+                  <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); onShowCallModal(); }}>
+                    <Phone size={15} aria-hidden="true" />
+                    <span>Oproepen</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -426,16 +429,20 @@ export default function ChatSidebar({
                 <Message size={14} aria-hidden="true" />
                 <span>Bericht sturen</span>
               </button>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
-                onClick={() => { onCallFromConv(conv, false); setConvMenu(null); }} title="Bellen">
-                <Phone size={14} aria-hidden="true" />
-                <span>Bellen</span>
-              </button>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
-                onClick={() => { onCallFromConv(conv, true); setConvMenu(null); }} title="Videobellen">
-                <Video size={14} aria-hidden="true" />
-                <span>Videobellen</span>
-              </button>
+              {callsAvailable && (
+                <>
+                  <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
+                    onClick={() => { onCallFromConv(conv, false); setConvMenu(null); }} title="Bellen">
+                    <Phone size={14} aria-hidden="true" />
+                    <span>Bellen</span>
+                  </button>
+                  <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
+                    onClick={() => { onCallFromConv(conv, true); setConvMenu(null); }} title="Videobellen">
+                    <Video size={14} aria-hidden="true" />
+                    <span>Videobellen</span>
+                  </button>
+                </>
+              )}
               {otherUid && (
                 <button type="button" role="menuitem" className={`icon-btn${isPinned ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
                   onClick={() => { onTogglePin(otherUid); setConvMenu(null); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
@@ -496,14 +503,18 @@ export default function ChatSidebar({
                 <Message size={14} aria-hidden="true" />
                 <span>Bericht sturen</span>
               </button>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
-                <Phone size={14} aria-hidden="true" />
-                <span>Bellen</span>
-              </button>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
-                <Video size={14} aria-hidden="true" />
-                <span>Videobellen</span>
-              </button>
+              {callsAvailable && (
+                <>
+                  <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
+                    <Phone size={14} aria-hidden="true" />
+                    <span>Bellen</span>
+                  </button>
+                  <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
+                    <Video size={14} aria-hidden="true" />
+                    <span>Videobellen</span>
+                  </button>
+                </>
+              )}
               <button type="button" role="menuitem" className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
                 <Pin size={14} aria-hidden="true" />
                 <span>{pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}</span>

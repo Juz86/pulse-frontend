@@ -6,6 +6,11 @@ import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
 import UserAvatar from '../components/UserAvatar';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
+import {
+  PULSE_WEB_CALLS_UNAVAILABLE_HINT,
+  PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE,
+  PULSE_WEB_CALLS_UNAVAILABLE_TITLE,
+} from '../lib/platform/runtime';
 
 export default function ChatModals({
   // contact rename
@@ -125,6 +130,7 @@ export default function ChatModals({
   blockedContacts, parentBlockedUids, unblockContact,
 
   // helpers
+  callsAvailable = true,
 }) {
   const [starredSearch,   setStarredSearch]   = useState('');
   const [profileClosing,  setProfileClosing]  = useState(false);
@@ -1098,9 +1104,19 @@ export default function ChatModals({
           <div className="modal-overlay" onClick={() => setShowCallModal(false)}>
             <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="call-log-title" aria-describedby="call-log-description" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
               <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setShowCallModal(false)}><span aria-hidden="true">✕</span></button>
-              <h3 id="call-log-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Phone size={18} /></span> Recent</h3>
-              <p id="call-log-description" className="sr-only">Bekijk recente oproepen en start een nieuwe bel- of video-oproep.</p>
-              {callLog.length === 0 ? (
+              <h3 id="call-log-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Phone size={18} /></span> {callsAvailable ? 'Recent' : 'Alleen in de app'}</h3>
+              <p id="call-log-description" className="sr-only">
+                {callsAvailable
+                  ? 'Bekijk recente oproepen en start een nieuwe bel- of video-oproep.'
+                  : 'Bellen en videobellen zijn in Pulse Web niet beschikbaar.'}
+              </p>
+              {!callsAvailable ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left', padding: '12px 0 18px' }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{PULSE_WEB_CALLS_UNAVAILABLE_TITLE}</div>
+                  <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>{PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text3)', lineHeight: 1.55 }}>{PULSE_WEB_CALLS_UNAVAILABLE_HINT}</div>
+                </div>
+              ) : callLog.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text3)' }}>
                   <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
                   <div>Nog geen oproepen</div>
@@ -1145,7 +1161,7 @@ export default function ChatModals({
               )}
               <div style={{ display: 'flex', gap: 8 }}>
                 <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowCallModal(false)}>Sluiten</button>
-                {callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={() => { localStorage.removeItem(`pulse_calls_${user.uid}`); setShowCallModal(false); }}>Wissen</button>}
+                {callsAvailable && callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={() => { localStorage.removeItem(`pulse_calls_${user.uid}`); setShowCallModal(false); }}>Wissen</button>}
               </div>
             </div>
           </div>
@@ -1319,7 +1335,7 @@ export default function ChatModals({
       )}
 
       {/* ── ACTIEF GESPREK OVERLAY ── */}
-      {activeCall && (
+      {callsAvailable && activeCall && (
         <CallOverlay
           active={activeCall}
           user={user}

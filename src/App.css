@@ -1409,12 +1409,25 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 /* Mobiel: sidebar wordt een rij bovenaan */
 @media (max-width:620px) {
-  .profile-modal-box { width:calc(100vw - 24px); height:calc(100dvh - 60px); }
+  .modal-overlay {
+    align-items:flex-start;
+    padding:
+      max(12px, env(safe-area-inset-top))
+      12px
+      max(12px, env(safe-area-inset-bottom));
+  }
+  .profile-modal-box {
+    width:calc(100vw - 24px);
+    height:auto;
+    min-height:0;
+    max-height:calc(var(--vvh, 100dvh) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
+  }
   .profile-modal-body { flex-direction:column; }
   .profile-sidebar { width:100%; flex-direction:row; padding:4px 6px 0; border-right:none; border-bottom:1px solid var(--border); overflow:hidden; }
   .profile-sidebar-tab { border-left:none; border-bottom:3px solid transparent; padding:10px 8px; white-space:nowrap; flex:1; justify-content:center; font-size:12px; }
   .profile-sidebar-tab.active { border-bottom-color:var(--accent); border-left-color:transparent; background:transparent; }
   .profile-sidebar-tab.danger { margin-top:0; flex:1; }
+  .profile-content { -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
 }
 .modal-sub {
   font-size:13px; color:var(--text3); margin-bottom:20px;
@@ -1676,6 +1689,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   /* Input */
   .chat-input-area { padding:10px 14px; }
+  .form-input,
+  .chat-textarea,
+  .search-box input { font-size:16px; }
 
   /* Sidebar footer */
   .sidebar-footer { padding:12px 14px; }

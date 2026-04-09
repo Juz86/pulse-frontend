@@ -86,7 +86,7 @@ export default function Homepage({ onParentClick }) {
             </h1>
             <p className="hp-hero-sub">
             Met Pulse kunnen kinderen zonder telefoonnummer chatten, bellen en videobellen. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
-            <div style={{ display: 'flex', gap: 12, marginTop: 42, flexWrap: 'wrap' }}>
+            <div className="hp-hero-cta-row">
               <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
                 Start met Pulse
               </button>

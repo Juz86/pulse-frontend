@@ -1627,8 +1627,10 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 /* ── RESPONSIVE ── */
 @media (max-width: 767px) {
   /* Auth */
-  .auth-card { width:calc(100vw - 32px); padding:32px 24px; border-radius:20px; }
-  .auth-card-back { width:calc(100vw - 32px); padding:32px 24px; border-radius:20px; }
+  .auth-screen { align-items:center; justify-content:center; min-height:100vh; height:auto; padding:20px 16px; box-sizing:border-box; }
+  .auth-flip-wrapper { width:100%; max-width:420px; }
+  .auth-card { width:100%; padding:32px 24px; border-radius:20px; box-sizing:border-box; }
+  .auth-card-back { width:100%; padding:32px 24px; border-radius:20px; box-sizing:border-box; }
 
   /* Modal */
   .modal-box { width:calc(100vw - 32px); padding:28px 20px; border-radius:20px; }
@@ -2938,6 +2940,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   color: #1a1a2e; letter-spacing: -0.8px; margin-bottom: 14px;
 }
 .hp-cta p { font-size: 16px; color: #6b7280; margin-bottom: 36px; }
+.hp-hero-cta-row {
+  display: flex; gap: 12px; margin-top: 42px; flex-wrap: wrap;
+}
 .hp-cta-btn {
   background: linear-gradient(135deg, #7c6fff, #a855f7);
   color: #fff; border: none; border-radius: 14px;

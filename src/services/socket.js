@@ -50,6 +50,50 @@ let renegotiateHandler = null;
 let videoUpgradeHandler = null;
 let callPeer          = null; // bewaar de remote uid voor renegotiatie
 
+function buildPreferredAudioConstraints() {
+  return {
+    echoCancellation: true,
+    noiseSuppression: true,
+    autoGainControl: true,
+  };
+}
+
+function buildPreferredVideoConstraints() {
+  return {
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
+    frameRate: { ideal: 30 },
+    facingMode: 'user',
+  };
+}
+
+async function requestCallMedia({ isVideo = false } = {}) {
+  const attempts = [
+    {
+      audio: buildPreferredAudioConstraints(),
+      video: isVideo ? buildPreferredVideoConstraints() : false,
+    },
+    {
+      audio: true,
+      video: isVideo ? { facingMode: 'user' } : false,
+    },
+    {
+      audio: true,
+      video: !!isVideo,
+    },
+  ];
+
+  let lastError = null;
+  for (const constraints of attempts) {
+    try {
+      return await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Kan microfoon/camera niet starten.');
+}
+
 // ── Socket verbinden ──────────────────────────────────────────────────────────
 export function connectSocket(uid, token) {
   if (socket?.connected) {
@@ -82,10 +126,7 @@ export function disconnectSocket() {
 export async function startCall({ toUid, fromUid, callerName, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest, onConnectionFallback }) {
   let stream;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 48000 },
-      video: isVideo ? { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } : false,
-    });
+    stream = await requestCallMedia({ isVideo });
   } catch (e) {
     const msg = e.name === 'NotAllowedError'
       ? 'Toegang tot microfoon/camera geweigerd. Geef toestemming in je browser.'
@@ -181,10 +222,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
 export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest, onConnectionFallback }) {
   let stream;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 48000 },
-      video: isVideo ? { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } } : false,
-    });
+    stream = await requestCallMedia({ isVideo });
   } catch (e) {
     const msg = e.name === 'NotAllowedError'
       ? 'Toegang tot microfoon/camera geweigerd. Geef toestemming in je browser.'
@@ -260,8 +298,9 @@ export async function acceptVideoUpgrade() {
   if (!peer) return null;
   try {
     const vs = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
-    });
+      video: buildPreferredVideoConstraints(),
+    }).catch(() => navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }))
+      .catch(() => navigator.mediaDevices.getUserMedia({ video: true }));
     peer.addTrack(vs.getVideoTracks()[0], vs);
     return vs;
   } catch (e) {
@@ -274,8 +313,9 @@ export async function upgradeToVideo() {
   if (!peer) return null;
   try {
     const videoStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
-    });
+      video: buildPreferredVideoConstraints(),
+    }).catch(() => navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }))
+      .catch(() => navigator.mediaDevices.getUserMedia({ video: true }));
     const videoTrack = videoStream.getVideoTracks()[0];
     peer.addTrack(videoTrack, videoStream);
     // Vertel remote kant ook camera te starten

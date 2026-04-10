@@ -75,6 +75,30 @@ const ChatHeader = React.memo(function ChatHeader({
     }
   }
 
+  function openChatSearch() {
+    setShowChatSearch(true);
+    setChatSearch('');
+    setChatSearchIdx(0);
+    setTimeout(() => chatSearchRef.current?.focus(), 50);
+  }
+
+  function closeChatSearch() {
+    if (typeof document !== 'undefined' && document.activeElement === chatSearchRef.current) {
+      chatSearchRef.current.blur();
+    }
+    setShowChatSearch(false);
+    setChatSearch('');
+    setChatSearchIdx(0);
+  }
+
+  function toggleChatSearch() {
+    if (showChatSearch) {
+      closeChatSearch();
+      return;
+    }
+    openChatSearch();
+  }
+
   return (
     <>
       <div className="chat-header">
@@ -146,7 +170,7 @@ const ChatHeader = React.memo(function ChatHeader({
             aria-controls="chat-search-region"
             aria-expanded={showChatSearch}
             title="Zoeken"
-            onClick={() => { setShowChatSearch(s => !s); setChatSearch(''); setChatSearchIdx(0); setTimeout(() => chatSearchRef.current?.focus(), 50); }}
+            onClick={toggleChatSearch}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
@@ -175,19 +199,20 @@ const ChatHeader = React.memo(function ChatHeader({
       )}
 
       {/* Zoekbalk in gesprek */}
-      <div id="chat-search-region" className={`chat-search-bar${showChatSearch ? ' visible' : ''}`} role="search" aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`} aria-hidden={!showChatSearch}>
+      <div id="chat-search-region" className={`chat-search-bar${showChatSearch ? ' visible' : ''}`} role="search" aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`}>
         <input
           ref={chatSearchRef}
           aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`}
           aria-controls="chat-messages-log"
           aria-describedby={chatSearch.trim() ? 'chat-search-results-status' : undefined}
+          tabIndex={showChatSearch ? 0 : -1}
           value={chatSearch}
           onChange={e => { setChatSearch(e.target.value); setChatSearchIdx(0); }}
           placeholder="Zoeken in gesprek…"
           style={{ flex: 1, background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '8px', padding: '7px 12px', color: 'var(--text)', fontSize: '14px', outline: 'none' }}
           onKeyDown={e => {
             if (e.key === 'Enter') setChatSearchIdx(i => (i + 1) % (searchTotal || 1));
-            if (e.key === 'Escape') { setShowChatSearch(false); setChatSearch(''); }
+            if (e.key === 'Escape') closeChatSearch();
           }}
         />
         {chatSearch.trim() && (
@@ -197,11 +222,11 @@ const ChatHeader = React.memo(function ChatHeader({
         )}
         {searchTotal > 1 && (
           <>
-            <button type="button" aria-label="Vorig resultaat" aria-controls="chat-messages-log" className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setChatSearchIdx(i => (i - 1 + searchTotal) % searchTotal)}><span aria-hidden="true">↑</span></button>
-            <button type="button" aria-label="Volgend resultaat" aria-controls="chat-messages-log" className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setChatSearchIdx(i => (i + 1) % searchTotal)}><span aria-hidden="true">↓</span></button>
+            <button type="button" aria-label="Vorig resultaat" aria-controls="chat-messages-log" tabIndex={showChatSearch ? 0 : -1} className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setChatSearchIdx(i => (i - 1 + searchTotal) % searchTotal)}><span aria-hidden="true">↑</span></button>
+            <button type="button" aria-label="Volgend resultaat" aria-controls="chat-messages-log" tabIndex={showChatSearch ? 0 : -1} className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setChatSearchIdx(i => (i + 1) % searchTotal)}><span aria-hidden="true">↓</span></button>
           </>
         )}
-        <button type="button" aria-label="Zoeken sluiten" className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => { setShowChatSearch(false); setChatSearch(''); }}><span aria-hidden="true">✕</span></button>
+        <button type="button" aria-label="Zoeken sluiten" tabIndex={showChatSearch ? 0 : -1} className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={closeChatSearch}><span aria-hidden="true">✕</span></button>
       </div>
     </>
   );

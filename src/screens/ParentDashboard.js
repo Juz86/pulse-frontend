@@ -55,7 +55,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
   // Co-ouder uitnodigingen ontvangen (Ouder B)
   const [coparentInvitations,    setCoparentInvitations]    = useState([]);
-  const [invitationsLoading,     setInvitationsLoading]     = useState(false);
   const [invitationActionId,     setInvitationActionId]     = useState(null);
 
   // Contacten tab
@@ -194,6 +193,14 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       setAnalytics(data);
     } catch (err) { setAnalyticsError(err.message); setAnalytics(null); }
     setAnalyticsLoading(false);
+  }, [authFetch]);
+
+  const loadCoparentInvitations = useCallback(async () => {
+    try {
+      const res = await authFetch(`${BACKEND}/api/parent/coparent-invitations`);
+      const data = await res.json();
+      setCoparentInvitations(Array.isArray(data) ? data : []);
+    } catch { setCoparentInvitations([]); }
   }, [authFetch]);
 
   useEffect(() => { loadChildren(); loadActivities(); loadCoparentInvitations(); }, [loadChildren, loadActivities, loadCoparentInvitations]);
@@ -347,15 +354,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     } catch (err) { setDeleteError(err.message); }
   }
 
-  const loadCoparentInvitations = useCallback(async () => {
-    setInvitationsLoading(true);
-    try {
-      const res = await authFetch(`${BACKEND}/api/parent/coparent-invitations`);
-      const data = await res.json();
-      setCoparentInvitations(Array.isArray(data) ? data : []);
-    } catch { setCoparentInvitations([]); }
-    setInvitationsLoading(false);
-  }, [authFetch]);
 
   async function sendCoparentInvite() {
     setInviteError(''); setInviteSuccess('');

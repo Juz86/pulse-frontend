@@ -271,6 +271,8 @@ export default function useChat({
 
     const onConversationCreated = (conversation) => {
       if (!conversation?.id) return;
+      // Join de socket-room zodat berichten direct ontvangen worden
+      socket.emit('conversation:join', { convId: conversation.id });
       setConversations(prev => {
         const withoutCurrent = prev.filter((conv) => conv.id !== conversation.id);
         return [conversation, ...withoutCurrent];

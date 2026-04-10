@@ -5,6 +5,7 @@ import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2,
 import { BACKEND_URL as BACKEND } from '../services/socket';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const INTERNAL_ACCOUNT_EMAIL_RE = /@(kind\.pulse\.local|pulse\.internal)$/i;
 
 export default function ParentDashboard({ user, onClose, parentActivityBadge = 0, onActivitiesViewed }) {
   const [activeTab,      setActiveTab]      = useState('add');
@@ -390,7 +391,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     setInviteError(''); setInviteSuccess('');
     if (!inviteModal) return;
     const clean = inviteEmail.trim().toLowerCase();
-    if (!EMAIL_RE.test(clean)) { setInviteError('Vul een geldig e-mailadres in.'); return; }
+    if (!EMAIL_RE.test(clean)) { setInviteError('Kies eerst een ouderaccount uit je contacten.'); return; }
     setInviteLoading(true);
     try {
       const res = await authFetch(`${BACKEND}/api/parent/invite-coparent`, {
@@ -443,7 +444,10 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const canCreateChild = !createLoading && !!childName.trim() && !!childPassword && childPassword.length >= 6 && createUsernameReady;
   const inviteSearch = inviteContactSearch.trim().toLowerCase();
   const filteredInviteContacts = inviteContacts
-    .filter(contact => contact.uid !== inviteModal?.uid && contact.uid !== user.uid && contact.email)
+    .filter(contact => {
+      const email = String(contact.email || '').toLowerCase();
+      return contact.uid !== inviteModal?.uid && contact.uid !== user.uid && EMAIL_RE.test(email) && !INTERNAL_ACCOUNT_EMAIL_RE.test(email);
+    })
     .filter(contact => {
       if (!inviteSearch) return true;
       return [
@@ -1135,21 +1139,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                       </button>
                     ))
                   ) : (
-                    <div className="coparent-contact-empty">Geen contact gevonden. Je kunt hieronder ook handmatig een e-mailadres invullen.</div>
+                    <div className="coparent-contact-empty">Geen ouderaccount in je contacten gevonden. Voeg de ouder eerst toe als contact en probeer het daarna opnieuw.</div>
                   )}
                 </div>
-                <label htmlFor="coparent-invite-email" className="contact-label" style={{ color: 'var(--text3)', margin: '16px 0 8px' }}>
-                  E-mailadres
-                </label>
-                <input
-                  id="coparent-invite-email"
-                  type="email"
-                  className="parent-input"
-                  placeholder="E-mailadres van de andere ouder"
-                  value={inviteEmail}
-                  onChange={e => { setInviteEmail(e.target.value); setInviteError(''); }}
-                  style={{ marginBottom: 12 }}
-                />
                 {inviteError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{inviteError}</div>}
                 <div className="modal-actions">
                   <button type="button" className="btn-primary coparent-invite-submit" disabled={inviteLoading || !inviteEmail.trim()} onClick={sendCoparentInvite}>

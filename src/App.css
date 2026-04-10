@@ -2404,6 +2404,76 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 .pd-contact-actions { display:flex; gap:6px; flex-shrink:0; }
 
+.coparent-invite-modal {
+  width: min(560px, calc(100vw - 32px));
+  max-width: 560px;
+}
+
+.coparent-invite-search {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.coparent-contact-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.coparent-contact-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.04);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.coparent-contact-option:hover,
+.coparent-contact-option.selected {
+  border-color: rgba(124,108,255,.55);
+  background: rgba(124,108,255,.13);
+}
+
+.coparent-contact-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.coparent-contact-copy strong,
+.coparent-contact-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coparent-contact-copy span,
+.coparent-contact-empty {
+  color: var(--text3);
+  font-size: 13px;
+}
+
+.coparent-contact-empty {
+  padding: 10px 2px;
+  line-height: 1.5;
+}
+
+.coparent-invite-submit {
+  width: 100%;
+  white-space: nowrap;
+}
+
 /* Dropdown voor kind-selector */
 .pd-dropdown {
   position:absolute; top:calc(100% + 6px); left:0; min-width:180px; z-index:300;

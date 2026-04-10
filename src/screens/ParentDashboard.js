@@ -52,6 +52,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const [inviteLoading,  setInviteLoading]  = useState(false);
   const [inviteError,    setInviteError]    = useState('');
   const [inviteSuccess,  setInviteSuccess]  = useState('');
+  const [inviteContacts, setInviteContacts] = useState([]);
+  const [inviteContactSearch, setInviteContactSearch] = useState('');
+  const [inviteContactsLoading, setInviteContactsLoading] = useState(false);
 
   // Co-ouder uitnodigingen ontvangen (Ouder B)
   const [coparentInvitations,    setCoparentInvitations]    = useState([]);
@@ -137,6 +140,29 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     } catch (err) { setContactsError(err.message); setChildContacts([]); }
     setContactsLoading(false);
   }, [authFetch]);
+
+  const closeInviteModal = useCallback(() => {
+    setInviteModal(null);
+    setInviteEmail('');
+    setInviteError('');
+    setInviteSuccess('');
+    setInviteContactSearch('');
+    setInviteContacts([]);
+  }, []);
+
+  const loadInviteContacts = useCallback(async () => {
+    setInviteContactsLoading(true);
+    try {
+      const res = await authFetch(`${BACKEND}/api/contacts/${user.uid}`);
+      const data = await res.json().catch(() => []);
+      if (!res.ok) throw new Error(data.error || 'Contacten ophalen mislukt.');
+      setInviteContacts(Array.isArray(data) ? data : []);
+    } catch {
+      setInviteContacts([]);
+    } finally {
+      setInviteContactsLoading(false);
+    }
+  }, [authFetch, user.uid]);
 
   async function parentBlockContact(childUid, targetUid) {
     setContactActionUid(targetUid);
@@ -242,6 +268,10 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   useEffect(() => {
     if (activeTab === 'contacts' && contactsChildUid) loadChildContacts(contactsChildUid);
   }, [activeTab, contactsChildUid, loadChildContacts]);
+
+  useEffect(() => {
+    if (inviteModal) loadInviteContacts();
+  }, [inviteModal, loadInviteContacts]);
 
   async function createChild(e) {
     e.preventDefault();
@@ -411,6 +441,18 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
   const createUsernameReady = createUsernameStatus === 'Beschikbaar';
   const canCreateChild = !createLoading && !!childName.trim() && !!childPassword && childPassword.length >= 6 && createUsernameReady;
+  const inviteSearch = inviteContactSearch.trim().toLowerCase();
+  const filteredInviteContacts = inviteContacts
+    .filter(contact => contact.uid !== inviteModal?.uid && contact.uid !== user.uid && contact.email)
+    .filter(contact => {
+      if (!inviteSearch) return true;
+      return [
+        contact.displayName,
+        contact.email,
+        contact.username,
+        contact.nickname,
+      ].some(value => String(value || '').toLowerCase().includes(inviteSearch));
+    });
   const filteredActivities = selectedChildUid
     ? activities.filter(a => a.childUid === selectedChildUid)
     : activities;
@@ -1045,27 +1087,72 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
       {/* Kind toewijzen modal */}
       {inviteModal && (
-        <div className="modal-overlay" onClick={() => { setInviteModal(null); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
-          <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="coparent-invite-title" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>
+        <div className="modal-overlay" onClick={closeInviteModal}>
+          <div className="modal-box coparent-invite-modal" role="dialog" aria-modal="true" aria-labelledby="coparent-invite-title" onClick={e => e.stopPropagation()}>
+            <button type="button" className="modal-close-btn" aria-label="Kind toewijzen sluiten" onClick={closeInviteModal}><span aria-hidden="true">✕</span></button>
             <h3 className="modal-title" id="coparent-invite-title">Kind toewijzen</h3>
             <p style={{ color: 'var(--text2)', fontSize: 14, margin: '10px 0 20px', lineHeight: 1.6 }}>
               Geef een andere ouder toegang tot <strong>{inviteModal.displayName}</strong>. Zij ontvangen een uitnodiging per e-mail en kunnen daarna ook dit kind beheren.
             </p>
             {!inviteSuccess ? (
               <>
+                <label htmlFor="coparent-contact-search" className="contact-label" style={{ color: 'var(--text3)', marginBottom: 8 }}>
+                  Zoeken in mijn contacten
+                </label>
                 <input
+                  id="coparent-contact-search"
+                  type="search"
+                  className="parent-input coparent-invite-search"
+                  placeholder="Zoek op naam, e-mail of gebruikersnaam"
+                  value={inviteContactSearch}
+                  onChange={e => setInviteContactSearch(e.target.value)}
+                  autoFocus
+                  style={{ marginBottom: 10 }}
+                />
+                <div className="coparent-contact-results" aria-live="polite">
+                  {inviteContactsLoading ? (
+                    <div className="coparent-contact-empty">Contacten laden…</div>
+                  ) : filteredInviteContacts.length > 0 ? (
+                    filteredInviteContacts.slice(0, 5).map(contact => (
+                      <button
+                        key={contact.uid || contact.id || contact.email}
+                        type="button"
+                        className={`coparent-contact-option${inviteEmail === contact.email ? ' selected' : ''}`}
+                        onClick={() => {
+                          setInviteEmail(contact.email || '');
+                          setInviteContactSearch(contact.displayName || contact.email || '');
+                          setInviteError('');
+                        }}
+                      >
+                        <span className="pd-contact-avatar" aria-hidden="true">
+                          {contact.photoURL ? <img src={contact.photoURL} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} /> : getInitials(contact.displayName || contact.email)}
+                        </span>
+                        <span className="coparent-contact-copy">
+                          <strong>{contact.displayName || contact.email}</strong>
+                          <span>{contact.email}</span>
+                        </span>
+                        {inviteEmail === contact.email && <Check size={16} aria-hidden="true" />}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="coparent-contact-empty">Geen contact gevonden. Je kunt hieronder ook handmatig een e-mailadres invullen.</div>
+                  )}
+                </div>
+                <label htmlFor="coparent-invite-email" className="contact-label" style={{ color: 'var(--text3)', margin: '16px 0 8px' }}>
+                  E-mailadres
+                </label>
+                <input
+                  id="coparent-invite-email"
                   type="email"
                   className="parent-input"
                   placeholder="E-mailadres van de andere ouder"
                   value={inviteEmail}
                   onChange={e => { setInviteEmail(e.target.value); setInviteError(''); }}
-                  autoFocus
                   style={{ marginBottom: 12 }}
                 />
                 {inviteError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{inviteError}</div>}
                 <div className="modal-actions">
-                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => { setInviteModal(null); setInviteEmail(''); setInviteError(''); }}>Annuleren</button>
-                  <button type="button" className="btn-primary" style={{ flex: 1 }} disabled={inviteLoading || !inviteEmail.trim()} onClick={sendCoparentInvite}>
+                  <button type="button" className="btn-primary coparent-invite-submit" disabled={inviteLoading || !inviteEmail.trim()} onClick={sendCoparentInvite}>
                     {inviteLoading ? 'Versturen…' : 'Uitnodiging sturen'}
                   </button>
                 </div>

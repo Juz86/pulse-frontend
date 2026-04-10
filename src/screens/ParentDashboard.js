@@ -4,6 +4,8 @@ import { getInitials, timeAgo } from '../utils';
 import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function ParentDashboard({ user, onClose, parentActivityBadge = 0, onActivitiesViewed }) {
   const [activeTab,      setActiveTab]      = useState('add');
   const [children,       setChildren]       = useState([]);
@@ -43,6 +45,18 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   // Kind verwijderen
   const [confirmDelete,  setConfirmDelete]  = useState(null); // { uid, displayName }
   const [deleteError,    setDeleteError]    = useState('');
+
+  // Co-ouder uitnodiging
+  const [inviteModal,    setInviteModal]    = useState(null); // { uid, displayName }
+  const [inviteEmail,    setInviteEmail]    = useState('');
+  const [inviteLoading,  setInviteLoading]  = useState(false);
+  const [inviteError,    setInviteError]    = useState('');
+  const [inviteSuccess,  setInviteSuccess]  = useState('');
+
+  // Co-ouder uitnodigingen ontvangen (Ouder B)
+  const [coparentInvitations,    setCoparentInvitations]    = useState([]);
+  const [invitationsLoading,     setInvitationsLoading]     = useState(false);
+  const [invitationActionId,     setInvitationActionId]     = useState(null);
 
   // Contacten tab
   const [contactsChildUid,    setContactsChildUid]    = useState(null);
@@ -182,7 +196,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     setAnalyticsLoading(false);
   }, [authFetch]);
 
-  useEffect(() => { loadChildren(); loadActivities(); }, [loadChildren, loadActivities]);
+  useEffect(() => { loadChildren(); loadActivities(); loadCoparentInvitations(); }, [loadChildren, loadActivities, loadCoparentInvitations]);
 
   useEffect(() => {
     if (!pauseMenuUid && !resumeMenuUid && !childDropdownOpen) return;
@@ -331,6 +345,58 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       setConfirmDelete(null);
       window.dispatchEvent(new CustomEvent('pulse:child-removed'));
     } catch (err) { setDeleteError(err.message); }
+  }
+
+  const loadCoparentInvitations = useCallback(async () => {
+    setInvitationsLoading(true);
+    try {
+      const res = await authFetch(`${BACKEND}/api/parent/coparent-invitations`);
+      const data = await res.json();
+      setCoparentInvitations(Array.isArray(data) ? data : []);
+    } catch { setCoparentInvitations([]); }
+    setInvitationsLoading(false);
+  }, [authFetch]);
+
+  async function sendCoparentInvite() {
+    setInviteError(''); setInviteSuccess('');
+    if (!inviteModal) return;
+    const clean = inviteEmail.trim().toLowerCase();
+    if (!EMAIL_RE.test(clean)) { setInviteError('Vul een geldig e-mailadres in.'); return; }
+    setInviteLoading(true);
+    try {
+      const res = await authFetch(`${BACKEND}/api/parent/invite-coparent`, {
+        method: 'POST',
+        body: JSON.stringify({ childUid: inviteModal.uid, toEmail: clean }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Versturen mislukt.');
+      setInviteSuccess(`Uitnodiging verstuurd naar ${clean}.`);
+      setInviteEmail('');
+    } catch (err) { setInviteError(err.message); }
+    setInviteLoading(false);
+  }
+
+  async function acceptCoparentInvitation(inviteId) {
+    setInvitationActionId(inviteId);
+    try {
+      const res = await authFetch(`${BACKEND}/api/parent/coparent-invitations/${inviteId}/accept`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Accepteren mislukt.');
+      setCoparentInvitations(prev => prev.filter(i => i.id !== inviteId));
+      loadChildren();
+    } catch (err) { alert(err.message); }
+    setInvitationActionId(null);
+  }
+
+  async function declineCoparentInvitation(inviteId) {
+    setInvitationActionId(inviteId);
+    try {
+      const res = await authFetch(`${BACKEND}/api/parent/coparent-invitations/${inviteId}/decline`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Weigeren mislukt.');
+      setCoparentInvitations(prev => prev.filter(i => i.id !== inviteId));
+    } catch (err) { alert(err.message); }
+    setInvitationActionId(null);
   }
 
   const activityTabBadge = parentActivityBadge > 9 ? '9+' : parentActivityBadge;
@@ -523,6 +589,10 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                           style={{ padding:'4px 6px' }}
                         >
                           <MagicEdit size={15} aria-hidden="true" />
+                        </button>
+                        <button type="button" className="parent-btn-outline" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 8px', fontSize: 11, display:'flex', alignItems:'center', gap:3 }}
+                          onClick={() => { setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
+                          <UserPlus2 size={14} aria-hidden="true" /> Toewijzen
                         </button>
                         <button type="button" className="parent-btn-outline" aria-label={`Verwijder account van ${child.displayName}`} style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
                           onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
@@ -967,6 +1037,87 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
             <div className="modal-actions">
               <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>Annuleren</button>
               <button type="button" className="btn-primary" style={{ flex: 1, background: '#ef4444' }} onClick={() => deleteChild(confirmDelete.uid)}>Verwijderen</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Kind toewijzen modal */}
+      {inviteModal && (
+        <div className="modal-overlay" onClick={() => { setInviteModal(null); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
+          <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="coparent-invite-title" onClick={e => e.stopPropagation()} style={{ maxWidth: 400 }}>
+            <h3 className="modal-title" id="coparent-invite-title">Kind toewijzen</h3>
+            <p style={{ color: 'var(--text2)', fontSize: 14, margin: '10px 0 20px', lineHeight: 1.6 }}>
+              Geef een andere ouder toegang tot <strong>{inviteModal.displayName}</strong>. Zij ontvangen een uitnodiging per e-mail en kunnen daarna ook dit kind beheren.
+            </p>
+            {!inviteSuccess ? (
+              <>
+                <input
+                  type="email"
+                  className="parent-input"
+                  placeholder="E-mailadres van de andere ouder"
+                  value={inviteEmail}
+                  onChange={e => { setInviteEmail(e.target.value); setInviteError(''); }}
+                  autoFocus
+                  style={{ marginBottom: 12 }}
+                />
+                {inviteError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{inviteError}</div>}
+                <div className="modal-actions">
+                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => { setInviteModal(null); setInviteEmail(''); setInviteError(''); }}>Annuleren</button>
+                  <button type="button" className="btn-primary" style={{ flex: 1 }} disabled={inviteLoading || !inviteEmail.trim()} onClick={sendCoparentInvite}>
+                    {inviteLoading ? 'Versturen…' : 'Uitnodiging sturen'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="parent-success" role="status" aria-live="polite" style={{ marginBottom: 20 }}>✓ {inviteSuccess}</div>
+                <div className="modal-actions">
+                  <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => { setInviteModal(null); setInviteEmail(''); setInviteSuccess(''); }}>Sluiten</button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Co-ouder uitnodigingen voor Ouder B */}
+      {coparentInvitations.length > 0 && (
+        <div className="modal-overlay" onClick={() => {}}>
+          <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="coparent-requests-title" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <h3 className="modal-title" id="coparent-requests-title">Co-ouder uitnodigingen</h3>
+            <p style={{ color: 'var(--text2)', fontSize: 14, margin: '10px 0 20px', lineHeight: 1.6 }}>
+              Je hebt {coparentInvitations.length} uitnodiging{coparentInvitations.length > 1 ? 'en' : ''} ontvangen om mede-ouder te worden.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {coparentInvitations.map(inv => (
+                <div key={inv.id} style={{ background: 'var(--surface2, #f5f5fa)', borderRadius: 12, padding: '14px 16px', border: '1px solid var(--border, #e0e0e8)' }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4 }}>{inv.childName}</div>
+                  <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 12 }}>
+                    Uitgenodigd door <strong>{inv.fromParentName}</strong> ({inv.fromParentEmail})
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      style={{ flex: 1, fontSize: 13, padding: '8px 0', opacity: invitationActionId === inv.id ? 0.6 : 1 }}
+                      disabled={invitationActionId === inv.id}
+                      onClick={() => acceptCoparentInvitation(inv.id)}
+                    >
+                      {invitationActionId === inv.id ? 'Verwerken…' : 'Accepteren'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      style={{ flex: 1, fontSize: 13, padding: '8px 0', opacity: invitationActionId === inv.id ? 0.6 : 1 }}
+                      disabled={invitationActionId === inv.id}
+                      onClick={() => declineCoparentInvitation(inv.id)}
+                    >
+                      Weigeren
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

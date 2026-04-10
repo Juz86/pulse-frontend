@@ -56,6 +56,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   // Co-ouder uitnodigingen ontvangen (Ouder B)
   const [coparentInvitations,    setCoparentInvitations]    = useState([]);
   const [invitationActionId,     setInvitationActionId]     = useState(null);
+  const [invitationError,        setInvitationError]        = useState('');
 
   // Contacten tab
   const [contactsChildUid,    setContactsChildUid]    = useState(null);
@@ -375,6 +376,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   }
 
   async function acceptCoparentInvitation(inviteId) {
+    setInvitationError('');
     setInvitationActionId(inviteId);
     try {
       const res = await authFetch(`${BACKEND}/api/parent/coparent-invitations/${inviteId}/accept`, { method: 'POST' });
@@ -382,18 +384,19 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       if (!res.ok) throw new Error(data.error || 'Accepteren mislukt.');
       setCoparentInvitations(prev => prev.filter(i => i.id !== inviteId));
       loadChildren();
-    } catch (err) { alert(err.message); }
+    } catch (err) { setInvitationError(err.message); }
     setInvitationActionId(null);
   }
 
   async function declineCoparentInvitation(inviteId) {
+    setInvitationError('');
     setInvitationActionId(inviteId);
     try {
       const res = await authFetch(`${BACKEND}/api/parent/coparent-invitations/${inviteId}/decline`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Weigeren mislukt.');
       setCoparentInvitations(prev => prev.filter(i => i.id !== inviteId));
-    } catch (err) { alert(err.message); }
+    } catch (err) { setInvitationError(err.message); }
     setInvitationActionId(null);
   }
 
@@ -1087,6 +1090,11 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
             <p style={{ color: 'var(--text2)', fontSize: 14, margin: '10px 0 20px', lineHeight: 1.6 }}>
               Je hebt {coparentInvitations.length} uitnodiging{coparentInvitations.length > 1 ? 'en' : ''} ontvangen om mede-ouder te worden.
             </p>
+            {invitationError && (
+              <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}>
+                <span aria-hidden="true">⚠️ </span>{invitationError}
+              </div>
+            )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {coparentInvitations.map(inv => (
                 <div key={inv.id} style={{ background: 'var(--surface2, #f5f5fa)', borderRadius: 12, padding: '14px 16px', border: '1px solid var(--border, #e0e0e8)' }}>

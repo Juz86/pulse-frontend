@@ -34,7 +34,7 @@ export default function ElektronischeCommunicatieBeleidPagina() {
         <p>
           Voor Pulse is elektronische communicatie de kern van de dienst. Juist daarom gelden er hoge eisen aan vertrouwelijkheid,
           minimale gegevensverwerking, beperkte toegang en passende beveiliging. Dit beleid legt uit hoe Pulse met communicatiegegevens
-          omgaat binnen chatten, bellen en videobellen.
+          omgaat binnen chatten op web en bellen of videobellen in de app.
         </p>
       </LegalSection>
 

@@ -33,7 +33,7 @@ export default function PrivacybeleidPagina() {
       <LegalSection title="Inleiding">
         <p>
           Pulse is ontwikkeld als een veilige communicatieomgeving voor kinderen en families. Pulse is geen socialmediaplatform.
-          De dienst is bedoeld voor chatten, bellen en videobellen binnen een besloten omgeving met vertrouwde contacten, onder
+          De dienst is bedoeld voor chatten op web en bellen of videobellen in de app binnen een besloten omgeving met vertrouwde contacten, onder
           ouderlijke regie. Dat productontwerp is leidend voor hoe wij met persoonsgegevens omgaan.
         </p>
         <p>

@@ -24,7 +24,7 @@ function useFadeIn() {
 
 const BADGES = [
   { icon: <Shield size={16} />,   label: 'Versleuteld & privé' },
-  { icon: <PhoneIcon size={16} />, label: 'Chatten & (video)bellen' },
+  { icon: <PhoneIcon size={16} />, label: 'Bellen in de app' },
   { icon: <Users size={16} />,    label: 'Ouderlijk toezicht' },
 ];
 
@@ -107,8 +107,8 @@ function ContactInfoCard() {
           <div className="contact-feature-list">
             {[
               { icon: <Message size={18} />, label: 'Chatten', sub: 'Veilig berichten sturen' },
-              { icon: <Phone size={18} />,   label: 'Bellen',  sub: 'Zonder telefoonnummer' },
-              { icon: <Video size={18} />,   label: 'Videobellen', sub: 'Met vertrouwde contacten' },
+              { icon: <Phone size={18} />,   label: 'Bellen',  sub: 'In de Pulse app' },
+              { icon: <Video size={18} />,   label: 'Videobellen', sub: 'In de Pulse app' },
             ].map(({ icon, label, sub }) => (
               <div key={label} className="contact-feature-item">
                 <span className="contact-feature-icon">{icon}</span>
@@ -153,6 +153,11 @@ const ONDERWERPEN = [
   'Pers & media',
   'Anders',
 ];
+const CONTACT_FIELD_LIMITS = {
+  naam: 80,
+  email: 160,
+  bericht: 2000,
+};
 
 function ContactForm() {
   const [ref, visible] = useFadeIn();
@@ -179,9 +184,12 @@ function ContactForm() {
   function validate() {
     const e = {};
     if (!form.naam.trim()) e.naam = 'Vul je naam in.';
+    else if (form.naam.trim().length > CONTACT_FIELD_LIMITS.naam) e.naam = 'Gebruik maximaal 80 tekens voor je naam.';
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) e.email = 'Vul een geldig e-mailadres in.';
+    else if (form.email.trim().length > CONTACT_FIELD_LIMITS.email) e.email = 'Gebruik maximaal 160 tekens voor je e-mailadres.';
     if (!form.onderwerp || form.onderwerp === ONDERWERPEN[0]) e.onderwerp = 'Kies een onderwerp.';
     if (!form.bericht.trim() || form.bericht.trim().length < 10) e.bericht = 'Vul een bericht in (minimaal 10 tekens).';
+    else if (form.bericht.trim().length > CONTACT_FIELD_LIMITS.bericht) e.bericht = 'Gebruik maximaal 2000 tekens voor je bericht.';
     return e;
   }
 
@@ -238,7 +246,7 @@ function ContactForm() {
             </p>
 
             {errors.form && (
-              <div className="contact-form-error">{errors.form}</div>
+              <div className="contact-form-error" role="alert">{errors.form}</div>
             )}
 
             <form onSubmit={handleSubmit} noValidate className="contact-form">
@@ -253,8 +261,12 @@ function ContactForm() {
                     onChange={e => set('naam', e.target.value)}
                     className={`contact-input${errors.naam ? ' contact-input--error' : ''}`}
                     autoComplete="name"
+                    maxLength={CONTACT_FIELD_LIMITS.naam}
+                    required
+                    aria-invalid={!!errors.naam}
+                    aria-describedby={errors.naam ? 'contact-naam-error' : undefined}
                   />
-                  {errors.naam && <div className="contact-error">{errors.naam}</div>}
+                  {errors.naam && <div id="contact-naam-error" className="contact-error" role="alert">{errors.naam}</div>}
                 </div>
                 <div>
                   <label htmlFor="contact-email" className="contact-label">E-mailadres</label>
@@ -266,18 +278,29 @@ function ContactForm() {
                     onChange={e => set('email', e.target.value)}
                     className={`contact-input${errors.email ? ' contact-input--error' : ''}`}
                     autoComplete="email"
+                    maxLength={CONTACT_FIELD_LIMITS.email}
+                    required
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? 'contact-email-error' : undefined}
                   />
-                  {errors.email && <div className="contact-error">{errors.email}</div>}
+                  {errors.email && <div id="contact-email-error" className="contact-error" role="alert">{errors.email}</div>}
                 </div>
               </div>
 
               <div>
-                <label className="contact-label">Onderwerp</label>
+                <label id="contact-onderwerp-label" className="contact-label">Onderwerp</label>
                 <div ref={dropdownRef} className="contact-dropdown-wrapper">
                   <button
                     type="button"
                     onClick={() => setDropdownOpen(o => !o)}
+                    onKeyDown={e => {
+                      if (e.key === 'Escape') setDropdownOpen(false);
+                    }}
                     className={`contact-input contact-dropdown-trigger${!form.onderwerp ? ' contact-dropdown-trigger--placeholder' : ''}${errors.onderwerp ? ' contact-input--error' : ''}`}
+                    aria-haspopup="listbox"
+                    aria-expanded={dropdownOpen}
+                    aria-labelledby="contact-onderwerp-label"
+                    aria-describedby={errors.onderwerp ? 'contact-onderwerp-error' : undefined}
                   >
                     <span>{form.onderwerp || 'Selecteer een onderwerp'}</span>
                     <svg
@@ -290,13 +313,15 @@ function ContactForm() {
                     </svg>
                   </button>
                   {dropdownOpen && (
-                    <div className="contact-dropdown-menu">
+                    <div className="contact-dropdown-menu" role="listbox" aria-labelledby="contact-onderwerp-label">
                       {ONDERWERPEN.slice(1).map((o, i, arr) => (
                         <button
                           key={o}
                           type="button"
                           onClick={() => { set('onderwerp', o); setDropdownOpen(false); }}
                           className={`contact-dropdown-item${form.onderwerp === o ? ' contact-dropdown-item--selected' : ''}${i < arr.length - 1 ? ' contact-dropdown-item--bordered' : ''}`}
+                          role="option"
+                          aria-selected={form.onderwerp === o}
                         >
                           {o}
                         </button>
@@ -304,7 +329,7 @@ function ContactForm() {
                     </div>
                   )}
                 </div>
-                {errors.onderwerp && <div className="contact-error">{errors.onderwerp}</div>}
+                {errors.onderwerp && <div id="contact-onderwerp-error" className="contact-error" role="alert">{errors.onderwerp}</div>}
               </div>
 
               <div>
@@ -316,9 +341,16 @@ function ContactForm() {
                   onChange={e => set('bericht', e.target.value)}
                   rows={5}
                   className={`contact-input${errors.bericht ? ' contact-input--error' : ''}`}
+                  maxLength={CONTACT_FIELD_LIMITS.bericht}
+                  required
+                  aria-invalid={!!errors.bericht}
+                  aria-describedby={errors.bericht ? 'contact-bericht-error' : 'contact-bericht-help'}
                   style={{ resize: 'vertical', minHeight: 130 }}
                 />
-                {errors.bericht && <div className="contact-error">{errors.bericht}</div>}
+                <div id="contact-bericht-help" className="contact-error" style={{ color: 'var(--text3)' }}>
+                  {form.bericht.length}/{CONTACT_FIELD_LIMITS.bericht} tekens
+                </div>
+                {errors.bericht && <div id="contact-bericht-error" className="contact-error" role="alert">{errors.bericht}</div>}
               </div>
 
               <button

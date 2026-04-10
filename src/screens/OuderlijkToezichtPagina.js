@@ -396,7 +396,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
             reverse
             mockup={<StatsMockup />}
             title="Inzicht in gebruik"
-            text="Bekijk per kind hoeveel tijd er wordt besteed aan chatten, bellen en videobellen. Zo houd je schermtijd gezond zonder te streng te zijn."
+            text="Bekijk per kind hoeveel tijd er wordt besteed aan chatten en oproepen in de app. Zo houd je schermtijd gezond zonder te streng te zijn."
             list={[
               'Schermtijd per kind',
               'Aantal berichten per kind',

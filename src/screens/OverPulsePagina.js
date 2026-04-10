@@ -79,7 +79,7 @@ function FeatureStrip() {
       </div>
       <div className="op-strip-footer">
         <span><Shield size={16} />Versleuteld & privé</span>
-        <span><PhoneIcon size={16} />Chatten & (video)bellen</span>
+        <span><PhoneIcon size={16} />Chatten op web</span>
         <span><Users size={16} />Ouderlijk toezicht</span>
       </div>
     </div>
@@ -201,7 +201,7 @@ export default function OverPulsePagina({ onParentClick }) {
                 Hij heeft het zijn missie gemaakt om een veilige manier van communiceren terug te brengen.
               </p>
               <p style={{ marginTop: 16 }}>
-                Een plek waar kinderen kunnen chatten, bellen en videobellen met hun ouders, familie en vertrouwde mensen om hen heen.
+                Een plek waar kinderen veilig kunnen chatten op web en bellen of videobellen in de Pulse app met hun ouders, familie en vertrouwde mensen om hen heen.
               </p>
               <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {['Zonder filters', 'Zonder gifs of memes', 'Zonder social media prikkels'].map((item) => (

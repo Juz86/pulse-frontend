@@ -35,7 +35,9 @@ authRouter.post('/send-code', asyncRoute(async (req, res) => {
     updatedAt: new Date(now).toISOString(),
   }, { merge: true });
 
-  console.log(`[Pulse auth] Verificatiecode voor ${email}: ${code}`);
+  if (shouldExposeDebugCode()) {
+    console.log(`[Pulse auth] Dev verificatiecode voor ${email}: ${code}`);
+  }
 
   return res.json({
     ok: true,

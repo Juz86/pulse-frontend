@@ -795,8 +795,8 @@ export default function FunctiePagina({ onParentClick }) {
   return (
     <div className="hp-root">
       <PageMeta
-        title="Functies van Pulse — Chatten, bellen en videobellen voor kinderen"
-        description="Ontdek alle Pulse functies: veilig chatten, bellen, videobellen, groepsgesprekken, @-vermeldingen en rustige communicatie zonder afleiding."
+        title="Functies van Pulse — Chatten op web, bellen in de app"
+        description="Ontdek Pulse functies: veilig chatten op web, bellen en videobellen in de app, groepsgesprekken, @-vermeldingen en rustige communicatie zonder afleiding."
         canonical="https://pulse-messenger.com/functies"
       />
 
@@ -823,7 +823,7 @@ export default function FunctiePagina({ onParentClick }) {
               veilig verbonden te blijven.
             </h1>
             <p className="ot-hero-sub">
-              Chatten, bellen en videobellen komen samen in één vertrouwde en beveiligde omgeving voor familie en vrienden.
+              Chatten op web en bellen of videobellen in de app komen samen in één vertrouwde en beveiligde omgeving voor familie en vrienden.
             </p>
             <div className="ot-hero-actions">
               <button type="button" className="hp-cta-btn" onClick={() => scrollTo('chatten')}>
@@ -933,8 +933,8 @@ export default function FunctiePagina({ onParentClick }) {
         <div className="hp-section-inner">
           <SectionHeader
             headingId="videobellen"
-            title="Bellen & videobellen"
-            sub="Bel of videobel gratis met vrienden en familie — zonder telefoonnummer, zonder tijdslimiet."
+            title="Bellen & videobellen in de app"
+            sub="Bel of videobel met vrienden en familie in de Pulse app — zonder telefoonnummer."
           />
           <div className="fp-slider">
             <div className="fp-slider-header">

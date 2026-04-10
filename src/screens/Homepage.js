@@ -56,7 +56,7 @@ export default function Homepage({ onParentClick }) {
     <div className="hp-root">
       <PageMeta
         title="Pulse — Veilig communiceren voor elk kind"
-        description="Pulse is een veilige Nederlandse communicatie-app voor kinderen: chatten, bellen en videobellen zonder telefoonnummer, onder ouderlijk toezicht."
+        description="Pulse is een veilige Nederlandse communicatie-app voor kinderen: chatten op web, bellen en videobellen in de app, zonder telefoonnummer en onder ouderlijk toezicht."
         canonical="https://pulse-messenger.com/"
       />
 
@@ -78,14 +78,14 @@ export default function Homepage({ onParentClick }) {
           <div className="hp-hero-text">
             <ul className="hp-hero-features" aria-label="Belangrijkste voordelen" style={{ marginBottom: 20 }}>
               <li className="hp-hero-feature"><span aria-hidden="true"><Shield size={16} /></span> Versleuteld &amp; privé</li>
-              <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Chatten &amp; (video)bellen</li>
+              <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Bellen in de app</li>
               <li className="hp-hero-feature"><span aria-hidden="true"><Users size={16} /></span> Ouderlijk toezicht</li>
             </ul>
             <h1 id="homepage-hero-title" className="hp-hero-title">
-              Veilig chatten, bellen en videobellen
+              Veilig chatten voor elk kind
             </h1>
             <p className="hp-hero-sub">
-            Met Pulse kunnen kinderen zonder telefoonnummer chatten, bellen en videobellen. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
+            Met Pulse kunnen kinderen zonder telefoonnummer veilig chatten op web. Bellen en videobellen blijven bewust in de app. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
             <div className="hp-hero-cta-row">
               <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
                 Start met Pulse
@@ -152,11 +152,11 @@ export default function Homepage({ onParentClick }) {
             </div>
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Communicatie</div>
-              <h3 id="homepage-feature-communication">Chatten, bellen en videobellen</h3>
-              <p>Blijf verbonden met familie en vrienden via chat, bellen en videobellen.
+              <h3 id="homepage-feature-communication">Chatten op web, bellen in de app</h3>
+              <p>Blijf verbonden met familie en vrienden via veilige chat op web. Bellen en videobellen horen bewust thuis in de Pulse app.
                 Geen telefoonnummer, foto's, gifs of algoritmes. Pulse is pure communicatie.
               </p>
-              <a href="/functies#chatten" className="hp-read-more-btn" aria-label="Lees meer over chatten, bellen en videobellen">
+              <a href="/functies#chatten" className="hp-read-more-btn" aria-label="Lees meer over chatten op web en bellen in de app">
                 Lees meer <span aria-hidden="true">→</span>
               </a>
             </div>
@@ -167,7 +167,7 @@ export default function Homepage({ onParentClick }) {
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Ouderlijk toezicht</div>
               <h3 id="homepage-feature-parental-controls">Volledig overzicht voor ouders</h3>
-              <p>Ouders hebben volledig toezicht via een eigen dashboard. Chat, bellen of videobellen pauzeren per functie. Direct meldingen bij nieuwe contacten.</p>
+              <p>Ouders hebben volledig toezicht via een eigen dashboard. Chatten op web en bellen in de app blijven overzichtelijk beheerd. Direct meldingen bij nieuwe contacten.</p>
               <a href="/ouderlijk-toezicht#dashboard" className="hp-read-more-btn" aria-label="Lees meer over ouderlijk toezicht">
                 Lees meer <span aria-hidden="true">→</span>
               </a>

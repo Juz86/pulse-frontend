@@ -23,13 +23,18 @@ import {
 import {
   checkFirestoreReady,
 } from './services/firestore.js';
+import {
+  buildCorsOptions,
+  securityHeaders,
+} from './services/httpSecurity.js';
 
 const app = express();
 const server = http.createServer(app);
 const { io, emitToUser } = createSocketServer(server);
 const startedAt = new Date().toISOString();
 
-app.use(cors());
+app.use(securityHeaders);
+app.use(cors(buildCorsOptions()));
 app.use(express.json());
 app.use(requestContext);
 

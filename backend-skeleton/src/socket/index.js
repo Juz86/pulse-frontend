@@ -5,6 +5,7 @@ import { getDevUidFromSocketAuth, isDevAuthBypassEnabled } from '../middleware/a
 import { canEditMessage, normalizeEditedText } from '../services/messageEdits.js';
 import { buildCallMessage, buildLegacyMessage, buildSystemMessage } from '../services/legacyMessages.js';
 import { computeHistoryExpiresAt, resolveConversationRetentionDays } from '../services/historyRetention.js';
+import { isAllowedOrigin } from '../services/httpSecurity.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
@@ -37,7 +38,9 @@ async function createGroupSystemMessage({ io, convRef, conv, text, emitToUser })
 export function createSocketServer(server) {
   const io = new Server(server, {
     cors: {
-      origin: '*',
+      origin(origin, callback) {
+        callback(null, isAllowedOrigin(origin));
+      },
     },
   });
 

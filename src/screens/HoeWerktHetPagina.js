@@ -318,7 +318,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
       key: '3',
       step: '3',
       title: 'Ouder en kind zijn verbonden',
-      text: 'Zodra het account actief is, zijn ouder en kind gekoppeld. Ouder en kind kunnen veilig chatten, bellen en videobellen.',
+      text: 'Zodra het account actief is, zijn ouder en kind gekoppeld. Ze kunnen veilig chatten op web; bellen en videobellen blijven beschikbaar in de app.',
       mockup: <ConnectedMockup />,
     },
   ], []);
@@ -405,7 +405,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
           <SectionIntro
             badge="Hoe werkt Pulse?"
             title="In 3 stappen veilig contact met je geliefden"
-            text="Veilig contact hoeft niet ingewikkeld te zijn. Met Pulse stel je in drie overzichtelijke stappen een vertrouwde omgeving in waarin je kind kan chatten, bellen en videobellen met de mensen die ertoe doen."
+            text="Veilig contact hoeft niet ingewikkeld te zijn. Met Pulse stel je in drie overzichtelijke stappen een vertrouwde omgeving in waarin je kind veilig kan chatten op web en bellen of videobellen in de app."
           />
 
           <div className="hw-steps-grid hw-steps-grid--intro">
@@ -430,7 +430,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
               step="3"
               stacked
               title="Ouder en kind zijn verbonden"
-              text="Zodra het account actief is, zijn ouder en kind gekoppeld. Ouder en kind kunnen veilig chatten, bellen en videobellen."
+              text="Zodra het account actief is, zijn ouder en kind gekoppeld. Ze kunnen veilig chatten op web; bellen en videobellen blijven beschikbaar in de app."
               mockup={<ConnectedMockup />}
             />
           </div>

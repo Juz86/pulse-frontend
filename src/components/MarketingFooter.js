@@ -13,7 +13,7 @@ export default function MarketingFooter() {
           <p>
             Pulse houdt ouder en kind veilig verbonden.
             <br />
-            Chatten, bellen en videobellen met wie echt telt.
+            Chatten op web. Bellen en videobellen in de app.
           </p>
         </div>
 
@@ -22,8 +22,8 @@ export default function MarketingFooter() {
             <h4 id="footer-features-title">Functies</h4>
             <ul className="hp-footer-list">
               <li><a href="/functies#chatten">Chatten</a></li>
-              <li><a href="/functies#bellen">Bellen</a></li>
-              <li><a href="/functies#videobellen">Videobellen</a></li>
+              <li><a href="/functies#bellen">Bellen in de app</a></li>
+              <li><a href="/functies#videobellen">Videobellen in de app</a></li>
               <li><a href="/ouderlijk-toezicht#dashboard">Ouderlijk toezicht</a></li>
             </ul>
           </nav>

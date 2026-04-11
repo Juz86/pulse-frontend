@@ -55,8 +55,8 @@ export default function Homepage({ onParentClick }) {
   return (
     <div className="hp-root">
       <PageMeta
-        title="Pulse — Veilig communiceren voor elk kind"
-        description="Pulse is een veilige Nederlandse communicatie-app voor kinderen: chatten op web, bellen en videobellen in de app, zonder telefoonnummer en onder ouderlijk toezicht."
+        title="Pulse — Voor ouder en kind. Veilig verbonden."
+        description="Pulse is een veilige Nederlandse communicatie-app voor kinderen: chatten, bellen en videobellen, zonder telefoonnummer en onder ouderlijk toezicht."
         canonical="https://pulse-messenger.com/"
       />
 
@@ -85,7 +85,7 @@ export default function Homepage({ onParentClick }) {
               Veilig chatten voor elk kind
             </h1>
             <p className="hp-hero-sub">
-            Met Pulse kunnen kinderen zonder telefoonnummer veilig chatten op web. Bellen en videobellen blijven bewust in de app. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
+            Met Pulse kunnen kinderen zonder telefoonnummer veilig chatten, bellen en videobellen. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
             <div className="hp-hero-cta-row">
               <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
                 Start met Pulse

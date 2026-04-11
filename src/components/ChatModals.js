@@ -140,6 +140,26 @@ export default function ChatModals({
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
   const primaryHistoryChild = historyChildren.find((child) => child.uid === selectedHistoryChildUid) || historyChildren[0] || null;
+  const historySelectStyle = {
+    width: '100%',
+    minHeight: 48,
+    borderRadius: 14,
+    border: '1px solid rgba(165, 150, 255, 0.18)',
+    background: 'linear-gradient(180deg, rgba(66, 59, 118, 0.92) 0%, rgba(53, 47, 98, 0.98) 100%)',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(13, 10, 34, 0.18)',
+    color: 'var(--text)',
+    padding: '0 44px 0 14px',
+    fontSize: '14px',
+    fontWeight: 600,
+    outline: 'none',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23f5f1ff' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 14px center',
+    backgroundSize: '14px',
+  };
 
   useEffect(() => {
     if (!historyChildren.length) {
@@ -718,6 +738,9 @@ export default function ChatModals({
                   <div>
                     <div style={{ marginBottom: '16px' }}>
                       <h4 style={{ fontFamily: "'Syne',sans-serif", fontSize: '16px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>Geschiedenis</h4>
+                      <p style={{ fontSize: '12px', color: 'var(--text2)', lineHeight: 1.5, margin: 0 }}>
+                        Beheer hoe lang chatberichten, belgeschiedenis en videogeschiedenis worden bewaard. Stel een eigen timer in voor je ouderaccount en desgewenst een andere timer per kindaccount.
+                      </p>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
@@ -728,7 +751,7 @@ export default function ChatModals({
                           value={historyRetentionDays}
                           onChange={(e) => setHistoryRetentionDays(Number(e.target.value))}
                           disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
-                          style={{ width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', padding: '0 14px', fontSize: '14px', outline: 'none' }}
+                          style={historySelectStyle}
                         >
                           {[1, 7, 14, 30].map((days) => (
                             <option key={`parent-${days}`} value={days}>
@@ -748,7 +771,7 @@ export default function ChatModals({
                           value={selectedHistoryChildUid}
                           onChange={(e) => setSelectedHistoryChildUid(e.target.value)}
                           disabled={!historyChildren.length || historySettingsLoading}
-                          style={{ width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', padding: '0 14px', fontSize: '14px', outline: 'none' }}
+                          style={historySelectStyle}
                         >
                           {historyChildren.length === 0 ? (
                             <option value="">Geen kindaccounts</option>
@@ -769,7 +792,7 @@ export default function ChatModals({
                             setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [primaryHistoryChild.uid]: nextDays }));
                           }}
                           disabled={!primaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
-                          style={{ width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', padding: '0 14px', fontSize: '14px', outline: 'none' }}
+                          style={historySelectStyle}
                         >
                           {[1, 7, 14, 30].map((days) => (
                             <option key={`child-${days}`} value={days}>

@@ -346,8 +346,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 /* ── APP LAYOUT ── */
-.app-root   { height:100vh; height:100dvh; }
-.app-screen { display:flex; height:100vh; height:100dvh; animation:overlay-in 0.2s ease; }
+.app-root   { height:100vh; height:100dvh; height:var(--vvh, 100dvh); }
+.app-screen { display:flex; height:100vh; height:100dvh; height:var(--vvh, 100dvh); animation:overlay-in 0.2s ease; }
 
 /* ── SIDEBAR ── */
 .sidebar {
@@ -1694,10 +1694,19 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .search-box input { font-size:16px; }
 
   /* Sidebar footer */
-  .sidebar-footer { padding:12px 14px; }
+  .sidebar-footer {
+    padding:12px 14px;
+    padding-bottom:max(16px, calc(env(safe-area-inset-bottom) + 10px));
+  }
 
   /* Sidebar header */
-  .sidebar-header { padding:16px 14px 12px; }
+  .sidebar-header {
+    padding: max(16px, calc(env(safe-area-inset-top) + 8px)) 14px 12px;
+  }
+
+  .conv-list {
+    padding-bottom: 10px;
+  }
 
   /* Ouder dashboard overlay: sidebar footer blijft zichtbaar onderaan */
   .parent-dashboard-overlay { left:0; padding:20px 0 0; bottom:62px; align-items:flex-end; }

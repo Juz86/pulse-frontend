@@ -414,8 +414,17 @@ export default function useContacts({
         // Eenzijdige verwijdering via backend — alleen eigen kant wordt verwijderd.
         // De ander behoudt het contact en mag nog berichten sturen.
         try {
-          await authFetch(`${BACKEND_URL}/api/contacts/${user.uid}/${targetUid}`, { method: 'DELETE' });
-        } catch (e) { console.warn('[Pulse] Contact verwijderen mislukt:', e.message); }
+          const res = await authFetch(`${BACKEND_URL}/api/contacts/${user.uid}/${targetUid}`, { method: 'DELETE' });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            showErrToast(data.error || 'Contact kon niet worden verwijderd.');
+            return;
+          }
+        } catch (e) {
+          console.warn('[Pulse] Contact verwijderen mislukt:', e.message);
+          showErrToast('Contact kon niet worden verwijderd.');
+          return;
+        }
         setContacts(prev => prev.filter(c => c.uid !== targetUid));
         const conv = conversations.find(c => !c.isGroup && c.members?.includes(targetUid));
         if (conv) {
@@ -437,6 +446,9 @@ export default function useContacts({
         const contact = contacts.find(c => c.uid === targetUid);
         if (contact) setBlockedContacts(prev => [...prev.filter(c => c.uid !== targetUid), contact]);
         setBlockingContact(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showErrToast(data.error || 'Contact kon niet worden geblokkeerd.');
       }
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }

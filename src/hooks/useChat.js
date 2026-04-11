@@ -38,6 +38,7 @@ export default function useChat({
 }) {
   const disconnectTimerRef   = useRef(null);
   const reconnectIntervalRef = useRef(null);
+  const processedIncomingRef = useRef(new Map());
   const socket = getSocket();
 
   const [connected,      setConnected]      = useState(true);
@@ -78,6 +79,25 @@ export default function useChat({
   useEffect(() => {
     if (!socket) return;
 
+    function buildIncomingEventKey(message, hydratedMessage) {
+      const resolved = hydratedMessage || message || {};
+      const convId = resolved.convId || resolved.conversationId || message?.convId || message?.conversationId || 'unknown-conv';
+      const messageId = resolved.id || message?.id || message?.messageId;
+      if (messageId) return `${convId}:${messageId}`;
+      const senderId = resolved.senderId || message?.senderId || 'unknown-sender';
+      const createdAt = resolved.createdAt || message?.createdAt || resolved.sentAt || message?.sentAt || '';
+      const text = resolved.text || message?.text || resolved.type || message?.type || '';
+      return `${convId}:${senderId}:${createdAt}:${text}`;
+    }
+
+    function markIncomingEventProcessed(key) {
+      const now = Date.now();
+      processedIncomingRef.current.set(key, now);
+      processedIncomingRef.current.forEach((seenAt, seenKey) => {
+        if (now - seenAt > 15000) processedIncomingRef.current.delete(seenKey);
+      });
+    }
+
     const onConnect = () => {
       clearTimeout(disconnectTimerRef.current);
       clearInterval(reconnectIntervalRef.current);
@@ -112,6 +132,10 @@ export default function useChat({
       } catch {
         hydratedMsg = normalizeIncomingMessage(msg, user.uid);
       }
+
+      const incomingKey = buildIncomingEventKey(msg, hydratedMsg);
+      if (processedIncomingRef.current.has(incomingKey)) return;
+      markIncomingEventProcessed(incomingKey);
 
       const current = activeConvRef.current;
       const convId = hydratedMsg.convId || hydratedMsg.conversationId || msg.convId;

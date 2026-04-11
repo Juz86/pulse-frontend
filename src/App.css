@@ -1828,6 +1828,29 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .pd-child-actions .parent-btn-orange svg,
 .pd-child-actions .parent-btn-green svg,
 .pd-child-actions .parent-btn-outline svg { display:block; }
+.pd-child-top-actions {
+  position:absolute;
+  top:10px;
+  right:10px;
+  display:flex;
+  gap:4px;
+  align-items:center;
+}
+.pd-child-top-action {
+  min-width:32px;
+  min-height:32px;
+  justify-content:center;
+  flex-shrink:0;
+}
+.pd-child-top-action--assign {
+  max-width:110px;
+}
+.pd-child-top-action-label {
+  white-space:nowrap;
+}
+.pd-child-head {
+  padding-right:172px;
+}
 .parent-child-row:last-child { margin-bottom:0; }
 .parent-child-row.paused { background:rgba(249,115,22,.04); border-color:rgba(249,115,22,.3); }
 .parent-child-avatar {
@@ -2509,6 +2532,11 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .parent-add-form  { flex-direction:column; }
   .parent-btn-primary { width:100%; text-align:center; }
   .parent-child-row { flex-wrap:wrap; gap:8px; }
+  .pd-child-head { padding-right:142px; }
+  .pd-child-top-actions { gap:3px; }
+  .pd-child-top-action { min-width:30px; min-height:30px; padding:4px 5px !important; }
+  .pd-child-top-action--assign { max-width:32px; }
+  .pd-child-top-action-label { display:none; }
   .parent-dashboard-overlay { padding:20px 0 0; left:0; bottom:62px; align-items:flex-end; }
   .parent-dashboard-overlay .parent-root { border-radius:16px 16px 0 0; min-height:unset; max-height:calc(100vh - 82px); }
 }

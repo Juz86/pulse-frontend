@@ -83,7 +83,6 @@ export default function ChatSidebar({
   const [contactMenu, setContactMenu] = useState(null);
   const [convMenu, setConvMenu]       = useState(null); // { conv, otherUid, direction, top, left }
   const [moreActionsMenuOpen, setMoreActionsMenuOpen] = useState(false);
-  const closeMenuTimerRef = useRef(null);
   const moreActionsMenuRef = useRef(null);
 
   useEffect(() => {
@@ -104,10 +103,6 @@ export default function ChatSidebar({
   }
 
   function openContactMenu(contactUid, anchorEl) {
-    if (closeMenuTimerRef.current) {
-      clearTimeout(closeMenuTimerRef.current);
-      closeMenuTimerRef.current = null;
-    }
     const rect = anchorEl?.getBoundingClientRect?.();
     if (!rect) return;
     const menuWidth = 160;
@@ -118,27 +113,10 @@ export default function ChatSidebar({
     const top = direction === 'down'
       ? Math.min(rect.bottom + spacing, window.innerHeight - menuHeight - 12)
       : Math.max(12, rect.top - menuHeight - spacing);
-    setContactMenu({ uid: contactUid, direction, top, left });
+    setContactMenu(prev => prev?.uid === contactUid ? null : { uid: contactUid, direction, top, left });
   }
-
-  function scheduleCloseContactMenu(contactUid) {
-    if (closeMenuTimerRef.current) clearTimeout(closeMenuTimerRef.current);
-    closeMenuTimerRef.current = setTimeout(() => {
-      setContactMenu(prev => prev?.uid === contactUid ? null : prev);
-    }, 180);
-  }
-
-  function keepContactMenuOpen() {
-    if (closeMenuTimerRef.current) {
-      clearTimeout(closeMenuTimerRef.current);
-      closeMenuTimerRef.current = null;
-    }
-  }
-
-  const closeConvMenuTimerRef = useRef(null);
 
   function openConvMenu(conv, otherUid, anchorEl) {
-    if (closeConvMenuTimerRef.current) { clearTimeout(closeConvMenuTimerRef.current); closeConvMenuTimerRef.current = null; }
     const rect = anchorEl?.getBoundingClientRect?.();
     if (!rect) return;
     const menuWidth = 188;
@@ -149,25 +127,11 @@ export default function ChatSidebar({
     const top = direction === 'down'
       ? Math.min(rect.bottom + spacing, window.innerHeight - menuHeight - 12)
       : Math.max(12, rect.top - menuHeight - spacing);
-    setConvMenu({ conv, otherUid, direction, top, left });
+    setConvMenu(prev => prev?.conv?.id === conv.id ? null : { conv, otherUid, direction, top, left });
   }
-
-  function scheduleCloseConvMenu() {
-    if (closeConvMenuTimerRef.current) clearTimeout(closeConvMenuTimerRef.current);
-    closeConvMenuTimerRef.current = setTimeout(() => setConvMenu(null), 180);
-  }
-
-  function keepConvMenuOpen() {
-    if (closeConvMenuTimerRef.current) { clearTimeout(closeConvMenuTimerRef.current); closeConvMenuTimerRef.current = null; }
-  }
-
-  useEffect(() => () => {
-    if (closeMenuTimerRef.current) clearTimeout(closeMenuTimerRef.current);
-    if (closeConvMenuTimerRef.current) clearTimeout(closeConvMenuTimerRef.current);
-  }, []);
 
   return (
-    <aside className="sidebar" onClick={() => { setConvMenu(null); }}>
+    <aside className="sidebar" onClick={() => { setConvMenu(null); setContactMenu(null); }}>
       {/* Header */}
       <div className="sidebar-header">
         <div className="sidebar-top">
@@ -330,7 +294,6 @@ export default function ChatSidebar({
             getConvPhoto={getConvPhoto}
             onOpen={onOpenConversation}
             onMoreActionsEnter={(conv, otherUid, el) => openConvMenu(conv, otherUid, el)}
-            onMoreActionsLeave={scheduleCloseConvMenu}
             setLabelMenuConvId={setLabelMenuConvId}
           />
         </>
@@ -371,15 +334,12 @@ export default function ChatSidebar({
                 </div>
                 <div
                   style={{ position: 'relative' }}
-                  onMouseEnter={(e) => openContactMenu(contact.uid, e.currentTarget)}
-                  onMouseLeave={() => scheduleCloseContactMenu(contact.uid)}
                 >
                   <button
                     type="button"
                     className="icon-btn"
                     aria-label={`Meer acties voor ${getContactDisplayName(contact)}`}
-                    onMouseEnter={(e) => openContactMenu(contact.uid, e.currentTarget)}
-                    onFocus={(e) => openContactMenu(contact.uid, e.currentTarget)}
+                    onClick={(e) => { e.stopPropagation(); openContactMenu(contact.uid, e.currentTarget); }}
                     title="Meer acties"
                     style={parentBlockedUids?.includes(contact.uid) ? { color: 'var(--danger, #ef4444)' } : undefined}
                   >
@@ -414,8 +374,6 @@ export default function ChatSidebar({
             role="menu"
             aria-label={`Acties voor ${conv.name}`}
             onClick={e => e.stopPropagation()}
-            onMouseEnter={keepConvMenuOpen}
-            onMouseLeave={scheduleCloseConvMenu}
             style={{
               position: 'fixed', zIndex: 3000,
               top: convMenu.top, left: convMenu.left,
@@ -486,8 +444,6 @@ export default function ChatSidebar({
           <div
             role="menu"
             aria-label={`Acties voor ${getContactDisplayName(contact)}`}
-            onMouseEnter={keepContactMenuOpen}
-            onMouseLeave={() => scheduleCloseContactMenu(contact.uid)}
             onClick={e => e.stopPropagation()}
             style={{
               position: 'fixed',

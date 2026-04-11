@@ -32,7 +32,6 @@ function ConversationItemBase({
   onToggleSelect,
   onOpen,
   onMoreActionsEnter,
-  onMoreActionsLeave,
 }) {
   const conversationPreview = buildConversationPreviewPresentation(conv);
   const handleKeyDown = (event) => {
@@ -163,10 +162,7 @@ function ConversationItemBase({
           className="icon-btn"
           aria-label={`Meer acties voor ${conv.name}`}
           title="Meer acties"
-          onClick={e => e.stopPropagation()}
-          onMouseEnter={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
-          onMouseLeave={e => { e.stopPropagation(); onMoreActionsLeave?.(); }}
-          onFocus={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
+          onClick={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
         >
           <MoreHoriz size={18} aria-hidden="true" />
         </button>

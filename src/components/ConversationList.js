@@ -24,7 +24,6 @@ const ConversationList = React.memo(function ConversationList({
   getConvPhoto,
   onOpen,
   onMoreActionsEnter,
-  onMoreActionsLeave,
   setLabelMenuConvId,
 }) {
   const filtered = useMemo(() => {
@@ -102,7 +101,6 @@ const ConversationList = React.memo(function ConversationList({
             onToggleSelect={onToggleSelectConversation}
             onOpen={() => onOpen(conv)}
             onMoreActionsEnter={el => onMoreActionsEnter?.(conv, otherUid, el)}
-            onMoreActionsLeave={onMoreActionsLeave}
           />
         );
       })}

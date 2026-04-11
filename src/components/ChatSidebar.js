@@ -49,6 +49,7 @@ export default function ChatSidebar({
   onShowCallModal,
   onShowAddContact,
   onOpenProfile,
+  setConfirmDialog,
   // contact actions
   onAcceptFriendRequest,
   onDeclineFriendRequest,
@@ -520,7 +521,20 @@ export default function ChatSidebar({
             {parentActivityBadge > 0 && <span className="parent-badge" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
           </button>
         )}
-<button type="button" className="icon-btn danger" aria-label="Uitloggen" onClick={() => { handleLogout().catch(() => {}); }} title="Uitloggen"><Logout size={18} aria-hidden="true" /></button>
+<button
+type="button"
+className="icon-btn danger"
+aria-label="Uitloggen"
+onClick={() => {
+  setConfirmDialog?.({
+    title: 'Uitloggen',
+    message: 'Weet je zeker dat je wilt uitloggen?',
+    confirmLabel: 'Uitloggen',
+    onConfirm: async () => { handleLogout().catch(() => {}); },
+  });
+}}
+title="Uitloggen"
+><Logout size={18} aria-hidden="true" /></button>
       </div>
     </aside>
   );

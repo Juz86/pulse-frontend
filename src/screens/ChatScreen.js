@@ -353,6 +353,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onShowCallModal={() => { setShowCallModal(true); setCallLogRead(true); onCallLogRead?.(); }}
         onShowAddContact={() => setShowAddContact(true)}
         onOpenProfile={() => { setShowProfile(true); openProfile(); }}
+        setConfirmDialog={setConfirmDialog}
         onAcceptFriendRequest={acceptFriendRequest}
         onDeclineFriendRequest={declineFriendRequest}
         onRemindFriendRequest={remindFriendRequestById}

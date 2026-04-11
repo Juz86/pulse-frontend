@@ -78,7 +78,7 @@ export default function Homepage({ onParentClick }) {
           <div className="hp-hero-text">
             <ul className="hp-hero-features" aria-label="Belangrijkste voordelen" style={{ marginBottom: 20 }}>
               <li className="hp-hero-feature"><span aria-hidden="true"><Shield size={16} /></span> Versleuteld &amp; privé</li>
-              <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Bellen in de app</li>
+              <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Chatten en (video)bellen</li>
               <li className="hp-hero-feature"><span aria-hidden="true"><Users size={16} /></span> Ouderlijk toezicht</li>
             </ul>
             <h1 id="homepage-hero-title" className="hp-hero-title">
@@ -152,8 +152,8 @@ export default function Homepage({ onParentClick }) {
             </div>
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Communicatie</div>
-              <h3 id="homepage-feature-communication">Chatten op web, bellen in de app</h3>
-              <p>Blijf verbonden met familie en vrienden via veilige chat op web. Bellen en videobellen horen bewust thuis in de Pulse app.
+              <h3 id="homepage-feature-communication">Chatten, bellen en videobellen in de app</h3>
+              <p>Blijf veilig verbonden met familie en vrienden via chatten, bellen en videobellen in de Pulse app.
                 Geen telefoonnummer, foto's, gifs of algoritmes. Pulse is pure communicatie.
               </p>
               <a href="/functies#chatten" className="hp-read-more-btn" aria-label="Lees meer over chatten op web en bellen in de app">
@@ -167,7 +167,7 @@ export default function Homepage({ onParentClick }) {
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Ouderlijk toezicht</div>
               <h3 id="homepage-feature-parental-controls">Volledig overzicht voor ouders</h3>
-              <p>Ouders hebben volledig toezicht via een eigen dashboard. Chatten op web en bellen in de app blijven overzichtelijk beheerd. Direct meldingen bij nieuwe contacten.</p>
+              <p>Ouders hebben volledig toezicht via een eigen dashboard. Chatten, bellen en videobellen in de app blijven overzichtelijk beheerd. Direct meldingen bij nieuwe activiteiten van je kinderen.</p>
               <a href="/ouderlijk-toezicht#dashboard" className="hp-read-more-btn" aria-label="Lees meer over ouderlijk toezicht">
                 Lees meer <span aria-hidden="true">→</span>
               </a>

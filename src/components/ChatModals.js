@@ -137,7 +137,18 @@ export default function ChatModals({
   const [pendingColor,    setPendingColor]    = useState(null);
   const [pendingPhoto,    setPendingPhoto]    = useState(null);   // { file, url }
   const [requestsTab,     setRequestsTab]     = useState('ontvangen');
+  const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
+  const primaryHistoryChild = historyChildren.find((child) => child.uid === selectedHistoryChildUid) || historyChildren[0] || null;
+
+  useEffect(() => {
+    if (!historyChildren.length) {
+      setSelectedHistoryChildUid('');
+      return;
+    }
+    if (historyChildren.some((child) => child.uid === selectedHistoryChildUid)) return;
+    setSelectedHistoryChildUid(historyChildren[0].uid);
+  }, [historyChildren, selectedHistoryChildUid]);
 
 
   function openStarredFromProfile() {
@@ -707,78 +718,77 @@ export default function ChatModals({
                   <div>
                     <div style={{ marginBottom: '16px' }}>
                       <h4 style={{ fontFamily: "'Syne',sans-serif", fontSize: '16px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>Geschiedenis</h4>
-                      <p style={{ fontSize: '12px', color: 'var(--text2)', lineHeight: 1.5 }}>
-                        Beheer hoe lang chatberichten, belgeschiedenis en videogeschiedenis worden bewaard. Stel een eigen timer in voor je ouderaccount en desgewenst een andere timer per kindaccount.
-                      </p>
                     </div>
 
-                    <div style={{ display: 'grid', gap: '14px' }}>
-                      <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px' }}>
-                        <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>Ouderaccount</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '12px', lineHeight: 1.45 }}>
-                          Kies een bewaartermijn voor jouw eigen geschiedenis. Zonder keuze blijft de standaard op 30 dagen.
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
-                          {[1, 7, 14, 30].map((days) => {
-                            const isActive = historyRetentionDays === days;
-                            return (
-                              <button
-                                key={`parent-${days}`}
-                                type="button"
-                                className={isActive ? 'btn-primary' : 'btn-secondary'}
-                                onClick={() => setHistoryRetentionDays(days)}
-                                disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
-                                style={{ width: '100%', fontSize: '12px', minHeight: 42 }}
-                              >
-                                {days === 1 ? '24 uur' : `${days} dagen`}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
-                          <button type="button" className="btn-primary" onClick={saveHistorySettings} disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}>
-                            {historySettingsSavingTarget === 'parent' ? 'Opslaan…' : 'Opslaan ouderaccount'}
-                          </button>
-                        </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                      <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Ouderaccount</div>
+                        <select
+                          aria-label="Bewaartermijn ouderaccount"
+                          value={historyRetentionDays}
+                          onChange={(e) => setHistoryRetentionDays(Number(e.target.value))}
+                          disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
+                          style={{ width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', padding: '0 14px', fontSize: '14px', outline: 'none' }}
+                        >
+                          {[1, 7, 14, 30].map((days) => (
+                            <option key={`parent-${days}`} value={days}>
+                              {days === 1 ? '24 uur' : `${days} dagen`}
+                            </option>
+                          ))}
+                        </select>
+                        <button type="button" className="btn-primary" onClick={saveHistorySettings} disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}>
+                          {historySettingsSavingTarget === 'parent' ? 'Opslaan…' : 'Opslaan'}
+                        </button>
                       </div>
 
-                      {historyChildren.map((child) => {
-                        const selectedDays = Number(childHistoryRetentionDaysByUid?.[child.uid] || 30);
-                        const isSaving = historySettingsSavingTarget === child.uid;
-                        return (
-                          <div key={child.uid} style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px' }}>
-                            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px' }}>{child.displayName}</div>
-                            <div style={{ fontSize: '11px', color: 'var(--text3)', marginBottom: '12px', lineHeight: 1.45 }}>
-                              Kies de bewaartermijn voor dit kindaccount.
-                            </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px' }}>
-                              {[1, 7, 14, 30].map((days) => {
-                                const isActive = selectedDays === days;
-                                return (
-                                  <button
-                                    key={`${child.uid}-${days}`}
-                                    type="button"
-                                    className={isActive ? 'btn-primary' : 'btn-secondary'}
-                                    onClick={() => setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [child.uid]: days }))}
-                                    disabled={historySettingsLoading || isSaving}
-                                    style={{ width: '100%', fontSize: '12px', minHeight: 42 }}
-                                  >
-                                    {days === 1 ? '24 uur' : `${days} dagen`}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            <div style={{ marginTop: '12px' }}>
-                              <button type="button" className="btn-primary" onClick={() => saveChildHistorySettings(child.uid)} disabled={historySettingsLoading || isSaving}>
-                                {isSaving ? 'Opslaan…' : `Opslaan voor ${child.displayName}`}
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
+                      <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Kindaccount</div>
+                        <select
+                          aria-label="Kies kindaccount"
+                          value={selectedHistoryChildUid}
+                          onChange={(e) => setSelectedHistoryChildUid(e.target.value)}
+                          disabled={!historyChildren.length || historySettingsLoading}
+                          style={{ width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', padding: '0 14px', fontSize: '14px', outline: 'none' }}
+                        >
+                          {historyChildren.length === 0 ? (
+                            <option value="">Geen kindaccounts</option>
+                          ) : (
+                            historyChildren.map((child) => (
+                              <option key={child.uid} value={child.uid}>
+                                {child.displayName}
+                              </option>
+                            ))
+                          )}
+                        </select>
+                        <select
+                          aria-label="Bewaartermijn kindaccount"
+                          value={primaryHistoryChild ? Number(childHistoryRetentionDaysByUid?.[primaryHistoryChild.uid] || 30) : 30}
+                          onChange={(e) => {
+                            if (!primaryHistoryChild) return;
+                            const nextDays = Number(e.target.value);
+                            setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [primaryHistoryChild.uid]: nextDays }));
+                          }}
+                          disabled={!primaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
+                          style={{ width: '100%', minHeight: 44, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text)', padding: '0 14px', fontSize: '14px', outline: 'none' }}
+                        >
+                          {[1, 7, 14, 30].map((days) => (
+                            <option key={`child-${days}`} value={days}>
+                              {days === 1 ? '24 uur' : `${days} dagen`}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          onClick={() => primaryHistoryChild && saveChildHistorySettings(primaryHistoryChild.uid)}
+                          disabled={!primaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
+                        >
+                          {historySettingsSavingTarget === primaryHistoryChild?.uid ? 'Opslaan…' : 'Opslaan'}
+                        </button>
+                      </div>
 
                       {historySettingsMsg && (
-                        <div style={{ fontSize: '11px', color: historySettingsMsg.startsWith('Fout:') ? 'var(--danger)' : 'var(--success)' }}>
+                        <div style={{ gridColumn: '1 / -1', fontSize: '11px', color: historySettingsMsg.startsWith('Fout:') ? 'var(--danger)' : 'var(--success)' }}>
                           {historySettingsMsg}
                         </div>
                       )}

@@ -313,7 +313,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   function getConvName(conv) {
     if (conv.isGroup) return conv.groupName || 'Groepsgesprek';
     const otherUid = conv.members?.find(m => m !== user.uid);
-    return getContactNickname(otherUid) || conv.memberNames?.[otherUid] || 'Contactpersoon';
+    const liveContact = contacts.find(c => c.uid === otherUid);
+    return getContactDisplayName(liveContact || { uid: otherUid, displayName: conv.memberNames?.[otherUid] || '' }) || conv.memberNames?.[otherUid] || 'Contactpersoon';
   }
   function getOtherUid(conv) {
     if (conv?.isGroup) return null;

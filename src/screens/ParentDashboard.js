@@ -415,6 +415,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       if (!res.ok) throw new Error(data.error || 'Accepteren mislukt.');
       setCoparentInvitations(prev => prev.filter(i => i.id !== inviteId));
       loadChildren();
+      window.dispatchEvent(new CustomEvent('pulse:child-added'));
     } catch (err) { setInvitationError(err.message); }
     setInvitationActionId(null);
   }
@@ -637,11 +638,13 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                         >
                           <MagicEdit size={15} aria-hidden="true" />
                         </button>
-                        <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 8px', fontSize: 11, display:'flex', alignItems:'center', gap:3 }}
-                          onClick={() => { setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
-                          <UserPlus2 size={14} aria-hidden="true" />
-                          <span className="pd-child-top-action-label">Toewijzen</span>
-                        </button>
+                        {child.canInviteCoparent && (
+                          <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 8px', fontSize: 11, display:'flex', alignItems:'center', gap:3 }}
+                            onClick={() => { setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
+                            <UserPlus2 size={14} aria-hidden="true" />
+                            <span className="pd-child-top-action-label">Toewijzen</span>
+                          </button>
+                        )}
                         <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Verwijder account van ${child.displayName}`} style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
                           onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
                           <Trash2 size={15} color="#ef4444" aria-hidden="true" />
@@ -862,31 +865,37 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                           <div className="pd-contact-name">{contact.displayName}</div>
                           {contact.username && <div className="pd-contact-sub">@{contact.username}</div>}
                         </div>
-                        <span className={`pd-contact-status${contact.isBlocked ? ' blocked' : ''}`}>
-                          {contact.isBlockedByParent ? 'Geblokkeerd door ouder' : contact.isBlocked ? 'Geblokkeerd' : 'Actief'}
+                        <span className={`pd-contact-status${contact.isParentContact ? ' protected' : contact.isBlocked ? ' blocked' : ''}`}>
+                          {contact.isParentContact ? 'Co-ouder' : contact.isBlockedByParent ? 'Geblokkeerd door ouder' : contact.isBlocked ? 'Geblokkeerd' : 'Actief'}
                         </span>
                         <div className="pd-contact-actions">
-                          <button
-                            type="button"
-                            className="parent-btn-outline"
-                            style={{ fontSize: 12, padding: '5px 10px', color: contact.isBlocked ? '#22c55e' : '#f97316', borderColor: contact.isBlocked ? '#22c55e' : '#f97316', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
-                            disabled={contactActionUid === contact.uid}
-                            onClick={() => contact.isBlocked
-                              ? parentUnblockContact(contactsChildUid, contact.uid)
-                              : parentBlockContact(contactsChildUid, contact.uid)
-                            }
-                          >
-                            {contact.isBlocked ? 'Deblokkeren' : 'Blokkeren'}
-                          </button>
-                          <button
-                            type="button"
-                            className="parent-btn-outline"
-                            style={{ fontSize: 12, padding: '5px 10px', color: '#ef4444', borderColor: '#ef4444', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
-                            disabled={contactActionUid === contact.uid}
-                            onClick={() => parentRemoveContact(contactsChildUid, contact.uid)}
-                          >
-                            Verwijderen
-                          </button>
+                          {contact.isParentContact ? (
+                            <span className="pd-contact-protected-note">Beveiligd</span>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                className="parent-btn-outline"
+                                style={{ fontSize: 12, padding: '5px 10px', color: contact.isBlocked ? '#22c55e' : '#f97316', borderColor: contact.isBlocked ? '#22c55e' : '#f97316', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
+                                disabled={contactActionUid === contact.uid}
+                                onClick={() => contact.isBlocked
+                                  ? parentUnblockContact(contactsChildUid, contact.uid)
+                                  : parentBlockContact(contactsChildUid, contact.uid)
+                                }
+                              >
+                                {contact.isBlocked ? 'Deblokkeren' : 'Blokkeren'}
+                              </button>
+                              <button
+                                type="button"
+                                className="parent-btn-outline"
+                                style={{ fontSize: 12, padding: '5px 10px', color: '#ef4444', borderColor: '#ef4444', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
+                                disabled={contactActionUid === contact.uid}
+                                onClick={() => parentRemoveContact(contactsChildUid, contact.uid)}
+                              >
+                                Verwijderen
+                              </button>
+                            </>
+                          )}
                         </div>
                       </div>
                     ))}

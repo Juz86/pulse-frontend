@@ -2425,7 +2425,17 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .pd-contact-status.blocked {
   background:rgba(239,68,68,0.1); color:#dc2626;
 }
+.pd-contact-status.protected {
+  background: rgba(124,108,255,.12);
+  color: #6c63ff;
+}
 .pd-contact-actions { display:flex; gap:6px; flex-shrink:0; }
+.pd-contact-protected-note {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  padding: 3px 0;
+}
 
 .coparent-invite-modal {
   width: min(560px, calc(100vw - 32px));

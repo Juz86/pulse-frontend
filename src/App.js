@@ -402,6 +402,28 @@ function MainApp() {
           toastTimerRef.current = setTimeout(() => setParentToast(null), 4000);
         });
 
+        socket.off('coparent:accepted');
+        socket.on('coparent:accepted', ({ childName, coparentName }) => {
+          setParentActivityBadge(prev => prev + 1);
+          setParentToast({
+            type: 'coparent_accepted',
+            description: `${coparentName || 'Een ouder'} heeft de uitnodiging voor ${childName || 'dit kind'} geaccepteerd.`,
+          });
+          clearTimeout(toastTimerRef.current);
+          toastTimerRef.current = setTimeout(() => setParentToast(null), 4000);
+        });
+
+        socket.off('coparent:declined');
+        socket.on('coparent:declined', ({ childName, coparentName }) => {
+          setParentActivityBadge(prev => prev + 1);
+          setParentToast({
+            type: 'coparent_declined',
+            description: `${coparentName || 'Een ouder'} heeft de uitnodiging voor ${childName || 'dit kind'} geweigerd.`,
+          });
+          clearTimeout(toastTimerRef.current);
+          toastTimerRef.current = setTimeout(() => setParentToast(null), 4000);
+        });
+
         // Firebase token verloopt na 1 uur — refresh bij connect_error
         socket.off('connect_error');
         socket.on('connect_error', async () => {

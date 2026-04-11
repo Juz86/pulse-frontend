@@ -260,6 +260,10 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     }
   }, [activeTab, parentActivityBadge, onActivitiesViewed]);
 
+  useEffect(() => {
+    setActivityContactFilter('all');
+  }, [selectedChildUid]);
+
   // Auto-refresh analytics elke 30 seconden als Activiteiten-tab open is
   useEffect(() => {
     if (activeTab !== 'activities' || !selectedChildUid) return;
@@ -954,12 +958,28 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                       const { profile, contacts, sessions, messaging } = analytics;
                       if (!profile || !sessions?.daily || !messaging || !contacts) return null;
                       const fmtSecs = s => { if (!s) return '0m'; const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h > 0 ? `${h}u ${m}m` : `${m}m`; };
+                      const getRelationLabel = (relation) => {
+                        if (relation === 'familie') return 'Familie';
+                        if (relation === 'vrienden') return 'Vriend';
+                        return 'Contact';
+                      };
                       const todayKey = new Date().toISOString().slice(0, 10);
                       const todaySession = sessions.daily.find(d => d.date === todayKey);
                       const analyticsContacts = Array.isArray(contacts.list) ? contacts.list : [];
-                      const filteredContacts = activityContactFilter === 'all'
+                      const contactCounts = {
+                        all: analyticsContacts.length,
+                        familie: analyticsContacts.filter((contact) => (contact.relation || '').toLowerCase() === 'familie').length,
+                        vrienden: analyticsContacts.filter((contact) => (contact.relation || '').toLowerCase() === 'vrienden').length,
+                      };
+                      const filteredContacts = (activityContactFilter === 'all'
                         ? analyticsContacts
-                        : analyticsContacts.filter((contact) => (contact.relation || '').toLowerCase() === activityContactFilter);
+                        : analyticsContacts.filter((contact) => (contact.relation || '').toLowerCase() === activityContactFilter)
+                      ).slice().sort((a, b) => {
+                        const relationOrder = { familie: 0, vrienden: 1 };
+                        const relationDiff = (relationOrder[a.relation] ?? 9) - (relationOrder[b.relation] ?? 9);
+                        if (relationDiff !== 0) return relationDiff;
+                        return String(a.displayName || a.email || a.uid).localeCompare(String(b.displayName || b.email || b.uid), 'nl');
+                      });
                       const topContactCandidates = Array.isArray(messaging.topContacts) ? messaging.topContacts.filter((contact) => !contact.isGroup) : [];
                       const buildTopList = (metricKey) => topContactCandidates
                         .filter((contact) => Number(contact[metricKey] || 0) > 0)
@@ -1053,7 +1073,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                                   aria-pressed={activityContactFilter === filter.id}
                                   onClick={() => setActivityContactFilter(filter.id)}
                                 >
-                                  {filter.label}
+                                  {filter.label} <span className="parent-activity-filter-count">{contactCounts[filter.id]}</span>
                                 </button>
                               ))}
                             </div>
@@ -1063,20 +1083,18 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                               <div className="parent-activity-contacts-list">
                                 {filteredContacts.map((contact) => (
                                   <div key={contact.uid} className="parent-activity-contact-row">
-                                    <div className="parent-top-contact-avatar" aria-hidden="true">
-                                      {getInitials(contact.displayName || contact.email || contact.uid)}
-                                    </div>
+                                    {contact.photoURL
+                                      ? <img src={contact.photoURL} alt="" className="parent-top-contact-avatar parent-top-contact-avatar-photo" />
+                                      : <div className="parent-top-contact-avatar" aria-hidden="true">{getInitials(contact.displayName || contact.email || contact.uid)}</div>}
                                     <div className="parent-top-contact-copy">
                                       <strong>{contact.displayName || contact.email || contact.uid}</strong>
                                       <span>
-                                        {contact.username ? `@${contact.username}` : contact.email || (contact.relation || 'Contact')}
+                                        {contact.username ? `@${contact.username}` : contact.email || getRelationLabel(contact.relation)}
                                       </span>
                                     </div>
-                                    {contact.relation && (
-                                      <span className="parent-activity-contact-tag">
-                                        {contact.relation === 'familie' ? 'Familie' : 'Vriend'}
-                                      </span>
-                                    )}
+                                    <span className="parent-activity-contact-tag">
+                                      {getRelationLabel(contact.relation)}
+                                    </span>
                                   </div>
                                 ))}
                               </div>
@@ -1100,7 +1118,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                                       {section.items.map((contact, index) => (
                                         <div key={`${section.title}-${contact.uid || index}`} className="parent-top-contact-pill">
                                           <div className="parent-top-contact-rank" aria-hidden="true">{index + 1}</div>
-                                          <div className="parent-top-contact-avatar" aria-hidden="true">{getInitials(contact.name)}</div>
+                                          {contact.photoURL
+                                            ? <img src={contact.photoURL} alt="" className="parent-top-contact-avatar parent-top-contact-avatar-photo" />
+                                            : <div className="parent-top-contact-avatar" aria-hidden="true">{getInitials(contact.name)}</div>}
                                           <div className="parent-top-contact-copy">
                                             <strong>{contact.name}</strong>
                                             <span>{section.metric(contact)}</span>

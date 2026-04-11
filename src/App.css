@@ -2448,6 +2448,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 .chat-selection-close-mobile { display: none; }
 .chat-selection-cancel-desktop { display: inline-flex; }
+.chat-selection-delete-btn { white-space: nowrap; }
 
 .coparent-invite-modal {
   width: min(560px, calc(100vw - 32px));
@@ -2566,6 +2567,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .pd-child-top-action-label { display:none; }
   .chat-selection-cancel-desktop { display: none; }
   .chat-selection-close-mobile { display: inline-flex; }
+  .chat-selection-delete-btn { padding: 6px 8px !important; font-size: 11px !important; }
   .parent-dashboard-overlay { padding:20px 0 0; left:0; bottom:62px; align-items:flex-end; }
   .parent-dashboard-overlay .parent-root { border-radius:16px 16px 0 0; min-height:unset; max-height:calc(100vh - 82px); }
 }

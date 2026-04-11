@@ -293,7 +293,7 @@ export default function ChatSidebar({
             <div style={{ padding: '0 18px 12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
                 <div style={{ fontSize: 12, color: 'var(--text2)', flex: 1 }}>
-                  {selectedConversationIds.length > 0 ? `${selectedConversationIds.length} gesprek${selectedConversationIds.length === 1 ? '' : 'ken'} geselecteerd` : 'Selecteer gesprekken om te verwijderen'}
+                  {selectedConversationIds.length > 0 ? `${selectedConversationIds.length} geselecteerd` : 'Selecteer gesprekken om te verwijderen'}
                 </div>
                 <button
                   type="button"
@@ -303,7 +303,7 @@ export default function ChatSidebar({
                 >
                   Annuleren
                 </button>
-                <button type="button" className="btn-danger" style={{ padding: '6px 10px', fontSize: 12, minWidth: 0 }} disabled={selectedConversationIds.length === 0} onClick={onDeleteSelectedConversations}>Verwijderen</button>
+                <button type="button" className="btn-danger chat-selection-delete-btn" style={{ padding: '6px 10px', fontSize: 12, minWidth: 0 }} disabled={selectedConversationIds.length === 0} onClick={onDeleteSelectedConversations}>Verwijderen</button>
                 <button
                   type="button"
                   className="icon-btn chat-selection-close-mobile"

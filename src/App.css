@@ -1829,11 +1829,13 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .pd-child-actions .parent-btn-green svg,
 .pd-child-actions .parent-btn-outline svg { display:block; }
 .pd-child-top-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
   display:flex;
   gap:4px;
   align-items:center;
-  flex-wrap:wrap;
-  margin-top:8px;
+  flex-wrap:nowrap;
 }
 .pd-child-top-action {
   min-width:32px;
@@ -1846,6 +1848,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 .pd-child-top-action-label {
   white-space:nowrap;
+}
+.pd-child-head {
+  padding-right: 220px;
 }
 .parent-child-row:last-child { margin-bottom:0; }
 .parent-child-row.paused { background:rgba(249,115,22,.04); border-color:rgba(249,115,22,.3); }
@@ -2540,7 +2545,13 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .parent-add-form  { flex-direction:column; }
   .parent-btn-primary { width:100%; text-align:center; }
   .parent-child-row { flex-wrap:wrap; gap:8px; }
-  .pd-child-top-actions { gap:3px; }
+  .pd-child-head { padding-right: 0; }
+  .pd-child-top-actions {
+    position: static;
+    gap:3px;
+    flex-wrap:wrap;
+    margin-top:8px;
+  }
   .pd-child-top-action { min-width:30px; min-height:30px; padding:4px 5px !important; }
   .pd-child-top-action--assign { max-width:32px; }
   .pd-child-top-action-label { display:none; }

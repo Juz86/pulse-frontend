@@ -292,10 +292,10 @@ export default function ChatSidebar({
           {selectionMode && (
             <div style={{ padding: '0 18px 12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
-                <div style={{ fontSize: 12, color: 'var(--text2)', flex: 1 }}>
+                <div className="chat-selection-count" style={{ fontSize: 12, color: 'var(--text2)', flex: 1 }}>
                   {`${selectedConversationIds.length} geselecteerd`}
                 </div>
-                <button type="button" className="btn-danger chat-selection-delete-btn" style={{ padding: '6px 10px', fontSize: 12, minWidth: 0 }} disabled={selectedConversationIds.length === 0} onClick={onDeleteSelectedConversations}>Verwijderen</button>
+                <button type="button" className="btn-danger chat-selection-delete-btn" style={{ padding: '5px 8px', fontSize: 11, minWidth: 0 }} disabled={selectedConversationIds.length === 0} onClick={onDeleteSelectedConversations}>Verwijderen</button>
                 <button
                   type="button"
                   className="icon-btn chat-selection-close-btn"

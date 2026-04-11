@@ -153,8 +153,7 @@ export default function Homepage({ onParentClick }) {
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Communicatie</div>
               <h3 id="homepage-feature-communication">Chatten, bellen en videobellen in de app</h3>
-              <p>Blijf veilig verbonden met familie en vrienden via chatten, bellen en videobellen in de Pulse app.
-                Geen telefoonnummer, foto's, gifs of algoritmes. Pulse is pure communicatie.
+              <p>Blijf veilig verbonden met familie en vrienden in de Pulse app. Chatten, bellen en videobellen zonder telefoonnummer, foto’s, gifs of algoritmes. Pulse is pure communicatie.
               </p>
               <a href="/functies#chatten" className="hp-read-more-btn" aria-label="Lees meer over chatten op web en bellen in de app">
                 Lees meer <span aria-hidden="true">→</span>

@@ -616,41 +616,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                       const chipPause  = { ...chipBase, background:'rgba(249,115,22,.15)', color:'#f97316' };
                       return (
                     <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
-                      {/* Sleutel + Delete knoppen */}
-                      <div className="pd-child-top-actions">
-                        <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Wijzig wachtwoord voor ${child.displayName}`} title="Wachtwoord wijzigen"
-                          onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
-                          style={{ padding:'4px 6px' }}>
-                          <KeyRound size={15} aria-hidden="true" />
-                        </button>
-                        <button
-                          type="button"
-                          className="parent-btn-outline pd-child-top-action"
-                          aria-label={`Beheer gebruikersnaam voor ${child.displayName}`}
-                          title="Gebruikersnaam beheren"
-                          onClick={() => {
-                            setEditingUsernameUid(child.uid);
-                            setEditingUsername(child.username || '');
-                            setUsernameError('');
-                            setUsernameSuccess('');
-                          }}
-                          style={{ padding:'4px 6px' }}
-                        >
-                          <MagicEdit size={15} aria-hidden="true" />
-                        </button>
-                        {child.canInviteCoparent && (
-                          <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 8px', fontSize: 11, display:'flex', alignItems:'center', gap:3 }}
-                            onClick={() => { setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
-                            <UserPlus2 size={14} aria-hidden="true" />
-                            <span className="pd-child-top-action-label">Toewijzen</span>
-                          </button>
-                        )}
-                        <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Verwijder account van ${child.displayName}`} style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
-                          onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
-                          <Trash2 size={15} color="#ef4444" aria-hidden="true" />
-                        </button>
-                      </div>
-
                       {/* Rij 1: Avatar + naam */}
                       <div className="pd-child-head" style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
                         <div className="parent-child-avatar" style={{ flexShrink:0 }}>
@@ -662,6 +627,39 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                           <div className="parent-child-name" style={{ display:'flex', alignItems:'baseline', gap:6 }}>
                             {child.displayName}
                             {child.username && <span style={{ color:'#888', fontWeight:400, fontSize:12 }}>Loginnaam: @{child.username}</span>}
+                          </div>
+                          <div className="pd-child-top-actions">
+                            <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Wijzig wachtwoord voor ${child.displayName}`} title="Wachtwoord wijzigen"
+                              onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
+                              style={{ padding:'4px 6px' }}>
+                              <KeyRound size={15} aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              className="parent-btn-outline pd-child-top-action"
+                              aria-label={`Beheer gebruikersnaam voor ${child.displayName}`}
+                              title="Gebruikersnaam beheren"
+                              onClick={() => {
+                                setEditingUsernameUid(child.uid);
+                                setEditingUsername(child.username || '');
+                                setUsernameError('');
+                                setUsernameSuccess('');
+                              }}
+                              style={{ padding:'4px 6px' }}
+                            >
+                              <MagicEdit size={15} aria-hidden="true" />
+                            </button>
+                            {child.canInviteCoparent && (
+                              <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 8px', fontSize: 11, display:'flex', alignItems:'center', gap:3 }}
+                                onClick={() => { setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
+                                <UserPlus2 size={14} aria-hidden="true" />
+                                <span className="pd-child-top-action-label">Toewijzen</span>
+                              </button>
+                            )}
+                            <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Verwijder account van ${child.displayName}`} style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
+                              onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
+                              <Trash2 size={15} color="#ef4444" aria-hidden="true" />
+                            </button>
                           </div>
                           <div className="parent-child-meta" style={{ whiteSpace:'nowrap', marginTop:5 }}>
                             <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />

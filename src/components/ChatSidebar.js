@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus } from '../components/Icons';
+import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
@@ -295,8 +295,17 @@ export default function ChatSidebar({
                 <div style={{ fontSize: 12, color: 'var(--text2)', flex: 1 }}>
                   {selectedConversationIds.length > 0 ? `${selectedConversationIds.length} gesprek${selectedConversationIds.length === 1 ? '' : 'ken'} geselecteerd` : 'Selecteer gesprekken om te verwijderen'}
                 </div>
-                <button type="button" className="btn-secondary" style={{ padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={onCancelConversationSelection}>Annuleren</button>
                 <button type="button" className="btn-danger" style={{ padding: '6px 10px', fontSize: 12, minWidth: 0 }} disabled={selectedConversationIds.length === 0} onClick={onDeleteSelectedConversations}>Verwijderen</button>
+                <button
+                  type="button"
+                  className="icon-btn"
+                  aria-label="Selectie sluiten"
+                  title="Sluiten"
+                  style={{ width: 32, height: 32, flexShrink: 0 }}
+                  onClick={onCancelConversationSelection}
+                >
+                  <XIcon size={16} aria-hidden="true" />
+                </button>
               </div>
             </div>
           )}

@@ -1,5 +1,5 @@
 // src/components/ChatModals.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Phone, Video, Camera, Delete, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, Clock } from '../components/Icons';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
@@ -11,6 +11,101 @@ import {
   PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE,
   PULSE_WEB_CALLS_UNAVAILABLE_TITLE,
 } from '../lib/platform/runtime';
+
+function HistorySelect({ ariaLabel, value, options, onChange, disabled = false, style }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const selectedOption = options.find((option) => String(option.value) === String(value)) || options[0];
+
+  useEffect(() => {
+    if (!open) return undefined;
+    function handlePointerDown(event) {
+      if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false);
+    }
+    function handleEscape(event) {
+      if (event.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        disabled={disabled}
+        onClick={() => !disabled && setOpen((prev) => !prev)}
+        style={{ ...style, textAlign: 'left', cursor: disabled ? 'not-allowed' : 'pointer' }}
+      >
+        <span>{selectedOption?.label || ''}</span>
+      </button>
+
+      {open && !disabled && (
+        <div
+          role="listbox"
+          aria-label={ariaLabel}
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            left: 0,
+            right: 0,
+            zIndex: 50,
+            padding: '8px',
+            borderRadius: 16,
+            border: '1px solid rgba(165, 150, 255, 0.18)',
+            background: 'linear-gradient(180deg, rgba(56, 49, 103, 0.98) 0%, rgba(43, 38, 86, 0.99) 100%)',
+            boxShadow: '0 18px 36px rgba(7, 5, 20, 0.42), inset 0 1px 0 rgba(255,255,255,0.04)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px',
+          }}
+        >
+          {options.map((option) => {
+            const isSelected = String(option.value) === String(value);
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+                style={{
+                  width: '100%',
+                  minHeight: 42,
+                  borderRadius: 12,
+                  border: isSelected ? '1px solid rgba(173, 141, 255, 0.5)' : '1px solid rgba(255,255,255,0.04)',
+                  background: isSelected
+                    ? 'linear-gradient(135deg, rgba(123, 94, 255, 0.34) 0%, rgba(183, 92, 255, 0.3) 100%)'
+                    : 'rgba(255,255,255,0.02)',
+                  color: 'var(--text)',
+                  fontSize: '14px',
+                  fontWeight: isSelected ? 700 : 600,
+                  padding: '0 14px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                }}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ChatModals({
   // contact rename
@@ -140,6 +235,12 @@ export default function ChatModals({
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
   const primaryHistoryChild = historyChildren.find((child) => child.uid === selectedHistoryChildUid) || historyChildren[0] || null;
+  const historyRetentionOptions = [
+    { value: 1, label: '24 uur' },
+    { value: 7, label: '7 dagen' },
+    { value: 14, label: '14 dagen' },
+    { value: 30, label: '30 dagen' },
+  ];
   const historySelectStyle = {
     width: '100%',
     minHeight: 48,
@@ -159,6 +260,8 @@ export default function ChatModals({
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'right 14px center',
     backgroundSize: '14px',
+    display: 'flex',
+    alignItems: 'center',
   };
 
   useEffect(() => {
@@ -746,19 +849,14 @@ export default function ChatModals({
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
                       <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Ouderaccount</div>
-                        <select
+                        <HistorySelect
                           aria-label="Bewaartermijn ouderaccount"
                           value={historyRetentionDays}
-                          onChange={(e) => setHistoryRetentionDays(Number(e.target.value))}
+                          options={historyRetentionOptions}
+                          onChange={(nextValue) => setHistoryRetentionDays(Number(nextValue))}
                           disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
                           style={historySelectStyle}
-                        >
-                          {[1, 7, 14, 30].map((days) => (
-                            <option key={`parent-${days}`} value={days}>
-                              {days === 1 ? '24 uur' : `${days} dagen`}
-                            </option>
-                          ))}
-                        </select>
+                        />
                         <button type="button" className="btn-primary" onClick={saveHistorySettings} disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}>
                           {historySettingsSavingTarget === 'parent' ? 'Opslaan…' : 'Opslaan'}
                         </button>
@@ -766,40 +864,30 @@ export default function ChatModals({
 
                       <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Kindaccount</div>
-                        <select
+                        <HistorySelect
                           aria-label="Kies kindaccount"
                           value={selectedHistoryChildUid}
-                          onChange={(e) => setSelectedHistoryChildUid(e.target.value)}
+                          options={
+                            historyChildren.length === 0
+                              ? [{ value: '', label: 'Geen kindaccounts' }]
+                              : historyChildren.map((child) => ({ value: child.uid, label: child.displayName }))
+                          }
+                          onChange={(nextValue) => setSelectedHistoryChildUid(String(nextValue))}
                           disabled={!historyChildren.length || historySettingsLoading}
                           style={historySelectStyle}
-                        >
-                          {historyChildren.length === 0 ? (
-                            <option value="">Geen kindaccounts</option>
-                          ) : (
-                            historyChildren.map((child) => (
-                              <option key={child.uid} value={child.uid}>
-                                {child.displayName}
-                              </option>
-                            ))
-                          )}
-                        </select>
-                        <select
+                        />
+                        <HistorySelect
                           aria-label="Bewaartermijn kindaccount"
                           value={primaryHistoryChild ? Number(childHistoryRetentionDaysByUid?.[primaryHistoryChild.uid] || 30) : 30}
-                          onChange={(e) => {
+                          options={historyRetentionOptions}
+                          onChange={(nextValue) => {
                             if (!primaryHistoryChild) return;
-                            const nextDays = Number(e.target.value);
+                            const nextDays = Number(nextValue);
                             setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [primaryHistoryChild.uid]: nextDays }));
                           }}
                           disabled={!primaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
                           style={historySelectStyle}
-                        >
-                          {[1, 7, 14, 30].map((days) => (
-                            <option key={`child-${days}`} value={days}>
-                              {days === 1 ? '24 uur' : `${days} dagen`}
-                            </option>
-                          ))}
-                        </select>
+                        />
                         <button
                           type="button"
                           className="btn-primary"

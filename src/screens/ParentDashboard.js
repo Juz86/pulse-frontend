@@ -628,6 +628,10 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                             {child.displayName}
                             {child.username && <span style={{ color:'#888', fontWeight:400, fontSize:12 }}>Loginnaam: @{child.username}</span>}
                           </div>
+                          <div className="parent-child-meta" style={{ whiteSpace:'nowrap', marginTop:5 }}>
+                            <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
+                            <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
+                          </div>
                           <div className="pd-child-top-actions">
                             <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Wijzig wachtwoord voor ${child.displayName}`} title="Wachtwoord wijzigen"
                               onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
@@ -660,10 +664,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                               onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
                               <Trash2 size={15} color="#ef4444" aria-hidden="true" />
                             </button>
-                          </div>
-                          <div className="parent-child-meta" style={{ whiteSpace:'nowrap', marginTop:5 }}>
-                            <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
-                            <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
                           </div>
                         </div>
                       </div>

@@ -1998,6 +1998,90 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .parent-top-contacts-list {
   display:flex; flex-direction:column; gap:10px;
 }
+.parent-top-contacts-grid {
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:14px;
+}
+.parent-top-contacts-column {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.parent-top-contacts-column-title {
+  color:#232640;
+  font-size:13px;
+  font-weight:700;
+}
+.parent-activity-filter-row {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:14px;
+}
+.parent-activity-filter-chip {
+  border:1px solid #e7e3ff;
+  background:#f8f7ff;
+  color:#6b6f87;
+  border-radius:999px;
+  padding:7px 12px;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .16s ease;
+}
+.parent-activity-filter-chip:hover {
+  color:#6c63ff;
+  border-color:#cfc7ff;
+}
+.parent-activity-filter-chip.active {
+  background:linear-gradient(135deg,#7c6fff,#a855f7);
+  border-color:transparent;
+  color:#fff;
+  box-shadow:0 8px 18px rgba(108,99,255,.18);
+}
+.parent-activity-contacts-list {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.parent-activity-contact-row {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  background:#f8f8fc;
+  border:1px solid #f0effa;
+  border-radius:16px;
+}
+.parent-activity-contact-tag {
+  margin-left:auto;
+  flex-shrink:0;
+  font-size:11px;
+  font-weight:700;
+  color:#6c63ff;
+  background:rgba(108,99,255,.10);
+  border-radius:999px;
+  padding:5px 9px;
+}
+.parent-top-contact-rank {
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:rgba(108,99,255,.12);
+  color:#6c63ff;
+  font-size:11px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.parent-top-contacts-empty {
+  color:#888da3;
+  font-size:12px;
+  padding:8px 0;
+}
 .parent-top-contact-pill {
   display:flex; align-items:center; gap:12px;
   background:#f8f8fc;
@@ -2024,6 +2108,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .parent-activity-overview {
     grid-template-columns:1fr;
   }
+  .parent-top-contacts-grid {
+    grid-template-columns:1fr;
+  }
 }
 @media (max-width:480px) {
   .analytics-profile-card { align-items:flex-start; gap:14px; padding:18px; }
@@ -2031,6 +2118,13 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .parent-usage-stat { padding:16px 14px; border-radius:16px; }
   .parent-usage-value { font-size:20px; }
   .parent-activity-text { max-width:none; }
+  .parent-activity-contact-row {
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .parent-activity-contact-tag {
+    margin-left:0;
+  }
 }
 
 .analytics-section {

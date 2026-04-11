@@ -74,6 +74,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const [analytics,        setAnalytics]        = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError,   setAnalyticsError]   = useState('');
+  const [activityContactFilter, setActivityContactFilter] = useState('all');
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
 
   const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
@@ -955,7 +956,18 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                       const fmtSecs = s => { if (!s) return '0m'; const h = Math.floor(s/3600), m = Math.floor((s%3600)/60); return h > 0 ? `${h}u ${m}m` : `${m}m`; };
                       const todayKey = new Date().toISOString().slice(0, 10);
                       const todaySession = sessions.daily.find(d => d.date === todayKey);
-                      const topContacts = Array.isArray(messaging.topContacts) ? messaging.topContacts.slice(0, 3) : [];
+                      const analyticsContacts = Array.isArray(contacts.list) ? contacts.list : [];
+                      const filteredContacts = activityContactFilter === 'all'
+                        ? analyticsContacts
+                        : analyticsContacts.filter((contact) => (contact.relation || '').toLowerCase() === activityContactFilter);
+                      const topContactCandidates = Array.isArray(messaging.topContacts) ? messaging.topContacts.filter((contact) => !contact.isGroup) : [];
+                      const buildTopList = (metricKey) => topContactCandidates
+                        .filter((contact) => Number(contact[metricKey] || 0) > 0)
+                        .sort((a, b) => Number(b[metricKey] || 0) - Number(a[metricKey] || 0))
+                        .slice(0, 3);
+                      const topChatContacts = buildTopList('messagesSent');
+                      const topCallContacts = buildTopList('callCount');
+                      const topVideoContacts = buildTopList('videoCalls');
                       const statusDot = profile.online
                         ? { background: '#22c55e', boxShadow: '0 0 0 2px #dcfce7' }
                         : { background: '#9ca3af' };
@@ -1026,22 +1038,81 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                             </div>
                           </div>
 
-                          {topContacts.length > 0 && (
-                            <div className="analytics-section parent-top-contacts-card">
-                              <div className="analytics-section-title"><Users size={15} aria-hidden="true" /> Meest contact mee</div>
-                              <div className="parent-top-contacts-list">
-                                {topContacts.map((c, i) => (
-                                  <div key={c.uid || i} className="parent-top-contact-pill">
-                                    <div className="parent-top-contact-avatar" aria-hidden="true">{getInitials(c.name)}</div>
-                                    <div className="parent-top-contact-copy">
-                                      <strong>{c.name}</strong>
-                                      <span>{c.messagesSent || 0} chats</span>
+                          <div className="analytics-section parent-top-contacts-card">
+                            <div className="analytics-section-title"><Users size={15} aria-hidden="true" /> Contactoverzicht</div>
+                            <div className="parent-activity-filter-row" role="group" aria-label="Filter contacten">
+                              {[
+                                { id: 'all', label: 'Alle' },
+                                { id: 'familie', label: 'Familie' },
+                                { id: 'vrienden', label: 'Vrienden' },
+                              ].map((filter) => (
+                                <button
+                                  key={filter.id}
+                                  type="button"
+                                  className={`parent-activity-filter-chip${activityContactFilter === filter.id ? ' active' : ''}`}
+                                  aria-pressed={activityContactFilter === filter.id}
+                                  onClick={() => setActivityContactFilter(filter.id)}
+                                >
+                                  {filter.label}
+                                </button>
+                              ))}
+                            </div>
+                            {filteredContacts.length === 0 ? (
+                              <div className="parent-top-contacts-empty">Geen contacten in deze filter.</div>
+                            ) : (
+                              <div className="parent-activity-contacts-list">
+                                {filteredContacts.map((contact) => (
+                                  <div key={contact.uid} className="parent-activity-contact-row">
+                                    <div className="parent-top-contact-avatar" aria-hidden="true">
+                                      {getInitials(contact.displayName || contact.email || contact.uid)}
                                     </div>
+                                    <div className="parent-top-contact-copy">
+                                      <strong>{contact.displayName || contact.email || contact.uid}</strong>
+                                      <span>
+                                        {contact.username ? `@${contact.username}` : contact.email || (contact.relation || 'Contact')}
+                                      </span>
+                                    </div>
+                                    {contact.relation && (
+                                      <span className="parent-activity-contact-tag">
+                                        {contact.relation === 'familie' ? 'Familie' : 'Vriend'}
+                                      </span>
+                                    )}
                                   </div>
                                 ))}
                               </div>
+                            )}
+                          </div>
+
+                          <div className="analytics-section parent-top-contacts-card">
+                            <div className="analytics-section-title"><Users size={15} aria-hidden="true" /> Top 3 contacten</div>
+                            <div className="parent-top-contacts-grid">
+                              {[
+                                { title: 'Meest chat mee', items: topChatContacts, metric: (contact) => `${contact.messagesSent || 0} chats` },
+                                { title: 'Meest belt mee', items: topCallContacts, metric: (contact) => `${contact.callCount || 0} oproepen` },
+                                { title: 'Meest videobelt mee', items: topVideoContacts, metric: (contact) => `${contact.videoCalls || 0} videogesprekken` },
+                              ].map((section) => (
+                                <div key={section.title} className="parent-top-contacts-column">
+                                  <div className="parent-top-contacts-column-title">{section.title}</div>
+                                  {section.items.length === 0 ? (
+                                    <div className="parent-top-contacts-empty">Nog geen data.</div>
+                                  ) : (
+                                    <div className="parent-top-contacts-list">
+                                      {section.items.map((contact, index) => (
+                                        <div key={`${section.title}-${contact.uid || index}`} className="parent-top-contact-pill">
+                                          <div className="parent-top-contact-rank" aria-hidden="true">{index + 1}</div>
+                                          <div className="parent-top-contact-avatar" aria-hidden="true">{getInitials(contact.name)}</div>
+                                          <div className="parent-top-contact-copy">
+                                            <strong>{contact.name}</strong>
+                                            <span>{section.metric(contact)}</span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
                             </div>
-                          )}
+                          </div>
                         </div>
                       );
                     })()}

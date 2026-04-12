@@ -93,7 +93,7 @@ function RegistrationMockup() {
           <PulseLogo size={22} textSize={16} color="#1f2a44" />
           <span className="hw-pill-badge">Ouder</span>
         </div>
-        <h4>Maak je ouderaccount aan</h4>
+        <h4>Ouderaccount aanmaken</h4>
         <div className="hw-field">Naam</div>
         <div className="hw-field">E-mailadres</div>
         <div className="hw-field">Wachtwoord</div>
@@ -430,7 +430,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
               step="3"
               stacked
               title="Ouder en kind zijn verbonden"
-              text="Zodra het account actief is, zijn ouder en kind gekoppeld. Ze kunnen veilig chatten op web; bellen en videobellen blijven beschikbaar in de app."
+              text="Zodra het account actief is, zijn ouder en kind gekoppeld. Ze kunnen veilig chatten, bellen en videobellen in de app."
               mockup={<ConnectedMockup />}
             />
           </div>

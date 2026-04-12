@@ -148,16 +148,26 @@ export default function PrivacyFirstPagina({ onParentClick }) {
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
                 <div className="hp-feature-tag pf-inline-tag">Waarom Pulse bestaat</div>
-                <h3>Pulse is bedacht door een vader.</h3>
-                <p>Een vader die zich zorgen maakte.</p>
+                <h3>Jij bepaalt hoe lang geschiedenis blijft bestaan.</h3>
+                <p>
+                  Bij Pulse kies je zelf hoelang chat- bel- en videobel geschiedenis bewaard blijven.
+                  Zo houd je controle over wat zichtbaar blijft en wat weer verdwijnt.
+                </p>
                 <p className="pf-paragraph-spaced">
-                  Over hoe kinderen vandaag opgroeien in een digitale wereld vol prikkels. Over apps die alles volgen, analyseren en opslaan. Over hoe weinig controle ouders eigenlijk hebben.
+                  Je kunt per gesprek een bewaartermijn kiezen van 24 uur, 7 dagen of niet bewaren.
+                  Kies je niets, dan bewaart Pulse berichten standaard 30 dagen.
                 </p>
-                <p className="pf-paragraph-spaced">Hij wilde iets anders.</p>
-                <p className="pf-paragraph-tight">
-                  Iets simpels. Iets veiligs. Iets wat alleen draait om contact tussen ouder en kind.
+                <p className="pf-paragraph-spaced">
+                  Als ouder kun je deze instellingen ook voor je kind aanpassen.
+                  Zo houd je niet alleen toezicht op contact, maar ook op hoe lang gesprekken bewaard blijven.
                 </p>
-                <p className="pf-emphasis">Zo is Pulse ontstaan.</p>
+                <p className="pf-paragraph-spaced">
+                  Met niet bewaren worden berichten niet opgeslagen voor later.
+                  Ze blijven alleen zichtbaar tijdens gebruik en verdwijnen zodra je de app verlaat.
+                </p>
+                <p className="pf-emphasis">
+                  Zo blijft communicatie niet alleen veilig en prive, maar ook in lijn met wat jij belangrijk vindt.
+                </p>
               </div>
               <div className="hp-feature-mockup">
                 <div className="op-privacy-card">

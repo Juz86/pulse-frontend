@@ -149,15 +149,22 @@ export default function PrivacyFirstPagina({ onParentClick }) {
               <div className="hp-feature-text">
                 <div className="hp-feature-tag pf-inline-tag">Jij bepaalt</div>
                 <h3>Jij bepaalt wat wordt bewaard.</h3>
-                <p>Een vader die zich zorgen maakte.</p>
+                <p>
+                  Bij Pulse kies je zelf hoelang chat- bel- en videobel geschiedenis bewaard blijven.
+                  Zo houd je controle over wat zichtbaar blijft en wat weer verdwijnt.
+                </p>
                 <p className="pf-paragraph-spaced">
-                  Over hoe kinderen vandaag opgroeien in een digitale wereld vol prikkels. Over apps die alles volgen, analyseren en opslaan. Over hoe weinig controle ouders eigenlijk hebben.
+                  Per functie kies je 24 uur, 7 dagen of niet bewaren. Pas je niets aan, dan bewaart Pulse standaard 30 dagen, waarna gegevens automatisch worden verwijderd.
                 </p>
-                <p className="pf-paragraph-spaced">Hij wilde iets anders.</p>
-                <p className="pf-paragraph-tight">
-                  Iets simpels. Iets veiligs. Iets wat alleen draait om contact tussen ouder en kind.
+                <p className="pf-paragraph-spaced">
+                  Als ouder kun je deze instellingen ook voor je kind aanpassen.
                 </p>
-                <p className="pf-emphasis">Zo is Pulse ontstaan.</p>
+                <p className="pf-paragraph-spaced">
+                  Met niet bewaren worden berichten niet opgeslagen voor later. Ze blijven alleen zichtbaar tijdens gebruik en verdwijnen zodra je de app verlaat.
+                </p>
+                <p className="pf-emphasis">
+                  Zo blijft communicatie niet alleen veilig en prive, maar ook in lijn met wat jij belangrijk vindt.
+                </p>
               </div>
               <div className="hp-feature-mockup">
                 <div className="op-privacy-card">

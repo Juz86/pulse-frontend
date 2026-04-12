@@ -201,7 +201,7 @@ export default function OverPulsePagina({ onParentClick }) {
                 Hij heeft het zijn missie gemaakt om een veilige manier van communiceren terug te brengen.
               </p>
               <p className="pf-paragraph-spaced">
-                Een plek waar kinderen veilig kunnen chatten op web en bellen of videobellen in de Pulse app met hun ouders, familie en vertrouwde mensen om hen heen.
+                Een plek waar kinderen veilig kunnen chatten, bellen en videobellen met hun ouders, familie en vertrouwde mensen om hen heen.
               </p>
               <div className="op-mission-list">
                 {['Zonder filters', 'Zonder gifs of memes', 'Zonder social media prikkels'].map((item) => (

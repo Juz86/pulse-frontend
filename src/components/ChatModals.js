@@ -235,6 +235,7 @@ export default function ChatModals({
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
   const primaryHistoryChild = historyChildren.find((child) => child.uid === selectedHistoryChildUid) || historyChildren[0] || null;
+  const canManagePrimaryHistoryChild = !!primaryHistoryChild?.canManageHistory;
   const historyRetentionOptions = [
     { value: 1, label: '24 uur' },
     { value: 7, label: '7 dagen' },
@@ -885,17 +886,22 @@ export default function ChatModals({
                             const nextDays = Number(nextValue);
                             setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [primaryHistoryChild.uid]: nextDays }));
                           }}
-                          disabled={!primaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
+                          disabled={!primaryHistoryChild || !canManagePrimaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
                           style={historySelectStyle}
                         />
                         <button
                           type="button"
                           className="btn-primary"
                           onClick={() => primaryHistoryChild && saveChildHistorySettings(primaryHistoryChild.uid)}
-                          disabled={!primaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
+                          disabled={!primaryHistoryChild || !canManagePrimaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
                         >
                           {historySettingsSavingTarget === primaryHistoryChild?.uid ? 'Opslaan…' : 'Opslaan'}
                         </button>
+                        {primaryHistoryChild && !canManagePrimaryHistoryChild && (
+                          <div style={{ fontSize: '11px', color: 'var(--text3)', lineHeight: 1.45 }}>
+                            Alleen ouder A kan de bewaartermijn voor dit kindaccount aanpassen.
+                          </div>
+                        )}
                       </div>
 
                       {historySettingsMsg && (

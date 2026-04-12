@@ -5,9 +5,11 @@ import {
   normalizeHistoryRules,
   normalizeEmail,
   normalizeUsername,
+  readSessionConversations,
   readStoredHistoryRules,
   safeJsonParse,
   sanitizeDisplayName,
+  writeSessionConversations,
   writeStoredHistoryRules,
 } from './utils';
 
@@ -51,6 +53,7 @@ describe('utils safety helpers', () => {
     localStorage.setItem('pulse_starred_user-1', '[]');
     localStorage.setItem('pulse_nick_friend-1', 'Beste vriend');
     localStorage.setItem('pulse_theme', 'light');
+    sessionStorage.setItem('pulse_session_conversations_user-1', '{"conv-1":[]}');
 
     clearPulseUserStorage('user-1');
 
@@ -60,6 +63,7 @@ describe('utils safety helpers', () => {
     expect(localStorage.getItem('pulse_starred_user-1')).toBeNull();
     expect(localStorage.getItem('pulse_nick_friend-1')).toBeNull();
     expect(localStorage.getItem('pulse_theme')).toBe('light');
+    expect(sessionStorage.getItem('pulse_session_conversations_user-1')).toBeNull();
   });
 
   test('normalizeHistoryRules keeps defaults when values are absent', () => {
@@ -76,6 +80,13 @@ describe('utils safety helpers', () => {
       chatRetentionDays: 7,
       callRetentionDays: 0,
       videoRetentionDays: 1,
+    });
+  });
+
+  test('session conversation storage roundtrip safely', () => {
+    writeSessionConversations('user-1', { 'conv-1': [{ id: 'transient-1', text: 'Hallo' }] });
+    expect(readSessionConversations('user-1')).toEqual({
+      'conv-1': [{ id: 'transient-1', text: 'Hallo' }],
     });
   });
 });

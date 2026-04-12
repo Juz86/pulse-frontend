@@ -35,6 +35,7 @@ export default function useChat({
   setParentBlockedUids,
   onReconnect,
   onOpenMentionConversation,
+  onTransientMessage,
 }) {
   const disconnectTimerRef   = useRef(null);
   const reconnectIntervalRef = useRef(null);
@@ -139,6 +140,9 @@ export default function useChat({
 
       const current = activeConvRef.current;
       const convId = hydratedMsg.convId || hydratedMsg.conversationId || msg.convId;
+      if (hydratedMsg.transient) {
+        onTransientMessage?.(convId, hydratedMsg);
+      }
 
       if (current?.id === convId) {
         if (hydratedMsg.protocol === ENCRYPTED_MESSAGE_PROTOCOL && hydratedMsg.senderId !== user.uid && hydratedMsg.id) {

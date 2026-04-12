@@ -38,12 +38,27 @@ export function getPulseHistoryRulesStorageKey(uid) {
   return `pulse_history_rules_${uid}`;
 }
 
+export function getPulseSessionConversationsStorageKey(uid) {
+  return `pulse_session_conversations_${uid}`;
+}
+
 export function readStoredHistoryRules(uid) {
   return normalizeHistoryRules(safeJsonParse(localStorage.getItem(getPulseHistoryRulesStorageKey(uid)), {}));
 }
 
 export function writeStoredHistoryRules(uid, rules) {
   localStorage.setItem(getPulseHistoryRulesStorageKey(uid), JSON.stringify(normalizeHistoryRules(rules)));
+}
+
+export function readSessionConversations(uid) {
+  if (typeof window === 'undefined' || !window.sessionStorage || !uid) return {};
+  return safeJsonParse(sessionStorage.getItem(getPulseSessionConversationsStorageKey(uid)), {});
+}
+
+export function writeSessionConversations(uid, conversations) {
+  if (typeof window === 'undefined' || !window.sessionStorage || !uid) return;
+  const value = conversations && typeof conversations === 'object' ? conversations : {};
+  sessionStorage.setItem(getPulseSessionConversationsStorageKey(uid), JSON.stringify(value));
 }
 
 export function createSvgDataUrl(svg) {
@@ -116,6 +131,7 @@ export async function copyTextToClipboard(text) {
 const USER_STORAGE_PREFIXES = [
   'pulse_calls_',
   'pulse_history_rules_',
+  'pulse_session_conversations_',
   'pulse_draft_',
   'pulse_labels_',
   'pulse_pending_',
@@ -127,22 +143,28 @@ const USER_STORAGE_PREFIXES = [
 ];
 
 export function clearPulseUserStorage(uid) {
-  if (typeof window === 'undefined' || !window.localStorage || !uid) return;
+  if (typeof window === 'undefined' || !uid) return;
 
-  const keysToRemove = [];
-  for (let index = 0; index < localStorage.length; index += 1) {
-    const key = localStorage.key(index);
-    if (!key) continue;
+  const clearStorageKeys = (storageLike) => {
+    if (!storageLike) return;
+    const keysToRemove = [];
+    for (let index = 0; index < storageLike.length; index += 1) {
+      const key = storageLike.key(index);
+      if (!key) continue;
 
-    const isUserScoped = USER_STORAGE_PREFIXES.some((prefix) => key === `${prefix}${uid}` || key.startsWith(`${prefix}${uid}_`));
-    const isNicknameCache = key.startsWith('pulse_nick_');
+      const isUserScoped = USER_STORAGE_PREFIXES.some((prefix) => key === `${prefix}${uid}` || key.startsWith(`${prefix}${uid}_`));
+      const isNicknameCache = key.startsWith('pulse_nick_');
 
-    if (isUserScoped || isNicknameCache) {
-      keysToRemove.push(key);
+      if (isUserScoped || isNicknameCache) {
+        keysToRemove.push(key);
+      }
     }
-  }
 
-  keysToRemove.forEach((key) => localStorage.removeItem(key));
+    keysToRemove.forEach((key) => storageLike.removeItem(key));
+  };
+
+  clearStorageKeys(window.localStorage);
+  clearStorageKeys(window.sessionStorage);
 }
 
 /** Converteert een Firestore Timestamp ({_seconds}) of ISO-string naar milliseconden */

@@ -24,6 +24,7 @@ import {
 } from '../lib/e2ee/config';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
+import { readSessionConversations, writeSessionConversations } from '../utils';
 
 const MSG_LIMIT = 30;
 
@@ -54,6 +55,7 @@ export default function useConversations({
   }, [user]);
 
   const pendingTempIds = useRef(new Set());
+  const sessionConversationStateRef = useRef(readSessionConversations(user.uid));
 
   const [conversations,  setConversations]  = useState([]);
   const [activeConv,     setActiveConv]     = useState(null);
@@ -78,6 +80,95 @@ export default function useConversations({
       mounted = false;
     };
   }, [user.uid]);
+
+  const toMessageTimestamp = useCallback((message = {}) => {
+    const raw = message?.createdAt || message?.updatedAt || 0;
+    if (raw?.toDate) return raw.toDate().getTime();
+    if (raw?._seconds) return raw._seconds * 1000;
+    const value = new Date(raw).getTime();
+    return Number.isFinite(value) ? value : 0;
+  }, []);
+
+  const sortConversationMessages = useCallback((messages = []) => {
+    return [...messages].sort((a, b) => {
+      const timeDiff = toMessageTimestamp(a) - toMessageTimestamp(b);
+      if (timeDiff !== 0) return timeDiff;
+      return String(a?.id || '').localeCompare(String(b?.id || ''));
+    });
+  }, [toMessageTimestamp]);
+
+  function mergeConversationMessages(persistedMessages = [], sessionMessages = []) {
+    const merged = [];
+    const seenIds = new Set();
+
+    [...persistedMessages, ...sessionMessages].forEach((message) => {
+      if (!message) return;
+      const messageId = message.id || null;
+      if (messageId && seenIds.has(messageId)) return;
+      if (messageId) seenIds.add(messageId);
+      merged.push(message);
+    });
+
+    return sortConversationMessages(merged);
+  }
+
+  function persistSessionConversationState(nextState) {
+    sessionConversationStateRef.current = nextState;
+    writeSessionConversations(user.uid, nextState);
+  }
+
+  function getSessionMessagesForConversation(convId) {
+    const items = sessionConversationStateRef.current?.[convId];
+    return Array.isArray(items) ? items : [];
+  }
+
+  function syncConversationCache(convId) {
+    const cachedMessages = Array.isArray(msgCache.current[convId]) ? msgCache.current[convId] : [];
+    const sessionMessages = getSessionMessagesForConversation(convId);
+    const merged = mergeConversationMessages(
+      cachedMessages.filter((message) => !message?.transient),
+      sessionMessages,
+    );
+    msgCache.current[convId] = merged;
+    return merged;
+  }
+
+  function setSessionMessagesForConversation(convId, messages) {
+    const nextState = { ...sessionConversationStateRef.current };
+    if (Array.isArray(messages) && messages.length > 0) nextState[convId] = sortConversationMessages(messages);
+    else delete nextState[convId];
+    persistSessionConversationState(nextState);
+    syncConversationCache(convId);
+  }
+
+  function storeTransientConversationMessage(convId, message, { replaceMessageId = null } = {}) {
+    if (!convId || !message?.transient) return null;
+    const currentMessages = getSessionMessagesForConversation(convId);
+    const filtered = currentMessages.filter((entry) => entry?.id !== replaceMessageId);
+    const existingIndex = filtered.findIndex((entry) => entry?.id === message.id);
+    const nextMessages = [...filtered];
+    if (existingIndex >= 0) nextMessages[existingIndex] = message;
+    else nextMessages.push(message);
+    setSessionMessagesForConversation(convId, nextMessages);
+    return message;
+  }
+
+  const applySessionConversationSummaries = useCallback((baseConversations = []) => {
+    let nextConversations = baseConversations;
+    Object.entries(sessionConversationStateRef.current || {}).forEach(([convId, messages]) => {
+      if (!Array.isArray(messages) || messages.length === 0) return;
+      if (!nextConversations.some((conversation) => conversation.id === convId)) return;
+      const latestMessage = sortConversationMessages(messages).at(-1);
+      if (!latestMessage) return;
+      nextConversations = applyConversationSummaryToList(
+        nextConversations,
+        convId,
+        latestMessage,
+        latestMessage.createdAt || new Date().toISOString(),
+      );
+    });
+    return nextConversations;
+  }, [sortConversationMessages]);
 
   function getConversationRecipients(conv) {
     if (!conv) return [];
@@ -201,7 +292,8 @@ export default function useConversations({
         });
         if (updated) { localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(stored)); setConvLabels(stored); }
       }
-      setConversations(Array.isArray(data) ? data.map(normalizeConversationSummaryRecord) : []);
+      const normalizedConversations = Array.isArray(data) ? data.map(normalizeConversationSummaryRecord) : [];
+      setConversations(applySessionConversationSummaries(normalizedConversations));
       const sock = getSocket();
       if (sock && Array.isArray(data)) {
         data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
@@ -209,7 +301,7 @@ export default function useConversations({
       }
     } catch { showErrToast('Gesprekken laden mislukt'); }
     finally { setLoadingConvs(false); }
-  }, [authFetch, setConvLabels, showErrToast, user.uid]);
+  }, [applySessionConversationSummaries, authFetch, setConvLabels, showErrToast, user.uid]);
 
   // ── Gesprek openen ────────────────────────────────────────────────────────
   async function openConversation(conv) {
@@ -229,9 +321,18 @@ export default function useConversations({
     setMsgOffset(0);
     setHasMore(false);
     setUnreadCounts(prev => { const n = { ...prev }; delete n[conv.id]; return n; });
+    const sessionMessages = getSessionMessagesForConversation(convId);
     const cached = msgCache.current[convId];
-    if (cached) { setMessages(cached); setLoadingMsgs(false); }
-    else { setMessages([]); setLoadingMsgs(true); }
+    if (cached) {
+      setMessages(mergeConversationMessages(cached, sessionMessages));
+      setLoadingMsgs(false);
+    } else if (sessionMessages.length > 0) {
+      setMessages(sessionMessages);
+      setLoadingMsgs(true);
+    } else {
+      setMessages([]);
+      setLoadingMsgs(true);
+    }
     setChatFading(true);
     setTimeout(() => setChatFading(false), 150);
     const liveSocket = getSocket();
@@ -243,10 +344,11 @@ export default function useConversations({
       const arr  = Array.isArray(data) ? data : [];
       const hydrated = await hydrateMessages(arr);
       if (activeConvRef.current?.id !== convId) return;
-      msgCache.current[convId] = hydrated;
+      const mergedFetchedMessages = mergeConversationMessages(hydrated, getSessionMessagesForConversation(convId));
+      msgCache.current[convId] = mergedFetchedMessages;
       markConversationMessagesAsRead(hydrated).catch(() => {});
       setMessages(prev => {
-        const fetchedIds = new Set(hydrated.map(m => m.id).filter(Boolean));
+        const fetchedIds = new Set(mergedFetchedMessages.map(m => m.id).filter(Boolean));
         const live = prev.filter(m => {
           if (!m.id) return false;
           if (fetchedIds.has(m.id)) return false;
@@ -254,7 +356,7 @@ export default function useConversations({
           if (m.id.startsWith('temp-') && !pendingTempIds.current.has(m.id)) return false;
           return true;
         });
-        return [...hydrated, ...live];
+        return mergeConversationMessages(mergedFetchedMessages, live);
       });
       setMsgOffset(hydrated.length);
       setHasMore(arr.length === MSG_LIMIT);
@@ -274,6 +376,8 @@ export default function useConversations({
         try {
           await authFetch(`${BACKEND_URL}/api/conversations/${convId}`, { method: 'DELETE' });
         } catch { showErrToast('Verwijderen mislukt'); }
+        setSessionMessagesForConversation(convId, []);
+        delete msgCache.current[convId];
         setConversations(prev => prev.filter(c => c.id !== convId));
         if (activeConv?.id === convId) { setActiveConv(null); setMessages([]); }
       },
@@ -395,6 +499,8 @@ export default function useConversations({
         clearTimeout(failTimer);
         pendingTempIds.current.delete(optimisticMsg.id);
         patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
+        const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
+        storeTransientConversationMessage(activeConv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
         removePending(optimisticMsg.id);
       }).catch(() => {
         clearTimeout(failTimer);
@@ -406,6 +512,8 @@ export default function useConversations({
         if (savedMsg?.id) {
           pendingTempIds.current.delete(optimisticMsg.id);
           patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
+          const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
+          storeTransientConversationMessage(activeConv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
           removePending(optimisticMsg.id);
         }
       });
@@ -473,6 +581,8 @@ export default function useConversations({
         if (!isActiveConversation) return;
         pendingTempIds.current.delete(optimisticMsg.id);
         patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
+        const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
+        storeTransientConversationMessage(conv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
       }).catch(() => {
         if (!isActiveConversation) return;
         patchMessageAsFailed(optimisticMsg.id);
@@ -492,6 +602,10 @@ export default function useConversations({
         sharedContact: normalizedSharedContact,
         createdAt: optimisticMsg.createdAt,
       }),
+    }, (savedMsg) => {
+      if (!savedMsg?.id) return;
+      const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
+      storeTransientConversationMessage(conv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
     });
   }
 
@@ -704,5 +818,6 @@ export default function useConversations({
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
     toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
+    storeTransientConversationMessage,
   };
 }

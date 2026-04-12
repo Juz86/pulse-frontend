@@ -158,6 +158,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
     toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
+    storeTransientConversationMessage,
   } = useConversations({
     user, text, setText, setActiveTab, setShowChatSearch, setChatSearch,
     replyTo, setReplyTo, editingMsg, setEditingMsg,
@@ -205,6 +206,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     setBlockedContacts, setParentBlockedUids,
     onReconnect: retryAllFailed,
     onOpenMentionConversation: openConversation,
+    onTransientMessage: storeTransientConversationMessage,
   });
 
   const { activeCall, setActiveCall, getCallLog, callContact, initiateCall, initiateCallFromConv } = useCalling({

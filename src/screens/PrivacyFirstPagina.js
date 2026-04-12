@@ -269,7 +269,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                 </div>
               </div>
               <div className="hp-feature-mockup">
-                <div className="op-privacy-card pf-center-card">
+                <div className="op-privacy-card">
                   <div className="op-privacy-icon pf-icon-tight"><Lock size={36} /></div>
                   <div className="op-privacy-title">End-to-end encryptie</div>
                   <div className="op-privacy-sub pf-sub-tight">
@@ -277,8 +277,10 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                     Van je kind naar jou.<br />
                     Niemand anders leest mee.
                   </div>
-                  <div className="pf-callout">
-                    Versleuteld · Veilig · Privé
+                  <div className="op-privacy-badges pf-hero-badges">
+                    <span><Lock size={12} /> Versleuteld</span>
+                    <span><Shield size={12} /> Veilig</span>
+                    <span><Users size={12} /> Privé</span>
                   </div>
                 </div>
               </div>

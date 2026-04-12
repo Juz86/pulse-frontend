@@ -6813,20 +6813,6 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   gap: 6px;
 }
 
-.pf-center-card {
-  text-align: center;
-}
-
-.pf-callout {
-  margin-top: 20px;
-  padding: 12px 16px;
-  background: rgba(108,99,255,0.07);
-  border-radius: 14px;
-  font-size: 13px;
-  color: var(--accent);
-  font-weight: 600;
-}
-
 .pf-divider-wrap {
   padding: 0;
 }

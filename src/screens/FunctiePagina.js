@@ -819,11 +819,10 @@ export default function FunctiePagina({ onParentClick }) {
           <div className="ot-hero-copy hw-hero-copy marketing-hero-copy">
             <div className="fp-hero-badge">Functies</div>
             <h1 className="ot-hero-title ot-hero-title--marketing fp-hero-title-compact">
-              Alles wat je nodig hebt om
-              veilig verbonden te blijven.
+              Veilig verbonden blijven.
             </h1>
             <p className="ot-hero-sub">
-              Chatten op web en bellen of videobellen in de app komen samen in één vertrouwde en beveiligde omgeving voor familie en vrienden.
+              Chatten, bellen of videobellen komen samen in één vertrouwde en beveiligde omgeving voor familie en vrienden.
             </p>
             <div className="ot-hero-actions">
               <button type="button" className="hp-cta-btn" onClick={() => scrollTo('chatten')}>

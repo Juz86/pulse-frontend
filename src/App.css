@@ -1644,6 +1644,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .auth-flip-wrapper { width:100%; max-width:420px; }
   .auth-card { width:100%; padding:32px 24px; border-radius:20px; box-sizing:border-box; }
   .auth-card-back { width:100%; padding:32px 24px; border-radius:20px; box-sizing:border-box; }
+  .parent-auth-card { width:100%; max-width:420px; padding:32px 24px; border-radius:20px; box-sizing:border-box; }
 
   /* Modal */
   .modal-box { width:calc(100vw - 32px); padding:28px 20px; border-radius:20px; }
@@ -1731,6 +1732,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 @media (max-width: 480px) {
   .auth-card      { padding:28px 18px; }
   .auth-card-back { padding:28px 18px; }
+  .parent-auth-card { padding:28px 18px; }
   .modal-box  { padding:24px 16px; }
   .call-card  { width:calc(100vw - 32px); padding:36px 24px; }
 }
@@ -2270,9 +2272,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   background-size: 32px 32px;
 }
 .parent-auth-card {
-  background:#fff; border-radius:24px; padding:32px 28px;
+  background:#fff; border-radius:28px; padding:44px;
   box-shadow:0 24px 80px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08);
-  width:100%; max-width:400px; position:relative; z-index:1;
+  width:420px; max-width:100%; position:relative; z-index:1;
 }
 .parent-auth-back {
   display:inline-flex; align-items:center; gap:6px;

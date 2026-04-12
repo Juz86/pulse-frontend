@@ -13,7 +13,7 @@ function LegalSection({ title, children }) {
 function LegalSubsection({ title, children }) {
   return (
     <div className="legal-subsection">
-      <h3>{title}</h3>
+      <h2>{title}</h2>
       {children}
     </div>
   );
@@ -196,27 +196,27 @@ export default function ElektronischeCommunicatieBeleidPagina() {
       <LegalSection title="Bewaartermijnen voor berichten, oproepgegevens, videocommunicatiegegevens en logbestanden">
         <div className="legal-grid">
           <div className="legal-card">
-            <h3>Berichteninhoud</h3>
+            <h2>Berichteninhoud</h2>
             <p>Standaard 30 dagen, ouder kan 24 uur, 7 dagen of 14 dagen kiezen.</p>
           </div>
           <div className="legal-card">
-            <h3>Oproepgegevens</h3>
+            <h2>Oproepgegevens</h2>
             <p>Standaard 30 dagen, ouder kan 24 uur, 7 dagen of 14 dagen kiezen.</p>
           </div>
           <div className="legal-card">
-            <h3>Videocommunicatiegerelateerde data</h3>
+            <h2>Videocommunicatiegerelateerde data</h2>
             <p>Standaard 30 dagen, ouder kan 24 uur, 7 dagen of 14 dagen kiezen.</p>
           </div>
           <div className="legal-card">
-            <h3>Technische metadata</h3>
+            <h2>Technische metadata</h2>
             <p>7 dagen</p>
           </div>
           <div className="legal-card">
-            <h3>Logbestanden</h3>
+            <h2>Logbestanden</h2>
             <p>7 dagen</p>
           </div>
           <div className="legal-card">
-            <h3>Support- en incidentdossiers</h3>
+            <h2>Support- en incidentdossiers</h2>
             <p>30 dagen</p>
           </div>
         </div>

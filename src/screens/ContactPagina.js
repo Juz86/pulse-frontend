@@ -233,7 +233,7 @@ function ContactForm() {
             <div className="contact-success-icon">
               <Check size={32} style={{ color: 'var(--success)' }} />
             </div>
-            <h3 className="contact-success-title">Bericht ontvangen!</h3>
+            <h2 className="contact-success-title">Bericht ontvangen!</h2>
             <p className="contact-success-text">
               Bedankt voor je bericht. We nemen zo snel mogelijk contact met je op via <strong>{form.email}</strong>.
             </p>

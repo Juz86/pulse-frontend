@@ -57,7 +57,7 @@ function PhoneFrame({ children, tall = false, className = '' }) {
 function SectionHeader({ title, text, list }) {
   return (
     <div className="ot-copy">
-      <h3>{title}</h3>
+      <h2>{title}</h2>
       <p>{text}</p>
       <ul className="ot-feature-list">
         {list.map((item) => (
@@ -260,7 +260,7 @@ function StepsOverview() {
         <React.Fragment key={step.title}>
           <div className="hp-step">
             <div className="hp-step-num">{index + 1}</div>
-            <h3>{step.title}</h3>
+            <h2>{step.title}</h2>
             <p>{step.text}</p>
           </div>
           {index < steps.length - 1 && <div className="hp-step-arrow" aria-hidden="true">→</div>}

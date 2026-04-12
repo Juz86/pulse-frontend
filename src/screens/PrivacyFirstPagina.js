@@ -51,7 +51,7 @@ const retentionRows = [
   { label: 'Accountgegevens ouder',       Icon: User,     duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
   { label: 'Accountgegevens kind',     Icon: Child,   duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
   { label: 'Vertrouwde contacten',         Icon: Users,    duration: 'Zolang gekoppeld',  onDelete: 'Bij ontkoppelen → direct weg' },
-  { label: 'Berichten en communicatie',    Icon: Message,  duration: 'Standaard 30 dagen, ouder kan korter kiezen', why: 'Zodat je recente gesprekken kunt teruglezen.',           onDelete: 'Daarna → automatisch verwijderd' },
+  { label: 'Berichten en communicatie',    Icon: Message,  duration: 'Kies uit 24 uur, 7 dagen of niet bewaren, standaard 30 dagen', why: 'Zodat je recente gesprekken kunt teruglezen.',           onDelete: 'Daarna → automatisch verwijderd' },
   { label: 'Logbestanden',                 Icon: Activity, duration: 'Maximaal 7 dagen',  why: 'Alleen voor veiligheid en technische stabiliteit.',      onDelete: 'Daarna → automatisch verwijderd' },
   { label: 'Support- en privacyverzoeken', Icon: Mail,     duration: 'Maximaal 30 dagen', why: 'Om je goed te kunnen helpen.',                           onDelete: 'Daarna → automatisch verwijderd' },
 ];
@@ -148,7 +148,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
                 <div className="hp-feature-tag pf-inline-tag">Jij bepaalt</div>
-                <h3>Jij bepaalt wat wordt bewaard.</h3>
+                <h2>Jij bepaalt wat wordt bewaard.</h2>
                 <p>
                   Bij Pulse kies je zelf hoelang chat- bel- en videobel geschiedenis bewaard blijven.
                   Zo houd je controle over wat zichtbaar blijft en wat weer verdwijnt.
@@ -188,7 +188,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
                 <div className="hp-feature-tag pf-inline-tag">Wat Privacy-First betekent bij Pulse</div>
-                <h3>Privacy is voor ons geen instelling. Het is de basis.</h3>
+                <h2>Privacy is voor ons geen instelling. Het is de basis.</h2>
                 <div className="pf-points-list">
                   {[
                     'Wij verzamelen geen onnodige data',
@@ -221,7 +221,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
         <section className="hp-section" id="wat-opslaan">
           <div className="hp-section-inner">
             <div className="hp-feature-tag pf-inline-tag pf-tag-spaced">Wat we wél opslaan en waarom</div>
-            <h3 className="pf-section-title">Zo weinig mogelijk. Zo kort mogelijk.</h3>
+            <h2 className="pf-section-title">Zo weinig mogelijk. Zo kort mogelijk.</h2>
             <p className="pf-section-intro">We slaan alleen op wat echt nodig is om de app te laten werken — en nooit langer dan nodig. <br></br>Wanneer je je account verwijdert, worden al je gegevens permanent gewist. Zo blijft onze database schoon.</p>
             <div ref={retentionRef} className="pf-retention-grid">
               {retentionRows.map((row, i) => (
@@ -260,7 +260,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
                 <div className="hp-feature-tag pf-inline-tag">Veiligheid: End-to-End Encryptie</div>
-                <h3>Pulse is beveiligd met <br></br>End-to-End encryptie.</h3>
+                <h2>Pulse is beveiligd met <br></br>End-to-End encryptie.</h2>
                 <p className="pf-paragraph-spaced">Dat betekent:</p>
                 <div className="pf-points-list">
                   {[

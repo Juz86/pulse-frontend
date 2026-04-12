@@ -4,7 +4,7 @@ export default function BlockConfirmModal({ contactName, onConfirm, onCancel }) 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="block-modal-title" onClick={onCancel}>
       <div className="modal-card block-confirm-modal" onClick={e => e.stopPropagation()}>
-        <h3 id="block-modal-title">Contact blokkeren</h3>
+        <h2 id="block-modal-title">Contact blokkeren</h2>
         <p>
           Weet je zeker dat je <strong>{contactName}</strong> wilt blokkeren?
           Ze kunnen je dan geen berichten meer sturen of bellen.

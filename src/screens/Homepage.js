@@ -112,7 +112,7 @@ export default function Homepage({ onParentClick }) {
           <article className="hp-feature-row" id="privacy" aria-labelledby="homepage-feature-privacy">
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Privacy-First</div>
-              <h3 id="homepage-feature-privacy">Pulse staat voor privacy-first</h3>
+              <h2 id="homepage-feature-privacy">Pulse staat voor privacy-first</h2>
               <p>Pulse verzamelt niet wat niet nodig is. Geen algoritmes, geen profielen, geen gedragsanalyse. Berichten verdwijnen automatisch volgens de ingestelde timer, met 30 dagen als standaard. Verwijderen is echt verwijderen.</p>
               <a href="/privacy-first" className="hp-read-more-btn" aria-label="Lees meer over Privacy-First bij Pulse">
                 Lees meer <span aria-hidden="true">→</span>
@@ -152,7 +152,7 @@ export default function Homepage({ onParentClick }) {
             </div>
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Communicatie</div>
-              <h3 id="homepage-feature-communication">Chatten, bellen en videobellen in de app</h3>
+              <h2 id="homepage-feature-communication">Chatten, bellen en videobellen in de app</h2>
               <p>Blijf veilig verbonden met familie en vrienden in de Pulse app. Chatten, bellen en videobellen zonder telefoonnummer, foto’s, gifs of algoritmes. Pulse is pure communicatie.
               </p>
               <a href="/functies#chatten" className="hp-read-more-btn" aria-label="Lees meer over chatten op web en bellen in de app">
@@ -165,7 +165,7 @@ export default function Homepage({ onParentClick }) {
           <article className="hp-feature-row" id="toezicht" aria-labelledby="homepage-feature-parental-controls">
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Ouderlijk toezicht</div>
-              <h3 id="homepage-feature-parental-controls">Volledig overzicht voor ouders</h3>
+              <h2 id="homepage-feature-parental-controls">Volledig overzicht voor ouders</h2>
               <p>Ouders hebben volledig toezicht via een eigen dashboard. Chatten, bellen en videobellen in de app blijven overzichtelijk beheerd. Direct meldingen bij nieuwe activiteiten van je kinderen.</p>
               <a href="/ouderlijk-toezicht#dashboard" className="hp-read-more-btn" aria-label="Lees meer over ouderlijk toezicht">
                 Lees meer <span aria-hidden="true">→</span>

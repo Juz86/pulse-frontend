@@ -458,7 +458,7 @@ function FeatureRow({ reverse, mockup, title, text, features, id }) {
     >
       <div className="hp-feature-mockup" aria-hidden="true">{mockup}</div>
       <div className="hp-feature-text">
-        <h3>{title}</h3>
+        <h2>{title}</h2>
         <p>{text}</p>
         <ul className="fp-feature-list">
           {features.map(f => (

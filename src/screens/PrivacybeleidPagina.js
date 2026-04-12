@@ -13,7 +13,7 @@ function LegalSection({ title, children }) {
 function LegalSubsection({ title, children }) {
   return (
     <div className="legal-subsection">
-      <h3>{title}</h3>
+      <h2>{title}</h2>
       {children}
     </div>
   );
@@ -198,27 +198,27 @@ export default function PrivacybeleidPagina() {
       <LegalSection title="Bewaartermijnen per categorie gegevens">
         <div className="legal-grid">
           <div className="legal-card">
-            <h3>Accountgegevens ouders</h3>
+            <h2>Accountgegevens ouders</h2>
             <p>Zolang account actief is.</p>
           </div>
           <div className="legal-card">
-            <h3>Accountgegevens kinderen</h3>
+            <h2>Accountgegevens kinderen</h2>
             <p>Zolang account actief is.</p>
           </div>
           <div className="legal-card">
-            <h3>Vertrouwde contacten</h3>
+            <h2>Vertrouwde contacten</h2>
             <p>Zolang gekoppeld.</p>
           </div>
           <div className="legal-card">
-            <h3>Berichten en communicatie-inhoud</h3>
+            <h2>Berichten en communicatie-inhoud</h2>
             <p>Standaard 30 dagen, ouder kan 24 uur, 7 dagen of 14 dagen kiezen.</p>
           </div>
           <div className="legal-card">
-            <h3>Logbestanden</h3>
+            <h2>Logbestanden</h2>
             <p>7 dagen</p>
           </div>
           <div className="legal-card">
-            <h3>Support- en privacyverzoeken</h3>
+            <h2>Support- en privacyverzoeken</h2>
             <p>30 dagen</p>
           </div>
         </div>

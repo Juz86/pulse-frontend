@@ -1174,7 +1174,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       {confirmDelete && (
         <div className="modal-overlay" onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>
           <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="parent-delete-title" aria-describedby="parent-delete-description" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
-            <h3 className="modal-title" id="parent-delete-title">Account verwijderen</h3>
+            <h2 className="modal-title" id="parent-delete-title">Account verwijderen</h2>
             <p id="parent-delete-description" style={{ color: 'var(--text2)', fontSize: 14, margin: '12px 0 24px', lineHeight: 1.6 }}>
               Weet u zeker dat u het account van <strong>{confirmDelete.displayName}</strong> wilt verwijderen?
               Dit kan niet ongedaan worden gemaakt.
@@ -1193,7 +1193,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
         <div className="modal-overlay" onClick={closeInviteModal}>
           <div className="modal-box coparent-invite-modal" role="dialog" aria-modal="true" aria-labelledby="coparent-invite-title" onClick={e => e.stopPropagation()}>
             <button type="button" className="modal-close-btn" aria-label="Kind toewijzen sluiten" onClick={closeInviteModal}><span aria-hidden="true">✕</span></button>
-            <h3 className="modal-title" id="coparent-invite-title">Kind toewijzen</h3>
+            <h2 className="modal-title" id="coparent-invite-title">Kind toewijzen</h2>
             <p style={{ color: 'var(--text2)', fontSize: 14, margin: '10px 0 20px', lineHeight: 1.6 }}>
               Geef een andere ouder toegang tot <strong>{inviteModal.displayName}</strong>. Zij ontvangen een uitnodiging per e-mail en kunnen daarna ook dit kind beheren.
             </p>
@@ -1264,7 +1264,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
       {coparentInvitations.length > 0 && (
         <div className="modal-overlay" onClick={() => {}}>
           <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="coparent-requests-title" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
-            <h3 className="modal-title" id="coparent-requests-title">Co-ouder uitnodigingen</h3>
+            <h2 className="modal-title" id="coparent-requests-title">Co-ouder uitnodigingen</h2>
             <p style={{ color: 'var(--text2)', fontSize: 14, margin: '10px 0 20px', lineHeight: 1.6 }}>
               Je hebt {coparentInvitations.length} uitnodiging{coparentInvitations.length > 1 ? 'en' : ''} ontvangen om mede-ouder te worden.
             </p>

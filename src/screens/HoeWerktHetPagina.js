@@ -41,7 +41,7 @@ function StepCopy({ step, title, text }) {
   return (
     <div className="hw-copy">
       <div className="hw-step-tag">Stap {step}</div>
-      <h3>{title}</h3>
+      <h2>{title}</h2>
       <p>{text}</p>
     </div>
   );

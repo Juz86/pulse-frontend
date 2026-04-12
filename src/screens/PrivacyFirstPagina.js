@@ -19,7 +19,6 @@ import {
   Mail,
   Child,
   XIcon,
-  Heart,
 } from '../components/Icons';
 
 function useFadeIn() {
@@ -167,14 +166,70 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                 </p>
               </div>
               <div className="hp-feature-mockup">
-                <div className="op-privacy-card">
-                  <div className="op-privacy-icon pf-icon-tight"><Heart size={32} /></div>
-                  <div className="op-privacy-title">Een belofte aan ouders</div>
-                  <div className="op-privacy-sub">
-                    "Iets simpels. Iets veiligs. Iets wat alleen draait om contact tussen ouder en kind."
+                <div className="pf-settings-mockup" aria-hidden="true">
+                  <div className="pf-settings-head">
+                    <div className="pf-settings-title">Geschiedenis</div>
+                    <div className="pf-settings-subtitle">
+                      Beheer per account hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis worden bewaard.
+                    </div>
                   </div>
-                  <div className="pf-quote-credit">
-                    — Oprichter van Pulse
+                  <div className="pf-settings-grid">
+                    <div className="pf-settings-panel">
+                      <div className="pf-settings-panel-title">Ouderaccount</div>
+                      <div className="pf-settings-field-group">
+                        <div className="pf-settings-label">Chatgeschiedenis</div>
+                        <div className="pf-settings-select">
+                          <span>Niet bewaren</span>
+                          <span className="pf-settings-chevron">⌄</span>
+                        </div>
+                      </div>
+                      <div className="pf-settings-field-group">
+                        <div className="pf-settings-label">Belgeschiedenis</div>
+                        <div className="pf-settings-select">
+                          <span>24 uur</span>
+                          <span className="pf-settings-chevron">⌄</span>
+                        </div>
+                      </div>
+                      <div className="pf-settings-field-group">
+                        <div className="pf-settings-label">Videobelgeschiedenis</div>
+                        <div className="pf-settings-select">
+                          <span>7 dagen</span>
+                          <span className="pf-settings-chevron">⌄</span>
+                        </div>
+                      </div>
+                      <div className="pf-settings-save">Opslaan</div>
+                    </div>
+                    <div className="pf-settings-panel">
+                      <div className="pf-settings-panel-title">Kindaccount</div>
+                      <div className="pf-settings-field-group">
+                        <div className="pf-settings-select">
+                          <span>Prinsesje</span>
+                          <span className="pf-settings-chevron">⌄</span>
+                        </div>
+                      </div>
+                      <div className="pf-settings-field-group">
+                        <div className="pf-settings-label">Chatgeschiedenis</div>
+                        <div className="pf-settings-select">
+                          <span>24 uur</span>
+                          <span className="pf-settings-chevron">⌄</span>
+                        </div>
+                      </div>
+                      <div className="pf-settings-field-group">
+                        <div className="pf-settings-label">Belgeschiedenis</div>
+                        <div className="pf-settings-select">
+                          <span>7 dagen</span>
+                          <span className="pf-settings-chevron">⌄</span>
+                        </div>
+                      </div>
+                      <div className="pf-settings-field-group">
+                        <div className="pf-settings-label">Videobelgeschiedenis</div>
+                        <div className="pf-settings-select">
+                          <span>30 dagen (standaard)</span>
+                          <span className="pf-settings-chevron">⌄</span>
+                        </div>
+                      </div>
+                      <div className="pf-settings-save">Opslaan</div>
+                    </div>
                   </div>
                 </div>
               </div>

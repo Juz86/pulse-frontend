@@ -5039,6 +5039,10 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   margin-bottom: 12px;
 }
 
+.op-mission-card .pf-divider {
+  margin: 4px 0 18px;
+}
+
 .op-mission-card-list {
   display: flex;
   flex-direction: column;

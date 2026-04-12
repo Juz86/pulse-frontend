@@ -1,10 +1,14 @@
 import {
   clearPulseUserStorage,
+  DEFAULT_HISTORY_RETENTION_DAYS,
   getSafeInternalPath,
+  normalizeHistoryRules,
   normalizeEmail,
   normalizeUsername,
+  readStoredHistoryRules,
   safeJsonParse,
   sanitizeDisplayName,
+  writeStoredHistoryRules,
 } from './utils';
 
 describe('utils safety helpers', () => {
@@ -42,6 +46,7 @@ describe('utils safety helpers', () => {
 
   test('clearPulseUserStorage removes user-scoped privacy keys', () => {
     localStorage.setItem('pulse_calls_user-1', '[]');
+    localStorage.setItem('pulse_history_rules_user-1', '{}');
     localStorage.setItem('pulse_draft_user-1_conv-1', 'concept');
     localStorage.setItem('pulse_starred_user-1', '[]');
     localStorage.setItem('pulse_nick_friend-1', 'Beste vriend');
@@ -50,9 +55,27 @@ describe('utils safety helpers', () => {
     clearPulseUserStorage('user-1');
 
     expect(localStorage.getItem('pulse_calls_user-1')).toBeNull();
+    expect(localStorage.getItem('pulse_history_rules_user-1')).toBeNull();
     expect(localStorage.getItem('pulse_draft_user-1_conv-1')).toBeNull();
     expect(localStorage.getItem('pulse_starred_user-1')).toBeNull();
     expect(localStorage.getItem('pulse_nick_friend-1')).toBeNull();
     expect(localStorage.getItem('pulse_theme')).toBe('light');
+  });
+
+  test('normalizeHistoryRules keeps defaults when values are absent', () => {
+    expect(normalizeHistoryRules({})).toEqual({
+      chatRetentionDays: DEFAULT_HISTORY_RETENTION_DAYS,
+      callRetentionDays: DEFAULT_HISTORY_RETENTION_DAYS,
+      videoRetentionDays: DEFAULT_HISTORY_RETENTION_DAYS,
+    });
+  });
+
+  test('stored history rules roundtrip safely', () => {
+    writeStoredHistoryRules('user-1', { chatRetentionDays: 7, callRetentionDays: 0, videoRetentionDays: 1 });
+    expect(readStoredHistoryRules('user-1')).toEqual({
+      chatRetentionDays: 7,
+      callRetentionDays: 0,
+      videoRetentionDays: 1,
+    });
   });
 });

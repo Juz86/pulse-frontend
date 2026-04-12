@@ -5,7 +5,7 @@ import { auth, db, storage } from '../firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getSocket, BACKEND_URL } from '../services/socket';
-import { clearPulseUserStorage } from '../utils';
+import { clearPulseUserStorage, normalizeHistoryRules, writeStoredHistoryRules } from '../utils';
 
 export default function useProfile({ user, activeConv, setActiveConv, setConversations, showErrToast, setConfirmDialog, isParent = false }) {
   const socket = getSocket();
@@ -42,8 +42,8 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
   const [avatarOptions,     setAvatarOptions]     = useState(null);
 
   const [groupPhotoLoading, setGroupPhotoLoading] = useState(false);
-  const [historyRetentionDays, setHistoryRetentionDays] = useState(30);
-  const [childHistoryRetentionDaysByUid, setChildHistoryRetentionDaysByUid] = useState({});
+  const [historyRules, setHistoryRules] = useState(() => normalizeHistoryRules());
+  const [childHistoryRulesByUid, setChildHistoryRulesByUid] = useState({});
   const [historyChildren, setHistoryChildren] = useState([]);
   const [historySettingsLoading, setHistorySettingsLoading] = useState(false);
   const [historySettingsSavingTarget, setHistorySettingsSavingTarget] = useState('');
@@ -288,17 +288,17 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
       authFetch(`${BACKEND_URL}/api/parent/settings`).then(async (res) => {
         if (!res.ok) return null;
         const data = await res.json().catch(() => ({}));
-        const nextDays = Number(data?.historyRules?.retentionDays || 30);
+        const nextRules = normalizeHistoryRules(data?.historyRules);
         const nextChildDays = Object.fromEntries(
           (Array.isArray(data?.childHistoryRules) ? data.childHistoryRules : []).map((rule) => [
             rule.childUid,
-            Number(rule?.retentionDays || 30),
+            normalizeHistoryRules(rule),
           ])
         );
-        setHistoryRetentionDays(nextDays);
-        setChildHistoryRetentionDaysByUid(nextChildDays);
+        setHistoryRules(nextRules);
+        setChildHistoryRulesByUid(nextChildDays);
         setHistorySettingsMsg('');
-        localStorage.setItem(`pulse_history_retention_${user.uid}`, String(nextDays));
+        writeStoredHistoryRules(user.uid, nextRules);
       }).catch(() => {});
 
       authFetch(`${BACKEND_URL}/api/parent/children`).then(async (res) => {
@@ -321,17 +321,17 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
       const settingsData = await settingsRes.json().catch(() => ({}));
       const childrenData = await childrenRes.json().catch(() => ([]));
       if (!settingsRes.ok) throw new Error(settingsData.error || 'Geschiedenisinstellingen laden mislukt.');
-      const nextDays = Number(settingsData?.historyRules?.retentionDays || 30);
+      const nextRules = normalizeHistoryRules(settingsData?.historyRules);
       const nextChildDays = Object.fromEntries(
         (Array.isArray(settingsData?.childHistoryRules) ? settingsData.childHistoryRules : []).map((rule) => [
           rule.childUid,
-          Number(rule?.retentionDays || 30),
+          normalizeHistoryRules(rule),
         ])
       );
-      setHistoryRetentionDays(nextDays);
-      setChildHistoryRetentionDaysByUid(nextChildDays);
+      setHistoryRules(nextRules);
+      setChildHistoryRulesByUid(nextChildDays);
       setHistoryChildren(Array.isArray(childrenData) ? childrenData : []);
-      localStorage.setItem(`pulse_history_retention_${user.uid}`, String(nextDays));
+      writeStoredHistoryRules(user.uid, nextRules);
     } catch (err) {
       setHistorySettingsMsg(`Fout: ${err.message}`);
     } finally {
@@ -347,15 +347,15 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
       const res = await authFetch(`${BACKEND_URL}/api/parent/settings/history`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ retentionDays: historyRetentionDays }),
+        body: JSON.stringify(historyRules),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Geschiedenisinstellingen opslaan mislukt.');
-      const nextDays = Number(data?.historyRules?.retentionDays || historyRetentionDays);
-      setHistoryRetentionDays(nextDays);
-      localStorage.setItem(`pulse_history_retention_${user.uid}`, String(nextDays));
+      const nextRules = normalizeHistoryRules(data?.historyRules || historyRules);
+      setHistoryRules(nextRules);
+      writeStoredHistoryRules(user.uid, nextRules);
       window.dispatchEvent(new CustomEvent('pulse:history-retention-updated', {
-        detail: { uid: user.uid, retentionDays: nextDays },
+        detail: { uid: user.uid, historyRules: nextRules },
       }));
       setHistorySettingsMsg('Geschiedenis van ouderaccount opgeslagen.');
     } catch (err) {
@@ -367,19 +367,19 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
 
   async function saveChildHistorySettings(childUid) {
     if (!isParent) return;
-    const retentionDays = Number(childHistoryRetentionDaysByUid[childUid] || 30);
+    const nextRules = normalizeHistoryRules(childHistoryRulesByUid[childUid]);
     setHistorySettingsSavingTarget(childUid);
     setHistorySettingsMsg('');
     try {
       const res = await authFetch(`${BACKEND_URL}/api/parent/child/${childUid}/settings/history`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ retentionDays }),
+        body: JSON.stringify(nextRules),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Geschiedenisinstellingen voor kind opslaan mislukt.');
-      const nextDays = Number(data?.historyRules?.retentionDays || retentionDays);
-      setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [childUid]: nextDays }));
+      const savedRules = normalizeHistoryRules(data?.historyRules || nextRules);
+      setChildHistoryRulesByUid((prev) => ({ ...prev, [childUid]: savedRules }));
       setHistorySettingsMsg('Geschiedenis van kindaccount opgeslagen.');
     } catch (err) {
       setHistorySettingsMsg(`Fout: ${err.message}`);
@@ -404,8 +404,8 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
     showAvatarBuilder, setShowAvatarBuilder,
     avatarOptions, setAvatarOptions,
     groupPhotoLoading,
-    historyRetentionDays, setHistoryRetentionDays,
-    childHistoryRetentionDaysByUid, setChildHistoryRetentionDaysByUid,
+    historyRules, setHistoryRules,
+    childHistoryRulesByUid, setChildHistoryRulesByUid,
     historyChildren,
     historySettingsLoading,
     historySettingsSavingTarget,

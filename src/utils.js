@@ -13,6 +13,39 @@ export function safeJsonParse(value, fallback) {
   }
 }
 
+export const DEFAULT_HISTORY_RETENTION_DAYS = 30;
+export const HISTORY_RETENTION_OPTIONS = [
+  { value: 30, label: '30 dagen (standaard)' },
+  { value: 1, label: '24 uur' },
+  { value: 7, label: '7 dagen' },
+  { value: 0, label: 'Niet bewaren' },
+];
+
+export function normalizeHistoryRetentionDays(value) {
+  const numeric = Number(value);
+  return [0, 1, 7, 30].includes(numeric) ? numeric : DEFAULT_HISTORY_RETENTION_DAYS;
+}
+
+export function normalizeHistoryRules(rules = {}) {
+  return {
+    chatRetentionDays: normalizeHistoryRetentionDays(rules?.chatRetentionDays),
+    callRetentionDays: normalizeHistoryRetentionDays(rules?.callRetentionDays),
+    videoRetentionDays: normalizeHistoryRetentionDays(rules?.videoRetentionDays),
+  };
+}
+
+export function getPulseHistoryRulesStorageKey(uid) {
+  return `pulse_history_rules_${uid}`;
+}
+
+export function readStoredHistoryRules(uid) {
+  return normalizeHistoryRules(safeJsonParse(localStorage.getItem(getPulseHistoryRulesStorageKey(uid)), {}));
+}
+
+export function writeStoredHistoryRules(uid, rules) {
+  localStorage.setItem(getPulseHistoryRulesStorageKey(uid), JSON.stringify(normalizeHistoryRules(rules)));
+}
+
 export function createSvgDataUrl(svg) {
   if (!svg) return '';
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
@@ -82,6 +115,7 @@ export async function copyTextToClipboard(text) {
 
 const USER_STORAGE_PREFIXES = [
   'pulse_calls_',
+  'pulse_history_rules_',
   'pulse_draft_',
   'pulse_labels_',
   'pulse_pending_',

@@ -13,7 +13,7 @@ import {
   probeE2EEServiceReady,
   shouldBootstrapE2EEDevice,
 } from './lib/e2ee/config';
-import { clearPulseUserStorage, getSafeInternalPath, scheduleIdleTask } from './utils';
+import { clearPulseUserStorage, getSafeInternalPath, readStoredHistoryRules, scheduleIdleTask } from './utils';
 import {
   isPulseWebBrowser,
   PULSE_WEB_CALLS_UNAVAILABLE_HINT,
@@ -467,6 +467,11 @@ function MainApp() {
             if (prev) {
               const key = `pulse_calls_${firebaseUser.uid}`;
               const log = JSON.parse(localStorage.getItem(key) || '[]');
+              const historyRules = readStoredHistoryRules(firebaseUser.uid);
+              const retentionDays = prev.isVideo ? historyRules.videoRetentionDays : historyRules.callRetentionDays;
+              if (retentionDays === 0) {
+                return null;
+              }
               const alreadyLogged = log[0]?.uid === prev.from && Date.now() - log[0]?.ts < 3000;
               if (!alreadyLogged) {
                 log.unshift({ uid: prev.from, name: prev.callerName, photoURL: '', isVideo: prev.isVideo, direction: 'missed', ts: Date.now() });
@@ -583,6 +588,12 @@ function MainApp() {
             if (!answered && user) {
               const key = `pulse_calls_${user.uid}`;
               const log = JSON.parse(localStorage.getItem(key) || '[]');
+              const historyRules = readStoredHistoryRules(user.uid);
+              const retentionDays = incomingCall.isVideo ? historyRules.videoRetentionDays : historyRules.callRetentionDays;
+              if (retentionDays === 0) {
+                setIncomingCall(null);
+                return;
+              }
               const alreadyLogged = log[0]?.uid === incomingCall.from && Date.now() - log[0]?.ts < 3000;
               if (!alreadyLogged) {
                 log.unshift({ uid: incomingCall.from, name: incomingCall.callerName, photoURL: '', isVideo: incomingCall.isVideo, direction: 'missed', ts: Date.now() });

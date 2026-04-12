@@ -219,8 +219,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     confirmPassword, setConfirmPassword, showNewPassword, setShowNewPassword,
     passwordLoading, passwordMsg, chatBg, chatBgLoading, chatBgTab, setChatBgTab,
     chatBgMsg, showAvatarBuilder, setShowAvatarBuilder, avatarOptions, setAvatarOptions,
-    groupPhotoLoading, historyRetentionDays, setHistoryRetentionDays,
-    childHistoryRetentionDaysByUid, setChildHistoryRetentionDaysByUid,
+    groupPhotoLoading, historyRules, setHistoryRules,
+    childHistoryRulesByUid, setChildHistoryRulesByUid,
     historyChildren, historySettingsLoading, historySettingsSavingTarget, historySettingsMsg,
     photoInputRef, bgInputRef, openProfile,
     handlePhotoChange, saveProfile, saveUsername, changePassword,
@@ -531,8 +531,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         passwordLoading={passwordLoading} passwordMsg={passwordMsg}
         profileMsg={profileMsg} setProfileMsg={setProfileMsg} profileLoading={profileLoading}
         usernameLoading={usernameLoading} usernameMsg={usernameMsg}
-        historyRetentionDays={historyRetentionDays} setHistoryRetentionDays={setHistoryRetentionDays}
-        childHistoryRetentionDaysByUid={childHistoryRetentionDaysByUid} setChildHistoryRetentionDaysByUid={setChildHistoryRetentionDaysByUid}
+        historyRules={historyRules} setHistoryRules={setHistoryRules}
+        childHistoryRulesByUid={childHistoryRulesByUid} setChildHistoryRulesByUid={setChildHistoryRulesByUid}
         historyChildren={historyChildren}
         historySettingsLoading={historySettingsLoading}
         historySettingsSavingTarget={historySettingsSavingTarget}

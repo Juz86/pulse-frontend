@@ -11,6 +11,7 @@ import {
   PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE,
   PULSE_WEB_CALLS_UNAVAILABLE_TITLE,
 } from '../lib/platform/runtime';
+import { HISTORY_RETENTION_OPTIONS, normalizeHistoryRules } from '../utils';
 
 function HistorySelect({ ariaLabel, value, options, onChange, disabled = false, style }) {
   const [open, setOpen] = useState(false);
@@ -176,8 +177,8 @@ export default function ChatModals({
   passwordLoading, passwordMsg,
   profileMsg, profileLoading,
   usernameLoading: _usernameLoading, usernameMsg: _usernameMsg,
-  historyRetentionDays, setHistoryRetentionDays,
-  childHistoryRetentionDaysByUid, setChildHistoryRetentionDaysByUid,
+  historyRules, setHistoryRules,
+  childHistoryRulesByUid, setChildHistoryRulesByUid,
   historyChildren,
   historySettingsLoading,
   historySettingsSavingTarget,
@@ -235,12 +236,12 @@ export default function ChatModals({
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
   const primaryHistoryChild = historyChildren.find((child) => child.uid === selectedHistoryChildUid) || historyChildren[0] || null;
+  const primaryHistoryRules = normalizeHistoryRules(primaryHistoryChild ? childHistoryRulesByUid?.[primaryHistoryChild.uid] : {});
   const canManagePrimaryHistoryChild = !!primaryHistoryChild?.canManageHistory;
-  const historyRetentionOptions = [
-    { value: 1, label: '24 uur' },
-    { value: 7, label: '7 dagen' },
-    { value: 14, label: '14 dagen' },
-    { value: 30, label: '30 dagen' },
+  const historySettingRows = [
+    { key: 'chatRetentionDays', label: 'Chatgeschiedenis' },
+    { key: 'callRetentionDays', label: 'Belgeschiedenis' },
+    { key: 'videoRetentionDays', label: 'Videobelgeschiedenis' },
   ];
   const historySelectStyle = {
     width: '100%',
@@ -843,21 +844,26 @@ export default function ChatModals({
                     <div style={{ marginBottom: '16px' }}>
                       <h4 style={{ fontFamily: "'Syne',sans-serif", fontSize: '16px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>Geschiedenis</h4>
                       <p style={{ fontSize: '12px', color: 'var(--text2)', lineHeight: 1.5, margin: 0 }}>
-                        Beheer hoe lang chatberichten, belgeschiedenis en videogeschiedenis worden bewaard. Stel een eigen timer in voor je ouderaccount en desgewenst een andere timer per kindaccount.
+                        Beheer per account hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis worden bewaard. Zonder wijziging blijft de standaard op 30 dagen.
                       </p>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
                       <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Ouderaccount</div>
-                        <HistorySelect
-                          aria-label="Bewaartermijn ouderaccount"
-                          value={historyRetentionDays}
-                          options={historyRetentionOptions}
-                          onChange={(nextValue) => setHistoryRetentionDays(Number(nextValue))}
-                          disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
-                          style={historySelectStyle}
-                        />
+                        {historySettingRows.map((row) => (
+                          <div key={`parent-${row.key}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{row.label}</div>
+                            <HistorySelect
+                              aria-label={`${row.label} ouderaccount`}
+                              value={historyRules?.[row.key] ?? 30}
+                              options={HISTORY_RETENTION_OPTIONS}
+                              onChange={(nextValue) => setHistoryRules((prev) => ({ ...normalizeHistoryRules(prev), [row.key]: Number(nextValue) }))}
+                              disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
+                              style={historySelectStyle}
+                            />
+                          </div>
+                        ))}
                         <button type="button" className="btn-primary" onClick={saveHistorySettings} disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}>
                           {historySettingsSavingTarget === 'parent' ? 'Opslaan…' : 'Opslaan'}
                         </button>
@@ -877,18 +883,28 @@ export default function ChatModals({
                           disabled={!historyChildren.length || historySettingsLoading}
                           style={historySelectStyle}
                         />
-                        <HistorySelect
-                          aria-label="Bewaartermijn kindaccount"
-                          value={primaryHistoryChild ? Number(childHistoryRetentionDaysByUid?.[primaryHistoryChild.uid] || 30) : 30}
-                          options={historyRetentionOptions}
-                          onChange={(nextValue) => {
-                            if (!primaryHistoryChild) return;
-                            const nextDays = Number(nextValue);
-                            setChildHistoryRetentionDaysByUid((prev) => ({ ...prev, [primaryHistoryChild.uid]: nextDays }));
-                          }}
-                          disabled={!primaryHistoryChild || !canManagePrimaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
-                          style={historySelectStyle}
-                        />
+                        {historySettingRows.map((row) => (
+                          <div key={`child-${row.key}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{row.label}</div>
+                            <HistorySelect
+                              aria-label={`${row.label} kindaccount`}
+                              value={primaryHistoryRules[row.key]}
+                              options={HISTORY_RETENTION_OPTIONS}
+                              onChange={(nextValue) => {
+                                if (!primaryHistoryChild) return;
+                                setChildHistoryRulesByUid((prev) => ({
+                                  ...prev,
+                                  [primaryHistoryChild.uid]: {
+                                    ...normalizeHistoryRules(prev?.[primaryHistoryChild.uid]),
+                                    [row.key]: Number(nextValue),
+                                  },
+                                }));
+                              }}
+                              disabled={!primaryHistoryChild || !canManagePrimaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
+                              style={historySelectStyle}
+                            />
+                          </div>
+                        ))}
                         <button
                           type="button"
                           className="btn-primary"

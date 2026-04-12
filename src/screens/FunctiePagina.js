@@ -1087,12 +1087,11 @@ export default function FunctiePagina({ onParentClick }) {
       <section className="ot-final-cta">
         <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
         <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="ot-final-cta-actions">
           <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
           <button
             type="button"
-            className="hp-cta-btn"
-            style={{ background: '#fff', border: '1.5px solid rgba(108,99,255,0.4)', color: '#6c63ff', display: 'flex', alignItems: 'center', gap: 6 }}
+            className="hp-cta-btn hp-cta-btn--secondary"
             onClick={() => setShowAuthModal(true)}
           >
             <Login size={18} /> Inloggen

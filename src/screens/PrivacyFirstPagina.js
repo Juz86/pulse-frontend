@@ -106,7 +106,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
               <div className="fp-hero-badge">Privacy-First</div>
               <h1 className="ot-hero-title ot-hero-title--marketing">
                 Veilig verbonden.<br />
-                <span style={{ whiteSpace: 'nowrap' }}>Zonder zorgen.</span>
+                <span className="pf-hero-nowrap">Zonder zorgen.</span>
               </h1>
               <p className="ot-hero-sub">
                 Bij Pulse draait alles om één ding: rust en veiligheid voor ouder en kind.
@@ -117,13 +117,13 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                 <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
                   Ouderaccount aanmaken
                 </button>
-                <a href="/privacybeleid" className="ot-secondary-btn" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <a href="/privacybeleid" className="ot-secondary-btn pf-secondary-link">
                   Privacybeleid lezen
                 </a>
               </div>
             </div>
             <div className="ot-hero-visual" aria-hidden="true">
-              <div className="op-privacy-card" style={{ maxWidth: 320 }}>
+              <div className="op-privacy-card pf-hero-card">
                 <div className="op-privacy-icon"><Shield size={36} /></div>
                 <div className="op-privacy-title">100% Privacy-First</div>
                 <div className="op-privacy-sub">
@@ -132,7 +132,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                   Geen dataverzameling.<br />
                   Gewoon communiceren.
                 </div>
-                <div className="op-privacy-badges" style={{ marginTop: 20 }}>
+                <div className="op-privacy-badges pf-hero-badges">
                   <span><Users size={12} /> Toezicht</span>
                   <span><Lock size={12} /> End-to-End</span>
                   <span><Clock size={12} /> 30 dagen</span>
@@ -147,26 +147,26 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
-                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Waarom Pulse bestaat</div>
+                <div className="hp-feature-tag pf-inline-tag">Waarom Pulse bestaat</div>
                 <h3>Pulse is bedacht door een vader.</h3>
                 <p>Een vader die zich zorgen maakte.</p>
-                <p style={{ marginTop: 16 }}>
+                <p className="pf-paragraph-spaced">
                   Over hoe kinderen vandaag opgroeien in een digitale wereld vol prikkels. Over apps die alles volgen, analyseren en opslaan. Over hoe weinig controle ouders eigenlijk hebben.
                 </p>
-                <p style={{ marginTop: 16 }}>Hij wilde iets anders.</p>
-                <p style={{ marginTop: 8 }}>
+                <p className="pf-paragraph-spaced">Hij wilde iets anders.</p>
+                <p className="pf-paragraph-tight">
                   Iets simpels. Iets veiligs. Iets wat alleen draait om contact tussen ouder en kind.
                 </p>
-                <p style={{ marginTop: 16, fontWeight: 700, color: '#1a1a2e' }}>Zo is Pulse ontstaan.</p>
+                <p className="pf-emphasis">Zo is Pulse ontstaan.</p>
               </div>
               <div className="hp-feature-mockup">
                 <div className="op-privacy-card">
-                  <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Heart size={32} /></div>
+                  <div className="op-privacy-icon pf-icon-tight"><Heart size={32} /></div>
                   <div className="op-privacy-title">Een belofte aan ouders</div>
                   <div className="op-privacy-sub">
                     "Iets simpels. Iets veiligs. Iets wat alleen draait om contact tussen ouder en kind."
                   </div>
-                  <div style={{ marginTop: 16, fontSize: 13, color: 'var(--text3)', fontStyle: 'italic' }}>
+                  <div className="pf-quote-credit">
                     — Oprichter van Pulse
                   </div>
                 </div>
@@ -180,9 +180,9 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
-                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Wat Privacy-First betekent bij Pulse</div>
+                <div className="hp-feature-tag pf-inline-tag">Wat Privacy-First betekent bij Pulse</div>
                 <h3>Privacy is voor ons geen instelling. Het is de basis.</h3>
-                <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <div className="pf-points-list">
                   {[
                     'Wij verzamelen geen onnodige data',
                     'Wij verkopen geen data',
@@ -190,18 +190,18 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                     'Wij bouwen geen profielen',
                     'Wij gebruiken geen algoritmes',
                   ].map((item) => (
-                    <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 0' }}>
-                      <span style={{ color: 'var(--accent)', display: 'flex', flexShrink: 0 }}><XIcon size={18} /></span>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>{item}</span>
+                    <div key={item} className="pf-points-item">
+                      <span className="pf-points-icon"><XIcon size={18} /></span>
+                      <span className="pf-points-text">{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div className="hp-feature-mockup">
                 <div className="op-privacy-card">
-                  <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Shield size={32} /></div>
+                  <div className="op-privacy-icon pf-icon-tight"><Shield size={32} /></div>
                   <div className="op-privacy-title">Bij Pulse draait het om contact, niet om data.</div>
-                  <div className="op-privacy-sub" style={{ marginTop: 12 }}>
+                  <div className="op-privacy-sub pf-sub-tight">
                     Zo simpel is het.
                   </div>
                 </div>
@@ -213,22 +213,22 @@ export default function PrivacyFirstPagina({ onParentClick }) {
         {/* ── WAT WE WEL OPSLAAN ── */}
         <section className="hp-section" id="wat-opslaan">
           <div className="hp-section-inner">
-            <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16 }}>Wat we wél opslaan en waarom</div>
-            <h3 style={{ fontSize: 'clamp(var(--text-h3), 3vw, var(--text-h2))', fontWeight: 700, color: '#1a1a2e', marginBottom: 8, letterSpacing: '-0.5px' }}>Zo weinig mogelijk. Zo kort mogelijk.</h3>
-            <p style={{ color: '#6b7280', marginBottom: 32 }}>We slaan alleen op wat echt nodig is om de app te laten werken — en nooit langer dan nodig. <br></br>Wanneer je je account verwijdert, worden al je gegevens permanent gewist. Zo blijft onze database schoon.</p>
-            <div ref={retentionRef} className="pf-retention-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            <div className="hp-feature-tag pf-inline-tag pf-tag-spaced">Wat we wél opslaan en waarom</div>
+            <h3 className="pf-section-title">Zo weinig mogelijk. Zo kort mogelijk.</h3>
+            <p className="pf-section-intro">We slaan alleen op wat echt nodig is om de app te laten werken — en nooit langer dan nodig. <br></br>Wanneer je je account verwijdert, worden al je gegevens permanent gewist. Zo blijft onze database schoon.</p>
+            <div ref={retentionRef} className="pf-retention-grid">
               {retentionRows.map((row, i) => (
-                <div key={row.label} className={i >= 2 && !showAllRetention ? 'pf-retention-item pf-retention-item--hidden' : 'pf-retention-item'} style={{ border: '1px solid #e5e7eb', borderRadius: 16, padding: '20px 20px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ color: 'var(--accent)', display: 'flex', flexShrink: 0 }}><row.Icon size={18} /></span>
-                    <span style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>{row.label}</span>
+                <div key={row.label} className={i >= 2 && !showAllRetention ? 'pf-retention-item pf-retention-item--hidden' : 'pf-retention-item'}>
+                  <div className="pf-retention-head">
+                    <span className="pf-retention-icon"><row.Icon size={18} /></span>
+                    <span className="pf-retention-title">{row.label}</span>
                   </div>
                   {row.why && <div className="pf-retention-why">{row.why}</div>}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 'auto' }}>
-                    <span className="pf-retention-badge pf-retention-badge--duration" style={{ alignSelf: 'flex-start' }}>
+                  <div className="pf-retention-meta-stack">
+                    <span className="pf-retention-badge pf-retention-badge--duration">
                       <Clock size={12} /> {row.duration}
                     </span>
-                    <span className="pf-retention-badge pf-retention-badge--delete" style={{ alignSelf: 'flex-start' }}>
+                    <span className="pf-retention-badge pf-retention-badge--delete">
                       ✓ {row.onDelete}
                     </span>
                   </div>
@@ -240,7 +240,6 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                 type="button"
                 className="pf-retention-more-btn"
                 onClick={() => setShowAllRetention(true)}
-                style={{ marginTop: 16, background: 'none', border: '1.5px solid rgba(108,99,255,0.3)', borderRadius: 10, padding: '8px 20px', fontSize: 14, fontWeight: 600, color: 'var(--accent)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
               >
                 Bekijk meer
               </button>
@@ -253,32 +252,32 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
-                <div className="hp-feature-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>Veiligheid: End-to-End Encryptie</div>
+                <div className="hp-feature-tag pf-inline-tag">Veiligheid: End-to-End Encryptie</div>
                 <h3>Pulse is beveiligd met <br></br>End-to-End encryptie.</h3>
-                <p style={{ marginTop: 16 }}>Dat betekent:</p>
-                <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 0 }}>
+                <p className="pf-paragraph-spaced">Dat betekent:</p>
+                <div className="pf-points-list">
                   {[
                     'Alleen jij en de ontvanger kunnen berichten lezen.',
                     'Niemand anders — ook Pulse niet.',
                     'Geen toegang. Geen inzage. Geen meelezen.',
                   ].map((item) => (
-                    <div key={item} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 0', borderRadius: 14 }}>
-                      <span style={{ color: 'var(--accent)', display: 'flex', flexShrink: 0 }}><Check size={18} /></span>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: '#1a1a2e' }}>{item}</span>
+                    <div key={item} className="pf-points-item">
+                      <span className="pf-points-icon"><Check size={18} /></span>
+                      <span className="pf-points-text">{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div className="hp-feature-mockup">
-                <div className="op-privacy-card" style={{ textAlign: 'center' }}>
-                  <div className="op-privacy-icon" style={{ marginBottom: 12 }}><Lock size={36} /></div>
+                <div className="op-privacy-card pf-center-card">
+                  <div className="op-privacy-icon pf-icon-tight"><Lock size={36} /></div>
                   <div className="op-privacy-title">End-to-end encryptie</div>
-                  <div className="op-privacy-sub" style={{ marginTop: 12 }}>
+                  <div className="op-privacy-sub pf-sub-tight">
                     Van jou naar je kind.<br />
                     Van je kind naar jou.<br />
                     Niemand anders leest mee.
                   </div>
-                  <div style={{ marginTop: 20, padding: '12px 16px', background: 'rgba(108,99,255,0.07)', borderRadius: 14, fontSize: 13, color: 'var(--accent)', fontWeight: 600 }}>
+                  <div className="pf-callout">
                     Versleuteld · Veilig · Privé
                   </div>
                 </div>
@@ -287,22 +286,21 @@ export default function PrivacyFirstPagina({ onParentClick }) {
           </div>
         </section>
 
-        <div style={{ padding: '0 0' }}>
-          <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb' }} />
+        <div className="pf-divider-wrap">
+          <hr className="pf-divider" />
         </div>
 
         {/* ── CTA ── */}
         <section className="ot-final-cta">
           <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
           <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="ot-final-cta-actions">
             <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
               Ouderaccount aanmaken
             </button>
             <button
               type="button"
-              className="hp-cta-btn"
-              style={{ background: '#fff', border: '1.5px solid rgba(108,99,255,0.4)', color: '#6c63ff', display: 'flex', alignItems: 'center', gap: 6 }}
+              className="hp-cta-btn hp-cta-btn--secondary"
               onClick={() => setShowAuthModal(true)}
             >
               <Login size={18} /> Inloggen
@@ -321,68 +319,6 @@ export default function PrivacyFirstPagina({ onParentClick }) {
         <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
       )}
 
-      <style>{`
-        /* Op grote schermen altijd alle items tonen, knop verbergen */
-        @media (min-width: 769px) {
-          .pf-retention-item--hidden { display: flex !important; }
-          .pf-retention-more-btn { display: none !important; }
-        }
-        /* Op kleine schermen 1 kolom, verborgen items weghalen */
-        @media (max-width: 768px) {
-          .pf-retention-item--hidden { display: none !important; }
-          .pf-retention-grid { grid-template-columns: 1fr !important; }
-        }
-        .pf-retention-row {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 6px;
-          padding: 4px 0 10px 0;
-          margin-bottom: 5px;
-        }
-        .pf-retention-label {
-          font-weight: 600;
-          font-size: 15px;
-          color: #1a1a2e;
-        }
-        .pf-retention-why {
-          font-size: 13px;
-          color: #3d3a5c;
-          line-height: 1.5;
-        }
-        .pf-retention-meta {
-          display: flex;
-          flex-direction: row;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-        .pf-retention-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          font-size: 12px;
-          font-weight: 600;
-          padding: 4px 11px;
-          border-radius: 999px;
-        }
-        .pf-retention-badge--duration {
-          background: rgba(108,99,255,0.12);
-          color: #5b45e0;
-        }
-        .pf-retention-badge--delete {
-          background: rgba(34,197,94,0.12);
-          color: #16a34a;
-        }
-        .pf-retention-grid {
-          grid-template-columns: repeat(3, 1fr);
-        }
-        @media (max-width: 900px) {
-          .pf-retention-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 600px) {
-          .pf-retention-grid { grid-template-columns: 1fr; }
-        }
-      `}</style>
     </div>
   );
 }

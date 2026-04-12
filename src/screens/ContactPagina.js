@@ -95,11 +95,11 @@ function ContactInfoCard() {
       <div className="contact-info-card">
         {/* Brand */}
         <div>
-          <div className="contact-brand-header">
+        <div className="contact-brand-header">
             <img src="/logo192.png" alt="" aria-hidden="true" width={32} height={32} className="contact-brand-logo" />
             <span className="contact-brand-name">Pulse</span>
           </div>
-          <p style={{ color: 'var(--text2)', fontSize: 15, lineHeight: 1.7 }}>
+          <p className="contact-brand-intro">
             Veilige communicatie voor kinderen en gezinnen. Wij helpen je graag verder.
           </p>
 
@@ -233,15 +233,15 @@ function ContactForm() {
             <div className="contact-success-icon">
               <Check size={32} style={{ color: 'var(--success)' }} />
             </div>
-            <h3 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>Bericht ontvangen!</h3>
-            <p style={{ color: 'var(--text2)', fontSize: 15, lineHeight: 1.7 }}>
+            <h3 className="contact-success-title">Bericht ontvangen!</h3>
+            <p className="contact-success-text">
               Bedankt voor je bericht. We nemen zo snel mogelijk contact met je op via <strong>{form.email}</strong>.
             </p>
           </div>
         ) : (
           <>
-            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 6, color: '#fff' }}>Stuur ons een bericht</h2>
-            <p style={{ color: 'var(--text2)', fontSize: 15, marginBottom: 28, lineHeight: 1.6 }}>
+            <h2 className="contact-form-title">Stuur ons een bericht</h2>
+            <p className="contact-form-intro">
               We reageren doorgaans binnen één werkdag.
             </p>
 
@@ -340,14 +340,13 @@ function ContactForm() {
                   value={form.bericht}
                   onChange={e => set('bericht', e.target.value)}
                   rows={5}
-                  className={`contact-input${errors.bericht ? ' contact-input--error' : ''}`}
+                  className={`contact-input contact-input--textarea${errors.bericht ? ' contact-input--error' : ''}`}
                   maxLength={CONTACT_FIELD_LIMITS.bericht}
                   required
                   aria-invalid={!!errors.bericht}
                   aria-describedby={errors.bericht ? 'contact-bericht-error' : 'contact-bericht-help'}
-                  style={{ resize: 'vertical', minHeight: 130 }}
                 />
-                <div id="contact-bericht-help" className="contact-error" style={{ color: 'var(--text3)' }}>
+                <div id="contact-bericht-help" className="contact-error contact-help-text">
                   {form.bericht.length}/{CONTACT_FIELD_LIMITS.bericht} tekens
                 </div>
                 {errors.bericht && <div id="contact-bericht-error" className="contact-error" role="alert">{errors.bericht}</div>}
@@ -422,10 +421,10 @@ export default function ContactPagina() {
             <h1 className="legal-hero-title">
               Hoe kunnen we je helpen?
             </h1>
-            <p className="legal-hero-intro" style={{ maxWidth: 640 }}>
+            <p className="legal-hero-intro contact-hero-intro">
               Heb je een vraag over Pulse, ouderlijk toezicht, privacy of samenwerking?
             </p>
-            <p className="legal-hero-intro" style={{ maxWidth: 640, marginTop: 8 }}>
+            <p className="legal-hero-intro contact-hero-intro contact-hero-intro--followup">
               Stuur ons een bericht — we reageren zo snel mogelijk.
             </p>
           </div>
@@ -459,15 +458,6 @@ export default function ContactPagina() {
           </div>
         </section>
       </main>
-
-      <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        input::placeholder, textarea::placeholder { color: var(--text3); }
-        input:focus, textarea:focus {
-          border-color: var(--accent) !important;
-          outline: none;
-        }
-      `}</style>
 
       <MarketingFooter />
 

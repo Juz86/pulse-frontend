@@ -62,6 +62,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [isOnline,        setIsOnline]        = useState(navigator.onLine);
   const [conversationSelectionMode, setConversationSelectionMode] = useState(false);
   const [selectedConversationIds, setSelectedConversationIds] = useState([]);
+  const [messageSelectionMode, setMessageSelectionMode] = useState(false);
+  const [selectedMessageIds, setSelectedMessageIds] = useState([]);
+  const [mutedConversationIds, setMutedConversationIds] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(`pulse_muted_conversations_${user.uid}`) || '[]'); } catch { return []; }
+  });
   const jumpTimer = useRef(null);
 
   function handleJumpToMsg(msgId) {
@@ -80,6 +85,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const conversationsRef = useRef([]);
   const audioCtxRef    = useRef(null);
   const chatSearchRef  = useRef(null);
+  const mutedConversationIdsRef = useRef(mutedConversationIds);
 
   function showErrToast(msg) {
     setErrToast(msg);
@@ -94,8 +100,22 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       ? { icon: <BellOff size={15} aria-hidden="true" />, text: 'Meldingen uitgeschakeld', bg: 'rgba(80,80,100,0.92)' }
       : { icon: <Bell size={15} aria-hidden="true" />,    text: 'Meldingen ingeschakeld',  bg: 'rgba(34,197,94,0.92)' });
   }
+  function persistMutedConversationIds(nextIds) {
+    mutedConversationIdsRef.current = nextIds;
+    setMutedConversationIds(nextIds);
+    localStorage.setItem(`pulse_muted_conversations_${user.uid}`, JSON.stringify(nextIds));
+  }
+  function toggleConversationMute(convId = activeConv?.id) {
+    if (!convId) return;
+    const nextIds = mutedConversationIdsRef.current.includes(convId)
+      ? mutedConversationIdsRef.current.filter((id) => id !== convId)
+      : [...mutedConversationIdsRef.current, convId];
+    persistMutedConversationIds(nextIds);
+    showErrToast(nextIds.includes(convId) ? 'Meldingen gedempt voor dit gesprek' : 'Meldingen weer ingeschakeld voor dit gesprek');
+  }
   function handleShowContextMenu(e, msg) {
     e.preventDefault?.();
+    if (messageSelectionMode) return;
     setContextMenu({ msg, isOwn: msg.senderId === user.uid, x: e.clientX, y: e.clientY });
   }
   function handleStar(msgId) {
@@ -117,7 +137,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     });
   }
   function handleDeleteRequest(msg) {
-    setDeleteConfirm({ msgId: msg.id, isOwn: msg.senderId === user.uid });
+    setDeleteConfirm({ msgIds: [msg.id], isOwn: msg.senderId === user.uid, count: 1 });
   }
   function toggleConversationSelection(convId) {
     setSelectedConversationIds((prev) => prev.includes(convId) ? prev.filter((id) => id !== convId) : [...prev, convId]);
@@ -129,6 +149,29 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   function cancelConversationSelection() {
     setConversationSelectionMode(false);
     setSelectedConversationIds([]);
+  }
+  function enterMessageSelection() {
+    setContextMenu(null);
+    setMessageSelectionMode(true);
+    setSelectedMessageIds([]);
+  }
+  function cancelMessageSelection() {
+    setMessageSelectionMode(false);
+    setSelectedMessageIds([]);
+  }
+  function toggleMessageSelection(msgId) {
+    setSelectedMessageIds((prev) => prev.includes(msgId) ? prev.filter((id) => id !== msgId) : [...prev, msgId]);
+  }
+  function handleDeleteSelectedMessages() {
+    if (!selectedMessageIds.length) return;
+    const selectedMessages = messages.filter((message) => selectedMessageIds.includes(message.id));
+    const allOwn = selectedMessages.every((message) => message.senderId === user.uid);
+    setDeleteConfirm({
+      msgIds: selectedMessageIds,
+      isOwn: allOwn,
+      count: selectedMessageIds.length,
+      onComplete: cancelMessageSelection,
+    });
   }
   function deleteSelectedConversations() {
     if (!selectedConversationIds.length) return;
@@ -153,7 +196,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const {
     conversations, setConversations, activeConv, setActiveConv,
     messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore,
-    loadConversations, openConversation, deleteConversation, loadMoreMessages,
+    loadConversations, openConversation, deleteConversation, clearConversationHistoryHard, hardDeleteConversation, loadMoreMessages,
     sendMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
@@ -201,6 +244,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   const { typing, typingName, pausedFeatures, mentionToast } = useChat({
     user, activeConvRef, conversationsRef, msgsAreaRef, dndRef, audioCtxRef,
+    mutedConversationIdsRef,
     loadConversations, loadContacts, loadFriendRequests, setMessages, setConversations, setUnreadCounts,
     setFriendRequests, setContactSuccess, setShowFriendRequestsPanel, setContacts, setActiveConv,
     setBlockedContacts, setParentBlockedUids,
@@ -208,6 +252,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     onOpenMentionConversation: openConversation,
     onTransientMessage: storeTransientConversationMessage,
   });
+
+  useEffect(() => {
+    mutedConversationIdsRef.current = mutedConversationIds;
+  }, [mutedConversationIds]);
+
+  useEffect(() => {
+    cancelMessageSelection();
+  }, [activeConv?.id]);
 
   const { activeCall, setActiveCall, getCallLog, callContact, initiateCall, initiateCallFromConv } = useCalling({
     user, contacts, pausedFeatures, activeConvRef, msgsAreaRef,
@@ -397,6 +449,25 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onBack={() => setActiveConv(null)} onInitiateCall={initiateCall}
               onShowGroupInfo={() => setShowGroupInfo(true)}
               onShowContactProfile={() => setShowContactProfile(true)}
+              onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
+              onEnterMessageSelection={() => messageSelectionMode ? cancelMessageSelection() : enterMessageSelection()}
+              onShowStarredMsgs={() => setShowStarredMsgs(true)}
+              onClearChat={() => {
+                setConfirmDialog({
+                  message: 'Chat wissen? Alle chatberichten worden volledig verwijderd uit de database.',
+                  onConfirm: async () => {
+                    await clearConversationHistoryHard?.(activeConv.id);
+                  },
+                });
+              }}
+              onDeleteChat={() => {
+                setConfirmDialog({
+                  message: 'Chat verwijderen? Alle chatberichten worden volledig verwijderd uit de database.',
+                  onConfirm: async () => {
+                    await hardDeleteConversation?.(activeConv.id);
+                  },
+                });
+              }}
               parentBlockedOtherUid={!activeConv?.isGroup && parentBlockedUids.includes(getOtherUid(activeConv))}
 
               setRenameValue={setRenameValue}
@@ -408,7 +479,27 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               messages={messages} chatSearchRef={chatSearchRef}
               serviceTransportReady={serviceTransportReady}
               callsAvailable={callsAvailable}
+              conversationMuted={mutedConversationIds.includes(activeConv?.id)}
+              messageSelectionMode={messageSelectionMode}
             />
+            {messageSelectionMode && (
+              <div className="chat-message-selection-bar">
+                <div className="chat-message-selection-count">{selectedMessageIds.length} geselecteerd</div>
+                <div className="chat-message-selection-actions">
+                  <button
+                    type="button"
+                    className="btn-danger compact"
+                    disabled={!selectedMessageIds.length}
+                    onClick={handleDeleteSelectedMessages}
+                  >
+                    Verwijderen
+                  </button>
+                  <button type="button" className="icon-btn plain" aria-label="Berichtselectie sluiten" onClick={cancelMessageSelection}>
+                    <span aria-hidden="true">✕</span>
+                  </button>
+                </div>
+              </div>
+            )}
             {!isOnline && (
               <div className="offline-banner" role="status" aria-live="polite">
                 Je bent offline. Berichten worden verstuurd zodra je weer verbinding hebt.
@@ -450,6 +541,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onRetry={msg => retryMessage(msg)}
               onStartCall={callsAvailable ? ({ toUid, convId, name, isVideo }) => initiateCallFromConv({ id: convId, members: [user.uid, toUid], memberNames: { [toUid]: name } }, isVideo) : undefined}
               onViewContact={sc => { setFriendReqSent(false); setViewingSharedContact({ ...sc, isAlreadyContact: contacts.some(c => c.uid === sc?.uid) }); }}
+              selectionMode={messageSelectionMode}
+              selectedMessageIds={selectedMessageIds}
+              onToggleMessageSelection={toggleMessageSelection}
             />
             {(() => {
               const blockedOtherUid = !activeConv.isGroup && getOtherUid(activeConv);
@@ -572,15 +666,31 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       {deleteConfirm && (
         <div className="delete-popup-overlay" onClick={() => setDeleteConfirm(null)}>
           <div className="delete-popup" role="dialog" aria-modal="true" aria-labelledby="delete-popup-title" aria-describedby="delete-popup-description" onClick={e => e.stopPropagation()}>
-            <div className="delete-popup-title" id="delete-popup-title">Bericht verwijderen</div>
+            <div className="delete-popup-title" id="delete-popup-title">{deleteConfirm.count > 1 ? 'Berichten verwijderen' : 'Bericht verwijderen'}</div>
             <p id="delete-popup-description" style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--text3)' }}>
-              Kies of je dit bericht alleen voor jezelf of voor iedereen wilt verwijderen.
+              {deleteConfirm.isOwn
+                ? `Kies of je ${deleteConfirm.count > 1 ? 'deze berichten' : 'dit bericht'} alleen voor jezelf of voor iedereen wilt verwijderen.`
+                : `${deleteConfirm.count > 1 ? 'Deze berichten' : 'Dit bericht'} kun je alleen voor jezelf verwijderen.`}
             </p>
-            <button type="button" className="delete-popup-btn" onClick={() => { deleteMessage(deleteConfirm.msgId, 'self'); setDeleteConfirm(null); }}>
-              <Delete size={18} aria-hidden="true" /> Voor mezelf verwijderen
+            <button type="button" className="delete-popup-btn" onClick={async () => {
+              for (const msgId of deleteConfirm.msgIds) {
+                // eslint-disable-next-line no-await-in-loop
+                await deleteMessage(msgId, 'self');
+              }
+              deleteConfirm.onComplete?.();
+              setDeleteConfirm(null);
+            }}>
+              <Delete size={18} aria-hidden="true" /> {deleteConfirm.count > 1 ? 'Voor mezelf verwijderen' : 'Voor mezelf verwijderen'}
             </button>
             {deleteConfirm.isOwn && (
-              <button type="button" className="delete-popup-btn danger" onClick={() => { deleteMessage(deleteConfirm.msgId, 'all'); setDeleteConfirm(null); }}>
+              <button type="button" className="delete-popup-btn danger" onClick={async () => {
+                for (const msgId of deleteConfirm.msgIds) {
+                  // eslint-disable-next-line no-await-in-loop
+                  await deleteMessage(msgId, 'all');
+                }
+                deleteConfirm.onComplete?.();
+                setDeleteConfirm(null);
+              }}>
                 <Trash2 size={18} aria-hidden="true" /> Voor iedereen verwijderen
               </button>
             )}

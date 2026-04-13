@@ -1,6 +1,6 @@
 // src/components/ChatHeader.js
-import React, { useMemo } from 'react';
-import { Phone, Video, Users } from '../components/Icons';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Bell, BellOff, MoreHoriz, Phone, StarOutline, Trash2, Users, Video, XIcon } from '../components/Icons';
 import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
@@ -34,7 +34,16 @@ const ChatHeader = React.memo(function ChatHeader({
   chatSearchRef,
   serviceTransportReady,
   callsAvailable = true,
+  conversationMuted = false,
+  onToggleConversationMute,
+  onEnterMessageSelection,
+  messageSelectionMode = false,
+  onShowStarredMsgs,
+  onClearChat,
+  onDeleteChat,
 }) {
+  const [moreActionsOpen, setMoreActionsOpen] = useState(false);
+  const moreActionsRef = useRef(null);
   const otherUid  = getOtherUid(activeConv);
   const isOnline  = otherUid && onlineUsers.has(otherUid);
   const isActive  = isOnline && !inactiveUsers.has(otherUid);
@@ -59,6 +68,17 @@ const ChatHeader = React.memo(function ChatHeader({
     transport: E2EE_TRANSPORT,
     serviceTransportReady,
   });
+
+  useEffect(() => {
+    if (!moreActionsOpen) return;
+    function handleClickOutside(event) {
+      if (moreActionsRef.current && !moreActionsRef.current.contains(event.target)) {
+        setMoreActionsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [moreActionsOpen]);
 
   function openContactProfile() {
     if (!activeConv.isGroup) {
@@ -97,6 +117,10 @@ const ChatHeader = React.memo(function ChatHeader({
       return;
     }
     openChatSearch();
+  }
+
+  function closeMoreActions() {
+    setMoreActionsOpen(false);
   }
 
   return (
@@ -153,7 +177,7 @@ const ChatHeader = React.memo(function ChatHeader({
         </div>
 
         {/* Actieknoppen */}
-        <div className="chat-header-actions">
+        <div className="chat-header-actions" ref={moreActionsRef}>
           {!activeConv.isGroup && !parentBlockedOtherUid && callsAvailable && (
             <>
               <button type="button" className="call-btn voice" aria-label={`Bel ${getConvName(activeConv)}`} onClick={() => onInitiateCall(false)} title="Bellen"><Phone size={18} aria-hidden="true" /></button>
@@ -176,6 +200,101 @@ const ChatHeader = React.memo(function ChatHeader({
               <path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
             </svg>
           </button>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Meer acties"
+            aria-haspopup="menu"
+            aria-expanded={moreActionsOpen}
+            title="Meer acties"
+            onClick={() => setMoreActionsOpen((prev) => !prev)}
+          >
+            <MoreHoriz size={18} aria-hidden="true" />
+          </button>
+          {moreActionsOpen && (
+            <div className="chat-header-menu" role="menu" aria-label="Meer acties in gesprek">
+              <button
+                type="button"
+                role="menuitem"
+                className="chat-header-menu-item"
+                onClick={() => {
+                  closeMoreActions();
+                  activeConv.isGroup ? onShowGroupInfo?.() : openContactProfile();
+                }}
+              >
+                <Users size={16} aria-hidden="true" />
+                <span>{activeConv.isGroup ? 'Groepsinfo' : 'Profiel'}</span>
+              </button>
+              <button
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked={conversationMuted}
+                className={`chat-header-menu-item${conversationMuted ? ' active' : ''}`}
+                onClick={() => {
+                  closeMoreActions();
+                  onToggleConversationMute?.();
+                }}
+              >
+                {conversationMuted ? <BellOff size={16} aria-hidden="true" /> : <Bell size={16} aria-hidden="true" />}
+                <span>{conversationMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}</span>
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="chat-header-menu-item"
+                onClick={() => {
+                  closeMoreActions();
+                  onEnterMessageSelection?.();
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z" />
+                </svg>
+                <span>{messageSelectionMode ? 'Berichten selecteren stoppen' : 'Berichten selecteren'}</span>
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="chat-header-menu-item"
+                onClick={() => {
+                  closeMoreActions();
+                  onShowStarredMsgs?.();
+                }}
+              >
+                <StarOutline size={16} aria-hidden="true" />
+                <span>Berichten met ster</span>
+              </button>
+              {!activeConv.isGroup && (
+                <>
+                  <div className="chat-header-menu-divider" />
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="chat-header-menu-item danger"
+                    onClick={() => {
+                      closeMoreActions();
+                      onClearChat?.();
+                    }}
+                  >
+                    <XIcon size={16} aria-hidden="true" />
+                    <span>Chat wissen</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="chat-header-menu-item danger"
+                    onClick={() => {
+                      closeMoreActions();
+                      onDeleteChat?.();
+                    }}
+                  >
+                    <Trash2 size={16} aria-hidden="true" />
+                    <span>Chat verwijderen</span>
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

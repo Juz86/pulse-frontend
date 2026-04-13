@@ -26,6 +26,9 @@ const MessageList = React.memo(function MessageList({
   onStartCall,
   onViewContact,
   jumpToMsgId,
+  selectionMode = false,
+  selectedMessageIds = [],
+  onToggleMessageSelection,
 }) {
   const focusedMsgId = useMemo(() => {
     if (jumpToMsgId) return jumpToMsgId;
@@ -52,28 +55,47 @@ const MessageList = React.memo(function MessageList({
       const isFocused = msg.id === focusedMsgId;
 
       result.push(
-        <MessageBubble
+        <div
           key={msg._key || msg.id || i}
-          msg={msg}
-          isOwn={isOwn}
-          isFocused={isFocused}
-          isGroup={!!activeConv.isGroup}
-          memberNames={activeConv.memberNames}
-          currentUid={currentUid}
-          user={user}
-          chatSearch={chatSearch}
-          onReact={emoji => onReact(msg.id, emoji)}
-          onShowContextMenu={e => onShowContextMenu(e, msg)}
-          onRetry={() => onRetry(msg)}
-          onStartCall={isVideo => onStartCall?.({ toUid: msg.senderId, convId: activeConv.id, name: msg.senderName, isVideo })}
-          onViewContact={sc => onViewContact(sc)}
-        />
+          className={`message-select-wrap${selectionMode ? ' selection-mode' : ''}${selectedMessageIds.includes(msg.id) ? ' selected' : ''}`}
+          onClick={selectionMode ? () => onToggleMessageSelection?.(msg.id) : undefined}
+          role={selectionMode ? 'button' : undefined}
+          tabIndex={selectionMode ? 0 : undefined}
+          onKeyDown={selectionMode ? (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              onToggleMessageSelection?.(msg.id);
+            }
+          } : undefined}
+          aria-pressed={selectionMode ? selectedMessageIds.includes(msg.id) : undefined}
+        >
+          {selectionMode && (
+            <span className={`message-select-indicator${selectedMessageIds.includes(msg.id) ? ' selected' : ''}`} aria-hidden="true">
+              {selectedMessageIds.includes(msg.id) ? '✓' : ''}
+            </span>
+          )}
+          <MessageBubble
+            msg={msg}
+            isOwn={isOwn}
+            isFocused={isFocused}
+            isGroup={!!activeConv.isGroup}
+            memberNames={activeConv.memberNames}
+            currentUid={currentUid}
+            user={user}
+            chatSearch={chatSearch}
+            onReact={emoji => onReact(msg.id, emoji)}
+            onShowContextMenu={selectionMode ? (() => {}) : (e => onShowContextMenu(e, msg))}
+            onRetry={() => onRetry(msg)}
+            onStartCall={isVideo => onStartCall?.({ toUid: msg.senderId, convId: activeConv.id, name: msg.senderName, isVideo })}
+            onViewContact={sc => onViewContact(sc)}
+          />
+        </div>
       );
     });
 
     return result;
   }, [messages, activeConv, currentUid, user, chatSearch, focusedMsgId,
-      onReact, onShowContextMenu, onRetry, onStartCall, onViewContact]);
+      onReact, onShowContextMenu, onRetry, onStartCall, onViewContact, selectionMode, selectedMessageIds, onToggleMessageSelection]);
 
   const bgStyle = useMemo(() => {
     if (chatBg?.type === 'photo') return {

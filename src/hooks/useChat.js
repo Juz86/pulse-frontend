@@ -19,6 +19,7 @@ export default function useChat({
   conversationsRef,
   msgsAreaRef,
   dndRef,
+  mutedConversationIdsRef,
   audioCtxRef,
   loadConversations,
   loadContacts,
@@ -71,6 +72,10 @@ export default function useChat({
         osc.stop(t + end);
       });
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+  }
+
+  function isConversationMuted(convId) {
+    return Array.isArray(mutedConversationIdsRef?.current) && mutedConversationIdsRef.current.includes(convId);
   }
 
   // ── Socket events ─────────────────────────────────────────────────────────
@@ -171,19 +176,19 @@ export default function useChat({
         setTimeout(() => {
           if (msgsAreaRef.current) msgsAreaRef.current.scrollTo({ top: msgsAreaRef.current.scrollHeight, behavior: 'smooth' });
         }, 50);
-        playMessageSound();
+        if (!isConversationMuted(convId)) playMessageSound();
       } else if (hydratedMsg.senderId !== user.uid) {
         if (hydratedMsg.protocol === ENCRYPTED_MESSAGE_PROTOCOL && hydratedMsg.id) {
           messagingService.sendReceipt({ user, messageId: hydratedMsg.id, type: 'delivered' }).catch(() => {});
         }
         setUnreadCounts(prev => ({ ...prev, [convId]: (prev[convId] || 0) + 1 }));
-        if (Notification.permission === 'granted' && document.hidden) {
+        if (!isConversationMuted(convId) && Notification.permission === 'granted' && document.hidden) {
           new Notification('Nieuw bericht in Pulse', {
             body: PRIVATE_NOTIFICATION_BODY,
             icon: '/logo192.png',
           });
         }
-        playMessageSound();
+        if (!isConversationMuted(convId)) playMessageSound();
       }
 
       setConversations(prev => {
@@ -342,6 +347,36 @@ export default function useChat({
       loadConversations?.();
     };
 
+    const onConversationHardCleared = ({ convId, mode }) => {
+      if (!convId) return;
+      if (activeConvRef.current?.id === convId) {
+        setMessages([]);
+        if (mode === 'delete') setActiveConv(null);
+      }
+      setConversations((prev) => (
+        mode === 'delete'
+          ? prev.filter((conversation) => conversation.id !== convId)
+          : prev.map((conversation) => (
+              conversation.id === convId
+                ? {
+                    ...conversation,
+                    lastMessage: '',
+                    lastMessageAt: null,
+                    lastCallDirection: null,
+                    lastCallIsVideo: false,
+                    lastCallSenderId: null,
+                  }
+                : conversation
+            ))
+      ));
+      setUnreadCounts((prev) => {
+        if (!Object.prototype.hasOwnProperty.call(prev, convId)) return prev;
+        const next = { ...prev };
+        delete next[convId];
+        return next;
+      });
+    };
+
     const onMessageDeleted  = ({ msgId })              => setMessages(prev => prev.filter(m => m.id !== msgId));
     const onMessageEdited   = ({ msgId, text, editedAt }) => setMessages(prev => prev.map(m => (
       m.id === msgId
@@ -397,6 +432,7 @@ export default function useChat({
     socket.on('conversation:created',       onConversationCreated);
     socket.on('conversation:member_added',  onConversationMemberAdded);
     socket.on('conversation:member_removed', onConversationMemberRemoved);
+    socket.on('conversation:hardCleared',    onConversationHardCleared);
     socket.on('contact:blocked-by-parent',   onContactBlockedByParent);
     socket.on('contact:unblocked-by-parent', onContactUnblockedByParent);
     socket.on('contact:removed-by-parent',   onContactRemovedByParent);
@@ -421,6 +457,7 @@ export default function useChat({
       socket.off('conversation:created',       onConversationCreated);
       socket.off('conversation:member_added',  onConversationMemberAdded);
       socket.off('conversation:member_removed', onConversationMemberRemoved);
+      socket.off('conversation:hardCleared',    onConversationHardCleared);
       socket.off('contact:blocked-by-parent',   onContactBlockedByParent);
       socket.off('contact:unblocked-by-parent', onContactUnblockedByParent);
       socket.off('contact:removed-by-parent',   onContactRemovedByParent);

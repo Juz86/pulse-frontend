@@ -384,6 +384,44 @@ export default function useConversations({
     });
   }
 
+  async function clearConversationHistoryHard(convId) {
+    try {
+      await authFetch(`${BACKEND_URL}/api/conversations/${convId}/hard?mode=clear`, { method: 'DELETE' });
+      setSessionMessagesForConversation(convId, []);
+      msgCache.current[convId] = [];
+      setMessages((prev) => (activeConvRef.current?.id === convId ? [] : prev));
+      setConversations((prev) => prev.map((conversation) => (
+        conversation.id === convId
+          ? {
+              ...conversation,
+              lastMessage: '',
+              lastMessageAt: null,
+              lastCallDirection: null,
+              lastCallIsVideo: false,
+              lastCallSenderId: null,
+            }
+          : conversation
+      )));
+    } catch {
+      showErrToast('Chat wissen mislukt');
+    }
+  }
+
+  async function hardDeleteConversation(convId) {
+    try {
+      await authFetch(`${BACKEND_URL}/api/conversations/${convId}/hard?mode=delete`, { method: 'DELETE' });
+      setSessionMessagesForConversation(convId, []);
+      delete msgCache.current[convId];
+      setConversations((prev) => prev.filter((conversation) => conversation.id !== convId));
+      if (activeConvRef.current?.id === convId) {
+        setActiveConv(null);
+        setMessages([]);
+      }
+    } catch {
+      showErrToast('Chat verwijderen mislukt');
+    }
+  }
+
   // ── Meer berichten laden ──────────────────────────────────────────────────
   async function loadMoreMessages() {
     if (!activeConv || loadingMore) return;
@@ -813,7 +851,7 @@ export default function useConversations({
     messages, setMessages,
     loadingConvs, loadingMsgs, hasMore, loadingMore, msgOffset, setMsgOffset,
     currentDeviceId,
-    loadConversations, openConversation, deleteConversation, loadMoreMessages,
+    loadConversations, openConversation, deleteConversation, clearConversationHistoryHard, hardDeleteConversation, loadMoreMessages,
     sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,

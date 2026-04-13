@@ -427,6 +427,24 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         parentBlockedUids={parentBlockedUids}
         onOpenConversation={openConversation}
         onCallFromConv={initiateCallFromConv} onDeleteConversation={deleteConversation}
+        onClearConversation={(conv) => {
+          setConfirmDialog({
+            message: 'Chat wissen? Alle chatberichten worden volledig verwijderd uit de database.',
+            onConfirm: async () => {
+              await clearConversationHistoryHard?.(conv.id);
+            },
+          });
+        }}
+        onHardDeleteConversation={(conv) => {
+          setConfirmDialog({
+            message: 'Chat verwijderen? Alle chatberichten worden volledig verwijderd uit de database.',
+            onConfirm: async () => {
+              await hardDeleteConversation?.(conv.id);
+            },
+          });
+        }}
+        onToggleConversationMute={toggleConversationMute}
+        mutedConversationIds={mutedConversationIds}
         selectionMode={conversationSelectionMode}
         selectedConversationIds={selectedConversationIds}
         onToggleConversationSelection={toggleConversationSelection}

@@ -68,6 +68,10 @@ export default function ChatSidebar({
   onOpenConversation,
   onCallFromConv,
   onDeleteConversation,
+  onClearConversation,
+  onHardDeleteConversation,
+  onToggleConversationMute,
+  mutedConversationIds = [],
   selectionMode,
   selectedConversationIds,
   onToggleConversationSelection,
@@ -129,6 +133,12 @@ export default function ChatSidebar({
       ? Math.min(rect.bottom + spacing, window.innerHeight - menuHeight - 12)
       : Math.max(12, rect.top - menuHeight - spacing);
     setConvMenu(prev => prev?.conv?.id === conv.id ? null : { conv, otherUid, direction, top, left });
+  }
+
+  function handleOpenConversation(conv) {
+    setConvMenu(null);
+    setContactMenu(null);
+    onOpenConversation(conv);
   }
 
   return (
@@ -285,7 +295,7 @@ export default function ChatSidebar({
             getConvName={getConvName}
             getOtherUid={getOtherUid}
             getConvPhoto={getConvPhoto}
-            onOpen={onOpenConversation}
+            onOpen={handleOpenConversation}
             onMoreActionsEnter={(conv, otherUid, el) => openConvMenu(conv, otherUid, el)}
             setLabelMenuConvId={setLabelMenuConvId}
           />
@@ -362,6 +372,7 @@ export default function ChatSidebar({
         const isParentBlocked = parentBlockedUids?.includes(otherUid);
         const isProtectedParentContact = !isParent && contact?.role === 'parent';
         const isPinned = pinnedContacts.includes(otherUid);
+        const isMuted = mutedConversationIds.includes(conv.id);
         return (
           <div
             role="menu"
@@ -408,6 +419,17 @@ export default function ChatSidebar({
                   <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
                 </button>
               )}
+              <button
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked={isMuted}
+                className={`chat-header-menu-item${isMuted ? ' active' : ''}`}
+                onClick={() => { onToggleConversationMute?.(conv.id); setConvMenu(null); }}
+                title={isMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}
+              >
+                {isMuted ? <BellOff size={14} aria-hidden="true" /> : <Bell size={14} aria-hidden="true" />}
+                <span>{isMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}</span>
+              </button>
               {(contact && !isProtectedParentContact) && <div className="chat-header-menu-divider" />}
               {contact && !isProtectedParentContact && (
                 <button type="button" role="menuitem" className="chat-header-menu-item danger"
@@ -422,6 +444,30 @@ export default function ChatSidebar({
               <Delete size={14} aria-hidden="true" />
               <span>Prullenbak</span>
             </button>
+            {!conv.isGroup && (
+              <>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="chat-header-menu-item danger"
+                  onClick={() => { onClearConversation?.(conv); setConvMenu(null); }}
+                  title="Chat wissen"
+                >
+                  <XIcon size={14} aria-hidden="true" />
+                  <span>Chat wissen</span>
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="chat-header-menu-item danger"
+                  onClick={() => { onHardDeleteConversation?.(conv); setConvMenu(null); }}
+                  title="Chat verwijderen"
+                >
+                  <Delete size={14} aria-hidden="true" />
+                  <span>Chat verwijderen</span>
+                </button>
+              </>
+            )}
           </div>
         );
       })()}

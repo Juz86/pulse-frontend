@@ -6705,16 +6705,16 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .pf-settings-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   color: #f6f3ff;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .pf-settings-subtitle {
   max-width: 620px;
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: 12.5px;
+  line-height: 1.55;
   color: rgba(243, 239, 255, 0.78);
 }
 
@@ -6733,10 +6733,10 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .pf-settings-panel-title {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 800;
   color: #fff;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .pf-settings-field-group {
@@ -6750,7 +6750,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .pf-settings-label {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.4;
   color: rgba(231, 226, 255, 0.68);
 }
@@ -6766,14 +6766,14 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   background: rgba(58, 48, 117, 0.94);
   border: 1px solid rgba(156, 139, 246, 0.22);
   color: #f6f3ff;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 
 .pf-settings-chevron {
   color: rgba(243, 239, 255, 0.82);
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -6787,7 +6787,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   justify-content: center;
   background: linear-gradient(135deg, #7c6fff, #b15bff);
   color: #fff;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 800;
   box-shadow: 0 18px 36px rgba(108,99,255,0.3);
 }
@@ -6981,11 +6981,11 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   }
 
   .pf-settings-title {
-    font-size: 17px;
+    font-size: 15px;
   }
 
   .pf-settings-subtitle {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .pf-settings-panel {
@@ -6994,7 +6994,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   }
 
   .pf-settings-panel-title {
-    font-size: 16px;
+    font-size: 14px;
     margin-bottom: 14px;
   }
 
@@ -7002,7 +7002,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .pf-settings-save {
     min-height: 52px;
     border-radius: 16px;
-    font-size: 15px;
+    font-size: 13px;
     padding: 0 15px;
   }
 

@@ -187,6 +187,17 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   border-radius: 28px 28px 0 0;
 }
 
+@keyframes auth-mobile-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .auth-logo { display:flex; align-items:center; gap:10px; margin-bottom:28px; }
 .auth-logo-icon {
   font-size:28px;
@@ -1646,10 +1657,30 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 @media (max-width: 767px) {
   /* Auth */
   .auth-screen { align-items:center; justify-content:center; min-height:100vh; height:auto; padding:20px 16px; box-sizing:border-box; }
-  .auth-flip-wrapper { width:100%; max-width:420px; }
+  .auth-flip-wrapper { width:100%; max-width:420px; perspective:none; }
+  .auth-flip-inner { transform:none !important; transform-style:flat; }
   .auth-card { width:100%; padding:32px 24px; border-radius:20px; box-sizing:border-box; }
   .auth-card-back { width:100%; padding:32px 24px; border-radius:20px; box-sizing:border-box; }
   .parent-auth-card { width:100%; max-width:420px; padding:32px 24px; border-radius:20px; box-sizing:border-box; }
+  .auth-card-front,
+  .auth-card-back {
+    backface-visibility: visible;
+    -webkit-backface-visibility: visible;
+    transform:none !important;
+    overflow:visible;
+    animation: auth-mobile-card-in .24s ease;
+  }
+  .auth-card-back {
+    position:relative;
+    inset:auto;
+    display:none;
+  }
+  .auth-flip-wrapper--flipped .auth-card-front {
+    display:none;
+  }
+  .auth-flip-wrapper--flipped .auth-card-back {
+    display:block;
+  }
 
   /* Modal */
   .modal-box { width:calc(100vw - 32px); padding:28px 20px; border-radius:20px; }

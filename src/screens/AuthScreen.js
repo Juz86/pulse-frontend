@@ -159,7 +159,7 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
   if (isModal) return formContent;
 
   const flipCards = (
-    <div className="auth-flip-wrapper">
+    <div className={`auth-flip-wrapper${flipped ? ' auth-flip-wrapper--flipped' : ''}`}>
       <div className={`auth-flip-inner${flipped ? ' auth-flip-inner--flipped' : ''}`}>
 
         {/* ── Voorkant: kind-login ── */}

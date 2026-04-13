@@ -170,7 +170,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                   <div className="pf-settings-head">
                     <div className="pf-settings-title">Geschiedenis</div>
                     <div className="pf-settings-subtitle">
-Beheer per account hoe lang chat-, bel- en videogeschiedenis wordt bewaard. Pulse bewaart je data maximaal 30 dagen, waarna deze automatisch wordt verwijderd.                    </div>
+Beheer per account hoe lang chat-, bel- en videobel geschiedenis wordt bewaard. Pulse bewaart je data maximaal 30 dagen, waarna deze automatisch wordt verwijderd.                    </div>
                   </div>
                   <div className="pf-settings-grid">
                     <div className="pf-settings-panel">
@@ -229,7 +229,7 @@ Beheer per account hoe lang chat-, bel- en videogeschiedenis wordt bewaard. Puls
               </div>
               <div className="hp-feature-mockup">
                 <div className="op-privacy-card">
-                  <div className="op-privacy-icon pf-icon-tight"><Shield size={32} /></div>
+                  <div className="op-privacy-icon pf-icon-tight"><Activity size={32} /></div>
                   <div className="op-privacy-title">Bij Pulse draait het om contact, niet om data.</div>
                   <div className="op-privacy-sub pf-sub-tight">
                     Zo simpel is het.

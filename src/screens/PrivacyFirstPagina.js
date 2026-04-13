@@ -149,7 +149,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                 <div className="hp-feature-tag pf-inline-tag">Jij bepaalt</div>
                 <h2>Jij bepaalt wat wordt bewaard.</h2>
                 <p>
-                  Bij Pulse kies je zelf hoelang chat- bel- en videobel geschiedenis bewaard blijven.
+                  Bij Pulse kies je zelf hoelang chat-, bel- en videobel geschiedenis bewaard blijven.
                   Zo houd je controle over wat zichtbaar blijft en wat weer verdwijnt.
                 </p>
                 <p className="pf-paragraph-spaced">
@@ -170,8 +170,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                   <div className="pf-settings-head">
                     <div className="pf-settings-title">Geschiedenis</div>
                     <div className="pf-settings-subtitle">
-                      Beheer per account hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis worden bewaard. Pulse bewaart je data maximaal 30 dagen, waarna deze automatisch wordt verwijderd.
-                    </div>
+Beheer per account hoe lang chat-, bel- en videogeschiedenis wordt bewaard. Pulse bewaart je data maximaal 30 dagen, waarna deze automatisch wordt verwijderd.                    </div>
                   </div>
                   <div className="pf-settings-grid">
                     <div className="pf-settings-panel">

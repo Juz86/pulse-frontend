@@ -1,5 +1,5 @@
 // src/components/ChatHeader.js
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Bell, BellOff, MoreHoriz, Phone, StarOutline, Trash2, Users, Video, XIcon } from '../components/Icons';
 import {
   getServiceTransportFallbackBannerState,
@@ -43,7 +43,9 @@ const ChatHeader = React.memo(function ChatHeader({
   onDeleteChat,
 }) {
   const [moreActionsOpen, setMoreActionsOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 12 });
   const moreActionsRef = useRef(null);
+  const moreActionsButtonRef = useRef(null);
   const otherUid  = getOtherUid(activeConv);
   const isOnline  = otherUid && onlineUsers.has(otherUid);
   const isActive  = isOnline && !inactiveUsers.has(otherUid);
@@ -78,6 +80,24 @@ const ChatHeader = React.memo(function ChatHeader({
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [moreActionsOpen]);
+
+  useLayoutEffect(() => {
+    if (!moreActionsOpen || !moreActionsButtonRef.current) return;
+    function updateMenuPosition() {
+      const rect = moreActionsButtonRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 8,
+        right: Math.max(12, window.innerWidth - rect.right),
+      });
+    }
+    updateMenuPosition();
+    window.addEventListener('resize', updateMenuPosition);
+    window.addEventListener('scroll', updateMenuPosition, true);
+    return () => {
+      window.removeEventListener('resize', updateMenuPosition);
+      window.removeEventListener('scroll', updateMenuPosition, true);
+    };
   }, [moreActionsOpen]);
 
   function openContactProfile() {
@@ -203,6 +223,7 @@ const ChatHeader = React.memo(function ChatHeader({
           <button
             type="button"
             className="icon-btn"
+            ref={moreActionsButtonRef}
             aria-label="Meer acties"
             aria-haspopup="menu"
             aria-expanded={moreActionsOpen}
@@ -212,7 +233,13 @@ const ChatHeader = React.memo(function ChatHeader({
             <MoreHoriz size={18} aria-hidden="true" />
           </button>
           {moreActionsOpen && (
-            <div className="chat-header-menu" role="menu" aria-label="Meer acties in gesprek">
+            <div
+              className="chat-header-menu"
+              role="menu"
+              aria-label="Meer acties in gesprek"
+              style={{ top: menuPosition.top, right: menuPosition.right }}
+              onClick={(event) => event.stopPropagation()}
+            >
               <button
                 type="button"
                 role="menuitem"

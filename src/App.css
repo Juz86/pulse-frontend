@@ -629,6 +629,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   border-bottom:1px solid rgba(255,255,255,0.07);
   box-shadow:0 4px 20px rgba(0,0,0,.16), 0 1px 0 rgba(255,255,255,0.05) inset;
   position:relative;
+  z-index:35;
+  overflow:visible;
 }
 .chat-header::after {
   content:''; position:absolute; bottom:0; left:22px; right:22px; height:1px;
@@ -643,9 +645,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .chat-header-typing { font-size:12px; color:var(--success); margin-top:2px; }
 .chat-header-actions { display:flex; gap:8px; position:relative; }
 .chat-header-menu {
-  position:absolute;
-  top:calc(100% + 8px);
-  right:0;
+  position:fixed;
   min-width:220px;
   display:flex;
   flex-direction:column;
@@ -655,7 +655,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   border:1px solid var(--border);
   background:var(--surface2);
   box-shadow:0 18px 38px rgba(0,0,0,.28);
-  z-index:40;
+  z-index:1200;
 }
 .chat-header-menu-item {
   width:100%;

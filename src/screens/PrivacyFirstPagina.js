@@ -170,7 +170,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                   <div className="pf-settings-head">
                     <div className="pf-settings-title">Geschiedenis</div>
                     <div className="pf-settings-subtitle">
-                      Beheer per account hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis worden bewaard.
+                      Beheer per account hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis worden bewaard. Pulse bewaart je data maximaal 30 dagen, waarna deze automatisch wordt verwijderd.
                     </div>
                   </div>
                   <div className="pf-settings-grid">

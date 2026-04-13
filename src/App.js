@@ -3,7 +3,7 @@ import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import * as Sentry from '@sentry/react';
 import ErrorBoundary from './components/ErrorBoundary';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, db, messaging, getToken } from './firebase';
+import { auth, authPersistenceReady, db, messaging, getToken } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket';
 import './App.css';
@@ -164,8 +164,8 @@ export default function App() {
 
 function MainApp() {
   const urlParams = new URLSearchParams(window.location.search);
-  const [user,         setUser]         = useState(auth.currentUser);
-  const [loading,      setLoading]      = useState(!auth.currentUser);
+  const [user,         setUser]         = useState(null);
+  const [loading,      setLoading]      = useState(true);
   const [incomingCall,    setIncomingCall]    = useState(null);
   const [missedCallAlert, setMissedCallAlert] = useState(false);
   const [onlineUsers,   setOnlineUsers]   = useState(new Set());
@@ -185,7 +185,7 @@ function MainApp() {
   const browserCallNoticeTimerRef = useRef(null);
   const fcmVisibilityRef       = useRef(null);
   const onlineVisibilityRef    = useRef(null);
-  const lastSignedInUidRef     = useRef(auth.currentUser?.uid || null);
+  const lastSignedInUidRef     = useRef(null);
 
   useEffect(() => scheduleIdleTask(() => {
     fetch(`${BACKEND}/`, { method: 'GET', keepalive: true }).catch((e) => {
@@ -247,272 +247,280 @@ function MainApp() {
   }, []);
 
   useEffect(() => {
-    const loadingTimeout = setTimeout(() => setLoading(false), 5000);
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      clearTimeout(loadingTimeout);
-      if (firebaseUser) {
-        if (lastSignedInUidRef.current && lastSignedInUidRef.current !== firebaseUser.uid) {
-          clearPulseUserStorage(lastSignedInUidRef.current);
-        }
-        lastSignedInUidRef.current = firebaseUser.uid;
-        localStorage.setItem('pulse_user', '1');
-        setUser(firebaseUser);
-        Sentry.setUser({ id: firebaseUser.uid });
-        // Controleer ouder-rol — localStorage flag heeft prioriteit over Firestore
-        let role = 'user';
-        let username = null;
-        try {
-          const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
-          if (snap.exists()) {
-            role = snap.data()?.role || 'user';
-            username = snap.data()?.username || null;
-          }
-          else {
-            // Nieuw account — controleer of ouderregistratie bezig is (race condition met /api/users)
-            const pendingRole = localStorage.getItem('pulse_pending_role');
-            if (pendingRole === 'parent') role = 'parent';
-          }
-        } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-        setUserRole(role);
-        const ready = await probeE2EEServiceReady(BACKEND);
-        setServiceTransportReady(ready);
-        if (shouldBootstrapE2EEDevice) {
-          try {
-            await bootstrapDevice(firebaseUser);
-          } catch (e) {
-            console.warn('[Pulse] Device bootstrap mislukt:', e.message);
-          }
-        }
-        const idToken = await firebaseUser.getIdToken();
-        const socket = connectSocket(firebaseUser.uid, idToken);
-        const authHeader = { 'Authorization': `Bearer ${idToken}` };
+    let unsub = () => {};
+    let loadingTimeout;
+    let isActive = true;
 
-        try {
-          await fetch(`${BACKEND}/api/users/sync-self`, {
+    authPersistenceReady.finally(() => {
+      if (!isActive) return;
+      loadingTimeout = setTimeout(() => setLoading(false), 5000);
+      unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+        clearTimeout(loadingTimeout);
+        if (firebaseUser) {
+          if (lastSignedInUidRef.current && lastSignedInUidRef.current !== firebaseUser.uid) {
+            clearPulseUserStorage(lastSignedInUidRef.current);
+          }
+          lastSignedInUidRef.current = firebaseUser.uid;
+          localStorage.setItem('pulse_user', '1');
+          setUser(firebaseUser);
+          Sentry.setUser({ id: firebaseUser.uid });
+          // Controleer ouder-rol — localStorage flag heeft prioriteit over Firestore
+          let role = 'user';
+          let username = null;
+          try {
+            const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
+            if (snap.exists()) {
+              role = snap.data()?.role || 'user';
+              username = snap.data()?.username || null;
+            }
+            else {
+              // Nieuw account — controleer of ouderregistratie bezig is (race condition met /api/users)
+              const pendingRole = localStorage.getItem('pulse_pending_role');
+              if (pendingRole === 'parent') role = 'parent';
+            }
+          } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+          setUserRole(role);
+          const ready = await probeE2EEServiceReady(BACKEND);
+          setServiceTransportReady(ready);
+          if (shouldBootstrapE2EEDevice) {
+            try {
+              await bootstrapDevice(firebaseUser);
+            } catch (e) {
+              console.warn('[Pulse] Device bootstrap mislukt:', e.message);
+            }
+          }
+          const idToken = await firebaseUser.getIdToken();
+          const socket = connectSocket(firebaseUser.uid, idToken);
+          const authHeader = { 'Authorization': `Bearer ${idToken}` };
+
+          try {
+            await fetch(`${BACKEND}/api/users/sync-self`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...authHeader,
+              },
+              body: JSON.stringify({
+                displayName: firebaseUser.displayName || firebaseUser.email || firebaseUser.uid,
+                email: firebaseUser.email || null,
+                photoURL: firebaseUser.photoURL || null,
+                username,
+                role,
+              }),
+            });
+          } catch (e) {
+            console.warn('[Pulse] Zelfregistratie backend mislukt:', e.message);
+          }
+
+          // Notificatie-toestemming + FCM token
+          const registerFcmToken = async (authHdr) => {
+            try {
+              if (!messaging || typeof Notification === 'undefined') return;
+              if (Notification.permission !== 'granted' && Notification.permission !== 'default') return;
+              const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+              if (permission !== 'granted' || !VAPID_KEY || !navigator.serviceWorker) return;
+              // Registreer de firebase messaging SW expliciet en wacht tot hij actief is
+              const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+              if (!swReg.active) {
+                await new Promise((resolve, reject) => {
+                  const sw = swReg.installing ?? swReg.waiting;
+                  if (!sw) { resolve(); return; }
+                  sw.addEventListener('statechange', function handler(e) {
+                    if (e.target.state === 'activated') { sw.removeEventListener('statechange', handler); resolve(); }
+                    else if (e.target.state === 'redundant') { sw.removeEventListener('statechange', handler); reject(new Error('SW kon niet activeren')); }
+                  });
+                });
+              }
+              const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+              if (!token) return;
+              for (let attempt = 1; attempt <= 3; attempt += 1) {
+                try {
+                  const res = await fetch(`${BACKEND}/api/fcm-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...authHdr },
+                    body: JSON.stringify({ uid: firebaseUser.uid, token }),
+                  });
+                  if (res.ok) break;
+                } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+                await new Promise(r => setTimeout(r, 1000 * attempt));
+              }
+            } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+          };
+          await registerFcmToken(authHeader);
+          // Herregistreer token wanneer app focus krijgt na lange afwezigheid
+          let lastTokenRefresh = Date.now();
+          const onVisibilityChange = () => {
+            if (document.visibilityState === 'visible' && Date.now() - lastTokenRefresh > 3_600_000) {
+              lastTokenRefresh = Date.now();
+              firebaseUser.getIdToken().then(t => registerFcmToken({ 'Authorization': `Bearer ${t}` })).catch(e => { console.warn('[Pulse] Fout:', e.message); });
+            }
+          };
+          if (fcmVisibilityRef.current) document.removeEventListener('visibilitychange', fcmVisibilityRef.current);
+          fcmVisibilityRef.current = onVisibilityChange;
+          document.addEventListener('visibilitychange', onVisibilityChange);
+
+          // Profiel opslaan in backend
+          fetch(`${BACKEND}/api/users`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...authHeader,
-            },
+            headers: { 'Content-Type': 'application/json', ...authHeader },
             body: JSON.stringify({
-              displayName: firebaseUser.displayName || firebaseUser.email || firebaseUser.uid,
-              email: firebaseUser.email || null,
-              photoURL: firebaseUser.photoURL || null,
-              username,
+              uid:         firebaseUser.uid,
+              displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+              email:       firebaseUser.email,
+              photoURL:    localStorage.getItem(`pulse_photo_${firebaseUser.uid}`) || firebaseUser.photoURL || '',
               role,
             }),
-          });
-        } catch (e) {
-          console.warn('[Pulse] Zelfregistratie backend mislukt:', e.message);
-        }
+          }).catch(e => { console.warn('[Pulse] Fout:', e.message); });
 
-        // Notificatie-toestemming + FCM token
-        const registerFcmToken = async (authHdr) => {
-          try {
-            if (!messaging || typeof Notification === 'undefined') return;
-            if (Notification.permission !== 'granted' && Notification.permission !== 'default') return;
-            const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
-            if (permission !== 'granted' || !VAPID_KEY || !navigator.serviceWorker) return;
-            // Registreer de firebase messaging SW expliciet en wacht tot hij actief is
-            const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-            if (!swReg.active) {
-              await new Promise((resolve, reject) => {
-                const sw = swReg.installing ?? swReg.waiting;
-                if (!sw) { resolve(); return; }
-                sw.addEventListener('statechange', function handler(e) {
-                  if (e.target.state === 'activated') { sw.removeEventListener('statechange', handler); resolve(); }
-                  else if (e.target.state === 'redundant') { sw.removeEventListener('statechange', handler); reject(new Error('SW kon niet activeren')); }
-                });
-              });
+          // Online status
+          socket.off('user:status');
+          socket.off('users:online');
+          socket.off('users:inactive');
+          socket.on('user:status', ({ uid, online, inactive }) => {
+            if (online) {
+              setOnlineUsers(prev => new Set([...prev, uid]));
+              setInactiveUsers(prev => { const s = new Set(prev); if (inactive) s.add(uid); else s.delete(uid); return s; });
+            } else {
+              setOnlineUsers(prev => { const s = new Set(prev); s.delete(uid); return s; });
+              setInactiveUsers(prev => { const s = new Set(prev); s.delete(uid); return s; });
             }
-            const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
-            if (!token) return;
-            for (let attempt = 1; attempt <= 3; attempt += 1) {
-              try {
-                const res = await fetch(`${BACKEND}/api/fcm-token`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', ...authHdr },
-                  body: JSON.stringify({ uid: firebaseUser.uid, token }),
-                });
-                if (res.ok) break;
-              } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-              await new Promise(r => setTimeout(r, 1000 * attempt));
+          });
+          socket.on('users:online', (uids) => {
+            setOnlineUsers(new Set(uids));
+          });
+          socket.on('users:inactive', (uids) => {
+            setInactiveUsers(new Set(uids));
+          });
+
+          // Herverbinding via connect event (reconnect event werkt niet in Socket.IO v4)
+          socket.off('connect');
+          socket.on('connect', () => {
+            socket.emit('user:online');
+            socket.emit('users:online:request');
+          });
+
+          // Ouder realtime activiteitsnotificaties
+          socket.off('parent:activity');
+          socket.on('parent:activity', (data) => {
+            setParentActivityBadge(prev => prev + 1);
+            setParentToast(data);
+            clearTimeout(toastTimerRef.current);
+            toastTimerRef.current = setTimeout(() => setParentToast(null), 4000);
+          });
+
+          socket.off('coparent:accepted');
+          socket.on('coparent:accepted', ({ childName, coparentName }) => {
+            setParentActivityBadge(prev => prev + 1);
+            setParentToast({
+              type: 'coparent_accepted',
+              description: `${coparentName || 'Een ouder'} heeft de uitnodiging voor ${childName || 'dit kind'} geaccepteerd.`,
+            });
+            clearTimeout(toastTimerRef.current);
+            toastTimerRef.current = setTimeout(() => setParentToast(null), 4000);
+          });
+
+          socket.off('coparent:declined');
+          socket.on('coparent:declined', ({ childName, coparentName }) => {
+            setParentActivityBadge(prev => prev + 1);
+            setParentToast({
+              type: 'coparent_declined',
+              description: `${coparentName || 'Een ouder'} heeft de uitnodiging voor ${childName || 'dit kind'} geweigerd.`,
+            });
+            clearTimeout(toastTimerRef.current);
+            toastTimerRef.current = setTimeout(() => setParentToast(null), 4000);
+          });
+
+          // Firebase token verloopt na 1 uur — refresh bij connect_error
+          socket.off('connect_error');
+          socket.on('connect_error', async () => {
+            try {
+              const newToken = await firebaseUser.getIdToken(true);
+              socket.auth.token = newToken;
+            } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+          });
+
+          // Tab-focus: haal actuele online lijst opnieuw op
+          // Verwijder eventuele vorige listener via een stabiele referentie
+          if (onlineVisibilityRef.current) document.removeEventListener('visibilitychange', onlineVisibilityRef.current);
+          onlineVisibilityRef.current = () => {
+            if (document.visibilityState === 'visible') socket.emit('users:online:request');
+          };
+          document.addEventListener('visibilitychange', onlineVisibilityRef.current);
+
+          // Inkomende oproepen
+          socket.off('call:incoming');
+          socket.off('call:offer');
+          socket.off('call:ended');
+          const onIncomingCall = (data = {}) => {
+            if (isPulseWebBrowser()) {
+              const fromUid = data.from || data.fromUid || null;
+              if (fromUid) socket.emit('call:decline', { to: fromUid });
+              setBrowserCallNotice(PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE);
+              clearTimeout(browserCallNoticeTimerRef.current);
+              browserCallNoticeTimerRef.current = setTimeout(() => setBrowserCallNotice(''), 4500);
+              return;
             }
-          } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-        };
-        await registerFcmToken(authHeader);
-        // Herregistreer token wanneer app focus krijgt na lange afwezigheid
-        let lastTokenRefresh = Date.now();
-        const onVisibilityChange = () => {
-          if (document.visibilityState === 'visible' && Date.now() - lastTokenRefresh > 3_600_000) {
-            lastTokenRefresh = Date.now();
-            firebaseUser.getIdToken().then(t => registerFcmToken({ 'Authorization': `Bearer ${t}` })).catch(e => { console.warn('[Pulse] Fout:', e.message); });
-          }
-        };
-        if (fcmVisibilityRef.current) document.removeEventListener('visibilitychange', fcmVisibilityRef.current);
-        fcmVisibilityRef.current = onVisibilityChange;
-        document.addEventListener('visibilitychange', onVisibilityChange);
-
-        // Profiel opslaan in backend
-        fetch(`${BACKEND}/api/users`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...authHeader },
-          body: JSON.stringify({
-            uid:         firebaseUser.uid,
-            displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-            email:       firebaseUser.email,
-            photoURL:    localStorage.getItem(`pulse_photo_${firebaseUser.uid}`) || firebaseUser.photoURL || '',
-            role,
-          }),
-        }).catch(e => { console.warn('[Pulse] Fout:', e.message); });
-
-        // Online status
-        socket.off('user:status');
-        socket.off('users:online');
-        socket.off('users:inactive');
-        socket.on('user:status', ({ uid, online, inactive }) => {
-          if (online) {
-            setOnlineUsers(prev => new Set([...prev, uid]));
-            setInactiveUsers(prev => { const s = new Set(prev); if (inactive) s.add(uid); else s.delete(uid); return s; });
-          } else {
-            setOnlineUsers(prev => { const s = new Set(prev); s.delete(uid); return s; });
-            setInactiveUsers(prev => { const s = new Set(prev); s.delete(uid); return s; });
-          }
-        });
-        socket.on('users:online', (uids) => {
-          setOnlineUsers(new Set(uids));
-        });
-        socket.on('users:inactive', (uids) => {
-          setInactiveUsers(new Set(uids));
-        });
-
-        // Herverbinding via connect event (reconnect event werkt niet in Socket.IO v4)
-        socket.off('connect');
-        socket.on('connect', () => {
-          socket.emit('user:online');
-          socket.emit('users:online:request');
-        });
-
-        // Ouder realtime activiteitsnotificaties
-        socket.off('parent:activity');
-        socket.on('parent:activity', (data) => {
-          setParentActivityBadge(prev => prev + 1);
-          setParentToast(data);
-          clearTimeout(toastTimerRef.current);
-          toastTimerRef.current = setTimeout(() => setParentToast(null), 4000);
-        });
-
-        socket.off('coparent:accepted');
-        socket.on('coparent:accepted', ({ childName, coparentName }) => {
-          setParentActivityBadge(prev => prev + 1);
-          setParentToast({
-            type: 'coparent_accepted',
-            description: `${coparentName || 'Een ouder'} heeft de uitnodiging voor ${childName || 'dit kind'} geaccepteerd.`,
-          });
-          clearTimeout(toastTimerRef.current);
-          toastTimerRef.current = setTimeout(() => setParentToast(null), 4000);
-        });
-
-        socket.off('coparent:declined');
-        socket.on('coparent:declined', ({ childName, coparentName }) => {
-          setParentActivityBadge(prev => prev + 1);
-          setParentToast({
-            type: 'coparent_declined',
-            description: `${coparentName || 'Een ouder'} heeft de uitnodiging voor ${childName || 'dit kind'} geweigerd.`,
-          });
-          clearTimeout(toastTimerRef.current);
-          toastTimerRef.current = setTimeout(() => setParentToast(null), 4000);
-        });
-
-        // Firebase token verloopt na 1 uur — refresh bij connect_error
-        socket.off('connect_error');
-        socket.on('connect_error', async () => {
-          try {
-            const newToken = await firebaseUser.getIdToken(true);
-            socket.auth.token = newToken;
-          } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-        });
-
-        // Tab-focus: haal actuele online lijst opnieuw op
-        // Verwijder eventuele vorige listener via een stabiele referentie
-        if (onlineVisibilityRef.current) document.removeEventListener('visibilitychange', onlineVisibilityRef.current);
-        onlineVisibilityRef.current = () => {
-          if (document.visibilityState === 'visible') socket.emit('users:online:request');
-        };
-        document.addEventListener('visibilitychange', onlineVisibilityRef.current);
-
-        // Inkomende oproepen
-        socket.off('call:incoming');
-        socket.off('call:offer');
-        socket.off('call:ended');
-        const onIncomingCall = (data = {}) => {
-          if (isPulseWebBrowser()) {
-            const fromUid = data.from || data.fromUid || null;
-            if (fromUid) socket.emit('call:decline', { to: fromUid });
-            setBrowserCallNotice(PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE);
-            clearTimeout(browserCallNoticeTimerRef.current);
-            browserCallNoticeTimerRef.current = setTimeout(() => setBrowserCallNotice(''), 4500);
-            return;
-          }
-          setIncomingCall({
-            ...data,
-            from: data.from || data.fromUid || null,
-          });
-        };
-        socket.on('call:incoming', onIncomingCall);
-        socket.on('call:offer', onIncomingCall);
-        // Beller hangt op voor de ontvanger opneemt → gemiste oproep loggen + overlay sluiten
-        socket.on('call:ended', () => {
-          setIncomingCall(prev => {
-            if (prev) {
-              const key = `pulse_calls_${firebaseUser.uid}`;
-              const log = JSON.parse(localStorage.getItem(key) || '[]');
-              const historyRules = readStoredHistoryRules(firebaseUser.uid);
-              const retentionDays = prev.isVideo ? historyRules.videoRetentionDays : historyRules.callRetentionDays;
-              if (retentionDays === 0) {
-                return null;
+            setIncomingCall({
+              ...data,
+              from: data.from || data.fromUid || null,
+            });
+          };
+          socket.on('call:incoming', onIncomingCall);
+          socket.on('call:offer', onIncomingCall);
+          // Beller hangt op voor de ontvanger opneemt → gemiste oproep loggen + overlay sluiten
+          socket.on('call:ended', () => {
+            setIncomingCall(prev => {
+              if (prev) {
+                const key = `pulse_calls_${firebaseUser.uid}`;
+                const log = JSON.parse(localStorage.getItem(key) || '[]');
+                const historyRules = readStoredHistoryRules(firebaseUser.uid);
+                const retentionDays = prev.isVideo ? historyRules.videoRetentionDays : historyRules.callRetentionDays;
+                if (retentionDays === 0) {
+                  return null;
+                }
+                const alreadyLogged = log[0]?.uid === prev.from && Date.now() - log[0]?.ts < 3000;
+                if (!alreadyLogged) {
+                  log.unshift({ uid: prev.from, name: prev.callerName, photoURL: '', isVideo: prev.isVideo, direction: 'missed', ts: Date.now() });
+                  localStorage.setItem(key, JSON.stringify(log.slice(0, 50)));
+                  setMissedCallAlert(true);
+                }
               }
-              const alreadyLogged = log[0]?.uid === prev.from && Date.now() - log[0]?.ts < 3000;
-              if (!alreadyLogged) {
-                log.unshift({ uid: prev.from, name: prev.callerName, photoURL: '', isVideo: prev.isVideo, direction: 'missed', ts: Date.now() });
-                localStorage.setItem(key, JSON.stringify(log.slice(0, 50)));
-                setMissedCallAlert(true);
-              }
-            }
-            return null;
+              return null;
+            });
           });
-        });
-      } else {
-        clearPulseUserStorage(lastSignedInUidRef.current);
-        lastSignedInUidRef.current = null;
-        localStorage.removeItem('pulse_user');
-        setUser(null);
-        Sentry.setUser(null);
-        setOnlineUsers(new Set());
-        setInactiveUsers(new Set());
-        setUserRole(null);
-        setServiceTransportReady(false);
-        setShowParentDashboard(false);
-        // Controleer of we direct ouder-auth moeten openen na redirect
-        const pendingParentTab = localStorage.getItem('pulse_parent_default_tab');
-        const pendingReferrer  = localStorage.getItem('pulse_parent_referrer');
-        if (pendingParentTab) {
-          localStorage.removeItem('pulse_parent_default_tab');
-          localStorage.removeItem('pulse_parent_referrer');
-          setParentAuthDefaultTab(pendingParentTab);
-          setParentAuthReferrer(pendingReferrer || null);
-          setShowParentAuth(true);
         } else {
-          setShowParentAuth(false);
-          setParentAuthReferrer(null);
+          clearPulseUserStorage(lastSignedInUidRef.current);
+          lastSignedInUidRef.current = null;
+          localStorage.removeItem('pulse_user');
+          setUser(null);
+          Sentry.setUser(null);
+          setOnlineUsers(new Set());
+          setInactiveUsers(new Set());
+          setUserRole(null);
+          setServiceTransportReady(false);
+          setShowParentDashboard(false);
+          // Controleer of we direct ouder-auth moeten openen na redirect
+          const pendingParentTab = localStorage.getItem('pulse_parent_default_tab');
+          const pendingReferrer  = localStorage.getItem('pulse_parent_referrer');
+          if (pendingParentTab) {
+            localStorage.removeItem('pulse_parent_default_tab');
+            localStorage.removeItem('pulse_parent_referrer');
+            setParentAuthDefaultTab(pendingParentTab);
+            setParentAuthReferrer(pendingReferrer || null);
+            setShowParentAuth(true);
+          } else {
+            setShowParentAuth(false);
+            setParentAuthReferrer(null);
+          }
+          if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }
+          if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
+          disconnectSocket();
         }
-        if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }
-        if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
-        disconnectSocket();
-      }
-      setLoading(false);
+        setLoading(false);
+      });
     });
     return () => {
+      isActive = false;
       unsub();
       clearTimeout(loadingTimeout);
       if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }

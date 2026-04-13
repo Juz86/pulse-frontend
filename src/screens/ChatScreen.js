@@ -111,7 +111,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       ? mutedConversationIdsRef.current.filter((id) => id !== convId)
       : [...mutedConversationIdsRef.current, convId];
     persistMutedConversationIds(nextIds);
-    showErrToast(nextIds.includes(convId) ? 'Meldingen gedempt voor dit gesprek' : 'Meldingen weer ingeschakeld voor dit gesprek');
+    showErrToast({
+      icon: nextIds.includes(convId) ? <BellOff size={15} aria-hidden="true" /> : <Bell size={15} aria-hidden="true" />,
+      text: nextIds.includes(convId) ? 'Meldingen gedempt voor dit gesprek' : 'Meldingen weer ingeschakeld voor dit gesprek',
+      bg: 'rgba(34,197,94,0.92)',
+    });
   }
   function handleShowContextMenu(e, msg) {
     e.preventDefault?.();

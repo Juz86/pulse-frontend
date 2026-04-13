@@ -199,37 +199,6 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                       </div>
                       <div className="pf-settings-save">Opslaan</div>
                     </div>
-                    <div className="pf-settings-panel">
-                      <div className="pf-settings-panel-title">Kindaccount</div>
-                      <div className="pf-settings-field-group">
-                        <div className="pf-settings-select">
-                          <span>Prinsesje</span>
-                          <span className="pf-settings-chevron">⌄</span>
-                        </div>
-                      </div>
-                      <div className="pf-settings-field-group">
-                        <div className="pf-settings-label">Chatgeschiedenis</div>
-                        <div className="pf-settings-select">
-                          <span>24 uur</span>
-                          <span className="pf-settings-chevron">⌄</span>
-                        </div>
-                      </div>
-                      <div className="pf-settings-field-group">
-                        <div className="pf-settings-label">Belgeschiedenis</div>
-                        <div className="pf-settings-select">
-                          <span>7 dagen</span>
-                          <span className="pf-settings-chevron">⌄</span>
-                        </div>
-                      </div>
-                      <div className="pf-settings-field-group">
-                        <div className="pf-settings-label">Videobelgeschiedenis</div>
-                        <div className="pf-settings-select">
-                          <span>30 dagen (standaard)</span>
-                          <span className="pf-settings-chevron">⌄</span>
-                        </div>
-                      </div>
-                      <div className="pf-settings-save">Opslaan</div>
-                    </div>
                   </div>
                 </div>
               </div>

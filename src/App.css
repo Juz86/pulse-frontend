@@ -1698,6 +1698,14 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .form-input,
   .chat-textarea,
   .search-box input { font-size:16px; }
+  .parent-auth-input,
+  .parent-auth-input::placeholder {
+    font-size:16px;
+    line-height:1.45;
+  }
+  .parent-auth-input {
+    min-height:48px;
+  }
 
   /* Sidebar footer */
   .sidebar-footer {
@@ -2322,6 +2330,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   transition:border-color .2s, background .2s;
   box-sizing:border-box; font-family:'Inter',sans-serif;
 }
+.parent-auth-input::placeholder { color:#9ca3af; }
 .parent-auth-input:focus { border-color:#6c63ff; background:#fff; }
 .parent-auth-error {
   display:flex; align-items:center; gap:8px;

@@ -166,47 +166,39 @@ export default function ChatSidebar({
               <div
                 role="menu"
                 aria-label="Meer acties"
+                className="chat-header-menu"
                 style={{
                   position: 'absolute',
                   top: 42,
                   right: 0,
-                  minWidth: 220,
-                  background: 'var(--surface2)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 14,
-                  padding: 8,
-                  boxShadow: '0 14px 30px rgba(0,0,0,0.24)',
                   zIndex: 500,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 4,
                 }}
               >
-                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); onShowAddContact(); }}>
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); onShowAddContact(); }}>
                   <Plus size={15} aria-hidden="true" />
                   <span>Nieuw contact</span>
                 </button>
-                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); onNewGroup(); }}>
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); onNewGroup(); }}>
                   <Users size={15} aria-hidden="true" />
                   <span>Nieuwe groep</span>
                 </button>
-                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
                   <Users size={15} aria-hidden="true" />
                   <span>Vriendschapsverzoeken</span>
                   {(friendRequests.length + sentFriendRequests.length) > 0 && (
                     <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
                   )}
                 </button>
-                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
                   <Message size={15} aria-hidden="true" />
                   <span>{selectionMode ? 'Chats selecteren stoppen' : 'Chats selecteren'}</span>
                 </button>
-                <button type="button" role="menuitem" className={`icon-btn${dnd ? ' dnd-active' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); onToggleDnd(); }}>
+                <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { setMoreActionsMenuOpen(false); onToggleDnd(); }}>
                   {dnd ? <BellOff size={15} aria-hidden="true" /> : <Bell size={15} aria-hidden="true" />}
                   <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
                 </button>
                 {callsAvailable && (
-                  <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '8px 10px', fontSize: 13, height: 'auto' }} onClick={() => { setMoreActionsMenuOpen(false); onShowCallModal(); }}>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); onShowCallModal(); }}>
                     <Phone size={15} aria-hidden="true" />
                     <span>Oproepen</span>
                   </button>
@@ -375,37 +367,34 @@ export default function ChatSidebar({
             role="menu"
             aria-label={`Acties voor ${conv.name}`}
             onClick={e => e.stopPropagation()}
+            className="chat-header-menu"
             style={{
               position: 'fixed', zIndex: 3000,
               top: convMenu.top, left: convMenu.left,
-              background: 'var(--surface2)', border: '1px solid var(--border)',
-              borderRadius: '14px', padding: '6px',
-              boxShadow: '0 8px 32px rgba(0,0,0,.35)',
-              display: 'flex', flexDirection: 'column',
               minWidth: 160, gap: 2,
             }}
           >
             {contact && (
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
+              <button type="button" role="menuitem" className="chat-header-menu-item"
                 onClick={() => { onViewContact(contact); setConvMenu(null); }} title="Profiel">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
                 <span>Profiel</span>
               </button>
             )}
             {!isParentBlocked && <>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
+              <button type="button" role="menuitem" className="chat-header-menu-item"
                 onClick={() => { onOpenConversation(conv); setConvMenu(null); }} title="Bericht sturen">
                 <Message size={14} aria-hidden="true" />
                 <span>Bericht sturen</span>
               </button>
               {callsAvailable && (
                 <>
-                  <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
+                  <button type="button" role="menuitem" className="chat-header-menu-item"
                     onClick={() => { onCallFromConv(conv, false); setConvMenu(null); }} title="Bellen">
                     <Phone size={14} aria-hidden="true" />
                     <span>Bellen</span>
                   </button>
-                  <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
+                  <button type="button" role="menuitem" className="chat-header-menu-item"
                     onClick={() => { onCallFromConv(conv, true); setConvMenu(null); }} title="Videobellen">
                     <Video size={14} aria-hidden="true" />
                     <span>Videobellen</span>
@@ -413,21 +402,21 @@ export default function ChatSidebar({
                 </>
               )}
               {otherUid && (
-                <button type="button" role="menuitem" className={`icon-btn${isPinned ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }}
+                <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`}
                   onClick={() => { onTogglePin(otherUid); setConvMenu(null); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
                   <Pin size={14} aria-hidden="true" />
                   <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
                 </button>
               )}
               {contact && !isProtectedParentContact && (
-                <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0, color: 'var(--danger)' }}
+                <button type="button" role="menuitem" className="chat-header-menu-item danger"
                   onClick={() => { onBlockContact(contact); setConvMenu(null); }} title="Blokkeren">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
                   <span>Blokkeren</span>
                 </button>
               )}
             </>}
-            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0, color: 'var(--danger)' }}
+            <button type="button" role="menuitem" className="chat-header-menu-item danger"
               onClick={() => { onDeleteConversation(null, conv.id); setConvMenu(null); }} title="Gesprek verwijderen">
               <Delete size={14} aria-hidden="true" />
               <span>Prullenbak</span>
@@ -446,56 +435,50 @@ export default function ChatSidebar({
             role="menu"
             aria-label={`Acties voor ${getContactDisplayName(contact)}`}
             onClick={e => e.stopPropagation()}
+            className="chat-header-menu"
             style={{
               position: 'fixed',
               top: contactMenu.top,
               left: contactMenu.left,
               width: 160,
-              background: 'var(--surface2)',
-              border: '1px solid var(--border)',
-              borderRadius: 12,
-              boxShadow: '0 14px 30px rgba(0,0,0,0.18)',
-              padding: 8,
               zIndex: 400,
-              display: 'flex',
-              flexDirection: 'column',
               gap: 4,
             }}
           >
-            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onViewContact(contact); setContactMenu(null); }} title="Profiel">
+            <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onViewContact(contact); setContactMenu(null); }} title="Profiel">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
               <span>Profiel</span>
             </button>
             {!isParentBlocked && <>
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onStartChat(contact); setContactMenu(null); }} title="Bericht sturen">
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onStartChat(contact); setContactMenu(null); }} title="Bericht sturen">
                 <Message size={14} aria-hidden="true" />
                 <span>Bericht sturen</span>
               </button>
               {callsAvailable && (
                 <>
-                  <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
                     <Phone size={14} aria-hidden="true" />
                     <span>Bellen</span>
                   </button>
-                  <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
                     <Video size={14} aria-hidden="true" />
                     <span>Videobellen</span>
                   </button>
                 </>
               )}
-              <button type="button" role="menuitem" className={`icon-btn${pinnedContacts.includes(contact.uid) ? ' pinned' : ''}`} style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0 }} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
+              <button type="button" role="menuitem" className={`chat-header-menu-item${pinnedContacts.includes(contact.uid) ? ' active' : ''}`} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
                 <Pin size={14} aria-hidden="true" />
                 <span>{pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}</span>
               </button>
               {!isProtectedParentContact && (
-              <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0, color: 'var(--danger)' }} onClick={() => { onBlockContact(contact); setContactMenu(null); }} title="Blokkeren">
+              <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onBlockContact(contact); setContactMenu(null); }} title="Blokkeren">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
                 <span>Blokkeren</span>
               </button>
               )}
             </>}
             {!isProtectedParentContact && (
-            <button type="button" role="menuitem" className="icon-btn" style={{ width: '100%', justifyContent: 'flex-start', gap: 8, padding: '7px 10px', fontSize: 13, height: 'auto', minHeight: 0, color: 'var(--danger)' }} onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
+            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
               <Delete size={14} aria-hidden="true" />
               <span>Prullenbak</span>
             </button>

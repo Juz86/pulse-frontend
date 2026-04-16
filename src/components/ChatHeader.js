@@ -1,6 +1,6 @@
 // src/components/ChatHeader.js
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Bell, BellOff, MoreHoriz, Phone, StarOutline, Trash2, Users, Video, XIcon } from '../components/Icons';
+import { Bell, BellOff, Logout, MoreHoriz, Phone, StarOutline, Trash2, Users, Video, XIcon } from '../components/Icons';
 import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
@@ -39,6 +39,7 @@ const ChatHeader = React.memo(function ChatHeader({
   onEnterMessageSelection,
   messageSelectionMode = false,
   onShowStarredMsgs,
+  onLeaveGroup,
   onClearChat,
   onDeleteChat,
 }) {
@@ -204,9 +205,6 @@ const ChatHeader = React.memo(function ChatHeader({
               <button type="button" className="call-btn video" aria-label={`Videobel ${getConvName(activeConv)}`} onClick={() => onInitiateCall(true)} title="Videobellen"><Video size={18} aria-hidden="true" /></button>
             </>
           )}
-          {activeConv.isGroup && (
-            <button type="button" className="icon-btn" aria-label={`Open groepsinformatie voor ${getConvName(activeConv)}`} onClick={onShowGroupInfo} title="Groepsinformatie"><Users size={18} aria-hidden="true" /></button>
-          )}
           <button
             type="button"
             className="icon-btn"
@@ -291,7 +289,23 @@ const ChatHeader = React.memo(function ChatHeader({
                 <StarOutline size={16} aria-hidden="true" />
                 <span>Berichten met ster</span>
               </button>
-              {!activeConv.isGroup && (
+              {activeConv.isGroup ? (
+                <>
+                  <div className="chat-header-menu-divider" />
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="chat-header-menu-item danger"
+                    onClick={() => {
+                      closeMoreActions();
+                      onLeaveGroup?.();
+                    }}
+                  >
+                    <Logout size={16} aria-hidden="true" />
+                    <span>Groep verlaten</span>
+                  </button>
+                </>
+              ) : (
                 <>
                   <div className="chat-header-menu-divider" />
                   <button

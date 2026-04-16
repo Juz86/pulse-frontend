@@ -20,7 +20,30 @@ if (process.env.REACT_APP_SENTRY_DSN) {
 }
 
 // Onafgehandelde promise rejections doorsturen naar Sentry
+const CHUNK_RELOAD_KEY = 'pulse:last-chunk-reload-at';
+
+function isChunkLoadFailure(reason) {
+  const message = String(reason?.message || reason || '');
+  return /ChunkLoadError|Loading chunk \d+ failed|MIME type.*not executable|Failed to fetch dynamically imported module/i.test(message);
+}
+
+function reloadOnceForFreshAssets(reason) {
+  if (!isChunkLoadFailure(reason)) return false;
+
+  const lastReload = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || 0);
+  if (Date.now() - lastReload < 60000) return false;
+
+  sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+  window.location.reload();
+  return true;
+}
+
 window.addEventListener('unhandledrejection', (event) => {
+  if (reloadOnceForFreshAssets(event.reason)) {
+    event.preventDefault();
+    return;
+  }
+
   if (process.env.REACT_APP_SENTRY_DSN) {
     Sentry.captureException(event.reason);
   }

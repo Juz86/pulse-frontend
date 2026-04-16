@@ -204,7 +204,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     sendMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
-    toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup,
+    toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup, leaveGroup,
     storeTransientConversationMessage,
   } = useConversations({
     user, text, setText, setActiveTab, setShowChatSearch, setChatSearch,
@@ -474,6 +474,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
               onEnterMessageSelection={() => messageSelectionMode ? cancelMessageSelection() : enterMessageSelection()}
               onShowStarredMsgs={() => setShowStarredMsgs(true)}
+              onLeaveGroup={leaveGroup}
               onClearChat={() => {
                 setConfirmDialog({
                   message: 'Chat wissen? Alle chatberichten worden volledig verwijderd uit de database.',

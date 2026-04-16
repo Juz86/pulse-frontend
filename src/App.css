@@ -1576,6 +1576,135 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   transform:translateY(-1px);
 }
 
+/* ── Groepsinfo: WhatsApp-achtige profielmodal ── */
+.group-info-modal {
+  width:min(440px, calc(100vw - 28px));
+  max-height:min(760px, calc(var(--vvh, 100dvh) - 28px));
+  overflow-y:auto;
+  padding:0 0 16px;
+  border-radius:24px;
+  background:#27245a;
+  border-color:rgba(255,255,255,.08);
+}
+.group-info-modal::before { display:none; }
+.group-info-modal .modal-close-btn {
+  top:14px; right:14px; z-index:2;
+  color:rgba(255,255,255,.72);
+}
+.group-info-hero {
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:28px 24px 18px;
+  text-align:center;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(139,92,246,.34), transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,.045), transparent);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.group-info-photo-control { position:relative; display:inline-flex; }
+.group-info-photo {
+  width:92px; height:92px; border-radius:50%;
+  object-fit:cover;
+  display:flex; align-items:center; justify-content:center;
+  border:3px solid rgba(139,92,246,.95);
+  box-shadow:0 14px 34px rgba(0,0,0,.28);
+}
+.group-info-photo-fallback {
+  background:linear-gradient(135deg,#7657ff,#f052a1);
+  color:#fff; font-size:34px; font-weight:800;
+}
+.group-info-photo-edit {
+  position:absolute; right:0; bottom:2px;
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:#7c5cff;
+  border:2px solid #27245a;
+  box-shadow:0 8px 18px rgba(0,0,0,.32);
+}
+.group-info-title {
+  margin:8px 0 0;
+  color:#f8f7ff;
+  font-size:25px;
+  line-height:1.15;
+  font-weight:800;
+  letter-spacing:-.02em;
+}
+.group-info-subtitle {
+  margin:0;
+  color:rgba(255,255,255,.52);
+  font-size:14px;
+  font-weight:600;
+}
+.group-info-member-list {
+  display:flex; flex-direction:column;
+  margin:0;
+  padding:8px 0;
+}
+.group-info-modal .group-info-member-row {
+  margin:0;
+  padding:12px 22px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  border-bottom:1px solid rgba(255,255,255,.075);
+}
+.group-info-modal .group-info-member-row:hover {
+  transform:none;
+  background:rgba(255,255,255,.035);
+  border-color:rgba(255,255,255,.075);
+  box-shadow:none;
+}
+.group-info-modal .group-info-member-row .conv-name {
+  color:#f7f5ff;
+  font-size:15px;
+  font-weight:750;
+}
+.group-info-modal .group-info-member-row .conv-preview {
+  color:rgba(255,255,255,.46);
+  font-size:13px;
+}
+.group-info-modal .admin-badge {
+  color:#a996ff;
+  background:rgba(139,92,246,.14);
+  border:1px solid rgba(139,92,246,.18);
+  border-radius:999px;
+  padding:2px 7px;
+}
+.group-info-remove-btn {
+  width:38px; height:38px; border-radius:14px;
+  display:inline-flex; align-items:center; justify-content:center;
+  border:1px solid rgba(255,77,109,.18);
+  background:rgba(255,77,109,.08);
+  color:var(--danger);
+  cursor:pointer;
+  flex-shrink:0;
+  transition:.18s ease;
+}
+.group-info-remove-btn:hover {
+  background:rgba(255,77,109,.16);
+  transform:translateY(-1px);
+}
+.group-info-add-btn {
+  width:calc(100% - 44px);
+  margin:14px 22px 0;
+  min-height:46px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.11);
+  background:rgba(255,255,255,.055);
+  color:#f8f7ff;
+  font-weight:800;
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.group-info-add-btn:hover { background:rgba(255,255,255,.085); }
+.group-info-section-label {
+  margin:18px 22px 8px;
+  color:rgba(255,255,255,.5);
+  font-size:13px;
+  font-weight:650;
+}
+.group-info-modal .modal-actions { display:none; }
+
 /* ── CALL OVERLAY ── */
 .call-overlay {
   position:fixed; inset:0; z-index:1000;

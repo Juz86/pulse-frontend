@@ -1315,7 +1315,7 @@ export default function ChatModals({
       {showGroupInfo && activeConv?.isGroup && (
         <div className="modal-overlay" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>
           <div
-            className="modal-box"
+            className="modal-box group-info-modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="group-info-title"
@@ -1326,7 +1326,7 @@ export default function ChatModals({
             {(() => {
               const isAdmin = activeConv.creatorId === user.uid;
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                <div className="group-info-hero">
                   <label
                     htmlFor={isAdmin ? 'group-photo-upload' : undefined}
                     aria-label={isAdmin ? `${activeConv.photoURL ? 'Wijzig' : 'Voeg'} groepsfoto toe voor ${getConvName(activeConv)}` : undefined}
@@ -1342,16 +1342,17 @@ export default function ChatModals({
                         e.currentTarget.querySelector('input[type="file"]')?.click();
                       }
                     } : undefined}
-                    style={{ position: 'relative', cursor: isAdmin && !groupPhotoLoading ? 'pointer' : 'default' }}
+                    className="group-info-photo-control"
+                    style={{ cursor: isAdmin && !groupPhotoLoading ? 'pointer' : 'default' }}
                   >
                     {activeConv.photoURL
-                      ? <img src={activeConv.photoURL} alt={`Groepsfoto van ${getConvName(activeConv)}`} style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--accent,#7c3aed)' }} />
-                      : <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 700, color: '#fff', border: '3px solid var(--accent,#7c3aed)' }}>
+                      ? <img src={activeConv.photoURL} alt={`Groepsfoto van ${getConvName(activeConv)}`} className="group-info-photo" />
+                      : <div className="group-info-photo group-info-photo-fallback">
                           {getConvName(activeConv)?.[0]?.toUpperCase() || '?'}
                         </div>}
                     {isAdmin && (
                       <>
-                        <div aria-hidden="true" style={{ position: 'absolute', bottom: 2, right: 2, width: 22, height: 22, borderRadius: '50%', background: 'var(--accent,#7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
+                        <div aria-hidden="true" className="group-info-photo-edit">
                           {groupPhotoLoading ? <div className="splash-spinner" style={{ width: 12, height: 12 }} /> : <Camera size={12} color="#fff" aria-hidden="true" />}
                         </div>
                         <input
@@ -1376,8 +1377,8 @@ export default function ChatModals({
                           : `Kies een afbeelding om een groepsfoto toe te voegen voor ${getConvName(activeConv)}. Toegestane bestandssoorten zijn afbeeldingsbestanden.`}
                     </p>
                   )}
-                  <h2 id="group-info-title" className="modal-title" style={{ margin: 0 }}>{getConvName(activeConv)}</h2>
-                  <p id="group-info-description" className="modal-sub" style={{ margin: 0 }}>{activeConv.members.length} deelnemers</p>
+                  <h2 id="group-info-title" className="group-info-title">{getConvName(activeConv)}</h2>
+                  <p id="group-info-description" className="group-info-subtitle">{activeConv.members.length} deelnemers</p>
                 </div>
               );
             })()}
@@ -1385,7 +1386,7 @@ export default function ChatModals({
               const isAdmin = activeConv.creatorId === user.uid;
               return (
                 <>
-                  <div role="list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                  <div role="list" className="group-info-member-list">
                     {activeConv.members.map(memberId => {
                       const name      = activeConv.memberNames?.[memberId] || memberId;
                       const isMe      = memberId === user.uid;
@@ -1393,7 +1394,7 @@ export default function ChatModals({
                       const isCreator = memberId === activeConv.creatorId;
                       const photo     = contacts.find(c => c.uid === memberId)?.photoURL || null;
                       return (
-                        <div key={memberId} role="listitem" className="search-result" style={{ cursor: 'default' }}>
+                        <div key={memberId} role="listitem" className="search-result group-info-member-row" style={{ cursor: 'default' }}>
                           <div className="avatar-wrap">
                             <UserAvatar photoURL={photo} displayName={name} className="sm" decorative />
                             {isOnline && <span className="online-dot sm" />}
@@ -1408,9 +1409,9 @@ export default function ChatModals({
                             </div>
                           </div>
                           {!isMe && isAdmin && (
-                            <button type="button" className="icon-btn" aria-label={`Verwijder ${name} uit de groep`} title="Verwijderen uit groep"
+                            <button type="button" className="group-info-remove-btn" aria-label={`Verwijder ${name} uit de groep`} title="Verwijderen uit groep"
                               onClick={() => removeMemberFromGroup(memberId)}
-                              style={{ color: 'var(--danger)', flexShrink: 0 }}><Delete size={18} aria-hidden="true" /></button>
+                            ><Delete size={18} aria-hidden="true" /></button>
                           )}
                         </div>
                       );
@@ -1419,7 +1420,7 @@ export default function ChatModals({
                   {isAdmin && !addingMember ? (
                     <button
                       type="button"
-                      className="btn-secondary"
+                      className="group-info-add-btn"
                       aria-expanded="false"
                       aria-controls="group-add-member-list"
                       onClick={() => setAddingMember(true)}
@@ -1428,7 +1429,7 @@ export default function ChatModals({
                     </button>
                   ) : isAdmin && addingMember ? (
                     <>
-                      <p id="group-add-member-description" className="modal-sub">Kies een contact om toe te voegen</p>
+                      <p id="group-add-member-description" className="group-info-section-label">Kies een contact om toe te voegen</p>
                       <div
                         id="group-add-member-list"
                         role="list"
@@ -1443,7 +1444,7 @@ export default function ChatModals({
                             key={c.uid}
                             type="button"
                             role="listitem"
-                            className="search-result"
+                            className="search-result group-info-member-row"
                             aria-label={`Voeg ${c.displayName} toe aan de groep`}
                             onClick={() => addMemberToGroup(c)}
                             style={{ textAlign: 'left', width: '100%' }}
@@ -1458,7 +1459,7 @@ export default function ChatModals({
                       </div>
                       <button
                         type="button"
-                        className="btn-secondary"
+                        className="group-info-add-btn"
                         aria-expanded="true"
                         aria-controls="group-add-member-list"
                         onClick={() => setAddingMember(false)}

@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon } from '../components/Icons';
+import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2 } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
@@ -457,7 +457,7 @@ export default function ChatSidebar({
                   onClick={() => { onHardDeleteConversation?.(conv); setConvMenu(null); }}
                   title="Chat verwijderen"
                 >
-                  <Delete size={14} aria-hidden="true" />
+                  <Trash2 size={14} aria-hidden="true" />
                   <span>Chat verwijderen</span>
                 </button>
               </>

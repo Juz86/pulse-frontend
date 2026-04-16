@@ -479,7 +479,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
           </div>
           <div className="parent-header-actions">
             {onClose && (
-              <button type="button" className="parent-btn-outline" aria-label="Ouderdashboard sluiten" onClick={onClose} style={{ padding: '8px 10px' }} title="Sluiten"><span aria-hidden="true">✕</span></button>
+              <button type="button" className="modal-close-btn pd-close-btn" aria-label="Ouderdashboard sluiten" onClick={onClose} title="Sluiten"><span aria-hidden="true">✕</span></button>
             )}
           </div>
         </div>

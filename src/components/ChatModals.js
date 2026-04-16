@@ -234,6 +234,7 @@ export default function ChatModals({
   const [pendingPhoto,    setPendingPhoto]    = useState(null);   // { file, url }
   const [requestsTab,     setRequestsTab]     = useState('ontvangen');
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
+  const [groupMemberSearch, setGroupMemberSearch] = useState('');
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
   const primaryHistoryChild = historyChildren.find((child) => child.uid === selectedHistoryChildUid) || historyChildren[0] || null;
   const primaryHistoryRules = normalizeHistoryRules(primaryHistoryChild ? childHistoryRulesByUid?.[primaryHistoryChild.uid] : {});
@@ -275,6 +276,10 @@ export default function ChatModals({
     setSelectedHistoryChildUid(historyChildren[0].uid);
   }, [historyChildren, selectedHistoryChildUid]);
 
+  useEffect(() => {
+    if (!addingMember) setGroupMemberSearch('');
+  }, [addingMember]);
+
 
   function openStarredFromProfile() {
     setProfileClosing(true);
@@ -283,7 +288,7 @@ export default function ChatModals({
 
   const anyModalOpen = !!(renamingContact || sharingContact || viewingSharedContact || viewingContact ||
     confirmDialog || showAddContact || showNewChat || showNewGroup || showProfile || showFriendRequestsPanel ||
-    showCallModal || showGroupInfo || forwardMsg || showContactProfile || showAvatarBuilder || showStarredMsgs);
+    showCallModal || forwardMsg || showContactProfile || showAvatarBuilder || showStarredMsgs);
 
   useEffect(() => {
     if (!anyModalOpen) return;
@@ -1311,18 +1316,79 @@ export default function ChatModals({
         );
       })()}
 
-      {/* ── GROEPSINFORMATIE MODAL ── */}
+      {/* ── GROEPSINFORMATIE PANEEL ── */}
       {showGroupInfo && activeConv?.isGroup && (
-        <div className="modal-overlay" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>
-          <div
-            className="modal-box group-info-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="group-info-title"
-            aria-describedby="group-info-description"
-            onClick={e => e.stopPropagation()}
-          >
+        <aside
+          className="group-info-panel"
+          aria-labelledby="group-info-title"
+          aria-describedby="group-info-description"
+        >
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}><span aria-hidden="true">✕</span></button>
+            {addingMember ? (() => {
+              const availableContacts = contacts.filter(c => !activeConv.members.includes(c.uid));
+              const query = groupMemberSearch.trim().toLowerCase();
+              const filteredContacts = query
+                ? availableContacts.filter(c => {
+                    const displayName = (getContactDisplayName(c) || c.displayName || '').toLowerCase();
+                    const email = (c.email || '').toLowerCase();
+                    const username = (c.username || '').toLowerCase();
+                    return displayName.includes(query) || email.includes(query) || username.includes(query);
+                  })
+                : availableContacts;
+              return (
+                <div className="group-info-add-view">
+                  <div className="group-info-subview-header">
+                    <button
+                      type="button"
+                      className="group-info-back-btn"
+                      aria-label="Terug naar groepsinfo"
+                      onClick={() => setAddingMember(false)}
+                    >
+                      <span aria-hidden="true">←</span>
+                    </button>
+                    <div>
+                      <h2 id="group-info-title" className="group-info-subview-title">Groepsleden toevoegen</h2>
+                      <p id="group-info-description" className="group-info-subview-subtitle">{getConvName(activeConv)}</p>
+                    </div>
+                  </div>
+
+                  <label className="sr-only" htmlFor="group-member-search">Zoek contact om toe te voegen</label>
+                  <input
+                    id="group-member-search"
+                    className="group-info-search"
+                    type="search"
+                    value={groupMemberSearch}
+                    onChange={(e) => setGroupMemberSearch(e.target.value)}
+                    placeholder="Zoek contact"
+                    autoComplete="off"
+                  />
+
+                  <div id="group-add-member-list" role="list" className="group-info-member-list group-info-add-list">
+                    {availableContacts.length === 0 ? (
+                      <div className="group-info-empty" role="status">Alle contacten zijn al lid van deze groep.</div>
+                    ) : filteredContacts.length === 0 ? (
+                      <div className="group-info-empty" role="status">Geen contacten gevonden.</div>
+                    ) : filteredContacts.map(c => (
+                      <button
+                        key={c.uid}
+                        type="button"
+                        role="listitem"
+                        className="search-result group-info-member-row"
+                        aria-label={`Voeg ${getContactDisplayName(c) || c.displayName} toe aan de groep`}
+                        onClick={() => addMemberToGroup(c)}
+                      >
+                        <UserAvatar photoURL={c.photoURL} displayName={getContactDisplayName(c) || c.displayName} className="sm" decorative />
+                        <div>
+                          <div className="conv-name">{getContactDisplayName(c) || c.displayName}</div>
+                          <div className="conv-preview">{c.email || c.username || 'Contactpersoon'}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })() : (
+              <>
             {(() => {
               const isAdmin = activeConv.creatorId === user.uid;
               return (
@@ -1417,7 +1483,7 @@ export default function ChatModals({
                       );
                     })}
                   </div>
-                  {isAdmin && !addingMember ? (
+                  {isAdmin ? (
                     <button
                       type="button"
                       className="group-info-add-btn"
@@ -1427,55 +1493,16 @@ export default function ChatModals({
                     >
                       <span aria-hidden="true">+</span> Lid toevoegen
                     </button>
-                  ) : isAdmin && addingMember ? (
-                    <>
-                      <p id="group-add-member-description" className="group-info-section-label">Kies een contact om toe te voegen</p>
-                      <div
-                        id="group-add-member-list"
-                        role="list"
-                        aria-describedby="group-add-member-description"
-                        style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}
-                      >
-                        {contacts.filter(c => !activeConv.members.includes(c.uid)).length === 0 && (
-                          <div className="auth-error" role="status" aria-live="polite"><span aria-hidden="true">⚠️</span> Alle contacten zijn al lid van deze groep.</div>
-                        )}
-                        {contacts.filter(c => !activeConv.members.includes(c.uid)).map(c => (
-                          <button
-                            key={c.uid}
-                            type="button"
-                            role="listitem"
-                            className="search-result group-info-member-row"
-                            aria-label={`Voeg ${c.displayName} toe aan de groep`}
-                            onClick={() => addMemberToGroup(c)}
-                            style={{ textAlign: 'left', width: '100%' }}
-                          >
-                            <div className="avatar-circle sm">{getInitials(c.displayName)}</div>
-                            <div>
-                              <div className="conv-name">{c.displayName}</div>
-                              <div className="conv-preview">{c.email}</div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                      <button
-                        type="button"
-                        className="group-info-add-btn"
-                        aria-expanded="true"
-                        aria-controls="group-add-member-list"
-                        onClick={() => setAddingMember(false)}
-                      >
-                        Annuleren
-                      </button>
-                    </>
                   ) : null}
                 </>
               );
             })()}
+              </>
+            )}
             <div className="modal-actions" style={{ marginTop: '16px' }}>
               <button type="button" className="btn-secondary" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>Sluiten</button>
             </div>
-          </div>
-        </div>
+        </aside>
       )}
 
       {/* ── ACTIEF GESPREK OVERLAY ── */}

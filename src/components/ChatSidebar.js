@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2 } from '../components/Icons';
+import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
@@ -70,6 +70,10 @@ export default function ChatSidebar({
   onClearConversation,
   onHardDeleteConversation,
   onToggleConversationMute,
+  onShowGroupInfo,
+  onEnterMessageSelectionForConversation,
+  onShowStarredForConversation,
+  onLeaveGroup,
   mutedConversationIds = [],
   selectionMode,
   selectedConversationIds,
@@ -99,6 +103,20 @@ export default function ChatSidebar({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [moreActionsMenuOpen]);
+
+  useEffect(() => {
+    if (!convMenu && !contactMenu) return;
+    function handleClickOutside(e) {
+      const target = e.target;
+      if (target?.closest?.('[data-sidebar-actions-menu]')) return;
+      if (target?.closest?.('[data-sidebar-actions-trigger]')) return;
+      setConvMenu(null);
+      setContactMenu(null);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [convMenu, contactMenu]);
+
   const hasMissedCall = callsAvailable && (((!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert));
 
   async function handleLogout() {
@@ -341,6 +359,7 @@ export default function ChatSidebar({
                     type="button"
                     className="icon-btn"
                     aria-label={`Meer acties voor ${getContactDisplayName(contact)}`}
+                    data-sidebar-actions-trigger
                     onClick={(e) => { e.stopPropagation(); openContactMenu(contact.uid, e.currentTarget); }}
                     title="Meer acties"
                     style={parentBlockedUids?.includes(contact.uid) ? { color: 'var(--danger, #ef4444)' } : undefined}
@@ -376,6 +395,7 @@ export default function ChatSidebar({
           <div
             role="menu"
             aria-label={`Acties voor ${conv.name}`}
+            data-sidebar-actions-menu
             onClick={e => e.stopPropagation()}
             className="chat-header-menu"
             style={{
@@ -384,7 +404,14 @@ export default function ChatSidebar({
               minWidth: 160, gap: 2,
             }}
           >
-            {contact && (
+            {conv.isGroup && (
+              <button type="button" role="menuitem" className="chat-header-menu-item"
+                onClick={() => { onShowGroupInfo?.(conv); setConvMenu(null); }} title="Groepsinfo">
+                <Users size={14} aria-hidden="true" />
+                <span>Groepsinfo</span>
+              </button>
+            )}
+            {!conv.isGroup && contact && (
               <button type="button" role="menuitem" className="chat-header-menu-item"
                 onClick={() => { onViewContact(contact); setConvMenu(null); }} title="Profiel">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
@@ -392,12 +419,12 @@ export default function ChatSidebar({
               </button>
             )}
             {!isParentBlocked && <>
-              <button type="button" role="menuitem" className="chat-header-menu-item"
+              {!conv.isGroup && <button type="button" role="menuitem" className="chat-header-menu-item"
                 onClick={() => { onOpenConversation(conv); setConvMenu(null); }} title="Bericht sturen">
                 <Message size={14} aria-hidden="true" />
                 <span>Bericht sturen</span>
-              </button>
-              {callsAvailable && (
+              </button>}
+              {!conv.isGroup && callsAvailable && (
                 <>
                   <button type="button" role="menuitem" className="chat-header-menu-item"
                     onClick={() => { onCallFromConv(conv, false); setConvMenu(null); }} title="Bellen">
@@ -411,7 +438,7 @@ export default function ChatSidebar({
                   </button>
                 </>
               )}
-              {otherUid && (
+              {!conv.isGroup && otherUid && (
                 <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`}
                   onClick={() => { onTogglePin(otherUid); setConvMenu(null); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
                   <Pin size={14} aria-hidden="true" />
@@ -429,6 +456,32 @@ export default function ChatSidebar({
                 {isMuted ? <BellOff size={14} aria-hidden="true" /> : <Bell size={14} aria-hidden="true" />}
                 <span>{isMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}</span>
               </button>
+              {conv.isGroup && (
+                <>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="chat-header-menu-item"
+                    onClick={() => { onEnterMessageSelectionForConversation?.(conv); setConvMenu(null); }}
+                    title="Berichten selecteren"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z" />
+                    </svg>
+                    <span>Berichten selecteren</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="chat-header-menu-item"
+                    onClick={() => { onShowStarredForConversation?.(conv); setConvMenu(null); }}
+                    title="Berichten met ster"
+                  >
+                    <StarOutline size={14} aria-hidden="true" />
+                    <span>Berichten met ster</span>
+                  </button>
+                </>
+              )}
               {(contact && !isProtectedParentContact) && <div className="chat-header-menu-divider" />}
               {contact && !isProtectedParentContact && (
                 <button type="button" role="menuitem" className="chat-header-menu-item danger"
@@ -438,7 +491,19 @@ export default function ChatSidebar({
                 </button>
               )}
             </>}
-            {!conv.isGroup && (
+            <div className="chat-header-menu-divider" />
+            {conv.isGroup ? (
+              <button
+                type="button"
+                role="menuitem"
+                className="chat-header-menu-item danger"
+                onClick={() => { onLeaveGroup?.(conv); setConvMenu(null); }}
+                title="Groep verlaten"
+              >
+                <Logout size={14} aria-hidden="true" />
+                <span>Groep verlaten</span>
+              </button>
+            ) : (
               <>
                 <button
                   type="button"
@@ -475,6 +540,7 @@ export default function ChatSidebar({
           <div
             role="menu"
             aria-label={`Acties voor ${getContactDisplayName(contact)}`}
+            data-sidebar-actions-menu
             onClick={e => e.stopPropagation()}
             className="chat-header-menu"
             style={{

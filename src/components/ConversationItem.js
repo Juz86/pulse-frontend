@@ -161,6 +161,7 @@ function ConversationItemBase({
           type="button"
           className="icon-btn"
           aria-label={`Meer acties voor ${conv.name}`}
+          data-sidebar-actions-trigger
           title="Meer acties"
           onClick={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
         >

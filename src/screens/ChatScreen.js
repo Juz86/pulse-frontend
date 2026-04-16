@@ -159,6 +159,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     setMessageSelectionMode(true);
     setSelectedMessageIds([]);
   }
+  async function openConversationAndRun(conv, action) {
+    await openConversation(conv);
+    action?.();
+  }
   function cancelMessageSelection() {
     setMessageSelectionMode(false);
     setSelectedMessageIds([]);
@@ -444,6 +448,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           });
         }}
         onToggleConversationMute={toggleConversationMute}
+        onShowGroupInfo={(conv) => openConversationAndRun(conv, () => setShowGroupInfo(true))}
+        onEnterMessageSelectionForConversation={(conv) => openConversationAndRun(conv, enterMessageSelection)}
+        onShowStarredForConversation={(conv) => openConversationAndRun(conv, () => setShowStarredMsgs(true))}
+        onLeaveGroup={(conv) => openConversationAndRun(conv, leaveGroup)}
         mutedConversationIds={mutedConversationIds}
         selectionMode={conversationSelectionMode}
         selectedConversationIds={selectedConversationIds}

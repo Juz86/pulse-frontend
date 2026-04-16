@@ -108,11 +108,18 @@ const ChatHeader = React.memo(function ChatHeader({
     }
   }
 
+  function openHeaderDetails() {
+    if (activeConv.isGroup) {
+      onShowGroupInfo?.();
+      return;
+    }
+    openContactProfile();
+  }
+
   function handleProfileKeyDown(event) {
-    if (activeConv.isGroup) return;
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      openContactProfile();
+      openHeaderDetails();
     }
   }
 
@@ -167,11 +174,11 @@ const ChatHeader = React.memo(function ChatHeader({
         {/* Avatar */}
         <div
           className="avatar-wrap"
-          role={!activeConv.isGroup ? 'button' : undefined}
-          tabIndex={!activeConv.isGroup ? 0 : undefined}
-          aria-label={!activeConv.isGroup ? `Open profiel van ${getConvName(activeConv)}` : undefined}
-          style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }}
-          onClick={openContactProfile}
+          role="button"
+          tabIndex={0}
+          aria-label={activeConv.isGroup ? `Open groepsinfo van ${getConvName(activeConv)}` : `Open profiel van ${getConvName(activeConv)}`}
+          style={{ cursor: 'pointer' }}
+          onClick={openHeaderDetails}
           onKeyDown={handleProfileKeyDown}
         >
           <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm" decorative />
@@ -181,11 +188,11 @@ const ChatHeader = React.memo(function ChatHeader({
         {/* Naam + status */}
         <div
           className="chat-header-info"
-          role={!activeConv.isGroup ? 'button' : undefined}
-          tabIndex={!activeConv.isGroup ? 0 : undefined}
-          aria-label={!activeConv.isGroup ? `Open profiel van ${getConvName(activeConv)}` : undefined}
-          style={{ cursor: !activeConv.isGroup ? 'pointer' : 'default' }}
-          onClick={openContactProfile}
+          role="button"
+          tabIndex={0}
+          aria-label={activeConv.isGroup ? `Open groepsinfo van ${getConvName(activeConv)}` : `Open profiel van ${getConvName(activeConv)}`}
+          style={{ cursor: 'pointer' }}
+          onClick={openHeaderDetails}
           onKeyDown={handleProfileKeyDown}
         >
           <div className="chat-header-name">{getConvName(activeConv)}</div>

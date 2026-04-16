@@ -426,7 +426,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         blockedContacts={blockedContacts}
         parentBlockedUids={parentBlockedUids}
         onOpenConversation={openConversation}
-        onCallFromConv={initiateCallFromConv} onDeleteConversation={deleteConversation}
+        onCallFromConv={initiateCallFromConv}
         onClearConversation={(conv) => {
           setConfirmDialog({
             message: 'Chat wissen? Alle chatberichten worden volledig verwijderd uit de database.',

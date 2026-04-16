@@ -67,7 +67,6 @@ export default function ChatSidebar({
   // conv actions
   onOpenConversation,
   onCallFromConv,
-  onDeleteConversation,
   onClearConversation,
   onHardDeleteConversation,
   onToggleConversationMute,
@@ -439,11 +438,6 @@ export default function ChatSidebar({
                 </button>
               )}
             </>}
-            <button type="button" role="menuitem" className="chat-header-menu-item danger"
-              onClick={() => { onDeleteConversation(null, conv.id); setConvMenu(null); }} title="Gesprek verwijderen">
-              <Delete size={14} aria-hidden="true" />
-              <span>Prullenbak</span>
-            </button>
             {!conv.isGroup && (
               <>
                 <button

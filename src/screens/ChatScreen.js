@@ -433,7 +433,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onCallFromConv={initiateCallFromConv}
         onClearConversation={(conv) => {
           setConfirmDialog({
+            title: 'Chat wissen',
             message: 'Chat wissen? Alle chatberichten worden volledig verwijderd uit de database.',
+            confirmLabel: 'Wissen',
             onConfirm: async () => {
               await clearConversationHistoryHard?.(conv.id);
             },
@@ -441,7 +443,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         }}
         onHardDeleteConversation={(conv) => {
           setConfirmDialog({
+            title: 'Chat verwijderen',
             message: 'Chat verwijderen? Alle chatberichten worden volledig verwijderd uit de database.',
+            confirmLabel: 'Verwijderen',
             onConfirm: async () => {
               await hardDeleteConversation?.(conv.id);
             },
@@ -485,7 +489,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onLeaveGroup={leaveGroup}
               onClearChat={() => {
                 setConfirmDialog({
+                  title: 'Chat wissen',
                   message: 'Chat wissen? Alle chatberichten worden volledig verwijderd uit de database.',
+                  confirmLabel: 'Wissen',
                   onConfirm: async () => {
                     await clearConversationHistoryHard?.(activeConv.id);
                   },
@@ -493,7 +499,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               }}
               onDeleteChat={() => {
                 setConfirmDialog({
+                  title: 'Chat verwijderen',
                   message: 'Chat verwijderen? Alle chatberichten worden volledig verwijderd uit de database.',
+                  confirmLabel: 'Verwijderen',
                   onConfirm: async () => {
                     await hardDeleteConversation?.(activeConv.id);
                   },
@@ -696,7 +704,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
       {deleteConfirm && (
         <div className="delete-popup-overlay" onClick={() => setDeleteConfirm(null)}>
-          <div className="delete-popup" role="dialog" aria-modal="true" aria-labelledby="delete-popup-title" aria-describedby="delete-popup-description" onClick={e => e.stopPropagation()}>
+          <div
+            className="delete-popup"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-popup-title"
+            aria-describedby="delete-popup-description"
+            onClick={e => e.stopPropagation()}
+          >
             <div className="delete-popup-title" id="delete-popup-title">{deleteConfirm.count > 1 ? 'Berichten verwijderen' : 'Bericht verwijderen'}</div>
             <p id="delete-popup-description" style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--text3)' }}>
               {deleteConfirm.isOwn

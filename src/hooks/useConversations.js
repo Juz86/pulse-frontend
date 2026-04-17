@@ -849,19 +849,20 @@ export default function useConversations({
     const socket = getSocket();
     if (!socket || !activeConv?.isGroup) return;
     const convId = activeConv.id;
+    const performLeave = () => {
+      socket.emit('conversation:removeMember', { convId, uid: user.uid }, (res = {}) => {
+        if (res.error) return showErrToast(res.error);
+        setSessionMessagesForConversation(convId, []);
+        delete msgCache.current[convId];
+        setConversations(prev => prev.filter(conv => conv.id !== convId));
+        setActiveConv(null);
+        setMessages([]);
+        showErrToast('Je hebt de groep verlaten');
+      });
+    };
     setConfirmDialog({
       message: 'Groep verlaten? Je verlaat deze groep en ziet het gesprek niet meer in je lijst.',
-      onConfirm: () => {
-        socket.emit('conversation:removeMember', { convId, uid: user.uid }, (res = {}) => {
-          if (res.error) return showErrToast(res.error);
-          setSessionMessagesForConversation(convId, []);
-          delete msgCache.current[convId];
-          setConversations(prev => prev.filter(conv => conv.id !== convId));
-          setActiveConv(null);
-          setMessages([]);
-          showErrToast('Je hebt de groep verlaten');
-        });
-      },
+      onConfirm: performLeave,
     });
   }
 

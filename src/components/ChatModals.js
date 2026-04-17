@@ -6,7 +6,7 @@ import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
 import UserAvatar from '../components/UserAvatar';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
-import chatDefaultPattern from '../assets/chat-default-pattern.svg';
+import chatDefaultPattern from '../assets/chatachtergrond.jpeg';
 import {
   PULSE_WEB_CALLS_UNAVAILABLE_HINT,
   PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE,
@@ -1003,7 +1003,7 @@ export default function ChatModals({
                           ? (pendingColor || (chatBg?.type === 'color' ? chatBg.value : '#000000'))
                           : chatBgTab === 'foto'
                             ? (pendingPhoto ? `url(${pendingPhoto.url}) center/cover` : chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : 'var(--bg)')
-                            : (chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : `#eeeaf8 url(${chatDefaultPattern}) center top / 140px 202px repeat`),
+                            : (chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : `#eeeaf8 url(${chatDefaultPattern}) center top / 180px auto repeat`),
                         border: '1px solid var(--border)' }}>
                         {((chatBgTab === 'foto' && (pendingPhoto || chatBg?.type === 'photo'))) && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.15)' }} />}
                         {chatBgTab === 'foto' && (pendingPhoto || chatBg?.type === 'photo') && (

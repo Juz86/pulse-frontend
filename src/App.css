@@ -725,8 +725,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   flex:1; position:relative; overflow:hidden;
   display:flex; flex-direction:column;
   background-color:#eeeaf8;
-  background-image:url('./assets/chat-default-pattern.svg');
-  background-size:280px 405px;
+  background-image:url('./assets/chatachtergrond.jpeg');
+  background-size:360px auto;
   background-position:center top;
   background-repeat:repeat;
 }
@@ -2987,28 +2987,32 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 /* ── OUDER DASHBOARD OVERLAY (vanuit ChatScreen) ── */
 .parent-dashboard-overlay {
   position:fixed; top:0; right:0; bottom:0; left:360px; z-index:500;
-  background:rgba(0,0,0,.5);
-  display:flex; align-items:center; justify-content:center;
-  padding:20px;
+  background:rgba(7,6,22,.38);
+  display:flex; align-items:stretch; justify-content:flex-end;
+  padding:0;
   transition:opacity 0.15s ease-in-out;
 }
 .parent-dashboard-overlay.fading { opacity:0; }
 .parent-dashboard-overlay .parent-root {
-  width:100%; max-width:100%; border-radius:20px;
-  box-shadow:0 20px 60px rgba(0,0,0,.3);
+  width:100%; max-width:100%; border-radius:0;
+  box-shadow:-28px 0 70px rgba(0,0,0,.28);
   height:100%; max-height:100%;
+  min-height:0;
   display:flex; flex-direction:column; overflow:hidden;
+  animation:group-info-slide-in .2s ease-out both;
 }
 .parent-dashboard-overlay .parent-container {
   display:flex; flex-direction:column; max-width:100%;
   overflow-y:auto; flex:1;
+  padding:30px 24px 32px;
 }
 .parent-dashboard-overlay .parent-container {
   overflow-y:auto;
 }
 .parent-dashboard-overlay .pd-layout {
-  flex-direction:column; min-height:unset; overflow:visible;
+  flex-direction:column; min-height:unset; overflow:hidden;
   border-radius:16px;
+  flex:1;
 }
 .parent-dashboard-overlay .pd-sidebar-wrap {
   position:sticky; top:0; z-index:10;

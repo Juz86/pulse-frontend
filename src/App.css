@@ -724,11 +724,11 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .messages-area-wrap {
   flex:1; position:relative; overflow:hidden;
   display:flex; flex-direction:column;
-  background:
-    linear-gradient(rgba(20,20,43,.9), rgba(20,20,43,.9)),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='176' height='176' viewBox='0 0 176 176'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.078' stroke-width='1.55' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 16h30a8 8 0 0 1 8 8v15a8 8 0 0 1-8 8H30L17 58V47h-5a8 8 0 0 1-8-8V24a8 8 0 0 1 8-8zM17 27h24M17 37h15'/%3E%3Cpath d='M75 14l5 11 12 1-9 8 3 12-11-6-10 6 3-12-9-8 12-1z'/%3E%3Cpath d='M130 19c9-13 29-5 25 12-3 12-18 17-27 26-7-10-10-25 2-38z'/%3E%3Cpath d='M27 79c7-10 20-10 26 0 7 11-2 23-13 29-11-6-20-18-13-29z'/%3E%3Cpath d='M79 72h32a8 8 0 0 1 8 8v13a8 8 0 0 1-8 8H99L87 112v-11h-8a8 8 0 0 1-8-8V80a8 8 0 0 1 8-8zM83 83h27M83 92h18'/%3E%3Cpath d='M140 75a15 15 0 1 0 0 30 15 15 0 0 0 0-30zM134 90h12M140 84v12'/%3E%3Cpath d='M14 135c15-11 32-11 47 0M25 148c8-5 18-5 26 0'/%3E%3Cpath d='M80 132l13-13 13 13-13 13zM128 128h28v21h-28zM136 136h12'/%3E%3Cpath d='M23 64h19M32 55v18M119 54h20M129 44v20M62 127h17M70 119v16'/%3E%3Cpath d='M155 116l12 12M167 116l-12 12M60 30l9 9M69 30l-9 9'/%3E%3Cpath d='M8 106h9M22 106h9M37 106h7M112 28h9M127 28h7M144 28h10M7 160h8M22 160h11M42 160h8'/%3E%3Cpath d='M150 156c0-7 5-12 12-12M162 144c7 0 12 5 12 12'/%3E%3Cpath d='M101 42c7 0 12 5 12 12M101 54c0-7 5-12 12-12'/%3E%3Ccircle cx='64' cy='66' r='3.5'/%3E%3Ccircle cx='121' cy='115' r='3'/%3E%3Ccircle cx='160' cy='68' r='3.5'/%3E%3C/g%3E%3C/svg%3E");
-  background-size:auto, 176px 176px;
-  background-position:center;
+  background-color:#eeeaf8;
+  background-image:url('./assets/chat-default-pattern.svg');
+  background-size:280px 405px;
+  background-position:center top;
+  background-repeat:repeat;
 }
 .messages-area-wrap.has-chat-bg {
   background-size:cover;

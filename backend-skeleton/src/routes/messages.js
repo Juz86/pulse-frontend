@@ -23,6 +23,37 @@ function sortMessagesByCreatedAtDesc(items = []) {
   });
 }
 
+async function attachRecipientKeysForUser(messages = [], uid, preferredDeviceId = null) {
+  const encryptedMessages = messages.filter((message) => message?.id && message?.protocol);
+  if (encryptedMessages.length === 0) return messages;
+
+  const keysByMessageId = new Map();
+
+  await Promise.all(encryptedMessages.map(async (message) => {
+    const snap = await db
+      .collection('message_recipients')
+      .where('messageId', '==', message.id)
+      .where('recipientUserId', '==', uid)
+      .get();
+
+    if (snap.empty) return;
+    const records = snap.docs.map((doc) => doc.data());
+    const preferred = preferredDeviceId
+      ? records.find((record) => record.recipientDeviceId === preferredDeviceId)
+      : null;
+    const selected = preferred || records[0];
+    if (selected?.encryptedMessageKey) {
+      keysByMessageId.set(message.id, selected.encryptedMessageKey);
+    }
+  }));
+
+  return messages.map((message) => (
+    keysByMessageId.has(message.id)
+      ? { ...message, encryptedMessageKey: keysByMessageId.get(message.id) }
+      : message
+  ));
+}
+
 export function messagesRouter({ io, emitToUser }) {
   const router = Router();
 
@@ -314,6 +345,7 @@ export function messagesRouter({ io, emitToUser }) {
     const { convId } = req.params;
     const limit = Number(req.query.limit || 30);
     const offset = Number(req.query.offset || 0);
+    const preferredDeviceId = req.query.deviceId || null;
 
     const convDoc = await db.collection('conversations').doc(convId).get();
     if (!convDoc.exists) {
@@ -359,7 +391,7 @@ export function messagesRouter({ io, emitToUser }) {
       messageRows = sorted.slice(offset, offset + limit).reverse();
     }
 
-    const items = filterVisibleMessages(messageRows, uid);
+    const items = await attachRecipientKeysForUser(filterVisibleMessages(messageRows, uid), uid, preferredDeviceId);
     return res.json(items);
   }));
 

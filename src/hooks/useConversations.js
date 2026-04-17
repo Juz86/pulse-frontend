@@ -187,6 +187,21 @@ export default function useConversations({
     );
   }
 
+  async function fetchConversationMessages(convId, { limit = MSG_LIMIT, offset = 0 } = {}) {
+    const query = new URLSearchParams({
+      limit: String(limit),
+      offset: String(offset),
+    });
+    if (currentDeviceId) query.set('deviceId', currentDeviceId);
+
+    const e2eeFeedRes = await authFetch(`${BACKEND_URL}/messages/feed/${convId}?${query.toString()}`);
+    if (e2eeFeedRes.ok) return e2eeFeedRes.json();
+
+    const legacyRes = await authFetch(`${BACKEND_URL}/api/messages/${convId}?${query.toString()}`);
+    if (!legacyRes.ok) throw new Error('messages_load_failed');
+    return legacyRes.json();
+  }
+
   async function markConversationMessagesAsRead(items) {
     const targets = items.filter((message) =>
       message?.protocol === ENCRYPTED_MESSAGE_PROTOCOL &&
@@ -339,8 +354,7 @@ export default function useConversations({
     liveSocket?.emit('conversation:join', { convId: conv.id });
     liveSocket?.emit('messages:read', { convId: conv.id });
     try {
-      const res  = await authFetch(`${BACKEND_URL}/api/messages/${conv.id}?limit=${MSG_LIMIT}&offset=0`);
-      const data = await res.json();
+      const data = await fetchConversationMessages(conv.id, { limit: MSG_LIMIT, offset: 0 });
       const arr  = Array.isArray(data) ? data : [];
       const hydrated = await hydrateMessages(arr);
       if (activeConvRef.current?.id !== convId) return;
@@ -427,8 +441,7 @@ export default function useConversations({
     if (!activeConv || loadingMore) return;
     setLoadingMore(true);
     try {
-      const res  = await authFetch(`${BACKEND_URL}/api/messages/${activeConv.id}?limit=${MSG_LIMIT}&offset=${msgOffset}`);
-      const data = await res.json();
+      const data = await fetchConversationMessages(activeConv.id, { limit: MSG_LIMIT, offset: msgOffset });
       const arr  = Array.isArray(data) ? data : [];
       const hydrated = await hydrateMessages(arr);
       setMessages(prev => [...hydrated, ...prev]);

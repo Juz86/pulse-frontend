@@ -1134,7 +1134,13 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .chat-input-area {
   padding:7px 22px; padding-bottom:max(7px, env(safe-area-inset-bottom));
-  background:transparent;
+  background-color:#eeeaf8;
+  background-image:
+    linear-gradient(rgba(238,234,248,.84), rgba(238,234,248,.84)),
+    url('./assets/chatachtergrond.jpeg');
+  background-size:auto, 360px auto;
+  background-position:center bottom;
+  background-repeat:repeat;
   border-top:0;
   box-shadow:none;
   position:relative;
@@ -1144,7 +1150,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 .input-row {
   display:flex; align-items:center; gap:10px;
-  background:rgba(39,36,80,.92); border:0;
+  background:rgba(39,36,80,.88); border:0;
   border-radius:999px; padding:5px 5px 5px 18px;
   transition:.2s; box-shadow:0 8px 22px rgba(0,0,0,.22);
   backdrop-filter:blur(10px);

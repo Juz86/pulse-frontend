@@ -486,7 +486,7 @@ export default function ChatModals({
                 <div style={{ fontSize: '12px', marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
                   {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid)
                     ? inactiveUsers.has(viewingSharedContact.uid)
-                      ? <><span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} /><span style={{ color: '#f59e0b' }}>Inactief</span></>
+                      ? <><span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} /><span style={{ color: '#f59e0b' }}>Afwezig</span></>
                       : <><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} /><span style={{ color: 'var(--success)' }}>Online</span></>
                     : <><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--text3)', display: 'inline-block' }} /><span style={{ color: 'var(--text3)' }}>Offline</span></>
                   }
@@ -537,7 +537,7 @@ export default function ChatModals({
               <label className="form-label">Status</label>
               <div className={`profile-status-badge ${onlineUsers.has(viewingContact.uid) && !inactiveUsers.has(viewingContact.uid) ? 'online' : onlineUsers.has(viewingContact.uid) ? 'inactive' : 'offline'}`}>
                 <span className="profile-status-dot" />
-                {onlineUsers.has(viewingContact.uid) && !inactiveUsers.has(viewingContact.uid) ? 'Online' : onlineUsers.has(viewingContact.uid) ? 'Inactief' : 'Offline'}
+                {onlineUsers.has(viewingContact.uid) && !inactiveUsers.has(viewingContact.uid) ? 'Online' : onlineUsers.has(viewingContact.uid) ? 'Afwezig' : 'Offline'}
               </div>
             </div>
             {(() => {
@@ -1130,7 +1130,7 @@ export default function ChatModals({
                 <label className="form-label">Status</label>
                 <div className={`profile-status-badge ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
                   <span className="profile-status-dot" />
-                  {isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Inactief' : 'Offline'}
+                  {isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Afwezig' : 'Offline'}
                 </div>
               </div>
               <div className="form-group">

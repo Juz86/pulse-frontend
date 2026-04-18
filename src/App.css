@@ -844,8 +844,12 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   font-size:14px; line-height:1.55; word-wrap:break-word;
   transition:.15s;
   display:flex; flex-direction:column;
+  position:relative;
 }
-.msg-bubble-text { display:block; }
+.msg-bubble-text {
+  display:block;
+  padding-right:18px;
+}
 .msg-group.out .msg-bubble {
   background:linear-gradient(135deg, var(--accent), #8b7cf6);
   color:#fff; border-bottom-right-radius:5px;
@@ -892,13 +896,13 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .msg-group.in  .msg-bubble-wrap { align-items:flex-start; }
 .msg-bubble-wrap .msg-bubble { max-width:100%; }
 
-/* ── Bericht acties (😊 + ▾, zichtbaar bij hover) ── */
+/* ── Bericht acties (😊 buiten de bubbel, ▾ in de bubbel) ── */
 .msg-actions {
   display:none; position:absolute; top:50%; transform:translateY(-50%);
   align-items:center; gap:4px;
 }
-.msg-group.out .msg-actions { left:-54px; }
-.msg-group.in  .msg-actions { right:-54px; }
+.msg-group.out .msg-actions { left:-30px; }
+.msg-group.in  .msg-actions { right:-30px; }
 .msg-group:hover .msg-actions { display:flex; }
 .msg-action-btn {
   background:var(--surface2); border:none; border-radius:50%;
@@ -907,6 +911,35 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   box-shadow:0 1px 4px rgba(0,0,0,.2); flex-shrink:0;
 }
 .msg-action-btn:hover { background:var(--surface3); }
+.msg-bubble-menu-btn {
+  position:absolute;
+  top:5px;
+  right:5px;
+  width:22px;
+  height:22px;
+  border:0;
+  border-radius:50%;
+  background:transparent;
+  color:currentColor;
+  opacity:0;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  transition:opacity .14s ease, background .14s ease;
+}
+.msg-group:hover .msg-bubble-menu-btn,
+.msg-bubble-menu-btn:focus-visible {
+  opacity:.72;
+}
+.msg-bubble-menu-btn:hover {
+  opacity:1;
+  background:rgba(0,0,0,.1);
+}
+.msg-group.out .msg-bubble-menu-btn:hover {
+  background:rgba(255,255,255,.16);
+}
 .msg-emoji-picker {
   position:absolute; bottom:calc(100% + 6px); left:0;
   background:var(--surface2); border:1px solid var(--border);

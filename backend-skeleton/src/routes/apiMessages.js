@@ -108,6 +108,53 @@ router.get('/:convId', requireAuth, asyncRoute(async (req, res) => {
   return res.json(items);
 }));
 
+router.post('/:convId/:msgId/react', requireAuth, asyncRoute(async (req, res) => {
+  const uid = req.auth.uid;
+  const { convId, msgId } = req.params;
+  const { emoji } = req.body || {};
+
+  if (!emoji || typeof emoji !== 'string') {
+    return res.status(400).json({ error: 'invalid_reaction' });
+  }
+
+  const convDoc = await db.collection('conversations').doc(convId).get();
+  if (!convDoc.exists) {
+    return res.status(404).json({ error: 'conversation_not_found' });
+  }
+
+  const conv = convDoc.data();
+  if (!Array.isArray(conv.members) || !conv.members.includes(uid)) {
+    return res.status(403).json({ error: 'not_allowed_in_conversation' });
+  }
+
+  const msgDoc = await db.collection('messages').doc(msgId).get();
+  if (!msgDoc.exists) {
+    return res.status(404).json({ error: 'message_not_found' });
+  }
+
+  const message = msgDoc.data();
+  if (message.conversationId !== convId) {
+    return res.status(400).json({ error: 'message_conversation_mismatch' });
+  }
+
+  const reactions = { ...(message.reactions || {}) };
+  const existingUsers = new Set(Array.isArray(reactions[emoji]) ? reactions[emoji] : []);
+
+  if (existingUsers.has(uid)) existingUsers.delete(uid);
+  else existingUsers.add(uid);
+
+  reactions[emoji] = Array.from(existingUsers);
+  if (reactions[emoji].length === 0) delete reactions[emoji];
+
+  await msgDoc.ref.set({ reactions, updatedAt: new Date().toISOString() }, { merge: true });
+
+  for (const memberUid of conv.members) {
+    emitToUser(io, memberUid, 'message:reaction', { convId, msgId, reactions });
+  }
+
+  return res.json({ ok: true, reactions });
+}));
+
 router.delete('/:convId/:msgId', requireAuth, asyncRoute(async (req, res) => {
   const uid = req.auth.uid;
   const { convId, msgId } = req.params;

@@ -199,7 +199,7 @@ const ChatHeader = React.memo(function ChatHeader({
           {typing
             ? <div className="chat-header-typing" aria-live="polite"><span aria-hidden="true">● </span>{typingName} typt…</div>
             : isOnline
-              ? <div className="chat-header-online">{isActive ? 'Online' : 'Inactief'}</div>
+              ? <div className="chat-header-online">{isActive ? 'Online' : 'Afwezig'}</div>
               : null
           }
         </div>

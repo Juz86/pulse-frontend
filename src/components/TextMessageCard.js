@@ -24,6 +24,16 @@ export default function TextMessageCard({
         </div>
       )}
       <div className="msg-bubble" style={isFocused ? { outline: '2px solid #f59e0b', outlineOffset: '2px' } : {}}>
+        <button
+          type="button"
+          className="msg-bubble-menu-btn"
+          aria-label="Berichtopties"
+          onClick={(e) => { e.stopPropagation(); onShowContextMenu(e); }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M7 10l5 5 5-5z"/>
+          </svg>
+        </button>
         <span className="msg-bubble-text">
           {renderedContent}
           {msg.editedAt && <span className="msg-edited" aria-label="Bewerkt"><span aria-hidden="true">(bewerkt)</span></span>}
@@ -71,7 +81,6 @@ export default function TextMessageCard({
       )}
       <MessageBubbleActions
         onReact={onReact}
-        onShowContextMenu={onShowContextMenu}
       />
     </div>
   );

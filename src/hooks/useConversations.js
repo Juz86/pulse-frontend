@@ -727,14 +727,10 @@ export default function useConversations({
     const socket = getSocket();
     if (!activeConv) return;
     if (shouldUseServiceTransport(activeConv)) {
-      authFetch(`${BACKEND_URL}/messages/react`, {
+      authFetch(`${BACKEND_URL}/api/messages/${activeConv.id}/${msgId}/react`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          conversationId: activeConv.id,
-          msgId,
-          emoji,
-        }),
+        body: JSON.stringify({ emoji }),
       })
         .then(res => res.json().then(data => ({ ok: res.ok, data })))
         .then(({ ok, data }) => {
@@ -749,8 +745,21 @@ export default function useConversations({
       setReactionPickerMsgId(null);
       return;
     }
-    if (!socket?.connected) return;
-    socket.emit('message:react', { convId: activeConv.id, msgId, emoji });
+    if (!socket?.connected) {
+      showErrToast('Reactie bijwerken mislukt');
+      return;
+    }
+    socket.emit('message:react', { convId: activeConv.id, msgId, emoji }, (data = {}) => {
+      if (data.error) {
+        showErrToast('Reactie bijwerken mislukt');
+        return;
+      }
+      if (data.reactions) {
+        setMessages(prev => prev.map(m => (
+          m.id === msgId ? { ...m, reactions: data.reactions || {} } : m
+        )));
+      }
+    });
     setReactionPickerMsgId(null);
   }
 

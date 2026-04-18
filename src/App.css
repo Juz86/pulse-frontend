@@ -240,7 +240,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .form-input {
   width:100%; background:var(--surface2); border:1px solid var(--border);
   border-radius:12px; padding:12px 15px; color:var(--text);
-  font-family:'Inter',sans-serif; font-size:15px; outline:none; transition:.2s;
+  font-family:'Inter',sans-serif; font-size:16px; line-height:1.45; outline:none; transition:.2s;
   box-shadow:0 2px 6px rgba(0,0,0,.15);
 }
 .form-input:hover { border-color:rgba(108,99,255,.2); }
@@ -356,12 +356,12 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   position: relative;
   box-shadow: 0 24px 80px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.08);
   opacity: 0;
-  transform: scale(0.95);
+  transform: translateY(10px);
   transition: opacity 0.2s ease, transform 0.2s ease;
   max-height: calc(100vh - 32px);
   overflow-y: auto;
 }
-.parent-auth-modal-card--visible { opacity: 1; transform: scale(1); }
+.parent-auth-modal-card--visible { opacity: 1; transform: translateY(0); }
 @media (max-width: 480px) {
   .parent-auth-modal-card {
     max-width: 430px;
@@ -2985,11 +2985,12 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .parent-auth-input {
   width:100%; padding:11px 14px; border-radius:12px;
   border:1.5px solid #e5e7eb; background:#f9fafb;
-  font-size:14px; color:#111827; outline:none;
+  font-size:16px; line-height:1.45; color:#111827; outline:none;
   transition:border-color .2s, background .2s;
   box-sizing:border-box; font-family:'Inter',sans-serif;
+  min-height:48px;
 }
-.parent-auth-input::placeholder { color:#9ca3af; }
+.parent-auth-input::placeholder { color:#9ca3af; font-size:16px; line-height:1.45; }
 .parent-auth-input:focus { border-color:#6c63ff; background:#fff; }
 .parent-auth-error {
   display:flex; align-items:center; gap:8px;

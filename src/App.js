@@ -8,12 +8,13 @@ import { doc, getDoc } from 'firebase/firestore';
 import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket';
 import './App.css';
 import PulseLogo from './components/PulseLogo';
+import ParentAuthModal from './components/ParentAuthModal';
 import { bootstrapDevice } from './lib/e2ee/deviceBootstrap';
 import {
   probeE2EEServiceReady,
   shouldBootstrapE2EEDevice,
 } from './lib/e2ee/config';
-import { clearPulseUserStorage, getSafeInternalPath, readStoredHistoryRules, scheduleIdleTask } from './utils';
+import { clearPulseUserStorage, readStoredHistoryRules, scheduleIdleTask } from './utils';
 import {
   isPulseWebBrowser,
   PULSE_WEB_CALLS_UNAVAILABLE_HINT,
@@ -23,7 +24,6 @@ import {
 
 const Homepage           = lazy(() => import('./screens/Homepage'));
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
-const ParentAuthScreen   = lazy(() => import('./screens/ParentAuthScreen'));
 const ParentDashboard    = lazy(() => import('./screens/ParentDashboard'));
 const CallOverlay        = lazy(() => import('./components/CallOverlay'));
 const ResetPasswordScreen = lazy(() => import('./screens/ResetPasswordScreen'));
@@ -40,18 +40,37 @@ const PrivacyFirstPagina = lazy(() => import('./screens/PrivacyFirstPagina'));
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 
 const BACKEND = BACKEND_URL;
-const ROUTE_PARENT_REFERRERS = {
-  '/functies': '/functies',
-  '/ouderlijk-toezicht': '/ouderlijk-toezicht',
-  '/hoe-werkt-het': '/hoe-werkt-het',
-  '/over-pulse': '/over-pulse',
-};
 const splashFallback = (
   <div className="splash">
     <div className="splash-logo"><PulseLogo size={40} textSize={28} /></div>
     <div className="splash-spinner" />
   </div>
 );
+
+function MarketingRoute({ Page, pageProps = {} }) {
+  const [showParentAuth, setShowParentAuth] = useState(false);
+  const [parentAuthDefaultTab, setParentAuthDefaultTab] = useState('login');
+
+  const openParentAuth = (tab = 'login') => {
+    setParentAuthDefaultTab(tab);
+    setShowParentAuth(true);
+  };
+
+  return (
+    <Suspense fallback={splashFallback}>
+      <Page {...pageProps} onParentClick={openParentAuth} />
+      {showParentAuth && (
+        <ParentAuthModal
+          onClose={() => {
+            setShowParentAuth(false);
+            setParentAuthDefaultTab('login');
+          }}
+          defaultTab={parentAuthDefaultTab}
+        />
+      )}
+    </Suspense>
+  );
+}
 
 function BrowserCallBlockedScreen() {
   return (
@@ -68,11 +87,6 @@ function BrowserCallBlockedScreen() {
 export default function App() {
   const pathname = window.location.pathname;
   const pulseWebBrowser = isPulseWebBrowser();
-  const goToHomepageForParentAuth = (tab = 'login', referrer = pathname) => {
-    if (tab !== 'login') localStorage.setItem('pulse_parent_default_tab', tab);
-    localStorage.setItem('pulse_parent_referrer', getSafeInternalPath(referrer));
-    window.location.assign('/');
-  };
 
   // Wachtwoord reset via Firebase link
   const urlParams = new URLSearchParams(window.location.search);
@@ -88,75 +102,39 @@ export default function App() {
 
   // /functies route
   if (pathname === '/functies') {
-    return (
-      <Suspense fallback={splashFallback}>
-        <FunctiePagina onParentClick={(tab = 'login') => goToHomepageForParentAuth(tab, ROUTE_PARENT_REFERRERS['/functies'])} />
-      </Suspense>
-    );
+    return <MarketingRoute Page={FunctiePagina} />;
   }
 
   if (pathname === '/ouderlijk-toezicht') {
-    return (
-      <Suspense fallback={splashFallback}>
-        <OuderlijkToezichtPagina onParentClick={(tab = 'login') => goToHomepageForParentAuth(tab, ROUTE_PARENT_REFERRERS['/ouderlijk-toezicht'])} />
-      </Suspense>
-    );
+    return <MarketingRoute Page={OuderlijkToezichtPagina} />;
   }
 
   if (pathname === '/hoe-werkt-het') {
-    return (
-      <Suspense fallback={splashFallback}>
-        <HoeWerktHetPagina onParentClick={(tab = 'login') => goToHomepageForParentAuth(tab, ROUTE_PARENT_REFERRERS['/hoe-werkt-het'])} />
-      </Suspense>
-    );
+    return <MarketingRoute Page={HoeWerktHetPagina} />;
   }
 
   if (pathname === '/over-pulse') {
-    return (
-      <Suspense fallback={splashFallback}>
-        <OverPulsePagina onParentClick={(tab = 'login') => goToHomepageForParentAuth(tab, ROUTE_PARENT_REFERRERS['/over-pulse'])} />
-      </Suspense>
-    );
+    return <MarketingRoute Page={OverPulsePagina} />;
   }
 
   if (pathname === '/privacybeleid') {
-    return (
-      <Suspense fallback={splashFallback}>
-        <PrivacybeleidPagina />
-      </Suspense>
-    );
+    return <MarketingRoute Page={PrivacybeleidPagina} />;
   }
 
   if (pathname === '/avg-beleid-elektronische-communicatie') {
-    return (
-      <Suspense fallback={splashFallback}>
-        <ElektronischeCommunicatieBeleidPagina />
-      </Suspense>
-    );
+    return <MarketingRoute Page={ElektronischeCommunicatieBeleidPagina} />;
   }
 
   if (pathname === '/contact') {
-    return (
-      <Suspense fallback={splashFallback}>
-        <ContactPagina />
-      </Suspense>
-    );
+    return <MarketingRoute Page={ContactPagina} />;
   }
 
   if (pathname === '/sitemap') {
-    return (
-      <Suspense fallback={splashFallback}>
-        <SitemapPagina />
-      </Suspense>
-    );
+    return <MarketingRoute Page={SitemapPagina} />;
   }
 
   if (pathname === '/privacy-first') {
-    return (
-      <Suspense fallback={splashFallback}>
-        <PrivacyFirstPagina onParentClick={(tab = 'login') => goToHomepageForParentAuth(tab)} />
-      </Suspense>
-    );
+    return <MarketingRoute Page={PrivacyFirstPagina} />;
   }
 
   return <MainApp />;
@@ -173,7 +151,6 @@ function MainApp() {
   const [userRole,            setUserRole]            = useState(null);
   const [showParentAuth,      setShowParentAuth]      = useState(false);
   const [parentAuthDefaultTab, setParentAuthDefaultTab] = useState('login');
-  const [parentAuthReferrer,   setParentAuthReferrer]   = useState(null);
   const [showParentDashboard, setShowParentDashboard] = useState(false);
   const [dashboardFading,     setDashboardFading]     = useState(false);
   const [parentActivityBadge, setParentActivityBadge] = useState(0);
@@ -499,18 +476,15 @@ function MainApp() {
           setUserRole(null);
           setServiceTransportReady(false);
           setShowParentDashboard(false);
-          // Controleer of we direct ouder-auth moeten openen na redirect
+          // Oude builds konden ouder-auth na een redirect openen. Toon dit nu als modal.
           const pendingParentTab = localStorage.getItem('pulse_parent_default_tab');
-          const pendingReferrer  = localStorage.getItem('pulse_parent_referrer');
           if (pendingParentTab) {
             localStorage.removeItem('pulse_parent_default_tab');
             localStorage.removeItem('pulse_parent_referrer');
             setParentAuthDefaultTab(pendingParentTab);
-            setParentAuthReferrer(pendingReferrer || null);
             setShowParentAuth(true);
           } else {
             setShowParentAuth(false);
-            setParentAuthReferrer(null);
           }
           if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }
           if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
@@ -571,9 +545,20 @@ function MainApp() {
     <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
     <div className="app-root">
       {!user
-        ? showParentAuth
-          ? <ParentAuthScreen defaultTab={parentAuthDefaultTab} onBack={() => { if (parentAuthReferrer) { window.location.assign(getSafeInternalPath(parentAuthReferrer)); } else { setShowParentAuth(false); setParentAuthDefaultTab('login'); setParentAuthReferrer(null); } }} />
-          : <Homepage onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
+        ? (
+          <>
+            <Homepage onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
+            {showParentAuth && (
+              <ParentAuthModal
+                onClose={() => {
+                  setShowParentAuth(false);
+                  setParentAuthDefaultTab('login');
+                }}
+                defaultTab={parentAuthDefaultTab}
+              />
+            )}
+          </>
+        )
         : <>
             <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => { setDashboardFading(true); setShowParentDashboard(true); setTimeout(() => setDashboardFading(false), 10); }} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} />
             {userRole === 'parent' && showParentDashboard && (

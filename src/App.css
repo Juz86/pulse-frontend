@@ -331,12 +331,21 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .auth-modal-dialog {
   width: 100%;
   max-width: 420px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  border-radius: 24px;
 }
 
 
 @media (max-width: 480px) {
-  .auth-modal-overlay { align-items: stretch; padding: 0; }
-  .auth-modal-dialog { max-width: none; }
+  .auth-modal-overlay {
+    align-items: center;
+    padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
+  }
+  .auth-modal-dialog {
+    max-width: 430px;
+    max-height: calc(100dvh - 20px);
+  }
 }
 
 .parent-auth-modal-card {
@@ -355,9 +364,11 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .parent-auth-modal-card--visible { opacity: 1; transform: scale(1); }
 @media (max-width: 480px) {
   .parent-auth-modal-card {
-    max-width: none; border-radius: 0;
-    max-height: 100vh; min-height: 100vh;
-    padding: 36px 20px 28px;
+    max-width: 430px;
+    border-radius: 24px;
+    max-height: calc(100dvh - 20px);
+    min-height: 0;
+    padding: 34px 20px 28px;
   }
 }
 

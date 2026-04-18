@@ -52,7 +52,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [mentionSelIdx,  setMentionSelIdx]  = useState(0);
   const [pendingMentions, setPendingMentions] = useState([]);
   const [errToast,       setErrToast]       = useState('');
-  const [chatFading,     setChatFading]     = useState(false);
   const [contextMenu,    setContextMenu]    = useState(null); // { msg, isOwn, x, y }
   const [starredMsgs,    setStarredMsgs]    = useState(() => { try { return JSON.parse(localStorage.getItem(`pulse_starred_${user.uid}`) || '[]'); } catch { return []; } });
   const [pinnedMsgs,     setPinnedMsgs]     = useState(() => { try { return JSON.parse(localStorage.getItem(`pulse_pinned_msgs_${user.uid}`) || '{}'); } catch { return {}; } });
@@ -214,7 +213,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     replyTo, setReplyTo, editingMsg, setEditingMsg,
     setReactionPickerMsgId, forwardMsg, setForwardMsg,
     pendingMentions, setPendingMentions, setMentionSuggestions,
-    setUnreadCounts, convLabels, setConvLabels, setChatFading,
+    setUnreadCounts, convLabels, setConvLabels,
     groupName, setGroupName, groupMembers, setGroupMembers,
     setShowNewGroup, setAddingMember,
     showErrToast, setConfirmDialog,
@@ -553,7 +552,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               messages={messages.filter(m => !blockedContacts.some(c => c.uid === m.senderId && m.senderId !== user.uid))}
               activeConv={activeConv} currentUid={user.uid}
               chatSearch={chatSearch} chatSearchIdx={chatSearchIdx}
-              chatBg={chatBg} chatFading={chatFading}
+              chatBg={chatBg}
               hasMore={hasMore} loadingMore={loadingMore} loadingMsgs={loadingMsgs}
               showChatSearch={showChatSearch} msgsAreaRef={msgsAreaRef} msgEndRef={msgEndRef}
               onLoadMore={loadMoreMessages}

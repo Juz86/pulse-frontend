@@ -40,7 +40,6 @@ export default function useConversations({
   pendingMentions, setPendingMentions, setMentionSuggestions,
   setUnreadCounts,
   convLabels, setConvLabels,
-  setChatFading,
   groupName, setGroupName,
   groupMembers, setGroupMembers,
   setShowNewGroup,
@@ -348,8 +347,6 @@ export default function useConversations({
       setMessages([]);
       setLoadingMsgs(true);
     }
-    setChatFading(true);
-    setTimeout(() => setChatFading(false), 150);
     const liveSocket = getSocket();
     liveSocket?.emit('conversation:join', { convId: conv.id });
     liveSocket?.emit('messages:read', { convId: conv.id });

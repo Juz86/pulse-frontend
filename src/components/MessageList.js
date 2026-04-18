@@ -11,7 +11,6 @@ const MessageList = React.memo(function MessageList({
   chatSearch,
   chatSearchIdx,
   chatBg,
-  chatFading,
   hasMore,
   loadingMore,
   loadingMsgs,
@@ -116,7 +115,7 @@ const MessageList = React.memo(function MessageList({
     <div className={`messages-area-wrap${chatBg ? ' has-chat-bg' : ''}`} style={bgStyle}>
     <div
       id="chat-messages-log"
-      className={`messages-area${chatFading ? ' chat-fading' : ''}`}
+      className="messages-area"
       role="log"
       aria-label={activeConv ? `Berichten in gesprek met ${activeConv.isGroup ? (activeConv.name || 'groep') : (activeConv.name || activeConv.memberNames?.[activeConv.members?.find(m => m !== currentUid)] || 'contact')}` : 'Berichten'}
       aria-live="polite"
@@ -135,12 +134,8 @@ const MessageList = React.memo(function MessageList({
       )}
 
       {loadingMsgs ? (
-        <div className="msg-skeleton-wrap">
-          {[80, 55, 70, 40, 65].map((w, i) => (
-            <div key={i} className={`msg-skeleton ${i % 2 === 0 ? 'out' : 'in'}`} aria-hidden="true">
-              <div className="skeleton-bubble" style={{ width: `${w}%` }} />
-            </div>
-          ))}
+        <div className="msg-loading-state" role="status" aria-live="polite">
+          Berichten laden...
         </div>
       ) : items}
 

@@ -1389,17 +1389,17 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .skeleton-line.wide  { width:60%; }
 .skeleton-line.narrow { width:40%; }
 
-.messages-area.chat-fading { opacity:0; }
-
-.msg-skeleton-wrap { display:flex; flex-direction:column; gap:10px; padding:16px; }
-.msg-skeleton { display:flex; }
-.msg-skeleton.out { justify-content:flex-end; }
-.msg-skeleton.in  { justify-content:flex-start; }
-.skeleton-bubble {
-  height:38px; border-radius:18px; min-width:80px;
-  background:linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
-  background-size:800px 100%;
-  animation:shimmer 1.4s infinite;
+.msg-loading-state {
+  align-self:center;
+  margin:auto;
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(39,36,80,.28);
+  color:rgba(39,36,80,.66);
+  font-size:12px;
+  font-weight:600;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
 }
 @keyframes slide-down { from { transform:translateY(-100%); } to { transform:translateY(0); } }
 
@@ -1485,15 +1485,15 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .profile-side-panel {
   position:fixed;
   top:0;
-  right:0;
+  left:0;
   z-index:900;
   width:min(760px, 54vw);
   height:var(--vvh, 100dvh);
   border-radius:0;
   border-top:0;
-  border-right:0;
+  border-left:0;
   border-bottom:0;
-  box-shadow:-28px 0 70px rgba(0,0,0,.32);
+  box-shadow:28px 0 70px rgba(0,0,0,.32);
   animation:group-info-slide-in .2s ease-out both;
 }
 .profile-modal-box::before {
@@ -1619,7 +1619,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .chat-side-panel {
   position:fixed;
   top:0;
-  right:0;
+  left:0;
   z-index:890;
   width:min(390px, 34vw);
   height:var(--vvh, 100dvh);
@@ -1627,8 +1627,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   padding:28px 24px 20px;
   border-radius:0;
   background:#27245a;
-  border-left:1px solid rgba(255,255,255,.08);
-  box-shadow:-28px 0 70px rgba(0,0,0,.28);
+  border-right:1px solid rgba(255,255,255,.08);
+  box-shadow:28px 0 70px rgba(0,0,0,.28);
   animation:group-info-slide-in .2s ease-out both;
 }
 .chat-side-panel .modal-close-btn {
@@ -1791,7 +1791,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .group-info-panel {
   position:fixed;
   top:0;
-  right:0;
+  left:0;
   z-index:900;
   width:min(390px, 34vw);
   height:var(--vvh, 100dvh);
@@ -1799,12 +1799,12 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   padding:0 0 16px;
   border-radius:0;
   background:#27245a;
-  border-left:1px solid rgba(255,255,255,.08);
-  box-shadow:-28px 0 70px rgba(0,0,0,.28);
+  border-right:1px solid rgba(255,255,255,.08);
+  box-shadow:28px 0 70px rgba(0,0,0,.28);
   animation:group-info-slide-in .2s ease-out both;
 }
 @keyframes group-info-slide-in {
-  from { opacity:0; transform:translateX(18px); }
+  from { opacity:0; transform:translateX(-18px); }
   to { opacity:1; transform:translateX(0); }
 }
 .group-info-panel .modal-close-btn {
@@ -2020,6 +2020,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
     width:100%;
     height:var(--vvh, 100dvh);
     border-left:0;
+    border-right:0;
     box-shadow:none;
   }
   .group-info-panel {
@@ -2027,6 +2028,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
     width:100%;
     height:var(--vvh, 100dvh);
     border-left:0;
+    border-right:0;
     box-shadow:none;
   }
 }
@@ -2980,14 +2982,14 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .parent-dashboard-overlay {
   position:fixed; top:0; right:0; bottom:0; left:360px; z-index:500;
   background:rgba(7,6,22,.38);
-  display:flex; align-items:stretch; justify-content:flex-end;
+  display:flex; align-items:stretch; justify-content:flex-start;
   padding:0;
   transition:opacity 0.15s ease-in-out;
 }
 .parent-dashboard-overlay.fading { opacity:0; }
 .parent-dashboard-overlay .parent-root {
   width:100%; max-width:100%; border-radius:0;
-  box-shadow:-28px 0 70px rgba(0,0,0,.28);
+  box-shadow:28px 0 70px rgba(0,0,0,.28);
   height:100%; max-height:100%;
   min-height:0;
   display:flex; flex-direction:column; overflow:hidden;

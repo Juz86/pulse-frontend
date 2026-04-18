@@ -3640,11 +3640,11 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .hp-hero-chat { display: none; }
 }
 .hp-hero-inner {
-  max-width: 1200px; margin: 0 auto; padding: clamp(28px, 6vw, 68px) var(--container-gutter);
-  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(320px, 420px); align-items: center; gap: clamp(28px, 5vw, 60px);
+  max-width: 1320px; margin: 0 auto; padding: clamp(28px, 6vw, 68px) var(--container-gutter);
+  display: grid; grid-template-columns: minmax(420px, .9fr) minmax(560px, 1.1fr); align-items: center; gap: clamp(34px, 5vw, 72px);
   width: 100%;
 }
-.hp-hero-text { min-width: 0; max-width: 40rem; }
+.hp-hero-text { min-width: 0; max-width: 35.5rem; }
 .hp-hero-badge {
   display: inline-flex; align-items: center; gap: 6px;
   background: rgba(255,255,255,0.88); border: 1px solid rgba(108,99,255,0.12);
@@ -3655,7 +3655,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   box-shadow: 0 2px 12px rgba(108,99,255,0.08), 0 1px 0 rgba(255,255,255,0.9) inset;
 }
 .hp-hero-title {
-  font-size: clamp(2.4rem, 6vw, 4.15rem); font-weight: var(--font-bold);
+  font-size: clamp(2.55rem, 5vw, 3.85rem); font-weight: var(--font-bold);
   line-height: 1.05; letter-spacing: -0.05em; margin-bottom: 20px;
   color: #2f3552;
   background: linear-gradient(135deg, #2f3552 28%, #6f6fe8 100%);
@@ -3699,7 +3699,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .hp-hero-video-card {
   min-width: 0;
-  width: min(100%, 520px);
+  width: min(100%, 680px);
   justify-self: end;
   border-radius: 34px;
   padding: 10px;
@@ -3712,7 +3712,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .hp-hero-video-frame {
   position: relative;
   overflow: hidden;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 9;
   border-radius: 26px;
   background:
     linear-gradient(135deg, rgba(38,34,94,.9), rgba(112,93,255,.54)),
@@ -4167,7 +4167,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 /* ── RESPONSIVE ── */
 @media (max-width: 1024px) {
-  .hp-hero-inner { grid-template-columns: minmax(0, 1fr) minmax(300px, 390px); }
+  .hp-hero-inner { grid-template-columns: minmax(0, .94fr) minmax(420px, 1.06fr); gap: 32px; }
+  .hp-hero-title { font-size: clamp(2.2rem, 5.4vw, 3.2rem); }
+  .hp-hero-video-card { width: min(100%, 560px); }
   .hp-why-grid { grid-template-columns: repeat(2, 1fr); }
   .hp-footer-inner { grid-template-columns: minmax(0, 1.1fr) repeat(2, minmax(0, 1fr)); }
   .hp-footer-download { grid-column: 1 / -1; }

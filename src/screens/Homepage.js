@@ -44,7 +44,6 @@ function HeroVideo() {
           poster="/screenshots/pulse1.png"
           onCanPlay={() => setVideoReady(true)}
         >
-          <source src="/videos/pulse-home.webm" type="video/webm" />
           <source src="/videos/pulse-home.mp4" type="video/mp4" />
         </video>
         {!videoReady && (

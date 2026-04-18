@@ -9,25 +9,6 @@ import PageMeta from '../components/PageMeta';
 import { Users } from '../components/Icons';
 
 
-function HeroChatBubbles() {
-  return (
-    <div className="hp-hero-chat" aria-hidden="true">
-      <div className="hp-hero-bubble hp-hero-bubble--in" style={{ '--bubble-delay': '0s' }}>
-        <span className="hp-hero-bubble-text">Hoi! Ben je al thuis? 🏠</span>
-        <span className="hp-hero-bubble-time">17:02</span>
-      </div>
-      <div className="hp-hero-bubble hp-hero-bubble--out" style={{ '--bubble-delay': '3s' }}>
-        <span className="hp-hero-bubble-text">Bijna! 10 minuutjes 😊</span>
-        <span className="hp-hero-bubble-time">17:02</span>
-      </div>
-      <div className="hp-hero-bubble hp-hero-bubble--in" style={{ '--bubble-delay': '6s' }}>
-        <span className="hp-hero-bubble-text">Oké, ik wacht! ❤️</span>
-        <span className="hp-hero-bubble-time">17:03</span>
-      </div>
-    </div>
-  );
-}
-
 function HeroVideo() {
   const [videoReady, setVideoReady] = useState(false);
 
@@ -36,9 +17,7 @@ function HeroVideo() {
       <div className="hp-hero-video-frame">
         <video
           className="hp-hero-video"
-          autoPlay
-          muted
-          loop
+          controls
           playsInline
           preload="metadata"
           poster="/screenshots/pulse1.png"
@@ -102,7 +81,6 @@ export default function Homepage({ onParentClick }) {
       <main id="main-content">
       {/* ── HERO ── */}
       <section className="hp-hero" id="hero" aria-labelledby="homepage-hero-title">
-        <HeroChatBubbles />
         <div className="hp-hero-inner">
           <div className="hp-hero-text">
             <ul className="hp-hero-features hp-hero-features--lead" aria-label="Belangrijkste voordelen">

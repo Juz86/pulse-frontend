@@ -363,11 +363,14 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 /* ── APP LAYOUT ── */
 .app-root   { height:100vh; height:100dvh; height:var(--vvh, 100dvh); }
-.app-screen { display:flex; height:100vh; height:100dvh; height:var(--vvh, 100dvh); animation:overlay-in 0.2s ease; }
+.app-screen {
+  --pulse-sidebar-width:360px;
+  display:flex; height:100vh; height:100dvh; height:var(--vvh, 100dvh); animation:overlay-in 0.2s ease;
+}
 
 /* ── SIDEBAR ── */
 .sidebar {
-  width:360px; min-width:360px;
+  width:var(--pulse-sidebar-width); min-width:var(--pulse-sidebar-width);
   background:var(--surface);
   border-right:1px solid var(--border);
   box-shadow:4px 0 24px rgba(0,0,0,.25);
@@ -1487,7 +1490,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   top:0;
   left:0;
   z-index:900;
-  width:min(760px, 54vw);
+  width:var(--pulse-sidebar-width, 360px);
   height:var(--vvh, 100dvh);
   border-radius:0;
   border-top:0;
@@ -1578,7 +1581,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 @media (max-width:900px) {
   .profile-side-panel {
-    width:min(640px, 92vw);
+    width:min(var(--pulse-sidebar-width, 360px), 100vw);
   }
 }
 
@@ -1621,7 +1624,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   top:0;
   left:0;
   z-index:890;
-  width:min(390px, 34vw);
+  width:var(--pulse-sidebar-width, 360px);
   height:var(--vvh, 100dvh);
   overflow-y:auto;
   padding:28px 24px 20px;
@@ -1793,7 +1796,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   top:0;
   left:0;
   z-index:900;
-  width:min(390px, 34vw);
+  width:var(--pulse-sidebar-width, 360px);
   height:var(--vvh, 100dvh);
   overflow-y:auto;
   padding:0 0 16px;
@@ -2007,16 +2010,17 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 @media (max-width: 900px) {
   .chat-side-panel {
-    width:min(420px, 92vw);
+    width:min(var(--pulse-sidebar-width, 360px), 100vw);
   }
   .group-info-panel {
-    width:min(420px, 92vw);
+    width:min(var(--pulse-sidebar-width, 360px), 100vw);
   }
 }
 
 @media (max-width: 767px) {
   .chat-side-panel {
     inset:0;
+    left:0;
     width:100%;
     height:var(--vvh, 100dvh);
     border-left:0;
@@ -2025,6 +2029,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   }
   .group-info-panel {
     inset:0;
+    left:0;
     width:100%;
     height:var(--vvh, 100dvh);
     border-left:0;

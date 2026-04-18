@@ -604,7 +604,11 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 /* ── CHAT MAIN ── */
 .chat-main {
   flex:1; display:flex; flex-direction:column; height:100%;
-  background:#14142b;
+  background-color:#eeeaf8;
+  background-image:url('./assets/chatachtergrond.jpeg');
+  background-size:360px auto;
+  background-position:center top;
+  background-repeat:repeat;
 }
 
 .empty-state {
@@ -724,11 +728,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .messages-area-wrap {
   flex:1; position:relative; overflow:hidden;
   display:flex; flex-direction:column;
-  background-color:#eeeaf8;
-  background-image:url('./assets/chatachtergrond.jpeg');
-  background-size:360px auto;
-  background-position:center top;
-  background-repeat:repeat;
+  background:transparent;
 }
 .messages-area-wrap.has-chat-bg {
   background-size:cover;
@@ -1134,14 +1134,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .chat-input-area {
   padding:7px 22px; padding-bottom:max(7px, env(safe-area-inset-bottom));
-  background-color:#eeeaf8;
-  background-image:
-    linear-gradient(rgba(238,234,248,.84), rgba(238,234,248,.84)),
-    url('./assets/chatachtergrond.jpeg');
-  background-size:auto, 360px auto;
-  background-position:center bottom;
-  background-repeat:repeat;
-  border-top:0;
+  background:transparent;
+  border:0;
   box-shadow:none;
   position:relative;
 }
@@ -1150,7 +1144,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 .input-row {
   display:flex; align-items:center; gap:10px;
-  background:rgba(39,36,80,.88); border:0;
+  background:rgba(39,36,80,.9); border:0;
   border-radius:999px; padding:5px 5px 5px 18px;
   transition:.2s; box-shadow:0 8px 22px rgba(0,0,0,.22);
   backdrop-filter:blur(10px);
@@ -1371,14 +1365,6 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .msg-clock-spin {
   display:inline-flex; align-items:center;
   animation:pulse-spin 1s linear infinite;
-}
-
-/* ── OFFLINE BANNER ── */
-.offline-banner {
-  background:#f97316; color:#fff;
-  padding:8px 16px; font-size:13px; font-weight:500;
-  text-align:center; flex-shrink:0;
-  display:flex; align-items:center; justify-content:center; gap:6px;
 }
 
 /* ── SKELETON LOADERS ── */

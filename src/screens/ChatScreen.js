@@ -59,7 +59,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [deleteConfirm,  setDeleteConfirm]  = useState(null); // { msgId, isOwn }
   const [showStarredMsgs, setShowStarredMsgs] = useState(false);
   const [jumpToMsgId,     setJumpToMsgId]     = useState(null);
-  const [isOnline,        setIsOnline]        = useState(navigator.onLine);
   const [conversationSelectionMode, setConversationSelectionMode] = useState(false);
   const [selectedConversationIds, setSelectedConversationIds] = useState([]);
   const [messageSelectionMode, setMessageSelectionMode] = useState(false);
@@ -291,16 +290,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   } = useProfile({ user, activeConv, setActiveConv, setConversations, showErrToast, setConfirmDialog, isParent });
 
   // ── Effects ───────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const handleOnline  = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener('online',  handleOnline);
-    window.addEventListener('offline', handleOffline);
-    return () => {
-      window.removeEventListener('online',  handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
   useEffect(() => () => clearTimeout(typingTimer.current), []);
   useEffect(() => {
     if (!initialConvId || !conversations.length) return;
@@ -537,11 +526,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                     <span aria-hidden="true">✕</span>
                   </button>
                 </div>
-              </div>
-            )}
-            {!isOnline && (
-              <div className="offline-banner" role="status" aria-live="polite">
-                Je bent offline. Berichten worden verstuurd zodra je weer verbinding hebt.
               </div>
             )}
             {pinnedMsgs[activeConv?.id] && (

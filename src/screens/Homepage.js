@@ -23,7 +23,7 @@ function HeroVideo() {
           poster="/screenshots/pulse1.png"
           onCanPlay={() => setVideoReady(true)}
         >
-          <source src="/videos/pulse-home.mp4" type="video/mp4" />
+          <source src="/videos/pulse-home-audio.mp4" type="video/mp4" />
         </video>
         {!videoReady && (
           <div className="hp-hero-video-fallback" aria-hidden="true">

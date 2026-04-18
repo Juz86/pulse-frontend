@@ -461,7 +461,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           <div className="empty-state" role="status" aria-live="polite" aria-labelledby="chat-empty-title" aria-describedby="chat-empty-description">
             <div className="empty-icon" aria-hidden="true"><Message size={48} /></div>
             <div className="empty-title" id="chat-empty-title">Kies een gesprek</div>
-            <p id="chat-empty-description">Of klik op het <span aria-hidden="true"><Message size={14} style={{ verticalAlign: 'middle', margin: '0 2px', color: '#fff' }} /></span> om een nieuwe chat te beginnen.</p>
+            <p id="chat-empty-description">Of klik op het <span aria-hidden="true"><Message size={14} style={{ verticalAlign: 'middle', margin: '0 2px', color: 'currentColor' }} /></span> om een nieuwe chat te beginnen.</p>
           </div>
         ) : (
           <>

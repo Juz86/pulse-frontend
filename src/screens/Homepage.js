@@ -1,6 +1,5 @@
 // src/screens/Homepage.js
 import { useState, useEffect } from 'react';
-import AuthScreen from './AuthScreen';
 import AuthModal from '../components/AuthModal';
 import ParentAuthModal from '../components/ParentAuthModal';
 import { Shield, PhoneIcon, Login } from '../components/Icons';
@@ -24,6 +23,37 @@ function HeroChatBubbles() {
       <div className="hp-hero-bubble hp-hero-bubble--in" style={{ '--bubble-delay': '6s' }}>
         <span className="hp-hero-bubble-text">Oké, ik wacht! ❤️</span>
         <span className="hp-hero-bubble-time">17:03</span>
+      </div>
+    </div>
+  );
+}
+
+function HeroVideo() {
+  const [videoReady, setVideoReady] = useState(false);
+
+  return (
+    <div className="hp-hero-video-card" aria-label="Pulse introductievideo">
+      <div className="hp-hero-video-frame">
+        <video
+          className="hp-hero-video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/screenshots/pulse1.png"
+          onCanPlay={() => setVideoReady(true)}
+        >
+          <source src="/videos/pulse-home.webm" type="video/webm" />
+          <source src="/videos/pulse-home.mp4" type="video/mp4" />
+        </video>
+        {!videoReady && (
+          <div className="hp-hero-video-fallback" aria-hidden="true">
+            <div className="hp-hero-video-badge">Pulse in beeld</div>
+            <div className="hp-hero-video-title">Veilig verbonden met je kind</div>
+            <div className="hp-hero-video-sub">Een rustige introductie tot veilig contact tussen ouder en kind.</div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -96,9 +126,7 @@ export default function Homepage({ onParentClick }) {
             </div>
           </div>
 
-          <div className="hp-hero-card" id="login" aria-label="Inloggen bij Pulse">
-            <AuthScreen />
-          </div>
+          <HeroVideo />
         </div>
       </section>
 

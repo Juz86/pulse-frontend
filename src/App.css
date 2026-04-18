@@ -3680,7 +3680,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   box-shadow: 0 10px 24px rgba(124,114,242,0.06);
 }
 
-/* Hero — embedded AuthScreen */
+/* Hero — video */
 .hp-hero-card {
   min-width: 0; max-width: 420px; width: min(100%, 420px); justify-self: end;
 }
@@ -3696,6 +3696,74 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .hp-hero-card .auth-flip-wrapper { width: 100%; }
 .hp-hero-card .auth-flip-inner   { width: 100%; }
 .hp-hero-card .auth-card-back    { position: absolute; transform: rotateY(180deg); }
+
+.hp-hero-video-card {
+  min-width: 0;
+  width: min(100%, 520px);
+  justify-self: end;
+  border-radius: 34px;
+  padding: 10px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.92), rgba(245,242,255,.76)),
+    radial-gradient(circle at 20% 0%, rgba(124,92,255,.22), transparent 42%);
+  border: 1px solid rgba(124,92,255,.16);
+  box-shadow: 0 34px 90px rgba(92,80,190,.18), 0 12px 34px rgba(28,31,58,.08);
+}
+.hp-hero-video-frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  border-radius: 26px;
+  background:
+    linear-gradient(135deg, rgba(38,34,94,.9), rgba(112,93,255,.54)),
+    url('./assets/chatachtergrond.jpeg') center / 360px auto repeat;
+}
+.hp-hero-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: transparent;
+}
+.hp-hero-video-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: clamp(22px, 4vw, 34px);
+  color: #fff;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(28,24,74,.04), rgba(28,24,74,.68)),
+    radial-gradient(circle at 84% 20%, rgba(168,85,247,.38), transparent 34%);
+}
+.hp-hero-video-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.24);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .3px;
+}
+.hp-hero-video-title {
+  max-width: 12ch;
+  font-size: clamp(28px, 4.3vw, 46px);
+  font-weight: 900;
+  line-height: .98;
+  letter-spacing: -.05em;
+}
+.hp-hero-video-sub {
+  max-width: 34ch;
+  color: rgba(255,255,255,.78);
+  font-size: 13px;
+  line-height: 1.55;
+}
 
 /* ── SECTIONS ── */
 .hp-section { padding: var(--section-space) 0; background: #fff; }
@@ -4145,6 +4213,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .hp-hero-feature { max-width: 100%; }
   .hp-hero-card { max-width: 100%; width: 100%; justify-self: stretch; }
   .hp-hero-card .auth-card { box-shadow: 0 18px 44px rgba(108,99,255,0.12), 0 0 0 1px rgba(108,99,255,0.08); }
+  .hp-hero-video-card { width: 100%; justify-self: stretch; border-radius: 26px; padding: 8px; }
+  .hp-hero-video-frame { border-radius: 20px; aspect-ratio: 16 / 11; }
 
   .hp-why-grid { grid-template-columns: 1fr; gap: 16px; }
   .hp-feature-row { flex-direction: column; gap: 24px; }
@@ -4248,6 +4318,10 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .hp-hero-title { font-size: clamp(1.8rem, 10vw, 2.55rem); }
   .hp-hero-features { gap: 7px; }
   .hp-hero-feature { font-size: 12px; padding: 7px 10px; }
+  .hp-hero-video-card { border-radius: 22px; padding: 6px; }
+  .hp-hero-video-frame { border-radius: 17px; aspect-ratio: 4 / 3; }
+  .hp-hero-video-fallback { padding: 20px; }
+  .hp-hero-video-title { font-size: clamp(24px, 8vw, 34px); }
   .hp-cta-btn { min-height: 48px; padding: 13px 18px; font-size: 14px; border-radius: 13px; }
   .hp-why-card { border-radius: 18px; }
   .hp-why-icon { font-size: 32px; margin-bottom: 14px; }

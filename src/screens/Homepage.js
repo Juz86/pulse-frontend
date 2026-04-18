@@ -89,7 +89,7 @@ export default function Homepage({ onParentClick }) {
               <li className="hp-hero-feature"><span aria-hidden="true"><Users size={16} /></span> Ouderlijk toezicht</li>
             </ul>
             <h1 id="homepage-hero-title" className="hp-hero-title">
-              Veilig chatten, bellen en videobellen voor elk kind
+              Veilig chatten, bellen en videobellen<br className="hp-hero-title-break" /> voor elk kind
             </h1>
             <p className="hp-hero-sub">
             Met Pulse kunnen kinderen zonder telefoonnummer veilig chatten, bellen en videobellen. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>

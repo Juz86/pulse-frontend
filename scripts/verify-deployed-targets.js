@@ -4,6 +4,7 @@ const targets = [
   {
     name: 'landing',
     url: process.env.PULSE_LANDING_URL || 'https://pulse-messenger.com',
+    expectedHost: 'pulse-messenger.com',
     forbidden: [
       'api.pulse-messenger.com',
       'firebaseio.com',
@@ -17,6 +18,7 @@ const targets = [
   {
     name: 'webapp',
     url: process.env.PULSE_WEBAPP_URL || 'https://web.pulse-messenger.com',
+    expectedHost: 'web.pulse-messenger.com',
     forbidden: [],
     required: [
       'api.pulse-messenger.com',
@@ -33,7 +35,7 @@ function fetchHeaders(url) {
   return new Promise((resolve, reject) => {
     const request = https.request(url, { method: 'HEAD' }, (response) => {
       response.resume();
-      resolve(response.headers);
+      resolve({ headers: response.headers, statusCode: response.statusCode });
     });
 
     request.setTimeout(10000, () => {
@@ -46,14 +48,21 @@ function fetchHeaders(url) {
 }
 
 async function verifyTarget(target) {
-  const headers = await fetchHeaders(target.url);
+  const { headers, statusCode } = await fetchHeaders(target.url);
   const csp = headers['content-security-policy'] || '';
+  const location = headers.location || '';
+  const violations = [];
 
-  if (!csp) {
-    return [`${target.name}: missing content-security-policy header on ${target.url}`];
+  if (statusCode >= 300 && statusCode < 400 && location) {
+    const redirectUrl = new URL(location, target.url);
+    if (redirectUrl.hostname !== target.expectedHost) {
+      violations.push(`${target.name}: redirects to unexpected host ${redirectUrl.hostname}`);
+    }
   }
 
-  const violations = [];
+  if (!csp) {
+    violations.push(`${target.name}: missing content-security-policy header on ${target.url}`);
+  }
 
   for (const source of target.forbidden) {
     if (csp.includes(source)) {

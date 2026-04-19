@@ -15,6 +15,14 @@ Frontendrepo voor Pulse, inclusief de huidige marketingpagina's, chat-UI en de v
 
 - build:
   `npm run build`
+- landing-only build:
+  `npm run build:landing`
+- webapp build:
+  `npm run build:webapp`
+- landing-only veiligheidscheck:
+  `npm run verify:landing`
+- webapp buildcheck:
+  `npm run verify:webapp`
 - Cloudflare-veilige CI-build:
   `npm run build:ci`
 - tests:
@@ -33,11 +41,19 @@ Frontendrepo voor Pulse, inclusief de huidige marketingpagina's, chat-UI en de v
 Belangrijk voor Cloudflare Pages:
 
 - deze repo verwacht Node `20`
+- gebruik voor `pulse-messenger.com` altijd `npm run build:landing`
+- gebruik voor `web.pulse-messenger.com` altijd `npm run build:webapp`
+- beide target-builds schrijven hun eigen `build/_headers` met passende CSP
+- deploy niet per ongeluk de algemene `npm run build` naar productie
 - Create React App draait daar met `CI=true`
 - warnings tellen dan mee als build errors
 - `npm run verify:cloudflare` bootst dat lokaal na
 - de GitHub workflow `Cloudflare Guard` draait dezelfde controle ook automatisch op pushes en PR's
 - nieuwe PR's krijgen ook een deploy-safety checklist via de pull request template
+
+Zie ook:
+
+- [DEPLOYMENT_TARGETS.md](/home/yushuaabdulkadir/pulse-frontend/DEPLOYMENT_TARGETS.md)
 
 ## E2EE Status
 

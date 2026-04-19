@@ -1,10 +1,8 @@
-import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import PulseLogo from './PulseLogo';
 import { Heart, Shield, Users } from './Icons';
 import { getWebAppLoginUrl, isLandingBuild } from '../lib/siteTarget';
-
-const AuthModal = lazy(() => import('./AuthModal'));
-const ParentAuthModal = lazy(() => import('./ParentAuthModal'));
+import { requestMarketingAuth } from '../lib/marketingAuthEvents';
 
 export default function MarketingNavbar({
   items,
@@ -13,8 +11,6 @@ export default function MarketingNavbar({
   setMenuOpen,
   scrolled,
 }) {
-  const [showKindModal,   setShowKindModal]   = useState(false);
-  const [showParentModal, setShowParentModal] = useState(false);
   const navMenuId = 'marketing-nav-links';
   const menuRef      = useRef(null);
   const hamburgerRef = useRef(null);
@@ -27,7 +23,7 @@ export default function MarketingNavbar({
       window.location.assign(childLoginUrl);
       return;
     }
-    setShowKindModal(true);
+    requestMarketingAuth({ role: 'child', mode: 'login' });
   };
 
   const openParentLogin = () => {
@@ -36,7 +32,7 @@ export default function MarketingNavbar({
       window.location.assign(parentLoginUrl);
       return;
     }
-    setShowParentModal(true);
+    requestMarketingAuth({ role: 'parent', mode: 'login' });
   };
 
   useEffect(() => {
@@ -182,13 +178,6 @@ export default function MarketingNavbar({
           </button>
         </div>
       </div>
-
-      {!isLandingBuild && (
-        <Suspense fallback={null}>
-          {showKindModal   && <AuthModal       onClose={() => setShowKindModal(false)}   />}
-          {showParentModal && <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="login" />}
-        </Suspense>
-      )}
     </nav>
   );
 }

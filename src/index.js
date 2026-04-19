@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import './App.css';
-import App from './App';
 
 if (typeof window !== 'undefined' && !window.process) {
   window.process = { env: {}, nextTick: (fn, ...args) => setTimeout(() => fn(...args), 0) };
@@ -49,14 +48,20 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 });
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
-  <React.StrictMode>
-    <Sentry.ErrorBoundary fallback={<AppCrashFallback />}>
-      <App />
-    </Sentry.ErrorBoundary>
-  </React.StrictMode>
-);
+const loadApp = process.env.REACT_APP_SITE_TARGET === 'landing'
+  ? import('./LandingApp')
+  : import('./App');
+
+loadApp.then(({ default: App }) => {
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(
+    <React.StrictMode>
+      <Sentry.ErrorBoundary fallback={<AppCrashFallback />}>
+        <App />
+      </Sentry.ErrorBoundary>
+    </React.StrictMode>
+  );
+});
 
 function AppCrashFallback() {
   return (
@@ -84,7 +89,11 @@ function AppCrashFallback() {
 }
 
 // Service worker registreren voor PWA
-if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+if (
+  process.env.REACT_APP_SITE_TARGET !== 'landing' &&
+  'serviceWorker' in navigator &&
+  process.env.NODE_ENV === 'production'
+) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(e => { console.warn('[Pulse] Fout:', e.message); });
   });

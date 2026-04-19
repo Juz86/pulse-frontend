@@ -8,8 +8,10 @@ import { doc, getDoc } from 'firebase/firestore';
 import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket';
 import './App.css';
 import PulseLogo from './components/PulseLogo';
+import AuthModal from './components/AuthModal';
 import ParentAuthModal from './components/ParentAuthModal';
 import { bootstrapDevice } from './lib/e2ee/deviceBootstrap';
+import { MARKETING_AUTH_EVENT } from './lib/marketingAuthEvents';
 import {
   probeE2EEServiceReady,
   shouldBootstrapE2EEDevice,
@@ -48,6 +50,7 @@ const splashFallback = (
 );
 
 function MarketingRoute({ Page, pageProps = {} }) {
+  const [showChildAuth, setShowChildAuth] = useState(false);
   const [showParentAuth, setShowParentAuth] = useState(false);
   const [parentAuthDefaultTab, setParentAuthDefaultTab] = useState('login');
 
@@ -56,9 +59,40 @@ function MarketingRoute({ Page, pageProps = {} }) {
     setShowParentAuth(true);
   };
 
+  useEffect(() => {
+    const openAuth = ({ role = 'parent', mode = 'login' } = {}) => {
+      if (role === 'child') {
+        setShowChildAuth(true);
+        return;
+      }
+
+      openParentAuth(mode === 'register' ? 'register' : 'login');
+    };
+
+    const handleAuthRequest = (event) => openAuth(event.detail);
+    window.addEventListener(MARKETING_AUTH_EVENT, handleAuthRequest);
+
+    const params = new URLSearchParams(window.location.search);
+    const role = params.get('role');
+    const mode = params.get('mode');
+    if (role || mode) {
+      openAuth({ role: role || 'parent', mode: mode || 'login' });
+      params.delete('role');
+      params.delete('mode');
+      const nextSearch = params.toString();
+      const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`;
+      window.history.replaceState(null, '', nextUrl);
+    }
+
+    return () => window.removeEventListener(MARKETING_AUTH_EVENT, handleAuthRequest);
+  }, []);
+
   return (
     <Suspense fallback={splashFallback}>
       <Page {...pageProps} onParentClick={openParentAuth} />
+      {showChildAuth && (
+        <AuthModal onClose={() => setShowChildAuth(false)} />
+      )}
       {showParentAuth && (
         <ParentAuthModal
           onClose={() => {

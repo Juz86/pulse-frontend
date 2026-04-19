@@ -3727,14 +3727,23 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   object-fit: cover;
   background: transparent;
 }
-.hp-hero-video-downloads {
-  position: absolute;
+.hp-hero-download-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  right: 16px;
-  bottom: 52px;
-  z-index: 2;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding: 0 4px;
+}
+.hp-hero-download-label {
+  color: #66708a;
+  font-size: 13px;
+  font-weight: 700;
+}
+.hp-hero-video-downloads {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .hp-hero-store-btn {
   display: inline-flex;
@@ -3743,10 +3752,10 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   min-height: 34px;
   padding: 7px 12px 7px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.36);
-  background: rgba(255,255,255,.88);
+  border: 1px solid rgba(124,92,255,.18);
+  background: rgba(255,255,255,.92);
   color: #1d2338;
-  box-shadow: 0 10px 26px rgba(23,18,61,.18);
+  box-shadow: 0 10px 26px rgba(92,80,190,.12);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   font: 800 12px/1.1 'Inter', sans-serif;
@@ -4317,7 +4326,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .hp-hero-feature { font-size: 12px; padding: 7px 10px; }
   .hp-hero-video-card { border-radius: 22px; padding: 6px; }
   .hp-hero-video-frame { border-radius: 17px; aspect-ratio: 4 / 3; }
-  .hp-hero-video-downloads { right: 10px; bottom: 48px; gap: 6px; }
+  .hp-hero-download-row { justify-content: flex-end; gap: 7px; margin-top: 10px; padding: 0 2px; }
+  .hp-hero-video-downloads { gap: 6px; }
+  .hp-hero-download-label { font-size: 12px; }
   .hp-hero-store-btn { min-height: 30px; padding: 6px 9px; font-size: 11px; }
   .hp-hero-store-btn svg { width: 14px; height: 14px; }
   .hp-cta-btn { min-height: 48px; padding: 13px 18px; font-size: 14px; border-radius: 13px; }

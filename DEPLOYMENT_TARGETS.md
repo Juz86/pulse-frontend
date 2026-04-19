@@ -17,6 +17,15 @@ Use this for `pulse-messenger.com`.
   - `REACT_APP_WEB_APP_URL=https://web.pulse-messenger.com`
   - `REACT_APP_SENTRY_DSN=...` optional
 
+Cloudflare Pages settings:
+
+- Project/custom domain: `pulse-messenger.com`
+- Production branch: `main`
+- Build command: `npm run build:landing`
+- Build output directory: `build`
+- Environment variable: `REACT_APP_SITE_TARGET=landing`
+- Environment variable: `REACT_APP_WEB_APP_URL=https://web.pulse-messenger.com`
+
 Before deploying, run:
 
 ```bash
@@ -51,6 +60,16 @@ Use this for `web.pulse-messenger.com`.
   - `REACT_APP_E2EE_MODE=...`
   - `REACT_APP_E2EE_TRANSPORT=...`
 
+Cloudflare Pages settings:
+
+- Project/custom domain: `web.pulse-messenger.com`
+- Production branch: `main`
+- Build command: `npm run build:webapp`
+- Build output directory: `build`
+- Environment variable: `REACT_APP_SITE_TARGET=webapp`
+- Environment variable: `REACT_APP_WEB_APP_URL=https://web.pulse-messenger.com`
+- Environment variable: `REACT_APP_BACKEND_URL=https://api.pulse-messenger.com`
+
 Before deploying, run:
 
 ```bash
@@ -81,6 +100,49 @@ Optional custom domains:
 
 ```bash
 PULSE_LANDING_URL=https://pulse-messenger.com PULSE_WEBAPP_URL=https://web.pulse-messenger.com npm run verify:deployed-targets
+```
+
+## Troubleshooting live target failures
+
+If `npm run verify:deployed-targets` reports:
+
+```text
+landing: CSP must not include api.pulse-messenger.com
+landing: CSP must not include firebaseio.com
+landing: CSP must not include firebaseapp.com
+landing: CSP must not include fcm.googleapis.com
+landing: CSP must not include firebasestorage.googleapis.com
+landing: CSP must not include wss://api.pulse-messenger.com
+```
+
+Then `pulse-messenger.com` is still serving the web app build or web app headers. In Cloudflare Pages, open the Pages project that owns `pulse-messenger.com` and set:
+
+- Build command: `npm run build:landing`
+- Build output directory: `build`
+- Environment variable: `REACT_APP_SITE_TARGET=landing`
+- Environment variable: `REACT_APP_WEB_APP_URL=https://web.pulse-messenger.com`
+
+Redeploy that Pages project after saving the settings.
+
+If the verifier reports:
+
+```text
+webapp: getaddrinfo ENOTFOUND web.pulse-messenger.com
+```
+
+Then the web app domain is not live in DNS yet. In Cloudflare Pages, open the Pages project that should host the authenticated app and add:
+
+- Custom domain: `web.pulse-messenger.com`
+- Build command: `npm run build:webapp`
+- Build output directory: `build`
+- Environment variable: `REACT_APP_SITE_TARGET=webapp`
+- Environment variable: `REACT_APP_WEB_APP_URL=https://web.pulse-messenger.com`
+- Environment variable: `REACT_APP_BACKEND_URL=https://api.pulse-messenger.com`
+
+After Cloudflare shows the custom domain as active, run:
+
+```bash
+npm run verify:deployed-targets
 ```
 
 ## Runtime behavior

@@ -1,0 +1,36 @@
+name: Verify Deployed Targets
+
+on:
+  workflow_dispatch:
+    inputs:
+      landing_url:
+        description: Landing URL to verify
+        required: false
+        default: https://pulse-messenger.com
+      webapp_url:
+        description: Web app URL to verify
+        required: false
+        default: https://web.pulse-messenger.com
+
+jobs:
+  verify-deployed-targets:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify deployed target headers
+        run: npm run verify:deployed-targets
+        env:
+          PULSE_LANDING_URL: ${{ inputs.landing_url }}
+          PULSE_WEBAPP_URL: ${{ inputs.webapp_url }}

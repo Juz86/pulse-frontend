@@ -73,6 +73,8 @@ You can also verify both live deployments automatically:
 npm run verify:deployed-targets
 ```
 
+In GitHub Actions, run the manual workflow `Verify Deployed Targets` after a Cloudflare deploy to check the live headers without blocking every PR on external network availability.
+
 Optional custom domains:
 
 ```bash

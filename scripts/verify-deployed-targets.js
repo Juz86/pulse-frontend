@@ -1,5 +1,7 @@
 const https = require('https');
 
+const MAX_REDIRECTS = 5;
+
 const targets = [
   {
     name: 'landing',
@@ -45,11 +47,39 @@ function parseHttpsUrl(name, url) {
   return parsedUrl;
 }
 
-function fetchHeaders(url) {
+function fetchHeaders(url, expectedHost, redirectsRemaining = MAX_REDIRECTS) {
   return new Promise((resolve, reject) => {
     const request = https.request(url, { method: 'HEAD' }, (response) => {
+      const location = response.headers.location || '';
+
+      if (response.statusCode >= 300 && response.statusCode < 400 && location) {
+        const redirectUrl = new URL(location, url);
+
+        response.resume();
+
+        if (redirectUrl.hostname !== expectedHost) {
+          resolve({
+            headers: response.headers,
+            statusCode: response.statusCode,
+            finalUrl: url,
+            redirectHost: redirectUrl.hostname,
+          });
+          return;
+        }
+
+        if (redirectsRemaining <= 0) {
+          reject(new Error(`Too many redirects while checking ${url}`));
+          return;
+        }
+
+        fetchHeaders(redirectUrl, expectedHost, redirectsRemaining - 1)
+          .then(resolve)
+          .catch(reject);
+        return;
+      }
+
       response.resume();
-      resolve({ headers: response.headers, statusCode: response.statusCode });
+      resolve({ headers: response.headers, statusCode: response.statusCode, finalUrl: url });
     });
 
     request.setTimeout(10000, () => {
@@ -64,20 +94,16 @@ function fetchHeaders(url) {
 async function verifyTarget(target) {
   const targetUrl = parseHttpsUrl(target.name, target.url);
   const expectedHost = targetUrl.hostname;
-  const { headers, statusCode } = await fetchHeaders(targetUrl);
+  const { headers, finalUrl, redirectHost } = await fetchHeaders(targetUrl, expectedHost);
   const csp = headers['content-security-policy'] || '';
-  const location = headers.location || '';
   const violations = [];
 
-  if (statusCode >= 300 && statusCode < 400 && location) {
-    const redirectUrl = new URL(location, target.url);
-    if (redirectUrl.hostname !== expectedHost) {
-      violations.push(`${target.name}: redirects to unexpected host ${redirectUrl.hostname}`);
-    }
+  if (redirectHost) {
+    violations.push(`${target.name}: redirects to unexpected host ${redirectHost}`);
   }
 
   if (!csp) {
-    violations.push(`${target.name}: missing content-security-policy header on ${targetUrl.href}`);
+    violations.push(`${target.name}: missing content-security-policy header on ${finalUrl.href}`);
   }
 
   for (const source of target.forbidden) {

@@ -75,6 +75,8 @@ npm run verify:deployed-targets
 
 In GitHub Actions, run the manual workflow `Verify Deployed Targets` after a Cloudflare deploy to check the live headers without blocking every PR on external network availability.
 
+The live checker follows same-host redirects, but fails if a target redirects to a different host. That helps catch accidental domain swaps between the landing site and the web app.
+
 Optional custom domains:
 
 ```bash

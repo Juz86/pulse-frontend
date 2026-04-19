@@ -8,6 +8,9 @@ Frontendrepo voor Pulse, inclusief de huidige marketingpagina's, chat-UI en de v
    `npm install`
 2. Gebruik lokale configuratie op basis van:
    [.env.example](/home/yushuaabdulkadir/pulse-frontend/.env.example)
+   Voor Cloudflare-targets zijn er ook:
+   [.env.landing.example](/home/yushuaabdulkadir/pulse-frontend/.env.landing.example) en
+   [.env.webapp.example](/home/yushuaabdulkadir/pulse-frontend/.env.webapp.example)
 3. Start de app:
    `npm start`
 

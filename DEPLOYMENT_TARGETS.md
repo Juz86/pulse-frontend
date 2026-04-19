@@ -11,9 +11,11 @@ Use this for `pulse-messenger.com`.
 
 - Build command: `npm run build:landing`
 - Build output directory: `build`
+- Environment example: `.env.landing.example`
 - Environment variables:
   - `REACT_APP_SITE_TARGET=landing`
   - `REACT_APP_WEB_APP_URL=https://web.pulse-messenger.com`
+  - `REACT_APP_SENTRY_DSN=...` optional
 
 Before deploying, run:
 
@@ -31,6 +33,7 @@ Use this for `web.pulse-messenger.com`.
 
 - Build command: `npm run build:webapp`
 - Build output directory: `build`
+- Environment example: `.env.webapp.example`
 - Environment variables:
   - `REACT_APP_SITE_TARGET=webapp`
   - `REACT_APP_BACKEND_URL=https://api.pulse-messenger.com`

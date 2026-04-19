@@ -166,12 +166,50 @@ async function verifyTargets(targetsToVerify = targets) {
   return allViolations;
 }
 
+function getRemediationHints(violations) {
+  const hints = [];
+  const hasLandingWebappSources = violations.some(
+    (violation) => violation.startsWith('landing: CSP must not include')
+  );
+  const hasWebappDnsFailure = violations.some(
+    (violation) => violation.startsWith('webapp: getaddrinfo ENOTFOUND')
+  );
+  const hasCrossTargetRedirect = violations.some(
+    (violation) => violation.includes('redirects to unexpected URL')
+  );
+
+  if (hasLandingWebappSources) {
+    hints.push(
+      'landing: Cloudflare Pages gebruikt waarschijnlijk de webapp-build. Zet build command op `npm run build:landing` en `REACT_APP_SITE_TARGET=landing`.'
+    );
+  }
+
+  if (hasWebappDnsFailure) {
+    hints.push(
+      'webapp: `web.pulse-messenger.com` bestaat DNS-technisch nog niet. Voeg dit custom domain toe aan de webapp Pages target en controleer het DNS-record.'
+    );
+  }
+
+  if (hasCrossTargetRedirect) {
+    hints.push(
+      'redirect: controleer Cloudflare custom domains en redirects; landing en webapp mogen niet naar elkaars host doorsturen.'
+    );
+  }
+
+  return hints;
+}
+
 async function main() {
   const allViolations = await verifyTargets();
 
   if (allViolations.length) {
     console.error('Deployed target verification failed:');
     allViolations.forEach((violation) => console.error(`- ${violation}`));
+    const hints = getRemediationHints(allViolations);
+    if (hints.length) {
+      console.error('\nSuggested fixes:');
+      hints.forEach((hint) => console.error(`- ${hint}`));
+    }
     process.exit(1);
   }
 }
@@ -182,6 +220,7 @@ if (require.main === module) {
 
 module.exports = {
   fetchResponse,
+  getRemediationHints,
   parseHttpsUrl,
   verifyTarget,
   verifyTargets,

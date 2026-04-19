@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 
-const { parseHttpsUrl, verifyTarget } = require('./verify-deployed-targets');
+const { getRemediationHints, parseHttpsUrl, verifyTarget } = require('./verify-deployed-targets');
 
 const htmlResponse = {
   body: '<!doctype html><html><head><title>Pulse</title></head><body></body></html>',
@@ -112,4 +112,15 @@ test('target rejects non-HTML live pages', async () => {
     'landing: expected text/html content-type, got "application/json"',
     'landing: live page response does not look like the Pulse HTML document',
   ]);
+});
+
+test('returns actionable hints for common Cloudflare target mistakes', () => {
+  const hints = getRemediationHints([
+    'landing: CSP must not include api.pulse-messenger.com',
+    'webapp: getaddrinfo ENOTFOUND web.pulse-messenger.com',
+  ]);
+
+  assert.equal(hints.length, 2);
+  assert.match(hints[0], /npm run build:landing/);
+  assert.match(hints[1], /custom domain/);
 });

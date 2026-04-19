@@ -1,7 +1,12 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 
-const { getRemediationHints, parseHttpsUrl, verifyTarget } = require('./verify-deployed-targets');
+const {
+  getRemediationHints,
+  getSelectedTargets,
+  parseHttpsUrl,
+  verifyTarget,
+} = require('./verify-deployed-targets');
 
 const htmlResponse = {
   body: '<!doctype html><html><head><title>Pulse</title></head><body></body></html>',
@@ -123,4 +128,23 @@ test('returns actionable hints for common Cloudflare target mistakes', () => {
   assert.equal(hints.length, 2);
   assert.match(hints[0], /npm run build:landing/);
   assert.match(hints[1], /custom domain/);
+});
+
+test('supports selecting a single deployed target', () => {
+  assert.deepEqual(
+    getSelectedTargets('landing').map((target) => target.name),
+    ['landing']
+  );
+  assert.deepEqual(
+    getSelectedTargets('webapp').map((target) => target.name),
+    ['webapp']
+  );
+  assert.equal(getSelectedTargets('all').length, 2);
+});
+
+test('rejects unknown deployed target selection', () => {
+  assert.throws(
+    () => getSelectedTargets('marketing'),
+    /Unknown PULSE_VERIFY_TARGET/
+  );
 });

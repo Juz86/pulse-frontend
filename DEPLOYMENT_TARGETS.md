@@ -102,6 +102,13 @@ Optional custom domains:
 PULSE_LANDING_URL=https://pulse-messenger.com PULSE_WEBAPP_URL=https://web.pulse-messenger.com npm run verify:deployed-targets
 ```
 
+Verify only one target while DNS is still being set up:
+
+```bash
+PULSE_VERIFY_TARGET=landing npm run verify:deployed-targets
+PULSE_VERIFY_TARGET=webapp PULSE_WEBAPP_URL=https://your-webapp-pages-url.pages.dev npm run verify:deployed-targets
+```
+
 ## Troubleshooting live target failures
 
 If `npm run verify:deployed-targets` reports:

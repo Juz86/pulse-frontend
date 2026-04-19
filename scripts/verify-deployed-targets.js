@@ -31,6 +31,19 @@ const targets = [
   },
 ];
 
+function getSelectedTargets(targetName = process.env.PULSE_VERIFY_TARGET || 'all') {
+  if (targetName === 'all') {
+    return targets;
+  }
+
+  const selectedTargets = targets.filter((target) => target.name === targetName);
+  if (!selectedTargets.length) {
+    throw new Error(`Unknown PULSE_VERIFY_TARGET "${targetName}". Use "landing", "webapp" or "all".`);
+  }
+
+  return selectedTargets;
+}
+
 function parseHttpsUrl(name, url) {
   let parsedUrl;
 
@@ -200,7 +213,15 @@ function getRemediationHints(violations) {
 }
 
 async function main() {
-  const allViolations = await verifyTargets();
+  let selectedTargets;
+  try {
+    selectedTargets = getSelectedTargets();
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+
+  const allViolations = await verifyTargets(selectedTargets);
 
   if (allViolations.length) {
     console.error('Deployed target verification failed:');
@@ -220,6 +241,7 @@ if (require.main === module) {
 
 module.exports = {
   fetchResponse,
+  getSelectedTargets,
   getRemediationHints,
   parseHttpsUrl,
   verifyTarget,

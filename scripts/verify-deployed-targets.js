@@ -98,10 +98,10 @@ function fetchResponse(url, expectedHost, method = 'HEAD', redirectsRemaining = 
   });
 }
 
-async function verifyTarget(target) {
+async function verifyTarget(target, fetcher = fetchResponse) {
   const targetUrl = parseHttpsUrl(target.name, target.url);
   const expectedHost = targetUrl.hostname;
-  const { headers, finalUrl, redirectHost, redirectProtocol } = await fetchResponse(targetUrl, expectedHost, 'HEAD');
+  const { headers, finalUrl, redirectHost, redirectProtocol } = await fetcher(targetUrl, expectedHost, 'HEAD');
   const csp = headers['content-security-policy'] || '';
   const violations = [];
 
@@ -125,7 +125,7 @@ async function verifyTarget(target) {
     }
   }
 
-  const page = await fetchResponse(targetUrl, expectedHost, 'GET');
+  const page = await fetcher(targetUrl, expectedHost, 'GET');
   const contentType = page.headers['content-type'] || '';
 
   if (page.redirectHost) {
@@ -147,10 +147,10 @@ async function verifyTarget(target) {
   return violations;
 }
 
-(async () => {
+async function verifyTargets(targetsToVerify = targets) {
   const allViolations = [];
 
-  for (const target of targets) {
+  for (const target of targetsToVerify) {
     try {
       const violations = await verifyTarget(target);
       if (violations.length) {
@@ -163,9 +163,26 @@ async function verifyTarget(target) {
     }
   }
 
+  return allViolations;
+}
+
+async function main() {
+  const allViolations = await verifyTargets();
+
   if (allViolations.length) {
     console.error('Deployed target verification failed:');
     allViolations.forEach((violation) => console.error(`- ${violation}`));
     process.exit(1);
   }
-})();
+}
+
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  fetchResponse,
+  parseHttpsUrl,
+  verifyTarget,
+  verifyTargets,
+};

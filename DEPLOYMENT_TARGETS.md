@@ -92,7 +92,7 @@ You can also verify both live deployments automatically:
 npm run verify:deployed-targets
 ```
 
-In GitHub Actions, run the manual workflow `Verify Deployed Targets` after a Cloudflare deploy to check the live headers without blocking every PR on external network availability.
+In GitHub Actions, run the manual workflow `Verify Deployed Targets` after a Cloudflare deploy to check the live headers without blocking every PR on external network availability. The workflow has a `target` input with `all`, `landing` and `webapp`, so one target can be checked while the other is still being configured.
 
 The live checker follows same-host redirects, but fails if a target redirects to a different host. It also checks that the live response is a successful HTML document. That helps catch accidental domain swaps between the landing site and the web app.
 

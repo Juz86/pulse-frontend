@@ -8,7 +8,7 @@
 - [ ] Ik heb gecheckt dat `pulse-messenger.com` de landing-build gebruikt: `npm run build:landing`.
 - [ ] Ik heb gecheckt dat `web.pulse-messenger.com` de webapp-build gebruikt: `npm run build:webapp`.
 - [ ] Ik heb de juiste Cloudflare env vars vergeleken met `.env.landing.example` of `.env.webapp.example`.
-- [ ] Na productie-deploy draai ik de handmatige GitHub workflow `Verify Deployed Targets` of `npm run verify:deployed-targets`.
+- [ ] Na productie-deploy draai ik de handmatige GitHub workflow `Verify Deployed Targets` met target `all`, `landing` of `webapp`, of `npm run verify:deployed-targets`.
 - [ ] Ik heb geen login-, chat-, E2EE- of call-code terug in de landing-build gebracht.
 - [ ] Ik heb geen nieuwe lint warnings geïntroduceerd.
 - [ ] Ik heb geen echte secrets, sleutels of service-account data toegevoegd.

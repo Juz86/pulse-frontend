@@ -3,6 +3,15 @@ name: Verify Deployed Targets
 on:
   workflow_dispatch:
     inputs:
+      target:
+        description: Target to verify
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - landing
+          - webapp
       landing_url:
         description: Landing URL to verify
         required: false
@@ -32,5 +41,6 @@ jobs:
       - name: Verify deployed target safety
         run: npm run verify:deployed-targets
         env:
+          PULSE_VERIFY_TARGET: ${{ inputs.target }}
           PULSE_LANDING_URL: ${{ inputs.landing_url }}
           PULSE_WEBAPP_URL: ${{ inputs.webapp_url }}

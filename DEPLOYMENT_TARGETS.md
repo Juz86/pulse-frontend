@@ -159,4 +159,4 @@ On the web app target, those query parameters open the existing parent or child 
 
 ## Important
 
-`npm run build` is intentionally a web app fallback and writes webapp headers. For production domains, use the explicit target commands above so the landing site and web app stay separated.
+`npm run build` is intentionally landing-safe and writes landing headers. For `web.pulse-messenger.com`, always use the explicit `npm run build:webapp` command so the authenticated web app keeps its required API, Firebase, FCM and websocket permissions.

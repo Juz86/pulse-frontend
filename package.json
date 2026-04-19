@@ -23,6 +23,7 @@
     "build:ci": "CI=true npm run build:webapp",
     "verify:landing": "npm run build:landing && node scripts/verify-landing-build.js && REACT_APP_SITE_TARGET=landing node scripts/verify-target-headers.js",
     "verify:webapp": "npm run build:webapp && REACT_APP_SITE_TARGET=webapp node scripts/verify-target-headers.js",
+    "verify:deployed-targets": "node scripts/verify-deployed-targets.js",
     "lint": "eslint src --ext .js,.jsx",
     "test": "react-scripts test --watchAll=false",
     "test:e2ee": "react-scripts test --watchAll=false src/lib/e2ee/e2ee.test.js",

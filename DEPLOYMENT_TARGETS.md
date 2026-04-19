@@ -67,6 +67,18 @@ curl -I https://web.pulse-messenger.com
 
 Confirm that the `content-security-policy` header includes `api.pulse-messenger.com`, Firebase, FCM and websocket sources.
 
+You can also verify both live deployments automatically:
+
+```bash
+npm run verify:deployed-targets
+```
+
+Optional custom domains:
+
+```bash
+PULSE_LANDING_URL=https://pulse-messenger.com PULSE_WEBAPP_URL=https://web.pulse-messenger.com npm run verify:deployed-targets
+```
+
 ## Runtime behavior
 
 On the landing target, navigation buttons for `Aanmelden`, `Kind` and `Ouder` redirect to `web.pulse-messenger.com` with query parameters such as:

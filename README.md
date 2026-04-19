@@ -26,6 +26,8 @@ Frontendrepo voor Pulse, inclusief de huidige marketingpagina's, chat-UI en de v
   `npm run verify:landing`
 - webapp buildcheck:
   `npm run verify:webapp`
+- live deploy headercheck:
+  `npm run verify:deployed-targets`
 - Cloudflare-veilige CI-build:
   `npm run build:ci`
 - tests:

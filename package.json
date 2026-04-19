@@ -24,6 +24,7 @@
     "verify:landing": "npm run build:landing && node scripts/verify-landing-build.js && REACT_APP_SITE_TARGET=landing node scripts/verify-target-headers.js",
     "verify:webapp": "npm run build:webapp && REACT_APP_SITE_TARGET=webapp node scripts/verify-target-headers.js",
     "verify:deployed-targets": "node scripts/verify-deployed-targets.js",
+    "verify:public-headers": "node scripts/verify-public-headers.js",
     "test:deployed-targets": "node --test scripts/verify-deployed-targets.test.js",
     "lint": "eslint src --ext .js,.jsx",
     "test": "react-scripts test --watchAll=false",
@@ -31,7 +32,7 @@
     "verify": "npm run lint && npm run test -- --runInBand && npm run build",
     "verify:e2ee": "npm run test:e2ee && npm run build",
     "verify:e2ee:acceptance-preflight": "npm run lint && npm run test:e2ee -- --runInBand && npm --prefix backend-skeleton run test && npm --prefix backend-skeleton run smoke && npm --prefix backend-skeleton run smoke:socket",
-    "verify:cloudflare": "npm run lint && npm run test -- --runInBand && npm run test:deployed-targets && npm run verify:landing && npm run verify:webapp"
+    "verify:cloudflare": "npm run lint && npm run test -- --runInBand && npm run verify:public-headers && npm run test:deployed-targets && npm run verify:landing && npm run verify:webapp"
   },
   "engines": {
     "node": "20.x"

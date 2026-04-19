@@ -3727,44 +3727,36 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   object-fit: cover;
   background: transparent;
 }
-.hp-hero-video-fallback {
+.hp-hero-video-downloads {
   position: absolute;
-  inset: 0;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: clamp(22px, 4vw, 34px);
-  color: #fff;
-  pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(28,24,74,.04), rgba(28,24,74,.68)),
-    radial-gradient(circle at 84% 20%, rgba(168,85,247,.38), transparent 34%);
+  align-items: center;
+  gap: 8px;
+  right: 16px;
+  bottom: 52px;
+  z-index: 2;
 }
-.hp-hero-video-badge {
+.hp-hero-store-btn {
   display: inline-flex;
   align-items: center;
-  padding: 7px 12px;
+  gap: 7px;
+  min-height: 34px;
+  padding: 7px 12px 7px 10px;
   border-radius: 999px;
-  background: rgba(255,255,255,.16);
-  border: 1px solid rgba(255,255,255,.24);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: .3px;
+  border: 1px solid rgba(255,255,255,.36);
+  background: rgba(255,255,255,.88);
+  color: #1d2338;
+  box-shadow: 0 10px 26px rgba(23,18,61,.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font: 800 12px/1.1 'Inter', sans-serif;
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
 }
-.hp-hero-video-title {
-  max-width: 12ch;
-  font-size: clamp(28px, 4.3vw, 46px);
-  font-weight: 900;
-  line-height: .98;
-  letter-spacing: -.05em;
-}
-.hp-hero-video-sub {
-  max-width: 34ch;
-  color: rgba(255,255,255,.78);
-  font-size: 13px;
-  line-height: 1.55;
+.hp-hero-store-btn:hover {
+  transform: translateY(-1px);
+  background: #fff;
+  box-shadow: 0 14px 32px rgba(23,18,61,.22);
 }
 
 /* ── SECTIONS ── */
@@ -4325,8 +4317,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .hp-hero-feature { font-size: 12px; padding: 7px 10px; }
   .hp-hero-video-card { border-radius: 22px; padding: 6px; }
   .hp-hero-video-frame { border-radius: 17px; aspect-ratio: 4 / 3; }
-  .hp-hero-video-fallback { padding: 20px; }
-  .hp-hero-video-title { font-size: clamp(24px, 8vw, 34px); }
+  .hp-hero-video-downloads { right: 10px; bottom: 48px; gap: 6px; }
+  .hp-hero-store-btn { min-height: 30px; padding: 6px 9px; font-size: 11px; }
+  .hp-hero-store-btn svg { width: 14px; height: 14px; }
   .hp-cta-btn { min-height: 48px; padding: 13px 18px; font-size: 14px; border-radius: 13px; }
   .hp-why-card { border-radius: 18px; }
   .hp-why-icon { font-size: 32px; margin-bottom: 14px; }

@@ -27,6 +27,14 @@ This builds the landing target and checks that app-only code such as auth modals
 
 The landing build also writes and verifies a stricter `build/_headers` file. Its CSP does not allow Firebase, the Pulse API, websocket connections or FCM, because the public landing site should not perform login, chat or E2EE work.
 
+After deploy, check:
+
+```bash
+curl -I https://pulse-messenger.com
+```
+
+Confirm that the `content-security-policy` header does not include `api.pulse-messenger.com`, Firebase, FCM or websocket sources.
+
 ## Cloudflare Pages: web app
 
 Use this for `web.pulse-messenger.com`.
@@ -50,6 +58,14 @@ npm run verify:webapp
 ```
 
 The web app build writes and verifies the broader `build/_headers` file that allows the Pulse API, Firebase, FCM and websocket connections needed by the authenticated app.
+
+After deploy, check:
+
+```bash
+curl -I https://web.pulse-messenger.com
+```
+
+Confirm that the `content-security-policy` header includes `api.pulse-messenger.com`, Firebase, FCM and websocket sources.
 
 ## Runtime behavior
 

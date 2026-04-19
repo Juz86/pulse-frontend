@@ -7,6 +7,7 @@
 - [ ] Ik heb `npm run verify:cloudflare` lokaal gedraaid of bewust gecheckt waarom dat nog niet kan.
 - [ ] Ik heb gecheckt dat `pulse-messenger.com` de landing-build gebruikt: `npm run build:landing`.
 - [ ] Ik heb gecheckt dat `web.pulse-messenger.com` de webapp-build gebruikt: `npm run build:webapp`.
+- [ ] Ik heb de juiste Cloudflare env vars vergeleken met `.env.landing.example` of `.env.webapp.example`.
 - [ ] Ik heb geen login-, chat-, E2EE- of call-code terug in de landing-build gebracht.
 - [ ] Ik heb geen nieuwe lint warnings geïntroduceerd.
 - [ ] Ik heb geen echte secrets, sleutels of service-account data toegevoegd.

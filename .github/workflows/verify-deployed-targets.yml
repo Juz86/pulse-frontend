@@ -29,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify deployed target headers
+      - name: Verify deployed target safety
         run: npm run verify:deployed-targets
         env:
           PULSE_LANDING_URL: ${{ inputs.landing_url }}

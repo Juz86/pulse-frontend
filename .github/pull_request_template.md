@@ -19,6 +19,7 @@
 
 - Cloudflare Pages draait Create React App met `CI=true`.
 - Daardoor tellen warnings mee als build errors.
+- `npm run verify:cloudflare` draait ook de deployed-target verifier tests, zodat CSP-, redirect- en HTML-checks lokaal bewaakt blijven.
 - Gebruik lokaal voor beide Cloudflare-targets:
   `npm run verify:cloudflare`
 

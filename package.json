@@ -17,10 +17,10 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "npm run build:webapp",
     "build:landing": "REACT_APP_SITE_TARGET=landing react-scripts build && REACT_APP_SITE_TARGET=landing node scripts/write-target-headers.js",
     "build:webapp": "REACT_APP_SITE_TARGET=webapp react-scripts build && REACT_APP_SITE_TARGET=webapp node scripts/write-target-headers.js",
-    "build:ci": "CI=true react-scripts build",
+    "build:ci": "CI=true npm run build:webapp",
     "verify:landing": "npm run build:landing && node scripts/verify-landing-build.js && REACT_APP_SITE_TARGET=landing node scripts/verify-target-headers.js",
     "verify:webapp": "npm run build:webapp && REACT_APP_SITE_TARGET=webapp node scripts/verify-target-headers.js",
     "lint": "eslint src --ext .js,.jsx",

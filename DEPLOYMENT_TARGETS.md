@@ -62,4 +62,4 @@ On the web app target, those query parameters open the existing parent or child 
 
 ## Important
 
-Do not deploy the default `npm run build` to production domains. Use the explicit target commands above so the landing site and web app stay separated.
+`npm run build` is intentionally a web app fallback and writes webapp headers. For production domains, use the explicit target commands above so the landing site and web app stay separated.

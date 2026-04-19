@@ -13,7 +13,7 @@ Frontendrepo voor Pulse, inclusief de huidige marketingpagina's, chat-UI en de v
 
 ## Verificatie
 
-- build:
+- standaard webapp-build:
   `npm run build`
 - landing-only build:
   `npm run build:landing`
@@ -44,7 +44,7 @@ Belangrijk voor Cloudflare Pages:
 - gebruik voor `pulse-messenger.com` altijd `npm run build:landing`
 - gebruik voor `web.pulse-messenger.com` altijd `npm run build:webapp`
 - beide target-builds schrijven hun eigen `build/_headers` met passende CSP
-- deploy niet per ongeluk de algemene `npm run build` naar productie
+- `npm run build` is alleen een webapp-fallback; gebruik voor productie liever altijd het expliciete targetcommando
 - Create React App draait daar met `CI=true`
 - warnings tellen dan mee als build errors
 - `npm run verify:cloudflare` bootst dat lokaal na

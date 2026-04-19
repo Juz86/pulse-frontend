@@ -47,9 +47,9 @@ function parseHttpsUrl(name, url) {
   return parsedUrl;
 }
 
-function fetchHeaders(url, expectedHost, redirectsRemaining = MAX_REDIRECTS) {
+function fetchResponse(url, expectedHost, method = 'HEAD', redirectsRemaining = MAX_REDIRECTS) {
   return new Promise((resolve, reject) => {
-    const request = https.request(url, { method: 'HEAD' }, (response) => {
+    const request = https.request(url, { method }, (response) => {
       const location = response.headers.location || '';
 
       if (response.statusCode >= 300 && response.statusCode < 400 && location) {
@@ -57,11 +57,12 @@ function fetchHeaders(url, expectedHost, redirectsRemaining = MAX_REDIRECTS) {
 
         response.resume();
 
-        if (redirectUrl.hostname !== expectedHost) {
+        if (redirectUrl.protocol !== 'https:' || redirectUrl.hostname !== expectedHost) {
           resolve({
             headers: response.headers,
             statusCode: response.statusCode,
             finalUrl: url,
+            redirectProtocol: redirectUrl.protocol,
             redirectHost: redirectUrl.hostname,
           });
           return;
@@ -72,14 +73,20 @@ function fetchHeaders(url, expectedHost, redirectsRemaining = MAX_REDIRECTS) {
           return;
         }
 
-        fetchHeaders(redirectUrl, expectedHost, redirectsRemaining - 1)
+        fetchResponse(redirectUrl, expectedHost, method, redirectsRemaining - 1)
           .then(resolve)
           .catch(reject);
         return;
       }
 
-      response.resume();
-      resolve({ headers: response.headers, statusCode: response.statusCode, finalUrl: url });
+      let body = '';
+      response.setEncoding('utf8');
+      response.on('data', (chunk) => {
+        if (body.length < 100000) body += chunk;
+      });
+      response.on('end', () => {
+        resolve({ body, headers: response.headers, statusCode: response.statusCode, finalUrl: url });
+      });
     });
 
     request.setTimeout(10000, () => {
@@ -94,12 +101,12 @@ function fetchHeaders(url, expectedHost, redirectsRemaining = MAX_REDIRECTS) {
 async function verifyTarget(target) {
   const targetUrl = parseHttpsUrl(target.name, target.url);
   const expectedHost = targetUrl.hostname;
-  const { headers, finalUrl, redirectHost } = await fetchHeaders(targetUrl, expectedHost);
+  const { headers, finalUrl, redirectHost, redirectProtocol } = await fetchResponse(targetUrl, expectedHost, 'HEAD');
   const csp = headers['content-security-policy'] || '';
   const violations = [];
 
   if (redirectHost) {
-    violations.push(`${target.name}: redirects to unexpected host ${redirectHost}`);
+    violations.push(`${target.name}: redirects to unexpected URL ${redirectProtocol}//${redirectHost}`);
   }
 
   if (!csp) {
@@ -116,6 +123,25 @@ async function verifyTarget(target) {
     if (!csp.includes(source)) {
       violations.push(`${target.name}: CSP must include ${source}`);
     }
+  }
+
+  const page = await fetchResponse(targetUrl, expectedHost, 'GET');
+  const contentType = page.headers['content-type'] || '';
+
+  if (page.redirectHost) {
+    violations.push(`${target.name}: page redirects to unexpected URL ${page.redirectProtocol}//${page.redirectHost}`);
+  }
+
+  if (page.statusCode < 200 || page.statusCode >= 300) {
+    violations.push(`${target.name}: expected live page status 2xx, got ${page.statusCode}`);
+  }
+
+  if (!contentType.includes('text/html')) {
+    violations.push(`${target.name}: expected text/html content-type, got "${contentType || 'missing'}"`);
+  }
+
+  if (!page.body.includes('<!doctype html') && !page.body.includes('<!DOCTYPE html')) {
+    violations.push(`${target.name}: live page response does not look like the Pulse HTML document`);
   }
 
   return violations;

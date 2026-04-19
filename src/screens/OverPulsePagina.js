@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
-import AuthModal from '../components/AuthModal';
 import DecorativeAvatar, { avatarSvgs } from '../components/DecorativeAvatars';
-import ParentAuthModal from '../components/ParentAuthModal';
 import PageMeta from '../components/PageMeta';
+import useMarketingAuth from '../hooks/useMarketingAuth';
 import {
   Check,
   Heart,
@@ -89,8 +88,7 @@ function FeatureStrip() {
 export default function OverPulsePagina({ onParentClick }) {
   const [menuOpen,      setMenuOpen]      = useState(false);
   const [scrolled,      setScrolled]      = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showParentModal, setShowParentModal] = useState(false);
+  const { openParentSignup, openLogin, modals: marketingAuthModals } = useMarketingAuth({ onParentClick });
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -144,7 +142,7 @@ export default function OverPulsePagina({ onParentClick }) {
               Wij geloven dat kinderen recht hebben op veilige, rustgevende communicatie — zonder algoritmes, zonder verslaving, zonder zorgen. Pulse is daarvoor gebouwd.
             </p>
             <div className="ot-hero-actions">
-              <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+              <button type="button" className="hp-cta-btn" onClick={openParentSignup}>Ouderaccount aanmaken</button>
               <button type="button" className="ot-secondary-btn" onClick={() => scrollTo('waarom-pulse')}>Meer lezen</button>
             </div>
           </div>
@@ -248,11 +246,11 @@ export default function OverPulsePagina({ onParentClick }) {
         <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
         <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
         <div className="ot-final-cta-actions">
-          <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+          <button type="button" className="hp-cta-btn" onClick={openParentSignup}>Ouderaccount aanmaken</button>
           <button
             type="button"
             className="hp-cta-btn hp-cta-btn--secondary"
-            onClick={() => setShowAuthModal(true)}
+            onClick={openLogin}
           >
             <Login size={18} /> Inloggen
           </button>
@@ -262,15 +260,7 @@ export default function OverPulsePagina({ onParentClick }) {
 
       <MarketingFooter />
 
-      {showAuthModal && (
-        <AuthModal
-          onClose={() => setShowAuthModal(false)}
-          onParentClick={onParentClick}
-        />
-      )}
-      {showParentModal && (
-        <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
-      )}
+      {marketingAuthModals}
     </div>
   );
 }

@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import LegalPageLayout from '../components/LegalPageLayout';
-import ParentAuthModal from '../components/ParentAuthModal';
-import AuthModal from '../components/AuthModal';
 import { Login } from '../components/Icons';
+import useMarketingAuth from '../hooks/useMarketingAuth';
 
 const SITEMAP = [
   {
@@ -113,8 +112,7 @@ function SitemapSection({ title, links }) {
 }
 
 export default function SitemapPagina() {
-  const [showParentModal, setShowParentModal] = useState(false);
-  const [showAuthModal,   setShowAuthModal]   = useState(false);
+  const { openParentSignup, openLogin, modals: marketingAuthModals } = useMarketingAuth();
 
   return (
     <>
@@ -131,12 +129,12 @@ export default function SitemapPagina() {
             <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
             <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+              <button type="button" className="hp-cta-btn" onClick={openParentSignup}>Ouderaccount aanmaken</button>
               <button
                 type="button"
                 className="hp-cta-btn"
                 style={{ background: '#fff', border: '1.5px solid rgba(108,99,255,0.4)', color: '#6c63ff', display: 'flex', alignItems: 'center', gap: 6 }}
-                onClick={() => setShowAuthModal(true)}
+                onClick={openLogin}
               >
                 <Login size={18} /> Inloggen
               </button>
@@ -167,12 +165,7 @@ export default function SitemapPagina() {
         )}
       </LegalPageLayout>
 
-      {showParentModal && (
-        <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
-      )}
-      {showAuthModal && (
-        <AuthModal onClose={() => setShowAuthModal(false)} />
-      )}
+      {marketingAuthModals}
     </>
   );
 }

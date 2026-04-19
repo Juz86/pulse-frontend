@@ -1,13 +1,11 @@
 // src/screens/Homepage.js
 import { useState, useEffect } from 'react';
-import AuthModal from '../components/AuthModal';
-import ParentAuthModal from '../components/ParentAuthModal';
 import { Shield, PhoneIcon, Login } from '../components/Icons';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
 import { Users } from '../components/Icons';
-
+import useMarketingAuth from '../hooks/useMarketingAuth';
 
 function HeroVideo() {
   const downloadButtons = (
@@ -53,8 +51,7 @@ function HeroVideo() {
 export default function Homepage({ onParentClick }) {
   const [menuOpen,      setMenuOpen]      = useState(false);
   const [scrolled,      setScrolled]      = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showParentModal, setShowParentModal] = useState(false);
+  const { openParentSignup, openLogin, modals: marketingAuthModals } = useMarketingAuth({ onParentClick });
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -107,7 +104,7 @@ export default function Homepage({ onParentClick }) {
             <p className="hp-hero-sub">
             Met Pulse kunnen kinderen zonder telefoonnummer en e-mailadres veilig chatten, bellen en videobellen. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
             <div className="hp-hero-cta-row">
-              <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
+              <button type="button" className="hp-cta-btn" onClick={openParentSignup}>
                 Start met Pulse
               </button>
               <a href="/hoe-werkt-het" className="hp-cta-btn hp-cta-btn--secondary">
@@ -214,11 +211,11 @@ export default function Homepage({ onParentClick }) {
         <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
         <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en privé voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
         <div className="ot-final-cta-actions">
-          <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+          <button type="button" className="hp-cta-btn" onClick={openParentSignup}>Ouderaccount aanmaken</button>
           <button
             type="button"
             className="hp-cta-btn hp-cta-btn--secondary"
-            onClick={() => setShowAuthModal(true)}
+            onClick={openLogin}
           >
             <Login size={18} /> Inloggen
           </button>
@@ -229,15 +226,7 @@ export default function Homepage({ onParentClick }) {
       {/* ── FOOTER ── */}
       <MarketingFooter />
 
-      {showAuthModal && (
-        <AuthModal
-          onClose={() => setShowAuthModal(false)}
-          onParentClick={onParentClick}
-        />
-      )}
-      {showParentModal && (
-        <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
-      )}
+      {marketingAuthModals}
 
     </div>
   );

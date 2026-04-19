@@ -3526,6 +3526,32 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px;
 }
 .hp-nav-kind:hover { background: #dcfce7; color: #15803d; }
+.hp-nav-signin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 8px 16px;
+  border: 1px solid rgba(108,99,255,0.16);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #6c63ff, #a855f7);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(108,99,255,0.22);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+  white-space: nowrap;
+}
+.hp-nav-signin:hover {
+  box-shadow: 0 14px 30px rgba(108,99,255,0.3);
+  filter: saturate(1.08);
+  transform: translateY(-1px);
+}
 .hp-nav-ouder {
   background: #f4f1ff; border: 1px solid rgba(108,99,255,0.18);
   color: #7c69f2; border-radius: 14px; padding: 7px 14px;
@@ -3534,6 +3560,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px;
 }
 .hp-nav-ouder:hover { background: #e9e2ff; color: #5e50d8; }
+.hp-nav-signin:focus-visible,
 .hp-nav-ouder:focus-visible,
 .hp-nav-hamburger:focus-visible,
 .fp-nav-link:focus-visible,
@@ -4205,6 +4232,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
     z-index: 110;
   }
   .hp-nav-hamburger { display: block; }
+  .hp-nav-signin { min-height: 34px; padding: 7px 12px; font-size: 12px; }
   .hp-nav-kind,
   .hp-nav-ouder { font-size: 12px; padding: 6px 10px; }
 
@@ -4316,6 +4344,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .hp-nav-inner { gap: 8px; }
   .hp-nav-logo { font-size: 20px; gap: 8px; }
   .hp-nav-logo img { width: 32px; height: 32px; }
+  .hp-nav-signin { padding: 6px 10px; font-size: 11.5px; }
   .hp-nav-kind,
   .hp-nav-ouder { padding: 6px 9px; font-size: 11.5px; }
   .hp-nav-links { left: 10px; right: 10px; top: calc(var(--marketing-nav-height) + 6px); padding: 10px; }
@@ -6014,6 +6043,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   /* Paddings */
   .hp-hero-inner { padding: 20px 16px; gap: 20px; }
   .hp-nav-logo { font-size: 18px; }
+  .hp-nav-signin { padding: 5px 9px; font-size: 11px; }
   .hp-nav-kind,
   .hp-nav-ouder { padding: 5px 8px; }
   .ot-hero-inner { min-height: 340px; padding: 18px 16px 20px; }
@@ -6158,6 +6188,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .op-topic-grid { gap: 8px; }
 
   /* Nav knoppen */
+  .hp-nav-signin,
   .hp-nav-kind,
   .hp-nav-ouder { font-size: 11px; padding: 5px 10px; }
 }

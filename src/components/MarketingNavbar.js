@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import PulseLogo from './PulseLogo';
-import AuthModal from './AuthModal';
-import ParentAuthModal from './ParentAuthModal';
 import { Heart, Shield, Users } from './Icons';
+import { getWebAppLoginUrl, isLandingBuild } from '../lib/siteTarget';
+
+const AuthModal = lazy(() => import('./AuthModal'));
+const ParentAuthModal = lazy(() => import('./ParentAuthModal'));
 
 export default function MarketingNavbar({
   items,
@@ -16,6 +18,26 @@ export default function MarketingNavbar({
   const navMenuId = 'marketing-nav-links';
   const menuRef      = useRef(null);
   const hamburgerRef = useRef(null);
+  const childLoginUrl = getWebAppLoginUrl({ role: 'child', mode: 'login' });
+  const parentLoginUrl = getWebAppLoginUrl({ role: 'parent', mode: 'login' });
+
+  const openChildLogin = () => {
+    setMenuOpen(false);
+    if (isLandingBuild) {
+      window.location.assign(childLoginUrl);
+      return;
+    }
+    setShowKindModal(true);
+  };
+
+  const openParentLogin = () => {
+    setMenuOpen(false);
+    if (isLandingBuild) {
+      window.location.assign(parentLoginUrl);
+      return;
+    }
+    setShowParentModal(true);
+  };
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -122,8 +144,17 @@ export default function MarketingNavbar({
         <div className="hp-nav-actions">
           <button
             type="button"
+            className="hp-nav-signin"
+            onClick={openParentLogin}
+            aria-label="Aanmelden bij Pulse"
+          >
+            Aanmelden
+          </button>
+
+          <button
+            type="button"
             className="hp-nav-kind"
-            onClick={() => { setShowKindModal(true); setMenuOpen(false); }}
+            onClick={openChildLogin}
             aria-label="Kind inloggen"
           >
             <Heart size={16} aria-hidden="true" /> Kind
@@ -132,7 +163,7 @@ export default function MarketingNavbar({
           <button
             type="button"
             className="hp-nav-ouder"
-            onClick={() => { setShowParentModal(true); setMenuOpen(false); }}
+            onClick={openParentLogin}
             aria-label="Open ouder login of registratie"
           >
             <Users size={16} aria-hidden="true" /> Ouder
@@ -152,8 +183,12 @@ export default function MarketingNavbar({
         </div>
       </div>
 
-      {showKindModal   && <AuthModal       onClose={() => setShowKindModal(false)}   />}
-      {showParentModal && <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="login" />}
+      {!isLandingBuild && (
+        <Suspense fallback={null}>
+          {showKindModal   && <AuthModal       onClose={() => setShowKindModal(false)}   />}
+          {showParentModal && <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="login" />}
+        </Suspense>
+      )}
     </nav>
   );
 }

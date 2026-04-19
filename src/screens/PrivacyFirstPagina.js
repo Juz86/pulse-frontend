@@ -2,10 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
-import AuthModal from '../components/AuthModal';
-import ParentAuthModal from '../components/ParentAuthModal';
 import PageMeta from '../components/PageMeta';
 import DecorativeAvatar, { avatarSvgs } from '../components/DecorativeAvatars';
+import useMarketingAuth from '../hooks/useMarketingAuth';
 import {
   Check,
   Clock,
@@ -58,10 +57,9 @@ const retentionRows = [
 export default function PrivacyFirstPagina({ onParentClick }) {
   const [menuOpen,        setMenuOpen]        = useState(false);
   const [scrolled,        setScrolled]        = useState(false);
-  const [showAuthModal,   setShowAuthModal]   = useState(false);
-  const [showParentModal, setShowParentModal] = useState(false);
   const [showAllRetention, setShowAllRetention] = useState(false);
   const retentionRef = useRef(null);
+  const { openParentSignup, openLogin, modals: marketingAuthModals } = useMarketingAuth({ onParentClick });
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -113,7 +111,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
                 Gewoon communiceren — zoals het bedoeld is.
               </p>
               <div className="ot-hero-actions">
-                <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
+                <button type="button" className="hp-cta-btn" onClick={openParentSignup}>
                   Ouderaccount aanmaken
                 </button>
                 <a href="/privacybeleid" className="ot-secondary-btn pf-secondary-link">
@@ -327,13 +325,13 @@ Beheer per account hoe lang chat-, bel- en videobel geschiedenis wordt bewaard. 
           <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
           <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
           <div className="ot-final-cta-actions">
-            <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>
+            <button type="button" className="hp-cta-btn" onClick={openParentSignup}>
               Ouderaccount aanmaken
             </button>
             <button
               type="button"
               className="hp-cta-btn hp-cta-btn--secondary"
-              onClick={() => setShowAuthModal(true)}
+              onClick={openLogin}
             >
               <Login size={18} /> Inloggen
             </button>
@@ -344,12 +342,7 @@ Beheer per account hoe lang chat-, bel- en videobel geschiedenis wordt bewaard. 
 
       <MarketingFooter />
 
-      {showAuthModal && (
-        <AuthModal onClose={() => setShowAuthModal(false)} onParentClick={onParentClick} />
-      )}
-      {showParentModal && (
-        <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
-      )}
+      {marketingAuthModals}
 
     </div>
   );

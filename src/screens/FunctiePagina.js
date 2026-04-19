@@ -5,10 +5,9 @@ import { adventurer } from '@dicebear/collection';
 import PulseLogo from '../components/PulseLogo';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
-import AuthModal from '../components/AuthModal';
-import ParentAuthModal from '../components/ParentAuthModal';
 import PageMeta from '../components/PageMeta';
 import SafeSvgImage from '../components/SafeSvgImage';
+import useMarketingAuth from '../hooks/useMarketingAuth';
 import {
   Phone, Video, VideoOff, Mic,
   Message, Users, User, Search, Bell,
@@ -507,8 +506,7 @@ export default function FunctiePagina({ onParentClick }) {
     bellen: false,
     videobellen: false,
   });
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showParentModal, setShowParentModal] = useState(false);
+  const { openParentSignup, openLogin, modals: marketingAuthModals } = useMarketingAuth({ onParentClick });
   const chatTabRefs     = useRef([]);
   const callTabRefs     = useRef([]);
   const gridTabRefs     = useRef([]);
@@ -1087,26 +1085,18 @@ export default function FunctiePagina({ onParentClick }) {
         <h2>Veilig verbonden.<br className="ot-final-cta-break" />{' '}Met wie echt telt.</h2>
         <p>Pulse helpt gezinnen om in contact te blijven op een manier die vertrouwd, veilig en rustig voelt. Voor kinderen. Voor ouders. Voor iedereen die erom geeft.</p>
         <div className="ot-final-cta-actions">
-          <button type="button" className="hp-cta-btn" onClick={() => setShowParentModal(true)}>Ouderaccount aanmaken</button>
+          <button type="button" className="hp-cta-btn" onClick={openParentSignup}>Ouderaccount aanmaken</button>
           <button
             type="button"
             className="hp-cta-btn hp-cta-btn--secondary"
-            onClick={() => setShowAuthModal(true)}
+            onClick={openLogin}
           >
             <Login size={18} /> Inloggen
           </button>
         </div>
       </section>
 
-      {showAuthModal && (
-        <AuthModal
-          onClose={() => setShowAuthModal(false)}
-          onParentClick={onParentClick}
-        />
-      )}
-      {showParentModal && (
-        <ParentAuthModal onClose={() => setShowParentModal(false)} defaultTab="register" />
-      )}
+      {marketingAuthModals}
 
       </main>
 

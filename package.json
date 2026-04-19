@@ -18,6 +18,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:landing": "REACT_APP_SITE_TARGET=landing react-scripts build",
+    "build:webapp": "REACT_APP_SITE_TARGET=webapp react-scripts build",
     "build:ci": "CI=true react-scripts build",
     "lint": "eslint src --ext .js,.jsx",
     "test": "react-scripts test --watchAll=false",

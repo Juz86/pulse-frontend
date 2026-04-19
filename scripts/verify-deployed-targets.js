@@ -187,6 +187,9 @@ function getRemediationHints(violations) {
   const hasWebappDnsFailure = violations.some(
     (violation) => violation.startsWith('webapp: getaddrinfo ENOTFOUND')
   );
+  const hasWebappMissingSources = violations.some(
+    (violation) => violation.startsWith('webapp: CSP must include')
+  );
   const hasCrossTargetRedirect = violations.some(
     (violation) => violation.includes('redirects to unexpected URL')
   );
@@ -200,6 +203,12 @@ function getRemediationHints(violations) {
   if (hasWebappDnsFailure) {
     hints.push(
       'webapp: `web.pulse-messenger.com` bestaat DNS-technisch nog niet. Voeg dit custom domain toe aan de webapp Pages target en controleer het DNS-record.'
+    );
+  }
+
+  if (hasWebappMissingSources) {
+    hints.push(
+      'webapp: Cloudflare Pages gebruikt waarschijnlijk de landing-build of oude headers. Zet build command op `npm run build:webapp`, `REACT_APP_SITE_TARGET=webapp` en redeploy de webapp target.'
     );
   }
 

@@ -123,11 +123,13 @@ test('returns actionable hints for common Cloudflare target mistakes', () => {
   const hints = getRemediationHints([
     'landing: CSP must not include api.pulse-messenger.com',
     'webapp: getaddrinfo ENOTFOUND web.pulse-messenger.com',
+    'webapp: CSP must include api.pulse-messenger.com',
   ]);
 
-  assert.equal(hints.length, 2);
+  assert.equal(hints.length, 3);
   assert.match(hints[0], /npm run build:landing/);
   assert.match(hints[1], /custom domain/);
+  assert.match(hints[2], /npm run build:webapp/);
 });
 
 test('supports selecting a single deployed target', () => {

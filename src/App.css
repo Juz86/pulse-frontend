@@ -504,7 +504,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   background: var(--surface);
   border: 1px solid rgba(255, 255, 255, .10);
   border-radius: 28px;
-  padding: clamp(20px, 2.6vw, 26px);
+  padding: clamp(22px, 2.8vw, 28px);
   box-shadow: 0 26px 60px rgba(31, 27, 58, .22);
 }
 
@@ -524,12 +524,12 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-form-card .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 13px;
 }
 
 .web-auth-form-card .form-label {
   font-size: 10px;
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 .web-auth-form-card .form-input {
@@ -549,7 +549,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   padding: 5px;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
   border-radius: 16px;
   background: rgba(255, 255, 255, .06);
   border: 1px solid rgba(255, 255, 255, .09);
@@ -583,8 +583,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
 }
 
 .web-auth-form-card .auth-feature {
@@ -617,7 +617,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .web-auth-parent-panel .parent-auth-sub {
   color: var(--text2);
   font-size: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
   line-height: 1.45;
 }
 
@@ -673,8 +673,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   border-top-color: var(--border);
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
 }
 
 .web-auth-parent-panel .parent-auth-feature {
@@ -703,7 +703,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-parent-panel .parent-auth-field {
-  margin-bottom: 9px;
+  margin-bottom: 12px;
 }
 
 .web-auth-parent-panel .parent-auth-btn {
@@ -713,7 +713,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-parent-panel form {
-  margin-top: 10px !important;
+  margin-top: 14px !important;
 }
 
 .web-auth-privacy {
@@ -831,7 +831,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   .web-auth-parent-panel .parent-auth-field,
   .web-auth-form-card .form-group {
-    margin-bottom: 7px;
+    margin-bottom: 9px;
   }
 
   .web-auth-parent-panel .parent-auth-btn,
@@ -842,8 +842,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   .web-auth-parent-panel .parent-auth-features,
   .web-auth-form-card .auth-features {
-    margin-top: 8px;
-    padding-top: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
   }
 
   .web-auth-parent-panel .parent-auth-feature,

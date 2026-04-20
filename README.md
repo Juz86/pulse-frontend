@@ -62,6 +62,7 @@ Belangrijk voor Cloudflare Pages:
 Zie ook:
 
 - [DEPLOYMENT_TARGETS.md](/home/yushuaabdulkadir/pulse-frontend/DEPLOYMENT_TARGETS.md)
+- [CONTRIBUTING.md](/home/yushuaabdulkadir/pulse-frontend/CONTRIBUTING.md)
 
 ## E2EE Status
 

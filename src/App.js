@@ -131,7 +131,6 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
             <div className="web-auth-info-logo" aria-hidden="true">
               <PulseLogo size={48} textSize={30} color="#5b5cff" gap={12} />
             </div>
-            <p className="web-auth-kicker">Pulse Web</p>
             <h1 id="web-auth-title">Meld je aan</h1>
             <p id="web-auth-description">
               Kinderen gebruiken hun Pulse-gebruikersnaam, ouders beheren alles via het ouderportaal.

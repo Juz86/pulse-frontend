@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
 import useMarketingAuth from '../hooks/useMarketingAuth';
-import { Download, Lock, Login, Shield } from '../components/Icons';
+import { Download, Shield } from '../components/Icons';
 import { getWebAppLoginUrl, isLandingBuild } from '../lib/siteTarget';
 
 function GlobeIcon() {
@@ -33,55 +33,75 @@ function AndroidIcon() {
   );
 }
 
-function PlatformCard({
-  id,
-  badge,
-  title,
-  description,
-  meta,
-  icon,
-  primaryLabel,
-  primaryHref,
-  primaryOnClick,
-  secondaryLabel,
-  secondaryHref,
-  note,
-  available = true,
-}) {
+function StoreBadge({ icon, label, sublabel }) {
   return (
-    <article className={`dl-card${available ? '' : ' dl-card--coming-soon'}`} id={id}>
-      <div className="dl-card-top">
-        <span className={`dl-card-badge${available ? '' : ' dl-card-badge--muted'}`}>{badge}</span>
-        <div className="dl-card-icon" aria-hidden="true">{icon}</div>
+    <span className="dl-store-badge">
+      <span className="dl-store-icon" aria-hidden="true">{icon}</span>
+      <span className="dl-store-copy">
+        <span>{label}</span>
+        <strong>{sublabel}</strong>
+      </span>
+    </span>
+  );
+}
+
+function CarouselSection({ title, intro, theme = 'sand', cards, sectionClassName = '' }) {
+  const trackRef = useRef(null);
+
+  const scrollCards = (direction) => {
+    const node = trackRef.current;
+    if (!node) return;
+    const amount = Math.max(320, Math.round(node.clientWidth * 0.72));
+    node.scrollBy({ left: direction * amount, behavior: 'smooth' });
+  };
+
+  return (
+    <section className={`dl-carousel dl-carousel--${theme} ${sectionClassName}`.trim()}>
+      <div className="dl-section-inner dl-carousel-inner">
+        <div className="dl-carousel-copy">
+          <h2>{title}</h2>
+          <p>{intro}</p>
+          <div className="dl-carousel-controls" aria-label="Scroll door opties">
+            <button type="button" className="dl-carousel-arrow dl-carousel-arrow--muted" onClick={() => scrollCards(-1)} aria-label="Scroll naar links">
+              &#8249;
+            </button>
+            <button type="button" className="dl-carousel-arrow" onClick={() => scrollCards(1)} aria-label="Scroll naar rechts">
+              &#8250;
+            </button>
+          </div>
+        </div>
+
+        <div className="dl-carousel-track" ref={trackRef}>
+          {cards.map((card) => (
+            <article key={card.title} className={`dl-option-card${card.infoCard ? ' dl-option-card--info' : ''}`}>
+              {card.badge ? <span className="dl-option-badge">{card.badge}</span> : null}
+              {card.eyebrow ? <div className="dl-option-eyebrow">{card.eyebrow}</div> : null}
+              {card.image ? <div className={`dl-option-image dl-option-image--${card.image}`.trim()} aria-hidden="true" /> : null}
+              <h3>{card.title}</h3>
+              <p>{card.text}</p>
+              {card.meta ? <div className="dl-option-meta">{card.meta}</div> : null}
+              {card.cta ? (
+                <a href={card.href} className={`dl-option-link${card.badgeStyle === 'store' ? ' dl-option-link--store' : ''}`}>
+                  {card.cta}
+                </a>
+              ) : null}
+              {card.storeBadge ? (
+                <a href={card.href} className="dl-option-store-link">
+                  <StoreBadge icon={card.storeBadge.icon} label={card.storeBadge.label} sublabel={card.storeBadge.sublabel} />
+                </a>
+              ) : null}
+            </article>
+          ))}
+        </div>
       </div>
-      <h2>{title}</h2>
-      <p>{description}</p>
-      <div className="dl-card-meta">{meta}</div>
-      <div className="dl-card-actions">
-        {primaryHref ? (
-          <a href={primaryHref} className="dl-btn">
-            {primaryLabel}
-          </a>
-        ) : (
-          <button type="button" className="dl-btn" onClick={primaryOnClick}>
-            {primaryLabel}
-          </button>
-        )}
-        {secondaryLabel ? (
-          <a href={secondaryHref} className="dl-btn dl-btn--secondary">
-            {secondaryLabel}
-          </a>
-        ) : null}
-      </div>
-      <p className="dl-card-note">{note}</p>
-    </article>
+    </section>
   );
 }
 
 export default function DownloadPagina({ onParentClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { openParentSignup, openLogin, modals: marketingAuthModals } = useMarketingAuth({ onParentClick });
+  const { openLogin, modals: marketingAuthModals } = useMarketingAuth({ onParentClick });
   const webLoginUrl = isLandingBuild ? getWebAppLoginUrl({ role: 'parent', mode: 'login' }) : '/?role=parent&mode=login';
 
   useEffect(() => {
@@ -101,11 +121,69 @@ export default function DownloadPagina({ onParentClick }) {
     { key: 'functies', label: 'Functies', href: '/functies' },
   ];
 
+  const otherOptions = [
+    {
+      badge: 'NIEUW',
+      eyebrow: 'Tablet',
+      title: 'iPadOS',
+      text: 'Een grotere weergave voor Pulse zodra de tabletversie beschikbaar is voor gezinnen en ouderlijk toezicht.',
+      meta: 'Binnenkort beschikbaar',
+      storeBadge: { icon: <AppleIcon />, label: 'Download in de', sublabel: 'App Store' },
+      href: '/contact',
+      badgeStyle: 'store',
+    },
+    {
+      eyebrow: 'Desktop',
+      title: 'Windows',
+      text: 'Voor een rustige desktop-ervaring met aanmelden via het Pulse webportaal en ruimte voor langere gesprekken.',
+      meta: 'Gebruik nu alvast Pulse Web',
+      storeBadge: { icon: <GlobeIcon />, label: 'Open direct in', sublabel: 'Pulse Web' },
+      href: webLoginUrl,
+      badgeStyle: 'store',
+    },
+    {
+      eyebrow: 'Mobiel',
+      title: 'Android',
+      text: 'De Android-app sluit straks aan op dezelfde privacy-first basis, zonder telefoonnummer en met oudertoezicht.',
+      meta: 'Nog geen Play Store-link',
+      storeBadge: { icon: <AndroidIcon />, label: 'Bekijk', sublabel: 'Updates' },
+      href: '/over-pulse',
+      badgeStyle: 'store',
+    },
+  ];
+
+  const learnMoreCards = [
+    {
+      image: 'privacy',
+      title: 'Verstuur priveberichten',
+      text: 'Lees hoe Pulse communicatie veilig en rustig houdt voor kinderen en ouders.',
+      cta: 'Meer informatie',
+      href: '/privacy-first',
+      infoCard: true,
+    },
+    {
+      image: 'family',
+      title: 'Blijf verbonden',
+      text: 'Bekijk hoe ouders en kinderen samen starten met Pulse op web en straks in de apps.',
+      cta: 'Meer informatie',
+      href: '/hoe-werkt-het',
+      infoCard: true,
+    },
+    {
+      image: 'community',
+      title: 'Ontwikkeld voor gezinnen',
+      text: 'Ontdek waarom Pulse geen standaard chatapp is, maar een veilige familie-omgeving.',
+      cta: 'Meer informatie',
+      href: '/over-pulse',
+      infoCard: true,
+    },
+  ];
+
   return (
     <div className="hp-root dl-root">
       <PageMeta
         title="Download Pulse"
-        description="Gebruik Pulse op web, iPhone en Android. Bekijk welke versie beschikbaar is en hoe je veilig start met Pulse."
+        description="Gebruik Pulse op web, iPhone en Android. Bekijk de downloadopties en start veilig met Pulse."
         canonical="https://pulse-messenger.com/download"
       />
 
@@ -119,144 +197,79 @@ export default function DownloadPagina({ onParentClick }) {
 
       <main id="main-content" className="dl-main" data-page="download">
         <section className="dl-hero" aria-labelledby="download-title">
-          <div className="dl-hero-inner">
+          <div className="dl-section-inner dl-hero-inner">
             <div className="dl-hero-copy">
-              <div className="dl-eyebrow">
+              <div className="dl-hero-kicker">
                 <Download size={16} aria-hidden="true" />
-                Download Pulse
+                Download
               </div>
-              <h1 id="download-title">Gebruik Pulse op elk scherm dat bij jullie gezin past</h1>
-              <p className="dl-hero-text">
-                Start veilig met Pulse op web en bekijk meteen welke mobiele versies eraan komen.
-                Net als bij WhatsApp staat alles overzichtelijk op één downloadpagina.
+              <h1 id="download-title">Pulse downloaden</h1>
+              <p className="dl-hero-intro">
+                Chat en bel veilig met Pulse op al je apparaten.
               </p>
-              <div className="dl-hero-points" aria-label="Belangrijkste voordelen">
-                <span><Shield size={15} aria-hidden="true" /> Zonder telefoonnummer</span>
-                <span><Lock size={15} aria-hidden="true" /> End-to-end versleuteld</span>
-                <span><Login size={15} aria-hidden="true" /> Direct starten op web</span>
-              </div>
-              <div className="dl-hero-actions">
-                <a href="#web" className="dl-btn">Bekijk webversie</a>
-                <button type="button" className="dl-btn dl-btn--secondary" onClick={openParentSignup}>
-                  Ouderaccount aanmaken
-                </button>
-              </div>
+              <p className="dl-hero-legal">
+                Door Pulse te gebruiken, ga je akkoord met ons <a href="/privacybeleid">Privacybeleid</a> en onze privacy-first uitgangspunten.
+              </p>
+
+              <article className="dl-hero-card" id="web">
+                <div className="dl-hero-card-eyebrow">Browser</div>
+                <h2>Pulse Web</h2>
+                <p>
+                  Wordt je apparaat nog niet ondersteund? Gebruik Pulse direct in je browser.
+                </p>
+                <a href={webLoginUrl} className="dl-hero-login">
+                  Inloggen <span aria-hidden="true">&#8250;</span>
+                </a>
+              </article>
             </div>
 
-            <div className="dl-hero-visual" aria-hidden="true">
-              <div className="dl-visual-orb dl-visual-orb--one" />
-              <div className="dl-visual-orb dl-visual-orb--two" />
-              <div className="dl-device-stack">
-                <div className="dl-device dl-device--browser">
-                  <div className="dl-device-bar">
+            <div className="dl-hero-illustration" aria-hidden="true">
+              <div className="dl-laptop">
+                <div className="dl-laptop-screen">
+                  <div className="dl-laptop-sidebar" />
+                  <div className="dl-laptop-header">
                     <span />
                     <span />
                     <span />
                   </div>
-                  <div className="dl-device-screen">
-                    <div className="dl-device-logo">Pulse Web</div>
-                    <div className="dl-device-bubbles">
-                      <div className="dl-bubble dl-bubble--left">Hoi mam, ik ben veilig thuis.</div>
-                      <div className="dl-bubble dl-bubble--right">Top, ik zie het in Pulse.</div>
-                      <div className="dl-bubble dl-bubble--left">Zullen we vanavond videobellen?</div>
-                    </div>
-                  </div>
+                  <div className="dl-laptop-window dl-laptop-window--top" />
+                  <div className="dl-laptop-chat dl-laptop-chat--right" />
+                  <div className="dl-laptop-chat dl-laptop-chat--bottom" />
                 </div>
-                <div className="dl-device dl-device--phone" />
+                <div className="dl-laptop-base" />
               </div>
+              <div className="dl-hero-float dl-hero-float--star" />
+              <div className="dl-hero-float dl-hero-float--mic" />
+              <div className="dl-hero-float dl-hero-float--paper" />
+              <div className="dl-hero-float dl-hero-float--check" />
             </div>
           </div>
         </section>
 
-        <section className="dl-platforms" aria-labelledby="download-platforms-title">
-          <div className="dl-section-inner">
-            <div className="dl-section-head">
-              <h2 id="download-platforms-title">Kies je platform</h2>
-              <p>Open Pulse direct in je browser of bekijk welke mobiele app-versies je binnenkort kunt verwachten.</p>
-            </div>
+        <CarouselSection
+          title="Andere downloadopties"
+          intro="Blijf in contact via al je apparaten."
+          theme="sand"
+          cards={otherOptions}
+        />
 
-            <div className="dl-card-grid">
-              <PlatformCard
-                id="web"
-                badge="Nu beschikbaar"
-                title="Pulse Web"
-                description="Voor ouders en kinderen die meteen veilig willen inloggen via hun browser."
-                meta="Browser • Desktop • Laptop"
-                icon={<GlobeIcon />}
-                primaryLabel="Open Pulse Web"
-                primaryHref={webLoginUrl}
-                secondaryLabel="Hoe werkt het"
-                secondaryHref="/hoe-werkt-het"
-                note="Gebruik je bestaande Pulse-account of laat een ouder eerst een account aanmaken."
-              />
+        <CarouselSection
+          title="Al gedownload?"
+          intro="Bekijk meer informatie over wat je kunt doen in Pulse."
+          theme="light"
+          cards={learnMoreCards}
+          sectionClassName="dl-carousel--learn"
+        />
 
-              <PlatformCard
-                id="ios"
-                badge="Binnenkort"
-                title="Pulse voor iPhone"
-                description="De iPhone-versie krijgt dezelfde veilige communicatie-ervaring, afgestemd op gezinnen."
-                meta="iOS • iPhone"
-                icon={<AppleIcon />}
-                primaryLabel="Bekijk updates"
-                primaryHref="/over-pulse"
-                secondaryLabel="Contact"
-                secondaryHref="/contact"
-                note="Nog geen publieke App Store-link beschikbaar. Deze sectie houdt de plek alvast vrij."
-                available={false}
-              />
-
-              <PlatformCard
-                id="android"
-                badge="Binnenkort"
-                title="Pulse voor Android"
-                description="De Android-versie sluit aan op dezelfde privacy-first basis met ouderlijk toezicht."
-                meta="Android • Telefoon • Tablet"
-                icon={<AndroidIcon />}
-                primaryLabel="Bekijk updates"
-                primaryHref="/over-pulse"
-                secondaryLabel="Contact"
-                secondaryHref="/contact"
-                note="Nog geen publieke Play Store-link beschikbaar. Deze sectie kan later direct worden uitgebreid."
-                available={false}
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="dl-steps" aria-labelledby="download-steps-title">
-          <div className="dl-section-inner">
-            <div className="dl-section-head dl-section-head--compact">
-              <h2 id="download-steps-title">Zo start je met Pulse</h2>
-            </div>
-            <div className="dl-step-grid">
-              <article className="dl-step-card">
-                <span>1</span>
-                <h3>Kies je apparaat</h3>
-                <p>Open Pulse Web direct of bekijk de status van iPhone en Android.</p>
-              </article>
-              <article className="dl-step-card">
-                <span>2</span>
-                <h3>Log veilig in</h3>
-                <p>Ouders beheren de start, kinderen gebruiken een account zonder telefoonnummer of e-mailadres.</p>
-              </article>
-              <article className="dl-step-card">
-                <span>3</span>
-                <h3>Blijf verbonden</h3>
-                <p>Chat, bel en videobel in een omgeving die privacy en toezicht samenbrengt.</p>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section className="dl-cta" aria-labelledby="download-cta-title">
-          <div className="dl-section-inner dl-cta-inner">
+        <section className="dl-bottom-cta" aria-labelledby="download-bottom-title">
+          <div className="dl-section-inner dl-bottom-cta-inner">
             <div>
-              <div className="dl-eyebrow dl-eyebrow--soft">Klaar om te starten?</div>
-              <h2 id="download-cta-title">Open Pulse direct of maak eerst een ouderaccount aan</h2>
+              <div className="dl-bottom-kicker"><Shield size={16} aria-hidden="true" /> Privacy-first</div>
+              <h2 id="download-bottom-title">Open Pulse Web of lees eerst hoe het werkt</h2>
             </div>
-            <div className="dl-cta-actions">
-              <a href={webLoginUrl} className="dl-btn">Open Pulse Web</a>
-              <button type="button" className="dl-btn dl-btn--secondary" onClick={openLogin}>Inloggen</button>
+            <div className="dl-bottom-actions">
+              <a href={webLoginUrl} className="dl-bottom-btn">Open Pulse Web</a>
+              <button type="button" className="dl-bottom-btn dl-bottom-btn--ghost" onClick={openLogin}>Inloggen</button>
             </div>
           </div>
         </section>

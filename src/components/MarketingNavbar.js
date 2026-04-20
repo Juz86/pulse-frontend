@@ -25,11 +25,6 @@ export default function MarketingNavbar({
     requestMarketingAuth({ role: 'parent', mode: 'login' });
   };
 
-  const openDownloads = () => {
-    setMenuOpen(false);
-    window.location.assign('/download');
-  };
-
   useEffect(() => {
     if (!menuOpen) return undefined;
 
@@ -133,14 +128,14 @@ export default function MarketingNavbar({
         )}
 
         <div className="hp-nav-actions">
-          <button
-            type="button"
+          <a
             className="hp-nav-download"
-            onClick={openDownloads}
+            href="/download"
+            onClick={() => setMenuOpen(false)}
             aria-label="Ga naar downloaden"
           >
             <Download size={16} aria-hidden="true" /> Downloaden
-          </button>
+          </a>
 
           <button
             type="button"

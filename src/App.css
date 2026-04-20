@@ -423,13 +423,13 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .web-auth-info {
   max-width: 430px;
-  align-self: center;
+  align-self: start;
 }
 
 .web-auth-info-logo {
   display: flex;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: clamp(44px, 7vw, 64px);
 }
 
 .web-auth-kicker {
@@ -581,13 +581,23 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-form-card .auth-features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
   margin-top: 14px;
   padding-top: 14px;
 }
 
 .web-auth-form-card .auth-feature {
+  min-width: 0;
   font-size: 10px;
   line-height: 1.35;
+}
+
+.web-auth-form-card .auth-feature span,
+.web-auth-form-card .auth-feature div {
+  display: block;
+  max-width: 100%;
 }
 
 .web-auth-parent-panel {
@@ -660,15 +670,32 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-parent-panel .parent-auth-features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
   border-top-color: var(--border);
   margin-top: 14px;
   padding-top: 14px;
 }
 
 .web-auth-parent-panel .parent-auth-feature {
+  min-width: 0;
   color: var(--text3);
   font-size: 10px;
   line-height: 1.35;
+  text-align: center;
+}
+
+.web-auth-parent-panel .parent-auth-feature svg {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+}
+
+.web-auth-parent-panel .parent-auth-feature span {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .web-auth-parent-panel .parent-verify-resend span,
@@ -764,6 +791,16 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   .web-auth-tabs {
     grid-template-columns: 1fr;
+  }
+
+  .web-auth-form-card .auth-features,
+  .web-auth-parent-panel .parent-auth-features {
+    gap: 8px;
+  }
+
+  .web-auth-form-card .auth-feature,
+  .web-auth-parent-panel .parent-auth-feature {
+    font-size: 9.5px;
   }
 }
 

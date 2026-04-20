@@ -128,7 +128,7 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
         <section className="web-auth-card" role="dialog" aria-modal="false" aria-labelledby="web-auth-title" aria-describedby="web-auth-description">
           <div className="web-auth-info">
             <div className="web-auth-info-logo" aria-hidden="true">
-              <PulseLogo size={34} textSize={26} />
+              <PulseLogo size={46} textSize={34} color="#1f2337" />
             </div>
             <p className="web-auth-kicker">Pulse Web</p>
             <h1 id="web-auth-title">Meld je aan</h1>

@@ -199,16 +199,10 @@ export default function DownloadPagina({ onParentClick }) {
         <section className="dl-hero" aria-labelledby="download-title">
           <div className="dl-section-inner dl-hero-inner">
             <div className="dl-hero-copy">
-              <div className="dl-hero-kicker">
-                <Download size={16} aria-hidden="true" />
-                Download
-              </div>
-              <h1 id="download-title">Pulse downloaden</h1>
+             
+              <h1 id="download-title">Download Pulse</h1>
               <p className="dl-hero-intro">
-                Chat en bel veilig met Pulse op al je apparaten.
-              </p>
-              <p className="dl-hero-legal">
-                Door Pulse te gebruiken, ga je akkoord met ons <a href="/privacybeleid">Privacybeleid</a> en onze privacy-first uitgangspunten.
+                Veilig chatten, bellen en video-bellen met Pulse op al je apparaten.
               </p>
 
               <article className="dl-hero-card" id="web">
@@ -334,7 +328,7 @@ export default function DownloadPagina({ onParentClick }) {
 
         <CarouselSection
           title="Andere downloadopties"
-          intro="Blijf in contact via al je apparaten."
+          intro="Blijf in contact met familie en vrienden via al je apparaten."
           theme="sand"
           cards={otherOptions}
         />

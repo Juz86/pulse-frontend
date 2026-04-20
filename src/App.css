@@ -417,27 +417,6 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   box-shadow: 0 22px 70px rgba(35, 31, 72, .08);
 }
 
-.web-auth-parent-btn {
-  position: absolute;
-  top: 22px;
-  right: 22px;
-  min-height: 40px;
-  padding: 0 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(108, 99, 255, .25);
-  background: rgba(108, 99, 255, .08);
-  color: #5f55e8;
-  font: 800 14px/1 var(--font-primary);
-  cursor: pointer;
-  transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
-}
-
-.web-auth-parent-btn:hover {
-  background: rgba(108, 99, 255, .13);
-  box-shadow: 0 10px 24px rgba(108, 99, 255, .16);
-  transform: translateY(-1px);
-}
-
 .web-auth-info {
   max-width: 430px;
 }
@@ -515,6 +494,35 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   box-shadow: 0 26px 60px rgba(31, 27, 58, .22);
 }
 
+.web-auth-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 5px;
+  margin-bottom: 22px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .06);
+  border: 1px solid rgba(255, 255, 255, .09);
+}
+
+.web-auth-tab {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(237, 234, 248, .62);
+  font: 900 13px/1.2 var(--font-primary);
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.web-auth-tab.active {
+  background: linear-gradient(135deg, rgba(124,111,255,.95), rgba(168,85,247,.9));
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(108,99,255,.32);
+}
+
 .web-auth-form-heading {
   display: flex;
   align-items: center;
@@ -539,6 +547,81 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .web-auth-form-card .auth-features {
   margin-top: 24px;
+}
+
+.web-auth-parent-panel {
+  color: var(--text);
+}
+
+.web-auth-parent-panel .parent-auth-logo {
+  display: none;
+}
+
+.web-auth-parent-panel .parent-auth-title {
+  color: var(--text);
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+
+.web-auth-parent-panel .parent-auth-sub {
+  color: var(--text2);
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.web-auth-parent-panel .parent-auth-tabs {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.web-auth-parent-panel .parent-auth-tab {
+  color: var(--text2);
+  border-radius: 9px;
+}
+
+.web-auth-parent-panel .parent-auth-tab.active {
+  background: linear-gradient(135deg, rgba(108,99,255,.35), rgba(168,85,247,.2));
+  color: #fff;
+  border-color: rgba(108,99,255,.35);
+  box-shadow: 0 4px 14px rgba(108,99,255,.22);
+}
+
+.web-auth-parent-panel .parent-auth-label {
+  color: var(--text2);
+  font-size: 11px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+.web-auth-parent-panel .parent-auth-input {
+  background: var(--surface2);
+  border-color: var(--border);
+  color: var(--text);
+  box-shadow: 0 2px 6px rgba(0,0,0,.15);
+}
+
+.web-auth-parent-panel .parent-auth-input::placeholder {
+  color: var(--text3);
+}
+
+.web-auth-parent-panel .parent-auth-input:focus {
+  background: var(--surface2);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108,99,255,.15), 0 2px 6px rgba(0,0,0,.15);
+}
+
+.web-auth-parent-panel .parent-auth-features {
+  border-top-color: var(--border);
+}
+
+.web-auth-parent-panel .parent-auth-feature {
+  color: var(--text3);
+}
+
+.web-auth-parent-panel .parent-verify-resend span,
+.web-auth-parent-panel p {
+  color: var(--text2) !important;
 }
 
 .web-auth-privacy {
@@ -587,15 +670,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .web-auth-card {
     width: 100%;
     border-radius: 24px;
-    padding: 68px 16px 18px;
+    padding: 22px 16px 18px;
     border-color: rgba(24, 36, 50, .12);
-  }
-
-  .web-auth-parent-btn {
-    top: 16px;
-    right: 16px;
-    min-height: 38px;
-    padding: 0 16px;
   }
 
   .web-auth-info h1 {
@@ -614,6 +690,10 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   .web-auth-form-heading {
     margin-bottom: 18px;
+  }
+
+  .web-auth-tabs {
+    grid-template-columns: 1fr;
   }
 }
 

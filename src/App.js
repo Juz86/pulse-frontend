@@ -11,6 +11,7 @@ import PulseLogo from './components/PulseLogo';
 import AuthModal from './components/AuthModal';
 import ParentAuthModal from './components/ParentAuthModal';
 import AuthScreen from './screens/AuthScreen';
+import ParentAuthScreen from './screens/ParentAuthScreen';
 import { bootstrapDevice } from './lib/e2ee/deviceBootstrap';
 import { MARKETING_AUTH_EVENT } from './lib/marketingAuthEvents';
 import {
@@ -118,7 +119,9 @@ function BrowserCallBlockedScreen() {
   );
 }
 
-function WebAppLoginShell({ onParentClick }) {
+function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab = 'login' }) {
+  const isParentTab = activeTab === 'parent';
+
   return (
     <div className="web-auth-shell">
       <header className="web-auth-brand" aria-label="Pulse web">
@@ -127,20 +130,11 @@ function WebAppLoginShell({ onParentClick }) {
 
       <main className="web-auth-main" aria-labelledby="web-auth-title">
         <section className="web-auth-card" role="dialog" aria-modal="false" aria-labelledby="web-auth-title" aria-describedby="web-auth-description">
-          <button
-            type="button"
-            className="web-auth-parent-btn"
-            onClick={() => onParentClick('login')}
-            aria-label="Ouderlogin openen"
-          >
-            Ouder
-          </button>
-
           <div className="web-auth-info">
             <p className="web-auth-kicker">Pulse Web</p>
             <h1 id="web-auth-title">Inloggen om verder te gaan</h1>
             <p id="web-auth-description">
-              Kinderen loggen in met hun Pulse-gebruikersnaam. Ouders openen hun portaal via de knop rechtsboven.
+              Kies hoe je wilt inloggen. Kinderen gebruiken hun Pulse-gebruikersnaam, ouders beheren alles via het ouderportaal.
             </p>
 
             <ol className="web-auth-steps" aria-label="Inloggen bij Pulse Web">
@@ -155,11 +149,60 @@ function WebAppLoginShell({ onParentClick }) {
           </div>
 
           <div className="web-auth-form-card">
+            <div className="web-auth-tabs" role="tablist" aria-label="Pulse Web login">
+              <button
+                type="button"
+                id="web-auth-tab-child"
+                className={`web-auth-tab${!isParentTab ? ' active' : ''}`}
+                role="tab"
+                aria-selected={!isParentTab}
+                aria-controls="web-auth-panel-child"
+                tabIndex={!isParentTab ? 0 : -1}
+                onClick={() => onTabChange('child')}
+              >
+                Kind login
+              </button>
+              <button
+                type="button"
+                id="web-auth-tab-parent"
+                className={`web-auth-tab${isParentTab ? ' active' : ''}`}
+                role="tab"
+                aria-selected={isParentTab}
+                aria-controls="web-auth-panel-parent"
+                tabIndex={isParentTab ? 0 : -1}
+                onClick={() => onTabChange('parent')}
+              >
+                Ouder login/registreren
+              </button>
+            </div>
+
             <div className="web-auth-form-heading">
               <PulseLogo size={30} textSize={23} />
-              <span>Kindlogin</span>
+              <span>{isParentTab ? 'Ouderportaal' : 'Kindlogin'}</span>
             </div>
-            <AuthScreen isModal />
+
+            {!isParentTab ? (
+              <div
+                id="web-auth-panel-child"
+                role="tabpanel"
+                aria-labelledby="web-auth-tab-child"
+              >
+                <AuthScreen isModal />
+              </div>
+            ) : (
+              <div
+                id="web-auth-panel-parent"
+                role="tabpanel"
+                aria-labelledby="web-auth-tab-parent"
+                className="web-auth-parent-panel"
+              >
+                <ParentAuthScreen
+                  key={parentDefaultTab}
+                  isModal
+                  defaultTab={parentDefaultTab}
+                />
+              </div>
+            )}
           </div>
         </section>
 
@@ -238,6 +281,7 @@ function MainApp() {
   const [userRole,            setUserRole]            = useState(null);
   const [showParentAuth,      setShowParentAuth]      = useState(false);
   const [parentAuthDefaultTab, setParentAuthDefaultTab] = useState('login');
+  const [webAuthTab,          setWebAuthTab]          = useState('child');
   const [showParentDashboard, setShowParentDashboard] = useState(false);
   const [dashboardFading,     setDashboardFading]     = useState(false);
   const [parentActivityBadge, setParentActivityBadge] = useState(0);
@@ -268,7 +312,9 @@ function MainApp() {
 
     if (role === 'parent' || modeParam === 'register') {
       setParentAuthDefaultTab(modeParam === 'register' ? 'register' : 'login');
-      setShowParentAuth(true);
+      setWebAuthTab('parent');
+    } else if (role === 'child') {
+      setWebAuthTab('child');
     }
 
     if (role || modeParam) {
@@ -592,7 +638,8 @@ function MainApp() {
             localStorage.removeItem('pulse_parent_default_tab');
             localStorage.removeItem('pulse_parent_referrer');
             setParentAuthDefaultTab(pendingParentTab);
-            setShowParentAuth(true);
+            setWebAuthTab('parent');
+            setShowParentAuth(false);
           } else {
             setShowParentAuth(false);
           }
@@ -657,7 +704,11 @@ function MainApp() {
       {!user
         ? (
           <>
-            <WebAppLoginShell onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
+            <WebAppLoginShell
+              activeTab={webAuthTab}
+              onTabChange={setWebAuthTab}
+              parentDefaultTab={parentAuthDefaultTab}
+            />
             {showParentAuth && (
               <ParentAuthModal
                 onClose={() => {

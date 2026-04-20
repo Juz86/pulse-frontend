@@ -3,7 +3,7 @@ import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
 import useMarketingAuth from '../hooks/useMarketingAuth';
-import { Download, Shield } from '../components/Icons';
+import { Shield } from '../components/Icons';
 import { getWebAppLoginUrl, isLandingBuild } from '../lib/siteTarget';
 
 function GlobeIcon() {

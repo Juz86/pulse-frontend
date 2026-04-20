@@ -426,6 +426,12 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   align-self: center;
 }
 
+.web-auth-info-logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
 .web-auth-kicker {
   margin: 0 0 10px;
   color: #6c63ff;
@@ -566,24 +572,6 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   background: linear-gradient(135deg, rgba(124,111,255,.95), rgba(168,85,247,.9));
   color: #fff;
   box-shadow: 0 12px 28px rgba(108,99,255,.32);
-}
-
-.web-auth-form-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-
-.web-auth-form-heading > span {
-  border: 1px solid rgba(108, 99, 255, .38);
-  background: rgba(108, 99, 255, .14);
-  color: #b9b4ff;
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 900;
 }
 
 .web-auth-form-card .auth-no-account {
@@ -772,10 +760,6 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .web-auth-form-card {
     border-radius: 22px;
     padding: 22px 16px;
-  }
-
-  .web-auth-form-heading {
-    margin-bottom: 18px;
   }
 
   .web-auth-tabs {

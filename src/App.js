@@ -124,13 +124,12 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
 
   return (
     <div className="web-auth-shell">
-      <header className="web-auth-brand" aria-label="Pulse web">
-        <PulseLogo size={32} textSize={28} />
-      </header>
-
       <main className="web-auth-main" aria-labelledby="web-auth-title">
         <section className="web-auth-card" role="dialog" aria-modal="false" aria-labelledby="web-auth-title" aria-describedby="web-auth-description">
           <div className="web-auth-info">
+            <div className="web-auth-info-logo" aria-hidden="true">
+              <PulseLogo size={34} textSize={26} />
+            </div>
             <p className="web-auth-kicker">Pulse Web</p>
             <h1 id="web-auth-title">Meld je aan</h1>
             <p id="web-auth-description">
@@ -174,11 +173,6 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
               >
                 Ouder
               </button>
-            </div>
-
-            <div className="web-auth-form-heading">
-              <PulseLogo size={30} textSize={23} />
-              <span>{isParentTab ? 'Ouderportaal' : 'Kindlogin'}</span>
             </div>
 
             {!isParentTab ? (

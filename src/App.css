@@ -503,6 +503,42 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   box-shadow: 0 26px 60px rgba(31, 27, 58, .22);
 }
 
+.web-auth-form-card .auth-logo {
+  margin-bottom: 18px;
+}
+
+.web-auth-form-card .auth-title {
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.web-auth-form-card .auth-sub {
+  font-size: 12px;
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+
+.web-auth-form-card .form-group {
+  margin-bottom: 12px;
+}
+
+.web-auth-form-card .form-label {
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+
+.web-auth-form-card .form-input {
+  min-height: 44px;
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+.web-auth-form-card .btn-primary {
+  min-height: 46px;
+  padding: 11px 14px;
+  font-size: 14px;
+}
+
 .web-auth-tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -515,13 +551,13 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-tab {
-  min-height: 44px;
+  min-height: 38px;
   padding: 0 12px;
   border: 0;
   border-radius: 12px;
   background: transparent;
   color: rgba(237, 234, 248, .62);
-  font: 900 13px/1.2 var(--font-primary);
+  font: 900 12px/1.2 var(--font-primary);
   cursor: pointer;
   transition: background .18s ease, color .18s ease, box-shadow .18s ease;
 }
@@ -537,7 +573,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .web-auth-form-heading > span {
@@ -545,18 +581,25 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   background: rgba(108, 99, 255, .14);
   color: #b9b4ff;
   border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 13px;
+  padding: 6px 12px;
+  font-size: 12px;
   font-weight: 900;
 }
 
 .web-auth-form-card .auth-no-account {
-  margin-top: 14px;
+  margin-top: 12px;
+  font-size: 11.5px;
+  line-height: 1.5;
 }
 
 .web-auth-form-card .auth-features {
-  margin-top: 18px;
-  padding-top: 18px;
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.web-auth-form-card .auth-feature {
+  font-size: 10px;
+  line-height: 1.35;
 }
 
 .web-auth-parent-panel {
@@ -569,14 +612,16 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .web-auth-parent-panel .parent-auth-title {
   color: var(--text);
-  font-size: 22px;
+  font-size: 19px;
   margin-bottom: 6px;
+  line-height: 1.25;
 }
 
 .web-auth-parent-panel .parent-auth-sub {
   color: var(--text2);
-  font-size: 13px;
-  margin-bottom: 18px;
+  font-size: 12px;
+  margin-bottom: 14px;
+  line-height: 1.45;
 }
 
 .web-auth-parent-panel .parent-auth-tabs {
@@ -588,6 +633,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .web-auth-parent-panel .parent-auth-tab {
   color: var(--text2);
   border-radius: 9px;
+  font-size: 12px;
+  padding: 7px;
 }
 
 .web-auth-parent-panel .parent-auth-tab.active {
@@ -599,7 +646,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .web-auth-parent-panel .parent-auth-label {
   color: var(--text2);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: .8px;
   text-transform: uppercase;
 }
@@ -609,6 +656,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   border-color: var(--border);
   color: var(--text);
   box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  min-height: 44px;
+  padding-top: 9px;
+  padding-bottom: 9px;
 }
 
 .web-auth-parent-panel .parent-auth-input::placeholder {
@@ -623,15 +673,33 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .web-auth-parent-panel .parent-auth-features {
   border-top-color: var(--border);
+  margin-top: 14px;
+  padding-top: 14px;
 }
 
 .web-auth-parent-panel .parent-auth-feature {
   color: var(--text3);
+  font-size: 10px;
+  line-height: 1.35;
 }
 
 .web-auth-parent-panel .parent-verify-resend span,
 .web-auth-parent-panel p {
   color: var(--text2) !important;
+}
+
+.web-auth-parent-panel .parent-auth-field {
+  margin-bottom: 11px;
+}
+
+.web-auth-parent-panel .parent-auth-btn {
+  min-height: 46px;
+  padding: 11px 14px;
+  font-size: 14px;
+}
+
+.web-auth-parent-panel form {
+  margin-top: 14px !important;
 }
 
 .web-auth-privacy {

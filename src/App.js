@@ -132,9 +132,9 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
         <section className="web-auth-card" role="dialog" aria-modal="false" aria-labelledby="web-auth-title" aria-describedby="web-auth-description">
           <div className="web-auth-info">
             <p className="web-auth-kicker">Pulse Web</p>
-            <h1 id="web-auth-title">Inloggen om verder te gaan</h1>
+            <h1 id="web-auth-title">Meld je aan</h1>
             <p id="web-auth-description">
-              Kies hoe je wilt inloggen. Kinderen gebruiken hun Pulse-gebruikersnaam, ouders beheren alles via het ouderportaal.
+              Kinderen gebruiken hun Pulse-gebruikersnaam, ouders beheren alles via het ouderportaal.
             </p>
 
             <ol className="web-auth-steps" aria-label="Inloggen bij Pulse Web">
@@ -160,7 +160,7 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
                 tabIndex={!isParentTab ? 0 : -1}
                 onClick={() => onTabChange('child')}
               >
-                Kind login
+                Kind
               </button>
               <button
                 type="button"
@@ -172,7 +172,7 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
                 tabIndex={isParentTab ? 0 : -1}
                 onClick={() => onTabChange('parent')}
               >
-                Ouder login/registreren
+                Ouder
               </button>
             </div>
 

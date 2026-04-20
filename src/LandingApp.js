@@ -12,6 +12,7 @@ const ElektronischeCommunicatieBeleidPagina = lazy(() => import('./screens/Elekt
 const ContactPagina = lazy(() => import('./screens/ContactPagina'));
 const SitemapPagina = lazy(() => import('./screens/SitemapPagina'));
 const PrivacyFirstPagina = lazy(() => import('./screens/PrivacyFirstPagina'));
+const DownloadPagina = lazy(() => import('./screens/DownloadPagina'));
 
 const splashFallback = (
   <div className="splash">
@@ -34,6 +35,7 @@ export default function LandingApp() {
     '/contact': ContactPagina,
     '/sitemap': SitemapPagina,
     '/privacy-first': PrivacyFirstPagina,
+    '/download': DownloadPagina,
   };
 
   const Page = routes[pathname] || Homepage;

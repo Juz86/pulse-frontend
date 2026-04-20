@@ -27,15 +27,7 @@ export default function MarketingNavbar({
 
   const openDownloads = () => {
     setMenuOpen(false);
-    const targetId = 'footer-download-title';
-    const target = document.getElementById(targetId);
-
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-
-    window.location.assign('/#footer-download-title');
+    window.location.assign('/download');
   };
 
   useEffect(() => {

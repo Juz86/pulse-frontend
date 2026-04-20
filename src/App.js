@@ -40,6 +40,7 @@ const ElektronischeCommunicatieBeleidPagina = lazy(() => import('./screens/Elekt
 const ContactPagina      = lazy(() => import('./screens/ContactPagina'));
 const SitemapPagina      = lazy(() => import('./screens/SitemapPagina'));
 const PrivacyFirstPagina = lazy(() => import('./screens/PrivacyFirstPagina'));
+const DownloadPagina     = lazy(() => import('./screens/DownloadPagina'));
 
 const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 
@@ -260,6 +261,10 @@ export default function App() {
 
   if (pathname === '/privacy-first') {
     return <MarketingRoute Page={PrivacyFirstPagina} />;
+  }
+
+  if (pathname === '/download') {
+    return <MarketingRoute Page={DownloadPagina} />;
   }
 
   return <MainApp />;

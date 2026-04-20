@@ -1,2 +1,4 @@
+/download /download/index.html 200
+/download/* /download/:splat 200
 /static/* /static/:splat 200
 /* /index.html 200

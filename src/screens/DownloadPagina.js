@@ -226,15 +226,101 @@ export default function DownloadPagina({ onParentClick }) {
             <div className="dl-hero-illustration" aria-hidden="true">
               <div className="dl-laptop">
                 <div className="dl-laptop-screen">
-                  <div className="dl-laptop-sidebar" />
-                  <div className="dl-laptop-header">
-                    <span />
-                    <span />
-                    <span />
+                  <div className="dl-laptop-sidebar">
+                    <div className="dl-parent-brand">
+                      <span className="dl-parent-brand-mark" />
+                    </div>
+                    <span className="dl-parent-side-dot dl-parent-side-dot--active" />
+                    <span className="dl-parent-side-dot" />
+                    <span className="dl-parent-side-dot" />
+                    <div className="dl-parent-side-user">Y</div>
                   </div>
-                  <div className="dl-laptop-window dl-laptop-window--top" />
-                  <div className="dl-laptop-chat dl-laptop-chat--right" />
-                  <div className="dl-laptop-chat dl-laptop-chat--bottom" />
+
+                  <div className="dl-parent-shell">
+                    <div className="dl-parent-topbar">
+                      <div>
+                        <div className="dl-parent-eyebrow">Ouderaccount</div>
+                        <div className="dl-parent-heading">Ouderportaal</div>
+                      </div>
+                      <div className="dl-parent-topbar-badge">3 updates</div>
+                    </div>
+
+                    <div className="dl-parent-tabs">
+                      <span className="dl-parent-tab dl-parent-tab--active">Mijn kinderen</span>
+                      <span className="dl-parent-tab">Activiteiten</span>
+                      <span className="dl-parent-tab">Instellingen</span>
+                    </div>
+
+                    <div className="dl-parent-grid">
+                      <div className="dl-parent-panel dl-parent-panel--children">
+                        <div className="dl-parent-card">
+                          <div className="dl-parent-card-head">
+                            <div className="dl-parent-avatar">T</div>
+                            <div>
+                              <div className="dl-parent-name">Tim</div>
+                              <div className="dl-parent-meta"><span className="dl-parent-status" /> Online · 2 min geleden</div>
+                            </div>
+                          </div>
+                          <div className="dl-parent-stats">
+                            <span>5 contacten</span>
+                            <span>8 chats</span>
+                          </div>
+                          <div className="dl-parent-actions">
+                            <span className="dl-parent-chip">Pauze</span>
+                            <span className="dl-parent-icon" />
+                            <span className="dl-parent-icon" />
+                          </div>
+                        </div>
+
+                        <div className="dl-parent-card dl-parent-card--soft">
+                          <div className="dl-parent-card-head">
+                            <div className="dl-parent-avatar dl-parent-avatar--soft">M</div>
+                            <div>
+                              <div className="dl-parent-name">Mila</div>
+                              <div className="dl-parent-meta"><span className="dl-parent-status dl-parent-status--muted" /> Offline · 1 uur geleden</div>
+                            </div>
+                          </div>
+                          <div className="dl-parent-stats">
+                            <span>3 contacten</span>
+                            <span>4 chats</span>
+                          </div>
+                          <div className="dl-parent-actions">
+                            <span className="dl-parent-chip">Toezicht</span>
+                            <span className="dl-parent-icon" />
+                            <span className="dl-parent-icon" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="dl-parent-panel dl-parent-panel--activity">
+                        <div className="dl-parent-panel-title">Recente activiteiten</div>
+                        <div className="dl-parent-activity">
+                          <span className="dl-parent-activity-icon">+</span>
+                          <div>
+                            <strong>Nieuw contactverzoek</strong>
+                            <span>Tim wil Sam toevoegen</span>
+                          </div>
+                        </div>
+                        <div className="dl-parent-activity">
+                          <span className="dl-parent-activity-icon dl-parent-activity-icon--soft">✓</span>
+                          <div>
+                            <strong>Toezicht actief</strong>
+                            <span>Mila gebruikt een goedgekeurde lijst</span>
+                          </div>
+                        </div>
+                        <div className="dl-parent-summary">
+                          <div className="dl-parent-summary-card">
+                            <span>Kinderen online</span>
+                            <strong>1 van 2</strong>
+                          </div>
+                          <div className="dl-parent-summary-card dl-parent-summary-card--accent">
+                            <span>Nieuwe meldingen</span>
+                            <strong>3</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div className="dl-laptop-base" />
               </div>

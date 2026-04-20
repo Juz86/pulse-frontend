@@ -51,6 +51,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 28px;
         padding: 22px 0;
       }
 
@@ -68,16 +69,88 @@
         border-radius: 10px;
       }
 
+      .nav-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        flex: 1;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .nav-link {
+        color: #48516d;
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      .nav-highlight {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 18px;
+        border-radius: 999px;
+        color: #fff;
+        background: linear-gradient(135deg, #8a78ff, #6c63ff);
+        box-shadow: 0 14px 30px rgba(108, 99, 255, 0.24);
+        font-weight: 700;
+      }
+
+      .nav-highlight-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        display: inline-block;
+        position: relative;
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      .nav-highlight-dot::before {
+        content: "";
+        position: absolute;
+        inset: 3px;
+        border-radius: 999px;
+        border: 2px solid rgba(255, 255, 255, 0.92);
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .nav-download,
+      .nav-signin,
       .nav-cta {
         display: inline-flex;
         align-items: center;
         gap: 10px;
         padding: 12px 18px;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.88);
         border: 1px solid var(--line);
-        box-shadow: 0 12px 28px rgba(79, 70, 207, 0.12);
         font-weight: 700;
+      }
+
+      .nav-download {
+        color: var(--accent);
+        background: rgba(255, 255, 255, 0.68);
+      }
+
+      .nav-signin {
+        color: #fff;
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        box-shadow: 0 12px 28px rgba(79, 70, 207, 0.18);
+      }
+
+      .nav-cta {
+        display: none;
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 12px 28px rgba(79, 70, 207, 0.12);
       }
 
       .hero {
@@ -429,12 +502,99 @@
       }
 
       .footer {
-        padding: 30px 0 60px;
+        padding: 34px 0 60px;
+      }
+
+      .footer-inner {
+        display: grid;
+        grid-template-columns: 1.05fr .95fr .9fr;
+        gap: 28px;
+        align-items: start;
+      }
+
+      .footer-brand {
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.75;
+      }
+
+      .footer-logo {
+        margin-bottom: 14px;
+      }
+
+      .footer-nav-group {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+      }
+
+      .footer-col h4 {
+        margin: 0 0 12px;
+        color: var(--ink);
+        font-size: 15px;
+      }
+
+      .footer-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 10px;
+      }
+
+      .footer-list a,
+      .footer-copy a {
+        color: var(--muted);
+      }
+
+      .footer-download-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .footer-download-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.78);
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .footer-copy {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(92, 84, 188, 0.1);
         color: var(--muted);
         font-size: 14px;
       }
 
+      .footer-copy-links {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+
       @media (max-width: 1080px) {
+        .nav {
+          flex-wrap: wrap;
+        }
+
+        .nav-center {
+          order: 3;
+          width: 100%;
+          justify-content: flex-start;
+        }
+
         .hero,
         .section-grid,
         .learn-grid {
@@ -444,6 +604,16 @@
         .cards,
         .learn-cards {
           grid-template-columns: 1fr;
+        }
+
+        .footer-inner,
+        .footer-nav-group {
+          grid-template-columns: 1fr;
+        }
+
+        .footer-copy {
+          flex-direction: column;
+          align-items: flex-start;
         }
 
         .visual {
@@ -460,7 +630,14 @@
           padding: 18px 0;
         }
 
+        .nav-center,
+        .nav-download,
+        .nav-signin {
+          display: none;
+        }
+
         .nav-cta {
+          display: inline-flex;
           padding: 11px 14px;
           font-size: 14px;
         }
@@ -469,6 +646,11 @@
         .card {
           padding: 22px;
           border-radius: 24px;
+        }
+
+        .footer-copy-links {
+          flex-wrap: wrap;
+          gap: 10px 16px;
         }
 
         .visual {
@@ -488,7 +670,24 @@
           <img src="/logo192.png" alt="" aria-hidden="true" />
           <span>Pulse</span>
         </a>
-        <a class="nav-cta" href="https://web.pulse-messenger.com/?role=parent&amp;mode=login">Open Pulse Web</a>
+
+        <div class="nav-center">
+          <a class="nav-highlight" href="/privacy-first">
+            <span class="nav-highlight-dot" aria-hidden="true"></span>
+            Privacy-First
+          </a>
+          <nav class="nav-links" aria-label="Hoofdnavigatie">
+            <a class="nav-link" href="/ouderlijk-toezicht">Ouderlijk toezicht</a>
+            <a class="nav-link" href="/hoe-werkt-het">Hoe werkt het</a>
+            <a class="nav-link" href="/functies">Functies</a>
+          </nav>
+        </div>
+
+        <div class="nav-actions">
+          <a class="nav-download" href="/download">Downloaden</a>
+          <a class="nav-signin" href="https://web.pulse-messenger.com/?role=parent&amp;mode=login">Aanmelden</a>
+          <a class="nav-cta" href="https://web.pulse-messenger.com/?role=parent&amp;mode=login">Open Pulse Web</a>
+        </div>
       </header>
 
       <section class="hero">
@@ -597,8 +796,70 @@
       </div>
     </section>
 
-    <div class="shell footer">
-      <p>Pulse houdt ouder en kind veilig verbonden. Veilig chatten, bellen en videobellen in de app.</p>
-    </div>
+    <footer class="shell footer">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <a class="brand" href="/">
+              <img src="/logo192.png" alt="" aria-hidden="true" />
+              <span>Pulse</span>
+            </a>
+          </div>
+          <p>
+            Pulse houdt ouder en kind veilig verbonden.
+            <br />
+            Veilig chatten, bellen en videobellen in de app.
+          </p>
+        </div>
+
+        <div class="footer-nav-group">
+          <nav class="footer-col" aria-labelledby="footer-features-title">
+            <h4 id="footer-features-title">Functies</h4>
+            <ul class="footer-list">
+              <li><a href="/functies#chatten">Chatten</a></li>
+              <li><a href="/functies#bellen">Bellen</a></li>
+              <li><a href="/functies#videobellen">Videobellen</a></li>
+              <li><a href="/ouderlijk-toezicht#dashboard">Ouderlijk toezicht</a></li>
+            </ul>
+          </nav>
+          <nav class="footer-col" aria-labelledby="footer-about-title">
+            <h4 id="footer-about-title">Over</h4>
+            <ul class="footer-list">
+              <li><a href="/over-pulse">Pulse</a></li>
+              <li><a href="/privacy-first">Privacy-First</a></li>
+              <li><a href="/hoe-werkt-het#hoe-werkt-pulse">Hoe werkt het</a></li>
+              <li><a href="/contact">Contact</a></li>
+            </ul>
+          </nav>
+        </div>
+
+        <div class="footer-col" aria-labelledby="footer-download-title">
+          <h4 id="footer-download-title">Downloaden</h4>
+          <div class="footer-download-row">
+            <a class="footer-download-chip" href="/download#web">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              Web
+            </a>
+            <a class="footer-download-chip" href="/download#ios">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"></path></svg>
+              iOS
+            </a>
+            <a class="footer-download-chip" href="/download#android">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84 1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C14.15 1.23 13.1 1 12 1c-1.1 0-2.15.23-3.12.63L7.4.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.3 1.3C6.14 3.07 5 5.06 5 7h14c0-1.94-1.14-3.93-3.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"></path></svg>
+              Android
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-copy">
+          <div class="footer-copy-links">
+            <a href="/privacybeleid">Privacybeleid</a>
+            <a href="/avg-beleid-elektronische-communicatie">AVG-beleid</a>
+            <a href="/sitemap">Sitemap</a>
+          </div>
+          <span>© 2026 Pulse — Voor ouder en kind. Veilig verbonden.</span>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

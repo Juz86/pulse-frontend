@@ -10,6 +10,7 @@ import './App.css';
 import PulseLogo from './components/PulseLogo';
 import AuthModal from './components/AuthModal';
 import ParentAuthModal from './components/ParentAuthModal';
+import AuthScreen from './screens/AuthScreen';
 import { bootstrapDevice } from './lib/e2ee/deviceBootstrap';
 import { MARKETING_AUTH_EVENT } from './lib/marketingAuthEvents';
 import {
@@ -24,7 +25,6 @@ import {
   PULSE_WEB_CALLS_UNAVAILABLE_TITLE,
 } from './lib/platform/runtime';
 
-const Homepage           = lazy(() => import('./screens/Homepage'));
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const ParentDashboard    = lazy(() => import('./screens/ParentDashboard'));
 const CallOverlay        = lazy(() => import('./components/CallOverlay'));
@@ -118,6 +118,59 @@ function BrowserCallBlockedScreen() {
   );
 }
 
+function WebAppLoginShell({ onParentClick }) {
+  return (
+    <div className="web-auth-shell">
+      <header className="web-auth-brand" aria-label="Pulse web">
+        <PulseLogo size={32} textSize={28} />
+      </header>
+
+      <main className="web-auth-main" aria-labelledby="web-auth-title">
+        <section className="web-auth-card" role="dialog" aria-modal="false" aria-labelledby="web-auth-title" aria-describedby="web-auth-description">
+          <button
+            type="button"
+            className="web-auth-parent-btn"
+            onClick={() => onParentClick('login')}
+            aria-label="Ouderlogin openen"
+          >
+            Ouder
+          </button>
+
+          <div className="web-auth-info">
+            <p className="web-auth-kicker">Pulse Web</p>
+            <h1 id="web-auth-title">Inloggen om verder te gaan</h1>
+            <p id="web-auth-description">
+              Kinderen loggen in met hun Pulse-gebruikersnaam. Ouders openen hun portaal via de knop rechtsboven.
+            </p>
+
+            <ol className="web-auth-steps" aria-label="Inloggen bij Pulse Web">
+              <li><span>1</span> Vul je gebruikersnaam in</li>
+              <li><span>2</span> Vul je wachtwoord in</li>
+              <li><span>3</span> Ga veilig verder met chatten</li>
+            </ol>
+
+            <p className="web-auth-help">
+              Geen account? Vraag je ouder om een kindaccount voor je aan te maken.
+            </p>
+          </div>
+
+          <div className="web-auth-form-card">
+            <div className="web-auth-form-heading">
+              <PulseLogo size={30} textSize={23} />
+              <span>Kindlogin</span>
+            </div>
+            <AuthScreen isModal />
+          </div>
+        </section>
+
+        <p className="web-auth-privacy">
+          Je berichten zijn end-to-end versleuteld waar Pulse Web dit ondersteunt.
+        </p>
+      </main>
+    </div>
+  );
+}
+
 export default function App() {
   const pathname = window.location.pathname;
   const pulseWebBrowser = isPulseWebBrowser();
@@ -197,12 +250,35 @@ function MainApp() {
   const fcmVisibilityRef       = useRef(null);
   const onlineVisibilityRef    = useRef(null);
   const lastSignedInUidRef     = useRef(null);
+  const authQueryHandledRef    = useRef(false);
 
   useEffect(() => scheduleIdleTask(() => {
     fetch(`${BACKEND}/`, { method: 'GET', keepalive: true }).catch((e) => {
       console.warn('[Pulse] Backend fout:', e.message);
     });
   }), []);
+
+  useEffect(() => {
+    if (authQueryHandledRef.current || user) return;
+    authQueryHandledRef.current = true;
+
+    const params = new URLSearchParams(window.location.search);
+    const role = params.get('role');
+    const modeParam = params.get('mode');
+
+    if (role === 'parent' || modeParam === 'register') {
+      setParentAuthDefaultTab(modeParam === 'register' ? 'register' : 'login');
+      setShowParentAuth(true);
+    }
+
+    if (role || modeParam) {
+      params.delete('role');
+      params.delete('mode');
+      const nextSearch = params.toString();
+      const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`;
+      window.history.replaceState(null, '', nextUrl);
+    }
+  }, [user]);
 
   // Fix iOS Safari keyboard: sync visual viewport height to CSS variable
   // Service worker → deep-link naar gesprek via notificatie-tik (één keer registreren)
@@ -581,7 +657,7 @@ function MainApp() {
       {!user
         ? (
           <>
-            <Homepage onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
+            <WebAppLoginShell onParentClick={(tab = 'login') => { setParentAuthDefaultTab(tab); setShowParentAuth(true); }} />
             {showParentAuth && (
               <ParentAuthModal
                 onClose={() => {

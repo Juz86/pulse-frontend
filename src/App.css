@@ -400,14 +400,14 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 14px;
-  padding: clamp(10px, 2vw, 22px) clamp(18px, 4vw, 42px) max(18px, env(safe-area-inset-bottom));
+  gap: 10px;
+  padding: clamp(8px, 1.5vw, 16px) clamp(18px, 4vw, 42px) max(12px, env(safe-area-inset-bottom));
 }
 
 .web-auth-card {
   width: min(980px, calc(100vw - 32px));
   min-height: 0;
-  max-height: calc(100dvh - 112px);
+  max-height: calc(100dvh - 42px);
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
@@ -416,7 +416,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   background: #fff;
   border: 1px solid rgba(24, 36, 50, .18);
   border-radius: 18px;
-  padding: clamp(26px, 3.5vw, 42px);
+  padding: clamp(22px, 2.8vw, 34px);
   box-shadow: 0 22px 70px rgba(35, 31, 72, .08);
   overflow: hidden;
 }
@@ -429,7 +429,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .web-auth-info-logo {
   display: flex;
   align-items: center;
-  margin-bottom: clamp(44px, 7vw, 64px);
+  margin-bottom: clamp(34px, 5vw, 52px);
 }
 
 .web-auth-kicker {
@@ -459,8 +459,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .web-auth-steps {
   list-style: none;
   display: grid;
-  gap: 13px;
-  margin: 24px 0 18px;
+  gap: 11px;
+  margin: 20px 0 16px;
   padding: 0;
   color: #202733;
 }
@@ -500,17 +500,16 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   justify-content: flex-start;
   min-height: 0;
   max-height: 100%;
-  overflow-y: auto;
-  scrollbar-width: thin;
+  overflow: hidden;
   background: var(--surface);
   border: 1px solid rgba(255, 255, 255, .10);
   border-radius: 28px;
-  padding: clamp(22px, 3vw, 30px);
+  padding: clamp(20px, 2.6vw, 26px);
   box-shadow: 0 26px 60px rgba(31, 27, 58, .22);
 }
 
 .web-auth-form-card .auth-logo {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .web-auth-form-card .auth-title {
@@ -525,7 +524,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-form-card .form-group {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .web-auth-form-card .form-label {
@@ -534,14 +533,14 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-form-card .form-input {
-  min-height: 44px;
-  padding-top: 9px;
-  padding-bottom: 9px;
+  min-height: 40px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .web-auth-form-card .btn-primary {
-  min-height: 46px;
-  padding: 11px 14px;
+  min-height: 42px;
+  padding: 10px 14px;
   font-size: 14px;
 }
 
@@ -550,14 +549,14 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   padding: 5px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   border-radius: 16px;
   background: rgba(255, 255, 255, .06);
   border: 1px solid rgba(255, 255, 255, .09);
 }
 
 .web-auth-tab {
-  min-height: 38px;
+  min-height: 36px;
   padding: 0 12px;
   border: 0;
   border-radius: 12px;
@@ -584,8 +583,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 10px;
+  padding-top: 10px;
 }
 
 .web-auth-form-card .auth-feature {
@@ -610,15 +609,15 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .web-auth-parent-panel .parent-auth-title {
   color: var(--text);
-  font-size: 19px;
-  margin-bottom: 6px;
+  font-size: 18px;
+  margin-bottom: 4px;
   line-height: 1.25;
 }
 
 .web-auth-parent-panel .parent-auth-sub {
   color: var(--text2);
   font-size: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   line-height: 1.45;
 }
 
@@ -632,7 +631,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   color: var(--text2);
   border-radius: 9px;
   font-size: 12px;
-  padding: 7px;
+  padding: 6px;
 }
 
 .web-auth-parent-panel .parent-auth-tab.active {
@@ -654,9 +653,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   border-color: var(--border);
   color: var(--text);
   box-shadow: 0 2px 6px rgba(0,0,0,.15);
-  min-height: 44px;
-  padding-top: 9px;
-  padding-bottom: 9px;
+  min-height: 40px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .web-auth-parent-panel .parent-auth-input::placeholder {
@@ -674,8 +673,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   border-top-color: var(--border);
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 10px;
+  padding-top: 10px;
 }
 
 .web-auth-parent-panel .parent-auth-feature {
@@ -704,25 +703,34 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-parent-panel .parent-auth-field {
-  margin-bottom: 11px;
+  margin-bottom: 9px;
 }
 
 .web-auth-parent-panel .parent-auth-btn {
-  min-height: 46px;
-  padding: 11px 14px;
+  min-height: 42px;
+  padding: 10px 14px;
   font-size: 14px;
 }
 
 .web-auth-parent-panel form {
-  margin-top: 14px !important;
+  margin-top: 10px !important;
 }
 
 .web-auth-privacy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   margin: 0;
   color: #6f756b;
   font-size: 13px;
   line-height: 1.45;
   text-align: center;
+}
+
+.web-auth-privacy svg {
+  flex: 0 0 auto;
+  color: #6c63ff;
 }
 
 @media (max-width: 860px) {
@@ -750,6 +758,97 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   .web-auth-info h1 {
     font-size: 30px;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 861px) {
+  .web-auth-main {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .web-auth-card {
+    width: min(1040px, calc(100vw - 28px));
+    max-height: calc(100dvh - 26px);
+    padding: 18px 28px;
+  }
+
+  .web-auth-info-logo {
+    margin-bottom: 22px;
+  }
+
+  .web-auth-info h1 {
+    font-size: 32px;
+  }
+
+  .web-auth-info p {
+    font-size: 14px;
+    line-height: 1.52;
+  }
+
+  .web-auth-steps {
+    gap: 8px;
+    margin: 14px 0 10px;
+  }
+
+  .web-auth-steps li {
+    font-size: 14px;
+  }
+
+  .web-auth-form-card {
+    padding: 16px 20px;
+    border-radius: 24px;
+  }
+
+  .web-auth-tabs {
+    min-height: 44px;
+    margin-bottom: 10px;
+  }
+
+  .web-auth-tab {
+    min-height: 32px;
+  }
+
+  .web-auth-parent-panel .parent-auth-title {
+    font-size: 17px;
+  }
+
+  .web-auth-parent-panel .parent-auth-sub {
+    font-size: 11.5px;
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+
+  .web-auth-parent-panel .parent-auth-label {
+    margin-bottom: 4px;
+  }
+
+  .web-auth-parent-panel .parent-auth-input,
+  .web-auth-form-card .form-input {
+    min-height: 38px;
+    font-size: 15px;
+  }
+
+  .web-auth-parent-panel .parent-auth-field,
+  .web-auth-form-card .form-group {
+    margin-bottom: 7px;
+  }
+
+  .web-auth-parent-panel .parent-auth-btn,
+  .web-auth-form-card .btn-primary {
+    min-height: 40px;
+    padding: 9px 12px;
+  }
+
+  .web-auth-parent-panel .parent-auth-features,
+  .web-auth-form-card .auth-features {
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+
+  .web-auth-parent-panel .parent-auth-feature,
+  .web-auth-form-card .auth-feature {
+    font-size: 9px;
   }
 }
 

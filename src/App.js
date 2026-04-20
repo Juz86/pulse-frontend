@@ -12,6 +12,7 @@ import AuthModal from './components/AuthModal';
 import ParentAuthModal from './components/ParentAuthModal';
 import AuthScreen from './screens/AuthScreen';
 import ParentAuthScreen from './screens/ParentAuthScreen';
+import { Lock } from './components/Icons';
 import { bootstrapDevice } from './lib/e2ee/deviceBootstrap';
 import { MARKETING_AUTH_EVENT } from './lib/marketingAuthEvents';
 import {
@@ -201,6 +202,7 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
         </section>
 
         <p className="web-auth-privacy">
+          <Lock size={15} aria-hidden="true" />
           Pulse beschermt je persoonlijke berichten met end-to-end versleuteling.
         </p>
       </main>

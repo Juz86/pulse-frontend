@@ -2,7 +2,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
-import { User, Lock, EyeOn, EyeOff, Shield, Heart, Users, PhoneIcon } from '../components/Icons';
+import { User, Lock, EyeOn, EyeOff, Shield, Heart, Users, Message } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { normalizeUsername } from '../utils';
@@ -149,9 +149,9 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
       </p>
 
       <ul className="auth-features" aria-label="Belangrijkste voordelen">
-        <li className="auth-feature"><span aria-hidden="true"><Shield size={18} color="var(--text3)" /></span><div>Versleuteld &amp; privé</div></li>
-        <li className="auth-feature"><span aria-hidden="true"><PhoneIcon size={18} color="var(--text3)" /></span><div>Chatten &amp; (video)bellen</div></li>
-        <li className="auth-feature"><span aria-hidden="true"><Users size={18} color="var(--text3)" /></span><div>Ouderlijk toezicht</div></li>
+        <li className="auth-feature"><span aria-hidden="true"><Shield size={18} color="#7c6fff" /></span><div>Versleuteld &amp; privé</div></li>
+        <li className="auth-feature"><span aria-hidden="true"><Message size={18} color="#f97316" /></span><div>Chatten</div></li>
+        <li className="auth-feature"><span aria-hidden="true"><Users size={18} color="#7c6fff" /></span><div>Ouderlijk toezicht</div></li>
       </ul>
     </>
   );

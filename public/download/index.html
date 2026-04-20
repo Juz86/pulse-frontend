@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Download Pulse</title>
+    <meta
+      name="description"
+      content="Gebruik Pulse op web, iPhone en Android. Bekijk de downloadopties en start veilig met Pulse."
+    />
+    <link rel="canonical" href="https://pulse-messenger.com/download" />
+    <style>
+      :root {
+        --ink: #17192a;
+        --muted: #5f6984;
+        --line: rgba(92, 84, 188, 0.14);
+        --accent: #6c63ff;
+        --accent-strong: #4f46cf;
+        --accent-soft: #eef0ff;
+        --mint: #dff8ed;
+        --sand: #f7efe4;
+        --card: rgba(255, 255, 255, 0.9);
+        --shadow: 0 24px 70px rgba(38, 31, 94, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top left, rgba(108, 99, 255, 0.18), transparent 28%),
+          radial-gradient(circle at top right, rgba(223, 248, 237, 0.92), transparent 30%),
+          linear-gradient(180deg, #fbfcff 0%, #f7f5ff 48%, #ffffff 100%);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .shell {
+        width: min(1180px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 22px 0;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 800;
+        font-size: 22px;
+      }
+
+      .brand img {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+      }
+
+      .nav-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid var(--line);
+        box-shadow: 0 12px 28px rgba(79, 70, 207, 0.12);
+        font-weight: 700;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.02fr 0.98fr;
+        gap: 48px;
+        align-items: center;
+        padding: 28px 0 56px;
+      }
+
+      .kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid var(--line);
+        color: var(--accent-strong);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      h1 {
+        margin: 20px 0 14px;
+        font-size: clamp(48px, 8vw, 90px);
+        line-height: 0.96;
+        letter-spacing: -0.05em;
+      }
+
+      .intro {
+        margin: 0 0 14px;
+        max-width: 620px;
+        font-size: clamp(20px, 3vw, 30px);
+        line-height: 1.2;
+      }
+
+      .legal {
+        margin: 0;
+        max-width: 560px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .legal a {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      .web-card {
+        margin-top: 32px;
+        max-width: 540px;
+        padding: 30px;
+        border-radius: 30px;
+        background: var(--card);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: var(--shadow);
+      }
+
+      .eyebrow {
+        font-size: 16px;
+        color: var(--muted);
+      }
+
+      .web-card h2,
+      .section-copy h2 {
+        margin: 8px 0 12px;
+        font-size: clamp(34px, 4vw, 54px);
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+      }
+
+      .web-card p,
+      .section-copy p,
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.7;
+      }
+
+      .button-row {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-top: 24px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px 22px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 16px;
+      }
+
+      .btn-primary {
+        color: #fff;
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        box-shadow: 0 18px 36px rgba(79, 70, 207, 0.28);
+      }
+
+      .btn-secondary {
+        background: #fff;
+        border: 1px solid var(--line);
+      }
+
+      .visual {
+        position: relative;
+        min-height: 520px;
+      }
+
+      .screen {
+        position: absolute;
+        inset: 50px 20px 88px 20px;
+        border-radius: 34px;
+        background: linear-gradient(160deg, rgba(255,255,255,0.96), rgba(244,246,255,0.92));
+        border: 2px solid rgba(79, 70, 207, 0.18);
+        box-shadow: 0 30px 90px rgba(38, 31, 94, 0.18);
+        overflow: hidden;
+      }
+
+      .sidebar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 26%;
+        background: linear-gradient(180deg, rgba(79,70,207,0.1), rgba(108,99,255,0.02));
+        border-right: 1px solid rgba(79, 70, 207, 0.12);
+      }
+
+      .bubble,
+      .window,
+      .bar {
+        position: absolute;
+        border-radius: 18px;
+      }
+
+      .window {
+        left: 34%;
+        top: 18%;
+        width: 26%;
+        height: 20%;
+        background: rgba(255,255,255,0.95);
+        border: 1px solid rgba(79, 70, 207, 0.16);
+      }
+
+      .bubble {
+        right: 12%;
+        width: 26%;
+        height: 14%;
+        background: linear-gradient(135deg, #5dd39e, #39c96d);
+      }
+
+      .bubble.one {
+        top: 38%;
+      }
+
+      .bubble.two {
+        bottom: 18%;
+        background: linear-gradient(135deg, rgba(108,99,255,0.16), rgba(79,70,207,0.08));
+      }
+
+      .bar {
+        left: 34%;
+        right: 10%;
+        bottom: 10%;
+        height: 8%;
+        background: rgba(255,255,255,0.94);
+        border: 1px solid rgba(79, 70, 207, 0.12);
+      }
+
+      .base {
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        bottom: 0;
+        height: 70px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #31d67a, #21b95f);
+        box-shadow: 0 18px 40px rgba(33, 185, 95, 0.28);
+      }
+
+      .float {
+        position: absolute;
+        border-radius: 24px;
+        backdrop-filter: blur(14px);
+      }
+
+      .float.star {
+        right: 4%;
+        top: 4%;
+        width: 86px;
+        height: 86px;
+        background: rgba(189, 243, 112, 0.92);
+        transform: rotate(18deg);
+      }
+
+      .float.mic {
+        left: -2%;
+        top: 30%;
+        width: 54px;
+        height: 116px;
+        border: 3px solid rgba(35, 38, 53, 0.9);
+        background: rgba(255, 255, 255, 0.92);
+      }
+
+      .float.paper {
+        right: -2%;
+        top: 44%;
+        width: 126px;
+        height: 92px;
+        background: rgba(255,255,255,0.96);
+        border: 2px solid rgba(35, 38, 53, 0.9);
+        clip-path: polygon(0 34%, 100% 0, 67% 100%);
+      }
+
+      .float.check {
+        left: 6%;
+        bottom: 24%;
+        width: 100px;
+        height: 54px;
+        border: 4px solid #00c97a;
+        border-top: 0;
+        border-right: 0;
+        background: transparent;
+        transform: rotate(-44deg);
+      }
+
+      .section {
+        padding: 88px 0;
+      }
+
+      .section.soft {
+        background: linear-gradient(180deg, rgba(247,239,228,0.7), rgba(255,255,255,0.94));
+      }
+
+      .section-grid {
+        display: grid;
+        grid-template-columns: 0.82fr 1.18fr;
+        gap: 36px;
+        align-items: start;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+      }
+
+      .card {
+        padding: 28px;
+        border-radius: 30px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255,255,255,0.84);
+        box-shadow: var(--shadow);
+      }
+
+      .badge {
+        display: inline-block;
+        margin-bottom: 16px;
+        padding: 7px 10px;
+        border-radius: 10px;
+        background: var(--mint);
+        color: #2d7a52;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .card h3 {
+        margin: 6px 0 10px;
+        font-size: 22px;
+        line-height: 1.08;
+      }
+
+      .meta {
+        margin-top: 18px;
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .card-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 24px;
+        color: var(--accent-strong);
+        font-weight: 700;
+      }
+
+      .learn-grid {
+        display: grid;
+        grid-template-columns: 0.82fr 1.18fr;
+        gap: 36px;
+        align-items: start;
+      }
+
+      .learn-cards {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+      }
+
+      .learn-image {
+        height: 210px;
+        border-radius: 30px;
+        margin-bottom: 20px;
+        background-size: cover;
+        background-position: center;
+      }
+
+      .img-one {
+        background:
+          linear-gradient(135deg, rgba(23,25,42,0.1), rgba(23,25,42,0.02)),
+          linear-gradient(135deg, #dcc9a4, #fff0c8 55%, #f6dd8f);
+      }
+
+      .img-two {
+        background:
+          linear-gradient(135deg, rgba(108,99,255,0.12), rgba(108,99,255,0.04)),
+          linear-gradient(135deg, #ffd371, #ffb347 52%, #fff4d6);
+      }
+
+      .img-three {
+        background:
+          linear-gradient(135deg, rgba(35,201,122,0.12), rgba(35,201,122,0.04)),
+          linear-gradient(135deg, #f3d9cf, #f8ece7 50%, #ded6c4);
+      }
+
+      .learn-cards h3 {
+        margin: 0 0 12px;
+        font-size: 26px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .learn-cards a {
+        display: inline-block;
+        margin-top: 18px;
+        color: var(--ink);
+        font-weight: 700;
+        border-bottom: 2px solid #39c96d;
+        padding-bottom: 4px;
+      }
+
+      .footer {
+        padding: 30px 0 60px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      @media (max-width: 1080px) {
+        .hero,
+        .section-grid,
+        .learn-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .cards,
+        .learn-cards {
+          grid-template-columns: 1fr;
+        }
+
+        .visual {
+          min-height: 420px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .shell {
+          width: min(100% - 28px, 1180px);
+        }
+
+        .nav {
+          padding: 18px 0;
+        }
+
+        .nav-cta {
+          padding: 11px 14px;
+          font-size: 14px;
+        }
+
+        .web-card,
+        .card {
+          padding: 22px;
+          border-radius: 24px;
+        }
+
+        .visual {
+          min-height: 340px;
+        }
+
+        .screen {
+          inset: 34px 8px 70px 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="nav">
+        <a class="brand" href="/">
+          <img src="/logo192.png" alt="" aria-hidden="true" />
+          <span>Pulse</span>
+        </a>
+        <a class="nav-cta" href="https://web.pulse-messenger.com/?role=parent&amp;mode=login">Open Pulse Web</a>
+      </header>
+
+      <section class="hero">
+        <div>
+          <div class="kicker">Download</div>
+          <h1>Pulse downloaden</h1>
+          <p class="intro">Chat en bel veilig met Pulse op al je apparaten.</p>
+          <p class="legal">
+            Door Pulse te gebruiken, ga je akkoord met ons
+            <a href="/privacybeleid">Privacybeleid</a> en onze privacy-first uitgangspunten.
+          </p>
+
+          <article class="web-card">
+            <div class="eyebrow">Browser</div>
+            <h2>Pulse Web</h2>
+            <p>Wordt je apparaat nog niet ondersteund? Gebruik Pulse direct in je browser.</p>
+            <div class="button-row">
+              <a class="btn btn-primary" href="https://web.pulse-messenger.com/?role=parent&amp;mode=login">Inloggen</a>
+              <a class="btn btn-secondary" href="/hoe-werkt-het">Hoe werkt het</a>
+            </div>
+          </article>
+        </div>
+
+        <div class="visual" aria-hidden="true">
+          <div class="screen">
+            <div class="sidebar"></div>
+            <div class="window"></div>
+            <div class="bubble one"></div>
+            <div class="bubble two"></div>
+            <div class="bar"></div>
+          </div>
+          <div class="base"></div>
+          <div class="float star"></div>
+          <div class="float mic"></div>
+          <div class="float paper"></div>
+          <div class="float check"></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="section soft">
+      <div class="shell section-grid">
+        <div class="section-copy">
+          <h2>Andere downloadopties</h2>
+          <p>Blijf in contact via al je apparaten.</p>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <span class="badge">NIEUW</span>
+            <div class="eyebrow">Tablet</div>
+            <h3>iPadOS</h3>
+            <p>Een grotere Pulse-ervaring voor gezinnen en ouderlijk toezicht komt eraan.</p>
+            <div class="meta">Binnenkort beschikbaar</div>
+            <a class="card-link" href="/contact">Meer informatie</a>
+          </article>
+
+          <article class="card">
+            <div class="eyebrow">Desktop</div>
+            <h3>Windows</h3>
+            <p>Gebruik Pulse vandaag al via het webportaal voor een rustige desktop-ervaring.</p>
+            <div class="meta">Gebruik nu alvast Pulse Web</div>
+            <a class="card-link" href="https://web.pulse-messenger.com/?role=parent&amp;mode=login">Open Pulse Web</a>
+          </article>
+
+          <article class="card">
+            <div class="eyebrow">Mobiel</div>
+            <h3>Android</h3>
+            <p>De Android-app sluit straks aan op dezelfde privacy-first basis zonder telefoonnummer.</p>
+            <div class="meta">Nog geen Play Store-link</div>
+            <a class="card-link" href="/over-pulse">Bekijk updates</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="shell learn-grid">
+        <div class="section-copy">
+          <h2>Al gedownload?</h2>
+          <p>Bekijk meer informatie over wat je kunt doen in Pulse.</p>
+        </div>
+
+        <div class="learn-cards">
+          <article>
+            <div class="learn-image img-one"></div>
+            <h3>Verstuur priveberichten</h3>
+            <p>Lees hoe Pulse communicatie veilig en rustig houdt voor kinderen en ouders.</p>
+            <a href="/privacy-first">Meer informatie</a>
+          </article>
+
+          <article>
+            <div class="learn-image img-two"></div>
+            <h3>Blijf verbonden</h3>
+            <p>Bekijk hoe ouders en kinderen samen starten met Pulse op web en straks in de apps.</p>
+            <a href="/hoe-werkt-het">Meer informatie</a>
+          </article>
+
+          <article>
+            <div class="learn-image img-three"></div>
+            <h3>Ontwikkeld voor gezinnen</h3>
+            <p>Ontdek waarom Pulse geen standaard chatapp is, maar een veilige familie-omgeving.</p>
+            <a href="/over-pulse">Meer informatie</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <div class="shell footer">
+      <p>Pulse houdt ouder en kind veilig verbonden. Veilig chatten, bellen en videobellen in de app.</p>
+    </div>
+  </body>
+</html>

@@ -117,7 +117,7 @@ export default function DownloadPagina({ onParentClick }) {
         scrolled={scrolled}
       />
 
-      <main id="main-content" className="dl-main">
+      <main id="main-content" className="dl-main" data-page="download">
         <section className="dl-hero" aria-labelledby="download-title">
           <div className="dl-hero-inner">
             <div className="dl-hero-copy">

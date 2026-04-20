@@ -48,6 +48,8 @@ Belangrijk voor Cloudflare Pages:
 - deze repo verwacht Node `20`
 - gebruik voor `pulse-messenger.com` altijd `npm run build:landing`
 - gebruik voor `web.pulse-messenger.com` altijd `npm run build:webapp`
+- gebruik voor handmatige deploys bij voorkeur:
+  `npm run deploy:landing` of `npm run deploy:webapp`
 - beide target-builds schrijven hun eigen `build/_headers` met passende CSP
 - `npm run build` is bewust landing-safe; gebruik voor `web.pulse-messenger.com` altijd expliciet `npm run build:webapp`
 - Create React App draait daar met `CI=true`
@@ -55,6 +57,7 @@ Belangrijk voor Cloudflare Pages:
 - `npm run verify:cloudflare` bootst dat lokaal na
 - de GitHub workflow `Cloudflare Guard` draait dezelfde controle ook automatisch op pushes en PR's
 - nieuwe PR's krijgen ook een deploy-safety checklist via de pull request template
+- in VS Code kun je nu de taken `Pulse: Deploy Landing` en `Pulse: Deploy Webapp` gebruiken
 
 Zie ook:
 

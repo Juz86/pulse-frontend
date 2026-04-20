@@ -23,6 +23,8 @@
     "build:ci": "CI=true npm run build:webapp",
     "verify:landing": "npm run build:landing && node scripts/verify-landing-build.js && REACT_APP_SITE_TARGET=landing node scripts/verify-target-headers.js",
     "verify:webapp": "npm run build:webapp && REACT_APP_SITE_TARGET=webapp node scripts/verify-target-headers.js",
+    "deploy:landing": "node scripts/deploy-pages.js landing",
+    "deploy:webapp": "node scripts/deploy-pages.js webapp",
     "verify:deployed-targets": "node scripts/verify-deployed-targets.js",
     "verify:public-headers": "node scripts/verify-public-headers.js",
     "test:deployed-targets": "node --test scripts/verify-deployed-targets.test.js",

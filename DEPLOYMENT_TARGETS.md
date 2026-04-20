@@ -32,6 +32,12 @@ Before deploying, run:
 npm run verify:landing
 ```
 
+Or use the guarded deploy command:
+
+```bash
+npm run deploy:landing
+```
+
 This builds the landing target and checks that app-only code such as auth modals, chat screens, E2EE bootstrap and call UI are not included in the generated landing JavaScript.
 
 The landing build also writes and verifies a stricter `build/_headers` file. Its CSP does not allow Firebase, the Pulse API, websocket connections or FCM, because the public landing site should not perform login, chat or E2EE work.
@@ -74,6 +80,12 @@ Before deploying, run:
 
 ```bash
 npm run verify:webapp
+```
+
+Or use the guarded deploy command:
+
+```bash
+npm run deploy:webapp
 ```
 
 The web app build writes and verifies the broader `build/_headers` file that allows the Pulse API, Firebase, FCM and websocket connections needed by the authenticated app.
@@ -167,3 +179,22 @@ On the web app target, those query parameters open the existing parent or child 
 ## Important
 
 `npm run build` is intentionally landing-safe and writes landing headers. For `web.pulse-messenger.com`, always use the explicit `npm run build:webapp` command so the authenticated web app keeps its required API, Firebase, FCM and websocket permissions.
+
+## Safer manual deploy flow
+
+If you deploy from VS Code or a local terminal, prefer these explicit commands instead of a generic deploy action:
+
+```bash
+npm run deploy:landing
+npm run deploy:webapp
+```
+
+They enforce the correct verify step first and then deploy to the matching Cloudflare Pages project:
+
+- `deploy:landing` -> `pulse-landing`
+- `deploy:webapp` -> `pulse-frontend`
+
+For VS Code users, the repo also includes these tasks:
+
+- `Pulse: Deploy Landing`
+- `Pulse: Deploy Webapp`

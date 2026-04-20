@@ -374,6 +374,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 /* ── WEBAPP LOGIN SHELL ── */
 .web-auth-shell {
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
   background:
@@ -388,37 +390,40 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .web-auth-brand {
   flex: 0 0 auto;
-  padding: clamp(18px, 3vw, 34px) clamp(18px, 4vw, 42px);
+  padding: clamp(16px, 2vw, 24px) clamp(18px, 4vw, 42px) clamp(6px, 1vw, 12px);
 }
 
 .web-auth-main {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 22px;
-  padding: clamp(18px, 4vw, 48px);
-  padding-top: clamp(8px, 2vw, 24px);
+  justify-content: flex-start;
+  gap: 14px;
+  padding: clamp(10px, 2vw, 22px) clamp(18px, 4vw, 42px) max(18px, env(safe-area-inset-bottom));
 }
 
 .web-auth-card {
-  width: min(920px, calc(100vw - 32px));
-  min-height: 430px;
+  width: min(980px, calc(100vw - 32px));
+  min-height: 0;
+  max-height: calc(100dvh - 112px);
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
-  gap: clamp(24px, 5vw, 64px);
-  align-items: center;
+  gap: clamp(24px, 4vw, 56px);
+  align-items: stretch;
   background: #fff;
   border: 1px solid rgba(24, 36, 50, .18);
   border-radius: 18px;
-  padding: clamp(34px, 5vw, 54px);
+  padding: clamp(26px, 3.5vw, 42px);
   box-shadow: 0 22px 70px rgba(35, 31, 72, .08);
+  overflow: hidden;
 }
 
 .web-auth-info {
   max-width: 430px;
+  align-self: center;
 }
 
 .web-auth-kicker {
@@ -432,24 +437,24 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-info h1 {
-  margin: 0 0 14px;
+  margin: 0 0 12px;
   color: #1f2337;
-  font-size: clamp(30px, 4vw, 42px);
+  font-size: clamp(28px, 3.4vw, 38px);
   line-height: 1.08;
   letter-spacing: -.04em;
 }
 
 .web-auth-info p {
   color: #5f6777;
-  font-size: 16px;
-  line-height: 1.72;
+  font-size: 15px;
+  line-height: 1.66;
 }
 
 .web-auth-steps {
   list-style: none;
   display: grid;
-  gap: 16px;
-  margin: 28px 0 22px;
+  gap: 13px;
+  margin: 24px 0 18px;
   padding: 0;
   color: #202733;
 }
@@ -486,11 +491,15 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   align-self: stretch;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
   background: var(--surface);
   border: 1px solid rgba(255, 255, 255, .10);
   border-radius: 28px;
-  padding: clamp(24px, 4vw, 34px);
+  padding: clamp(22px, 3vw, 30px);
   box-shadow: 0 26px 60px rgba(31, 27, 58, .22);
 }
 
@@ -499,7 +508,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   padding: 5px;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
   border-radius: 16px;
   background: rgba(255, 255, 255, .06);
   border: 1px solid rgba(255, 255, 255, .09);
@@ -528,7 +537,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 
 .web-auth-form-heading > span {
@@ -542,11 +551,12 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-form-card .auth-no-account {
-  margin-top: 18px;
+  margin-top: 14px;
 }
 
 .web-auth-form-card .auth-features {
-  margin-top: 24px;
+  margin-top: 18px;
+  padding-top: 18px;
 }
 
 .web-auth-parent-panel {
@@ -639,13 +649,16 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   .web-auth-main {
     justify-content: flex-start;
+    padding-top: 10px;
   }
 
   .web-auth-card {
     grid-template-columns: 1fr;
     width: min(520px, calc(100vw - 28px));
     gap: 26px;
-    padding: 72px 22px 24px;
+    max-height: none;
+    overflow: visible;
+    padding: 24px 22px;
   }
 
   .web-auth-info {
@@ -663,7 +676,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   }
 
   .web-auth-main {
-    padding: 12px 12px max(18px, env(safe-area-inset-bottom));
+    padding: 8px 12px max(18px, env(safe-area-inset-bottom));
     gap: 14px;
   }
 
@@ -676,6 +689,11 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   .web-auth-info h1 {
     font-size: 26px;
+  }
+
+  .web-auth-steps {
+    gap: 10px;
+    margin: 18px 0 14px;
   }
 
   .web-auth-info p,

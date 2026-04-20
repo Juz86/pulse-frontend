@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import PulseLogo from './PulseLogo';
-import { Heart, Shield, Users } from './Icons';
+import { Download, Shield } from './Icons';
 import { getWebAppLoginUrl, isLandingBuild } from '../lib/siteTarget';
 import { requestMarketingAuth } from '../lib/marketingAuthEvents';
 
@@ -14,17 +14,7 @@ export default function MarketingNavbar({
   const navMenuId = 'marketing-nav-links';
   const menuRef      = useRef(null);
   const hamburgerRef = useRef(null);
-  const childLoginUrl = getWebAppLoginUrl({ role: 'child', mode: 'login' });
   const parentLoginUrl = getWebAppLoginUrl({ role: 'parent', mode: 'login' });
-
-  const openChildLogin = () => {
-    setMenuOpen(false);
-    if (isLandingBuild) {
-      window.location.assign(childLoginUrl);
-      return;
-    }
-    requestMarketingAuth({ role: 'child', mode: 'login' });
-  };
 
   const openParentLogin = () => {
     setMenuOpen(false);
@@ -33,6 +23,19 @@ export default function MarketingNavbar({
       return;
     }
     requestMarketingAuth({ role: 'parent', mode: 'login' });
+  };
+
+  const openDownloads = () => {
+    setMenuOpen(false);
+    const targetId = 'footer-download-title';
+    const target = document.getElementById(targetId);
+
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    window.location.assign('/#footer-download-title');
   };
 
   useEffect(() => {
@@ -140,29 +143,20 @@ export default function MarketingNavbar({
         <div className="hp-nav-actions">
           <button
             type="button"
+            className="hp-nav-download"
+            onClick={openDownloads}
+            aria-label="Ga naar downloaden"
+          >
+            <Download size={16} aria-hidden="true" /> Downloaden
+          </button>
+
+          <button
+            type="button"
             className="hp-nav-signin"
             onClick={openParentLogin}
             aria-label="Aanmelden bij Pulse"
           >
             Aanmelden
-          </button>
-
-          <button
-            type="button"
-            className="hp-nav-kind"
-            onClick={openChildLogin}
-            aria-label="Kind inloggen"
-          >
-            <Heart size={16} aria-hidden="true" /> Kind
-          </button>
-
-          <button
-            type="button"
-            className="hp-nav-ouder"
-            onClick={openParentLogin}
-            aria-label="Open ouder login of registratie"
-          >
-            <Users size={16} aria-hidden="true" /> Ouder
           </button>
 
           <button

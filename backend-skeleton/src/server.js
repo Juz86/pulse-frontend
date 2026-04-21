@@ -33,9 +33,9 @@ const app = express();
 const server = http.createServer(app);
 const { io, emitToUser } = createSocketServer(server);
 const startedAt = new Date().toISOString();
+const appOnlyCors = cors(buildCorsOptions({ appOnly: true }));
 
 app.use(securityHeaders);
-app.use(cors(buildCorsOptions()));
 app.use(express.json());
 app.use(requestContext);
 
@@ -91,7 +91,8 @@ app.get('/readyz', async (_req, res) => {
   });
 });
 
-app.post('/api/fcm-token', requireAppOrigin, (_req, res) => {
+app.options('/api/fcm-token', appOnlyCors);
+app.post('/api/fcm-token', appOnlyCors, requireAppOrigin, (_req, res) => {
   return res.json({
     ok: true,
     stored: false,
@@ -100,7 +101,8 @@ app.post('/api/fcm-token', requireAppOrigin, (_req, res) => {
   });
 });
 
-app.get('/api/turn-credentials', requireAppOrigin, (_req, res) => {
+app.options('/api/turn-credentials', appOnlyCors);
+app.get('/api/turn-credentials', appOnlyCors, requireAppOrigin, (_req, res) => {
   return res.json({
     ok: true,
     iceServers: [
@@ -113,17 +115,17 @@ app.get('/api/turn-credentials', requireAppOrigin, (_req, res) => {
   });
 });
 
-app.use('/api', requireAppOrigin, requireFirebaseReady, authRouter);
-app.use('/api/conversations', requireAppOrigin, requireFirebaseReady, conversationsRouter);
-app.use('/devices', requireAppOrigin, requireFirebaseReady, devicesRouter);
-app.use('/api/contacts', requireAppOrigin, requireFirebaseReady, contactsRouter);
-app.use('/api/friend-requests', requireAppOrigin, requireFirebaseReady, friendRequestsRouter({ io, emitToUser }));
-app.use('/api/messages', requireAppOrigin, requireFirebaseReady, apiMessagesRouter({ io, emitToUser }));
-app.use('/api/users', requireAppOrigin, requireFirebaseReady, usersRouter);
-app.use('/users', requireAppOrigin, requireFirebaseReady, keysRouter);
-app.use('/messages', requireAppOrigin, requireFirebaseReady, messagesRouter({ io, emitToUser }));
-app.use('/calls', requireAppOrigin, requireFirebaseReady, callsRouter);
-app.use('/api/parent', requireAppOrigin, requireFirebaseReady, parentRouter);
+app.use('/api', appOnlyCors, requireAppOrigin, requireFirebaseReady, authRouter);
+app.use('/api/conversations', appOnlyCors, requireAppOrigin, requireFirebaseReady, conversationsRouter);
+app.use('/devices', appOnlyCors, requireAppOrigin, requireFirebaseReady, devicesRouter);
+app.use('/api/contacts', appOnlyCors, requireAppOrigin, requireFirebaseReady, contactsRouter);
+app.use('/api/friend-requests', appOnlyCors, requireAppOrigin, requireFirebaseReady, friendRequestsRouter({ io, emitToUser }));
+app.use('/api/messages', appOnlyCors, requireAppOrigin, requireFirebaseReady, apiMessagesRouter({ io, emitToUser }));
+app.use('/api/users', appOnlyCors, requireAppOrigin, requireFirebaseReady, usersRouter);
+app.use('/users', appOnlyCors, requireAppOrigin, requireFirebaseReady, keysRouter);
+app.use('/messages', appOnlyCors, requireAppOrigin, requireFirebaseReady, messagesRouter({ io, emitToUser }));
+app.use('/calls', appOnlyCors, requireAppOrigin, requireFirebaseReady, callsRouter);
+app.use('/api/parent', appOnlyCors, requireAppOrigin, requireFirebaseReady, parentRouter);
 app.use(errorHandler);
 
 const port = Number(process.env.PORT || 3001);

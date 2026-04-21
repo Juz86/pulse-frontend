@@ -92,10 +92,11 @@ export function requireAppOrigin(req, res, next) {
   });
 }
 
-export function buildCorsOptions() {
+export function buildCorsOptions({ appOnly = false } = {}) {
+  const originChecker = appOnly ? isAllowedAppOrigin : isAllowedOrigin;
   return {
     origin(origin, callback) {
-      callback(null, isAllowedOrigin(origin));
+      callback(null, originChecker(origin));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-dev-uid', 'x-request-id'],

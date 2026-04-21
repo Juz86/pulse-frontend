@@ -5,7 +5,7 @@ import { getDevUidFromSocketAuth, isDevAuthBypassEnabled } from '../middleware/a
 import { canEditMessage, normalizeEditedText } from '../services/messageEdits.js';
 import { buildCallMessage, buildLegacyMessage, buildSystemMessage } from '../services/legacyMessages.js';
 import { computeHistoryExpiresAt, resolveConversationRetentionDays } from '../services/historyRetention.js';
-import { isAllowedAppOrigin, isAllowedOrigin } from '../services/httpSecurity.js';
+import { isAllowedAppOrigin } from '../services/httpSecurity.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 
@@ -39,7 +39,7 @@ export function createSocketServer(server) {
   const io = new Server(server, {
     cors: {
       origin(origin, callback) {
-        callback(null, isAllowedOrigin(origin));
+        callback(null, isAllowedAppOrigin(origin));
       },
     },
     allowRequest(request, callback) {

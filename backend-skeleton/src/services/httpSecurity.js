@@ -104,6 +104,39 @@ export function buildCorsOptions({ appOnly = false } = {}) {
   };
 }
 
+export function appOnlyCors(req, res, next) {
+  const requestOrigin = normalizeOrigin(req.headers.origin);
+
+  if (!requestOrigin) {
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(204);
+    }
+    return next();
+  }
+
+  if (!isAllowedAppOrigin(requestOrigin)) {
+    if (req.method === 'OPTIONS') {
+      return res.status(403).json({
+        error: 'origin_not_allowed',
+        detail: 'Deze endpoint is alleen beschikbaar voor de Pulse webapp.',
+      });
+    }
+    return next();
+  }
+
+  res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+  res.setHeader('Vary', 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-dev-uid,x-request-id');
+  res.setHeader('Access-Control-Max-Age', '86400');
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
+  return next();
+}
+
 export function securityHeaders(_req, res, next) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');

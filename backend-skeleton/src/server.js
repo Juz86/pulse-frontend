@@ -1,4 +1,3 @@
-import cors from 'cors';
 import express from 'express';
 import http from 'http';
 import { devicesRouter } from './routes/devices.js';
@@ -24,7 +23,7 @@ import {
   checkFirestoreReady,
 } from './services/firestore.js';
 import {
-  buildCorsOptions,
+  appOnlyCors,
   requireAppOrigin,
   securityHeaders,
 } from './services/httpSecurity.js';
@@ -33,7 +32,6 @@ const app = express();
 const server = http.createServer(app);
 const { io, emitToUser } = createSocketServer(server);
 const startedAt = new Date().toISOString();
-const appOnlyCors = cors(buildCorsOptions({ appOnly: true }));
 
 app.use(securityHeaders);
 app.use(express.json());

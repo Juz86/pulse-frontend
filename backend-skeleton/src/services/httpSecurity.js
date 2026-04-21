@@ -1,6 +1,7 @@
 const DEFAULT_ALLOWED_ORIGINS = [
   'https://pulse-messenger.com',
   'https://www.pulse-messenger.com',
+  'https://web.pulse-messenger.com',
   'https://pulse-frontend-elt.pages.dev',
 ];
 

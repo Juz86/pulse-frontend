@@ -400,30 +400,34 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  padding: clamp(14px, 2vw, 22px) clamp(18px, 4vw, 42px) max(14px, env(safe-area-inset-bottom));
+  gap: clamp(14px, 2vw, 20px);
+  width: 100%;
+  padding: clamp(14px, 2vw, 22px) clamp(16px, 3.2vw, 42px) max(14px, env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
 .web-auth-card {
-  width: min(980px, calc(100vw - 32px));
+  width: min(1040px, 100%);
   min-height: 0;
-  max-height: calc(100dvh - 42px);
+  max-width: 100%;
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
-  gap: clamp(24px, 4vw, 56px);
-  align-items: stretch;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 400px);
+  gap: clamp(28px, 4vw, 56px);
+  align-items: center;
   background: #fff;
   border: 1px solid rgba(24, 36, 50, .18);
-  border-radius: 18px;
-  padding: clamp(22px, 2.8vw, 34px);
+  border-radius: 24px;
+  padding: clamp(22px, 2.8vw, 36px);
   box-shadow: 0 22px 70px rgba(35, 31, 72, .08);
-  overflow: hidden;
+  overflow: clip;
+  box-sizing: border-box;
 }
 
 .web-auth-info {
-  max-width: 430px;
-  align-self: start;
+  max-width: 470px;
+  min-width: 0;
+  align-self: center;
 }
 
 .web-auth-info-logo {
@@ -452,25 +456,29 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .web-auth-info p {
   color: #5f6777;
-  font-size: 15px;
-  line-height: 1.66;
+  max-width: 46ch;
+  font-size: clamp(15px, 1.25vw, 16px);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .web-auth-steps {
   list-style: none;
   display: grid;
-  gap: 11px;
-  margin: 20px 0 16px;
+  gap: 12px;
+  margin: 24px 0 18px;
   padding: 0;
   color: #202733;
 }
 
 .web-auth-steps li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
-  font-size: 16px;
-  line-height: 1.35;
+  min-width: 0;
+  font-size: clamp(15px, 1.3vw, 16px);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .web-auth-steps span {
@@ -488,9 +496,11 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-help {
-  margin-top: 8px;
+  margin-top: 10px;
+  max-width: 40ch;
   font-size: 14px !important;
   color: #727987 !important;
+  line-height: 1.6 !important;
 }
 
 .web-auth-form-card {
@@ -499,32 +509,42 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   flex-direction: column;
   justify-content: flex-start;
   min-height: 0;
+  width: 100%;
+  max-width: 400px;
   max-height: 100%;
-  overflow: hidden;
+  overflow: visible;
   background: var(--surface);
   border: 1px solid rgba(255, 255, 255, .10);
   border-radius: 28px;
-  padding: clamp(22px, 2.8vw, 28px);
+  padding: clamp(22px, 2.8vw, 30px);
   box-shadow: 0 26px 60px rgba(31, 27, 58, .22);
+  box-sizing: border-box;
+  justify-self: end;
 }
 
 .web-auth-form-card .auth-logo {
   margin-bottom: 14px;
 }
 
+.web-auth-form-card > * {
+  width: 100%;
+  min-width: 0;
+}
+
 .web-auth-form-card .auth-title {
-  font-size: 17px;
-  line-height: 1.35;
+  font-size: clamp(17px, 1.35vw, 18px);
+  line-height: 1.3;
 }
 
 .web-auth-form-card .auth-sub {
   font-size: 12px;
-  line-height: 1.45;
+  line-height: 1.55;
   margin-bottom: 18px;
+  overflow-wrap: anywhere;
 }
 
 .web-auth-form-card .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .web-auth-form-card .form-label {
@@ -533,14 +553,14 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-form-card .form-input {
-  min-height: 40px;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  min-height: 46px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .web-auth-form-card .btn-primary {
-  min-height: 42px;
-  padding: 10px 14px;
+  min-height: 46px;
+  padding: 11px 16px;
   font-size: 14px;
 }
 
@@ -556,7 +576,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-tab {
-  min-height: 36px;
+  min-height: 40px;
   padding: 0 12px;
   border: 0;
   border-radius: 12px;
@@ -576,7 +596,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .web-auth-form-card .auth-no-account {
   margin-top: 12px;
   font-size: 11.5px;
-  line-height: 1.5;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .web-auth-form-card .auth-features {
@@ -591,6 +612,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   min-width: 0;
   font-size: 10px;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .web-auth-form-card .auth-feature span,
@@ -618,7 +640,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   color: var(--text2);
   font-size: 12px;
   margin-bottom: 14px;
-  line-height: 1.45;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .web-auth-parent-panel .parent-auth-tabs {
@@ -707,8 +730,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-parent-panel .parent-auth-btn {
-  min-height: 42px;
-  padding: 10px 14px;
+  min-height: 46px;
+  padding: 11px 14px;
   font-size: 14px;
 }
 
@@ -721,7 +744,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   align-items: center;
   justify-content: center;
   gap: 7px;
-  width: min(980px, calc(100vw - 32px));
+  width: min(1040px, 100%);
   max-width: 100%;
   align-self: center;
   margin: 0;
@@ -749,7 +772,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .web-auth-card {
     grid-template-columns: 1fr;
     width: min(520px, calc(100vw - 28px));
-    gap: 26px;
+    gap: 24px;
     max-height: none;
     overflow: visible;
     padding: 24px 22px;
@@ -757,6 +780,11 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
   .web-auth-info {
     max-width: none;
+  }
+
+  .web-auth-form-card {
+    max-width: none;
+    justify-self: stretch;
   }
 
   .web-auth-info h1 {
@@ -855,6 +883,76 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   }
 }
 
+@media (min-width: 768px) and (max-width: 1023px) {
+  .web-auth-main {
+    justify-content: flex-start;
+    padding-top: 24px;
+  }
+
+  .web-auth-card {
+    grid-template-columns: 1fr;
+    width: min(720px, 100%);
+    gap: 28px;
+    padding: 30px 28px;
+  }
+
+  .web-auth-info {
+    max-width: 100%;
+  }
+
+  .web-auth-info p,
+  .web-auth-help {
+    max-width: 54ch;
+  }
+
+  .web-auth-form-card {
+    max-width: 520px;
+    width: 100%;
+    justify-self: stretch;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 767px) {
+  .web-auth-main {
+    justify-content: flex-start;
+    padding: 14px 16px max(22px, env(safe-area-inset-bottom));
+  }
+
+  .web-auth-card {
+    width: min(100%, 620px);
+    gap: 22px;
+    padding: 24px 20px 20px;
+    border-radius: 24px;
+  }
+
+  .web-auth-info-logo {
+    margin-bottom: 16px;
+  }
+
+  .web-auth-info h1 {
+    font-size: clamp(28px, 7vw, 34px);
+  }
+
+  .web-auth-info p,
+  .web-auth-steps li {
+    font-size: 15px;
+  }
+
+  .web-auth-form-card {
+    padding: 20px 18px;
+    border-radius: 24px;
+  }
+
+  .web-auth-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .web-auth-form-card .auth-features,
+  .web-auth-parent-panel .parent-auth-features {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 520px) {
   .web-auth-brand {
     padding: max(18px, env(safe-area-inset-top)) 18px 10px;
@@ -868,6 +966,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   .web-auth-card {
     width: 100%;
     border-radius: 24px;
+    gap: 20px;
     padding: 22px 16px 18px;
     border-color: rgba(24, 36, 50, .12);
   }
@@ -890,23 +989,113 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
     font-size: 15px;
   }
 
+  .web-auth-steps span {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
   .web-auth-form-card {
     border-radius: 22px;
     padding: 22px 16px;
   }
 
   .web-auth-tabs {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
   }
 
   .web-auth-form-card .auth-features,
   .web-auth-parent-panel .parent-auth-features {
+    grid-template-columns: 1fr;
     gap: 8px;
   }
 
   .web-auth-form-card .auth-feature,
   .web-auth-parent-panel .parent-auth-feature {
-    font-size: 9.5px;
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    text-align: left;
+    font-size: 11px;
+  }
+
+  .web-auth-parent-panel .parent-auth-feature svg,
+  .web-auth-form-card .auth-feature span {
+    justify-self: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .web-auth-main {
+    justify-content: flex-start;
+  }
+
+  .web-auth-card {
+    padding: 20px 14px 16px;
+    border-radius: 22px;
+  }
+
+  .web-auth-info-logo svg {
+    max-width: 140px;
+    height: auto;
+  }
+
+  .web-auth-info h1 {
+    font-size: clamp(24px, 8.6vw, 29px);
+    line-height: 1.08;
+  }
+
+  .web-auth-info p,
+  .web-auth-help,
+  .web-auth-steps li {
+    font-size: 14px !important;
+    line-height: 1.6;
+  }
+
+  .web-auth-form-card {
+    padding: 18px 14px;
+    border-radius: 20px;
+  }
+
+  .web-auth-form-card .auth-title,
+  .web-auth-parent-panel .parent-auth-title {
+    font-size: 17px;
+  }
+
+  .web-auth-form-card .auth-sub,
+  .web-auth-parent-panel .parent-auth-sub,
+  .web-auth-form-card .auth-no-account {
+    font-size: 12px;
+  }
+
+  .web-auth-form-card .form-input,
+  .web-auth-parent-panel .parent-auth-input {
+    min-height: 48px;
+  }
+
+  .web-auth-form-card .btn-primary,
+  .web-auth-parent-panel .parent-auth-btn,
+  .web-auth-tab {
+    min-height: 44px;
+  }
+
+  .web-auth-privacy {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .parent-verify-boxes {
+    gap: 8px;
+    margin: 20px 0 14px;
+  }
+
+  .parent-verify-box {
+    width: min(13vw, 44px);
+    height: min(16vw, 52px);
+    font-size: clamp(20px, 6vw, 24px);
   }
 }
 

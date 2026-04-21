@@ -4334,7 +4334,9 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 
 .hp-download-options {
   padding: clamp(12px, 2vw, 24px) 0 clamp(72px, 8vw, 104px);
-  background: #fff;
+  background:
+    radial-gradient(circle at top left, rgba(124, 92, 255, 0.08), transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #faf7ff 100%);
 }
 .hp-download-options-inner {
   display: grid;

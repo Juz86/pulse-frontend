@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import PulseLogo from './PulseLogo';
-import { Download, Shield } from './Icons';
+import { Shield } from './Icons';
 import { getWebAppLoginUrl, isLandingBuild } from '../lib/siteTarget';
 import { requestMarketingAuth } from '../lib/marketingAuthEvents';
 
@@ -128,15 +128,6 @@ export default function MarketingNavbar({
         )}
 
         <div className="hp-nav-actions">
-          <a
-            className="hp-nav-download"
-            href="/download"
-            onClick={() => setMenuOpen(false)}
-            aria-label="Ga naar downloaden"
-          >
-            <Download size={16} aria-hidden="true" /> Downloaden
-          </a>
-
           <button
             type="button"
             className="hp-nav-signin"

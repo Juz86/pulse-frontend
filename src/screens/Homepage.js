@@ -125,7 +125,7 @@ function DownloadOptionsSection() {
       <div className="hp-section-inner hp-download-options-inner">
         <div className="hp-download-options-copy">
           <div className="hp-feature-tag">Pulse downloaden</div>
-          <h2 id="homepage-download-options-title">Andere downloadopties</h2>
+          <h2 id="homepage-download-options-title">Op al je apparaten</h2>
           <p>Blijf in contact met familie en vrienden via al je apparaten.</p>
           <div className="hp-download-options-controls" aria-label="Scroll door downloadopties">
             <button

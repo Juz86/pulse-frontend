@@ -524,7 +524,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-form-card .form-group {
-  margin-bottom: 10px;
+  margin-bottom: 30px;
 }
 
 .web-auth-form-card .form-label {
@@ -2950,7 +2950,8 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 /* ── Zoeken in gesprek ── */
 .chat-search-bar {
   display:flex; align-items:center; gap:8px;
-  padding:0 16px; background:var(--surface); borderBottom:1px solid var(--border);
+  padding:0 16px; background:var(--surface); 
+  border-bottom:1px solid var(--border);
   max-height:0; opacity:0; overflow:hidden;
   transition: max-height .25s ease, opacity .25s ease, padding .25s ease;
   pointer-events:none;

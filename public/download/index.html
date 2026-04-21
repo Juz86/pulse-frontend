@@ -263,79 +263,362 @@
 
       .visual {
         position: relative;
-        min-height: 520px;
+        min-height: 540px;
       }
 
-      .screen {
+      .laptop {
         position: absolute;
-        inset: 50px 20px 88px 20px;
-        border-radius: 34px;
-        background: linear-gradient(160deg, rgba(255,255,255,0.96), rgba(244,246,255,0.92));
-        border: 2px solid rgba(79, 70, 207, 0.18);
-        box-shadow: 0 30px 90px rgba(38, 31, 94, 0.18);
+        right: 40px;
+        top: 40px;
+        width: min(100%, 620px);
+      }
+
+      .laptop-screen {
+        position: relative;
+        height: 348px;
+        border-radius: 30px 30px 22px 22px;
+        background: linear-gradient(145deg, #ffffff, #f3f5ff);
+        border: 3px solid #26284d;
+        box-shadow: 0 24px 60px rgba(81, 72, 178, 0.16);
         overflow: hidden;
       }
 
-      .sidebar {
+      .laptop-sidebar {
         position: absolute;
         left: 0;
         top: 0;
         bottom: 0;
-        width: 26%;
-        background: linear-gradient(180deg, rgba(79,70,207,0.1), rgba(108,99,255,0.02));
-        border-right: 1px solid rgba(79, 70, 207, 0.12);
+        width: 104px;
+        padding: 22px 0 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+        background: linear-gradient(180deg, rgba(108, 99, 255, 0.08), rgba(108, 99, 255, 0.02));
+        border-right: 1px solid rgba(108, 99, 255, 0.12);
       }
 
-      .bubble,
-      .window,
-      .bar {
-        position: absolute;
+      .parent-brand {
+        width: 48px;
+        height: 48px;
         border-radius: 18px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #6c63ff, #43d2a8);
+        box-shadow: 0 12px 22px rgba(108, 99, 255, 0.24);
       }
 
-      .window {
-        left: 34%;
-        top: 18%;
-        width: 26%;
-        height: 20%;
-        background: rgba(255,255,255,0.95);
-        border: 1px solid rgba(79, 70, 207, 0.16);
+      .parent-brand-mark {
+        width: 18px;
+        height: 18px;
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.95);
+        transform: rotate(14deg);
       }
 
-      .bubble {
-        right: 12%;
-        width: 26%;
-        height: 14%;
-        background: linear-gradient(135deg, #5dd39e, #39c96d);
+      .parent-side-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(36, 38, 72, 0.18);
       }
 
-      .bubble.one {
-        top: 38%;
+      .parent-side-dot--active {
+        width: 16px;
+        height: 16px;
+        background: linear-gradient(135deg, #6c63ff, #43d2a8);
+        box-shadow: 0 6px 18px rgba(108, 99, 255, 0.22);
       }
 
-      .bubble.two {
-        bottom: 18%;
-        background: linear-gradient(135deg, rgba(108,99,255,0.16), rgba(79,70,207,0.08));
+      .parent-side-user {
+        margin-top: auto;
+        width: 42px;
+        height: 42px;
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        background: #fff;
+        color: #4f46cf;
+        font: 800 16px/1 Inter, sans-serif;
+        border: 1px solid rgba(108, 99, 255, 0.18);
       }
 
-      .bar {
-        left: 34%;
-        right: 10%;
-        bottom: 10%;
-        height: 8%;
-        background: rgba(255,255,255,0.94);
-        border: 1px solid rgba(79, 70, 207, 0.12);
+      .parent-shell {
+        position: absolute;
+        left: 104px;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        padding: 24px;
+        background:
+          radial-gradient(circle at top right, rgba(67, 210, 168, 0.12), transparent 28%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(245, 247, 255, 0.94));
+      }
+
+      .parent-topbar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 16px;
+      }
+
+      .parent-eyebrow {
+        color: var(--muted);
+        font: 600 12px/1.2 Inter, sans-serif;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .parent-heading {
+        margin-top: 6px;
+        color: var(--ink);
+        font: 800 24px/1 Inter, sans-serif;
+        letter-spacing: -0.04em;
+      }
+
+      .parent-topbar-badge {
+        padding: 10px 12px;
+        border-radius: 14px;
+        color: #1b6f53;
+        background: rgba(67, 210, 168, 0.18);
+        font: 700 13px/1 Inter, sans-serif;
+      }
+
+      .parent-tabs {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+
+      .parent-tab {
+        padding: 8px 12px;
+        border-radius: 999px;
+        color: var(--muted);
+        background: rgba(108, 99, 255, 0.06);
+        font: 600 12px/1 Inter, sans-serif;
+      }
+
+      .parent-tab--active {
+        color: #fff;
+        background: linear-gradient(135deg, #6c63ff, #4f46cf);
+      }
+
+      .parent-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 14px;
+      }
+
+      .parent-panel {
+        min-height: 222px;
+        padding: 14px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.84);
+        border: 1px solid rgba(108, 99, 255, 0.12);
+        box-shadow: 0 16px 34px rgba(108, 99, 255, 0.09);
+      }
+
+      .parent-panel--children {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .parent-card {
+        padding: 14px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, #ffffff, #f8f8ff);
+        border: 1px solid rgba(108, 99, 255, 0.12);
+      }
+
+      .parent-card--soft {
+        background: linear-gradient(180deg, #f6f4ff, #ffffff);
+      }
+
+      .parent-card-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .parent-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        background: linear-gradient(135deg, #6c63ff, #43d2a8);
+        font: 800 15px/1 Inter, sans-serif;
+      }
+
+      .parent-avatar--soft {
+        background: linear-gradient(135deg, #b9b5ff, #d7d5ff);
+        color: #403a9d;
+      }
+
+      .parent-name {
+        color: var(--ink);
+        font: 800 16px/1 Inter, sans-serif;
+      }
+
+      .parent-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 4px;
+        color: var(--muted);
+        font: 500 11px/1.2 Inter, sans-serif;
+      }
+
+      .parent-status {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #35c97b;
+      }
+
+      .parent-status--muted {
+        background: rgba(95, 105, 132, 0.35);
+      }
+
+      .parent-stats,
+      .parent-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .parent-stats {
+        margin-bottom: 10px;
+      }
+
+      .parent-stats span,
+      .parent-chip {
+        padding: 8px 10px;
+        border-radius: 12px;
+        background: rgba(108, 99, 255, 0.07);
+        color: var(--ink);
+        font: 600 11px/1 Inter, sans-serif;
+      }
+
+      .parent-chip {
+        color: #fff;
+        background: linear-gradient(135deg, #6c63ff, #4f46cf);
+      }
+
+      .parent-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+        background: rgba(108, 99, 255, 0.1);
+      }
+
+      .parent-panel-title {
+        margin-bottom: 12px;
+        color: var(--ink);
+        font: 800 15px/1 Inter, sans-serif;
+      }
+
+      .parent-panel--activity {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .parent-activity {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 12px;
+        border-radius: 18px;
+        background: rgba(245, 246, 255, 0.94);
+      }
+
+      .parent-activity-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        background: linear-gradient(135deg, #43d2a8, #35c97b);
+        font: 800 14px/1 Inter, sans-serif;
+        flex-shrink: 0;
+      }
+
+      .parent-activity-icon--soft {
+        color: #443ea8;
+        background: rgba(108, 99, 255, 0.14);
+      }
+
+      .parent-activity strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--ink);
+        font: 700 12px/1.25 Inter, sans-serif;
+      }
+
+      .parent-activity span {
+        display: block;
+        color: var(--muted);
+        font: 500 11px/1.45 Inter, sans-serif;
+      }
+
+      .parent-summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: auto;
+      }
+
+      .parent-summary-card {
+        padding: 12px;
+        border-radius: 18px;
+        background: rgba(108, 99, 255, 0.06);
+      }
+
+      .parent-summary-card span {
+        display: block;
+        color: var(--muted);
+        font: 600 11px/1.2 Inter, sans-serif;
+        margin-bottom: 6px;
+      }
+
+      .parent-summary-card strong {
+        color: var(--ink);
+        font: 800 18px/1 Inter, sans-serif;
+      }
+
+      .parent-summary-card--accent {
+        background: rgba(67, 210, 168, 0.14);
       }
 
       .base {
+        width: 88%;
+        height: 78px;
+        margin: -4px auto 0;
+        border: 3px solid #26284d;
+        border-radius: 0 0 18px 18px;
+        background: linear-gradient(135deg, #6d65ff, #43d2a8);
+        position: relative;
+      }
+
+      .base::before {
+        content: "";
         position: absolute;
-        left: 8%;
-        right: 8%;
-        bottom: 0;
-        height: 70px;
-        border-radius: 20px;
-        background: linear-gradient(135deg, #31d67a, #21b95f);
-        box-shadow: 0 18px 40px rgba(33, 185, 95, 0.28);
+        left: 50%;
+        top: 18px;
+        width: 220px;
+        height: 28px;
+        transform: translateX(-50%);
+        border-radius: 0 0 12px 12px;
+        border: 3px solid #26284d;
+        background: rgba(255, 255, 255, 0.18);
       }
 
       .float {
@@ -617,7 +900,7 @@
         }
 
         .visual {
-          min-height: 420px;
+          min-height: 460px;
         }
       }
 
@@ -654,7 +937,206 @@
         }
 
         .visual {
-          min-height: 340px;
+          min-height: 280px;
+        }
+
+        .laptop {
+          right: 0;
+          top: 20px;
+          width: 100%;
+        }
+
+        .laptop-screen {
+          height: 210px;
+        }
+
+        .laptop-sidebar {
+          width: 68px;
+          padding-top: 14px;
+          gap: 10px;
+        }
+
+        .parent-brand {
+          width: 34px;
+          height: 34px;
+          border-radius: 12px;
+        }
+
+        .parent-brand-mark {
+          width: 12px;
+          height: 12px;
+          border-radius: 5px;
+        }
+
+        .parent-side-dot {
+          width: 8px;
+          height: 8px;
+        }
+
+        .parent-side-dot--active {
+          width: 12px;
+          height: 12px;
+        }
+
+        .parent-side-user {
+          width: 30px;
+          height: 30px;
+          border-radius: 12px;
+          font-size: 12px;
+        }
+
+        .parent-shell {
+          left: 68px;
+          padding: 12px;
+        }
+
+        .parent-topbar {
+          margin-bottom: 10px;
+          gap: 10px;
+        }
+
+        .parent-heading {
+          font-size: 14px;
+        }
+
+        .parent-eyebrow {
+          font-size: 9px;
+        }
+
+        .parent-topbar-badge {
+          padding: 7px 8px;
+          font-size: 9px;
+          border-radius: 10px;
+        }
+
+        .parent-tabs {
+          gap: 6px;
+          margin-bottom: 10px;
+        }
+
+        .parent-tab {
+          padding: 6px 8px;
+          font-size: 8px;
+        }
+
+        .parent-grid {
+          grid-template-columns: 1fr 0.92fr;
+          gap: 8px;
+        }
+
+        .parent-panel {
+          min-height: 116px;
+          padding: 8px;
+          border-radius: 16px;
+        }
+
+        .parent-card {
+          padding: 8px;
+          border-radius: 14px;
+        }
+
+        .parent-card-head {
+          gap: 7px;
+          margin-bottom: 7px;
+        }
+
+        .parent-avatar {
+          width: 24px;
+          height: 24px;
+          border-radius: 9px;
+          font-size: 10px;
+        }
+
+        .parent-name {
+          font-size: 10px;
+        }
+
+        .parent-meta {
+          margin-top: 3px;
+          gap: 4px;
+          font-size: 7px;
+        }
+
+        .parent-status {
+          width: 5px;
+          height: 5px;
+        }
+
+        .parent-stats {
+          margin-bottom: 7px;
+          gap: 5px;
+        }
+
+        .parent-stats span,
+        .parent-chip {
+          padding: 5px 6px;
+          border-radius: 8px;
+          font-size: 7px;
+        }
+
+        .parent-actions {
+          gap: 5px;
+        }
+
+        .parent-icon {
+          width: 18px;
+          height: 18px;
+          border-radius: 7px;
+        }
+
+        .parent-panel-title {
+          margin-bottom: 8px;
+          font-size: 10px;
+        }
+
+        .parent-activity {
+          gap: 6px;
+          padding: 7px;
+          border-radius: 11px;
+        }
+
+        .parent-activity-icon {
+          width: 18px;
+          height: 18px;
+          border-radius: 7px;
+          font-size: 9px;
+        }
+
+        .parent-activity strong {
+          margin-bottom: 2px;
+          font-size: 8px;
+        }
+
+        .parent-activity span {
+          font-size: 7px;
+        }
+
+        .parent-summary {
+          gap: 6px;
+        }
+
+        .parent-summary-card {
+          padding: 7px;
+          border-radius: 11px;
+        }
+
+        .parent-summary-card span {
+          margin-bottom: 4px;
+          font-size: 7px;
+        }
+
+        .parent-summary-card strong {
+          font-size: 11px;
+        }
+
+        .base {
+          height: 54px;
+        }
+
+        .base::before {
+          width: 132px;
+          height: 18px;
+          top: 12px;
         }
 
         .screen {
@@ -693,8 +1175,8 @@
       <section class="hero">
         <div>
           <div class="kicker">Download</div>
-          <h1>Pulse downloaden</h1>
-          <p class="intro">Chat en bel veilig met Pulse op al je apparaten.</p>
+          <h1>Download Pulse</h1>
+          <p class="intro">Veilig chatten, bellen en video-bellen met Pulse op al je apparaten.</p>
           <p class="legal">
             Door Pulse te gebruiken, ga je akkoord met ons
             <a href="/privacybeleid">Privacybeleid</a> en onze privacy-first uitgangspunten.
@@ -712,14 +1194,106 @@
         </div>
 
         <div class="visual" aria-hidden="true">
-          <div class="screen">
-            <div class="sidebar"></div>
-            <div class="window"></div>
-            <div class="bubble one"></div>
-            <div class="bubble two"></div>
-            <div class="bar"></div>
+          <div class="laptop">
+            <div class="laptop-screen">
+              <div class="laptop-sidebar">
+                <div class="parent-brand">
+                  <span class="parent-brand-mark"></span>
+                </div>
+                <span class="parent-side-dot parent-side-dot--active"></span>
+                <span class="parent-side-dot"></span>
+                <span class="parent-side-dot"></span>
+                <div class="parent-side-user">Y</div>
+              </div>
+
+              <div class="parent-shell">
+                <div class="parent-topbar">
+                  <div>
+                    <div class="parent-eyebrow">Ouderaccount</div>
+                    <div class="parent-heading">Ouderportaal</div>
+                  </div>
+                  <div class="parent-topbar-badge">3 updates</div>
+                </div>
+
+                <div class="parent-tabs">
+                  <span class="parent-tab parent-tab--active">Mijn kinderen</span>
+                  <span class="parent-tab">Activiteiten</span>
+                  <span class="parent-tab">Instellingen</span>
+                </div>
+
+                <div class="parent-grid">
+                  <div class="parent-panel parent-panel--children">
+                    <div class="parent-card">
+                      <div class="parent-card-head">
+                        <div class="parent-avatar">T</div>
+                        <div>
+                          <div class="parent-name">Tim</div>
+                          <div class="parent-meta"><span class="parent-status"></span> Online · 2 min geleden</div>
+                        </div>
+                      </div>
+                      <div class="parent-stats">
+                        <span>5 contacten</span>
+                        <span>8 chats</span>
+                      </div>
+                      <div class="parent-actions">
+                        <span class="parent-chip">Pauze</span>
+                        <span class="parent-icon"></span>
+                        <span class="parent-icon"></span>
+                      </div>
+                    </div>
+
+                    <div class="parent-card parent-card--soft">
+                      <div class="parent-card-head">
+                        <div class="parent-avatar parent-avatar--soft">M</div>
+                        <div>
+                          <div class="parent-name">Mila</div>
+                          <div class="parent-meta"><span class="parent-status parent-status--muted"></span> Offline · 1 uur geleden</div>
+                        </div>
+                      </div>
+                      <div class="parent-stats">
+                        <span>3 contacten</span>
+                        <span>4 chats</span>
+                      </div>
+                      <div class="parent-actions">
+                        <span class="parent-chip">Toezicht</span>
+                        <span class="parent-icon"></span>
+                        <span class="parent-icon"></span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="parent-panel parent-panel--activity">
+                    <div class="parent-panel-title">Recente activiteiten</div>
+                    <div class="parent-activity">
+                      <span class="parent-activity-icon">+</span>
+                      <div>
+                        <strong>Nieuw contactverzoek</strong>
+                        <span>Tim wil Sam toevoegen</span>
+                      </div>
+                    </div>
+                    <div class="parent-activity">
+                      <span class="parent-activity-icon parent-activity-icon--soft">✓</span>
+                      <div>
+                        <strong>Toezicht actief</strong>
+                        <span>Mila gebruikt een goedgekeurde lijst</span>
+                      </div>
+                    </div>
+                    <div class="parent-summary">
+                      <div class="parent-summary-card">
+                        <span>Kinderen online</span>
+                        <strong>1 van 2</strong>
+                      </div>
+                      <div class="parent-summary-card parent-summary-card--accent">
+                        <span>Nieuwe meldingen</span>
+                        <strong>3</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="base"></div>
           </div>
-          <div class="base"></div>
           <div class="float star"></div>
           <div class="float mic"></div>
           <div class="float paper"></div>

@@ -4368,24 +4368,22 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   margin-top: 28px;
 }
 .hp-download-arrow {
-  width: 54px;
+  min-width: 54px;
   height: 54px;
   border-radius: 999px;
-  border: 1px solid rgba(108,99,255,0.18);
-  background: rgba(255,255,255,0.92);
-  color: #574db8;
+  border: 1px solid #e6e3f4;
+  background: #fff;
+  color: #2f3552;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 14px 34px rgba(108,99,255,0.10);
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, color 0.2s, background 0.2s;
+  transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
 }
 .hp-download-arrow:hover:not(:disabled) {
-  transform: translateY(-2px);
-  border-color: rgba(108,99,255,0.28);
-  background: #fff;
-  box-shadow: 0 18px 40px rgba(108,99,255,0.16);
+  border-color: rgba(124,58,237,0.32);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(124,58,237,0.08);
 }
 .hp-download-arrow:focus-visible {
   outline: 2px solid rgba(108,99,255,0.26);
@@ -4423,7 +4421,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   padding: 24px;
   border-radius: 28px;
   border: 1px solid rgba(108,99,255,0.10);
-  background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,245,255,0.96) 100%);
+  background: transparent;
   box-shadow: 0 24px 60px rgba(108,99,255,0.08), 0 1px 0 rgba(255,255,255,0.9) inset;
   transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
 }

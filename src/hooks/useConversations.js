@@ -48,10 +48,47 @@ export default function useConversations({
   msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
   serviceTransportReady = false,
 }) {
-  const authFetch = useCallback(async (url, options = {}) => {
-    const token = await user.getIdToken();
-    return fetch(url, { ...options, headers: { ...(options.headers || {}), 'Authorization': `Bearer ${token}` } });
+  const authFetch = useCallback(async (url, options = {}, { forceRefresh = false } = {}) => {
+    const token = await user.getIdToken(forceRefresh);
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!forceRefresh && (response.status === 401 || response.status === 403)) {
+      return authFetch(url, options, { forceRefresh: true });
+    }
+
+    return response;
   }, [user]);
+
+  const readJsonResponse = useCallback(async (res, fallbackError = 'request_failed') => {
+    const raw = await res.text();
+    let data = null;
+
+    if (raw) {
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        const error = new Error(fallbackError);
+        error.status = res.status;
+        error.responseText = raw;
+        throw error;
+      }
+    }
+
+    if (!res.ok) {
+      const error = new Error(data?.error || fallbackError);
+      error.status = res.status;
+      error.payload = data;
+      throw error;
+    }
+
+    return data;
+  }, []);
 
   const pendingTempIds = useRef(new Set());
   const sessionConversationStateRef = useRef(readSessionConversations(user.uid));
@@ -293,7 +330,7 @@ export default function useConversations({
   const loadConversations = useCallback(async () => {
     try {
       const res  = await authFetch(`${BACKEND_URL}/api/conversations/${user.uid}`);
-      const data = await res.json();
+      const data = await readJsonResponse(res, 'conversations_load_failed');
       if (Array.isArray(data)) {
         const stored = (() => { try { return JSON.parse(localStorage.getItem(`pulse_labels_${user.uid}`) || '{}'); } catch { return {}; } })();
         let updated = false;
@@ -313,9 +350,12 @@ export default function useConversations({
         data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
         sock.emit('users:online:request');
       }
-    } catch { showErrToast('Gesprekken laden mislukt'); }
+    } catch (error) {
+      console.warn('[Pulse] Gesprekken laden mislukt:', error?.status || 'unknown_status', error?.message || error);
+      showErrToast('Gesprekken laden mislukt');
+    }
     finally { setLoadingConvs(false); }
-  }, [applySessionConversationSummaries, authFetch, setConvLabels, showErrToast, user.uid]);
+  }, [applySessionConversationSummaries, authFetch, readJsonResponse, setConvLabels, showErrToast, user.uid]);
 
   // ── Gesprek openen ────────────────────────────────────────────────────────
   async function openConversation(conv) {

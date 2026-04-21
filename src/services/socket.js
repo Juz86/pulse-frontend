@@ -7,9 +7,9 @@ import {
   isPulseWebBrowser,
   PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE,
 } from '../lib/platform/runtime';
+import { resolveBackendUrl } from '../lib/backendUrl';
 
-// ─── Pas dit aan naar jouw SiteGround domein / IP ───────────────────────────
-export const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001';
+export const BACKEND_URL = resolveBackendUrl();
 
 // ICE servers worden opgehaald van de backend (credentials nooit in de bundle)
 let _iceServers = null;

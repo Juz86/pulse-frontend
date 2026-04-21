@@ -6029,7 +6029,6 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .fp-call-btn--active { background: #7c3aed; }
 
 /* Feature grid */
-.fp-grid-section { }
 .fp-grid {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
 }

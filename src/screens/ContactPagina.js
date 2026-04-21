@@ -4,6 +4,7 @@ import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
 import useMarketingAuth from '../hooks/useMarketingAuth';
 import { Mail, Shield, Check, Send, Message, Phone, Video, Users, Login, PhoneIcon } from '../components/Icons';
+import { resolveBackendUrl } from '../lib/backendUrl';
 
 function useFadeIn() {
   const ref = useRef(null);
@@ -199,7 +200,7 @@ function ContactForm() {
     setLoading(true);
     try {
       const res = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3001'}/api/contact`,
+        `${resolveBackendUrl()}/api/contact`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

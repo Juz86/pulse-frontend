@@ -8,12 +8,20 @@ const targetConfig = {
     projectName: 'pulse-landing',
     domain: 'https://pulse-messenger.com',
     label: 'landing',
+    env: {
+      REACT_APP_BACKEND_URL: 'https://api.pulse-messenger.com',
+      REACT_APP_WEB_APP_URL: 'https://web.pulse-messenger.com',
+    },
   },
   webapp: {
     verifyScript: 'verify:webapp',
     projectName: 'pulse-frontend',
     domain: 'https://web.pulse-messenger.com',
     label: 'webapp',
+    env: {
+      REACT_APP_BACKEND_URL: 'https://api.pulse-messenger.com',
+      REACT_APP_WEB_APP_URL: 'https://web.pulse-messenger.com',
+    },
   },
 };
 
@@ -28,6 +36,10 @@ function run(command, args) {
   const result = spawnSync(command, args, {
     stdio: 'inherit',
     shell: false,
+    env: {
+      ...process.env,
+      ...config.env,
+    },
   });
 
   if (result.status !== 0) {

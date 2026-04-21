@@ -18,7 +18,7 @@ function HeroVideo() {
           preload="metadata"
           poster="/screenshots/pulse1.png"
         >
-          <source src="/videos/pulse-home-audio.mp4" type="video/mp4" />
+          <source src="/videos/Pulse Messenger v4.mp4" type="video/mp4" />
         </video>
       </div>
     </div>

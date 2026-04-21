@@ -27,15 +27,6 @@ export default function MarketingFooter() {
               <li><a href="/ouderlijk-toezicht#dashboard">Ouderlijk toezicht</a></li>
             </ul>
           </nav>
-          <nav className="hp-footer-col" aria-labelledby="footer-download-title">
-            <h4 id="footer-download-title">Download</h4>
-            <ul className="hp-footer-list">
-              <li><button type="button" className="hp-footer-link-btn">Android</button></li>
-              <li><button type="button" className="hp-footer-link-btn">iPhone/iPad</button></li>
-              <li><button type="button" className="hp-footer-link-btn">Mac/Windows</button></li>
-              <li><button type="button" className="hp-footer-link-btn">Pulse Web</button></li>
-            </ul>
-          </nav>
           <nav className="hp-footer-col" aria-labelledby="footer-about-title">
             <h4 id="footer-about-title">Over</h4>
             <ul className="hp-footer-list">
@@ -43,6 +34,15 @@ export default function MarketingFooter() {
               <li><a href="/privacy-first">Privacy-First</a></li>
               <li><a href="/hoe-werkt-het#hoe-werkt-pulse">Hoe werkt het</a></li>
               <li><a href="/contact">Contact</a></li>
+            </ul>
+          </nav>
+          <nav className="hp-footer-col" aria-labelledby="footer-download-title">
+            <h4 id="footer-download-title">Download</h4>
+            <ul className="hp-footer-list">
+              <li><button type="button" className="hp-footer-link-btn">Android</button></li>
+              <li><button type="button" className="hp-footer-link-btn">iPhone/iPad</button></li>
+              <li><button type="button" className="hp-footer-link-btn">Mac/Windows</button></li>
+              <li><button type="button" className="hp-footer-link-btn">Pulse Web</button></li>
             </ul>
           </nav>
         </div>

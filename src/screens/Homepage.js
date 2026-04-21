@@ -4,12 +4,12 @@ import {
   Shield,
   PhoneIcon,
   Login,
-  LayoutTemplate,
-  Download,
   Reply,
   Forward,
-  Video,
-  Message,
+  BrowserIcon,
+  AppleIcon,
+  AndroidIcon,
+  WindowsIcon,
 } from '../components/Icons';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
@@ -23,7 +23,7 @@ const downloadOptionCards = [
     title: 'Pulse Web',
     description: 'Wordt je apparaat niet ondersteund? Gebruik Pulse in je browser.',
     href: '#',
-    icon: LayoutTemplate,
+    icon: BrowserIcon,
     iconClassName: 'hp-download-card-icon--browser',
   },
   {
@@ -31,7 +31,7 @@ const downloadOptionCards = [
     title: 'iPhone/iPad',
     description: 'Profiteer van chatten, bellen en videobellen met de iPhone- en iPad-app.',
     href: '#',
-    icon: PhoneIcon,
+    icon: AppleIcon,
     iconClassName: 'hp-download-card-icon--ios',
   },
   {
@@ -39,7 +39,7 @@ const downloadOptionCards = [
     title: 'Mobiel/tablet',
     description: 'Profiteer van chatten, bellen en videobellen met de Android-app.',
     href: '#',
-    icon: Video,
+    icon: AndroidIcon,
     iconClassName: 'hp-download-card-icon--android',
   },
   {
@@ -47,7 +47,7 @@ const downloadOptionCards = [
     title: 'Windows',
     description: 'Profiteer van chatten, bellen en videobellen met de Windows-app.',
     href: '#',
-    icon: Download,
+    icon: WindowsIcon,
     iconClassName: 'hp-download-card-icon--desktop',
   },
   {
@@ -55,7 +55,7 @@ const downloadOptionCards = [
     title: 'Mac',
     description: 'Profiteer van chatten, bellen en videobellen met de Mac-app.',
     href: '#',
-    icon: Message,
+    icon: AppleIcon,
     iconClassName: 'hp-download-card-icon--mac',
   },
 ];

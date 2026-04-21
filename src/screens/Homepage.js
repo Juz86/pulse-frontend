@@ -1,11 +1,64 @@
 // src/screens/Homepage.js
-import { useState, useEffect } from 'react';
-import { Shield, PhoneIcon, Login } from '../components/Icons';
+import { useState, useEffect, useRef } from 'react';
+import {
+  Shield,
+  PhoneIcon,
+  Login,
+  LayoutTemplate,
+  Download,
+  Reply,
+  Forward,
+  Video,
+  Message,
+} from '../components/Icons';
 import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
 import { Users } from '../components/Icons';
 import useMarketingAuth from '../hooks/useMarketingAuth';
+
+const downloadOptionCards = [
+  {
+    category: 'Browser',
+    title: 'Pulse Web',
+    description: 'Wordt je apparaat niet ondersteund? Gebruik Pulse in je browser.',
+    href: '#',
+    icon: LayoutTemplate,
+    iconClassName: 'hp-download-card-icon--browser',
+  },
+  {
+    category: 'Mobiel',
+    title: 'Mobiel/iPad',
+    description: 'Profiteer van chatten, bellen en videobellen met de iPhone-app.',
+    href: '#',
+    icon: PhoneIcon,
+    iconClassName: 'hp-download-card-icon--ios',
+  },
+  {
+    category: 'Mobiel',
+    title: 'Mobiel/tablet',
+    description: 'Profiteer van chatten, bellen en videobellen met de Android-app.',
+    href: '#',
+    icon: Video,
+    iconClassName: 'hp-download-card-icon--android',
+  },
+  {
+    category: 'Desktop',
+    title: 'Desktop',
+    description: 'Profiteer van chatten, bellen en videobellen met de Windows-app.',
+    href: '#',
+    icon: Download,
+    iconClassName: 'hp-download-card-icon--desktop',
+  },
+  {
+    category: 'Desktop',
+    title: 'Mac',
+    description: 'Profiteer van chatten, bellen en videobellen met de Mac-app.',
+    href: '#',
+    icon: Message,
+    iconClassName: 'hp-download-card-icon--mac',
+  },
+];
 
 function HeroVideo() {
   return (
@@ -22,6 +75,103 @@ function HeroVideo() {
         </video>
       </div>
     </div>
+  );
+}
+
+function DownloadOptionsSection() {
+  const trackRef = useRef(null);
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) {
+      return undefined;
+    }
+
+    const updateScrollState = () => {
+      const maxScrollLeft = track.scrollWidth - track.clientWidth;
+      setCanScrollPrev(track.scrollLeft > 8);
+      setCanScrollNext(maxScrollLeft - track.scrollLeft > 8);
+    };
+
+    updateScrollState();
+    track.addEventListener('scroll', updateScrollState, { passive: true });
+    window.addEventListener('resize', updateScrollState);
+
+    return () => {
+      track.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, []);
+
+  const scrollCards = (direction) => {
+    const track = trackRef.current;
+    if (!track) {
+      return;
+    }
+
+    const firstCard = track.querySelector('.hp-download-card');
+    const cardWidth = firstCard ? firstCard.getBoundingClientRect().width : 320;
+    const gap = 20;
+    track.scrollBy({
+      left: direction * (cardWidth + gap),
+      behavior: 'smooth',
+    });
+  };
+
+  return (
+    <section className="hp-download-options" aria-labelledby="homepage-download-options-title">
+      <div className="hp-section-inner hp-download-options-inner">
+        <div className="hp-download-options-copy">
+          <div className="hp-feature-tag">Downloadopties</div>
+          <h2 id="homepage-download-options-title">Andere downloadopties</h2>
+          <p>Blijf in contact met vrienden en familie via al je apparaten.</p>
+          <div className="hp-download-options-controls" aria-label="Scroll door downloadopties">
+            <button
+              type="button"
+              className="hp-download-arrow"
+              onClick={() => scrollCards(-1)}
+              disabled={!canScrollPrev}
+              aria-label="Scroll naar links"
+            >
+              <Reply size={22} />
+            </button>
+            <button
+              type="button"
+              className="hp-download-arrow"
+              onClick={() => scrollCards(1)}
+              disabled={!canScrollNext}
+              aria-label="Scroll naar rechts"
+            >
+              <Forward size={22} />
+            </button>
+          </div>
+        </div>
+
+        <div className="hp-download-options-rail">
+          <div className="hp-download-options-track" ref={trackRef}>
+            {downloadOptionCards.map((card) => {
+              const Icon = card.icon;
+
+              return (
+                <article className="hp-download-card" key={card.title}>
+                  <div className={`hp-download-card-icon ${card.iconClassName}`}>
+                    <Icon size={22} />
+                  </div>
+                  <span className="hp-download-card-category">{card.category}</span>
+                  <h3>{card.title}</h3>
+                  <p>{card.description}</p>
+                  <a href={card.href} className="hp-download-card-link">
+                    Downloaden <span aria-hidden="true">→</span>
+                  </a>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -181,6 +331,8 @@ export default function Homepage({ onParentClick }) {
 
         </div>
       </section>
+
+      <DownloadOptionsSection />
 
 
       {/* ── CTA ── */}

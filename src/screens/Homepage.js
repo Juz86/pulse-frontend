@@ -21,39 +21,40 @@ const downloadOptionCards = [
   {
     title: 'Pulse Web',
     description: 'Wordt je apparaat niet ondersteund? Gebruik Pulse in je browser.',
-    href: '#',
+    href: 'https://web.pulse-messenger.com/',
+    ctaLabel: 'Aanmelden',
     icon: BrowserIcon,
     iconClassName: 'hp-download-card-icon--browser',
   },
   {
-    category: 'iOS',
     title: 'iPhone/iPad',
     description: 'Profiteer van chatten, bellen en videobellen met de iPhone- en iPad-app.',
     href: '#',
+    ctaLabel: 'Downloaden',
     icon: AppleIcon,
     iconClassName: 'hp-download-card-icon--ios',
   },
   {
-    category: 'Android',
     title: 'Mobiel/tablet',
     description: 'Profiteer van chatten, bellen en videobellen met de Android-app.',
     href: '#',
+    ctaLabel: 'Downloaden',
     icon: AndroidIcon,
     iconClassName: 'hp-download-card-icon--android',
   },
   {
-    category: 'Desktop',
     title: 'Windows',
     description: 'Profiteer van chatten, bellen en videobellen met de Windows-app.',
     href: '#',
+    ctaLabel: 'Downloaden',
     icon: WindowsIcon,
     iconClassName: 'hp-download-card-icon--desktop',
   },
   {
-    category: 'Desktop',
     title: 'Mac',
     description: 'Profiteer van chatten, bellen en videobellen met de Mac-app.',
     href: '#',
+    ctaLabel: 'Downloaden',
     icon: AppleIcon,
     iconClassName: 'hp-download-card-icon--mac',
   },
@@ -158,11 +159,15 @@ function DownloadOptionsSection() {
                   <div className={`hp-download-card-icon ${card.iconClassName}`}>
                     <Icon size={22} />
                   </div>
-                  <span className="hp-download-card-category">{card.category}</span>
                   <h3>{card.title}</h3>
                   <p>{card.description}</p>
-                  <a href={card.href} className="hp-download-card-link">
-                    Downloaden <span aria-hidden="true">→</span>
+                  <a
+                    href={card.href}
+                    className="hp-download-card-link"
+                    target={card.href.startsWith('http') ? '_blank' : undefined}
+                    rel={card.href.startsWith('http') ? 'noreferrer' : undefined}
+                  >
+                    {card.ctaLabel} <span aria-hidden="true">→</span>
                   </a>
                 </article>
               );

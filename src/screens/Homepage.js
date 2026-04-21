@@ -19,7 +19,6 @@ import useMarketingAuth from '../hooks/useMarketingAuth';
 
 const downloadOptionCards = [
   {
-    category: 'Browser',
     title: 'Pulse Web',
     description: 'Wordt je apparaat niet ondersteund? Gebruik Pulse in je browser.',
     href: '#',

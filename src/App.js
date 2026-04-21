@@ -20,12 +20,6 @@ import {
   shouldBootstrapE2EEDevice,
 } from './lib/e2ee/config';
 import { clearPulseUserStorage, readStoredHistoryRules, scheduleIdleTask } from './utils';
-import {
-  isPulseWebBrowser,
-  PULSE_WEB_CALLS_UNAVAILABLE_HINT,
-  PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE,
-  PULSE_WEB_CALLS_UNAVAILABLE_TITLE,
-} from './lib/platform/runtime';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const ParentDashboard    = lazy(() => import('./screens/ParentDashboard'));
@@ -105,18 +99,6 @@ function MarketingRoute({ Page, pageProps = {} }) {
         />
       )}
     </Suspense>
-  );
-}
-
-function BrowserCallBlockedScreen() {
-  return (
-    <div className="splash">
-      <div style={{ maxWidth: 420, margin: '0 20px', padding: '28px 24px', borderRadius: 24, background: 'var(--surface)', border: '1px solid var(--border)', textAlign: 'center', boxShadow: '0 20px 48px rgba(0,0,0,.28)' }}>
-        <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 10 }}>{PULSE_WEB_CALLS_UNAVAILABLE_TITLE}</div>
-        <p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.65, marginBottom: 10 }}>{PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE}</p>
-        <p style={{ fontSize: 13, color: 'var(--text3)', lineHeight: 1.6 }}>{PULSE_WEB_CALLS_UNAVAILABLE_HINT}</p>
-      </div>
-    </div>
   );
 }
 
@@ -211,7 +193,6 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
 
 export default function App() {
   const pathname = window.location.pathname;
-  const pulseWebBrowser = isPulseWebBrowser();
 
   // Wachtwoord reset via Firebase link
   const urlParams = new URLSearchParams(window.location.search);
@@ -219,10 +200,6 @@ export default function App() {
   const mode      = urlParams.get('mode');
   if (mode === 'resetPassword' && oobCode) {
     return <Suspense fallback={null}><ResetPasswordScreen oobCode={oobCode} /></Suspense>;
-  }
-
-  if (pulseWebBrowser && /^\/(call|calls|videobellen)(\/|$)/.test(pathname)) {
-    return <BrowserCallBlockedScreen />;
   }
 
   // /functies route
@@ -283,9 +260,7 @@ function MainApp() {
   const [parentToast,         setParentToast]         = useState(null);
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
-  const [browserCallNotice, setBrowserCallNotice] = useState('');
   const toastTimerRef          = useRef(null);
-  const browserCallNoticeTimerRef = useRef(null);
   const fcmVisibilityRef       = useRef(null);
   const onlineVisibilityRef    = useRef(null);
   const lastSignedInUidRef     = useRef(null);
@@ -580,14 +555,6 @@ function MainApp() {
           socket.off('call:offer');
           socket.off('call:ended');
           const onIncomingCall = (data = {}) => {
-            if (isPulseWebBrowser()) {
-              const fromUid = data.from || data.fromUid || null;
-              if (fromUid) socket.emit('call:decline', { to: fromUid });
-              setBrowserCallNotice(PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE);
-              clearTimeout(browserCallNoticeTimerRef.current);
-              browserCallNoticeTimerRef.current = setTimeout(() => setBrowserCallNotice(''), 4500);
-              return;
-            }
             setIncomingCall({
               ...data,
               from: data.from || data.fromUid || null,
@@ -651,7 +618,6 @@ function MainApp() {
       clearTimeout(loadingTimeout);
       if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }
       if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
-      clearTimeout(browserCallNoticeTimerRef.current);
     };
   }, []);
 
@@ -724,11 +690,6 @@ function MainApp() {
             )}
           </>
       }
-      {browserCallNotice && (
-        <div className="mention-toast" role="status" aria-live="polite" style={{ background: 'rgba(80,80,100,0.94)' }}>
-          <span>{browserCallNotice}</span>
-        </div>
-      )}
       {incomingCall && (
         <CallOverlay
           incoming={incomingCall}

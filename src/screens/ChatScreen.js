@@ -14,12 +14,11 @@ import useCalling from '../hooks/useCalling';
 import useProfile from '../hooks/useProfile';
 import useContacts from '../hooks/useContacts';
 import { copyTextToClipboard } from '../utils';
-import { isPulseWebBrowser } from '../lib/platform/runtime';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
 export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
-  const callsAvailable = !isPulseWebBrowser();
+  const callsAvailable = true;
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
   const [unreadCounts,   setUnreadCounts]   = useState({});

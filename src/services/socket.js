@@ -3,10 +3,6 @@
 
 import { io } from 'socket.io-client';
 import SimplePeer from 'simple-peer';
-import {
-  isPulseWebBrowser,
-  PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE,
-} from '../lib/platform/runtime';
 import { RTC_CONFIG_URL, SIGNALING_URL } from '../config/appConfig';
 import { resolveBackendUrl } from '../lib/backendUrl';
 
@@ -130,10 +126,6 @@ export function disconnectSocket() {
 
 // ── WebRTC Bellen ─────────────────────────────────────────────────────────────
 export async function startCall({ toUid, fromUid, callerName, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest, onConnectionFallback }) {
-  if (isPulseWebBrowser()) {
-    onEnd?.('web_not_supported');
-    throw new Error(PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE);
-  }
   let stream;
   try {
     stream = await requestCallMedia({ isVideo });
@@ -230,10 +222,6 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
 }
 
 export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest, onConnectionFallback }) {
-  if (isPulseWebBrowser()) {
-    onEnd?.('web_not_supported');
-    throw new Error(PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE);
-  }
   let stream;
   try {
     stream = await requestCallMedia({ isVideo });
@@ -309,7 +297,7 @@ export function declineCall(fromUid) {
 
 // ── Video upgraden tijdens actief gesprek ─────────────────────────────────────
 export async function acceptVideoUpgrade() {
-  if (!peer || isPulseWebBrowser()) return null;
+  if (!peer) return null;
   try {
     const vs = await navigator.mediaDevices.getUserMedia({
       video: buildPreferredVideoConstraints(),
@@ -324,7 +312,7 @@ export async function acceptVideoUpgrade() {
 }
 
 export async function upgradeToVideo() {
-  if (!peer || isPulseWebBrowser()) return null;
+  if (!peer) return null;
   try {
     const videoStream = await navigator.mediaDevices.getUserMedia({
       video: buildPreferredVideoConstraints(),

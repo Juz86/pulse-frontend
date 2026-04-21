@@ -524,7 +524,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 
 .web-auth-form-card .form-group {
-  margin-bottom: 30px;
+  margin-bottom: 10px;
 }
 
 .web-auth-form-card .form-label {

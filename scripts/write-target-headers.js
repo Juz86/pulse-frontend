@@ -4,6 +4,18 @@ const path = require('path');
 const target = process.env.REACT_APP_SITE_TARGET === 'landing' ? 'landing' : 'webapp';
 const buildDir = path.join(process.cwd(), 'build');
 const headersPath = path.join(buildDir, '_headers');
+const indexHtmlPath = path.join(buildDir, 'index.html');
+const robotsPath = path.join(buildDir, 'robots.txt');
+const sitemapPath = path.join(buildDir, 'sitemap.xml');
+
+const MARKETING_URL = (process.env.REACT_APP_MARKETING_URL || 'https://pulse-messenger.com').replace(/\/+$/, '');
+const APP_URL = (
+  process.env.REACT_APP_APP_URL ||
+  process.env.REACT_APP_WEB_APP_URL ||
+  'https://web.pulse-messenger.com'
+).replace(/\/+$/, '');
+const canonicalBaseUrl = target === 'landing' ? MARKETING_URL : APP_URL;
+const logoUrl = `${canonicalBaseUrl}/logo512.png`;
 
 const commonHeaders = [
   'X-Frame-Options: DENY',
@@ -74,3 +86,52 @@ if (!fs.existsSync(buildDir)) {
 
 fs.writeFileSync(headersPath, headers);
 console.log(`Wrote ${target} security headers to build/_headers.`);
+
+function replaceAll(html, replacements) {
+  return replacements.reduce((nextHtml, [pattern, value]) => nextHtml.replace(pattern, value), html);
+}
+
+function writeTargetMetadata() {
+  if (!fs.existsSync(indexHtmlPath)) {
+    throw new Error(`Build index not found: ${indexHtmlPath}`);
+  }
+
+  const html = fs.readFileSync(indexHtmlPath, 'utf8');
+  const nextHtml = replaceAll(html, [
+    [/<link rel="canonical" href="[^"]*" \/>/, `<link rel="canonical" href="${canonicalBaseUrl}/" />`],
+    [/<meta property="og:url" content="[^"]*" \/>/, `<meta property="og:url" content="${canonicalBaseUrl}/" />`],
+    [/<meta property="og:image" content="[^"]*" \/>/, `<meta property="og:image" content="${logoUrl}" />`],
+    [/<meta name="twitter:image" content="[^"]*" \/>/, `<meta name="twitter:image" content="${logoUrl}" />`],
+    [/"url": "https:\/\/[^"]*"/, `"url": "${canonicalBaseUrl}/"`],
+    [/"logo": "https:\/\/[^"]*"/, `"logo": "${logoUrl}"`],
+  ]);
+
+  fs.writeFileSync(indexHtmlPath, nextHtml);
+  console.log(`Wrote ${target} metadata to build/index.html.`);
+}
+
+function writeTargetCrawlerFiles() {
+  if (target === 'landing') {
+    fs.writeFileSync(robotsPath, [
+      'User-agent: *',
+      'Allow: /',
+      'Disallow: /api/',
+      `Sitemap: ${MARKETING_URL}/sitemap.xml`,
+      '',
+    ].join('\n'));
+    return;
+  }
+
+  fs.writeFileSync(robotsPath, [
+    'User-agent: *',
+    'Disallow: /',
+    '',
+  ].join('\n'));
+
+  if (fs.existsSync(sitemapPath)) {
+    fs.rmSync(sitemapPath);
+  }
+}
+
+writeTargetMetadata();
+writeTargetCrawlerFiles();

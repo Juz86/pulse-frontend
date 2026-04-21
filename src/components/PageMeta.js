@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
+import { getCanonicalUrl } from '../config/appConfig';
 
 const DEFAULT_META = {
   title: 'Pulse — Veilig communiceren voor elk kind',
   description: 'De enige Nederlandse chat app voor kinderen zonder telefoonnummer. Veilig, afleidingsvrij en antipesten by design. Volledig onder ouderlijk toezicht.',
-  canonical: 'https://pulse-messenger.com/',
-  image: 'https://pulse-messenger.com/logo512.png',
+  canonical: getCanonicalUrl('/'),
+  image: getCanonicalUrl('/logo512.png'),
 };
 
 function resolveCanonical(url) {

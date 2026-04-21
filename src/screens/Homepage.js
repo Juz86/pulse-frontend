@@ -16,12 +16,13 @@ import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
 import { Users } from '../components/Icons';
 import useMarketingAuth from '../hooks/useMarketingAuth';
+import { APP_URL } from '../config/appConfig';
 
 const downloadOptionCards = [
   {
     title: 'Pulse Web',
     description: 'Wordt je apparaat niet ondersteund? Gebruik Pulse in je browser.',
-    href: 'https://web.pulse-messenger.com/',
+    href: `${APP_URL}/`,
     ctaLabel: 'Aanmelden',
     icon: BrowserIcon,
     iconClassName: 'hp-download-card-icon--browser',

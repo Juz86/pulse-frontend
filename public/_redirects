@@ -1,2 +1,4 @@
+/download /
+/download/ /
 /static/* /static/:splat 200
 /* /index.html 200

@@ -4403,6 +4403,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   gap: 20px;
   overflow-x: auto;
   padding: 6px 4px 10px;
+  background: transparent;
   scroll-snap-type: x mandatory;
   scroll-padding-left: 4px;
   scrollbar-width: none;

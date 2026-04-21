@@ -4342,12 +4342,12 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   display: grid;
   grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.4fr);
   gap: clamp(28px, 4vw, 48px);
-  align-items: start;
+  align-items: center;
+  justify-content: center;
 }
 .hp-download-options-copy {
-  position: sticky;
-  top: calc(var(--marketing-nav-height) + 24px);
-  align-self: start;
+  position: static;
+  align-self: center;
 }
 .hp-download-options-copy h2 {
   font-size: clamp(var(--text-h3), 3vw, var(--text-h2));
@@ -4397,6 +4397,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 .hp-download-options-rail {
   min-width: 0;
+  width: 100%;
 }
 .hp-download-options-track {
   display: flex;

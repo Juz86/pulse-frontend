@@ -4424,7 +4424,6 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   border-radius: 28px;
   border: 1px solid rgba(108,99,255,0.10);
   background: transparent;
-  box-shadow: 0 24px 60px rgba(108,99,255,0.08);
   transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
 }
 .hp-download-card:hover {

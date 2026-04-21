@@ -7,9 +7,11 @@ import {
   isPulseWebBrowser,
   PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE,
 } from '../lib/platform/runtime';
+import { RTC_CONFIG_URL, SIGNALING_URL } from '../config/appConfig';
 import { resolveBackendUrl } from '../lib/backendUrl';
 
 export const BACKEND_URL = resolveBackendUrl();
+export const SOCKET_URL = SIGNALING_URL || BACKEND_URL;
 
 // ICE servers worden opgehaald van de backend (credentials nooit in de bundle)
 let _iceServers = null;
@@ -27,7 +29,7 @@ async function getIceServers(authToken, onFallback) {
   const timeoutId = setTimeout(() => controller.abort(), TURN_REQUEST_TIMEOUT_MS);
   try {
     const token = authToken || socket?.auth?.token;
-    const res = await fetch(`${BACKEND_URL}/api/turn-credentials`, {
+    const res = await fetch(`${RTC_CONFIG_URL}/api/turn-credentials`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       signal: controller.signal,
     });
@@ -104,7 +106,7 @@ export function connectSocket(uid, token) {
     setTimeout(() => socket.emit('user:online'), 0);
     return socket;
   }
-  socket = io(BACKEND_URL, {
+  socket = io(SOCKET_URL, {
     auth: { token },
     transports: ['polling', 'websocket'],
     reconnection: true,

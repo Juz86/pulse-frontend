@@ -1,5 +1,10 @@
+import {
+  API_URL,
+  shouldUseLocalRuntimeFallback,
+} from '../config/appConfig';
+
 const LOCAL_BACKEND_URL = 'http://localhost:3001';
-const PRODUCTION_BACKEND_URL = 'https://api.pulse-messenger.com';
+const PRODUCTION_BACKEND_URL = API_URL;
 
 function isLocalHostname(hostname) {
   return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
@@ -16,7 +21,7 @@ function isLocalUrl(value) {
 export function resolveBackendUrl(explicitUrl = process.env.REACT_APP_BACKEND_URL) {
   const configuredUrl = explicitUrl?.trim();
   const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
-  const runningLocally = hostname ? isLocalHostname(hostname) : process.env.NODE_ENV !== 'production';
+  const runningLocally = shouldUseLocalRuntimeFallback(hostname);
 
   if (configuredUrl) {
     if (!runningLocally && isLocalUrl(configuredUrl)) {

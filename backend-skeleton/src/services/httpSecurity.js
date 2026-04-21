@@ -16,6 +16,7 @@ export function getAllowedOrigins() {
   return new Set([
     ...DEFAULT_ALLOWED_ORIGINS,
     ...parseOriginList(process.env.APP_URL),
+    ...parseOriginList(process.env.WEB_APP_URL),
     ...parseOriginList(process.env.CORS_ORIGINS),
   ]);
 }

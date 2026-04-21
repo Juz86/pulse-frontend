@@ -11,15 +11,24 @@ import { browserSessionPersistence, getAuth, setPersistence } from 'firebase/aut
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { APP_URL, MARKETING_URL } from './config/appConfig';
 
 const firebaseConfig = {
   apiKey:         "AIzaSyC91LqqIw8z8NH7e1ChCKD3zUo_VXQeyRY",
-  authDomain:        "pulse-messenger-3cb9d.firebaseapp.com",
+  authDomain:     "pulse-messenger-3cb9d.firebaseapp.com",
   projectId:         "pulse-messenger-3cb9d",
   storageBucket:     "pulse-messenger-3cb9d.firebasestorage.app",
   messagingSenderId: "764605255111",
   appId:             "1:764605255111:web:7cecff60d89c64f08e5de2",
 };
+
+if (typeof window !== 'undefined') {
+  const runtimeOrigin = window.location.origin;
+  const allowedOrigins = [APP_URL, MARKETING_URL].filter(Boolean);
+  if (!allowedOrigins.includes(runtimeOrigin)) {
+    console.warn(`[Pulse] Firebase runtime gestart op niet-standaard origin: ${runtimeOrigin}`);
+  }
+}
 
 const app      = initializeApp(firebaseConfig);
 export const auth      = getAuth(app);

@@ -4422,13 +4422,13 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
   border-radius: 28px;
   border: 1px solid rgba(108,99,255,0.10);
   background: transparent;
-  box-shadow: 0 24px 60px rgba(108,99,255,0.08), 0 1px 0 rgba(255,255,255,0.9) inset;
+  box-shadow: 0 24px 60px rgba(108,99,255,0.08);
   transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
 }
 .hp-download-card:hover {
   transform: translateY(-4px);
   border-color: rgba(108,99,255,0.18);
-  box-shadow: 0 30px 72px rgba(108,99,255,0.14), 0 1px 0 rgba(255,255,255,0.95) inset;
+  box-shadow: 0 30px 72px rgba(108,99,255,0.14);
 }
 .hp-download-card-icon {
   width: 52px;

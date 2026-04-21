@@ -4,8 +4,8 @@ import {
   Shield,
   PhoneIcon,
   Login,
-  Reply,
-  Forward,
+  ArrowLeft,
+  ArrowRight,
   BrowserIcon,
   AppleIcon,
   AndroidIcon,
@@ -135,7 +135,7 @@ function DownloadOptionsSection() {
               disabled={!canScrollPrev}
               aria-label="Scroll naar links"
             >
-              <Reply size={22} />
+              <ArrowLeft size={22} />
             </button>
             <button
               type="button"
@@ -144,7 +144,7 @@ function DownloadOptionsSection() {
               disabled={!canScrollNext}
               aria-label="Scroll naar rechts"
             >
-              <Forward size={22} />
+              <ArrowRight size={22} />
             </button>
           </div>
         </div>

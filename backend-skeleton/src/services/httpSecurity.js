@@ -73,6 +73,7 @@ export function isAllowedAppOrigin(origin) {
   try {
     const url = new URL(origin);
     if (['localhost', '127.0.0.1', '0.0.0.0'].includes(url.hostname)) return true;
+    if (getMarketingOrigins().has(url.origin)) return false;
     return getAppOrigins().has(url.origin);
   } catch {
     return false;

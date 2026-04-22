@@ -19,6 +19,7 @@ import {
   probeE2EEServiceReady,
   shouldBootstrapE2EEDevice,
 } from './lib/e2ee/config';
+import { importLegacyE2EEStateIfNeeded } from './lib/e2ee/originStorageMigration';
 import { clearPulseUserStorage, readStoredHistoryRules, scheduleIdleTask } from './utils';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
@@ -387,6 +388,7 @@ function MainApp() {
           setServiceTransportReady(ready);
           if (shouldBootstrapE2EEDevice) {
             try {
+              await importLegacyE2EEStateIfNeeded(firebaseUser.uid);
               await bootstrapDevice(firebaseUser);
             } catch (e) {
               console.warn('[Pulse] Device bootstrap mislukt:', e.message);

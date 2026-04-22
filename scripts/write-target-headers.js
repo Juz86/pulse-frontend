@@ -5,6 +5,7 @@ const target = process.env.REACT_APP_SITE_TARGET === 'landing' ? 'landing' : 'we
 const buildDir = path.join(process.cwd(), 'build');
 const headersPath = path.join(buildDir, '_headers');
 const indexHtmlPath = path.join(buildDir, 'index.html');
+const legacyBridgePath = path.join(buildDir, 'e2ee-storage-bridge.html');
 const robotsPath = path.join(buildDir, 'robots.txt');
 const sitemapPath = path.join(buildDir, 'sitemap.xml');
 
@@ -112,6 +113,13 @@ function writeTargetMetadata() {
 
   fs.writeFileSync(indexHtmlPath, nextHtml);
   console.log(`Wrote ${target} metadata to build/index.html.`);
+
+  if (fs.existsSync(legacyBridgePath)) {
+    const bridgeHtml = fs.readFileSync(legacyBridgePath, 'utf8')
+      .replace(/__PULSE_WEBAPP_ORIGIN__/g, APP_URL);
+    fs.writeFileSync(legacyBridgePath, bridgeHtml);
+    console.log(`Wrote webapp bridge origin to build/e2ee-storage-bridge.html.`);
+  }
 }
 
 function writeTargetCrawlerFiles() {

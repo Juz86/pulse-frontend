@@ -52,6 +52,8 @@ describe('utils safety helpers', () => {
     localStorage.setItem('pulse_draft_user-1_conv-1', 'concept');
     localStorage.setItem('pulse_starred_user-1', '[]');
     localStorage.setItem('pulse_nick_friend-1', 'Beste vriend');
+    localStorage.setItem('pulse_e2ee_identity_user-1', '{"deviceId":"device-1"}');
+    localStorage.setItem('pulse_e2ee_session_user-1_friend-1_device-1', '{"sessionData":"abc"}');
     localStorage.setItem('pulse_theme', 'light');
     sessionStorage.setItem('pulse_session_conversations_user-1', '{"conv-1":[]}');
 
@@ -62,6 +64,8 @@ describe('utils safety helpers', () => {
     expect(localStorage.getItem('pulse_draft_user-1_conv-1')).toBeNull();
     expect(localStorage.getItem('pulse_starred_user-1')).toBeNull();
     expect(localStorage.getItem('pulse_nick_friend-1')).toBeNull();
+    expect(localStorage.getItem('pulse_e2ee_identity_user-1')).toBe('{"deviceId":"device-1"}');
+    expect(localStorage.getItem('pulse_e2ee_session_user-1_friend-1_device-1')).toBe('{"sessionData":"abc"}');
     expect(localStorage.getItem('pulse_theme')).toBe('light');
     expect(sessionStorage.getItem('pulse_session_conversations_user-1')).toBeNull();
   });

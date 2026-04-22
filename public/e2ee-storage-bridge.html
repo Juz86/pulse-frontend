@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pulse E2EE Storage Bridge</title>
+  </head>
+  <body>
+    <script>
+      (function () {
+        var allowedOrigin = '__PULSE_WEBAPP_ORIGIN__';
+        var IDENTITY_PREFIX = 'pulse_e2ee_identity_';
+        var SESSION_PREFIX = 'pulse_e2ee_session_';
+        var WINDOW_NAME_PREFIX = 'pulse:e2ee-export:';
+
+        function readIdentity(uid) {
+          try {
+            var raw = window.localStorage.getItem(IDENTITY_PREFIX + uid);
+            return raw ? JSON.parse(raw) : null;
+          } catch (_error) {
+            return null;
+          }
+        }
+
+        function readSessions(uid) {
+          var prefix = SESSION_PREFIX + uid + '_';
+          var sessions = [];
+          try {
+            for (var index = 0; index < window.localStorage.length; index += 1) {
+              var key = window.localStorage.key(index);
+              if (!key || key.indexOf(prefix) !== 0) continue;
+              var raw = window.localStorage.getItem(key);
+              if (!raw) continue;
+              var parsed = JSON.parse(raw);
+              if (parsed && typeof parsed === 'object') {
+                parsed.ownerUid = uid;
+                sessions.push(parsed);
+              }
+            }
+          } catch (_error) {
+            return [];
+          }
+          return sessions;
+        }
+
+        function normalizeOrigin(value) {
+          return String(value || '').replace(/\/+$/, '');
+        }
+
+        function redirectHome() {
+          window.location.replace('/');
+        }
+
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var uid = params.get('uid');
+          var returnTo = params.get('returnTo');
+          if (!uid || !returnTo) {
+            redirectHome();
+            return;
+          }
+
+          var returnUrl = new URL(returnTo);
+          if (normalizeOrigin(returnUrl.origin) !== normalizeOrigin(allowedOrigin)) {
+            redirectHome();
+            return;
+          }
+
+          window.name = WINDOW_NAME_PREFIX + JSON.stringify({
+            uid: uid,
+            payload: {
+              identity: readIdentity(uid),
+              sessions: readSessions(uid),
+            },
+          });
+
+          window.location.replace(returnUrl.toString());
+        } catch (_error) {
+          redirectHome();
+        }
+      })();
+    </script>
+  </body>
+</html>

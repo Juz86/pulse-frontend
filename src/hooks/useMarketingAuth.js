@@ -2,9 +2,18 @@ import { getWebAppLoginUrl, isLandingBuild } from '../lib/siteTarget';
 import { requestMarketingAuth } from '../lib/marketingAuthEvents';
 
 export default function useMarketingAuth({ onParentClick } = {}) {
+  const openWebAppInNewTab = (url) => {
+    const nextWindow = window.open(url, '_blank', 'noopener,noreferrer');
+    if (nextWindow) {
+      nextWindow.opener = null;
+      return;
+    }
+    window.location.assign(url);
+  };
+
   const openParentSignup = () => {
     if (isLandingBuild) {
-      window.location.assign(getWebAppLoginUrl({ role: 'parent', mode: 'register' }));
+      openWebAppInNewTab(getWebAppLoginUrl({ role: 'parent', mode: 'register' }));
       return;
     }
     if (onParentClick) {
@@ -16,7 +25,7 @@ export default function useMarketingAuth({ onParentClick } = {}) {
 
   const openLogin = () => {
     if (isLandingBuild) {
-      window.location.assign(getWebAppLoginUrl({ role: 'parent', mode: 'login' }));
+      openWebAppInNewTab(getWebAppLoginUrl({ role: 'parent', mode: 'login' }));
       return;
     }
     if (onParentClick) {

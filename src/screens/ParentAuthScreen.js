@@ -380,7 +380,7 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
         <p id="parent-auth-subtitle" className="parent-auth-sub">
           {tab === 'login'
             ? 'Log in om de Pulse-activiteit van uw kind te bekijken en beheren.'
-            : 'Maak een ouderaccount aan om uw kind te begeleiden.'}
+            : 'Maak een ouderaccount aan om een kindaccount te beheren.'}
         </p>
 
         <div className="parent-auth-tabs" role="tablist" aria-label="Ouderaccount tabs" aria-orientation="horizontal">

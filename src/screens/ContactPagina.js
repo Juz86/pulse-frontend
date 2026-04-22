@@ -24,7 +24,7 @@ function useFadeIn() {
 
 const BADGES = [
   { icon: <Shield size={16} />,   label: 'Versleuteld & privé' },
-  { icon: <PhoneIcon size={16} />, label: 'Bellen in de app' },
+  { icon: <PhoneIcon size={16} />, label: 'Chatten en (video)bellen' },
   { icon: <Users size={16} />,    label: 'Ouderlijk toezicht' },
 ];
 

@@ -82,6 +82,19 @@ export function getAllowedOrigins() {
   ]);
 }
 
+function appendVaryHeader(res, value) {
+  const current = String(res.getHeader('Vary') || '').trim();
+  if (!current) {
+    res.setHeader('Vary', value);
+    return;
+  }
+
+  const parts = current.split(',').map((item) => item.trim().toLowerCase());
+  if (!parts.includes(String(value).toLowerCase())) {
+    res.setHeader('Vary', `${current}, ${value}`);
+  }
+}
+
 export function isAllowedOrigin(origin) {
   if (!origin) return true;
 
@@ -105,6 +118,25 @@ export function isAllowedAppOrigin(origin) {
   } catch {
     return false;
   }
+}
+
+export function getAllowedRequestOrigin(req, { appOnly = false } = {}) {
+  const requestOrigin = normalizeOrigin(req?.headers?.origin);
+  if (!requestOrigin) return '';
+
+  const checker = appOnly ? isAllowedAppOrigin : isAllowedOrigin;
+  return checker(requestOrigin) ? requestOrigin : '';
+}
+
+export function applyCorsHeaders(res, origin) {
+  if (!origin) return;
+
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  appendVaryHeader(res, 'Origin');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-dev-uid,x-request-id');
+  res.setHeader('Access-Control-Expose-Headers', 'x-request-id');
+  res.setHeader('Access-Control-Max-Age', '86400');
 }
 
 export function requireAppOrigin(req, res, next) {
@@ -142,20 +174,13 @@ export function appOnlyCors(req, res, next) {
   }
 
   if (!isAllowedAppOrigin(requestOrigin)) {
-    if (req.method === 'OPTIONS') {
-      return res.status(403).json({
-        error: 'origin_not_allowed',
-        detail: 'Deze endpoint is alleen beschikbaar voor de Pulse webapp.',
-      });
-    }
-    return next();
+    return res.status(403).json({
+      error: 'origin_not_allowed',
+      detail: 'Deze endpoint is alleen beschikbaar voor de Pulse webapp.',
+    });
   }
 
-  res.setHeader('Access-Control-Allow-Origin', requestOrigin);
-  res.setHeader('Vary', 'Origin');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,x-dev-uid,x-request-id');
-  res.setHeader('Access-Control-Max-Age', '86400');
+  applyCorsHeaders(res, requestOrigin);
 
   if (req.method === 'OPTIONS') {
     return res.sendStatus(204);

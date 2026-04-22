@@ -89,6 +89,8 @@ app.get('/readyz', async (_req, res) => {
   });
 });
 
+app.options(/^\/(api|devices|users|messages|calls)(\/.*)?$/, appOnlyCors);
+
 app.options('/api/fcm-token', appOnlyCors);
 app.post('/api/fcm-token', appOnlyCors, requireAppOrigin, (_req, res) => {
   return res.json({

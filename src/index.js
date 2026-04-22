@@ -2,31 +2,23 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import './App.css';
+import {
+  MARKETING_HOSTNAME,
+  SENTRY_DSN,
+  WEB_APP_HOSTNAME,
+} from './config/runtimeConfig';
+import App from './generated/targetApp';
 
 const SITE_TARGET = process.env.REACT_APP_SITE_TARGET === 'landing' ? 'landing' : 'webapp';
-const APP_HOST = (() => {
-  try {
-    return new URL(process.env.REACT_APP_APP_URL || process.env.REACT_APP_WEB_APP_URL || 'https://web.pulse-messenger.com').hostname;
-  } catch {
-    return 'web.pulse-messenger.com';
-  }
-})();
-const MARKETING_HOST = (() => {
-  try {
-    return new URL(process.env.REACT_APP_MARKETING_URL || 'https://pulse-messenger.com').hostname;
-  } catch {
-    return 'pulse-messenger.com';
-  }
-})();
 
 if (typeof window !== 'undefined' && !window.process) {
   window.process = { env: {}, nextTick: (fn, ...args) => setTimeout(() => fn(...args), 0) };
 }
 
 // ── Sentry (alleen in productie) ──────────────────────────────────────────────
-if (process.env.REACT_APP_SENTRY_DSN) {
+if (SENTRY_DSN) {
   Sentry.init({
-    dsn: process.env.REACT_APP_SENTRY_DSN,
+    dsn: SENTRY_DSN,
     enabled: process.env.NODE_ENV === 'production',
     environment: process.env.NODE_ENV,
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
@@ -59,18 +51,14 @@ window.addEventListener('unhandledrejection', (event) => {
     return;
   }
 
-  if (process.env.REACT_APP_SENTRY_DSN) {
+  if (SENTRY_DSN) {
     Sentry.captureException(event.reason);
   }
 });
 
-const loadApp = process.env.REACT_APP_SITE_TARGET === 'landing'
-  ? import('./LandingApp')
-  : import('./App');
-
 function renderTargetMismatch({ expectedTarget, hostname }) {
   const root = ReactDOM.createRoot(document.getElementById('root'));
-  const expectedHost = expectedTarget === 'webapp' ? APP_HOST : MARKETING_HOST;
+  const expectedHost = expectedTarget === 'webapp' ? WEB_APP_HOSTNAME : MARKETING_HOSTNAME;
 
   root.render(
     <React.StrictMode>
@@ -105,18 +93,17 @@ const isProductionMismatch =
   process.env.NODE_ENV === 'production' &&
   runtimeHostname &&
   (
-    (runtimeHostname === APP_HOST && SITE_TARGET !== 'webapp') ||
-    (runtimeHostname === MARKETING_HOST && SITE_TARGET !== 'landing')
+    (runtimeHostname === WEB_APP_HOSTNAME && SITE_TARGET !== 'webapp') ||
+    (runtimeHostname === MARKETING_HOSTNAME && SITE_TARGET !== 'landing')
   );
 
 if (isProductionMismatch) {
   console.error(`[Pulse] Deployment mismatch: host "${runtimeHostname}" draait target "${SITE_TARGET}".`);
   renderTargetMismatch({
-    expectedTarget: runtimeHostname === APP_HOST ? 'webapp' : 'landing',
+    expectedTarget: runtimeHostname === WEB_APP_HOSTNAME ? 'webapp' : 'landing',
     hostname: runtimeHostname,
   });
 } else {
-  loadApp.then(({ default: App }) => {
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(
     <React.StrictMode>
@@ -125,7 +112,6 @@ if (isProductionMismatch) {
       </Sentry.ErrorBoundary>
     </React.StrictMode>
   );
-  });
 }
 
 function AppCrashFallback() {
@@ -155,7 +141,7 @@ function AppCrashFallback() {
 
 // Service worker registreren voor PWA
 if (
-  process.env.REACT_APP_SITE_TARGET !== 'landing' &&
+  SITE_TARGET !== 'landing' &&
   'serviceWorker' in navigator &&
   process.env.NODE_ENV === 'production'
 ) {

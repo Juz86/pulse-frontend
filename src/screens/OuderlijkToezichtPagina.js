@@ -302,7 +302,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
       <PageMeta
         title="Ouderlijk toezicht met Pulse — Overzicht en controle voor ouders"
         description="Met het ouderportaal van Pulse hou je overzicht, pauzeer je chatten, bellen of videobellen per kind en ontvang je real-time meldingen."
-        canonical="https://pulse-messenger.com/ouderlijk-toezicht"
+        canonical="/ouderlijk-toezicht"
       />
       <MarketingNavbar
         items={navItems}

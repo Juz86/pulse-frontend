@@ -3,7 +3,7 @@
 
 import { io } from 'socket.io-client';
 import SimplePeer from 'simple-peer';
-import { RTC_CONFIG_URL, SIGNALING_URL } from '../config/appConfig';
+import { RTC_CONFIG_URL, SIGNALING_URL } from '../config/runtimeConfig';
 import { resolveBackendUrl } from '../lib/backendUrl';
 
 export const BACKEND_URL = resolveBackendUrl();

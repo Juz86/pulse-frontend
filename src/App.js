@@ -15,6 +15,7 @@ import ParentAuthScreen from './screens/ParentAuthScreen';
 import { Lock } from './components/Icons';
 import { bootstrapDevice } from './lib/e2ee/deviceBootstrap';
 import { MARKETING_AUTH_EVENT } from './lib/marketingAuthEvents';
+import { VAPID_KEY } from './config/runtimeConfig';
 import {
   probeE2EEServiceReady,
   shouldBootstrapE2EEDevice,
@@ -35,8 +36,6 @@ const ElektronischeCommunicatieBeleidPagina = lazy(() => import('./screens/Elekt
 const ContactPagina      = lazy(() => import('./screens/ContactPagina'));
 const SitemapPagina      = lazy(() => import('./screens/SitemapPagina'));
 const PrivacyFirstPagina = lazy(() => import('./screens/PrivacyFirstPagina'));
-
-const VAPID_KEY = process.env.REACT_APP_VAPID_KEY;
 
 const BACKEND = BACKEND_URL;
 const splashFallback = (

@@ -1,35 +1,48 @@
 const https = require('https');
 
 const MAX_REDIRECTS = 5;
+const defaultLandingUrl = process.env.REACT_APP_MARKETING_URL || 'https://pulse-messenger.com';
+const defaultWebappUrl =
+  process.env.REACT_APP_WEB_APP_URL ||
+  process.env.REACT_APP_APP_URL ||
+  'https://web.pulse-messenger.com';
+const apiUrl = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || 'https://api.pulse-messenger.com';
+const wsUrl = process.env.REACT_APP_WS_URL || apiUrl;
+const signalingUrl = process.env.REACT_APP_SIGNALING_URL || wsUrl;
+
+function websocketOriginFromUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return `${parsed.protocol === 'https:' ? 'wss:' : 'ws:'}//${parsed.host}`;
+  } catch {
+    return '';
+  }
+}
+
+const requiredWebappSources = Array.from(new Set([
+  new URL(apiUrl).host,
+  'firebaseio.com',
+  'firebaseapp.com',
+  'fcm.googleapis.com',
+  'firebasestorage.googleapis.com',
+  websocketOriginFromUrl(wsUrl),
+  websocketOriginFromUrl(signalingUrl),
+].filter(Boolean)));
 
 const targets = [
   {
     name: 'landing',
-    url: process.env.PULSE_LANDING_URL || 'https://pulse-messenger.com',
+    url: process.env.PULSE_LANDING_URL || defaultLandingUrl,
     expectedMarker: '<meta name="pulse-target" content="landing"',
-    forbidden: [
-      'api.pulse-messenger.com',
-      'firebaseio.com',
-      'firebaseapp.com',
-      'fcm.googleapis.com',
-      'firebasestorage.googleapis.com',
-      'wss://api.pulse-messenger.com',
-    ],
+    forbidden: requiredWebappSources,
     required: [],
   },
   {
     name: 'webapp',
-    url: process.env.PULSE_WEBAPP_URL || 'https://web.pulse-messenger.com',
+    url: process.env.PULSE_WEBAPP_URL || defaultWebappUrl,
     expectedMarker: '<meta name="pulse-target" content="webapp"',
     forbidden: [],
-    required: [
-      'api.pulse-messenger.com',
-      'firebaseio.com',
-      'firebaseapp.com',
-      'fcm.googleapis.com',
-      'firebasestorage.googleapis.com',
-      'wss://api.pulse-messenger.com',
-    ],
+    required: requiredWebappSources,
   },
 ];
 

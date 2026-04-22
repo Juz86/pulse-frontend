@@ -3,15 +3,28 @@ const path = require('path');
 
 const headersPath = path.join(process.cwd(), 'public', '_headers');
 const headers = fs.readFileSync(headersPath, 'utf8');
+const apiUrl = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || 'https://api.pulse-messenger.com';
+const wsUrl = process.env.REACT_APP_WS_URL || apiUrl;
+const signalingUrl = process.env.REACT_APP_SIGNALING_URL || wsUrl;
 
-const webappOnlySources = [
-  'api.pulse-messenger.com',
+function websocketOriginFromUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return `${parsed.protocol === 'https:' ? 'wss:' : 'ws:'}//${parsed.host}`;
+  } catch {
+    return '';
+  }
+}
+
+const webappOnlySources = Array.from(new Set([
+  new URL(apiUrl).host,
   'firebaseio.com',
   'firebaseapp.com',
   'fcm.googleapis.com',
   'firebasestorage.googleapis.com',
-  'wss://api.pulse-messenger.com',
-];
+  websocketOriginFromUrl(wsUrl),
+  websocketOriginFromUrl(signalingUrl),
+].filter(Boolean)));
 
 const violations = webappOnlySources.filter((source) => headers.includes(source));
 

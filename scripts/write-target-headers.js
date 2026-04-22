@@ -6,17 +6,104 @@ const buildDir = path.join(process.cwd(), 'build');
 const headersPath = path.join(buildDir, '_headers');
 const indexHtmlPath = path.join(buildDir, 'index.html');
 const legacyBridgePath = path.join(buildDir, 'e2ee-storage-bridge.html');
+const firebaseMessagingSwPath = path.join(buildDir, 'firebase-messaging-sw.js');
 const robotsPath = path.join(buildDir, 'robots.txt');
 const sitemapPath = path.join(buildDir, 'sitemap.xml');
 
-const MARKETING_URL = (process.env.REACT_APP_MARKETING_URL || 'https://pulse-messenger.com').replace(/\/+$/, '');
-const APP_URL = (
+const DEFAULT_MARKETING_URL = 'https://pulse-messenger.com';
+const DEFAULT_WEB_APP_URL = 'https://web.pulse-messenger.com';
+const DEFAULT_API_URL = 'https://api.pulse-messenger.com';
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyC91LqqIw8z8NH7e1ChCKD3zUo_VXQeyRY',
+  authDomain: 'pulse-messenger-3cb9d.firebaseapp.com',
+  projectId: 'pulse-messenger-3cb9d',
+  storageBucket: 'pulse-messenger-3cb9d.firebasestorage.app',
+  messagingSenderId: '764605255111',
+  appId: '1:764605255111:web:7cecff60d89c64f08e5de2',
+};
+
+function trimTrailingSlash(value) {
+  return String(value || '').replace(/\/+$/, '');
+}
+
+function originFromUrl(value, fallback = '') {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return fallback;
+  }
+}
+
+function websocketOriginFromUrl(value) {
+  try {
+    const parsed = new URL(value);
+    const protocol = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${parsed.host}`;
+  } catch {
+    return '';
+  }
+}
+
+const MARKETING_URL = trimTrailingSlash(process.env.REACT_APP_MARKETING_URL || DEFAULT_MARKETING_URL);
+const APP_URL = trimTrailingSlash(
   process.env.REACT_APP_APP_URL ||
   process.env.REACT_APP_WEB_APP_URL ||
-  'https://web.pulse-messenger.com'
-).replace(/\/+$/, '');
+  DEFAULT_WEB_APP_URL
+);
+const API_URL = trimTrailingSlash(
+  process.env.REACT_APP_API_URL ||
+  process.env.REACT_APP_BACKEND_URL ||
+  DEFAULT_API_URL
+);
+const WS_URL = trimTrailingSlash(process.env.REACT_APP_WS_URL || API_URL);
+const SIGNALING_URL = trimTrailingSlash(process.env.REACT_APP_SIGNALING_URL || WS_URL);
+const RTC_CONFIG_URL = trimTrailingSlash(process.env.REACT_APP_RTC_CONFIG_URL || API_URL);
+const FIREBASE_CONFIG = {
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || DEFAULT_FIREBASE_CONFIG.apiKey,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || DEFAULT_FIREBASE_CONFIG.authDomain,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_CONFIG.projectId,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || DEFAULT_FIREBASE_CONFIG.storageBucket,
+  messagingSenderId:
+    process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || DEFAULT_FIREBASE_CONFIG.messagingSenderId,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID || DEFAULT_FIREBASE_CONFIG.appId,
+};
 const canonicalBaseUrl = target === 'landing' ? MARKETING_URL : APP_URL;
 const logoUrl = `${canonicalBaseUrl}/logo512.png`;
+const apiOrigin = originFromUrl(API_URL, DEFAULT_API_URL);
+const signalingOrigin = originFromUrl(SIGNALING_URL, apiOrigin);
+const rtcConfigOrigin = originFromUrl(RTC_CONFIG_URL, apiOrigin);
+const wsOrigin = websocketOriginFromUrl(WS_URL);
+const signalingWsOrigin = websocketOriginFromUrl(SIGNALING_URL);
+const connectSources = Array.from(new Set([
+  "'self'",
+  apiOrigin,
+  signalingOrigin,
+  rtcConfigOrigin,
+  wsOrigin,
+  signalingWsOrigin,
+  'https://*.firebaseio.com',
+  'wss://*.firebaseio.com',
+  'https://*.googleapis.com',
+  'wss://firestore.googleapis.com',
+  'https://firebasestorage.googleapis.com',
+  'https://fcm.googleapis.com',
+  'https://*.ingest.de.sentry.io',
+  'https://*.ingest.sentry.io',
+].filter(Boolean)));
+const mediaSources = Array.from(new Set([
+  "'self'",
+  'blob:',
+  apiOrigin,
+  'https://firebasestorage.googleapis.com',
+].filter(Boolean)));
+const imageSources = Array.from(new Set([
+  "'self'",
+  'data:',
+  'blob:',
+  apiOrigin,
+  'https://firebasestorage.googleapis.com',
+  'https://*.googleusercontent.com',
+].filter(Boolean)));
 
 const commonHeaders = [
   'X-Frame-Options: DENY',
@@ -54,15 +141,15 @@ const webappCsp = [
   "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https://api.pulse-messenger.com https://firebasestorage.googleapis.com https://*.googleusercontent.com",
-  "connect-src 'self' https://api.pulse-messenger.com wss://api.pulse-messenger.com https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com wss://firestore.googleapis.com https://firebasestorage.googleapis.com https://fcm.googleapis.com https://*.ingest.de.sentry.io https://*.ingest.sentry.io",
+  `img-src ${imageSources.join(' ')}`,
+  `connect-src ${connectSources.join(' ')}`,
   "frame-ancestors 'none'",
   "frame-src 'none'",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "manifest-src 'self'",
-  "media-src 'self' blob: https://api.pulse-messenger.com https://firebasestorage.googleapis.com",
+  `media-src ${mediaSources.join(' ')}`,
   "worker-src 'self' blob:",
   'upgrade-insecure-requests',
 ].join('; ');
@@ -119,6 +206,20 @@ function writeTargetMetadata() {
       .replace(/__PULSE_WEBAPP_ORIGIN__/g, APP_URL);
     fs.writeFileSync(legacyBridgePath, bridgeHtml);
     console.log(`Wrote webapp bridge origin to build/e2ee-storage-bridge.html.`);
+  }
+
+  if (fs.existsSync(firebaseMessagingSwPath)) {
+    const messagingSw = fs.readFileSync(firebaseMessagingSwPath, 'utf8');
+    const nextMessagingSw = replaceAll(messagingSw, [
+      [/__PULSE_FIREBASE_API_KEY__/g, FIREBASE_CONFIG.apiKey],
+      [/__PULSE_FIREBASE_AUTH_DOMAIN__/g, FIREBASE_CONFIG.authDomain],
+      [/__PULSE_FIREBASE_PROJECT_ID__/g, FIREBASE_CONFIG.projectId],
+      [/__PULSE_FIREBASE_STORAGE_BUCKET__/g, FIREBASE_CONFIG.storageBucket],
+      [/__PULSE_FIREBASE_MESSAGING_SENDER_ID__/g, FIREBASE_CONFIG.messagingSenderId],
+      [/__PULSE_FIREBASE_APP_ID__/g, FIREBASE_CONFIG.appId],
+    ]);
+    fs.writeFileSync(firebaseMessagingSwPath, nextMessagingSw);
+    console.log(`Wrote Firebase runtime config to build/firebase-messaging-sw.js.`);
   }
 }
 

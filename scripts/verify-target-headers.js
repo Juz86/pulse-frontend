@@ -4,6 +4,29 @@ const path = require('path');
 const target = process.env.REACT_APP_SITE_TARGET === 'landing' ? 'landing' : 'webapp';
 const headersPath = path.join(process.cwd(), 'build', '_headers');
 
+function websocketOriginFromUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return `${parsed.protocol === 'https:' ? 'wss:' : 'ws:'}//${parsed.host}`;
+  } catch {
+    return '';
+  }
+}
+
+const apiUrl = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || 'https://api.pulse-messenger.com';
+const wsUrl = process.env.REACT_APP_WS_URL || apiUrl;
+const signalingUrl = process.env.REACT_APP_SIGNALING_URL || wsUrl;
+const webappOnlySources = Array.from(new Set([
+  new URL(apiUrl).host,
+  'firebaseio.com',
+  'firebaseapp.com',
+  'fcm.googleapis.com',
+  'firebasestorage.googleapis.com',
+  websocketOriginFromUrl(wsUrl),
+  websocketOriginFromUrl(signalingUrl),
+  'wss://firestore.googleapis.com',
+].filter(Boolean)));
+
 if (!fs.existsSync(headersPath)) {
   console.error(`Missing Cloudflare headers file: ${headersPath}`);
   process.exit(1);
@@ -21,16 +44,6 @@ if (!cspLine) {
   console.error('Missing Content-Security-Policy in build/_headers.');
   process.exit(1);
 }
-
-const webappOnlySources = [
-  'api.pulse-messenger.com',
-  'firebaseio.com',
-  'firebaseapp.com',
-  'fcm.googleapis.com',
-  'firebasestorage.googleapis.com',
-  'wss://api.pulse-messenger.com',
-  'wss://firestore.googleapis.com',
-];
 
 const violations = [];
 

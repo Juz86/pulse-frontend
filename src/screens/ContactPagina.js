@@ -401,7 +401,7 @@ export default function ContactPagina() {
       <PageMeta
         title="Contact — Pulse Messenger"
         description="Neem contact op met Pulse Messenger. Stuur ons een bericht voor vragen over de app, ouderlijk toezicht, privacy of samenwerking."
-        canonical="https://pulse-messenger.com/contact"
+        canonical="/contact"
       />
 
       <MarketingNavbar

@@ -2,12 +2,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js'
 importScripts('https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-  apiKey:            "AIzaSyC91LqqIw8z8NH7e1ChCKD3zUo_VXQeyRY",
-  authDomain:        "pulse-messenger-3cb9d.firebaseapp.com",
-  projectId:         "pulse-messenger-3cb9d",
-  storageBucket:     "pulse-messenger-3cb9d.firebasestorage.app",
-  messagingSenderId: "764605255111",
-  appId:             "1:764605255111:web:7cecff60d89c64f08e5de2",
+  apiKey:            "__PULSE_FIREBASE_API_KEY__",
+  authDomain:        "__PULSE_FIREBASE_AUTH_DOMAIN__",
+  projectId:         "__PULSE_FIREBASE_PROJECT_ID__",
+  storageBucket:     "__PULSE_FIREBASE_STORAGE_BUCKET__",
+  messagingSenderId: "__PULSE_FIREBASE_MESSAGING_SENDER_ID__",
+  appId:             "__PULSE_FIREBASE_APP_ID__",
 });
 
 const messaging = firebase.messaging();

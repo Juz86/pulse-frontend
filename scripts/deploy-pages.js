@@ -1,39 +1,39 @@
 const { spawnSync } = require('child_process');
 
 const target = process.argv[2];
+const defaults = {
+  marketingUrl: process.env.REACT_APP_MARKETING_URL || 'https://pulse-messenger.com',
+  webAppUrl:
+    process.env.REACT_APP_WEB_APP_URL ||
+    process.env.REACT_APP_APP_URL ||
+    'https://web.pulse-messenger.com',
+  apiUrl: process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || 'https://api.pulse-messenger.com',
+};
+const serviceDefaults = {
+  REACT_APP_APP_URL: defaults.webAppUrl,
+  REACT_APP_MARKETING_URL: defaults.marketingUrl,
+  REACT_APP_API_URL: defaults.apiUrl,
+  REACT_APP_BACKEND_URL: process.env.REACT_APP_BACKEND_URL || defaults.apiUrl,
+  REACT_APP_WS_URL: process.env.REACT_APP_WS_URL || defaults.apiUrl,
+  REACT_APP_SIGNALING_URL: process.env.REACT_APP_SIGNALING_URL || process.env.REACT_APP_WS_URL || defaults.apiUrl,
+  REACT_APP_RTC_CONFIG_URL: process.env.REACT_APP_RTC_CONFIG_URL || defaults.apiUrl,
+  REACT_APP_WEB_APP_URL: defaults.webAppUrl,
+};
 
 const targetConfig = {
   landing: {
     verifyScript: 'verify:landing',
     projectName: 'pulse-landing',
-    domain: 'https://pulse-messenger.com',
+    domain: defaults.marketingUrl,
     label: 'landing',
-    env: {
-      REACT_APP_APP_URL: 'https://web.pulse-messenger.com',
-      REACT_APP_MARKETING_URL: 'https://pulse-messenger.com',
-      REACT_APP_API_URL: 'https://api.pulse-messenger.com',
-      REACT_APP_BACKEND_URL: 'https://api.pulse-messenger.com',
-      REACT_APP_WS_URL: 'https://api.pulse-messenger.com',
-      REACT_APP_SIGNALING_URL: 'https://api.pulse-messenger.com',
-      REACT_APP_RTC_CONFIG_URL: 'https://api.pulse-messenger.com',
-      REACT_APP_WEB_APP_URL: 'https://web.pulse-messenger.com',
-    },
+    env: serviceDefaults,
   },
   webapp: {
     verifyScript: 'verify:webapp',
     projectName: 'pulse-frontend',
-    domain: 'https://web.pulse-messenger.com',
+    domain: defaults.webAppUrl,
     label: 'webapp',
-    env: {
-      REACT_APP_APP_URL: 'https://web.pulse-messenger.com',
-      REACT_APP_MARKETING_URL: 'https://pulse-messenger.com',
-      REACT_APP_API_URL: 'https://api.pulse-messenger.com',
-      REACT_APP_BACKEND_URL: 'https://api.pulse-messenger.com',
-      REACT_APP_WS_URL: 'https://api.pulse-messenger.com',
-      REACT_APP_SIGNALING_URL: 'https://api.pulse-messenger.com',
-      REACT_APP_RTC_CONFIG_URL: 'https://api.pulse-messenger.com',
-      REACT_APP_WEB_APP_URL: 'https://web.pulse-messenger.com',
-    },
+    env: serviceDefaults,
   },
 };
 

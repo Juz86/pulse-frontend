@@ -81,7 +81,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
       <PageMeta
         title="Privacy-First — Pulse beschermt, verzamelt niet"
         description="Pulse is 100% privacy-first. Geen dataverzameling, geen algoritmes, geen profielen. Lees hoe Pulse omgaat met jouw gegevens — eerlijk, duidelijk en zonder jargon."
-        canonical="https://pulse-messenger.com/privacy-first"
+        canonical="/privacy-first"
       />
       <MarketingNavbar
         items={navItems}

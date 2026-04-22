@@ -1,4 +1,4 @@
-import { APP_URL, MARKETING_URL } from '../../config/appConfig';
+import { MARKETING_URL, WEB_APP_URL } from '../../config/runtimeConfig';
 import { secureKeyStore } from './secureKeyStore';
 import { sessionStore } from './sessionStore';
 
@@ -47,7 +47,7 @@ function getLegacyBridgeUrl() {
 }
 
 function isWebAppRuntime() {
-  return typeof window !== 'undefined' && window.location.origin === APP_URL;
+  return typeof window !== 'undefined' && window.location.origin === WEB_APP_URL;
 }
 
 function isImportPayloadForUser(payload, uid) {

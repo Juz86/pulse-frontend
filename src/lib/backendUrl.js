@@ -1,7 +1,7 @@
 import {
   API_URL,
   shouldUseLocalRuntimeFallback,
-} from '../config/appConfig';
+} from '../config/runtimeConfig';
 
 const LOCAL_BACKEND_URL = 'http://localhost:3001';
 const PRODUCTION_BACKEND_URL = API_URL;
@@ -18,7 +18,7 @@ function isLocalUrl(value) {
   }
 }
 
-export function resolveBackendUrl(explicitUrl = process.env.REACT_APP_BACKEND_URL) {
+export function resolveBackendUrl(explicitUrl) {
   const configuredUrl = explicitUrl?.trim();
   const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
   const runningLocally = shouldUseLocalRuntimeFallback(hostname);

@@ -121,7 +121,7 @@ export default function SitemapPagina() {
         title="Sitemap"
         intro="Een overzicht van alle pagina's en secties van de Pulse-website."
         lastUpdated="4 april 2026"
-        canonical="https://pulse-messenger.com/sitemap"
+        canonical="/sitemap"
         metaTitle="Sitemap — Pulse Messenger"
         metaDescription="Overzicht van alle pagina's en secties op de Pulse Messenger-website."
         cta={

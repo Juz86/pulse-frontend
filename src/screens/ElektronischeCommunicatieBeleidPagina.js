@@ -26,7 +26,7 @@ export default function ElektronischeCommunicatieBeleidPagina() {
       title="AVG-beleid voor elektronische communicatie"
       intro="Dit beleid richt zich specifiek op de vertrouwelijkheid, beveiliging, toegang, bewaring en verwerking van communicatiegegevens binnen Pulse. Het document vult het algemene privacybeleid aan en is geschreven voor een Europese, kindgerichte communicatiedienst."
       lastUpdated="30 maart 2026"
-      canonical="https://pulse-messenger.com/avg-beleid-elektronische-communicatie"
+      canonical="/avg-beleid-elektronische-communicatie"
       metaTitle="AVG-beleid voor elektronische communicatie van Pulse"
       metaDescription="Lees hoe Pulse omgaat met vertrouwelijkheid, metadata, bewaartermijnen en beveiliging van chat-, bel- en videocommunicatie."
     >

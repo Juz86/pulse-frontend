@@ -16,13 +16,13 @@ import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
 import { Users } from '../components/Icons';
 import useMarketingAuth from '../hooks/useMarketingAuth';
-import { APP_URL } from '../config/appConfig';
+import { WEB_APP_URL } from '../config/runtimeConfig';
 
 const downloadOptionCards = [
   {
     title: 'Pulse Web',
     description: 'Wordt je apparaat niet ondersteund? Gebruik Pulse in je browser.',
-    href: `${APP_URL}/`,
+    href: `${WEB_APP_URL}/`,
     ctaLabel: 'Aanmelden',
     icon: BrowserIcon,
     iconClassName: 'hp-download-card-icon--browser',
@@ -207,7 +207,7 @@ export default function Homepage({ onParentClick }) {
       <PageMeta
         title="Pulse — Voor ouder en kind. Veilig verbonden."
         description="Pulse is een veilige Nederlandse communicatie-app voor kinderen: chatten, bellen en videobellen, zonder telefoonnummer en e-mailadres, onder ouderlijk toezicht."
-        canonical="https://pulse-messenger.com/"
+        canonical="/"
       />
 
       {/* ── NAVIGATIE ── */}

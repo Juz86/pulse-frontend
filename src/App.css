@@ -4916,6 +4916,14 @@ font-family: 'Inter', sans-serif;
   position: static;
   align-self: center;
 }
+
+.hp-download-options-copy .hp-feature-tag {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  width: auto;
+}
+
 .hp-download-options-copy h2 {
   font-size: clamp(var(--text-h3), 3vw, var(--text-h2));
   font-weight: var(--font-bold);

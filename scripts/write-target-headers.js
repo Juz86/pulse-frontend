@@ -189,11 +189,11 @@ function writeTargetMetadata() {
 
   const html = fs.readFileSync(indexHtmlPath, 'utf8');
   const nextHtml = replaceAll(html, [
-    [/<meta name="pulse-target" content="[^"]*" \/>/, `<meta name="pulse-target" content="${target}" />`],
-    [/<link rel="canonical" href="[^"]*" \/>/, `<link rel="canonical" href="${canonicalBaseUrl}/" />`],
-    [/<meta property="og:url" content="[^"]*" \/>/, `<meta property="og:url" content="${canonicalBaseUrl}/" />`],
-    [/<meta property="og:image" content="[^"]*" \/>/, `<meta property="og:image" content="${logoUrl}" />`],
-    [/<meta name="twitter:image" content="[^"]*" \/>/, `<meta name="twitter:image" content="${logoUrl}" />`],
+    [/<meta name="pulse-target" content="[^"]*"\s*\/>/, `<meta name="pulse-target" content="${target}" />`],
+    [/<link rel="canonical" href="[^"]*"\s*\/>/, `<link rel="canonical" href="${canonicalBaseUrl}/" />`],
+    [/<meta property="og:url" content="[^"]*"\s*\/>/, `<meta property="og:url" content="${canonicalBaseUrl}/" />`],
+    [/<meta property="og:image" content="[^"]*"\s*\/>/, `<meta property="og:image" content="${logoUrl}" />`],
+    [/<meta name="twitter:image" content="[^"]*"\s*\/>/, `<meta name="twitter:image" content="${logoUrl}" />`],
     [/"url": "https:\/\/[^"]*"/, `"url": "${canonicalBaseUrl}/"`],
     [/"logo": "https:\/\/[^"]*"/, `"logo": "${logoUrl}"`],
   ]);

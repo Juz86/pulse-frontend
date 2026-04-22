@@ -3,6 +3,7 @@ const path = require('path');
 
 const target = process.env.REACT_APP_SITE_TARGET === 'landing' ? 'landing' : 'webapp';
 const headersPath = path.join(process.cwd(), 'build', '_headers');
+const indexHtmlPath = path.join(process.cwd(), 'build', 'index.html');
 
 function websocketOriginFromUrl(value) {
   try {
@@ -32,7 +33,13 @@ if (!fs.existsSync(headersPath)) {
   process.exit(1);
 }
 
+if (!fs.existsSync(indexHtmlPath)) {
+  console.error(`Missing build index file: ${indexHtmlPath}`);
+  process.exit(1);
+}
+
 const headers = fs.readFileSync(headersPath, 'utf8');
+const indexHtml = fs.readFileSync(indexHtmlPath, 'utf8');
 const cspLine = headers
   .split('\n')
   .find((line) => line.trim().startsWith('Content-Security-Policy:'));
@@ -71,6 +78,11 @@ if (target === 'landing') {
   if (!permissionsPolicyLine?.includes('microphone=(self)')) {
     violations.push('Webapp Permissions-Policy must allow microphone=(self)');
   }
+}
+
+const expectedTargetMarker = `<meta name="pulse-target" content="${target}"`;
+if (!indexHtml.includes(expectedTargetMarker)) {
+  violations.push(`build/index.html must include ${expectedTargetMarker}`);
 }
 
 if (violations.length) {

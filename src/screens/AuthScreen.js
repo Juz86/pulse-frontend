@@ -68,6 +68,8 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
     <>
       <form onSubmit={handleSubmit} aria-busy={loading}>
         <div className="form-group">
+          <h2 id="child-auth-title" className="auth-title">Welkom terug</h2>
+          <p id="child-auth-subtitle" className="auth-sub">Log in met je gebruikersnaam en wachtwoord.</p>
           <label className="form-label" htmlFor="username">Gebruikersnaam</label>
           <div style={{ position: 'relative' }}>
             <span aria-hidden="true" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', display: 'flex', pointerEvents: 'none' }}>

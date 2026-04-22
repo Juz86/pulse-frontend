@@ -154,6 +154,7 @@ function DownloadOptionsSection() {
           <div className="hp-download-options-track" ref={trackRef}>
             {downloadOptionCards.map((card) => {
               const Icon = card.icon;
+              const opensInNewTab = card.href.startsWith('http') && !card.href.startsWith(WEB_APP_URL);
 
               return (
                 <article className="hp-download-card" key={card.title}>
@@ -165,8 +166,8 @@ function DownloadOptionsSection() {
                   <a
                     href={card.href}
                     className="hp-download-card-link"
-                    target={card.href.startsWith('http') ? '_blank' : undefined}
-                    rel={card.href.startsWith('http') ? 'noreferrer' : undefined}
+                    target={opensInNewTab ? '_blank' : undefined}
+                    rel={opensInNewTab ? 'noreferrer' : undefined}
                   >
                     {card.ctaLabel} <span aria-hidden="true">→</span>
                   </a>

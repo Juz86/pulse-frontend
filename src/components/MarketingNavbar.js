@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import PulseLogo from './PulseLogo';
 import { Shield } from './Icons';
-import { getWebAppLoginUrl, isLandingBuild } from '../lib/siteTarget';
-import { requestMarketingAuth } from '../lib/marketingAuthEvents';
+import { PULSE_WEB_APP_URL } from '../lib/siteTarget';
 
 export default function MarketingNavbar({
   items,
@@ -14,15 +13,11 @@ export default function MarketingNavbar({
   const navMenuId = 'marketing-nav-links';
   const menuRef      = useRef(null);
   const hamburgerRef = useRef(null);
-  const parentLoginUrl = getWebAppLoginUrl({ role: 'parent', mode: 'login' });
+  const cleanWebAppUrl = `${PULSE_WEB_APP_URL}/`;
 
   const openParentLogin = () => {
     setMenuOpen(false);
-    if (isLandingBuild) {
-      window.location.assign(parentLoginUrl);
-      return;
-    }
-    requestMarketingAuth({ role: 'parent', mode: 'login' });
+    window.location.assign(cleanWebAppUrl);
   };
 
   useEffect(() => {

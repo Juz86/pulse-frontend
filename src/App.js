@@ -115,13 +115,13 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
             </div>
             <h1 id="web-auth-title">Meld je aan</h1>
             <p id="web-auth-description">
-              Kinderen gebruiken hun Pulse-gebruikersnaam, ouders beheren alles via het ouderportaal.
+              Log in met je gebruikersnaam of e-mailadres.
             </p>
 
             <ol className="web-auth-steps" aria-label="Inloggen bij Pulse Web">
-              <li><span>1</span> Vul je gebruikersnaam in</li>
+              <li><span>1</span> Vul je e-mailadres of gebruikersnaam in</li>
               <li><span>2</span> Vul je wachtwoord in</li>
-              <li><span>3</span> Ga veilig verder met chatten</li>
+              <li><span>3</span> Veilig chatten, bellen en videobellen</li>
             </ol>
 
             <p className="web-auth-help">

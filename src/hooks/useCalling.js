@@ -16,8 +16,6 @@ export default function useCalling({
   setShowCallModal,
   showErrToast,
 }) {
-  const socket = getSocket();
-
   const [activeCall,  setActiveCall]  = useState(null);
   const [historyRules, setHistoryRules] = useState(() => readStoredHistoryRules(user.uid));
 
@@ -86,6 +84,7 @@ export default function useCalling({
   }
 
   function sendCallMessage({ isVideo, direction, duration }) {
+    const socket = getSocket();
     const convId = callConvIdRef.current;
     if (!socket || !convId) return;
     socket.emit('conversation:join', { convId });
@@ -123,6 +122,7 @@ export default function useCalling({
     callConvIdRef.current    = convId;
     callStartTimeRef.current = null;
     callIsVideoRef.current   = isVideo;
+    fallbackNoticeShownRef.current = false;
     try {
       const stream = await startCall({
         toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,

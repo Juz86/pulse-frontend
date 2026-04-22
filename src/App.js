@@ -539,6 +539,9 @@ function MainApp() {
             try {
               const newToken = await firebaseUser.getIdToken(true);
               socket.auth.token = newToken;
+              if (!socket.connected) {
+                socket.connect();
+              }
             } catch (e) { console.warn('[Pulse] Fout:', e.message); }
           });
 

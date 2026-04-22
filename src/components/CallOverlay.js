@@ -121,9 +121,23 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
     clearInterval(timerRef.current);
     clearTimeout(closeTimeoutRef.current);
     localStreamRef.current?.getTracks().forEach(t => t.stop());
+    remoteStreamRef.current?.getTracks?.().forEach(t => t.stop());
+    remoteAudioStreamRef.current?.getTracks?.().forEach(t => t.stop());
     remoteTrackListenerCleanupRef.current?.();
     remoteTrackListenerCleanupRef.current = null;
     remoteAudioStreamRef.current = null;
+  }
+
+  function handleOverlayClose() {
+    if (callState === 'incoming') {
+      handleDecline();
+      return;
+    }
+    if (callState === 'calling' || callState === 'connecting' || callState === 'active') {
+      handleEnd();
+      return;
+    }
+    onClose?.();
   }
 
   function toggleMute() {
@@ -266,7 +280,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
         )}
-        <button type="button" className="call-close-btn" aria-label="Gespreksscherm sluiten" onClick={() => onClose?.()} title="Sluiten">
+        <button type="button" className="call-close-btn" aria-label={callState === 'active' || callState === 'calling' || callState === 'connecting' ? 'Beeindig gesprek' : (callState === 'incoming' ? 'Weiger oproep' : 'Gespreksscherm sluiten')} onClick={handleOverlayClose} title="Sluiten">
           <Cancel size={14} aria-hidden="true" />
         </button>
         <div className="call-avatar-big">{callName.slice(0,2).toUpperCase()}</div>

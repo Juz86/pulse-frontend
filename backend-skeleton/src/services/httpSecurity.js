@@ -7,6 +7,9 @@ const DEFAULT_APP_ORIGINS = [
   'https://web.pulse-messenger.com',
   'https://pulse-frontend-elt.pages.dev',
 ];
+const DEFAULT_APP_HOST_SUFFIXES = [
+  '.pulse-frontend-elt.pages.dev',
+];
 
 function parseOriginList(value) {
   return String(value || '')
@@ -17,6 +20,14 @@ function parseOriginList(value) {
 
 function normalizeOrigin(value) {
   return String(value || '').trim().replace(/\/+$/, '');
+}
+
+function parseHostSuffixList(value) {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean)
+    .map((item) => item.startsWith('.') ? item : `.${item}`);
 }
 
 function getRequestOrigin(req) {
@@ -48,6 +59,22 @@ export function getAppOrigins() {
   ]);
 }
 
+export function getAppHostSuffixes() {
+  return new Set([
+    ...DEFAULT_APP_HOST_SUFFIXES,
+    ...parseHostSuffixList(process.env.CORS_ORIGIN_SUFFIXES),
+  ]);
+}
+
+function matchesAllowedOrigin(url, allowedOrigins, allowedHostSuffixes = new Set()) {
+  if (allowedOrigins.has(url.origin)) return true;
+  const hostname = String(url.hostname || '').toLowerCase();
+  for (const suffix of allowedHostSuffixes) {
+    if (hostname.endsWith(suffix)) return true;
+  }
+  return false;
+}
+
 export function getAllowedOrigins() {
   return new Set([
     ...getMarketingOrigins(),
@@ -61,7 +88,7 @@ export function isAllowedOrigin(origin) {
   try {
     const url = new URL(origin);
     if (['localhost', '127.0.0.1', '0.0.0.0'].includes(url.hostname)) return true;
-    return getAllowedOrigins().has(url.origin);
+    return matchesAllowedOrigin(url, getAllowedOrigins(), getAppHostSuffixes());
   } catch {
     return false;
   }
@@ -74,7 +101,7 @@ export function isAllowedAppOrigin(origin) {
     const url = new URL(origin);
     if (['localhost', '127.0.0.1', '0.0.0.0'].includes(url.hostname)) return true;
     if (getMarketingOrigins().has(url.origin)) return false;
-    return getAppOrigins().has(url.origin);
+    return matchesAllowedOrigin(url, getAppOrigins(), getAppHostSuffixes());
   } catch {
     return false;
   }

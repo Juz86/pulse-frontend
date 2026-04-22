@@ -51,6 +51,12 @@ let iceHandler        = null;
 let renegotiateHandler = null;
 let videoUpgradeHandler = null;
 let callPeer          = null; // bewaar de remote uid voor renegotiatie
+let callAnswerHandler = null;
+let callEndedHandler = null;
+let callDeclinedHandler = null;
+let callUnavailableHandler = null;
+let callBusyHandler = null;
+let activeCallTimeoutId = null;
 
 function buildPreferredAudioConstraints() {
   return {
@@ -96,10 +102,77 @@ async function requestCallMedia({ isVideo = false } = {}) {
   throw lastError || new Error('Kan microfoon/camera niet starten.');
 }
 
+function clearCallLifecycleHandlers() {
+  if (activeCallTimeoutId) {
+    clearTimeout(activeCallTimeoutId);
+    activeCallTimeoutId = null;
+  }
+  if (callAnswerHandler) {
+    socket?.off('call:answer', callAnswerHandler);
+    callAnswerHandler = null;
+  }
+  if (callEndedHandler) {
+    socket?.off('call:ended', callEndedHandler);
+    callEndedHandler = null;
+  }
+  if (callDeclinedHandler) {
+    socket?.off('call:declined', callDeclinedHandler);
+    callDeclinedHandler = null;
+  }
+  if (callUnavailableHandler) {
+    socket?.off('call:unavailable', callUnavailableHandler);
+    callUnavailableHandler = null;
+  }
+  if (callBusyHandler) {
+    socket?.off('call:busy', callBusyHandler);
+    callBusyHandler = null;
+  }
+}
+
+async function ensureSocketConnection() {
+  if (!socket) {
+    throw new Error('Signaleringsverbinding niet beschikbaar. Vernieuw de pagina en probeer opnieuw.');
+  }
+  if (socket.connected) return socket;
+
+  socket.connect();
+
+  await new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      cleanup();
+      reject(new Error('Signaleringsverbinding kon niet worden hersteld. Probeer het opnieuw.'));
+    }, 5000);
+
+    const onConnect = () => {
+      cleanup();
+      resolve();
+    };
+    const onConnectError = () => {
+      cleanup();
+      reject(new Error('Signalering verbinden mislukt. Controleer je verbinding en probeer opnieuw.'));
+    };
+    const cleanup = () => {
+      clearTimeout(timeoutId);
+      socket?.off('connect', onConnect);
+      socket?.off('connect_error', onConnectError);
+    };
+
+    socket.on('connect', onConnect);
+    socket.on('connect_error', onConnectError);
+  });
+
+  return socket;
+}
+
 // ── Socket verbinden ──────────────────────────────────────────────────────────
 export function connectSocket(uid, token) {
-  if (socket?.connected) {
-    setTimeout(() => socket.emit('user:online'), 0);
+  if (socket) {
+    if (token) socket.auth = { ...(socket.auth || {}), token };
+    if (socket.connected) {
+      setTimeout(() => socket.emit('user:online'), 0);
+      return socket;
+    }
+    socket.connect();
     return socket;
   }
   socket = io(SOCKET_URL, {
@@ -126,6 +199,7 @@ export function disconnectSocket() {
 
 // ── WebRTC Bellen ─────────────────────────────────────────────────────────────
 export async function startCall({ toUid, fromUid, callerName, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest, onConnectionFallback }) {
+  await ensureSocketConnection();
   let stream;
   try {
     stream = await requestCallMedia({ isVideo });
@@ -139,6 +213,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
 
   callPeer = toUid;
   const iceServers = await getIceServers(undefined, onConnectionFallback);
+  clearCallLifecycleHandlers();
 
   peer = new SimplePeer({
     initiator: true,
@@ -199,29 +274,36 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
 
   // Time-out: als na 30s geen antwoord, gesprek beëindigen
   // onCallAnswer bewaren zodat we de once-listener kunnen verwijderen bij timeout
-  const onCallAnswer = ({ answer }) => {
+  callAnswerHandler = ({ answer }) => {
     clearTimeout(callTimeout);
     callActive = true;
     peer?.signal(answer);
   };
-  socket.once('call:answer', onCallAnswer);
+  socket.on('call:answer', callAnswerHandler);
 
   const callTimeout = setTimeout(() => {
-    socket.off('call:answer', onCallAnswer); // cleanup stale once-listener
+    clearCallLifecycleHandlers();
     socket.emit('call:end', { to: toUid });
     fireOnEnd('timeout');
     cleanupCall(stream);
   }, 30000);
+  activeCallTimeoutId = callTimeout;
 
-  socket.once('call:ended',      () => { clearTimeout(callTimeout); fireOnEnd(); cleanupCall(stream); });
-  socket.once('call:declined',   () => { clearTimeout(callTimeout); fireOnEnd('declined'); cleanupCall(stream); });
-  socket.once('call:unavailable',() => { clearTimeout(callTimeout); fireOnEnd('unavailable'); cleanupCall(stream); });
-  socket.once('call:busy',       () => { clearTimeout(callTimeout); fireOnEnd('busy'); cleanupCall(stream); });
+  callEndedHandler = () => { clearCallLifecycleHandlers(); fireOnEnd(); cleanupCall(stream); };
+  callDeclinedHandler = () => { clearCallLifecycleHandlers(); fireOnEnd('declined'); cleanupCall(stream); };
+  callUnavailableHandler = () => { clearCallLifecycleHandlers(); fireOnEnd('unavailable'); cleanupCall(stream); };
+  callBusyHandler = () => { clearCallLifecycleHandlers(); fireOnEnd('busy'); cleanupCall(stream); };
+
+  socket.on('call:ended', callEndedHandler);
+  socket.on('call:declined', callDeclinedHandler);
+  socket.on('call:unavailable', callUnavailableHandler);
+  socket.on('call:busy', callBusyHandler);
 
   return stream;
 }
 
 export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onVideoUpgrade, onVideoUpgradeRequest, onConnectionFallback }) {
+  await ensureSocketConnection();
   let stream;
   try {
     stream = await requestCallMedia({ isVideo });
@@ -235,6 +317,7 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onV
 
   callPeer = fromUid;
   const iceServers = await getIceServers(undefined, onConnectionFallback);
+  clearCallLifecycleHandlers();
 
   peer = new SimplePeer({
     initiator: false,
@@ -281,7 +364,8 @@ export async function answerCall({ fromUid, offer, isVideo, onStream, onEnd, onV
   renegotiateHandler = ({ signal }) => { peer?.signal(signal); };
   socket.on('call:renegotiate', renegotiateHandler);
 
-  socket.once('call:ended', () => { onEnd?.(); cleanupCall(stream); });
+  callEndedHandler = () => { clearCallLifecycleHandlers(); onEnd?.(); cleanupCall(stream); };
+  socket.on('call:ended', callEndedHandler);
 
   return stream;
 }
@@ -330,6 +414,7 @@ export async function upgradeToVideo() {
 }
 
 function cleanupCall(stream) {
+  clearCallLifecycleHandlers();
   peer?.destroy();
   peer = null;
   callPeer = null;

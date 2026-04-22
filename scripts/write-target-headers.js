@@ -21,10 +21,12 @@ const commonHeaders = [
   'X-Frame-Options: DENY',
   'X-Content-Type-Options: nosniff',
   'Referrer-Policy: strict-origin-when-cross-origin',
-  'Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()',
   'Strict-Transport-Security: max-age=31536000; includeSubDomains; preload',
   'Cross-Origin-Opener-Policy: same-origin',
 ];
+
+const landingPermissionsPolicy = 'camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=()';
+const webappPermissionsPolicy = 'camera=(self), microphone=(self), geolocation=(), interest-cohort=(), browsing-topics=()';
 
 const landingCsp = [
   "default-src 'self'",
@@ -51,15 +53,15 @@ const webappCsp = [
   "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  "img-src 'self' data: blob: https://firebasestorage.googleapis.com https://*.googleusercontent.com",
-  "connect-src 'self' https://api.pulse-messenger.com wss://api.pulse-messenger.com https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com https://firebasestorage.googleapis.com https://fcm.googleapis.com https://*.ingest.de.sentry.io https://*.ingest.sentry.io",
+  "img-src 'self' data: blob: https://api.pulse-messenger.com https://firebasestorage.googleapis.com https://*.googleusercontent.com",
+  "connect-src 'self' https://api.pulse-messenger.com wss://api.pulse-messenger.com https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com wss://firestore.googleapis.com https://firebasestorage.googleapis.com https://fcm.googleapis.com https://*.ingest.de.sentry.io https://*.ingest.sentry.io",
   "frame-ancestors 'none'",
   "frame-src 'none'",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
   "manifest-src 'self'",
-  "media-src 'self' blob:",
+  "media-src 'self' blob: https://api.pulse-messenger.com https://firebasestorage.googleapis.com",
   "worker-src 'self' blob:",
   'upgrade-insecure-requests',
 ].join('; ');
@@ -67,6 +69,7 @@ const webappCsp = [
 const headers = [
   '/*',
   ...commonHeaders.map((header) => `  ${header}`),
+  `  Permissions-Policy: ${target === 'landing' ? landingPermissionsPolicy : webappPermissionsPolicy}`,
   `  Content-Security-Policy: ${target === 'landing' ? landingCsp : webappCsp}`,
   '',
   '/',
@@ -98,6 +101,7 @@ function writeTargetMetadata() {
 
   const html = fs.readFileSync(indexHtmlPath, 'utf8');
   const nextHtml = replaceAll(html, [
+    [/<meta name="pulse-target" content="[^"]*" \/>/, `<meta name="pulse-target" content="${target}" />`],
     [/<link rel="canonical" href="[^"]*" \/>/, `<link rel="canonical" href="${canonicalBaseUrl}/" />`],
     [/<meta property="og:url" content="[^"]*" \/>/, `<meta property="og:url" content="${canonicalBaseUrl}/" />`],
     [/<meta property="og:image" content="[^"]*" \/>/, `<meta property="og:image" content="${logoUrl}" />`],

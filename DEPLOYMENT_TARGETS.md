@@ -164,6 +164,24 @@ After Cloudflare shows the custom domain as active, run:
 npm run verify:deployed-targets
 ```
 
+If the verifier reports:
+
+```text
+webapp: live page is missing target marker <meta name="pulse-target" content="webapp"
+```
+
+or the browser shows a `Deployment mismatch` screen, then the wrong build target is live on that host. Usually this means the web app Pages project is still using `npm run build` or `npm run build:landing` instead of:
+
+- Build command: `npm run build:webapp`
+- Build output directory: `build`
+- Environment variable: `REACT_APP_SITE_TARGET=webapp`
+
+After fixing the Pages settings, redeploy and run:
+
+```bash
+npm run verify:deployed-targets
+```
+
 ## Runtime behavior
 
 On the landing target, navigation buttons for `Aanmelden`, `Kind` and `Ouder` redirect to `web.pulse-messenger.com` with query parameters such as:

@@ -9,7 +9,7 @@ const {
 } = require('./verify-deployed-targets');
 
 const htmlResponse = {
-  body: '<!doctype html><html><head><title>Pulse</title></head><body></body></html>',
+  body: '<!doctype html><html><head><meta name="pulse-target" content="landing" /><title>Pulse</title></head><body></body></html>',
   headers: { 'content-type': 'text/html; charset=utf-8' },
   statusCode: 200,
   finalUrl: new URL('https://pulse-messenger.com'),
@@ -119,17 +119,44 @@ test('target rejects non-HTML live pages', async () => {
   ]);
 });
 
+test('target rejects missing build marker on live page', async () => {
+  const violations = await verifyTarget(
+    {
+      name: 'webapp',
+      url: 'https://web.pulse-messenger.com',
+      expectedMarker: '<meta name="pulse-target" content="webapp"',
+      forbidden: [],
+      required: [],
+    },
+    createFetcher({
+      csp: "default-src 'self'",
+      page: {
+        body: '<!doctype html><html><head><title>Pulse</title></head><body></body></html>',
+        headers: { 'content-type': 'text/html; charset=utf-8' },
+        statusCode: 200,
+        finalUrl: new URL('https://web.pulse-messenger.com'),
+      },
+    })
+  );
+
+  assert.deepEqual(violations, [
+    'webapp: live page is missing target marker <meta name="pulse-target" content="webapp"',
+  ]);
+});
+
 test('returns actionable hints for common Cloudflare target mistakes', () => {
   const hints = getRemediationHints([
     'landing: CSP must not include api.pulse-messenger.com',
     'webapp: getaddrinfo ENOTFOUND web.pulse-messenger.com',
     'webapp: CSP must include api.pulse-messenger.com',
+    'webapp: live page is missing target marker <meta name="pulse-target" content="webapp"',
   ]);
 
-  assert.equal(hints.length, 3);
+  assert.equal(hints.length, 4);
   assert.match(hints[0], /npm run build:landing/);
   assert.match(hints[1], /custom domain/);
   assert.match(hints[2], /npm run build:webapp/);
+  assert.match(hints[3], /target-marker/);
 });
 
 test('supports selecting a single deployed target', () => {

@@ -3,6 +3,22 @@ import ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import './App.css';
 
+const SITE_TARGET = process.env.REACT_APP_SITE_TARGET === 'landing' ? 'landing' : 'webapp';
+const APP_HOST = (() => {
+  try {
+    return new URL(process.env.REACT_APP_APP_URL || process.env.REACT_APP_WEB_APP_URL || 'https://web.pulse-messenger.com').hostname;
+  } catch {
+    return 'web.pulse-messenger.com';
+  }
+})();
+const MARKETING_HOST = (() => {
+  try {
+    return new URL(process.env.REACT_APP_MARKETING_URL || 'https://pulse-messenger.com').hostname;
+  } catch {
+    return 'pulse-messenger.com';
+  }
+})();
+
 if (typeof window !== 'undefined' && !window.process) {
   window.process = { env: {}, nextTick: (fn, ...args) => setTimeout(() => fn(...args), 0) };
 }
@@ -52,7 +68,55 @@ const loadApp = process.env.REACT_APP_SITE_TARGET === 'landing'
   ? import('./LandingApp')
   : import('./App');
 
-loadApp.then(({ default: App }) => {
+function renderTargetMismatch({ expectedTarget, hostname }) {
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  const expectedHost = expectedTarget === 'webapp' ? APP_HOST : MARKETING_HOST;
+
+  root.render(
+    <React.StrictMode>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100dvh',
+        gap: 16,
+        background: '#0f0f0f',
+        color: '#fff',
+        fontFamily: 'Inter, sans-serif',
+        padding: 24,
+        textAlign: 'center',
+      }}>
+        <div style={{ fontSize: 18, fontWeight: 700 }}>Deployment mismatch</div>
+        <div style={{ maxWidth: 520, fontSize: 14, lineHeight: 1.6, opacity: 0.8 }}>
+          Deze host draait de verkeerde Pulse-build. Verwacht target: <strong>{expectedTarget}</strong> voor <strong>{expectedHost}</strong>,
+          maar de huidige host is <strong>{hostname}</strong>.
+        </div>
+        <div style={{ fontSize: 13, opacity: 0.7 }}>
+          Controleer de Cloudflare Pages build command en redeploy het juiste target.
+        </div>
+      </div>
+    </React.StrictMode>
+  );
+}
+
+const runtimeHostname = typeof window !== 'undefined' ? window.location.hostname : '';
+const isProductionMismatch =
+  process.env.NODE_ENV === 'production' &&
+  runtimeHostname &&
+  (
+    (runtimeHostname === APP_HOST && SITE_TARGET !== 'webapp') ||
+    (runtimeHostname === MARKETING_HOST && SITE_TARGET !== 'landing')
+  );
+
+if (isProductionMismatch) {
+  console.error(`[Pulse] Deployment mismatch: host "${runtimeHostname}" draait target "${SITE_TARGET}".`);
+  renderTargetMismatch({
+    expectedTarget: runtimeHostname === APP_HOST ? 'webapp' : 'landing',
+    hostname: runtimeHostname,
+  });
+} else {
+  loadApp.then(({ default: App }) => {
   const root = ReactDOM.createRoot(document.getElementById('root'));
   root.render(
     <React.StrictMode>
@@ -61,7 +125,8 @@ loadApp.then(({ default: App }) => {
       </Sentry.ErrorBoundary>
     </React.StrictMode>
   );
-});
+  });
+}
 
 function AppCrashFallback() {
   return (

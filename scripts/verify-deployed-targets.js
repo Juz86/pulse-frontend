@@ -6,6 +6,7 @@ const targets = [
   {
     name: 'landing',
     url: process.env.PULSE_LANDING_URL || 'https://pulse-messenger.com',
+    expectedMarker: '<meta name="pulse-target" content="landing"',
     forbidden: [
       'api.pulse-messenger.com',
       'firebaseio.com',
@@ -19,6 +20,7 @@ const targets = [
   {
     name: 'webapp',
     url: process.env.PULSE_WEBAPP_URL || 'https://web.pulse-messenger.com',
+    expectedMarker: '<meta name="pulse-target" content="webapp"',
     forbidden: [],
     required: [
       'api.pulse-messenger.com',
@@ -157,6 +159,10 @@ async function verifyTarget(target, fetcher = fetchResponse) {
     violations.push(`${target.name}: live page response does not look like the Pulse HTML document`);
   }
 
+  if (target.expectedMarker && !page.body.includes(target.expectedMarker)) {
+    violations.push(`${target.name}: live page is missing target marker ${target.expectedMarker}`);
+  }
+
   return violations;
 }
 
@@ -190,6 +196,9 @@ function getRemediationHints(violations) {
   const hasWebappMissingSources = violations.some(
     (violation) => violation.startsWith('webapp: CSP must include')
   );
+  const hasMissingTargetMarker = violations.some(
+    (violation) => violation.includes('live page is missing target marker')
+  );
   const hasCrossTargetRedirect = violations.some(
     (violation) => violation.includes('redirects to unexpected URL')
   );
@@ -209,6 +218,12 @@ function getRemediationHints(violations) {
   if (hasWebappMissingSources) {
     hints.push(
       'webapp: Cloudflare Pages gebruikt waarschijnlijk de landing-build of oude headers. Zet build command op `npm run build:webapp`, `REACT_APP_SITE_TARGET=webapp` en redeploy de webapp target.'
+    );
+  }
+
+  if (hasMissingTargetMarker) {
+    hints.push(
+      'target-marker: de live HTML lijkt niet uit de juiste target-build te komen. Controleer het Pages-project, build command en of de laatste deploy echt van deze branch/build afkomstig is.'
     );
   }
 

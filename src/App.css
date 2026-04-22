@@ -9003,3 +9003,17 @@ font-family: 'Inter', sans-serif;
     font-size: 14px;
   }
 }
+
+.web-auth-card,
+.web-auth-main {
+    box-sizing: border-box;
+}
+
+.web-auth-card {
+    align-items: start;
+    min-height: auto;
+}
+
+.web-auth-main {
+    min-height: auto;
+}

@@ -184,7 +184,7 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
 
         <p className="web-auth-privacy">
           <Lock size={15} aria-hidden="true" />
-          Pulse beschermt je persoonlijke berichten met end-to-end versleuteling.
+          <span>Pulse beschermt je persoonlijke berichten met end-to-end versleuteling.</span>
         </p>
       </main>
     </div>

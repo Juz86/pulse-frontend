@@ -7,6 +7,33 @@ import { BACKEND_URL as BACKEND } from '../services/socket';
 import { isValidEmail, normalizeEmail, sanitizeDisplayName } from '../utils';
 
 const API_BASE = (BACKEND || '').replace(/\/+$/, '');
+const PARENT_AUTH_FEATURES = [
+  {
+    label: 'Veilig portaal',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6c63ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'Pauzeren',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/>
+      </svg>
+    ),
+  },
+  {
+    label: 'Meldingen',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6c63ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+    ),
+  },
+];
 
 async function postJson(path, body, options = {}) {
   const controller = new AbortController();
@@ -67,10 +94,12 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
   const [resendCount,   setResendCount]   = useState(0);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendMsg,     setResendMsg]     = useState('');
+  const [activeFeature, setActiveFeature] = useState(0);
 
   const codeInputRefs = useRef([]);
   const loginTabRef = useRef(null);
   const registerTabRef = useRef(null);
+  const featureTimerRef = useRef(null);
   const verifyDescriptionIds = verifyError
     ? 'parent-verify-instructions parent-verify-error'
     : 'parent-verify-instructions';
@@ -78,6 +107,22 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
   useEffect(() => {
     if (step === 'verify') codeInputRefs.current[0]?.focus();
   }, [step]);
+
+  useEffect(() => {
+    featureTimerRef.current = setInterval(() => {
+      setActiveFeature((index) => (index + 1) % PARENT_AUTH_FEATURES.length);
+    }, 2500);
+
+    return () => clearInterval(featureTimerRef.current);
+  }, []);
+
+  const activateFeature = (index) => {
+    setActiveFeature(index);
+    clearInterval(featureTimerRef.current);
+    featureTimerRef.current = setInterval(() => {
+      setActiveFeature((nextIndex) => (nextIndex + 1) % PARENT_AUTH_FEATURES.length);
+    }, 2500);
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -475,27 +520,42 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
           </button>
         </form>
 
-        <ul className="parent-auth-features" aria-label="Belangrijkste voordelen">
-          <li className="parent-auth-feature">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6c63ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <span>Veilig portaal</span>
-          </li>
-          <li className="parent-auth-feature">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/>
-            </svg>
-            <span>Pauzeren</span>
-          </li>
-          <li className="parent-auth-feature">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6c63ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-            <span>Meldingen</span>
-          </li>
+        <ul className="parent-auth-features parent-auth-features--desktop" aria-label="Belangrijkste voordelen">
+          {PARENT_AUTH_FEATURES.map(({ label, icon }) => (
+            <li key={label} className="parent-auth-feature">
+              {icon}
+              <span>{label}</span>
+            </li>
+          ))}
         </ul>
+
+        <div className="parent-auth-features-mobile" aria-label="Belangrijkste voordelen">
+          <div
+            className="parent-auth-feature-mobile-slider"
+            style={{
+              transform: `translateX(${-activeFeature * 100}%)`,
+              transition: 'transform 0.5s cubic-bezier(0.4,0,0.2,1)',
+            }}
+          >
+            {PARENT_AUTH_FEATURES.map(({ label, icon }) => (
+              <div key={label} className="parent-auth-feature-mobile-slide">
+                {icon}
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="parent-auth-feature-dots">
+            {PARENT_AUTH_FEATURES.map(({ label }, index) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => activateFeature(index)}
+                className={`parent-auth-feature-dot ${index === activeFeature ? 'parent-auth-feature-dot--active' : 'parent-auth-feature-dot--inactive'}`}
+                aria-label={label}
+              />
+            ))}
+          </div>
+        </div>
     </>
   );
   return isModal ? formInner : (

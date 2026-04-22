@@ -546,10 +546,10 @@ export default function ChatModals({
               return (
                 <div className="form-group">
                   <label className="form-label">Relatie</label>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div className="label-chip-row">
                     {['familie', 'vrienden'].map(lbl => (
                       <button key={lbl} type="button" onClick={() => setConvLabel(dmConv.id, convLabels[dmConv.id] === lbl ? null : lbl)}
-                        style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${convLabels[dmConv.id] === lbl ? '#6c63ff' : 'var(--border)'}`, background: convLabels[dmConv.id] === lbl ? '#6c63ff' : 'transparent', color: convLabels[dmConv.id] === lbl ? '#fff' : 'var(--text2)', fontSize: 13, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                        className={`label-chip${convLabels[dmConv.id] === lbl ? ' active' : ''}`}>
                         {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
                       </button>
                     ))}
@@ -591,10 +591,10 @@ export default function ChatModals({
             </div>
             <div className="form-group">
               <label className="form-label">Relatie</label>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div className="label-chip-row">
                 {['familie', 'vrienden'].map(lbl => (
                   <button key={lbl} type="button" onClick={() => setContactRelation(contactRelation === lbl ? null : lbl)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${contactRelation === lbl ? '#6c63ff' : 'var(--border)'}`, background: contactRelation === lbl ? '#6c63ff' : 'transparent', color: contactRelation === lbl ? '#fff' : 'var(--text2)', fontSize: 13, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                    className={`label-chip${contactRelation === lbl ? ' active' : ''}`}>
                     {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
                   </button>
                 ))}
@@ -602,13 +602,13 @@ export default function ChatModals({
             </div>
             {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
             {pendingFriendRequest && (
-              <div style={{ marginTop: '-6px', marginBottom: '8px', padding: '10px 12px', borderRadius: '10px', background: 'rgba(124,111,255,0.08)', border: '1px solid rgba(124,111,255,0.2)', color: 'var(--text2)', fontSize: '13px' }}>
-                <div style={{ marginBottom: '10px' }}>
+              <div className="pending-request-notice">
+                <div className="pending-request-copy">
                   {pendingFriendRequest.remindersRemaining > 0
                     ? `Je kunt nog ${pendingFriendRequest.remindersRemaining} ${pendingFriendRequest.remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} sturen.`
                     : 'Je hebt alle 3 herinneringen al gebruikt.'}
                 </div>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div className="pending-request-actions">
                   <button
                     type="button"
                     className="btn-secondary"
@@ -1095,9 +1095,9 @@ export default function ChatModals({
               aria-describedby="contact-profile-description"
             >
               <button type="button" className="modal-close-btn" aria-label="Profiel sluiten" onClick={() => setShowContactProfile(false)}><span aria-hidden="true">✕</span></button>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div className="panel-header-row">
                 <h2 id="contact-profile-title" className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h2>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div className="panel-header-actions">
                   <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={openStarredFromProfile}>
                     <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
                   </button>
@@ -1135,10 +1135,10 @@ export default function ChatModals({
               </div>
               <div className="form-group">
                 <label className="form-label">Relatie</label>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div className="label-chip-row">
                   {['familie', 'vrienden'].map(lbl => (
                     <button key={lbl} type="button" onClick={() => setConvLabel(activeConv.id, convLabels[activeConv.id] === lbl ? null : lbl)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${convLabels[activeConv.id] === lbl ? '#6c63ff' : 'var(--border)'}`, background: convLabels[activeConv.id] === lbl ? '#6c63ff' : 'transparent', color: convLabels[activeConv.id] === lbl ? '#fff' : 'var(--text2)', fontSize: 13, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                      className={`label-chip${convLabels[activeConv.id] === lbl ? ' active' : ''}`}>
                       {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
                     </button>
                   ))}
@@ -1161,12 +1161,11 @@ export default function ChatModals({
         );
         return (
           <aside
-              className="chat-side-panel starred-messages-panel"
-              aria-labelledby="starred-messages-title"
-              aria-describedby="starred-messages-description"
-              style={{ display: 'flex', flexDirection: 'column' }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            className="chat-side-panel starred-messages-panel panel-stack"
+            aria-labelledby="starred-messages-title"
+            aria-describedby="starred-messages-description"
+          >
+              <div className="panel-header-row panel-header-row--compact">
                 <h2 id="starred-messages-title" className="modal-title" style={{ margin: 0 }}>
                   <span className="modal-title-icon" aria-hidden="true"><StarFilled size={18} style={{ color: '#f59e0b' }} /></span>
                   Berichten met ster
@@ -1192,12 +1191,12 @@ export default function ChatModals({
                 )}
               </div>
               {starred.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '32px 0', color: 'var(--text3)' }}>
+                <div className="starred-empty-state">
                   <StarFilled size={36} style={{ opacity: .3, color: '#f59e0b', marginBottom: 8 }} aria-hidden="true" />
                   <div style={{ fontSize: 14 }}>{q ? 'Geen resultaten' : 'Nog geen berichten met ster'}</div>
                 </div>
               ) : (
-                <div style={{ overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div className="starred-list">
                   {starred.map(msg => (
                     <div key={msg.id} className="starred-msg-item" role="button" tabIndex={0}
                       onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); onJumpToMsg(msg.id); }}
@@ -1229,18 +1228,18 @@ export default function ChatModals({
                   : 'Bellen en videobellen zijn in Pulse Web niet beschikbaar.'}
               </p>
               {!callsAvailable ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, textAlign: 'left', padding: '12px 0 18px' }}>
+                <div className="call-panel-note">
                   <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{PULSE_WEB_CALLS_UNAVAILABLE_TITLE}</div>
                   <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>{PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE}</div>
                   <div style={{ fontSize: 12, color: 'var(--text3)', lineHeight: 1.55 }}>{PULSE_WEB_CALLS_UNAVAILABLE_HINT}</div>
                 </div>
               ) : callLog.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text3)' }}>
+                <div className="call-panel-empty">
                   <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
                   <div>Nog geen oproepen</div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px', maxHeight: 360, overflowY: 'auto' }}>
+                <div className="call-log-list">
                   {callLog.map((entry, i) => {
                     const contact = contacts.find(c => c.uid === entry.uid);
                     const dirIcon = entry.direction === 'outgoing' ? <PhoneOutgoing size={13} /> : entry.direction === 'missed' ? <Cancel size={13} /> : <PhoneCall size={13} />;
@@ -1258,8 +1257,8 @@ export default function ChatModals({
                           <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
                           {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
                         </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div className="call-log-copy">
+                          <div className="call-log-meta">
                             <span style={{ color: dirColor, fontWeight: 700, fontSize: 13 }} aria-hidden="true">{dirIcon}</span>
                             <span className="conv-name">{entry.name}</span>
                             <span style={{ fontSize: 11, color: 'var(--text3)', marginLeft: 'auto' }}>{ago}</span>
@@ -1267,7 +1266,7 @@ export default function ChatModals({
                           <div className="conv-preview" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{entry.isVideo ? <><Video size={12} aria-hidden="true" /> Videogesprek</> : <><Phone size={12} aria-hidden="true" /> Gesprek</>}</div>
                         </div>
                         {contact && (
-                          <div style={{ display: 'flex', gap: 6 }}>
+                          <div className="call-log-actions">
                             <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => callContact(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
                             <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => callContact(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
                           </div>

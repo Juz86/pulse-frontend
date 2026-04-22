@@ -293,9 +293,9 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         {callState === 'connecting'  && <div className="call-status blink" role="status" aria-live="polite">Camera aanzetten…</div>}
         {callState === 'active'      && <div className="call-timer" aria-label={`Gespreksduur ${formatTimer(timer)}`}>{formatTimer(timer)}</div>}
         {videoUpgradeRequest && callState === 'active' && (
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'12px', margin:'10px 0' }}>
-            <div style={{ fontSize:'13px', color:'#ccc', display:'flex', alignItems:'center', gap:6 }} role="status" aria-live="polite"><Video size={14} aria-hidden="true" /> {callName} wil videobellen</div>
-            <div style={{ display:'flex', gap:'10px' }}>
+          <div className="call-upgrade-banner">
+            <div className="call-upgrade-message" role="status" aria-live="polite"><Video size={14} aria-hidden="true" /> {callName} wil videobellen</div>
+            <div className="call-upgrade-actions">
               <button type="button" className="call-ctrl-btn decline" onClick={() => setVideoUpgradeRequest(false)}><Cancel size={18} aria-hidden="true" /><span>Weigeren</span></button>
               <button type="button" className="call-ctrl-btn accept" onClick={handleAcceptVideoUpgrade}><Video size={18} aria-hidden="true" /><span>Accepteren</span></button>
             </div>

@@ -5498,7 +5498,10 @@ font-family: 'Inter', sans-serif;
   .hp-why-grid { grid-template-columns: 1fr; gap: 16px; }
   .hp-feature-row { flex-direction: column; gap: 24px; }
   .hp-feature-row--reverse { flex-direction: column-reverse; gap: 24px; }
-  .hp-download-options { padding-bottom: 72px; }
+  .hp-download-options {
+    padding-top: 65px;
+    padding-bottom: 60px;
+  }
   .hp-download-options-copy {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 12px 14px;

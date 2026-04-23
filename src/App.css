@@ -1315,6 +1315,20 @@ font-family: 'Inter', sans-serif;
   letter-spacing:.1px;
 }
 
+.sidebar-contact-card {
+  margin: 0 12px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.sidebar-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+}
+
 .conv-delete-btn {
   flex-shrink:0; width:44px; height:44px; border-radius:11px;
   border:1px solid rgba(255,71,87,.35); background:rgba(255,71,87,.14);

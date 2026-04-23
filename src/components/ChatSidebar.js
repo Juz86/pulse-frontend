@@ -342,8 +342,8 @@ export default function ChatSidebar({
             c.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             c.email?.toLowerCase().includes(searchQuery.toLowerCase())
           ).map(contact => (
-            <div key={contact.uid} aria-label={`Contact ${getContactDisplayName(contact)}${contact.email ? `, ${contact.email}` : ''}`} style={{ margin: '0 12px 10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '12px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div key={contact.uid} className="sidebar-contact-card" aria-label={`Contact ${getContactDisplayName(contact)}${contact.email ? `, ${contact.email}` : ''}`}>
+              <div className="sidebar-contact-row">
                 <div className="avatar-wrap" aria-hidden="true">
                   <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} decorative />
                   {onlineUsers.has(contact.uid) && <span className={`online-dot${inactiveUsers.has(contact.uid) ? ' inactive' : ''}`} aria-hidden="true" />}

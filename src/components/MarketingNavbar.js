@@ -20,9 +20,7 @@ export default function MarketingNavbar({
     const nextWindow = window.open(cleanWebAppUrl, '_blank', 'noopener,noreferrer');
     if (nextWindow) {
       nextWindow.opener = null;
-      return;
     }
-    window.location.assign(cleanWebAppUrl);
   };
 
   useEffect(() => {

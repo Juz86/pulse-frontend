@@ -6,9 +6,7 @@ export default function useMarketingAuth({ onParentClick } = {}) {
     const nextWindow = window.open(url, '_blank', 'noopener,noreferrer');
     if (nextWindow) {
       nextWindow.opener = null;
-      return;
     }
-    window.location.assign(url);
   };
 
   const openParentSignup = () => {

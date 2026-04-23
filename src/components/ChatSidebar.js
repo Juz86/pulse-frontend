@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Delete, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline } from '../components/Icons';
+import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
@@ -357,7 +357,7 @@ export default function ChatSidebar({
                 >
                   <button
                     type="button"
-                    className="icon-btn"
+                    className="icon-btn sidebar-item-actions-btn"
                     aria-label={`Meer acties voor ${getContactDisplayName(contact)}`}
                     data-sidebar-actions-trigger
                     onClick={(e) => { e.stopPropagation(); openContactMenu(contact.uid, e.currentTarget); }}
@@ -482,14 +482,6 @@ export default function ChatSidebar({
                   </button>
                 </>
               )}
-              {(contact && !isProtectedParentContact) && <div className="chat-header-menu-divider" />}
-              {contact && !isProtectedParentContact && (
-                <button type="button" role="menuitem" className="chat-header-menu-item danger"
-                  onClick={() => { onBlockContact(contact); setConvMenu(null); }} title="Blokkeren">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
-                  <span>Blokkeren</span>
-                </button>
-              )}
             </>}
             <div className="chat-header-menu-divider" />
             {conv.isGroup ? (
@@ -525,6 +517,13 @@ export default function ChatSidebar({
                   <Trash2 size={14} aria-hidden="true" />
                   <span>Chat verwijderen</span>
                 </button>
+                {contact && !isProtectedParentContact && (
+                  <button type="button" role="menuitem" className="chat-header-menu-item danger"
+                    onClick={() => { onBlockContact(contact); setConvMenu(null); }} title="Blokkeren">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+                    <span>Blokkeren</span>
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -587,8 +586,8 @@ export default function ChatSidebar({
             </>}
             {!isProtectedParentContact && (
             <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
-              <Delete size={14} aria-hidden="true" />
-              <span>Prullenbak</span>
+              <Trash2 size={14} aria-hidden="true" />
+              <span>Verwijderen</span>
             </button>
             )}
           </div>

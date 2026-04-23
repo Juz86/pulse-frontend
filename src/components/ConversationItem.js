@@ -159,7 +159,7 @@ function ConversationItemBase({
       {!selectionMode && (
         <button
           type="button"
-          className="icon-btn"
+          className="icon-btn sidebar-item-actions-btn"
           aria-label={`Meer acties voor ${conv.name}`}
           data-sidebar-actions-trigger
           title="Meer acties"

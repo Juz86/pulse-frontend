@@ -1483,6 +1483,23 @@ font-family: 'Inter', sans-serif;
   text-shadow:0 1px 0 rgba(255,255,255,.45);
 }
 
+.chat-empty-description-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-size: clamp(11px, 2.1vw, 15px);
+  line-height: 1.25;
+}
+
+.chat-empty-description-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
 .chat-header {
   padding:clamp(12px, 2vw, 16px) clamp(14px, 2.2vw, 22px); display:flex; align-items:center; gap:clamp(8px, 1.5vw, 14px);
   background:rgba(39,36,80,0.92);
@@ -1506,6 +1523,11 @@ font-family: 'Inter', sans-serif;
 }
 .chat-header-typing { font-size:12px; color:var(--success); margin-top:2px; }
 .chat-header-actions { display:flex; gap:8px; position:relative; flex-shrink:0; flex-wrap:wrap; justify-content:flex-end; }
+.sidebar-item-actions-btn {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
 .chat-header-menu {
   position:fixed;
   min-width:220px;

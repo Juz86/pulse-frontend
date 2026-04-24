@@ -176,6 +176,8 @@ const ChatInput = React.memo(function ChatInput({
             aria-describedby={textareaDescribedBy}
             placeholder="Typ een bericht"
             value={text}
+            readOnly={editSubmitting}
+            aria-busy={editSubmitting}
             onChange={e => handleTyping(e.target.value)}
             onKeyDown={handleKeyDown}
             onCompositionStart={() => { composingRef.current = true; }}

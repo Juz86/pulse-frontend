@@ -551,7 +551,11 @@ export default function useConversations({
 
   function sendEditedMessage() {
     const socket = getSocket();
-    if (editSubmitting || !editingMsg || !text.trim() || !socket?.connected) return;
+    if (editSubmitting || !editingMsg || !text.trim()) return;
+    if (!socket?.connected) {
+      showErrToast('Geen verbinding. Probeer opnieuw zodra Pulse weer online is.');
+      return;
+    }
     if (!canEditMessage(editingMsg)) {
       showErrToast(ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE);
       setEditingMsg(null);

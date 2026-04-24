@@ -2447,6 +2447,9 @@ font-family: 'Inter', sans-serif;
   color:var(--text); font-family:'Inter',sans-serif;
   font-size:14.5px; resize:none; max-height:120px; line-height:1.5; padding:0;
 }
+.chat-textarea:read-only {
+  cursor:default;
+}
 .chat-textarea::placeholder { color:var(--text3); }
 .send-btn {
   width:var(--touch-target); height:var(--touch-target); border-radius:50%;

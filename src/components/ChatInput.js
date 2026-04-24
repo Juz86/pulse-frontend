@@ -148,7 +148,7 @@ const ChatInput = React.memo(function ChatInput({
             rows={1}
             aria-label="Bericht invoeren"
             aria-describedby={textareaDescribedBy}
-            placeholder="Stuur een bericht…"
+            placeholder="Typ een bericht"
             value={text}
             onChange={e => handleTyping(e.target.value)}
             onKeyDown={handleKeyDown}

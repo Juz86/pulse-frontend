@@ -76,9 +76,14 @@ function ConversationItemBase({
         {isOnline && <span className={`online-dot${isInactive ? ' inactive' : ''}`} aria-hidden="true" />}
       </div>
       <div className="conv-info">
-        <div className="conv-name" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          {conv.name}
-          {isPinned && <span aria-hidden="true"><Pin size={11} style={{ color: 'var(--accent,#7c3aed)', flexShrink: 0, opacity: 0.7 }} /></span>}
+        <div className="conv-name-row">
+          <div className="conv-name">
+            {conv.name}
+            {isPinned && <span aria-hidden="true"><Pin size={11} style={{ color: 'var(--accent,#7c3aed)', flexShrink: 0, opacity: 0.7 }} /></span>}
+          </div>
+          {conv.updatedAt && (
+            <span className="conv-meta-time">{convTime(conv.updatedAt)}</span>
+          )}
         </div>
         <div className="conv-preview">
           {conv.lastCallDirection ? callPreview(conv, currentUid) : (
@@ -149,9 +154,6 @@ function ConversationItemBase({
                     </span>
                   )}
                 </>
-              )}
-              {conv.updatedAt && (
-                <span className="conv-preview-time">{convTime(conv.updatedAt)}</span>
               )}
             </>
           )}

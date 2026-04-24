@@ -80,6 +80,7 @@ export function buildForwardServicePayload(message = {}) {
 
 export function buildSocketMessagePayload({
   conversationId,
+  localId = null,
   senderId,
   senderName,
   senderDeviceId = null,
@@ -94,6 +95,7 @@ export function buildSocketMessagePayload({
 
   return {
     convId: conversationId,
+    ...(localId ? { localId } : {}),
     senderId,
     senderName,
     text: resolveOutgoingMessageDisplayText({ plaintext, messageType, sharedContact }),

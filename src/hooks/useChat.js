@@ -151,12 +151,13 @@ export default function useChat({
 
       const current = activeConvRef.current;
       const convId = hydratedMsg.convId || hydratedMsg.conversationId || msg.convId;
+      const isIncomingFromOtherUser = hydratedMsg.senderId !== user.uid;
       if (hydratedMsg.transient) {
         onTransientMessage?.(convId, hydratedMsg);
       }
 
       if (current?.id === convId) {
-        if (hydratedMsg.protocol === ENCRYPTED_MESSAGE_PROTOCOL && hydratedMsg.senderId !== user.uid && hydratedMsg.id) {
+        if (hydratedMsg.protocol === ENCRYPTED_MESSAGE_PROTOCOL && isIncomingFromOtherUser && hydratedMsg.id) {
           messagingService.sendReceipt({ user, messageId: hydratedMsg.id, type: 'read' }).catch(() => {});
         }
         setMessages(prev => {
@@ -170,7 +171,15 @@ export default function useChat({
             if (prev.some(m => m.id && m.id === hydratedMsg.id)) return prev;
             return [...prev, hydratedMsg];
           }
-          const pendingIdx = prev.findIndex(m => m.pending && m.senderId === hydratedMsg.senderId && m.text === hydratedMsg.text);
+          const pendingIdx = prev.findIndex(m => (
+            m.pending
+            && m.senderId === hydratedMsg.senderId
+            && (
+              (m.localId && hydratedMsg.localId && m.localId === hydratedMsg.localId)
+              || (m.id && hydratedMsg.localId && m.id === hydratedMsg.localId)
+              || (!hydratedMsg.localId && m.text === hydratedMsg.text)
+            )
+          ));
           if (pendingIdx !== -1) {
             const next = [...prev];
             next[pendingIdx] = { ...hydratedMsg, pending: false };
@@ -182,8 +191,8 @@ export default function useChat({
         setTimeout(() => {
           if (msgsAreaRef.current) msgsAreaRef.current.scrollTo({ top: msgsAreaRef.current.scrollHeight, behavior: 'smooth' });
         }, 50);
-        if (!isConversationMuted(convId)) playMessageSound();
-      } else if (hydratedMsg.senderId !== user.uid) {
+        if (isIncomingFromOtherUser && !isConversationMuted(convId)) playMessageSound();
+      } else if (isIncomingFromOtherUser) {
         if (hydratedMsg.protocol === ENCRYPTED_MESSAGE_PROTOCOL && hydratedMsg.id) {
           messagingService.sendReceipt({ user, messageId: hydratedMsg.id, type: 'delivered' }).catch(() => {});
         }
@@ -234,7 +243,13 @@ export default function useChat({
     const onMessageStatus = ({ convId, msgId, status, receiptSummary }) => {
       if (status === 'gelezen') {
         setMessages(prev => prev.map(m =>
-          (m.convId === convId || m.conversationId === convId) && m.senderId === user.uid
+          (m.convId === convId || m.conversationId === convId)
+            && (!msgId || m.id === msgId)
+            && m.senderId === user.uid
+            && !m.pending
+            && !m.failed
+            && m.deliveryState !== 'sending'
+            && m.deliveryState !== 'failed'
             ? { ...m, status: 'gelezen', deliveryState: 'read', receiptSummary: receiptSummary || m.receiptSummary || null }
             : m
         ));

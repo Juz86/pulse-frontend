@@ -569,6 +569,7 @@ export default function useConversations({
     };
     const msg = buildSocketMessagePayload({
       conversationId: activeConv.id,
+      localId: optimisticMsg.id,
       senderId: user.uid,
       senderName: user.displayName || user.email,
       senderDeviceId: currentDeviceId,
@@ -705,6 +706,7 @@ export default function useConversations({
       convId: conv.id,
       message: buildSocketMessagePayload({
         conversationId: conv.id,
+        localId: optimisticMsg.id,
         senderId: user.uid,
         senderName: user.displayName || user.email,
         senderDeviceId: currentDeviceId,
@@ -768,6 +770,7 @@ export default function useConversations({
         convId: activeConv.id,
         message: buildSocketMessagePayload({
           conversationId: activeConv.id,
+          localId: failedMsg.localId || failedMsg.id,
           senderId: user.uid,
           senderName: user.displayName || user.email,
           senderDeviceId: currentDeviceId,

@@ -4,18 +4,18 @@ import React from 'react';
 
 export function getMessageStatusInfo(msg) {
   if (msg.failed) return { icon: 'cancel', label: 'Mislukt', failed: true };
-  if (msg.pending) return { icon: 'clock', label: 'verstuurd', failed: false };
+  if (msg.pending) return { icon: 'clock', label: 'verzenden', failed: false };
   if (msg.deliveryState === 'read') return { icon: 'double', label: 'gelezen', read: true };
   if (msg.deliveryState === 'delivered') return { icon: 'double', label: 'bezorgd', read: false };
   if (msg.deliveryState === 'failed') return { icon: 'cancel', label: 'Mislukt', failed: true };
-  if (msg.deliveryState === 'sending') return { icon: 'clock', label: 'verstuurd', failed: false };
+  if (msg.deliveryState === 'sending') return { icon: 'clock', label: 'verzenden', failed: false };
   if (msg.status === 'gelezen') return { icon: 'double', label: 'gelezen', read: true };
   if (msg.status === 'bezorgd') return { icon: 'double', label: 'bezorgd', read: false };
   return { icon: 'check', label: 'verstuurd', failed: false };
 }
 
-export function getMessageReceiptSummaryLabel(msg, isGroup) {
-  if (!isGroup || !msg?.receiptSummary || !msg?.isOwn) return '';
+export function getMessageReceiptSummaryLabel(msg, isGroup, isOwn = false) {
+  if (!isGroup || !msg?.receiptSummary || !isOwn) return '';
 
   const {
     recipientCount = 0,
@@ -61,7 +61,7 @@ export function buildTextMessageCardPresentation(msg, {
 } = {}) {
   const status = isOwn ? getMessageStatusInfo(msg) : null;
   const displayText = getMessageDisplayText(msg);
-  const receiptSummaryLabel = getMessageReceiptSummaryLabel(msg, isGroup);
+  const receiptSummaryLabel = getMessageReceiptSummaryLabel(msg, isGroup, isOwn);
   const renderedContent = chatSearch.trim()
     ? highlightMessageSearch(displayText, chatSearch)
     : renderMessageTextWithMentions(displayText, msg.mentions, memberNames);

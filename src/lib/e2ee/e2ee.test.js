@@ -1379,6 +1379,7 @@ describe('e2ee transport payload helpers', () => {
   test('buildSocketMessagePayload centralizes the active socket fallback message shape', () => {
     expect(buildSocketMessagePayload({
       conversationId: 'conv-1',
+      localId: 'temp-1',
       senderId: 'user-1',
       senderName: 'Yushua',
       senderDeviceId: 'device-1',
@@ -1387,6 +1388,7 @@ describe('e2ee transport payload helpers', () => {
       mentions: ['user-2'],
     })).toMatchObject({
       convId: 'conv-1',
+      localId: 'temp-1',
       senderId: 'user-1',
       senderName: 'Yushua',
       senderDeviceId: 'device-1',

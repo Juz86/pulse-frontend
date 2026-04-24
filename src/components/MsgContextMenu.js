@@ -1,5 +1,5 @@
 // src/components/MsgContextMenu.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { canEditMessage } from '../lib/e2ee/policy';
 import {
   Reply, Copy, Smile, Forward, Pin, StarFilled, StarOutline,
@@ -19,8 +19,21 @@ export default function MsgContextMenu({
   const menuGap       = 8;
   const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
 
-  const chatBounds = document.querySelector('.messages-area-wrap')?.getBoundingClientRect();
-  const bounds = chatBounds || { left: 8, right: window.innerWidth - 8, top: 8, bottom: window.innerHeight - 8 };
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') onClose();
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+  const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 768;
+  const chatBounds = typeof document !== 'undefined'
+    ? document.querySelector('.messages-area-wrap')?.getBoundingClientRect()
+    : null;
+  const bounds = chatBounds || { left: 8, right: viewportWidth - 8, top: 8, bottom: viewportHeight - 8 };
   const minLeft = bounds.left + menuGap;
   const maxLeft = bounds.right - menuWidth - menuGap;
   const minTop = bounds.top + menuGap;

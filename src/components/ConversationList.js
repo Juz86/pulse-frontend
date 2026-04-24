@@ -2,6 +2,7 @@
 import React, { useMemo } from 'react';
 import { Message } from '../components/Icons';
 import ConversationItem from './ConversationItem';
+import { toMs } from '../utils';
 
 const ConversationList = React.memo(function ConversationList({
   conversations,
@@ -40,7 +41,8 @@ const ConversationList = React.memo(function ConversationList({
       .sort((a, b) => {
         const aPinned = pinnedContacts.includes(getOtherUid(a));
         const bPinned = pinnedContacts.includes(getOtherUid(b));
-        return bPinned - aPinned;
+        if (aPinned !== bPinned) return bPinned - aPinned;
+        return toMs(b.updatedAt || b.lastMessageAt || b.createdAt) - toMs(a.updatedAt || a.lastMessageAt || a.createdAt);
       })
       .map(conv => ({
         ...conv,

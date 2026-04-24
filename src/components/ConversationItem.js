@@ -3,20 +3,7 @@ import React from 'react';
 import { Pin, MoreHoriz } from '../components/Icons';
 import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
 import UserAvatar from '../components/UserAvatar';
-import { callPreview } from '../utils';
-
-function convTime(val) {
-  if (!val) return '';
-  const d = val?.toDate ? val.toDate() : new Date(val);
-  if (isNaN(d)) return '';
-  const now = new Date();
-  const isToday = d.toDateString() === now.toDateString();
-  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
-  const isYesterday = d.toDateString() === yesterday.toDateString();
-  if (isToday) return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-  if (isYesterday) return 'Gisteren';
-  return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
-}
+import { callPreview, formatConversationListTime } from '../utils';
 
 function ConversationItemBase({
   conv,
@@ -82,7 +69,7 @@ function ConversationItemBase({
             {isPinned && <span aria-hidden="true"><Pin size={11} style={{ color: 'var(--accent,#7c3aed)', flexShrink: 0, opacity: 0.7 }} /></span>}
           </div>
           {(conv.updatedAt || conv.lastMessageAt) && (
-            <span className="conv-meta-time">{convTime(conv.updatedAt || conv.lastMessageAt)}</span>
+            <span className="conv-meta-time">{formatConversationListTime(conv.updatedAt || conv.lastMessageAt)}</span>
           )}
         </div>
         <div className="conv-preview">

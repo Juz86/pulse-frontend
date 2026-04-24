@@ -139,6 +139,10 @@ const MessageList = React.memo(function MessageList({
         <div className="msg-loading-state" role="status" aria-live="polite">
           Berichten laden...
         </div>
+      ) : items.length === 0 ? (
+        <div className="msg-empty-state" role="status" aria-live="polite">
+          Nog geen berichten. Stuur het eerste bericht wanneer je zover bent.
+        </div>
       ) : items}
 
       {typing && !loadingMsgs && (

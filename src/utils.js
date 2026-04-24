@@ -171,6 +171,7 @@ export function clearPulseUserStorage(uid) {
 export function toMs(v) {
   if (!v) return 0;
   if (typeof v === 'number') return v;
+  if (typeof v.toDate === 'function') return v.toDate().getTime();
   if (v._seconds !== undefined) return v._seconds * 1000;
   if (v.seconds  !== undefined) return v.seconds  * 1000;
   const ms = new Date(v).getTime();
@@ -180,8 +181,10 @@ export function toMs(v) {
 /** Chat: Firestore Timestamp of ISO-string → Date object */
 export function parseDate(val) {
   if (!val) return null;
-  if (val._seconds) return new Date(val._seconds * 1000);
-  const d = new Date(val);
+  if (typeof val.toDate === 'function') return val.toDate();
+  const ms = toMs(val);
+  if (!ms) return null;
+  const d = new Date(ms);
   return isNaN(d) ? null : d;
 }
 
@@ -203,6 +206,20 @@ export function formatDateLabel(val) {
   if (msgDay.getTime() === today.getTime())     return 'Vandaag';
   if (msgDay.getTime() === yesterday.getTime()) return 'Gisteren';
   return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+/** Chatlijst: compacte WhatsApp-achtige tijdweergave, binnen Pulse-copy. */
+export function formatConversationListTime(val) {
+  const d = parseDate(val);
+  if (!d) return '';
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today - 86400000);
+  const msgDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+  if (msgDay.getTime() === today.getTime()) return formatTime(d);
+  if (msgDay.getTime() === yesterday.getTime()) return 'Gisteren';
+  return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
 }
 
 /** Chat: preview-tekst voor oproepen in de gesprekkenlijst */

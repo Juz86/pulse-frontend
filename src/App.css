@@ -2491,6 +2491,16 @@ font-family: 'Inter', sans-serif;
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
 }
+.msg-empty-state {
+  align-self:center;
+  margin:auto;
+  max-width:280px;
+  text-align:center;
+  color:var(--text3);
+  font-size:13px;
+  line-height:1.45;
+  padding:14px 16px;
+}
 @keyframes slide-down { from { transform:translateY(-100%); } to { transform:translateY(0); } }
 
 /* ── MODAL ── */

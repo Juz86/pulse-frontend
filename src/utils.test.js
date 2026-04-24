@@ -1,14 +1,17 @@
 import {
   clearPulseUserStorage,
   DEFAULT_HISTORY_RETENTION_DAYS,
+  formatConversationListTime,
   getSafeInternalPath,
   normalizeHistoryRules,
   normalizeEmail,
   normalizeUsername,
+  parseDate,
   readSessionConversations,
   readStoredHistoryRules,
   safeJsonParse,
   sanitizeDisplayName,
+  toMs,
   writeSessionConversations,
   writeStoredHistoryRules,
 } from './utils';
@@ -92,5 +95,21 @@ describe('utils safety helpers', () => {
     expect(readSessionConversations('user-1')).toEqual({
       'conv-1': [{ id: 'transient-1', text: 'Hallo' }],
     });
+  });
+
+  test('parseDate and toMs support Firestore-like timestamp shapes', () => {
+    expect(toMs({ seconds: 10 })).toBe(10000);
+    expect(toMs({ _seconds: 12 })).toBe(12000);
+    expect(parseDate({ toDate: () => new Date('2026-04-24T09:02:00.000Z') }).toISOString()).toBe('2026-04-24T09:02:00.000Z');
+  });
+
+  test('formatConversationListTime keeps chat list timestamps compact', () => {
+    jest.useFakeTimers().setSystemTime(new Date(2026, 3, 24, 12, 0, 0));
+
+    expect(formatConversationListTime(new Date(2026, 3, 24, 9, 2, 0))).toBe('09:02');
+    expect(formatConversationListTime(new Date(2026, 3, 23, 22, 10, 0))).toBe('Gisteren');
+    expect(formatConversationListTime(new Date(2026, 3, 20, 22, 10, 0))).toBe('20 apr');
+
+    jest.useRealTimers();
   });
 });

@@ -214,9 +214,16 @@ export default function useChat({
       });
     };
 
-    const onTypingUpdate = ({ typing, name }) => {
-      if (typing) { setTyping(true); setTypingName(name || 'Iemand'); }
-      else setTyping(false);
+    const onTypingUpdate = ({ convId, typing, name }) => {
+      const currentConvId = activeConvRef.current?.id;
+      if (convId && currentConvId && convId !== currentConvId) return;
+      if (typing) {
+        setTyping(true);
+        setTypingName(name || 'Iemand');
+      } else {
+        setTyping(false);
+        setTypingName('');
+      }
     };
 
     const onMessageStatus = ({ convId, msgId, status, receiptSummary }) => {

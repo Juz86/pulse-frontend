@@ -196,12 +196,7 @@ const ChatHeader = React.memo(function ChatHeader({
           onKeyDown={handleProfileKeyDown}
         >
           <div className="chat-header-name">{getConvName(activeConv)}</div>
-          {typing
-            ? <div className="chat-header-typing" aria-live="polite"><span aria-hidden="true">● </span>{typingName} typt…</div>
-            : isOnline
-              ? <div className="chat-header-online">{isActive ? 'Online' : 'Afwezig'}</div>
-              : null
-          }
+          {isOnline ? <div className="chat-header-online">{isActive ? 'Online' : 'Afwezig'}</div> : null}
         </div>
 
         {/* Actieknoppen */}

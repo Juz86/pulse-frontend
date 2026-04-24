@@ -560,6 +560,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               chatBg={chatBg}
               hasMore={hasMore} loadingMore={loadingMore} loadingMsgs={loadingMsgs}
               showChatSearch={showChatSearch} msgsAreaRef={msgsAreaRef} msgEndRef={msgEndRef}
+              typing={typing}
+              typingName={typingName}
               onLoadMore={loadMoreMessages}
               onCloseSearch={() => { setShowChatSearch(false); setChatSearch(''); }}
               onReact={(msgId, emoji) => toggleReaction(msgId, emoji)}

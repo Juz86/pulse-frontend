@@ -25,6 +25,8 @@ const MessageList = React.memo(function MessageList({
   onStartCall,
   onViewContact,
   jumpToMsgId,
+  typing = false,
+  typingName = '',
   selectionMode = false,
   selectedMessageIds = [],
   onToggleMessageSelection,
@@ -138,6 +140,21 @@ const MessageList = React.memo(function MessageList({
           Berichten laden...
         </div>
       ) : items}
+
+      {typing && !loadingMsgs && (
+        <div className="msg-group in typing-indicator-group" role="status" aria-live="polite" aria-label={`${typingName || 'Iemand'} typt`}>
+          <div className="msg-bubble-wrap">
+            <div className="msg-bubble msg-typing-bubble">
+              <span className="sr-only">{typingName || 'Iemand'} typt…</span>
+              <span className="msg-typing-dots" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div ref={msgEndRef} />
     </div>

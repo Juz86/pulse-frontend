@@ -1,6 +1,7 @@
 // src/components/MessageList.js
 import React, { useMemo, useCallback } from 'react';
 import MessageBubble from './MessageBubble';
+import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { formatDateLabel } from '../utils';
 
 const MessageList = React.memo(function MessageList({
@@ -34,7 +35,7 @@ const MessageList = React.memo(function MessageList({
   const focusedMsgId = useMemo(() => {
     if (jumpToMsgId) return jumpToMsgId;
     if (!chatSearch.trim()) return null;
-    const matches = messages.filter(m => m.text?.toLowerCase().includes(chatSearch.toLowerCase()));
+    const matches = messages.filter(m => getMessageDisplayText(m).toLowerCase().includes(chatSearch.toLowerCase()));
     return matches[chatSearchIdx % (matches.length || 1)]?.id ?? null;
   }, [messages, chatSearch, chatSearchIdx, jumpToMsgId]);
 

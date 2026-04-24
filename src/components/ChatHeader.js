@@ -5,6 +5,7 @@ import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
 } from '../lib/e2ee/config';
+import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import UserAvatar from '../components/UserAvatar';
 
 const ChatHeader = React.memo(function ChatHeader({
@@ -60,7 +61,7 @@ const ChatHeader = React.memo(function ChatHeader({
 
   const searchMatches = useMemo(() =>
     chatSearch.trim()
-      ? messages.filter(m => m.text?.toLowerCase().includes(chatSearch.toLowerCase()))
+      ? messages.filter(m => getMessageDisplayText(m).toLowerCase().includes(chatSearch.toLowerCase()))
       : [],
     [messages, chatSearch]
   );

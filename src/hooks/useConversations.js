@@ -477,14 +477,24 @@ export default function useConversations({
   // ── Meer berichten laden ──────────────────────────────────────────────────
   async function loadMoreMessages() {
     if (!activeConv || loadingMore) return;
+    const convId = activeConv.id;
+    const scrollArea = msgsAreaRef.current;
+    const previousScrollHeight = scrollArea?.scrollHeight || 0;
+    const previousScrollTop = scrollArea?.scrollTop || 0;
     setLoadingMore(true);
     try {
-      const data = await fetchConversationMessages(activeConv.id, { limit: MSG_LIMIT, offset: msgOffset });
+      const data = await fetchConversationMessages(convId, { limit: MSG_LIMIT, offset: msgOffset });
       const arr  = Array.isArray(data) ? data : [];
       const hydrated = await hydrateMessages(arr);
+      if (activeConvRef.current?.id !== convId) return;
       setMessages(prev => [...hydrated, ...prev]);
       setMsgOffset(prev => prev + arr.length);
       setHasMore(arr.length === MSG_LIMIT);
+      setTimeout(() => {
+        if (!scrollArea) return;
+        const nextScrollHeight = scrollArea.scrollHeight || 0;
+        scrollArea.scrollTop = previousScrollTop + Math.max(0, nextScrollHeight - previousScrollHeight);
+      }, 0);
     } catch { showErrToast('Meer berichten laden mislukt'); }
     finally { setLoadingMore(false); }
   }
@@ -598,6 +608,11 @@ export default function useConversations({
     } else {
       socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
         clearTimeout(failTimer);
+        if (savedMsg?.error || !savedMsg?.id) {
+          patchMessageAsFailed(optimisticMsg.id);
+          showErrToast('Bericht verzenden mislukt');
+          return;
+        }
         if (savedMsg?.id) {
           pendingTempIds.current.delete(optimisticMsg.id);
           patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
@@ -654,6 +669,11 @@ export default function useConversations({
         if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight;
       }, 50);
     }
+    const failTimer = isActiveConversation
+      ? setTimeout(() => {
+          patchMessageAsFailed(optimisticMsg.id);
+        }, 20000)
+      : null;
 
     setConversations(prev => applyConversationSummaryToList(prev, conv.id, optimisticMsg, optimisticMsg.createdAt));
 
@@ -667,12 +687,14 @@ export default function useConversations({
         messageType: 'contact',
         sharedContact: normalizedSharedContact,
       }).then((savedMsg) => {
+        clearTimeout(failTimer);
         if (!isActiveConversation) return;
         pendingTempIds.current.delete(optimisticMsg.id);
         patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
         const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
         storeTransientConversationMessage(conv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
       }).catch(() => {
+        clearTimeout(failTimer);
         if (!isActiveConversation) return;
         patchMessageAsFailed(optimisticMsg.id);
       });
@@ -692,7 +714,18 @@ export default function useConversations({
         createdAt: optimisticMsg.createdAt,
       }),
     }, (savedMsg) => {
-      if (!savedMsg?.id) return;
+      clearTimeout(failTimer);
+      if (savedMsg?.error || !savedMsg?.id) {
+        if (isActiveConversation) {
+          patchMessageAsFailed(optimisticMsg.id);
+          showErrToast('Contactpersoon delen mislukt');
+        }
+        return;
+      }
+      if (isActiveConversation) {
+        pendingTempIds.current.delete(optimisticMsg.id);
+        patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
+      }
       const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
       storeTransientConversationMessage(conv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
     });
@@ -747,11 +780,14 @@ export default function useConversations({
         }),
       }, (savedMsg) => {
         clearTimeout(failTimer);
-        if (savedMsg?.id) {
-          pendingTempIds.current.delete(failedMsg.id);
-          patchMessageAsSent(failedMsg.id, savedMsg, failedMsg.id);
-          removePending(failedMsg.id);
+        if (savedMsg?.error || !savedMsg?.id) {
+          patchMessageAsFailed(failedMsg.id);
+          showErrToast('Opnieuw versturen mislukt');
+          return;
         }
+        pendingTempIds.current.delete(failedMsg.id);
+        patchMessageAsSent(failedMsg.id, savedMsg, failedMsg.id);
+        removePending(failedMsg.id);
       });
     }
   }

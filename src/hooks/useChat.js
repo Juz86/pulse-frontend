@@ -42,6 +42,7 @@ export default function useChat({
   const disconnectTimerRef   = useRef(null);
   const reconnectIntervalRef = useRef(null);
   const processedIncomingRef = useRef(new Map());
+  const onReconnectRef       = useRef(onReconnect);
   const socket = getSocket();
 
   const [connected,      setConnected]      = useState(true);
@@ -50,6 +51,10 @@ export default function useChat({
   const [typingName,     setTypingName]     = useState('');
   const [pausedFeatures, setPausedFeatures] = useState({ chat: false, call: false, video: false });
   const [mentionToast,   setMentionToast]   = useState(null);
+
+  useEffect(() => {
+    onReconnectRef.current = onReconnect;
+  }, [onReconnect]);
 
   function playMessageSound() {
     if (dndRef.current) return;
@@ -115,7 +120,7 @@ export default function useChat({
       // Haal vriendschapsverzoeken op bij reconnect — gemiste verzoeken tijdens offline periode ophalen
       loadFriendRequests?.();
       // Herverstuurd mislukte berichten zodra socket daadwerkelijk connected is
-      onReconnect?.();
+      onReconnectRef.current?.();
     };
 
     const onDisconnect = () => {

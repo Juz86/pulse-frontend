@@ -1,5 +1,5 @@
 // src/components/ChatInput.js
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { getSocket } from '../services/socket';
 import { Send, PauseCircle } from '../components/Icons';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
@@ -26,6 +26,9 @@ const ChatInput = React.memo(function ChatInput({
   stopTyping,
   onSend,
 }) {
+  const composingRef = useRef(false);
+  const canSend = text.trim().length > 0;
+
   const insertMention = useCallback((member) => {
     const cursorPos = textareaRef.current?.selectionStart ?? text.length;
     const textBefore = text.slice(0, cursorPos);
@@ -42,6 +45,7 @@ const ChatInput = React.memo(function ChatInput({
   }, [text, setText, setPendingMentions, setMentionSuggestions, textareaRef]);
 
   const handleKeyDown = useCallback((e) => {
+    if (composingRef.current || e.nativeEvent?.isComposing) return;
     if (mentionSuggestions.length > 0) {
       if (e.key === 'ArrowDown') { e.preventDefault(); setMentionSelIdx(i => Math.min(i + 1, mentionSuggestions.length - 1)); return; }
       if (e.key === 'ArrowUp')   { e.preventDefault(); setMentionSelIdx(i => Math.max(i - 1, 0)); return; }
@@ -49,8 +53,9 @@ const ChatInput = React.memo(function ChatInput({
       if (e.key === 'Escape')    { setMentionSuggestions([]); return; }
     }
     if (e.key === 'Escape' && editingMsg) { setEditingMsg(null); setText(''); return; }
+    if (e.key === 'Escape' && replyTo) { setReplyTo(null); return; }
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); }
-  }, [mentionSuggestions, mentionSelIdx, editingMsg, insertMention, setMentionSelIdx, setMentionSuggestions, setEditingMsg, setText, onSend]);
+  }, [mentionSuggestions, mentionSelIdx, editingMsg, replyTo, insertMention, setMentionSelIdx, setMentionSuggestions, setEditingMsg, setReplyTo, setText, onSend]);
 
   const handleTyping = useCallback((val) => {
     setText(val);
@@ -80,10 +85,16 @@ const ChatInput = React.memo(function ChatInput({
     }
     const conv = activeConvRef.current;
     if (!conv) return;
+    if (!val.trim()) {
+      setPendingMentions([]);
+      clearTimeout(typingTimerRef.current);
+      stopTyping();
+      return;
+    }
     getSocket()?.emit('typing:start', { convId: conv.id, name: user.displayName });
     clearTimeout(typingTimerRef.current);
     typingTimerRef.current = setTimeout(stopTyping, 2000);
-  }, [activeConv, user, contacts, setText, setMentionSuggestions, setMentionSelIdx, textareaRef, activeConvRef, typingTimerRef, stopTyping]);
+  }, [activeConv, user, contacts, setText, setPendingMentions, setMentionSuggestions, setMentionSelIdx, textareaRef, activeConvRef, typingTimerRef, stopTyping]);
 
   const textareaDescribedBy = [
     editingMsg ? 'chat-compose-editing' : null,
@@ -152,8 +163,10 @@ const ChatInput = React.memo(function ChatInput({
             value={text}
             onChange={e => handleTyping(e.target.value)}
             onKeyDown={handleKeyDown}
+            onCompositionStart={() => { composingRef.current = true; }}
+            onCompositionEnd={() => { composingRef.current = false; }}
           />
-          <button type="button" className="send-btn" aria-label="Bericht versturen" onClick={onSend}><Send size={18} aria-hidden="true" /></button>
+          <button type="button" className="send-btn" aria-label="Bericht versturen" onClick={onSend} disabled={!canSend}><Send size={18} aria-hidden="true" /></button>
         </div>
       )}
     </div>

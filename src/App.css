@@ -2267,6 +2267,17 @@ font-family: 'Inter', sans-serif;
   background:#9b6cff;
   box-shadow:0 8px 20px rgba(139,92,246,.48);
 }
+.send-btn:disabled {
+  opacity:.45;
+  cursor:default;
+  transform:none;
+  box-shadow:none;
+}
+.send-btn:disabled:hover {
+  background:#8b5cf6;
+  transform:none;
+  box-shadow:none;
+}
 .send-btn:active { transform:scale(0.97); }
 
 /* ── AVATAR ── */

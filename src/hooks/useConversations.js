@@ -361,20 +361,34 @@ export default function useConversations({
   // ── Gesprek openen ────────────────────────────────────────────────────────
   async function openConversation(conv) {
     const convId = conv.id;
-    if (activeConvRef.current?.id && text.trim()) {
-      localStorage.setItem(`pulse_draft_${user.uid}_${activeConvRef.current.id}`, text.trim());
-    } else if (activeConvRef.current?.id) {
-      localStorage.removeItem(`pulse_draft_${user.uid}_${activeConvRef.current.id}`);
+    const previousConvId = activeConvRef.current?.id;
+    if (previousConvId) {
+      stopTyping();
+      const draftKey = `pulse_draft_${user.uid}_${previousConvId}`;
+      if (!editingMsg && text.trim()) {
+        localStorage.setItem(draftKey, text);
+      } else {
+        localStorage.removeItem(draftKey);
+      }
     }
     setActiveConv(conv);
     activeConvRef.current = conv;
     const draft = localStorage.getItem(`pulse_draft_${user.uid}_${convId}`) || '';
     setText(draft);
+    setReplyTo(null);
+    setEditingMsg(null);
+    setPendingMentions([]);
+    setMentionSuggestions([]);
     setActiveTab('chats');
     setShowChatSearch(false);
     setChatSearch('');
     setMsgOffset(0);
     setHasMore(false);
+    setTimeout(() => {
+      if (!textareaRef.current) return;
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = draft ? `${Math.min(textareaRef.current.scrollHeight, 120)}px` : 'auto';
+    }, 0);
     setUnreadCounts(prev => { const n = { ...prev }; delete n[conv.id]; return n; });
     const sessionMessages = getSessionMessagesForConversation(convId);
     const cached = msgCache.current[convId];

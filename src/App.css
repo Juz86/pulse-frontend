@@ -1969,15 +1969,20 @@ font-family: 'Inter', sans-serif;
   margin-right:14px;
 }
 .msg-reaction-pill {
-  background:rgba(255,255,255,.96); border:1px solid rgba(15,23,42,.08);
+  background:rgba(48,45,96,.94); border:1px solid rgba(255,255,255,.14);
   border-radius:999px; padding:0 7px; min-width:26px; width:auto; height:22px; font-size:14px; cursor:pointer;
   display:flex; align-items:center; justify-content:center; gap:4px; color:var(--text);
   transition:.1s; line-height:1;
-  box-shadow:0 2px 6px rgba(0,0,0,.16);
+  box-shadow:0 4px 12px rgba(0,0,0,.24);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
 }
-.msg-reaction-pill.mine { background:#fff; border-color:rgba(108,99,255,.45); }
-.msg-reaction-pill:hover { transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.22); }
-.msg-reaction-pill span { font-size:13px; font-weight:700; color:#4b5563; line-height:1; }
+.msg-reaction-pill.mine {
+  background:linear-gradient(135deg, rgba(108,99,255,.92), rgba(255,101,132,.78));
+  border-color:rgba(255,255,255,.22);
+}
+.msg-reaction-pill:hover { transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.28); }
+.msg-reaction-pill span { font-size:13px; font-weight:700; color:#fff; line-height:1; }
 .msg-reaction-pill span + span { font-size:10px; margin-left:-2px; }
 .msg-reaction-details {
   position:absolute;
@@ -1985,15 +1990,15 @@ font-family: 'Inter', sans-serif;
   width:min(470px, calc(100vw - 28px));
   min-height:220px;
   max-height:min(430px, calc(100vh - 140px));
-  background:rgba(255,255,255,.98);
-  color:#111827;
-  border:1px solid rgba(15,23,42,.08);
-  border-radius:18px;
-  box-shadow:0 20px 48px rgba(15,23,42,.24);
+  background:linear-gradient(180deg, rgba(48,45,96,.98), rgba(39,36,80,.98));
+  color:var(--text);
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:16px;
+  box-shadow:0 22px 52px rgba(0,0,0,.38), 0 0 0 1px rgba(108,99,255,.08);
   overflow:hidden;
   z-index:1306;
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
   animation:reaction-details-pop .13s ease-out;
 }
 .msg-group.in .msg-reaction-details {
@@ -2008,9 +2013,9 @@ font-family: 'Inter', sans-serif;
 }
 .msg-reaction-details-title {
   padding:18px 18px 8px;
-  color:#6b7280;
+  color:var(--text2);
   font-size:16px;
-  font-weight:500;
+  font-weight:700;
   line-height:1.2;
 }
 .msg-reaction-tabs {
@@ -2026,9 +2031,9 @@ font-family: 'Inter', sans-serif;
 }
 .msg-reaction-add-btn,
 .msg-reaction-tab {
-  border:1px solid rgba(17,24,39,.12);
-  background:#fff;
-  color:#4b5563;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.045);
+  color:var(--text2);
   height:38px;
   flex-shrink:0;
   cursor:pointer;
@@ -2057,8 +2062,13 @@ font-family: 'Inter', sans-serif;
 .msg-reaction-add-btn.active,
 .msg-reaction-tab:hover,
 .msg-reaction-tab.selected {
-  background:#d7f8df;
-  border-color:#8ee2a2;
+  background:rgba(108,99,255,.18);
+  border-color:rgba(108,99,255,.55);
+  color:#fff;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
+}
+.msg-reaction-tab.selected {
+  background:linear-gradient(135deg, rgba(108,99,255,.42), rgba(255,101,132,.22));
 }
 .msg-reaction-add-btn:active,
 .msg-reaction-tab:active {
@@ -2076,6 +2086,7 @@ font-family: 'Inter', sans-serif;
   border:0;
   border-radius:50%;
   background:transparent;
+  color:var(--text);
   font-size:21px;
   cursor:pointer;
   display:flex;
@@ -2084,12 +2095,12 @@ font-family: 'Inter', sans-serif;
   transition:background .12s ease, transform .12s ease;
 }
 .msg-reaction-quick-row button:hover {
-  background:#f3f4f6;
+  background:rgba(255,255,255,.08);
   transform:scale(1.16);
 }
 .msg-reaction-details-divider {
   height:1px;
-  background:#e5e7eb;
+  background:rgba(255,255,255,.09);
 }
 .msg-reaction-user-list {
   max-height:260px;
@@ -2112,7 +2123,7 @@ font-family: 'Inter', sans-serif;
   cursor:pointer;
 }
 .msg-reaction-user-row.clickable:hover {
-  background:#f8fafc;
+  background:rgba(255,255,255,.055);
 }
 .avatar-circle.reaction-detail-avatar {
   width:48px;
@@ -2131,7 +2142,7 @@ font-family: 'Inter', sans-serif;
   gap:3px;
 }
 .msg-reaction-user-name {
-  color:#111827;
+  color:var(--text);
   font-size:16px;
   font-weight:700;
   line-height:1.2;
@@ -2140,7 +2151,7 @@ font-family: 'Inter', sans-serif;
   white-space:nowrap;
 }
 .msg-reaction-user-sub {
-  color:#6b7280;
+  color:var(--text2);
   font-size:14px;
   line-height:1.25;
 }

@@ -79,12 +79,11 @@ function ConversationItemBase({
         <div className="conv-name" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {conv.name}
           {isPinned && <span aria-hidden="true"><Pin size={11} style={{ color: 'var(--accent,#7c3aed)', flexShrink: 0, opacity: 0.7 }} /></span>}
-          {conv.updatedAt && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text3)', fontWeight: 400, flexShrink: 0 }}>{convTime(conv.updatedAt)}</span>}
         </div>
         <div className="conv-preview">
           {conv.lastCallDirection ? callPreview(conv, currentUid) : (
             <>
-              <span>{conversationPreview.previewText || conv.lastMessage || 'Start een gesprek…'}</span>
+              <span className="conv-preview-text">{conversationPreview.previewText || conv.lastMessage || 'Start een gesprek…'}</span>
               {conversationPreview.showRemoteAttachmentBadge && (
                 <>
                   <span
@@ -150,6 +149,9 @@ function ConversationItemBase({
                     </span>
                   )}
                 </>
+              )}
+              {conv.updatedAt && (
+                <span className="conv-preview-time">{convTime(conv.updatedAt)}</span>
               )}
             </>
           )}

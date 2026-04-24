@@ -2043,6 +2043,43 @@ font-family: 'Inter', sans-serif;
 }
 .delete-popup-cancel:hover { background:var(--surface3); }
 
+.delete-confirm-modal {
+  max-width:360px;
+}
+.delete-confirm-modal .modal-title {
+  margin-bottom:12px;
+  padding-right:34px;
+}
+.delete-confirm-description {
+  color:var(--text);
+  font-size:15px;
+  line-height:1.5;
+  margin:0 0 24px;
+}
+.delete-confirm-actions {
+  align-items:stretch;
+}
+.delete-confirm-actions .btn-secondary,
+.delete-confirm-actions .btn-primary {
+  min-height:58px;
+  margin-top:0;
+}
+.delete-confirm-actions .btn-secondary {
+  flex:0 0 138px;
+}
+.delete-confirm-btn {
+  flex:1 1 auto;
+  background:linear-gradient(135deg, #ef4444, #dc2626);
+}
+.delete-confirm-actions--three {
+  display:grid;
+  grid-template-columns:1fr;
+}
+.delete-confirm-actions--three .btn-secondary,
+.delete-confirm-actions--three .btn-primary {
+  width:100%;
+}
+
 /* ── Block confirm modal ────────────────────────────────────────────────────── */
 .modal-backdrop {
   position: fixed; inset: 0; z-index: 500;

@@ -1,7 +1,7 @@
 // src/screens/ChatScreen.js
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
-import { Bell, BellOff, Message, Delete, Trash2 } from '../components/Icons';
+import { Bell, BellOff, Message } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
 import ChatHeader from '../components/ChatHeader';
 import ChatSidebar from '../components/ChatSidebar';
@@ -693,44 +693,47 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       </Suspense>
 
       {deleteConfirm && (
-        <div className="delete-popup-overlay" onClick={() => setDeleteConfirm(null)}>
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
           <div
-            className="delete-popup"
+            className="modal-box delete-confirm-modal"
             role="dialog"
             aria-modal="true"
             aria-labelledby="delete-popup-title"
             aria-describedby="delete-popup-description"
             onClick={e => e.stopPropagation()}
           >
-            <div className="delete-popup-title" id="delete-popup-title">{deleteConfirm.count > 1 ? 'Berichten verwijderen' : 'Bericht verwijderen'}</div>
-            <p id="delete-popup-description" style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--text3)' }}>
+            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setDeleteConfirm(null)}><span aria-hidden="true">✕</span></button>
+            <h2 className="modal-title" id="delete-popup-title">{deleteConfirm.count > 1 ? 'Berichten verwijderen' : 'Bericht verwijderen'}</h2>
+            <p className="delete-confirm-description" id="delete-popup-description">
               {deleteConfirm.isOwn
                 ? `Kies of je ${deleteConfirm.count > 1 ? 'deze berichten' : 'dit bericht'} alleen voor jezelf of voor iedereen wilt verwijderen.`
                 : `${deleteConfirm.count > 1 ? 'Deze berichten' : 'Dit bericht'} kun je alleen voor jezelf verwijderen.`}
             </p>
-            <button type="button" className="delete-popup-btn" onClick={async () => {
-              for (const msgId of deleteConfirm.msgIds) {
-                // eslint-disable-next-line no-await-in-loop
-                await deleteMessage(msgId, 'self');
-              }
-              deleteConfirm.onComplete?.();
-              setDeleteConfirm(null);
-            }}>
-              <Delete size={18} aria-hidden="true" /> {deleteConfirm.count > 1 ? 'Voor mezelf verwijderen' : 'Voor mezelf verwijderen'}
-            </button>
-            {deleteConfirm.isOwn && (
-              <button type="button" className="delete-popup-btn danger" onClick={async () => {
+            <div className={`modal-actions delete-confirm-actions${deleteConfirm.isOwn ? ' delete-confirm-actions--three' : ''}`}>
+              <button type="button" className="btn-secondary" onClick={() => setDeleteConfirm(null)}>Annuleren</button>
+              <button type="button" className="btn-primary delete-confirm-btn" onClick={async () => {
                 for (const msgId of deleteConfirm.msgIds) {
                   // eslint-disable-next-line no-await-in-loop
-                  await deleteMessage(msgId, 'all');
+                  await deleteMessage(msgId, 'self');
                 }
                 deleteConfirm.onComplete?.();
                 setDeleteConfirm(null);
               }}>
-                <Trash2 size={18} aria-hidden="true" /> Voor iedereen verwijderen
+                Voor mezelf verwijderen
               </button>
-            )}
-            <button type="button" className="delete-popup-cancel" onClick={() => setDeleteConfirm(null)}>Annuleren</button>
+              {deleteConfirm.isOwn && (
+                <button type="button" className="btn-primary delete-confirm-btn" onClick={async () => {
+                  for (const msgId of deleteConfirm.msgIds) {
+                    // eslint-disable-next-line no-await-in-loop
+                    await deleteMessage(msgId, 'all');
+                  }
+                  deleteConfirm.onComplete?.();
+                  setDeleteConfirm(null);
+                }}>
+                  Voor iedereen verwijderen
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

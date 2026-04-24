@@ -1,0 +1,4 @@
+Contact: mailto:info@pulse-messenger.com
+Expires: 2027-04-24T00:00:00Z
+Preferred-Languages: nl, en
+Canonical: https://pulse-messenger.com/.well-known/security.txt

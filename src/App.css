@@ -1848,11 +1848,11 @@ font-family: 'Inter', sans-serif;
   position:absolute;
   top:5px;
   right:5px;
-  width:28px;
-  height:28px;
+  width:18px;
+  height:18px;
   border:0;
-  border-radius:10px;
-  background:var(--surface2);
+  border-radius:0;
+  background:transparent;
   color:currentColor;
   opacity:0;
   cursor:pointer;
@@ -1869,18 +1869,29 @@ font-family: 'Inter', sans-serif;
 }
 .msg-bubble-menu-btn:hover {
   opacity:1;
-  background:rgba(108,99,255,.18);
+  background:transparent;
   transform:translateY(-1px);
 }
 .msg-group.out .msg-bubble-menu-btn:hover {
-  background:rgba(255,255,255,.16);
+  background:transparent;
 }
 .msg-emoji-picker {
-  position:absolute; bottom:calc(100% + 6px); left:0;
+  position:absolute;
+  top:50%;
+  left:calc(100% + 8px);
+  transform:translateY(-50%);
   background:var(--surface2); border:1px solid var(--border);
   border-radius:24px; padding:4px 6px;
-  box-shadow:0 4px 20px rgba(0,0,0,.3); z-index:202;
+  box-shadow:0 4px 20px rgba(0,0,0,.3); z-index:1201;
   display:flex; gap:2px; white-space:nowrap;
+}
+.msg-group.out .msg-emoji-picker {
+  left:auto;
+  right:calc(100% + 8px);
+}
+.msg-group.in .msg-emoji-picker {
+  left:calc(100% + 8px);
+  right:auto;
 }
 .msg-emoji-picker button {
   background:none; border:none; font-size:20px; cursor:pointer;

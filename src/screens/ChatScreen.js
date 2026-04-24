@@ -39,6 +39,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [chatSearchIdx,  setChatSearchIdx]  = useState(0);
   const [deleteMenuMsgId, setDeleteMenuMsgId] = useState(null);
   const [editingMsg,     setEditingMsg]     = useState(null);
+  const [editSubmitting, setEditSubmitting] = useState(false);
   const [reactionPickerMsgId, setReactionPickerMsgId] = useState(null);
   const [forwardMsg,     setForwardMsg]     = useState(null);
   const [dnd, setDnd]   = useState(() => localStorage.getItem('pulse_dnd') === '1');
@@ -215,7 +216,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     storeTransientConversationMessage,
   } = useConversations({
     user, text, setText, setActiveTab, setShowChatSearch, setChatSearch,
-    replyTo, setReplyTo, editingMsg, setEditingMsg,
+    replyTo, setReplyTo, editingMsg, setEditingMsg, editSubmitting, setEditSubmitting,
     setReactionPickerMsgId, forwardMsg, setForwardMsg,
     pendingMentions, setPendingMentions, setMentionSuggestions,
     setUnreadCounts, convLabels, setConvLabels,
@@ -595,6 +596,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 <ChatInput
                   text={text} setText={setText}
                   editingMsg={editingMsg} setEditingMsg={setEditingMsg}
+                  editSubmitting={editSubmitting}
                   replyTo={replyTo} setReplyTo={setReplyTo}
                   mentionSuggestions={mentionSuggestions} setMentionSuggestions={setMentionSuggestions}
                   mentionSelIdx={mentionSelIdx} setMentionSelIdx={setMentionSelIdx}

@@ -9,6 +9,7 @@ const ChatInput = React.memo(function ChatInput({
   setText,
   editingMsg,
   setEditingMsg,
+  editSubmitting = false,
   replyTo,
   setReplyTo,
   mentionSuggestions,
@@ -66,10 +67,10 @@ const ChatInput = React.memo(function ChatInput({
       if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); insertMention(mentionSuggestions[mentionSelIdx]); return; }
       if (e.key === 'Escape')    { setMentionSuggestions([]); return; }
     }
-    if (e.key === 'Escape' && editingMsg) { setEditingMsg(null); setText(''); return; }
+    if (e.key === 'Escape' && editingMsg && !editSubmitting) { setEditingMsg(null); setText(''); return; }
     if (e.key === 'Escape' && replyTo) { setReplyTo(null); return; }
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onSend(); }
-  }, [mentionSuggestions, mentionSelIdx, editingMsg, replyTo, insertMention, setMentionSelIdx, setMentionSuggestions, setEditingMsg, setReplyTo, setText, onSend]);
+  }, [mentionSuggestions, mentionSelIdx, editingMsg, editSubmitting, replyTo, insertMention, setMentionSelIdx, setMentionSuggestions, setEditingMsg, setReplyTo, setText, onSend]);
 
   const handleTyping = useCallback((val) => {
     setText(val);
@@ -123,7 +124,7 @@ const ChatInput = React.memo(function ChatInput({
             <span className="reply-preview-name"><span aria-hidden="true">✏️ </span>Bewerken</span>
             <span className="reply-preview-text">{getMessageDisplayText(editingMsg)}</span>
           </div>
-          <button type="button" className="reply-preview-close" aria-label="Bewerken annuleren" onClick={() => { setEditingMsg(null); setText(''); }}><span aria-hidden="true">✕</span></button>
+          <button type="button" className="reply-preview-close" aria-label="Bewerken annuleren" disabled={editSubmitting} onClick={() => { setEditingMsg(null); setText(''); }}><span aria-hidden="true">✕</span></button>
         </div>
       )}
       {replyTo && (
@@ -180,7 +181,7 @@ const ChatInput = React.memo(function ChatInput({
             onCompositionStart={() => { composingRef.current = true; }}
             onCompositionEnd={() => { composingRef.current = false; }}
           />
-          <button type="button" className="send-btn" aria-label="Bericht versturen" onClick={onSend} disabled={!canSend}><Send size={18} aria-hidden="true" /></button>
+          <button type="button" className="send-btn" aria-label={editSubmitting ? 'Bewerking opslaan' : 'Bericht versturen'} onClick={onSend} disabled={!canSend || editSubmitting}><Send size={18} aria-hidden="true" /></button>
         </div>
       )}
     </div>

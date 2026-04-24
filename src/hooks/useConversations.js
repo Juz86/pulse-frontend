@@ -35,7 +35,7 @@ export default function useConversations({
   setActiveTab,
   setShowChatSearch, setChatSearch,
   replyTo, setReplyTo,
-  editingMsg, setEditingMsg,
+  editingMsg, setEditingMsg, editSubmitting, setEditSubmitting,
   setReactionPickerMsgId,
   forwardMsg, setForwardMsg,
   pendingMentions, setPendingMentions, setMentionSuggestions,
@@ -377,6 +377,7 @@ export default function useConversations({
     setText(draft);
     setReplyTo(null);
     setEditingMsg(null);
+    setEditSubmitting(false);
     setPendingMentions([]);
     setMentionSuggestions([]);
     setActiveTab('chats');
@@ -550,7 +551,7 @@ export default function useConversations({
 
   function sendEditedMessage() {
     const socket = getSocket();
-    if (!editingMsg || !text.trim() || !socket?.connected) return;
+    if (editSubmitting || !editingMsg || !text.trim() || !socket?.connected) return;
     if (!canEditMessage(editingMsg)) {
       showErrToast(ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE);
       setEditingMsg(null);
@@ -558,13 +559,19 @@ export default function useConversations({
       return;
     }
     const trimmed = text.trim();
+    const editedMessageId = editingMsg.id;
+    setEditSubmitting(true);
     socket.emit('message:edit', { convId: activeConv.id, msgId: editingMsg.id, newText: trimmed }, (res) => {
-      if (res?.error) return showErrToast(res.error);
-      setMessages(prev => prev.map(m => m.id === editingMsg.id ? { ...m, text: trimmed, editedAt: new Date().toISOString() } : m));
+      setEditSubmitting(false);
+      if (res?.error) {
+        showErrToast(res.error);
+        return;
+      }
+      setMessages(prev => prev.map(m => m.id === editedMessageId ? { ...m, text: trimmed, editedAt: new Date().toISOString() } : m));
+      setEditingMsg(null);
+      setText('');
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
     });
-    setEditingMsg(null);
-    setText('');
-    if (textareaRef.current) textareaRef.current.style.height = 'auto';
   }
 
   function sendMessage() {

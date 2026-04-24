@@ -35,14 +35,28 @@ const ChatInput = React.memo(function ChatInput({
     const atMatch = textBefore.match(/@([^\s@]*)$/);
     if (!atMatch) return;
     const start = cursorPos - atMatch[0].length;
-    const newText = text.slice(0, start) + `@${member.displayName} ` + text.slice(cursorPos);
+    const insertedMention = `@${member.displayName} `;
+    const newText = text.slice(0, start) + insertedMention + text.slice(cursorPos);
+    const nextCursorPos = start + insertedMention.length;
     setText(newText);
     setPendingMentions(prev =>
       prev.find(m => m.uid === member.uid) ? prev : [...prev, { uid: member.uid, displayName: member.displayName }]
     );
     setMentionSuggestions([]);
-    setTimeout(() => textareaRef.current?.focus(), 0);
-  }, [text, setText, setPendingMentions, setMentionSuggestions, textareaRef]);
+    const conv = activeConvRef.current;
+    if (conv && newText.trim()) {
+      getSocket()?.emit('typing:start', { convId: conv.id, name: user.displayName });
+      clearTimeout(typingTimerRef.current);
+      typingTimerRef.current = setTimeout(stopTyping, 2000);
+    }
+    setTimeout(() => {
+      if (!textareaRef.current) return;
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(nextCursorPos, nextCursorPos);
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+    }, 0);
+  }, [text, user.displayName, setText, setPendingMentions, setMentionSuggestions, textareaRef, activeConvRef, typingTimerRef, stopTyping]);
 
   const handleKeyDown = useCallback((e) => {
     if (composingRef.current || e.nativeEvent?.isComposing) return;

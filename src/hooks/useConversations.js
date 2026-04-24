@@ -430,7 +430,9 @@ export default function useConversations({
     } catch (e) {
       if (activeConvRef.current?.id === convId) showErrToast('Berichten laden mislukt');
     }
-    finally { setLoadingMsgs(false); }
+    finally {
+      if (activeConvRef.current?.id === convId) setLoadingMsgs(false);
+    }
   }
 
   // ── Gesprek verwijderen ───────────────────────────────────────────────────
@@ -501,7 +503,11 @@ export default function useConversations({
       const arr  = Array.isArray(data) ? data : [];
       const hydrated = await hydrateMessages(arr);
       if (activeConvRef.current?.id !== convId) return;
-      setMessages(prev => [...hydrated, ...prev]);
+      setMessages(prev => {
+        const merged = mergeConversationMessages(hydrated, prev);
+        msgCache.current[convId] = merged;
+        return merged;
+      });
       setMsgOffset(prev => prev + arr.length);
       setHasMore(arr.length === MSG_LIMIT);
       setTimeout(() => {

@@ -1834,8 +1834,8 @@ font-family: 'Inter', sans-serif;
   display:none; position:absolute; top:50%; transform:translateY(-50%);
   align-items:center; gap:4px;
 }
-.msg-group.out .msg-actions { left:-30px; }
-.msg-group.in  .msg-actions { right:-30px; }
+.msg-group.out .msg-actions { left:-18px; }
+.msg-group.in  .msg-actions { right:-18px; }
 .msg-group:hover .msg-actions { display:flex; }
 .msg-action-btn {
   background:var(--surface2); border:none; border-radius:50%;

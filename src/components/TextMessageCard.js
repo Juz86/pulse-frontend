@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, CheckDouble, Clock, ErrorIcon, MoreHoriz } from '../components/Icons';
+import { Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
 import MessageBubbleActions from './MessageBubbleActions';
 import { formatTime } from '../utils';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
@@ -30,7 +30,9 @@ export default function TextMessageCard({
           aria-label="Berichtopties"
           onClick={(e) => { e.stopPropagation(); onShowContextMenu(e); }}
         >
-          <MoreHoriz size={16} aria-hidden="true" />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M7 10l5 5 5-5z"/>
+          </svg>
         </button>
         <span className="msg-bubble-text">
           {renderedContent}

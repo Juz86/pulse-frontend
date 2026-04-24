@@ -719,7 +719,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 deleteConfirm.onComplete?.();
                 setDeleteConfirm(null);
               }}>
-                Voor mezelf verwijderen
+                Voor mezelf
               </button>
               {deleteConfirm.isOwn && (
                 <button type="button" className="btn-primary delete-confirm-btn" onClick={async () => {
@@ -730,7 +730,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   deleteConfirm.onComplete?.();
                   setDeleteConfirm(null);
                 }}>
-                  Voor iedereen verwijderen
+                  Voor iedereen
                 </button>
               )}
             </div>

@@ -1,18 +1,21 @@
 // src/components/MsgContextMenu.js
-import React from 'react';
+import React, { useState } from 'react';
 import { canEditMessage } from '../lib/e2ee/policy';
 import {
-  Reply, Copy, Share, Pin, StarFilled, StarOutline,
+  InfoIcon, Reply, Copy, Smile, Forward, Pin, StarFilled, StarOutline,
   MagicEdit, Delete, Refresh,
 } from './Icons';
 
+const QUICK_EMOJI = ['❤️', '👍', '😂', '😮', '😢', '👎'];
+
 export default function MsgContextMenu({
   msg, isOwn, position, starred, pinned,
-  onClose, onReply, onCopy, onForward, onPin, onStar, onEdit,
+  onClose, onInfo, onReply, onCopy, onReact, onForward, onPin, onStar, onEdit,
   onDeleteRequest, onRetry,
 }) {
   const menuWidth     = 234;
-  const menuEstHeight = 290;
+  const menuEstHeight = 380;
+  const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
 
   let left = position.x;
   let top  = position.y;
@@ -24,6 +27,11 @@ export default function MsgContextMenu({
 
   function doAndClose(fn) {
     return () => { fn(); onClose(); };
+  }
+
+  function handleReact(emoji) {
+    onReact(emoji);
+    onClose();
   }
 
   return (
@@ -38,6 +46,11 @@ export default function MsgContextMenu({
           </button>
         )}
 
+        <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onInfo)}>
+          <InfoIcon size={18} className="msg-ctx-icon" aria-hidden="true" />
+          <span>Berichtinformatie</span>
+        </button>
+
         <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onReply)}>
           <Reply size={18} className="msg-ctx-icon" aria-hidden="true" />
           <span>Beantwoorden</span>
@@ -50,9 +63,36 @@ export default function MsgContextMenu({
           </button>
         )}
 
+        <button
+          type="button"
+          role="menuitem"
+          className={`msg-ctx-item${reactionPickerOpen ? ' active' : ''}`}
+          aria-expanded={reactionPickerOpen}
+          onClick={() => setReactionPickerOpen((open) => !open)}
+        >
+          <Smile size={18} className="msg-ctx-icon" aria-hidden="true" />
+          <span>Reageren</span>
+        </button>
+
+        {reactionPickerOpen && (
+          <div className="msg-ctx-emoji-row" role="group" aria-label="Snelle reacties">
+            {QUICK_EMOJI.map((emoji) => (
+              <button
+                type="button"
+                key={emoji}
+                className="msg-ctx-emoji"
+                aria-label={`Reageer met ${emoji}`}
+                onClick={() => handleReact(emoji)}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+
         {isText && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onForward)}>
-            <Share size={18} className="msg-ctx-icon" aria-hidden="true" />
+            <Forward size={18} className="msg-ctx-icon" aria-hidden="true" />
             <span>Doorsturen</span>
           </button>
         )}

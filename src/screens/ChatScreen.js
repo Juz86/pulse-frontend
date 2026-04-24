@@ -751,6 +751,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           starred={starredMsgs.includes(contextMenu.msg.id)}
           pinned={pinnedMsgs[activeConv?.id]?.id === contextMenu.msg.id}
           onClose={() => setContextMenu(null)}
+          onInfo={() => showErrToast(`Bericht van ${contextMenu.msg.senderName || (contextMenu.isOwn ? 'jou' : 'onbekend')}`)}
           onReply={() => { setReplyTo({ id: contextMenu.msg.id, text: contextMenu.msg.text, senderName: contextMenu.msg.senderName }); textareaRef.current?.focus(); }}
           onCopy={() => {
             copyTextToClipboard(contextMenu.msg.text || '')

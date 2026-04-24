@@ -1917,7 +1917,7 @@ font-family: 'Inter', sans-serif;
 }
 .msg-ctx-emoji-row {
   display:flex; align-items:center; justify-content:space-around;
-  padding:8px 12px 6px;
+  padding:4px 6px 8px;
 }
 .msg-ctx-emoji {
   background:none; border:none; font-size:22px; cursor:pointer;
@@ -1937,7 +1937,8 @@ font-family: 'Inter', sans-serif;
   font-weight:600;
   cursor:pointer; text-align:left; transition:background .15s ease, color .15s ease;
 }
-.msg-ctx-item:hover { background:rgba(108,99,255,.12); color:var(--accent); }
+.msg-ctx-item:hover,
+.msg-ctx-item.active { background:rgba(108,99,255,.12); color:var(--accent); }
 .msg-ctx-item.danger { color:#f87171; }
 .msg-ctx-item.danger:hover { background:rgba(248,113,113,.1); color:#f87171; }
 .msg-ctx-icon { flex-shrink:0; width:20px; display:flex; align-items:center; justify-content:center; opacity:.8; }

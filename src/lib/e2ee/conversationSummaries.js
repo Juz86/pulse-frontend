@@ -188,8 +188,8 @@ function normalizeConversationAttachmentSummary(conversation = {}) {
 
 function sortConversationSummaryList(conversations = []) {
   return [...conversations].sort((a, b) => {
-    const aTime = Date.parse(a.updatedAt || a.createdAt || 0);
-    const bTime = Date.parse(b.updatedAt || b.createdAt || 0);
+    const aTime = Date.parse(a.updatedAt || a.lastMessageAt || a.createdAt || 0);
+    const bTime = Date.parse(b.updatedAt || b.lastMessageAt || b.createdAt || 0);
     return bTime - aTime;
   });
 }
@@ -339,7 +339,10 @@ function resolveConversationPreviewSpecialCaseText(message = {}) {
 }
 
 export function normalizeConversationSummaryRecord(conversation = {}) {
-  return normalizeConversationAttachmentSummary(conversation);
+  return normalizeConversationAttachmentSummary({
+    ...conversation,
+    updatedAt: conversation.updatedAt || conversation.lastMessageAt || conversation.createdAt || null,
+  });
 }
 
 export function buildConversationPreviewPresentation(

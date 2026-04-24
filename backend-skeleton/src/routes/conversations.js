@@ -7,8 +7,8 @@ import { purgeExpiredConversationHistory } from '../services/historyRetention.js
 
 function sortByUpdatedDesc(items) {
   return [...items].sort((a, b) => {
-    const aTime = Date.parse(a.updatedAt || a.createdAt || 0);
-    const bTime = Date.parse(b.updatedAt || b.createdAt || 0);
+    const aTime = Date.parse(a.updatedAt || a.lastMessageAt || a.createdAt || 0);
+    const bTime = Date.parse(b.updatedAt || b.lastMessageAt || b.createdAt || 0);
     return bTime - aTime;
   });
 }

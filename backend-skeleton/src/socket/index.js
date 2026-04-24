@@ -8,6 +8,7 @@ import { computeHistoryExpiresAt, resolveConversationRetentionDays } from '../se
 import { isAllowedAppOrigin } from '../services/httpSecurity.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
+import { toggleSingleUserReaction } from '../services/messageReactions.js';
 
 const onlineUsers = new Map();
 const inactiveUsers = new Set();
@@ -485,12 +486,7 @@ export function createSocketServer(server) {
       const msgDoc = await db.collection('messages').doc(msgId).get();
       if (!msgDoc.exists) return;
       const data = msgDoc.data();
-      const reactions = { ...(data.reactions || {}) };
-      const existingUsers = new Set(Array.isArray(reactions[emoji]) ? reactions[emoji] : []);
-      if (existingUsers.has(uid)) existingUsers.delete(uid);
-      else existingUsers.add(uid);
-      reactions[emoji] = Array.from(existingUsers);
-      if (reactions[emoji].length === 0) delete reactions[emoji];
+      const reactions = toggleSingleUserReaction(data.reactions || {}, emoji, uid);
       await msgDoc.ref.set({ reactions }, { merge: true });
       for (const memberUid of conv.members) {
         emitToUser(io, memberUid, 'message:reaction', { convId, msgId, reactions });

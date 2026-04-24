@@ -1949,16 +1949,32 @@ font-family: 'Inter', sans-serif;
 .msg-ctx-item.danger:hover { background:rgba(248,113,113,.1); color:#f87171; }
 .msg-ctx-icon { flex-shrink:0; width:14px; display:flex; align-items:center; justify-content:center; opacity:.8; }
 
-.msg-reactions { display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
-.msg-reaction-pill {
-  background:var(--surface2); border:1px solid var(--border);
-  border-radius:20px; padding:2px 8px; font-size:14px; cursor:pointer;
-  display:flex; align-items:center; gap:4px; color:var(--text);
-  transition:.1s; line-height:1.4;
+.msg-group.has-reactions { margin-bottom:14px; }
+.msg-reactions {
+  display:flex; flex-wrap:wrap; gap:3px;
+  position:relative; z-index:2;
+  margin-top:-7px;
+  max-width:min(78%, 42rem);
 }
-.msg-reaction-pill.mine { background:rgba(108,99,255,.2); border-color:var(--accent); }
-.msg-reaction-pill:hover { background:var(--surface3); }
-.msg-reaction-pill span { font-size:12px; font-weight:600; }
+.msg-group.in .msg-reactions {
+  align-self:flex-start;
+  margin-left:14px;
+}
+.msg-group.out .msg-reactions {
+  align-self:flex-end;
+  justify-content:flex-end;
+  margin-right:14px;
+}
+.msg-reaction-pill {
+  background:rgba(255,255,255,.96); border:1px solid rgba(15,23,42,.08);
+  border-radius:999px; padding:1px 6px; min-width:24px; min-height:22px; font-size:14px; cursor:pointer;
+  display:flex; align-items:center; gap:4px; color:var(--text);
+  transition:.1s; line-height:1;
+  box-shadow:0 2px 7px rgba(0,0,0,.18);
+}
+.msg-reaction-pill.mine { background:#fff; border-color:rgba(108,99,255,.45); }
+.msg-reaction-pill:hover { transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.22); }
+.msg-reaction-pill span { font-size:13px; font-weight:700; color:#4b5563; }
 
 /* ── Berichten met ster ── */
 .starred-msgs-row {

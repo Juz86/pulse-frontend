@@ -9,6 +9,7 @@ import { filterVisibleMessages } from '../services/messageVisibility.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 import { applyConversationSummaryFields, deriveConversationSummary } from '../services/conversationSummaries.js';
+import { toggleSingleUserReaction } from '../services/messageReactions.js';
 
 function isMissingFirestoreIndexError(error) {
   const message = String(error?.message || '');
@@ -322,14 +323,7 @@ export function messagesRouter({ io, emitToUser }) {
       return res.status(400).json({ error: 'message_conversation_mismatch' });
     }
 
-    const reactions = { ...(message.reactions || {}) };
-    const existingUsers = new Set(Array.isArray(reactions[emoji]) ? reactions[emoji] : []);
-
-    if (existingUsers.has(uid)) existingUsers.delete(uid);
-    else existingUsers.add(uid);
-
-    reactions[emoji] = Array.from(existingUsers);
-    if (reactions[emoji].length === 0) delete reactions[emoji];
+    const reactions = toggleSingleUserReaction(message.reactions || {}, emoji, uid);
 
     await msgDoc.ref.set({ reactions }, { merge: true });
 

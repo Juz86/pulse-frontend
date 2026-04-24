@@ -5,6 +5,7 @@ import { db } from '../services/firestore.js';
 import { applyConversationSummaryFields, deriveConversationSummary } from '../services/conversationSummaries.js';
 import { purgeExpiredConversationHistory } from '../services/historyRetention.js';
 import { filterVisibleMessages } from '../services/messageVisibility.js';
+import { toggleSingleUserReaction } from '../services/messageReactions.js';
 
 export function apiMessagesRouter({ io, emitToUser }) {
 const router = Router();
@@ -137,14 +138,7 @@ router.post('/:convId/:msgId/react', requireAuth, asyncRoute(async (req, res) =>
     return res.status(400).json({ error: 'message_conversation_mismatch' });
   }
 
-  const reactions = { ...(message.reactions || {}) };
-  const existingUsers = new Set(Array.isArray(reactions[emoji]) ? reactions[emoji] : []);
-
-  if (existingUsers.has(uid)) existingUsers.delete(uid);
-  else existingUsers.add(uid);
-
-  reactions[emoji] = Array.from(existingUsers);
-  if (reactions[emoji].length === 0) delete reactions[emoji];
+  const reactions = toggleSingleUserReaction(message.reactions || {}, emoji, uid);
 
   await msgDoc.ref.set({ reactions, updatedAt: new Date().toISOString() }, { merge: true });
 

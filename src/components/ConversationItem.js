@@ -81,8 +81,8 @@ function ConversationItemBase({
             {conv.name}
             {isPinned && <span aria-hidden="true"><Pin size={11} style={{ color: 'var(--accent,#7c3aed)', flexShrink: 0, opacity: 0.7 }} /></span>}
           </div>
-          {conv.updatedAt && (
-            <span className="conv-meta-time">{convTime(conv.updatedAt)}</span>
+          {(conv.updatedAt || conv.lastMessageAt) && (
+            <span className="conv-meta-time">{convTime(conv.updatedAt || conv.lastMessageAt)}</span>
           )}
         </div>
         <div className="conv-preview">
@@ -191,6 +191,7 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.conv.lastAttachmentKeyWrapAlg === next.conv.lastAttachmentKeyWrapAlg &&
   prev.conv.lastAttachmentWrappedMediaKeyDigest === next.conv.lastAttachmentWrappedMediaKeyDigest &&
   prev.conv.updatedAt   === next.conv.updatedAt    &&
+  prev.conv.lastMessageAt === next.conv.lastMessageAt &&
   prev.conv.photoURL    === next.conv.photoURL     &&
   prev.isActive         === next.isActive          &&
   prev.isOnline         === next.isOnline          &&

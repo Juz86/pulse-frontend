@@ -261,6 +261,19 @@ describe('e2ee message model helpers', () => {
     });
   });
 
+  test('normalizeConversationSummaryRecord uses lastMessageAt as the visible timestamp fallback', () => {
+    expect(normalizeConversationSummaryRecord({
+      id: 'conv-1',
+      lastMessage: 'Hallo',
+      lastMessageAt: '2026-04-24T09:02:00.000Z',
+    })).toMatchObject({
+      id: 'conv-1',
+      lastMessage: 'Hallo',
+      lastMessageAt: '2026-04-24T09:02:00.000Z',
+      updatedAt: '2026-04-24T09:02:00.000Z',
+    });
+  });
+
   test('contact messages keep their shared-contact preview', () => {
     expect(buildConversationPreviewPresentation({
       type: 'contact',

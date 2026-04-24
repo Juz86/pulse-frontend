@@ -15,7 +15,11 @@ export default function MessageBubbleActions({
   }, [emojiPickerOpen]);
 
   return (
-    <div className="msg-actions" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="msg-actions"
+      onClick={(e) => e.stopPropagation()}
+      onMouseLeave={() => setEmojiPickerOpen(false)}
+    >
       <div style={{ position: 'relative' }}>
         <button
           type="button"

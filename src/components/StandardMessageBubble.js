@@ -22,10 +22,11 @@ export default function StandardMessageBubble({
     status,
     receiptSummaryLabel,
   } = presentation;
+  const hasReactions = !!msg.reactions && Object.values(msg.reactions).some((uids) => uids?.length > 0);
 
   return (
     <div
-      className={`msg-group ${isOwn ? 'out' : 'in'}`}
+      className={`msg-group ${isOwn ? 'out' : 'in'}${hasReactions ? ' has-reactions' : ''}`}
       role="listitem"
       ref={isFocused ? el => el?.scrollIntoView({ behavior: 'smooth', block: 'center' }) : null}
       onContextMenu={onContextMenu}

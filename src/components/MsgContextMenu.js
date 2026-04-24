@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { canEditMessage } from '../lib/e2ee/policy';
 import {
-  InfoIcon, Reply, Copy, Smile, Forward, Pin, StarFilled, StarOutline,
+  Reply, Copy, Smile, Forward, Pin, StarFilled, StarOutline,
   MagicEdit, Delete, Refresh,
 } from './Icons';
 
@@ -11,7 +11,7 @@ const MENU_ICON_SIZE = 14;
 
 export default function MsgContextMenu({
   msg, isOwn, position, anchorRect, starred, pinned,
-  onClose, onInfo, onReply, onCopy, onReact, onForward, onPin, onStar, onEdit,
+  onClose, onReply, onCopy, onReact, onForward, onPin, onStar, onEdit,
   onDeleteRequest, onRetry,
 }) {
   const menuWidth     = 220;
@@ -56,7 +56,8 @@ export default function MsgContextMenu({
   if (top > maxTop) top = Math.max(minTop, maxTop);
   if (top < minTop) top = minTop;
 
-  const isText = !msg.type;
+  const isText = !msg.type || msg.type === 'text';
+  const canForward = msg.type !== 'system' && msg.type !== 'call';
 
   function doAndClose(fn) {
     return () => { fn(); onClose(); };
@@ -78,11 +79,6 @@ export default function MsgContextMenu({
             <span>Opnieuw versturen</span>
           </button>
         )}
-
-        <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onInfo)}>
-          <InfoIcon size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />
-          <span>Berichtinformatie</span>
-        </button>
 
         <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onReply)}>
           <Reply size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />
@@ -123,7 +119,7 @@ export default function MsgContextMenu({
           </div>
         )}
 
-        {isText && (
+        {canForward && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onForward)}>
             <Forward size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />
             <span>Doorsturen</span>

@@ -15,6 +15,17 @@ export default function TextMessageCard({
   onReact,
   onShowContextMenu,
 }) {
+  function handleMenuClick(event) {
+    event.stopPropagation();
+    onShowContextMenu({
+      clientX: event.clientX,
+      clientY: event.clientY,
+      preventDefault: () => event.preventDefault(),
+      stopPropagation: () => event.stopPropagation(),
+      anchorRect: event.currentTarget.closest('.msg-bubble')?.getBoundingClientRect(),
+    });
+  }
+
   return (
     <div className="msg-bubble-wrap">
       {msg.replyTo && (
@@ -28,7 +39,7 @@ export default function TextMessageCard({
           type="button"
           className="msg-bubble-menu-btn"
           aria-label="Berichtopties"
-          onClick={(e) => { e.stopPropagation(); onShowContextMenu(e); }}
+          onClick={handleMenuClick}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M7 10l5 5 5-5z"/>

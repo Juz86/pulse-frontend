@@ -117,7 +117,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   function handleShowContextMenu(e, msg) {
     e.preventDefault?.();
     if (messageSelectionMode) return;
-    setContextMenu({ msg, isOwn: msg.senderId === user.uid, x: e.clientX, y: e.clientY });
+    setContextMenu({
+      msg,
+      isOwn: msg.senderId === user.uid,
+      x: e.clientX,
+      y: e.clientY,
+      anchorRect: e.anchorRect || null,
+    });
   }
   function handleStar(msgId) {
     setStarredMsgs(prev => {
@@ -709,9 +715,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 ? `Kies of je ${deleteConfirm.count > 1 ? 'deze berichten' : 'dit bericht'} alleen voor jezelf of voor iedereen wilt verwijderen.`
                 : `${deleteConfirm.count > 1 ? 'Deze berichten' : 'Dit bericht'} kun je alleen voor jezelf verwijderen.`}
             </p>
-            <div className={`modal-actions delete-confirm-actions${deleteConfirm.isOwn ? ' delete-confirm-actions--three' : ''}`}>
-              <button type="button" className="btn-secondary" onClick={() => setDeleteConfirm(null)}>Annuleren</button>
-              <button type="button" className="btn-primary delete-confirm-btn" onClick={async () => {
+            <div className={`delete-confirm-actions${deleteConfirm.isOwn ? ' delete-confirm-actions--two' : ''}`}>
+              <button type="button" className="delete-confirm-option" onClick={async () => {
                 for (const msgId of deleteConfirm.msgIds) {
                   // eslint-disable-next-line no-await-in-loop
                   await deleteMessage(msgId, 'self');
@@ -719,10 +724,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 deleteConfirm.onComplete?.();
                 setDeleteConfirm(null);
               }}>
-                Voor mezelf
+                <span className="delete-confirm-option-title">Voor mezelf verwijderen</span>
+                <span className="delete-confirm-option-sub">Alleen uit jouw chat</span>
               </button>
               {deleteConfirm.isOwn && (
-                <button type="button" className="btn-primary delete-confirm-btn" onClick={async () => {
+                <button type="button" className="delete-confirm-option delete-confirm-option--danger" onClick={async () => {
                   for (const msgId of deleteConfirm.msgIds) {
                     // eslint-disable-next-line no-await-in-loop
                     await deleteMessage(msgId, 'all');
@@ -730,7 +736,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   deleteConfirm.onComplete?.();
                   setDeleteConfirm(null);
                 }}>
-                  Voor iedereen
+                  <span className="delete-confirm-option-title">Voor iedereen verwijderen</span>
+                  <span className="delete-confirm-option-sub">Ook bij ontvangers</span>
                 </button>
               )}
             </div>
@@ -751,6 +758,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           msg={contextMenu.msg}
           isOwn={contextMenu.isOwn}
           position={{ x: contextMenu.x, y: contextMenu.y }}
+          anchorRect={contextMenu.anchorRect}
           starred={starredMsgs.includes(contextMenu.msg.id)}
           pinned={pinnedMsgs[activeConv?.id]?.id === contextMenu.msg.id}
           onClose={() => setContextMenu(null)}

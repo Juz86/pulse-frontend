@@ -7,21 +7,54 @@ import {
 } from './Icons';
 
 const QUICK_EMOJI = ['❤️', '👍', '😂', '😮', '😢', '👎'];
+const MENU_ICON_SIZE = 14;
 
 export default function MsgContextMenu({
-  msg, isOwn, position, starred, pinned,
+  msg, isOwn, position, anchorRect, starred, pinned,
   onClose, onInfo, onReply, onCopy, onReact, onForward, onPin, onStar, onEdit,
   onDeleteRequest, onRetry,
 }) {
-  const menuWidth     = 234;
+  const menuWidth     = 220;
   const menuEstHeight = 380;
+  const menuGap       = 8;
   const [reactionPickerOpen, setReactionPickerOpen] = useState(false);
+
+  const chatBounds = document.querySelector('.messages-area-wrap')?.getBoundingClientRect();
+  const bounds = chatBounds || { left: 8, right: window.innerWidth - 8, top: 8, bottom: window.innerHeight - 8 };
+  const minLeft = bounds.left + menuGap;
+  const maxLeft = bounds.right - menuWidth - menuGap;
+  const minTop = bounds.top + menuGap;
+  const maxTop = bounds.bottom - menuEstHeight - menuGap;
 
   let left = position.x;
   let top  = position.y;
-  if (left + menuWidth > window.innerWidth - 8)     left = window.innerWidth - menuWidth - 8;
-  if (left < 8)                                      left = 8;
-  if (top + menuEstHeight > window.innerHeight - 8)  top = Math.max(8, window.innerHeight - menuEstHeight - 8);
+
+  if (anchorRect) {
+    const preferredLeft = isOwn
+      ? anchorRect.left - menuWidth - menuGap
+      : anchorRect.right + menuGap;
+    const fallbackLeft = isOwn
+      ? anchorRect.right + menuGap
+      : anchorRect.left - menuWidth - menuGap;
+    const preferredFits = preferredLeft >= minLeft && preferredLeft <= maxLeft;
+    const fallbackFits = fallbackLeft >= minLeft && fallbackLeft <= maxLeft;
+
+    if (preferredFits || fallbackFits) {
+      left = preferredFits ? preferredLeft : fallbackLeft;
+      top = anchorRect.top;
+    } else {
+      left = isOwn ? anchorRect.right - menuWidth : anchorRect.left;
+      top = anchorRect.bottom + menuGap;
+      if (top + menuEstHeight > bounds.bottom - menuGap) {
+        top = anchorRect.top - menuEstHeight - menuGap;
+      }
+    }
+  }
+
+  if (left > maxLeft) left = maxLeft;
+  if (left < minLeft) left = minLeft;
+  if (top > maxTop) top = Math.max(minTop, maxTop);
+  if (top < minTop) top = minTop;
 
   const isText = !msg.type;
 
@@ -41,24 +74,24 @@ export default function MsgContextMenu({
 
         {isOwn && msg.failed && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onRetry)}>
-            <Refresh size={18} className="msg-ctx-icon" style={{ color: '#f87171' }} aria-hidden="true" />
+            <Refresh size={MENU_ICON_SIZE} className="msg-ctx-icon" style={{ color: '#f87171' }} aria-hidden="true" />
             <span>Opnieuw versturen</span>
           </button>
         )}
 
         <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onInfo)}>
-          <InfoIcon size={18} className="msg-ctx-icon" aria-hidden="true" />
+          <InfoIcon size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />
           <span>Berichtinformatie</span>
         </button>
 
         <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onReply)}>
-          <Reply size={18} className="msg-ctx-icon" aria-hidden="true" />
+          <Reply size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />
           <span>Beantwoorden</span>
         </button>
 
         {isText && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onCopy)}>
-            <Copy size={18} className="msg-ctx-icon" aria-hidden="true" />
+            <Copy size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />
             <span>Kopiëren</span>
           </button>
         )}
@@ -70,7 +103,7 @@ export default function MsgContextMenu({
           aria-expanded={reactionPickerOpen}
           onClick={() => setReactionPickerOpen((open) => !open)}
         >
-          <Smile size={18} className="msg-ctx-icon" aria-hidden="true" />
+          <Smile size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />
           <span>Reageren</span>
         </button>
 
@@ -92,26 +125,26 @@ export default function MsgContextMenu({
 
         {isText && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onForward)}>
-            <Forward size={18} className="msg-ctx-icon" aria-hidden="true" />
+            <Forward size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />
             <span>Doorsturen</span>
           </button>
         )}
 
         <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onPin)}>
-          <Pin size={18} className="msg-ctx-icon" style={{ transform: pinned ? 'rotate(45deg)' : 'none', transition: 'transform .15s' }} aria-hidden="true" />
+          <Pin size={MENU_ICON_SIZE} className="msg-ctx-icon" style={{ transform: pinned ? 'rotate(45deg)' : 'none', transition: 'transform .15s' }} aria-hidden="true" />
           <span>{pinned ? 'Losmaken' : 'Vastzetten'}</span>
         </button>
 
         <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onStar)}>
           {starred
-            ? <StarFilled  size={18} className="msg-ctx-icon" style={{ color: '#f59e0b' }} aria-hidden="true" />
-            : <StarOutline size={18} className="msg-ctx-icon" aria-hidden="true" />}
+            ? <StarFilled  size={MENU_ICON_SIZE} className="msg-ctx-icon" style={{ color: '#f59e0b' }} aria-hidden="true" />
+            : <StarOutline size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />}
           <span>{starred ? 'Ster verwijderen' : 'Met ster markeren'}</span>
         </button>
 
         {isOwn && isText && canEditMessage(msg) && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onEdit)}>
-            <MagicEdit size={18} className="msg-ctx-icon" aria-hidden="true" />
+            <MagicEdit size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />
             <span>Bewerken</span>
           </button>
         )}
@@ -119,7 +152,7 @@ export default function MsgContextMenu({
         <div className="msg-ctx-divider" />
 
         <button type="button" role="menuitem" className="msg-ctx-item danger" onClick={doAndClose(onDeleteRequest)}>
-          <Delete size={18} className="msg-ctx-icon" aria-hidden="true" />
+          <Delete size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />
           <span>Verwijderen</span>
         </button>
       </div>

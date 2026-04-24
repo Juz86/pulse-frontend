@@ -18,7 +18,10 @@ export default function StandardMessageBubble({
     isOwn,
     isFocused,
     isGroup,
+    contacts,
     currentUid,
+    currentUser,
+    memberNames,
     renderedContent,
     status,
     receiptSummaryLabel,
@@ -51,6 +54,9 @@ export default function StandardMessageBubble({
       <MessageReactionBar
         reactions={visibleReactions}
         currentUid={currentUid}
+        currentUser={currentUser}
+        contacts={contacts}
+        memberNames={memberNames}
         onReact={onReact}
       />
     </div>

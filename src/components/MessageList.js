@@ -6,6 +6,8 @@ import { formatDateLabel } from '../utils';
 
 const MessageList = React.memo(function MessageList({
   user,
+  contacts = [],
+  currentUserPhotoURL = null,
   messages,
   activeConv,
   currentUid,
@@ -82,7 +84,13 @@ const MessageList = React.memo(function MessageList({
             isFocused={isFocused}
             isGroup={!!activeConv.isGroup}
             memberNames={activeConv.memberNames}
+            contacts={contacts}
             currentUid={currentUid}
+            currentUser={{
+              displayName: user.displayName || user.email,
+              email: user.email,
+              photoURL: currentUserPhotoURL || user.photoURL || null,
+            }}
             user={user}
             chatSearch={chatSearch}
             onReact={emoji => onReact(msg.id, emoji)}
@@ -96,7 +104,7 @@ const MessageList = React.memo(function MessageList({
     });
 
     return result;
-  }, [messages, activeConv, currentUid, user, chatSearch, focusedMsgId,
+  }, [messages, activeConv, currentUid, user, contacts, currentUserPhotoURL, chatSearch, focusedMsgId,
       onReact, onShowContextMenu, onRetry, onStartCall, onViewContact, selectionMode, selectedMessageIds, onToggleMessageSelection]);
 
   const bgStyle = useMemo(() => {

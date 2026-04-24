@@ -79,7 +79,9 @@ export function buildStandardMessageBubblePresentation(msg, {
   isFocused = false,
   isGroup = false,
   memberNames = null,
+  contacts = [],
   currentUid = null,
+  currentUser = null,
   chatSearch = '',
 } = {}) {
   return {
@@ -93,7 +95,10 @@ export function buildStandardMessageBubblePresentation(msg, {
     isOwn,
     isFocused,
     isGroup,
+    contacts,
     currentUid,
+    currentUser,
+    memberNames,
   };
 }
 

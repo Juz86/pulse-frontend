@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
-const QUICK_EMOJI = ['❤️', '👍', '😂', '😮', '😢', '👎'];
+import { QUICK_REACTION_EMOJI } from './messageReactionConstants';
 
 export default function MessageBubbleActions({
   onReact,
@@ -9,29 +8,39 @@ export default function MessageBubbleActions({
 
   useEffect(() => {
     if (!emojiPickerOpen) return;
-    const close = () => setEmojiPickerOpen(false);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
+    const closeOnOutsideClick = () => setEmojiPickerOpen(false);
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setEmojiPickerOpen(false);
+    };
+
+    document.addEventListener('click', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+
+    return () => {
+      document.removeEventListener('click', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
   }, [emojiPickerOpen]);
 
   return (
     <div
-      className="msg-actions"
+      className={`msg-actions${emojiPickerOpen ? ' picker-open' : ''}`}
       onClick={(e) => e.stopPropagation()}
-      onMouseLeave={() => setEmojiPickerOpen(false)}
     >
       <div style={{ position: 'relative' }}>
         <button
           type="button"
           className="msg-action-btn"
           aria-label="Reageren"
+          aria-haspopup="true"
+          aria-expanded={emojiPickerOpen}
           onClick={(e) => { e.stopPropagation(); setEmojiPickerOpen((v) => !v); }}
         >
           <span aria-hidden="true">😊</span>
         </button>
         {emojiPickerOpen && (
-          <div className="msg-emoji-picker">
-            {QUICK_EMOJI.map((emoji) => (
+          <div className="msg-emoji-picker" role="group" aria-label="Snelle reacties">
+            {QUICK_REACTION_EMOJI.map((emoji) => (
               <button
                 type="button"
                 key={emoji}

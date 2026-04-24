@@ -561,6 +561,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             })()}
             <MessageList
               user={user}
+              contacts={contacts}
+              currentUserPhotoURL={photoPreview || user.photoURL}
               messages={messages.filter(m => !blockedContacts.some(c => c.uid === m.senderId && m.senderId !== user.uid))}
               activeConv={activeConv} currentUid={user.uid}
               chatSearch={chatSearch} chatSearchIdx={chatSearchIdx}

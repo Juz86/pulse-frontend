@@ -66,6 +66,7 @@ export { MdMoreVert           as MoreHoriz }   from 'react-icons/md';
 export { MdReply              as Reply }       from 'react-icons/md';
 export { MdContentCopy        as Copy }        from 'react-icons/md';
 export { MdInsertEmoticon     as Smile }       from 'react-icons/md';
+export { MdAddReaction        as AddReaction } from 'react-icons/md';
 export { MdDownload           as Download }    from 'react-icons/md';
 export { MdStar               as StarFilled }  from 'react-icons/md';
 export { MdStarBorder         as StarOutline } from 'react-icons/md';

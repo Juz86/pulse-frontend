@@ -1,17 +1,20 @@
 import React from 'react';
+import { normalizeSingleUserReaction } from '../lib/e2ee/messageReactions';
 
 export default function MessageReactionBar({
   reactions,
   currentUid,
   onReact,
 }) {
-  if (!reactions || !Object.entries(reactions).some(([, uids]) => uids?.length > 0)) {
+  const visibleReactions = normalizeSingleUserReaction(reactions, currentUid);
+
+  if (!Object.entries(visibleReactions).some(([, uids]) => uids?.length > 0)) {
     return null;
   }
 
   return (
     <div className="msg-reactions">
-      {Object.entries(reactions)
+      {Object.entries(visibleReactions)
         .filter(([, uids]) => uids?.length > 0)
         .map(([emoji, uids]) => (
           <button

@@ -23,6 +23,7 @@ import {
   isE2EEServiceTransportEnabled,
 } from '../lib/e2ee/config';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
+import { normalizeSingleUserReaction, toggleSingleUserReaction } from '../lib/e2ee/messageReactions';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
 import { readSessionConversations, writeSessionConversations } from '../utils';
 
@@ -766,6 +767,9 @@ export default function useConversations({
   function toggleReaction(msgId, emoji) {
     const socket = getSocket();
     if (!activeConv) return;
+    setMessages(prev => prev.map(m => (
+      m.id === msgId ? { ...m, reactions: toggleSingleUserReaction(m.reactions || {}, emoji, user.uid) } : m
+    )));
     if (shouldUseServiceTransport(activeConv)) {
       authFetch(`${BACKEND_URL}/api/messages/${activeConv.id}/${msgId}/react`, {
         method: 'POST',
@@ -776,7 +780,7 @@ export default function useConversations({
         .then(({ ok, data }) => {
           if (!ok) throw new Error(data?.error || 'reaction_failed');
           setMessages(prev => prev.map(m => (
-            m.id === msgId ? { ...m, reactions: data.reactions || {} } : m
+            m.id === msgId ? { ...m, reactions: normalizeSingleUserReaction(data.reactions || {}, user.uid) } : m
           )));
         })
         .catch(() => {
@@ -796,7 +800,7 @@ export default function useConversations({
       }
       if (data.reactions) {
         setMessages(prev => prev.map(m => (
-          m.id === msgId ? { ...m, reactions: data.reactions || {} } : m
+          m.id === msgId ? { ...m, reactions: normalizeSingleUserReaction(data.reactions || {}, user.uid) } : m
         )));
       }
     });

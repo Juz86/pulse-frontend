@@ -1,6 +1,7 @@
 import React from 'react';
 import MessageReactionBar from './MessageReactionBar';
 import TextMessageCard from './TextMessageCard';
+import { normalizeSingleUserReaction } from '../lib/e2ee/messageReactions';
 
 export default function StandardMessageBubble({
   presentation,
@@ -22,7 +23,8 @@ export default function StandardMessageBubble({
     status,
     receiptSummaryLabel,
   } = presentation;
-  const hasReactions = !!msg.reactions && Object.values(msg.reactions).some((uids) => uids?.length > 0);
+  const visibleReactions = normalizeSingleUserReaction(msg.reactions, currentUid);
+  const hasReactions = Object.values(visibleReactions).some((uids) => uids?.length > 0);
 
   return (
     <div
@@ -47,7 +49,7 @@ export default function StandardMessageBubble({
         onShowContextMenu={onShowContextMenu}
       />
       <MessageReactionBar
-        reactions={msg.reactions}
+        reactions={visibleReactions}
         currentUid={currentUid}
         onReact={onReact}
       />

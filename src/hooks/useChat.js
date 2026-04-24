@@ -9,6 +9,7 @@ import {
   applyConversationSummaryToList,
 } from '../lib/e2ee/conversationSummaries';
 import { canApplyPlaintextEditUpdate } from '../lib/e2ee/policy';
+import { normalizeSingleUserReaction } from '../lib/e2ee/messageReactions';
 
 const PRIVATE_NOTIFICATION_BODY = 'Open Pulse om het bericht veilig te bekijken.';
 const PRIVATE_REQUEST_NOTIFICATION_BODY = 'Open Pulse om de uitnodiging te bekijken.';
@@ -383,7 +384,9 @@ export default function useChat({
         ? (canApplyPlaintextEditUpdate(m) ? { ...m, text, editedAt, decryptedLocally: true } : m)
         : m
     )));
-    const onMessageReaction = ({ msgId, reactions })   => setMessages(prev => prev.map(m => m.id === msgId ? { ...m, reactions: reactions || {} } : m));
+    const onMessageReaction = ({ msgId, reactions })   => setMessages(prev => prev.map(m => (
+      m.id === msgId ? { ...m, reactions: normalizeSingleUserReaction(reactions || {}, user.uid) } : m
+    )));
     const onAccountPaused   = ({ features } = {})      => setPausedFeatures(features || { chat: true,  call: true,  video: true  });
     const onAccountResumed  = ({ features } = {})      => setPausedFeatures(features || { chat: false, call: false, video: false });
 

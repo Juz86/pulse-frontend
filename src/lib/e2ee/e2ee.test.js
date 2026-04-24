@@ -38,6 +38,10 @@ import {
   PLAINTEXT_MESSAGE_PROTOCOL,
 } from './messageProtocolConstants';
 import {
+  normalizeSingleUserReaction,
+  toggleSingleUserReaction,
+} from './messageReactions';
+import {
   getAttachmentDisplayName,
   MAX_E2EE_ATTACHMENT_BYTES,
   isImageAttachment,
@@ -425,6 +429,26 @@ describe('e2ee message model helpers', () => {
     );
 
     expect(normalized.reactions['❤️']).toEqual(['user-1', 'user-2']);
+  });
+
+  test('message reactions keep one current-user emoji while preserving other users', () => {
+    expect(normalizeSingleUserReaction({
+      '😮': ['me', 'you'],
+      '😢': ['me'],
+      '😂': ['other'],
+    }, 'me')).toEqual({
+      '😮': ['you'],
+      '😢': ['me'],
+      '😂': ['other'],
+    });
+
+    expect(toggleSingleUserReaction({
+      '😮': ['me', 'you'],
+      '😢': ['me'],
+    }, '😂', 'me')).toEqual({
+      '😮': ['you'],
+      '😂': ['me'],
+    });
   });
 
   test('normalizeIncomingMessage preserves mentions', () => {

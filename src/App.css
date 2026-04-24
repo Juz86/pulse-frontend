@@ -1824,7 +1824,7 @@ font-family: 'Inter', sans-serif;
 .admin-badge { display:inline-flex; align-items:center; gap:2px; font-size:11px; font-weight:600; color:var(--accent); background:rgba(108,99,255,.15); border-radius:6px; padding:1px 6px; }
 
 /* ── Reply ── */
-.msg-bubble-wrap { position:relative; display:flex; flex-direction:column; width:min(100%, 42rem); max-width:min(78%, 42rem); }
+.msg-bubble-wrap { position:relative; display:flex; flex-direction:column; width:fit-content; max-width:min(78%, 42rem); }
 .msg-group.out .msg-bubble-wrap { align-items:flex-end; }
 .msg-group.in  .msg-bubble-wrap { align-items:flex-start; }
 .msg-bubble-wrap .msg-bubble { max-width:100%; }
@@ -1850,7 +1850,7 @@ font-family: 'Inter', sans-serif;
   right:5px;
   width:28px;
   height:28px;
-  border:1px solid rgba(255,255,255,.1);
+  border:0;
   border-radius:10px;
   background:var(--surface2);
   color:currentColor;
@@ -1860,8 +1860,8 @@ font-family: 'Inter', sans-serif;
   align-items:center;
   justify-content:center;
   padding:0;
-  box-shadow:0 2px 8px rgba(0,0,0,.2);
-  transition:opacity .14s ease, background .14s ease, transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+  box-shadow:none;
+  transition:opacity .14s ease, background .14s ease, transform .14s ease;
 }
 .msg-group:hover .msg-bubble-menu-btn,
 .msg-bubble-menu-btn:focus-visible {
@@ -1870,14 +1870,10 @@ font-family: 'Inter', sans-serif;
 .msg-bubble-menu-btn:hover {
   opacity:1;
   background:rgba(108,99,255,.18);
-  border-color:rgba(108,99,255,.45);
-  box-shadow:0 6px 18px rgba(108,99,255,.28);
   transform:translateY(-1px);
 }
 .msg-group.out .msg-bubble-menu-btn:hover {
   background:rgba(255,255,255,.16);
-  border-color:rgba(255,255,255,.22);
-  box-shadow:0 6px 18px rgba(0,0,0,.22);
 }
 .msg-emoji-picker {
   position:absolute; bottom:calc(100% + 6px); left:0;

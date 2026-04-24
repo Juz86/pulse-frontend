@@ -151,6 +151,7 @@ export default function useChat({
 
       const current = activeConvRef.current;
       const convId = hydratedMsg.convId || hydratedMsg.conversationId || msg.convId;
+      if (!convId) return;
       const isIncomingFromOtherUser = hydratedMsg.senderId !== user.uid;
       if (hydratedMsg.transient) {
         onTransientMessage?.(convId, hydratedMsg);

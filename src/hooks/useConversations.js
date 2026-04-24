@@ -384,6 +384,7 @@ export default function useConversations({
     setChatSearch('');
     setMsgOffset(0);
     setHasMore(false);
+    setLoadingMore(false);
     setTimeout(() => {
       if (!textareaRef.current) return;
       textareaRef.current.style.height = 'auto';
@@ -515,8 +516,12 @@ export default function useConversations({
         const nextScrollHeight = scrollArea.scrollHeight || 0;
         scrollArea.scrollTop = previousScrollTop + Math.max(0, nextScrollHeight - previousScrollHeight);
       }, 0);
-    } catch { showErrToast('Meer berichten laden mislukt'); }
-    finally { setLoadingMore(false); }
+    } catch {
+      if (activeConvRef.current?.id === convId) showErrToast('Meer berichten laden mislukt');
+    }
+    finally {
+      if (activeConvRef.current?.id === convId) setLoadingMore(false);
+    }
   }
 
   // ── Lokale pending-berichten backup ──────────────────────────────────────

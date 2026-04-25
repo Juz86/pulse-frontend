@@ -2873,6 +2873,12 @@ font-family: 'Inter', sans-serif;
   box-shadow:28px 0 70px rgba(0,0,0,.32);
   animation:group-info-slide-in .2s ease-out both;
 }
+.profile-modal-box.profile-side-panel {
+  width:var(--pulse-sidebar-width, 360px);
+  max-width:100%;
+  height:var(--vvh, 100dvh);
+  max-height:var(--vvh, 100dvh);
+}
 .profile-modal-box::before {
   content:''; position:absolute; top:0; left:0; right:0; height:1px;
   background:linear-gradient(90deg, transparent, rgba(108,99,255,.4), transparent); z-index:1;
@@ -3035,6 +3041,12 @@ font-family: 'Inter', sans-serif;
     height:auto;
     min-height:0;
     max-height:calc(var(--vvh, 100dvh) - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 24px);
+  }
+  .profile-modal-box.profile-side-panel {
+    width:100%;
+    height:var(--vvh, 100dvh);
+    min-height:var(--vvh, 100dvh);
+    max-height:var(--vvh, 100dvh);
   }
   .profile-content { -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
   .profile-modal-header {

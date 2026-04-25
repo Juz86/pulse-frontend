@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AddReaction } from './Icons';
+import { AddReaction, XIcon } from './Icons';
 import UserAvatar from './UserAvatar';
 import { normalizeSingleUserReaction } from '../lib/e2ee/messageReactions';
 import { QUICK_REACTION_EMOJI } from './messageReactionConstants';
@@ -34,7 +34,6 @@ function resolveReactionPerson(uid, {
     photoURL: isCurrentUser
       ? currentUser?.photoURL || null
       : contact?.photoURL || null,
-    subtitle: isCurrentUser ? 'Klik om te verwijderen' : '',
   };
 }
 
@@ -209,23 +208,22 @@ export default function MessageReactionBar({
                   />
                   <span className="msg-reaction-user-copy">
                     <span className="msg-reaction-user-name">{row.displayName}</span>
-                    {row.subtitle && <span className="msg-reaction-user-sub">{row.subtitle}</span>}
                   </span>
                   <span className="msg-reaction-user-emoji" aria-hidden="true">{row.emoji}</span>
+                  {row.isCurrentUser && (
+                    <button
+                      type="button"
+                      className="msg-reaction-remove-btn"
+                      aria-label={`Verwijder je reactie ${row.emoji}`}
+                      onClick={() => handleReactFromDetails(row.emoji)}
+                    >
+                      <XIcon size={18} aria-hidden="true" />
+                    </button>
+                  )}
                 </>
               );
 
-              return row.isCurrentUser ? (
-                <button
-                  type="button"
-                  key={`${row.uid}-${row.emoji}`}
-                  className="msg-reaction-user-row clickable"
-                  aria-label={`Verwijder je reactie ${row.emoji}`}
-                  onClick={() => handleReactFromDetails(row.emoji)}
-                >
-                  {rowContent}
-                </button>
-              ) : (
+              return (
                 <div key={`${row.uid}-${row.emoji}`} className="msg-reaction-user-row">
                   {rowContent}
                 </div>

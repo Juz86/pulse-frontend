@@ -1,22 +1,22 @@
 export function normalizeSingleUserReaction(reactions = {}, currentUid = null) {
-  const nextReactions = {};
-  let selectedEmoji = null;
+  void currentUid;
+  const latestEmojiByUserId = new Map();
 
   for (const [emoji, users] of Object.entries(reactions || {})) {
     const userIds = Array.isArray(users) ? Array.from(new Set(users)) : [];
-    const hasCurrentUser = currentUid && userIds.includes(currentUid);
-    const filteredUserIds = hasCurrentUser
-      ? userIds.filter((userId) => userId !== currentUid)
-      : userIds;
-
-    if (hasCurrentUser) selectedEmoji = emoji;
-    if (filteredUserIds.length > 0) {
-      nextReactions[emoji] = filteredUserIds;
+    for (const userId of userIds) {
+      if (!userId) continue;
+      latestEmojiByUserId.set(userId, emoji);
     }
   }
 
-  if (currentUid && selectedEmoji) {
-    nextReactions[selectedEmoji] = [...(nextReactions[selectedEmoji] || []), currentUid];
+  const nextReactions = {};
+  for (const [emoji, users] of Object.entries(reactions || {})) {
+    const userIds = Array.isArray(users) ? Array.from(new Set(users)) : [];
+    for (const userId of userIds) {
+      if (latestEmojiByUserId.get(userId) !== emoji) continue;
+      nextReactions[emoji] = [...(nextReactions[emoji] || []), userId];
+    }
   }
 
   return nextReactions;
@@ -25,11 +25,12 @@ export function normalizeSingleUserReaction(reactions = {}, currentUid = null) {
 export function toggleSingleUserReaction(reactions = {}, emoji, currentUid) {
   if (!emoji || !currentUid) return normalizeSingleUserReaction(reactions, currentUid);
 
-  const hadSelectedEmoji = Object.entries(reactions || {}).some(([
+  const normalizedReactions = normalizeSingleUserReaction(reactions, currentUid);
+  const hadSelectedEmoji = Object.entries(normalizedReactions).some(([
     reactionEmoji,
     users,
   ]) => reactionEmoji === emoji && Array.isArray(users) && users.includes(currentUid));
-  const nextReactions = normalizeSingleUserReaction(reactions, currentUid);
+  const nextReactions = { ...normalizedReactions };
 
   for (const [reactionEmoji, users] of Object.entries(nextReactions)) {
     if (!Array.isArray(users)) continue;

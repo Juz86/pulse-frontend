@@ -431,15 +431,25 @@ describe('e2ee message model helpers', () => {
     expect(normalized.reactions['❤️']).toEqual(['user-1', 'user-2']);
   });
 
-  test('message reactions keep one current-user emoji while preserving other users', () => {
+  test('message reactions keep one emoji per user and replace earlier selections', () => {
     expect(normalizeSingleUserReaction({
       '😮': ['me', 'you'],
+      '❤️': ['you'],
       '😢': ['me'],
       '😂': ['other'],
     }, 'me')).toEqual({
-      '😮': ['you'],
       '😢': ['me'],
+      '❤️': ['you'],
       '😂': ['other'],
+    });
+
+    expect(normalizeSingleUserReaction({
+      '😮': ['me', 'you'],
+      '😢': ['me'],
+      '😂': ['you', 'other'],
+    }, 'me')).toEqual({
+      '😢': ['me'],
+      '😂': ['you', 'other'],
     });
 
     expect(toggleSingleUserReaction({

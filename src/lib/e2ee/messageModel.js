@@ -1,5 +1,6 @@
 import { normalizeAttachmentPayload } from './attachmentPayload';
 import { buildConversationPreviewPresentation } from './conversationSummaries';
+import { normalizeSingleUserReaction } from './messageReactions';
 import {
   ENCRYPTED_MESSAGE_PROTOCOL,
   PLAINTEXT_MESSAGE_PROTOCOL,
@@ -22,7 +23,7 @@ export function normalizeIncomingMessage(raw, currentUserId) {
   const normalizedCallDuration = type === 'call' ? (Number(raw.duration) || 0) : 0;
   const normalizedCallIsVideo = type === 'call' ? !!raw.isVideo : false;
   const reactions = raw.reactions && typeof raw.reactions === 'object' && !Array.isArray(raw.reactions)
-    ? raw.reactions
+    ? normalizeSingleUserReaction(raw.reactions, currentUserId)
     : {};
 
   return {

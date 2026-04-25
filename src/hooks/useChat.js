@@ -43,6 +43,8 @@ export default function useChat({
   const reconnectIntervalRef = useRef(null);
   const processedIncomingRef = useRef(new Map());
   const onReconnectRef       = useRef(onReconnect);
+  const loadConversationsRef = useRef(loadConversations);
+  const missingConvRefreshRef = useRef(new Map());
   const socket = getSocket();
 
   const [connected,      setConnected]      = useState(true);
@@ -55,6 +57,10 @@ export default function useChat({
   useEffect(() => {
     onReconnectRef.current = onReconnect;
   }, [onReconnect]);
+
+  useEffect(() => {
+    loadConversationsRef.current = loadConversations;
+  }, [loadConversations]);
 
   function playMessageSound() {
     if (dndRef.current) return;
@@ -153,6 +159,17 @@ export default function useChat({
       const convId = hydratedMsg.convId || hydratedMsg.conversationId || msg.convId;
       if (!convId) return;
       const isIncomingFromOtherUser = hydratedMsg.senderId !== user.uid;
+      const knownConversation = conversationsRef.current.some((conversation) => conversation.id === convId);
+
+      if (!knownConversation) {
+        const now = Date.now();
+        const lastRefreshAt = missingConvRefreshRef.current.get(convId) || 0;
+        if (now - lastRefreshAt > 1200) {
+          missingConvRefreshRef.current.set(convId, now);
+          loadConversationsRef.current?.();
+        }
+      }
+
       if (hydratedMsg.transient) {
         onTransientMessage?.(convId, hydratedMsg);
       }

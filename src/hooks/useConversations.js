@@ -404,6 +404,11 @@ export default function useConversations({
       setMessages([]);
       setLoadingMsgs(true);
     }
+    if (conv.isDraft) {
+      setMessages([]);
+      setLoadingMsgs(false);
+      return;
+    }
     const liveSocket = getSocket();
     liveSocket?.emit('conversation:join', { convId: conv.id });
     liveSocket?.emit('messages:read', { convId: conv.id });
@@ -582,90 +587,144 @@ export default function useConversations({
     const socket = getSocket();
     if (editingMsg) return sendEditedMessage();
     if (!text.trim() || !activeConv) return;
-    if (!socket?.connected && !shouldUseServiceTransport(activeConv)) { showErrToast('Geen verbinding. Controleer je internet en probeer opnieuw.'); return; }
-    const tempId = `temp-${Date.now()}`;
     const trimmedText = text.trim();
     const mentions = pendingMentions.filter(m => trimmedText.includes(`@${m.displayName}`)).map(m => m.uid);
-    const recipientUserIds = getConversationRecipients(activeConv);
-    const optimisticMsg = {
-      ...buildPendingMessage({
-        text: trimmedText,
-        conversationId: activeConv.id,
-        userId: user.uid,
-        replyTo: replyTo || null,
-        protocol: resolvePendingMessageProtocol(activeConv),
-        mentions,
-      }),
-      id: tempId,
-      convId: activeConv.id,
-      senderName: user.displayName || user.email,
-      mentions,
-      _key: tempId,
-      _retryCount: 0,
-    };
-    const msg = buildSocketMessagePayload({
-      conversationId: activeConv.id,
-      localId: optimisticMsg.id,
-      senderId: user.uid,
-      senderName: user.displayName || user.email,
-      senderDeviceId: currentDeviceId,
-      plaintext: trimmedText,
-      createdAt: optimisticMsg.createdAt,
-      replyTo: replyTo || null,
-      mentions,
-    });
-    setReplyTo(null);
-    pendingTempIds.current.add(optimisticMsg.id);
-    setMessages(prev => [...prev, optimisticMsg]);
-    savePending(optimisticMsg.id, activeConv.id, msg);
-    setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
-    setConversations(prev => applyConversationSummaryToList(prev, activeConv.id, optimisticMsg, msg.createdAt));
-    const failTimer = setTimeout(() => {
-      patchMessageAsFailed(optimisticMsg.id);
-    }, 20000);
+    const replyContext = replyTo || null;
+    const draftStorageConvId = activeConv.id;
 
-    if (shouldUseServiceTransport(activeConv)) {
-      sendViaService({
-        conv: activeConv,
-        plaintext: trimmedText,
-        recipientUserIds,
-        replyToMessageId: replyTo?.id || null,
+    const resetComposer = (convIdForDraft) => {
+      setText('');
+      localStorage.removeItem(`pulse_draft_${user.uid}_${convIdForDraft}`);
+      setPendingMentions([]);
+      setMentionSuggestions([]);
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+      stopTyping();
+    };
+
+    const sendPreparedMessage = (conv) => {
+      if (!socket?.connected && !shouldUseServiceTransport(conv)) {
+        showErrToast('Geen verbinding. Controleer je internet en probeer opnieuw.');
+        return false;
+      }
+
+      const tempId = `temp-${Date.now()}`;
+      const recipientUserIds = getConversationRecipients(conv);
+      const optimisticMsg = {
+        ...buildPendingMessage({
+          text: trimmedText,
+          conversationId: conv.id,
+          userId: user.uid,
+          replyTo: replyContext,
+          protocol: resolvePendingMessageProtocol(conv),
+          mentions,
+        }),
+        id: tempId,
+        convId: conv.id,
+        senderName: user.displayName || user.email,
         mentions,
-      }).then((savedMsg) => {
-        clearTimeout(failTimer);
-        pendingTempIds.current.delete(optimisticMsg.id);
-        patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
-        const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
-        storeTransientConversationMessage(activeConv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
-        removePending(optimisticMsg.id);
-      }).catch(() => {
-        clearTimeout(failTimer);
-        patchMessageAsFailed(optimisticMsg.id);
+        _key: tempId,
+        _retryCount: 0,
+      };
+      const msg = buildSocketMessagePayload({
+        conversationId: conv.id,
+        localId: optimisticMsg.id,
+        senderId: user.uid,
+        senderName: user.displayName || user.email,
+        senderDeviceId: currentDeviceId,
+        plaintext: trimmedText,
+        createdAt: optimisticMsg.createdAt,
+        replyTo: replyContext,
+        mentions,
       });
-    } else {
-      socket.emit('message:send', { convId: activeConv.id, message: msg }, (savedMsg) => {
-        clearTimeout(failTimer);
-        if (savedMsg?.error || !savedMsg?.id) {
-          patchMessageAsFailed(optimisticMsg.id);
-          showErrToast('Bericht verzenden mislukt');
-          return;
-        }
-        if (savedMsg?.id) {
+
+      setReplyTo(null);
+      pendingTempIds.current.add(optimisticMsg.id);
+      setMessages(prev => [...prev, optimisticMsg]);
+      savePending(optimisticMsg.id, conv.id, msg);
+      setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
+      setConversations(prev => applyConversationSummaryToList(prev, conv.id, optimisticMsg, msg.createdAt));
+      const failTimer = setTimeout(() => {
+        patchMessageAsFailed(optimisticMsg.id);
+      }, 20000);
+
+      if (shouldUseServiceTransport(conv)) {
+        sendViaService({
+          conv,
+          plaintext: trimmedText,
+          recipientUserIds,
+          replyToMessageId: replyContext?.id || null,
+          mentions,
+        }).then((savedMsg) => {
+          clearTimeout(failTimer);
           pendingTempIds.current.delete(optimisticMsg.id);
           patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
           const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
-          storeTransientConversationMessage(activeConv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
+          storeTransientConversationMessage(conv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
           removePending(optimisticMsg.id);
+        }).catch(() => {
+          clearTimeout(failTimer);
+          patchMessageAsFailed(optimisticMsg.id);
+        });
+      } else {
+        socket.emit('message:send', { convId: conv.id, message: msg }, (savedMsg) => {
+          clearTimeout(failTimer);
+          if (savedMsg?.error || !savedMsg?.id) {
+            patchMessageAsFailed(optimisticMsg.id);
+            showErrToast('Bericht verzenden mislukt');
+            return;
+          }
+          if (savedMsg?.id) {
+            pendingTempIds.current.delete(optimisticMsg.id);
+            patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
+            const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
+            storeTransientConversationMessage(conv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
+            removePending(optimisticMsg.id);
+          }
+        });
+      }
+
+      return true;
+    };
+
+    if (activeConv.isDraft) {
+      if (!socket?.connected) {
+        showErrToast('Geen verbinding. Controleer je internet en probeer opnieuw.');
+        return;
+      }
+      socket.emit('conversation:create', {
+        members: activeConv.members,
+        memberNames: activeConv.memberNames,
+        memberEmails: activeConv.memberEmails,
+        isGroup: false,
+      }, ({ convId, error }) => {
+        if (error || !convId) {
+          showErrToast(error || 'Gesprek kon niet worden aangemaakt');
+          return;
+        }
+
+        const realConversation = {
+          ...activeConv,
+          id: convId,
+          isDraft: false,
+        };
+        setConversations(prev => {
+          const withoutDraft = prev.filter((conv) => conv.id !== activeConv.id && conv.id !== convId);
+          return [realConversation, ...withoutDraft];
+        });
+        setActiveConv(realConversation);
+        activeConvRef.current = realConversation;
+        socket.emit('conversation:join', { convId });
+
+        if (sendPreparedMessage(realConversation)) {
+          resetComposer(draftStorageConvId);
         }
       });
+      return;
     }
 
-    setText('');
-    localStorage.removeItem(`pulse_draft_${user.uid}_${activeConv.id}`);
-    setPendingMentions([]);
-    setMentionSuggestions([]);
-    if (textareaRef.current) textareaRef.current.style.height = 'auto';
-    stopTyping();
+    if (sendPreparedMessage(activeConv)) {
+      resetComposer(draftStorageConvId);
+    }
   }
 
   function sendContactCardToConversation(conv, sharedContact) {

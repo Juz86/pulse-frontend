@@ -486,19 +486,15 @@ export default function useContacts({
   function startChatWithContact(contact) {
     const existing = findConvWithUid(contact.uid);
     if (existing) { openConversation(existing); return; }
-    const liveSocket = getSocket();
-    if (!liveSocket?.connected) { showErrToast('Geen verbinding. Probeer opnieuw.'); return; }
-    liveSocket.emit('conversation:create', {
-      members:      [user.uid, contact.uid],
-      memberNames:  { [user.uid]: user.displayName || user.email, [contact.uid]: contact.displayName },
-      memberEmails: { [user.uid]: user.email, [contact.uid]: contact.email },
+    const draftConversation = {
+      id: `draft:${user.uid}:${contact.uid}`,
+      members: [user.uid, contact.uid],
+      memberNames: { [user.uid]: user.displayName || user.email, [contact.uid]: contact.displayName || contact.email || 'Contactpersoon' },
+      memberEmails: { [user.uid]: user.email, [contact.uid]: contact.email || null },
       isGroup: false,
-    }, (res) => {
-      if (!res || res.error) { showErrToast(res?.error || 'Gesprek kon niet worden aangemaakt'); return; }
-      const conv = { id: res.convId, members: [user.uid, contact.uid], memberNames: { [user.uid]: user.displayName, [contact.uid]: contact.displayName }, memberEmails: { [user.uid]: user.email, [contact.uid]: contact.email }, isGroup: false };
-      openConversation(conv);
-      loadConversations();
-    });
+      isDraft: true,
+    };
+    openConversation(draftConversation);
   }
 
   async function searchUser() {

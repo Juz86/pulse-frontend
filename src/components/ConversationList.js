@@ -66,10 +66,12 @@ const ConversationList = React.memo(function ConversationList({
       {!loadingConvs && conversations.length === 0 && (
         <div className="empty-convs" role="status" aria-live="polite">
           <p>Nog geen gesprekken.</p>
-          <p>
-            Klik op het{' '}
-            <Message size={16} aria-hidden="true" style={{ verticalAlign: 'text-bottom' }} />{' '}
-            om een nieuw gesprek te starten.
+          <p className="empty-convs-inline-help">
+            <span>Klik op het</span>
+            <span className="empty-convs-inline-icon" aria-hidden="true">
+              <Message size={16} />
+            </span>
+            <span>om een nieuw gesprek te starten.</span>
           </p>
         </div>
       )}

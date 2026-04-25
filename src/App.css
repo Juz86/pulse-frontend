@@ -1395,9 +1395,32 @@ font-family: 'Inter', sans-serif;
 
 .empty-convs {
   padding:36px 20px; text-align:center; color:var(--text3);
-  font-size:13px; line-height:2;
+  font-size:13px; line-height:1.5;
   background:radial-gradient(ellipse 80% 60% at 50% 50%, rgba(108,99,255,.04) 0%, transparent 70%);
   border-radius:14px; margin:12px;
+}
+.empty-convs p {
+  margin: 0;
+}
+.empty-convs p + p {
+  margin-top: 8px;
+}
+.empty-convs-inline-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.empty-convs-inline-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.empty-convs-inline-icon svg {
+  display: inline-block;
+  vertical-align: text-bottom;
 }
 
 .sidebar-footer {

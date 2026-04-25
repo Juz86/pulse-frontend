@@ -1,6 +1,7 @@
 // src/components/ConversationList.js
 import React, { useMemo } from 'react';
 import ConversationItem from './ConversationItem';
+import { Message } from './Icons';
 import { toMs } from '../utils';
 
 const ConversationList = React.memo(function ConversationList({
@@ -65,7 +66,11 @@ const ConversationList = React.memo(function ConversationList({
       {!loadingConvs && conversations.length === 0 && (
         <div className="empty-convs" role="status" aria-live="polite">
           <p>Nog geen gesprekken.</p>
-          <p>Klik op het chat-icoon om een nieuw gesprek te starten.</p>
+          <p>
+            Klik op het{' '}
+            <Message size={16} aria-hidden="true" style={{ verticalAlign: 'text-bottom' }} />{' '}
+            om een nieuw gesprek te starten.
+          </p>
         </div>
       )}
 

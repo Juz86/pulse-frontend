@@ -596,10 +596,17 @@ export default function ChatModals({
           <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-description" onClick={e => e.stopPropagation()} style={{ maxWidth: '360px' }}>
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setConfirmDialog(null)}><span aria-hidden="true">✕</span></button>
             <h2 id="confirm-dialog-title" className="modal-title" style={{ marginBottom: '12px' }}>{confirmDialog.title || 'Bevestiging'}</h2>
-            <p id="confirm-dialog-description" style={{ color: 'var(--text)', fontSize: '15px', marginBottom: '24px', lineHeight: '1.5' }}>{confirmDialog.message}</p>
+            {confirmDialog.message && (
+              <p id="confirm-dialog-description" style={{ color: 'var(--text)', fontSize: '15px', marginBottom: '24px', lineHeight: '1.5' }}>
+                {confirmDialog.message}
+              </p>
+            )}
             <div className="modal-actions">
               <button type="button" className="btn-secondary" onClick={() => setConfirmDialog(null)}>{confirmDialog.cancelLabel || 'Annuleren'}</button>
-              <button type="button" className="btn-primary" style={{ flex: 1, background: 'linear-gradient(135deg, #ef4444, #dc2626)' }} onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}>{confirmDialog.confirmLabel || 'Verwijderen'}</button>
+              <button type="button" className="btn-primary" style={{ flex: 1, background: 'linear-gradient(135deg, #ef4444, #dc2626)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}>
+                {confirmDialog.confirmIcon === 'trash' && <Delete size={16} aria-hidden="true" />}
+                <span>{confirmDialog.confirmLabel || 'Verwijderen'}</span>
+              </button>
             </div>
           </div>
         </div>

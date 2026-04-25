@@ -175,6 +175,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   function toggleMessageSelection(msgId) {
     setSelectedMessageIds((prev) => prev.includes(msgId) ? prev.filter((id) => id !== msgId) : [...prev, msgId]);
   }
+  function openDeleteConversationConfirm(conv) {
+    if (!conv?.id) return;
+    const conversationName = getConvName(conv) || 'dit gesprek';
+    setConfirmDialog({
+      title: `Verwijder chat met ${conversationName}?`,
+      confirmLabel: 'Verwijderen',
+      confirmIcon: 'trash',
+      onConfirm: async () => {
+        await deleteConversation?.(null, conv.id, { skipConfirm: true });
+      },
+    });
+  }
   function handleDeleteSelectedMessages() {
     if (!selectedMessageIds.length) return;
     const selectedMessages = messages.filter((message) => selectedMessageIds.includes(message.id));
@@ -454,24 +466,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onOpenConversation={openConversation}
         onCallFromConv={initiateCallFromConv}
         onClearConversation={(conv) => {
-          setConfirmDialog({
-            title: 'Chat verwijderen',
-            message: 'Chat verwijderen? Dit gesprek verdwijnt alleen uit jouw lijst. Voor de andere persoon blijft de chat zichtbaar tot de bewaartermijn afloopt.',
-            confirmLabel: 'Verwijderen',
-            onConfirm: async () => {
-              await deleteConversation?.(null, conv.id, { skipConfirm: true });
-            },
-          });
+          openDeleteConversationConfirm(conv);
         }}
         onHardDeleteConversation={(conv) => {
-          setConfirmDialog({
-            title: 'Chat verwijderen',
-            message: 'Chat verwijderen? Dit gesprek verdwijnt alleen uit jouw lijst. Voor de andere persoon blijft de chat zichtbaar tot de bewaartermijn afloopt.',
-            confirmLabel: 'Verwijderen',
-            onConfirm: async () => {
-              await deleteConversation?.(null, conv.id, { skipConfirm: true });
-            },
-          });
+          openDeleteConversationConfirm(conv);
         }}
         onToggleConversationMute={toggleConversationMute}
         onShowGroupInfo={(conv) => openConversationAndRun(conv, () => setShowGroupInfo(true))}
@@ -516,24 +514,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onShowStarredMsgs={() => setShowStarredMsgs(true)}
               onLeaveGroup={leaveGroup}
               onClearChat={() => {
-                setConfirmDialog({
-                  title: 'Chat verwijderen',
-                  message: 'Chat verwijderen? Dit gesprek verdwijnt alleen uit jouw lijst. Voor de andere persoon blijft de chat zichtbaar tot de bewaartermijn afloopt.',
-                  confirmLabel: 'Verwijderen',
-                  onConfirm: async () => {
-                    await deleteConversation?.(null, activeConv.id, { skipConfirm: true });
-                  },
-                });
+                openDeleteConversationConfirm(activeConv);
               }}
               onDeleteChat={() => {
-                setConfirmDialog({
-                  title: 'Chat verwijderen',
-                  message: 'Chat verwijderen? Dit gesprek verdwijnt alleen uit jouw lijst. Voor de andere persoon blijft de chat zichtbaar tot de bewaartermijn afloopt.',
-                  confirmLabel: 'Verwijderen',
-                  onConfirm: async () => {
-                    await deleteConversation?.(null, activeConv.id, { skipConfirm: true });
-                  },
-                });
+                openDeleteConversationConfirm(activeConv);
               }}
               parentBlockedOtherUid={!activeConv?.isGroup && parentBlockedUids.includes(getOtherUid(activeConv))}
 

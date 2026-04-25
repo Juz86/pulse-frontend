@@ -2874,23 +2874,23 @@ font-family: 'Inter', sans-serif;
 /* ── Universele sluitknop (✕) rechtsboven in elke modal ── */
 .modal-close-btn {
   position: absolute; top: 12px; right: 12px;
-  background: rgba(255,255,255,.075); border: 0;
+  background: transparent; border: 0;
   box-shadow: none; outline: none;
-  border-radius: 50%; color: var(--text2);
-  width: 34px; height: 34px;
+  border-radius: 8px; color: #8c88ba;
+  width: 30px; height: 30px;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 13px;
-  transition: background .15s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.15s;
+  cursor: pointer; font-size: 18px; line-height: 1;
+  transition: background .15s ease, color .15s ease;
 }
-.modal-close-btn:hover { background: rgba(255,255,255,.12); color: var(--text); transform: scale(1.04); }
+.modal-close-btn:hover { background: rgba(255,255,255,.08); color: #b0abd8; }
 .modal-close-btn:focus-visible {
-  background: rgba(255,255,255,.14);
-  box-shadow: 0 0 0 3px rgba(139,92,246,.24);
+  background: rgba(255,255,255,.1);
+  box-shadow: 0 0 0 3px rgba(139,92,246,.2);
 }
 .modal-close-btn--light {
-  background: rgba(17,24,39,.06); border: 0; color: #6b7280;
+  background: transparent; border: 0; color: #8f93be;
 }
-.modal-close-btn--light:hover { background: rgba(17,24,39,.1); color: #374151; transform: scale(1.04); }
+.modal-close-btn--light:hover { background: rgba(17,24,39,.06); color: #6f7398; }
 .pd-close-btn {
   position: static;
   flex-shrink: 0;
@@ -3425,32 +3425,23 @@ font-family: 'Inter', sans-serif;
   flex-direction:column;
 }
 .friend-requests-header {
-  display:flex;
-  align-items:flex-start;
-  justify-content:space-between;
-  gap:12px;
+  position:relative;
+  display:block;
   margin-bottom:14px;
 }
-.friend-requests-header .modal-title {
+.friend-requests-title {
   margin-bottom:0;
   padding-right:0;
-  flex:1;
-  min-width:0;
+  padding-top:34px;
   line-height:1.25;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
 }
 .friend-requests-close-btn {
-  color:#8c88ba;
-  width:28px;
-  height:28px;
-  min-width:28px;
-  min-height:28px;
-  border-radius:8px;
-  background:transparent;
-}
-.friend-requests-close-btn:hover {
-  background:rgba(255,255,255,.06);
-  color:#b0abd8;
-  transform:none;
+  position:absolute;
+  top:0;
+  right:0;
 }
 .friend-requests-panel .modal-title,
 .add-contact-panel .modal-title,
@@ -3474,8 +3465,9 @@ font-family: 'Inter', sans-serif;
 }
 
 @media (max-width:420px) {
-  .friend-requests-header .modal-title {
+  .friend-requests-title {
     font-size:clamp(22px, 7vw, 30px);
+    padding-top:38px;
   }
 }
 .add-contact-panel .modal-sub {

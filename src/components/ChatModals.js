@@ -408,7 +408,7 @@ export default function ChatModals({
       {showFriendRequestsPanel && (
           <aside className="chat-side-panel friend-requests-panel" aria-labelledby="friend-requests-title">
             <div className="friend-requests-header">
-              <h2 id="friend-requests-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Vriendschapsverzoeken</h2>
+              <h2 id="friend-requests-title" className="modal-title friend-requests-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Vriendschapsverzoeken</h2>
               <button
                 type="button"
                 className="modal-close-btn pd-close-btn friend-requests-close-btn"

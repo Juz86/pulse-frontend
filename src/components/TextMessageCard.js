@@ -30,7 +30,7 @@ export default function TextMessageCard({
   }
 
   return (
-    <div className="msg-bubble-wrap">
+    <div className={`msg-bubble-wrap${msg.replyTo ? ' has-reply' : ''}`}>
       {msg.replyTo && (
         <div className="msg-reply-quote" aria-label={`Antwoord op bericht van ${msg.replyTo.senderName}`}>
           <span className="msg-reply-name">{msg.replyTo.senderName}</span>

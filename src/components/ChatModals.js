@@ -146,9 +146,6 @@ export default function ChatModals({
   contactRelation, setContactRelation,
   contactErr, contactLoading,
   addContact,
-  pendingFriendRequest,
-  remindPendingFriendRequest,
-  cancelPendingFriendRequest,
   clearPendingFriendRequestState,
   friendRequests,
   sentFriendRequests,
@@ -618,35 +615,6 @@ export default function ChatModals({
               </div>
             </div>
             {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
-            {pendingFriendRequest && (
-              <div className="pending-request-notice">
-                <div className="pending-request-copy">
-                  {pendingFriendRequest.remindersRemaining > 0
-                    ? `Je kunt nog ${pendingFriendRequest.remindersRemaining} ${pendingFriendRequest.remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} sturen.`
-                    : 'Je hebt alle 3 herinneringen al gebruikt.'}
-                </div>
-                <div className="pending-request-actions">
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    style={{ flex: 1 }}
-                    onClick={cancelPendingFriendRequest}
-                    disabled={contactLoading || !pendingFriendRequest.canCancel}
-                  >
-                    Verzoek annuleren
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    style={{ flex: 1 }}
-                    onClick={remindPendingFriendRequest}
-                    disabled={contactLoading || !pendingFriendRequest.canSendReminder}
-                  >
-                    {contactLoading ? 'Verzenden…' : 'Herinnering sturen'}
-                  </button>
-                </div>
-              </div>
-            )}
             <div className="modal-actions">
               <button type="button" className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); clearPendingFriendRequestState(); }}>Sluiten</button>
               <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={addContact} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>

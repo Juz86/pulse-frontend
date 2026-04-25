@@ -1836,6 +1836,7 @@ font-family: 'Inter', sans-serif;
 }
 .msg-group.out .msg-actions { left:-18px; }
 .msg-group.in  .msg-actions { right:-18px; }
+.msg-bubble-wrap.has-reply .msg-actions { top:calc(50% + 10px); }
 .msg-group:hover .msg-actions,
 .msg-actions.picker-open { display:flex; }
 .msg-action-btn {
@@ -2465,6 +2466,22 @@ font-family: 'Inter', sans-serif;
 }
 .msg-reply-name { font-size:11px; font-weight:600; color:var(--accent); display:block; }
 .msg-reply-text { font-size:12px; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; max-width:100%; }
+.msg-group.out .msg-reply-quote {
+  background:rgba(24, 20, 56, .82);
+  border-left-color:rgba(198,188,255,.95);
+}
+.msg-group.out .msg-reply-name {
+  color:#ddd7ff;
+}
+.msg-group.out .msg-reply-text {
+  color:rgba(255,255,255,.88);
+}
+.msg-group.in .msg-reply-quote {
+  background:rgba(255,255,255,.07);
+}
+.msg-group.in .msg-reply-text {
+  color:rgba(235,234,255,.86);
+}
 
 .reply-preview {
   display:flex; align-items:center; gap:8px;

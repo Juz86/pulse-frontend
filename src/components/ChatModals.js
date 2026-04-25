@@ -298,6 +298,7 @@ export default function ChatModals({
   function openStarredFromProfile() {
     setProfileClosing(false);
     setShowContactProfile(false);
+    setViewingContact(null);
     setShowStarredMsgs(true);
   }
 
@@ -538,6 +539,9 @@ export default function ChatModals({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h2 id="contact-list-profile-title" className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h2>
               <div style={{ display: 'flex', gap: '6px' }}>
+                <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${getContactDisplayName(viewingContact)}`} title="Berichten met ster" onClick={openStarredFromProfile}>
+                  <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
+                </button>
                 <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setViewingContact(null)}><span aria-hidden="true">✕</span></button>
                 <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${getContactDisplayName(viewingContact)}`} onClick={() => { setSharingContact(viewingContact); setViewingContact(null); }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
               </div>

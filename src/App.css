@@ -3723,9 +3723,11 @@ font-family: 'Inter', sans-serif;
   }
   .profile-side-panel {
     inset:0;
+    left:0;
     width:100%;
     height:var(--vvh, 100dvh);
     border-left:0;
+    border-right:0;
     box-shadow:none;
   }
 }
@@ -4092,8 +4094,7 @@ font-family: 'Inter', sans-serif;
     padding: max(16px, calc(env(safe-area-inset-top) + 8px)) 14px 12px;
   }
   .chat-side-panel,
-  .group-info-panel,
-  .profile-side-panel {
+  .group-info-panel {
     padding-left:max(16px, env(safe-area-inset-left));
     padding-right:max(16px, env(safe-area-inset-right));
   }

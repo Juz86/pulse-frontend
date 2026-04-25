@@ -92,9 +92,13 @@ function buildTextMessageCardRenderProps(handlers) {
     onTouchStart: handlers.onTouchStart,
     onTouchEnd: handlers.onTouchEnd,
     onTouchMove: handlers.onTouchMove,
+    onTouchCancel: handlers.onTouchCancel,
     onRetry: handlers.onRetry,
     onReact: handlers.onReact,
     onShowContextMenu: handlers.onShowContextMenu,
+    onOpenReactionPicker: handlers.onOpenReactionPicker,
+    reactionPickerOpen: handlers.reactionPickerOpen,
+    onCloseReactionPicker: handlers.onCloseReactionPicker,
   };
 }
 

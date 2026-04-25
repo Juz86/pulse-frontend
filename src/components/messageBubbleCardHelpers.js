@@ -99,6 +99,9 @@ export function buildMessageBubbleCard(message, attachmentRuntime) {
 export function buildMessageBubbleHandlers({
   onReact,
   onShowContextMenu,
+  onOpenReactionPicker,
+  reactionPickerOpen,
+  onCloseReactionPicker,
   onRetry,
   onStartCall,
   onViewContact,
@@ -107,6 +110,9 @@ export function buildMessageBubbleHandlers({
   return {
     onReact,
     onShowContextMenu,
+    onOpenReactionPicker,
+    reactionPickerOpen,
+    onCloseReactionPicker,
     onRetry,
     onStartCall,
     onViewContact,
@@ -114,6 +120,7 @@ export function buildMessageBubbleHandlers({
     onTouchStart: interactions.handleTouchStart,
     onTouchEnd: interactions.handleTouchEnd,
     onTouchMove: interactions.handleTouchMove,
+    onTouchCancel: interactions.handleTouchCancel,
     onActionCardKeyDown: interactions.handleActionCardKeyDown,
   };
 }

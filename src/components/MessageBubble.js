@@ -26,11 +26,14 @@ const MessageBubble = React.memo(function MessageBubble({
   chatSearch,
   onReact,
   onShowContextMenu,
+  onOpenReactionPicker,
+  reactionPickerOpen,
+  onCloseReactionPicker,
   onRetry,
   onStartCall,
   onViewContact,
 }) {
-  const interactions = useMessageBubbleInteractions(onShowContextMenu);
+  const interactions = useMessageBubbleInteractions(onShowContextMenu, onOpenReactionPicker);
   const message = buildMessageBubbleContext({
     msg,
     isOwn,
@@ -50,6 +53,9 @@ const MessageBubble = React.memo(function MessageBubble({
   const handlers = buildMessageBubbleHandlers({
     onReact,
     onShowContextMenu,
+    onOpenReactionPicker,
+    reactionPickerOpen,
+    onCloseReactionPicker,
     onRetry,
     onStartCall,
     onViewContact,

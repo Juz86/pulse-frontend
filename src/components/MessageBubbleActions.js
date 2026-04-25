@@ -1,58 +1,111 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { QUICK_REACTION_EMOJI } from './messageReactionConstants';
 
-export default function MessageBubbleActions({
+const PICKER_WIDTH = 248;
+const PICKER_HEIGHT = 52;
+const VIEWPORT_GAP = 12;
+
+const MessageBubbleActions = React.memo(function MessageBubbleActions({
   onReact,
+  isOpen = false,
+  onOpen,
+  onClose,
+  isOwn = false,
 }) {
-  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const wrapRef = useRef(null);
+  const [pickerPlacement, setPickerPlacement] = useState(() => ({
+    horizontal: isOwn ? 'left' : 'right',
+    vertical: 'center',
+  }));
 
   useEffect(() => {
-    if (!emojiPickerOpen) return;
-    const closeOnOutsideClick = () => setEmojiPickerOpen(false);
-    const closeOnEscape = (event) => {
-      if (event.key === 'Escape') setEmojiPickerOpen(false);
-    };
+    if (!isOpen) return undefined;
 
-    document.addEventListener('click', closeOnOutsideClick);
+    function closeOnOutsidePointerDown(event) {
+      if (!wrapRef.current?.contains(event.target)) onClose?.();
+    }
+
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') onClose?.();
+    };
+    const closeOnScroll = () => onClose?.();
+
+    document.addEventListener('pointerdown', closeOnOutsidePointerDown);
     document.addEventListener('keydown', closeOnEscape);
+    window.addEventListener('scroll', closeOnScroll, true);
+    window.addEventListener('resize', closeOnScroll);
 
     return () => {
-      document.removeEventListener('click', closeOnOutsideClick);
+      document.removeEventListener('pointerdown', closeOnOutsidePointerDown);
       document.removeEventListener('keydown', closeOnEscape);
+      window.removeEventListener('scroll', closeOnScroll, true);
+      window.removeEventListener('resize', closeOnScroll);
     };
-  }, [emojiPickerOpen]);
+  }, [isOpen, onClose]);
+
+  useLayoutEffect(() => {
+    if (!isOpen || !wrapRef.current || typeof window === 'undefined') return;
+
+    const rect = wrapRef.current.getBoundingClientRect();
+    const roomRight = window.innerWidth - rect.right - VIEWPORT_GAP;
+    const roomLeft = rect.left - VIEWPORT_GAP;
+    const roomTop = rect.top - VIEWPORT_GAP;
+    const roomBottom = window.innerHeight - rect.bottom - VIEWPORT_GAP;
+
+    setPickerPlacement({
+      horizontal: roomRight >= PICKER_WIDTH || roomRight >= roomLeft ? 'right' : 'left',
+      vertical: roomTop >= PICKER_HEIGHT ? 'top' : (roomBottom >= PICKER_HEIGHT ? 'bottom' : 'center'),
+    });
+  }, [isOpen]);
+
+  const pickerClassName = `msg-emoji-picker${isOpen ? ' open' : ''} ${pickerPlacement.horizontal} ${pickerPlacement.vertical}`;
 
   return (
     <div
-      className={`msg-actions${emojiPickerOpen ? ' picker-open' : ''}`}
+      className={`msg-actions${isOpen ? ' picker-open' : ''}`}
+      ref={wrapRef}
       onClick={(e) => e.stopPropagation()}
     >
-      <div style={{ position: 'relative' }}>
+      <div className="msg-actions-anchor">
         <button
           type="button"
           className="msg-action-btn"
           aria-label="Reageren"
           aria-haspopup="true"
-          aria-expanded={emojiPickerOpen}
-          onClick={(e) => { e.stopPropagation(); setEmojiPickerOpen((v) => !v); }}
+          aria-expanded={isOpen}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isOpen) onClose?.();
+            else onOpen?.();
+          }}
         >
           <span aria-hidden="true">😊</span>
         </button>
-        {emojiPickerOpen && (
-          <div className="msg-emoji-picker" role="group" aria-label="Snelle reacties">
-            {QUICK_REACTION_EMOJI.map((emoji) => (
-              <button
-                type="button"
-                key={emoji}
-                aria-label={`Reageer met ${emoji}`}
-                onClick={() => { onReact(emoji); setEmojiPickerOpen(false); }}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        )}
+        <div
+          className={pickerClassName}
+          role="group"
+          aria-label="Snelle reacties"
+          aria-hidden={!isOpen}
+        >
+          {QUICK_REACTION_EMOJI.map((emoji, index) => (
+            <button
+              type="button"
+              key={emoji}
+              aria-label={`Reageer met ${emoji}`}
+              style={{ '--reaction-pop-delay': `${index * 18}ms` }}
+              tabIndex={isOpen ? 0 : -1}
+              onClick={() => {
+                onReact(emoji);
+                onClose?.();
+              }}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
-}
+});
+
+export default MessageBubbleActions;

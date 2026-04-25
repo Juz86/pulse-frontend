@@ -1,29 +1,35 @@
 import { useRef } from 'react';
 
-export default function useMessageBubbleInteractions(onShowContextMenu) {
+const LONG_PRESS_DELAY_MS = 420;
+
+export default function useMessageBubbleInteractions(onShowContextMenu, onOpenReactionPicker) {
   const longPressTimer = useRef(null);
   const longPressFired = useRef(false);
+
+  function clearLongPressTimer() {
+    clearTimeout(longPressTimer.current);
+    longPressTimer.current = null;
+  }
 
   function handleTouchStart(event) {
     longPressFired.current = false;
     longPressTimer.current = setTimeout(() => {
       longPressFired.current = true;
-      const touch = event.touches[0];
-      onShowContextMenu({
-        clientX: touch.clientX,
-        clientY: touch.clientY,
-        preventDefault: () => {},
-      });
-    }, 500);
+      onOpenReactionPicker?.();
+    }, LONG_PRESS_DELAY_MS);
   }
 
   function handleTouchEnd(event) {
-    clearTimeout(longPressTimer.current);
+    clearLongPressTimer();
     if (longPressFired.current) event.preventDefault();
   }
 
   function handleTouchMove() {
-    clearTimeout(longPressTimer.current);
+    clearLongPressTimer();
+  }
+
+  function handleTouchCancel() {
+    clearLongPressTimer();
   }
 
   function handleContextMenu(event) {
@@ -42,6 +48,7 @@ export default function useMessageBubbleInteractions(onShowContextMenu) {
     handleTouchStart,
     handleTouchEnd,
     handleTouchMove,
+    handleTouchCancel,
     handleContextMenu,
     handleActionCardKeyDown,
   };

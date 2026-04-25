@@ -4,6 +4,102 @@ import MessageBubble from './MessageBubble';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { formatDateLabel } from '../utils';
 
+const MessageListRow = React.memo(function MessageListRow({
+  msg,
+  isFocused,
+  activeConv,
+  currentUid,
+  contacts,
+  currentUser,
+  user,
+  chatSearch,
+  selectionMode,
+  isSelected,
+  onToggleMessageSelection,
+  onReact,
+  onShowContextMenu,
+  onOpenReactionPicker,
+  reactionPickerOpen,
+  onCloseReactionPicker,
+  onRetry,
+  onStartCall,
+  onViewContact,
+}) {
+  const isOwn = msg.senderId === currentUid;
+
+  const handleSelect = useCallback(() => {
+    onToggleMessageSelection?.(msg.id);
+  }, [msg.id, onToggleMessageSelection]);
+
+  const handleKeyDown = useCallback((event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onToggleMessageSelection?.(msg.id);
+    }
+  }, [msg.id, onToggleMessageSelection]);
+
+  const handleReact = useCallback((emoji) => {
+    onReact(msg.id, emoji);
+  }, [msg.id, onReact]);
+
+  const handleShowContextMenu = useCallback((event) => {
+    onShowContextMenu(event, msg);
+  }, [msg, onShowContextMenu]);
+
+  const handleOpenReactionPicker = useCallback(() => {
+    onOpenReactionPicker?.(msg.id);
+  }, [msg.id, onOpenReactionPicker]);
+
+  const handleCloseReactionPicker = useCallback(() => {
+    onCloseReactionPicker?.();
+  }, [onCloseReactionPicker]);
+
+  const handleRetry = useCallback(() => {
+    onRetry(msg);
+  }, [msg, onRetry]);
+
+  const handleStartCall = useCallback((isVideo) => {
+    onStartCall?.({ toUid: msg.senderId, convId: activeConv.id, name: msg.senderName, isVideo });
+  }, [activeConv.id, msg.senderId, msg.senderName, onStartCall]);
+
+  return (
+    <div
+      className={`message-select-wrap${selectionMode ? ' selection-mode' : ''}${isSelected ? ' selected' : ''}`}
+      onClick={selectionMode ? handleSelect : undefined}
+      role={selectionMode ? 'button' : undefined}
+      tabIndex={selectionMode ? 0 : undefined}
+      onKeyDown={selectionMode ? handleKeyDown : undefined}
+      aria-pressed={selectionMode ? isSelected : undefined}
+    >
+      {selectionMode && (
+        <span className={`message-select-indicator${isSelected ? ' selected' : ''}`} aria-hidden="true">
+          {isSelected ? '✓' : ''}
+        </span>
+      )}
+      <MessageBubble
+        msg={msg}
+        isOwn={isOwn}
+        isFocused={isFocused}
+        isGroup={!!activeConv.isGroup}
+        memberNames={activeConv.memberNames}
+        contacts={contacts}
+        currentUid={currentUid}
+        currentUser={currentUser}
+        user={user}
+        chatSearch={chatSearch}
+        onReact={handleReact}
+        onShowContextMenu={selectionMode ? (() => {}) : handleShowContextMenu}
+        onOpenReactionPicker={selectionMode ? undefined : handleOpenReactionPicker}
+        reactionPickerOpen={reactionPickerOpen}
+        onCloseReactionPicker={handleCloseReactionPicker}
+        onRetry={handleRetry}
+        onStartCall={handleStartCall}
+        onViewContact={onViewContact}
+      />
+    </div>
+  );
+});
+
 const MessageList = React.memo(function MessageList({
   user,
   contacts = [],
@@ -24,6 +120,9 @@ const MessageList = React.memo(function MessageList({
   onCloseSearch,
   onReact,
   onShowContextMenu,
+  onOpenReactionPicker,
+  reactionPickerMsgId,
+  onCloseReactionPicker,
   onRetry,
   onStartCall,
   onViewContact,
@@ -34,6 +133,12 @@ const MessageList = React.memo(function MessageList({
   selectedMessageIds = [],
   onToggleMessageSelection,
 }) {
+  const currentUser = useMemo(() => ({
+    displayName: user.displayName || user.email,
+    email: user.email,
+    photoURL: currentUserPhotoURL || user.photoURL || null,
+  }), [currentUserPhotoURL, user.displayName, user.email, user.photoURL]);
+
   const focusedMsgId = useMemo(() => {
     if (jumpToMsgId) return jumpToMsgId;
     if (!chatSearch.trim()) return null;
@@ -55,57 +160,38 @@ const MessageList = React.memo(function MessageList({
         lastDate = label;
       }
 
-      const isOwn     = msg.senderId === currentUid;
       const isFocused = msg.id === focusedMsgId;
 
       result.push(
-        <div
+        <MessageListRow
           key={msg._key || msg.id || i}
-          className={`message-select-wrap${selectionMode ? ' selection-mode' : ''}${selectedMessageIds.includes(msg.id) ? ' selected' : ''}`}
-          onClick={selectionMode ? () => onToggleMessageSelection?.(msg.id) : undefined}
-          role={selectionMode ? 'button' : undefined}
-          tabIndex={selectionMode ? 0 : undefined}
-          onKeyDown={selectionMode ? (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              onToggleMessageSelection?.(msg.id);
-            }
-          } : undefined}
-          aria-pressed={selectionMode ? selectedMessageIds.includes(msg.id) : undefined}
-        >
-          {selectionMode && (
-            <span className={`message-select-indicator${selectedMessageIds.includes(msg.id) ? ' selected' : ''}`} aria-hidden="true">
-              {selectedMessageIds.includes(msg.id) ? '✓' : ''}
-            </span>
-          )}
-          <MessageBubble
-            msg={msg}
-            isOwn={isOwn}
-            isFocused={isFocused}
-            isGroup={!!activeConv.isGroup}
-            memberNames={activeConv.memberNames}
-            contacts={contacts}
-            currentUid={currentUid}
-            currentUser={{
-              displayName: user.displayName || user.email,
-              email: user.email,
-              photoURL: currentUserPhotoURL || user.photoURL || null,
-            }}
-            user={user}
-            chatSearch={chatSearch}
-            onReact={emoji => onReact(msg.id, emoji)}
-            onShowContextMenu={selectionMode ? (() => {}) : (e => onShowContextMenu(e, msg))}
-            onRetry={() => onRetry(msg)}
-            onStartCall={isVideo => onStartCall?.({ toUid: msg.senderId, convId: activeConv.id, name: msg.senderName, isVideo })}
-            onViewContact={sc => onViewContact(sc)}
-          />
-        </div>
+          msg={msg}
+          isFocused={isFocused}
+          activeConv={activeConv}
+          currentUid={currentUid}
+          contacts={contacts}
+          currentUser={currentUser}
+          user={user}
+          chatSearch={chatSearch}
+          selectionMode={selectionMode}
+          isSelected={selectedMessageIds.includes(msg.id)}
+          onToggleMessageSelection={onToggleMessageSelection}
+          onReact={onReact}
+          onShowContextMenu={onShowContextMenu}
+          onOpenReactionPicker={onOpenReactionPicker}
+          reactionPickerOpen={reactionPickerMsgId === msg.id}
+          onCloseReactionPicker={onCloseReactionPicker}
+          onRetry={onRetry}
+          onStartCall={onStartCall}
+          onViewContact={onViewContact}
+        />
       );
     });
 
     return result;
-  }, [messages, activeConv, currentUid, user, contacts, currentUserPhotoURL, chatSearch, focusedMsgId,
-      onReact, onShowContextMenu, onRetry, onStartCall, onViewContact, selectionMode, selectedMessageIds, onToggleMessageSelection]);
+  }, [messages, activeConv, currentUid, currentUser, user, contacts, chatSearch, focusedMsgId,
+      onReact, onShowContextMenu, onOpenReactionPicker, reactionPickerMsgId, onCloseReactionPicker,
+      onRetry, onStartCall, onViewContact, selectionMode, selectedMessageIds, onToggleMessageSelection]);
 
   const bgStyle = useMemo(() => {
     if (chatBg?.type === 'photo') return {

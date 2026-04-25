@@ -1,5 +1,5 @@
 // src/screens/ChatScreen.js
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense, useCallback, useMemo } from 'react';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { Bell, BellOff, Message } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
@@ -115,9 +115,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       bg: 'rgba(34,197,94,0.92)',
     });
   }
-  function handleShowContextMenu(e, msg) {
+  const handleShowContextMenu = useCallback((e, msg) => {
     e.preventDefault?.();
     if (messageSelectionMode) return;
+    setReactionPickerMsgId(null);
     setContextMenu({
       msg,
       isOwn: msg.senderId === user.uid,
@@ -125,7 +126,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       y: e.clientY,
       anchorRect: e.anchorRect || null,
     });
-  }
+  }, [messageSelectionMode, user.uid]);
   function handleStar(msgId) {
     setStarredMsgs(prev => {
       const next = prev.includes(msgId) ? prev.filter(id => id !== msgId) : [...prev, msgId];
@@ -337,9 +338,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }, [deleteMenuMsgId]);
   useEffect(() => {
     if (!reactionPickerMsgId) return;
-    const close = () => setReactionPickerMsgId(null);
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
+    const close = (event) => {
+      if (event.key === 'Escape') setReactionPickerMsgId(null);
+    };
+    document.addEventListener('keydown', close);
+    return () => document.removeEventListener('keydown', close);
   }, [reactionPickerMsgId]);
   useEffect(() => {
     function onKeyDown(e) {
@@ -354,6 +357,31 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [setContactEmail, setSearchEmail, setShowAddContact, setShowNewChat, showAddContact, showCallModal, showGroupInfo, showNewChat, showNewGroup, showProfile]);
+
+  const visibleMessages = useMemo(
+    () => messages.filter(m => !blockedContacts.some(c => c.uid === m.senderId && m.senderId !== user.uid)),
+    [blockedContacts, messages, user.uid],
+  );
+  const handleMessageReaction = useCallback((msgId, emoji) => {
+    toggleReaction(msgId, emoji);
+  }, [toggleReaction]);
+  const handleMessageRetry = useCallback((msg) => {
+    retryMessage(msg);
+  }, [retryMessage]);
+  const handleOpenReactionPicker = useCallback((msgId) => {
+    setContextMenu(null);
+    setReactionPickerMsgId((current) => (current === msgId ? current : msgId));
+  }, []);
+  const handleCloseReactionPicker = useCallback(() => {
+    setReactionPickerMsgId(null);
+  }, []);
+  const handleMessageStartCall = useCallback(({ toUid, convId, name, isVideo }) => {
+    initiateCallFromConv({ id: convId, members: [user.uid, toUid], memberNames: { [toUid]: name } }, isVideo);
+  }, [initiateCallFromConv, user.uid]);
+  const handleViewSharedContact = useCallback((sc) => {
+    setFriendReqSent(false);
+    setViewingSharedContact({ ...sc, isAlreadyContact: contacts.some(c => c.uid === sc?.uid) });
+  }, [contacts, setFriendReqSent, setViewingSharedContact]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function sendContactCard(toContact, sharedContact) {
@@ -563,7 +591,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               user={user}
               contacts={contacts}
               currentUserPhotoURL={photoPreview || user.photoURL}
-              messages={messages.filter(m => !blockedContacts.some(c => c.uid === m.senderId && m.senderId !== user.uid))}
+              messages={visibleMessages}
               activeConv={activeConv} currentUid={user.uid}
               chatSearch={chatSearch} chatSearchIdx={chatSearchIdx}
               chatBg={chatBg}
@@ -573,12 +601,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               typingName={typingName}
               onLoadMore={loadMoreMessages}
               onCloseSearch={() => { setShowChatSearch(false); setChatSearch(''); }}
-              onReact={(msgId, emoji) => toggleReaction(msgId, emoji)}
+              onReact={handleMessageReaction}
               onShowContextMenu={handleShowContextMenu}
+              onOpenReactionPicker={handleOpenReactionPicker}
+              reactionPickerMsgId={reactionPickerMsgId}
+              onCloseReactionPicker={handleCloseReactionPicker}
               jumpToMsgId={jumpToMsgId}
-              onRetry={msg => retryMessage(msg)}
-              onStartCall={callsAvailable ? ({ toUid, convId, name, isVideo }) => initiateCallFromConv({ id: convId, members: [user.uid, toUid], memberNames: { [toUid]: name } }, isVideo) : undefined}
-              onViewContact={sc => { setFriendReqSent(false); setViewingSharedContact({ ...sc, isAlreadyContact: contacts.some(c => c.uid === sc?.uid) }); }}
+              onRetry={handleMessageRetry}
+              onStartCall={callsAvailable ? handleMessageStartCall : undefined}
+              onViewContact={handleViewSharedContact}
               selectionMode={messageSelectionMode}
               selectedMessageIds={selectedMessageIds}
               onToggleMessageSelection={toggleMessageSelection}

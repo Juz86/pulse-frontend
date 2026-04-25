@@ -37,7 +37,7 @@ function resolveReactionPerson(uid, {
   };
 }
 
-export default function MessageReactionBar({
+const MessageReactionBar = React.memo(function MessageReactionBar({
   reactions,
   currentUid,
   currentUser,
@@ -99,12 +99,18 @@ export default function MessageReactionBar({
       if (event.key === 'Escape') setDetailsOpen(false);
     }
 
-    document.addEventListener('click', closeOnOutsideClick);
+    function closeOnScroll() {
+      setDetailsOpen(false);
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsideClick);
     document.addEventListener('keydown', closeOnEscape);
+    window.addEventListener('scroll', closeOnScroll, true);
 
     return () => {
-      document.removeEventListener('click', closeOnOutsideClick);
+      document.removeEventListener('pointerdown', closeOnOutsideClick);
       document.removeEventListener('keydown', closeOnEscape);
+      window.removeEventListener('scroll', closeOnScroll, true);
     };
   }, [detailsOpen]);
 
@@ -234,4 +240,6 @@ export default function MessageReactionBar({
       )}
     </div>
   );
-}
+});
+
+export default MessageReactionBar;

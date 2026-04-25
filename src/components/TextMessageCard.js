@@ -14,6 +14,9 @@ export default function TextMessageCard({
   onRetry,
   onReact,
   onShowContextMenu,
+  onOpenReactionPicker,
+  reactionPickerOpen,
+  onCloseReactionPicker,
 }) {
   function handleMenuClick(event) {
     event.stopPropagation();
@@ -92,6 +95,10 @@ export default function TextMessageCard({
       )}
       <MessageBubbleActions
         onReact={onReact}
+        isOpen={reactionPickerOpen}
+        onOpen={onOpenReactionPicker}
+        onClose={onCloseReactionPicker}
+        isOwn={isOwn}
       />
     </div>
   );

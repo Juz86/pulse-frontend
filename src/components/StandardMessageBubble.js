@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import MessageReactionBar from './MessageReactionBar';
 import TextMessageCard from './TextMessageCard';
 import { normalizeSingleUserReaction } from '../lib/e2ee/messageReactions';
@@ -9,9 +9,13 @@ export default function StandardMessageBubble({
   onTouchStart,
   onTouchEnd,
   onTouchMove,
+  onTouchCancel,
   onRetry,
   onReact,
   onShowContextMenu,
+  onOpenReactionPicker,
+  reactionPickerOpen,
+  onCloseReactionPicker,
 }) {
   const {
     msg,
@@ -26,7 +30,10 @@ export default function StandardMessageBubble({
     status,
     receiptSummaryLabel,
   } = presentation;
-  const visibleReactions = normalizeSingleUserReaction(msg.reactions, currentUid);
+  const visibleReactions = useMemo(
+    () => normalizeSingleUserReaction(msg.reactions, currentUid),
+    [msg.reactions, currentUid],
+  );
   const hasReactions = Object.values(visibleReactions).some((uids) => uids?.length > 0);
 
   return (
@@ -38,6 +45,7 @@ export default function StandardMessageBubble({
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       onTouchMove={onTouchMove}
+      onTouchCancel={onTouchCancel}
     >
       {!isOwn && isGroup && <div className="msg-sender">{msg.senderName}</div>}
       <TextMessageCard
@@ -50,6 +58,9 @@ export default function StandardMessageBubble({
         onRetry={onRetry}
         onReact={onReact}
         onShowContextMenu={onShowContextMenu}
+        onOpenReactionPicker={onOpenReactionPicker}
+        reactionPickerOpen={reactionPickerOpen}
+        onCloseReactionPicker={onCloseReactionPicker}
       />
       <MessageReactionBar
         reactions={visibleReactions}

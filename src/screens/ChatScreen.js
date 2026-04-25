@@ -193,7 +193,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       onConfirm: async () => {
         for (const convId of selectedConversationIds) {
           // eslint-disable-next-line no-await-in-loop
-          await deleteConversation(null, convId);
+          await deleteConversation(null, convId, { skipConfirm: true });
         }
         cancelConversationSelection();
       },
@@ -459,7 +459,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             message: 'Chat verwijderen? Dit gesprek verdwijnt alleen uit jouw lijst. Voor de andere persoon blijft de chat zichtbaar tot de bewaartermijn afloopt.',
             confirmLabel: 'Verwijderen',
             onConfirm: async () => {
-              await deleteConversation?.(null, conv.id);
+              await deleteConversation?.(null, conv.id, { skipConfirm: true });
             },
           });
         }}
@@ -469,7 +469,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             message: 'Chat verwijderen? Dit gesprek verdwijnt alleen uit jouw lijst. Voor de andere persoon blijft de chat zichtbaar tot de bewaartermijn afloopt.',
             confirmLabel: 'Verwijderen',
             onConfirm: async () => {
-              await deleteConversation?.(null, conv.id);
+              await deleteConversation?.(null, conv.id, { skipConfirm: true });
             },
           });
         }}
@@ -521,7 +521,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   message: 'Chat verwijderen? Dit gesprek verdwijnt alleen uit jouw lijst. Voor de andere persoon blijft de chat zichtbaar tot de bewaartermijn afloopt.',
                   confirmLabel: 'Verwijderen',
                   onConfirm: async () => {
-                    await deleteConversation?.(null, activeConv.id);
+                    await deleteConversation?.(null, activeConv.id, { skipConfirm: true });
                   },
                 });
               }}
@@ -531,7 +531,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                   message: 'Chat verwijderen? Dit gesprek verdwijnt alleen uit jouw lijst. Voor de andere persoon blijft de chat zichtbaar tot de bewaartermijn afloopt.',
                   confirmLabel: 'Verwijderen',
                   onConfirm: async () => {
-                    await deleteConversation?.(null, activeConv.id);
+                    await deleteConversation?.(null, activeConv.id, { skipConfirm: true });
                   },
                 });
               }}

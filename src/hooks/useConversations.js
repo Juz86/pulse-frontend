@@ -443,19 +443,35 @@ export default function useConversations({
   }
 
   // ── Gesprek verwijderen ───────────────────────────────────────────────────
-  async function deleteConversation(e, convId) {
+  async function deleteConversation(e, convId, options = {}) {
     e?.stopPropagation?.();
+    const { skipConfirm = false } = options || {};
+
+    const performDelete = async () => {
+      try {
+        await authFetch(`${BACKEND_URL}/api/conversations/${convId}`, { method: 'DELETE' });
+      } catch {
+        showErrToast('Verwijderen mislukt');
+        return;
+      }
+
+      setSessionMessagesForConversation(convId, []);
+      delete msgCache.current[convId];
+      setConversations((prev) => prev.filter((conversation) => conversation.id !== convId));
+      if (activeConvRef.current?.id === convId) {
+        setActiveConv(null);
+        setMessages([]);
+      }
+    };
+
+    if (skipConfirm) {
+      await performDelete();
+      return;
+    }
+
     setConfirmDialog({
       message: 'Weet je zeker dat je dit gesprek wilt verwijderen?',
-      onConfirm: async () => {
-        try {
-          await authFetch(`${BACKEND_URL}/api/conversations/${convId}`, { method: 'DELETE' });
-        } catch { showErrToast('Verwijderen mislukt'); }
-        setSessionMessagesForConversation(convId, []);
-        delete msgCache.current[convId];
-        setConversations(prev => prev.filter(c => c.id !== convId));
-        if (activeConv?.id === convId) { setActiveConv(null); setMessages([]); }
-      },
+      onConfirm: performDelete,
     });
   }
 

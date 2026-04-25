@@ -4,6 +4,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { db } from '../services/firestore.js';
 import { applyConversationSummaryFields } from '../services/conversationSummaries.js';
 import { purgeExpiredConversationHistory } from '../services/historyRetention.js';
+import { shouldHideConversationForUser } from '../services/conversationVisibility.js';
 
 function sortByUpdatedDesc(items) {
   return [...items].sort((a, b) => {
@@ -36,12 +37,19 @@ conversationsRouter.get('/:uid', requireAuth, asyncRoute(async (req, res) => {
       members: data.members || [],
       conversationData: data,
     });
-    const nextData = purgeResult.conversation || data;
+    const nextData = purgeResult.deletedConversation ? null : (purgeResult.conversation || data);
+    if (!nextData) {
+      continue;
+    }
 
     // Conversation docs already persist last-message summary fields during
     // send/update flows. Reusing them here avoids an extra per-conversation
     // messages query that can fail in production when the required Firestore
     // composite index is missing.
+    if (shouldHideConversationForUser(nextData, uid)) {
+      continue;
+    }
+
     rows.push(applyConversationSummaryFields(nextData, {
       ...nextData,
       lastMessage: nextData.lastMessage || '',
@@ -65,13 +73,14 @@ conversationsRouter.delete('/:convId', requireAuth, asyncRoute(async (req, res) 
     return res.status(403).json({ error: 'not_allowed_in_conversation' });
   }
 
-  await convDoc.ref.delete();
+  const deletedForUserIds = Array.isArray(conv.deletedForUserIds) ? conv.deletedForUserIds : [];
+  const nextDeletedForUserIds = deletedForUserIds.includes(uid)
+    ? deletedForUserIds
+    : [...deletedForUserIds, uid];
 
-  const msgSnap = await db.collection('messages').where('conversationId', '==', convId).get();
-  await Promise.all(msgSnap.docs.map((doc) => doc.ref.delete()));
+  await convDoc.ref.set({
+    deletedForUserIds: nextDeletedForUserIds,
+  }, { merge: true });
 
-  const receiptSnap = await db.collection('message_recipients').where('conversationId', '==', convId).get().catch(() => ({ docs: [] }));
-  await Promise.all((receiptSnap.docs || []).map((doc) => doc.ref.delete()));
-
-  return res.json({ ok: true, deleted: true });
+  return res.json({ ok: true, deleted: true, scope: 'self' });
 }));

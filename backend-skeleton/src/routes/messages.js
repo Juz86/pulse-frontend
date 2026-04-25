@@ -208,7 +208,7 @@ export function messagesRouter({ io, emitToUser }) {
     });
 
     await db.collection('conversations').doc(conversationId).set(
-      applyConversationSummaryFields({ updatedAt: createdAt }, summary),
+      applyConversationSummaryFields({ updatedAt: createdAt, deletedForUserIds: [] }, summary),
       { merge: true }
     );
 

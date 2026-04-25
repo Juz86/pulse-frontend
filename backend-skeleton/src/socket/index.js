@@ -135,6 +135,14 @@ export function createSocketServer(server) {
       }
 
       if (existing) {
+        const deletedForUserIds = Array.isArray(existing.deletedForUserIds) ? existing.deletedForUserIds : [];
+        if (deletedForUserIds.includes(uid)) {
+          const nextDeletedForUserIds = deletedForUserIds.filter((memberUid) => memberUid !== uid);
+          await db.collection('conversations').doc(existing.id).set({
+            deletedForUserIds: nextDeletedForUserIds,
+          }, { merge: true });
+          existing.deletedForUserIds = nextDeletedForUserIds;
+        }
         socket.join(`conv:${existing.id}`);
         ack({ convId: existing.id });
         return;
@@ -392,6 +400,7 @@ export function createSocketServer(server) {
       await convDoc.ref.set({
         lastMessage: savedMessage.type === 'text' ? savedMessage.text : (savedMessage.type === 'contact' ? `Contactpersoon: ${savedMessage.sharedContact?.name || ''}` : 'Nieuw bericht'),
         updatedAt: savedMessage.createdAt,
+        deletedForUserIds: [],
       }, { merge: true });
 
       for (const memberUid of conv.members) {
@@ -469,6 +478,7 @@ export function createSocketServer(server) {
         lastCallSenderId: savedMessage.senderId,
         lastCallIsVideo: savedMessage.isVideo,
         updatedAt: savedMessage.createdAt,
+        deletedForUserIds: [],
       }, { merge: true });
 
       for (const memberUid of conv.members) {

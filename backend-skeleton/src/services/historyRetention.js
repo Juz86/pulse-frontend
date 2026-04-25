@@ -194,6 +194,16 @@ export async function purgeExpiredConversationHistory({ convId, members = [], co
       .map((doc) => doc.data())
   );
 
+  if (remainingMessages.length === 0) {
+    await db.collection('conversations').doc(convId).delete().catch(() => {});
+    return {
+      deletedCount: expiredDocs.length,
+      conversation: null,
+      retentionDays,
+      deletedConversation: true,
+    };
+  }
+
   const latestRemaining = remainingMessages[0] || null;
   const nextConversationData = applyConversationSummaryFields(
     {

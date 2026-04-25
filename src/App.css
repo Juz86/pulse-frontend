@@ -2355,6 +2355,40 @@ font-family: 'Inter', sans-serif;
   margin-bottom:12px;
   padding-right:34px;
 }
+.confirm-dialog-modal {
+  max-width:440px;
+}
+.confirm-dialog-title {
+  margin-bottom:12px;
+  padding-right:48px;
+  font-size:20px;
+  line-height:1.25;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.confirm-dialog-actions {
+  gap:8px;
+  margin-top:10px;
+}
+.confirm-dialog-btn {
+  min-height:42px;
+  padding:10px 14px;
+  border-radius:14px;
+  font-size:15px;
+  font-weight:700;
+}
+.confirm-dialog-btn.btn-secondary {
+  padding:10px 14px;
+}
+.confirm-dialog-btn-danger {
+  flex:1;
+  background:linear-gradient(135deg, #ef4444, #dc2626);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
 .delete-confirm-description {
   color:var(--text);
   font-size:15px;
@@ -2417,6 +2451,17 @@ font-family: 'Inter', sans-serif;
 @media (max-width:520px) {
   .delete-confirm-actions--two {
     grid-template-columns:1fr;
+  }
+  .confirm-dialog-modal {
+    max-width:360px;
+  }
+  .confirm-dialog-title {
+    font-size:clamp(17px, 5.2vw, 20px);
+  }
+  .confirm-dialog-btn {
+    min-height:40px;
+    padding:9px 12px;
+    font-size:14px;
   }
 }
 

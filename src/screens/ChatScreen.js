@@ -187,6 +187,19 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       },
     });
   }
+  function openClearConversationConfirm(conv) {
+    if (!conv?.id) return;
+    const conversationName = getConvName(conv) || 'dit gesprek';
+    setConfirmDialog({
+      title: `Wis chat met ${conversationName}?`,
+      message: 'Het chatvenster blijft open, maar de chatinhoud wordt leeggemaakt.',
+      confirmLabel: 'Wissen',
+      confirmIcon: 'trash',
+      onConfirm: async () => {
+        await clearConversationHistoryHard?.(conv.id);
+      },
+    });
+  }
   function handleDeleteSelectedMessages() {
     if (!selectedMessageIds.length) return;
     const selectedMessages = messages.filter((message) => selectedMessageIds.includes(message.id));
@@ -221,7 +234,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const {
     conversations, setConversations, activeConv, setActiveConv,
     messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore,
-    loadConversations, openConversation, deleteConversation, loadMoreMessages,
+    loadConversations, openConversation, deleteConversation, clearConversationHistoryHard, loadMoreMessages,
     sendMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
@@ -466,7 +479,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onOpenConversation={openConversation}
         onCallFromConv={initiateCallFromConv}
         onClearConversation={(conv) => {
-          openDeleteConversationConfirm(conv);
+          openClearConversationConfirm(conv);
         }}
         onHardDeleteConversation={(conv) => {
           openDeleteConversationConfirm(conv);
@@ -514,7 +527,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onShowStarredMsgs={() => setShowStarredMsgs(true)}
               onLeaveGroup={leaveGroup}
               onClearChat={() => {
-                openDeleteConversationConfirm(activeConv);
+                openClearConversationConfirm(activeConv);
               }}
               onDeleteChat={() => {
                 openDeleteConversationConfirm(activeConv);

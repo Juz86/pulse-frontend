@@ -407,17 +407,15 @@ export default function ChatModals({
       {/* ── VRIENDSCHAPSVERZOEKEN ── */}
       {showFriendRequestsPanel && (
           <aside className="chat-side-panel friend-requests-panel" aria-labelledby="friend-requests-title">
-            <div className="friend-requests-header">
-              <h2 id="friend-requests-title" className="modal-title friend-requests-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Vriendschapsverzoeken</h2>
-              <button
-                type="button"
-                className="modal-close-btn pd-close-btn friend-requests-close-btn"
-                aria-label="Sluiten"
-                onClick={() => setShowFriendRequestsPanel(false)}
-              >
-                <span aria-hidden="true">✕</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              className="modal-close-btn"
+              aria-label="Sluiten"
+              onClick={() => setShowFriendRequestsPanel(false)}
+            >
+              <span aria-hidden="true">✕</span>
+            </button>
+            <h2 id="friend-requests-title" className="modal-title friend-requests-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Vriendschapsverzoeken</h2>
 
             <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
               <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>

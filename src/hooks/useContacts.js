@@ -7,6 +7,10 @@ import { getSocket, BACKEND_URL } from '../services/socket';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 
+function getFriendRequestId(request) {
+  return request?.id || request?.requestId || null;
+}
+
 export default function useContacts({
   user,
   conversations,
@@ -260,11 +264,12 @@ export default function useContacts({
 
   async function remindPendingFriendRequest(requestOverride = null) {
     const targetRequest = requestOverride || pendingFriendRequest;
-    if (!targetRequest?.requestId || !targetRequest?.canSendReminder) return;
+    const requestId = targetRequest?.requestId || getFriendRequestId(targetRequest);
+    if (!requestId || !targetRequest?.canSendReminder) return;
 
     setContactLoading(true);
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/friend-requests/${targetRequest.requestId}/remind`, {
+      const res = await authFetch(`${BACKEND_URL}/api/friend-requests/${requestId}/remind`, {
         method: 'POST',
       });
       const data = await res.json().catch(() => ({}));
@@ -284,7 +289,7 @@ export default function useContacts({
       }
 
       setPendingFriendRequest({
-        requestId: targetRequest.requestId,
+        requestId,
         toUid: targetRequest.toUid,
         reminderCount: Number(data.reminderCount || 0),
         remindersRemaining: Number(data.remindersRemaining || 0),
@@ -292,9 +297,11 @@ export default function useContacts({
         canCancel: true,
       });
       setSentFriendRequests(prev => prev.map(req =>
-        req.id === targetRequest.requestId
+        getFriendRequestId(req) === requestId
           ? {
               ...req,
+              id: getFriendRequestId(req) || requestId,
+              requestId,
               reminderCount: Number(data.reminderCount || 0),
               lastReminderAt: data.remindedAt || req.lastReminderAt || null,
             }
@@ -312,11 +319,12 @@ export default function useContacts({
 
   async function cancelPendingFriendRequest(requestOverride = null) {
     const targetRequest = requestOverride || pendingFriendRequest;
-    if (!targetRequest?.requestId) return;
+    const requestId = targetRequest?.requestId || getFriendRequestId(targetRequest);
+    if (!requestId) return;
 
     setContactLoading(true);
     try {
-      const res = await authFetch(`${BACKEND_URL}/api/friend-requests/${targetRequest.requestId}/cancel`, {
+      const res = await authFetch(`${BACKEND_URL}/api/friend-requests/${requestId}/cancel`, {
         method: 'POST',
       });
       const data = await res.json().catch(() => ({}));
@@ -326,7 +334,7 @@ export default function useContacts({
       }
 
       setPendingFriendRequest(null);
-      setSentFriendRequests(prev => prev.filter(req => req.id !== targetRequest.requestId));
+      setSentFriendRequests(prev => prev.filter(req => getFriendRequestId(req) !== requestId));
       setContactErr('');
       setContactSuccess('Uitnodiging geannuleerd.');
       setTimeout(() => setContactSuccess(''), 4000);
@@ -342,11 +350,11 @@ export default function useContacts({
   }
 
   async function remindFriendRequestById(requestId) {
-    const request = sentFriendRequests.find((item) => item.id === requestId);
+    const request = sentFriendRequests.find((item) => getFriendRequestId(item) === requestId);
     if (!request) return;
 
     const targetRequest = {
-      requestId: request.id,
+      requestId: getFriendRequestId(request),
       toUid: request.toUid,
       reminderCount: Number(request.reminderCount || 0),
       remindersRemaining: Math.max(0, 3 - Number(request.reminderCount || 0)),
@@ -358,11 +366,11 @@ export default function useContacts({
   }
 
   async function cancelFriendRequestById(requestId) {
-    const request = sentFriendRequests.find((item) => item.id === requestId);
+    const request = sentFriendRequests.find((item) => getFriendRequestId(item) === requestId);
     if (!request) return;
 
     const targetRequest = {
-      requestId: request.id,
+      requestId: getFriendRequestId(request),
       toUid: request.toUid,
       reminderCount: Number(request.reminderCount || 0),
       remindersRemaining: Math.max(0, 3 - Number(request.reminderCount || 0)),

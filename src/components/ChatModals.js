@@ -109,6 +109,10 @@ function HistorySelect({ ariaLabel, value, options, onChange, disabled = false, 
   );
 }
 
+function getFriendRequestId(request) {
+  return request?.id || request?.requestId || null;
+}
+
 export default function ChatModals({
   // contact rename
   renamingContact, setRenamingContact,
@@ -447,10 +451,11 @@ export default function ChatModals({
               {requestsTab === 'verstuurd' && (
                 <>
                   {sentFriendRequests.map(req => {
+                    const requestId = getFriendRequestId(req);
                     const reminderCount = Number(req.reminderCount || 0);
                     const remindersRemaining = Math.max(0, 3 - reminderCount);
                     return (
-                      <div key={req.id} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div key={requestId || req.toUid || req.toEmail} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.toEmail || req.toUid)}</div>
                           <div style={{ flex: 1, minWidth: 0 }}>
@@ -461,10 +466,10 @@ export default function ChatModals({
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: 8 }}>
-                          <button type="button" className="btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onCancelFriendRequest(req.id)}>
+                          <button type="button" className="btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => requestId && onCancelFriendRequest(requestId)} disabled={!requestId}>
                             Annuleren
                           </button>
-                          <button type="button" className="btn-primary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onRemindFriendRequest(req.id)} disabled={remindersRemaining <= 0}>
+                          <button type="button" className="btn-primary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => requestId && onRemindFriendRequest(requestId)} disabled={!requestId || remindersRemaining <= 0}>
                             Herinneren
                           </button>
                         </div>

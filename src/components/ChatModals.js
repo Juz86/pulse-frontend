@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
-import React, { useEffect, useRef, useState } from 'react';
-import { Phone, Video, Camera, Delete, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, Clock } from '../components/Icons';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Phone, Video, Camera, Delete, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, Clock, ArrowLeft, ArrowRight } from '../components/Icons';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
@@ -237,6 +237,13 @@ export default function ChatModals({
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const [groupMemberSearch, setGroupMemberSearch] = useState('');
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
+  const profileSections = useMemo(() => ([
+    { id: 'account', icon: <User size={18} />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
+    ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} />, label: 'Geschiedenis', description: 'Bewaartermijnen beheren' }] : []),
+    { id: 'styling', icon: <Palette size={18} />, label: 'Styling', description: 'Chatachtergrond en sfeer' },
+    { id: 'geblokkeerd', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>, label: 'Geblokkeerd', description: 'Beheer geblokkeerde contacten' },
+  ]), [isParent]);
+  const activeProfileSection = profileSections.find((section) => section.id === profileTab) || null;
   const primaryHistoryChild = historyChildren.find((child) => child.uid === selectedHistoryChildUid) || historyChildren[0] || null;
   const primaryHistoryRules = normalizeHistoryRules(primaryHistoryChild ? childHistoryRulesByUid?.[primaryHistoryChild.uid] : {});
   const canManagePrimaryHistoryChild = !!primaryHistoryChild?.canManageHistory;
@@ -276,6 +283,11 @@ export default function ChatModals({
     if (historyChildren.some((child) => child.uid === selectedHistoryChildUid)) return;
     setSelectedHistoryChildUid(historyChildren[0].uid);
   }, [historyChildren, selectedHistoryChildUid]);
+
+  useEffect(() => {
+    if (showProfile) return;
+    setProfileTab('overview');
+  }, [setProfileTab, showProfile]);
 
   useEffect(() => {
     if (!addingMember) setGroupMemberSearch('');
@@ -721,31 +733,60 @@ export default function ChatModals({
             aria-describedby="profile-settings-description"
           >
             <div className="profile-modal-header">
-              <span id="profile-settings-title" className="profile-modal-header-title">Instellingen</span>
+              {profileTab !== 'overview' ? (
+                <button
+                  type="button"
+                  className="profile-modal-back"
+                  aria-label="Terug naar instellingen"
+                  onClick={() => setProfileTab('overview')}
+                >
+                  <ArrowLeft size={20} aria-hidden="true" />
+                </button>
+              ) : (
+                <span className="profile-modal-back-placeholder" aria-hidden="true" />
+              )}
+              <span id="profile-settings-title" className="profile-modal-header-title">
+                {profileTab === 'overview' ? 'Instellingen' : activeProfileSection?.label || 'Instellingen'}
+              </span>
               <button type="button" className="profile-modal-close" aria-label="Instellingen sluiten" onClick={() => setShowProfile(false)}><span aria-hidden="true">✕</span></button>
             </div>
             <p id="profile-settings-description" className="sr-only">
               Pas je account, styling en verwijderopties aan in dit instellingenvenster.
             </p>
             <div className="profile-modal-body">
-              <div className="profile-sidebar">
-                {[
-                  ['account', <User size={16} />, 'Mijn account'],
-                  ...(isParent ? [['geschiedenis', <Clock size={16} />, 'Geschiedenis']] : []),
-                  ['styling', <Palette size={16} />, 'Styling'],
-                  ['geblokkeerd', <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>, 'Geblokkeerd'],
-                  ['verwijderen', <Delete size={16} />, 'Verwijderen'],
-                ].map(([id, icon, label]) => (
-                  <button key={id} type="button" className={`profile-sidebar-tab${profileTab === id ? ' active' : ''}${id === 'verwijderen' ? ' danger' : ''}`}
-                    onClick={() => {
-                      setProfileTab(id);
-                      if (id === 'geschiedenis') loadHistorySettings();
-                    }}>
-                    {icon}<span>{label}</span>
-                  </button>
-                ))}
-              </div>
               <div className="profile-content">
+                {profileTab === 'overview' && (
+                  <div className="profile-settings-home">
+                    <div className="profile-settings-hero">
+                      {photoPreview
+                        ? <img src={photoPreview} alt={user.displayName || user.email} className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
+                        : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
+                      }
+                      <div className="profile-settings-hero-name">{user.displayName || user.email}</div>
+                    </div>
+                    <div className="profile-settings-section-title">Instellingen</div>
+                    <div className="profile-settings-list">
+                      {profileSections.map((section) => (
+                        <button
+                          key={section.id}
+                          type="button"
+                          className="profile-settings-item"
+                          onClick={() => {
+                            setProfileTab(section.id);
+                            if (section.id === 'geschiedenis') loadHistorySettings();
+                          }}
+                        >
+                          <span className="profile-settings-item-icon" aria-hidden="true">{section.icon}</span>
+                          <span className="profile-settings-item-copy">
+                            <span className="profile-settings-item-title">{section.label}</span>
+                            <span className="profile-settings-item-description">{section.description}</span>
+                          </span>
+                          <ArrowRight size={18} className="profile-settings-item-arrow" aria-hidden="true" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {profileTab === 'account' && (
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
@@ -821,6 +862,16 @@ export default function ChatModals({
                         disabled={profileLoading}
                         onClick={saveProfile}>
                         {profileLoading ? 'Opslaan…' : 'Opslaan →'}
+                      </button>
+                    </div>
+                    <div className="profile-danger-card">
+                      <div className="profile-danger-title">Account verwijderen</div>
+                      <p className="profile-danger-copy">
+                        Als je je account verwijdert worden al je chats, berichten en gegevens permanent verwijderd.
+                      </p>
+                      <button type="button" className="btn-danger" style={{ width: '100%' }}
+                        onClick={() => { setShowProfile(false); handleDeleteAccount(); }}>
+                        <Delete size={16} style={{ marginRight: 6 }} aria-hidden="true" /> Account definitief verwijderen
                       </button>
                     </div>
                   </div>
@@ -959,27 +1010,6 @@ export default function ChatModals({
                     </div>
                   );
                 })()}
-                {profileTab === 'verwijderen' && (
-                  <div>
-                    <div style={{ marginBottom: '20px' }}>
-                      <h4 style={{ fontFamily: "'Syne',sans-serif", fontSize: '18px', fontWeight: 800, color: 'var(--danger)', marginBottom: '10px' }}>Account verwijderen</h4>
-                      <p style={{ fontSize: '13px', color: 'var(--text2)', lineHeight: 1.6 }}>
-                        Als je je account verwijdert worden <strong>al je chats, berichten en gegevens permanent verwijderd</strong>. Dit kan niet ongedaan worden gemaakt.
-                      </p>
-                    </div>
-                    <div style={{ background: 'rgba(255,71,87,.06)', border: '1px solid rgba(255,71,87,.2)', borderRadius: '14px', padding: '16px', marginBottom: '20px' }}>
-                      <div style={{ fontSize: '13px', color: 'var(--text2)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <div>🗑️ Alle berichten worden verwijderd</div>
-                        <div>👥 Je wordt uit alle gesprekken verwijderd</div>
-                        <div>🔐 Je account wordt permanent afgesloten</div>
-                      </div>
-                    </div>
-                    <button type="button" className="btn-danger" style={{ width: '100%' }}
-                      onClick={() => { setShowProfile(false); handleDeleteAccount(); }}>
-                      <Delete size={16} style={{ marginRight: 6 }} aria-hidden="true" /> Account definitief verwijderen
-                    </button>
-                  </div>
-                )}
                 {profileTab === 'styling' && (
                   <div>
                     <div style={{ marginBottom: '16px' }}>

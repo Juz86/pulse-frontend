@@ -16,7 +16,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
   }
 
   // ── Profiel state ─────────────────────────────────────────────────────────
-  const [profileTab,     setProfileTab]     = useState('account');
+  const [profileTab,     setProfileTab]     = useState('overview');
   const [newName,        setNewName]        = useState(user.displayName || '');
   const [photoFile,      setPhotoFile]      = useState(null);
   const [photoPreview,   setPhotoPreview]   = useState(localStorage.getItem(`pulse_photo_${user.uid}`) || user.photoURL || null);

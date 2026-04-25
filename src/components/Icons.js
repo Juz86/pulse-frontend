@@ -37,6 +37,7 @@ export { MdVisibilityOff as EyeOff }         from 'react-icons/md';
 export { MdPersonAddAlt1 as UserCheck }      from 'react-icons/md';
 export { MdPersonAdd     as UserPlus2 }      from 'react-icons/md';
 export { MdPersonRemove  as UserX }          from 'react-icons/md';
+export { MdHandshake     as Handshake }      from 'react-icons/md';
 export { MdChildCare     as Child }          from 'react-icons/md';
 export { MdClose         as XIcon }          from 'react-icons/md';
 export { MdPauseCircle   as PauseCircle }    from 'react-icons/md';

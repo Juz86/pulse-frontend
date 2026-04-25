@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline } from '../components/Icons';
+import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
@@ -210,7 +210,7 @@ export default function ChatSidebar({
                   <span>Nieuwe groep</span>
                 </button>
                 <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
-                  <Users size={15} aria-hidden="true" />
+                  <Handshake size={15} aria-hidden="true" />
                   <span>Vriendschapsverzoeken</span>
                   {(friendRequests.length + sentFriendRequests.length) > 0 && (
                     <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>

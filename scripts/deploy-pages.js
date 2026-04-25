@@ -18,6 +18,8 @@ const serviceDefaults = {
   REACT_APP_SIGNALING_URL: process.env.REACT_APP_SIGNALING_URL || process.env.REACT_APP_WS_URL || defaults.apiUrl,
   REACT_APP_RTC_CONFIG_URL: process.env.REACT_APP_RTC_CONFIG_URL || defaults.apiUrl,
   REACT_APP_WEB_APP_URL: defaults.webAppUrl,
+  REACT_APP_E2EE_MODE: process.env.REACT_APP_E2EE_MODE || 'mock',
+  REACT_APP_E2EE_TRANSPORT: process.env.REACT_APP_E2EE_TRANSPORT || 'socket',
 };
 
 const targetConfig = {

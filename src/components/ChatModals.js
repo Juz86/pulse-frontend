@@ -415,7 +415,7 @@ export default function ChatModals({
             >
               <span aria-hidden="true">✕</span>
             </button>
-            <h2 id="friend-requests-title" className="modal-title friend-requests-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Vriendschapsverzoeken</h2>
+            <h2 id="friend-requests-title" className="modal-title friend-requests-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Verzoeken</h2>
 
             <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
               <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>

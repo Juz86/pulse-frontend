@@ -64,6 +64,7 @@ export default function useContacts({
   const [contactNickname, setContactNickname] = useState('');
   const [contactRelation, setContactRelation] = useState(null);
   const [contactErr,      setContactErr]      = useState('');
+  const [friendRequestActionErr, setFriendRequestActionErr] = useState('');
   const [contactLoading,  setContactLoading]  = useState(false);
   const [showNewChat,     setShowNewChat]     = useState(false);
   const [searchEmail,     setSearchEmail]     = useState('');
@@ -210,7 +211,9 @@ export default function useContacts({
 
   // ── Contact toevoegen ─────────────────────────────────────────────────────
   async function addContact() {
-    setContactErr(''); setContactLoading(true);
+    setContactErr('');
+    setFriendRequestActionErr('');
+    setContactLoading(true);
     try {
       const resolved = await resolveIdentifierToEmail(contactEmail);
       if (!resolved.ok) { setContactErr(resolved.error); return; }
@@ -274,7 +277,7 @@ export default function useContacts({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setContactErr(data.error || 'Herinnering sturen mislukt');
+        setFriendRequestActionErr(data.error || 'Herinnering sturen mislukt');
         if (data.requestId) {
           setPendingFriendRequest({
             requestId: data.requestId,
@@ -307,11 +310,11 @@ export default function useContacts({
             }
           : req
       ));
-      setContactErr('Verzoek al verzonden');
+      setFriendRequestActionErr('');
       setContactSuccess('Herinnering verstuurd!');
       setTimeout(() => setContactSuccess(''), 4000);
     } catch {
-      setContactErr('Herinnering sturen mislukt');
+      setFriendRequestActionErr('Herinnering sturen mislukt');
     } finally {
       setContactLoading(false);
     }
@@ -329,17 +332,17 @@ export default function useContacts({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setContactErr(data.error || 'Verzoek annuleren mislukt');
+        setFriendRequestActionErr(data.error || 'Verzoek annuleren mislukt');
         return;
       }
 
       setPendingFriendRequest(null);
       setSentFriendRequests(prev => prev.filter(req => getFriendRequestId(req) !== requestId));
-      setContactErr('');
+      setFriendRequestActionErr('');
       setContactSuccess('Uitnodiging geannuleerd.');
       setTimeout(() => setContactSuccess(''), 4000);
     } catch {
-      setContactErr('Verzoek annuleren mislukt');
+      setFriendRequestActionErr('Verzoek annuleren mislukt');
     } finally {
       setContactLoading(false);
     }
@@ -539,7 +542,7 @@ export default function useContacts({
     contactEmail, setContactEmail,
     contactNickname, setContactNickname,
     contactRelation, setContactRelation,
-    contactErr, contactLoading,
+    contactErr, friendRequestActionErr, contactLoading,
     showNewChat, setShowNewChat,
     searchEmail, setSearchEmail,
     searchResult, searchErr,

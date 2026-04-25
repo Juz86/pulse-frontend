@@ -232,7 +232,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     contacts, setContacts, pinnedContacts, friendRequests, setFriendRequests,
     contactSuccess, setContactSuccess, showAddContact, setShowAddContact,
     contactEmail, setContactEmail, contactNickname, setContactNickname,
-    contactRelation, setContactRelation, contactErr, contactLoading,
+    contactRelation, setContactRelation, contactErr, friendRequestActionErr, contactLoading,
     showNewChat, setShowNewChat, searchEmail, setSearchEmail,
     searchResult, searchErr, friendReqSent, setFriendReqSent, friendReqLoading,
     pendingFriendRequest,
@@ -666,7 +666,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         contactEmail={contactEmail} setContactEmail={setContactEmail}
         contactNickname={contactNickname} setContactNickname={setContactNickname}
         contactRelation={contactRelation} setContactRelation={setContactRelation}
-        contactErr={contactErr} contactLoading={contactLoading} addContact={addContact}
+        contactErr={contactErr}
+        friendRequestActionErr={friendRequestActionErr}
+        contactLoading={contactLoading}
+        addContact={addContact}
         pendingFriendRequest={pendingFriendRequest}
         remindPendingFriendRequest={remindPendingFriendRequest}
         cancelPendingFriendRequest={cancelPendingFriendRequest}

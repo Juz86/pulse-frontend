@@ -144,7 +144,7 @@ export default function ChatModals({
   contactEmail, setContactEmail,
   contactNickname, setContactNickname,
   contactRelation, setContactRelation,
-  contactErr, contactLoading,
+  contactErr, friendRequestActionErr, contactLoading,
   addContact,
   clearPendingFriendRequestState,
   friendRequests,
@@ -447,6 +447,11 @@ export default function ChatModals({
 
               {requestsTab === 'verstuurd' && (
                 <>
+                  {friendRequestActionErr && (
+                    <div className="auth-error" style={{ marginBottom: 10 }}>
+                      ⚠️ {friendRequestActionErr}
+                    </div>
+                  )}
                   {sentFriendRequests.map(req => {
                     const requestId = getFriendRequestId(req);
                     const reminderCount = Number(req.reminderCount || 0);

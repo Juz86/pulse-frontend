@@ -3518,7 +3518,6 @@ font-family: 'Inter', sans-serif;
 .friend-requests-title {
   margin-bottom:16px;
   padding-right:58px;
-  padding-top:40px;
   line-height:1.25;
   max-width:100%;
   overflow-wrap:anywhere;
@@ -3545,7 +3544,6 @@ font-family: 'Inter', sans-serif;
 @media (max-width:420px) {
   .friend-requests-title {
     font-size:clamp(22px, 7vw, 30px);
-    padding-top:46px;
     padding-right:54px;
   }
 }

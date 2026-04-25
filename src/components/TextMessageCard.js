@@ -61,12 +61,12 @@ export default function TextMessageCard({
                   title="Opnieuw versturen"
                   aria-label="Bericht niet verzonden, probeer opnieuw"
                 >
-                  <span className="msg-ticks-label">Niet verzonden.</span>
+                  <span className="sr-only">Niet verzonden.</span>
                   <span aria-hidden="true"><ErrorIcon size={12} /></span>
                 </button>
               ) : (
                 <span className={`msg-ticks${status.read ? ' read' : ''}`} aria-label={`Bericht ${status.label}`}>
-                  <span className="msg-ticks-label">{status.label}</span>
+                  <span className="sr-only">{status.label}</span>
                   {status.icon === 'clock'
                     ? <span className={msg._retrying ? 'msg-clock-spin' : ''} aria-hidden="true"><Clock size={11} /></span>
                     : status.icon === 'double'

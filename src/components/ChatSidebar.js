@@ -167,6 +167,21 @@ export default function ChatSidebar({
             >
               <Message size={16} aria-hidden="true" />
             </button>
+            {callsAvailable && (
+              <button
+                type="button"
+                className="icon-btn"
+                aria-label="Oproepen"
+                onClick={onShowCallModal}
+                title="Oproepen"
+                style={{ position: 'relative', width: 34, height: 34 }}
+              >
+                <Phone size={16} aria-hidden="true" />
+                {hasMissedCall && (
+                  <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
+                )}
+              </button>
+            )}
           </div>
         </div>
         <div className="search-box">

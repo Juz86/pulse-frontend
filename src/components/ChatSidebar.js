@@ -164,7 +164,7 @@ export default function ChatSidebar({
       <div className="sidebar-header">
         <div className="sidebar-top">
           <PulseLogo size={30} textSize={20} color="#fff" />
-          <div style={{ display: 'flex', gap: '6px', position: 'relative' }} ref={moreActionsMenuRef}>
+          <div style={{ display: 'flex', gap: '6px', position: 'relative' }}>
             <button
               type="button"
               className="icon-btn"
@@ -175,63 +175,6 @@ export default function ChatSidebar({
             >
               <Message size={16} aria-hidden="true" />
             </button>
-            <button
-              type="button"
-              className="icon-btn"
-              aria-label="Meer acties"
-              aria-expanded={moreActionsMenuOpen}
-              onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
-              title="Meer acties"
-              style={{ position: 'relative', width: 34, height: 34 }}
-            >
-              <MoreHoriz size={18} aria-hidden="true" />
-              {hasMissedCall && (
-                <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
-              )}
-            </button>
-            {moreActionsMenuOpen && (
-              <div
-                role="menu"
-                aria-label="Meer acties"
-                className="chat-header-menu"
-                style={{
-                  position: 'absolute',
-                  top: 42,
-                  right: 0,
-                  zIndex: 500,
-                }}
-              >
-                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); onShowAddContact(); }}>
-                  <Plus size={15} aria-hidden="true" />
-                  <span>Nieuw contact</span>
-                </button>
-                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); onNewGroup(); }}>
-                  <Users size={15} aria-hidden="true" />
-                  <span>Nieuwe groep</span>
-                </button>
-                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
-                  <Handshake size={15} aria-hidden="true" />
-                  <span>Verzoeken</span>
-                  {(friendRequests.length + sentFriendRequests.length) > 0 && (
-                    <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
-                  )}
-                </button>
-                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
-                  <Message size={15} aria-hidden="true" />
-                  <span>{selectionMode ? 'Chats selecteren stoppen' : 'Chats selecteren'}</span>
-                </button>
-                <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { setMoreActionsMenuOpen(false); onToggleDnd(); }}>
-                  {dnd ? <BellOff size={15} aria-hidden="true" /> : <Bell size={15} aria-hidden="true" />}
-                  <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
-                </button>
-                {callsAvailable && (
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); onShowCallModal(); }}>
-                    <Phone size={15} aria-hidden="true" />
-                    <span>Oproepen</span>
-                  </button>
-                )}
-              </div>
-            )}
           </div>
         </div>
         <div className="search-box">
@@ -608,6 +551,65 @@ export default function ChatSidebar({
             {parentActivityBadge > 0 && <span className="parent-badge" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
           </button>
         )}
+        <div style={{ position: 'relative' }} ref={moreActionsMenuRef}>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Meer acties"
+            aria-expanded={moreActionsMenuOpen}
+            onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
+            title="Meer acties"
+            style={{ position: 'relative' }}
+          >
+            <MoreHoriz size={18} aria-hidden="true" />
+            {hasMissedCall && (
+              <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
+            )}
+          </button>
+          {moreActionsMenuOpen && (
+            <div
+              role="menu"
+              aria-label="Meer acties"
+              className="chat-header-menu"
+              style={{
+                position: 'absolute',
+                bottom: 42,
+                right: 0,
+                zIndex: 500,
+              }}
+            >
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); onShowAddContact(); }}>
+                <Plus size={15} aria-hidden="true" />
+                <span>Nieuw contact</span>
+              </button>
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); onNewGroup(); }}>
+                <Users size={15} aria-hidden="true" />
+                <span>Nieuwe groep</span>
+              </button>
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
+                <Handshake size={15} aria-hidden="true" />
+                <span>Verzoeken</span>
+                {(friendRequests.length + sentFriendRequests.length) > 0 && (
+                  <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
+                )}
+              </button>
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
+                <Message size={15} aria-hidden="true" />
+                <span>{selectionMode ? 'Chats selecteren stoppen' : 'Chats selecteren'}</span>
+              </button>
+              <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { setMoreActionsMenuOpen(false); onToggleDnd(); }}>
+                {dnd ? <BellOff size={15} aria-hidden="true" /> : <Bell size={15} aria-hidden="true" />}
+                <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
+              </button>
+              {callsAvailable && (
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); onShowCallModal(); }}>
+                  <Phone size={15} aria-hidden="true" />
+                  <span>Oproepen</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
 <button
 type="button"
 className="icon-btn danger"

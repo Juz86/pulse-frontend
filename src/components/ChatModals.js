@@ -1,7 +1,9 @@
 // src/components/ChatModals.js
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Phone, Video, Camera, Delete, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, Clock, ArrowLeft, ArrowRight, Handshake } from '../components/Icons';
-import { getInitials, formatTime } from '../utils';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
+import { Phone, Video, Camera, Delete, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, Clock, ArrowLeft, ArrowRight, Handshake, Logout } from '../components/Icons';
+import { getInitials, formatTime, clearPulseUserStorage } from '../utils';
 import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
 import UserAvatar from '../components/UserAvatar';
@@ -300,6 +302,12 @@ export default function ChatModals({
     setShowContactProfile(false);
     setViewingContact(null);
     setShowStarredMsgs(true);
+  }
+
+  async function handleLogoutFromSettings() {
+    if (!user?.uid) return;
+    clearPulseUserStorage(user.uid);
+    await signOut(auth);
   }
 
   const anyModalOpen = !!(confirmDialog || showAvatarBuilder);
@@ -780,6 +788,24 @@ export default function ChatModals({
                           <ArrowRight size={18} className="profile-settings-item-arrow" aria-hidden="true" />
                         </button>
                       ))}
+                      <button
+                        type="button"
+                        className="profile-settings-item"
+                        onClick={() => {
+                          setConfirmDialog?.({
+                            title: 'Uitloggen',
+                            message: 'Weet je zeker dat je wilt uitloggen?',
+                            confirmLabel: 'Uitloggen',
+                            onConfirm: async () => { handleLogoutFromSettings().catch(() => {}); },
+                          });
+                        }}
+                      >
+                        <span className="profile-settings-item-icon" aria-hidden="true"><Logout size={18} /></span>
+                        <span className="profile-settings-item-copy">
+                          <span className="profile-settings-item-title" style={{ color: '#fda4af' }}>Uitloggen</span>
+                          <span className="profile-settings-item-description">Afmelden van dit account</span>
+                        </span>
+                      </button>
                     </div>
                   </div>
                 )}

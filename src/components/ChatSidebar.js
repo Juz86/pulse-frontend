@@ -211,7 +211,7 @@ export default function ChatSidebar({
                 </button>
                 <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
                   <Handshake size={15} aria-hidden="true" />
-                  <span>Vriendschapsverzoeken</span>
+                  <span>Verzoeken</span>
                   {(friendRequests.length + sentFriendRequests.length) > 0 && (
                     <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
                   )}

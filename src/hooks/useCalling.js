@@ -22,10 +22,12 @@ export default function useCalling({
   const callConvIdRef    = useRef(null);
   const fallbackNoticeShownRef = useRef(false);
   const reopenRecentAfterCallRef = useRef(false);
+  const callLogRefreshTimersRef = useRef([]);
 
   const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
     const response = await fetch(url, {
+      cache: 'no-store',
       ...options,
       headers: {
         ...(options.headers || {}),
@@ -63,6 +65,10 @@ export default function useCalling({
 
   useEffect(() => {
     refreshCallLog();
+    return () => {
+      callLogRefreshTimersRef.current.forEach((timerId) => clearTimeout(timerId));
+      callLogRefreshTimersRef.current = [];
+    };
   }, [refreshCallLog]);
 
   function getCallLog() {
@@ -93,6 +99,12 @@ export default function useCalling({
       convId, isVideo, direction, duration: duration || 0,
       senderId: user.uid, senderName: user.displayName || user.email,
     });
+    callLogRefreshTimersRef.current.forEach((timerId) => clearTimeout(timerId));
+    callLogRefreshTimersRef.current = [0, 700, 1800, 3200].map((delay) => (
+      setTimeout(() => {
+        refreshCallLog();
+      }, delay)
+    ));
     loadConversations();
   }
 
@@ -153,13 +165,18 @@ export default function useCalling({
           if (reason !== 'busy') {
             sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
           }
+          callLogRefreshTimersRef.current.forEach((timerId) => clearTimeout(timerId));
+          callLogRefreshTimersRef.current = [300, 900, 1800].map((delay) => (
+            setTimeout(() => {
+              refreshCallLog();
+              if (reopenRecentAfterCallRef.current) {
+                setShowCallModal(true);
+              }
+            }, delay)
+          ));
           setTimeout(() => {
-            refreshCallLog();
-            if (reopenRecentAfterCallRef.current) {
-              setShowCallModal(true);
-              reopenRecentAfterCallRef.current = false;
-            }
-          }, 450);
+            reopenRecentAfterCallRef.current = false;
+          }, 2200);
           if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout' || reason === 'busy') {
             setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
           } else {

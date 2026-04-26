@@ -1,6 +1,6 @@
 // src/components/ChatHeader.js
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Bell, BellOff, Logout, MoreHoriz, Phone, StarOutline, Trash2, Users, Video, XIcon } from '../components/Icons';
+import { Bell, BellOff, Logout, MoreHoriz, Phone, StarOutline, Trash2, User, Users, Video, XIcon } from '../components/Icons';
 import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
@@ -231,7 +231,7 @@ const ChatHeader = React.memo(function ChatHeader({
                   activeConv.isGroup ? onShowGroupInfo?.() : openContactProfile();
                 }}
               >
-                <Users size={16} aria-hidden="true" />
+                {activeConv.isGroup ? <Users size={16} aria-hidden="true" /> : <User size={16} aria-hidden="true" />}
                 <span>{activeConv.isGroup ? 'Groepsinfo' : 'Profiel'}</span>
               </button>
               {!activeConv.isGroup && !parentBlockedOtherUid && callsAvailable && (
@@ -317,7 +317,6 @@ const ChatHeader = React.memo(function ChatHeader({
                 </svg>
                 <span>{showChatSearch ? 'Zoeken sluiten' : 'Zoeken'}</span>
               </button>
-              <div className="chat-header-menu-divider" />
               {activeConv.isGroup ? (
                 <>
                   <div className="chat-header-menu-divider" />

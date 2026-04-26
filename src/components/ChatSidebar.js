@@ -1,12 +1,9 @@
 // src/components/ChatSidebar.js
 import React, { useEffect, useRef, useState } from 'react';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase';
 import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
-import { clearPulseUserStorage } from '../utils';
 
 export default function ChatSidebar({
   user,
@@ -118,11 +115,6 @@ export default function ChatSidebar({
   }, [convMenu, contactMenu]);
 
   const hasMissedCall = callsAvailable && (((!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert));
-
-  async function handleLogout() {
-    clearPulseUserStorage(user.uid);
-    await signOut(auth);
-  }
 
   function openContactMenu(contactUid, anchorEl) {
     const rect = anchorEl?.getBoundingClientRect?.();
@@ -610,20 +602,6 @@ export default function ChatSidebar({
             </div>
           )}
         </div>
-<button
-type="button"
-className="icon-btn danger"
-aria-label="Uitloggen"
-onClick={() => {
-  setConfirmDialog?.({
-    title: 'Uitloggen',
-    message: 'Weet je zeker dat je wilt uitloggen?',
-    confirmLabel: 'Uitloggen',
-    onConfirm: async () => { handleLogout().catch(() => {}); },
-  });
-}}
-title="Uitloggen"
-><Logout size={18} aria-hidden="true" /></button>
       </div>
     </aside>
   );

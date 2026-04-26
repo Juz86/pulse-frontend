@@ -1394,7 +1394,7 @@ export default function ChatModals({
                   {callActionMode && (
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 8 }}>
-                        Kies contact en beltype
+                        Kies contactpersoon om te {callActionMode === 'voice' ? 'bellen' : 'videobellen'}:
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 180, overflowY: 'auto' }}>
                         {filteredCallContacts.length === 0 ? (

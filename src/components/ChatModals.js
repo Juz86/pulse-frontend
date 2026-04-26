@@ -239,6 +239,8 @@ export default function ChatModals({
   const [requestsTab,     setRequestsTab]     = useState('ontvangen');
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const [groupMemberSearch, setGroupMemberSearch] = useState('');
+  const [callSearch, setCallSearch] = useState('');
+  const [callActionMode, setCallActionMode] = useState(null); // 'voice' | 'video' | null
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
@@ -1268,9 +1270,24 @@ export default function ChatModals({
       {/* ── OPROEPEN PANEEL ── */}
       {showCallModal && (() => {
         const callLog = getCallLog();
+        const normalizedCallSearch = callSearch.trim().toLowerCase();
+        const filteredCallLog = normalizedCallSearch
+          ? callLog.filter((entry) => {
+              const name = (entry?.name || '').toLowerCase();
+              const typeLabel = entry?.isVideo ? 'videogesprek' : 'gesprek';
+              return name.includes(normalizedCallSearch) || typeLabel.includes(normalizedCallSearch);
+            })
+          : callLog;
+        const filteredCallContacts = normalizedCallSearch
+          ? contacts.filter((c) => {
+              const displayName = (getContactDisplayName(c) || c.displayName || '').toLowerCase();
+              const email = (c.email || '').toLowerCase();
+              return displayName.includes(normalizedCallSearch) || email.includes(normalizedCallSearch);
+            })
+          : contacts;
         return (
             <aside className="chat-side-panel call-log-panel" aria-labelledby="call-log-title" aria-describedby="call-log-description">
-              <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setShowCallModal(false)}><span aria-hidden="true">✕</span></button>
+              <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setShowCallModal(false); setCallActionMode(null); setCallSearch(''); }}><span aria-hidden="true">✕</span></button>
               <h2 id="call-log-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Phone size={18} /></span> {callsAvailable ? 'Recent' : 'Alleen in de app'}</h2>
               <p id="call-log-description" className="sr-only">
                 {callsAvailable
@@ -1283,24 +1300,113 @@ export default function ChatModals({
                   <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>{PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE}</div>
                   <div style={{ fontSize: 12, color: 'var(--text3)', lineHeight: 1.55 }}>{PULSE_WEB_CALLS_UNAVAILABLE_HINT}</div>
                 </div>
-              ) : callLog.length === 0 ? (
+              ) : (
+                <>
+                  <div className="starred-search-wrap" style={{ marginBottom: 10 }}>
+                    <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+                    <input
+                      className="starred-search-input"
+                      placeholder="Zoek recente oproepen of contact…"
+                      value={callSearch}
+                      onChange={(e) => setCallSearch(e.target.value)}
+                    />
+                    {callSearch && (
+                      <button type="button" className="starred-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
+                        <Cancel size={14} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                    <button
+                      type="button"
+                      className="call-btn voice"
+                      aria-label="Nieuw belgesprek"
+                      title="Bel contact"
+                      style={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: 12,
+                        flexShrink: 0,
+                        ...(callActionMode === 'voice' ? { boxShadow: '0 0 0 2px rgba(67,233,123,.35) inset' } : {}),
+                      }}
+                      onClick={() => setCallActionMode((prev) => (prev === 'voice' ? null : 'voice'))}
+                    >
+                      <Phone size={16} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      className="call-btn video"
+                      aria-label="Nieuw videogesprek"
+                      title="Videobel contact"
+                      style={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: 12,
+                        flexShrink: 0,
+                        ...(callActionMode === 'video' ? { boxShadow: '0 0 0 2px rgba(108,99,255,.45) inset' } : {}),
+                      }}
+                      onClick={() => setCallActionMode((prev) => (prev === 'video' ? null : 'video'))}
+                    >
+                      <Video size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+
+                  {callActionMode && (
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 8 }}>
+                        Kies contact om te {callActionMode === 'video' ? 'videobellen' : 'bellen'}
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 180, overflowY: 'auto' }}>
+                        {filteredCallContacts.length === 0 ? (
+                          <div className="empty-convs" style={{ paddingTop: 6, paddingBottom: 6 }}>
+                            <p>Geen contacten gevonden.</p>
+                          </div>
+                        ) : (
+                          filteredCallContacts.map((contact) => (
+                            <button
+                              key={contact.uid}
+                              type="button"
+                              className="contact-row"
+                              style={{
+                                background: 'rgba(255,255,255,0.02)',
+                                border: '1px solid var(--border)',
+                                borderRadius: '10px',
+                                padding: '9px 12px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                color: 'var(--text)',
+                                textAlign: 'left',
+                              }}
+                              onClick={() => callContact(contact, callActionMode === 'video')}
+                            >
+                              <UserAvatar photoURL={contact.photoURL} displayName={getContactDisplayName(contact)} className="sm" decorative />
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getContactDisplayName(contact)}</div>
+                                <div style={{ fontSize: 12, color: 'var(--text3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{contact.email}</div>
+                              </div>
+                              {callActionMode === 'video' ? <Video size={14} aria-hidden="true" /> : <Phone size={14} aria-hidden="true" />}
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {filteredCallLog.length === 0 ? (
                 <div className="call-panel-empty">
                   <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
-                  <div>Nog geen oproepen</div>
+                  <div>{callSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</div>
                 </div>
               ) : (
                 <div className="call-log-list">
-                  {callLog.map((entry, i) => {
+                  {filteredCallLog.map((entry, i) => {
                     const contact = contacts.find(c => c.uid === entry.uid);
                     const dirIcon = entry.direction === 'outgoing' ? <PhoneOutgoing size={13} /> : entry.direction === 'missed' ? <Cancel size={13} /> : <PhoneCall size={13} />;
                     const dirColor = entry.direction === 'missed' ? 'var(--danger)' : entry.direction === 'outgoing' ? 'var(--accent)' : 'var(--success)';
-                    const ago = (() => {
-                      const diff = (Date.now() - entry.ts) / 1000;
-                      if (diff < 60) return 'Zojuist';
-                      if (diff < 3600) return `${Math.floor(diff / 60)} min geleden`;
-                      if (diff < 86400) return `${Math.floor(diff / 3600)} uur geleden`;
-                      return new Date(entry.ts).toLocaleDateString('nl-NL');
-                    })();
+                    const displayTime = formatTime(entry.ts);
                     return (
                       <div key={i} className="call-log-row">
                         <div className="avatar-wrap">
@@ -1311,14 +1417,17 @@ export default function ChatModals({
                           <div className="call-log-meta">
                             <span style={{ color: dirColor, fontWeight: 700, fontSize: 13 }} aria-hidden="true">{dirIcon}</span>
                             <span className="conv-name">{entry.name}</span>
-                            <span style={{ fontSize: 11, color: 'var(--text3)', marginLeft: 'auto' }}>{ago}</span>
+                            <span style={{ fontSize: 11, color: 'var(--text3)', marginLeft: 'auto' }}>{displayTime}</span>
                           </div>
                           <div className="conv-preview" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{entry.isVideo ? <><Video size={12} aria-hidden="true" /> Videogesprek</> : <><Phone size={12} aria-hidden="true" /> Gesprek</>}</div>
                         </div>
                         {contact && (
                           <div className="call-log-actions">
-                            <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => callContact(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
-                            <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => callContact(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
+                            {entry.isVideo ? (
+                              <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => callContact(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
+                            ) : (
+                              <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => callContact(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -1326,9 +1435,11 @@ export default function ChatModals({
                   })}
                 </div>
               )}
+                </>
+              )}
               <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowCallModal(false)}>Sluiten</button>
-                {callsAvailable && callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={async () => { await clearCallLog?.(); setShowCallModal(false); }}>Wissen</button>}
+                <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => { setShowCallModal(false); setCallActionMode(null); setCallSearch(''); }}>Sluiten</button>
+                {callsAvailable && callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={async () => { await clearCallLog?.(); setShowCallModal(false); setCallActionMode(null); setCallSearch(''); }}>Wissen</button>}
               </div>
             </aside>
         );

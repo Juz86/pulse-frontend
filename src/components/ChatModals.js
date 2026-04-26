@@ -207,7 +207,7 @@ export default function ChatModals({
 
   // call modal
   showCallModal, setShowCallModal,
-  callContact, getCallLog, clearCallLog,
+  callContact, callContactFromRecent, getCallLog, clearCallLog,
 
   // group info
   showGroupInfo, setShowGroupInfo,
@@ -1399,7 +1399,7 @@ export default function ChatModals({
                                 color: 'var(--text)',
                                 textAlign: 'left',
                               }}
-                              onClick={() => callContact(contact, callActionMode === 'video')}
+                              onClick={() => (callContactFromRecent || callContact)(contact, callActionMode === 'video')}
                             >
                               <UserAvatar photoURL={contact.photoURL} displayName={getContactDisplayName(contact)} className="sm" decorative />
                               <div style={{ minWidth: 0, flex: 1 }}>
@@ -1443,9 +1443,9 @@ export default function ChatModals({
                         {contact && (
                           <div className="call-log-actions">
                             {entry.isVideo ? (
-                              <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => callContact(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
+                              <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
                             ) : (
-                              <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => callContact(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
+                              <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
                             )}
                           </div>
                         )}

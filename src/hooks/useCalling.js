@@ -21,6 +21,7 @@ export default function useCalling({
   const callIsVideoRef   = useRef(false);
   const callConvIdRef    = useRef(null);
   const fallbackNoticeShownRef = useRef(false);
+  const reopenRecentAfterCallRef = useRef(false);
 
   const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
@@ -95,6 +96,33 @@ export default function useCalling({
     loadConversations();
   }
 
+  async function ensureDirectConversationForCall({ toUid, name, email }) {
+    const existingConvId = findConvWithUid(toUid)?.id || null;
+    if (existingConvId) return existingConvId;
+
+    const socket = getSocket();
+    if (!socket) return null;
+
+    return new Promise((resolve) => {
+      const timeoutId = setTimeout(() => resolve(null), 3500);
+      socket.emit('conversation:create', {
+        members: [user.uid, toUid],
+        isGroup: false,
+        memberNames: {
+          [user.uid]: user.displayName || user.email || user.uid,
+          [toUid]: name || email || toUid,
+        },
+        memberEmails: {
+          [user.uid]: user.email || null,
+          [toUid]: email || null,
+        },
+      }, (ack = {}) => {
+        clearTimeout(timeoutId);
+        resolve(ack?.convId || null);
+      });
+    });
+  }
+
   async function startCallTo({ toUid, convId, name, isVideo }) {
     if (isVideo ? pausedFeatures.video : pausedFeatures.call) {
       const canChat   = !pausedFeatures.chat;
@@ -125,6 +153,13 @@ export default function useCalling({
           if (reason !== 'busy') {
             sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
           }
+          setTimeout(() => {
+            refreshCallLog();
+            if (reopenRecentAfterCallRef.current) {
+              setShowCallModal(true);
+              reopenRecentAfterCallRef.current = false;
+            }
+          }, 450);
           if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout' || reason === 'busy') {
             setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
           } else {
@@ -151,10 +186,29 @@ export default function useCalling({
   }
 
   async function callContact(contact, isVideo) {
+    reopenRecentAfterCallRef.current = false;
     setShowCallModal(false);
     const toUid = contact.uid;
     const name  = contact.displayName;
-    await startCallTo({ toUid, convId: findConvWithUid(toUid)?.id || null, name, isVideo });
+    const convId = await ensureDirectConversationForCall({
+      toUid,
+      name: contact.displayName || contact.email || toUid,
+      email: contact.email || null,
+    });
+    await startCallTo({ toUid, convId, name, isVideo });
+  }
+
+  async function callContactFromRecent(contact, isVideo) {
+    reopenRecentAfterCallRef.current = true;
+    setShowCallModal(false);
+    const toUid = contact.uid;
+    const name  = contact.displayName;
+    const convId = await ensureDirectConversationForCall({
+      toUid,
+      name: contact.displayName || contact.email || toUid,
+      email: contact.email || null,
+    });
+    await startCallTo({ toUid, convId, name, isVideo });
   }
 
   async function initiateCall(isVideo) {
@@ -177,7 +231,7 @@ export default function useCalling({
   return {
     activeCall, setActiveCall,
     getCallLog, refreshCallLog, clearCallLog,
-    callContact, initiateCall, initiateCallFromConv,
+    callContact, callContactFromRecent, initiateCall, initiateCallFromConv,
     sendCallMessage,
   };
 }

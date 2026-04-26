@@ -299,7 +299,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     cancelMessageSelection();
   }, [activeConv?.id]);
 
-  const { activeCall, setActiveCall, getCallLog, refreshCallLog, clearCallLog, callContact, initiateCall, initiateCallFromConv } = useCalling({
+  const { activeCall, setActiveCall, getCallLog, refreshCallLog, clearCallLog, callContact, callContactFromRecent, initiateCall, initiateCallFromConv } = useCalling({
     user, pausedFeatures, activeConvRef, msgsAreaRef,
     setMessages, loadConversations, findConvWithUid, setShowCallModal, showErrToast,
   });
@@ -723,7 +723,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onJumpToMsg={handleJumpToMsg}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         showCallModal={showCallModal} setShowCallModal={setShowCallModal}
-        callContact={callContact} getCallLog={getCallLog} clearCallLog={clearCallLog}
+        callContact={callContact} callContactFromRecent={callContactFromRecent} getCallLog={getCallLog} clearCallLog={clearCallLog}
         showGroupInfo={showGroupInfo} setShowGroupInfo={setShowGroupInfo}
         addingMember={addingMember} setAddingMember={setAddingMember}
         groupPhotoLoading={groupPhotoLoading} uploadGroupPhoto={uploadGroupPhoto}

@@ -1303,7 +1303,7 @@ export default function ChatModals({
               ) : (
                 <>
                   <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
-                    <div className="starred-search-wrap" style={{ marginBottom: 0, flex: '0 0 60%', minWidth: 0 }}>
+                    <div className="starred-search-wrap" style={{ marginBottom: 0, flex: '0 0 70%', minWidth: 0 }}>
                       <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
                       <input
                         className="starred-search-input"
@@ -1326,7 +1326,7 @@ export default function ChatModals({
                         width: '100%',
                         height: 42,
                         borderRadius: 12,
-                        flex: '0 0 20%',
+                        flex: '0 0 15%',
                         ...(callActionMode === 'voice' ? { boxShadow: '0 0 0 2px rgba(67,233,123,.35) inset' } : {}),
                       }}
                       onClick={() => setCallActionMode((prev) => (prev === 'voice' ? null : 'voice'))}
@@ -1342,7 +1342,7 @@ export default function ChatModals({
                         width: '100%',
                         height: 42,
                         borderRadius: 12,
-                        flex: '0 0 20%',
+                        flex: '0 0 15%',
                         ...(callActionMode === 'video' ? { boxShadow: '0 0 0 2px rgba(108,99,255,.45) inset' } : {}),
                       }}
                       onClick={() => setCallActionMode((prev) => (prev === 'video' ? null : 'video'))}

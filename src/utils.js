@@ -229,8 +229,8 @@ export function callPreview(conv, currentUid) {
   const isOwn = lastCallSenderId === currentUid;
   const iv = lastCallIsVideo;
   if (lastCallDirection === 'completed') return iv ? 'Video-oproep' : 'Spraakoproep';
-  if (lastCallDirection === 'declined')  return isOwn ? 'Geweigerd' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
-  return isOwn ? 'Spraakoproep' : (iv ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
+  if (lastCallDirection === 'declined')  return isOwn ? 'Geweigerd' : (iv ? 'Gemiste video-oproep' : 'Gemiste oproep');
+  return isOwn ? 'Spraakoproep' : (iv ? 'Gemiste video-oproep' : 'Gemiste oproep');
 }
 
 /** Relatieve tijdweergave vanuit een Firestore Timestamp */

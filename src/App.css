@@ -1335,6 +1335,24 @@ font-family: 'Inter', sans-serif;
   display:flex; align-items:center; gap:8px;
 }
 
+.conv-call-preview {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conv-call-missed-icon {
+  color: var(--danger);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .conv-preview-text {
   min-width:0;
   overflow:hidden;
@@ -1786,12 +1804,10 @@ font-family: 'Inter', sans-serif;
   font-size:14px; line-height:1.55; word-wrap:break-word;
   overflow-wrap:anywhere;
   transition:.15s;
-  display:flex; flex-direction:column;
   position:relative;
 }
 .msg-bubble-text {
-  display:block;
-  padding-right:18px;
+  display:inline;
 }
 .msg-group.out .msg-bubble {
   background:linear-gradient(135deg, var(--accent), #8b7cf6);
@@ -1843,8 +1859,9 @@ font-family: 'Inter', sans-serif;
 .msg-time {
   font-size:10px; letter-spacing:.3px; font-family:'Inter',sans-serif;
   display:inline-flex; align-items:center; gap:3px;
-  align-self:flex-end; margin-top:4px; margin-bottom:-2px;
+  margin-left:6px;
   white-space:nowrap; flex-shrink:0;
+  vertical-align:baseline;
 }
 .msg-group.out .msg-time { color:rgba(255,255,255,.65); }
 .msg-group.in  .msg-time { color:var(--text3); }

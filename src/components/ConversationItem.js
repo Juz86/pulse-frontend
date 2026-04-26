@@ -1,6 +1,6 @@
 // src/components/ConversationItem.js
 import React from 'react';
-import { Pin, MoreHoriz } from '../components/Icons';
+import { Pin, MoreHoriz, Phone, Video } from '../components/Icons';
 import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview, formatConversationListTime } from '../utils';
@@ -21,6 +21,8 @@ function ConversationItemBase({
   onMoreActionsEnter,
 }) {
   const conversationPreview = buildConversationPreviewPresentation(conv);
+  const callPreviewText = conv.lastCallDirection ? callPreview(conv, currentUid) : '';
+  const isMissedCallPreview = callPreviewText.startsWith('Gemiste ');
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -73,7 +75,16 @@ function ConversationItemBase({
           )}
         </div>
         <div className="conv-preview">
-          {conv.lastCallDirection ? callPreview(conv, currentUid) : (
+          {conv.lastCallDirection ? (
+            <span className="conv-call-preview">
+              {isMissedCallPreview && (
+                <span className="conv-call-missed-icon" aria-hidden="true">
+                  {conv.lastCallIsVideo ? <Video size={13} /> : <Phone size={13} />}
+                </span>
+              )}
+              <span>{callPreviewText}</span>
+            </span>
+          ) : (
             <>
               <span className="conv-preview-text">{conversationPreview.previewText || conv.lastMessage || 'Start een gesprek…'}</span>
               {conversationPreview.showRemoteAttachmentBadge && (

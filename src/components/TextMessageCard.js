@@ -51,33 +51,33 @@ export default function TextMessageCard({
         <span className="msg-bubble-text">
           {renderedContent}
           {msg.editedAt && <span className="msg-edited" aria-label="Bewerkt"><span aria-hidden="true">(bewerkt)</span></span>}
-        </span>
-        <span className="msg-time">
-          {formatTime(msg.createdAt)}
-          {isOwn && status && (
-            status.failed
-              ? (
-                <button
-                  type="button"
-                  className="msg-ticks failed"
-                  onClick={onRetry}
-                  title="Opnieuw versturen"
-                  aria-label="Bericht niet verzonden, probeer opnieuw"
-                >
-                  <span className="sr-only">Niet verzonden.</span>
-                  <span aria-hidden="true"><ErrorIcon size={12} /></span>
-                </button>
-              ) : (
-                <span className={`msg-ticks${status.read ? ' read' : ''}`} aria-label={`Bericht ${status.label}`}>
-                  <span className="sr-only">{status.label}</span>
-                  {status.icon === 'clock'
-                    ? <span className={msg._retrying ? 'msg-clock-spin' : ''} aria-hidden="true"><Clock size={11} /></span>
-                    : status.icon === 'double'
-                      ? <span aria-hidden="true"><CheckDouble size={11} /></span>
-                      : <span aria-hidden="true"><Check size={11} /></span>}
-                </span>
-              )
-          )}
+          <span className="msg-time">
+            {formatTime(msg.createdAt)}
+            {isOwn && status && (
+              status.failed
+                ? (
+                  <button
+                    type="button"
+                    className="msg-ticks failed"
+                    onClick={onRetry}
+                    title="Opnieuw versturen"
+                    aria-label="Bericht niet verzonden, probeer opnieuw"
+                  >
+                    <span className="sr-only">Niet verzonden.</span>
+                    <span aria-hidden="true"><ErrorIcon size={12} /></span>
+                  </button>
+                ) : (
+                  <span className={`msg-ticks${status.read ? ' read' : ''}`} aria-label={`Bericht ${status.label}`}>
+                    <span className="sr-only">{status.label}</span>
+                    {status.icon === 'clock'
+                      ? <span className={msg._retrying ? 'msg-clock-spin' : ''} aria-hidden="true"><Clock size={11} /></span>
+                      : status.icon === 'double'
+                        ? <span aria-hidden="true"><CheckDouble size={11} /></span>
+                        : <span aria-hidden="true"><Check size={11} /></span>}
+                  </span>
+                )
+            )}
+          </span>
         </span>
       </div>
       {receiptSummaryLabel && (

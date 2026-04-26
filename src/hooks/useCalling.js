@@ -72,6 +72,41 @@ export default function useCalling({
     return merged.sort((a, b) => Number(b.ts) - Number(a.ts)).slice(0, 50);
   }
 
+  function normalizeDirection(rawDirection) {
+    const value = String(rawDirection || '').toLowerCase();
+    if (value === 'outgoing' || value === 'incoming' || value === 'missed') return value;
+    if (value === 'declined' || value === 'no-answer' || value === 'no_answer') return 'missed';
+    if (value === 'completed') return 'incoming';
+    return 'incoming';
+  }
+
+  function normalizeCallLogEntries(rawEntries = []) {
+    if (!Array.isArray(rawEntries)) return [];
+    return rawEntries
+      .map((entry, index) => {
+        const uid = entry?.uid || entry?.otherUid || entry?.peerUid || entry?.contactUid || '';
+        const timestampCandidate = entry?.ts ?? entry?.timestamp ?? entry?.createdAt ?? entry?.created_at ?? entry?.date;
+        const numericTs = Number(timestampCandidate);
+        const parsedTs = Number.isFinite(numericTs)
+          ? numericTs
+          : Date.parse(String(timestampCandidate || ''));
+        if (!uid || !Number.isFinite(parsedTs) || parsedTs <= 0) return null;
+
+        const isVideo = entry?.isVideo ?? entry?.video ?? entry?.callType === 'video';
+        return {
+          id: entry?.id || `${uid}:${parsedTs}:${index}`,
+          convId: entry?.convId || entry?.conversationId || null,
+          uid,
+          name: entry?.name || entry?.displayName || entry?.contactName || 'Contactpersoon',
+          photoURL: entry?.photoURL || entry?.photo || entry?.avatar || '',
+          isVideo: !!isVideo,
+          direction: normalizeDirection(entry?.direction),
+          ts: parsedTs,
+        };
+      })
+      .filter(Boolean);
+  }
+
   const refreshCallLog = useCallback(async () => {
     const legacy = readLegacyCallLog();
     try {
@@ -81,9 +116,7 @@ export default function useCalling({
         return legacy;
       }
       const data = await res.json().catch(() => []);
-      const normalized = Array.isArray(data) ? data.filter((entry) => (
-        entry && entry.uid && Number.isFinite(Number(entry.ts))
-      )) : [];
+      const normalized = normalizeCallLogEntries(data);
       const merged = mergeCallLogs(normalized, legacy);
       setCallLog(merged);
       return merged;

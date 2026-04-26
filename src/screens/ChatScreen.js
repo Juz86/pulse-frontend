@@ -723,7 +723,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onJumpToMsg={handleJumpToMsg}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         showCallModal={showCallModal} setShowCallModal={setShowCallModal}
-        callContact={callContact} callContactFromRecent={callContactFromRecent} getCallLog={getCallLog} clearCallLog={clearCallLog}
+        callContact={callContact} callContactFromRecent={callContactFromRecent} getCallLog={getCallLog} refreshCallLog={refreshCallLog} clearCallLog={clearCallLog}
         showGroupInfo={showGroupInfo} setShowGroupInfo={setShowGroupInfo}
         addingMember={addingMember} setAddingMember={setAddingMember}
         groupPhotoLoading={groupPhotoLoading} uploadGroupPhoto={uploadGroupPhoto}

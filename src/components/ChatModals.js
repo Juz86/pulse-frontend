@@ -207,7 +207,7 @@ export default function ChatModals({
 
   // call modal
   showCallModal, setShowCallModal,
-  callContact, callContactFromRecent, getCallLog, clearCallLog,
+  callContact, callContactFromRecent, getCallLog, refreshCallLog, clearCallLog,
 
   // group info
   showGroupInfo, setShowGroupInfo,
@@ -307,6 +307,45 @@ export default function ChatModals({
   useEffect(() => {
     if (!addingMember) setGroupMemberSearch('');
   }, [addingMember]);
+
+  useEffect(() => {
+    if (!showCallModal || !callsAvailable || !refreshCallLog) return undefined;
+
+    let intervalId = null;
+
+    const startPolling = () => {
+      if (intervalId !== null || document.visibilityState !== 'visible') return;
+      intervalId = setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          refreshCallLog();
+        }
+      }, 1200);
+    };
+
+    const stopPolling = () => {
+      if (intervalId === null) return;
+      clearInterval(intervalId);
+      intervalId = null;
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshCallLog();
+        startPolling();
+        return;
+      }
+      stopPolling();
+    };
+
+    refreshCallLog();
+    startPolling();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [showCallModal, callsAvailable, refreshCallLog]);
 
 
   function openStarredFromProfile() {

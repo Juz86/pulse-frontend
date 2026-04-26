@@ -279,6 +279,16 @@ export default function ChatModals({
     display: 'flex',
     alignItems: 'center',
   };
+  const profilePanelSaveButtonStyle = {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 42,
+    padding: '0 12px',
+    marginTop: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
 
   useEffect(() => {
     if (!historyChildren.length) {
@@ -598,7 +608,7 @@ export default function ChatModals({
                 </button>
                 <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${getContactDisplayName(viewingContact)}`} onClick={() => { setSharingContact(viewingContact); setViewingContact(null); }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
               </div>
-              <button type="button" className="btn-primary" style={{ flex: 1, minWidth: 0 }} onClick={() => { saveContactNickname(viewingContact.uid, renameValue); setContacts(prev => [...prev]); setViewingContact(null); }}>Opslaan</button>
+                <button type="button" className="btn-primary" style={profilePanelSaveButtonStyle} onClick={() => { saveContactNickname(viewingContact.uid, renameValue); setContacts(prev => [...prev]); setViewingContact(null); }}>Opslaan</button>
             </div>
           </aside>
       )}
@@ -1198,7 +1208,7 @@ export default function ChatModals({
                   </button>
                   <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
                 </div>
-                <button type="button" className="btn-primary" style={{ flex: 1, minWidth: 0 }} onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
+                <button type="button" className="btn-primary" style={profilePanelSaveButtonStyle} onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
               </div>
             </aside>
         );
@@ -1303,7 +1313,17 @@ export default function ChatModals({
               ) : (
                 <>
                   <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
-                    <div className="starred-search-wrap" style={{ marginBottom: 0, flex: '0 0 70%', minWidth: 0 }}>
+                    <div
+                      className="starred-search-wrap"
+                      style={{
+                        marginBottom: 0,
+                        flex: '0 0 70%',
+                        minWidth: 0,
+                        minHeight: 42,
+                        padding: '0 12px',
+                        borderRadius: 12,
+                      }}
+                    >
                       <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
                       <input
                         className="starred-search-input"

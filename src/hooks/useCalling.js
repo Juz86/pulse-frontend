@@ -125,9 +125,10 @@ export default function useCalling({
   function sendCallMessage({ isVideo, direction, duration }) {
     const socket = getSocket();
     const convId = callConvIdRef.current;
-    if (!socket || !convId) return;
-    socket.emit('conversation:join', { convId });
-    if (activeConvRef.current?.id === convId) {
+    if (socket && convId) {
+      socket.emit('conversation:join', { convId });
+    }
+    if (convId && activeConvRef.current?.id === convId) {
       const optimistic = {
         id:          `call-pending-${Date.now()}`,
         convId,      type: 'call', isVideo, direction,
@@ -142,20 +143,27 @@ export default function useCalling({
         if (msgsAreaRef.current) msgsAreaRef.current.scrollTo({ top: msgsAreaRef.current.scrollHeight, behavior: 'smooth' });
       }, 50);
     }
-    socket.emit('call:log', {
-      convId, isVideo, direction, duration: duration || 0,
-      senderId: user.uid, senderName: user.displayName || user.email,
-    });
+    if (socket && convId) {
+      socket.emit('call:log', {
+        convId, isVideo, direction, duration: duration || 0,
+        senderId: user.uid, senderName: user.displayName || user.email,
+      });
+    }
+    const fallbackUid = callTargetUidRef.current
+      || activeConvRef.current?.members?.find?.((memberUid) => memberUid !== user.uid)
+      || '';
     const localEntry = {
-      uid: callTargetUidRef.current,
+      uid: fallbackUid,
       name: callTargetNameRef.current || 'Contactpersoon',
       photoURL: callTargetPhotoRef.current || '',
       isVideo: !!isVideo,
       direction: direction === 'declined' || direction === 'no-answer' ? 'missed' : 'outgoing',
       ts: Date.now(),
     };
-    writeLegacyCallEntry(localEntry);
-    setCallLog((prev) => mergeCallLogs([localEntry], prev));
+    if (localEntry.uid) {
+      writeLegacyCallEntry(localEntry);
+      setCallLog((prev) => mergeCallLogs([localEntry], prev));
+    }
     callLogRefreshTimersRef.current.forEach((timerId) => clearTimeout(timerId));
     callLogRefreshTimersRef.current = [0, 700, 1800, 3200].map((delay) => (
       setTimeout(() => {

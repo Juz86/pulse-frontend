@@ -148,7 +148,7 @@ export function messagesRouter({ io, emitToUser }) {
 
       const peerProfile = peerByUid.get(otherUid) || {};
       const callMessages = await readCallMessagesForConversation(conv.id);
-      const visibleCallMessages = filterVisibleMessages(callMessages, uid);
+      const visibleCallMessages = filterVisibleMessages(callMessages, uid, { conversation: conv });
 
       for (const message of visibleCallMessages) {
         const createdAtMs = Date.parse(message?.createdAt || 0);
@@ -183,16 +183,16 @@ export function messagesRouter({ io, emitToUser }) {
       .where('members', 'array-contains', uid)
       .get();
 
-    const directConvIds = convSnap.docs
+    const directConversations = convSnap.docs
       .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .filter((conv) => !conv?.isGroup)
-      .map((conv) => conv.id);
+      .filter((conv) => !conv?.isGroup);
 
     let hiddenCount = 0;
 
-    for (const convId of directConvIds) {
+    for (const conv of directConversations) {
+      const convId = conv.id;
       const callMessages = await readCallMessagesForConversation(convId);
-      const visibleCallMessages = filterVisibleMessages(callMessages, uid);
+      const visibleCallMessages = filterVisibleMessages(callMessages, uid, { conversation: conv });
 
       const hiddenIds = [];
 
@@ -539,7 +539,11 @@ export function messagesRouter({ io, emitToUser }) {
       messageRows = sorted.slice(offset, offset + limit).reverse();
     }
 
-    const items = await attachRecipientKeysForUser(filterVisibleMessages(messageRows, uid), uid, preferredDeviceId);
+    const items = await attachRecipientKeysForUser(
+      filterVisibleMessages(messageRows, uid, { conversation: conv }),
+      uid,
+      preferredDeviceId
+    );
     return res.json(items);
   }));
 

@@ -477,7 +477,7 @@ export default function useConversations({
 
   async function clearConversationHistoryHard(convId) {
     try {
-      await authFetch(`${BACKEND_URL}/api/conversations/${convId}/hard?mode=clear`, { method: 'DELETE' });
+      await authFetch(`${BACKEND_URL}/api/conversations/${convId}/clear`, { method: 'DELETE' });
       setSessionMessagesForConversation(convId, []);
       msgCache.current[convId] = [];
       setMessages((prev) => (activeConvRef.current?.id === convId ? [] : prev));

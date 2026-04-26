@@ -105,7 +105,11 @@ router.get('/:convId', requireAuth, asyncRoute(async (req, res) => {
     messageRows = sorted.slice(offset, offset + limit).reverse();
   }
 
-  const items = await attachRecipientKeysForUser(filterVisibleMessages(messageRows, uid), uid, preferredDeviceId);
+  const items = await attachRecipientKeysForUser(
+    filterVisibleMessages(messageRows, uid, { conversation: conv }),
+    uid,
+    preferredDeviceId
+  );
   return res.json(items);
 }));
 

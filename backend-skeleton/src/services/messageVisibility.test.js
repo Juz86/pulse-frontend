@@ -28,3 +28,17 @@ test('filterVisibleMessages keeps only messages visible to the user', () => {
     [{ id: 'a' }]
   );
 });
+
+test('filterVisibleMessages hides messages created before clear timestamp for that user', () => {
+  assert.deepEqual(
+    filterVisibleMessages(
+      [
+        { id: 'old', createdAt: '2026-04-20T08:00:00.000Z' },
+        { id: 'new', createdAt: '2026-04-21T09:00:00.000Z' },
+      ],
+      'uid_child_1',
+      { clearedAtByUid: { uid_child_1: '2026-04-20T12:00:00.000Z' } }
+    ),
+    [{ id: 'new', createdAt: '2026-04-21T09:00:00.000Z' }]
+  );
+});

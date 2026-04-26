@@ -50,13 +50,54 @@ conversationsRouter.get('/:uid', requireAuth, asyncRoute(async (req, res) => {
       continue;
     }
 
-    rows.push(applyConversationSummaryFields(nextData, {
-      ...nextData,
-      lastMessage: nextData.lastMessage || '',
-      lastMessageType: nextData.lastMessageType || null,
-    }));
+    const clearedAtRaw = nextData?.clearedForUserAt?.[uid] || null;
+    const clearedAtMs = Date.parse(String(clearedAtRaw || ''));
+    const updatedAtMs = Date.parse(String(nextData.updatedAt || nextData.lastMessageAt || nextData.createdAt || ''));
+    const shouldResetSummary = Number.isFinite(clearedAtMs) && (!Number.isFinite(updatedAtMs) || updatedAtMs <= clearedAtMs);
+    const summarySource = shouldResetSummary
+      ? {
+          ...nextData,
+          lastMessage: '',
+          lastMessageType: null,
+          lastMessageAt: null,
+          lastCallDirection: null,
+          lastCallIsVideo: false,
+          lastCallSenderId: null,
+        }
+      : {
+          ...nextData,
+          lastMessage: nextData.lastMessage || '',
+          lastMessageType: nextData.lastMessageType || null,
+        };
+
+    rows.push(applyConversationSummaryFields(nextData, summarySource));
   }
   return res.json(sortByUpdatedDesc(rows));
+}));
+
+conversationsRouter.delete('/:convId/clear', requireAuth, asyncRoute(async (req, res) => {
+  const uid = req.auth.uid;
+  const { convId } = req.params;
+
+  const convDoc = await db.collection('conversations').doc(convId).get();
+  if (!convDoc.exists) {
+    return res.status(404).json({ error: 'conversation_not_found' });
+  }
+
+  const conv = convDoc.data();
+  if (!Array.isArray(conv.members) || !conv.members.includes(uid)) {
+    return res.status(403).json({ error: 'not_allowed_in_conversation' });
+  }
+
+  const now = new Date().toISOString();
+  const clearedForUserAt = {
+    ...(conv.clearedForUserAt || {}),
+    [uid]: now,
+  };
+
+  await convDoc.ref.set({ clearedForUserAt }, { merge: true });
+
+  return res.json({ ok: true, cleared: true, scope: 'self', clearedAt: now });
 }));
 
 conversationsRouter.delete('/:convId', requireAuth, asyncRoute(async (req, res) => {

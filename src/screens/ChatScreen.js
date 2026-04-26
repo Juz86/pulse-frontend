@@ -192,7 +192,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const conversationName = getConvName(conv) || 'dit gesprek';
     setConfirmDialog({
       title: `Wis chat met ${conversationName}?`,
-      message: 'Het chatvenster blijft open, maar de chatinhoud wordt leeggemaakt.',
+      message: 'De chatinhoud wordt alleen voor jou gewist. Voor de andere gebruiker blijft de chat zichtbaar tot de bewaartermijn verloopt.',
       confirmLabel: 'Wissen',
       confirmIcon: 'trash',
       onConfirm: async () => {

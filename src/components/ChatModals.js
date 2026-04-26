@@ -1453,52 +1453,56 @@ export default function ChatModals({
                     </div>
                   )}
 
-                  {filteredCallLog.length === 0 ? (
-                <div className="call-panel-empty">
-                  <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
-                  <div>{callSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</div>
-                </div>
-              ) : (
-                <div className="call-log-list">
-                  {filteredCallLog.map((entry, i) => {
-                    const contact = contacts.find(c => c.uid === entry.uid);
-                    const dirIcon = entry.direction === 'outgoing' ? <PhoneOutgoing size={13} /> : entry.direction === 'missed' ? <Cancel size={13} /> : <PhoneCall size={13} />;
-                    const dirColor = entry.direction === 'missed' ? 'var(--danger)' : entry.direction === 'outgoing' ? 'var(--accent)' : 'var(--success)';
-                    const displayTime = formatTime(entry.ts);
-                    return (
-                      <div key={i} className="call-log-row">
-                        <div className="avatar-wrap">
-                          <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
-                          {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
-                        </div>
-                        <div className="call-log-copy">
-                          <div className="call-log-meta">
-                            <span style={{ color: dirColor, fontWeight: 700, fontSize: 13 }} aria-hidden="true">{dirIcon}</span>
-                            <span className="conv-name">{entry.name}</span>
-                            <span style={{ fontSize: 11, color: 'var(--text3)', marginLeft: 'auto' }}>{displayTime}</span>
-                          </div>
-                          <div className="conv-preview" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{entry.isVideo ? <><Video size={12} aria-hidden="true" /> Videogesprek</> : <><Phone size={12} aria-hidden="true" /> Gesprek</>}</div>
-                        </div>
-                        {contact && (
-                          <div className="call-log-actions">
-                            {entry.isVideo ? (
-                              <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
-                            ) : (
-                              <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
-                            )}
-                          </div>
-                        )}
+                  {!callActionMode && (
+                    filteredCallLog.length === 0 ? (
+                      <div className="call-panel-empty">
+                        <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
+                        <div>{callSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    ) : (
+                      <div className="call-log-list">
+                        {filteredCallLog.map((entry, i) => {
+                          const contact = contacts.find(c => c.uid === entry.uid);
+                          const dirIcon = entry.direction === 'outgoing' ? <PhoneOutgoing size={13} /> : entry.direction === 'missed' ? <Cancel size={13} /> : <PhoneCall size={13} />;
+                          const dirColor = entry.direction === 'missed' ? 'var(--danger)' : entry.direction === 'outgoing' ? 'var(--accent)' : 'var(--success)';
+                          const displayTime = formatTime(entry.ts);
+                          return (
+                            <div key={i} className="call-log-row">
+                              <div className="avatar-wrap">
+                                <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
+                                {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
+                              </div>
+                              <div className="call-log-copy">
+                                <div className="call-log-meta">
+                                  <span style={{ color: dirColor, fontWeight: 700, fontSize: 13 }} aria-hidden="true">{dirIcon}</span>
+                                  <span className="conv-name">{entry.name}</span>
+                                  <span style={{ fontSize: 11, color: 'var(--text3)', marginLeft: 'auto' }}>{displayTime}</span>
+                                </div>
+                                <div className="conv-preview" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{entry.isVideo ? <><Video size={12} aria-hidden="true" /> Videogesprek</> : <><Phone size={12} aria-hidden="true" /> Gesprek</>}</div>
+                              </div>
+                              {contact && (
+                                <div className="call-log-actions">
+                                  {entry.isVideo ? (
+                                    <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
+                                  ) : (
+                                    <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )
+                  )}
                 </>
               )}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => { setShowCallModal(false); setCallActionMode(null); setCallSearch(''); }}>Sluiten</button>
-                {callsAvailable && callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={async () => { await clearCallLog?.(); setShowCallModal(false); setCallActionMode(null); setCallSearch(''); }}>Wissen</button>}
-              </div>
+              {!callActionMode && (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => { setShowCallModal(false); setCallActionMode(null); setCallSearch(''); }}>Sluiten</button>
+                  {callsAvailable && callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={async () => { await clearCallLog?.(); setShowCallModal(false); setCallActionMode(null); setCallSearch(''); }}>Wissen</button>}
+                </div>
+              )}
             </aside>
         );
       })()}

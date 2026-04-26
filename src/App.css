@@ -1344,10 +1344,14 @@ font-family: 'Inter', sans-serif;
 }
 
 .sidebar-contact-card {
-  margin: 0 12px 10px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  margin: 0 12px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.sidebar-contact-card + .sidebar-contact-card {
+  border-top: 1px solid var(--border);
 }
 
 .sidebar-contact-row {

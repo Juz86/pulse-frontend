@@ -23,6 +23,9 @@ export default function useCalling({
   const fallbackNoticeShownRef = useRef(false);
   const reopenRecentAfterCallRef = useRef(false);
   const callLogRefreshTimersRef = useRef([]);
+  const callTargetUidRef = useRef('');
+  const callTargetNameRef = useRef('');
+  const callTargetPhotoRef = useRef('');
 
   const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
@@ -37,29 +40,73 @@ export default function useCalling({
     return response;
   }, [user]);
 
+  function getLegacyCallLogKey() {
+    return `pulse_calls_${user.uid}`;
+  }
+
+  function readLegacyCallLog() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(getLegacyCallLogKey()) || '[]');
+      return Array.isArray(raw) ? raw.filter((entry) => entry && entry.uid && Number.isFinite(Number(entry.ts))) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function writeLegacyCallEntry(entry) {
+    if (!entry?.uid || !Number.isFinite(Number(entry?.ts))) return;
+    const existing = readLegacyCallLog();
+    const deduped = existing.filter((item) => !(item.uid === entry.uid && item.ts === entry.ts && !!item.isVideo === !!entry.isVideo));
+    localStorage.setItem(getLegacyCallLogKey(), JSON.stringify([entry, ...deduped].slice(0, 50)));
+  }
+
+  function mergeCallLogs(primary = [], fallback = []) {
+    const merged = [];
+    const seen = new Set();
+    [...primary, ...fallback].forEach((entry) => {
+      const key = `${entry?.uid || ''}:${entry?.ts || 0}:${entry?.isVideo ? 'video' : 'voice'}`;
+      if (!entry?.uid || !Number.isFinite(Number(entry?.ts)) || seen.has(key)) return;
+      seen.add(key);
+      merged.push(entry);
+    });
+    return merged.sort((a, b) => Number(b.ts) - Number(a.ts)).slice(0, 50);
+  }
+
   const refreshCallLog = useCallback(async () => {
+    const legacy = readLegacyCallLog();
     try {
       const res = await authFetch(`${BACKEND_URL}/api/messages/recent-calls?limit=50`);
-      if (!res.ok) return [];
+      if (!res.ok) {
+        setCallLog(legacy);
+        return legacy;
+      }
       const data = await res.json().catch(() => []);
       const normalized = Array.isArray(data) ? data.filter((entry) => (
         entry && entry.uid && Number.isFinite(Number(entry.ts))
       )) : [];
-      setCallLog(normalized);
-      return normalized;
+      const merged = mergeCallLogs(normalized, legacy);
+      setCallLog(merged);
+      return merged;
     } catch {
-      return [];
+      setCallLog(legacy);
+      return legacy;
     }
   }, [authFetch]);
 
   const clearCallLog = useCallback(async () => {
     try {
       const res = await authFetch(`${BACKEND_URL}/api/messages/recent-calls`, { method: 'DELETE' });
-      if (!res.ok) return false;
+      localStorage.removeItem(getLegacyCallLogKey());
+      if (!res.ok) {
+        setCallLog([]);
+        return true;
+      }
       await refreshCallLog();
       return true;
     } catch {
-      return false;
+      localStorage.removeItem(getLegacyCallLogKey());
+      setCallLog([]);
+      return true;
     }
   }, [authFetch, refreshCallLog]);
 
@@ -99,6 +146,16 @@ export default function useCalling({
       convId, isVideo, direction, duration: duration || 0,
       senderId: user.uid, senderName: user.displayName || user.email,
     });
+    const localEntry = {
+      uid: callTargetUidRef.current,
+      name: callTargetNameRef.current || 'Contactpersoon',
+      photoURL: callTargetPhotoRef.current || '',
+      isVideo: !!isVideo,
+      direction: direction === 'declined' || direction === 'no-answer' ? 'missed' : 'outgoing',
+      ts: Date.now(),
+    };
+    writeLegacyCallEntry(localEntry);
+    setCallLog((prev) => mergeCallLogs([localEntry], prev));
     callLogRefreshTimersRef.current.forEach((timerId) => clearTimeout(timerId));
     callLogRefreshTimersRef.current = [0, 700, 1800, 3200].map((delay) => (
       setTimeout(() => {
@@ -148,6 +205,8 @@ export default function useCalling({
     callStartTimeRef.current = null;
     callIsVideoRef.current   = isVideo;
     fallbackNoticeShownRef.current = false;
+    callTargetUidRef.current = toUid || '';
+    callTargetNameRef.current = name || '';
     try {
       const stream = await startCall({
         toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
@@ -207,6 +266,7 @@ export default function useCalling({
     setShowCallModal(false);
     const toUid = contact.uid;
     const name  = contact.displayName;
+    callTargetPhotoRef.current = contact.photoURL || '';
     const convId = await ensureDirectConversationForCall({
       toUid,
       name: contact.displayName || contact.email || toUid,
@@ -220,6 +280,7 @@ export default function useCalling({
     setShowCallModal(false);
     const toUid = contact.uid;
     const name  = contact.displayName;
+    callTargetPhotoRef.current = contact.photoURL || '';
     const convId = await ensureDirectConversationForCall({
       toUid,
       name: contact.displayName || contact.email || toUid,
@@ -234,6 +295,7 @@ export default function useCalling({
     const toUid = conv.members.find(m => m !== user.uid);
     if (!toUid) return;
     const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
+    callTargetPhotoRef.current = '';
     await startCallTo({ toUid, convId: conv.id, name, isVideo });
   }
 
@@ -242,6 +304,7 @@ export default function useCalling({
     const toUid = conv.members.find(m => m !== user.uid);
     if (!toUid) return;
     const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
+    callTargetPhotoRef.current = '';
     await startCallTo({ toUid, convId: conv.id, name, isVideo });
   }
 

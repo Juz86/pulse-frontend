@@ -544,15 +544,9 @@ export default function ChatModals({
       {/* ── CONTACT PROFIEL ── */}
       {viewingContact && (
           <aside className="chat-side-panel contact-list-profile-panel" aria-labelledby="contact-list-profile-title">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setViewingContact(null)}><span aria-hidden="true">✕</span></button>
+            <div className="panel-header-row">
               <h2 id="contact-list-profile-title" className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h2>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${getContactDisplayName(viewingContact)}`} title="Berichten met ster" onClick={openStarredFromProfile}>
-                  <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
-                </button>
-                <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setViewingContact(null)}><span aria-hidden="true">✕</span></button>
-                <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${getContactDisplayName(viewingContact)}`} onClick={() => { setSharingContact(viewingContact); setViewingContact(null); }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
-              </div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
               {viewingContact.photoURL
@@ -595,9 +589,14 @@ export default function ChatModals({
                 </div>
               );
             })()}
-            <div className="modal-actions">
-              <button type="button" className="btn-secondary" onClick={() => setViewingContact(null)}>Sluiten</button>
-              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => { saveContactNickname(viewingContact.uid, renameValue); setContacts(prev => [...prev]); setViewingContact(null); }}>Opslaan</button>
+            <div className="modal-actions" style={{ justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'nowrap' }}>
+              <div className="panel-header-actions" style={{ marginRight: 8 }}>
+                <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${getContactDisplayName(viewingContact)}`} title="Berichten met ster" onClick={openStarredFromProfile}>
+                  <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
+                </button>
+                <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${getContactDisplayName(viewingContact)}`} onClick={() => { setSharingContact(viewingContact); setViewingContact(null); }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
+              </div>
+              <button type="button" className="btn-primary" style={{ flex: 1, minWidth: 0 }} onClick={() => { saveContactNickname(viewingContact.uid, renameValue); setContacts(prev => [...prev]); setViewingContact(null); }}>Opslaan</button>
             </div>
           </aside>
       )}
@@ -1197,9 +1196,9 @@ export default function ChatModals({
                   </button>
                   <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
                 </div>
-                <button type="button" className="btn-primary" style={{ flex: '0 0 auto', width: 'clamp(132px, 38%, 190px)' }} onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
+                <button type="button" className="btn-primary" style={{ flex: 1, minWidth: 0 }} onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
               </div>
-          </aside>
+            </aside>
         );
       })()}
 

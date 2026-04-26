@@ -1350,7 +1350,16 @@ font-family: 'Inter', sans-serif;
   border-radius: 0;
 }
 
-.sidebar-contact-card + .sidebar-contact-card {
+.sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row {
+  position: relative;
+}
+
+.sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(18px + 48px + 12px);
+  right: calc(18px + 42px + 12px);
   border-top: 1px solid var(--border);
 }
 
@@ -4196,6 +4205,10 @@ font-family: 'Inter', sans-serif;
   /* Kleinere avatars */
   .avatar-circle    { width:40px; height:40px; font-size:14px; }
   .avatar-circle.sm { width:32px; height:32px; font-size:11px; }
+
+  .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {
+    left: calc(18px + 40px + 12px);
+  }
 
   /* Sidebar tabs */
   .sidebar-tabs { margin:10px 12px; }

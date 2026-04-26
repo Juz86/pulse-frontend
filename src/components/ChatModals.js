@@ -240,7 +240,7 @@ export default function ChatModals({
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const [groupMemberSearch, setGroupMemberSearch] = useState('');
   const [callSearch, setCallSearch] = useState('');
-  const [callActionMode, setCallActionMode] = useState(null); // 'voice' | 'video' | null
+  const [callActionMode, setCallActionMode] = useState(null); // 'voice' | null
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
@@ -1356,7 +1356,7 @@ export default function ChatModals({
                       className="starred-search-wrap"
                       style={{
                         marginBottom: 0,
-                        flex: '0 0 70%',
+                        flex: 1,
                         minWidth: 0,
                         minHeight: 42,
                         padding: '0 12px',
@@ -1382,38 +1382,22 @@ export default function ChatModals({
                       aria-label="Nieuw belgesprek"
                       title="Bel contact"
                       style={{
-                        width: '100%',
+                        width: 56,
                         height: 42,
                         borderRadius: 12,
-                        flex: '0 0 15%',
+                        flexShrink: 0,
                         ...(callActionMode === 'voice' ? { boxShadow: '0 0 0 2px rgba(67,233,123,.35) inset' } : {}),
                       }}
                       onClick={() => setCallActionMode((prev) => (prev === 'voice' ? null : 'voice'))}
                     >
                       <Phone size={16} aria-hidden="true" />
                     </button>
-                    <button
-                      type="button"
-                      className="call-btn video"
-                      aria-label="Nieuw videogesprek"
-                      title="Videobel contact"
-                      style={{
-                        width: '100%',
-                        height: 42,
-                        borderRadius: 12,
-                        flex: '0 0 15%',
-                        ...(callActionMode === 'video' ? { boxShadow: '0 0 0 2px rgba(108,99,255,.45) inset' } : {}),
-                      }}
-                      onClick={() => setCallActionMode((prev) => (prev === 'video' ? null : 'video'))}
-                    >
-                      <Video size={16} aria-hidden="true" />
-                    </button>
                   </div>
 
                   {callActionMode && (
                     <div style={{ marginBottom: 12 }}>
                       <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 8 }}>
-                        Kies contact om te {callActionMode === 'video' ? 'videobellen' : 'bellen'}
+                        Kies contact en beltype
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 180, overflowY: 'auto' }}>
                         {filteredCallContacts.length === 0 ? (
@@ -1422,31 +1406,47 @@ export default function ChatModals({
                           </div>
                         ) : (
                           filteredCallContacts.map((contact) => (
-                            <button
+                            <div
                               key={contact.uid}
-                              type="button"
                               className="contact-row"
                               style={{
                                 background: 'rgba(255,255,255,0.02)',
                                 border: '1px solid var(--border)',
                                 borderRadius: '10px',
                                 padding: '9px 12px',
-                                cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '10px',
                                 color: 'var(--text)',
                                 textAlign: 'left',
                               }}
-                              onClick={() => (callContactFromRecent || callContact)(contact, callActionMode === 'video')}
                             >
                               <UserAvatar photoURL={contact.photoURL} displayName={getContactDisplayName(contact)} className="sm" decorative />
                               <div style={{ minWidth: 0, flex: 1 }}>
                                 <div style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getContactDisplayName(contact)}</div>
                                 <div style={{ fontSize: 12, color: 'var(--text3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{contact.email}</div>
                               </div>
-                              {callActionMode === 'video' ? <Video size={14} aria-hidden="true" /> : <Phone size={14} aria-hidden="true" />}
-                            </button>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <button
+                                  type="button"
+                                  className="call-btn voice"
+                                  aria-label={`Bel ${getContactDisplayName(contact)}`}
+                                  title="Bellen"
+                                  onClick={() => (callContactFromRecent || callContact)(contact, false)}
+                                >
+                                  <Phone size={14} aria-hidden="true" />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="call-btn video"
+                                  aria-label={`Videobel ${getContactDisplayName(contact)}`}
+                                  title="Videobellen"
+                                  onClick={() => (callContactFromRecent || callContact)(contact, true)}
+                                >
+                                  <Video size={14} aria-hidden="true" />
+                                </button>
+                              </div>
+                            </div>
                           ))
                         )}
                       </div>

@@ -1,12 +1,10 @@
 // src/hooks/useCalling.js
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { getSocket } from '../services/socket';
 import { BACKEND_URL, startCall } from '../services/socket';
-import { normalizeHistoryRules, readStoredHistoryRules, writeStoredHistoryRules } from '../utils';
 
 export default function useCalling({
   user,
-  contacts,
   pausedFeatures,
   activeConvRef,
   msgsAreaRef,
@@ -17,70 +15,57 @@ export default function useCalling({
   showErrToast,
 }) {
   const [activeCall,  setActiveCall]  = useState(null);
-  const [historyRules, setHistoryRules] = useState(() => readStoredHistoryRules(user.uid));
+  const [callLog, setCallLog] = useState([]);
 
   const callStartTimeRef = useRef(null);
   const callIsVideoRef   = useRef(false);
   const callConvIdRef    = useRef(null);
   const fallbackNoticeShownRef = useRef(false);
 
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadHistoryRetention() {
-      try {
-        const cachedRules = readStoredHistoryRules(user.uid);
-        if (mounted) setHistoryRules(cachedRules);
-        const token = await user.getIdToken();
-        const res = await fetch(`${BACKEND_URL}/api/users/${user.uid}/history-settings`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) return;
-        if (mounted) {
-          const nextRules = normalizeHistoryRules(data?.historyRules);
-          writeStoredHistoryRules(user.uid, nextRules);
-          setHistoryRules(nextRules);
-        }
-      } catch {
-        if (mounted) setHistoryRules(normalizeHistoryRules());
-      }
-    }
-
-    function handleRetentionUpdate(event) {
-      if (event?.detail?.uid !== user.uid) return;
-      setHistoryRules(normalizeHistoryRules(event.detail.historyRules));
-    }
-
-    loadHistoryRetention();
-    window.addEventListener('pulse:history-retention-updated', handleRetentionUpdate);
-    return () => {
-      mounted = false;
-      window.removeEventListener('pulse:history-retention-updated', handleRetentionUpdate);
-    };
-  }, [user, user.uid]);
-
-  function logCall({ uid, name, photoURL, isVideo, direction }) {
-    const retentionDays = isVideo ? historyRules.videoRetentionDays : historyRules.callRetentionDays;
-    if (retentionDays === 0) return;
-    const key      = `pulse_calls_${user.uid}`;
-    const existing = JSON.parse(localStorage.getItem(key) || '[]').filter((e) => {
-      const days = e.isVideo ? historyRules.videoRetentionDays : historyRules.callRetentionDays;
-      if (days === 0) return false;
-      return e.ts > (Date.now() - days * 24 * 60 * 60 * 1000);
+  const authFetch = useCallback(async (url, options = {}) => {
+    const token = await user.getIdToken();
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        Authorization: `Bearer ${token}`,
+      },
     });
-    const entry    = { uid, name, photoURL: photoURL || '', isVideo, direction, ts: Date.now() };
-    localStorage.setItem(key, JSON.stringify([entry, ...existing].slice(0, 50)));
-  }
+    return response;
+  }, [user]);
+
+  const refreshCallLog = useCallback(async () => {
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/messages/recent-calls?limit=50`);
+      if (!res.ok) return [];
+      const data = await res.json().catch(() => []);
+      const normalized = Array.isArray(data) ? data.filter((entry) => (
+        entry && entry.uid && Number.isFinite(Number(entry.ts))
+      )) : [];
+      setCallLog(normalized);
+      return normalized;
+    } catch {
+      return [];
+    }
+  }, [authFetch]);
+
+  const clearCallLog = useCallback(async () => {
+    try {
+      const res = await authFetch(`${BACKEND_URL}/api/messages/recent-calls`, { method: 'DELETE' });
+      if (!res.ok) return false;
+      await refreshCallLog();
+      return true;
+    } catch {
+      return false;
+    }
+  }, [authFetch, refreshCallLog]);
+
+  useEffect(() => {
+    refreshCallLog();
+  }, [refreshCallLog]);
 
   function getCallLog() {
-    return JSON.parse(localStorage.getItem(`pulse_calls_${user.uid}`) || '[]').filter((e) => {
-      const days = e.isVideo ? historyRules.videoRetentionDays : historyRules.callRetentionDays;
-      if (days === 0) return false;
-      return e.ts > (Date.now() - days * 24 * 60 * 60 * 1000);
-    });
+    return callLog;
   }
 
   function sendCallMessage({ isVideo, direction, duration }) {
@@ -169,7 +154,6 @@ export default function useCalling({
     setShowCallModal(false);
     const toUid = contact.uid;
     const name  = contact.displayName;
-    logCall({ uid: toUid, name, photoURL: contact.photoURL, isVideo, direction: 'outgoing' });
     await startCallTo({ toUid, convId: findConvWithUid(toUid)?.id || null, name, isVideo });
   }
 
@@ -179,8 +163,6 @@ export default function useCalling({
     const toUid = conv.members.find(m => m !== user.uid);
     if (!toUid) return;
     const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
-    const photo = contacts.find(c => c.uid === toUid)?.photoURL || '';
-    logCall({ uid: toUid, name, photoURL: photo, isVideo, direction: 'outgoing' });
     await startCallTo({ toUid, convId: conv.id, name, isVideo });
   }
 
@@ -189,14 +171,12 @@ export default function useCalling({
     const toUid = conv.members.find(m => m !== user.uid);
     if (!toUid) return;
     const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
-    const photo = contacts.find(c => c.uid === toUid)?.photoURL || '';
-    logCall({ uid: toUid, name, photoURL: photo, isVideo, direction: 'outgoing' });
     await startCallTo({ toUid, convId: conv.id, name, isVideo });
   }
 
   return {
     activeCall, setActiveCall,
-    logCall, getCallLog,
+    getCallLog, refreshCallLog, clearCallLog,
     callContact, initiateCall, initiateCallFromConv,
     sendCallMessage,
   };

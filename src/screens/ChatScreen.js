@@ -299,8 +299,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     cancelMessageSelection();
   }, [activeConv?.id]);
 
-  const { activeCall, setActiveCall, getCallLog, callContact, initiateCall, initiateCallFromConv } = useCalling({
-    user, contacts, pausedFeatures, activeConvRef, msgsAreaRef,
+  const { activeCall, setActiveCall, getCallLog, refreshCallLog, clearCallLog, callContact, initiateCall, initiateCallFromConv } = useCalling({
+    user, pausedFeatures, activeConvRef, msgsAreaRef,
     setMessages, loadConversations, findConvWithUid, setShowCallModal, showErrToast,
   });
 
@@ -460,7 +460,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         setLabelMenuConvId={() => {}}
         onNewChat={() => setShowNewChat(true)}
         onNewGroup={() => setShowNewGroup(true)}
-        onShowCallModal={() => { setShowCallModal(true); setCallLogRead(true); onCallLogRead?.(); }}
+        onShowCallModal={async () => {
+          await refreshCallLog();
+          setShowCallModal(true);
+          setCallLogRead(true);
+          onCallLogRead?.();
+        }}
         onShowAddContact={() => setShowAddContact(true)}
         onOpenProfile={() => { setShowProfile(true); openProfile(); }}
         setConfirmDialog={setConfirmDialog}
@@ -718,7 +723,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onJumpToMsg={handleJumpToMsg}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         showCallModal={showCallModal} setShowCallModal={setShowCallModal}
-        callContact={callContact} getCallLog={getCallLog}
+        callContact={callContact} getCallLog={getCallLog} clearCallLog={clearCallLog}
         showGroupInfo={showGroupInfo} setShowGroupInfo={setShowGroupInfo}
         addingMember={addingMember} setAddingMember={setAddingMember}
         groupPhotoLoading={groupPhotoLoading} uploadGroupPhoto={uploadGroupPhoto}

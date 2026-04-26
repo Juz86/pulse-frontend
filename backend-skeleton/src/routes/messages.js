@@ -24,6 +24,37 @@ function sortMessagesByCreatedAtDesc(items = []) {
   });
 }
 
+async function readCallMessagesForConversation(convId) {
+  if (!convId) return [];
+
+  try {
+    const snap = await db
+      .collection('messages')
+      .where('conversationId', '==', convId)
+      .where('type', '==', 'call')
+      .orderBy('createdAt', 'desc')
+      .limit(100)
+      .get();
+
+    return snap.docs.map((doc) => doc.data());
+  } catch (error) {
+    if (!isMissingFirestoreIndexError(error)) {
+      throw error;
+    }
+
+    const fallbackSnap = await db
+      .collection('messages')
+      .where('conversationId', '==', convId)
+      .get();
+
+    return sortMessagesByCreatedAtDesc(
+      fallbackSnap.docs
+        .map((doc) => doc.data())
+        .filter((item) => item?.type === 'call')
+    ).slice(0, 100);
+  }
+}
+
 async function attachRecipientKeysForUser(messages = [], uid, preferredDeviceId = null) {
   const encryptedMessages = messages.filter((message) => message?.id && message?.protocol);
   if (encryptedMessages.length === 0) return messages;
@@ -57,6 +88,129 @@ async function attachRecipientKeysForUser(messages = [], uid, preferredDeviceId 
 
 export function messagesRouter({ io, emitToUser }) {
   const router = Router();
+
+  router.get('/recent-calls', requireAuth, asyncRoute(async (req, res) => {
+    const uid = req.auth.uid;
+    const limitRaw = Number(req.query.limit || 50);
+    const limit = Number.isFinite(limitRaw) ? Math.min(200, Math.max(1, limitRaw)) : 50;
+
+    let conversationDocs = [];
+    try {
+      const convSnap = await db
+        .collection('conversations')
+        .where('members', 'array-contains', uid)
+        .orderBy('updatedAt', 'desc')
+        .limit(120)
+        .get();
+      conversationDocs = convSnap.docs;
+    } catch (error) {
+      if (!isMissingFirestoreIndexError(error)) throw error;
+      const convSnap = await db
+        .collection('conversations')
+        .where('members', 'array-contains', uid)
+        .get();
+      conversationDocs = convSnap.docs;
+    }
+
+    const directConversations = conversationDocs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .filter((conv) => !conv?.isGroup && Array.isArray(conv?.members) && conv.members.includes(uid));
+
+    const peerUids = Array.from(new Set(
+      directConversations
+        .map((conv) => (conv.members || []).find((memberUid) => memberUid !== uid))
+        .filter(Boolean)
+    ));
+
+    const peerByUid = new Map();
+    await Promise.all(peerUids.map(async (peerUid) => {
+      const peerDoc = await db.collection('users').doc(peerUid).get().catch(() => null);
+      if (!peerDoc?.exists) return;
+      const peer = peerDoc.data() || {};
+      peerByUid.set(peerUid, {
+        displayName: peer.displayName || peer.username || peer.email || peerUid,
+        photoURL: peer.photoURL || '',
+      });
+    }));
+
+    const entries = [];
+
+    for (const conv of directConversations) {
+      const purgeResult = await purgeExpiredConversationHistory({
+        convId: conv.id,
+        members: conv.members || [],
+        conversationData: conv,
+      });
+      if (purgeResult?.conversation === null) continue;
+
+      const otherUid = (conv.members || []).find((memberUid) => memberUid !== uid);
+      if (!otherUid) continue;
+
+      const peerProfile = peerByUid.get(otherUid) || {};
+      const callMessages = await readCallMessagesForConversation(conv.id);
+      const visibleCallMessages = filterVisibleMessages(callMessages, uid);
+
+      for (const message of visibleCallMessages) {
+        const createdAtMs = Date.parse(message?.createdAt || 0);
+        if (!Number.isFinite(createdAtMs) || createdAtMs <= 0) continue;
+
+        const rawDirection = String(message?.direction || '').toLowerCase();
+        const direction = message?.senderId === uid
+          ? 'outgoing'
+          : (rawDirection === 'declined' || rawDirection === 'no-answer' ? 'missed' : 'incoming');
+
+        entries.push({
+          id: message?.id || `${conv.id}-${createdAtMs}`,
+          convId: conv.id,
+          uid: otherUid,
+          name: conv?.memberNames?.[otherUid] || peerProfile.displayName || otherUid,
+          photoURL: peerProfile.photoURL || '',
+          isVideo: !!message?.isVideo,
+          direction,
+          ts: createdAtMs,
+        });
+      }
+    }
+
+    const sorted = [...entries].sort((a, b) => b.ts - a.ts).slice(0, limit);
+    return res.json(sorted);
+  }));
+
+  router.delete('/recent-calls', requireAuth, asyncRoute(async (req, res) => {
+    const uid = req.auth.uid;
+    const convSnap = await db
+      .collection('conversations')
+      .where('members', 'array-contains', uid)
+      .get();
+
+    const directConvIds = convSnap.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .filter((conv) => !conv?.isGroup)
+      .map((conv) => conv.id);
+
+    let hiddenCount = 0;
+
+    for (const convId of directConvIds) {
+      const callMessages = await readCallMessagesForConversation(convId);
+      const visibleCallMessages = filterVisibleMessages(callMessages, uid);
+
+      const hiddenIds = [];
+
+      await Promise.all(visibleCallMessages.map(async (message) => {
+        if (!message?.id) return;
+        const currentDeletedFor = Array.isArray(message.deletedForUserIds) ? message.deletedForUserIds : [];
+        if (currentDeletedFor.includes(uid)) return;
+        hiddenIds.push(message.id);
+        await db.collection('messages').doc(message.id).set({
+          deletedForUserIds: [...currentDeletedFor, uid],
+        }, { merge: true });
+      }));
+
+      hiddenCount += hiddenIds.length;
+    }
+
+    return res.json({ ok: true, hiddenCount });
+  }));
 
   router.post('/send', requireAuth, asyncRoute(async (req, res) => {
     const uid = req.auth.uid;

@@ -207,7 +207,7 @@ export default function ChatModals({
 
   // call modal
   showCallModal, setShowCallModal,
-  callContact, getCallLog,
+  callContact, getCallLog, clearCallLog,
 
   // group info
   showGroupInfo, setShowGroupInfo,
@@ -1329,7 +1329,7 @@ export default function ChatModals({
               )}
               <div style={{ display: 'flex', gap: 8 }}>
                 <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setShowCallModal(false)}>Sluiten</button>
-                {callsAvailable && callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={() => { localStorage.removeItem(`pulse_calls_${user.uid}`); setShowCallModal(false); }}>Wissen</button>}
+                {callsAvailable && callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={async () => { await clearCallLog?.(); setShowCallModal(false); }}>Wissen</button>}
               </div>
             </aside>
         );

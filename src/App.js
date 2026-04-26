@@ -21,7 +21,7 @@ import {
   shouldBootstrapE2EEDevice,
 } from './lib/e2ee/config';
 import { importLegacyE2EEStateIfNeeded } from './lib/e2ee/originStorageMigration';
-import { clearPulseUserStorage, readStoredHistoryRules, scheduleIdleTask } from './utils';
+import { clearPulseUserStorage, scheduleIdleTask } from './utils';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const ParentDashboard    = lazy(() => import('./screens/ParentDashboard'));
@@ -570,19 +570,7 @@ function MainApp() {
           socket.on('call:ended', () => {
             setIncomingCall(prev => {
               if (prev) {
-                const key = `pulse_calls_${firebaseUser.uid}`;
-                const log = JSON.parse(localStorage.getItem(key) || '[]');
-                const historyRules = readStoredHistoryRules(firebaseUser.uid);
-                const retentionDays = prev.isVideo ? historyRules.videoRetentionDays : historyRules.callRetentionDays;
-                if (retentionDays === 0) {
-                  return null;
-                }
-                const alreadyLogged = log[0]?.uid === prev.from && Date.now() - log[0]?.ts < 3000;
-                if (!alreadyLogged) {
-                  log.unshift({ uid: prev.from, name: prev.callerName, photoURL: '', isVideo: prev.isVideo, direction: 'missed', ts: Date.now() });
-                  localStorage.setItem(key, JSON.stringify(log.slice(0, 50)));
-                  setMissedCallAlert(true);
-                }
+                setMissedCallAlert(true);
               }
               return null;
             });
@@ -700,20 +688,7 @@ function MainApp() {
           user={user}
           onClose={(answered) => {
             if (!answered && user) {
-              const key = `pulse_calls_${user.uid}`;
-              const log = JSON.parse(localStorage.getItem(key) || '[]');
-              const historyRules = readStoredHistoryRules(user.uid);
-              const retentionDays = incomingCall.isVideo ? historyRules.videoRetentionDays : historyRules.callRetentionDays;
-              if (retentionDays === 0) {
-                setIncomingCall(null);
-                return;
-              }
-              const alreadyLogged = log[0]?.uid === incomingCall.from && Date.now() - log[0]?.ts < 3000;
-              if (!alreadyLogged) {
-                log.unshift({ uid: incomingCall.from, name: incomingCall.callerName, photoURL: '', isVideo: incomingCall.isVideo, direction: 'missed', ts: Date.now() });
-                localStorage.setItem(key, JSON.stringify(log.slice(0, 50)));
-                setMissedCallAlert(true);
-              }
+              setMissedCallAlert(true);
             }
             setIncomingCall(null);
           }}

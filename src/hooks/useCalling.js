@@ -40,18 +40,18 @@ export default function useCalling({
     return response;
   }, [user]);
 
-  function getLegacyCallLogKey() {
-    return `pulse_calls_${user.uid}`;
-  }
+  const getLegacyCallLogKey = useCallback(() => (
+    `pulse_calls_${user.uid}`
+  ), [user.uid]);
 
-  function readLegacyCallLog() {
+  const readLegacyCallLog = useCallback(() => {
     try {
       const raw = JSON.parse(localStorage.getItem(getLegacyCallLogKey()) || '[]');
       return Array.isArray(raw) ? raw.filter((entry) => entry && entry.uid && Number.isFinite(Number(entry.ts))) : [];
     } catch {
       return [];
     }
-  }
+  }, [getLegacyCallLogKey]);
 
   function writeLegacyCallEntry(entry) {
     if (!entry?.uid || !Number.isFinite(Number(entry?.ts))) return;
@@ -72,15 +72,15 @@ export default function useCalling({
     return merged.sort((a, b) => Number(b.ts) - Number(a.ts)).slice(0, 50);
   }
 
-  function normalizeDirection(rawDirection) {
+  const normalizeDirection = useCallback((rawDirection) => {
     const value = String(rawDirection || '').toLowerCase();
     if (value === 'outgoing' || value === 'incoming' || value === 'missed') return value;
     if (value === 'declined' || value === 'no-answer' || value === 'no_answer') return 'missed';
     if (value === 'completed') return 'incoming';
     return 'incoming';
-  }
+  }, []);
 
-  function normalizeCallLogEntries(rawEntries = []) {
+  const normalizeCallLogEntries = useCallback((rawEntries = []) => {
     if (!Array.isArray(rawEntries)) return [];
     return rawEntries
       .map((entry, index) => {
@@ -105,7 +105,7 @@ export default function useCalling({
         };
       })
       .filter(Boolean);
-  }
+  }, [normalizeDirection]);
 
   const refreshCallLog = useCallback(async () => {
     const legacy = readLegacyCallLog();
@@ -124,7 +124,7 @@ export default function useCalling({
       setCallLog(legacy);
       return legacy;
     }
-  }, [authFetch]);
+  }, [authFetch, normalizeCallLogEntries, readLegacyCallLog]);
 
   const clearCallLog = useCallback(async () => {
     try {
@@ -141,7 +141,7 @@ export default function useCalling({
       setCallLog([]);
       return true;
     }
-  }, [authFetch, refreshCallLog]);
+  }, [authFetch, getLegacyCallLogKey, refreshCallLog]);
 
   useEffect(() => {
     refreshCallLog();

@@ -1302,32 +1302,31 @@ export default function ChatModals({
                 </div>
               ) : (
                 <>
-                  <div className="starred-search-wrap" style={{ marginBottom: 10 }}>
-                    <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
-                    <input
-                      className="starred-search-input"
-                      placeholder="Zoek recente oproepen of contact…"
-                      value={callSearch}
-                      onChange={(e) => setCallSearch(e.target.value)}
-                    />
-                    {callSearch && (
-                      <button type="button" className="starred-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
-                        <Cancel size={14} aria-hidden="true" />
-                      </button>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+                    <div className="starred-search-wrap" style={{ marginBottom: 0, flex: '0 0 60%', minWidth: 0 }}>
+                      <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+                      <input
+                        className="starred-search-input"
+                        placeholder="Zoek recente oproepen of contact…"
+                        value={callSearch}
+                        onChange={(e) => setCallSearch(e.target.value)}
+                      />
+                      {callSearch && (
+                        <button type="button" className="starred-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
+                          <Cancel size={14} aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
                     <button
                       type="button"
                       className="call-btn voice"
                       aria-label="Nieuw belgesprek"
                       title="Bel contact"
                       style={{
-                        width: 42,
+                        width: '100%',
                         height: 42,
                         borderRadius: 12,
-                        flexShrink: 0,
+                        flex: '0 0 20%',
                         ...(callActionMode === 'voice' ? { boxShadow: '0 0 0 2px rgba(67,233,123,.35) inset' } : {}),
                       }}
                       onClick={() => setCallActionMode((prev) => (prev === 'voice' ? null : 'voice'))}
@@ -1340,10 +1339,10 @@ export default function ChatModals({
                       aria-label="Nieuw videogesprek"
                       title="Videobel contact"
                       style={{
-                        width: 42,
+                        width: '100%',
                         height: 42,
                         borderRadius: 12,
-                        flexShrink: 0,
+                        flex: '0 0 20%',
                         ...(callActionMode === 'video' ? { boxShadow: '0 0 0 2px rgba(108,99,255,.45) inset' } : {}),
                       }}
                       onClick={() => setCallActionMode((prev) => (prev === 'video' ? null : 'video'))}

@@ -1382,9 +1382,6 @@ export default function ChatModals({
                       aria-label="Nieuw belgesprek"
                       title="Bel contact"
                       style={{
-                        width: 56,
-                        height: 42,
-                        borderRadius: 12,
                         flexShrink: 0,
                         ...(callActionMode === 'voice' ? { boxShadow: '0 0 0 2px rgba(67,233,123,.35) inset' } : {}),
                       }}

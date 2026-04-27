@@ -4218,26 +4218,15 @@ font-family: 'Inter', sans-serif;
   .search-row .btn-primary {
     width: 100%;
   }
-  .call-contact-row,
-  .call-log-row {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
   .pending-request-actions,
-  .call-log-actions,
   .call-upgrade-actions,
   .panel-header-actions {
     width:100%;
   }
   .pending-request-actions > *,
-  .call-log-actions > *,
   .call-upgrade-actions > *,
   .panel-header-actions > * {
     flex:1 1 0;
-  }
-  .call-log-copy,
-  .call-log-meta {
-    width:100%;
   }
   .label-chip-row {
     display:grid;

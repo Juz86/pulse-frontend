@@ -1013,6 +1013,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                         ? (ageMs <= LOCATION_STALE_AFTER_MS ? 'Live' : (ageMs <= LOCATION_OLD_AFTER_MS ? 'Recent' : 'Niet recent'))
                         : (location?.errorCode === 'PERMISSION_DENIED' ? 'Toestemming uit' : 'Geen locatie');
                       const mapsUrl = hasFix ? `https://www.google.com/maps?q=${location.lat},${location.lng}` : null;
+                      const mapEmbedUrl = hasFix
+                        ? `https://maps.google.com/maps?q=${encodeURIComponent(`${location.lat},${location.lng}`)}&z=16&output=embed`
+                        : null;
 
                       return (
                         <article key={child.uid} className="pd-location-card">
@@ -1033,6 +1036,21 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
                           {hasFix ? (
                             <div className="pd-location-body">
+                              <div className="pd-location-map-preview" aria-label={`Kaartlocatie van ${child.displayName}`}>
+                                <iframe
+                                  title={`Kaartlocatie van ${child.displayName}`}
+                                  src={mapEmbedUrl}
+                                  loading="lazy"
+                                  referrerPolicy="no-referrer-when-downgrade"
+                                />
+                                <div className="pd-location-map-pin" aria-hidden="true">
+                                  <div className="pd-location-map-pin-avatar">
+                                    {child.photoURL
+                                      ? <img src={child.photoURL} alt="" loading="lazy" />
+                                      : <span>{getInitials(child.displayName)}</span>}
+                                  </div>
+                                </div>
+                              </div>
                               <div className="pd-location-coords">
                                 {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
                               </div>

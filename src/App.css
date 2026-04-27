@@ -5300,6 +5300,75 @@ font-family: 'Inter', sans-serif;
   gap: 6px;
 }
 
+.pd-location-map-preview {
+  position: relative;
+  width: 100%;
+  height: 170px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid #d9dfea;
+  background: #eef2ff;
+}
+
+.pd-location-map-preview iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.pd-location-map-pin {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 48px;
+  height: 48px;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  border-radius: 50% 50% 50% 0;
+  transform-origin: center bottom;
+  background: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 8px 18px rgba(15,23,42,.34);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pd-location-map-pin::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(15,23,42,.28);
+  transform: translateX(-50%);
+  filter: blur(1px);
+}
+
+.pd-location-map-pin-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg,#7c3aed,#a78bfa);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pd-location-map-pin-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .pd-location-coords {
   font-size: 14px;
   font-weight: 600;
@@ -5461,6 +5530,17 @@ font-family: 'Inter', sans-serif;
   .pd-sidebar-tab { flex-direction:column; gap:4px; padding:10px 14px; font-size:11px; border-left:none; border-bottom:3px solid transparent; white-space:nowrap; }
   .pd-sidebar-tab.active { border-left-color:transparent; border-bottom-color:#6c63ff; }
   .pd-content   { padding:16px; }
+  .pd-location-map-preview { height: 150px; }
+  .pd-location-map-pin {
+    width: 42px;
+    height: 42px;
+    transform: translate(-50%, -96%);
+  }
+  .pd-location-map-pin-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 12px;
+  }
 }
 
 @media (max-width: 520px) {

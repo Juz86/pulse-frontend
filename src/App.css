@@ -4328,9 +4328,22 @@ font-family: 'Inter', sans-serif;
     padding-bottom: 10px;
   }
 
-  /* Ouder dashboard overlay: sidebar footer blijft zichtbaar onderaan */
-  .parent-dashboard-overlay { left:0; padding:20px 0 0; bottom:62px; align-items:flex-end; }
-  .parent-dashboard-overlay .parent-root { border-radius:16px 16px 0 0; min-height:unset; max-height:calc(100vh - 82px); box-shadow:none; }
+  /* Ouder dashboard overlay: full-screen op mobiel (zoals Nieuwe chat) */
+  .parent-dashboard-overlay {
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0;
+    align-items: stretch;
+  }
+  .parent-dashboard-overlay .parent-root {
+    border-radius: 0;
+    min-height: 0;
+    height: var(--vvh, 100dvh);
+    max-height: var(--vvh, 100dvh);
+    box-shadow: none;
+  }
 
   /* Berichtbubbel iets breder op mobiel */
   .msg-bubble-wrap { max-width:min(88%, 34rem); }
@@ -5579,8 +5592,20 @@ font-family: 'Inter', sans-serif;
     min-height: 22px !important;
     font-size: 16px;
   }
-  .parent-dashboard-overlay { padding:20px 0 0; left:0; bottom:62px; align-items:flex-end; }
-  .parent-dashboard-overlay .parent-root { border-radius:16px 16px 0 0; min-height:unset; max-height:calc(100vh - 82px); }
+  .parent-dashboard-overlay {
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0;
+    align-items: stretch;
+  }
+  .parent-dashboard-overlay .parent-root {
+    border-radius: 0;
+    min-height: 0;
+    height: var(--vvh, 100dvh);
+    max-height: var(--vvh, 100dvh);
+  }
 }
 
 /* ── Utility classes (vervangen inline styles voor betere render prestaties) ── */

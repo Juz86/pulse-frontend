@@ -2449,12 +2449,14 @@ font-family: 'Inter', sans-serif;
   max-width:440px;
 }
 .confirm-dialog-modal--clear-chat {
-  max-width:620px;
+  max-width:560px;
   background:
-    radial-gradient(120% 140% at 0% 0%, rgba(138, 122, 255, 0.22) 0%, rgba(138, 122, 255, 0) 52%),
-    linear-gradient(180deg, rgba(41, 36, 84, 0.98) 0%, rgba(33, 28, 74, 0.99) 100%);
-  border:1px solid rgba(173, 157, 255, 0.24);
-  box-shadow:0 24px 56px rgba(8, 6, 24, 0.5), inset 0 1px 0 rgba(255,255,255,.06);
+    radial-gradient(120% 130% at 0% 0%, rgba(126, 110, 244, 0.22) 0%, rgba(126, 110, 244, 0) 58%),
+    linear-gradient(180deg, #2f2a68 0%, #2a255f 100%);
+  border:1px solid rgba(151, 138, 240, 0.34);
+  box-shadow:0 22px 50px rgba(12, 9, 32, 0.44), inset 0 1px 0 rgba(255,255,255,.05);
+  padding:30px 40px 32px;
+  border-radius:34px;
 }
 .confirm-dialog-title {
   margin-bottom:12px;
@@ -2470,64 +2472,21 @@ font-family: 'Inter', sans-serif;
   margin-top:10px;
 }
 .confirm-dialog-modal--clear-chat .confirm-dialog-title {
-  font-size:40px;
+  font-size:43px;
   font-weight:800;
-  letter-spacing:-0.01em;
-  margin-bottom:10px;
+  letter-spacing:-0.02em;
+  margin:0 0 24px;
+  color:#f3efff;
   white-space:normal;
   overflow:visible;
   text-overflow:clip;
-}
-.confirm-dialog-modal--clear-chat #confirm-dialog-description {
-  margin-bottom:18px !important;
-  color:rgba(236, 231, 255, 0.78) !important;
-  font-size:26px !important;
-  line-height:1.38 !important;
-  max-width:95%;
-}
-.confirm-dialog-checkbox-row {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  margin:2px 0 18px;
-  color:var(--text);
-  font-size:22px;
-  font-weight:600;
-  line-height:1.35;
-  cursor:pointer;
-  user-select:none;
-}
-.confirm-dialog-checkbox-row input {
-  appearance:none;
-  width:26px;
-  height:26px;
-  margin:0;
-  border-radius:8px;
-  border:2px solid rgba(222, 216, 255, 0.5);
-  background:rgba(255,255,255,.02);
-  display:grid;
-  place-items:center;
-}
-.confirm-dialog-checkbox-row input::after {
-  content:'';
-  width:12px;
-  height:8px;
-  border:3px solid #fff;
-  border-top:0;
-  border-right:0;
-  transform:rotate(-45deg) scale(0);
-  transition:transform .14s ease;
-}
-.confirm-dialog-checkbox-row input:checked {
-  border-color:#9a8dff;
-  background:linear-gradient(135deg, #8374ff, #a855f7);
-}
-.confirm-dialog-checkbox-row input:checked::after {
-  transform:rotate(-45deg) scale(1);
+  line-height:1.12;
+  max-width:92%;
 }
 .confirm-dialog-modal--clear-chat .confirm-dialog-actions {
-  justify-content:flex-end;
-  margin-top:14px;
+  justify-content:flex-start;
+  gap:12px;
+  margin-top:0;
 }
 .confirm-dialog-btn {
   min-height:42px;
@@ -2535,14 +2494,6 @@ font-family: 'Inter', sans-serif;
   border-radius:14px;
   font-size:15px;
   font-weight:700;
-}
-.confirm-dialog-btn--ghost {
-  background:transparent !important;
-  border-color:transparent !important;
-  color:#7cf2b4 !important;
-  box-shadow:none !important;
-  width:auto;
-  min-width:120px;
 }
 .confirm-dialog-btn.btn-secondary {
   padding:10px 14px;
@@ -2556,17 +2507,31 @@ font-family: 'Inter', sans-serif;
   gap:8px;
 }
 .confirm-dialog-modal--clear-chat .confirm-dialog-btn-danger {
-  min-height:58px;
-  min-width:194px;
-  border-radius:999px;
-  padding:0 26px;
-  font-size:30px;
-  font-weight:700;
-  background:linear-gradient(135deg, #ff5b71, #ff3f62);
-  box-shadow:0 10px 24px rgba(255, 70, 110, .28);
+  flex:1;
+  min-height:56px;
+  border-radius:18px;
+  padding:0 22px;
+  font-size:36px;
+  font-weight:800;
+  letter-spacing:-0.01em;
+  background:linear-gradient(180deg, #ff5968 0%, #ea2f45 100%);
+  border:1px solid rgba(255, 154, 166, 0.45);
+  box-shadow:0 12px 28px rgba(255, 74, 103, .35), inset 0 -1px 0 rgba(110, 15, 30, .45), inset 0 1px 0 rgba(255,255,255,.22);
 }
-.confirm-dialog-modal--clear-chat .confirm-dialog-btn-danger svg {
-  display:none;
+.confirm-dialog-modal--clear-chat .confirm-dialog-btn {
+  min-height:56px;
+  border-radius:18px;
+  font-size:36px;
+  font-weight:800;
+  letter-spacing:-0.01em;
+}
+.confirm-dialog-modal--clear-chat .confirm-dialog-btn.btn-secondary {
+  flex:0 0 160px;
+  padding:0 18px;
+  background:linear-gradient(180deg, rgba(66, 60, 128, 0.95) 0%, rgba(55, 49, 113, 0.98) 100%);
+  border:1px solid rgba(150, 141, 227, 0.35);
+  color:#f1ecff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 8px 20px rgba(11, 8, 35, .22);
 }
 .delete-confirm-description {
   color:var(--text);
@@ -2644,26 +2609,27 @@ font-family: 'Inter', sans-serif;
   }
   .confirm-dialog-modal--clear-chat {
     max-width:100%;
+    padding:24px 22px 24px;
+    border-radius:24px;
   }
   .confirm-dialog-modal--clear-chat .confirm-dialog-title {
-    font-size:clamp(24px, 7.4vw, 32px);
+    font-size:clamp(26px, 8.6vw, 36px);
+    margin-bottom:18px;
   }
-  .confirm-dialog-modal--clear-chat #confirm-dialog-description {
-    font-size:clamp(15px, 4.3vw, 20px) !important;
-  }
-  .confirm-dialog-checkbox-row {
-    font-size:clamp(15px, 4.5vw, 20px);
+  .confirm-dialog-modal--clear-chat .confirm-dialog-actions {
     gap:10px;
   }
-  .confirm-dialog-checkbox-row input {
-    width:22px;
-    height:22px;
-    border-radius:7px;
+  .confirm-dialog-modal--clear-chat .confirm-dialog-btn.btn-secondary {
+    flex:0 0 38%;
   }
   .confirm-dialog-modal--clear-chat .confirm-dialog-btn-danger {
-    min-height:48px;
-    min-width:142px;
-    font-size:clamp(17px, 5.2vw, 24px);
+    min-height:50px;
+    font-size:clamp(21px, 6.5vw, 29px);
+  }
+  .confirm-dialog-modal--clear-chat .confirm-dialog-btn {
+    min-height:50px;
+    border-radius:15px;
+    font-size:clamp(21px, 6.5vw, 29px);
   }
 }
 

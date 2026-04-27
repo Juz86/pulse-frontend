@@ -28,6 +28,7 @@ export default function useCalling({
   const callLogRefreshPromiseRef = useRef(null);
   const callLogLastRefreshAtRef = useRef(0);
   const callLogCooldownUntilRef = useRef(0);
+  const callLogApiUnavailableRef = useRef(false);
   const callTargetUidRef = useRef('');
   const callTargetNameRef = useRef('');
   const callTargetPhotoRef = useRef('');
@@ -120,6 +121,10 @@ export default function useCalling({
   const refreshCallLog = useCallback(async ({ force = false } = {}) => {
     const legacy = readLegacyCallLog();
 
+    if (callLogApiUnavailableRef.current) {
+      return callLogStateRef.current.length > 0 ? callLogStateRef.current : legacy;
+    }
+
     const now = Date.now();
     if (!force) {
       if (callLogRefreshPromiseRef.current) return callLogRefreshPromiseRef.current;
@@ -136,6 +141,11 @@ export default function useCalling({
       callLogLastRefreshAtRef.current = Date.now();
       try {
         const res = await authFetch(`${BACKEND_URL}/api/messages/recent-calls?limit=50`);
+        if (res.status === 404) {
+          callLogApiUnavailableRef.current = true;
+          setCallLog(legacy);
+          return legacy;
+        }
         if (res.status === 429) {
           const retryAfterHeader = Number(res.headers.get('retry-after'));
           const retryAfterMs = Number.isFinite(retryAfterHeader) && retryAfterHeader > 0
@@ -180,8 +190,19 @@ export default function useCalling({
   }, [authFetch, normalizeCallLogEntries, readLegacyCallLog]);
 
   const clearCallLog = useCallback(async () => {
+    if (callLogApiUnavailableRef.current) {
+      localStorage.removeItem(getLegacyCallLogKey());
+      setCallLog([]);
+      return true;
+    }
     try {
       const res = await authFetch(`${BACKEND_URL}/api/messages/recent-calls`, { method: 'DELETE' });
+      if (res.status === 404) {
+        callLogApiUnavailableRef.current = true;
+        localStorage.removeItem(getLegacyCallLogKey());
+        setCallLog([]);
+        return true;
+      }
       localStorage.removeItem(getLegacyCallLogKey());
       if (!res.ok) {
         setCallLog([]);

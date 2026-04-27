@@ -129,7 +129,6 @@ export async function copyTextToClipboard(text) {
 }
 
 const USER_STORAGE_PREFIXES = [
-  'pulse_calls_',
   'pulse_history_rules_',
   'pulse_session_conversations_',
   'pulse_draft_',
@@ -142,8 +141,9 @@ const USER_STORAGE_PREFIXES = [
   'pulse_starred_',
 ];
 
-export function clearPulseUserStorage(uid) {
+export function clearPulseUserStorage(uid, options = {}) {
   if (typeof window === 'undefined' || !uid) return;
+  const { includeCallLog = false } = options;
 
   const clearStorageKeys = (storageLike) => {
     if (!storageLike) return;
@@ -153,9 +153,10 @@ export function clearPulseUserStorage(uid) {
       if (!key) continue;
 
       const isUserScoped = USER_STORAGE_PREFIXES.some((prefix) => key === `${prefix}${uid}` || key.startsWith(`${prefix}${uid}_`));
+      const isCallLogKey = includeCallLog && (key === `pulse_calls_${uid}` || key.startsWith(`pulse_calls_${uid}_`));
       const isNicknameCache = key.startsWith('pulse_nick_');
 
-      if (isUserScoped || isNicknameCache) {
+      if (isUserScoped || isCallLogKey || isNicknameCache) {
         keysToRemove.push(key);
       }
     }

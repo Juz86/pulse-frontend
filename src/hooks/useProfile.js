@@ -259,7 +259,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
       onConfirm: async () => {
         try {
           await authFetch(`${BACKEND_URL}/api/account/${user.uid}`, { method: 'DELETE' });
-          clearPulseUserStorage(user.uid);
+          clearPulseUserStorage(user.uid, { includeCallLog: true });
           await signOut(auth);
         } catch (err) { showErrToast('Verwijderen mislukt: ' + err.message); }
       },

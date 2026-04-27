@@ -242,6 +242,7 @@ export default function ChatModals({
   const [callSearch, setCallSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null); // 'voice' | null
   const [callLogStatusNow, setCallLogStatusNow] = useState(() => Date.now());
+  const [confirmCheckboxChecked, setConfirmCheckboxChecked] = useState(false);
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
@@ -304,6 +305,14 @@ export default function ChatModals({
     if (showProfile) return;
     setProfileTab('overview');
   }, [setProfileTab, showProfile]);
+
+  useEffect(() => {
+    if (!confirmDialog) {
+      setConfirmCheckboxChecked(false);
+      return;
+    }
+    setConfirmCheckboxChecked(Boolean(confirmDialog.checkboxDefault));
+  }, [confirmDialog]);
 
   useEffect(() => {
     if (!addingMember) setGroupMemberSearch('');
@@ -666,7 +675,14 @@ export default function ChatModals({
       {/* ── BEVESTIGINGSDIALOOG ── */}
       {confirmDialog && (
         <div className="modal-overlay" onClick={() => setConfirmDialog(null)}>
-          <div className="modal-box confirm-dialog-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title" aria-describedby="confirm-dialog-description" onClick={e => e.stopPropagation()}>
+          <div
+            className={`modal-box confirm-dialog-modal${confirmDialog.type === 'clear-chat' ? ' confirm-dialog-modal--clear-chat' : ''}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-dialog-title"
+            aria-describedby="confirm-dialog-description"
+            onClick={e => e.stopPropagation()}
+          >
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setConfirmDialog(null)}><span aria-hidden="true">✕</span></button>
             <h2 id="confirm-dialog-title" className="modal-title confirm-dialog-title">{confirmDialog.title || 'Bevestiging'}</h2>
             {confirmDialog.message && (
@@ -674,9 +690,32 @@ export default function ChatModals({
                 {confirmDialog.message}
               </p>
             )}
+            {confirmDialog.type === 'clear-chat' && confirmDialog.checkboxLabel && (
+              <label className="confirm-dialog-checkbox-row">
+                <input
+                  type="checkbox"
+                  checked={confirmCheckboxChecked}
+                  onChange={(event) => setConfirmCheckboxChecked(event.target.checked)}
+                />
+                <span>{confirmDialog.checkboxLabel}</span>
+              </label>
+            )}
             <div className="modal-actions confirm-dialog-actions">
-              <button type="button" className="btn-secondary confirm-dialog-btn" onClick={() => setConfirmDialog(null)}>{confirmDialog.cancelLabel || 'Annuleren'}</button>
-              <button type="button" className="btn-primary confirm-dialog-btn confirm-dialog-btn-danger" onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }}>
+              <button
+                type="button"
+                className={`btn-secondary confirm-dialog-btn${confirmDialog.type === 'clear-chat' ? ' confirm-dialog-btn--ghost' : ''}`}
+                onClick={() => setConfirmDialog(null)}
+              >
+                {confirmDialog.cancelLabel || 'Annuleren'}
+              </button>
+              <button
+                type="button"
+                className="btn-primary confirm-dialog-btn confirm-dialog-btn-danger"
+                onClick={() => {
+                  confirmDialog.onConfirm?.({ keepStarred: confirmCheckboxChecked });
+                  setConfirmDialog(null);
+                }}
+              >
                 {confirmDialog.confirmIcon === 'trash' && <Delete size={16} aria-hidden="true" />}
                 <span>{confirmDialog.confirmLabel || 'Verwijderen'}</span>
               </button>

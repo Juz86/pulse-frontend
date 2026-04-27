@@ -189,13 +189,31 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }
   function openClearConversationConfirm(conv) {
     if (!conv?.id) return;
-    const conversationName = getConvName(conv) || 'dit gesprek';
     setConfirmDialog({
-      title: `Wis chat met ${conversationName}?`,
-      message: 'De chatinhoud wordt alleen voor jou gewist. Voor de andere gebruiker blijft de chat zichtbaar tot de bewaartermijn verloopt.',
-      confirmLabel: 'Wissen',
+      type: 'clear-chat',
+      title: 'Deze chat wissen?',
+      message: 'Deze chat is leeg maar blijft in je chatlijst staan.',
+      checkboxLabel: 'Berichten met ster opslaan',
+      checkboxDefault: false,
+      confirmLabel: 'Chat wissen',
       confirmIcon: 'trash',
-      onConfirm: async () => {
+      onConfirm: async ({ keepStarred } = {}) => {
+        if (!keepStarred) {
+          const cachedMessageIds = Array.isArray(msgCache.current?.[conv.id])
+            ? msgCache.current[conv.id].map((message) => message?.id).filter(Boolean)
+            : [];
+          const openMessageIds = activeConvRef.current?.id === conv.id
+            ? (messages || []).map((message) => message?.id).filter(Boolean)
+            : [];
+          const idsToUnstar = new Set([...cachedMessageIds, ...openMessageIds]);
+          if (idsToUnstar.size > 0) {
+            setStarredMsgs((prev) => {
+              const next = prev.filter((msgId) => !idsToUnstar.has(msgId));
+              localStorage.setItem(`pulse_starred_${user.uid}`, JSON.stringify(next));
+              return next;
+            });
+          }
+        }
         await clearConversationHistoryHard?.(conv.id);
       },
     });

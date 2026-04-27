@@ -1,11 +1,24 @@
 // src/screens/ParentDashboard.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { getInitials, timeAgo } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { getInitials, timeAgo, toMs } from '../utils';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit, Pin } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
+import { db } from '../firebase';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INTERNAL_ACCOUNT_EMAIL_RE = /@(kind\.pulse\.local|pulse\.internal)$/i;
+const LOCATION_STALE_AFTER_MS = 2 * 60 * 1000;
+const LOCATION_OLD_AFTER_MS = 15 * 60 * 1000;
+
+function formatLocationLastSeen(updatedAtMs) {
+  if (!updatedAtMs) return 'Nog niet gedeeld';
+  const diffMs = Math.max(0, Date.now() - updatedAtMs);
+  if (diffMs < 60_000) return 'Zojuist bijgewerkt';
+  if (diffMs < 3_600_000) return `${Math.floor(diffMs / 60_000)} min geleden`;
+  const date = new Date(updatedAtMs);
+  return date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+}
 
 export default function ParentDashboard({ user, onClose, parentActivityBadge = 0, onActivitiesViewed }) {
   const [activeTab,      setActiveTab]      = useState('add');
@@ -76,6 +89,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const [analyticsError,   setAnalyticsError]   = useState('');
   const [activityContactFilter, setActivityContactFilter] = useState('all');
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
+  const [locationByChildUid, setLocationByChildUid] = useState({});
+  const [locationStreamReady, setLocationStreamReady] = useState(false);
+  const [locationError, setLocationError] = useState('');
 
   const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 
@@ -279,6 +295,53 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     if (inviteModal) loadInviteContacts();
   }, [inviteModal, loadInviteContacts]);
 
+  useEffect(() => {
+    if (activeTab !== 'location') return undefined;
+    if (!children.length) {
+      setLocationByChildUid({});
+      setLocationStreamReady(true);
+      return undefined;
+    }
+
+    setLocationStreamReady(false);
+    setLocationError('');
+    const unsubscribers = children.map((child) => onSnapshot(
+      doc(db, 'users', child.uid),
+      (snapshot) => {
+        const data = snapshot.data() || {};
+        const source = data.liveLocation || {};
+        const lat = Number(source.lat ?? source.latitude);
+        const lng = Number(source.lng ?? source.longitude ?? source.lon);
+        const accuracy = Number(source.accuracy);
+        const updatedAtMs = Number(source.updatedAtMs || 0) || toMs(data.liveLocationUpdatedAt);
+
+        setLocationByChildUid((prev) => ({
+          ...prev,
+          [child.uid]: {
+            hasFix: Number.isFinite(lat) && Number.isFinite(lng),
+            lat: Number.isFinite(lat) ? lat : null,
+            lng: Number.isFinite(lng) ? lng : null,
+            accuracy: Number.isFinite(accuracy) ? accuracy : null,
+            updatedAtMs,
+            sharing: data.liveLocationSharing !== false,
+            errorCode: data.liveLocationErrorCode || null,
+            errorMessage: data.liveLocationErrorMessage || '',
+          },
+        }));
+        setLocationStreamReady(true);
+      },
+      (error) => {
+        console.warn('[Pulse] Locatie-stream mislukt:', error.message);
+        setLocationError('Realtime locatie kon niet worden geladen. Probeer opnieuw.');
+        setLocationStreamReady(true);
+      },
+    ));
+
+    return () => {
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [activeTab, children]);
+
   async function createChild(e) {
     e.preventDefault();
     setCreateError(''); setCreateSuccess(''); setCreateLoading(true);
@@ -443,6 +506,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     { id: 'add',        icon: <UserPlus  size={16} aria-hidden="true" />, label: 'Kind toevoegen'  },
     { id: 'children',   icon: <Users     size={16} aria-hidden="true" />, label: 'Mijn kinderen'   },
     { id: 'contacts',   icon: <UserCheck size={16} aria-hidden="true" />, label: 'Contacten'       },
+    { id: 'location',   icon: <Pin       size={16} aria-hidden="true" />, label: 'Locatie'         },
     { id: 'activities', icon: <Activity  size={16} aria-hidden="true" />, label: 'Activiteiten', badge: parentActivityBadge > 0 ? activityTabBadge : null },
   ];
 
@@ -907,7 +971,96 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
               </div>
             )}
 
-            {/* Tab 4 — Pulse activiteiten */}
+            {/* Tab 4 — Realtime locatie */}
+            {activeTab === 'location' && (
+              <div>
+                <div className="activities-header">
+                  <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Realtime locatie</h2>
+                  <button type="button" className="parent-btn-outline activities-refresh-btn" onClick={loadChildren}>
+                    <Refresh size={14} aria-hidden="true" />
+                    <span className="activities-refresh-label">Vernieuwen</span>
+                  </button>
+                </div>
+                <p className="parent-section-sub" style={{ marginBottom: 16 }}>
+                  Bekijk de laatst gedeelde live locatie van uw kinderen in ouderlijk toezicht.
+                </p>
+
+                {locationError && (
+                  <div className="parent-error" role="alert" style={{ marginBottom: 12 }}>
+                    <span aria-hidden="true">⚠️ </span>{locationError}
+                  </div>
+                )}
+
+                {!locationStreamReady ? (
+                  <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '28px 0', color: '#999' }}>
+                    Locatie laden…
+                  </div>
+                ) : children.length === 0 ? (
+                  <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '28px 0', color: '#999' }}>
+                    <Users size={32} color="#ccc" style={{ marginBottom: 8 }} aria-hidden="true" />
+                    <p style={{ fontSize: 13 }}>Nog geen kinderen toegevoegd.</p>
+                  </div>
+                ) : (
+                  <div className="pd-location-list">
+                    {children.map((child) => {
+                      const location = locationByChildUid[child.uid] || null;
+                      const hasFix = Boolean(location?.hasFix);
+                      const ageMs = location?.updatedAtMs ? Math.max(0, Date.now() - location.updatedAtMs) : Infinity;
+                      const statusClass = hasFix
+                        ? (ageMs <= LOCATION_STALE_AFTER_MS ? 'live' : (ageMs <= LOCATION_OLD_AFTER_MS ? 'recent' : 'stale'))
+                        : 'missing';
+                      const statusLabel = hasFix
+                        ? (ageMs <= LOCATION_STALE_AFTER_MS ? 'Live' : (ageMs <= LOCATION_OLD_AFTER_MS ? 'Recent' : 'Niet recent'))
+                        : (location?.errorCode === 'PERMISSION_DENIED' ? 'Toestemming uit' : 'Geen locatie');
+                      const mapsUrl = hasFix ? `https://www.google.com/maps?q=${location.lat},${location.lng}` : null;
+
+                      return (
+                        <article key={child.uid} className="pd-location-card">
+                          <div className="pd-location-top">
+                            <div className="pd-location-user">
+                              <div className="pd-location-avatar" aria-hidden="true">
+                                {child.photoURL
+                                  ? <img src={child.photoURL} alt={child.displayName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                                  : getInitials(child.displayName)}
+                              </div>
+                              <div className="pd-location-meta">
+                                <strong>{child.displayName}</strong>
+                                <span>{formatLocationLastSeen(location?.updatedAtMs || 0)}</span>
+                              </div>
+                            </div>
+                            <span className={`pd-location-status ${statusClass}`}>{statusLabel}</span>
+                          </div>
+
+                          {hasFix ? (
+                            <div className="pd-location-body">
+                              <div className="pd-location-coords">
+                                {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+                              </div>
+                              <div className="pd-location-details">
+                                Nauwkeurigheid: {location.accuracy ? `±${Math.round(location.accuracy)} m` : 'onbekend'}
+                              </div>
+                              <div className="pd-location-actions">
+                                <a className="parent-btn-outline pd-location-open-map" href={mapsUrl} target="_blank" rel="noreferrer">
+                                  Open kaart
+                                </a>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="pd-location-empty">
+                              {location?.errorCode === 'PERMISSION_DENIED'
+                                ? 'Locatie-toestemming staat uit op het apparaat van dit kind.'
+                                : (location?.errorMessage || 'Nog geen locatie van dit kind ontvangen.')}
+                            </div>
+                          )}
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Tab 5 — Pulse activiteiten */}
             {activeTab === 'activities' && (
               <div>
                 {/* Header met kind-selector */}

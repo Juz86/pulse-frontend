@@ -2,7 +2,6 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { QUICK_REACTION_EMOJI } from './messageReactionConstants';
 
 const PICKER_WIDTH = 248;
-const PICKER_HEIGHT = 52;
 const VIEWPORT_GAP = 12;
 
 const MessageBubbleActions = React.memo(function MessageBubbleActions({
@@ -49,14 +48,17 @@ const MessageBubbleActions = React.memo(function MessageBubbleActions({
     const rect = wrapRef.current.getBoundingClientRect();
     const roomRight = window.innerWidth - rect.right - VIEWPORT_GAP;
     const roomLeft = rect.left - VIEWPORT_GAP;
-    const roomTop = rect.top - VIEWPORT_GAP;
-    const roomBottom = window.innerHeight - rect.bottom - VIEWPORT_GAP;
+    const preferredHorizontal = isOwn ? 'left' : 'right';
+    const canRenderPreferred = preferredHorizontal === 'right'
+      ? roomRight >= PICKER_WIDTH
+      : roomLeft >= PICKER_WIDTH;
+    const fallbackHorizontal = preferredHorizontal === 'right' ? 'left' : 'right';
 
     setPickerPlacement({
-      horizontal: roomRight >= PICKER_WIDTH || roomRight >= roomLeft ? 'right' : 'left',
-      vertical: roomTop >= PICKER_HEIGHT ? 'top' : (roomBottom >= PICKER_HEIGHT ? 'bottom' : 'center'),
+      horizontal: canRenderPreferred ? preferredHorizontal : fallbackHorizontal,
+      vertical: 'center',
     });
-  }, [isOpen]);
+  }, [isOpen, isOwn]);
 
   const pickerClassName = `msg-emoji-picker${isOpen ? ' open' : ''} ${pickerPlacement.horizontal} ${pickerPlacement.vertical}`;
 

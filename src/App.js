@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/react';
 import ErrorBoundary from './components/ErrorBoundary';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, authPersistenceReady, db, messaging, getToken } from './firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket';
 import './App.css';
 import PulseLogo from './components/PulseLogo';
@@ -44,6 +44,25 @@ const splashFallback = (
     <div className="splash-spinner" />
   </div>
 );
+
+function distanceInMeters(from, to) {
+  if (!from || !to) return Infinity;
+  const toRad = (v) => (v * Math.PI) / 180;
+  const earthRadius = 6371000;
+  const dLat = toRad(to.lat - from.lat);
+  const dLng = toRad(to.lng - from.lng);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(from.lat)) * Math.cos(toRad(to.lat)) * Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadius * c;
+}
+
+function normalizeLocationErrorCode(code) {
+  if (code === 1) return 'PERMISSION_DENIED';
+  if (code === 2) return 'POSITION_UNAVAILABLE';
+  if (code === 3) return 'TIMEOUT';
+  return 'UNKNOWN';
+}
 
 function MarketingRoute({ Page, pageProps = {} }) {
   const [showChildAuth, setShowChildAuth] = useState(false);
@@ -642,6 +661,82 @@ function MainApp() {
       document.removeEventListener('visibilitychange', onVisibilityRefresh);
     };
   }, [user]);
+
+  useEffect(() => {
+    if (!user || userRole == null || userRole === 'parent') return undefined;
+    if (typeof window === 'undefined' || !navigator?.geolocation) return undefined;
+
+    let cancelled = false;
+    let lastSentAt = 0;
+    let lastKnownCoords = null;
+    let lastErrorCode = null;
+
+    const persistLocationState = async (payload) => {
+      try {
+        await updateDoc(doc(db, 'users', user.uid), payload);
+      } catch (error) {
+        console.warn('[Pulse] Locatie-updates opslaan mislukt:', error.message);
+      }
+    };
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        if (cancelled) return;
+
+        const lat = Number(position?.coords?.latitude);
+        const lng = Number(position?.coords?.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+        const now = Date.now();
+        const nextCoords = { lat, lng };
+        const movedMeters = distanceInMeters(lastKnownCoords, nextCoords);
+        const shouldSkipUpdate = now - lastSentAt < 15_000 && movedMeters < 20;
+        if (shouldSkipUpdate) return;
+
+        lastSentAt = now;
+        lastKnownCoords = nextCoords;
+        lastErrorCode = null;
+
+        void persistLocationState({
+          liveLocation: {
+            lat,
+            lng,
+            accuracy: Number.isFinite(position.coords.accuracy) ? Math.round(position.coords.accuracy) : null,
+            heading: Number.isFinite(position.coords.heading) ? position.coords.heading : null,
+            speed: Number.isFinite(position.coords.speed) ? position.coords.speed : null,
+            updatedAtMs: now,
+          },
+          liveLocationSharing: true,
+          liveLocationErrorCode: null,
+          liveLocationErrorMessage: null,
+          liveLocationUpdatedAt: serverTimestamp(),
+        });
+      },
+      (error) => {
+        if (cancelled) return;
+        const normalizedCode = normalizeLocationErrorCode(Number(error?.code || 0));
+        if (normalizedCode === lastErrorCode) return;
+        lastErrorCode = normalizedCode;
+
+        void persistLocationState({
+          liveLocationSharing: false,
+          liveLocationErrorCode: normalizedCode,
+          liveLocationErrorMessage: error?.message || 'Locatie niet beschikbaar',
+          liveLocationUpdatedAt: serverTimestamp(),
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20_000,
+        maximumAge: 15_000,
+      },
+    );
+
+    return () => {
+      cancelled = true;
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, [user, userRole]);
 
   if (loading) return (
     <div className="splash">

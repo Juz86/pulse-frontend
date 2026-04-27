@@ -941,9 +941,11 @@ export default function ChatModals({
                       <p className="profile-danger-copy">
                         Als je je account verwijdert worden al je chats, berichten en gegevens permanent verwijderd.
                       </p>
-                      <button type="button" className="btn-danger" style={{ width: '100%' }}
+                      <button type="button" className="btn-danger profile-danger-btn"
                         onClick={() => { setShowProfile(false); handleDeleteAccount(); }}>
-                        <Delete size={16} style={{ marginRight: 6 }} aria-hidden="true" /> Account definitief verwijderen
+                        <span className="profile-danger-btn-icon" aria-hidden="true"><Delete size={16} /></span>
+                        <span className="profile-danger-btn-label">Account definitief verwijderen</span>
+                        <span className="profile-danger-btn-spacer" aria-hidden="true" />
                       </button>
                     </div>
                   </div>

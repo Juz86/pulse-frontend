@@ -207,7 +207,7 @@ export default function ChatModals({
 
   // call modal
   showCallModal, setShowCallModal,
-  callContact, callContactFromRecent, getCallLog, refreshCallLog, clearCallLog,
+  callContact, callContactFromRecent, getCallLog, refreshCallLog, clearCallLog, callLogRateLimitUntil = 0,
 
   // group info
   showGroupInfo, setShowGroupInfo,
@@ -241,6 +241,7 @@ export default function ChatModals({
   const [groupMemberSearch, setGroupMemberSearch] = useState('');
   const [callSearch, setCallSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null); // 'voice' | null
+  const [callLogStatusNow, setCallLogStatusNow] = useState(() => Date.now());
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
@@ -319,7 +320,7 @@ export default function ChatModals({
         if (document.visibilityState === 'visible') {
           refreshCallLog();
         }
-      }, 1200);
+      }, 20000);
     };
 
     const stopPolling = () => {
@@ -346,6 +347,16 @@ export default function ChatModals({
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
   }, [showCallModal, callsAvailable, refreshCallLog]);
+
+  useEffect(() => {
+    if (!showCallModal || !callsAvailable) return undefined;
+    if (Number(callLogRateLimitUntil || 0) <= Date.now()) return undefined;
+    setCallLogStatusNow(Date.now());
+    const timerId = setInterval(() => {
+      setCallLogStatusNow(Date.now());
+    }, 1000);
+    return () => clearInterval(timerId);
+  }, [showCallModal, callsAvailable, callLogRateLimitUntil]);
 
 
   function openStarredFromProfile() {
@@ -1321,6 +1332,8 @@ export default function ChatModals({
       {/* ── OPROEPEN PANEEL ── */}
       {showCallModal && (() => {
         const callLog = getCallLog();
+        const remainingRateLimitMs = Math.max(0, Number(callLogRateLimitUntil || 0) - callLogStatusNow);
+        const remainingRateLimitSeconds = Math.ceil(remainingRateLimitMs / 1000);
         const normalizedCallSearch = callSearch.trim().toLowerCase();
         const filteredCallLog = normalizedCallSearch
           ? callLog.filter((entry) => {
@@ -1392,6 +1405,23 @@ export default function ChatModals({
                       <Phone size={16} aria-hidden="true" />
                     </button>
                   </div>
+                  {remainingRateLimitSeconds > 0 && (
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      style={{
+                        marginBottom: 12,
+                        fontSize: 12,
+                        color: '#fde68a',
+                        background: 'rgba(245, 158, 11, 0.12)',
+                        border: '1px solid rgba(245, 158, 11, 0.34)',
+                        borderRadius: 10,
+                        padding: '8px 10px',
+                      }}
+                    >
+                      Te veel verzoeken. Vernieuwen over {remainingRateLimitSeconds}s.
+                    </div>
+                  )}
 
                   {callActionMode && (
                     <div style={{ marginBottom: 12 }}>

@@ -16,6 +16,8 @@ export default function useCalling({
 }) {
   const [activeCall,  setActiveCall]  = useState(null);
   const [callLog, setCallLog] = useState([]);
+  const [callLogRateLimitUntil, setCallLogRateLimitUntil] = useState(0);
+  const callLogStateRef = useRef([]);
 
   const callStartTimeRef = useRef(null);
   const callIsVideoRef   = useRef(false);
@@ -23,9 +25,13 @@ export default function useCalling({
   const fallbackNoticeShownRef = useRef(false);
   const reopenRecentAfterCallRef = useRef(false);
   const callLogRefreshTimersRef = useRef([]);
+  const callLogRefreshPromiseRef = useRef(null);
+  const callLogLastRefreshAtRef = useRef(0);
+  const callLogCooldownUntilRef = useRef(0);
   const callTargetUidRef = useRef('');
   const callTargetNameRef = useRef('');
   const callTargetPhotoRef = useRef('');
+  const MIN_CALL_LOG_REFRESH_INTERVAL_MS = 5000;
 
   const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
@@ -107,22 +113,69 @@ export default function useCalling({
       .filter(Boolean);
   }, [normalizeDirection]);
 
-  const refreshCallLog = useCallback(async () => {
+  useEffect(() => {
+    callLogStateRef.current = callLog;
+  }, [callLog]);
+
+  const refreshCallLog = useCallback(async ({ force = false } = {}) => {
     const legacy = readLegacyCallLog();
-    try {
-      const res = await authFetch(`${BACKEND_URL}/api/messages/recent-calls?limit=50`);
-      if (!res.ok) {
+
+    const now = Date.now();
+    if (!force) {
+      if (callLogRefreshPromiseRef.current) return callLogRefreshPromiseRef.current;
+      if (now < callLogCooldownUntilRef.current) {
+        setCallLogRateLimitUntil(callLogCooldownUntilRef.current);
+        return callLogStateRef.current.length > 0 ? callLogStateRef.current : legacy;
+      }
+      if (now - callLogLastRefreshAtRef.current < MIN_CALL_LOG_REFRESH_INTERVAL_MS) {
+        return callLogStateRef.current.length > 0 ? callLogStateRef.current : legacy;
+      }
+    }
+
+    const run = (async () => {
+      callLogLastRefreshAtRef.current = Date.now();
+      try {
+        const res = await authFetch(`${BACKEND_URL}/api/messages/recent-calls?limit=50`);
+        if (res.status === 429) {
+          const retryAfterHeader = Number(res.headers.get('retry-after'));
+          const retryAfterMs = Number.isFinite(retryAfterHeader) && retryAfterHeader > 0
+            ? retryAfterHeader * 1000
+            : 15000;
+          callLogCooldownUntilRef.current = Date.now() + retryAfterMs;
+          setCallLogRateLimitUntil(callLogCooldownUntilRef.current);
+          setCallLog(legacy);
+          return legacy;
+        }
+        if (!res.ok) {
+          callLogCooldownUntilRef.current = 0;
+          setCallLogRateLimitUntil(0);
+          setCallLog(legacy);
+          return legacy;
+        }
+        callLogCooldownUntilRef.current = 0;
+        setCallLogRateLimitUntil(0);
+        const data = await res.json().catch(() => []);
+        const normalized = normalizeCallLogEntries(data);
+        const merged = mergeCallLogs(normalized, legacy);
+        setCallLog(merged);
+        return merged;
+      } catch {
+        callLogCooldownUntilRef.current = 0;
+        setCallLogRateLimitUntil(0);
         setCallLog(legacy);
         return legacy;
+      } finally {
+        callLogRefreshPromiseRef.current = null;
       }
-      const data = await res.json().catch(() => []);
-      const normalized = normalizeCallLogEntries(data);
-      const merged = mergeCallLogs(normalized, legacy);
-      setCallLog(merged);
-      return merged;
-    } catch {
-      setCallLog(legacy);
-      return legacy;
+    })();
+
+    callLogRefreshPromiseRef.current = run;
+    try {
+      return await run;
+    } finally {
+      if (callLogRefreshPromiseRef.current === run) {
+        callLogRefreshPromiseRef.current = null;
+      }
     }
   }, [authFetch, normalizeCallLogEntries, readLegacyCallLog]);
 
@@ -148,6 +201,24 @@ export default function useCalling({
     return () => {
       callLogRefreshTimersRef.current.forEach((timerId) => clearTimeout(timerId));
       callLogRefreshTimersRef.current = [];
+    };
+  }, [refreshCallLog]);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    const onRealtimeMessage = (msg = {}) => {
+      if (String(msg?.type || '').toLowerCase() !== 'call') return;
+      refreshCallLog();
+    };
+
+    socket.on('message:new', onRealtimeMessage);
+    socket.on('message:received', onRealtimeMessage);
+
+    return () => {
+      socket.off('message:new', onRealtimeMessage);
+      socket.off('message:received', onRealtimeMessage);
     };
   }, [refreshCallLog]);
 
@@ -198,7 +269,7 @@ export default function useCalling({
       setCallLog((prev) => mergeCallLogs([localEntry], prev));
     }
     callLogRefreshTimersRef.current.forEach((timerId) => clearTimeout(timerId));
-    callLogRefreshTimersRef.current = [0, 700, 1800, 3200].map((delay) => (
+    callLogRefreshTimersRef.current = [0, 2500].map((delay) => (
       setTimeout(() => {
         refreshCallLog();
       }, delay)
@@ -266,7 +337,7 @@ export default function useCalling({
             sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
           }
           callLogRefreshTimersRef.current.forEach((timerId) => clearTimeout(timerId));
-          callLogRefreshTimersRef.current = [300, 900, 1800].map((delay) => (
+          callLogRefreshTimersRef.current = [400, 2400].map((delay) => (
             setTimeout(() => {
               refreshCallLog();
               if (reopenRecentAfterCallRef.current) {
@@ -351,7 +422,7 @@ export default function useCalling({
 
   return {
     activeCall, setActiveCall,
-    getCallLog, refreshCallLog, clearCallLog,
+    getCallLog, refreshCallLog, clearCallLog, callLogRateLimitUntil,
     callContact, callContactFromRecent, initiateCall, initiateCallFromConv,
     sendCallMessage,
   };

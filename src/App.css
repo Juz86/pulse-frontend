@@ -1417,7 +1417,7 @@ font-family: 'Inter', sans-serif;
   position: absolute;
   top: 0;
   left: calc(18px + 48px + 12px);
-  right: calc(18px + 38px);
+  right: 18px;
   border-top: 1px solid var(--border);
 }
 

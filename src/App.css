@@ -2564,13 +2564,11 @@ font-family: 'Inter', sans-serif;
   min-width:166px;
   border-radius:999px;
   padding:0 22px;
-  font-size:20px;
+  font-size:15px;
   font-weight:700;
+  line-height:1.2;
   background:linear-gradient(135deg, #ff566f, #ff4264);
   box-shadow:0 10px 22px rgba(255, 74, 105, .25), inset 0 1px 0 rgba(255,255,255,.18);
-}
-.confirm-dialog-modal--clear-chat .confirm-dialog-btn-danger svg {
-  display:none;
 }
 .delete-confirm-description {
   color:var(--text);
@@ -2683,7 +2681,8 @@ font-family: 'Inter', sans-serif;
   .confirm-dialog-modal--clear-chat .confirm-dialog-btn-danger {
     min-height:42px;
     min-width:0;
-    font-size:clamp(15px, 4.9vw, 18px);
+    font-size:14px;
+    line-height:1.2;
   }
 }
 

@@ -1115,10 +1115,10 @@ export default function ChatModals({
                             title="Achtergrond verwijderen">×</button>
                         )}
                         <div style={{ position: 'absolute', bottom: '8px', left: '10px' }}>
-                          <div style={{ background: chatBg ? 'rgba(26,26,36,0.85)' : 'var(--surface2)', border: '1px solid rgba(255,255,255,.12)', borderRadius: '12px 12px 12px 3px', padding: '6px 12px', fontSize: '12px', color: '#fff', backdropFilter: 'blur(6px)' }}>Hallo! 👋</div>
+                          <div style={{ background: '#f7f2ff', border: '1px solid #e6dcfb', borderRadius: '12px 12px 12px 3px', padding: '6px 12px', fontSize: '12px', color: '#3f3560' }}>Hallo! 👋</div>
                         </div>
                         <div style={{ position: 'absolute', bottom: '8px', right: '10px' }}>
-                          <div style={{ background: 'linear-gradient(135deg,#7c6fff,#a855f7)', borderRadius: '12px 12px 3px 12px', padding: '6px 12px', fontSize: '12px', color: '#fff' }}>Hey!</div>
+                          <div style={{ background: 'linear-gradient(135deg,#8c7bff 0%, #7160f5 100%)', borderRadius: '12px 12px 3px 12px', padding: '6px 12px', fontSize: '12px', color: '#fff' }}>Hey!</div>
                         </div>
                       </div>
                       {chatBgTab === 'foto' && (

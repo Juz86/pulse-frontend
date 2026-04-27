@@ -11,6 +11,10 @@ const INTERNAL_ACCOUNT_EMAIL_RE = /@(kind\.pulse\.local|pulse\.internal)$/i;
 const LOCATION_STALE_AFTER_MS = 2 * 60 * 1000;
 const LOCATION_OLD_AFTER_MS = 15 * 60 * 1000;
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
 function formatLocationLastSeen(updatedAtMs) {
   if (!updatedAtMs) return 'Nog niet gedeeld';
   const diffMs = Math.max(0, Date.now() - updatedAtMs);
@@ -1002,6 +1006,68 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                   </div>
                 ) : (
                   <div className="pd-location-list">
+                    {(() => {
+                      const markers = children
+                        .map((child) => {
+                          const location = locationByChildUid[child.uid] || null;
+                          if (!location?.hasFix) return null;
+                          return {
+                            uid: child.uid,
+                            name: child.displayName || 'Kind',
+                            photoURL: child.photoURL || '',
+                            initials: getInitials(child.displayName),
+                            lat: location.lat,
+                            lng: location.lng,
+                            updatedAtMs: location.updatedAtMs || 0,
+                          };
+                        })
+                        .filter(Boolean);
+
+                      if (markers.length === 0) return null;
+
+                      const lats = markers.map((item) => item.lat);
+                      const lngs = markers.map((item) => item.lng);
+                      const minLat = Math.min(...lats);
+                      const maxLat = Math.max(...lats);
+                      const minLng = Math.min(...lngs);
+                      const maxLng = Math.max(...lngs);
+                      const spanLat = Math.max(0.0005, maxLat - minLat);
+                      const spanLng = Math.max(0.0005, maxLng - minLng);
+
+                      const markersWithPosition = markers.map((item) => ({
+                        ...item,
+                        x: clamp(((item.lng - minLng) / spanLng) * 100, 8, 92),
+                        y: clamp((1 - ((item.lat - minLat) / spanLat)) * 100, 8, 92),
+                      }));
+
+                      return (
+                        <section className="pd-location-overview-card" aria-label="Kaartpreview van alle kinderen">
+                          <div className="pd-location-overview-head">
+                            <strong>Alle kinderen op de kaart</strong>
+                            <span>{markersWithPosition.length} zichtbaar</span>
+                          </div>
+                          <div className="pd-location-overview-map">
+                            <div className="pd-location-overview-grid" aria-hidden="true" />
+                            {markersWithPosition.map((marker) => (
+                              <a
+                                key={marker.uid}
+                                className="pd-location-overview-marker"
+                                href={`https://www.google.com/maps?q=${marker.lat},${marker.lng}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
+                                aria-label={`${marker.name} locatie openen`}
+                                title={`${marker.name} · ${formatLocationLastSeen(marker.updatedAtMs)}`}
+                              >
+                                <span className="pd-location-overview-marker-avatar" aria-hidden="true">
+                                  {marker.photoURL ? <img src={marker.photoURL} alt="" loading="lazy" /> : marker.initials}
+                                </span>
+                              </a>
+                            ))}
+                          </div>
+                        </section>
+                      );
+                    })()}
                     {children.map((child) => {
                       const location = locationByChildUid[child.uid] || null;
                       const hasFix = Boolean(location?.hasFix);
@@ -1013,9 +1079,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                         ? (ageMs <= LOCATION_STALE_AFTER_MS ? 'Live' : (ageMs <= LOCATION_OLD_AFTER_MS ? 'Recent' : 'Niet recent'))
                         : (location?.errorCode === 'PERMISSION_DENIED' ? 'Toestemming uit' : 'Geen locatie');
                       const mapsUrl = hasFix ? `https://www.google.com/maps?q=${location.lat},${location.lng}` : null;
-                      const mapEmbedUrl = hasFix
-                        ? `https://maps.google.com/maps?q=${encodeURIComponent(`${location.lat},${location.lng}`)}&z=16&output=embed`
-                        : null;
 
                       return (
                         <article key={child.uid} className="pd-location-card">
@@ -1036,21 +1099,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
                           {hasFix ? (
                             <div className="pd-location-body">
-                              <div className="pd-location-map-preview" aria-label={`Kaartlocatie van ${child.displayName}`}>
-                                <iframe
-                                  title={`Kaartlocatie van ${child.displayName}`}
-                                  src={mapEmbedUrl}
-                                  loading="lazy"
-                                  referrerPolicy="no-referrer-when-downgrade"
-                                />
-                                <div className="pd-location-map-pin" aria-hidden="true">
-                                  <div className="pd-location-map-pin-avatar">
-                                    {child.photoURL
-                                      ? <img src={child.photoURL} alt="" loading="lazy" />
-                                      : <span>{getInitials(child.displayName)}</span>}
-                                  </div>
-                                </div>
-                              </div>
                               <div className="pd-location-coords">
                                 {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
                               </div>

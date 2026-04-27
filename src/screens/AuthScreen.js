@@ -1,5 +1,5 @@
 // src/screens/AuthScreen.js
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { User, Lock, EyeOn, EyeOff, Shield, Heart, Users, Message } from '../components/Icons';
@@ -9,6 +9,11 @@ import { normalizeUsername } from '../utils';
 
 const LOGIN_LOOKUP_TIMEOUT_MS = 10000;
 const ParentAuthScreen = lazy(() => import('./ParentAuthScreen'));
+const CHILD_AUTH_FEATURES = [
+  { label: 'Versleuteld & privé', icon: <Shield size={18} color="#7c6fff" /> },
+  { label: 'Chatten', icon: <Message size={18} color="#f97316" /> },
+  { label: 'Ouderlijk toezicht', icon: <Users size={18} color="#7c6fff" /> },
+];
 
 export default function AuthScreen({ isModal, inModal, onClose }) {
   const [username,     setUsername]     = useState('');
@@ -17,6 +22,24 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
   const [loading,      setLoading]      = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [flipped,      setFlipped]      = useState(false);
+  const [activeFeature, setActiveFeature] = useState(0);
+  const featureTimerRef = useRef(null);
+
+  useEffect(() => {
+    featureTimerRef.current = setInterval(() => {
+      setActiveFeature((index) => (index + 1) % CHILD_AUTH_FEATURES.length);
+    }, 2500);
+
+    return () => clearInterval(featureTimerRef.current);
+  }, []);
+
+  const activateFeature = (index) => {
+    setActiveFeature(index);
+    clearInterval(featureTimerRef.current);
+    featureTimerRef.current = setInterval(() => {
+      setActiveFeature((nextIndex) => (nextIndex + 1) % CHILD_AUTH_FEATURES.length);
+    }, 2500);
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -150,11 +173,42 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
         Geen account? Vraag je ouder om een account voor je aan te maken.
       </p>
 
-      <ul className="auth-features" aria-label="Belangrijkste voordelen">
-        <li className="auth-feature"><span aria-hidden="true"><Shield size={18} color="#7c6fff" /></span><div>Versleuteld &amp; privé</div></li>
-        <li className="auth-feature"><span aria-hidden="true"><Message size={18} color="#f97316" /></span><div>Chatten</div></li>
-        <li className="auth-feature"><span aria-hidden="true"><Users size={18} color="#7c6fff" /></span><div>Ouderlijk toezicht</div></li>
+      <ul className="auth-features auth-features--desktop" aria-label="Belangrijkste voordelen">
+        {CHILD_AUTH_FEATURES.map(({ label, icon }) => (
+          <li key={label} className="auth-feature">
+            <span aria-hidden="true">{icon}</span>
+            <div>{label}</div>
+          </li>
+        ))}
       </ul>
+
+      <div className="auth-features-mobile" aria-label="Belangrijkste voordelen">
+        <div
+          className="auth-feature-mobile-slider"
+          style={{
+            transform: `translateX(${-activeFeature * 100}%)`,
+            transition: 'transform 0.5s cubic-bezier(0.4,0,0.2,1)',
+          }}
+        >
+          {CHILD_AUTH_FEATURES.map(({ label, icon }) => (
+            <div key={label} className="auth-feature-mobile-slide">
+              <span aria-hidden="true">{icon}</span>
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+        <div className="auth-feature-dots">
+          {CHILD_AUTH_FEATURES.map(({ label }, index) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => activateFeature(index)}
+              className={`auth-feature-dot ${index === activeFeature ? 'auth-feature-dot--active' : 'auth-feature-dot--inactive'}`}
+              aria-label={label}
+            />
+          ))}
+        </div>
+      </div>
     </>
   );
 

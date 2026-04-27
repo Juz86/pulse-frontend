@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { getInitials, timeAgo, toMs } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit, Pin } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
 
@@ -10,10 +10,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INTERNAL_ACCOUNT_EMAIL_RE = /@(kind\.pulse\.local|pulse\.internal)$/i;
 const LOCATION_STALE_AFTER_MS = 2 * 60 * 1000;
 const LOCATION_OLD_AFTER_MS = 15 * 60 * 1000;
-
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
 
 function formatLocationLastSeen(updatedAtMs) {
   if (!updatedAtMs) return 'Nog niet gedeeld';
@@ -505,12 +501,20 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   }
 
   const activityTabBadge = parentActivityBadge > 9 ? '9+' : parentActivityBadge;
+  const googleMapsTabIcon = (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2.2c-4.08 0-7.4 3.31-7.4 7.4 0 5.3 6.57 11.68 7.02 12.1a.54.54 0 0 0 .76 0c.45-.42 7.02-6.8 7.02-12.1 0-4.09-3.32-7.4-7.4-7.4z" fill="#EA4335"/>
+      <path d="M12 2.2v19.9a.54.54 0 0 1-.38-.16c-.45-.42-7.02-6.8-7.02-12.1 0-4.09 3.32-7.4 7.4-7.4z" fill="#34A853"/>
+      <circle cx="12" cy="9.6" r="3.15" fill="#FBBC05"/>
+      <circle cx="12" cy="9.6" r="1.55" fill="#4285F4"/>
+    </svg>
+  );
 
   const TABS = [
     { id: 'add',        icon: <UserPlus  size={16} aria-hidden="true" />, label: 'Kind toevoegen'  },
     { id: 'children',   icon: <Users     size={16} aria-hidden="true" />, label: 'Mijn kinderen'   },
     { id: 'contacts',   icon: <UserCheck size={16} aria-hidden="true" />, label: 'Contacten'       },
-    { id: 'location',   icon: <Pin       size={16} aria-hidden="true" />, label: 'Locatie'         },
+    { id: 'location',   icon: googleMapsTabIcon, label: 'Locatie' },
     { id: 'activities', icon: <Activity  size={16} aria-hidden="true" />, label: 'Activiteiten', badge: parentActivityBadge > 0 ? activityTabBadge : null },
   ];
 
@@ -1006,68 +1010,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                   </div>
                 ) : (
                   <div className="pd-location-list">
-                    {(() => {
-                      const markers = children
-                        .map((child) => {
-                          const location = locationByChildUid[child.uid] || null;
-                          if (!location?.hasFix) return null;
-                          return {
-                            uid: child.uid,
-                            name: child.displayName || 'Kind',
-                            photoURL: child.photoURL || '',
-                            initials: getInitials(child.displayName),
-                            lat: location.lat,
-                            lng: location.lng,
-                            updatedAtMs: location.updatedAtMs || 0,
-                          };
-                        })
-                        .filter(Boolean);
-
-                      if (markers.length === 0) return null;
-
-                      const lats = markers.map((item) => item.lat);
-                      const lngs = markers.map((item) => item.lng);
-                      const minLat = Math.min(...lats);
-                      const maxLat = Math.max(...lats);
-                      const minLng = Math.min(...lngs);
-                      const maxLng = Math.max(...lngs);
-                      const spanLat = Math.max(0.0005, maxLat - minLat);
-                      const spanLng = Math.max(0.0005, maxLng - minLng);
-
-                      const markersWithPosition = markers.map((item) => ({
-                        ...item,
-                        x: clamp(((item.lng - minLng) / spanLng) * 100, 8, 92),
-                        y: clamp((1 - ((item.lat - minLat) / spanLat)) * 100, 8, 92),
-                      }));
-
-                      return (
-                        <section className="pd-location-overview-card" aria-label="Kaartpreview van alle kinderen">
-                          <div className="pd-location-overview-head">
-                            <strong>Alle kinderen op de kaart</strong>
-                            <span>{markersWithPosition.length} zichtbaar</span>
-                          </div>
-                          <div className="pd-location-overview-map">
-                            <div className="pd-location-overview-grid" aria-hidden="true" />
-                            {markersWithPosition.map((marker) => (
-                              <a
-                                key={marker.uid}
-                                className="pd-location-overview-marker"
-                                href={`https://www.google.com/maps?q=${marker.lat},${marker.lng}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                style={{ left: `${marker.x}%`, top: `${marker.y}%` }}
-                                aria-label={`${marker.name} locatie openen`}
-                                title={`${marker.name} · ${formatLocationLastSeen(marker.updatedAtMs)}`}
-                              >
-                                <span className="pd-location-overview-marker-avatar" aria-hidden="true">
-                                  {marker.photoURL ? <img src={marker.photoURL} alt="" loading="lazy" /> : marker.initials}
-                                </span>
-                              </a>
-                            ))}
-                          </div>
-                        </section>
-                      );
-                    })()}
                     {children.map((child) => {
                       const location = locationByChildUid[child.uid] || null;
                       const hasFix = Boolean(location?.hasFix);

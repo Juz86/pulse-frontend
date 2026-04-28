@@ -2472,14 +2472,7 @@ font-family: 'Inter', sans-serif;
   margin-top:10px;
 }
 .confirm-dialog-modal--clear-chat .confirm-dialog-title {
-  font-size:40px;
-  font-weight:800;
-  letter-spacing:-0.01em;
-  margin-bottom:8px;
-  white-space:normal;
-  word-break:break-word;
-  overflow:visible;
-  text-overflow:clip;
+  margin-bottom:12px;
 }
 .confirm-dialog-modal--clear-chat #confirm-dialog-description {
   margin-bottom:14px !important;
@@ -2642,9 +2635,8 @@ font-family: 'Inter', sans-serif;
     border-radius:20px;
   }
   .confirm-dialog-modal--clear-chat .confirm-dialog-title {
-    font-size:clamp(24px, 7.5vw, 31px);
     padding-right:30px;
-    margin-bottom:8px;
+    margin-bottom:12px;
   }
   .confirm-dialog-modal--clear-chat #confirm-dialog-description {
     font-size:clamp(14px, 4.3vw, 18px) !important;

@@ -2477,8 +2477,8 @@ font-family: 'Inter', sans-serif;
 .confirm-dialog-modal--clear-chat #confirm-dialog-description {
   margin-bottom:14px !important;
   color:rgba(236, 231, 255, 0.76) !important;
-  font-size:26px !important;
-  line-height:1.38 !important;
+  font-size:15px !important;
+  line-height:1.5 !important;
   max-width:96%;
 }
 .confirm-dialog-checkbox-row {
@@ -2487,18 +2487,18 @@ font-family: 'Inter', sans-serif;
   gap:10px;
   margin:2px 0 18px;
   color:var(--text);
-  font-size:23px;
+  font-size:15px;
   font-weight:600;
-  line-height:1.35;
+  line-height:1.4;
   cursor:pointer;
   user-select:none;
 }
 .confirm-dialog-checkbox-row input {
   appearance:none;
-  width:26px;
-  height:26px;
+  width:20px;
+  height:20px;
   margin:0;
-  border-radius:8px;
+  border-radius:6px;
   border:2px solid rgba(222, 216, 255, 0.5);
   background:rgba(255,255,255,.02);
   display:grid;
@@ -2506,9 +2506,9 @@ font-family: 'Inter', sans-serif;
 }
 .confirm-dialog-checkbox-row input::after {
   content:'';
-  width:12px;
-  height:8px;
-  border:3px solid #fff;
+  width:10px;
+  height:6px;
+  border:2px solid #fff;
   border-top:0;
   border-right:0;
   transform:rotate(-45deg) scale(0);

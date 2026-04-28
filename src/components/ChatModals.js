@@ -703,7 +703,7 @@ export default function ChatModals({
             <div className="modal-actions confirm-dialog-actions">
               <button
                 type="button"
-                className={`btn-secondary confirm-dialog-btn${confirmDialog.type === 'clear-chat' ? ' confirm-dialog-btn--ghost' : ''}`}
+                className="btn-secondary confirm-dialog-btn"
                 onClick={() => setConfirmDialog(null)}
               >
                 {confirmDialog.cancelLabel || 'Annuleren'}

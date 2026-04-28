@@ -2530,8 +2530,8 @@ font-family: 'Inter', sans-serif;
 }
 .confirm-dialog-modal--clear-chat .confirm-dialog-actions {
   justify-content:flex-end;
-  margin-top:8px;
-  gap:10px;
+  margin-top:10px;
+  gap:8px;
 }
 .confirm-dialog-btn {
   min-height:42px;
@@ -2543,14 +2543,6 @@ font-family: 'Inter', sans-serif;
 .confirm-dialog-btn.btn-secondary {
   padding:10px 14px;
 }
-.confirm-dialog-btn--ghost {
-  background:transparent !important;
-  border-color:transparent !important;
-  color:#56f2ad !important;
-  box-shadow:none !important;
-  width:auto;
-  min-width:120px;
-}
 .confirm-dialog-btn-danger {
   flex:1;
   background:linear-gradient(135deg, #ef4444, #dc2626);
@@ -2560,15 +2552,15 @@ font-family: 'Inter', sans-serif;
   gap:8px;
 }
 .confirm-dialog-modal--clear-chat .confirm-dialog-btn-danger {
-  min-height:52px;
-  min-width:166px;
-  border-radius:999px;
-  padding:0 22px;
+  min-height:42px;
+  min-width:0;
+  border-radius:14px;
+  padding:10px 14px;
   font-size:15px;
   font-weight:700;
   line-height:1.2;
-  background:linear-gradient(135deg, #ff566f, #ff4264);
-  box-shadow:0 10px 22px rgba(255, 74, 105, .25), inset 0 1px 0 rgba(255,255,255,.18);
+  background:linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow:none;
 }
 .delete-confirm-description {
   color:var(--text);

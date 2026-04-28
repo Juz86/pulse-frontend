@@ -1947,10 +1947,10 @@ font-family: 'Inter', sans-serif;
 .msg-action-btn:hover { background:var(--surface3); }
 .msg-bubble-menu-btn {
   position:absolute;
-  top:5px;
-  right:5px;
-  width:18px;
-  height:18px;
+  top:4px;
+  right:4px;
+  width:24px;
+  height:24px;
   border:0;
   border-radius:0;
   background:transparent;
@@ -1963,6 +1963,10 @@ font-family: 'Inter', sans-serif;
   padding:0;
   box-shadow:none;
   transition:opacity .14s ease, background .14s ease, transform .14s ease;
+}
+.msg-bubble-menu-btn svg {
+  width:16px;
+  height:16px;
 }
 .msg-group:hover .msg-bubble-menu-btn,
 .msg-bubble-menu-btn:focus-visible {

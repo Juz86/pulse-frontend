@@ -287,8 +287,8 @@ export default function Homepage({ onParentClick }) {
             <div className="hp-feature-mockup">
               <div className="hp-img-container hp-img-tilt-left">
                 <img
-                  src="/screenshots/pulse1.png"
-                  alt="Pulse chat in gebruik"
+                  src="/screenshots/jongen.png"
+                  alt="Jongen gebruikt Pulse chat"
                   width="420"
                   height="315"
                   sizes="(max-width: 768px) 100vw, 420px"

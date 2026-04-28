@@ -1,4 +1,4 @@
-package com.pulse.app;
+package com.pulsemessenger.chat;
 
 import com.getcapacitor.BridgeActivity;
 

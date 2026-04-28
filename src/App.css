@@ -3414,7 +3414,7 @@ font-family: 'Inter', sans-serif;
   grid-template-columns: 24px 1fr 24px;
   align-items: center;
   justify-items: center;
-  column-gap: 10px;
+  column-gap: 6px;
   padding: 14px 16px;
   border-radius: 12px;
   background: linear-gradient(135deg, #ff4f66 0%, #ff4158 100%);

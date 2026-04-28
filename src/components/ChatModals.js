@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Camera, Delete, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, Clock, ArrowLeft, ArrowRight, Handshake, Logout } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, Clock, ArrowLeft, ArrowRight, Handshake, Logout } from '../components/Icons';
 import { getInitials, formatTime, clearPulseUserStorage } from '../utils';
 import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
@@ -993,7 +993,7 @@ export default function ChatModals({
                       </p>
                       <button type="button" className="btn-danger profile-danger-btn"
                         onClick={() => { setShowProfile(false); handleDeleteAccount(); }}>
-                        <span className="profile-danger-btn-icon" aria-hidden="true"><Delete size={16} /></span>
+                        <span className="profile-danger-btn-icon" aria-hidden="true"><Trash2 size={16} /></span>
                         <span className="profile-danger-btn-label">Account definitief verwijderen</span>
                         <span className="profile-danger-btn-spacer" aria-hidden="true" />
                       </button>

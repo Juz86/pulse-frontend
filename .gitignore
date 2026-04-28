@@ -3,5 +3,8 @@ fly.toml
 .fly/
 .env.local
 build/
+android/app/build/
+android/.gradle/
+.gradle-android/
 firebase-debug.log
 firestore-debug.log

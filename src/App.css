@@ -19,6 +19,8 @@
   --input-height: clamp(44px, 5vw, 50px);
   --safe-bottom: max(12px, env(safe-area-inset-bottom));
   --safe-top: max(12px, env(safe-area-inset-top));
+  --safe-left: max(10px, env(safe-area-inset-left));
+  --safe-right: max(10px, env(safe-area-inset-right));
 
   /* ── Groottes Desktop ── */
   --text-hero:     clamp(2.5rem, 6vw, 3.75rem);
@@ -41,6 +43,125 @@
   --leading-tight:   1.2;
   --leading-normal:  1.6;
   --leading-relaxed: 1.8;
+}
+
+/* ── Responsive hardening: telefoon + tablet + WebView ───────────────────── */
+.chat-header,
+.chat-input-area,
+.sidebar-header,
+.sidebar-footer,
+.messages-area,
+.modal-box,
+.call-card,
+.auth-card,
+.auth-card-back,
+.parent-auth-card {
+  min-width: 0;
+}
+
+.chat-header-name,
+.chat-header-online,
+.conv-preview,
+.conv-name,
+.reply-preview-text,
+.chat-textarea,
+.msg-bubble {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.messages-area {
+  padding-left: max(14px, var(--safe-left));
+  padding-right: max(14px, var(--safe-right));
+}
+
+.chat-input-area {
+  padding-left: max(10px, var(--safe-left));
+  padding-right: max(10px, var(--safe-right));
+}
+
+.modal-box {
+  width: min(var(--modal-width-sm), calc(100vw - var(--safe-left) - var(--safe-right) - 2 * var(--modal-padding)));
+  max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 2 * var(--modal-padding));
+  max-height: min(calc(var(--vvh, 100dvh) - var(--safe-top) - var(--safe-bottom) - 2 * var(--modal-padding)), 42rem);
+}
+
+.call-card {
+  width: min(var(--call-card-width), calc(100vw - var(--safe-left) - var(--safe-right) - 2 * var(--modal-padding)));
+  max-width: calc(100vw - var(--safe-left) - var(--safe-right) - 2 * var(--modal-padding));
+}
+
+/* Grote telefoon / kleine tablet portrait */
+@media (min-width: 700px) and (max-width: 1024px) {
+  .app-screen {
+    --pulse-sidebar-width: clamp(280px, 34vw, 360px);
+  }
+  .sidebar-header {
+    padding-inline: clamp(14px, 2.2vw, 18px);
+  }
+  .sidebar-tabs {
+    margin: 10px 14px;
+  }
+  .chat-header {
+    padding-inline: clamp(12px, 2vw, 18px);
+  }
+  .chat-input-area {
+    padding-inline: clamp(12px, 2vw, 18px);
+  }
+}
+
+/* Tablet landscape: stabiel split-pane gedrag zoals chat apps */
+@media (min-width: 900px) and (orientation: landscape) {
+  .app-screen {
+    --pulse-sidebar-width: clamp(320px, 31vw, 420px);
+  }
+  .sidebar {
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .msg-bubble-wrap {
+    max-width: min(76%, 42rem);
+  }
+}
+
+/* Telefoon landscape: compacter, geen clipping bij lage hoogte */
+@media (orientation: landscape) and (max-height: 520px) {
+  .chat-header {
+    padding-top: max(6px, env(safe-area-inset-top));
+    padding-bottom: 6px;
+    gap: 6px;
+  }
+  .chat-header-name {
+    font-size: 14px;
+  }
+  .icon-btn,
+  .back-btn,
+  .sidebar-item-actions-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+  }
+  .messages-area {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .chat-input-area {
+    padding-top: 6px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+  .input-row {
+    min-height: 40px;
+  }
+  .send-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .call-controls {
+    gap: 10px;
+  }
+  .call-ctrl-btn {
+    width: clamp(60px, 13vw, 76px);
+    height: clamp(60px, 13vw, 76px);
+  }
 }
 
 @media (max-width: 768px) {

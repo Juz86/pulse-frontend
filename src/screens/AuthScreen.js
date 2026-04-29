@@ -14,6 +14,8 @@ const CHILD_AUTH_FEATURES = [
   { label: 'Chatten', icon: <Message size={18} color="#f97316" /> },
   { label: 'Ouderlijk toezicht', icon: <Users size={18} color="#7c6fff" /> },
 ];
+const SHOW_RUNTIME_INFO =
+  process.env.REACT_APP_SHOW_RUNTIME_INFO === 'true' || process.env.NODE_ENV !== 'production';
 
 export default function AuthScreen({ isModal, inModal, onClose }) {
   const [username,     setUsername]     = useState('');
@@ -35,6 +37,7 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
   }, []);
 
   useEffect(() => {
+    if (!SHOW_RUNTIME_INFO) return undefined;
     let cancelled = false;
 
     async function loadRuntimeInfo() {
@@ -206,7 +209,7 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
         Geen account? Vraag je ouder om een account voor je aan te maken.
       </p>
 
-      {runtimeInfo && (
+      {SHOW_RUNTIME_INFO && runtimeInfo && (
         <div
           style={{
             marginTop: 8,

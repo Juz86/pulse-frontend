@@ -22,6 +22,7 @@ import {
 } from './lib/e2ee/config';
 import { importLegacyE2EEStateIfNeeded } from './lib/e2ee/originStorageMigration';
 import { clearPulseUserStorage, scheduleIdleTask } from './utils';
+import { isNativePulseEnvironment } from './lib/platform/runtime';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const ParentDashboard    = lazy(() => import('./screens/ParentDashboard'));
@@ -279,6 +280,7 @@ function MainApp() {
   const [parentToast,         setParentToast]         = useState(null);
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
+  const showNativeDirectAuth = isNativePulseEnvironment();
   const toastTimerRef          = useRef(null);
   const fcmVisibilityRef       = useRef(null);
   const onlineVisibilityRef    = useRef(null);
@@ -752,11 +754,15 @@ function MainApp() {
       {!user
         ? (
           <>
-            <WebAppLoginShell
-              activeTab={webAuthTab}
-              onTabChange={setWebAuthTab}
-              parentDefaultTab={parentAuthDefaultTab}
-            />
+            {showNativeDirectAuth ? (
+              <AuthScreen inModal />
+            ) : (
+              <WebAppLoginShell
+                activeTab={webAuthTab}
+                onTabChange={setWebAuthTab}
+                parentDefaultTab={parentAuthDefaultTab}
+              />
+            )}
             {showParentAuth && (
               <ParentAuthModal
                 onClose={() => {

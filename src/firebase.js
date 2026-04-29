@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { initializeApp } from 'firebase/app';
-import { browserSessionPersistence, getAuth, setPersistence } from 'firebase/auth';
+import { browserLocalPersistence, getAuth, setPersistence } from 'firebase/auth';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
@@ -23,8 +23,8 @@ if (typeof window !== 'undefined') {
 
 const app      = initializeApp(FIREBASE_CONFIG);
 export const auth      = getAuth(app);
-export const authPersistenceReady = setPersistence(auth, browserSessionPersistence).catch((error) => {
-  console.warn('[Pulse] Kon auth-sessie niet naar browser session persistence zetten:', error.message);
+export const authPersistenceReady = setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.warn('[Pulse] Kon auth-sessie niet naar browser local persistence zetten:', error.message);
 });
 export const db        = initializeFirestore(app, {
   localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),

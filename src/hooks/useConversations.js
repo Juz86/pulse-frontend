@@ -25,7 +25,11 @@ import {
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { normalizeSingleUserReaction, toggleSingleUserReaction } from '../lib/e2ee/messageReactions';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
-import { readSessionConversations, writeSessionConversations } from '../utils';
+import {
+  readSessionConversations,
+  writeCachedConversations,
+  writeSessionConversations,
+} from '../utils';
 
 const MSG_LIMIT = 30;
 
@@ -105,6 +109,24 @@ export default function useConversations({
   const [loadingMore,    setLoadingMore]    = useState(false);
   const [msgOffset,      setMsgOffset]      = useState(0);
   const [currentDeviceId, setCurrentDeviceId] = useState(null);
+
+  useEffect(() => {
+    const cached = conversations.map((conversation) => ({
+      id: conversation.id,
+      members: conversation.members || [],
+      memberNames: conversation.memberNames || {},
+      memberEmails: conversation.memberEmails || {},
+      isGroup: !!conversation.isGroup,
+      groupName: conversation.groupName || null,
+      lastMessage: conversation.lastMessage || '',
+      updatedAt: conversation.updatedAt || conversation.lastMessageAt || null,
+      lastMessageAt: conversation.lastMessageAt || conversation.updatedAt || null,
+      lastCallDirection: conversation.lastCallDirection || null,
+      lastCallIsVideo: !!conversation.lastCallIsVideo,
+      lastCallSenderId: conversation.lastCallSenderId || null,
+    }));
+    writeCachedConversations(user.uid, cached);
+  }, [conversations, user.uid]);
   // Sync refs owned by ChatScreen
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv, activeConvRef]);
   useEffect(() => { conversationsRef.current = conversations; }, [conversations, conversationsRef]);

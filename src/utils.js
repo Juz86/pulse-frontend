@@ -42,6 +42,10 @@ export function getPulseSessionConversationsStorageKey(uid) {
   return `pulse_session_conversations_${uid}`;
 }
 
+export function getPulseCachedConversationsStorageKey(uid) {
+  return `pulse_cached_conversations_${uid}`;
+}
+
 export function readStoredHistoryRules(uid) {
   return normalizeHistoryRules(safeJsonParse(localStorage.getItem(getPulseHistoryRulesStorageKey(uid)), {}));
 }
@@ -59,6 +63,18 @@ export function writeSessionConversations(uid, conversations) {
   if (typeof window === 'undefined' || !window.sessionStorage || !uid) return;
   const value = conversations && typeof conversations === 'object' ? conversations : {};
   sessionStorage.setItem(getPulseSessionConversationsStorageKey(uid), JSON.stringify(value));
+}
+
+export function readCachedConversations(uid) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid) return [];
+  const value = safeJsonParse(localStorage.getItem(getPulseCachedConversationsStorageKey(uid)), []);
+  return Array.isArray(value) ? value : [];
+}
+
+export function writeCachedConversations(uid, conversations) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid) return;
+  const value = Array.isArray(conversations) ? conversations : [];
+  localStorage.setItem(getPulseCachedConversationsStorageKey(uid), JSON.stringify(value));
 }
 
 export function createSvgDataUrl(svg) {
@@ -136,6 +152,7 @@ const USER_STORAGE_PREFIXES = [
   'pulse_pending_',
   'pulse_pending_labels_',
   'pulse_photo_',
+  'pulse_cached_conversations_',
   'pulse_pinned_',
   'pulse_pinned_msgs_',
   'pulse_starred_',

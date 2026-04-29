@@ -21,7 +21,7 @@ import {
   shouldBootstrapE2EEDevice,
 } from './lib/e2ee/config';
 import { importLegacyE2EEStateIfNeeded } from './lib/e2ee/originStorageMigration';
-import { clearPulseUserStorage, scheduleIdleTask } from './utils';
+import { clearPulseUserStorage, readCachedConversations, scheduleIdleTask } from './utils';
 import { isNativePulseEnvironment } from './lib/platform/runtime';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
@@ -211,6 +211,44 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
   );
 }
 
+function CachedResumeShell({ cachedConversations = [] }) {
+  return (
+    <div className="splash" style={{ alignItems: 'stretch', justifyContent: 'flex-start', padding: '16px' }}>
+      <div className="auth-card" style={{ width: '100%', maxWidth: 560, margin: '0 auto', maxHeight: 'none' }}>
+        <div className="auth-logo" aria-hidden="true">
+          <PulseLogo size={34} textSize={24} />
+        </div>
+        <h2 className="auth-title" style={{ marginBottom: 6 }}>Chats laden…</h2>
+        <p className="auth-sub" style={{ marginBottom: 14 }}>Je laatste gesprekken staan alvast klaar terwijl Pulse synchroniseert.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {(cachedConversations.length ? cachedConversations : [{ id: 'placeholder', isPlaceholder: true }]).slice(0, 8).map((conversation, index) => (
+            <div
+              key={conversation.id || `placeholder-${index}`}
+              style={{
+                border: '1px solid rgba(255,255,255,.08)',
+                borderRadius: 12,
+                background: 'rgba(255,255,255,.04)',
+                padding: '10px 12px',
+              }}
+            >
+              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
+                {conversation.isPlaceholder
+                  ? 'Gesprekken synchroniseren'
+                  : (conversation.isGroup
+                    ? (conversation.groupName || 'Groepsgesprek')
+                    : (Object.values(conversation.memberNames || {}).find(Boolean) || 'Contactpersoon'))}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {conversation.isPlaceholder ? 'Even geduld…' : (conversation.lastMessage || 'Open gesprek')}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const pathname = window.location.pathname;
 
@@ -264,8 +302,11 @@ export default function App() {
 
 function MainApp() {
   const urlParams = new URLSearchParams(window.location.search);
+  const hadSessionAtBoot = typeof window !== 'undefined' && localStorage.getItem('pulse_user') === '1';
+  const cachedSessionUid = typeof window !== 'undefined' ? localStorage.getItem('pulse_last_uid') : null;
+  const cachedConversations = cachedSessionUid ? readCachedConversations(cachedSessionUid) : [];
   const [user,         setUser]         = useState(null);
-  const [loading,      setLoading]      = useState(true);
+  const [authReady,    setAuthReady]    = useState(false);
   const [incomingCall,    setIncomingCall]    = useState(null);
   const [missedCallAlert, setMissedCallAlert] = useState(false);
   const [onlineUsers,   setOnlineUsers]   = useState(new Set());
@@ -372,20 +413,19 @@ function MainApp() {
 
   useEffect(() => {
     let unsub = () => {};
-    let loadingTimeout;
     let isActive = true;
 
     authPersistenceReady.finally(() => {
       if (!isActive) return;
-      loadingTimeout = setTimeout(() => setLoading(false), 5000);
       unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-        clearTimeout(loadingTimeout);
+        setAuthReady(true);
         if (firebaseUser) {
           if (lastSignedInUidRef.current && lastSignedInUidRef.current !== firebaseUser.uid) {
             clearPulseUserStorage(lastSignedInUidRef.current);
           }
           lastSignedInUidRef.current = firebaseUser.uid;
           localStorage.setItem('pulse_user', '1');
+          localStorage.setItem('pulse_last_uid', firebaseUser.uid);
           setUser(firebaseUser);
           Sentry.setUser({ id: firebaseUser.uid });
           // Controleer ouder-rol — localStorage flag heeft prioriteit over Firestore
@@ -600,6 +640,7 @@ function MainApp() {
           clearPulseUserStorage(lastSignedInUidRef.current);
           lastSignedInUidRef.current = null;
           localStorage.removeItem('pulse_user');
+          localStorage.removeItem('pulse_last_uid');
           setUser(null);
           Sentry.setUser(null);
           setOnlineUsers(new Set());
@@ -622,13 +663,11 @@ function MainApp() {
           if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
           disconnectSocket();
         }
-        setLoading(false);
       });
     });
     return () => {
       isActive = false;
       unsub();
-      clearTimeout(loadingTimeout);
       if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }
       if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
     };
@@ -740,7 +779,11 @@ function MainApp() {
     };
   }, [user, userRole]);
 
-  if (loading) return (
+  if (!authReady && hadSessionAtBoot) {
+    return <CachedResumeShell cachedConversations={cachedConversations} />;
+  }
+
+  if (!authReady) return (
     <div className="splash">
       <div className="splash-logo"><PulseLogo size={40} textSize={28} /></div>
       <div className="splash-spinner" />

@@ -1,5 +1,5 @@
 // src/hooks/useContacts.js
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc, getDocs, collection, setDoc } from 'firebase/firestore';
 import { getSocket, BACKEND_URL } from '../services/socket';
@@ -24,6 +24,11 @@ export default function useContacts({
   showErrToast,
   setConfirmDialog,
 }) {
+  const loadContactsStateRef = useRef({ promise: null, lastAt: 0 });
+  const loadFriendRequestsStateRef = useRef({ promise: null, lastAt: 0 });
+  const loadBlockedContactsStateRef = useRef({ promise: null, lastAt: 0 });
+  const LOAD_THROTTLE_MS = 1200;
+
   const authFetch = useCallback(async (url, options = {}) => {
     const token = await user.getIdToken();
     return fetch(url, {
@@ -130,7 +135,14 @@ export default function useContacts({
   }
 
   // ── Data laden ───────────────────────────────────────────────────────────
-  const loadContacts = useCallback(async () => {
+  const loadContacts = useCallback(async ({ force = false } = {}) => {
+    const now = Date.now();
+    const state = loadContactsStateRef.current;
+    if (state.promise) return state.promise;
+    if (!force && now - state.lastAt < LOAD_THROTTLE_MS) return;
+    state.lastAt = now;
+
+    const run = (async () => {
     try {
       const [contactsSnap, nicknamesSnap, backendContactsRes] = await Promise.all([
         getDocs(collection(db, 'users', user.uid, 'contacts')),
@@ -183,9 +195,26 @@ export default function useContacts({
       }
       setContacts(raw.map(c => ({ ...c, photoURL: c.photoURL || photoMap[c.uid] || null })));
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+    })();
+
+    state.promise = run;
+    try {
+      return await run;
+    } finally {
+      if (loadContactsStateRef.current.promise === run) {
+        loadContactsStateRef.current.promise = null;
+      }
+    }
   }, [authFetch, user.uid]);
 
-  const loadBlockedContacts = useCallback(async () => {
+  const loadBlockedContacts = useCallback(async ({ force = false } = {}) => {
+    const now = Date.now();
+    const state = loadBlockedContactsStateRef.current;
+    if (state.promise) return state.promise;
+    if (!force && now - state.lastAt < LOAD_THROTTLE_MS) return;
+    state.lastAt = now;
+
+    const run = (async () => {
     try {
       const res  = await authFetch(`${BACKEND_URL}/api/users/${user.uid}/blocked`);
       const data = await res.json();
@@ -194,9 +223,26 @@ export default function useContacts({
       setBlockedContacts(contacts);
       setParentBlockedUids(parentUids);
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+    })();
+
+    state.promise = run;
+    try {
+      return await run;
+    } finally {
+      if (loadBlockedContactsStateRef.current.promise === run) {
+        loadBlockedContactsStateRef.current.promise = null;
+      }
+    }
   }, [authFetch, user.uid]);
 
-  const loadFriendRequests = useCallback(async () => {
+  const loadFriendRequests = useCallback(async ({ force = false } = {}) => {
+    const now = Date.now();
+    const state = loadFriendRequestsStateRef.current;
+    if (state.promise) return state.promise;
+    if (!force && now - state.lastAt < LOAD_THROTTLE_MS) return;
+    state.lastAt = now;
+
+    const run = (async () => {
     try {
       const [incomingRes, sentRes] = await Promise.all([
         authFetch(`${BACKEND_URL}/api/friend-requests/${user.uid}`),
@@ -207,6 +253,16 @@ export default function useContacts({
       setFriendRequests(Array.isArray(incomingData) ? incomingData : []);
       setSentFriendRequests(Array.isArray(sentData) ? sentData : []);
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+    })();
+
+    state.promise = run;
+    try {
+      return await run;
+    } finally {
+      if (loadFriendRequestsStateRef.current.promise === run) {
+        loadFriendRequestsStateRef.current.promise = null;
+      }
+    }
   }, [authFetch, user.uid]);
 
   // ── Contact toevoegen ─────────────────────────────────────────────────────

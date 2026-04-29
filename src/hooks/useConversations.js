@@ -93,6 +93,8 @@ export default function useConversations({
 
   const pendingTempIds = useRef(new Set());
   const sessionConversationStateRef = useRef(readSessionConversations(user.uid));
+  const loadConversationsStateRef = useRef({ promise: null, lastAt: 0 });
+  const LOAD_CONVERSATIONS_THROTTLE_MS = 900;
 
   const [conversations,  setConversations]  = useState([]);
   const [activeConv,     setActiveConv]     = useState(null);
@@ -344,7 +346,14 @@ export default function useConversations({
   }
 
   // ── Gesprekken laden ──────────────────────────────────────────────────────
-  const loadConversations = useCallback(async () => {
+  const loadConversations = useCallback(async ({ force = false } = {}) => {
+    const now = Date.now();
+    const state = loadConversationsStateRef.current;
+    if (state.promise) return state.promise;
+    if (!force && now - state.lastAt < LOAD_CONVERSATIONS_THROTTLE_MS) return;
+    state.lastAt = now;
+
+    const run = (async () => {
     try {
       const res  = await authFetch(`${BACKEND_URL}/api/conversations/${user.uid}`);
       const data = await readJsonResponse(res, 'conversations_load_failed');
@@ -372,6 +381,16 @@ export default function useConversations({
       showErrToast('Gesprekken laden mislukt');
     }
     finally { setLoadingConvs(false); }
+    })();
+
+    state.promise = run;
+    try {
+      return await run;
+    } finally {
+      if (loadConversationsStateRef.current.promise === run) {
+        loadConversationsStateRef.current.promise = null;
+      }
+    }
   }, [applySessionConversationSummaries, authFetch, readJsonResponse, setConvLabels, showErrToast, user.uid]);
 
   // ── Gesprek openen ────────────────────────────────────────────────────────

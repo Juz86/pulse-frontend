@@ -166,7 +166,7 @@ export default function useChat({
         const lastRefreshAt = missingConvRefreshRef.current.get(convId) || 0;
         if (now - lastRefreshAt > 1200) {
           missingConvRefreshRef.current.set(convId, now);
-          loadConversationsRef.current?.();
+          loadConversationsRef.current?.({ force: true });
         }
       }
 

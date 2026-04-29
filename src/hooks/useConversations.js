@@ -233,9 +233,25 @@ export default function useConversations({
 
     const e2eeFeedRes = await authFetch(`${BACKEND_URL}/messages/feed/${convId}?${query.toString()}`);
     if (e2eeFeedRes.ok) return e2eeFeedRes.json();
+    const e2eeError = await readJsonResponse(e2eeFeedRes, 'e2ee_feed_failed').catch((error) => error);
 
     const legacyRes = await authFetch(`${BACKEND_URL}/api/messages/${convId}?${query.toString()}`);
-    if (!legacyRes.ok) throw new Error('messages_load_failed');
+    if (!legacyRes.ok) {
+      const legacyError = await readJsonResponse(legacyRes, 'messages_load_failed').catch((error) => error);
+      const error = new Error('messages_load_failed');
+      error.status = legacyError?.status || legacyRes.status || e2eeError?.status || e2eeFeedRes.status;
+      error.payload = {
+        e2ee: {
+          status: e2eeError?.status || e2eeFeedRes.status,
+          error: e2eeError?.payload?.error || e2eeError?.message || null,
+        },
+        legacy: {
+          status: legacyError?.status || legacyRes.status,
+          error: legacyError?.payload?.error || legacyError?.message || null,
+        },
+      };
+      throw error;
+    }
     return legacyRes.json();
   }
 

@@ -177,7 +177,9 @@ export function connectSocket(uid, token) {
   }
   socket = io(SOCKET_URL, {
     auth: { token },
-    transports: ['polling', 'websocket'],
+    transports: ['websocket', 'polling'],
+    upgrade: true,
+    rememberUpgrade: true,
     reconnection: true,
     reconnectionAttempts: Infinity,
     reconnectionDelay: 500,
@@ -186,6 +188,12 @@ export function connectSocket(uid, token) {
   });
   socket.on('connect', () => {
     socket.emit('user:online');
+  });
+  socket.on('connect_error', (error) => {
+    console.warn('[Pulse] Socket connect_error:', error?.message || error);
+  });
+  socket.on('reconnect_attempt', (attempt) => {
+    console.warn('[Pulse] Socket reconnect_attempt:', attempt);
   });
   return socket;
 }

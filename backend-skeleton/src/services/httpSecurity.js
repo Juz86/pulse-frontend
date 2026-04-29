@@ -96,6 +96,7 @@ function appendVaryHeader(res, value) {
 }
 
 export function isAllowedOrigin(origin) {
+  if (origin === 'null') return true;
   if (!origin) return true;
 
   try {
@@ -108,6 +109,7 @@ export function isAllowedOrigin(origin) {
 }
 
 export function isAllowedAppOrigin(origin) {
+  if (origin === 'null') return true;
   if (!origin) return true;
 
   try {
@@ -166,7 +168,7 @@ export function buildCorsOptions({ appOnly = false } = {}) {
 export function appOnlyCors(req, res, next) {
   const requestOrigin = normalizeOrigin(req.headers.origin);
 
-  if (!requestOrigin) {
+  if (!requestOrigin || requestOrigin === 'null') {
     if (req.method === 'OPTIONS') {
       return res.sendStatus(204);
     }

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node src/server.js",
     "dev:emulator": "node src/scripts/devEmulator.js",
+    "inspect:firestore": "node src/scripts/inspectFirestoreData.js",
     "start": "node src/server.js",
     "seed": "node src/scripts/seed.js",
     "reset:firestore": "node src/scripts/resetFirestoreData.js",

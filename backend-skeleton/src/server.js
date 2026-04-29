@@ -65,6 +65,18 @@ app.get('/configz', (_req, res) => {
   });
 });
 
+app.get('/runtimez', (_req, res) => {
+  res.json({
+    ok: true,
+    service: 'pulse-e2ee-backend-skeleton',
+    requestId: _req.requestId,
+    nodeEnv: process.env.NODE_ENV || 'development',
+    firebaseCredentialMode: getFirebaseCredentialMode(),
+    firestoreEmulatorHost: process.env.FIRESTORE_EMULATOR_HOST || null,
+    firebaseProjectId: process.env.FIREBASE_PROJECT_ID || process.env.GCLOUD_PROJECT || null,
+  });
+});
+
 app.get('/readyz', async (_req, res) => {
   const firestore = await checkFirestoreReady();
 

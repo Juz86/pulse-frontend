@@ -23,6 +23,7 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
   const [showPassword, setShowPassword] = useState(false);
   const [flipped,      setFlipped]      = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
+  const [runtimeInfo, setRuntimeInfo] = useState(null);
   const featureTimerRef = useRef(null);
 
   useEffect(() => {
@@ -31,6 +32,38 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
     }, 2500);
 
     return () => clearInterval(featureTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRuntimeInfo() {
+      try {
+        const res = await fetch(`${BACKEND}/runtimez`);
+        const data = await res.json().catch(() => ({}));
+        if (cancelled) return;
+
+        setRuntimeInfo({
+          apiUrl: BACKEND,
+          firebaseCredentialMode: data.firebaseCredentialMode || 'unknown',
+          firestoreEmulatorHost: data.firestoreEmulatorHost || null,
+          nodeEnv: data.nodeEnv || 'unknown',
+        });
+      } catch {
+        if (cancelled) return;
+        setRuntimeInfo({
+          apiUrl: BACKEND,
+          firebaseCredentialMode: 'unreachable',
+          firestoreEmulatorHost: null,
+          nodeEnv: 'unknown',
+        });
+      }
+    }
+
+    loadRuntimeInfo();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const activateFeature = (index) => {
@@ -172,6 +205,27 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
       <p className="auth-no-account">
         Geen account? Vraag je ouder om een account voor je aan te maken.
       </p>
+
+      {runtimeInfo && (
+        <div
+          style={{
+            marginTop: 8,
+            marginBottom: 10,
+            padding: '8px 10px',
+            borderRadius: 10,
+            border: '1px solid rgba(124,111,255,0.24)',
+            background: 'rgba(124,111,255,0.08)',
+            color: 'var(--text2)',
+            fontSize: 12,
+            lineHeight: 1.35,
+          }}
+        >
+          <div><strong>API:</strong> {runtimeInfo.apiUrl}</div>
+          <div><strong>Backend mode:</strong> {runtimeInfo.firebaseCredentialMode}</div>
+          <div><strong>Emulator:</strong> {runtimeInfo.firestoreEmulatorHost || 'nee'}</div>
+          <div><strong>Node env:</strong> {runtimeInfo.nodeEnv}</div>
+        </div>
+      )}
 
       <ul className="auth-features auth-features--desktop" aria-label="Belangrijkste voordelen">
         {CHILD_AUTH_FEATURES.map(({ label, icon }) => (

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
 import './App.css';
 import {
+  isLocalHost,
   MARKETING_HOSTNAME,
   SENTRY_DSN,
   WEB_APP_HOSTNAME,
@@ -89,8 +90,10 @@ function renderTargetMismatch({ expectedTarget, hostname }) {
 }
 
 const runtimeHostname = typeof window !== 'undefined' ? window.location.hostname : '';
+const isNativeLocalHost = isLocalHost(runtimeHostname);
 const isProductionMismatch =
   process.env.NODE_ENV === 'production' &&
+  !isNativeLocalHost &&
   runtimeHostname &&
   (
     (runtimeHostname === WEB_APP_HOSTNAME && SITE_TARGET !== 'webapp') ||

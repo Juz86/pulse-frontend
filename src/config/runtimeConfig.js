@@ -25,11 +25,27 @@ function getWindowOrigin() {
   return trimTrailingSlash(getWindowLocation()?.origin || '');
 }
 
+function isNativeRuntime() {
+  if (typeof window === 'undefined') return false;
+
+  try {
+    if (window.Capacitor?.isNativePlatform?.()) return true;
+    if (window.Capacitor?.platform && window.Capacitor.platform !== 'web') return true;
+    if (window.ReactNativeWebView) return true;
+    if (window.webkit?.messageHandlers?.capacitor) return true;
+  } catch {
+    return false;
+  }
+
+  return false;
+}
+
 export function isLocalHost(hostname = '') {
   return ['localhost', '127.0.0.1', '::1'].includes(hostname);
 }
 
 export function shouldUseLocalRuntimeFallback(hostname = getWindowLocation()?.hostname || '') {
+  if (isNativeRuntime()) return false;
   if (hostname) return isLocalHost(hostname);
   return process.env.NODE_ENV !== 'production';
 }

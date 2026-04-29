@@ -41,6 +41,7 @@
     "verify:cloudflare": "npm run lint && npm run test -- --runInBand && npm run verify:public-headers && npm run test:deployed-targets && npm run verify:landing && npm run verify:webapp",
     "android:sync": "npx cap sync android",
     "android:build": "npm run build:webapp && npm run android:sync && cd android && GRADLE_USER_HOME=../.gradle-android ./gradlew assembleDebug",
+    "android:build:play": "REACT_APP_BACKEND_URL=https://api.pulse-messenger.com REACT_APP_API_URL=https://api.pulse-messenger.com REACT_APP_NATIVE_API_URL= npm run build:webapp && npm run android:sync && cd android && GRADLE_USER_HOME=../.gradle-android ./gradlew bundleRelease",
     "android:install": "bash -lc 'export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}; export PATH=$ANDROID_SDK_ROOT/platform-tools:$PATH; adb install -r android/app/build/outputs/apk/debug/app-debug.apk'",
     "android:run:emulator": "npm run android:build && npm run android:install",
     "android:doctor": "bash -lc 'export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}; export PATH=$ANDROID_SDK_ROOT/platform-tools:$ANDROID_SDK_ROOT/emulator:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH; echo ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT; adb version; emulator -list-avds; adb devices'"

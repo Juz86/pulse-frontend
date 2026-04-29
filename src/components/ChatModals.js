@@ -448,7 +448,7 @@ export default function ChatModals({
       {sharingContact && (
           <aside className="chat-side-panel share-contact-panel" aria-labelledby="share-contact-title">
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setSharingContact(null); setShareRecipients([]); }}><span aria-hidden="true">✕</span></button>
-            <h2 id="share-contact-title" className="modal-title" style={{ whiteSpace: 'nowrap', fontSize: '16px' }}><span className="modal-title-icon" aria-hidden="true"><Share size={18} /></span> Contactpersoon delen</h2>
+            <h2 id="share-contact-title" className="modal-title share-contact-title-responsive" style={{ fontSize: '16px' }}><span className="modal-title-icon" aria-hidden="true"><Share size={18} /></span> Contactpersoon delen</h2>
             <div style={{ marginBottom: '12px', padding: '10px 14px', borderRadius: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div className="avatar sm">{getInitials(getContactDisplayName(sharingContact))}</div>
               <div>
@@ -515,8 +515,8 @@ export default function ChatModals({
                     <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'rgba(124,111,255,0.08)', borderRadius: 10, border: '1px solid rgba(124,111,255,0.2)' }}>
                       <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.fromName)}</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.fromName}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.fromEmail}</div>
+                        <div className="friend-request-person-name" style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{req.fromName}</div>
+                        <div className="friend-request-person-email" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{req.fromEmail}</div>
                       </div>
                       <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
                         <button type="button" className="btn-primary" style={{ padding: '4px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
@@ -548,7 +548,7 @@ export default function ChatModals({
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.toEmail || req.toUid)}</div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{req.toEmail || req.toIdentifier || req.toUid}</div>
+                            <div className="friend-request-person-name" style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{req.toEmail || req.toIdentifier || req.toUid}</div>
                             <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                               {remindersRemaining > 0 ? `Nog ${remindersRemaining} ${remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} over` : 'Geen herinneringen meer over'}
                             </div>
@@ -1107,7 +1107,7 @@ export default function ChatModals({
                               <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px 12px' }}>
                                 <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.displayName || c.email}</div>
+                                  <div className="blocked-contact-name-responsive" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>{c.displayName || c.email}</div>
                                 </div>
                                 <button type="button" className="btn-secondary" style={{ fontSize: '12px', padding: '5px 12px', flexShrink: 0, width: 'auto', marginTop: 0 }} onClick={() => unblockContact(c.uid)}>Deblokkeren</button>
                               </div>
@@ -1123,7 +1123,7 @@ export default function ChatModals({
                               <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '10px', padding: '10px 12px' }}>
                                 <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.displayName || c.email}</div>
+                                  <div className="blocked-contact-name-responsive" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>{c.displayName || c.email}</div>
                                   <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '2px' }}>Geblokkeerd door ouder</div>
                                 </div>
                               </div>
@@ -1491,8 +1491,8 @@ export default function ChatModals({
                             >
                               <UserAvatar photoURL={contact.photoURL} displayName={getContactDisplayName(contact)} className="sm" decorative />
                               <div style={{ minWidth: 0, flex: 1 }}>
-                                <div style={{ fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getContactDisplayName(contact)}</div>
-                                <div style={{ fontSize: 12, color: 'var(--text3)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{contact.email}</div>
+                                <div className="call-contact-name-responsive" style={{ fontSize: 14, fontWeight: 600 }}>{getContactDisplayName(contact)}</div>
+                                <div className="call-contact-email-responsive" style={{ fontSize: 12, color: 'var(--text3)' }}>{contact.email}</div>
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <button

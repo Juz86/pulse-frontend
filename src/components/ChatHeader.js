@@ -404,7 +404,7 @@ const ChatHeader = React.memo(function ChatHeader({
           }}
         />
         {chatSearch.trim() && (
-          <span id="chat-search-results-status" aria-live="polite" style={{ fontSize: '13px', color: 'var(--text3)', whiteSpace: 'nowrap' }}>
+          <span id="chat-search-results-status" className="chat-search-results-status" aria-live="polite" style={{ fontSize: '13px', color: 'var(--text3)' }}>
             {searchTotal === 0 ? 'Geen resultaten' : `${searchCurrent + 1} / ${searchTotal}`}
           </span>
         )}

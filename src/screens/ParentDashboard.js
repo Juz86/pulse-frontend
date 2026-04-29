@@ -705,7 +705,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                             {child.displayName}
                             {child.username && <span style={{ color:'#888', fontWeight:400, fontSize:12 }}>Loginnaam: @{child.username}</span>}
                           </div>
-                          <div className="parent-child-meta" style={{ whiteSpace:'nowrap', marginTop:5 }}>
+                          <div className="parent-child-meta parent-child-meta--responsive" style={{ marginTop:5 }}>
                             <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
                             <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
                           </div>
@@ -1086,7 +1086,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                           aria-expanded={childDropdownOpen}
                           onClick={e => { e.stopPropagation(); setChildDropdownOpen(o => !o); }}
                         >
-                          <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          <span className="parent-child-picker-label">
                             {children.find(c => c.uid === selectedChildUid)?.displayName || 'Kind'}
                           </span>
                           <ChevronDown size={16} aria-hidden="true" />
@@ -1186,7 +1186,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                                   <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--text1,#1a1a1a)' }}>{profile.displayName}</span>
                                   {profile.username && <span style={{ fontSize: 13, color: '#888' }}>@{profile.username}</span>}
                                 </div>
-                                <div style={{ fontSize: 13, color: profile.online ? '#22c55e' : '#9ca3af', marginTop: 6, whiteSpace:'nowrap' }}>
+                                <div className="analytics-profile-status" style={{ fontSize: 13, color: profile.online ? '#22c55e' : '#9ca3af', marginTop: 6 }}>
                                   {profile.online ? <><span aria-hidden="true">● </span>Online</> : `Offline · ${timeAgo(profile.lastSeen, 'Onbekend')}`}
                                 </div>
                               </div>

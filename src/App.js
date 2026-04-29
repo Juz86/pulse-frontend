@@ -3,7 +3,7 @@ import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import * as Sentry from '@sentry/react';
 import ErrorBoundary from './components/ErrorBoundary';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, authPersistenceReady, db, messaging, getToken } from './firebase';
+import { auth, authPersistenceReady, db, messaging } from './firebase';
 import { doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket';
 import './App.css';
@@ -23,6 +23,7 @@ import {
 import { importLegacyE2EEStateIfNeeded } from './lib/e2ee/originStorageMigration';
 import { clearPulseUserStorage, readCachedConversations, scheduleIdleTask } from './utils';
 import { isNativePulseEnvironment } from './lib/platform/runtime';
+import { setupPulsePushNotifications } from './services/pushNotifications';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const ParentDashboard    = lazy(() => import('./screens/ParentDashboard'));
@@ -37,6 +38,7 @@ const ElektronischeCommunicatieBeleidPagina = lazy(() => import('./screens/Elekt
 const ContactPagina      = lazy(() => import('./screens/ContactPagina'));
 const SitemapPagina      = lazy(() => import('./screens/SitemapPagina'));
 const PrivacyFirstPagina = lazy(() => import('./screens/PrivacyFirstPagina'));
+const PushDiagnosticsScreen = lazy(() => import('./screens/PushDiagnosticsScreen'));
 
 const BACKEND = BACKEND_URL;
 const splashFallback = (
@@ -297,6 +299,10 @@ export default function App() {
     return <MarketingRoute Page={PrivacyFirstPagina} />;
   }
 
+  if (pathname === '/dev/push' && process.env.NODE_ENV !== 'production') {
+    return <Suspense fallback={splashFallback}><PushDiagnosticsScreen /></Suspense>;
+  }
+
   return <MainApp />;
 }
 
@@ -323,7 +329,7 @@ function MainApp() {
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
   const showNativeDirectAuth = isNativePulseEnvironment();
   const toastTimerRef          = useRef(null);
-  const fcmVisibilityRef       = useRef(null);
+  const pushCleanupRef         = useRef(null);
   const onlineVisibilityRef    = useRef(null);
   const lastSignedInUidRef     = useRef(null);
   const authQueryHandledRef    = useRef(false);
@@ -477,52 +483,18 @@ function MainApp() {
             console.warn('[Pulse] Zelfregistratie backend mislukt:', e.message);
           }
 
-          // Notificatie-toestemming + FCM token
-          const registerFcmToken = async (authHdr) => {
-            try {
-              if (!messaging || typeof Notification === 'undefined') return;
-              if (Notification.permission !== 'granted' && Notification.permission !== 'default') return;
-              const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
-              if (permission !== 'granted' || !VAPID_KEY || !navigator.serviceWorker) return;
-              // Registreer de firebase messaging SW expliciet en wacht tot hij actief is
-              const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-              if (!swReg.active) {
-                await new Promise((resolve, reject) => {
-                  const sw = swReg.installing ?? swReg.waiting;
-                  if (!sw) { resolve(); return; }
-                  sw.addEventListener('statechange', function handler(e) {
-                    if (e.target.state === 'activated') { sw.removeEventListener('statechange', handler); resolve(); }
-                    else if (e.target.state === 'redundant') { sw.removeEventListener('statechange', handler); reject(new Error('SW kon niet activeren')); }
-                  });
-                });
-              }
-              const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
-              if (!token) return;
-              for (let attempt = 1; attempt <= 3; attempt += 1) {
-                try {
-                  const res = await fetch(`${BACKEND}/api/fcm-token`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', ...authHdr },
-                    body: JSON.stringify({ uid: firebaseUser.uid, token }),
-                  });
-                  if (res.ok) break;
-                } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-                await new Promise(r => setTimeout(r, 1000 * attempt));
-              }
-            } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-          };
-          await registerFcmToken(authHeader);
-          // Herregistreer token wanneer app focus krijgt na lange afwezigheid
-          let lastTokenRefresh = Date.now();
-          const onVisibilityChange = () => {
-            if (document.visibilityState === 'visible' && Date.now() - lastTokenRefresh > 3_600_000) {
-              lastTokenRefresh = Date.now();
-              firebaseUser.getIdToken().then(t => registerFcmToken({ 'Authorization': `Bearer ${t}` })).catch(e => { console.warn('[Pulse] Fout:', e.message); });
-            }
-          };
-          if (fcmVisibilityRef.current) document.removeEventListener('visibilitychange', fcmVisibilityRef.current);
-          fcmVisibilityRef.current = onVisibilityChange;
-          document.addEventListener('visibilitychange', onVisibilityChange);
+          if (pushCleanupRef.current) {
+            await pushCleanupRef.current();
+            pushCleanupRef.current = null;
+          }
+          pushCleanupRef.current = await setupPulsePushNotifications({
+            messaging,
+            vapidKey: VAPID_KEY,
+            backendUrl: BACKEND,
+            authHeader,
+            uid: firebaseUser.uid,
+            onOpenConversation: (convId) => setPendingConvId(convId),
+          });
 
           // Profiel opslaan in backend
           fetch(`${BACKEND}/api/users`, {
@@ -660,7 +632,10 @@ function MainApp() {
             setShowParentAuth(false);
           }
           if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }
-          if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
+          if (pushCleanupRef.current) {
+            Promise.resolve(pushCleanupRef.current()).catch(() => {});
+            pushCleanupRef.current = null;
+          }
           disconnectSocket();
         }
       });
@@ -669,7 +644,10 @@ function MainApp() {
       isActive = false;
       unsub();
       if (onlineVisibilityRef.current) { document.removeEventListener('visibilitychange', onlineVisibilityRef.current); onlineVisibilityRef.current = null; }
-      if (fcmVisibilityRef.current)    { document.removeEventListener('visibilitychange', fcmVisibilityRef.current);    fcmVisibilityRef.current = null; }
+      if (pushCleanupRef.current) {
+        Promise.resolve(pushCleanupRef.current()).catch(() => {});
+        pushCleanupRef.current = null;
+      }
     };
   }, []);
 

@@ -9,6 +9,7 @@ import { isAllowedAppOrigin } from '../services/httpSecurity.js';
 import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 import { toggleSingleUserReaction } from '../services/messageReactions.js';
+import { sendPushToUsers } from '../services/pushNotifications.js';
 
 const onlineUsers = new Map();
 const inactiveUsers = new Set();
@@ -406,6 +407,17 @@ export function createSocketServer(server) {
       for (const memberUid of conv.members) {
         emitToUser(io, memberUid, 'message:received', savedMessage);
       }
+
+      const pushResult = await sendPushToUsers({
+        senderUid: uid,
+        recipientUids: conv.members || [],
+        payload: {
+          convId,
+          messageId: savedMessage.id,
+          body: savedMessage.type === 'text' ? 'Nieuw bericht ontvangen' : 'Nieuw media- of contactbericht',
+        },
+      });
+      console.info('[Pulse][Push] socket message:send', { convId, messageId: savedMessage.id, pushResult });
 
       if (conv.isGroup && Array.isArray(savedMessage.mentions) && savedMessage.mentions.length > 0) {
         const uniqueMentions = Array.from(new Set(

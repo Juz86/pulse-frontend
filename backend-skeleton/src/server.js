@@ -13,8 +13,10 @@ import { callsRouter } from './routes/calls.js';
 import { usersRouter } from './routes/users.js';
 import { requestContext } from './middleware/requestContext.js';
 import { requireFirebaseReady } from './middleware/requireFirebaseReady.js';
+import { requireAuth } from './middleware/auth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { createSocketServer } from './socket/index.js';
+import { upsertPushToken } from './services/pushNotifications.js';
 import {
   getFirebaseConfigDiagnostics,
   getFirebaseCredentialMode,
@@ -104,12 +106,43 @@ app.get('/readyz', appOnlyCors, async (_req, res) => {
 app.options(/^\/(api|devices|users|messages|calls)(\/.*)?$/, appOnlyCors);
 
 app.options('/api/fcm-token', appOnlyCors);
-app.post('/api/fcm-token', appOnlyCors, requireAppOrigin, (_req, res) => {
+app.post('/api/fcm-token', appOnlyCors, requireAppOrigin, requireAuth, async (req, res) => {
+  const uid = req.auth?.uid;
+  const bodyUid = req.body?.uid;
+  const token = typeof req.body?.token === 'string' ? req.body.token.trim() : '';
+  const transport = typeof req.body?.transport === 'string' ? req.body.transport : 'fcm_web';
+  const platform = typeof req.body?.platform === 'string' ? req.body.platform : 'web';
+
+  if (!uid || uid !== bodyUid) {
+    return res.status(403).json({
+      ok: false,
+      error: 'uid_mismatch',
+      requestId: req.requestId,
+    });
+  }
+
+  if (!token) {
+    return res.status(400).json({
+      ok: false,
+      error: 'missing_token',
+      requestId: req.requestId,
+    });
+  }
+
+  const stored = await upsertPushToken({ uid, token, transport, platform });
+
+  console.info('[Pulse][Push] Token registratie', {
+    uid,
+    transport,
+    platform,
+    requestId: req.requestId,
+    ok: stored.ok,
+  });
+
   return res.json({
     ok: true,
-    stored: false,
-    reason: 'not_implemented_in_backend_skeleton',
-    requestId: _req.requestId,
+    stored: !!stored.ok,
+    requestId: req.requestId,
   });
 });
 

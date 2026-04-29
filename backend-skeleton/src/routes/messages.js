@@ -10,6 +10,7 @@ import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 import { applyConversationSummaryFields, deriveConversationSummary } from '../services/conversationSummaries.js';
 import { toggleSingleUserReaction } from '../services/messageReactions.js';
+import { sendPushToUsers } from '../services/pushNotifications.js';
 
 function isMissingFirestoreIndexError(error) {
   const message = String(error?.message || '');
@@ -336,6 +337,22 @@ export function messagesRouter({ io, emitToUser }) {
         replyToMessageId: replyToMessageId || null,
       });
     }
+
+    const pushResult = await sendPushToUsers({
+      senderUid: uid,
+      recipientUids: uniqueRecipientUserIds,
+      payload: {
+        convId: conversationId,
+        messageId: messageRef.id,
+        body: 'Nieuw beveiligd bericht ontvangen',
+      },
+    });
+    console.info('[Pulse][Push] api /messages/send', {
+      conversationId,
+      messageId: messageRef.id,
+      recipientCount: uniqueRecipientUserIds.length,
+      pushResult,
+    });
 
     if (Array.isArray(conv.members) && conv.isGroup && Array.isArray(mentions) && mentions.length > 0) {
       const uniqueMentions = Array.from(new Set(

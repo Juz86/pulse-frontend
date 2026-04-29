@@ -8,6 +8,7 @@
     "dev:emulator": "node src/scripts/devEmulator.js",
     "start": "node src/server.js",
     "seed": "node src/scripts/seed.js",
+    "reset:firestore": "node src/scripts/resetFirestoreData.js",
     "seed:emulator": "node src/scripts/seedEmulator.js",
     "wipe:emulator": "node src/scripts/wipeEmulator.js",
     "smoke": "node src/scripts/smoke.js",

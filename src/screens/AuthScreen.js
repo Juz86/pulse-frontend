@@ -24,6 +24,7 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
   const [loading,      setLoading]      = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [flipped,      setFlipped]      = useState(false);
+  const [nativeTab,    setNativeTab]    = useState('child');
   const [activeFeature, setActiveFeature] = useState(0);
   const [runtimeInfo, setRuntimeInfo] = useState(null);
   const featureTimerRef = useRef(null);
@@ -302,9 +303,6 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
             <PulseLogo size={34} textSize={26} />
           </div>
 
-          <h2 id="child-auth-title" className="auth-title">Welkom terug</h2>
-          <p id="child-auth-subtitle" className="auth-sub">Log in met je gebruikersnaam en wachtwoord.</p>
-
           {formContent}
         </div>
 
@@ -335,7 +333,67 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
     </div>
   );
 
-  if (inModal) return flipCards;
+  if (inModal) {
+    return (
+      <div className="auth-screen">
+        <div className="auth-bg" aria-hidden="true" />
+        <div
+          className="auth-card"
+          style={{ position: 'relative' }}
+          aria-labelledby="child-auth-title"
+          aria-describedby="child-auth-subtitle"
+        >
+          <div className="auth-logo" aria-hidden="true">
+            <PulseLogo size={34} textSize={26} />
+          </div>
+
+          <div className="web-auth-tabs" role="tablist" aria-label="Pulse login tabs">
+            <button
+              type="button"
+              id="native-auth-tab-child"
+              className={`web-auth-tab${nativeTab === 'child' ? ' active' : ''}`}
+              role="tab"
+              aria-selected={nativeTab === 'child'}
+              aria-controls="native-auth-panel-child"
+              tabIndex={nativeTab === 'child' ? 0 : -1}
+              onClick={() => setNativeTab('child')}
+            >
+              Kind
+            </button>
+            <button
+              type="button"
+              id="native-auth-tab-parent"
+              className={`web-auth-tab${nativeTab === 'parent' ? ' active' : ''}`}
+              role="tab"
+              aria-selected={nativeTab === 'parent'}
+              aria-controls="native-auth-panel-parent"
+              tabIndex={nativeTab === 'parent' ? 0 : -1}
+              onClick={() => setNativeTab('parent')}
+            >
+              Ouder
+            </button>
+          </div>
+
+          {nativeTab === 'child' ? (
+            <div id="native-auth-panel-child" role="tabpanel" aria-labelledby="native-auth-tab-child">
+              {formContent}
+            </div>
+          ) : (
+            <div
+              id="native-auth-panel-parent"
+              role="tabpanel"
+              aria-labelledby="native-auth-tab-parent"
+              className="web-auth-parent-panel"
+            >
+              <Suspense fallback={<div className="auth-sub" style={{ marginBottom: 0 }}>Ouderportaal laden…</div>}>
+                <ParentAuthScreen isModal defaultTab="login" />
+              </Suspense>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-screen">

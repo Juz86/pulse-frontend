@@ -26,7 +26,10 @@ import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/
 import { normalizeSingleUserReaction, toggleSingleUserReaction } from '../lib/e2ee/messageReactions';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
 import {
+  readCachedConversations,
+  readCachedMessages,
   readSessionConversations,
+  writeCachedMessages,
   writeCachedConversations,
   writeSessionConversations,
 } from '../utils';
@@ -100,10 +103,10 @@ export default function useConversations({
   const loadConversationsStateRef = useRef({ promise: null, lastAt: 0 });
   const LOAD_CONVERSATIONS_THROTTLE_MS = 900;
 
-  const [conversations,  setConversations]  = useState([]);
+  const [conversations,  setConversations]  = useState(() => readCachedConversations(user.uid));
   const [activeConv,     setActiveConv]     = useState(null);
   const [messages,       setMessages]       = useState([]);
-  const [loadingConvs,   setLoadingConvs]   = useState(true);
+  const [loadingConvs,   setLoadingConvs]   = useState(() => readCachedConversations(user.uid).length === 0);
   const [loadingMsgs,    setLoadingMsgs]    = useState(false);
   const [hasMore,        setHasMore]        = useState(false);
   const [loadingMore,    setLoadingMore]    = useState(false);
@@ -127,6 +130,12 @@ export default function useConversations({
     }));
     writeCachedConversations(user.uid, cached);
   }, [conversations, user.uid]);
+
+  useEffect(() => {
+    const convId = activeConvRef.current?.id;
+    if (!convId || !Array.isArray(messages) || messages.length === 0) return;
+    writeCachedMessages(user.uid, convId, messages);
+  }, [messages, user.uid, activeConvRef]);
   // Sync refs owned by ChatScreen
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv, activeConvRef]);
   useEffect(() => { conversationsRef.current = conversations; }, [conversations, conversationsRef]);
@@ -400,7 +409,7 @@ export default function useConversations({
       }
     } catch (error) {
       console.warn('[Pulse] Gesprekken laden mislukt:', error?.status || 'unknown_status', error?.message || error);
-      showErrToast('Gesprekken laden mislukt');
+      if (!conversationsRef.current?.length) showErrToast('Gesprekken laden mislukt');
     }
     finally { setLoadingConvs(false); }
     })();
@@ -413,7 +422,7 @@ export default function useConversations({
         loadConversationsStateRef.current.promise = null;
       }
     }
-  }, [applySessionConversationSummaries, authFetch, readJsonResponse, setConvLabels, showErrToast, user.uid]);
+  }, [applySessionConversationSummaries, authFetch, conversationsRef, readJsonResponse, setConvLabels, showErrToast, user.uid]);
 
   // ── Gesprek openen ────────────────────────────────────────────────────────
   async function openConversation(conv) {
@@ -450,7 +459,8 @@ export default function useConversations({
     }, 0);
     setUnreadCounts(prev => { const n = { ...prev }; delete n[conv.id]; return n; });
     const sessionMessages = getSessionMessagesForConversation(convId);
-    const cached = msgCache.current[convId];
+    const localCachedMessages = readCachedMessages(user.uid, convId);
+    const cached = msgCache.current[convId] || (localCachedMessages.length > 0 ? localCachedMessages : null);
     if (cached) {
       setMessages(mergeConversationMessages(cached, sessionMessages));
       setLoadingMsgs(false);
@@ -476,6 +486,7 @@ export default function useConversations({
       if (activeConvRef.current?.id !== convId) return;
       const mergedFetchedMessages = mergeConversationMessages(hydrated, getSessionMessagesForConversation(convId));
       msgCache.current[convId] = mergedFetchedMessages;
+      writeCachedMessages(user.uid, convId, mergedFetchedMessages);
       markConversationMessagesAsRead(hydrated).catch(() => {});
       setMessages(prev => {
         const fetchedIds = new Set(mergedFetchedMessages.map(m => m.id).filter(Boolean));

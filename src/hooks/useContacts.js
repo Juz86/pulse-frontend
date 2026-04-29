@@ -1,8 +1,18 @@
 // src/hooks/useContacts.js
-import { useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc, getDocs, collection, setDoc } from 'firebase/firestore';
 import { getSocket, BACKEND_URL } from '../services/socket';
+import {
+  readCachedBlockedContacts,
+  readCachedContacts,
+  readCachedFriendRequests,
+  readCachedSentFriendRequests,
+  writeCachedBlockedContacts,
+  writeCachedContacts,
+  writeCachedFriendRequests,
+  writeCachedSentFriendRequests,
+} from '../utils';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USERNAME_RE = /^[a-z0-9_]{3,20}$/;
@@ -57,12 +67,12 @@ export default function useContacts({
   }
 
   // ── State ─────────────────────────────────────────────────────────────────
-  const [contacts,        setContacts]        = useState([]);
+  const [contacts,        setContacts]        = useState(() => readCachedContacts(user.uid));
   const [pinnedContacts,  setPinnedContacts]  = useState(() => {
     try { return JSON.parse(localStorage.getItem(`pulse_pinned_${user.uid}`) || '[]'); } catch { return []; }
   });
-  const [friendRequests,  setFriendRequests]  = useState([]);
-  const [sentFriendRequests, setSentFriendRequests] = useState([]);
+  const [friendRequests,  setFriendRequests]  = useState(() => readCachedFriendRequests(user.uid));
+  const [sentFriendRequests, setSentFriendRequests] = useState(() => readCachedSentFriendRequests(user.uid));
   const [contactSuccess,  setContactSuccess]  = useState('');
   const [showAddContact,  setShowAddContact]  = useState(false);
   const [contactEmail,    setContactEmail]    = useState('');
@@ -81,8 +91,9 @@ export default function useContacts({
   const [showFriendRequestsPanel, setShowFriendRequestsPanel] = useState(false);
 
   // Blocked contacts
-  const [blockedContacts,   setBlockedContacts]   = useState([]);
-  const [parentBlockedUids, setParentBlockedUids] = useState([]);
+  const cachedBlocked = readCachedBlockedContacts(user.uid);
+  const [blockedContacts,   setBlockedContacts]   = useState(cachedBlocked.contacts);
+  const [parentBlockedUids, setParentBlockedUids] = useState(cachedBlocked.parentBlockedUids);
   const [blockingContact,   setBlockingContact]   = useState(null); // { uid, displayName } — bevestigingsmodal
 
   // Contact rename / share / view
@@ -93,6 +104,22 @@ export default function useContacts({
   const [viewingContact,       setViewingContact]       = useState(null);
   const [renameValue,          setRenameValue]          = useState('');
 
+  useEffect(() => {
+    writeCachedContacts(user.uid, contacts);
+  }, [contacts, user.uid]);
+
+  useEffect(() => {
+    writeCachedFriendRequests(user.uid, friendRequests);
+  }, [friendRequests, user.uid]);
+
+  useEffect(() => {
+    writeCachedSentFriendRequests(user.uid, sentFriendRequests);
+  }, [sentFriendRequests, user.uid]);
+
+  useEffect(() => {
+    writeCachedBlockedContacts(user.uid, blockedContacts, parentBlockedUids);
+  }, [blockedContacts, parentBlockedUids, user.uid]);
+
   // Nickname cache
   const [nicknameCache, setNicknameCache] = useState(() => {
     const cache = {};
@@ -101,7 +128,10 @@ export default function useContacts({
         const k = localStorage.key(i);
         if (k?.startsWith('pulse_nick_')) cache[k.replace('pulse_nick_', '')] = localStorage.getItem(k);
       }
-    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+    } catch (e) {
+      console.warn('[Pulse] Fout:', e.message);
+      if (!contacts.length) showErrToast('Contacten laden mislukt');
+    }
     return cache;
   });
 
@@ -194,7 +224,10 @@ export default function useContacts({
         });
       }
       setContacts(raw.map(c => ({ ...c, photoURL: c.photoURL || photoMap[c.uid] || null })));
-    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+    } catch (e) {
+      console.warn('[Pulse] Fout:', e.message);
+      if (!contacts.length) showErrToast('Contacten laden mislukt');
+    }
     })();
 
     state.promise = run;
@@ -205,7 +238,7 @@ export default function useContacts({
         loadContactsStateRef.current.promise = null;
       }
     }
-  }, [authFetch, user.uid]);
+  }, [authFetch, contacts.length, showErrToast, user.uid]);
 
   const loadBlockedContacts = useCallback(async ({ force = false } = {}) => {
     const now = Date.now();
@@ -222,7 +255,10 @@ export default function useContacts({
       const parentUids      = data?.parentBlockedUids || [];
       setBlockedContacts(contacts);
       setParentBlockedUids(parentUids);
-    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+    } catch (e) {
+      console.warn('[Pulse] Fout:', e.message);
+      if (!blockedContacts.length) showErrToast('Geblokkeerde contacten laden mislukt');
+    }
     })();
 
     state.promise = run;
@@ -233,7 +269,7 @@ export default function useContacts({
         loadBlockedContactsStateRef.current.promise = null;
       }
     }
-  }, [authFetch, user.uid]);
+  }, [authFetch, blockedContacts.length, showErrToast, user.uid]);
 
   const loadFriendRequests = useCallback(async ({ force = false } = {}) => {
     const now = Date.now();
@@ -252,7 +288,10 @@ export default function useContacts({
       const sentData = await sentRes.json().catch(() => []);
       setFriendRequests(Array.isArray(incomingData) ? incomingData : []);
       setSentFriendRequests(Array.isArray(sentData) ? sentData : []);
-    } catch (e) { console.warn('[Pulse] Fout:', e.message); }
+    } catch (e) {
+      console.warn('[Pulse] Fout:', e.message);
+      if (!friendRequests.length && !sentFriendRequests.length) showErrToast('Verzoeken laden mislukt');
+    }
     })();
 
     state.promise = run;
@@ -263,7 +302,7 @@ export default function useContacts({
         loadFriendRequestsStateRef.current.promise = null;
       }
     }
-  }, [authFetch, user.uid]);
+  }, [authFetch, friendRequests.length, sentFriendRequests.length, showErrToast, user.uid]);
 
   // ── Contact toevoegen ─────────────────────────────────────────────────────
   async function addContact() {

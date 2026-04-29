@@ -46,6 +46,26 @@ export function getPulseCachedConversationsStorageKey(uid) {
   return `pulse_cached_conversations_${uid}`;
 }
 
+export function getPulseCachedContactsStorageKey(uid) {
+  return `pulse_cached_contacts_${uid}`;
+}
+
+export function getPulseCachedBlockedContactsStorageKey(uid) {
+  return `pulse_cached_blocked_contacts_${uid}`;
+}
+
+export function getPulseCachedFriendRequestsStorageKey(uid) {
+  return `pulse_cached_friend_requests_${uid}`;
+}
+
+export function getPulseCachedSentFriendRequestsStorageKey(uid) {
+  return `pulse_cached_friend_requests_sent_${uid}`;
+}
+
+export function getPulseCachedMessagesStorageKey(uid, convId) {
+  return `pulse_cached_messages_${uid}_${convId}`;
+}
+
 export function readStoredHistoryRules(uid) {
   return normalizeHistoryRules(safeJsonParse(localStorage.getItem(getPulseHistoryRulesStorageKey(uid)), {}));
 }
@@ -75,6 +95,75 @@ export function writeCachedConversations(uid, conversations) {
   if (typeof window === 'undefined' || !window.localStorage || !uid) return;
   const value = Array.isArray(conversations) ? conversations : [];
   localStorage.setItem(getPulseCachedConversationsStorageKey(uid), JSON.stringify(value));
+}
+
+export function readCachedContacts(uid) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid) return [];
+  const value = safeJsonParse(localStorage.getItem(getPulseCachedContactsStorageKey(uid)), []);
+  return Array.isArray(value) ? value : [];
+}
+
+export function writeCachedContacts(uid, contacts) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid) return;
+  const value = Array.isArray(contacts) ? contacts : [];
+  localStorage.setItem(getPulseCachedContactsStorageKey(uid), JSON.stringify(value));
+}
+
+export function readCachedBlockedContacts(uid) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid) return { contacts: [], parentBlockedUids: [] };
+  const value = safeJsonParse(localStorage.getItem(getPulseCachedBlockedContactsStorageKey(uid)), {});
+  return {
+    contacts: Array.isArray(value?.contacts) ? value.contacts : [],
+    parentBlockedUids: Array.isArray(value?.parentBlockedUids) ? value.parentBlockedUids : [],
+  };
+}
+
+export function writeCachedBlockedContacts(uid, contacts, parentBlockedUids = []) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid) return;
+  localStorage.setItem(
+    getPulseCachedBlockedContactsStorageKey(uid),
+    JSON.stringify({
+      contacts: Array.isArray(contacts) ? contacts : [],
+      parentBlockedUids: Array.isArray(parentBlockedUids) ? parentBlockedUids : [],
+    }),
+  );
+}
+
+export function readCachedFriendRequests(uid) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid) return [];
+  const value = safeJsonParse(localStorage.getItem(getPulseCachedFriendRequestsStorageKey(uid)), []);
+  return Array.isArray(value) ? value : [];
+}
+
+export function writeCachedFriendRequests(uid, friendRequests) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid) return;
+  const value = Array.isArray(friendRequests) ? friendRequests : [];
+  localStorage.setItem(getPulseCachedFriendRequestsStorageKey(uid), JSON.stringify(value));
+}
+
+export function readCachedSentFriendRequests(uid) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid) return [];
+  const value = safeJsonParse(localStorage.getItem(getPulseCachedSentFriendRequestsStorageKey(uid)), []);
+  return Array.isArray(value) ? value : [];
+}
+
+export function writeCachedSentFriendRequests(uid, sentFriendRequests) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid) return;
+  const value = Array.isArray(sentFriendRequests) ? sentFriendRequests : [];
+  localStorage.setItem(getPulseCachedSentFriendRequestsStorageKey(uid), JSON.stringify(value));
+}
+
+export function readCachedMessages(uid, convId) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid || !convId) return [];
+  const value = safeJsonParse(localStorage.getItem(getPulseCachedMessagesStorageKey(uid, convId)), []);
+  return Array.isArray(value) ? value : [];
+}
+
+export function writeCachedMessages(uid, convId, messages, limit = 120) {
+  if (typeof window === 'undefined' || !window.localStorage || !uid || !convId) return;
+  const normalized = Array.isArray(messages) ? messages : [];
+  const value = normalized.slice(Math.max(0, normalized.length - limit));
+  localStorage.setItem(getPulseCachedMessagesStorageKey(uid, convId), JSON.stringify(value));
 }
 
 export function createSvgDataUrl(svg) {
@@ -153,6 +242,11 @@ const USER_STORAGE_PREFIXES = [
   'pulse_pending_labels_',
   'pulse_photo_',
   'pulse_cached_conversations_',
+  'pulse_cached_contacts_',
+  'pulse_cached_blocked_contacts_',
+  'pulse_cached_friend_requests_',
+  'pulse_cached_friend_requests_sent_',
+  'pulse_cached_messages_',
   'pulse_pinned_',
   'pulse_pinned_msgs_',
   'pulse_starred_',

@@ -220,7 +220,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }
   function handleDeleteSelectedMessages() {
     if (!selectedMessageIds.length) return;
-    const selectedMessages = messages.filter((message) => selectedMessageIds.includes(message.id));
+    const selectedMessageIdSet = new Set(selectedMessageIds);
+    const selectedMessages = messages.filter((message) => selectedMessageIdSet.has(message.id));
     const allOwn = selectedMessages.every((message) => message.senderId === user.uid);
     setDeleteConfirm({
       msgIds: selectedMessageIds,
@@ -402,7 +403,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }, [setContactEmail, setSearchEmail, setShowAddContact, setShowNewChat, showAddContact, showCallModal, showGroupInfo, showNewChat, showNewGroup, showProfile]);
 
   const visibleMessages = useMemo(
-    () => messages.filter(m => !blockedContacts.some(c => c.uid === m.senderId && m.senderId !== user.uid)),
+    () => {
+      const blockedUidSet = new Set(blockedContacts.map((contact) => contact.uid));
+      return messages.filter((message) => (
+        message.senderId === user.uid || !blockedUidSet.has(message.senderId)
+      ));
+    },
     [blockedContacts, messages, user.uid],
   );
   const handleMessageReaction = useCallback((msgId, emoji) => {
@@ -437,20 +443,21 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     });
     setSharingContact(null);
   }
-  function getConvName(conv) {
-    if (conv.isGroup) return conv.groupName || 'Groepsgesprek';
-    const otherUid = conv.members?.find(m => m !== user.uid);
-    const liveContact = contacts.find(c => c.uid === otherUid);
-    return getContactDisplayName(liveContact || { uid: otherUid, displayName: conv.memberNames?.[otherUid] || '' }) || conv.memberNames?.[otherUid] || 'Contactpersoon';
-  }
-  function getOtherUid(conv) {
+  const contactsByUid = useMemo(() => new Map(contacts.map((contact) => [contact.uid, contact])), [contacts]);
+  const getOtherUid = useCallback((conv) => {
     if (conv?.isGroup) return null;
-    return conv?.members?.find(m => m !== user.uid);
-  }
-  function getConvPhoto(conv) {
+    return conv?.members?.find((memberUid) => memberUid !== user.uid);
+  }, [user.uid]);
+  const getConvName = useCallback((conv) => {
+    if (conv.isGroup) return conv.groupName || 'Groepsgesprek';
+    const otherUid = getOtherUid(conv);
+    const liveContact = contactsByUid.get(otherUid);
+    return getContactDisplayName(liveContact || { uid: otherUid, displayName: conv.memberNames?.[otherUid] || '' }) || conv.memberNames?.[otherUid] || 'Contactpersoon';
+  }, [contactsByUid, getContactDisplayName, getOtherUid]);
+  const getConvPhoto = useCallback((conv) => {
     if (conv.isGroup) return null;
-    return contacts.find(c => c.uid === getOtherUid(conv))?.photoURL || null;
-  }
+    return contactsByUid.get(getOtherUid(conv))?.photoURL || null;
+  }, [contactsByUid, getOtherUid]);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (

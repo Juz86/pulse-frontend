@@ -4,6 +4,8 @@ import MessageBubble from './MessageBubble';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import { formatDateLabel } from '../utils';
 
+const NOOP = () => {};
+
 const MessageListRow = React.memo(function MessageListRow({
   msg,
   isFocused,
@@ -88,7 +90,7 @@ const MessageListRow = React.memo(function MessageListRow({
         user={user}
         chatSearch={chatSearch}
         onReact={handleReact}
-        onShowContextMenu={selectionMode ? (() => {}) : handleShowContextMenu}
+        onShowContextMenu={selectionMode ? NOOP : handleShowContextMenu}
         onOpenReactionPicker={selectionMode ? undefined : handleOpenReactionPicker}
         reactionPickerOpen={reactionPickerOpen}
         onCloseReactionPicker={handleCloseReactionPicker}
@@ -138,13 +140,18 @@ const MessageList = React.memo(function MessageList({
     email: user.email,
     photoURL: currentUserPhotoURL || user.photoURL || null,
   }), [currentUserPhotoURL, user.displayName, user.email, user.photoURL]);
+  const normalizedChatSearch = chatSearch.trim().toLowerCase();
+  const selectedMessageIdSet = useMemo(() => new Set(selectedMessageIds), [selectedMessageIds]);
+  const searchMatches = useMemo(() => {
+    if (!normalizedChatSearch) return [];
+    return messages.filter((message) => getMessageDisplayText(message).toLowerCase().includes(normalizedChatSearch));
+  }, [messages, normalizedChatSearch]);
 
   const focusedMsgId = useMemo(() => {
     if (jumpToMsgId) return jumpToMsgId;
-    if (!chatSearch.trim()) return null;
-    const matches = messages.filter(m => getMessageDisplayText(m).toLowerCase().includes(chatSearch.toLowerCase()));
-    return matches[chatSearchIdx % (matches.length || 1)]?.id ?? null;
-  }, [messages, chatSearch, chatSearchIdx, jumpToMsgId]);
+    if (searchMatches.length === 0) return null;
+    return searchMatches[chatSearchIdx % searchMatches.length]?.id ?? null;
+  }, [searchMatches, chatSearchIdx, jumpToMsgId]);
 
   const items = useMemo(() => {
     if (!activeConv) return [];
@@ -174,7 +181,7 @@ const MessageList = React.memo(function MessageList({
           user={user}
           chatSearch={chatSearch}
           selectionMode={selectionMode}
-          isSelected={selectedMessageIds.includes(msg.id)}
+          isSelected={selectedMessageIdSet.has(msg.id)}
           onToggleMessageSelection={onToggleMessageSelection}
           onReact={onReact}
           onShowContextMenu={onShowContextMenu}
@@ -189,9 +196,9 @@ const MessageList = React.memo(function MessageList({
     });
 
     return result;
-  }, [messages, activeConv, currentUid, currentUser, user, contacts, chatSearch, focusedMsgId,
+  }, [messages, activeConv, currentUid, currentUser, user, contacts, chatSearch, focusedMsgId, selectedMessageIdSet,
       onReact, onShowContextMenu, onOpenReactionPicker, reactionPickerMsgId, onCloseReactionPicker,
-      onRetry, onStartCall, onViewContact, selectionMode, selectedMessageIds, onToggleMessageSelection]);
+      onRetry, onStartCall, onViewContact, selectionMode, onToggleMessageSelection]);
 
   const bgStyle = useMemo(() => {
     if (chatBg?.type === 'photo') return {

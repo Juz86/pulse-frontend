@@ -1,5 +1,5 @@
 // src/components/ChatSidebar.js
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
@@ -89,6 +89,13 @@ export default function ChatSidebar({
   const [convMenu, setConvMenu]       = useState(null); // { conv, otherUid, direction, top, left }
   const [moreActionsMenuOpen, setMoreActionsMenuOpen] = useState(false);
   const moreActionsMenuRef = useRef(null);
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+
+  const filteredContacts = useMemo(() => contacts.filter((contact) => (
+    !normalizedSearch
+      || contact.displayName?.toLowerCase().includes(normalizedSearch)
+      || contact.email?.toLowerCase().includes(normalizedSearch)
+  )), [contacts, normalizedSearch]);
 
   useEffect(() => {
     if (!moreActionsMenuOpen) return;
@@ -149,6 +156,9 @@ export default function ChatSidebar({
     setContactMenu(null);
     onOpenConversation(conv);
   }
+  const handleMoreActionsEnter = useCallback((conv, otherUid, anchorEl) => {
+    openConvMenu(conv, otherUid, anchorEl);
+  }, []);
 
   return (
     <aside className="sidebar" onClick={() => { setConvMenu(null); setContactMenu(null); }}>
@@ -263,7 +273,7 @@ export default function ChatSidebar({
             getOtherUid={getOtherUid}
             getConvPhoto={getConvPhoto}
             onOpen={handleOpenConversation}
-            onMoreActionsEnter={(conv, otherUid, el) => openConvMenu(conv, otherUid, el)}
+            onMoreActionsEnter={handleMoreActionsEnter}
             setLabelMenuConvId={setLabelMenuConvId}
           />
         </>
@@ -287,11 +297,7 @@ export default function ChatSidebar({
             </div>
           )}
 
-          {contacts.filter(c =>
-            !searchQuery.trim() ||
-            c.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.email?.toLowerCase().includes(searchQuery.toLowerCase())
-          ).map(contact => (
+          {filteredContacts.map(contact => (
             <div key={contact.uid} className="sidebar-contact-card" aria-label={`Contact ${getContactDisplayName(contact)}${contact.email ? `, ${contact.email}` : ''}`}>
               <div className="sidebar-contact-row">
                 <div className="avatar-wrap" aria-hidden="true">
@@ -321,10 +327,7 @@ export default function ChatSidebar({
             </div>
           ))}
 
-          {contacts.length > 0 && searchQuery.trim() && contacts.filter(c =>
-            c.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.email?.toLowerCase().includes(searchQuery.toLowerCase())
-          ).length === 0 && (
+          {contacts.length > 0 && normalizedSearch && filteredContacts.length === 0 && (
             <div className="empty-convs" role="status" aria-live="polite">
               <p>Geen contacten gevonden.</p>
               <p>Er zijn geen resultaten voor "{searchQuery}".</p>

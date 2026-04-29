@@ -26,20 +26,23 @@ const ConversationList = React.memo(function ConversationList({
   onMoreActionsEnter,
   setLabelMenuConvId,
 }) {
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const pinnedUidSet = useMemo(() => new Set(pinnedContacts), [pinnedContacts]);
+
   const filtered = useMemo(() => {
     return conversations
       .filter(conv => {
-        const matchSearch = !searchQuery.trim() ||
-          getConvName(conv).toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (conv.lastMessage || '').toLowerCase().includes(searchQuery.toLowerCase());
+        const matchSearch = !normalizedSearch ||
+          getConvName(conv).toLowerCase().includes(normalizedSearch) ||
+          (conv.lastMessage || '').toLowerCase().includes(normalizedSearch);
         const matchFilter = chatFilter === 'all'
           || (chatFilter === 'groepen' && conv.isGroup && (!selectedGroupId || conv.id === selectedGroupId))
           || convLabels[conv.id] === chatFilter;
         return matchSearch && matchFilter;
       })
       .sort((a, b) => {
-        const aPinned = pinnedContacts.includes(getOtherUid(a));
-        const bPinned = pinnedContacts.includes(getOtherUid(b));
+        const aPinned = pinnedUidSet.has(getOtherUid(a));
+        const bPinned = pinnedUidSet.has(getOtherUid(b));
         if (aPinned !== bPinned) return bPinned - aPinned;
         return toMs(b.updatedAt || b.lastMessageAt || b.createdAt) - toMs(a.updatedAt || a.lastMessageAt || a.createdAt);
       })
@@ -48,7 +51,7 @@ const ConversationList = React.memo(function ConversationList({
         name:     getConvName(conv),
         photoURL: getConvPhoto(conv),
       }));
-  }, [conversations, searchQuery, chatFilter, selectedGroupId, convLabels, pinnedContacts, getConvName, getOtherUid, getConvPhoto]);
+  }, [conversations, normalizedSearch, chatFilter, selectedGroupId, convLabels, pinnedUidSet, getConvName, getOtherUid, getConvPhoto]);
 
   return (
     <div className="conv-list" aria-busy={loadingConvs} onClick={() => setLabelMenuConvId(null)}>
@@ -84,7 +87,7 @@ const ConversationList = React.memo(function ConversationList({
         const isOnline  = !!(otherUid && onlineUsers.has(otherUid));
         const isInactive = isOnline && inactiveUsers.has(otherUid);
         const unread    = unreadCounts[conv.id] || 0;
-        const isPinned  = pinnedContacts.includes(otherUid);
+        const isPinned  = pinnedUidSet.has(otherUid);
         return (
           <ConversationItem
             key={conv.id}

@@ -435,6 +435,17 @@ export default function useConversations({
       setHasMore(arr.length === MSG_LIMIT);
       setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 100);
     } catch (e) {
+      console.warn(
+        '[Pulse] Berichten laden mislukt:',
+        {
+          conversationId: convId,
+          backendUrl: BACKEND_URL,
+          errorMessage: e?.message || String(e),
+          errorStatus: e?.status || null,
+          responseText: e?.responseText || null,
+          payloadError: e?.payload?.error || null,
+        }
+      );
       if (activeConvRef.current?.id === convId) showErrToast('Berichten laden mislukt');
     }
     finally {

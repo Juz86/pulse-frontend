@@ -45,7 +45,7 @@ app.get('/', (_req, res) => {
   });
 });
 
-app.get('/health', (_req, res) => {
+app.get('/health', appOnlyCors, (_req, res) => {
   res.json({
     ok: true,
     service: 'pulse-e2ee-backend-skeleton',
@@ -56,7 +56,7 @@ app.get('/health', (_req, res) => {
   });
 });
 
-app.get('/configz', (_req, res) => {
+app.get('/configz', appOnlyCors, (_req, res) => {
   res.json({
     ok: true,
     service: 'pulse-e2ee-backend-skeleton',
@@ -65,7 +65,7 @@ app.get('/configz', (_req, res) => {
   });
 });
 
-app.get('/runtimez', (_req, res) => {
+app.get('/runtimez', appOnlyCors, (_req, res) => {
   res.json({
     ok: true,
     service: 'pulse-e2ee-backend-skeleton',
@@ -77,7 +77,7 @@ app.get('/runtimez', (_req, res) => {
   });
 });
 
-app.get('/readyz', async (_req, res) => {
+app.get('/readyz', appOnlyCors, async (_req, res) => {
   const firestore = await checkFirestoreReady();
 
   if (!firestore.ok) {

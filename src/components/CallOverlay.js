@@ -266,6 +266,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
   const isVideo   = incoming?.isVideo || active?.isVideo || videoUpgraded;
   const callName  = incoming?.callerName || active?.name || 'Contactpersoon';
   const isVoiceActiveLayout = !isVideo && callState !== 'incoming' && callState !== 'ended';
+  const isVideoActiveLayout = isVideo && callState !== 'incoming' && callState !== 'ended';
 
   const canMinimize = callState === 'calling' || callState === 'active' || callState === 'connecting';
 
@@ -300,13 +301,16 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
         </div>
       )}
 
-      {callState !== 'incoming' && callState !== 'ended' && (
+      {isVideoActiveLayout && (
         <div className="call-side-quick-actions" aria-label="Snelle gespreksacties">
           <button type="button" className="call-side-action-btn" onClick={handleAddParticipant} title="Persoon toevoegen">
             <UserPlus size={18} aria-hidden="true" />
           </button>
           <button type="button" className="call-side-action-btn" onClick={handleOpenChat} title="Open chat">
             <Message size={18} aria-hidden="true" />
+          </button>
+          <button type="button" className="call-side-action-btn" onClick={toggleCam} title="Camera draaien">
+            <Camera size={18} aria-hidden="true" />
           </button>
         </div>
       )}
@@ -342,7 +346,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
         {callState === 'ended'       && <div className="call-status call-status-error" role="status" aria-live="assertive">{callMsg}</div>}
 
         {/* ── KNOPPEN ── */}
-        {callState !== 'ended' && <div className={`call-controls ${callState !== 'incoming' ? 'active-layout' : ''}`}>
+        {callState !== 'ended' && <div className={`call-controls ${callState !== 'incoming' ? 'active-layout' : ''} ${isVideoActiveLayout ? 'video-layout' : ''}`}>
           {callState === 'incoming' ? (
             <>
               <button type="button" className="call-ctrl-btn accept"  onClick={handleAccept}><Phone size={18} aria-hidden="true" /><span>Opnemen</span></button>
@@ -350,10 +354,28 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
             </>
           ) : (
             <>
+              {isVideoActiveLayout && (
+                <>
+                  <button type="button" className="call-ctrl-btn aux" onClick={handleOpenChat} title="Open chat">
+                    <Message size={18} aria-hidden="true" /><span>Chat</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="call-ctrl-btn aux"
+                    onClick={handleAddParticipant}
+                    title="Persoon toevoegen"
+                  >
+                    <UserPlus size={18} aria-hidden="true" /><span>+ Persoon</span>
+                  </button>
+                  <button type="button" className={`call-ctrl-btn cam ${camOff ? 'on' : ''}`} aria-pressed={camOff} onClick={toggleCam}>
+                    {camOff ? <Cancel size={18} aria-hidden="true" /> : <Video size={18} aria-hidden="true" />}<span>Video</span>
+                  </button>
+                </>
+              )}
               <button type="button" className={`call-ctrl-btn mute ${muted ? 'on' : ''}`} aria-pressed={muted} onClick={toggleMute}>
                 {muted ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}<span>{muted ? 'Dempen uit' : 'Dempen'}</span>
               </button>
-              {isVideo && (
+              {isVideo && !isVideoActiveLayout && (
                 <button type="button" className={`call-ctrl-btn cam ${camOff ? 'on' : ''}`} aria-pressed={camOff} onClick={toggleCam}>
                   {camOff ? <Cancel size={18} aria-hidden="true" /> : <Camera size={18} aria-hidden="true" />}<span>Camera</span>
                 </button>
@@ -363,17 +385,6 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
                   <Video size={18} aria-hidden="true" /><span>Video</span>
                 </button>
               )}
-              <button
-                type="button"
-                className="call-ctrl-btn aux"
-                onClick={handleAddParticipant}
-                title="Persoon toevoegen"
-              >
-                <UserPlus size={18} aria-hidden="true" /><span>+ Persoon</span>
-              </button>
-              <button type="button" className="call-ctrl-btn aux" onClick={handleOpenChat} title="Open chat">
-                <Message size={18} aria-hidden="true" /><span>Chat</span>
-              </button>
               <button type="button" className="call-ctrl-btn end" onClick={handleEnd}><Cancel size={18} aria-hidden="true" /><span>Ophangen</span></button>
             </>
           )}

@@ -293,6 +293,12 @@ function MainApp() {
   const [parentActivityBadge, setParentActivityBadge] = useState(0);
   const [parentToast,         setParentToast]         = useState(null);
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
+  const [pendingCallBootstrap, setPendingCallBootstrap] = useState({
+    sessionId: urlParams.get('callSessionId') || null,
+    fromUid: urlParams.get('fromUid') || null,
+    callerName: urlParams.get('callerName') || 'Iemand',
+    isVideo: urlParams.get('isVideo') === '1',
+  });
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
   const showNativeDirectAuth = isNativePulseEnvironment();
   const toastTimerRef          = useRef(null);
@@ -305,6 +311,20 @@ function MainApp() {
   useEffect(() => {
     incomingCallRef.current = incomingCall;
   }, [incomingCall]);
+
+  useEffect(() => {
+    if (!incomingCall?.sessionId || !incomingCall?.from) return undefined;
+    const timeoutId = setTimeout(() => {
+      setIncomingCall((prev) => {
+        if (!prev || prev.sessionId !== incomingCall.sessionId) return prev;
+        console.info('[Pulse][Call] inkomende oproep timeout', { sessionId: incomingCall.sessionId, fromUid: incomingCall.from });
+        setMissedCallAlert(true);
+        clearIncomingRingingSession(incomingCall.sessionId, 'incoming_timeout');
+        return null;
+      });
+    }, 35_000);
+    return () => clearTimeout(timeoutId);
+  }, [incomingCall?.sessionId, incomingCall?.from]);
 
   useEffect(() => scheduleIdleTask(() => {
     fetch(`${BACKEND}/`, { method: 'GET', keepalive: true }).catch((e) => {
@@ -336,13 +356,130 @@ function MainApp() {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!user || !pendingCallBootstrap?.sessionId || !pendingCallBootstrap?.fromUid) return undefined;
+    let cancelled = false;
+
+    const rehydrateIncomingCall = async () => {
+      const sessionId = pendingCallBootstrap.sessionId;
+      const fromUid = pendingCallBootstrap.fromUid;
+      const callerName = pendingCallBootstrap.callerName || 'Iemand';
+      const isVideo = !!pendingCallBootstrap.isVideo;
+
+      if (incomingCallRef.current || isCallInProgress()) {
+        rejectCallAsBusy(fromUid, sessionId);
+        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false });
+        return;
+      }
+      const accepted = registerIncomingRingingSession(sessionId, fromUid);
+      if (!accepted) {
+        rejectCallAsBusy(fromUid, sessionId);
+        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false });
+        return;
+      }
+
+      try {
+        const idToken = await user.getIdToken();
+        const pendingUrl = new URL(`${BACKEND}/calls/pending/${encodeURIComponent(sessionId)}`);
+        pendingUrl.searchParams.set('fromUid', fromUid);
+        const response = await fetch(pendingUrl.toString(), {
+          method: 'GET',
+          headers: { Authorization: `Bearer ${idToken}` },
+        });
+        if (!response.ok) throw new Error(`pending_call_fetch_failed_${response.status}`);
+        const json = await response.json().catch(() => ({}));
+        if (!json?.ok || !json?.call?.offer) throw new Error('pending_call_offer_missing');
+        if (cancelled) return;
+        setIncomingCall({
+          from: fromUid,
+          fromUid,
+          callerName: json.call.callerName || callerName,
+          isVideo: json.call.isVideo ?? isVideo,
+          offer: json.call.offer,
+          sessionId,
+        });
+      } catch (error) {
+        console.warn('[Pulse][Call] query-call herstel mislukt:', error?.message || error);
+        clearIncomingRingingSession(sessionId, 'query_rehydrate_failed');
+      } finally {
+        if (!cancelled) {
+          setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false });
+          const params = new URLSearchParams(window.location.search);
+          params.delete('callSessionId');
+          params.delete('fromUid');
+          params.delete('callerName');
+          params.delete('isVideo');
+          const nextSearch = params.toString();
+          const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`;
+          window.history.replaceState(null, '', nextUrl);
+        }
+      }
+    };
+
+    rehydrateIncomingCall();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, pendingCallBootstrap]);
+
   // Fix iOS Safari keyboard: sync visual viewport height to CSS variable
   // Service worker → deep-link naar gesprek via notificatie-tik (één keer registreren)
   useEffect(() => {
     if (!navigator.serviceWorker) return;
+    const openIncomingCallFromPayload = async (payload = {}) => {
+      const fromUid = payload.fromUid || payload.senderUid || payload.from || null;
+      const sessionId = payload.callSessionId || payload.sessionId || null;
+      const callerName = payload.callerName || 'Iemand';
+      const isVideo = payload.isVideo === true || payload.isVideo === '1' || payload.isVideo === 1;
+      if (!fromUid || !sessionId) return;
+
+      if (incomingCallRef.current || isCallInProgress()) {
+        rejectCallAsBusy(fromUid, sessionId);
+        return;
+      }
+
+      const accepted = registerIncomingRingingSession(sessionId, fromUid);
+      if (!accepted) {
+        rejectCallAsBusy(fromUid, sessionId);
+        return;
+      }
+
+      try {
+        const firebaseUser = auth.currentUser;
+        if (!firebaseUser) throw new Error('auth_user_missing');
+        const idToken = await firebaseUser.getIdToken();
+        const pendingUrl = new URL(`${BACKEND}/calls/pending/${encodeURIComponent(sessionId)}`);
+        pendingUrl.searchParams.set('fromUid', fromUid);
+        const response = await fetch(pendingUrl.toString(), {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+        if (!response.ok) throw new Error(`pending_call_fetch_failed_${response.status}`);
+        const json = await response.json().catch(() => ({}));
+        if (!json?.ok || !json?.call?.offer) throw new Error('pending_call_offer_missing');
+        setIncomingCall({
+          from: fromUid,
+          fromUid,
+          callerName: json.call.callerName || callerName,
+          isVideo: json.call.isVideo ?? isVideo,
+          offer: json.call.offer,
+          sessionId,
+        });
+        console.info('[Pulse][Call] incoming call geopend via push click', { sessionId, fromUid });
+      } catch (error) {
+        console.warn('[Pulse][Call] push-click call herstel mislukt:', error?.message || error);
+        clearIncomingRingingSession(sessionId, 'push_rehydrate_failed');
+      }
+    };
+
     const handler = (event) => {
-      if (event.data?.type === 'notification_click' && event.data.convId) {
-        setPendingConvId(event.data.convId);
+      if (event.data?.type !== 'notification_click') return;
+      const payload = event.data || {};
+      if (payload.convId) setPendingConvId(payload.convId);
+      if (payload.notificationType === 'incoming_call' || payload.type === 'incoming_call') {
+        openIncomingCallFromPayload(payload);
       }
     };
     navigator.serviceWorker.addEventListener('message', handler);
@@ -466,6 +603,53 @@ function MainApp() {
             authHeader,
             uid: firebaseUser.uid,
             onOpenConversation: (convId) => setPendingConvId(convId),
+            onPushAction: async (data = {}) => {
+              const type = data?.type || '';
+              if (data?.convId) setPendingConvId(data.convId);
+              if (type !== 'incoming_call') return;
+
+              const fromUid = data?.fromUid || data?.senderUid || null;
+              const sessionId = data?.callSessionId || data?.sessionId || null;
+              const callerName = data?.callerName || 'Iemand';
+              const isVideo = data?.isVideo === true || data?.isVideo === '1' || data?.isVideo === 1;
+              if (!fromUid || !sessionId) return;
+
+              if (incomingCallRef.current || isCallInProgress()) {
+                rejectCallAsBusy(fromUid, sessionId);
+                return;
+              }
+              const accepted = registerIncomingRingingSession(sessionId, fromUid);
+              if (!accepted) {
+                rejectCallAsBusy(fromUid, sessionId);
+                return;
+              }
+
+              try {
+                const latestToken = await firebaseUser.getIdToken();
+                const pendingUrl = new URL(`${BACKEND}/calls/pending/${encodeURIComponent(sessionId)}`);
+                pendingUrl.searchParams.set('fromUid', fromUid);
+                const response = await fetch(pendingUrl.toString(), {
+                  method: 'GET',
+                  headers: {
+                    Authorization: `Bearer ${latestToken}`,
+                  },
+                });
+                if (!response.ok) throw new Error(`pending_call_fetch_failed_${response.status}`);
+                const json = await response.json().catch(() => ({}));
+                if (!json?.ok || !json?.call?.offer) throw new Error('pending_call_offer_missing');
+                setIncomingCall({
+                  from: fromUid,
+                  fromUid,
+                  callerName: json.call.callerName || callerName,
+                  isVideo: json.call.isVideo ?? isVideo,
+                  offer: json.call.offer,
+                  sessionId,
+                });
+              } catch (error) {
+                console.warn('[Pulse][Call] native push-action call herstel mislukt:', error?.message || error);
+                clearIncomingRingingSession(sessionId, 'native_push_rehydrate_failed');
+              }
+            },
           });
 
           // Profiel opslaan in backend

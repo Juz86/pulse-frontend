@@ -74,7 +74,7 @@ async function registerWebPush({ messaging, vapidKey, backendUrl, authHeader, ui
   return { token, transport: 'fcm_web' };
 }
 
-async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversation }) {
+async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversation, onPushAction }) {
   const [{ Capacitor }, { PushNotifications }] = await Promise.all([
     import('@capacitor/core'),
     import('@capacitor/push-notifications'),
@@ -104,7 +104,12 @@ async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversat
   });
 
   await addListener('pushNotificationActionPerformed', (event) => {
-    const convId = event?.notification?.data?.convId;
+    const data = event?.notification?.data || {};
+    if (typeof onPushAction === 'function') {
+      onPushAction(data);
+      return;
+    }
+    const convId = data?.convId;
     if (convId && typeof onOpenConversation === 'function') {
       onOpenConversation(convId);
     }
@@ -132,6 +137,15 @@ async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversat
     sound: 'default',
   }).catch(() => {});
 
+  await PushNotifications.createChannel({
+    id: 'pulse_calls',
+    name: 'Pulse oproepen',
+    description: 'Meldingen voor inkomende oproepen',
+    importance: 5,
+    visibility: 1,
+    sound: 'default',
+  }).catch(() => {});
+
   await PushNotifications.register();
 
   return {
@@ -148,6 +162,7 @@ export async function setupPulsePushNotifications({
   authHeader,
   uid,
   onOpenConversation,
+  onPushAction,
 }) {
   if (!uid || !authHeader?.Authorization) return () => {};
 
@@ -158,6 +173,7 @@ export async function setupPulsePushNotifications({
         authHeader,
         uid,
         onOpenConversation,
+        onPushAction,
       });
       return async () => {
         await nativeSetup?.cleanup?.();

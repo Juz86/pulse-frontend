@@ -61,26 +61,43 @@ export async function sendPushToUsers({ senderUid, recipientUids = [], payload =
   const tokens = recipients.flat().map((device) => device.token).filter(Boolean);
   if (tokens.length === 0) return { ok: true, attempted: 0, sent: 0 };
 
+  const pushType = String(payload.type || 'new_message');
+  const dataPayload = {
+    type: pushType,
+    convId: String(payload.convId || ''),
+    senderUid: String(senderUid || ''),
+    messageId: String(payload.messageId || ''),
+    callSessionId: String(payload.callSessionId || ''),
+    fromUid: String(payload.fromUid || senderUid || ''),
+    callerName: String(payload.callerName || ''),
+    isVideo: payload.isVideo ? '1' : '0',
+  };
+
+  const notificationTitle = payload.title || 'Pulse';
+  const notificationBody = payload.body || (pushType === 'incoming_call' ? 'Inkomende oproep' : 'Nieuw bericht');
+  const channelId = pushType === 'incoming_call' ? 'pulse_calls' : 'pulse_messages';
+
   const message = {
     tokens,
-    data: {
-      type: 'new_message',
-      convId: String(payload.convId || ''),
-      senderUid: String(senderUid || ''),
-      messageId: String(payload.messageId || ''),
-    },
+    data: dataPayload,
     android: {
       priority: 'high',
       notification: {
-        channelId: 'pulse_messages',
+        channelId,
         notificationCount: Number(payload.badgeCount || 0),
+        clickAction: 'FCM_PLUGIN_ACTIVITY',
       },
+      ttl: payload.ttlMs ? Number(payload.ttlMs) : undefined,
     },
     notification: {
-      title: 'Pulse',
-      body: payload.body || 'Nieuw bericht',
+      title: notificationTitle,
+      body: notificationBody,
     },
   };
+
+  if (!payload.ttlMs) {
+    delete message.android.ttl;
+  }
 
   try {
     const result = await admin.messaging().sendEachForMulticast(message);

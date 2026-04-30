@@ -10,6 +10,12 @@ import { parentPolicyService } from '../services/parentPolicyService.js';
 import { logPolicyEvent } from '../services/policyEvents.js';
 import { toggleSingleUserReaction } from '../services/messageReactions.js';
 import { sendPushToUsers } from '../services/pushNotifications.js';
+import {
+  clearExpiredPendingCallInvites,
+  clearPendingCallInvite,
+  listPendingCallInvitesForUser,
+  savePendingCallInvite,
+} from '../services/pendingCalls.js';
 
 const onlineUsers = new Map();
 const inactiveUsers = new Set();
@@ -80,6 +86,21 @@ export function createSocketServer(server) {
       onlineUsers.set(uid, new Set());
     }
     onlineUsers.get(uid).add(socket.id);
+
+    const removedExpired = clearExpiredPendingCallInvites();
+    if (removedExpired > 0) {
+      console.info('[Pulse][Call] Verlopen pending call invites opgeschoond', { removed: removedExpired });
+    }
+    const pendingInvites = listPendingCallInvitesForUser(uid);
+    pendingInvites.forEach((invite) => {
+      socket.emit('call:offer', {
+        fromUid: invite.fromUid,
+        offer: invite.offer,
+        isVideo: !!invite.isVideo,
+        callerName: invite.callerName || 'Iemand',
+        sessionId: invite.sessionId,
+      });
+    });
 
     socket.on('user:online', () => {
       inactiveUsers.delete(uid);
@@ -582,6 +603,7 @@ export function createSocketServer(server) {
 
     socket.on('call:offer', async ({ to, offer, isVideo, callerName, sessionId = null }) => {
       if (!to || !offer || !uid) return;
+      const normalizedSessionId = sessionId || `call_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 
       const decision = await parentPolicyService.mayStartCall(uid, to, !!isVideo);
       if (!decision.allowed) {
@@ -596,27 +618,55 @@ export function createSocketServer(server) {
         return;
       }
 
+      savePendingCallInvite({
+        toUid: to,
+        fromUid: uid,
+        sessionId: normalizedSessionId,
+        offer,
+        isVideo: !!isVideo,
+        callerName: callerName || 'Iemand',
+      });
+
       emitToUser(io, to, 'call:offer', {
         fromUid: uid,
         offer,
         isVideo: !!isVideo,
         callerName: callerName || 'Iemand',
-        sessionId,
+        sessionId: normalizedSessionId,
       });
+
+      const pushResult = await sendPushToUsers({
+        senderUid: uid,
+        recipientUids: [to],
+        payload: {
+          type: 'incoming_call',
+          title: callerName || 'Inkomende oproep',
+          body: isVideo ? 'Videogesprek in Pulse' : 'Spraakgesprek in Pulse',
+          callSessionId: normalizedSessionId,
+          fromUid: uid,
+          callerName: callerName || 'Iemand',
+          isVideo: !!isVideo,
+          ttlMs: 35_000,
+        },
+      });
+      console.info('[Pulse][Push] call:offer', { to, fromUid: uid, sessionId: normalizedSessionId, pushResult });
     });
 
     socket.on('call:answer', ({ to, answer, sessionId = null }) => {
       if (!to || !answer || !uid) return;
+      if (sessionId) clearPendingCallInvite({ uid, sessionId });
       emitToUser(io, to, 'call:answer', { fromUid: uid, answer, sessionId });
     });
 
     socket.on('call:decline', ({ to, sessionId = null }) => {
       if (!to || !uid) return;
+      if (sessionId) clearPendingCallInvite({ uid, sessionId });
       emitToUser(io, to, 'call:declined', { fromUid: uid, sessionId });
     });
 
     socket.on('call:end', ({ to, sessionId = null }) => {
       if (!to || !uid) return;
+      if (sessionId) clearPendingCallInvite({ uid: to, sessionId });
       emitToUser(io, to, 'call:ended', { fromUid: uid, sessionId });
     });
 
@@ -650,6 +700,7 @@ export function createSocketServer(server) {
 
     socket.on('call:busy', ({ to, sessionId = null }) => {
       if (!to || !uid) return;
+      if (sessionId) clearPendingCallInvite({ uid, sessionId });
       emitToUser(io, to, 'call:busy', { fromUid: uid, sessionId });
     });
 

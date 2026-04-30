@@ -12,6 +12,7 @@ function ConversationItemBase({
   isOnline,
   isInactive,
   unread,
+  typingName,
   isPinned,
   currentUid,
   selectionMode,
@@ -75,7 +76,15 @@ function ConversationItemBase({
           )}
         </div>
         <div className="conv-preview">
-          {conv.lastCallDirection ? (
+          {typingName ? (
+            <span className="conv-typing-pill" aria-label={`${typingName} typt`}>
+              <span className="conv-typing-dots" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+            </span>
+          ) : conv.lastCallDirection ? (
             <span className="conv-call-preview">
               {isMissedCallPreview && (
                 <span className="conv-call-missed-icon" aria-hidden="true">
@@ -195,6 +204,7 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.isOnline         === next.isOnline          &&
   prev.isInactive       === next.isInactive        &&
   prev.unread           === next.unread            &&
+  prev.typingName       === next.typingName        &&
   prev.isPinned         === next.isPinned          &&
   prev.selectionMode    === next.selectionMode     &&
   prev.isSelected       === next.isSelected

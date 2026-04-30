@@ -35,6 +35,7 @@ export default function ChatSidebar({
   convLabels,
   pinnedContacts,
   unreadCounts,
+  typingByConv = {},
   photoPreview,
   isParent,
   parentActivityBadge,
@@ -263,6 +264,7 @@ export default function ChatSidebar({
             convLabels={convLabels}
             pinnedContacts={pinnedContacts}
             unreadCounts={unreadCounts}
+            typingByConv={typingByConv}
             onlineUsers={onlineUsers}
             inactiveUsers={inactiveUsers}
             currentUid={user.uid}

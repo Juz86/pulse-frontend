@@ -51,8 +51,10 @@ export default function useChat({
   const [reconnectIn,    setReconnectIn]    = useState(null);
   const [typing,         setTyping]         = useState(false);
   const [typingName,     setTypingName]     = useState('');
+  const [typingByConv,   setTypingByConv]   = useState({});
   const [pausedFeatures, setPausedFeatures] = useState({ chat: false, call: false, video: false });
   const [mentionToast,   setMentionToast]   = useState(null);
+  const typingTimeoutsRef = useRef(new Map());
 
   useEffect(() => {
     onReconnectRef.current = onReconnect;
@@ -247,14 +249,49 @@ export default function useChat({
     };
 
     const onTypingUpdate = ({ convId, typing, name }) => {
+      if (!convId) return;
       const currentConvId = activeConvRef.current?.id;
-      if (convId && currentConvId && convId !== currentConvId) return;
+      const displayName = name || 'Iemand';
+      const timeoutMap = typingTimeoutsRef.current;
+      const previousTimeout = timeoutMap.get(convId);
+      if (previousTimeout) {
+        clearTimeout(previousTimeout);
+        timeoutMap.delete(convId);
+      }
+
       if (typing) {
-        setTyping(true);
-        setTypingName(name || 'Iemand');
+        setTypingByConv(prev => ({ ...prev, [convId]: displayName }));
+        const timeoutId = setTimeout(() => {
+          setTypingByConv(prev => {
+            if (!prev[convId]) return prev;
+            const next = { ...prev };
+            delete next[convId];
+            return next;
+          });
+          typingTimeoutsRef.current.delete(convId);
+          if (activeConvRef.current?.id === convId) {
+            setTyping(false);
+            setTypingName('');
+          }
+        }, 3500);
+        timeoutMap.set(convId, timeoutId);
       } else {
-        setTyping(false);
-        setTypingName('');
+        setTypingByConv(prev => {
+          if (!prev[convId]) return prev;
+          const next = { ...prev };
+          delete next[convId];
+          return next;
+        });
+      }
+
+      if (currentConvId && convId === currentConvId) {
+        if (typing) {
+          setTyping(true);
+          setTypingName(displayName);
+        } else {
+          setTyping(false);
+          setTypingName('');
+        }
       }
     };
 
@@ -511,6 +548,8 @@ export default function useChat({
       socket.off('contact:removed-by-parent',   onContactRemovedByParent);
       clearTimeout(disconnectTimerRef.current);
       clearInterval(reconnectIntervalRef.current);
+      typingTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
+      typingTimeoutsRef.current.clear();
     };
   }, [socket]);
   /* eslint-enable react-hooks/exhaustive-deps */
@@ -531,5 +570,5 @@ export default function useChat({
     return () => { clearTimeout(timer); events.forEach(e => document.removeEventListener(e, onActivity)); };
   }, [socket]);
 
-  return { connected, reconnectIn, typing, typingName, pausedFeatures, mentionToast, playMessageSound };
+  return { connected, reconnectIn, typing, typingName, typingByConv, pausedFeatures, mentionToast, playMessageSound };
 }

@@ -13,6 +13,7 @@ const ConversationList = React.memo(function ConversationList({
   convLabels,
   pinnedContacts,
   unreadCounts,
+  typingByConv,
   onlineUsers,
   inactiveUsers,
   currentUid,
@@ -97,6 +98,7 @@ const ConversationList = React.memo(function ConversationList({
             isOnline={isOnline}
             isInactive={isInactive}
             unread={unread}
+            typingName={typingByConv?.[conv.id] || ''}
             isPinned={isPinned}
             currentUid={currentUid}
             selectionMode={selectionMode}

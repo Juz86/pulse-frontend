@@ -299,7 +299,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     showErrToast, setConfirmDialog,
   });
 
-  const { typing, typingName, pausedFeatures, mentionToast } = useChat({
+  const { typing, typingName, typingByConv, pausedFeatures, mentionToast } = useChat({
     user, activeConvRef, conversationsRef, msgsAreaRef, dndRef, audioCtxRef,
     mutedConversationIdsRef,
     loadConversations, loadContacts, loadFriendRequests, setMessages, setConversations, setUnreadCounts,
@@ -479,7 +479,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         contacts={contacts} conversations={conversations}
         activeConv={activeConv} loadingConvs={loadingConvs}
         convLabels={convLabels} pinnedContacts={pinnedContacts}
-        unreadCounts={unreadCounts} photoPreview={photoPreview}
+        unreadCounts={unreadCounts} typingByConv={typingByConv} photoPreview={photoPreview}
         isParent={isParent} parentActivityBadge={parentActivityBadge}
         onOpenDashboard={onOpenDashboard}
         setLabelMenuConvId={() => {}}

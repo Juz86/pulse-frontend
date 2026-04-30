@@ -59,6 +59,10 @@ let callBusyHandler = null;
 let activeCallTimeoutId = null;
 let currentCallSessionId = null;
 let currentCallState = 'idle';
+let activeLocalStream = null;
+let activeRemoteStream = null;
+let pendingRemoteIceCandidates = [];
+let remoteDescriptionReady = false;
 
 const ACTIVE_CALL_STATES = new Set(['ringing', 'connecting', 'connected', 'reconnecting']);
 
@@ -80,6 +84,10 @@ function setCallState(nextState, context = {}) {
 
 function isSessionEventCurrent(sessionId) {
   return !!sessionId && !!currentCallSessionId && sessionId === currentCallSessionId;
+}
+
+function describeSession(sessionId = null) {
+  return sessionId || currentCallSessionId || null;
 }
 
 function logIgnoredSessionEvent(eventName, sessionId) {
@@ -192,6 +200,86 @@ function clearCallLifecycleHandlers() {
   }
 }
 
+function bindPeerConnectionDebugHandlers(peerInstance, sessionId) {
+  const pc = peerInstance?._pc;
+  if (!pc) return () => {};
+
+  const onConnectionStateChange = () => {
+    console.info('[Pulse][Call] connectionState', {
+      sessionId: describeSession(sessionId),
+      connectionState: pc.connectionState,
+      iceConnectionState: pc.iceConnectionState,
+    });
+    if (pc.connectionState === 'connected') {
+      setCallState('connected', { source: 'pc_connectionstate_connected' });
+    } else if (pc.connectionState === 'failed') {
+      setCallState('failed', { source: 'pc_connectionstate_failed' });
+    } else if (pc.connectionState === 'disconnected') {
+      setCallState('reconnecting', { source: 'pc_connectionstate_disconnected' });
+    } else if (pc.connectionState === 'connecting') {
+      setCallState('connecting', { source: 'pc_connectionstate_connecting' });
+    }
+  };
+
+  const onIceConnectionStateChange = () => {
+    console.info('[Pulse][Call] iceConnectionState', {
+      sessionId: describeSession(sessionId),
+      iceConnectionState: pc.iceConnectionState,
+      connectionState: pc.connectionState,
+    });
+    if (pc.iceConnectionState === 'failed') {
+      setCallState('failed', { source: 'pc_ice_failed' });
+    } else if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'checking') {
+      setCallState('reconnecting', { source: 'pc_ice_reconnecting' });
+    } else if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+      setCallState('connected', { source: 'pc_ice_connected' });
+    }
+  };
+
+  pc.addEventListener('connectionstatechange', onConnectionStateChange);
+  pc.addEventListener('iceconnectionstatechange', onIceConnectionStateChange);
+
+  return () => {
+    pc.removeEventListener('connectionstatechange', onConnectionStateChange);
+    pc.removeEventListener('iceconnectionstatechange', onIceConnectionStateChange);
+  };
+}
+
+function queueRemoteIceCandidate(candidate, sessionId, source = 'unknown') {
+  pendingRemoteIceCandidates.push(candidate);
+  console.info('[Pulse][Call] ice buffered', {
+    sessionId: describeSession(sessionId),
+    source,
+    bufferedCount: pendingRemoteIceCandidates.length,
+  });
+}
+
+function flushRemoteIceCandidates(sessionId) {
+  if (!peer || pendingRemoteIceCandidates.length === 0) return;
+  const flushCount = pendingRemoteIceCandidates.length;
+  pendingRemoteIceCandidates.forEach((candidate) => {
+    try {
+      peer.signal(candidate);
+    } catch (error) {
+      console.warn('[Pulse][Call] ICE flush mislukt:', error?.message || error);
+    }
+  });
+  pendingRemoteIceCandidates = [];
+  console.info('[Pulse][Call] ice flushed', {
+    sessionId: describeSession(sessionId),
+    flushedCount: flushCount,
+  });
+}
+
+function markRemoteDescriptionReady(sessionId, source = 'unknown') {
+  remoteDescriptionReady = true;
+  console.info('[Pulse][Call] remoteDescription set', {
+    sessionId: describeSession(sessionId),
+    source,
+  });
+  flushRemoteIceCandidates(sessionId);
+}
+
 async function ensureSocketConnection() {
   if (!socket) {
     throw new Error('Signaleringsverbinding niet beschikbaar. Vernieuw de pagina en probeer opnieuw.');
@@ -276,8 +364,15 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
     throw new Error('Er is al een actief gesprek. Rond het huidige gesprek eerst af.');
   }
   await ensureSocketConnection();
+  if (peer) {
+    const previousSessionId = currentCallSessionId;
+    cleanupCall(null, previousSessionId);
+  }
   currentCallSessionId = buildCallSessionId();
   setCallState('connecting', { source: 'start_call', toUid, isVideo: !!isVideo });
+  pendingRemoteIceCandidates = [];
+  remoteDescriptionReady = false;
+  activeRemoteStream = null;
   let stream;
   try {
     stream = await requestCallMedia({ isVideo });
@@ -292,6 +387,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   }
 
   callPeer = toUid;
+  activeLocalStream = stream;
   const iceServers = await getIceServers(undefined, onConnectionFallback);
   clearCallLifecycleHandlers();
 
@@ -304,16 +400,20 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
 
   let callActive = false;
   const sessionId = currentCallSessionId;
+  const detachPeerDebug = bindPeerConnectionDebugHandlers(peer, sessionId);
 
   peer.on('signal', (data) => {
     if (data.type === 'offer' && !callActive) {
+      console.info('[Pulse][Call] offer created', { sessionId });
       socket.emit('call:offer', { to: toUid, from: fromUid, offer: data, isVideo, callerName, sessionId });
     } else if (data.type === 'offer' && callActive) {
       // Renegotiatie (bijv. video upgraden)
       socket.emit('call:renegotiate', { to: toUid, signal: data, sessionId });
     } else if (data.type === 'answer') {
+      console.info('[Pulse][Call] answer created (renegotiate)', { sessionId });
       socket.emit('call:renegotiate', { to: toUid, signal: data, sessionId });
     } else {
+      console.info('[Pulse][Call] ice sent', { sessionId });
       socket.emit('call:ice-candidate', { to: toUid, candidate: data, sessionId });
     }
   });
@@ -321,6 +421,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   peer.on('stream', (remoteStream) => {
     if (!isSessionEventCurrent(sessionId)) return;
     callActive = true;
+    activeRemoteStream = remoteStream;
     setCallState('connected', { source: 'remote_stream' });
     onStream?.(remoteStream, stream);
   });
@@ -328,7 +429,12 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   // Nieuwe tracks na renegotiatie (video upgrade)
   peer.on('track', (track, streams) => {
     if (!isSessionEventCurrent(sessionId)) return;
-    if (streams?.[0]) { callActive = true; setCallState('connected', { source: 'remote_track' }); onStream?.(streams[0], stream); }
+    if (streams?.[0]) {
+      callActive = true;
+      activeRemoteStream = streams[0];
+      setCallState('connected', { source: 'remote_track' });
+      onStream?.(streams[0], stream);
+    }
   });
 
   // Remote vraagt video upgrade: laat de gebruiker zelf beslissen
@@ -349,17 +455,45 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
     onEnd?.(reason);
   }
 
-  peer.on('close', () => { fireOnEnd(); setCallState('ended', { source: 'peer_close' }); cleanupCall(stream, sessionId); });
-  peer.on('error', (e) => { console.warn('[Pulse] Fout: WebRTC error:', e.message); setCallState('failed', { source: 'peer_error', message: e.message }); fireOnEnd(); cleanupCall(stream, sessionId); });
+  peer.on('close', () => {
+    detachPeerDebug();
+    fireOnEnd();
+    setCallState('ended', { source: 'peer_close' });
+    cleanupCall(stream, sessionId);
+  });
+  peer.on('error', (e) => {
+    detachPeerDebug();
+    console.warn('[Pulse] Fout: WebRTC error:', e.message);
+    setCallState('failed', { source: 'peer_error', message: e.message });
+    fireOnEnd();
+    cleanupCall(stream, sessionId);
+  });
 
   // ICE candidates ontvangen — oude handler eerst verwijderen
   if (iceHandler) { socket.off('call:ice-candidate', iceHandler); }
-  iceHandler = ({ candidate, sessionId: incomingSessionId }) => {
+  iceHandler = ({ candidate, fromUid, sessionId: incomingSessionId }) => {
     if (incomingSessionId && !isSessionEventCurrent(incomingSessionId)) {
       logIgnoredSessionEvent('call:ice-candidate', incomingSessionId);
       return;
     }
-    peer?.signal(candidate);
+    if (fromUid && callPeer && fromUid !== callPeer) {
+      console.info('[Pulse][Call] ignore candidate from unexpected peer', {
+        sessionId: describeSession(incomingSessionId),
+        fromUid,
+        expectedFromUid: callPeer,
+      });
+      return;
+    }
+    if (!remoteDescriptionReady) {
+      queueRemoteIceCandidate(candidate, incomingSessionId, 'start_call');
+      return;
+    }
+    console.info('[Pulse][Call] ice received', { sessionId: describeSession(incomingSessionId), source: 'start_call' });
+    try {
+      peer?.signal(candidate);
+    } catch (error) {
+      console.warn('[Pulse][Call] ICE signal toepassen mislukt:', error?.message || error);
+    }
   };
   socket.on('call:ice-candidate', iceHandler);
 
@@ -370,7 +504,11 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
       logIgnoredSessionEvent('call:renegotiate', incomingSessionId);
       return;
     }
-    peer?.signal(signal);
+    try {
+      peer?.signal(signal);
+    } catch (error) {
+      console.warn('[Pulse][Call] Renegotiate signal toepassen mislukt:', error?.message || error);
+    }
   };
   socket.on('call:renegotiate', renegotiateHandler);
 
@@ -384,7 +522,15 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
     clearTimeout(callTimeout);
     callActive = true;
     setCallState('connected', { source: 'answer_received' });
-    peer?.signal(answer);
+    try {
+      peer?.signal(answer);
+      markRemoteDescriptionReady(incomingSessionId, 'answer_received');
+    } catch (error) {
+      console.warn('[Pulse][Call] Answer signal toepassen mislukt:', error?.message || error);
+      setCallState('failed', { source: 'answer_apply_failed' });
+      fireOnEnd('failed');
+      cleanupCall(stream, sessionId);
+    }
   };
   socket.on('call:answer', callAnswerHandler);
 
@@ -399,6 +545,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
 
   callEndedHandler = ({ sessionId: incomingSessionId } = {}) => {
     if (incomingSessionId && !isSessionEventCurrent(incomingSessionId)) { logIgnoredSessionEvent('call:ended', incomingSessionId); return; }
+    detachPeerDebug();
     clearCallLifecycleHandlers();
     setCallState('ended', { source: 'remote_end' });
     fireOnEnd();
@@ -406,6 +553,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   };
   callDeclinedHandler = ({ sessionId: incomingSessionId } = {}) => {
     if (incomingSessionId && !isSessionEventCurrent(incomingSessionId)) { logIgnoredSessionEvent('call:declined', incomingSessionId); return; }
+    detachPeerDebug();
     clearCallLifecycleHandlers();
     setCallState('ended', { source: 'remote_declined' });
     fireOnEnd('declined');
@@ -413,6 +561,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   };
   callUnavailableHandler = ({ sessionId: incomingSessionId } = {}) => {
     if (incomingSessionId && !isSessionEventCurrent(incomingSessionId)) { logIgnoredSessionEvent('call:unavailable', incomingSessionId); return; }
+    detachPeerDebug();
     clearCallLifecycleHandlers();
     setCallState('failed', { source: 'remote_unavailable' });
     fireOnEnd('unavailable');
@@ -420,6 +569,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   };
   callBusyHandler = ({ sessionId: incomingSessionId } = {}) => {
     if (incomingSessionId && !isSessionEventCurrent(incomingSessionId)) { logIgnoredSessionEvent('call:busy', incomingSessionId); return; }
+    detachPeerDebug();
     clearCallLifecycleHandlers();
     setCallState('failed', { source: 'remote_busy' });
     fireOnEnd('busy');
@@ -439,9 +589,16 @@ export async function answerCall({ fromUid, offer, sessionId: incomingSessionId 
     throw new Error('Er is al een actief gesprek. Weiger eerst het huidige gesprek.');
   }
   await ensureSocketConnection();
+  if (peer) {
+    const previousSessionId = currentCallSessionId;
+    cleanupCall(null, previousSessionId);
+  }
   const sessionId = incomingSessionId || currentCallSessionId || buildCallSessionId();
   currentCallSessionId = sessionId;
   setCallState('connecting', { source: 'answer_call', fromUid, isVideo: !!isVideo });
+  pendingRemoteIceCandidates = [];
+  remoteDescriptionReady = false;
+  activeRemoteStream = null;
   let stream;
   try {
     stream = await requestCallMedia({ isVideo });
@@ -456,6 +613,7 @@ export async function answerCall({ fromUid, offer, sessionId: incomingSessionId 
   }
 
   callPeer = fromUid;
+  activeLocalStream = stream;
   const iceServers = await getIceServers(undefined, onConnectionFallback);
   clearCallLifecycleHandlers();
 
@@ -465,20 +623,34 @@ export async function answerCall({ fromUid, offer, sessionId: incomingSessionId 
     stream,
     config: { iceServers }
   });
-  peer.signal(offer);
+  const detachPeerDebug = bindPeerConnectionDebugHandlers(peer, sessionId);
+  try {
+    peer.signal(offer);
+    markRemoteDescriptionReady(sessionId, 'incoming_offer_applied');
+  } catch (error) {
+    detachPeerDebug();
+    console.warn('[Pulse][Call] Offer signal toepassen mislukt:', error?.message || error);
+    setCallState('failed', { source: 'offer_apply_failed' });
+    onEnd?.('failed');
+    cleanupCall(stream, sessionId);
+    throw new Error('Oproep kon niet worden geaccepteerd.');
+  }
 
   peer.on('signal', (data) => {
     if (data.type === 'answer') {
+      console.info('[Pulse][Call] answer created', { sessionId });
       socket.emit('call:answer', { to: fromUid, answer: data, sessionId });
     } else if (data.type === 'offer') {
       socket.emit('call:renegotiate', { to: fromUid, signal: data, sessionId });
     } else {
+      console.info('[Pulse][Call] ice sent', { sessionId });
       socket.emit('call:ice-candidate', { to: fromUid, candidate: data, sessionId });
     }
   });
 
   peer.on('stream', (remoteStream) => {
     if (!isSessionEventCurrent(sessionId)) return;
+    activeRemoteStream = remoteStream;
     setCallState('connected', { source: 'remote_stream' });
     onStream?.(remoteStream, stream);
   });
@@ -486,7 +658,11 @@ export async function answerCall({ fromUid, offer, sessionId: incomingSessionId 
   // Nieuwe tracks na renegotiatie (video upgrade)
   peer.on('track', (track, streams) => {
     if (!isSessionEventCurrent(sessionId)) return;
-    if (streams?.[0]) { setCallState('connected', { source: 'remote_track' }); onStream?.(streams[0], stream); }
+    if (streams?.[0]) {
+      activeRemoteStream = streams[0];
+      setCallState('connected', { source: 'remote_track' });
+      onStream?.(streams[0], stream);
+    }
   });
 
   // Remote vraagt video upgrade: laat de gebruiker zelf beslissen
@@ -500,17 +676,45 @@ export async function answerCall({ fromUid, offer, sessionId: incomingSessionId 
   };
   socket.on('call:video-upgrade', videoUpgradeHandler);
 
-  peer.on('close', () => { setCallState('ended', { source: 'peer_close' }); onEnd?.(); cleanupCall(stream, sessionId); });
-  peer.on('error', (e) => { console.warn('[Pulse] Fout: WebRTC error:', e.message); setCallState('failed', { source: 'peer_error', message: e.message }); onEnd?.(); cleanupCall(stream, sessionId); });
+  peer.on('close', () => {
+    detachPeerDebug();
+    setCallState('ended', { source: 'peer_close' });
+    onEnd?.();
+    cleanupCall(stream, sessionId);
+  });
+  peer.on('error', (e) => {
+    detachPeerDebug();
+    console.warn('[Pulse] Fout: WebRTC error:', e.message);
+    setCallState('failed', { source: 'peer_error', message: e.message });
+    onEnd?.();
+    cleanupCall(stream, sessionId);
+  });
 
   // ICE candidates ontvangen — oude handler eerst verwijderen
   if (iceHandler) { socket.off('call:ice-candidate', iceHandler); }
-  iceHandler = ({ candidate, sessionId: incomingSessionId }) => {
+  iceHandler = ({ candidate, fromUid, sessionId: incomingSessionId }) => {
     if (incomingSessionId && !isSessionEventCurrent(incomingSessionId)) {
       logIgnoredSessionEvent('call:ice-candidate', incomingSessionId);
       return;
     }
-    peer?.signal(candidate);
+    if (fromUid && callPeer && fromUid !== callPeer) {
+      console.info('[Pulse][Call] ignore candidate from unexpected peer', {
+        sessionId: describeSession(incomingSessionId),
+        fromUid,
+        expectedFromUid: callPeer,
+      });
+      return;
+    }
+    if (!remoteDescriptionReady) {
+      queueRemoteIceCandidate(candidate, incomingSessionId, 'answer_call');
+      return;
+    }
+    console.info('[Pulse][Call] ice received', { sessionId: describeSession(incomingSessionId), source: 'answer_call' });
+    try {
+      peer?.signal(candidate);
+    } catch (error) {
+      console.warn('[Pulse][Call] ICE signal toepassen mislukt:', error?.message || error);
+    }
   };
   socket.on('call:ice-candidate', iceHandler);
 
@@ -521,12 +725,17 @@ export async function answerCall({ fromUid, offer, sessionId: incomingSessionId 
       logIgnoredSessionEvent('call:renegotiate', incomingSessionId);
       return;
     }
-    peer?.signal(signal);
+    try {
+      peer?.signal(signal);
+    } catch (error) {
+      console.warn('[Pulse][Call] Renegotiate signal toepassen mislukt:', error?.message || error);
+    }
   };
   socket.on('call:renegotiate', renegotiateHandler);
 
   callEndedHandler = ({ sessionId: incomingSessionId } = {}) => {
     if (incomingSessionId && !isSessionEventCurrent(incomingSessionId)) { logIgnoredSessionEvent('call:ended', incomingSessionId); return; }
+    detachPeerDebug();
     clearCallLifecycleHandlers();
     setCallState('ended', { source: 'remote_end' });
     onEnd?.();
@@ -587,13 +796,24 @@ export async function upgradeToVideo() {
 function cleanupCall(stream, sessionId = null) {
   if (sessionId && currentCallSessionId && sessionId !== currentCallSessionId) return;
   clearCallLifecycleHandlers();
+  try {
+    peer?._pc?.close?.();
+  } catch (error) {
+    console.warn('[Pulse][Call] peer.close mislukt:', error?.message || error);
+  }
   peer?.destroy();
   peer = null;
   callPeer = null;
+  remoteDescriptionReady = false;
+  pendingRemoteIceCandidates = [];
   currentCallSessionId = null;
   setCallState('idle', { source: 'cleanup' });
-  stream?.getTracks().forEach(t => t.stop());
+  (stream || activeLocalStream)?.getTracks?.().forEach((track) => track.stop());
+  activeLocalStream = null;
+  activeRemoteStream?.getTracks?.().forEach((track) => track.stop());
+  activeRemoteStream = null;
   if (iceHandler)         { socket?.off('call:ice-candidate', iceHandler);   iceHandler = null; }
   if (renegotiateHandler) { socket?.off('call:renegotiate',   renegotiateHandler); renegotiateHandler = null; }
   if (videoUpgradeHandler){ socket?.off('call:video-upgrade', videoUpgradeHandler); videoUpgradeHandler = null; }
+  console.info('[Pulse][Call] cleanup completed');
 }

@@ -30,9 +30,24 @@ async function getIceServers(authToken, onFallback) {
       signal: controller.signal,
     });
     if (res.ok) {
-      const { iceServers } = await res.json();
+      const { iceServers, hasTurn, source } = await res.json();
       if (!Array.isArray(iceServers) || iceServers.length === 0) {
         throw new Error('Geen TURN-servers ontvangen');
+      }
+      const turnDetected = iceServers.some((server) => {
+        const urls = Array.isArray(server?.urls) ? server.urls : [server?.urls];
+        return urls.some((url) => typeof url === 'string' && url.toLowerCase().startsWith('turn:'));
+      });
+      if (!turnDetected) {
+        console.warn('[Pulse][Call] TURN ontbreekt in backend ICE-config; STUN-only fallback actief', {
+          source: source || 'unknown',
+          hasTurn: Boolean(hasTurn),
+        });
+      } else {
+        console.info('[Pulse][Call] ICE-config met TURN geladen', {
+          source: source || 'unknown',
+          serverCount: iceServers.length,
+        });
       }
       _iceServers = iceServers;
       _iceServersExpiry = Date.now() + 3600_000; // 1 uur cache

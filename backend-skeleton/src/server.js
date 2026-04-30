@@ -34,6 +34,85 @@ const app = express();
 const server = http.createServer(app);
 const { io, emitToUser } = createSocketServer(server);
 const startedAt = new Date().toISOString();
+const DEFAULT_STUN_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  { urls: 'stun:global.stun.twilio.com:3478' },
+];
+
+function normalizeIceServer(entry) {
+  if (!entry || typeof entry !== 'object') return null;
+  const urls = Array.isArray(entry.urls)
+    ? entry.urls.map((url) => String(url || '').trim()).filter(Boolean)
+    : [String(entry.urls || '').trim()].filter(Boolean);
+  if (urls.length === 0) return null;
+
+  const normalized = { urls: urls.length === 1 ? urls[0] : urls };
+  if (typeof entry.username === 'string' && entry.username.trim()) {
+    normalized.username = entry.username.trim();
+  }
+  if (typeof entry.credential === 'string' && entry.credential.trim()) {
+    normalized.credential = entry.credential.trim();
+  }
+  if (typeof entry.credentialType === 'string' && entry.credentialType.trim()) {
+    normalized.credentialType = entry.credentialType.trim();
+  }
+  return normalized;
+}
+
+function parseIceServersJson(raw) {
+  if (!raw || typeof raw !== 'string') return [];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(normalizeIceServer).filter(Boolean);
+  } catch (error) {
+    console.warn('[Pulse][TURN] Ongeldige ICE_SERVERS_JSON, fallback naar STUN:', error?.message || error);
+    return [];
+  }
+}
+
+function parseTurnUrls(raw) {
+  if (!raw || typeof raw !== 'string') return [];
+  return raw.split(',').map((value) => value.trim()).filter(Boolean);
+}
+
+function buildTurnServerFromEnv() {
+  const urls = parseTurnUrls(process.env.TURN_URLS || process.env.WEBRTC_TURN_URLS || '');
+  const username = String(process.env.TURN_USERNAME || process.env.WEBRTC_TURN_USERNAME || '').trim();
+  const credential = String(process.env.TURN_PASSWORD || process.env.TURN_CREDENTIAL || process.env.WEBRTC_TURN_CREDENTIAL || '').trim();
+  if (urls.length === 0 || !username || !credential) return null;
+  return {
+    urls: urls.length === 1 ? urls[0] : urls,
+    username,
+    credential,
+    credentialType: 'password',
+  };
+}
+
+function buildIceServersConfig() {
+  const configuredIceServers = parseIceServersJson(process.env.ICE_SERVERS_JSON || process.env.WEBRTC_ICE_SERVERS_JSON || '');
+  const turnServer = buildTurnServerFromEnv();
+  const fromEnv = turnServer ? [...configuredIceServers, turnServer] : configuredIceServers;
+  const unique = [];
+  const seen = new Set();
+  for (const server of fromEnv) {
+    const key = JSON.stringify(server);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(server);
+  }
+  const iceServers = [...unique, ...DEFAULT_STUN_SERVERS];
+  const hasTurn = iceServers.some((server) => {
+    const urls = Array.isArray(server.urls) ? server.urls : [server.urls];
+    return urls.some((url) => typeof url === 'string' && url.toLowerCase().startsWith('turn:'));
+  });
+  return {
+    iceServers,
+    hasTurn,
+    source: unique.length > 0 ? 'env_configured' : 'backend_fallback',
+  };
+}
 
 app.use(securityHeaders);
 app.use(express.json());
@@ -148,14 +227,12 @@ app.post('/api/fcm-token', appOnlyCors, requireAppOrigin, requireAuth, async (re
 
 app.options('/api/turn-credentials', appOnlyCors);
 app.get('/api/turn-credentials', appOnlyCors, requireAppOrigin, (_req, res) => {
+  const { iceServers, hasTurn, source } = buildIceServersConfig();
   return res.json({
     ok: true,
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun.cloudflare.com:3478' },
-      { urls: 'stun:global.stun.twilio.com:3478' },
-    ],
-    source: 'backend_fallback',
+    iceServers,
+    hasTurn,
+    source,
     requestId: _req.requestId,
   });
 });

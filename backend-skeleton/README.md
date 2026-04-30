@@ -91,6 +91,25 @@ Daarnaast ondersteunt de policieservice nu ook:
 - quiet hours voor chat/call/video deny
 - aparte call/video-beslissingen via `mayStartCall(...)`
 
+## TURN Configuratie Voor Calls
+
+Endpoint:
+
+- `GET /api/turn-credentials` (app-origin protected)
+
+Standaard geeft dit endpoint STUN-servers terug. Voor stabiele audio/video calls op mobiel, streng wifi en NAT/firewall netwerken moet je TURN configureren via env vars op de backend.
+
+Ondersteunde configuraties:
+
+1. `ICE_SERVERS_JSON` met volledige JSON-array van ICE servers (aanbevolen voor meerdere TURN endpoints).
+2. `TURN_URLS`, `TURN_USERNAME`, `TURN_PASSWORD` als eenvoudige TURN-config.
+
+Gedrag:
+
+- Backend combineert geconfigureerde TURN/ICE servers met bestaande STUN fallback.
+- Frontend haalt credentials runtime op via `/api/turn-credentials`.
+- Er staan geen TURN secrets hardcoded in de frontend bundle.
+
 ## Call Routes En Socket Relay
 
 Deze skeleton bevat nu ook:

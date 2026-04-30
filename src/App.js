@@ -21,7 +21,7 @@ import {
   shouldBootstrapE2EEDevice,
 } from './lib/e2ee/config';
 import { importLegacyE2EEStateIfNeeded } from './lib/e2ee/originStorageMigration';
-import { clearPulseUserStorage, readCachedConversations, scheduleIdleTask } from './utils';
+import { clearPulseUserStorage, scheduleIdleTask } from './utils';
 import { isNativePulseEnvironment } from './lib/platform/runtime';
 import { setupPulsePushNotifications } from './services/pushNotifications';
 
@@ -213,44 +213,6 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
   );
 }
 
-function CachedResumeShell({ cachedConversations = [] }) {
-  return (
-    <div className="splash" style={{ alignItems: 'stretch', justifyContent: 'flex-start', padding: '16px' }}>
-      <div className="auth-card" style={{ width: '100%', maxWidth: 560, margin: '0 auto', maxHeight: 'none' }}>
-        <div className="auth-logo" aria-hidden="true">
-          <PulseLogo size={34} textSize={24} />
-        </div>
-        <h2 className="auth-title" style={{ marginBottom: 6 }}>Chats laden…</h2>
-        <p className="auth-sub" style={{ marginBottom: 14 }}>Je laatste gesprekken staan alvast klaar terwijl Pulse synchroniseert.</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {(cachedConversations.length ? cachedConversations : [{ id: 'placeholder', isPlaceholder: true }]).slice(0, 8).map((conversation, index) => (
-            <div
-              key={conversation.id || `placeholder-${index}`}
-              style={{
-                border: '1px solid rgba(255,255,255,.08)',
-                borderRadius: 12,
-                background: 'rgba(255,255,255,.04)',
-                padding: '10px 12px',
-              }}
-            >
-              <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>
-                {conversation.isPlaceholder
-                  ? 'Gesprekken synchroniseren'
-                  : (conversation.isGroup
-                    ? (conversation.groupName || 'Groepsgesprek')
-                    : (Object.values(conversation.memberNames || {}).find(Boolean) || 'Contactpersoon'))}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {conversation.isPlaceholder ? 'Even geduld…' : (conversation.lastMessage || 'Open gesprek')}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   const pathname = window.location.pathname;
 
@@ -308,9 +270,6 @@ export default function App() {
 
 function MainApp() {
   const urlParams = new URLSearchParams(window.location.search);
-  const hadSessionAtBoot = typeof window !== 'undefined' && localStorage.getItem('pulse_user') === '1';
-  const cachedSessionUid = typeof window !== 'undefined' ? localStorage.getItem('pulse_last_uid') : null;
-  const cachedConversations = cachedSessionUid ? readCachedConversations(cachedSessionUid) : [];
   const [user,         setUser]         = useState(null);
   const [authReady,    setAuthReady]    = useState(false);
   const [incomingCall,    setIncomingCall]    = useState(null);
@@ -756,10 +715,6 @@ function MainApp() {
       navigator.geolocation.clearWatch(watchId);
     };
   }, [user, userRole]);
-
-  if (!authReady && hadSessionAtBoot) {
-    return <CachedResumeShell cachedConversations={cachedConversations} />;
-  }
 
   if (!authReady) return (
     <div className="splash">

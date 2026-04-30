@@ -1768,6 +1768,7 @@ export default function ChatModals({
       {callsAvailable && activeCall && (
         <CallOverlay
           active={activeCall}
+          contacts={contacts}
           user={user}
           onClose={() => setActiveCall(null)}
           onEnd={() => setActiveCall(null)}

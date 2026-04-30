@@ -1,9 +1,9 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade } from '../services/socket';
-import { Phone, Video, Mic, MicOff, Camera, Cancel } from './Icons';
+import { Phone, Video, Mic, MicOff, Camera, Cancel, UserPlus, Message } from './Icons';
 
-export default function CallOverlay({ incoming, active, user, onClose, onEnd }) {
+export default function CallOverlay({ incoming, active, contacts = [], user, onClose, onEnd }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
   const [callMsg,      setCallMsg]      = useState('');
   const [timer,        setTimer]        = useState(0);
@@ -12,6 +12,8 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
   const [videoUpgraded, setVideoUpgraded] = useState(false);
   const [videoUpgradeRequest, setVideoUpgradeRequest] = useState(false);
   const [minimized,    setMinimized]    = useState(false);
+  const [showAddPersonPanel, setShowAddPersonPanel] = useState(false);
+  const [addPersonQuery, setAddPersonQuery] = useState('');
 
   const localVideoRef   = useRef(null);
   const remoteVideoRef  = useRef(null);
@@ -169,6 +171,30 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
     }
   }
 
+  function handleOpenChat() {
+    setMinimized(true);
+  }
+
+  function handleAddParticipant() {
+    setShowAddPersonPanel(true);
+    setAddPersonQuery('');
+  }
+
+  const filteredContacts = contacts
+    .filter((contact) => contact?.uid && contact.uid !== user?.uid)
+    .filter((contact) => {
+      const query = addPersonQuery.trim().toLowerCase();
+      if (!query) return true;
+      return String(contact.displayName || '').toLowerCase().includes(query)
+        || String(contact.email || '').toLowerCase().includes(query);
+    })
+    .slice(0, 12);
+
+  function handleSelectParticipant(contact) {
+    setShowAddPersonPanel(false);
+    setCallMsg(`${contact?.displayName || contact?.email || 'Contact'} toevoegen aan gesprek komt binnenkort.`);
+  }
+
   function formatTimer(s) {
     return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
   }
@@ -239,6 +265,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
 
   const isVideo   = incoming?.isVideo || active?.isVideo || videoUpgraded;
   const callName  = incoming?.callerName || active?.name || 'Contactpersoon';
+  const isVoiceActiveLayout = !isVideo && callState !== 'incoming' && callState !== 'ended';
 
   const canMinimize = callState === 'calling' || callState === 'active' || callState === 'connecting';
 
@@ -273,8 +300,19 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         </div>
       )}
 
+      {callState !== 'incoming' && callState !== 'ended' && (
+        <div className="call-side-quick-actions" aria-label="Snelle gespreksacties">
+          <button type="button" className="call-side-action-btn" onClick={handleAddParticipant} title="Persoon toevoegen">
+            <UserPlus size={18} aria-hidden="true" />
+          </button>
+          <button type="button" className="call-side-action-btn" onClick={handleOpenChat} title="Open chat">
+            <Message size={18} aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
       {/* ── CALL CARD ── */}
-      <div className={`call-card ${isVideo && callState === 'active' ? 'transparent' : ''}`}>
+      <div className={`call-card ${isVideo && callState === 'active' ? 'transparent' : ''} ${isVoiceActiveLayout ? 'voice-active' : ''}`}>
         {canMinimize && (
           <button type="button" className="call-minimize-btn" aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -304,7 +342,7 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
         {callState === 'ended'       && <div className="call-status call-status-error" role="status" aria-live="assertive">{callMsg}</div>}
 
         {/* ── KNOPPEN ── */}
-        {callState !== 'ended' && <div className="call-controls">
+        {callState !== 'ended' && <div className={`call-controls ${callState !== 'incoming' ? 'active-layout' : ''}`}>
           {callState === 'incoming' ? (
             <>
               <button type="button" className="call-ctrl-btn accept"  onClick={handleAccept}><Phone size={18} aria-hidden="true" /><span>Opnemen</span></button>
@@ -325,11 +363,67 @@ export default function CallOverlay({ incoming, active, user, onClose, onEnd }) 
                   <Video size={18} aria-hidden="true" /><span>Video</span>
                 </button>
               )}
+              <button
+                type="button"
+                className="call-ctrl-btn aux"
+                onClick={handleAddParticipant}
+                title="Persoon toevoegen"
+              >
+                <UserPlus size={18} aria-hidden="true" /><span>+ Persoon</span>
+              </button>
+              <button type="button" className="call-ctrl-btn aux" onClick={handleOpenChat} title="Open chat">
+                <Message size={18} aria-hidden="true" /><span>Chat</span>
+              </button>
               <button type="button" className="call-ctrl-btn end" onClick={handleEnd}><Cancel size={18} aria-hidden="true" /><span>Ophangen</span></button>
             </>
           )}
         </div>}
       </div>
+
+      {showAddPersonPanel && (
+        <div className="call-add-sheet" role="dialog" aria-modal="true" aria-label="Contact toevoegen aan gesprek">
+          <div className="call-add-sheet-head">
+            <strong>Persoon toevoegen</strong>
+            <button
+              type="button"
+              className="call-add-sheet-close"
+              aria-label="Sluiten"
+              onClick={() => setShowAddPersonPanel(false)}
+            >
+              <Cancel size={16} aria-hidden="true" />
+            </button>
+          </div>
+          <input
+            type="text"
+            className="call-add-sheet-input"
+            placeholder="Zoek contact"
+            value={addPersonQuery}
+            onChange={(event) => setAddPersonQuery(event.target.value)}
+            autoFocus
+          />
+          <div className="call-add-sheet-list">
+            {filteredContacts.length === 0 && (
+              <div className="call-add-sheet-empty">Geen contacten gevonden.</div>
+            )}
+            {filteredContacts.map((contact) => (
+              <button
+                key={contact.uid}
+                type="button"
+                className="call-add-sheet-item"
+                onClick={() => handleSelectParticipant(contact)}
+              >
+                <span className="call-add-sheet-avatar">
+                  {(contact.displayName || contact.email || '?').slice(0, 2).toUpperCase()}
+                </span>
+                <span className="call-add-sheet-copy">
+                  <span className="call-add-sheet-name">{contact.displayName || 'Contact'}</span>
+                  <span className="call-add-sheet-sub">{contact.email || 'Pulse contact'}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

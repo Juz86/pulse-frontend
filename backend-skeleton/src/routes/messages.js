@@ -231,6 +231,14 @@ export function messagesRouter({ io, emitToUser }) {
       return res.status(400).json({ error: 'invalid_payload' });
     }
 
+    if (recipientPayloads.length === 0) {
+      console.warn('[Pulse][E2EE] send rejected: empty recipientPayloads', {
+        senderUid: uid,
+        conversationId,
+      });
+      return res.status(400).json({ error: 'no_recipient_devices' });
+    }
+
     const convDoc = await db.collection('conversations').doc(conversationId).get();
     if (!convDoc.exists) {
       return res.status(404).json({ error: 'conversation_not_found' });
@@ -253,6 +261,14 @@ export function messagesRouter({ io, emitToUser }) {
     const uniqueRecipientUserIds = Array.from(new Set(
       recipientPayloads.map((payload) => payload.recipientUserId).filter(Boolean)
     ));
+
+    if (uniqueRecipientUserIds.length === 0) {
+      console.warn('[Pulse][E2EE] send rejected: no recipient user ids', {
+        senderUid: uid,
+        conversationId,
+      });
+      return res.status(400).json({ error: 'no_recipients' });
+    }
 
     for (const payload of recipientPayloads) {
       const recipientDeviceDoc = await db.collection('devices').doc(payload.recipientDeviceId).get();

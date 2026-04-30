@@ -126,6 +126,10 @@ async function ensureSessions(user, remoteUserId) {
     created.push(record);
   }
 
+  if (created.length === 0) {
+    throw new Error('Ontvanger heeft nog geen actief chat-apparaat. Laat de ontvanger opnieuw inloggen en de chat openen.');
+  }
+
   return created;
 }
 
@@ -213,6 +217,10 @@ export const messagingService = {
           encryptedMessageKey: encrypted.encryptedMessageKey,
         });
       }
+    }
+
+    if (recipientPayloads.length === 0) {
+      throw new Error('Geen geldige ontvanger-apparaten gevonden voor dit gesprek.');
     }
 
     const token = await getAuthToken(user);

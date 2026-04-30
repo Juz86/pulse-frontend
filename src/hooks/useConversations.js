@@ -756,9 +756,10 @@ export default function useConversations({
           const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
           storeTransientConversationMessage(conv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
           removePending(optimisticMsg.id);
-        }).catch(() => {
+        }).catch((error) => {
           clearTimeout(failTimer);
           patchMessageAsFailed(optimisticMsg.id);
+          showErrToast(error?.message || 'Bericht verzenden mislukt');
         });
       } else {
         socket.emit('message:send', { convId: conv.id, message: msg }, (savedMsg) => {
@@ -884,10 +885,11 @@ export default function useConversations({
         patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
         const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
         storeTransientConversationMessage(conv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
-      }).catch(() => {
+      }).catch((error) => {
         clearTimeout(failTimer);
         if (!isActiveConversation) return;
         patchMessageAsFailed(optimisticMsg.id);
+        showErrToast(error?.message || 'Contactpersoon delen mislukt');
       });
       return;
     }
@@ -951,9 +953,10 @@ export default function useConversations({
         pendingTempIds.current.delete(failedMsg.id);
         patchMessageAsSent(failedMsg.id, savedMsg, failedMsg.id);
         removePending(failedMsg.id);
-      }).catch(() => {
+      }).catch((error) => {
         clearTimeout(failTimer);
         patchMessageAsFailed(failedMsg.id);
+        showErrToast(error?.message || 'Opnieuw versturen mislukt');
       });
     } else {
       socket.emit('message:send', {

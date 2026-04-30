@@ -226,6 +226,17 @@ async function listChildrenForParent(parentUid) {
   return fallback.docs.map((doc) => ({ uid: doc.id, ...doc.data() }));
 }
 
+async function getUserProfile(uid) {
+  if (!uid) return null;
+  const doc = await db.collection('users').doc(uid).get();
+  if (!doc.exists) return null;
+  return { uid: doc.id, ...doc.data() };
+}
+
+function normalizeInviteEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
 parentRouter.get('/children', requireAuth, asyncRoute(async (req, res) => {
   const parentUid = req.auth.uid;
   const children = await listChildrenForParent(parentUid);
@@ -244,6 +255,173 @@ parentRouter.get('/children', requireAuth, asyncRoute(async (req, res) => {
   }));
 
   return res.json(withPolicies);
+}));
+
+parentRouter.get('/coparent-invitations', requireAuth, asyncRoute(async (req, res) => {
+  const uid = req.auth.uid;
+  const me = await getUserProfile(uid);
+  const myEmail = normalizeInviteEmail(me?.email || '');
+  if (!myEmail) return res.json([]);
+
+  const snap = await db
+    .collection('coparentInvitations')
+    .where('toEmail', '==', myEmail)
+    .where('status', '==', 'pending')
+    .orderBy('createdAt', 'desc')
+    .limit(25)
+    .get();
+
+  const invitations = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  return res.json(invitations);
+}));
+
+parentRouter.post('/invite-coparent', requireAuth, asyncRoute(async (req, res) => {
+  const fromParentUid = req.auth.uid;
+  const childUid = String(req.body?.childUid || '').trim();
+  const toEmail = normalizeInviteEmail(req.body?.toEmail);
+
+  if (!childUid || !toEmail.includes('@')) {
+    return res.status(400).json({ error: 'invalid_invite_payload' });
+  }
+
+  if (!(await ensureParentAccess(fromParentUid, childUid, res))) {
+    return;
+  }
+
+  const [fromParent, child] = await Promise.all([
+    getUserProfile(fromParentUid),
+    getUserProfile(childUid),
+  ]);
+
+  if (!child) return res.status(404).json({ error: 'child_not_found' });
+  if (child.parentUid !== fromParentUid) {
+    return res.status(403).json({ error: 'only_primary_parent_can_invite_coparent' });
+  }
+
+  if (normalizeInviteEmail(fromParent?.email) === toEmail) {
+    return res.status(400).json({ error: 'cannot_invite_self' });
+  }
+
+  const targetSnap = await db
+    .collection('users')
+    .where('email', '==', toEmail)
+    .where('role', '==', 'parent')
+    .limit(1)
+    .get();
+  const targetParentUid = !targetSnap.empty ? targetSnap.docs[0].id : null;
+
+  if (targetParentUid && child.managedByParentId === targetParentUid) {
+    return res.status(409).json({ error: 'coparent_already_assigned' });
+  }
+
+  const existingInviteSnap = await db
+    .collection('coparentInvitations')
+    .where('childUid', '==', childUid)
+    .where('toEmail', '==', toEmail)
+    .where('status', '==', 'pending')
+    .limit(1)
+    .get();
+  if (!existingInviteSnap.empty) {
+    return res.status(409).json({ error: 'pending_invitation_already_exists' });
+  }
+
+  const now = new Date().toISOString();
+  const inviteRef = db.collection('coparentInvitations').doc();
+  await inviteRef.set({
+    id: inviteRef.id,
+    childUid,
+    childName: child.displayName || child.username || childUid,
+    fromParentUid,
+    fromParentName: fromParent?.displayName || fromParent?.username || fromParentUid,
+    fromParentEmail: normalizeInviteEmail(fromParent?.email || ''),
+    toEmail,
+    toParentUid: targetParentUid || null,
+    status: 'pending',
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  return res.json({ ok: true, invitationId: inviteRef.id });
+}));
+
+parentRouter.post('/coparent-invitations/:inviteId/accept', requireAuth, asyncRoute(async (req, res) => {
+  const uid = req.auth.uid;
+  const inviteId = String(req.params.inviteId || '').trim();
+  if (!inviteId) return res.status(400).json({ error: 'missing_invite_id' });
+
+  const me = await getUserProfile(uid);
+  const myEmail = normalizeInviteEmail(me?.email || '');
+  if (!myEmail) return res.status(400).json({ error: 'parent_email_missing' });
+
+  const inviteRef = db.collection('coparentInvitations').doc(inviteId);
+  const inviteDoc = await inviteRef.get();
+  if (!inviteDoc.exists) return res.status(404).json({ error: 'invitation_not_found' });
+  const invite = inviteDoc.data() || {};
+
+  if (normalizeInviteEmail(invite.toEmail) !== myEmail) {
+    return res.status(403).json({ error: 'invitation_not_for_current_parent' });
+  }
+  if (invite.status !== 'pending') {
+    return res.status(409).json({ error: 'invitation_already_resolved' });
+  }
+
+  const childUid = String(invite.childUid || '').trim();
+  const childRef = db.collection('users').doc(childUid);
+  const childDoc = await childRef.get();
+  if (!childDoc.exists) return res.status(404).json({ error: 'child_not_found' });
+  const child = childDoc.data() || {};
+
+  await childRef.set({
+    managedByParentId: uid,
+    updatedAt: new Date().toISOString(),
+  }, { merge: true });
+
+  await ensureParentChildContactLinks({
+    parentUid: uid,
+    childUid,
+    parentData: me || { uid },
+    childData: { uid: childUid, ...child },
+  });
+
+  await inviteRef.set({
+    status: 'accepted',
+    toParentUid: uid,
+    respondedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }, { merge: true });
+
+  return res.json({ ok: true, childUid });
+}));
+
+parentRouter.post('/coparent-invitations/:inviteId/decline', requireAuth, asyncRoute(async (req, res) => {
+  const uid = req.auth.uid;
+  const inviteId = String(req.params.inviteId || '').trim();
+  if (!inviteId) return res.status(400).json({ error: 'missing_invite_id' });
+
+  const me = await getUserProfile(uid);
+  const myEmail = normalizeInviteEmail(me?.email || '');
+  if (!myEmail) return res.status(400).json({ error: 'parent_email_missing' });
+
+  const inviteRef = db.collection('coparentInvitations').doc(inviteId);
+  const inviteDoc = await inviteRef.get();
+  if (!inviteDoc.exists) return res.status(404).json({ error: 'invitation_not_found' });
+  const invite = inviteDoc.data() || {};
+
+  if (normalizeInviteEmail(invite.toEmail) !== myEmail) {
+    return res.status(403).json({ error: 'invitation_not_for_current_parent' });
+  }
+  if (invite.status !== 'pending') {
+    return res.status(409).json({ error: 'invitation_already_resolved' });
+  }
+
+  await inviteRef.set({
+    status: 'declined',
+    toParentUid: uid,
+    respondedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }, { merge: true });
+
+  return res.json({ ok: true });
 }));
 
 parentRouter.get('/settings', requireAuth, asyncRoute(async (req, res) => {

@@ -36,4 +36,16 @@ export const sessionStore = {
 
     return results;
   },
+
+  async clearByUser(uid, remoteUserId) {
+    const prefix = `pulse_e2ee_session_${uid}_${remoteUserId}_`;
+    const keys = [];
+
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(prefix)) keys.push(key);
+    }
+
+    keys.forEach((key) => localStorage.removeItem(key));
+  },
 };

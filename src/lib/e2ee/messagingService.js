@@ -133,6 +133,27 @@ async function ensureSessions(user, remoteUserId) {
   return created;
 }
 
+async function sendEncryptedPayload({ token, body }) {
+  const res = await fetch(`${BACKEND_URL}/messages/send`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const payload = await res.json().catch(() => null);
+  if (!res.ok) {
+    const error = new Error(payload?.error || 'Bericht versturen mislukt.');
+    error.status = res.status;
+    error.code = payload?.error || 'request_failed';
+    throw error;
+  }
+
+  return payload;
+}
+
 async function hydrateMockCiphertext(raw, currentUserId) {
   if (E2EE_MODE !== 'mock' || !raw?.ciphertext) return null;
 
@@ -184,53 +205,49 @@ export const messagingService = {
       throw new Error(outgoingScopeError);
     }
 
-    const recipientPayloads = [];
-    let primaryCiphertext = '';
+    const token = await getAuthToken(user);
     const payloadPlaintext = serializeMessagePayload({
       plaintext,
       messageType,
       sharedContact,
     });
 
-    for (const targetUserId of targetUserIds) {
-      const sessions = await ensureSessions(user, targetUserId);
+    const buildRequestBody = async () => {
+      const recipientPayloads = [];
+      let primaryCiphertext = '';
 
-      for (const session of sessions) {
-        const encrypted = await pulseCryptoAdapter.encryptMessage({
-          sessionData: session.sessionData,
-          plaintext: payloadPlaintext,
-        });
+      for (const targetUserId of targetUserIds) {
+        const sessions = await ensureSessions(user, targetUserId);
 
-        await sessionStore.save(user.uid, {
-          ...session,
-          sessionData: encrypted.updatedSessionData,
-          updatedAt: new Date().toISOString(),
-        });
+        for (const session of sessions) {
+          const encrypted = await pulseCryptoAdapter.encryptMessage({
+            sessionData: session.sessionData,
+            plaintext: payloadPlaintext,
+          });
 
-        if (!primaryCiphertext) {
-          primaryCiphertext = encrypted.ciphertext;
+          await sessionStore.save(user.uid, {
+            ...session,
+            sessionData: encrypted.updatedSessionData,
+            updatedAt: new Date().toISOString(),
+          });
+
+          if (!primaryCiphertext) {
+            primaryCiphertext = encrypted.ciphertext;
+          }
+
+          recipientPayloads.push({
+            recipientUserId: targetUserId,
+            recipientDeviceId: session.remoteDeviceId,
+            encryptedMessageKey: encrypted.encryptedMessageKey,
+          });
         }
-
-        recipientPayloads.push({
-          recipientUserId: targetUserId,
-          recipientDeviceId: session.remoteDeviceId,
-          encryptedMessageKey: encrypted.encryptedMessageKey,
-        });
       }
-    }
 
-    if (recipientPayloads.length === 0) {
-      throw new Error('Geen geldige ontvanger-apparaten gevonden voor dit gesprek.');
-    }
+      if (recipientPayloads.length === 0) {
+        throw new Error('Geen geldige ontvanger-apparaten gevonden voor dit gesprek.');
+      }
 
-    const token = await getAuthToken(user);
-    const res = await fetch(`${BACKEND_URL}/messages/send`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
+      return {
         conversationId,
         senderDeviceId: currentDeviceId,
         ciphertext: primaryCiphertext,
@@ -241,11 +258,23 @@ export const messagingService = {
         protocolVersion: 1,
         replyToMessageId,
         recipientPayloads,
-      }),
-    });
+      };
+    };
 
-    if (!res.ok) throw new Error('Bericht versturen mislukt.');
-    return res.json();
+    try {
+      const requestBody = await buildRequestBody();
+      return await sendEncryptedPayload({ token, body: requestBody });
+    } catch (error) {
+      const recoverable = ['recipient_device_not_found', 'no_recipient_devices'].includes(error?.code);
+      if (!recoverable) throw error;
+
+      for (const targetUserId of targetUserIds) {
+        await sessionStore.clearByUser(user.uid, targetUserId);
+      }
+
+      const retryBody = await buildRequestBody();
+      return sendEncryptedPayload({ token, body: retryBody });
+    }
   },
 
   async hydrateIncomingMessage(raw, currentUserId) {

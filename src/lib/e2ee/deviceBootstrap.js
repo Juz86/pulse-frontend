@@ -8,12 +8,34 @@ function detectPlatform() {
   return 'web';
 }
 
-export async function bootstrapDevice(user) {
-  const existing = await secureKeyStore.getIdentity(user.uid);
-  if (existing) return existing;
+async function hasActiveRegisteredDevice(user, deviceId) {
+  if (!deviceId) return false;
 
   const token = await user.getIdToken();
-  const identityKeyPair = await pulseCryptoAdapter.generateIdentityKeyPair();
+  const res = await fetch(`${BACKEND_URL}/devices`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) return false;
+  const data = await res.json().catch(() => null);
+  const devices = Array.isArray(data?.devices) ? data.devices : [];
+  return devices.some((device) => device?.id === deviceId && device?.status === 'active');
+}
+
+export async function bootstrapDevice(user) {
+  const existing = await secureKeyStore.getIdentity(user.uid);
+  if (existing?.deviceId) {
+    const stillActive = await hasActiveRegisteredDevice(user, existing.deviceId).catch(() => false);
+    if (stillActive) return existing;
+    console.warn('[Pulse][E2EE] Lokaal device bestaat, maar backend-device ontbreekt/inactief. Device wordt opnieuw geregistreerd.');
+  } else if (existing) {
+    console.warn('[Pulse][E2EE] Lokaal identity record zonder deviceId. Device wordt opnieuw geregistreerd.');
+  }
+
+  const token = await user.getIdToken();
+  const identityKeyPair = existing?.identityKeyPair || await pulseCryptoAdapter.generateIdentityKeyPair();
   const signedPreKey = await pulseCryptoAdapter.generateSignedPreKey(identityKeyPair);
   const oneTimePreKeys = await pulseCryptoAdapter.generateOneTimePreKeys(20);
 

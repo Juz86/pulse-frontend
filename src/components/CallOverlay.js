@@ -76,6 +76,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
       const localStream = await answerCall({
         fromUid:  incoming.from,
         offer:    incoming.offer,
+        sessionId: incoming.sessionId || null,
         isVideo:  incoming.isVideo,
         onStream: (remoteStream, localStream) => {
           localStreamRef.current  = localStream;
@@ -101,7 +102,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
 
   // ── Weigeren ─────────────────────────────────────────────────────────────
   function handleDecline() {
-    declineCall(incoming?.from);
+    declineCall(incoming?.from, incoming?.sessionId || null);
     cleanup();
     onClose?.(); // geen argument → gemiste oproep loggen
   }
@@ -109,7 +110,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
   // ── Ophangen ─────────────────────────────────────────────────────────────
   function handleEnd() {
     const toUid = incoming?.from || active?.toUid;
-    if (toUid) endCall(toUid);
+    if (toUid) endCall(toUid, incoming?.sessionId || active?.sessionId || null);
     cleanup();
     onEnd?.();
     onClose?.();

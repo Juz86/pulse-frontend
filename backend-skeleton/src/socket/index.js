@@ -580,7 +580,7 @@ export function createSocketServer(server) {
       ack({ ok: true, msgId, editedAt });
     });
 
-    socket.on('call:offer', async ({ to, offer, isVideo, callerName }) => {
+    socket.on('call:offer', async ({ to, offer, isVideo, callerName, sessionId = null }) => {
       if (!to || !offer || !uid) return;
 
       const decision = await parentPolicyService.mayStartCall(uid, to, !!isVideo);
@@ -592,7 +592,7 @@ export function createSocketServer(server) {
           allowed: false,
           reason: decision.reason || 'call_not_allowed',
         });
-        socket.emit('call:unavailable', { reason: decision.reason || 'call_not_allowed' });
+        socket.emit('call:unavailable', { reason: decision.reason || 'call_not_allowed', sessionId });
         return;
       }
 
@@ -601,35 +601,36 @@ export function createSocketServer(server) {
         offer,
         isVideo: !!isVideo,
         callerName: callerName || 'Iemand',
+        sessionId,
       });
     });
 
-    socket.on('call:answer', ({ to, answer }) => {
+    socket.on('call:answer', ({ to, answer, sessionId = null }) => {
       if (!to || !answer || !uid) return;
-      emitToUser(io, to, 'call:answer', { fromUid: uid, answer });
+      emitToUser(io, to, 'call:answer', { fromUid: uid, answer, sessionId });
     });
 
-    socket.on('call:decline', ({ to }) => {
+    socket.on('call:decline', ({ to, sessionId = null }) => {
       if (!to || !uid) return;
-      emitToUser(io, to, 'call:declined', { fromUid: uid });
+      emitToUser(io, to, 'call:declined', { fromUid: uid, sessionId });
     });
 
-    socket.on('call:end', ({ to }) => {
+    socket.on('call:end', ({ to, sessionId = null }) => {
       if (!to || !uid) return;
-      emitToUser(io, to, 'call:ended', { fromUid: uid });
+      emitToUser(io, to, 'call:ended', { fromUid: uid, sessionId });
     });
 
-    socket.on('call:ice-candidate', ({ to, candidate }) => {
+    socket.on('call:ice-candidate', ({ to, candidate, sessionId = null }) => {
       if (!to || !candidate || !uid) return;
-      emitToUser(io, to, 'call:ice-candidate', { fromUid: uid, candidate });
+      emitToUser(io, to, 'call:ice-candidate', { fromUid: uid, candidate, sessionId });
     });
 
-    socket.on('call:renegotiate', ({ to, signal }) => {
+    socket.on('call:renegotiate', ({ to, signal, sessionId = null }) => {
       if (!to || !signal || !uid) return;
-      emitToUser(io, to, 'call:renegotiate', { fromUid: uid, signal });
+      emitToUser(io, to, 'call:renegotiate', { fromUid: uid, signal, sessionId });
     });
 
-    socket.on('call:video-upgrade', async ({ to }) => {
+    socket.on('call:video-upgrade', async ({ to, sessionId = null }) => {
       if (!to || !uid) return;
 
       const decision = await parentPolicyService.mayStartCall(uid, to, true);
@@ -644,7 +645,12 @@ export function createSocketServer(server) {
         return;
       }
 
-      emitToUser(io, to, 'call:video-upgrade', { fromUid: uid });
+      emitToUser(io, to, 'call:video-upgrade', { fromUid: uid, sessionId });
+    });
+
+    socket.on('call:busy', ({ to, sessionId = null }) => {
+      if (!to || !uid) return;
+      emitToUser(io, to, 'call:busy', { fromUid: uid, sessionId });
     });
 
     socket.on('disconnect', () => {

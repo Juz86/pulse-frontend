@@ -1,7 +1,7 @@
 // src/hooks/useCalling.js
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { getSocket } from '../services/socket';
-import { BACKEND_URL, startCall } from '../services/socket';
+import { BACKEND_URL, startCall, getCurrentCallSessionId } from '../services/socket';
 
 export default function useCalling({
   user,
@@ -326,6 +326,10 @@ export default function useCalling({
   }
 
   async function startCallTo({ toUid, convId, name, isVideo }) {
+    if (activeCall) {
+      showErrToast('Er is al een actief gesprek.');
+      return;
+    }
     if (isVideo ? pausedFeatures.video : pausedFeatures.call) {
       const canChat   = !pausedFeatures.chat;
       const canCall   = !pausedFeatures.call;
@@ -388,7 +392,9 @@ export default function useCalling({
           showErrToast(message);
         },
       });
-      if (stream) setActiveCall({ toUid, isVideo, name, localStream: null, remoteStream: null });
+      if (stream) {
+        setActiveCall({ toUid, isVideo, name, sessionId: getCurrentCallSessionId(), localStream: null, remoteStream: null });
+      }
     } catch (err) {
       showErrToast(err.message);
     }

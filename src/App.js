@@ -5,7 +5,15 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, authPersistenceReady, db, messaging } from './firebase';
 import { doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
-import { connectSocket, disconnectSocket, BACKEND_URL } from './services/socket';
+import {
+  connectSocket,
+  disconnectSocket,
+  BACKEND_URL,
+  isCallInProgress,
+  registerIncomingRingingSession,
+  rejectCallAsBusy,
+  clearIncomingRingingSession,
+} from './services/socket';
 import './App.css';
 import PulseLogo from './components/PulseLogo';
 import AuthModal from './components/AuthModal';
@@ -290,8 +298,13 @@ function MainApp() {
   const toastTimerRef          = useRef(null);
   const pushCleanupRef         = useRef(null);
   const onlineVisibilityRef    = useRef(null);
+  const incomingCallRef        = useRef(null);
   const lastSignedInUidRef     = useRef(null);
   const authQueryHandledRef    = useRef(false);
+
+  useEffect(() => {
+    incomingCallRef.current = incomingCall;
+  }, [incomingCall]);
 
   useEffect(() => scheduleIdleTask(() => {
     fetch(`${BACKEND}/`, { method: 'GET', keepalive: true }).catch((e) => {
@@ -547,23 +560,50 @@ function MainApp() {
           document.addEventListener('visibilitychange', onlineVisibilityRef.current);
 
           // Inkomende oproepen
-          socket.off('call:incoming');
           socket.off('call:offer');
           socket.off('call:ended');
+          socket.off('call:busy');
           const onIncomingCall = (data = {}) => {
+            const fromUid = data.from || data.fromUid || null;
+            const sessionId = data.sessionId || null;
+            if (!fromUid) return;
+
+            if (incomingCallRef.current || isCallInProgress()) {
+              console.info('[Pulse][Call] inkomende oproep geweigerd: al actief', { fromUid, sessionId });
+              rejectCallAsBusy(fromUid, sessionId);
+              return;
+            }
+
+            const accepted = registerIncomingRingingSession(sessionId, fromUid);
+            if (!accepted) {
+              console.info('[Pulse][Call] inkomende oproep geweigerd: session guard', { fromUid, sessionId });
+              rejectCallAsBusy(fromUid, sessionId);
+              return;
+            }
+
             setIncomingCall({
               ...data,
-              from: data.from || data.fromUid || null,
+              from: fromUid,
+              sessionId,
             });
           };
-          socket.on('call:incoming', onIncomingCall);
           socket.on('call:offer', onIncomingCall);
           // Beller hangt op voor de ontvanger opneemt → gemiste oproep loggen + overlay sluiten
-          socket.on('call:ended', () => {
+          socket.on('call:ended', ({ sessionId } = {}) => {
             setIncomingCall(prev => {
+              if (prev && sessionId && prev.sessionId && sessionId !== prev.sessionId) return prev;
               if (prev) {
                 setMissedCallAlert(true);
               }
+              clearIncomingRingingSession(sessionId || null, 'remote_end_before_answer');
+              return null;
+            });
+          });
+          socket.on('call:busy', ({ sessionId } = {}) => {
+            setIncomingCall(prev => {
+              if (!prev) return prev;
+              if (sessionId && prev.sessionId && sessionId !== prev.sessionId) return prev;
+              clearIncomingRingingSession(sessionId || null, 'remote_busy_before_answer');
               return null;
             });
           });
@@ -767,6 +807,7 @@ function MainApp() {
             if (!answered && user) {
               setMissedCallAlert(true);
             }
+            clearIncomingRingingSession(incomingCall?.sessionId || null, answered ? 'incoming_answered' : 'incoming_closed');
             setIncomingCall(null);
           }}
         />

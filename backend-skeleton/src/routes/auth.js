@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { asyncRoute } from '../middleware/asyncRoute.js';
 import { db } from '../services/firestore.js';
 import { getFirebaseCredentialMode } from '../services/firebaseConfig.js';
+import { sendVerificationCodeEmail } from '../services/transactionalEmail.js';
 
 const CODE_TTL_MS = 15 * 60 * 1000;
 
@@ -39,9 +40,31 @@ authRouter.post('/send-code', asyncRoute(async (req, res) => {
     console.log(`[Pulse auth] Dev verificatiecode voor ${email}: ${code}`);
   }
 
+  const emailResult = await sendVerificationCodeEmail({
+    email,
+    code,
+    requestId: req.requestId || null,
+  });
+
+  if (!emailResult.ok && !shouldExposeDebugCode()) {
+    console.error('[Pulse auth] Verificatie e-mail kon niet worden verstuurd', {
+      requestId: req.requestId,
+      email,
+      error: emailResult.error,
+      status: emailResult.status || null,
+      providerBody: emailResult.providerBody || null,
+    });
+    return res.status(503).json({
+      ok: false,
+      error: 'verification_email_unavailable',
+      message: 'Verificatie-e-mail kon niet worden verstuurd. Probeer het zo opnieuw.',
+    });
+  }
+
   return res.json({
     ok: true,
     sent: true,
+    emailProvider: emailResult.ok ? 'resend' : 'dev_bypass',
     ...(shouldExposeDebugCode() ? { debugCode: code } : {}),
   });
 }));

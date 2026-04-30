@@ -58,8 +58,9 @@ async function postJson(path, body, options = {}) {
     }
 
     if (!res.ok) {
-      const err = new Error(data.error || 'Er ging iets mis. Probeer het opnieuw.');
+      const err = new Error(data.message || data.error || 'Er ging iets mis. Probeer het opnieuw.');
       err.status = res.status;
+      err.code = data.error || undefined;
       throw err;
     }
 

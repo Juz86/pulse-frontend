@@ -57,7 +57,7 @@ authRouter.post('/send-code', asyncRoute(async (req, res) => {
     return res.status(503).json({
       ok: false,
       error: 'verification_email_unavailable',
-      message: 'Verificatie-e-mail kon niet worden verstuurd. Probeer het zo opnieuw.',
+      message: 'Verificatiecode versturen mislukt. Probeer het opnieuw.',
     });
   }
 

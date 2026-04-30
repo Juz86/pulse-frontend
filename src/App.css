@@ -4332,7 +4332,10 @@ font-family: 'Inter', sans-serif;
   background:radial-gradient(ellipse at center, rgba(108,99,255,.08) 0%, rgba(0,0,0,.92) 100%);
   backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
   display:flex; align-items:center; justify-content:center;
-  padding:var(--modal-padding);
+  padding-top:max(var(--modal-padding), calc(env(safe-area-inset-top) + 10px));
+  padding-right:max(var(--modal-padding), calc(env(safe-area-inset-right) + 10px));
+  padding-bottom:max(var(--modal-padding), calc(env(safe-area-inset-bottom) + 12px));
+  padding-left:max(var(--modal-padding), calc(env(safe-area-inset-left) + 10px));
   animation:overlay-in .25s ease;
   overflow:hidden;
 }
@@ -4477,6 +4480,8 @@ font-family: 'Inter', sans-serif;
   position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
   width:min(42rem, calc(100vw - 2 * var(--modal-padding)));
   max-width:100%;
+  max-height:min(45vh, 20rem);
+  overflow:auto;
   flex-direction:row; flex-wrap:wrap; justify-content:center; padding:16px 24px; gap:16px;
   border-radius:20px;
   box-shadow:0 8px 32px rgba(0,0,0,.4), 0 0 0 1px rgba(108,99,255,.1);
@@ -4522,6 +4527,7 @@ font-family: 'Inter', sans-serif;
   padding:clamp(12px, 3vw, 16px) clamp(12px, 4vw, 20px); border-radius:20px;
   background:rgba(255,255,255,.03); border:1px solid var(--border);
   width:100%;
+  min-height:0;
 }
 .call-controls.active-layout {
   display:grid;
@@ -4616,6 +4622,7 @@ font-family: 'Inter', sans-serif;
 .call-ctrl-btn.cam     { background:var(--surface3); border:1px solid var(--border); color:var(--text2); }
 .call-ctrl-btn.cam.on  { background:rgba(255,71,87,.15); color:var(--danger); border-color:rgba(255,71,87,.4); box-shadow:0 4px 14px rgba(255,71,87,.2); }
 .call-ctrl-btn.aux     { background:var(--surface3); border:1px solid var(--border); color:var(--text2); }
+.call-ctrl-btn.aux.on  { background:rgba(108,99,255,.18); color:#ddd8ff; border-color:rgba(167,139,250,.48); }
 .call-controls.active-layout .call-ctrl-btn {
   width:100%;
   min-height:clamp(78px, 18vw, 96px);
@@ -4979,6 +4986,10 @@ font-family: 'Inter', sans-serif;
   .call-controls.active-layout .call-ctrl-btn {
     min-height:clamp(72px, 20vw, 88px);
   }
+  .call-card.transparent {
+    max-height:min(52vh, 23rem);
+    overflow-y:auto;
+  }
   .call-side-quick-actions {
     top:max(68px, calc(env(safe-area-inset-top) + 18px));
     right:max(12px, calc(env(safe-area-inset-right) + 8px));
@@ -5036,6 +5047,8 @@ font-family: 'Inter', sans-serif;
     width: min(56rem, calc(100vw - 2 * var(--modal-padding)));
     padding: 14px 18px;
     border-radius: 22px;
+    max-height:min(40vh, 18rem);
+    overflow-y:auto;
   }
 
   .call-card.transparent .call-controls.video-layout {
@@ -5061,6 +5074,15 @@ font-family: 'Inter', sans-serif;
   .call-side-action-btn {
     width: 58px;
     height: 58px;
+  }
+}
+
+@media (min-width: 900px) {
+  .call-card.transparent {
+    width:min(62rem, calc(100vw - 2 * var(--modal-padding)));
+  }
+  .call-controls.active-layout {
+    grid-template-columns:repeat(4, minmax(0, 1fr));
   }
 }
 

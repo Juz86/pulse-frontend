@@ -1,6 +1,6 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade } from '../services/socket';
+import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
 import { Phone, Video, Mic, MicOff, Camera, Cancel, UserPlus, Message } from './Icons';
 
 export default function CallOverlay({ incoming, active, contacts = [], user, onClose, onEnd }) {
@@ -14,6 +14,12 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
   const [minimized,    setMinimized]    = useState(false);
   const [showAddPersonPanel, setShowAddPersonPanel] = useState(false);
   const [addPersonQuery, setAddPersonQuery] = useState('');
+  const [facingMode, setFacingMode] = useState('user');
+  const [switchingCamera, setSwitchingCamera] = useState(false);
+  const [speakerEnabled, setSpeakerEnabled] = useState(true);
+  const [speakerControlAvailable, setSpeakerControlAvailable] = useState(false);
+  const [networkState, setNetworkState] = useState('stable');
+  const closingRef = useRef(false);
 
   const localVideoRef   = useRef(null);
   const remoteVideoRef  = useRef(null);
@@ -94,7 +100,10 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
       localStreamRef.current = localStream;
       if (localVideoRef.current) attachMediaStream(localVideoRef.current, localStream);
     } catch (e) {
-      setCallMsg(e.message || 'Kan geen toegang krijgen tot microfoon/camera.');
+      const isPermissionError = e?.name === 'NotAllowedError' || /toegang|permission|geweigerd/i.test(String(e?.message || ''));
+      setCallMsg(isPermissionError
+        ? 'Toegang tot camera/microfoon geweigerd. Sta rechten toe in Android instellingen.'
+        : (e.message || 'Kan geen toegang krijgen tot microfoon/camera.'));
       setCallState('ended');
       closeTimeoutRef.current = setTimeout(() => onClose?.(), 3000);
     }
@@ -117,10 +126,11 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
   }
 
   function startTimer() {
+    clearInterval(timerRef.current);
     timerRef.current = setInterval(() => setTimer(t => t + 1), 1000);
   }
 
-  function cleanup() {
+  const cleanup = useCallback(() => {
     clearInterval(timerRef.current);
     clearTimeout(closeTimeoutRef.current);
     localStreamRef.current?.getTracks().forEach(t => t.stop());
@@ -129,18 +139,31 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
     remoteTrackListenerCleanupRef.current?.();
     remoteTrackListenerCleanupRef.current = null;
     remoteAudioStreamRef.current = null;
-  }
+  }, []);
 
-  function handleOverlayClose() {
+  const safeClose = useCallback((reason = 'local_close') => {
+    if (closingRef.current) return;
+    closingRef.current = true;
     if (callState === 'incoming') {
-      handleDecline();
+      declineCall(incoming?.from, incoming?.sessionId || null);
+      cleanup();
+      onClose?.();
       return;
     }
     if (callState === 'calling' || callState === 'connecting' || callState === 'active') {
-      handleEnd();
+      const toUid = incoming?.from || active?.toUid;
+      if (toUid) endCall(toUid, incoming?.sessionId || active?.sessionId || null);
+      cleanup();
+      onEnd?.(reason);
+      onClose?.();
       return;
     }
+    cleanup();
     onClose?.();
+  }, [callState, incoming, active, onClose, onEnd, cleanup]);
+
+  function handleOverlayClose() {
+    safeClose('overlay_close');
   }
 
   function toggleMute() {
@@ -169,6 +192,43 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
       localStreamRef.current = videoStream;
       if (localVideoRef.current) localVideoRef.current.srcObject = videoStream;
       setVideoUpgraded(true);
+    }
+  }
+
+  async function handleSwitchCamera() {
+    if (!localStreamRef.current || switchingCamera || !isVideo) return;
+    const nextMode = facingMode === 'user' ? 'environment' : 'user';
+    setSwitchingCamera(true);
+    try {
+      const result = await switchCameraTrack(localStreamRef.current, nextMode);
+      if (result?.ok) {
+        setFacingMode(nextMode);
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = localStreamRef.current;
+          localVideoRef.current.play?.().catch(() => {});
+        }
+        return;
+      }
+      setCallMsg('Camera wisselen is momenteel niet beschikbaar op dit apparaat.');
+    } finally {
+      setSwitchingCamera(false);
+    }
+  }
+
+  async function toggleSpeakerMode() {
+    const audioEl = remoteAudioRef.current || remoteVideoRef.current;
+    if (!audioEl || typeof audioEl.setSinkId !== 'function') {
+      setCallMsg('Speaker wisselen wordt op dit apparaat niet ondersteund.');
+      return;
+    }
+    const nextEnabled = !speakerEnabled;
+    const preferredSink = nextEnabled ? 'default' : 'communications';
+    try {
+      await audioEl.setSinkId(preferredSink);
+      setSpeakerEnabled(nextEnabled);
+    } catch (error) {
+      console.warn('[Pulse][Call] Speaker route wisselen mislukt:', error?.message || error);
+      setCallMsg('Speaker wisselen is niet gelukt. Controleer toestel-audio instellingen.');
     }
   }
 
@@ -228,7 +288,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
       cleanup();
       closeTimeoutRef.current = setTimeout(() => onClose?.(), 3000);
     }
-  }, [active, callState, onClose, attachMediaStream, bindRemoteAudioStream]);
+  }, [active, callState, onClose, attachMediaStream, bindRemoteAudioStream, cleanup]);
 
   // ── Beltoon bij inkomend gesprek ─────────────────────────────────────────
   useEffect(() => {
@@ -254,7 +314,37 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
     return () => { active = false; ctx.close(); };
   }, [callState]);
 
-  useEffect(() => () => cleanup(), []);
+  useEffect(() => {
+    const audioEl = remoteAudioRef.current || remoteVideoRef.current;
+    setSpeakerControlAvailable(Boolean(audioEl && typeof audioEl.setSinkId === 'function'));
+  }, [callState, active?.isVideo, incoming?.isVideo, videoUpgraded]);
+
+  useEffect(() => {
+    const onOffline = () => setNetworkState('reconnecting');
+    const onOnline = () => setNetworkState('stable');
+    window.addEventListener('offline', onOffline);
+    window.addEventListener('online', onOnline);
+    return () => {
+      window.removeEventListener('offline', onOffline);
+      window.removeEventListener('online', onOnline);
+    };
+  }, []);
+
+  useEffect(() => () => cleanup(), [cleanup]);
+
+  useEffect(() => {
+    const onPageHide = () => safeClose('pagehide');
+    const onBeforeUnload = () => safeClose('beforeunload');
+    const onPopState = () => safeClose('back_navigation');
+    window.addEventListener('pagehide', onPageHide);
+    window.addEventListener('beforeunload', onBeforeUnload);
+    window.addEventListener('popstate', onPopState);
+    return () => {
+      window.removeEventListener('pagehide', onPageHide);
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('popstate', onPopState);
+    };
+  }, [safeClose]);
 
   // Zodra video-upgrade actief is, zet streams opnieuw op de nieuw-gemounte video-elementen
   useEffect(() => {
@@ -332,9 +422,12 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
         {callState === 'incoming' && (
           <div className="call-status blink" role="status" aria-live="polite">{isVideo ? <><Video size={14} aria-hidden="true" /> Inkomend videogesprek</> : <><Phone size={14} aria-hidden="true" /> Inkomende oproep</>}</div>
         )}
-        {callState === 'calling'     && <div className="call-status blink" role="status" aria-live="polite">Verbinden…</div>}
-        {callState === 'connecting'  && <div className="call-status blink" role="status" aria-live="polite">Camera aanzetten…</div>}
+        {callState === 'calling'     && <div className="call-status blink" role="status" aria-live="polite">Bellen…</div>}
+        {callState === 'connecting'  && <div className="call-status blink" role="status" aria-live="polite">Verbinden…</div>}
         {callState === 'active'      && <div className="call-timer" aria-label={`Gespreksduur ${formatTimer(timer)}`}>{formatTimer(timer)}</div>}
+        {networkState === 'reconnecting' && callState === 'active' && (
+          <div className="call-status blink" role="status" aria-live="polite">Netwerk herverbinden…</div>
+        )}
         {videoUpgradeRequest && callState === 'active' && (
           <div className="call-upgrade-banner">
             <div className="call-upgrade-message" role="status" aria-live="polite"><Video size={14} aria-hidden="true" /> {callName} wil videobellen</div>
@@ -371,11 +464,26 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
                   <button type="button" className={`call-ctrl-btn cam ${camOff ? 'on' : ''}`} aria-pressed={camOff} onClick={toggleCam}>
                     {camOff ? <Cancel size={18} aria-hidden="true" /> : <Video size={18} aria-hidden="true" />}<span>Video</span>
                   </button>
+                  <button type="button" className="call-ctrl-btn aux" onClick={handleSwitchCamera} disabled={switchingCamera} title="Camera wisselen">
+                    <Camera size={18} aria-hidden="true" /><span>{switchingCamera ? 'Wisselen…' : 'Draaien'}</span>
+                  </button>
                 </>
               )}
               <button type="button" className={`call-ctrl-btn mute ${muted ? 'on' : ''}`} aria-pressed={muted} onClick={toggleMute}>
                 {muted ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}<span>{muted ? 'Dempen uit' : 'Dempen'}</span>
               </button>
+              {!isVideo && callState === 'active' && (
+                <button
+                  type="button"
+                  className={`call-ctrl-btn aux ${speakerEnabled ? 'on' : ''}`}
+                  onClick={toggleSpeakerMode}
+                  disabled={!speakerControlAvailable}
+                  title="Speaker/oorluidspreker wisselen"
+                >
+                  <Phone size={18} aria-hidden="true" />
+                  <span>{speakerControlAvailable ? (speakerEnabled ? 'Speaker' : 'Oor') : 'Speaker n.v.t.'}</span>
+                </button>
+              )}
               {isVideo && !isVideoActiveLayout && (
                 <button type="button" className={`call-ctrl-btn cam ${camOff ? 'on' : ''}`} aria-pressed={camOff} onClick={toggleCam}>
                   {camOff ? <Cancel size={18} aria-hidden="true" /> : <Camera size={18} aria-hidden="true" />}<span>Camera</span>

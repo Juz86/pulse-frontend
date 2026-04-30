@@ -808,6 +808,41 @@ export async function upgradeToVideo() {
   }
 }
 
+export async function switchCameraTrack(localStream, nextFacingMode = 'environment') {
+  if (!peer || !localStream) return { ok: false, reason: 'call_not_active' };
+  const oldTrack = localStream.getVideoTracks?.()[0];
+  if (!oldTrack) return { ok: false, reason: 'no_video_track' };
+
+  try {
+    const replacementStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: nextFacingMode },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+      audio: false,
+    });
+    const newTrack = replacementStream.getVideoTracks?.()[0];
+    if (!newTrack) {
+      replacementStream.getTracks?.().forEach((track) => track.stop());
+      return { ok: false, reason: 'replacement_track_missing' };
+    }
+
+    const nextEnabled = oldTrack.enabled;
+    peer.replaceTrack(oldTrack, newTrack, localStream);
+    localStream.removeTrack(oldTrack);
+    oldTrack.stop();
+    localStream.addTrack(newTrack);
+    newTrack.enabled = nextEnabled;
+
+    replacementStream.getAudioTracks?.().forEach((track) => track.stop());
+    return { ok: true, facingMode: nextFacingMode };
+  } catch (error) {
+    console.warn('[Pulse][Call] Camera wisselen mislukt:', error?.message || error);
+    return { ok: false, reason: error?.name || 'switch_failed' };
+  }
+}
+
 function cleanupCall(stream, sessionId = null) {
   if (sessionId && currentCallSessionId && sessionId !== currentCallSessionId) return;
   clearCallLifecycleHandlers();

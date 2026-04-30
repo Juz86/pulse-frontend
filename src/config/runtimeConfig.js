@@ -70,6 +70,16 @@ function hostnameFromUrl(value, fallback = '') {
   }
 }
 
+function isLocalApiUrl(value) {
+  if (!value) return false;
+  try {
+    const hostname = new URL(value).hostname;
+    return isLocalHost(hostname) || hostname === '0.0.0.0' || hostname.endsWith('.local');
+  } catch {
+    return false;
+  }
+}
+
 export const SITE_TARGET = process.env.REACT_APP_SITE_TARGET === 'landing' ? 'landing' : 'webapp';
 export const IS_LANDING_BUILD = SITE_TARGET === 'landing';
 export const IS_WEBAPP_BUILD = !IS_LANDING_BUILD;
@@ -86,11 +96,16 @@ export const WEB_APP_URL = trimTrailingSlash(
 
 export const APP_URL = WEB_APP_URL;
 
-export const API_URL = trimTrailingSlash(
+const RAW_API_URL = trimTrailingSlash(
   process.env.REACT_APP_API_URL ||
   process.env.REACT_APP_BACKEND_URL ||
   getDefaultApiUrl()
 );
+
+// Veiligheidsnet: in productie/native mag geen localhost API hardcoded in de bundle terechtkomen.
+export const API_URL = (!shouldUseLocalRuntimeFallback() && isLocalApiUrl(RAW_API_URL))
+  ? DEFAULT_PRODUCTION_API_URL
+  : RAW_API_URL;
 
 export const WS_URL = trimTrailingSlash(process.env.REACT_APP_WS_URL || API_URL);
 export const SIGNALING_URL = trimTrailingSlash(process.env.REACT_APP_SIGNALING_URL || WS_URL);

@@ -288,6 +288,7 @@ body {
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 .conv-item-swipe-shell .conv-item {
@@ -316,6 +317,18 @@ body {
   box-shadow: 0 -10px 34px rgba(0, 0, 0, 0.35);
   padding: 8px 8px 10px;
   animation: pulse-sheet-up .22s ease-out both;
+}
+
+@media (max-width: 767px) {
+  .pulse-sheet-backdrop {
+    padding: 0 max(0px, var(--safe-right)) max(0px, var(--safe-bottom)) max(0px, var(--safe-left));
+  }
+  .pulse-sheet {
+    width: 100%;
+    max-height: min(86dvh, calc(var(--vvh, 100dvh) - var(--safe-top)));
+    border-radius: 18px 18px 0 0;
+    padding-bottom: max(10px, var(--safe-bottom));
+  }
 }
 
 .pulse-sheet-handle {
@@ -5650,6 +5663,66 @@ font-family: 'Inter', sans-serif;
   max-height:0; opacity:0; overflow:hidden;
   transition: max-height .25s ease, opacity .25s ease, padding .25s ease;
   pointer-events:none;
+}
+
+/* ── Final video-call control overrides (force consistent round buttons) ── */
+.call-card.transparent .call-controls.video-layout {
+  --video-btn-size: clamp(76px, 18vw, 108px);
+  justify-items: center;
+  align-items: center;
+}
+
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn {
+  width: var(--video-btn-size);
+  height: var(--video-btn-size);
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: 1 / 1;
+  border-radius: 50% !important;
+  flex: 0 0 auto;
+}
+
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn svg {
+  width: clamp(26px, 4.6vw, 36px);
+  height: clamp(26px, 4.6vw, 36px);
+  color: #fff;
+}
+
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.end svg {
+  width: clamp(28px, 4.9vw, 38px);
+  height: clamp(28px, 4.9vw, 38px);
+}
+
+@media (max-width: 375px) and (max-height: 700px) {
+  .call-card.transparent .call-controls.video-layout { --video-btn-size: 78px; }
+}
+
+@media (min-width: 376px) and (max-width: 414px) and (min-height: 760px) {
+  .call-card.transparent .call-controls.video-layout { --video-btn-size: 88px; }
+}
+
+@media (min-width: 415px) and (max-width: 460px) and (min-height: 820px) {
+  .call-card.transparent .call-controls.video-layout { --video-btn-size: 92px; }
+}
+
+@media (orientation: landscape) and (max-height: 430px) {
+  .call-card.transparent .call-controls.video-layout { --video-btn-size: 68px; }
+}
+
+@media (min-width: 700px) and (max-width: 850px) and (orientation: portrait) {
+  .call-card.transparent .call-controls.video-layout { --video-btn-size: 100px; }
+}
+
+@media (min-width: 900px) and (max-width: 1120px) and (orientation: landscape) {
+  .call-card.transparent .call-controls.video-layout { --video-btn-size: 92px; }
+}
+
+@media (min-width: 1121px) and (max-width: 1439px) {
+  .call-card.transparent .call-controls.video-layout { --video-btn-size: 94px; }
+}
+
+@media (min-width: 1440px) {
+  .call-card.transparent .call-controls.video-layout { --video-btn-size: 98px; }
 }
 .chat-search-bar.visible {
   max-height:60px; opacity:1; padding:8px 16px;

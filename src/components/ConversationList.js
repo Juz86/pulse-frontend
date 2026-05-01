@@ -29,8 +29,24 @@ const ConversationList = React.memo(function ConversationList({
   setLabelMenuConvId,
 }) {
   const [swipedConvId, setSwipedConvId] = React.useState(null);
+  const listRef = React.useRef(null);
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const pinnedUidSet = useMemo(() => new Set(pinnedContacts), [pinnedContacts]);
+
+  React.useEffect(() => {
+    if (!swipedConvId) return undefined;
+    const handlePointerDownOutside = (event) => {
+      const root = listRef.current;
+      if (!root) return;
+      const target = event.target;
+      const openRow = root.querySelector('.conv-item-swipe-shell.swiped-open');
+      if (!openRow) return;
+      if (openRow.contains(target)) return;
+      setSwipedConvId(null);
+    };
+    document.addEventListener('pointerdown', handlePointerDownOutside, true);
+    return () => document.removeEventListener('pointerdown', handlePointerDownOutside, true);
+  }, [swipedConvId]);
 
   const filtered = useMemo(() => {
     return conversations
@@ -57,7 +73,12 @@ const ConversationList = React.memo(function ConversationList({
   }, [conversations, normalizedSearch, chatFilter, selectedGroupId, convLabels, pinnedUidSet, getConvName, getOtherUid, getConvPhoto]);
 
   return (
-    <div className="conv-list" aria-busy={loadingConvs} onClick={() => setLabelMenuConvId(null)}>
+    <div
+      ref={listRef}
+      className="conv-list"
+      aria-busy={loadingConvs}
+      onClick={() => { setLabelMenuConvId(null); if (swipedConvId) setSwipedConvId(null); }}
+    >
       {loadingConvs && [0, 1, 2, 3].map(i => (
         <div key={i} className="conv-item skeleton-item" aria-hidden="true">
           <div className="skeleton-avatar" />

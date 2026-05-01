@@ -4791,9 +4791,13 @@ font-family: 'Inter', sans-serif;
 }
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn {
   width:100%;
-  min-height:clamp(80px, 13vw, 98px);
-  border-radius:999px;
+  min-height:0;
+  aspect-ratio:1 / 1;
+  border-radius:50%;
   gap:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   transition:transform .16s ease, filter .16s ease, box-shadow .16s ease;
 }
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn span {
@@ -4811,6 +4815,22 @@ font-family: 'Inter', sans-serif;
   border:1px solid rgba(167,139,250,.66);
   color:#fff;
   box-shadow:0 0 0 1px rgba(167,139,250,.35), 0 8px 20px rgba(108,99,255,.28);
+}
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.aux,
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.cam,
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.mute {
+  background:#4a4b50;
+  color:#fff;
+  border:1px solid rgba(255,255,255,.12);
+}
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn svg {
+  width:clamp(24px, 4.2vw, 30px);
+  height:clamp(24px, 4.2vw, 30px);
+  color:#fff;
+}
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.end svg {
+  width:clamp(26px, 4.5vw, 32px);
+  height:clamp(26px, 4.5vw, 32px);
 }
 .call-upgrade-banner {
   display:flex;

@@ -1,7 +1,7 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
-import { Phone, Video, Mic, MicOff, Camera, Cancel, UserPlus, Message, Speaker } from './Icons';
+import { Phone, Video, Mic, Camera, Cancel, UserPlus, Message, Speaker, PhoneEnd } from './Icons';
 
 export default function CallOverlay({ incoming, active, contacts = [], user, chatUnreadCount = 0, onClose, onEnd }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
@@ -391,12 +391,19 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
       <div className={`call-card ${isVideo && callState === 'active' ? 'transparent' : ''} ${isVoiceActiveLayout ? 'voice-active' : ''}`}>
         {canMinimize && (
           <button type="button" className="call-minimize-btn" aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9 9H4V4" />
+              <path d="m4 9 6-6" />
+              <path d="M15 15h5v5" />
+              <path d="m20 15-6 6" />
+            </svg>
           </button>
         )}
-        <button type="button" className="call-close-btn" aria-label={callState === 'active' || callState === 'calling' || callState === 'connecting' ? 'Beeindig gesprek' : (callState === 'incoming' ? 'Weiger oproep' : 'Gespreksscherm sluiten')} onClick={handleOverlayClose} title="Sluiten">
-          <Cancel size={14} aria-hidden="true" />
-        </button>
+        {!isVideoActiveLayout && (
+          <button type="button" className="call-close-btn" aria-label={callState === 'active' || callState === 'calling' || callState === 'connecting' ? 'Beeindig gesprek' : (callState === 'incoming' ? 'Weiger oproep' : 'Gespreksscherm sluiten')} onClick={handleOverlayClose} title="Sluiten">
+            <Cancel size={14} aria-hidden="true" />
+          </button>
+        )}
         <div className="call-avatar-big">{callName.slice(0,2).toUpperCase()}</div>
         <div className="call-name">{callName}</div>
 
@@ -448,7 +455,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                     title="Camera draaien"
                     aria-label="Camera draaien"
                   >
-                    <Camera size={18} aria-hidden="true" /><span>{switchingCamera ? 'Wisselen…' : 'Draaien'}</span>
+                    <CameraRotateIcon size={22} /><span>{switchingCamera ? 'Wisselen…' : 'Draaien'}</span>
                   </button>
                   <button
                     type="button"
@@ -457,7 +464,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                     onClick={toggleMute}
                     aria-label={muted ? 'Geluid aan' : 'Geluid uit'}
                   >
-                    {muted ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}<span>{muted ? 'Geluid aan' : 'Geluid uit'}</span>
+                    {muted ? <MutedMicIcon size={22} /> : <Mic size={20} aria-hidden="true" />}<span>{muted ? 'Geluid aan' : 'Geluid uit'}</span>
                   </button>
                   <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
                     <Message size={18} aria-hidden="true" />
@@ -478,12 +485,12 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                   >
                     <UserPlus size={18} aria-hidden="true" /><span>+ Persoon</span>
                   </button>
-                  <button type="button" className="call-ctrl-btn end call-ctrl-round" onClick={handleEnd} aria-label="Ophangen"><Cancel size={18} aria-hidden="true" /><span>Ophangen</span></button>
+                  <button type="button" className="call-ctrl-btn end call-ctrl-round" onClick={handleEnd} aria-label="Ophangen"><PhoneEnd size={24} aria-hidden="true" /><span>Ophangen</span></button>
                 </>
               )}
-              {!isVoiceActiveLayout && (
+              {!isVoiceActiveLayout && !isVideoActiveLayout && (
                 <button type="button" className={`call-ctrl-btn mute ${muted ? 'on' : ''}`} aria-pressed={muted} onClick={toggleMute}>
-                  {muted ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}<span>{muted ? 'Dempen uit' : 'Dempen'}</span>
+                  {muted ? <MutedMicIcon size={22} /> : <Mic size={20} aria-hidden="true" />}<span>{muted ? 'Dempen uit' : 'Dempen'}</span>
                 </button>
               )}
               {isVoiceActiveLayout && (
@@ -506,7 +513,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
               )}
               {isVoiceActiveLayout && (
                 <button type="button" className={`call-ctrl-btn mute call-ctrl-round ${muted ? 'on' : ''}`} aria-pressed={muted} onClick={toggleMute} aria-label={muted ? 'Geluid aan' : 'Geluid uit'}>
-                  {muted ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}<span>{muted ? 'Geluid aan' : 'Geluid uit'}</span>
+                  {muted ? <MutedMicIcon size={22} /> : <Mic size={20} aria-hidden="true" />}<span>{muted ? 'Geluid aan' : 'Geluid uit'}</span>
                 </button>
               )}
               {isVoiceActiveLayout && (
@@ -541,7 +548,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                 <button type="button" className="call-ctrl-btn end" onClick={handleEnd}><Cancel size={18} aria-hidden="true" /><span>Ophangen</span></button>
               )}
               {isVoiceActiveLayout && (
-                <button type="button" className="call-ctrl-btn end call-ctrl-round" onClick={handleEnd} aria-label="Ophangen"><Cancel size={18} aria-hidden="true" /><span>Ophangen</span></button>
+                <button type="button" className="call-ctrl-btn end call-ctrl-round" onClick={handleEnd} aria-label="Ophangen"><PhoneEnd size={24} aria-hidden="true" /><span>Ophangen</span></button>
               )}
             </>
           )}
@@ -595,3 +602,23 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
     </div>
   );
 }
+  const CameraRotateIcon = ({ size = 22 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H8l1.4-2h5.2L16 6h2.5A2.5 2.5 0 0 1 21 8.5v7A2.5 2.5 0 0 1 18.5 18H5.5A2.5 2.5 0 0 1 3 15.5z" />
+      <path d="M15.8 8.7a4.2 4.2 0 0 1 1.3 3h1.3" />
+      <path d="m18.9 9.9-.8 1.7-1.7-.8" />
+      <path d="M8.2 15.3a4.2 4.2 0 0 1-1.3-3H5.6" />
+      <path d="m5.1 14.1.8-1.7 1.7.8" />
+    </svg>
+  );
+
+  const MutedMicIcon = ({ size = 22 }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="3.5" width="6" height="10" rx="3" />
+      <path d="M18 10.5v1a6 6 0 0 1-10.2 4.2" />
+      <path d="M6 10.5v1a6 6 0 0 0 1.5 4" />
+      <path d="M12 16.5v3.5" />
+      <path d="M8.5 20h7" />
+      <path d="M4 4l16 16" />
+    </svg>
+  );

@@ -25,8 +25,10 @@ const ConversationList = React.memo(function ConversationList({
   getConvPhoto,
   onOpen,
   onMoreActionsEnter,
+  onSwipeMoreActions,
   setLabelMenuConvId,
 }) {
+  const [swipedConvId, setSwipedConvId] = React.useState(null);
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const pinnedUidSet = useMemo(() => new Set(pinnedContacts), [pinnedContacts]);
 
@@ -103,9 +105,16 @@ const ConversationList = React.memo(function ConversationList({
             currentUid={currentUid}
             selectionMode={selectionMode}
             isSelected={selectedConversationIds?.includes(conv.id)}
+            isSwipedOpen={swipedConvId === conv.id}
+            onRequestSwipeOpen={() => setSwipedConvId(conv.id)}
+            onRequestSwipeClose={() => setSwipedConvId((prev) => (prev === conv.id ? null : prev))}
             onToggleSelect={onToggleSelectConversation}
             onOpen={() => onOpen(conv)}
             onMoreActionsEnter={el => onMoreActionsEnter?.(conv, otherUid, el)}
+            onSwipeMoreActions={() => {
+              setSwipedConvId(null);
+              onSwipeMoreActions?.(conv, otherUid);
+            }}
           />
         );
       })}

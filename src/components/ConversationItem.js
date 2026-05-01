@@ -17,10 +17,28 @@ function ConversationItemBase({
   currentUid,
   selectionMode,
   isSelected,
+  isSwipedOpen,
+  onRequestSwipeOpen,
+  onRequestSwipeClose,
   onToggleSelect,
   onOpen,
   onMoreActionsEnter,
+  onSwipeMoreActions,
 }) {
+  const SWIPE_ACTION_WIDTH = 88;
+  const SWIPE_OPEN_THRESHOLD = 46;
+  const SWIPE_CLOSE_THRESHOLD = 28;
+  const [swipeOffset, setSwipeOffset] = React.useState(0);
+  const pointerStateRef = React.useRef({
+    active: false,
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    startOffset: 0,
+    dragging: false,
+    lockAxis: null,
+    moved: false,
+  });
   const conversationPreview = buildConversationPreviewPresentation(conv);
   const callPreviewText = conv.lastCallDirection ? callPreview(conv, currentUid) : '';
   const isMissedCallPreview = callPreviewText.startsWith('Gemiste ');
@@ -32,6 +50,14 @@ function ConversationItemBase({
   };
 
   const handleOpen = () => {
+    if (pointerStateRef.current.moved) {
+      pointerStateRef.current.moved = false;
+      return;
+    }
+    if (isSwipedOpen) {
+      onRequestSwipeClose?.();
+      return;
+    }
     if (selectionMode) {
       onToggleSelect?.(conv.id);
       return;
@@ -39,14 +65,102 @@ function ConversationItemBase({
     onOpen();
   };
 
+  React.useEffect(() => {
+    if (selectionMode && isSwipedOpen) onRequestSwipeClose?.();
+  }, [selectionMode, isSwipedOpen, onRequestSwipeClose]);
+
+  React.useEffect(() => {
+    setSwipeOffset(isSwipedOpen ? -SWIPE_ACTION_WIDTH : 0);
+  }, [isSwipedOpen]);
+
+  const onPointerDown = (event) => {
+    if (selectionMode) return;
+    pointerStateRef.current = {
+      active: true,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startOffset: swipeOffset,
+      dragging: false,
+      lockAxis: null,
+      moved: false,
+    };
+  };
+
+  const onPointerMove = (event) => {
+    const state = pointerStateRef.current;
+    if (!state.active || state.pointerId !== event.pointerId) return;
+    const dx = event.clientX - state.startX;
+    const dy = event.clientY - state.startY;
+    if (!state.lockAxis) {
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+      if (absX < 8 && absY < 8) return;
+      state.lockAxis = absX > absY ? 'x' : 'y';
+    }
+    if (state.lockAxis !== 'x') return;
+    state.dragging = true;
+    state.moved = true;
+    const next = Math.max(-SWIPE_ACTION_WIDTH, Math.min(0, state.startOffset + dx));
+    setSwipeOffset(next);
+  };
+
+  const closeSwipe = () => {
+    onRequestSwipeClose?.();
+  };
+
+  const onPointerUp = (event) => {
+    const state = pointerStateRef.current;
+    if (!state.active || state.pointerId !== event.pointerId) return;
+    pointerStateRef.current.active = false;
+    if (!state.dragging) return;
+    const shouldOpen = swipeOffset <= -SWIPE_OPEN_THRESHOLD || (isSwipedOpen && swipeOffset <= -SWIPE_CLOSE_THRESHOLD);
+    if (shouldOpen) {
+      onRequestSwipeOpen?.();
+    } else {
+      closeSwipe();
+    }
+    pointerStateRef.current.moved = true;
+  };
+
+  const onPointerCancel = (event) => {
+    const state = pointerStateRef.current;
+    if (!state.active || state.pointerId !== event.pointerId) return;
+    pointerStateRef.current.active = false;
+    if (!isSwipedOpen) setSwipeOffset(0);
+  };
+
   return (
     <div
+      className={`conv-item-swipe-shell ${isSwipedOpen ? 'swiped-open' : ''}`}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+    >
+      <div className="conv-item-swipe-actions" aria-hidden={!isSwipedOpen}>
+        <button
+          type="button"
+          className="conv-swipe-more-btn"
+          aria-label={`Meer acties voor ${conv.name}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            closeSwipe();
+            onSwipeMoreActions?.();
+          }}
+        >
+          <MoreHoriz size={20} aria-hidden="true" />
+          <span>Meer</span>
+        </button>
+      </div>
+      <div
       className={`conv-item ${isActive ? 'active' : ''}`}
       role="button"
       tabIndex={0}
       aria-pressed={isActive}
       onClick={handleOpen}
       onKeyDown={handleKeyDown}
+      style={{ transform: `translateX(${swipeOffset}px)` }}
     >
       {selectionMode && (
         <label
@@ -179,6 +293,7 @@ function ConversationItemBase({
           <MoreHoriz size={18} aria-hidden="true" />
         </button>
       )}
+      </div>
     </div>
   );
 }
@@ -206,6 +321,7 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.unread           === next.unread            &&
   prev.typingName       === next.typingName        &&
   prev.isPinned         === next.isPinned          &&
+  prev.isSwipedOpen     === next.isSwipedOpen      &&
   prev.selectionMode    === next.selectionMode     &&
   prev.isSelected       === next.isSelected
 );

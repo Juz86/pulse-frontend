@@ -88,6 +88,7 @@ export default function ChatSidebar({
 }) {
   const [contactMenu, setContactMenu] = useState(null);
   const [convMenu, setConvMenu]       = useState(null); // { conv, otherUid, direction, top, left }
+  const [convActionsSheet, setConvActionsSheet] = useState(null); // { conv, otherUid }
   const [moreActionsMenuOpen, setMoreActionsMenuOpen] = useState(false);
   const moreActionsMenuRef = useRef(null);
   const normalizedSearch = searchQuery.trim().toLowerCase();
@@ -122,6 +123,21 @@ export default function ChatSidebar({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [convMenu, contactMenu]);
 
+  useEffect(() => {
+    if (!convActionsSheet) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setConvActionsSheet(null);
+    };
+    const onPopState = () => setConvActionsSheet(null);
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('popstate', onPopState);
+    window.history.pushState({ pulseSheet: 'conv-actions' }, '');
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('popstate', onPopState);
+    };
+  }, [convActionsSheet]);
+
   const hasMissedCall = callsAvailable && (((!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert));
 
   function openContactMenu(contactUid, anchorEl) {
@@ -155,11 +171,151 @@ export default function ChatSidebar({
   function handleOpenConversation(conv) {
     setConvMenu(null);
     setContactMenu(null);
+    setConvActionsSheet(null);
     onOpenConversation(conv);
   }
   const handleMoreActionsEnter = useCallback((conv, otherUid, anchorEl) => {
     openConvMenu(conv, otherUid, anchorEl);
   }, []);
+  const openConvActionsSheet = useCallback((conv, otherUid) => {
+    setConvMenu(null);
+    setContactMenu(null);
+    setConvActionsSheet({ conv, otherUid });
+  }, []);
+
+  const renderConvActions = useCallback((conv, otherUid, onDone) => {
+    const contact = contacts.find(c => c.uid === otherUid);
+    const isParentBlocked = parentBlockedUids?.includes(otherUid);
+    const isProtectedParentContact = !isParent && contact?.role === 'parent';
+    const isPinned = pinnedContacts.includes(otherUid);
+    const isMuted = mutedConversationIds.includes(conv.id);
+    return (
+      <>
+        {conv.isGroup && (
+          <button type="button" role="menuitem" className="chat-header-menu-item"
+            onClick={() => { onShowGroupInfo?.(conv); onDone?.(); }} title="Groepsinfo">
+            <Users size={14} aria-hidden="true" />
+            <span>Groepsinfo</span>
+          </button>
+        )}
+        {!conv.isGroup && contact && (
+          <button type="button" role="menuitem" className="chat-header-menu-item"
+            onClick={() => { onViewContact(contact); onDone?.(); }} title="Profiel">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
+            <span>Profiel</span>
+          </button>
+        )}
+        {!isParentBlocked && <>
+          {!conv.isGroup && <button type="button" role="menuitem" className="chat-header-menu-item"
+            onClick={() => { onOpenConversation(conv); onDone?.(); }} title="Bericht sturen">
+            <Message size={14} aria-hidden="true" />
+            <span>Bericht sturen</span>
+          </button>}
+          {!conv.isGroup && callsAvailable && (
+            <>
+              <button type="button" role="menuitem" className="chat-header-menu-item"
+                onClick={() => { onCallFromConv(conv, false); onDone?.(); }} title="Bellen">
+                <Phone size={14} aria-hidden="true" />
+                <span>Bellen</span>
+              </button>
+              <button type="button" role="menuitem" className="chat-header-menu-item"
+                onClick={() => { onCallFromConv(conv, true); onDone?.(); }} title="Videobellen">
+                <Video size={14} aria-hidden="true" />
+                <span>Videobellen</span>
+              </button>
+            </>
+          )}
+          {!conv.isGroup && otherUid && (
+            <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`}
+              onClick={() => { onTogglePin(otherUid); onDone?.(); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
+              <Pin size={14} aria-hidden="true" />
+              <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
+            </button>
+          )}
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={isMuted}
+            className={`chat-header-menu-item${isMuted ? ' active' : ''}`}
+            onClick={() => { onToggleConversationMute?.(conv.id); onDone?.(); }}
+            title={isMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}
+          >
+            {isMuted ? <BellOff size={14} aria-hidden="true" /> : <Bell size={14} aria-hidden="true" />}
+            <span>{isMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}</span>
+          </button>
+          {conv.isGroup && (
+            <>
+              <button
+                type="button"
+                role="menuitem"
+                className="chat-header-menu-item"
+                onClick={() => { onEnterMessageSelectionForConversation?.(conv); onDone?.(); }}
+                title="Berichten selecteren"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z" />
+                </svg>
+                <span>Berichten selecteren</span>
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="chat-header-menu-item"
+                onClick={() => { onShowStarredForConversation?.(conv); onDone?.(); }}
+                title="Berichten met ster"
+              >
+                <StarOutline size={14} aria-hidden="true" />
+                <span>Berichten met ster</span>
+              </button>
+            </>
+          )}
+        </>}
+        <div className="chat-header-menu-divider" />
+        {conv.isGroup ? (
+          <button
+            type="button"
+            role="menuitem"
+            className="chat-header-menu-item danger"
+            onClick={() => { onLeaveGroup?.(conv); onDone?.(); }}
+            title="Groep verlaten"
+          >
+            <Logout size={14} aria-hidden="true" />
+            <span>Groep verlaten</span>
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              role="menuitem"
+              className="chat-header-menu-item danger"
+              onClick={() => { onClearConversation?.(conv); onDone?.(); }}
+              title="Chat wissen"
+            >
+              <XIcon size={14} aria-hidden="true" />
+              <span>Chat wissen</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="chat-header-menu-item danger"
+              onClick={() => { onHardDeleteConversation?.(conv); onDone?.(); }}
+              title="Chat verwijderen"
+            >
+              <Trash2 size={14} aria-hidden="true" />
+              <span>Chat verwijderen</span>
+            </button>
+            {contact && !isProtectedParentContact && (
+              <button type="button" role="menuitem" className="chat-header-menu-item danger"
+                onClick={() => { onBlockContact(contact); onDone?.(); }} title="Blokkeren">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+                <span>Blokkeren</span>
+              </button>
+            )}
+          </>
+        )}
+      </>
+    );
+  }, [contacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact]);
 
   return (
     <aside className="sidebar" onClick={() => { setConvMenu(null); setContactMenu(null); }}>
@@ -276,6 +432,7 @@ export default function ChatSidebar({
             getConvPhoto={getConvPhoto}
             onOpen={handleOpenConversation}
             onMoreActionsEnter={handleMoreActionsEnter}
+            onSwipeMoreActions={openConvActionsSheet}
             setLabelMenuConvId={setLabelMenuConvId}
           />
         </>
@@ -341,11 +498,6 @@ export default function ChatSidebar({
 
       {convMenu && (() => {
         const { conv, otherUid } = convMenu;
-        const contact = contacts.find(c => c.uid === otherUid);
-        const isParentBlocked = parentBlockedUids?.includes(otherUid);
-        const isProtectedParentContact = !isParent && contact?.role === 'parent';
-        const isPinned = pinnedContacts.includes(otherUid);
-        const isMuted = mutedConversationIds.includes(conv.id);
         return (
           <div
             role="menu"
@@ -359,131 +511,37 @@ export default function ChatSidebar({
               minWidth: 160, gap: 2,
             }}
           >
-            {conv.isGroup && (
-              <button type="button" role="menuitem" className="chat-header-menu-item"
-                onClick={() => { onShowGroupInfo?.(conv); setConvMenu(null); }} title="Groepsinfo">
-                <Users size={14} aria-hidden="true" />
-                <span>Groepsinfo</span>
-              </button>
-            )}
-            {!conv.isGroup && contact && (
-              <button type="button" role="menuitem" className="chat-header-menu-item"
-                onClick={() => { onViewContact(contact); setConvMenu(null); }} title="Profiel">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
-                <span>Profiel</span>
-              </button>
-            )}
-            {!isParentBlocked && <>
-              {!conv.isGroup && <button type="button" role="menuitem" className="chat-header-menu-item"
-                onClick={() => { onOpenConversation(conv); setConvMenu(null); }} title="Bericht sturen">
-                <Message size={14} aria-hidden="true" />
-                <span>Bericht sturen</span>
-              </button>}
-              {!conv.isGroup && callsAvailable && (
-                <>
-                  <button type="button" role="menuitem" className="chat-header-menu-item"
-                    onClick={() => { onCallFromConv(conv, false); setConvMenu(null); }} title="Bellen">
-                    <Phone size={14} aria-hidden="true" />
-                    <span>Bellen</span>
-                  </button>
-                  <button type="button" role="menuitem" className="chat-header-menu-item"
-                    onClick={() => { onCallFromConv(conv, true); setConvMenu(null); }} title="Videobellen">
-                    <Video size={14} aria-hidden="true" />
-                    <span>Videobellen</span>
-                  </button>
-                </>
-              )}
-              {!conv.isGroup && otherUid && (
-                <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`}
-                  onClick={() => { onTogglePin(otherUid); setConvMenu(null); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
-                  <Pin size={14} aria-hidden="true" />
-                  <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
-                </button>
-              )}
-              <button
-                type="button"
-                role="menuitemcheckbox"
-                aria-checked={isMuted}
-                className={`chat-header-menu-item${isMuted ? ' active' : ''}`}
-                onClick={() => { onToggleConversationMute?.(conv.id); setConvMenu(null); }}
-                title={isMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}
-              >
-                {isMuted ? <BellOff size={14} aria-hidden="true" /> : <Bell size={14} aria-hidden="true" />}
-                <span>{isMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}</span>
-              </button>
-              {conv.isGroup && (
-                <>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="chat-header-menu-item"
-                    onClick={() => { onEnterMessageSelectionForConversation?.(conv); setConvMenu(null); }}
-                    title="Berichten selecteren"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                      <path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z" />
-                    </svg>
-                    <span>Berichten selecteren</span>
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="chat-header-menu-item"
-                    onClick={() => { onShowStarredForConversation?.(conv); setConvMenu(null); }}
-                    title="Berichten met ster"
-                  >
-                    <StarOutline size={14} aria-hidden="true" />
-                    <span>Berichten met ster</span>
-                  </button>
-                </>
-              )}
-            </>}
-            <div className="chat-header-menu-divider" />
-            {conv.isGroup ? (
-              <button
-                type="button"
-                role="menuitem"
-                className="chat-header-menu-item danger"
-                onClick={() => { onLeaveGroup?.(conv); setConvMenu(null); }}
-                title="Groep verlaten"
-              >
-                <Logout size={14} aria-hidden="true" />
-                <span>Groep verlaten</span>
-              </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="chat-header-menu-item danger"
-                  onClick={() => { onClearConversation?.(conv); setConvMenu(null); }}
-                  title="Chat wissen"
-                >
-                  <XIcon size={14} aria-hidden="true" />
-                  <span>Chat wissen</span>
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="chat-header-menu-item danger"
-                  onClick={() => { onHardDeleteConversation?.(conv); setConvMenu(null); }}
-                  title="Chat verwijderen"
-                >
-                  <Trash2 size={14} aria-hidden="true" />
-                  <span>Chat verwijderen</span>
-                </button>
-                {contact && !isProtectedParentContact && (
-                  <button type="button" role="menuitem" className="chat-header-menu-item danger"
-                    onClick={() => { onBlockContact(contact); setConvMenu(null); }} title="Blokkeren">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
-                    <span>Blokkeren</span>
-                  </button>
-                )}
-              </>
-            )}
+            {renderConvActions(conv, otherUid, () => setConvMenu(null))}
           </div>
         );
       })()}
+
+      {convActionsSheet && (
+        <div
+          className="pulse-sheet-backdrop"
+          onClick={() => setConvActionsSheet(null)}
+          role="presentation"
+        >
+          <div
+            className="pulse-sheet"
+            role="menu"
+            aria-label={`Acties voor ${convActionsSheet.conv.name}`}
+            data-sidebar-actions-menu
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header">
+              <div className="pulse-sheet-title">{convActionsSheet.conv.name}</div>
+              <button type="button" className="icon-btn" aria-label="Sluiten" onClick={() => setConvActionsSheet(null)}>
+                <XIcon size={16} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="pulse-sheet-list">
+              {renderConvActions(convActionsSheet.conv, convActionsSheet.otherUid, () => setConvActionsSheet(null))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {contactMenu && (() => {
         const contact = contacts.find(c => c.uid === contactMenu.uid);

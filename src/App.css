@@ -255,6 +255,120 @@ body {
   min-width: 0;
 }
 
+.conv-item-swipe-shell {
+  position: relative;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.conv-item-swipe-actions {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 88px;
+  display: flex;
+  justify-content: stretch;
+  align-items: stretch;
+  pointer-events: none;
+}
+
+.conv-item-swipe-shell.swiped-open .conv-item-swipe-actions {
+  pointer-events: auto;
+}
+
+.conv-swipe-more-btn {
+  width: 100%;
+  border: none;
+  background: #5f6369;
+  color: #fff;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.conv-item-swipe-shell .conv-item {
+  will-change: transform;
+  transition: transform .2s ease;
+}
+
+.pulse-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3600;
+  background: rgba(7, 8, 15, 0.52);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 14px max(14px, var(--safe-right)) max(16px, var(--safe-bottom)) max(14px, var(--safe-left));
+}
+
+.pulse-sheet {
+  width: min(100%, 680px);
+  max-height: min(82dvh, calc(var(--vvh, 100dvh) - var(--safe-top) - 20px));
+  overflow-y: auto;
+  background: #f3f3f5;
+  color: #141414;
+  border-radius: 18px;
+  box-shadow: 0 -10px 34px rgba(0, 0, 0, 0.35);
+  padding: 8px 8px 10px;
+  animation: pulse-sheet-up .22s ease-out both;
+}
+
+.pulse-sheet-handle {
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.2);
+  margin: 4px auto 8px;
+}
+
+.pulse-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 8px;
+}
+
+.pulse-sheet-title {
+  font-size: 19px;
+  font-weight: 800;
+  color: #121212;
+  margin-left: 6px;
+}
+
+.pulse-sheet-list {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.pulse-sheet .chat-header-menu-item {
+  width: 100%;
+  padding: 14px 14px;
+  border-radius: 0;
+  min-height: 50px;
+}
+
+.pulse-sheet .chat-header-menu-divider {
+  margin: 0;
+}
+
+@keyframes pulse-sheet-up {
+  from {
+    transform: translateY(26px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 .pulse-update-banner {
   position: fixed;
   z-index: 1200;

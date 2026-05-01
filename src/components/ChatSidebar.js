@@ -91,6 +91,7 @@ export default function ChatSidebar({
   const [convActionsSheet, setConvActionsSheet] = useState(null); // { conv, otherUid }
   const [moreActionsMenuOpen, setMoreActionsMenuOpen] = useState(false);
   const moreActionsMenuRef = useRef(null);
+  const convSheetHistoryPushedRef = useRef(false);
   const normalizedSearch = searchQuery.trim().toLowerCase();
 
   const filteredContacts = useMemo(() => contacts.filter((contact) => (
@@ -126,12 +127,24 @@ export default function ChatSidebar({
   useEffect(() => {
     if (!convActionsSheet) return undefined;
     const onKeyDown = (event) => {
-      if (event.key === 'Escape') setConvActionsSheet(null);
+      if (event.key !== 'Escape') return;
+      if (convSheetHistoryPushedRef.current) {
+        convSheetHistoryPushedRef.current = false;
+        window.history.back();
+        return;
+      }
+      setConvActionsSheet(null);
     };
-    const onPopState = () => setConvActionsSheet(null);
+    const onPopState = () => {
+      convSheetHistoryPushedRef.current = false;
+      setConvActionsSheet(null);
+    };
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('popstate', onPopState);
-    window.history.pushState({ pulseSheet: 'conv-actions' }, '');
+    if (!convSheetHistoryPushedRef.current) {
+      window.history.pushState({ pulseSheet: 'conv-actions' }, '');
+      convSheetHistoryPushedRef.current = true;
+    }
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('popstate', onPopState);
@@ -181,6 +194,14 @@ export default function ChatSidebar({
     setConvMenu(null);
     setContactMenu(null);
     setConvActionsSheet({ conv, otherUid });
+  }, []);
+  const closeConvActionsSheet = useCallback(() => {
+    if (convSheetHistoryPushedRef.current) {
+      convSheetHistoryPushedRef.current = false;
+      window.history.back();
+      return;
+    }
+    setConvActionsSheet(null);
   }, []);
 
   const renderConvActions = useCallback((conv, otherUid, onDone) => {
@@ -519,7 +540,7 @@ export default function ChatSidebar({
       {convActionsSheet && (
         <div
           className="pulse-sheet-backdrop"
-          onClick={() => setConvActionsSheet(null)}
+          onClick={closeConvActionsSheet}
           role="presentation"
         >
           <div
@@ -532,12 +553,12 @@ export default function ChatSidebar({
             <div className="pulse-sheet-handle" aria-hidden="true" />
             <div className="pulse-sheet-header">
               <div className="pulse-sheet-title">{convActionsSheet.conv.name}</div>
-              <button type="button" className="icon-btn" aria-label="Sluiten" onClick={() => setConvActionsSheet(null)}>
+              <button type="button" className="icon-btn" aria-label="Sluiten" onClick={closeConvActionsSheet}>
                 <XIcon size={16} aria-hidden="true" />
               </button>
             </div>
             <div className="pulse-sheet-list">
-              {renderConvActions(convActionsSheet.conv, convActionsSheet.otherUid, () => setConvActionsSheet(null))}
+              {renderConvActions(convActionsSheet.conv, convActionsSheet.otherUid, closeConvActionsSheet)}
             </div>
           </div>
         </div>

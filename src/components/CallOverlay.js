@@ -349,10 +349,17 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
     if (remoteStreamRef.current) bindRemoteAudioStream(remoteStreamRef.current);
   }, [videoUpgraded, attachMediaStream, bindRemoteAudioStream]);
 
-  const isVideo   = incoming?.isVideo || active?.isVideo || videoUpgraded;
+  const hasLocalVideoTrack =
+    !!active?.localStream?.getVideoTracks?.()?.length ||
+    !!localStreamRef.current?.getVideoTracks?.()?.length;
+  const hasRemoteVideoTrack =
+    !!active?.remoteStream?.getVideoTracks?.()?.length ||
+    !!remoteStreamRef.current?.getVideoTracks?.()?.length;
+  const isVideo   = incoming?.isVideo || active?.isVideo || videoUpgraded || hasLocalVideoTrack;
   const callName  = incoming?.callerName || active?.name || 'Contactpersoon';
   const isVoiceActiveLayout = !isVideo && callState !== 'incoming' && callState !== 'ended';
   const isVideoActiveLayout = isVideo && callState !== 'incoming' && callState !== 'ended';
+  const isVideoPendingLayout = isVideoActiveLayout && !hasRemoteVideoTrack;
 
   const canMinimize = callState === 'calling' || callState === 'active' || callState === 'connecting';
 
@@ -374,7 +381,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
   );
 
   return (
-    <div className={`call-overlay ${isVideo && callState === 'active' ? 'video-mode' : ''}`}>
+    <div className={`call-overlay ${isVideoActiveLayout ? 'video-mode' : ''}`}>
 
       {/* Verborgen audio element voor spraakgesprekken */}
       <audio ref={remoteAudioRef} autoPlay playsInline />
@@ -388,7 +395,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
       )}
 
       {/* ── CALL CARD ── */}
-      <div className={`call-card ${isVideo && callState === 'active' ? 'transparent' : ''} ${isVoiceActiveLayout ? 'voice-active' : ''}`}>
+      <div className={`call-card ${isVideoActiveLayout ? 'transparent' : ''} ${isVoiceActiveLayout ? 'voice-active' : ''} ${isVideoPendingLayout ? 'call-video-pending' : ''}`}>
         {canMinimize && (
           <button type="button" className="call-minimize-btn" aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

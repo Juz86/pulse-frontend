@@ -393,7 +393,7 @@ export default function useCalling({
         },
       });
       if (stream) {
-        setActiveCall({ toUid, isVideo, name, sessionId: getCurrentCallSessionId(), localStream: null, remoteStream: null });
+        setActiveCall({ toUid, isVideo, name, sessionId: getCurrentCallSessionId(), localStream: stream, remoteStream: null });
       }
     } catch (err) {
       showErrToast(err.message);

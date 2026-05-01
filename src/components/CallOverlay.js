@@ -1,9 +1,9 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
-import { Phone, Video, Mic, MicOff, Camera, Cancel, UserPlus, Message } from './Icons';
+import { Phone, Video, Mic, MicOff, Camera, Cancel, UserPlus, Message, Speaker } from './Icons';
 
-export default function CallOverlay({ incoming, active, contacts = [], user, onClose, onEnd }) {
+export default function CallOverlay({ incoming, active, contacts = [], user, chatUnreadCount = 0, onClose, onEnd }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
   const [callMsg,      setCallMsg]      = useState('');
   const [timer,        setTimer]        = useState(0);
@@ -469,19 +469,53 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
                   </button>
                 </>
               )}
-              <button type="button" className={`call-ctrl-btn mute ${muted ? 'on' : ''}`} aria-pressed={muted} onClick={toggleMute}>
-                {muted ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}<span>{muted ? 'Dempen uit' : 'Dempen'}</span>
-              </button>
-              {!isVideo && callState === 'active' && (
+              {!isVoiceActiveLayout && (
+                <button type="button" className={`call-ctrl-btn mute ${muted ? 'on' : ''}`} aria-pressed={muted} onClick={toggleMute}>
+                  {muted ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}<span>{muted ? 'Dempen uit' : 'Dempen'}</span>
+                </button>
+              )}
+              {isVoiceActiveLayout && (
                 <button
                   type="button"
-                  className={`call-ctrl-btn aux ${speakerEnabled ? 'on' : ''}`}
+                  className={`call-ctrl-btn aux call-ctrl-round ${speakerEnabled ? 'on' : ''}`}
                   onClick={toggleSpeakerMode}
                   disabled={!speakerControlAvailable}
-                  title="Speaker/oorluidspreker wisselen"
+                  title="Luidspreker"
                 >
-                  <Phone size={18} aria-hidden="true" />
-                  <span>{speakerControlAvailable ? (speakerEnabled ? 'Speaker' : 'Oor') : 'Speaker n.v.t.'}</span>
+                  <Speaker size={19} aria-hidden="true" />
+                  <span>Luidspreker</span>
+                </button>
+              )}
+              {isVoiceActiveLayout && (
+                <button type="button" className="call-ctrl-btn cam call-ctrl-round" onClick={handleUpgradeToVideo}>
+                  <Video size={18} aria-hidden="true" /><span>Video</span>
+                </button>
+              )}
+              {isVoiceActiveLayout && (
+                <button type="button" className={`call-ctrl-btn mute call-ctrl-round ${muted ? 'on' : ''}`} aria-pressed={muted} onClick={toggleMute}>
+                  {muted ? <MicOff size={18} aria-hidden="true" /> : <Mic size={18} aria-hidden="true" />}<span>{muted ? 'Geluid aan' : 'Geluid uit'}</span>
+                </button>
+              )}
+              {isVoiceActiveLayout && (
+                <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat" onClick={handleOpenChat} title="Open chat">
+                  <Message size={18} aria-hidden="true" />
+                  <span>Chat</span>
+                  {chatUnreadCount > 0 && (
+                    <span className="call-chat-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
+                      {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                    </span>
+                  )}
+                </button>
+              )}
+              {isVoiceActiveLayout && (
+                <button
+                  type="button"
+                  className="call-ctrl-btn aux call-ctrl-round call-ctrl-disabled"
+                  disabled
+                  aria-disabled="true"
+                  title="Persoon toevoegen binnenkort"
+                >
+                  <UserPlus size={18} aria-hidden="true" /><span>+ Persoon</span>
                 </button>
               )}
               {isVideo && !isVideoActiveLayout && (
@@ -489,12 +523,12 @@ export default function CallOverlay({ incoming, active, contacts = [], user, onC
                   {camOff ? <Cancel size={18} aria-hidden="true" /> : <Camera size={18} aria-hidden="true" />}<span>Camera</span>
                 </button>
               )}
-              {!isVideo && callState === 'active' && (
-                <button type="button" className="call-ctrl-btn cam" onClick={handleUpgradeToVideo}>
-                  <Video size={18} aria-hidden="true" /><span>Video</span>
-                </button>
+              {!isVoiceActiveLayout && (
+                <button type="button" className="call-ctrl-btn end" onClick={handleEnd}><Cancel size={18} aria-hidden="true" /><span>Ophangen</span></button>
               )}
-              <button type="button" className="call-ctrl-btn end" onClick={handleEnd}><Cancel size={18} aria-hidden="true" /><span>Ophangen</span></button>
+              {isVoiceActiveLayout && (
+                <button type="button" className="call-ctrl-btn end call-ctrl-round" onClick={handleEnd}><Cancel size={18} aria-hidden="true" /><span>Ophangen</span></button>
+              )}
             </>
           )}
         </div>}

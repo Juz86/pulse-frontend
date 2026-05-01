@@ -11,6 +11,7 @@ export { MdVideocamOff   as VideoOff }      from 'react-icons/md';
 export { MdCameraAlt     as Camera }        from 'react-icons/md';
 export { MdMic           as Mic }           from 'react-icons/md';
 export { MdMicOff        as MicOff }        from 'react-icons/md';
+export { MdVolumeUp      as Speaker }       from 'react-icons/md';
 export { MdSearch        as Search }        from 'react-icons/md';
 export { MdChat          as Message }       from 'react-icons/md';
 export { MdGroup         as Users }         from 'react-icons/md';

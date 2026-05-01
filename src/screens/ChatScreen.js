@@ -754,6 +754,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         groupPhotoLoading={groupPhotoLoading} uploadGroupPhoto={uploadGroupPhoto}
         removeMemberFromGroup={removeMemberFromGroup} addMemberToGroup={addMemberToGroup}
         activeCall={activeCall} setActiveCall={setActiveCall}
+        unreadCounts={unreadCounts}
         forwardMsg={forwardMsg} setForwardMsg={setForwardMsg}
         conversations={conversations} forwardToConv={forwardToConv}
         errToast={errToast} mentionToast={mentionToast} parentToast={parentToast}

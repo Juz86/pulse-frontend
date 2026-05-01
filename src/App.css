@@ -4630,8 +4630,11 @@ font-family: 'Inter', sans-serif;
   background:transparent;
   border:none;
   box-shadow:none;
-  width:min(32rem, calc(100vw - 2 * var(--modal-padding)));
+  width:min(34rem, calc(100vw - 2 * var(--modal-padding)));
   gap:12px;
+  min-height:min(88dvh, calc(var(--vvh, 100dvh) - var(--safe-top) - var(--safe-bottom) - 16px));
+  justify-content:space-between;
+  padding:clamp(20px, 4vw, 30px) 10px max(10px, var(--safe-bottom));
 }
 .call-card.voice-active::before { display:none; }
 .call-card.voice-active .call-close-btn,
@@ -4717,11 +4720,12 @@ font-family: 'Inter', sans-serif;
 }
 .call-card.voice-active .call-controls.active-layout {
   margin-top:10px;
-  padding:14px;
-  border-radius:28px;
+  padding:14px 14px max(12px, var(--safe-bottom));
+  border-radius:30px;
   background:rgba(25,25,29,.86);
   border:1px solid rgba(255,255,255,.12);
   box-shadow:0 10px 30px rgba(0,0,0,.45);
+  align-self:stretch;
 }
 .call-card.transparent .call-controls { margin-top:0; padding:0; background:none; border:none; }
 .call-card.transparent .call-controls.video-layout {
@@ -4813,11 +4817,39 @@ font-family: 'Inter', sans-serif;
   border:1px solid rgba(255,255,255,.09);
   color:#f3f4f6;
   box-shadow:none;
+  border-radius:999px;
+  min-height:clamp(82px, 15vw, 96px);
 }
 .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.end {
   background:linear-gradient(135deg, #ff0b55, #eb0058);
   border:none;
   color:#fff;
+}
+.call-ctrl-round { border-radius:999px !important; }
+.call-ctrl-chat { position:relative; }
+.call-chat-badge {
+  position:absolute;
+  top:10px;
+  right:12px;
+  min-width:20px;
+  height:20px;
+  padding:0 6px;
+  border-radius:999px;
+  background:#ff2d55;
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border:2px solid rgba(25,25,29,.9);
+  line-height:1;
+}
+.call-ctrl-disabled,
+.call-ctrl-disabled:disabled {
+  opacity:.52;
+  filter:saturate(.55);
+  cursor:not-allowed;
 }
 .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.mute.on,
 .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.cam.on {

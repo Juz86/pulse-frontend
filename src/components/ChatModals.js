@@ -217,6 +217,7 @@ export default function ChatModals({
 
   // call overlay
   activeCall, setActiveCall,
+  unreadCounts = {},
 
   // forward
   forwardMsg, setForwardMsg,
@@ -1770,6 +1771,7 @@ export default function ChatModals({
           active={activeCall}
           contacts={contacts}
           user={user}
+          chatUnreadCount={Object.values(unreadCounts || {}).reduce((sum, count) => sum + (Number(count) || 0), 0)}
           onClose={() => setActiveCall(null)}
           onEnd={() => setActiveCall(null)}
         />

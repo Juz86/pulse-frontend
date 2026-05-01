@@ -24,7 +24,6 @@ const ConversationList = React.memo(function ConversationList({
   getOtherUid,
   getConvPhoto,
   onOpen,
-  onMoreActionsEnter,
   onSwipeMoreActions,
   setLabelMenuConvId,
 }) {
@@ -77,7 +76,7 @@ const ConversationList = React.memo(function ConversationList({
       ref={listRef}
       className="conv-list"
       aria-busy={loadingConvs}
-      onClick={() => { setLabelMenuConvId(null); if (swipedConvId) setSwipedConvId(null); }}
+      onClick={() => { setLabelMenuConvId(null); }}
     >
       {loadingConvs && [0, 1, 2, 3].map(i => (
         <div key={i} className="conv-item skeleton-item" aria-hidden="true">
@@ -131,7 +130,6 @@ const ConversationList = React.memo(function ConversationList({
             onRequestSwipeClose={() => setSwipedConvId((prev) => (prev === conv.id ? null : prev))}
             onToggleSelect={onToggleSelectConversation}
             onOpen={() => onOpen(conv)}
-            onMoreActionsEnter={el => onMoreActionsEnter?.(conv, otherUid, el)}
             onSwipeMoreActions={() => {
               setSwipedConvId(null);
               onSwipeMoreActions?.(conv, otherUid);

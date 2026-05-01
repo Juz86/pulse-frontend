@@ -167,29 +167,12 @@ export default function ChatSidebar({
     setContactMenu(prev => prev?.uid === contactUid ? null : { uid: contactUid, direction, top, left });
   }
 
-  function openConvMenu(conv, otherUid, anchorEl) {
-    const rect = anchorEl?.getBoundingClientRect?.();
-    if (!rect) return;
-    const menuWidth = 188;
-    const menuHeight = 280;
-    const spacing = 8;
-    const direction = rect.top < 420 ? 'down' : 'up';
-    const left = Math.max(12, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 12));
-    const top = direction === 'down'
-      ? Math.min(rect.bottom + spacing, window.innerHeight - menuHeight - 12)
-      : Math.max(12, rect.top - menuHeight - spacing);
-    setConvMenu(prev => prev?.conv?.id === conv.id ? null : { conv, otherUid, direction, top, left });
-  }
-
   function handleOpenConversation(conv) {
     setConvMenu(null);
     setContactMenu(null);
     setConvActionsSheet(null);
     onOpenConversation(conv);
   }
-  const handleMoreActionsEnter = useCallback((conv, otherUid, anchorEl) => {
-    openConvMenu(conv, otherUid, anchorEl);
-  }, []);
   const openConvActionsSheet = useCallback((conv, otherUid) => {
     setConvMenu(null);
     setContactMenu(null);
@@ -452,7 +435,6 @@ export default function ChatSidebar({
             getOtherUid={getOtherUid}
             getConvPhoto={getConvPhoto}
             onOpen={handleOpenConversation}
-            onMoreActionsEnter={handleMoreActionsEnter}
             onSwipeMoreActions={openConvActionsSheet}
             setLabelMenuConvId={setLabelMenuConvId}
           />

@@ -269,10 +269,15 @@ body {
   justify-content: stretch;
   align-items: stretch;
   pointer-events: none;
+  opacity: 0;
+  transform: translateX(12px);
+  transition: opacity .18s ease, transform .18s ease;
 }
 
 .conv-item-swipe-shell.swiped-open .conv-item-swipe-actions {
   pointer-events: auto;
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .conv-swipe-more-btn {

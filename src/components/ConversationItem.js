@@ -22,7 +22,6 @@ function ConversationItemBase({
   onRequestSwipeClose,
   onToggleSelect,
   onOpen,
-  onMoreActionsEnter,
   onSwipeMoreActions,
 }) {
   const SWIPE_ACTION_WIDTH = 88;
@@ -281,18 +280,6 @@ function ConversationItemBase({
         </div>
       </div>
       {unread > 0 && <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>}
-      {!selectionMode && (
-        <button
-          type="button"
-          className="icon-btn sidebar-item-actions-btn"
-          aria-label={`Meer acties voor ${conv.name}`}
-          data-sidebar-actions-trigger
-          title="Meer acties"
-          onClick={e => { e.stopPropagation(); onMoreActionsEnter?.(e.currentTarget); }}
-        >
-          <MoreHoriz size={18} aria-hidden="true" />
-        </button>
-      )}
       </div>
     </div>
   );

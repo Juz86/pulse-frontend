@@ -4678,16 +4678,16 @@ font-family: 'Inter', sans-serif;
   background:linear-gradient(90deg, transparent, rgba(108,99,255,.4), transparent);
 }
 .call-card.transparent {
-  background:rgba(0,0,0,.55); border-color:rgba(255,255,255,.08);
-  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-  position:absolute; bottom:30px; left:50%; transform:translateX(-50%);
-  width:min(42rem, calc(100vw - 2 * var(--modal-padding)));
+  position:relative;
+  width:100%;
   max-width:100%;
-  max-height:min(45vh, 20rem);
-  overflow:auto;
-  flex-direction:row; flex-wrap:wrap; justify-content:center; padding:16px 24px; gap:16px;
-  border-radius:20px;
-  box-shadow:0 8px 32px rgba(0,0,0,.4), 0 0 0 1px rgba(108,99,255,.1);
+  min-height:100%;
+  padding:0;
+  border:none;
+  background:transparent;
+  box-shadow:none;
+  overflow:visible;
+  display:block;
 }
 
 .call-avatar-big {
@@ -4707,6 +4707,27 @@ font-family: 'Inter', sans-serif;
   background:rgba(255,255,255,.1); border-radius:inherit;
 }
 .call-card.transparent .call-avatar-big { display:none; }
+.call-card.transparent .call-name {
+  position:absolute;
+  top:max(18px, calc(env(safe-area-inset-top) + 8px));
+  left:50%;
+  transform:translateX(-50%);
+  color:#fff;
+  background:none;
+  -webkit-text-fill-color:currentColor;
+  text-shadow:0 2px 18px rgba(0,0,0,.5);
+  z-index:3;
+}
+.call-card.transparent .call-timer,
+.call-card.transparent .call-status {
+  position:absolute;
+  top:max(64px, calc(env(safe-area-inset-top) + 54px));
+  left:50%;
+  transform:translateX(-50%);
+  color:rgba(255,255,255,.9);
+  text-shadow:0 2px 14px rgba(0,0,0,.45);
+  z-index:3;
+}
 
 .call-name {
   font-family:'Inter',sans-serif; font-size:22px; font-weight:800; text-align:center;
@@ -4752,22 +4773,34 @@ font-family: 'Inter', sans-serif;
 }
 .call-card.transparent .call-controls { margin-top:0; padding:0; background:none; border:none; }
 .call-card.transparent .call-controls.video-layout {
-  display:flex;
-  flex-wrap:nowrap;
-  justify-content:space-between;
-  gap:10px;
-  overflow-x:auto;
-  padding:0;
+  position:absolute;
+  left:50%;
+  bottom:max(12px, calc(env(safe-area-inset-bottom) + 8px));
+  transform:translateX(-50%);
+  width:min(34rem, calc(100vw - 2 * var(--modal-padding)));
+  max-width:100%;
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:12px 10px;
+  padding:14px 14px max(12px, var(--safe-bottom));
+  border-radius:28px;
+  background:rgba(25,25,29,.88);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 12px 34px rgba(0,0,0,.45);
+  z-index:4;
 }
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn {
-  width:clamp(66px, 14vw, 78px);
-  min-height:clamp(66px, 14vw, 78px);
+  width:100%;
+  min-height:clamp(80px, 13vw, 98px);
   border-radius:999px;
-  flex-shrink:0;
+  gap:0;
   transition:transform .16s ease, filter .16s ease, box-shadow .16s ease;
 }
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn span {
-  font-size:11px;
+  display:none;
+}
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn::after {
+  display:none;
 }
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn:active {
   transform:scale(.97);
@@ -4841,15 +4874,14 @@ font-family: 'Inter', sans-serif;
   color:#f3f4f6;
   box-shadow:none;
   border-radius:999px;
-  min-height:clamp(96px, 16vw, 112px);
-  gap:8px;
+  min-height:clamp(80px, 14vw, 96px);
+  gap:0;
 }
 .call-card.voice-active .call-controls.active-layout .call-ctrl-btn::after {
   display:none;
 }
 .call-card.voice-active .call-controls.active-layout .call-ctrl-btn span {
-  font-size: clamp(15px, 2.2vw, 18px);
-  font-weight: 500;
+  display:none;
 }
 .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.end {
   background:linear-gradient(135deg, #ff0b55, #eb0058);
@@ -5276,10 +5308,7 @@ font-family: 'Inter', sans-serif;
     padding:14px 14px max(12px, var(--safe-bottom));
   }
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn {
-    min-height:clamp(90px, 22vw, 106px);
-  }
-  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn span {
-    font-size: 13px;
+    min-height:clamp(76px, 20vw, 92px);
   }
   .chat-header {
     padding: max(8px, calc(env(safe-area-inset-top) + 2px)) 8px 8px;
@@ -5310,26 +5339,18 @@ font-family: 'Inter', sans-serif;
 
 @media (min-width: 768px) and (orientation: landscape) {
   .call-card.transparent {
-    bottom: max(16px, calc(env(safe-area-inset-bottom) + 10px));
-    width: min(56rem, calc(100vw - 2 * var(--modal-padding)));
-    padding: 14px 18px;
-    border-radius: 22px;
-    max-height:min(40vh, 18rem);
-    overflow-y:auto;
+    width:100%;
+    padding:0;
+    max-height:none;
   }
 
   .call-card.transparent .call-controls.video-layout {
-    gap: 12px;
-    justify-content: center;
+    gap: 10px 8px;
+    width:min(32rem, calc(100vw - 2 * var(--modal-padding)));
   }
 
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn {
-    width: clamp(72px, 9vw, 86px);
-    min-height: clamp(72px, 9vw, 86px);
-  }
-
-  .call-card.transparent .call-controls.video-layout .call-ctrl-btn span {
-    font-size: 12px;
+    min-height: clamp(74px, 12vw, 90px);
   }
 
   .call-side-quick-actions {
@@ -5346,7 +5367,10 @@ font-family: 'Inter', sans-serif;
 
 @media (min-width: 900px) {
   .call-card.transparent {
-    width:min(62rem, calc(100vw - 2 * var(--modal-padding)));
+    width:100%;
+  }
+  .call-card.transparent .call-controls.video-layout {
+    width:min(40rem, calc(100vw - 2 * var(--modal-padding)));
   }
   .call-card.voice-active .call-controls.active-layout {
     grid-template-columns:repeat(3, minmax(0, 1fr));
@@ -5356,6 +5380,96 @@ font-family: 'Inter', sans-serif;
   .call-card.voice-active .call-avatar-big {
     width:clamp(240px, 34vw, 360px);
     height:clamp(240px, 34vw, 360px);
+  }
+}
+
+/* ── Audio call responsive fine-tune by target formats ─────────────────── */
+.call-card.voice-active .call-controls.active-layout {
+  width: min(100%, 42rem);
+  margin-inline: auto;
+}
+
+.call-card.voice-active .call-controls.active-layout .call-ctrl-btn {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  max-height: min(13dvw, 6.25rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* small phone: 360x640 */
+@media (max-width: 375px) and (max-height: 700px) {
+  .call-card.voice-active {
+    padding: 14px 8px max(10px, var(--safe-bottom));
+    min-height: min(90dvh, calc(var(--vvh, 100dvh) - var(--safe-top) - var(--safe-bottom)));
+  }
+  .call-card.voice-active .call-controls.active-layout {
+    gap: 10px;
+    padding: 12px 12px max(10px, var(--safe-bottom));
+  }
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn {
+    max-height: 5.1rem;
+  }
+}
+
+/* normal phone: 390x844 and large phone: 430x932 */
+@media (min-width: 376px) and (max-width: 460px) and (min-height: 760px) {
+  .call-card.voice-active .call-controls.active-layout {
+    gap: 12px;
+    padding: 14px 14px max(12px, var(--safe-bottom));
+  }
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn {
+    max-height: 5.7rem;
+  }
+}
+
+/* phone landscape: 844x390 */
+@media (max-height: 430px) and (orientation: landscape) {
+  .call-card.voice-active {
+    min-height: min(100dvh, calc(var(--vvh, 100dvh) - var(--safe-top)));
+    gap: 4px;
+    padding: 10px 10px max(8px, var(--safe-bottom));
+  }
+  .call-card.voice-active .call-avatar-big {
+    width: min(24vh, 7.5rem);
+    height: min(24vh, 7.5rem);
+    margin-top: 0;
+    margin-bottom: 4px;
+  }
+  .call-card.voice-active .call-controls.active-layout {
+    gap: 8px;
+    padding: 10px 10px max(8px, var(--safe-bottom));
+    border-radius: 22px;
+    max-width: min(34rem, 100%);
+  }
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn {
+    max-height: 4.5rem;
+  }
+}
+
+/* small tablet portrait: 768x1024 */
+@media (min-width: 700px) and (max-width: 850px) and (orientation: portrait) {
+  .call-card.voice-active .call-controls.active-layout {
+    max-width: min(34rem, 100%);
+    gap: 14px;
+    padding: 16px 16px max(14px, var(--safe-bottom));
+  }
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn {
+    max-height: 6.4rem;
+  }
+}
+
+/* tablet landscape: 1024x768 and Chromebook/tablet landscape: 1280x800 */
+@media (min-width: 900px) and (orientation: landscape) {
+  .call-card.voice-active .call-controls.active-layout {
+    max-width: min(42rem, 92vw);
+    gap: 14px 12px;
+    padding: 16px 16px max(12px, var(--safe-bottom));
+  }
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn {
+    max-height: 6.1rem;
   }
 }
 

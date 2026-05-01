@@ -4653,8 +4653,10 @@ font-family: 'Inter', sans-serif;
 }
 .call-card.voice-active .call-avatar-big {
   order: 2;
-  margin-top: clamp(18px, 8vh, 70px);
-  margin-bottom: clamp(20px, 7vh, 70px);
+  margin-top: clamp(8px, 4.2vh, 28px);
+  margin-bottom: clamp(10px, 3.8vh, 28px);
+  width: clamp(152px, 34vw, 220px);
+  height: clamp(152px, 34vw, 220px);
 }
 .call-card.voice-active::before { display:none; }
 .call-card.voice-active .call-close-btn,
@@ -4776,12 +4778,15 @@ font-family: 'Inter', sans-serif;
 .call-card.voice-active .call-controls.active-layout {
   order: 10;
   margin-top:10px;
-  padding:18px 18px max(14px, var(--safe-bottom));
+  padding:14px 14px max(12px, var(--safe-bottom));
   border-radius:32px;
   background:rgba(28,29,33,.92);
   border:1px solid rgba(255,255,255,.10);
   box-shadow:0 18px 38px rgba(0,0,0,.52);
   align-self:stretch;
+  width:min(34rem, 100%);
+  margin-inline:auto;
+  gap:12px 10px;
 }
 .call-card.transparent .call-controls { margin-top:0; padding:0; background:none; border:none; }
 .call-card.transparent .call-controls.video-layout {
@@ -4794,11 +4799,11 @@ font-family: 'Inter', sans-serif;
   display:grid;
   grid-template-columns:repeat(3, minmax(0, 1fr));
   gap:12px 10px;
-  padding:14px 14px max(12px, var(--safe-bottom));
-  border-radius:28px;
-  background:rgba(25,25,29,.88);
-  border:1px solid rgba(255,255,255,.12);
-  box-shadow:0 12px 34px rgba(0,0,0,.45);
+  padding:0 0 max(8px, var(--safe-bottom));
+  border-radius:0;
+  background:transparent;
+  border:none;
+  box-shadow:none;
   z-index:4;
 }
 .call-card.transparent.call-video-pending .call-controls.video-layout {
@@ -4909,8 +4914,10 @@ font-family: 'Inter', sans-serif;
   border:1px solid rgba(255,255,255,.09);
   color:#f3f4f6;
   box-shadow:none;
-  border-radius:999px;
-  min-height:clamp(80px, 14vw, 96px);
+  border-radius:50%;
+  aspect-ratio:1 / 1;
+  min-height:0;
+  max-height:clamp(76px, 18vw, 108px);
   gap:0;
 }
 .call-card.voice-active .call-controls.active-layout .call-ctrl-btn::after {
@@ -4919,10 +4926,19 @@ font-family: 'Inter', sans-serif;
 .call-card.voice-active .call-controls.active-layout .call-ctrl-btn span {
   display:none;
 }
+.call-card.voice-active .call-controls.active-layout .call-ctrl-btn svg {
+  width:clamp(24px, 4.2vw, 34px);
+  height:clamp(24px, 4.2vw, 34px);
+  color:#fff;
+}
 .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.end {
   background:linear-gradient(135deg, #ff0b55, #eb0058);
   border:none;
   color:#fff;
+}
+.call-card.voice-active .call-controls.active-layout .call-ctrl-btn.end svg {
+  width:clamp(26px, 4.5vw, 36px);
+  height:clamp(26px, 4.5vw, 36px);
 }
 .call-ctrl-round { border-radius:999px !important; }
 .call-ctrl-chat { position:relative; }
@@ -5334,8 +5350,8 @@ font-family: 'Inter', sans-serif;
     font-size: clamp(20px, 5.8vw, 26px);
   }
   .call-card.voice-active .call-avatar-big {
-    width:min(72vw, 310px);
-    height:min(72vw, 310px);
+    width:min(56vw, 210px);
+    height:min(56vw, 210px);
     margin-top:clamp(8px, 6vh, 28px);
     margin-bottom:clamp(10px, 5vh, 26px);
   }
@@ -5410,12 +5426,12 @@ font-family: 'Inter', sans-serif;
   }
   .call-card.voice-active .call-controls.active-layout {
     grid-template-columns:repeat(3, minmax(0, 1fr));
-    max-width:min(44rem, 100%);
+    max-width:min(40rem, 100%);
     margin-inline:auto;
   }
   .call-card.voice-active .call-avatar-big {
-    width:clamp(240px, 34vw, 360px);
-    height:clamp(240px, 34vw, 360px);
+    width:clamp(164px, 20vw, 220px);
+    height:clamp(164px, 20vw, 220px);
   }
 }
 

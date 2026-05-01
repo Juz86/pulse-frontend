@@ -237,6 +237,29 @@ app.get('/api/turn-credentials', appOnlyCors, requireAppOrigin, (_req, res) => {
   });
 });
 
+app.get('/api/app-update', appOnlyCors, requireAppOrigin, (req, res) => {
+  const minimumSupportedVersion = Number.parseInt(String(process.env.MINIMUM_SUPPORTED_ANDROID_VERSION || '').trim(), 10);
+  const latestVersion = Number.parseInt(String(process.env.LATEST_ANDROID_VERSION || '').trim(), 10);
+  const clientVersionCode = Number.parseInt(String(req.query?.clientVersionCode || '').trim(), 10);
+
+  const hasMin = Number.isFinite(minimumSupportedVersion);
+  const hasLatest = Number.isFinite(latestVersion);
+  const hasClient = Number.isFinite(clientVersionCode);
+
+  const updateRequired = hasMin && hasClient ? clientVersionCode < minimumSupportedVersion : false;
+  const updateAvailable = hasLatest && hasClient ? clientVersionCode < latestVersion : false;
+
+  return res.json({
+    ok: true,
+    minimumSupportedVersion: hasMin ? minimumSupportedVersion : null,
+    latestVersion: hasLatest ? latestVersion : null,
+    clientVersionCode: hasClient ? clientVersionCode : null,
+    updateRequired,
+    updateAvailable,
+    requestId: req.requestId,
+  });
+});
+
 app.use('/api', appOnlyCors, requireAppOrigin, requireFirebaseReady, authRouter);
 app.use('/api/conversations', appOnlyCors, requireAppOrigin, requireFirebaseReady, conversationsRouter);
 app.use('/devices', appOnlyCors, requireAppOrigin, requireFirebaseReady, devicesRouter);

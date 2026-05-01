@@ -255,6 +255,72 @@ body {
   min-width: 0;
 }
 
+.pulse-update-banner {
+  position: fixed;
+  z-index: 1200;
+  top: calc(var(--safe-top) + 10px);
+  left: max(12px, var(--safe-left));
+  right: max(12px, var(--safe-right));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(36, 34, 74, 0.95);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.3);
+}
+
+.pulse-update-banner-text strong {
+  display: block;
+  font-size: 14px;
+}
+
+.pulse-update-banner-text span {
+  display: block;
+  margin-top: 3px;
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.pulse-update-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pulse-update-btn {
+  min-height: 36px;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pulse-update-btn-primary {
+  background: linear-gradient(135deg, #6c63ff 0%, #8276ff 100%);
+  color: #fff;
+}
+
+.pulse-update-btn-muted {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f4f2ff;
+}
+
+@media (max-width: 700px) {
+  .pulse-update-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pulse-update-banner-actions {
+    justify-content: flex-end;
+  }
+}
+
 .app-screen > *,
 .hp-nav-inner > *,
 .hp-hero-inner > *,

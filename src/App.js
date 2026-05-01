@@ -32,6 +32,14 @@ import { importLegacyE2EEStateIfNeeded } from './lib/e2ee/originStorageMigration
 import { clearPulseUserStorage, scheduleIdleTask } from './utils';
 import { isNativePulseEnvironment } from './lib/platform/runtime';
 import { setupPulsePushNotifications } from './services/pushNotifications';
+import {
+  addUpdateStatusListener,
+  completeFlexibleUpdate,
+  fetchNativeUpdateStatus,
+  fetchUpdatePolicy,
+  startFlexibleUpdate,
+  startImmediateUpdate,
+} from './services/appUpdate';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const ParentDashboard    = lazy(() => import('./screens/ParentDashboard'));
@@ -300,6 +308,14 @@ function MainApp() {
     isVideo: urlParams.get('isVideo') === '1',
   });
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
+  const [appUpdate, setAppUpdate] = useState({
+    ready: false,
+    available: false,
+    required: false,
+    downloaded: false,
+    checking: false,
+  });
+  const [hideOptionalUpdate, setHideOptionalUpdate] = useState(false);
   const showNativeDirectAuth = isNativePulseEnvironment();
   const toastTimerRef          = useRef(null);
   const pushCleanupRef         = useRef(null);
@@ -307,6 +323,72 @@ function MainApp() {
   const incomingCallRef        = useRef(null);
   const lastSignedInUidRef     = useRef(null);
   const authQueryHandledRef    = useRef(false);
+  const updateListenerRef      = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    const checkUpdate = async () => {
+      setAppUpdate((prev) => ({ ...prev, checking: true }));
+      const nativeStatus = await fetchNativeUpdateStatus();
+      if (!active || !nativeStatus?.ok || !nativeStatus.installedFromPlay) {
+        setAppUpdate((prev) => ({ ...prev, ready: true, checking: false }));
+        return;
+      }
+
+      const clientVersionCode = Number(nativeStatus.clientVersionCode);
+      const policy = await fetchUpdatePolicy(BACKEND, clientVersionCode);
+      if (!active) return;
+
+      const required = !!policy?.updateRequired;
+      const availableViaPolicy = !!policy?.updateAvailable;
+      const availableViaPlay = !!nativeStatus.isUpdateAvailable || !!nativeStatus.isUpdateInProgress;
+      const canImmediate = !!nativeStatus.isImmediateAllowed;
+      const canFlexible = !!nativeStatus.isFlexibleAllowed;
+      const shouldShow = availableViaPlay || availableViaPolicy;
+
+      setAppUpdate((prev) => ({
+        ...prev,
+        ready: true,
+        checking: false,
+        available: shouldShow,
+        required,
+        downloaded: prev.downloaded,
+        canImmediate,
+        canFlexible,
+      }));
+
+      if (required && canImmediate) {
+        try {
+          await startImmediateUpdate();
+        } catch (error) {
+          console.warn('[Pulse][Update] Immediate update kon niet starten:', error?.message || error);
+        }
+      }
+    };
+
+    const attachUpdateListener = async () => {
+      updateListenerRef.current = await addUpdateStatusListener((event = {}) => {
+        if (event?.type === 'installState' && event?.isDownloaded) {
+          setAppUpdate((prev) => ({
+            ...prev,
+            available: true,
+            downloaded: true,
+          }));
+        }
+      });
+    };
+
+    checkUpdate();
+    attachUpdateListener();
+
+    return () => {
+      active = false;
+      if (updateListenerRef.current?.remove) {
+        Promise.resolve(updateListenerRef.current.remove()).catch(() => {});
+      }
+      updateListenerRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     incomingCallRef.current = incomingCall;
@@ -951,6 +1033,58 @@ function MainApp() {
     <ErrorBoundary>
     <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
     <div className="app-root">
+      {appUpdate.ready && appUpdate.available && (!hideOptionalUpdate || appUpdate.required) && (
+        <div className="pulse-update-banner" role="status" aria-live="polite">
+          <div className="pulse-update-banner-text">
+            <strong>{appUpdate.downloaded ? 'Update klaar' : 'Nieuwe update beschikbaar'}</strong>
+            <span>
+              {appUpdate.downloaded
+                ? 'Update is gedownload. Herstart Pulse om te installeren.'
+                : appUpdate.required
+                  ? 'Deze update is nodig om Pulse veilig te blijven gebruiken.'
+                  : 'Download op de achtergrond en update wanneer het jou uitkomt.'}
+            </span>
+          </div>
+          <div className="pulse-update-banner-actions">
+            {!appUpdate.required && !appUpdate.downloaded && (
+              <button type="button" className="pulse-update-btn pulse-update-btn-muted" onClick={() => setHideOptionalUpdate(true)}>
+                Later
+              </button>
+            )}
+            {!appUpdate.downloaded && (
+              <button
+                type="button"
+                className="pulse-update-btn pulse-update-btn-primary"
+                onClick={async () => {
+                  try {
+                    if (appUpdate.required) await startImmediateUpdate();
+                    else if (appUpdate.canFlexible) await startFlexibleUpdate();
+                  } catch (error) {
+                    console.warn('[Pulse][Update] Update-flow starten mislukt:', error?.message || error);
+                  }
+                }}
+              >
+                {appUpdate.required ? 'Nu updaten' : 'Update downloaden'}
+              </button>
+            )}
+            {appUpdate.downloaded && (
+              <button
+                type="button"
+                className="pulse-update-btn pulse-update-btn-primary"
+                onClick={async () => {
+                  try {
+                    await completeFlexibleUpdate();
+                  } catch (error) {
+                    console.warn('[Pulse][Update] Update afronden mislukt:', error?.message || error);
+                  }
+                }}
+              >
+                Herstart Pulse
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       {!user
         ? (
           <>

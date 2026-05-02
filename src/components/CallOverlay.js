@@ -416,7 +416,9 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
         <div className="call-name">{callName}</div>
 
         {callState === 'incoming' && (
-          <div className="call-status blink" role="status" aria-live="polite">{isVideo ? <><Video size={14} aria-hidden="true" /> Inkomend videogesprek</> : <><Phone size={14} aria-hidden="true" /> Inkomende oproep</>}</div>
+          <div className="call-status call-status-incoming blink" role="status" aria-live="polite">
+            {isVideo ? <><Video size={24} aria-hidden="true" /> Inkomend videogesprek</> : <><Phone size={24} aria-hidden="true" /> Inkomende oproep</>}
+          </div>
         )}
         {callState === 'calling'     && <div className="call-status blink" role="status" aria-live="polite">Bellen…</div>}
         {callState === 'connecting'  && <div className="call-status blink" role="status" aria-live="polite">Verbinden…</div>}
@@ -436,11 +438,11 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
         {callState === 'ended'       && <div className="call-status call-status-error" role="status" aria-live="assertive">{callMsg}</div>}
 
         {/* ── KNOPPEN ── */}
-        {callState !== 'ended' && <div className={`call-controls ${callState !== 'incoming' ? 'active-layout' : ''} ${isVideoActiveLayout ? 'video-layout' : ''}`}>
+        {callState !== 'ended' && <div className={`call-controls ${callState !== 'incoming' ? 'active-layout' : 'incoming-layout'} ${isVideoActiveLayout ? 'video-layout' : ''}`}>
           {callState === 'incoming' ? (
             <>
-              <button type="button" className="call-ctrl-btn accept"  onClick={handleAccept}><Phone size={18} aria-hidden="true" /><span>Opnemen</span></button>
-              <button type="button" className="call-ctrl-btn decline" onClick={handleDecline}><Cancel size={18} aria-hidden="true" /><span>Weigeren</span></button>
+              <button type="button" className="call-ctrl-btn accept incoming-btn"  onClick={handleAccept}><Phone size={26} aria-hidden="true" /><span>Opnemen</span></button>
+              <button type="button" className="call-ctrl-btn decline incoming-btn" onClick={handleDecline}><Cancel size={26} aria-hidden="true" /><span>Weigeren</span></button>
             </>
           ) : (
             <>

@@ -1034,54 +1034,56 @@ function MainApp() {
     <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
     <div className="app-root">
       {appUpdate.ready && appUpdate.available && (!hideOptionalUpdate || appUpdate.required) && (
-        <div className="pulse-update-banner" role="status" aria-live="polite">
-          <div className="pulse-update-banner-text">
-            <strong>{appUpdate.downloaded ? 'Update klaar' : 'Nieuwe update beschikbaar'}</strong>
-            <span>
-              {appUpdate.downloaded
-                ? 'Update is gedownload. Herstart Pulse om te installeren.'
-                : appUpdate.required
-                  ? 'Deze update is nodig om Pulse veilig te blijven gebruiken.'
-                  : 'Download op de achtergrond en update wanneer het jou uitkomt.'}
-            </span>
-          </div>
-          <div className="pulse-update-banner-actions">
-            {!appUpdate.required && !appUpdate.downloaded && (
-              <button type="button" className="pulse-update-btn pulse-update-btn-muted" onClick={() => setHideOptionalUpdate(true)}>
-                Later
-              </button>
-            )}
-            {!appUpdate.downloaded && (
-              <button
-                type="button"
-                className="pulse-update-btn pulse-update-btn-primary"
-                onClick={async () => {
-                  try {
-                    if (appUpdate.required) await startImmediateUpdate();
-                    else if (appUpdate.canFlexible) await startFlexibleUpdate();
-                  } catch (error) {
-                    console.warn('[Pulse][Update] Update-flow starten mislukt:', error?.message || error);
-                  }
-                }}
-              >
-                {appUpdate.required ? 'Nu updaten' : 'Update downloaden'}
-              </button>
-            )}
-            {appUpdate.downloaded && (
-              <button
-                type="button"
-                className="pulse-update-btn pulse-update-btn-primary"
-                onClick={async () => {
-                  try {
-                    await completeFlexibleUpdate();
-                  } catch (error) {
-                    console.warn('[Pulse][Update] Update afronden mislukt:', error?.message || error);
-                  }
-                }}
-              >
-                Herstart Pulse
-              </button>
-            )}
+        <div className="pulse-update-overlay" role="presentation">
+          <div className="pulse-update-banner" role="status" aria-live="polite">
+            <div className="pulse-update-banner-text">
+              <strong>{appUpdate.downloaded ? 'Update klaar' : 'Nieuwe update beschikbaar'}</strong>
+              <span>
+                {appUpdate.downloaded
+                  ? 'Update is gedownload. Herstart Pulse om te installeren.'
+                  : appUpdate.required
+                    ? 'Deze update is nodig om Pulse veilig te blijven gebruiken.'
+                    : 'Download op de achtergrond en update wanneer het jou uitkomt.'}
+              </span>
+            </div>
+            <div className={`pulse-update-banner-actions${appUpdate.downloaded ? ' is-downloaded' : ''}`}>
+              {!appUpdate.required && !appUpdate.downloaded && (
+                <button type="button" className="pulse-update-btn pulse-update-btn-muted" onClick={() => setHideOptionalUpdate(true)}>
+                  Later
+                </button>
+              )}
+              {!appUpdate.downloaded && (
+                <button
+                  type="button"
+                  className="pulse-update-btn pulse-update-btn-primary"
+                  onClick={async () => {
+                    try {
+                      if (appUpdate.required) await startImmediateUpdate();
+                      else if (appUpdate.canFlexible) await startFlexibleUpdate();
+                    } catch (error) {
+                      console.warn('[Pulse][Update] Update-flow starten mislukt:', error?.message || error);
+                    }
+                  }}
+                >
+                  {appUpdate.required ? 'Nu updaten' : 'Update downloaden'}
+                </button>
+              )}
+              {appUpdate.downloaded && (
+                <button
+                  type="button"
+                  className="pulse-update-btn pulse-update-btn-primary"
+                  onClick={async () => {
+                    try {
+                      await completeFlexibleUpdate();
+                    } catch (error) {
+                      console.warn('[Pulse][Update] Update afronden mislukt:', error?.message || error);
+                    }
+                  }}
+                >
+                  Herstart Pulse
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -8,3 +8,5 @@ android/.gradle/
 .gradle-android/
 firebase-debug.log
 firestore-debug.log
+
+.gradle-native/

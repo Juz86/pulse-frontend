@@ -123,3 +123,4 @@ Er staat nu ook een minimale backend-skeleton klaar in:
 - [backend-skeleton/README.md](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/README.md)
 
 Die map is bedoeld als implementatiestart voor de eerste E2EE-serviceflow, niet als af productiebackend.
+De actieve backend source of truth staat in `../pulse-backend-erlang`; `backend-skeleton` is legacy referentiemateriaal.

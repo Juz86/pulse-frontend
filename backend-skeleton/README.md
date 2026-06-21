@@ -234,3 +234,5 @@ Voor een eerste Railway-gericht deploypad:
 - [BACKEND_E2EE_API_SPEC.md](/home/yushuaabdulkadir/pulse-frontend/BACKEND_E2EE_API_SPEC.md)
 - [BACKEND_E2EE_FIRESTORE_PLAN.md](/home/yushuaabdulkadir/pulse-frontend/BACKEND_E2EE_FIRESTORE_PLAN.md)
 - [E2EE_BACKEND_HANDOFF_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BACKEND_HANDOFF_CHECKLIST.md)
+> Legacy status: deze map is niet de actieve Pulse-backend en is niet de source of truth.
+> Gebruik voor alle backendimplementatie `../pulse-backend-erlang`.

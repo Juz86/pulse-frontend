@@ -1,5 +1,10 @@
 # Pulse Backend E2EE API Spec
 
+> Overlap-notitie:
+> Voor het normatieve backendcontract tussen Android en de Pulse backend is
+> `docs/BACKEND_CONTRACT_CHAT_CALL_VIDEO.md` leidend.
+> Dit document blijft bruikbaar als E2EE-spec en gefaseerde transportreferentie.
+
 Dit document beschrijft het minimale backendcontract dat de huidige frontend verwacht voor de gefaseerde E2EE-rollout voor chatten, bellen en videobellen.
 
 De frontend is bewust voorbereid op een overgangsfase waarin legacy plaintext en `signal_v1` naast elkaar bestaan.

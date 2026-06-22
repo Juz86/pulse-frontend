@@ -7,6 +7,9 @@ import {
 } from '../lib/e2ee/config';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import UserAvatar from '../components/UserAvatar';
+import FloatingIconButton from './FloatingIconButton';
+import FloatingHeader from './FloatingHeader';
+import PulseSearchPill from './PulseSearchPill';
 
 const ChatHeader = React.memo(function ChatHeader({
   activeConv,
@@ -154,66 +157,88 @@ const ChatHeader = React.memo(function ChatHeader({
 
   return (
     <>
-      <div className="chat-header">
-        {/* Terug-knop met ongelezen badge */}
-        <button type="button" className="back-btn" onClick={onBack} title="Terug" aria-label={totalUnread > 0 ? `Terug, ${totalUnread} ongelezen ${totalUnread === 1 ? 'bericht' : 'berichten'} in andere gesprekken` : 'Terug'} style={{ position: 'relative' }}>
-          <span aria-hidden="true">←</span>
-          {totalUnread > 0 && (
-            <span aria-hidden="true" style={{
-              position: 'absolute', top: -6, right: -6,
-              background: '#25d366', color: '#fff',
-              fontSize: 10, fontWeight: 700, lineHeight: 1,
-              minWidth: 16, height: 16, borderRadius: 8,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: '0 4px', pointerEvents: 'none',
-            }}>
-              {totalUnread > 99 ? '99+' : totalUnread}
-            </span>
+      <div className="chat-header-shell">
+        <FloatingHeader
+          className="chat-header"
+          compact
+          leading={(
+            <div className="chat-header-leading-stack">
+              <FloatingIconButton
+                className="chat-header-back"
+                onClick={onBack}
+                title="Terug"
+                aria-label={totalUnread > 0 ? `Terug, ${totalUnread} ongelezen ${totalUnread === 1 ? 'bericht' : 'berichten'} in andere gesprekken` : 'Terug'}
+              >
+                <span aria-hidden="true">←</span>
+                {totalUnread > 0 && (
+                  <span aria-hidden="true" className="floating-icon-btn__badge floating-icon-btn__badge--count">
+                    {totalUnread > 99 ? '99+' : totalUnread}
+                  </span>
+                )}
+              </FloatingIconButton>
+              <div
+                className="chat-header-avatar-button"
+                role="button"
+                tabIndex={0}
+                aria-label={activeConv.isGroup ? `Open groepsinfo van ${getConvName(activeConv)}` : `Open profiel van ${getConvName(activeConv)}`}
+                onClick={openHeaderDetails}
+                onKeyDown={handleProfileKeyDown}
+              >
+                <div className="avatar-wrap">
+                  <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm" decorative />
+                  {isOnline && <span className={`online-dot sm${inactiveUsers.has(otherUid) ? ' inactive' : ''}`} aria-hidden="true" />}
+                </div>
+              </div>
+            </div>
           )}
-        </button>
-
-        {/* Avatar */}
-        <div
-          className="avatar-wrap"
-          role="button"
-          tabIndex={0}
-          aria-label={activeConv.isGroup ? `Open groepsinfo van ${getConvName(activeConv)}` : `Open profiel van ${getConvName(activeConv)}`}
-          style={{ cursor: 'pointer' }}
-          onClick={openHeaderDetails}
-          onKeyDown={handleProfileKeyDown}
-        >
-          <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm" decorative />
-          {isOnline && <span className={`online-dot sm${inactiveUsers.has(otherUid) ? ' inactive' : ''}`} aria-hidden="true" />}
-        </div>
-
-        {/* Naam + status */}
-        <div
-          className="chat-header-info"
-          role="button"
-          tabIndex={0}
-          aria-label={activeConv.isGroup ? `Open groepsinfo van ${getConvName(activeConv)}` : `Open profiel van ${getConvName(activeConv)}`}
-          style={{ cursor: 'pointer' }}
-          onClick={openHeaderDetails}
-          onKeyDown={handleProfileKeyDown}
-        >
-          <div className="chat-header-name">{getConvName(activeConv)}</div>
-          {isOnline ? <div className="chat-header-online">{isActive ? 'Online' : 'Afwezig'}</div> : null}
-        </div>
-
-        {/* Actieknoppen */}
-        <div className="chat-header-actions" ref={moreActionsRef}>
-          <button
-            type="button"
-            className="icon-btn"
-            ref={moreActionsButtonRef}
-            aria-label="Meer acties"
-            aria-haspopup="menu"
-            aria-expanded={moreActionsOpen}
-            title="Meer acties"
-            onClick={() => setMoreActionsOpen((prev) => !prev)}
-          >
-            <MoreHoriz size={18} aria-hidden="true" />
-          </button>
+          title={(
+            <div
+              className="chat-header-info"
+              role="button"
+              tabIndex={0}
+              aria-label={activeConv.isGroup ? `Open groepsinfo van ${getConvName(activeConv)}` : `Open profiel van ${getConvName(activeConv)}`}
+              onClick={openHeaderDetails}
+              onKeyDown={handleProfileKeyDown}
+            >
+              <div className="chat-header-name">{getConvName(activeConv)}</div>
+            </div>
+          )}
+          subtitle={typing ? (typingName ? `${typingName} typt…` : 'Iemand typt…') : (isOnline ? (isActive ? 'Online' : 'Afwezig') : 'Offline')}
+          actions={(
+            <div className="chat-header-actions" ref={moreActionsRef}>
+              {!activeConv.isGroup && !parentBlockedOtherUid && callsAvailable && (
+                <>
+                  <FloatingIconButton
+                    aria-label="Bellen"
+                    title="Bellen"
+                    onClick={() => onInitiateCall(false)}
+                  >
+                    <Phone size={17} />
+                  </FloatingIconButton>
+                  <FloatingIconButton
+                    aria-label="Videobellen"
+                    title="Videobellen"
+                    onClick={() => onInitiateCall(true)}
+                  >
+                    <Video size={17} />
+                  </FloatingIconButton>
+                </>
+              )}
+              <FloatingIconButton
+                ref={moreActionsButtonRef}
+                aria-label="Meer acties"
+                aria-haspopup="menu"
+                aria-expanded={moreActionsOpen}
+                title="Meer acties"
+                onClick={() => setMoreActionsOpen((prev) => !prev)}
+              >
+                <MoreHoriz size={18} aria-hidden="true" />
+              </FloatingIconButton>
+            </div>
+          )}
+        />
+      </div>
+      <div className="chat-header-menu-anchor">
           {moreActionsOpen && (
             <div
               className="chat-header-menu"
@@ -364,7 +389,6 @@ const ChatHeader = React.memo(function ChatHeader({
               )}
             </div>
           )}
-        </div>
       </div>
 
       {serviceFallbackBannerState.visible && (
@@ -388,20 +412,20 @@ const ChatHeader = React.memo(function ChatHeader({
 
       {/* Zoekbalk in gesprek */}
       <div id="chat-search-region" className={`chat-search-bar${showChatSearch ? ' visible' : ''}`} role="search" aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`}>
-        <input
+        <PulseSearchPill
           ref={chatSearchRef}
-          aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`}
-          aria-controls="chat-messages-log"
-          aria-describedby={chatSearch.trim() ? 'chat-search-results-status' : undefined}
-          tabIndex={showChatSearch ? 0 : -1}
           value={chatSearch}
-          onChange={e => { setChatSearch(e.target.value); setChatSearchIdx(0); }}
+          onChange={(e) => { setChatSearch(e.target.value); setChatSearchIdx(0); }}
+          ariaLabel={`Zoeken in gesprek met ${getConvName(activeConv)}`}
           placeholder="Zoeken in gesprek…"
-          style={{ flex: 1, background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '8px', padding: '7px 12px', color: 'var(--text)', fontSize: '14px', outline: 'none' }}
-          onKeyDown={e => {
+          className="chat-search-pill"
+          onKeyDown={(e) => {
             if (e.key === 'Enter') setChatSearchIdx(i => (i + 1) % (searchTotal || 1));
             if (e.key === 'Escape') closeChatSearch();
           }}
+          aria-controls="chat-messages-log"
+          aria-describedby={chatSearch.trim() ? 'chat-search-results-status' : undefined}
+          tabIndex={showChatSearch ? 0 : -1}
         />
         {chatSearch.trim() && (
           <span id="chat-search-results-status" className="chat-search-results-status" aria-live="polite" style={{ fontSize: '13px', color: 'var(--text3)' }}>
@@ -410,11 +434,11 @@ const ChatHeader = React.memo(function ChatHeader({
         )}
         {searchTotal > 1 && (
           <>
-            <button type="button" aria-label="Vorig resultaat" aria-controls="chat-messages-log" tabIndex={showChatSearch ? 0 : -1} className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setChatSearchIdx(i => (i - 1 + searchTotal) % searchTotal)}><span aria-hidden="true">↑</span></button>
-            <button type="button" aria-label="Volgend resultaat" aria-controls="chat-messages-log" tabIndex={showChatSearch ? 0 : -1} className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setChatSearchIdx(i => (i + 1) % searchTotal)}><span aria-hidden="true">↓</span></button>
+            <FloatingIconButton aria-label="Vorig resultaat" aria-controls="chat-messages-log" tabIndex={showChatSearch ? 0 : -1} className="chat-search-nav" onClick={() => setChatSearchIdx(i => (i - 1 + searchTotal) % searchTotal)}><span aria-hidden="true">↑</span></FloatingIconButton>
+            <FloatingIconButton aria-label="Volgend resultaat" aria-controls="chat-messages-log" tabIndex={showChatSearch ? 0 : -1} className="chat-search-nav" onClick={() => setChatSearchIdx(i => (i + 1) % searchTotal)}><span aria-hidden="true">↓</span></FloatingIconButton>
           </>
         )}
-        <button type="button" aria-label="Zoeken sluiten" tabIndex={showChatSearch ? 0 : -1} className="icon-btn" style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={closeChatSearch}><span aria-hidden="true">✕</span></button>
+        <FloatingIconButton aria-label="Zoeken sluiten" tabIndex={showChatSearch ? 0 : -1} className="chat-search-nav" onClick={closeChatSearch}><span aria-hidden="true">✕</span></FloatingIconButton>
       </div>
     </>
   );

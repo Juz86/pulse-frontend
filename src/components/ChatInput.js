@@ -3,6 +3,8 @@ import React, { useCallback, useRef } from 'react';
 import { getSocket } from '../services/socket';
 import { Send, PauseCircle } from '../components/Icons';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
+import FloatingComposer from './FloatingComposer';
+import FloatingIconButton from './FloatingIconButton';
 
 const ChatInput = React.memo(function ChatInput({
   text,
@@ -167,24 +169,26 @@ const ChatInput = React.memo(function ChatInput({
             : ''}.
         </div>
       ) : (
-        <div className="input-row">
-          <textarea
-            ref={textareaRef}
-            className="chat-textarea"
-            rows={1}
-            aria-label="Bericht invoeren"
-            aria-describedby={textareaDescribedBy}
-            placeholder="Typ een bericht"
-            value={text}
-            readOnly={editSubmitting}
-            aria-busy={editSubmitting}
-            onChange={e => handleTyping(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onCompositionStart={() => { composingRef.current = true; }}
-            onCompositionEnd={() => { composingRef.current = false; }}
-          />
-          <button type="button" className="send-btn" aria-label={editSubmitting ? 'Bewerking opslaan' : 'Bericht versturen'} onClick={onSend} disabled={!canSend || editSubmitting}><Send size={18} aria-hidden="true" /></button>
-        </div>
+        <FloatingComposer>
+          <div className="input-row">
+            <textarea
+              ref={textareaRef}
+              className="chat-textarea"
+              rows={1}
+              aria-label="Bericht invoeren"
+              aria-describedby={textareaDescribedBy}
+              placeholder="Typ een bericht"
+              value={text}
+              readOnly={editSubmitting}
+              aria-busy={editSubmitting}
+              onChange={e => handleTyping(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onCompositionStart={() => { composingRef.current = true; }}
+              onCompositionEnd={() => { composingRef.current = false; }}
+            />
+            <FloatingIconButton type="button" className="send-btn" aria-label={editSubmitting ? 'Bewerking opslaan' : 'Bericht versturen'} onClick={onSend} disabled={!canSend || editSubmitting} tone="accent"><Send size={18} aria-hidden="true" /></FloatingIconButton>
+          </div>
+        </FloatingComposer>
       )}
     </div>
   );

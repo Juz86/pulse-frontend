@@ -1,6 +1,7 @@
 import React from 'react';
 import { Phone, Video } from '../components/Icons';
 import { formatTime } from '../utils';
+import SoftMessageBubble from './SoftMessageBubble';
 
 export default function CallMessageCard({
   presentation,
@@ -35,14 +36,19 @@ export default function CallMessageCard({
         onKeyDown={canRestartCall ? (event) => onActionCardKeyDown(event, () => onStartCall(isVideo)) : undefined}
         style={canRestartCall ? { cursor: 'pointer' } : undefined}
       >
-        <div className={`msg-call-icon ${iconType}`} aria-hidden="true">
-          {isVideo ? <Video size={20} aria-hidden="true" /> : <Phone size={20} aria-hidden="true" />}
-        </div>
-        <div className="msg-call-info">
-          <div className="msg-call-label">{callLabel}</div>
-          {callSub && <div className="msg-call-sub">{callSub}</div>}
-        </div>
-        <div className="msg-call-time">{formatTime(createdAt)}</div>
+        <SoftMessageBubble
+          isOwn={isOwn}
+          className={`msg-call-card-shell${isMissed ? ' msg-call-card-shell--missed' : ''}`}
+        >
+          <div className={`msg-call-icon ${iconType}`} aria-hidden="true">
+            {isVideo ? <Video size={20} aria-hidden="true" /> : <Phone size={20} aria-hidden="true" />}
+          </div>
+          <div className="msg-call-info">
+            <div className="msg-call-label">{callLabel}</div>
+            {callSub && <div className="msg-call-sub">{callSub}</div>}
+          </div>
+          <div className="msg-call-time">{formatTime(createdAt)}</div>
+        </SoftMessageBubble>
       </div>
     </div>
   );

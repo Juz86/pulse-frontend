@@ -12828,3 +12828,317 @@ font-family: 'Inter', sans-serif;
     border-color: rgba(244, 114, 182, 0.22);
   }
 }
+
+/* Soft Physical follow-up: overlay and remaining modals */
+.rename-contact-panel,
+.share-contact-panel,
+.friend-requests-panel,
+.shared-contact-panel,
+.contact-list-profile-panel,
+.add-contact-panel,
+.new-chat-panel,
+.new-group-panel,
+.forward-message-panel {
+  background:
+    radial-gradient(circle at top left, rgba(123, 94, 255, 0.18), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(244,247,255,0.96) 100%);
+}
+
+.share-contact-summary,
+.share-contact-row,
+.friend-request-card,
+.shared-contact-hero,
+.search-result,
+.new-chat-panel .search-result,
+.new-group-panel .search-result {
+  border-radius: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255,255,255,0.76);
+  box-shadow:
+    0 16px 34px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.66);
+}
+
+.share-contact-row.selected,
+.friend-request-card--incoming {
+  background: linear-gradient(135deg, rgba(123, 94, 255, 0.14), rgba(232, 121, 249, 0.1));
+  border-color: rgba(123, 94, 255, 0.22);
+}
+
+.friend-request-card--outgoing {
+  background: rgba(255,255,255,0.68);
+}
+
+.shared-contact-hero {
+  padding: 18px 18px 22px;
+  margin-bottom: 8px;
+}
+
+.shared-contact-panel .modal-actions,
+.rename-contact-panel .modal-actions,
+.share-contact-panel .modal-actions,
+.add-contact-panel .modal-actions,
+.new-chat-panel .modal-actions,
+.new-group-panel .modal-actions,
+.forward-message-panel .modal-actions {
+  margin-top: 18px;
+}
+
+.call-overlay {
+  background:
+    radial-gradient(circle at top, rgba(123, 94, 255, 0.22), transparent 28%),
+    linear-gradient(180deg, rgba(247, 248, 255, 0.96) 0%, rgba(234, 239, 252, 0.92) 100%);
+}
+
+.call-overlay.video-mode {
+  background:
+    linear-gradient(180deg, rgba(12, 14, 24, 0.24) 0%, rgba(12, 14, 24, 0.42) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.call-mini-bar {
+  border-radius: 28px;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow:
+    0 24px 48px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 rgba(255,255,255,0.74);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.call-mini-avatar {
+  border-radius: 18px;
+  background: linear-gradient(135deg, #7b5eff, #f472b6);
+  box-shadow: 0 12px 28px rgba(123, 94, 255, 0.24);
+}
+
+.call-mini-end {
+  box-shadow: 0 12px 24px rgba(255,71,87,.24);
+}
+
+.call-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(246,248,255,0.88) 100%);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow:
+    0 40px 90px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 rgba(255,255,255,0.72);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.call-card::before {
+  height: 0;
+}
+
+.call-card.voice-active {
+  background: transparent;
+}
+
+.call-card.voice-active .call-close-btn,
+.call-card.voice-active .call-minimize-btn,
+.call-close-btn,
+.call-minimize-btn {
+  background: rgba(255,255,255,0.78);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: var(--text);
+  box-shadow:
+    0 12px 24px rgba(15, 23, 42, 0.14),
+    inset 0 1px 0 rgba(255,255,255,0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.call-avatar-big {
+  border-radius: 34%;
+  background:
+    linear-gradient(135deg, rgba(123, 94, 255, 0.96), rgba(244, 114, 182, 0.92));
+  box-shadow:
+    0 26px 56px rgba(123, 94, 255, 0.24),
+    inset 0 1px 0 rgba(255,255,255,0.28);
+  border: 1px solid rgba(255,255,255,0.22);
+}
+
+.call-avatar-big::after {
+  background: linear-gradient(180deg, rgba(255,255,255,0.24), rgba(255,255,255,0.02));
+}
+
+.call-name {
+  background: linear-gradient(135deg, #18202f, #48536b);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.call-status,
+.call-upgrade-message {
+  color: var(--text2);
+}
+
+.call-timer {
+  color: #16a34a;
+  text-shadow: none;
+}
+
+.call-status.call-status-incoming,
+.call-card.transparent .call-name,
+.call-card.transparent .call-timer,
+.call-card.transparent .call-status {
+  color: #fff;
+}
+
+.call-controls {
+  border-radius: 32px;
+  background: rgba(255,255,255,0.68);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255,255,255,0.68);
+}
+
+.call-card.voice-active .call-controls.active-layout,
+.call-card.transparent .call-controls.video-layout {
+  background: rgba(255,255,255,0.14);
+}
+
+.call-ctrl-btn {
+  border-radius: 24px;
+  box-shadow:
+    0 16px 32px rgba(15, 23, 42, 0.14),
+    inset 0 1px 0 rgba(255,255,255,0.14);
+}
+
+.call-ctrl-btn::after {
+  background: rgba(255,255,255,0.14);
+}
+
+.call-ctrl-btn.mute,
+.call-ctrl-btn.cam,
+.call-ctrl-btn.aux {
+  background: rgba(255,255,255,0.76);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: var(--text);
+}
+
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.aux,
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.cam,
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.mute,
+.call-card.voice-active .call-controls.active-layout .call-ctrl-btn {
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.16);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+}
+
+.call-upgrade-banner,
+.call-add-sheet {
+  border-radius: 28px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255,255,255,0.82);
+  box-shadow:
+    0 20px 42px rgba(15, 23, 42, 0.16),
+    inset 0 1px 0 rgba(255,255,255,0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.call-add-sheet-head,
+.call-add-sheet-name {
+  color: var(--text);
+}
+
+.call-add-sheet-close,
+.call-add-sheet-input,
+.call-add-sheet-item {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255,255,255,0.7);
+  color: var(--text);
+}
+
+.call-add-sheet-sub {
+  color: var(--text3);
+}
+
+@media (prefers-color-scheme: dark) {
+  .rename-contact-panel,
+  .share-contact-panel,
+  .friend-requests-panel,
+  .shared-contact-panel,
+  .contact-list-profile-panel,
+  .add-contact-panel,
+  .new-chat-panel,
+  .new-group-panel,
+  .forward-message-panel {
+    background:
+      radial-gradient(circle at top left, rgba(123, 94, 255, 0.18), transparent 36%),
+      linear-gradient(180deg, rgba(32, 30, 67, 0.94) 0%, rgba(24, 23, 54, 0.95) 100%);
+  }
+
+  .share-contact-summary,
+  .share-contact-row,
+  .friend-request-card,
+  .shared-contact-hero,
+  .search-result,
+  .new-chat-panel .search-result,
+  .new-group-panel .search-result,
+  .call-mini-bar,
+  .call-card,
+  .call-controls,
+  .call-upgrade-banner,
+  .call-add-sheet,
+  .call-add-sheet-close,
+  .call-add-sheet-input,
+  .call-add-sheet-item {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.1);
+    color: #f8fafc;
+    box-shadow:
+      0 16px 36px rgba(0,0,0,0.22),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .call-overlay {
+    background:
+      radial-gradient(circle at top, rgba(123, 94, 255, 0.24), transparent 30%),
+      linear-gradient(180deg, rgba(15, 16, 31, 0.98) 0%, rgba(20, 22, 38, 0.96) 100%);
+  }
+
+  .call-overlay.video-mode {
+    background: linear-gradient(180deg, rgba(7, 8, 16, 0.16) 0%, rgba(7, 8, 16, 0.42) 100%);
+  }
+
+  .call-close-btn,
+  .call-minimize-btn,
+  .call-card.voice-active .call-close-btn,
+  .call-card.voice-active .call-minimize-btn {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.12);
+    color: #fff;
+  }
+
+  .call-name {
+    background: linear-gradient(135deg, #f8fafc, #cbd5e1);
+    -webkit-background-clip: text;
+    background-clip: text;
+  }
+
+  .call-status,
+  .call-upgrade-message,
+  .call-add-sheet-head,
+  .call-add-sheet-name {
+    color: rgba(255,255,255,0.9);
+  }
+
+  .call-add-sheet-sub {
+    color: rgba(255,255,255,0.62);
+  }
+
+  .call-ctrl-btn.mute,
+  .call-ctrl-btn.cam,
+  .call-ctrl-btn.aux {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+}

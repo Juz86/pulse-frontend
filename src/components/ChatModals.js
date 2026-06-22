@@ -450,7 +450,7 @@ export default function ChatModals({
           <aside className="chat-side-panel share-contact-panel" aria-labelledby="share-contact-title">
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setSharingContact(null); setShareRecipients([]); }}><span aria-hidden="true">✕</span></button>
             <h2 id="share-contact-title" className="modal-title share-contact-title-responsive" style={{ fontSize: '16px' }}><span className="modal-title-icon" aria-hidden="true"><Share size={18} /></span> Contactpersoon delen</h2>
-            <div style={{ marginBottom: '12px', padding: '10px 14px', borderRadius: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="share-contact-summary" style={{ marginBottom: '12px', padding: '10px 14px', borderRadius: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div className="avatar sm">{getInitials(getContactDisplayName(sharingContact))}</div>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '14px' }}>{getContactDisplayName(sharingContact)}</div>
@@ -462,7 +462,7 @@ export default function ChatModals({
               {contacts.filter(c => c.uid !== sharingContact.uid).map(c => {
                 const selected = shareRecipients.includes(c.uid);
                 return (
-                  <button key={c.uid} type="button" className="contact-row"
+                  <button key={c.uid} type="button" className={`contact-row share-contact-row${selected ? ' selected' : ''}`}
                     style={{ background: selected ? 'var(--accent-soft, rgba(108,99,255,.15))' : 'none', border: selected ? '1px solid var(--accent)' : '1px solid var(--border)', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text)', textAlign: 'left' }}
                     onClick={() => setShareRecipients(prev => prev.includes(c.uid) ? prev.filter(id => id !== c.uid) : [...prev, c.uid])}>
                     <div className="avatar sm">{getInitials(getContactDisplayName(c))}</div>
@@ -513,7 +513,7 @@ export default function ChatModals({
               {requestsTab === 'ontvangen' && (
                 <>
                   {friendRequests.map(req => (
-                    <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'rgba(124,111,255,0.08)', borderRadius: 10, border: '1px solid rgba(124,111,255,0.2)' }}>
+                    <div key={req.id} className="friend-request-card friend-request-card--incoming" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'rgba(124,111,255,0.08)', borderRadius: 10, border: '1px solid rgba(124,111,255,0.2)' }}>
                       <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.fromName)}</div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="friend-request-person-name" style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{req.fromName}</div>
@@ -545,7 +545,7 @@ export default function ChatModals({
                     const reminderCount = Number(req.reminderCount || 0);
                     const remindersRemaining = Math.max(0, 3 - reminderCount);
                     return (
-                      <div key={requestId || req.toUid || req.toEmail} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <div key={requestId || req.toUid || req.toEmail} className="friend-request-card friend-request-card--outgoing" style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.toEmail || req.toUid)}</div>
                           <div style={{ flex: 1, minWidth: 0 }}>
@@ -582,7 +582,7 @@ export default function ChatModals({
           <aside className="chat-side-panel shared-contact-panel" aria-labelledby="shared-contact-title">
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setViewingSharedContact(null)}><span aria-hidden="true">✕</span></button>
             <h2 id="shared-contact-title" className="modal-title" style={{ fontSize: '18px' }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Contactpersoon</h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 0 20px' }}>
+            <div className="shared-contact-hero" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 0 20px' }}>
               <div className="avatar-wrap" style={{ flexShrink: 0 }}>
                 <div className="avatar-circle" style={{ width: 52, height: 52, fontSize: 20, borderRadius: 14 }}>{getInitials(viewingSharedContact.name || '')}</div>
                 {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid) && <span className={`online-dot${inactiveUsers.has(viewingSharedContact.uid) ? ' inactive' : ''}`} />}

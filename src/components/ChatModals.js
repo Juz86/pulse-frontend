@@ -902,7 +902,7 @@ export default function ChatModals({
                       >
                         <span className="profile-settings-item-icon" aria-hidden="true"><Logout size={18} /></span>
                         <span className="profile-settings-item-copy">
-                          <span className="profile-settings-item-title" style={{ color: '#fda4af' }}>Uitloggen</span>
+                          <span className="profile-settings-item-title profile-settings-item-title--danger">Uitloggen</span>
                           <span className="profile-settings-item-description">Afmelden van dit account</span>
                         </span>
                       </button>
@@ -911,8 +911,8 @@ export default function ChatModals({
                 )}
                 {profileTab === 'account' && (
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                    <div className="profile-account-hero">
+                      <div className="profile-account-hero-inner">
                         <div className="profile-photo-wrap" onClick={() => photoInputRef.current?.click()}>
                           {photoPreview
                             ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
@@ -920,49 +920,47 @@ export default function ChatModals({
                           }
                           <div className="profile-photo-overlay"><Camera size={16} /></div>
                         </div>
-                        <button type="button" onClick={() => setShowAvatarBuilder(true)}
-                          style={{ padding: '7px 16px', borderRadius: 10, border: '1px solid rgba(108,99,255,0.4)', background: 'rgba(108,99,255,0.1)', color: 'var(--accent)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                        <button type="button" onClick={() => setShowAvatarBuilder(true)} className="profile-avatar-builder-btn">
                           🎨 Avatar maken
                         </button>
                       </div>
-                      <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+                      <input ref={photoInputRef} type="file" accept="image/*" className="u-hidden" onChange={handlePhotoChange} />
                     </div>
                     <div className="form-group">
                       <label className="form-label">Weergavenaam</label>
                       <input className="form-input" placeholder="Jouw naam" value={newName} onChange={e => setNewName(e.target.value)} />
                     </div>
                     {isChildAccount && (
-                      <div className="form-group" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                      <div className="form-group profile-form-divider">
                         <label className="form-label">Gebruikersnaam</label>
                         <input
-                          className="form-input"
+                          className="form-input profile-input-disabled"
                           value={newUsername}
                           readOnly
                           disabled
                           aria-readonly="true"
-                          style={{ opacity: 0.72, cursor: 'not-allowed' }}
                         />
-                        <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '4px' }}>
+                        <div className="profile-help-text">
                           Deze loginnaam is ingesteld door je ouder en kan alleen in het ouderportaal worden gewijzigd.
                         </div>
                       </div>
                     )}
                     {isParent && (
-                      <div className="form-group" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                      <div className="form-group profile-form-divider">
                         <label className="form-label">E-mailadres</label>
-                        <input className="form-input" type="email" value={user.email} disabled style={{ opacity: .5 }} />
+                        <input className="form-input profile-input-disabled profile-input-disabled--soft" type="email" value={user.email} disabled />
                       </div>
                     )}
                     {!user.email?.endsWith('@pulse.internal') && (
-                      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                        <label className="form-label" style={{ marginBottom: '10px', display: 'block' }}>Wachtwoord wijzigen</label>
+                      <div className="profile-form-divider">
+                        <label className="form-label profile-form-label-block">Wachtwoord wijzigen</label>
                         <div className="form-group">
-                          <div style={{ position: 'relative' }}>
+                          <div className="profile-password-field">
                             <input className="form-input" type={showNewPassword ? 'text' : 'password'}
                               placeholder="Nieuw wachtwoord" aria-label="Nieuw wachtwoord" value={newPassword} onChange={e => setNewPassword(e.target.value)}
                               style={{ paddingRight: '42px' }} />
                             <button type="button" aria-label={showNewPassword ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'} onClick={() => setShowNewPassword(p => !p)}
-                              style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 0 }}>
+                              className="profile-password-toggle">
                               {showNewPassword ? <EyeOff size={18} /> : <EyeOn size={18} />}
                             </button>
                           </div>
@@ -971,16 +969,16 @@ export default function ChatModals({
                           <input className="form-input" type={showNewPassword ? 'text' : 'password'}
                             placeholder="Bevestig wachtwoord" aria-label="Bevestig wachtwoord" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
                         </div>
-                        <button type="button" className="btn-secondary" style={{ width: '100%' }}
+                        <button type="button" className="btn-secondary profile-full-width-btn"
                           disabled={passwordLoading || !newPassword} onClick={changePassword}>
                           {passwordLoading ? 'Bezig…' : 'Wachtwoord wijzigen'}
                         </button>
-                        {passwordMsg && <div style={{ fontSize: '12px', marginTop: '6px', color: passwordMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{passwordMsg}</div>}
+                        {passwordMsg && <div className={`profile-status-text ${passwordMsg.startsWith('Fout') ? 'profile-status-text--error' : 'profile-status-text--success'}`}>{passwordMsg}</div>}
                       </div>
                     )}
-                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '8px' }}>
-                      {profileMsg && <div style={{ fontSize: '12px', marginBottom: '10px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
-                      <button type="button" className="btn-primary" style={{ width: '100%' }}
+                    <div className="profile-form-divider profile-form-divider--spaced">
+                      {profileMsg && <div className={`profile-status-text profile-status-text--stacked ${profileMsg.startsWith('Fout') ? 'profile-status-text--error' : 'profile-status-text--success'}`}>{profileMsg}</div>}
+                      <button type="button" className="btn-primary profile-full-width-btn"
                         disabled={profileLoading}
                         onClick={saveProfile}>
                         {profileLoading ? 'Opslaan…' : 'Opslaan →'}
@@ -1002,19 +1000,19 @@ export default function ChatModals({
                 )}
                 {profileTab === 'geschiedenis' && isParent && (
                   <div>
-                    <div style={{ marginBottom: '16px' }}>
-                      <h4 style={{ fontFamily: "'Syne',sans-serif", fontSize: '16px', fontWeight: 800, color: 'var(--text)', marginBottom: '6px' }}>Geschiedenis</h4>
-                      <p style={{ fontSize: '12px', color: 'var(--text2)', lineHeight: 1.5, margin: 0 }}>
+                    <div className="profile-section-intro">
+                      <h4 className="profile-section-title">Geschiedenis</h4>
+                      <p className="profile-section-copy">
                         Beheer per account hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis worden bewaard. Zonder wijziging blijft de standaard op 30 dagen.
                       </p>
                     </div>
 
-                    <div className="profile-soft-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-                      <div className="profile-soft-card" style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Ouderaccount</div>
+                    <div className="profile-soft-grid">
+                      <div className="profile-soft-card profile-soft-card--stack">
+                        <div className="profile-card-title">Ouderaccount</div>
                         {historySettingRows.map((row) => (
-                          <div key={`parent-${row.key}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{row.label}</div>
+                          <div key={`parent-${row.key}`} className="profile-history-row">
+                            <div className="profile-history-label">{row.label}</div>
                             <HistorySelect
                               aria-label={`${row.label} ouderaccount`}
                               value={historyRules?.[row.key] ?? 30}
@@ -1030,8 +1028,8 @@ export default function ChatModals({
                         </button>
                       </div>
 
-                      <div className="profile-soft-card" style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Kindaccount</div>
+                      <div className="profile-soft-card profile-soft-card--stack">
+                        <div className="profile-card-title">Kindaccount</div>
                         <HistorySelect
                           aria-label="Kies kindaccount"
                           value={selectedHistoryChildUid}
@@ -1045,8 +1043,8 @@ export default function ChatModals({
                           style={historySelectStyle}
                         />
                         {historySettingRows.map((row) => (
-                          <div key={`child-${row.key}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <div style={{ fontSize: '12px', color: 'var(--text2)' }}>{row.label}</div>
+                          <div key={`child-${row.key}`} className="profile-history-row">
+                            <div className="profile-history-label">{row.label}</div>
                             <HistorySelect
                               aria-label={`${row.label} kindaccount`}
                               value={primaryHistoryRules[row.key]}
@@ -1075,14 +1073,14 @@ export default function ChatModals({
                           {historySettingsSavingTarget === primaryHistoryChild?.uid ? 'Opslaan…' : 'Opslaan'}
                         </button>
                         {primaryHistoryChild && !canManagePrimaryHistoryChild && (
-                          <div style={{ fontSize: '11px', color: 'var(--text3)', lineHeight: 1.45 }}>
+                          <div className="profile-help-text profile-help-text--relaxed">
                             Alleen ouder A kan de bewaartermijn voor dit kindaccount aanpassen.
                           </div>
                         )}
                       </div>
 
                       {historySettingsMsg && (
-                        <div style={{ gridColumn: '1 / -1', fontSize: '11px', color: historySettingsMsg.startsWith('Fout:') ? 'var(--danger)' : 'var(--success)' }}>
+                        <div className={`profile-grid-message ${historySettingsMsg.startsWith('Fout:') ? 'profile-status-text--error' : 'profile-status-text--success'}`}>
                           {historySettingsMsg}
                         </div>
                       )}
@@ -1095,36 +1093,36 @@ export default function ChatModals({
                   return (
                     <div>
                       {selfBlocked.length === 0 && parentBlocked.length === 0 && (
-                        <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '14px', paddingTop: '24px' }}>
+                        <div className="profile-empty-state">
                           Geen geblokkeerde contacten.
                         </div>
                       )}
                       {selfBlocked.length > 0 && (
-                        <div style={{ marginBottom: '20px' }}>
-                          <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text3)', marginBottom: '10px', textTransform: 'uppercase' }}>Door jou geblokkeerd</div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div className="profile-block-section">
+                          <div className="profile-block-heading">Door jou geblokkeerd</div>
+                          <div className="profile-block-list">
                             {selfBlocked.map(c => (
-                              <div key={c.uid} className="blocked-contact-row" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px 12px' }}>
+                              <div key={c.uid} className="blocked-contact-row">
                                 <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div className="blocked-contact-name-responsive" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>{c.displayName || c.email}</div>
+                                <div className="profile-block-copy">
+                                  <div className="blocked-contact-name-responsive profile-block-name">{c.displayName || c.email}</div>
                                 </div>
-                                <button type="button" className="btn-secondary" style={{ fontSize: '12px', padding: '5px 12px', flexShrink: 0, width: 'auto', marginTop: 0 }} onClick={() => unblockContact(c.uid)}>Deblokkeren</button>
+                                <button type="button" className="btn-secondary profile-block-action" onClick={() => unblockContact(c.uid)}>Deblokkeren</button>
                               </div>
                             ))}
                           </div>
                         </div>
                       )}
                       {parentBlocked.length > 0 && (
-                        <div>
-                          <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text3)', marginBottom: '10px', textTransform: 'uppercase' }}>Geblokkeerd door ouder</div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div className="profile-block-section">
+                          <div className="profile-block-heading">Geblokkeerd door ouder</div>
+                          <div className="profile-block-list">
                             {parentBlocked.map(c => (
-                              <div key={c.uid} className="blocked-contact-row blocked-contact-row--parent" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '10px', padding: '10px 12px' }}>
+                              <div key={c.uid} className="blocked-contact-row blocked-contact-row--parent">
                                 <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
-                                <div style={{ flex: 1, minWidth: 0 }}>
-                                  <div className="blocked-contact-name-responsive" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>{c.displayName || c.email}</div>
-                                  <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '2px' }}>Geblokkeerd door ouder</div>
+                                <div className="profile-block-copy">
+                                  <div className="blocked-contact-name-responsive profile-block-name">{c.displayName || c.email}</div>
+                                  <div className="profile-block-meta profile-block-meta--danger">Geblokkeerd door ouder</div>
                                 </div>
                               </div>
                             ))}

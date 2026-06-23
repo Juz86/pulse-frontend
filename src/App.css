@@ -4580,8 +4580,8 @@ font-family: 'Inter', sans-serif;
 .call-overlay.video-mode { background:#000; }
 .call-overlay.video-pending-mode {
   background:
-    radial-gradient(circle at 50% 42%, rgba(117,101,255,.36) 0%, rgba(117,101,255,.16) 22%, rgba(117,101,255,0) 54%),
-    radial-gradient(circle at 50% 52%, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 46%),
+    radial-gradient(circle at 50% 42%, rgba(117,101,255,.30) 0%, rgba(117,101,255,.16) 24%, rgba(117,101,255,0) 58%),
+    radial-gradient(circle at 50% 47%, rgba(255,255,255,.14) 0%, rgba(255,255,255,.05) 22%, rgba(255,255,255,0) 48%),
     #050507;
 }
 
@@ -5905,19 +5905,19 @@ font-family: 'Inter', sans-serif;
 .call-card.transparent.call-video-pending .call-avatar-big {
   width: clamp(148px, 34vw, 230px);
   height: clamp(148px, 34vw, 230px);
-  top: 42%;
+  top: 41%;
   transform: translate(-50%, -50%);
-  box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 24px 54px rgba(0,0,0,.42), 0 0 76px rgba(108,99,255,.34);
+  box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 24px 54px rgba(0,0,0,.42), 0 0 96px rgba(108,99,255,.28);
 }
 
 .call-card.transparent .call-controls.video-layout {
   bottom: max(20px, calc(env(safe-area-inset-bottom) + 14px));
-  width: min(25rem, calc(100vw - 28px));
-  padding: 14px 14px max(12px, var(--safe-bottom));
-  border-radius: 30px;
-  background: rgba(28,29,33,.90);
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow: 0 18px 36px rgba(0,0,0,.46);
+  width: min(25.75rem, calc(100vw - 28px));
+  padding: 15px 15px max(13px, var(--safe-bottom));
+  border-radius: 32px;
+  background: linear-gradient(180deg, rgba(31,31,36,.94), rgba(24,24,28,.92));
+  border: 1px solid rgba(255,255,255,.11);
+  box-shadow: 0 20px 40px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.04);
   z-index: 6;
 }
 
@@ -5940,16 +5940,16 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 40%;
-    width: min(58vw, 212px);
-    height: min(58vw, 212px);
+    top: 39%;
+    width: min(60vw, 220px);
+    height: min(60vw, 220px);
   }
 
   .call-card.transparent .call-controls.video-layout {
-    width: min(21.5rem, calc(100vw - 24px));
+    width: min(22.25rem, calc(100vw - 24px));
     bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px));
-    padding: 12px 12px max(10px, var(--safe-bottom));
-    border-radius: 28px;
+    padding: 13px 13px max(10px, var(--safe-bottom));
+    border-radius: 30px;
   }
 
   .video-local {
@@ -6015,17 +6015,17 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 38%;
-    width: min(54vw, 186px);
-    height: min(54vw, 186px);
+    top: 37%;
+    width: min(56vw, 194px);
+    height: min(56vw, 194px);
   }
 
   .call-card.transparent .call-controls.video-layout {
     --video-btn-size: 68px;
-    width: min(20.5rem, calc(100vw - 18px));
+    width: min(21rem, calc(100vw - 18px));
     bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
     padding: 10px 10px max(8px, var(--safe-bottom));
-    border-radius: 24px;
+    border-radius: 26px;
     gap: 8px;
   }
 
@@ -6049,14 +6049,14 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 39%;
-    width: min(56vw, 204px);
-    height: min(56vw, 204px);
+    top: 38%;
+    width: min(58vw, 212px);
+    height: min(58vw, 212px);
   }
 
   .call-card.transparent .call-controls.video-layout {
     --video-btn-size: 72px;
-    width: min(21.25rem, calc(100vw - 20px));
+    width: min(22rem, calc(100vw - 20px));
     bottom: max(18px, calc(env(safe-area-inset-bottom) + 8px));
     padding: 11px 11px max(9px, var(--safe-bottom));
     gap: 9px;

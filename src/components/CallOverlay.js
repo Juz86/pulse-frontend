@@ -361,6 +361,10 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
   const isVoiceActiveLayout = !isVideo && callState !== 'incoming' && callState !== 'ended';
   const isVideoActiveLayout = isVideo && callState !== 'incoming' && callState !== 'ended';
   const isVideoPendingLayout = isVideoActiveLayout && !hasRemoteVideoTrack;
+  const incomingTimeLabel = new Intl.DateTimeFormat('nl-NL', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date());
 
   const canMinimize = callState === 'calling' || callState === 'active' || callState === 'connecting';
 
@@ -394,7 +398,10 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
               </div>
             </div>
             <div className="call-incoming-sheet__copy">
-              <div className="call-incoming-sheet__app">Pulse</div>
+              <div className="call-incoming-sheet__eyebrow">
+                <span className="call-incoming-sheet__app">Pulse</span>
+                <span className="call-incoming-sheet__time">{incomingTimeLabel}</span>
+              </div>
               <div className="call-incoming-sheet__name">{callName}</div>
               <div className="call-incoming-sheet__status" role="status" aria-live="polite">
                 {isVideo ? 'Inkomend videogesprek' : 'Inkomende spraakoproep'}

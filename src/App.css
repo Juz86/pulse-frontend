@@ -5096,6 +5096,8 @@ font-family: 'Inter', sans-serif;
 }
 .call-card.transparent.call-video-pending .call-controls.video-layout {
   width:min(32rem, calc(100vw - 2 * var(--modal-padding)));
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:14px 12px;
 }
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn {
   width:100%;
@@ -5910,6 +5912,21 @@ font-family: 'Inter', sans-serif;
   box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 24px 54px rgba(0,0,0,.42), 0 0 96px rgba(108,99,255,.28);
 }
 
+.call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn {
+  width:100%;
+  height:auto;
+  min-height:72px;
+  max-height:none;
+  aspect-ratio:auto;
+  border-radius:999px !important;
+}
+
+.call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.end {
+  background:linear-gradient(135deg, #ff0b55, #eb0058);
+  border:none;
+  box-shadow:0 10px 26px rgba(255,11,85,.34);
+}
+
 .call-card.transparent .call-controls.video-layout {
   bottom: max(20px, calc(env(safe-area-inset-bottom) + 14px));
   width: min(25.75rem, calc(100vw - 28px));
@@ -5950,6 +5967,10 @@ font-family: 'Inter', sans-serif;
     bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px));
     padding: 13px 13px max(10px, var(--safe-bottom));
     border-radius: 30px;
+  }
+
+  .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn {
+    min-height:68px;
   }
 
   .video-local {
@@ -6029,6 +6050,10 @@ font-family: 'Inter', sans-serif;
     gap: 8px;
   }
 
+  .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn {
+    min-height:62px;
+  }
+
   .video-local {
     top: max(88px, calc(env(safe-area-inset-top) + 70px));
     right: 10px;
@@ -6062,6 +6087,10 @@ font-family: 'Inter', sans-serif;
     gap: 9px;
   }
 
+  .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn {
+    min-height:66px;
+  }
+
   .video-local {
     top: max(94px, calc(env(safe-area-inset-top) + 76px));
     width: 76px;
@@ -6084,6 +6113,10 @@ font-family: 'Inter', sans-serif;
 
   .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.call-ctrl-secondary {
     display:flex;
+  }
+
+  .call-card.transparent.call-video-pending .call-controls.video-layout .call-chat-badge {
+    display:none;
   }
 
   .call-card.transparent.call-video-pending + .call-side-quick-actions,

@@ -5976,6 +5976,122 @@ font-family: 'Inter', sans-serif;
 @media (min-width: 1440px) {
   .call-card.transparent .call-controls.video-layout { --video-btn-size: 98px; }
 }
+
+/* ── Final alignment pass: keep video call hierarchy consistent with voice call ── */
+.call-card.transparent {
+  min-height: 100%;
+  max-height: none;
+  overflow: visible;
+}
+
+.call-card.transparent .call-name {
+  top: max(20px, calc(env(safe-area-inset-top) + 10px));
+  width: min(22rem, calc(100vw - 120px));
+  text-align: center;
+}
+
+.call-card.transparent .call-timer,
+.call-card.transparent .call-status {
+  top: max(66px, calc(env(safe-area-inset-top) + 52px));
+  width: min(22rem, calc(100vw - 120px));
+  text-align: center;
+}
+
+.call-card.transparent.call-video-pending .call-avatar-big {
+  width: clamp(148px, 34vw, 230px);
+  height: clamp(148px, 34vw, 230px);
+  top: 48%;
+  transform: translate(-50%, -50%);
+}
+
+.call-card.transparent .call-controls.video-layout {
+  bottom: max(20px, calc(env(safe-area-inset-bottom) + 14px));
+  width: min(25rem, calc(100vw - 28px));
+  padding: 14px 14px max(12px, var(--safe-bottom));
+  border-radius: 30px;
+  background: rgba(28,29,33,.90);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 18px 36px rgba(0,0,0,.46);
+  z-index: 6;
+}
+
+.video-local {
+  top: max(110px, calc(env(safe-area-inset-top) + 92px));
+  right: clamp(12px, 3vw, 20px);
+  bottom: auto;
+  z-index: 7;
+  background: rgba(10,10,14,.28);
+}
+
+@media (max-width: 480px) {
+  .call-card.transparent .call-name {
+    width: min(18rem, calc(100vw - 108px));
+  }
+
+  .call-card.transparent .call-timer,
+  .call-card.transparent .call-status {
+    width: min(18rem, calc(100vw - 108px));
+  }
+
+  .call-card.transparent.call-video-pending .call-avatar-big {
+    top: 46%;
+    width: min(42vw, 180px);
+    height: min(42vw, 180px);
+  }
+
+  .call-card.transparent .call-controls.video-layout {
+    width: min(23rem, calc(100vw - 20px));
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 10px));
+    padding: 12px 12px max(10px, var(--safe-bottom));
+  }
+
+  .video-local {
+    top: max(102px, calc(env(safe-area-inset-top) + 84px));
+    width: clamp(78px, 20vw, 92px);
+    height: clamp(104px, 26vw, 124px);
+  }
+}
+
+@media (orientation: landscape) and (max-height: 430px) {
+  .call-card.transparent .call-name {
+    top: max(10px, calc(env(safe-area-inset-top) + 2px));
+    width: min(16rem, calc(100vw - 120px));
+  }
+
+  .call-card.transparent .call-timer,
+  .call-card.transparent .call-status {
+    top: max(40px, calc(env(safe-area-inset-top) + 24px));
+    width: min(16rem, calc(100vw - 120px));
+  }
+
+  .call-card.transparent.call-video-pending .call-avatar-big {
+    top: 42%;
+    width: min(21vh, 8rem);
+    height: min(21vh, 8rem);
+  }
+
+  .call-card.transparent .call-controls.video-layout {
+    width: min(28rem, calc(100vw - 20px));
+    bottom: max(10px, calc(env(safe-area-inset-bottom) + 6px));
+    padding: 10px 10px max(8px, var(--safe-bottom));
+  }
+
+  .video-local {
+    top: max(74px, calc(env(safe-area-inset-top) + 58px));
+    width: clamp(68px, 16vw, 88px);
+    height: clamp(92px, 20vw, 116px);
+  }
+}
+
+@media (min-width: 700px) {
+  .call-card.transparent .call-controls.video-layout {
+    width: min(27rem, calc(100vw - 44px));
+  }
+
+  .video-local {
+    top: max(120px, calc(env(safe-area-inset-top) + 98px));
+  }
+}
 .chat-search-bar.visible {
   max-height:60px; opacity:1; padding:8px 16px;
   border-bottom:1px solid var(--border);

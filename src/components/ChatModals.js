@@ -1134,59 +1134,60 @@ export default function ChatModals({
                 })()}
                 {profileTab === 'styling' && (
                   <div>
-                    <div style={{ marginBottom: '16px' }}>
-                      <label className="form-label" style={{ marginBottom: '12px', display: 'block' }}>Chat achtergrond</label>
-                      <div className="profile-style-tabs" style={{ display: 'flex', background: 'var(--surface2)', borderRadius: '10px', padding: '4px', gap: '4px', marginBottom: '14px' }}>
+                    <div className="profile-section-intro">
+                      <label className="form-label profile-form-label-block">Chat achtergrond</label>
+                      <div className="profile-style-tabs">
                         {[
                           ['foto', <ImageIcon size={14} />, 'Foto'],
                           ['kleur', <ColorCircle size={14} />, 'Kleur'],
                           ['standaard', <LayoutTemplate size={14} />, 'Standaard'],
                         ].map(([id, icon, label]) => (
                           <button key={id} type="button" onClick={() => { setChatBgTab(id); if (id === 'kleur' && !pendingColor && chatBg?.type !== 'color') setPendingColor('#000000'); }}
-                            style={{ flex: 1, padding: '7px 4px', border: 'none', borderRadius: '7px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', transition: 'all .15s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
-                              background: chatBgTab === id ? 'linear-gradient(135deg,#7c6fff,#a855f7)' : 'transparent',
-                              color: chatBgTab === id ? '#fff' : 'var(--text2)' }}>
+                            className={`profile-style-tab-btn${chatBgTab === id ? ' active' : ''}`}>
                             {icon}{label}
                           </button>
                         ))}
                       </div>
-                      <div className="profile-style-preview" style={{ borderRadius: '12px', overflow: 'hidden', marginBottom: '14px', height: '110px', position: 'relative',
-                        background: chatBgTab === 'kleur'
-                          ? (pendingColor || (chatBg?.type === 'color' ? chatBg.value : '#000000'))
-                          : chatBgTab === 'foto'
-                            ? (pendingPhoto ? `url(${pendingPhoto.url}) center/cover` : chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : 'var(--bg)')
-                            : (chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : `#eeeaf8 url(${chatDefaultPattern}) center top / 180px auto repeat`),
-                        border: '1px solid var(--border)' }}>
-                        {((chatBgTab === 'foto' && (pendingPhoto || chatBg?.type === 'photo'))) && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.15)' }} />}
+                      <div
+                        className="profile-style-preview"
+                        style={{
+                          background: chatBgTab === 'kleur'
+                            ? (pendingColor || (chatBg?.type === 'color' ? chatBg.value : '#000000'))
+                            : chatBgTab === 'foto'
+                              ? (pendingPhoto ? `url(${pendingPhoto.url}) center/cover` : chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : 'var(--bg)')
+                              : (chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : `#eeeaf8 url(${chatDefaultPattern}) center top / 180px auto repeat`),
+                        }}
+                      >
+                        {((chatBgTab === 'foto' && (pendingPhoto || chatBg?.type === 'photo'))) && <div className="profile-style-preview-overlay" />}
                         {chatBgTab === 'foto' && (pendingPhoto || chatBg?.type === 'photo') && (
                           <button type="button" disabled={chatBgLoading}
                             onClick={() => pendingPhoto ? setPendingPhoto(null) : removeChatBg()}
-                            style={{ position: 'absolute', top: '8px', right: '8px', width: '26px', height: '26px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)', zIndex: 1 }}
+                            className="profile-style-remove-btn"
                             title="Achtergrond verwijderen">×</button>
                         )}
-                        <div style={{ position: 'absolute', bottom: '8px', left: '10px' }}>
-                          <div style={{ background: '#f7f2ff', border: '1px solid #e6dcfb', borderRadius: '12px 12px 12px 3px', padding: '6px 12px', fontSize: '12px', color: '#3f3560' }}>Hallo! 👋</div>
+                        <div className="profile-style-bubble-slot profile-style-bubble-slot--left">
+                          <div className="profile-style-bubble profile-style-bubble--incoming">Hallo! 👋</div>
                         </div>
-                        <div style={{ position: 'absolute', bottom: '8px', right: '10px' }}>
-                          <div style={{ background: 'linear-gradient(135deg,#8c7bff 0%, #7160f5 100%)', borderRadius: '12px 12px 3px 12px', padding: '6px 12px', fontSize: '12px', color: '#fff' }}>Hey!</div>
+                        <div className="profile-style-bubble-slot profile-style-bubble-slot--right">
+                          <div className="profile-style-bubble profile-style-bubble--outgoing">Hey!</div>
                         </div>
                       </div>
                       {chatBgTab === 'foto' && (
                         <div>
-                          {!pendingPhoto && chatBg?.type === 'photo' && <div style={{ fontSize: '12px', color: 'var(--success)', marginBottom: '8px' }}>✓ Foto achtergrond actief</div>}
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button type="button" className="btn-secondary" style={{ flex: 1 }} disabled={chatBgLoading}
+                          {!pendingPhoto && chatBg?.type === 'photo' && <div className="profile-status-text profile-status-text--success profile-status-text--stacked">✓ Foto achtergrond actief</div>}
+                          <div className="profile-action-row">
+                            <button type="button" className="btn-secondary profile-action-btn" disabled={chatBgLoading}
                               onClick={() => bgInputRef.current?.click()}>
                               {chatBg?.type === 'photo' || pendingPhoto ? 'Andere foto kiezen' : 'Foto kiezen'}
                             </button>
-                            <button type="button" className="btn-primary" style={{ flex: 1 }}
+                            <button type="button" className="btn-primary profile-action-btn"
                               disabled={chatBgLoading || !pendingPhoto}
                               onClick={() => { uploadChatBgPhoto(pendingPhoto.file); setPendingPhoto(null); }}>
                               {chatBgLoading ? 'Uploaden…' : 'Opslaan'}
                             </button>
                           </div>
-                          <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '6px', textAlign: 'center' }}>JPG, PNG of WEBP · max 5 MB</div>
-                          <input ref={bgInputRef} type="file" accept=".jpg,.jpeg,.png,.webp" style={{ display: 'none' }}
+                          <div className="profile-help-text profile-help-text--centered">JPG, PNG of WEBP · max 5 MB</div>
+                          <input ref={bgInputRef} type="file" accept=".jpg,.jpeg,.png,.webp" className="u-hidden"
                             onChange={e => {
                               const f = e.target.files[0]; e.target.value = '';
                               if (f) setPendingPhoto({ file: f, url: URL.createObjectURL(f) });
@@ -1195,21 +1196,19 @@ export default function ChatModals({
                       )}
                       {chatBgTab === 'kleur' && (
                         <div>
-                          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '12px' }}>
+                          <div className="profile-color-grid">
                             {['#1e0a3c', '#051236', '#0a1f0e', '#1f0a10', '#0f1923', '#1a1206', '#000000', '#1c1a18'].map(color => {
                               const isActive = (pendingColor ?? (chatBg?.type === 'color' ? chatBg.value : null)) === color;
                               return (
                                 <button key={color} type="button" disabled={chatBgLoading} onClick={() => setPendingColor(color)}
-                                  style={{ width: '36px', height: '36px', borderRadius: '50%', background: color,
-                                    border: isActive ? '3px solid var(--accent)' : '2px solid var(--border)',
-                                    cursor: 'pointer', position: 'relative', transition: 'all .15s',
-                                    boxShadow: isActive ? '0 0 0 2px var(--bg),0 0 0 4px var(--accent)' : 'none' }}>
-                                  {isActive && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px' }}>✓</span>}
+                                  className={`profile-color-swatch${isActive ? ' active' : ''}`}
+                                  style={{ background: color }}>
+                                  {isActive && <span className="profile-color-swatch-check">✓</span>}
                                 </button>
                               );
                             })}
                           </div>
-                          <button type="button" className="btn-primary" style={{ width: '100%' }}
+                          <button type="button" className="btn-primary profile-full-width-btn"
                             disabled={chatBgLoading || !pendingColor}
                             onClick={() => { saveChatBgColor(pendingColor); setPendingColor(null); }}>
                             {chatBgLoading ? 'Opslaan…' : 'Opslaan'}
@@ -1218,12 +1217,12 @@ export default function ChatModals({
                       )}
                       {chatBgTab === 'standaard' && (
                         chatBg
-                          ? <button type="button" className="btn-secondary" style={{ width: '100%' }} disabled={chatBgLoading} onClick={removeChatBg}>
+                          ? <button type="button" className="btn-secondary profile-full-width-btn" disabled={chatBgLoading} onClick={removeChatBg}>
                               {chatBgLoading ? 'Bezig…' : 'Standaard achtergrond herstellen'}
                             </button>
-                          : <div style={{ textAlign: 'center', color: 'var(--text3)', fontSize: '13px', padding: '8px 0' }}>Standaard achtergrond is actief</div>
+                          : <div className="profile-empty-note">Standaard achtergrond is actief</div>
                       )}
-                      {chatBgMsg && chatBgMsg.startsWith('Fout') && <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--danger)' }}>{chatBgMsg}</div>}
+                      {chatBgMsg && chatBgMsg.startsWith('Fout') && <div className="profile-status-text profile-status-text--error">{chatBgMsg}</div>}
                     </div>
                   </div>
                 )}
@@ -1248,12 +1247,12 @@ export default function ChatModals({
             >
               <button type="button" className="modal-close-btn" aria-label="Profiel sluiten" onClick={() => setShowContactProfile(false)}><span aria-hidden="true">✕</span></button>
               <div className="panel-header-row">
-                <h2 id="contact-profile-title" className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h2>
+                <h2 id="contact-profile-title" className="modal-title modal-title--flush"><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h2>
               </div>
               <p id="contact-profile-description" className="sr-only">
                 Bekijk en bewerk de profielgegevens van {name}.
               </p>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+              <div className="profile-avatar-center">
                 {photo
                   ? <img src={photo} alt={name || 'Profielfoto'} className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" />
                   : <div className="profile-avatar-big">{getInitials(name)}</div>
@@ -1261,15 +1260,15 @@ export default function ChatModals({
               </div>
               <div className="form-group">
                 <label className="form-label">Naam</label>
-                <div style={{ position: 'relative' }}>
+                <div className="profile-password-field">
                   <input className="form-input" value={renameValue} onChange={e => setRenameValue(e.target.value)} placeholder={name} style={{ paddingRight: '36px' }} />
-                  <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }}><MagicEdit size={22} /></span>
+                  <span className="profile-field-icon"><MagicEdit size={22} /></span>
                 </div>
               </div>
               {email && (
                 <div className="form-group">
                   <label className="form-label">E-mailadres</label>
-                  <input className="form-input" value={email} disabled style={{ opacity: .7 }} />
+                  <input className="form-input profile-input-disabled" value={email} disabled />
                 </div>
               )}
               <div className="form-group">
@@ -1290,8 +1289,8 @@ export default function ChatModals({
                   ))}
                 </div>
               </div>
-              <div className="modal-actions" style={{ justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'nowrap' }}>
-                <div className="panel-header-actions" style={{ marginRight: 8 }}>
+              <div className="modal-actions modal-actions--end">
+                <div className="panel-header-actions panel-header-actions--gap">
                   <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={openStarredFromProfile}>
                     <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
                   </button>

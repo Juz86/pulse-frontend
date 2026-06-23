@@ -6092,6 +6092,75 @@ font-family: 'Inter', sans-serif;
     top: max(120px, calc(env(safe-area-inset-top) + 98px));
   }
 }
+
+@media (max-width: 392px) and (max-height: 760px) and (orientation: portrait) {
+  .call-card.transparent .call-name {
+    top: max(16px, calc(env(safe-area-inset-top) + 8px));
+    width: min(16rem, calc(100vw - 104px));
+    font-size: clamp(24px, 8vw, 32px);
+  }
+
+  .call-card.transparent .call-timer,
+  .call-card.transparent .call-status {
+    top: max(56px, calc(env(safe-area-inset-top) + 40px));
+    width: min(16rem, calc(100vw - 104px));
+    font-size: clamp(14px, 4.2vw, 18px);
+  }
+
+  .call-card.transparent.call-video-pending .call-avatar-big {
+    top: 44%;
+    width: min(38vw, 156px);
+    height: min(38vw, 156px);
+  }
+
+  .call-card.transparent .call-controls.video-layout {
+    --video-btn-size: 72px;
+    width: min(21.5rem, calc(100vw - 18px));
+    bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px));
+    padding: 10px 10px max(8px, var(--safe-bottom));
+    border-radius: 24px;
+    gap: 8px;
+  }
+
+  .video-local {
+    top: max(88px, calc(env(safe-area-inset-top) + 70px));
+    right: 10px;
+    width: 72px;
+    height: 96px;
+    border-radius: 14px;
+  }
+}
+
+@media (min-width: 393px) and (max-width: 430px) and (max-height: 780px) and (orientation: portrait) {
+  .call-card.transparent .call-name {
+    width: min(17rem, calc(100vw - 112px));
+  }
+
+  .call-card.transparent .call-timer,
+  .call-card.transparent .call-status {
+    width: min(17rem, calc(100vw - 112px));
+  }
+
+  .call-card.transparent.call-video-pending .call-avatar-big {
+    top: 45%;
+    width: min(40vw, 170px);
+    height: min(40vw, 170px);
+  }
+
+  .call-card.transparent .call-controls.video-layout {
+    --video-btn-size: 78px;
+    width: min(22.75rem, calc(100vw - 20px));
+    bottom: max(14px, calc(env(safe-area-inset-bottom) + 8px));
+    padding: 11px 11px max(9px, var(--safe-bottom));
+    gap: 9px;
+  }
+
+  .video-local {
+    top: max(94px, calc(env(safe-area-inset-top) + 76px));
+    width: 76px;
+    height: 102px;
+  }
+}
 .chat-search-bar.visible {
   max-height:60px; opacity:1; padding:8px 16px;
   border-bottom:1px solid var(--border);

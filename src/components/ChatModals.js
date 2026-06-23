@@ -449,32 +449,33 @@ export default function ChatModals({
       {sharingContact && (
           <aside className="chat-side-panel share-contact-panel" aria-labelledby="share-contact-title">
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setSharingContact(null); setShareRecipients([]); }}><span aria-hidden="true">✕</span></button>
-            <h2 id="share-contact-title" className="modal-title modal-title--compact share-contact-title-responsive"><span className="modal-title-icon" aria-hidden="true"><Share size={18} /></span> Contactpersoon delen</h2>
-            <div className="share-contact-summary">
+            <h2 id="share-contact-title" className="modal-title share-contact-title-responsive" style={{ fontSize: '16px' }}><span className="modal-title-icon" aria-hidden="true"><Share size={18} /></span> Contactpersoon delen</h2>
+            <div className="share-contact-summary" style={{ marginBottom: '12px', padding: '10px 14px', borderRadius: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div className="avatar sm">{getInitials(getContactDisplayName(sharingContact))}</div>
-              <div className="share-contact-summary-copy">
-                <div className="share-contact-name">{getContactDisplayName(sharingContact)}</div>
-                <div className="share-contact-email">{sharingContact.email}</div>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '14px' }}>{getContactDisplayName(sharingContact)}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{sharingContact.email}</div>
               </div>
             </div>
-            <div className="modal-section-label">Stuur naar:</div>
-            <div className="share-contact-list">
+            <div style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '10px' }}>Stuur naar:</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '260px', overflowY: 'auto' }}>
               {contacts.filter(c => c.uid !== sharingContact.uid).map(c => {
                 const selected = shareRecipients.includes(c.uid);
                 return (
                   <button key={c.uid} type="button" className={`contact-row share-contact-row${selected ? ' selected' : ''}`}
+                    style={{ background: selected ? 'var(--accent-soft, rgba(108,99,255,.15))' : 'none', border: selected ? '1px solid var(--accent)' : '1px solid var(--border)', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text)', textAlign: 'left' }}
                     onClick={() => setShareRecipients(prev => prev.includes(c.uid) ? prev.filter(id => id !== c.uid) : [...prev, c.uid])}>
                     <div className="avatar sm">{getInitials(getContactDisplayName(c))}</div>
-                    <div className="share-contact-row-copy">
-                      <div className="share-contact-name">{getContactDisplayName(c)}</div>
-                      <div className="share-contact-email">{c.email}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 500, fontSize: '14px' }}>{getContactDisplayName(c)}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{c.email}</div>
                     </div>
                     {selected && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>}
                   </button>
                 );
               })}
             </div>
-            <div className="modal-actions modal-actions--top-gap">
+            <div className="modal-actions" style={{ marginTop: '14px' }}>
               <button type="button" className="btn-secondary" onClick={() => { setSharingContact(null); setShareRecipients([]); }}>Sluiten</button>
               <button type="button" className="btn-primary" disabled={shareRecipients.length === 0}
                 onClick={() => { shareRecipients.forEach(uid => { const c = contacts.find(x => x.uid === uid); if (c) sendContactCard(c, sharingContact); }); setSharingContact(null); setShareRecipients([]); }}>
@@ -497,14 +498,14 @@ export default function ChatModals({
             </button>
             <h2 id="friend-requests-title" className="modal-title friend-requests-title"><span className="modal-title-icon" aria-hidden="true"><Handshake size={18} /></span> Verzoeken</h2>
 
-            <div className="requests-tab-row">
-              <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary requests-tab-btn' : 'btn-secondary requests-tab-btn'}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+              <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
                 Ontvangen
-                {friendRequests.length > 0 && <span className="requests-tab-count">{friendRequests.length}</span>}
+                {friendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{friendRequests.length}</span>}
               </button>
-              <button type="button" onClick={() => setRequestsTab('verstuurd')} className={requestsTab === 'verstuurd' ? 'btn-primary requests-tab-btn' : 'btn-secondary requests-tab-btn'}>
+              <button type="button" onClick={() => setRequestsTab('verstuurd')} className={requestsTab === 'verstuurd' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
                 Verstuurd
-                {sentFriendRequests.length > 0 && <span className="requests-tab-count">{sentFriendRequests.length}</span>}
+                {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
               </button>
             </div>
 
@@ -512,20 +513,20 @@ export default function ChatModals({
               {requestsTab === 'ontvangen' && (
                 <>
                   {friendRequests.map(req => (
-                    <div key={req.id} className="friend-request-card friend-request-card--incoming">
+                    <div key={req.id} className="friend-request-card friend-request-card--incoming" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'rgba(124,111,255,0.08)', borderRadius: 10, border: '1px solid rgba(124,111,255,0.2)' }}>
                       <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.fromName)}</div>
-                      <div className="friend-request-copy">
-                        <div className="friend-request-person-name">{req.fromName}</div>
-                        <div className="friend-request-person-email">{req.fromEmail}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="friend-request-person-name" style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{req.fromName}</div>
+                        <div className="friend-request-person-email" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{req.fromEmail}</div>
                       </div>
-                      <div className="friend-request-actions">
-                        <button type="button" className="btn-primary friend-request-action-btn" onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
-                        <button type="button" className="btn-secondary friend-request-action-btn" onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
+                      <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                        <button type="button" className="btn-primary" style={{ padding: '4px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
+                        <button type="button" className="btn-secondary" style={{ padding: '4px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
                       </div>
                     </div>
                   ))}
                   {friendRequests.length === 0 && (
-                    <div className="empty-convs empty-convs--compact">
+                    <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
                       <p>Geen ontvangen vriendschapsverzoeken.</p>
                     </div>
                   )}
@@ -535,7 +536,7 @@ export default function ChatModals({
               {requestsTab === 'verstuurd' && (
                 <>
                   {friendRequestActionErr && (
-                    <div className="auth-error auth-error--compact">
+                    <div className="auth-error" style={{ marginBottom: 10 }}>
                       ⚠️ {friendRequestActionErr}
                     </div>
                   )}
@@ -544,21 +545,21 @@ export default function ChatModals({
                     const reminderCount = Number(req.reminderCount || 0);
                     const remindersRemaining = Math.max(0, 3 - reminderCount);
                     return (
-                      <div key={requestId || req.toUid || req.toEmail} className="friend-request-card friend-request-card--outgoing">
-                        <div className="friend-request-head">
+                      <div key={requestId || req.toUid || req.toEmail} className="friend-request-card friend-request-card--outgoing" style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.toEmail || req.toUid)}</div>
-                          <div className="friend-request-copy">
-                            <div className="friend-request-person-name">{req.toEmail || req.toIdentifier || req.toUid}</div>
-                            <div className="friend-request-meta">
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div className="friend-request-person-name" style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{req.toEmail || req.toIdentifier || req.toUid}</div>
+                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                               {remindersRemaining > 0 ? `Nog ${remindersRemaining} ${remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} over` : 'Geen herinneringen meer over'}
                             </div>
                           </div>
                         </div>
-                        <div className="friend-request-actions friend-request-actions--wide">
-                          <button type="button" className="btn-secondary friend-request-action-btn friend-request-action-btn--wide" onClick={() => requestId && onCancelFriendRequest(requestId)} disabled={!requestId}>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <button type="button" className="btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => requestId && onCancelFriendRequest(requestId)} disabled={!requestId}>
                             Annuleren
                           </button>
-                          <button type="button" className="btn-primary friend-request-action-btn friend-request-action-btn--wide" onClick={() => requestId && onRemindFriendRequest(requestId)} disabled={!requestId || remindersRemaining <= 0}>
+                          <button type="button" className="btn-primary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => requestId && onRemindFriendRequest(requestId)} disabled={!requestId || remindersRemaining <= 0}>
                             Herinneren
                           </button>
                         </div>
@@ -566,7 +567,7 @@ export default function ChatModals({
                     );
                   })}
                   {sentFriendRequests.length === 0 && (
-                    <div className="empty-convs empty-convs--compact">
+                    <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
                       <p>Geen verstuurde vriendschapsverzoeken.</p>
                     </div>
                   )}
@@ -580,29 +581,29 @@ export default function ChatModals({
       {viewingSharedContact && (
           <aside className="chat-side-panel shared-contact-panel" aria-labelledby="shared-contact-title">
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setViewingSharedContact(null)}><span aria-hidden="true">✕</span></button>
-            <h2 id="shared-contact-title" className="modal-title modal-title--regular"><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Contactpersoon</h2>
-            <div className="shared-contact-hero">
-              <div className="avatar-wrap shared-contact-avatar-wrap">
-                <div className="avatar-circle shared-contact-avatar">{getInitials(viewingSharedContact.name || '')}</div>
+            <h2 id="shared-contact-title" className="modal-title" style={{ fontSize: '18px' }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Contactpersoon</h2>
+            <div className="shared-contact-hero" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 0 20px' }}>
+              <div className="avatar-wrap" style={{ flexShrink: 0 }}>
+                <div className="avatar-circle" style={{ width: 52, height: 52, fontSize: 20, borderRadius: 14 }}>{getInitials(viewingSharedContact.name || '')}</div>
                 {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid) && <span className={`online-dot${inactiveUsers.has(viewingSharedContact.uid) ? ' inactive' : ''}`} />}
               </div>
-              <div className="shared-contact-copy">
-                <div className="shared-contact-name">{viewingSharedContact.name || 'Onbekend'}</div>
-                {viewingSharedContact.email && <div className="shared-contact-email">{viewingSharedContact.email}</div>}
-                <div className="shared-contact-status-row">
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '16px' }}>{viewingSharedContact.name || 'Onbekend'}</div>
+                {viewingSharedContact.email && <div style={{ fontSize: '13px', color: 'var(--text3)', marginTop: 2 }}>{viewingSharedContact.email}</div>}
+                <div style={{ fontSize: '12px', marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
                   {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid)
                     ? inactiveUsers.has(viewingSharedContact.uid)
-                      ? <><span className="shared-contact-status-dot shared-contact-status-dot--away" /><span className="shared-contact-status-text shared-contact-status-text--away">Afwezig</span></>
-                      : <><span className="shared-contact-status-dot shared-contact-status-dot--online" /><span className="shared-contact-status-text shared-contact-status-text--online">Online</span></>
-                    : <><span className="shared-contact-status-dot shared-contact-status-dot--offline" /><span className="shared-contact-status-text shared-contact-status-text--offline">Offline</span></>
+                      ? <><span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} /><span style={{ color: '#f59e0b' }}>Afwezig</span></>
+                      : <><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} /><span style={{ color: 'var(--success)' }}>Online</span></>
+                    : <><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--text3)', display: 'inline-block' }} /><span style={{ color: 'var(--text3)' }}>Offline</span></>
                   }
                 </div>
               </div>
             </div>
-            <div className="modal-actions modal-actions--split">
+            <div className="modal-actions" style={{ justifyContent: 'space-between' }}>
               <button type="button" className="btn-secondary" onClick={() => setViewingSharedContact(null)}>Sluiten</button>
               {viewingSharedContact.isAlreadyContact
-                ? <span className="shared-contact-pill"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg> Al in contacten</span>
+                ? <span style={{ fontSize: '13px', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '5px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg> Al in contacten</span>
                 : <button type="button" className="btn-primary" disabled={friendReqLoading || friendReqSent}
                     onClick={() => sendFriendRequestToEmail(viewingSharedContact.email)}>
                     {friendReqSent ? '✓ Verzoek verzonden' : friendReqLoading ? 'Verzenden…' : 'Vriendschapsverzoek'}

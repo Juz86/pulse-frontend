@@ -4797,9 +4797,10 @@ font-family: 'Inter', sans-serif;
   right:auto;
   bottom:auto;
   object-fit:cover;
-  opacity:.88;
+  opacity:.94;
   box-shadow:none;
   background:#0b0b10;
+  filter:saturate(.94) brightness(.92);
 }
 
 /* ── MINIMIZE BUTTON ── */
@@ -5927,7 +5928,8 @@ font-family: 'Inter', sans-serif;
   height: clamp(148px, 34vw, 230px);
   top: 42.5%;
   transform: translate(-50%, -50%);
-  box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 24px 54px rgba(0,0,0,.42), 0 0 96px rgba(108,99,255,.28);
+  opacity:.92;
+  box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 22px 46px rgba(0,0,0,.36), 0 0 84px rgba(108,99,255,.22);
   z-index:4;
 }
 

@@ -4725,7 +4725,7 @@ font-family: 'Inter', sans-serif;
   top:max(72px, calc(env(safe-area-inset-top) + 22px));
   right:max(16px, calc(env(safe-area-inset-right) + 12px));
   z-index:11;
-  display:flex;
+  display:none;
   flex-direction:column;
   gap:12px;
 }
@@ -4751,6 +4751,23 @@ font-family: 'Inter', sans-serif;
 }
 .call-side-action-btn:active {
   transform:scale(.97);
+}
+.call-side-action-badge {
+  position:absolute;
+  top:-4px;
+  right:-4px;
+  min-width:20px;
+  height:20px;
+  padding:0 5px;
+  border-radius:999px;
+  background:#ff4d6d;
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 4px 10px rgba(255,77,109,.3);
 }
 
 .video-container { position:absolute; inset:0; }
@@ -6159,6 +6176,26 @@ font-family: 'Inter', sans-serif;
     top: max(94px, calc(env(safe-area-inset-top) + 76px));
     width: 76px;
     height: 102px;
+  }
+}
+
+@media (max-width: 760px) {
+  .call-side-quick-actions {
+    display:flex;
+  }
+
+  .call-card.transparent .call-controls.video-layout {
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+
+  .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-secondary {
+    display:none;
+  }
+}
+
+@media (min-width: 761px) {
+  .call-card.transparent .call-controls.video-layout {
+    grid-template-columns:repeat(3, minmax(0, 1fr));
   }
 }
 .chat-search-bar.visible {

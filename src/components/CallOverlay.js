@@ -428,6 +428,22 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
       {/* Verborgen audio element voor spraakgesprekken */}
       <audio ref={remoteAudioRef} autoPlay playsInline />
 
+      {isVideoActiveLayout && (
+        <div className="call-side-quick-actions" aria-label="Extra gespreksacties">
+          <button type="button" className="call-side-action-btn" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
+            <Message size={18} aria-hidden="true" />
+            {chatUnreadCount > 0 && (
+              <span className="call-side-action-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
+                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+              </span>
+            )}
+          </button>
+          <button type="button" className="call-side-action-btn" onClick={() => setShowAddPersonPanel(true)} title="Persoon toevoegen" aria-label="Persoon toevoegen">
+            <UserPlus size={18} aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
       {/* ── VIDEO STREAMS ── */}
       {isVideo && (
         <div className="video-container">
@@ -517,7 +533,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                   >
                     {muted ? <MutedMicIcon size={22} /> : <Mic size={20} aria-hidden="true" />}<span>{muted ? 'Geluid aan' : 'Geluid uit'}</span>
                   </button>
-                  <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
+                  <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat call-ctrl-secondary" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
                     <Message size={18} aria-hidden="true" />
                     <span>Chat</span>
                     {chatUnreadCount > 0 && (
@@ -528,11 +544,10 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                   </button>
                   <button
                     type="button"
-                    className="call-ctrl-btn aux call-ctrl-round call-ctrl-disabled"
-                    disabled
-                    aria-disabled="true"
+                    className="call-ctrl-btn aux call-ctrl-round call-ctrl-secondary"
+                    onClick={() => setShowAddPersonPanel(true)}
                     aria-label="Persoon toevoegen"
-                    title="Persoon toevoegen binnenkort"
+                    title="Persoon toevoegen"
                   >
                     <UserPlus size={18} aria-hidden="true" /><span>+ Persoon</span>
                   </button>

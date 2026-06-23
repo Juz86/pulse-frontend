@@ -3,7 +3,6 @@ import { Check, CheckDouble, Clock, ErrorIcon } from '../components/Icons';
 import MessageBubbleActions from './MessageBubbleActions';
 import { formatTime } from '../utils';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
-import SoftMessageBubble from './SoftMessageBubble';
 
 export default function TextMessageCard({
   msg,
@@ -38,7 +37,7 @@ export default function TextMessageCard({
           <span className="msg-reply-text">{getMessageDisplayText(msg.replyTo)}</span>
         </div>
       )}
-      <SoftMessageBubble isOwn={isOwn} isFocused={isFocused} className="msg-bubble">
+      <div className="msg-bubble" style={isFocused ? { outline: '2px solid #f59e0b', outlineOffset: '2px' } : {}}>
         <button
           type="button"
           className="msg-bubble-menu-btn"
@@ -80,7 +79,7 @@ export default function TextMessageCard({
             )}
           </span>
         </span>
-      </SoftMessageBubble>
+      </div>
       {receiptSummaryLabel && (
         <div
           className="msg-group-receipt-summary"

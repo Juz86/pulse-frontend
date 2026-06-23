@@ -1,14 +1,9 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Phone, Video, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake } from '../components/Icons';
+import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
-import FloatingIconButton from './FloatingIconButton';
-import FloatingHeader from './FloatingHeader';
-import PulseSearchPill from './PulseSearchPill';
-import SegmentedControl from './SegmentedControl';
-import FilterChipPill from './FilterChipPill';
 
 export default function ChatSidebar({
   user,
@@ -330,83 +325,69 @@ export default function ChatSidebar({
     <aside className="sidebar" onClick={() => { setConvMenu(null); setContactMenu(null); }}>
       {/* Header */}
       <div className="sidebar-header">
-        <FloatingHeader
-          className="sidebar-floating-top"
-          leading={<PulseLogo size={34} textSize={24} color="currentColor" />}
-          title="Pulse"
-          titleClassName="sidebar-floating-brand"
-          subtitle="Rustig verbonden met de mensen die ertoe doen."
-          actions={(
-            <div className="sidebar-floating-actions">
-              <FloatingIconButton
-                aria-label="Nieuw bericht"
-                onClick={onNewChat}
-                title="Nieuw bericht"
+        <div className="sidebar-top">
+          <PulseLogo size={30} textSize={20} color="#fff" />
+          <div style={{ display: 'flex', gap: '6px', position: 'relative' }}>
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Nieuw bericht"
+              onClick={onNewChat}
+              title="Nieuw bericht"
+              style={{ width: 34, height: 34 }}
+            >
+              <Message size={16} aria-hidden="true" />
+            </button>
+            {callsAvailable && (
+              <button
+                type="button"
+                className="icon-btn"
+                aria-label="Oproepen"
+                onClick={onShowCallModal}
+                title="Oproepen"
+                style={{ position: 'relative', width: 34, height: 34 }}
               >
-                <Message size={17} />
-              </FloatingIconButton>
-              {callsAvailable && (
-                <FloatingIconButton
-                  aria-label="Oproepen"
-                  onClick={onShowCallModal}
-                  title="Oproepen"
-                  badge={hasMissedCall ? '' : null}
-                >
-                  <Phone size={17} />
-                </FloatingIconButton>
-              )}
-            </div>
-          )}
-        />
-        <PulseSearchPill
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          ariaLabel={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'}
-          className="sidebar-search-pill"
-        />
+                <Phone size={16} aria-hidden="true" />
+                {hasMissedCall && (
+                  <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="search-box">
+          <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+          <input aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'} placeholder="Zoeken…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="sidebar-tabs sidebar-tabs--floating">
-        <SegmentedControl
-          value={activeTab}
-          onChange={(nextTab) => { setActiveTab(nextTab); setSearchQuery(''); }}
-          items={[
-            {
-              value: 'chats',
-              label: 'Chats',
-              icon: <Message size={15} />,
-            },
-            {
-              value: 'contacts',
-              label: 'Contacten',
-              icon: <Users size={15} />,
-              badge: friendRequests.length > 0 ? friendRequests.length : null,
-            },
-          ]}
-        />
+      <div className="sidebar-tabs">
+        <button type="button" className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} aria-pressed={activeTab === 'chats'} onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}>
+          <Message size={15} aria-hidden="true" /> Chats
+        </button>
+        <button type="button" className={`sidebar-tab ${activeTab === 'contacts' ? 'active' : ''}`} aria-pressed={activeTab === 'contacts'} onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}>
+          <Users size={15} aria-hidden="true" /> Contacten
+          {friendRequests.length > 0 && <span className="unread-badge" aria-label={`${friendRequests.length} openstaande ${friendRequests.length === 1 ? 'uitnodiging' : 'uitnodigingen'}`} style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{friendRequests.length}</span>}
+        </button>
       </div>
 
       {/* Filters */}
       {activeTab === 'chats' && (
-        <div className="chat-filters chat-filters--floating" role="group" aria-label="Chatfilters">
-          {[
-            { id: 'all', label: 'Alles' },
-            { id: 'familie', label: 'Familie' },
-            { id: 'vrienden', label: 'Vrienden' },
-            { id: 'groepen', label: 'Groepen' },
-          ].map((filter) => (
-            <FilterChipPill
-              key={filter.id}
-              active={chatFilter === filter.id}
-              onClick={() => {
-                setChatFilter(filter.id);
-                setSelectedGroupId(null);
-              }}
-            >
-              {filter.label}
-            </FilterChipPill>
+        <div className="chat-filters" role="group" aria-label="Chatfilters">
+          {['all', 'familie', 'vrienden'].map(f => (
+            <button key={f} className={`chat-filter-chip${chatFilter === f ? ' active' : ''}`}
+              type="button"
+              aria-pressed={chatFilter === f}
+              onClick={() => { setChatFilter(f); setSelectedGroupId(null); }}>
+              {f === 'all' ? 'Alles' : f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
           ))}
+          <button type="button" className={`chat-filter-chip${chatFilter === 'groepen' ? ' active' : ''}`}
+            aria-pressed={chatFilter === 'groepen'}
+            onClick={() => { setChatFilter('groepen'); setSelectedGroupId(null); }}>
+            Groepen
+          </button>
         </div>
       )}
 
@@ -415,7 +396,7 @@ export default function ChatSidebar({
         <>
           {selectionMode && (
             <div style={{ padding: '0 18px 12px' }}>
-              <div className="chat-selection-bar pulse-soft-card" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px' }}>
+              <div className="chat-selection-bar" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
                 <div className="chat-selection-count" style={{ fontSize: 12, color: 'var(--text2)' }}>
                   {`${selectedConversationIds.length} geselecteerd`}
                 </div>
@@ -465,7 +446,7 @@ export default function ChatSidebar({
         <div className="conv-list">
           {contactSuccess && (
             <div style={{ padding: '0 18px 12px' }}>
-              <div role="status" aria-live="polite" className="pulse-soft-card" style={{ padding: '10px 14px', color: '#16a34a', fontSize: '13px' }}>
+              <div role="status" aria-live="polite" style={{ padding: '8px 12px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', color: '#4ade80', fontSize: '13px' }}>
                 <span aria-hidden="true">✅ </span>{contactSuccess}
               </div>
             </div>
@@ -479,7 +460,7 @@ export default function ChatSidebar({
           )}
 
           {filteredContacts.map(contact => (
-            <div key={contact.uid} className="sidebar-contact-card sidebar-contact-card--floating" aria-label={`Contact ${getContactDisplayName(contact)}${contact.email ? `, ${contact.email}` : ''}`}>
+            <div key={contact.uid} className="sidebar-contact-card" aria-label={`Contact ${getContactDisplayName(contact)}${contact.email ? `, ${contact.email}` : ''}`}>
               <div className="sidebar-contact-row">
                 <div className="avatar-wrap" aria-hidden="true">
                   <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} decorative />
@@ -492,15 +473,17 @@ export default function ChatSidebar({
                 <div
                   style={{ position: 'relative' }}
                 >
-                  <FloatingIconButton
+                  <button
+                    type="button"
+                    className="icon-btn sidebar-item-actions-btn"
                     aria-label={`Meer acties voor ${getContactDisplayName(contact)}`}
                     data-sidebar-actions-trigger
                     onClick={(e) => { e.stopPropagation(); openContactMenu(contact.uid, e.currentTarget); }}
                     title="Meer acties"
-                    className="sidebar-contact-more"
+                    style={parentBlockedUids?.includes(contact.uid) ? { color: 'var(--danger, #ef4444)' } : undefined}
                   >
-                    <MoreHoriz size={18} />
-                  </FloatingIconButton>
+                    <MoreHoriz size={18} aria-hidden="true" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -626,7 +609,7 @@ export default function ChatSidebar({
 
       {/* Footer */}
       <div className="sidebar-footer">
-        <button type="button" className="user-chip user-chip--floating" style={{ cursor: 'pointer' }} aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`} onClick={onOpenProfile}>
+        <button type="button" className="user-chip" style={{ cursor: 'pointer' }} aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`} onClick={onOpenProfile}>
           <div className="avatar-wrap" style={{ flexShrink: 0 }} aria-hidden="true">
             <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" decorative />
           </div>
@@ -636,23 +619,26 @@ export default function ChatSidebar({
           </div>
         </button>
         {isParent && (
-          <FloatingIconButton className="parent-dashboard-btn" aria-label={parentActivityBadge > 0 ? `Open ouderlijk toezicht, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open ouderlijk toezicht'} onClick={onOpenDashboard} title="Ouderlijk toezicht">
+          <button type="button" className="icon-btn parent-dashboard-btn" aria-label={parentActivityBadge > 0 ? `Open ouderlijk toezicht, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open ouderlijk toezicht'} onClick={onOpenDashboard} title="Ouderlijk toezicht" style={{ position: 'relative' }}>
             <Shield size={18} aria-hidden="true" />
             {parentActivityBadge > 0 && <span className="parent-badge" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
-          </FloatingIconButton>
+          </button>
         )}
         <div style={{ position: 'relative' }} ref={moreActionsMenuRef}>
-          <FloatingIconButton
+          <button
+            type="button"
+            className="icon-btn"
             aria-label="Meer acties"
             aria-expanded={moreActionsMenuOpen}
             onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
             title="Meer acties"
+            style={{ position: 'relative' }}
           >
             <MoreHoriz size={18} aria-hidden="true" />
             {hasMissedCall && (
               <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
             )}
-          </FloatingIconButton>
+          </button>
           {moreActionsMenuOpen && (
             <div
               role="menu"

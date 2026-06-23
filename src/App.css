@@ -4584,6 +4584,17 @@ font-family: 'Inter', sans-serif;
     radial-gradient(circle at 50% 47%, rgba(255,255,255,.14) 0%, rgba(255,255,255,.05) 22%, rgba(255,255,255,0) 48%),
     #050507;
 }
+.call-overlay.video-pending-mode::before {
+  content:'';
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  height:24vh;
+  background:linear-gradient(180deg, rgba(5,5,7,.62) 0%, rgba(5,5,7,.34) 44%, rgba(5,5,7,0) 100%);
+  pointer-events:none;
+  z-index:2;
+}
 
 .call-incoming-sheet {
   pointer-events:auto;
@@ -5914,6 +5925,7 @@ font-family: 'Inter', sans-serif;
   top: max(18px, calc(env(safe-area-inset-top) + 8px));
   width: min(22rem, calc(100vw - 120px));
   text-align: center;
+  z-index:9;
 }
 
 .call-card.transparent .call-timer,
@@ -5921,6 +5933,20 @@ font-family: 'Inter', sans-serif;
   top: max(72px, calc(env(safe-area-inset-top) + 56px));
   width: min(22rem, calc(100vw - 120px));
   text-align: center;
+  z-index:9;
+}
+
+.call-overlay.video-pending-mode .call-name {
+  color:#fff;
+  background:none;
+  -webkit-text-fill-color:currentColor;
+  text-shadow:0 4px 22px rgba(0,0,0,.52);
+}
+
+.call-overlay.video-pending-mode .call-status {
+  color:rgba(255,255,255,.86);
+  text-shadow:0 3px 16px rgba(0,0,0,.48);
+  letter-spacing:.2px;
 }
 
 .call-card.transparent.call-video-pending .call-avatar-big {

@@ -5892,14 +5892,14 @@ font-family: 'Inter', sans-serif;
 }
 
 .call-card.transparent .call-name {
-  top: max(20px, calc(env(safe-area-inset-top) + 10px));
+  top: max(18px, calc(env(safe-area-inset-top) + 8px));
   width: min(22rem, calc(100vw - 120px));
   text-align: center;
 }
 
 .call-card.transparent .call-timer,
 .call-card.transparent .call-status {
-  top: max(66px, calc(env(safe-area-inset-top) + 52px));
+  top: max(72px, calc(env(safe-area-inset-top) + 56px));
   width: min(22rem, calc(100vw - 120px));
   text-align: center;
 }
@@ -5907,7 +5907,7 @@ font-family: 'Inter', sans-serif;
 .call-card.transparent.call-video-pending .call-avatar-big {
   width: clamp(148px, 34vw, 230px);
   height: clamp(148px, 34vw, 230px);
-  top: 41%;
+  top: 42.5%;
   transform: translate(-50%, -50%);
   box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 24px 54px rgba(0,0,0,.42), 0 0 96px rgba(108,99,255,.28);
 }
@@ -5928,7 +5928,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .call-card.transparent .call-controls.video-layout {
-  bottom: max(20px, calc(env(safe-area-inset-bottom) + 14px));
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px));
   width: min(25.75rem, calc(100vw - 28px));
   padding: 15px 15px max(13px, var(--safe-bottom));
   border-radius: 32px;
@@ -5957,14 +5957,14 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 39%;
+    top: 40.5%;
     width: min(60vw, 220px);
     height: min(60vw, 220px);
   }
 
   .call-card.transparent .call-controls.video-layout {
     width: min(22.25rem, calc(100vw - 24px));
-    bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px));
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 9px));
     padding: 13px 13px max(10px, var(--safe-bottom));
     border-radius: 30px;
   }
@@ -5988,19 +5988,19 @@ font-family: 'Inter', sans-serif;
 
   .call-card.transparent .call-timer,
   .call-card.transparent .call-status {
-    top: max(40px, calc(env(safe-area-inset-top) + 24px));
+    top: max(42px, calc(env(safe-area-inset-top) + 26px));
     width: min(16rem, calc(100vw - 120px));
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 42%;
+    top: 43%;
     width: min(21vh, 8rem);
     height: min(21vh, 8rem);
   }
 
   .call-card.transparent .call-controls.video-layout {
     width: min(28rem, calc(100vw - 20px));
-    bottom: max(10px, calc(env(safe-area-inset-bottom) + 6px));
+    bottom: max(8px, calc(env(safe-area-inset-bottom) + 4px));
     padding: 10px 10px max(8px, var(--safe-bottom));
   }
 
@@ -6030,13 +6030,13 @@ font-family: 'Inter', sans-serif;
 
   .call-card.transparent .call-timer,
   .call-card.transparent .call-status {
-    top: max(56px, calc(env(safe-area-inset-top) + 40px));
+    top: max(60px, calc(env(safe-area-inset-top) + 44px));
     width: min(16rem, calc(100vw - 104px));
     font-size: clamp(14px, 4.2vw, 18px);
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 37%;
+    top: 39%;
     width: min(56vw, 194px);
     height: min(56vw, 194px);
   }
@@ -6044,7 +6044,7 @@ font-family: 'Inter', sans-serif;
   .call-card.transparent .call-controls.video-layout {
     --video-btn-size: 68px;
     width: min(21rem, calc(100vw - 18px));
-    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+    bottom: max(14px, calc(env(safe-area-inset-bottom) + 7px));
     padding: 10px 10px max(8px, var(--safe-bottom));
     border-radius: 26px;
     gap: 8px;
@@ -6074,7 +6074,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 38%;
+    top: 40%;
     width: min(58vw, 212px);
     height: min(58vw, 212px);
   }
@@ -6082,7 +6082,7 @@ font-family: 'Inter', sans-serif;
   .call-card.transparent .call-controls.video-layout {
     --video-btn-size: 72px;
     width: min(22rem, calc(100vw - 20px));
-    bottom: max(18px, calc(env(safe-area-inset-bottom) + 8px));
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
     padding: 11px 11px max(9px, var(--safe-bottom));
     gap: 9px;
   }

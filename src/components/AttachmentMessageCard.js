@@ -1,6 +1,5 @@
 import React from 'react';
 import { formatTime } from '../utils';
-import SoftMessageBubble from './SoftMessageBubble';
 
 function AttachmentMessageBody({ bodyPresentation }) {
   return (
@@ -48,7 +47,6 @@ function AttachmentMessageBody({ bodyPresentation }) {
 
 export default function AttachmentMessageCard({ presentation }) {
   const {
-    isOwn,
     bodyLayout,
     body,
     cardInteraction,
@@ -59,9 +57,8 @@ export default function AttachmentMessageCard({ presentation }) {
   } = presentation;
 
   return (
-    <SoftMessageBubble
-      isOwn={isOwn}
-      className="msg-contact-card msg-contact-card--attachment"
+    <div
+      className="msg-contact-card"
       role={card.role}
       tabIndex={card.tabIndex}
       aria-label={card.ariaLabel}
@@ -98,6 +95,6 @@ export default function AttachmentMessageCard({ presentation }) {
       <div className="u-flex-shrink" style={timestampStyle}>
         {formatTime(createdAt)}
       </div>
-    </SoftMessageBubble>
+    </div>
   );
 }

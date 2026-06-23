@@ -493,7 +493,6 @@ export function buildAttachmentMessageCardPresentation(
 
   return {
     ...renderState,
-    isOwn,
     detailLines,
     actionsPresentation,
     cardInteraction: getAttachmentCardInteractionProps(renderState.card, onOpen),

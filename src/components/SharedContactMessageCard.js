@@ -1,6 +1,5 @@
 import React from 'react';
 import { getInitials, formatTime } from '../utils';
-import SoftMessageBubble from './SoftMessageBubble';
 
 export default function SharedContactMessageCard({
   presentation,
@@ -15,9 +14,8 @@ export default function SharedContactMessageCard({
   const canOpenSharedContact = !isOwn;
 
   return (
-    <SoftMessageBubble
-      isOwn={isOwn}
-      className="msg-contact-card msg-contact-card--shared"
+    <div
+      className="msg-contact-card"
       role={canOpenSharedContact ? 'button' : undefined}
       tabIndex={canOpenSharedContact ? 0 : undefined}
       aria-label={canOpenSharedContact ? `Open gedeeld contact ${contact?.name || 'Contactpersoon'}` : undefined}
@@ -42,6 +40,6 @@ export default function SharedContactMessageCard({
       >
         {formatTime(createdAt)}
       </div>
-    </SoftMessageBubble>
+    </div>
   );
 }

@@ -1010,8 +1010,8 @@ export default function ChatModals({
                       </p>
                     </div>
 
-                    <div className="profile-soft-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-                      <div className="profile-soft-card" style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                      <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Ouderaccount</div>
                         {historySettingRows.map((row) => (
                           <div key={`parent-${row.key}`} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -1031,7 +1031,7 @@ export default function ChatModals({
                         </button>
                       </div>
 
-                      <div className="profile-soft-card" style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }}>Kindaccount</div>
                         <HistorySelect
                           aria-label="Kies kindaccount"
@@ -1105,7 +1105,7 @@ export default function ChatModals({
                           <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text3)', marginBottom: '10px', textTransform: 'uppercase' }}>Door jou geblokkeerd</div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {selfBlocked.map(c => (
-                              <div key={c.uid} className="blocked-contact-row" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px 12px' }}>
+                              <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px 12px' }}>
                                 <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div className="blocked-contact-name-responsive" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>{c.displayName || c.email}</div>
@@ -1121,7 +1121,7 @@ export default function ChatModals({
                           <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text3)', marginBottom: '10px', textTransform: 'uppercase' }}>Geblokkeerd door ouder</div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {parentBlocked.map(c => (
-                              <div key={c.uid} className="blocked-contact-row blocked-contact-row--parent" style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '10px', padding: '10px 12px' }}>
+                              <div key={c.uid} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--surface2)', border: '1px solid rgba(239,68,68,.25)', borderRadius: '10px', padding: '10px 12px' }}>
                                 <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div className="blocked-contact-name-responsive" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>{c.displayName || c.email}</div>
@@ -1139,7 +1139,7 @@ export default function ChatModals({
                   <div>
                     <div style={{ marginBottom: '16px' }}>
                       <label className="form-label" style={{ marginBottom: '12px', display: 'block' }}>Chat achtergrond</label>
-                      <div className="profile-style-tabs" style={{ display: 'flex', background: 'var(--surface2)', borderRadius: '10px', padding: '4px', gap: '4px', marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', background: 'var(--surface2)', borderRadius: '10px', padding: '4px', gap: '4px', marginBottom: '14px' }}>
                         {[
                           ['foto', <ImageIcon size={14} />, 'Foto'],
                           ['kleur', <ColorCircle size={14} />, 'Kleur'],
@@ -1153,7 +1153,7 @@ export default function ChatModals({
                           </button>
                         ))}
                       </div>
-                      <div className="profile-style-preview" style={{ borderRadius: '12px', overflow: 'hidden', marginBottom: '14px', height: '110px', position: 'relative',
+                      <div style={{ borderRadius: '12px', overflow: 'hidden', marginBottom: '14px', height: '110px', position: 'relative',
                         background: chatBgTab === 'kleur'
                           ? (pendingColor || (chatBg?.type === 'color' ? chatBg.value : '#000000'))
                           : chatBgTab === 'foto'
@@ -1477,7 +1477,7 @@ export default function ChatModals({
                           filteredCallContacts.map((contact) => (
                             <div
                               key={contact.uid}
-                              className="contact-row call-contact-row"
+                              className="contact-row"
                               style={{
                                 background: 'rgba(255,255,255,0.02)',
                                 border: '1px solid var(--border)',

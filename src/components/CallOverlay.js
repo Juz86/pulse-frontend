@@ -449,7 +449,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
 
       {/* ── VIDEO STREAMS ── */}
       {isVideo && (
-        <div className="video-container">
+        <div className={`video-container ${isVideoPendingLayout ? 'video-container-pending' : ''}`}>
           <video ref={remoteVideoRef} className="video-remote" autoPlay playsInline />
           <video ref={localVideoRef}  className="video-local"  autoPlay playsInline muted />
         </div>

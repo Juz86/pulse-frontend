@@ -11753,3 +11753,248 @@ font-family: 'Inter', sans-serif;
 .web-auth-main {
     min-height: auto;
 }
+
+/* Login responsiveness hardening */
+.auth-screen {
+  justify-content: flex-start;
+  padding:
+    max(10px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-right))
+    max(20px, env(safe-area-inset-bottom))
+    max(12px, env(safe-area-inset-left));
+}
+
+.auth-flip-wrapper {
+  width: min(420px, 100%);
+  max-width: 100%;
+}
+
+.auth-card,
+.auth-card-back {
+  width: min(420px, 100%);
+  max-width: 100%;
+  max-height: none;
+  overflow: visible;
+}
+
+.auth-card-back {
+  min-height: 100%;
+}
+
+.auth-card-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+}
+
+.auth-role-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(108,99,255,0.4);
+  background: rgba(108,99,255,0.15);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .3px;
+  cursor: pointer;
+}
+
+.auth-input-shell {
+  position: relative;
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text3);
+  display: flex;
+  pointer-events: none;
+}
+
+.auth-input--leading-icon {
+  padding-left: 38px;
+}
+
+.auth-input--trailing-icon {
+  padding-right: 42px;
+}
+
+.auth-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text3);
+  cursor: pointer;
+}
+
+.web-auth-shell {
+  min-height: var(--vvh, 100dvh);
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.web-auth-main {
+  justify-content: flex-start;
+  padding:
+    max(12px, env(safe-area-inset-top))
+    clamp(12px, 3vw, 32px)
+    max(20px, env(safe-area-inset-bottom));
+}
+
+.web-auth-card {
+  align-items: start;
+  min-height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.web-auth-form-card {
+  min-height: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.web-auth-parent-panel,
+.web-auth-form-card > [role="tabpanel"] {
+  min-width: 0;
+}
+
+@media (min-width: 861px) {
+  .web-auth-main {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 860px), (max-height: 760px) {
+  .auth-screen {
+    align-items: flex-start;
+  }
+
+  .auth-card,
+  .auth-card-back {
+    border-radius: 24px;
+    padding: clamp(18px, 5vw, 28px);
+  }
+
+  .auth-logo {
+    margin-bottom: 18px;
+  }
+
+  .auth-sub {
+    margin-bottom: 18px;
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+  }
+
+  .web-auth-main {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .auth-screen {
+    padding:
+      max(8px, env(safe-area-inset-top))
+      10px
+      max(18px, env(safe-area-inset-bottom));
+  }
+
+  .auth-card-actions {
+    top: 12px;
+    right: 12px;
+    gap: 6px;
+  }
+
+  .auth-role-switch {
+    padding: 6px 12px;
+    font-size: 11.5px;
+  }
+
+  .auth-card,
+  .auth-card-back,
+  .web-auth-card,
+  .web-auth-form-card {
+    border-radius: 20px;
+  }
+
+  .auth-card,
+  .auth-card-back {
+    padding: 18px 14px;
+  }
+
+  .auth-logo {
+    margin-bottom: 14px;
+  }
+
+  .auth-title {
+    font-size: 17px;
+  }
+
+  .auth-sub,
+  .auth-no-account {
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .form-label {
+    margin-bottom: 5px;
+  }
+
+  .web-auth-main {
+    padding:
+      max(8px, env(safe-area-inset-top))
+      10px
+      max(18px, env(safe-area-inset-bottom));
+    gap: 12px;
+  }
+
+  .web-auth-card {
+    width: 100%;
+    gap: 18px;
+    padding: 18px 14px 16px;
+  }
+
+  .web-auth-form-card {
+    padding: 16px 14px;
+  }
+}
+
+@media (max-height: 640px) {
+  .auth-screen,
+  .web-auth-main {
+    justify-content: flex-start;
+  }
+
+  .auth-card,
+  .auth-card-back,
+  .web-auth-card,
+  .web-auth-form-card {
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  .auth-features,
+  .auth-features-mobile,
+  .web-auth-form-card .auth-features,
+  .web-auth-form-card .auth-features-mobile {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+}

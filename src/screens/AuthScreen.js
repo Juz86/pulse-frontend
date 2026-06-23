@@ -131,14 +131,14 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
           <h2 id="child-auth-title" className="auth-title">Welkom terug</h2>
           <p id="child-auth-subtitle" className="auth-sub">Log in met je gebruikersnaam en wachtwoord.</p>
           <label className="form-label" htmlFor="username">Gebruikersnaam</label>
-          <div style={{ position: 'relative' }}>
-            <span aria-hidden="true" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', display: 'flex', pointerEvents: 'none' }}>
+          <div className="auth-input-shell">
+            <span aria-hidden="true" className="auth-input-icon">
               <User size={16} />
             </span>
             <input
               id="username"
               name="username"
-              className="form-input"
+              className="form-input auth-input auth-input--leading-icon"
               type="text"
               placeholder="jouw_naam"
               value={username}
@@ -151,21 +151,20 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
               aria-errormessage={error ? 'child-auth-error' : undefined}
               aria-invalid={error ? 'true' : undefined}
               required
-              style={{ paddingLeft: 38 }}
             />
           </div>
         </div>
 
         <div className="form-group">
           <label className="form-label" htmlFor="password">Wachtwoord</label>
-          <div style={{ position: 'relative' }}>
-            <span aria-hidden="true" style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', display: 'flex', pointerEvents: 'none' }}>
+          <div className="auth-input-shell">
+            <span aria-hidden="true" className="auth-input-icon">
               <Lock size={16} />
             </span>
             <input
               id="password"
               name="password"
-              className="form-input"
+              className="form-input auth-input auth-input--leading-icon auth-input--trailing-icon"
               type={showPassword ? 'text' : 'password'}
               placeholder="Wachtwoord"
               value={password}
@@ -180,14 +179,13 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
               aria-invalid={error ? 'true' : undefined}
               required
               minLength={6}
-              style={{ paddingLeft: 38, paddingRight: 42 }}
             />
             <button
               type="button"
               aria-label={showPassword ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'}
               aria-pressed={showPassword}
               onClick={() => setShowPassword(p => !p)}
-              style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 0, display: 'flex' }}
+              className="auth-password-toggle"
             >
               <span aria-hidden="true">{showPassword ? <EyeOff size={18} /> : <EyeOn size={18} />}</span>
             </button>
@@ -283,12 +281,12 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
           aria-labelledby="child-auth-title"
           aria-describedby="child-auth-subtitle"
         >
-          <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="auth-card-actions">
             <button
               type="button"
               onClick={() => setFlipped(true)}
               aria-label="Open ouder login of registratie"
-              style={{ background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.4)', color: 'var(--accent)', borderRadius: '10px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: 5 }}
+              className="auth-role-switch"
             >
               <Users size={14} aria-hidden="true" /> Ouder
             </button>
@@ -308,7 +306,7 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
 
         {/* ── Achterkant: ouder-login ── */}
         <div className="auth-card-back" aria-label="Ouder inloggen of registreren">
-          <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="auth-card-actions">
             <button
               type="button"
               onClick={() => setFlipped(false)}

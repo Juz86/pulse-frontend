@@ -381,6 +381,40 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
     </div>
   );
 
+  if (callState === 'incoming') {
+    return (
+      <div className="call-overlay call-overlay--incoming">
+        <audio ref={remoteAudioRef} autoPlay playsInline />
+        <div className="call-incoming-sheet" role="dialog" aria-modal="true" aria-label={`Inkomende oproep van ${callName}`}>
+          <div className="call-incoming-sheet__meta">
+            <div className="call-incoming-sheet__avatar-wrap">
+              <div className="call-incoming-sheet__avatar">{callName.slice(0, 2).toUpperCase()}</div>
+              <div className="call-incoming-sheet__badge" aria-hidden="true">
+                {isVideo ? <Video size={13} aria-hidden="true" /> : <Phone size={13} aria-hidden="true" />}
+              </div>
+            </div>
+            <div className="call-incoming-sheet__copy">
+              <div className="call-incoming-sheet__app">Pulse</div>
+              <div className="call-incoming-sheet__name">{callName}</div>
+              <div className="call-incoming-sheet__status" role="status" aria-live="polite">
+                {isVideo ? 'Inkomend videogesprek' : 'Inkomende spraakoproep'}
+              </div>
+            </div>
+          </div>
+
+          <div className="call-incoming-sheet__actions">
+            <button type="button" className="call-incoming-sheet__action call-incoming-sheet__action--decline" onClick={handleDecline}>
+              Weigeren
+            </button>
+            <button type="button" className="call-incoming-sheet__action call-incoming-sheet__action--accept" onClick={handleAccept}>
+              Beantwoorden
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`call-overlay ${isVideoActiveLayout ? 'video-mode' : ''}`}>
 

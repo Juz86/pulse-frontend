@@ -4565,7 +4565,138 @@ font-family: 'Inter', sans-serif;
   animation:overlay-in .25s ease;
   overflow:hidden;
 }
+.call-overlay.call-overlay--incoming {
+  background:transparent;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  align-items:flex-start;
+  justify-content:center;
+  padding-top:max(12px, calc(env(safe-area-inset-top) + 10px));
+  padding-right:max(12px, calc(env(safe-area-inset-right) + 10px));
+  padding-bottom:0;
+  padding-left:max(12px, calc(env(safe-area-inset-left) + 10px));
+  pointer-events:none;
+}
 .call-overlay.video-mode { background:#000; }
+
+.call-incoming-sheet {
+  pointer-events:auto;
+  width:min(100%, 560px);
+  border-radius:32px;
+  padding:18px;
+  background:rgba(255,255,255,.96);
+  border:1px solid rgba(255,255,255,.82);
+  box-shadow:0 20px 60px rgba(17, 24, 39, .18), 0 8px 20px rgba(17, 24, 39, .10);
+  color:#111827;
+  animation:call-incoming-sheet-drop .34s cubic-bezier(.2,.9,.2,1);
+}
+.call-incoming-sheet__meta {
+  display:flex;
+  align-items:center;
+  gap:14px;
+  min-width:0;
+}
+.call-incoming-sheet__avatar-wrap {
+  position:relative;
+  flex:0 0 auto;
+}
+.call-incoming-sheet__avatar {
+  width:64px;
+  height:64px;
+  border-radius:22px;
+  background:linear-gradient(135deg, var(--accent), var(--accent2));
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Inter',sans-serif;
+  font-size:24px;
+  font-weight:800;
+  box-shadow:0 10px 24px rgba(108,99,255,.22);
+}
+.call-incoming-sheet__badge {
+  position:absolute;
+  right:-4px;
+  bottom:-2px;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:#22c55e;
+  color:#fff;
+  border:2px solid rgba(255,255,255,.96);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 6px 14px rgba(34,197,94,.28);
+}
+.call-incoming-sheet__copy {
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.call-incoming-sheet__app {
+  font-size:13px;
+  font-weight:600;
+  color:#6b7280;
+}
+.call-incoming-sheet__name {
+  font-family:'Inter',sans-serif;
+  font-size:20px;
+  font-weight:800;
+  line-height:1.1;
+  color:#111827;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.call-incoming-sheet__status {
+  font-size:16px;
+  line-height:1.25;
+  color:#111827;
+}
+.call-incoming-sheet__actions {
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:14px;
+  margin-top:18px;
+}
+.call-incoming-sheet__action {
+  min-height:56px;
+  border:none;
+  border-radius:999px;
+  color:#fff;
+  font-family:'Inter',sans-serif;
+  font-size:16px;
+  font-weight:800;
+  cursor:pointer;
+  transition:transform .16s ease, filter .16s ease, box-shadow .16s ease;
+}
+.call-incoming-sheet__action:hover {
+  filter:brightness(1.04);
+}
+.call-incoming-sheet__action:active {
+  transform:scale(.98);
+}
+.call-incoming-sheet__action--decline {
+  background:linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow:0 10px 22px rgba(220,38,38,.25);
+}
+.call-incoming-sheet__action--accept {
+  background:linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow:0 10px 22px rgba(34,197,94,.24);
+}
+
+@keyframes call-incoming-sheet-drop {
+  0% {
+    opacity:0;
+    transform:translateY(-26px) scale(.97);
+  }
+  100% {
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+}
 
 .call-side-quick-actions {
   position:absolute;
@@ -4820,6 +4951,33 @@ font-family: 'Inter', sans-serif;
 .blink { animation:blink 1.5s infinite; }
 .call-status-error { color:#ff5f5f; font-weight:500; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+@media (max-width: 640px) {
+  .call-incoming-sheet {
+    border-radius:28px;
+    padding:16px;
+  }
+  .call-incoming-sheet__meta {
+    gap:12px;
+  }
+  .call-incoming-sheet__avatar {
+    width:58px;
+    height:58px;
+    border-radius:20px;
+    font-size:22px;
+  }
+  .call-incoming-sheet__status {
+    font-size:15px;
+  }
+  .call-incoming-sheet__actions {
+    gap:12px;
+    margin-top:16px;
+  }
+  .call-incoming-sheet__action {
+    min-height:52px;
+    font-size:15px;
+  }
+}
 
 .call-controls {
   display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:6px;

@@ -4817,14 +4817,18 @@ font-family: 'Inter', sans-serif;
 /* ── MINIMIZE BUTTON ── */
 .call-minimize-btn {
   position:absolute; top:14px; left:14px;
-  width:28px; height:28px; border-radius:50%;
-  border:none; background:rgba(255,255,255,.1);
-  color:var(--text3); cursor:pointer;
+  width:36px; height:36px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(22,22,28,.72);
+  color:#fff; cursor:pointer;
   display:flex; align-items:center; justify-content:center;
-  transition:.2s; z-index:2;
+  transition:.2s; z-index:11;
+  box-shadow:0 10px 24px rgba(0,0,0,.26);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
 }
-.call-minimize-btn:hover { background:rgba(255,255,255,.2); color:var(--text); }
-.call-minimize-btn-right { left:auto; right:14px; }
+.call-minimize-btn:hover { background:rgba(34,34,40,.84); color:#fff; }
+.call-minimize-btn-right { left:auto; right:16px; }
 
 /* ── MINI CALL BAR ── */
 .call-mini-bar {
@@ -5957,15 +5961,15 @@ font-family: 'Inter', sans-serif;
   transform:translateX(-50%);
   display:flex;
   align-items:center;
-  gap:12px;
+  gap:14px;
   width:min(19rem, calc(100vw - 104px));
   z-index:9;
 }
 
 .call-pending-avatar {
-  width:48px;
-  height:48px;
-  border-radius:16px;
+  width:56px;
+  height:56px;
+  border-radius:18px;
   flex:0 0 auto;
   background:linear-gradient(135deg, var(--accent), var(--accent2));
   color:#fff;
@@ -5973,7 +5977,7 @@ font-family: 'Inter', sans-serif;
   align-items:center;
   justify-content:center;
   font-family:'Inter',sans-serif;
-  font-size:19px;
+  font-size:21px;
   font-weight:800;
   box-shadow:0 10px 24px rgba(108,99,255,.24);
 }
@@ -6097,10 +6101,10 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-pending-avatar {
-    width:44px;
-    height:44px;
-    border-radius:15px;
-    font-size:18px;
+    width:50px;
+    height:50px;
+    border-radius:16px;
+    font-size:19px;
   }
 }
 
@@ -6197,10 +6201,10 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-pending-avatar {
-    width:40px;
-    height:40px;
-    border-radius:14px;
-    font-size:16px;
+    width:46px;
+    height:46px;
+    border-radius:15px;
+    font-size:18px;
   }
 }
 

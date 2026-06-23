@@ -4623,13 +4623,21 @@ font-family: 'Inter', sans-serif;
   width:22px;
   height:22px;
   border-radius:50%;
-  background:#22c55e;
+  background:#fff;
   color:#fff;
   border:2px solid rgba(255,255,255,.96);
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 6px 14px rgba(34,197,94,.28);
+  box-shadow:0 6px 14px rgba(108,99,255,.20);
+  overflow:hidden;
+}
+.call-incoming-sheet__badge-logo {
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  border-radius:50%;
 }
 .call-incoming-sheet__copy {
   min-width:0;

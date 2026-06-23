@@ -394,7 +394,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
             <div className="call-incoming-sheet__avatar-wrap">
               <div className="call-incoming-sheet__avatar">{callName.slice(0, 2).toUpperCase()}</div>
               <div className="call-incoming-sheet__badge" aria-hidden="true">
-                {isVideo ? <Video size={13} aria-hidden="true" /> : <Phone size={13} aria-hidden="true" />}
+                <img src="/logo192.png" alt="" className="call-incoming-sheet__badge-logo" />
               </div>
             </div>
             <div className="call-incoming-sheet__copy">

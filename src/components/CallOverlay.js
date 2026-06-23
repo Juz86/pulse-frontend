@@ -423,13 +423,16 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
   }
 
   return (
-    <div className={`call-overlay ${isVideoActiveLayout ? 'video-mode' : ''}`}>
+    <div className={`call-overlay ${isVideoActiveLayout ? 'video-mode' : ''} ${isVideoPendingLayout ? 'video-pending-mode' : ''}`}>
 
       {/* Verborgen audio element voor spraakgesprekken */}
       <audio ref={remoteAudioRef} autoPlay playsInline />
 
-      {isVideoActiveLayout && (
+      {isVideoActiveLayout && !isVideoPendingLayout && (
         <div className="call-side-quick-actions" aria-label="Extra gespreksacties">
+          <button type="button" className="call-side-action-btn" onClick={handleSwitchCamera} disabled={switchingCamera} title="Camera draaien" aria-label="Camera draaien">
+            <CameraRotateIcon size={18} />
+          </button>
           <button type="button" className="call-side-action-btn" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
             <Message size={18} aria-hidden="true" />
             {chatUnreadCount > 0 && (
@@ -507,22 +510,23 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                 <>
                   <button
                     type="button"
+                    className={`call-ctrl-btn aux call-ctrl-round ${speakerEnabled ? 'on' : ''}`}
+                    onClick={toggleSpeakerMode}
+                    disabled={!speakerControlAvailable}
+                    title="Luidspreker"
+                    aria-label="Luidspreker"
+                  >
+                    <Speaker size={19} aria-hidden="true" />
+                    <span>Luidspreker</span>
+                  </button>
+                  <button
+                    type="button"
                     className={`call-ctrl-btn cam call-ctrl-round ${camOff ? 'on' : ''}`}
                     aria-pressed={camOff}
                     onClick={toggleCam}
                     aria-label={camOff ? 'Camera aanzetten' : 'Camera uitzetten'}
                   >
                     {camOff ? <Cancel size={18} aria-hidden="true" /> : <Video size={18} aria-hidden="true" />}<span>Camera</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="call-ctrl-btn aux call-ctrl-round"
-                    onClick={handleSwitchCamera}
-                    disabled={switchingCamera}
-                    title="Camera draaien"
-                    aria-label="Camera draaien"
-                  >
-                    <CameraRotateIcon size={22} /><span>{switchingCamera ? 'Wisselen…' : 'Draaien'}</span>
                   </button>
                   <button
                     type="button"

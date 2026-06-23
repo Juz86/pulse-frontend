@@ -4578,6 +4578,12 @@ font-family: 'Inter', sans-serif;
   pointer-events:none;
 }
 .call-overlay.video-mode { background:#000; }
+.call-overlay.video-pending-mode {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(117,101,255,.36) 0%, rgba(117,101,255,.16) 22%, rgba(117,101,255,0) 54%),
+    radial-gradient(circle at 50% 52%, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 46%),
+    #050507;
+}
 
 .call-incoming-sheet {
   pointer-events:auto;
@@ -5125,6 +5131,12 @@ font-family: 'Inter', sans-serif;
   background:#4a4b50;
   color:#fff;
   border:1px solid rgba(255,255,255,.12);
+}
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.aux.on {
+  background:linear-gradient(135deg, rgba(108,99,255,.34), rgba(139,92,246,.34));
+  border:1px solid rgba(167,139,250,.66);
+  color:#fff;
+  box-shadow:0 0 0 1px rgba(167,139,250,.35), 0 8px 20px rgba(108,99,255,.28);
 }
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn svg {
   width:clamp(24px, 4.2vw, 34px);
@@ -5893,8 +5905,9 @@ font-family: 'Inter', sans-serif;
 .call-card.transparent.call-video-pending .call-avatar-big {
   width: clamp(148px, 34vw, 230px);
   height: clamp(148px, 34vw, 230px);
-  top: 48%;
+  top: 42%;
   transform: translate(-50%, -50%);
+  box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 24px 54px rgba(0,0,0,.42), 0 0 76px rgba(108,99,255,.34);
 }
 
 .call-card.transparent .call-controls.video-layout {
@@ -5927,15 +5940,16 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 46%;
-    width: min(42vw, 180px);
-    height: min(42vw, 180px);
+    top: 40%;
+    width: min(58vw, 212px);
+    height: min(58vw, 212px);
   }
 
   .call-card.transparent .call-controls.video-layout {
-    width: min(23rem, calc(100vw - 20px));
-    bottom: max(16px, calc(env(safe-area-inset-bottom) + 10px));
+    width: min(21.5rem, calc(100vw - 24px));
+    bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px));
     padding: 12px 12px max(10px, var(--safe-bottom));
+    border-radius: 28px;
   }
 
   .video-local {
@@ -6001,15 +6015,15 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 44%;
-    width: min(38vw, 156px);
-    height: min(38vw, 156px);
+    top: 38%;
+    width: min(54vw, 186px);
+    height: min(54vw, 186px);
   }
 
   .call-card.transparent .call-controls.video-layout {
-    --video-btn-size: 72px;
-    width: min(21.5rem, calc(100vw - 18px));
-    bottom: max(12px, calc(env(safe-area-inset-bottom) + 8px));
+    --video-btn-size: 68px;
+    width: min(20.5rem, calc(100vw - 18px));
+    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
     padding: 10px 10px max(8px, var(--safe-bottom));
     border-radius: 24px;
     gap: 8px;
@@ -6035,15 +6049,15 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 45%;
-    width: min(40vw, 170px);
-    height: min(40vw, 170px);
+    top: 39%;
+    width: min(56vw, 204px);
+    height: min(56vw, 204px);
   }
 
   .call-card.transparent .call-controls.video-layout {
-    --video-btn-size: 78px;
-    width: min(22.75rem, calc(100vw - 20px));
-    bottom: max(14px, calc(env(safe-area-inset-bottom) + 8px));
+    --video-btn-size: 72px;
+    width: min(21.25rem, calc(100vw - 20px));
+    bottom: max(18px, calc(env(safe-area-inset-bottom) + 8px));
     padding: 11px 11px max(9px, var(--safe-bottom));
     gap: 9px;
   }
@@ -6056,15 +6070,28 @@ font-family: 'Inter', sans-serif;
 }
 
 @media (max-width: 760px) {
-  .call-side-quick-actions {
-    display:flex;
-  }
-
   .call-card.transparent .call-controls.video-layout {
     grid-template-columns:repeat(2, minmax(0, 1fr));
   }
 
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-secondary {
+    display:none;
+  }
+
+  .call-card.transparent.call-video-pending .call-controls.video-layout {
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+  }
+
+  .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.call-ctrl-secondary {
+    display:flex;
+  }
+
+  .call-card.transparent.call-video-pending + .call-side-quick-actions,
+  .call-overlay.video-pending-mode .call-side-quick-actions {
+    display:none;
+  }
+
+  .call-overlay.video-pending-mode .video-local {
     display:none;
   }
 }

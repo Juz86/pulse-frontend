@@ -6249,26 +6249,31 @@ font-family: 'Inter', sans-serif;
 
 @media (max-width: 760px) {
   .call-card.transparent .call-controls.video-layout {
-    grid-template-columns:repeat(2, minmax(0, 1fr));
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+    width:min(22rem, calc(100vw - 20px));
+    padding:11px 11px max(9px, var(--safe-bottom));
+    gap:9px;
   }
 
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-secondary {
-    display:none;
-  }
-
-  .call-card.transparent.call-video-pending .call-controls.video-layout {
-    grid-template-columns:repeat(3, minmax(0, 1fr));
-  }
-
-  .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.call-ctrl-secondary {
     display:flex;
   }
 
-  .call-card.transparent.call-video-pending .call-controls.video-layout .call-chat-badge {
+  .call-card.transparent .call-controls.video-layout .call-ctrl-btn {
+    width:100%;
+    height:auto;
+    min-height:66px;
+    max-height:none;
+    aspect-ratio:auto;
+    border-radius:999px !important;
+  }
+
+  .call-card.transparent .call-controls.video-layout .call-chat-badge {
     display:none;
   }
 
-  .call-card.transparent.call-video-pending + .call-side-quick-actions,
+  .call-card.transparent + .call-side-quick-actions,
+  .call-overlay.video-mode .call-side-quick-actions,
   .call-overlay.video-pending-mode .call-side-quick-actions {
     display:none;
   }

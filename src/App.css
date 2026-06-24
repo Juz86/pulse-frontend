@@ -5519,28 +5519,30 @@ font-family: 'Inter', sans-serif;
   left:50%;
   bottom:max(12px, calc(env(safe-area-inset-bottom) + 8px));
   transform:translateX(-50%);
-  width:min(34rem, calc(100vw - 2 * var(--modal-padding)));
+  width:min(23.5rem, calc(100vw - 28px));
   max-width:100%;
   display:grid;
   grid-template-columns:repeat(5, minmax(0, 1fr));
-  gap:12px 10px;
-  padding:14px 14px max(12px, var(--safe-bottom));
-  border-radius:32px;
-  background:rgba(28,29,33,.92);
-  border:1px solid rgba(255,255,255,.10);
-  box-shadow:0 18px 38px rgba(0,0,0,.52);
+  gap:10px;
+  padding:12px 12px max(10px, var(--safe-bottom));
+  border-radius:36px;
+  background:rgba(54,41,33,.34);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 18px 36px rgba(0,0,0,.24);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
   z-index:4;
 }
 .call-card.transparent.call-video-pending .call-controls.video-layout {
-  width:min(34rem, calc(100vw - 2 * var(--modal-padding)));
+  width:min(23.5rem, calc(100vw - 28px));
   grid-template-columns:repeat(5, minmax(0, 1fr));
-  gap:12px 10px;
+  gap:10px;
 }
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn {
   width:100%;
   min-height:0;
   aspect-ratio:1 / 1;
-  max-height:clamp(76px, 18vw, 108px);
+  max-height:clamp(72px, 16vw, 88px);
   border-radius:50%;
   gap:0;
   display:flex;
@@ -5567,9 +5569,9 @@ font-family: 'Inter', sans-serif;
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn.aux,
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn.cam,
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn.mute {
-  background:#4a4b50;
+  background:rgba(33,28,26,.9);
   color:#fff;
-  border:1px solid rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.06);
 }
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn.aux.on {
   background:linear-gradient(135deg, rgba(108,99,255,.34), rgba(139,92,246,.34));
@@ -5585,6 +5587,10 @@ font-family: 'Inter', sans-serif;
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn.end svg {
   width:clamp(26px, 4.5vw, 36px);
   height:clamp(26px, 4.5vw, 36px);
+}
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.end {
+  background:linear-gradient(180deg, #ff1f62, #ea004f);
+  box-shadow:0 10px 22px rgba(234,0,79,.28);
 }
 .call-upgrade-banner {
   display:flex;
@@ -6728,14 +6734,14 @@ font-family: 'Inter', sans-serif;
   .call-card.voice-active .call-controls.active-layout,
   .call-card.transparent .call-controls.video-layout {
     grid-template-columns:repeat(5, minmax(0, 1fr));
-    width:min(100%, calc(100vw - 32px));
-    max-width:calc(100vw - 32px);
-    padding:clamp(8px, 2vw, 11px) clamp(10px, 3vw, 14px);
-    gap:clamp(6px, 1.6vw, 10px);
-    border-radius:32px;
-    background:rgba(25,25,28,.96);
+    width:min(100%, calc(100vw - 28px));
+    max-width:calc(100vw - 28px);
+    padding:clamp(8px, 2vw, 10px) clamp(9px, 2.8vw, 12px);
+    gap:clamp(5px, 1.5vw, 8px);
+    border-radius:34px;
+    background:rgba(39,31,28,.46);
     border:1px solid rgba(255,255,255,.06);
-    box-shadow:0 20px 48px rgba(0,0,0,.42);
+    box-shadow:0 18px 38px rgba(0,0,0,.24);
     backdrop-filter:blur(14px);
     -webkit-backdrop-filter:blur(14px);
     box-sizing:border-box;
@@ -6761,7 +6767,7 @@ font-family: 'Inter', sans-serif;
     max-height:none;
     aspect-ratio:1 / 1;
     border-radius:999px !important;
-    background:rgba(62,62,67,.98);
+    background:rgba(33,28,26,.92);
     border:1px solid rgba(255,255,255,.04);
     box-shadow:none;
     color:#fff;
@@ -6865,11 +6871,11 @@ font-family: 'Inter', sans-serif;
   .call-card.voice-active .call-controls.active-layout,
   .call-card.transparent .call-controls.video-layout {
     --call-mobile-btn-size: 48px;
-    width:calc(100vw - 24px);
-    max-width:calc(100vw - 24px);
-    padding:7px 8px;
-    gap:5px;
-    border-radius:26px;
+    width:calc(100vw - 20px);
+    max-width:calc(100vw - 20px);
+    padding:7px 7px;
+    gap:4px;
+    border-radius:28px;
   }
 
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn,
@@ -6907,10 +6913,10 @@ font-family: 'Inter', sans-serif;
   .call-card.voice-active .call-controls.active-layout,
   .call-card.transparent .call-controls.video-layout {
     --call-mobile-btn-size: 44px;
-    width:calc(100vw - 16px);
-    max-width:calc(100vw - 16px);
-    padding:5px 6px;
-    gap:4px;
+    width:calc(100vw - 14px);
+    max-width:calc(100vw - 14px);
+    padding:5px;
+    gap:3px;
   }
 
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn,

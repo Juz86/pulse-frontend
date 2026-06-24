@@ -329,6 +329,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   const isVideoActiveLayout = isVideo && callState !== 'incoming' && callState !== 'ended';
   const isVideoPendingLayout = isVideoActiveLayout && !hasRemoteVideoTrack;
   const hasActiveHeaderLayout = (isVoiceActiveLayout || isVideoActiveLayout) && !isVideoPendingLayout;
+  const useCenteredActiveHeader = isVoiceActiveLayout || isVideoActiveLayout;
   const callingStatusLabel = isVoiceActiveLayout ? 'Belt...' : 'Bellen…';
   const incomingTimeLabel = new Intl.DateTimeFormat('nl-NL', {
     hour: '2-digit',
@@ -443,8 +444,8 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
 
   return (
     <div
-      className={`call-overlay ${isVideoActiveLayout ? 'video-mode' : ''} ${isVideoPendingLayout ? 'video-pending-mode' : ''} ${isVoiceActiveLayout ? 'call-overlay--voice-reference' : ''}`}
-      style={isVoiceActiveLayout ? { backgroundImage: `linear-gradient(180deg, rgba(5,5,7,.76), rgba(5,5,7,.82)), url(${chatDefaultPattern})` } : undefined}
+      className={`call-overlay ${isVideoActiveLayout ? 'video-mode call-overlay--video-reference' : ''} ${isVideoPendingLayout ? 'video-pending-mode' : ''} ${isVoiceActiveLayout ? 'call-overlay--voice-reference' : ''}`}
+      style={(isVoiceActiveLayout || isVideoPendingLayout) ? { backgroundImage: `linear-gradient(180deg, rgba(5,5,7,.76), rgba(5,5,7,.82)), url(${chatDefaultPattern})` } : undefined}
     >
 
       {/* Verborgen audio element voor spraakgesprekken */}
@@ -476,8 +477,8 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
           </button>
         )}
         {hasActiveHeaderLayout && (
-          <div className={`call-active-head ${isVoiceActiveLayout ? 'call-active-head-centered' : ''}`}>
-            {!isVoiceActiveLayout && <div className="call-active-head-avatar">{callName.slice(0,2).toUpperCase()}</div>}
+          <div className={`call-active-head ${useCenteredActiveHeader ? 'call-active-head-centered' : ''}`}>
+            {!useCenteredActiveHeader && <div className="call-active-head-avatar">{callName.slice(0,2).toUpperCase()}</div>}
             <div className="call-active-head-copy">
               <div className="call-name">{callName}</div>
               {callState === 'active' ? (
@@ -491,14 +492,14 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
           </div>
         )}
         {isVideoPendingLayout ? (
-          <div className="call-pending-head">
-            <div className="call-pending-avatar">{callName.slice(0,2).toUpperCase()}</div>
-            <div className="call-pending-copy">
-              <div className="call-name">{callName}</div>
-              {callState === 'calling'    && <div className="call-status blink" role="status" aria-live="polite">Bellen…</div>}
-              {callState === 'connecting' && <div className="call-status blink" role="status" aria-live="polite">Verbinden…</div>}
+          <>
+            <div className={`call-avatar-big ${callPhotoUrl ? 'call-avatar-big--photo' : ''}`}>
+              {callPhotoUrl
+                ? <img src={callPhotoUrl} alt="" className="call-avatar-big-photo" />
+                : callName.slice(0,2).toUpperCase()}
             </div>
-          </div>
+            {!hasActiveHeaderLayout && <div className="call-name">{callName}</div>}
+          </>
         ) : (
           <>
             {!isVideoActiveLayout && (

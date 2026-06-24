@@ -6359,7 +6359,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.voice-active .call-avatar-big {
-    margin-top: clamp(34px, 9vh, 72px);
+    margin-top: clamp(84px, 15vh, 122px);
     margin-bottom: clamp(2px, 1vh, 8px);
     width: min(58vw, 248px);
     height: min(58vw, 248px);
@@ -6391,10 +6391,10 @@ font-family: 'Inter', sans-serif;
   .call-card.voice-active .call-controls.active-layout,
   .call-card.transparent .call-controls.video-layout {
     grid-template-columns:repeat(5, minmax(0, 1fr));
-    width:min(23rem, calc(100vw - 24px));
-    max-width:calc(100vw - 24px);
-    padding:10px;
-    gap:10px;
+    width:min(21rem, calc(100vw - 12px));
+    max-width:calc(100vw - 12px);
+    padding:8px;
+    gap:8px;
     border-radius:30px;
     background:rgba(24,24,27,.92);
     border:1px solid rgba(255,255,255,.08);
@@ -6417,8 +6417,8 @@ font-family: 'Inter', sans-serif;
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn,
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn {
     width:100%;
-    height:58px;
-    min-height:58px;
+    height:50px;
+    min-height:50px;
     max-height:none;
     aspect-ratio:1 / 1;
     border-radius:999px !important;
@@ -6440,15 +6440,15 @@ font-family: 'Inter', sans-serif;
 
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn svg,
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn svg {
-    width:20px;
-    height:20px;
+    width:18px;
+    height:18px;
     color:#fff;
   }
 
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.end svg,
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn.end svg {
-    width:21px;
-    height:21px;
+    width:19px;
+    height:19px;
   }
 
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.call-ctrl-speaker.on,
@@ -6487,17 +6487,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-side-quick-actions.call-side-quick-actions-voice {
-    display:flex;
-    top:max(54px, calc(env(safe-area-inset-top) + 38px));
-    right:max(14px, calc(env(safe-area-inset-right) + 8px));
-    gap:0;
-  }
-
-  .call-side-quick-actions.call-side-quick-actions-voice .call-side-action-btn {
-    width:58px;
-    height:58px;
-    background:rgba(26,26,30,.9);
-    border-color:rgba(255,255,255,.14);
+    display:none;
   }
 
   .call-overlay.video-pending-mode .video-local {

@@ -444,19 +444,6 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
           </button>
         </div>
       )}
-      {isVoiceActiveLayout && (
-        <div className="call-side-quick-actions call-side-quick-actions-voice" aria-label="Extra gespreksacties">
-          <button type="button" className="call-side-action-btn" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
-            <Message size={18} aria-hidden="true" />
-            {chatUnreadCount > 0 && (
-              <span className="call-side-action-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
-                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
-              </span>
-            )}
-          </button>
-        </div>
-      )}
-
       {/* ── VIDEO STREAMS ── */}
       {isVideo && (
         <div className={`video-container ${isVideoPendingLayout ? 'video-container-pending' : ''}`}>

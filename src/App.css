@@ -5242,7 +5242,7 @@ font-family: 'Inter', sans-serif;
   opacity:.95;
 }
 .call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-avatar-big {
-  top:44%;
+  top:50%;
   width:min(56vw, 216px);
   height:min(56vw, 216px);
   box-shadow:0 24px 54px rgba(0,0,0,.34), 0 0 52px rgba(108,99,255,.22);
@@ -6387,19 +6387,10 @@ font-family: 'Inter', sans-serif;
 .call-card.transparent.call-video-pending .call-avatar-big {
   width: clamp(148px, 34vw, 230px);
   height: clamp(148px, 34vw, 230px);
-  top: 42.5%;
+  top: 50%;
   transform: translate(-50%, -50%);
   box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 24px 54px rgba(0,0,0,.42), 0 0 96px rgba(108,99,255,.28);
   z-index:8;
-}
-
-.call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn {
-  width:100%;
-  height:auto;
-  min-height:72px;
-  max-height:none;
-  aspect-ratio:auto;
-  border-radius:999px !important;
 }
 
 .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.end {
@@ -6460,7 +6451,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 40.5%;
+    top: 50%;
     width: min(60vw, 220px);
     height: min(60vw, 220px);
   }
@@ -6500,7 +6491,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 43%;
+    top: 50%;
     width: min(21vh, 8rem);
     height: min(21vh, 8rem);
   }
@@ -6546,7 +6537,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 39%;
+    top: 50%;
     width: min(56vw, 194px);
     height: min(56vw, 194px);
   }
@@ -6558,10 +6549,6 @@ font-family: 'Inter', sans-serif;
     padding: 10px 10px max(8px, var(--safe-bottom));
     border-radius: 26px;
     gap: 8px;
-  }
-
-  .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn {
-    min-height:62px;
   }
 
   .call-overlay.call-overlay--video-reference .video-local,
@@ -6586,7 +6573,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.transparent.call-video-pending .call-avatar-big {
-    top: 40%;
+    top: 50%;
     width: min(58vw, 212px);
     height: min(58vw, 212px);
   }
@@ -6597,10 +6584,6 @@ font-family: 'Inter', sans-serif;
     bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
     padding: 11px 11px max(9px, var(--safe-bottom));
     gap: 9px;
-  }
-
-  .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn {
-    min-height:66px;
   }
 
   .call-overlay.call-overlay--video-reference .video-local,
@@ -6826,7 +6809,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-avatar-big {
-    top:42%;
+    top:50%;
     width:min(58vw, 196px);
     height:min(58vw, 196px);
   }
@@ -6879,7 +6862,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-avatar-big {
-    top:41%;
+    top:50%;
     width:min(56vw, 188px);
     height:min(56vw, 188px);
   }

@@ -1,7 +1,8 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
-import { Phone, Video, Mic, Camera, Cancel, UserPlus, Message, Speaker, PhoneEnd } from './Icons';
+import { Phone, Video, Mic, Camera, Cancel, UserPlus, Message, Speaker, PhoneEnd, MoreHoriz } from './Icons';
+import chatDefaultPattern from '../assets/chatachtergrond.jpeg';
 
 export default function CallOverlay({ incoming, active, contacts = [], user, chatUnreadCount = 0, onClose, onEnd, onRetryCall }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
@@ -367,6 +368,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
   const isVideoActiveLayout = isVideo && callState !== 'incoming' && callState !== 'ended';
   const isVideoPendingLayout = isVideoActiveLayout && !hasRemoteVideoTrack;
   const hasActiveHeaderLayout = (isVoiceActiveLayout || isVideoActiveLayout) && !isVideoPendingLayout;
+  const callingStatusLabel = isVoiceActiveLayout ? 'Belt...' : 'Bellen…';
   const incomingTimeLabel = new Intl.DateTimeFormat('nl-NL', {
     hour: '2-digit',
     minute: '2-digit',
@@ -479,7 +481,10 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
   }
 
   return (
-    <div className={`call-overlay ${isVideoActiveLayout ? 'video-mode' : ''} ${isVideoPendingLayout ? 'video-pending-mode' : ''}`}>
+    <div
+      className={`call-overlay ${isVideoActiveLayout ? 'video-mode' : ''} ${isVideoPendingLayout ? 'video-pending-mode' : ''} ${isVoiceActiveLayout ? 'call-overlay--voice-reference' : ''}`}
+      style={isVoiceActiveLayout ? { backgroundImage: `linear-gradient(180deg, rgba(5,5,7,.76), rgba(5,5,7,.82)), url(${chatDefaultPattern})` } : undefined}
+    >
 
       {/* Verborgen audio element voor spraakgesprekken */}
       <audio ref={remoteAudioRef} autoPlay playsInline />
@@ -488,6 +493,21 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
         <div className="call-side-quick-actions" aria-label="Extra gespreksacties">
           <button type="button" className="call-side-action-btn" onClick={handleSwitchCamera} disabled={switchingCamera} title="Camera draaien" aria-label="Camera draaien">
             <CameraRotateIcon size={18} />
+          </button>
+          <button type="button" className="call-side-action-btn" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
+            <Message size={18} aria-hidden="true" />
+            {chatUnreadCount > 0 && (
+              <span className="call-side-action-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
+                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
+      {isVoiceActiveLayout && (
+        <div className="call-side-quick-actions call-side-quick-actions-voice" aria-label="Extra gespreksacties">
+          <button type="button" className="call-side-action-btn" onClick={() => setShowAddPersonPanel(true)} title="Persoon toevoegen" aria-label="Persoon toevoegen">
+            <UserPlus size={18} aria-hidden="true" />
           </button>
           <button type="button" className="call-side-action-btn" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
             <Message size={18} aria-hidden="true" />
@@ -533,7 +553,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                 <div className="call-timer" aria-label={`Gespreksduur ${formatTimer(timer)}`}>{formatTimer(timer)}</div>
               ) : (
                 <div className="call-status blink" role="status" aria-live="polite">
-                  {callState === 'connecting' ? 'Verbinden…' : 'Bellen…'}
+                  {callState === 'connecting' ? 'Verbinden…' : callingStatusLabel}
                 </div>
               )}
             </div>
@@ -550,7 +570,13 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
           </div>
         ) : (
           <>
-            {!isVideoActiveLayout && <div className="call-avatar-big">{callName.slice(0,2).toUpperCase()}</div>}
+            {!isVideoActiveLayout && (
+              <div className={`call-avatar-big ${callPhotoUrl ? 'call-avatar-big--photo' : ''}`}>
+                {callPhotoUrl
+                  ? <img src={callPhotoUrl} alt="" className="call-avatar-big-photo" />
+                  : callName.slice(0,2).toUpperCase()}
+              </div>
+            )}
             {!hasActiveHeaderLayout && <div className="call-name">{callName}</div>}
           </>
         )}
@@ -560,7 +586,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
             {isVideo ? <><Video size={24} aria-hidden="true" /> Inkomend videogesprek</> : <><Phone size={24} aria-hidden="true" /> Inkomende oproep</>}
           </div>
         )}
-        {!isVideoPendingLayout && !hasActiveHeaderLayout && callState === 'calling'     && <div className="call-status blink" role="status" aria-live="polite">Bellen…</div>}
+        {!isVideoPendingLayout && !hasActiveHeaderLayout && callState === 'calling'     && <div className="call-status blink" role="status" aria-live="polite">{callingStatusLabel}</div>}
         {!isVideoPendingLayout && !hasActiveHeaderLayout && callState === 'connecting'  && <div className="call-status blink" role="status" aria-live="polite">Verbinden…</div>}
         {!hasActiveHeaderLayout && callState === 'active'      && <div className="call-timer" aria-label={`Gespreksduur ${formatTimer(timer)}`}>{formatTimer(timer)}</div>}
         {networkState === 'reconnecting' && callState === 'active' && (
@@ -644,9 +670,9 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                 </button>
               )}
               {isVoiceActiveLayout && (
-                <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat" onClick={handleOpenChat} title="Bericht versturen" aria-label="Bericht versturen">
-                  <Message size={18} aria-hidden="true" />
-                  <span>Bericht</span>
+                <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat" onClick={() => setShowAddPersonPanel(true)} title="Meer" aria-label="Meer">
+                  <MoreHoriz size={18} aria-hidden="true" />
+                  <span>Meer</span>
                   {chatUnreadCount > 0 && (
                     <span className="call-chat-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
                       {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
@@ -675,18 +701,6 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
               {isVoiceActiveLayout && (
                 <button type="button" className={`call-ctrl-btn mute call-ctrl-round ${muted ? 'on' : ''}`} aria-pressed={muted} onClick={toggleMute} aria-label={muted ? 'Geluid aan' : 'Geluid uit'}>
                   {muted ? <MutedMicIcon size={22} /> : <Mic size={20} aria-hidden="true" />}<span>{muted ? 'Geluid aan' : 'Geluid uit'}</span>
-                </button>
-              )}
-              {isVoiceActiveLayout && (
-                <button
-                  type="button"
-                  className="call-ctrl-btn aux call-ctrl-round call-ctrl-disabled call-ctrl-add-person"
-                  disabled
-                  aria-disabled="true"
-                  aria-label="Persoon toevoegen"
-                  title="Persoon toevoegen binnenkort"
-                >
-                  <UserPlus size={18} aria-hidden="true" /><span>+ Persoon</span>
                 </button>
               )}
               {isVideo && !isVideoActiveLayout && (

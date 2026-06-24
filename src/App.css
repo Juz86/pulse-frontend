@@ -4832,7 +4832,7 @@ font-family: 'Inter', sans-serif;
 
 .call-active-head {
   position:absolute;
-  top:max(18px, calc(env(safe-area-inset-top) + 10px));
+  top:max(14px, calc(env(safe-area-inset-top) + 6px));
   left:50%;
   transform:translateX(-50%);
   width:min(18.5rem, calc(100vw - 128px));
@@ -4947,10 +4947,10 @@ font-family: 'Inter', sans-serif;
   border:none;
   box-shadow:none;
   width:min(34rem, calc(100vw - 2 * var(--modal-padding)));
-  gap:8px;
+  gap:4px;
   min-height:min(88dvh, calc(var(--vvh, 100dvh) - var(--safe-top) - var(--safe-bottom) - 16px));
   justify-content:space-between;
-  padding:clamp(18px, 3.8vw, 28px) 10px max(10px, var(--safe-bottom));
+  padding:clamp(14px, 3.2vw, 24px) 10px max(10px, var(--safe-bottom));
 }
 .call-card.voice-active .call-name {
   order: 0;
@@ -4969,8 +4969,8 @@ font-family: 'Inter', sans-serif;
 }
 .call-card.voice-active .call-avatar-big {
   order: 2;
-  margin-top: clamp(8px, 4.2vh, 28px);
-  margin-bottom: clamp(10px, 3.8vh, 28px);
+  margin-top: clamp(2px, 2.6vh, 16px);
+  margin-bottom: clamp(6px, 2.8vh, 18px);
   width: clamp(152px, 34vw, 220px);
   height: clamp(152px, 34vw, 220px);
 }
@@ -6112,7 +6112,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .call-card.transparent .call-controls.video-layout {
-  bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px));
+  bottom: max(14px, calc(env(safe-area-inset-bottom) + 8px));
   width: min(25.75rem, calc(100vw - 28px));
   padding: 15px 15px max(13px, var(--safe-bottom));
   border-radius: 32px;
@@ -6123,7 +6123,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .video-local {
-  top: max(110px, calc(env(safe-area-inset-top) + 92px));
+  top: max(96px, calc(env(safe-area-inset-top) + 78px));
   right: clamp(12px, 3vw, 20px);
   bottom: auto;
   z-index: 7;
@@ -6160,7 +6160,7 @@ font-family: 'Inter', sans-serif;
 
   .call-card.transparent .call-controls.video-layout {
     width: min(22.25rem, calc(100vw - 24px));
-    bottom: max(16px, calc(env(safe-area-inset-bottom) + 9px));
+    bottom: max(13px, calc(env(safe-area-inset-bottom) + 7px));
     padding: 13px 13px max(10px, var(--safe-bottom));
     border-radius: 30px;
   }
@@ -6170,7 +6170,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .video-local {
-    top: max(102px, calc(env(safe-area-inset-top) + 84px));
+    top: max(84px, calc(env(safe-area-inset-top) + 66px));
     width: clamp(78px, 20vw, 92px);
     height: clamp(104px, 26vw, 124px);
   }
@@ -6329,13 +6329,13 @@ font-family: 'Inter', sans-serif;
 
 @media (max-width: 760px) {
   .call-minimize-btn-right {
-    right:12px;
+    right:10px;
   }
 
   .call-active-head {
-    top:max(16px, calc(env(safe-area-inset-top) + 8px));
-    width:min(17.5rem, calc(100vw - 108px));
-    gap:12px;
+    top:max(12px, calc(env(safe-area-inset-top) + 4px));
+    width:min(17rem, calc(100vw - 104px));
+    gap:10px;
   }
 
   .call-active-head-avatar {
@@ -6450,10 +6450,10 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-overlay.video-mode .video-local {
-    top:max(86px, calc(env(safe-area-inset-top) + 68px));
-    right:12px;
-    width:76px;
-    height:104px;
+    top:max(74px, calc(env(safe-area-inset-top) + 56px));
+    right:10px;
+    width:74px;
+    height:100px;
     border-radius:18px;
   }
 }

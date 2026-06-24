@@ -6251,9 +6251,15 @@ font-family: 'Inter', sans-serif;
   .call-card.voice-active .call-controls.active-layout,
   .call-card.transparent .call-controls.video-layout {
     grid-template-columns:repeat(5, minmax(0, 1fr));
-    width:min(26rem, calc(100vw - 20px));
-    padding:11px 11px max(9px, var(--safe-bottom));
+    width:min(22.5rem, calc(100vw - 24px));
+    padding:8px;
     gap:8px;
+    border-radius:26px;
+    background:rgba(27,27,31,.88);
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 18px 48px rgba(0,0,0,.36);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
   }
 
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-secondary {
@@ -6263,11 +6269,15 @@ font-family: 'Inter', sans-serif;
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn,
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn {
     width:100%;
-    height:auto;
-    min-height:60px;
+    height:56px;
+    min-height:56px;
     max-height:none;
-    aspect-ratio:auto;
+    aspect-ratio:1 / 1;
     border-radius:999px !important;
+    background:rgba(79,79,84,.98);
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:none;
+    color:#fff;
   }
 
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.call-ctrl-add-person,
@@ -6282,14 +6292,40 @@ font-family: 'Inter', sans-serif;
 
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn svg,
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn svg {
-    width:21px;
-    height:21px;
+    width:20px;
+    height:20px;
+    color:#fff;
   }
 
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.end svg,
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn.end svg {
-    width:23px;
-    height:23px;
+    width:21px;
+    height:21px;
+  }
+
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.call-ctrl-speaker.on,
+  .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-speaker.on {
+    background:#f7f3ed;
+    border-color:rgba(247,243,237,.95);
+    color:#111216;
+  }
+
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.call-ctrl-speaker.on svg,
+  .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-speaker.on svg {
+    color:#111216;
+  }
+
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.end,
+  .call-card.transparent .call-controls.video-layout .call-ctrl-btn.end {
+    background:linear-gradient(135deg, #ff245c, #f8004f);
+    border:none;
+    box-shadow:none;
+  }
+
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn:hover,
+  .call-card.transparent .call-controls.video-layout .call-ctrl-btn:hover {
+    filter:none;
+    transform:none;
   }
 
   .call-card.transparent .call-controls.video-layout .call-chat-badge {

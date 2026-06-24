@@ -541,7 +541,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                   </button>
                   <button
                     type="button"
-                    className={`call-ctrl-btn aux call-ctrl-round ${speakerEnabled ? 'on' : ''}`}
+                    className={`call-ctrl-btn aux call-ctrl-round call-ctrl-speaker ${speakerEnabled ? 'on' : ''}`}
                     onClick={toggleSpeakerMode}
                     disabled={!speakerControlAvailable}
                     title="Luidspreker"
@@ -595,7 +595,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
               {isVoiceActiveLayout && (
                 <button
                   type="button"
-                  className={`call-ctrl-btn aux call-ctrl-round ${speakerEnabled ? 'on' : ''}`}
+                  className={`call-ctrl-btn aux call-ctrl-round call-ctrl-speaker ${speakerEnabled ? 'on' : ''}`}
                   onClick={toggleSpeakerMode}
                   disabled={!speakerControlAvailable}
                   title="Luidspreker"

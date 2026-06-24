@@ -448,9 +448,9 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
             </button>
             <button type="button" className="call-no-answer-action" onClick={() => onClose?.()}>
               <span className="call-no-answer-action-circle call-no-answer-action-circle--neutral">
-                <Mic size={28} aria-hidden="true" />
+                <Message size={28} aria-hidden="true" />
               </span>
-              <span className="call-no-answer-action-label">Neem spraakbericht op</span>
+              <span className="call-no-answer-action-label">Stuur een bericht</span>
             </button>
             <button type="button" className="call-no-answer-action" onClick={handleRetryCall}>
               <span className="call-no-answer-action-circle call-no-answer-action-circle--retry">

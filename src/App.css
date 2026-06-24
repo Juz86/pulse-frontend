@@ -5081,7 +5081,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .call-card.voice-active .call-active-head.call-active-head-centered {
-  top:max(56px, calc(env(safe-area-inset-top) + 42px));
+  top:max(48px, calc(env(safe-area-inset-top) + 34px));
   width:min(10rem, calc(100vw - 160px));
 }
 
@@ -6354,7 +6354,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-card.voice-active .call-active-head.call-active-head-centered {
-    top:max(52px, calc(env(safe-area-inset-top) + 38px));
+    top:max(46px, calc(env(safe-area-inset-top) + 32px));
     width:min(9rem, calc(100vw - 170px));
   }
 

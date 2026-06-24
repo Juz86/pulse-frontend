@@ -4985,10 +4985,10 @@ font-family: 'Inter', sans-serif;
 }
 .call-card.voice-active .call-avatar-big {
   order: 2;
-  margin-top: clamp(2px, 2.6vh, 16px);
-  margin-bottom: clamp(6px, 2.8vh, 18px);
-  width: clamp(152px, 34vw, 220px);
-  height: clamp(152px, 34vw, 220px);
+  margin-top: clamp(10px, 4.8vh, 34px);
+  margin-bottom: clamp(2px, 1.2vh, 10px);
+  width: clamp(178px, 42vw, 272px);
+  height: clamp(178px, 42vw, 272px);
 }
 .call-card.voice-active::before { display:none; }
 .call-card.voice-active .call-close-btn,
@@ -6358,6 +6358,13 @@ font-family: 'Inter', sans-serif;
     width:min(9rem, calc(100vw - 170px));
   }
 
+  .call-card.voice-active .call-avatar-big {
+    margin-top: clamp(18px, 7vh, 46px);
+    margin-bottom: clamp(2px, 1vh, 8px);
+    width: min(58vw, 248px);
+    height: min(58vw, 248px);
+  }
+
   .call-active-head {
     top:max(12px, calc(env(safe-area-inset-top) + 4px));
     width:min(17rem, calc(100vw - 104px));
@@ -6396,6 +6403,11 @@ font-family: 'Inter', sans-serif;
     -webkit-backdrop-filter:blur(18px);
     box-sizing:border-box;
     margin-inline:auto;
+  }
+
+  .call-card.voice-active .call-controls.active-layout {
+    margin-top:auto;
+    margin-bottom:max(4px, env(safe-area-inset-bottom));
   }
 
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-secondary {

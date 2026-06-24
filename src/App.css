@@ -6827,9 +6827,7 @@ font-family: 'Inter', sans-serif;
     display:none;
   }
 
-  .call-card.transparent + .call-side-quick-actions,
-  .call-overlay.video-mode .call-side-quick-actions,
-  .call-overlay.video-pending-mode .call-side-quick-actions {
+  .call-card.transparent + .call-side-quick-actions {
     display:none;
   }
 

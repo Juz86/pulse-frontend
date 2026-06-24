@@ -536,6 +536,12 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
                 : callName.slice(0,2).toUpperCase()}
             </div>
             {!hasActiveHeaderLayout && <div className="call-name">{callName}</div>}
+            {!hasActiveHeaderLayout && callState === 'calling' && (
+              <div className="call-status blink" role="status" aria-live="polite">Bellen…</div>
+            )}
+            {!hasActiveHeaderLayout && callState === 'connecting' && (
+              <div className="call-status blink" role="status" aria-live="polite">Verbinden…</div>
+            )}
           </>
         ) : (
           <>

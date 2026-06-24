@@ -6877,11 +6877,27 @@ font-family: 'Inter', sans-serif;
     width:18px;
     height:18px;
   }
+
+  .call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-avatar-big {
+    top:39%;
+    width:min(56vw, 188px);
+    height:min(56vw, 188px);
+  }
+
+  .call-overlay.call-overlay--video-reference .video-local,
+  .call-overlay.call-overlay--video-reference.video-mode .video-local {
+    top:max(66px, calc(env(safe-area-inset-top) + 48px));
+    left:7px;
+    width:66px;
+    height:88px;
+    border-radius:15px;
+  }
 }
 
 @media (min-width: 761px) {
   .call-card.transparent .call-controls.video-layout {
-    grid-template-columns:repeat(3, minmax(0, 1fr));
+    grid-template-columns:repeat(5, minmax(0, 1fr));
+    width:min(21.75rem, calc(100vw - 32px));
   }
 }
 .chat-search-bar.visible {

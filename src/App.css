@@ -6631,12 +6631,11 @@ font-family: 'Inter', sans-serif;
 
   .call-card.voice-active .call-controls.active-layout,
   .call-card.transparent .call-controls.video-layout {
-    grid-template-columns:repeat(5, var(--call-mobile-btn-size));
-    justify-content:center;
+    grid-template-columns:repeat(5, minmax(0, 1fr));
     width:min(100%, calc(100vw - 24px));
     max-width:calc(100vw - 24px);
-    padding:clamp(6px, 1.8vw, 8px);
-    gap:clamp(5px, 1.8vw, 8px);
+    padding:clamp(6px, 1.8vw, 8px) clamp(8px, 2.6vw, 12px);
+    gap:clamp(4px, 1.2vw, 6px);
     border-radius:30px;
     background:rgba(24,24,27,.92);
     border:1px solid rgba(255,255,255,.08);
@@ -6770,8 +6769,8 @@ font-family: 'Inter', sans-serif;
     --call-mobile-btn-size: 46px;
     width:calc(100vw - 28px);
     max-width:calc(100vw - 28px);
-    padding:6px;
-    gap:6px;
+    padding:6px 8px;
+    gap:4px;
     border-radius:24px;
   }
 
@@ -6797,8 +6796,8 @@ font-family: 'Inter', sans-serif;
     --call-mobile-btn-size: 42px;
     width:calc(100vw - 20px);
     max-width:calc(100vw - 20px);
-    padding:5px;
-    gap:5px;
+    padding:5px 7px;
+    gap:3px;
   }
 
   .call-card.voice-active .call-controls.active-layout .call-ctrl-btn,

@@ -1,6 +1,6 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
+import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade } from '../services/socket';
 import { Phone, Video, Mic, Camera, Cancel, Message, Speaker, PhoneEnd } from './Icons';
 import chatDefaultPattern from '../assets/chatachtergrond.jpeg';
 
@@ -13,8 +13,6 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   const [videoUpgraded, setVideoUpgraded] = useState(false);
   const [videoUpgradeRequest, setVideoUpgradeRequest] = useState(false);
   const [minimized,    setMinimized]    = useState(false);
-  const [facingMode, setFacingMode] = useState('user');
-  const [switchingCamera, setSwitchingCamera] = useState(false);
   const [speakerEnabled, setSpeakerEnabled] = useState(true);
   const [speakerControlAvailable, setSpeakerControlAvailable] = useState(false);
   const [networkState, setNetworkState] = useState('stable');
@@ -191,26 +189,6 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
       localStreamRef.current = videoStream;
       if (localVideoRef.current) localVideoRef.current.srcObject = videoStream;
       setVideoUpgraded(true);
-    }
-  }
-
-  async function handleSwitchCamera() {
-    if (!localStreamRef.current || switchingCamera || !isVideo) return;
-    const nextMode = facingMode === 'user' ? 'environment' : 'user';
-    setSwitchingCamera(true);
-    try {
-      const result = await switchCameraTrack(localStreamRef.current, nextMode);
-      if (result?.ok) {
-        setFacingMode(nextMode);
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = localStreamRef.current;
-          localVideoRef.current.play?.().catch(() => {});
-        }
-        return;
-      }
-      setCallMsg('Camera wisselen is momenteel niet beschikbaar op dit apparaat.');
-    } finally {
-      setSwitchingCamera(false);
     }
   }
 
@@ -473,21 +451,6 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
       {/* Verborgen audio element voor spraakgesprekken */}
       <audio ref={remoteAudioRef} autoPlay playsInline />
 
-      {isVideo && (
-        <div className="call-side-quick-actions call-side-quick-actions--video" aria-label="Snelle videoacties">
-          <button
-            type="button"
-            className="call-side-action-btn"
-            onClick={handleSwitchCamera}
-            disabled={switchingCamera}
-            title="Camera wisselen"
-            aria-label="Camera wisselen"
-          >
-            <CameraRotateIcon size={20} />
-          </button>
-        </div>
-      )}
-
       {/* ── VIDEO STREAMS ── */}
       {isVideo && (
         <div className={`video-container ${isVideoPendingLayout ? 'video-container-pending' : ''} ${hasRemoteVideoTrack ? 'video-container-live' : 'video-container-placeholder'}`}>
@@ -696,15 +659,5 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
       <path d="M12 16.5v3.5" />
       <path d="M8.5 20h7" />
       <path d="M4 4l16 16" />
-    </svg>
-  );
-
-  const CameraRotateIcon = ({ size = 22 }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H8l1.4-2h5.2L16 6h2.5A2.5 2.5 0 0 1 21 8.5v7A2.5 2.5 0 0 1 18.5 18H5.5A2.5 2.5 0 0 1 3 15.5z" />
-      <path d="M15.8 8.7a4.2 4.2 0 0 1 1.3 3h1.3" />
-      <path d="m18.9 9.9-.8 1.7-1.7-.8" />
-      <path d="M8.2 15.3a4.2 4.2 0 0 1-1.3-3H5.6" />
-      <path d="m5.1 14.1.8-1.7 1.7.8" />
     </svg>
   );

@@ -4577,6 +4577,19 @@ font-family: 'Inter', sans-serif;
   padding-left:max(12px, calc(env(safe-area-inset-left) + 10px));
   pointer-events:none;
 }
+.call-overlay.call-overlay--ended-no-answer {
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 26%),
+    #050507;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  align-items:stretch;
+  justify-content:center;
+  padding-top:max(18px, calc(env(safe-area-inset-top) + 12px));
+  padding-right:max(18px, calc(env(safe-area-inset-right) + 12px));
+  padding-bottom:max(28px, calc(env(safe-area-inset-bottom) + 22px));
+  padding-left:max(18px, calc(env(safe-area-inset-left) + 12px));
+}
 .call-overlay.video-mode { background:#000; }
 .call-overlay.video-pending-mode {
   background:
@@ -4745,6 +4758,136 @@ font-family: 'Inter', sans-serif;
   display:none;
   flex-direction:column;
   gap:12px;
+}
+
+.call-no-answer-screen {
+  position:relative;
+  width:100%;
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  align-items:center;
+  color:#fff;
+}
+
+.call-no-answer-body {
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding-top:clamp(72px, 14vh, 118px);
+}
+
+.call-no-answer-avatar-wrap {
+  width:min(34vw, 172px);
+  height:min(34vw, 172px);
+  min-width:96px;
+  min-height:96px;
+  border-radius:50%;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#111216;
+  box-shadow:0 16px 38px rgba(0,0,0,.34);
+}
+
+.call-no-answer-photo {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.call-no-answer-avatar {
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  background:linear-gradient(135deg, var(--accent), var(--accent2));
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-family:'Inter',sans-serif;
+  font-size:clamp(32px, 7vw, 42px);
+  font-weight:800;
+}
+
+.call-no-answer-name {
+  margin-top:22px;
+  font-family:'Inter',sans-serif;
+  font-size:clamp(34px, 7.2vw, 56px);
+  line-height:1.05;
+  font-weight:800;
+  text-align:center;
+  color:#fff;
+}
+
+.call-no-answer-status {
+  margin-top:10px;
+  font-family:'Inter',sans-serif;
+  font-size:clamp(22px, 5vw, 34px);
+  line-height:1.18;
+  font-weight:500;
+  text-align:center;
+  color:rgba(255,255,255,.78);
+}
+
+.call-no-answer-actions {
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:16px;
+  align-items:end;
+}
+
+.call-no-answer-action {
+  border:none;
+  background:transparent;
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+  cursor:pointer;
+  padding:0;
+}
+
+.call-no-answer-action-circle {
+  width:min(24vw, 104px);
+  height:min(24vw, 104px);
+  min-width:72px;
+  min-height:72px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.call-no-answer-action-circle--cancel {
+  background:#fff;
+  color:#111216;
+}
+
+.call-no-answer-action-circle--neutral {
+  background:rgba(255,255,255,.16);
+  color:#fff;
+}
+
+.call-no-answer-action-circle--retry {
+  background:#22c55e;
+  color:#fff;
+}
+
+.call-no-answer-action-label {
+  font-family:'Inter',sans-serif;
+  font-size:clamp(13px, 3.6vw, 20px);
+  line-height:1.15;
+  text-align:center;
+  color:rgba(255,255,255,.82);
 }
 .call-side-action-btn {
   width:54px;
@@ -5134,6 +5277,44 @@ font-family: 'Inter', sans-serif;
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
 
 @media (max-width: 640px) {
+  .call-no-answer-body {
+    padding-top:clamp(56px, 11vh, 84px);
+  }
+
+  .call-no-answer-avatar-wrap {
+    width:min(32vw, 132px);
+    height:min(32vw, 132px);
+  }
+
+  .call-no-answer-name {
+    margin-top:18px;
+    font-size:clamp(28px, 7.8vw, 44px);
+  }
+
+  .call-no-answer-status {
+    margin-top:8px;
+    font-size:clamp(18px, 5.6vw, 28px);
+  }
+
+  .call-no-answer-actions {
+    gap:10px;
+  }
+
+  .call-no-answer-action {
+    gap:10px;
+  }
+
+  .call-no-answer-action-circle {
+    width:min(24vw, 86px);
+    height:min(24vw, 86px);
+    min-width:64px;
+    min-height:64px;
+  }
+
+  .call-no-answer-action-label {
+    font-size:clamp(12px, 3.7vw, 16px);
+  }
+
   .call-incoming-sheet {
     border-radius:28px;
     padding:14px;

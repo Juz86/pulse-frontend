@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
 import { Phone, Video, Mic, Camera, Cancel, UserPlus, Message, Speaker, PhoneEnd } from './Icons';
 
-export default function CallOverlay({ incoming, active, contacts = [], user, chatUnreadCount = 0, onClose, onEnd }) {
+export default function CallOverlay({ incoming, active, contacts = [], user, chatUnreadCount = 0, onClose, onEnd, onRetryCall }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
   const [callMsg,      setCallMsg]      = useState('');
   const [timer,        setTimer]        = useState(0);
@@ -275,13 +275,15 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
       const msgs = {
         unavailable: 'Gebruiker is niet beschikbaar of offline.',
         declined:    'Oproep geweigerd.',
-        timeout:     'Geen antwoord.',
+        timeout:     'Geen antwoord',
         busy:        'Contactpersoon is in gesprek.',
       };
       setCallMsg(msgs[active.endReason] || 'Gesprek beëindigd.');
       setCallState('ended');
       cleanup();
-      closeTimeoutRef.current = setTimeout(() => onClose?.(), 3000);
+      if (active.endReason !== 'timeout') {
+        closeTimeoutRef.current = setTimeout(() => onClose?.(), 3000);
+      }
     }
   }, [active, callState, onClose, attachMediaStream, bindRemoteAudioStream, cleanup]);
 
@@ -357,6 +359,9 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
     !!remoteStreamRef.current?.getVideoTracks?.()?.length;
   const isVideo   = incoming?.isVideo || active?.isVideo || videoUpgraded || hasLocalVideoTrack;
   const callName  = incoming?.callerName || active?.name || 'Contactpersoon';
+  const targetUid = incoming?.from || active?.toUid || '';
+  const targetContact = contacts.find((contact) => contact?.uid === targetUid) || null;
+  const callPhotoUrl = targetContact?.photoURL || '';
   const isVoiceCallLayout = !isVideo && callState !== 'ended';
   const isVoiceActiveLayout = !isVideo && callState !== 'incoming' && callState !== 'ended';
   const isVideoActiveLayout = isVideo && callState !== 'incoming' && callState !== 'ended';
@@ -368,6 +373,15 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
   }).format(new Date());
 
   const canMinimize = callState === 'calling' || callState === 'active' || callState === 'connecting';
+  const isNoAnswerEnded = callState === 'ended' && /geen antwoord/i.test(callMsg || '');
+
+  function handleRetryCall() {
+    if (typeof onRetryCall === 'function' && targetUid) {
+      onRetryCall(targetUid, Boolean(active?.isVideo || incoming?.isVideo || isVideo));
+      return;
+    }
+    onClose?.();
+  }
 
   if (minimized) return (
     <div className="call-mini-bar" role="button" tabIndex={0} aria-label={`Open gesprek met ${callName}`} onClick={() => setMinimized(false)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMinimized(false); } }}>
@@ -416,6 +430,47 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
             </button>
             <button type="button" className="call-incoming-sheet__action call-incoming-sheet__action--accept" onClick={handleAccept}>
               Beantwoorden
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isNoAnswerEnded) {
+    return (
+      <div className="call-overlay call-overlay--ended-no-answer">
+        <div className="call-no-answer-screen" role="dialog" aria-modal="true" aria-label={`Geen antwoord van ${callName}`}>
+          <div className="call-no-answer-body">
+            <div className="call-no-answer-avatar-wrap">
+              {callPhotoUrl ? (
+                <img src={callPhotoUrl} alt="" className="call-no-answer-photo" />
+              ) : (
+                <div className="call-no-answer-avatar">{callName.slice(0, 2).toUpperCase()}</div>
+              )}
+            </div>
+            <div className="call-no-answer-name">{callName}</div>
+            <div className="call-no-answer-status">{callMsg}</div>
+          </div>
+
+          <div className="call-no-answer-actions">
+            <button type="button" className="call-no-answer-action" onClick={() => onClose?.()}>
+              <span className="call-no-answer-action-circle call-no-answer-action-circle--cancel">
+                <Cancel size={28} aria-hidden="true" />
+              </span>
+              <span className="call-no-answer-action-label">Annuleer</span>
+            </button>
+            <button type="button" className="call-no-answer-action" onClick={() => onClose?.()}>
+              <span className="call-no-answer-action-circle call-no-answer-action-circle--neutral">
+                <Mic size={28} aria-hidden="true" />
+              </span>
+              <span className="call-no-answer-action-label">Neem spraakbericht op</span>
+            </button>
+            <button type="button" className="call-no-answer-action" onClick={handleRetryCall}>
+              <span className="call-no-answer-action-circle call-no-answer-action-circle--retry">
+                <Phone size={28} aria-hidden="true" />
+              </span>
+              <span className="call-no-answer-action-label">Bel opnieuw</span>
             </button>
           </div>
         </div>

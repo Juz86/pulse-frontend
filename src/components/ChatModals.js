@@ -1772,6 +1772,14 @@ export default function ChatModals({
           contacts={contacts}
           user={user}
           chatUnreadCount={Object.values(unreadCounts || {}).reduce((sum, count) => sum + (Number(count) || 0), 0)}
+          onRetryCall={(toUid, isVideo) => {
+            const contact = contacts.find((item) => item?.uid === toUid);
+            if (contact) {
+              callContact(contact, isVideo);
+              return;
+            }
+            setActiveCall(null);
+          }}
           onClose={() => setActiveCall(null)}
           onEnd={() => setActiveCall(null)}
         />

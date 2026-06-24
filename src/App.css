@@ -4943,22 +4943,23 @@ font-family: 'Inter', sans-serif;
   content:'';
   position:absolute;
   inset:0;
-  background:linear-gradient(180deg, rgba(3,3,6,.14) 0%, rgba(3,3,6,.06) 22%, rgba(3,3,6,.22) 100%);
+  background:linear-gradient(180deg, rgba(6,5,9,.22) 0%, rgba(6,5,9,.08) 24%, rgba(6,5,9,.28) 100%);
   pointer-events:none;
   z-index:1;
 }
 .video-container.video-container-placeholder {
   background:
-    radial-gradient(circle at 50% 44%, rgba(108,99,255,.34), transparent 18rem),
-    linear-gradient(180deg, rgba(8,8,12,.94), rgba(5,5,8,.98));
+    radial-gradient(circle at 50% 44%, rgba(108,99,255,.28), transparent 16rem),
+    radial-gradient(circle at 50% 72%, rgba(255,101,132,.12), transparent 20rem),
+    linear-gradient(180deg, rgba(10,9,14,.95), rgba(7,7,10,.99));
 }
 .video-container.video-container-placeholder::before {
   content:'';
   position:absolute;
   inset:0;
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-  background:rgba(6,6,10,.24);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  background:rgba(8,8,12,.26);
   z-index:0;
 }
 .video-remote    { width:100%; height:100%; object-fit:cover; opacity:1; filter:none; }
@@ -5015,14 +5016,14 @@ font-family: 'Inter', sans-serif;
   height:56px;
   border-radius:50%;
   border:1px solid rgba(255,255,255,.08);
-  background:rgba(28,23,20,.76);
+  background:rgba(29,24,22,.62);
   color:#fff;
   display:flex;
   align-items:center;
   justify-content:center;
-  box-shadow:0 14px 28px rgba(0,0,0,.28);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
+  box-shadow:0 14px 28px rgba(0,0,0,.22);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
 }
 
 .call-side-action-btn:disabled {
@@ -5274,7 +5275,7 @@ font-family: 'Inter', sans-serif;
   top:44%;
   width:min(56vw, 216px);
   height:min(56vw, 216px);
-  box-shadow:0 26px 64px rgba(0,0,0,.42), 0 0 64px rgba(108,99,255,.28);
+  box-shadow:0 24px 54px rgba(0,0,0,.34), 0 0 52px rgba(108,99,255,.22);
 }
 .call-overlay.call-overlay--video-reference .call-card.transparent .call-name,
 .call-overlay.call-overlay--video-reference .call-card.transparent .call-status,
@@ -5352,7 +5353,7 @@ font-family: 'Inter', sans-serif;
 .call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-status,
 .call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-timer {
   font-size:clamp(15px, 4.2vw, 22px);
-  color:rgba(255,255,255,.72);
+  color:rgba(255,255,255,.76);
 }
 
 .call-name {
@@ -5526,11 +5527,11 @@ font-family: 'Inter', sans-serif;
   gap:10px;
   padding:12px 12px max(10px, var(--safe-bottom));
   border-radius:36px;
-  background:rgba(54,41,33,.34);
-  border:1px solid rgba(255,255,255,.08);
-  box-shadow:0 18px 36px rgba(0,0,0,.24);
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
+  background:rgba(46,36,31,.28);
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:0 16px 30px rgba(0,0,0,.2);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
   z-index:4;
 }
 .call-card.transparent.call-video-pending .call-controls.video-layout {
@@ -5569,7 +5570,7 @@ font-family: 'Inter', sans-serif;
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn.aux,
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn.cam,
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn.mute {
-  background:rgba(33,28,26,.9);
+  background:rgba(28,24,23,.84);
   color:#fff;
   border:1px solid rgba(255,255,255,.06);
 }
@@ -5590,7 +5591,7 @@ font-family: 'Inter', sans-serif;
 }
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn.end {
   background:linear-gradient(180deg, #ff1f62, #ea004f);
-  box-shadow:0 10px 22px rgba(234,0,79,.28);
+  box-shadow:0 10px 20px rgba(234,0,79,.22);
 }
 .call-upgrade-banner {
   display:flex;

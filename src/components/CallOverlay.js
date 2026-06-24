@@ -361,6 +361,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
   const isVoiceActiveLayout = !isVideo && callState !== 'incoming' && callState !== 'ended';
   const isVideoActiveLayout = isVideo && callState !== 'incoming' && callState !== 'ended';
   const isVideoPendingLayout = isVideoActiveLayout && !hasRemoteVideoTrack;
+  const hasActiveHeaderLayout = (isVoiceActiveLayout || isVideoActiveLayout) && !isVideoPendingLayout;
   const incomingTimeLabel = new Intl.DateTimeFormat('nl-NL', {
     hour: '2-digit',
     minute: '2-digit',
@@ -458,7 +459,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
       {/* ── CALL CARD ── */}
       <div className={`call-card ${isVideoActiveLayout ? 'transparent' : ''} ${isVoiceCallLayout ? 'voice-active' : ''} ${isVideoPendingLayout ? 'call-video-pending' : ''}`}>
         {canMinimize && (
-          <button type="button" className={`call-minimize-btn ${isVideoPendingLayout ? 'call-minimize-btn-right' : ''}`} aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
+          <button type="button" className={`call-minimize-btn ${(isVideoPendingLayout || hasActiveHeaderLayout) ? 'call-minimize-btn-right' : ''}`} aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M9 9H4V4" />
               <path d="m4 9 6-6" />
@@ -472,6 +473,21 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
             <Cancel size={14} aria-hidden="true" />
           </button>
         )}
+        {hasActiveHeaderLayout && (
+          <div className="call-active-head">
+            <div className="call-active-head-avatar">{callName.slice(0,2).toUpperCase()}</div>
+            <div className="call-active-head-copy">
+              <div className="call-name">{callName}</div>
+              {callState === 'active' ? (
+                <div className="call-timer" aria-label={`Gespreksduur ${formatTimer(timer)}`}>{formatTimer(timer)}</div>
+              ) : (
+                <div className="call-status blink" role="status" aria-live="polite">
+                  {callState === 'connecting' ? 'Verbinden…' : 'Bellen…'}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         {isVideoPendingLayout ? (
           <div className="call-pending-head">
             <div className="call-pending-avatar">{callName.slice(0,2).toUpperCase()}</div>
@@ -483,8 +499,8 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
           </div>
         ) : (
           <>
-            <div className="call-avatar-big">{callName.slice(0,2).toUpperCase()}</div>
-            <div className="call-name">{callName}</div>
+            {!isVideoActiveLayout && <div className="call-avatar-big">{callName.slice(0,2).toUpperCase()}</div>}
+            {!hasActiveHeaderLayout && <div className="call-name">{callName}</div>}
           </>
         )}
 
@@ -493,9 +509,9 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
             {isVideo ? <><Video size={24} aria-hidden="true" /> Inkomend videogesprek</> : <><Phone size={24} aria-hidden="true" /> Inkomende oproep</>}
           </div>
         )}
-        {!isVideoPendingLayout && callState === 'calling'     && <div className="call-status blink" role="status" aria-live="polite">Bellen…</div>}
-        {!isVideoPendingLayout && callState === 'connecting'  && <div className="call-status blink" role="status" aria-live="polite">Verbinden…</div>}
-        {callState === 'active'      && <div className="call-timer" aria-label={`Gespreksduur ${formatTimer(timer)}`}>{formatTimer(timer)}</div>}
+        {!isVideoPendingLayout && !hasActiveHeaderLayout && callState === 'calling'     && <div className="call-status blink" role="status" aria-live="polite">Bellen…</div>}
+        {!isVideoPendingLayout && !hasActiveHeaderLayout && callState === 'connecting'  && <div className="call-status blink" role="status" aria-live="polite">Verbinden…</div>}
+        {!hasActiveHeaderLayout && callState === 'active'      && <div className="call-timer" aria-label={`Gespreksduur ${formatTimer(timer)}`}>{formatTimer(timer)}</div>}
         {networkState === 'reconnecting' && callState === 'active' && (
           <div className="call-status blink" role="status" aria-live="polite">Netwerk herverbinden…</div>
         )}

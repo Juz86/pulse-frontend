@@ -5002,7 +5002,7 @@ font-family: 'Inter', sans-serif;
 
 .call-side-quick-actions {
   position:absolute;
-  top:max(78px, calc(env(safe-area-inset-top) + 56px));
+  top:max(92px, calc(env(safe-area-inset-top) + 68px));
   right:clamp(12px, 3vw, 22px);
   z-index:11;
   display:flex;
@@ -5032,7 +5032,7 @@ font-family: 'Inter', sans-serif;
 
 .call-active-head {
   position:absolute;
-  top:max(14px, calc(env(safe-area-inset-top) + 6px));
+  top:max(24px, calc(env(safe-area-inset-top) + 14px));
   left:50%;
   transform:translateX(-50%);
   width:min(18.5rem, calc(100vw - 128px));
@@ -5076,15 +5076,15 @@ font-family: 'Inter', sans-serif;
 }
 
 .call-active-head .call-name {
-  font-size:clamp(18px, 6vw, 28px);
-  line-height:1.04;
+  font-size:clamp(18px, 5.7vw, 29px);
+  line-height:1.02;
   margin:0;
 }
 
 .call-active-head .call-status,
 .call-active-head .call-timer {
-  margin-top:5px;
-  font-size:clamp(14px, 3.8vw, 18px);
+  margin-top:8px;
+  font-size:clamp(14px, 3.6vw, 18px);
   line-height:1.1;
   letter-spacing:0;
 }
@@ -5271,7 +5271,7 @@ font-family: 'Inter', sans-serif;
   opacity:.95;
 }
 .call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-avatar-big {
-  top:42.5%;
+  top:44%;
   width:min(56vw, 216px);
   height:min(56vw, 216px);
   box-shadow:0 26px 64px rgba(0,0,0,.42), 0 0 64px rgba(108,99,255,.28);
@@ -5317,7 +5317,7 @@ font-family: 'Inter', sans-serif;
   width:min(18rem, calc(100vw - 160px));
 }
 .call-overlay.call-overlay--video-reference .call-card.transparent .call-active-head.call-active-head-centered {
-  top:max(36px, calc(env(safe-area-inset-top) + 20px));
+  top:max(26px, calc(env(safe-area-inset-top) + 12px));
   width:min(18rem, calc(100vw - 160px));
 }
 
@@ -5352,7 +5352,7 @@ font-family: 'Inter', sans-serif;
 .call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-status,
 .call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-timer {
   font-size:clamp(15px, 4.2vw, 22px);
-  color:rgba(255,255,255,.66);
+  color:rgba(255,255,255,.72);
 }
 
 .call-name {
@@ -6452,7 +6452,7 @@ font-family: 'Inter', sans-serif;
   background: rgba(10,10,14,.28);
 }
 .call-overlay.call-overlay--video-reference .video-local {
-  top: max(86px, calc(env(safe-area-inset-top) + 62px));
+  top: max(96px, calc(env(safe-area-inset-top) + 72px));
   left: clamp(10px, 3vw, 18px);
   right: auto;
   width: clamp(72px, 18vw, 88px);
@@ -6506,7 +6506,7 @@ font-family: 'Inter', sans-serif;
     border-radius: 16px;
   }
   .call-side-quick-actions {
-    top:max(74px, calc(env(safe-area-inset-top) + 54px));
+    top:max(86px, calc(env(safe-area-inset-top) + 64px));
     right:8px;
     gap:10px;
   }
@@ -6548,7 +6548,7 @@ font-family: 'Inter', sans-serif;
     height: 82px;
   }
   .call-side-quick-actions {
-    top:max(58px, calc(env(safe-area-inset-top) + 36px));
+    top:max(52px, calc(env(safe-area-inset-top) + 30px));
     right:8px;
     gap:8px;
   }
@@ -6681,7 +6681,7 @@ font-family: 'Inter', sans-serif;
     width:min(18rem, calc(100vw - 120px));
   }
   .call-overlay.call-overlay--video-reference .call-card.transparent .call-active-head.call-active-head-centered {
-    top:max(42px, calc(env(safe-area-inset-top) + 24px));
+    top:max(30px, calc(env(safe-area-inset-top) + 16px));
     width:min(18rem, calc(100vw - 120px));
   }
 
@@ -6842,7 +6842,7 @@ font-family: 'Inter', sans-serif;
     border-radius:18px;
   }
   .call-overlay.call-overlay--video-reference.video-mode .video-local {
-    top:max(72px, calc(env(safe-area-inset-top) + 52px));
+    top:max(82px, calc(env(safe-area-inset-top) + 60px));
     left:8px;
     right:auto;
     width:74px;
@@ -6850,7 +6850,7 @@ font-family: 'Inter', sans-serif;
     border-radius:18px;
   }
   .call-side-quick-actions {
-    top:max(74px, calc(env(safe-area-inset-top) + 52px));
+    top:max(84px, calc(env(safe-area-inset-top) + 60px));
     right:8px;
   }
 }
@@ -6882,14 +6882,14 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-avatar-big {
-    top:40%;
+    top:42%;
     width:min(58vw, 196px);
     height:min(58vw, 196px);
   }
 
   .call-overlay.call-overlay--video-reference .video-local,
   .call-overlay.call-overlay--video-reference.video-mode .video-local {
-    top:max(70px, calc(env(safe-area-inset-top) + 52px));
+    top:max(78px, calc(env(safe-area-inset-top) + 58px));
     left:8px;
     width:70px;
     height:94px;
@@ -6935,14 +6935,14 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-avatar-big {
-    top:39%;
+    top:41%;
     width:min(56vw, 188px);
     height:min(56vw, 188px);
   }
 
   .call-overlay.call-overlay--video-reference .video-local,
   .call-overlay.call-overlay--video-reference.video-mode .video-local {
-    top:max(66px, calc(env(safe-area-inset-top) + 48px));
+    top:max(72px, calc(env(safe-area-inset-top) + 54px));
     left:7px;
     width:66px;
     height:88px;

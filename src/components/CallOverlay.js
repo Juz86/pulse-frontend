@@ -521,6 +521,24 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
             <>
               {isVideoActiveLayout && (
                 <>
+                  <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat call-ctrl-secondary" onClick={handleOpenChat} title="Bericht versturen" aria-label="Bericht versturen">
+                    <Message size={18} aria-hidden="true" />
+                    <span>Bericht</span>
+                    {chatUnreadCount > 0 && (
+                      <span className="call-chat-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
+                        {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className={`call-ctrl-btn cam call-ctrl-round ${camOff ? 'on' : ''}`}
+                    aria-pressed={camOff}
+                    onClick={toggleCam}
+                    aria-label={camOff ? 'Camera aanzetten' : 'Camera uitzetten'}
+                  >
+                    {camOff ? <Cancel size={18} aria-hidden="true" /> : <Video size={18} aria-hidden="true" />}<span>Camera</span>
+                  </button>
                   <button
                     type="button"
                     className={`call-ctrl-btn aux call-ctrl-round ${speakerEnabled ? 'on' : ''}`}
@@ -534,15 +552,6 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                   </button>
                   <button
                     type="button"
-                    className={`call-ctrl-btn cam call-ctrl-round ${camOff ? 'on' : ''}`}
-                    aria-pressed={camOff}
-                    onClick={toggleCam}
-                    aria-label={camOff ? 'Camera aanzetten' : 'Camera uitzetten'}
-                  >
-                    {camOff ? <Cancel size={18} aria-hidden="true" /> : <Video size={18} aria-hidden="true" />}<span>Camera</span>
-                  </button>
-                  <button
-                    type="button"
                     className={`call-ctrl-btn mute call-ctrl-round ${muted ? 'on' : ''}`}
                     aria-pressed={muted}
                     onClick={toggleMute}
@@ -550,18 +559,9 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                   >
                     {muted ? <MutedMicIcon size={22} /> : <Mic size={20} aria-hidden="true" />}<span>{muted ? 'Geluid aan' : 'Geluid uit'}</span>
                   </button>
-                  <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat call-ctrl-secondary" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
-                    <Message size={18} aria-hidden="true" />
-                    <span>Chat</span>
-                    {chatUnreadCount > 0 && (
-                      <span className="call-chat-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
-                        {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
-                      </span>
-                    )}
-                  </button>
                   <button
                     type="button"
-                    className="call-ctrl-btn aux call-ctrl-round call-ctrl-secondary"
+                    className="call-ctrl-btn aux call-ctrl-round call-ctrl-secondary call-ctrl-add-person"
                     onClick={() => setShowAddPersonPanel(true)}
                     aria-label="Persoon toevoegen"
                     title="Persoon toevoegen"
@@ -574,6 +574,22 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
               {!isVoiceActiveLayout && !isVideoActiveLayout && (
                 <button type="button" className={`call-ctrl-btn mute ${muted ? 'on' : ''}`} aria-pressed={muted} onClick={toggleMute}>
                   {muted ? <MutedMicIcon size={22} /> : <Mic size={20} aria-hidden="true" />}<span>{muted ? 'Dempen uit' : 'Dempen'}</span>
+                </button>
+              )}
+              {isVoiceActiveLayout && (
+                <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat" onClick={handleOpenChat} title="Bericht versturen" aria-label="Bericht versturen">
+                  <Message size={18} aria-hidden="true" />
+                  <span>Bericht</span>
+                  {chatUnreadCount > 0 && (
+                    <span className="call-chat-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
+                      {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                    </span>
+                  )}
+                </button>
+              )}
+              {isVoiceActiveLayout && (
+                <button type="button" className="call-ctrl-btn cam call-ctrl-round" onClick={handleUpgradeToVideo} aria-label="Video">
+                  <Video size={18} aria-hidden="true" /><span>Video</span>
                 </button>
               )}
               {isVoiceActiveLayout && (
@@ -590,30 +606,14 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                 </button>
               )}
               {isVoiceActiveLayout && (
-                <button type="button" className="call-ctrl-btn cam call-ctrl-round" onClick={handleUpgradeToVideo} aria-label="Video">
-                  <Video size={18} aria-hidden="true" /><span>Video</span>
-                </button>
-              )}
-              {isVoiceActiveLayout && (
                 <button type="button" className={`call-ctrl-btn mute call-ctrl-round ${muted ? 'on' : ''}`} aria-pressed={muted} onClick={toggleMute} aria-label={muted ? 'Geluid aan' : 'Geluid uit'}>
                   {muted ? <MutedMicIcon size={22} /> : <Mic size={20} aria-hidden="true" />}<span>{muted ? 'Geluid aan' : 'Geluid uit'}</span>
                 </button>
               )}
               {isVoiceActiveLayout && (
-                <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
-                  <Message size={18} aria-hidden="true" />
-                  <span>Chat</span>
-                  {chatUnreadCount > 0 && (
-                    <span className="call-chat-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
-                      {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
-                    </span>
-                  )}
-                </button>
-              )}
-              {isVoiceActiveLayout && (
                 <button
                   type="button"
-                  className="call-ctrl-btn aux call-ctrl-round call-ctrl-disabled"
+                  className="call-ctrl-btn aux call-ctrl-round call-ctrl-disabled call-ctrl-add-person"
                   disabled
                   aria-disabled="true"
                   aria-label="Persoon toevoegen"

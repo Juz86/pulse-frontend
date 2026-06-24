@@ -6248,24 +6248,48 @@ font-family: 'Inter', sans-serif;
 }
 
 @media (max-width: 760px) {
+  .call-card.voice-active .call-controls.active-layout,
   .call-card.transparent .call-controls.video-layout {
-    grid-template-columns:repeat(3, minmax(0, 1fr));
-    width:min(22rem, calc(100vw - 20px));
+    grid-template-columns:repeat(5, minmax(0, 1fr));
+    width:min(26rem, calc(100vw - 20px));
     padding:11px 11px max(9px, var(--safe-bottom));
-    gap:9px;
+    gap:8px;
   }
 
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-secondary {
     display:flex;
   }
 
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn,
   .call-card.transparent .call-controls.video-layout .call-ctrl-btn {
     width:100%;
     height:auto;
-    min-height:66px;
+    min-height:60px;
     max-height:none;
     aspect-ratio:auto;
     border-radius:999px !important;
+  }
+
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.call-ctrl-add-person,
+  .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-add-person {
+    display:none;
+  }
+
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn span,
+  .call-card.transparent .call-controls.video-layout .call-ctrl-btn span {
+    display:none;
+  }
+
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn svg,
+  .call-card.transparent .call-controls.video-layout .call-ctrl-btn svg {
+    width:21px;
+    height:21px;
+  }
+
+  .call-card.voice-active .call-controls.active-layout .call-ctrl-btn.end svg,
+  .call-card.transparent .call-controls.video-layout .call-ctrl-btn.end svg {
+    width:23px;
+    height:23px;
   }
 
   .call-card.transparent .call-controls.video-layout .call-chat-badge {

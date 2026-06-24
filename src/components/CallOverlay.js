@@ -1,10 +1,10 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
-import { Phone, Video, Mic, Camera, Cancel, UserPlus, Message, Speaker, PhoneEnd } from './Icons';
+import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade } from '../services/socket';
+import { Phone, Video, Mic, Camera, Cancel, Message, Speaker, PhoneEnd } from './Icons';
 import chatDefaultPattern from '../assets/chatachtergrond.jpeg';
 
-export default function CallOverlay({ incoming, active, contacts = [], user, chatUnreadCount = 0, onClose, onEnd, onRetryCall }) {
+export default function CallOverlay({ incoming, active, contacts = [], chatUnreadCount = 0, onClose, onEnd, onRetryCall }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
   const [callMsg,      setCallMsg]      = useState('');
   const [timer,        setTimer]        = useState(0);
@@ -13,10 +13,6 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
   const [videoUpgraded, setVideoUpgraded] = useState(false);
   const [videoUpgradeRequest, setVideoUpgradeRequest] = useState(false);
   const [minimized,    setMinimized]    = useState(false);
-  const [showAddPersonPanel, setShowAddPersonPanel] = useState(false);
-  const [addPersonQuery, setAddPersonQuery] = useState('');
-  const [facingMode, setFacingMode] = useState('user');
-  const [switchingCamera, setSwitchingCamera] = useState(false);
   const [speakerEnabled, setSpeakerEnabled] = useState(true);
   const [speakerControlAvailable, setSpeakerControlAvailable] = useState(false);
   const [networkState, setNetworkState] = useState('stable');
@@ -196,26 +192,6 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
     }
   }
 
-  async function handleSwitchCamera() {
-    if (!localStreamRef.current || switchingCamera || !isVideo) return;
-    const nextMode = facingMode === 'user' ? 'environment' : 'user';
-    setSwitchingCamera(true);
-    try {
-      const result = await switchCameraTrack(localStreamRef.current, nextMode);
-      if (result?.ok) {
-        setFacingMode(nextMode);
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = localStreamRef.current;
-          localVideoRef.current.play?.().catch(() => {});
-        }
-        return;
-      }
-      setCallMsg('Camera wisselen is momenteel niet beschikbaar op dit apparaat.');
-    } finally {
-      setSwitchingCamera(false);
-    }
-  }
-
   async function toggleSpeakerMode() {
     const audioEl = remoteAudioRef.current || remoteVideoRef.current;
     if (!audioEl || typeof audioEl.setSinkId !== 'function') {
@@ -235,21 +211,6 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
 
   function handleOpenChat() {
     setMinimized(true);
-  }
-
-  const filteredContacts = contacts
-    .filter((contact) => contact?.uid && contact.uid !== user?.uid)
-    .filter((contact) => {
-      const query = addPersonQuery.trim().toLowerCase();
-      if (!query) return true;
-      return String(contact.displayName || '').toLowerCase().includes(query)
-        || String(contact.email || '').toLowerCase().includes(query);
-    })
-    .slice(0, 12);
-
-  function handleSelectParticipant(contact) {
-    setShowAddPersonPanel(false);
-    setCallMsg(`${contact?.displayName || contact?.email || 'Contact'} toevoegen aan gesprek komt binnenkort.`);
   }
 
   function formatTimer(s) {
@@ -489,21 +450,6 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
       {/* Verborgen audio element voor spraakgesprekken */}
       <audio ref={remoteAudioRef} autoPlay playsInline />
 
-      {isVideoActiveLayout && !isVideoPendingLayout && (
-        <div className="call-side-quick-actions" aria-label="Extra gespreksacties">
-          <button type="button" className="call-side-action-btn" onClick={handleSwitchCamera} disabled={switchingCamera} title="Camera draaien" aria-label="Camera draaien">
-            <CameraRotateIcon size={18} />
-          </button>
-          <button type="button" className="call-side-action-btn" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
-            <Message size={18} aria-hidden="true" />
-            {chatUnreadCount > 0 && (
-              <span className="call-side-action-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
-                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
-              </span>
-            )}
-          </button>
-        </div>
-      )}
       {/* ── VIDEO STREAMS ── */}
       {isVideo && (
         <div className={`video-container ${isVideoPendingLayout ? 'video-container-pending' : ''}`}>
@@ -637,15 +583,6 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                   >
                     {muted ? <MutedMicIcon size={22} /> : <Mic size={20} aria-hidden="true" />}<span>{muted ? 'Geluid aan' : 'Geluid uit'}</span>
                   </button>
-                  <button
-                    type="button"
-                    className="call-ctrl-btn aux call-ctrl-round call-ctrl-secondary call-ctrl-add-person"
-                    onClick={() => setShowAddPersonPanel(true)}
-                    aria-label="Persoon toevoegen"
-                    title="Persoon toevoegen"
-                  >
-                    <UserPlus size={18} aria-hidden="true" /><span>+ Persoon</span>
-                  </button>
                   <button type="button" className="call-ctrl-btn end call-ctrl-round" onClick={handleEnd} aria-label="Ophangen"><PhoneEnd size={24} aria-hidden="true" /><span>Ophangen</span></button>
                 </>
               )}
@@ -704,63 +641,9 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
         </div>}
       </div>
 
-      {showAddPersonPanel && (
-        <div className="call-add-sheet" role="dialog" aria-modal="true" aria-label="Contact toevoegen aan gesprek">
-          <div className="call-add-sheet-head">
-            <strong>Persoon toevoegen</strong>
-            <button
-              type="button"
-              className="call-add-sheet-close"
-              aria-label="Sluiten"
-              onClick={() => setShowAddPersonPanel(false)}
-            >
-              <Cancel size={16} aria-hidden="true" />
-            </button>
-          </div>
-          <input
-            type="text"
-            className="call-add-sheet-input"
-            placeholder="Zoek contact"
-            value={addPersonQuery}
-            onChange={(event) => setAddPersonQuery(event.target.value)}
-            autoFocus
-          />
-          <div className="call-add-sheet-list">
-            {filteredContacts.length === 0 && (
-              <div className="call-add-sheet-empty">Geen contacten gevonden.</div>
-            )}
-            {filteredContacts.map((contact) => (
-              <button
-                key={contact.uid}
-                type="button"
-                className="call-add-sheet-item"
-                onClick={() => handleSelectParticipant(contact)}
-              >
-                <span className="call-add-sheet-avatar">
-                  {(contact.displayName || contact.email || '?').slice(0, 2).toUpperCase()}
-                </span>
-                <span className="call-add-sheet-copy">
-                  <span className="call-add-sheet-name">{contact.displayName || 'Contact'}</span>
-                  <span className="call-add-sheet-sub">{contact.email || 'Pulse contact'}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-  const CameraRotateIcon = ({ size = 22 }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6H8l1.4-2h5.2L16 6h2.5A2.5 2.5 0 0 1 21 8.5v7A2.5 2.5 0 0 1 18.5 18H5.5A2.5 2.5 0 0 1 3 15.5z" />
-      <path d="M15.8 8.7a4.2 4.2 0 0 1 1.3 3h1.3" />
-      <path d="m18.9 9.9-.8 1.7-1.7-.8" />
-      <path d="M8.2 15.3a4.2 4.2 0 0 1-1.3-3H5.6" />
-      <path d="m5.1 14.1.8-1.7 1.7.8" />
-    </svg>
-  );
-
   const MutedMicIcon = ({ size = 22 }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="9" y="3.5" width="6" height="10" rx="3" />

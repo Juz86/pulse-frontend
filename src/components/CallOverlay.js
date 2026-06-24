@@ -1,7 +1,7 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
-import { Phone, Video, Mic, Camera, Cancel, UserPlus, Message, Speaker, PhoneEnd } from './Icons';
+import { Phone, Video, Mic, Camera, Cancel, UserPlus, Message, Speaker, PhoneEnd, MoreHoriz } from './Icons';
 
 export default function CallOverlay({ incoming, active, contacts = [], user, chatUnreadCount = 0, onClose, onEnd }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
@@ -447,6 +447,21 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
           </button>
         </div>
       )}
+      {isVoiceActiveLayout && (
+        <div className="call-side-quick-actions call-side-quick-actions-voice" aria-label="Extra gespreksacties">
+          <button type="button" className="call-side-action-btn" onClick={() => setShowAddPersonPanel(true)} title="Persoon toevoegen" aria-label="Persoon toevoegen">
+            <UserPlus size={18} aria-hidden="true" />
+          </button>
+          <button type="button" className="call-side-action-btn" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
+            <Message size={18} aria-hidden="true" />
+            {chatUnreadCount > 0 && (
+              <span className="call-side-action-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
+                {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* ── VIDEO STREAMS ── */}
       {isVideo && (
@@ -474,8 +489,8 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
           </button>
         )}
         {hasActiveHeaderLayout && (
-          <div className="call-active-head">
-            <div className="call-active-head-avatar">{callName.slice(0,2).toUpperCase()}</div>
+          <div className={`call-active-head ${isVoiceActiveLayout ? 'call-active-head-centered' : ''}`}>
+            {!isVoiceActiveLayout && <div className="call-active-head-avatar">{callName.slice(0,2).toUpperCase()}</div>}
             <div className="call-active-head-copy">
               <div className="call-name">{callName}</div>
               {callState === 'active' ? (
@@ -537,9 +552,9 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
             <>
               {isVideoActiveLayout && (
                 <>
-                  <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat call-ctrl-secondary" onClick={handleOpenChat} title="Bericht versturen" aria-label="Bericht versturen">
-                    <Message size={18} aria-hidden="true" />
-                    <span>Bericht</span>
+                  <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat call-ctrl-secondary" onClick={handleOpenChat} title="Meer" aria-label="Meer">
+                    <MoreHoriz size={18} aria-hidden="true" />
+                    <span>Meer</span>
                     {chatUnreadCount > 0 && (
                       <span className="call-chat-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
                         {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
@@ -593,9 +608,9 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                 </button>
               )}
               {isVoiceActiveLayout && (
-                <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat" onClick={handleOpenChat} title="Bericht versturen" aria-label="Bericht versturen">
-                  <Message size={18} aria-hidden="true" />
-                  <span>Bericht</span>
+                <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat" onClick={handleOpenChat} title="Meer" aria-label="Meer">
+                  <MoreHoriz size={18} aria-hidden="true" />
+                  <span>Meer</span>
                   {chatUnreadCount > 0 && (
                     <span className="call-chat-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
                       {chatUnreadCount > 99 ? '99+' : chatUnreadCount}

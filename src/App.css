@@ -6731,17 +6731,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .call-side-quick-actions.call-side-quick-actions-voice {
-    display:flex;
-    top:max(44px, calc(env(safe-area-inset-top) + 24px));
-    right:max(14px, calc(env(safe-area-inset-right) + 8px));
-    gap:12px;
-  }
-
-  .call-side-quick-actions.call-side-quick-actions-voice .call-side-action-btn {
-    width:58px;
-    height:58px;
-    background:rgba(22,22,26,.88);
-    border-color:rgba(255,255,255,.12);
+    display:none;
   }
 
   .call-overlay.video-pending-mode .video-local {

@@ -1,7 +1,7 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
-import { Phone, Video, Mic, Camera, Cancel, UserPlus, Message, Speaker, PhoneEnd, MoreHoriz } from './Icons';
+import { Phone, Video, Mic, Camera, Cancel, UserPlus, Message, Speaker, PhoneEnd } from './Icons';
 
 export default function CallOverlay({ incoming, active, contacts = [], user, chatUnreadCount = 0, onClose, onEnd }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
@@ -442,16 +442,10 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
               </span>
             )}
           </button>
-          <button type="button" className="call-side-action-btn" onClick={() => setShowAddPersonPanel(true)} title="Persoon toevoegen" aria-label="Persoon toevoegen">
-            <UserPlus size={18} aria-hidden="true" />
-          </button>
         </div>
       )}
       {isVoiceActiveLayout && (
         <div className="call-side-quick-actions call-side-quick-actions-voice" aria-label="Extra gespreksacties">
-          <button type="button" className="call-side-action-btn" onClick={() => setShowAddPersonPanel(true)} title="Persoon toevoegen" aria-label="Persoon toevoegen">
-            <UserPlus size={18} aria-hidden="true" />
-          </button>
           <button type="button" className="call-side-action-btn" onClick={handleOpenChat} title="Open chat" aria-label="Open chat">
             <Message size={18} aria-hidden="true" />
             {chatUnreadCount > 0 && (
@@ -474,7 +468,7 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
       {/* ── CALL CARD ── */}
       <div className={`call-card ${isVideoActiveLayout ? 'transparent' : ''} ${isVoiceCallLayout ? 'voice-active' : ''} ${isVideoPendingLayout ? 'call-video-pending' : ''}`}>
         {canMinimize && (
-          <button type="button" className={`call-minimize-btn ${(isVideoPendingLayout || hasActiveHeaderLayout) ? 'call-minimize-btn-right' : ''}`} aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
+          <button type="button" className={`call-minimize-btn ${isVideoPendingLayout ? 'call-minimize-btn-right' : ''}`} aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M9 9H4V4" />
               <path d="m4 9 6-6" />
@@ -552,9 +546,9 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
             <>
               {isVideoActiveLayout && (
                 <>
-                  <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat call-ctrl-secondary" onClick={handleOpenChat} title="Meer" aria-label="Meer">
-                    <MoreHoriz size={18} aria-hidden="true" />
-                    <span>Meer</span>
+                  <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat call-ctrl-secondary" onClick={handleOpenChat} title="Bericht versturen" aria-label="Bericht versturen">
+                    <Message size={18} aria-hidden="true" />
+                    <span>Bericht</span>
                     {chatUnreadCount > 0 && (
                       <span className="call-chat-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
                         {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
@@ -608,9 +602,9 @@ export default function CallOverlay({ incoming, active, contacts = [], user, cha
                 </button>
               )}
               {isVoiceActiveLayout && (
-                <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat" onClick={handleOpenChat} title="Meer" aria-label="Meer">
-                  <MoreHoriz size={18} aria-hidden="true" />
-                  <span>Meer</span>
+                <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat" onClick={handleOpenChat} title="Bericht versturen" aria-label="Bericht versturen">
+                  <Message size={18} aria-hidden="true" />
+                  <span>Bericht</span>
                   {chatUnreadCount > 0 && (
                     <span className="call-chat-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
                       {chatUnreadCount > 99 ? '99+' : chatUnreadCount}

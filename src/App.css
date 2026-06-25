@@ -6308,6 +6308,17 @@ font-family: 'Inter', sans-serif;
   overflow: visible;
 }
 
+.call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending {
+  width:min(100%, 28rem);
+  min-height:100%;
+  padding:max(34px, calc(env(safe-area-inset-top) + 20px)) 0 max(12px, var(--safe-bottom));
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:0;
+}
+
 .call-card.transparent .call-name {
   top: max(18px, calc(env(safe-area-inset-top) + 8px));
   width: min(22rem, calc(100vw - 120px));
@@ -6396,6 +6407,50 @@ font-family: 'Inter', sans-serif;
   transform: translate(-50%, -50%);
   box-shadow:0 0 0 1px rgba(255,255,255,.08), 0 24px 54px rgba(0,0,0,.42), 0 0 96px rgba(108,99,255,.28);
   z-index:8;
+}
+
+.call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-minimize-btn {
+  left:14px;
+  right:auto;
+}
+
+.call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-name,
+.call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-status,
+.call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-timer {
+  position:static;
+  left:auto;
+  top:auto;
+  transform:none;
+  width:auto;
+  max-width:min(18rem, calc(100vw - 120px));
+  text-align:center;
+}
+
+.call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-name {
+  order:0;
+  margin-top:max(6px, calc(env(safe-area-inset-top) + 8px));
+  line-height:1.08;
+}
+
+.call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-status,
+.call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-timer {
+  order:1;
+  margin-top:4px;
+}
+
+.call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-avatar-big {
+  position:static;
+  left:auto !important;
+  right:auto !important;
+  top:auto;
+  transform:none;
+  order:2;
+  margin-top:clamp(26px, 7vh, 54px);
+  margin-bottom:clamp(12px, 3vh, 24px);
+}
+
+.call-overlay.call-overlay--video-reference .call-card.transparent.call-video-pending .call-controls.video-layout {
+  margin-top:auto;
 }
 
 .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.end {

@@ -746,6 +746,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         showStarredMsgs={showStarredMsgs} setShowStarredMsgs={setShowStarredMsgs}
         starredMsgs={starredMsgs} messages={messages}
         onJumpToMsg={handleJumpToMsg}
+        onInitiateCall={initiateCall}
+        onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
+        onEnterMessageSelection={() => messageSelectionMode ? cancelMessageSelection() : enterMessageSelection()}
+        onClearChat={() => activeConv && openClearConversationConfirm(activeConv)}
+        onDeleteChat={() => activeConv && openDeleteConversationConfirm(activeConv)}
+        showChatSearch={showChatSearch}
+        setShowChatSearch={setShowChatSearch}
+        conversationMuted={mutedConversationIds.includes(activeConv?.id)}
+        messageSelectionMode={messageSelectionMode}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         showCallModal={showCallModal} setShowCallModal={setShowCallModal}
         callContact={callContact} callContactFromRecent={callContactFromRecent} getCallLog={getCallLog} refreshCallLog={refreshCallLog} clearCallLog={clearCallLog} callLogRateLimitUntil={callLogRateLimitUntil}

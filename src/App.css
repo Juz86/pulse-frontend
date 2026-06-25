@@ -4078,6 +4078,258 @@ font-family: 'Inter', sans-serif;
 .contact-profile-panel .modal-actions {
   margin-top:18px;
 }
+.contact-profile-panel {
+  background:
+    radial-gradient(circle at top center, rgba(139,92,246,.24), transparent 28%),
+    linear-gradient(180deg, #262358 0%, #221f4e 100%);
+  padding: max(18px, env(safe-area-inset-top)) 18px max(22px, calc(env(safe-area-inset-bottom) + 12px));
+}
+.contact-profile-topbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:18px;
+}
+.contact-profile-nav-btn {
+  width:54px;
+  height:54px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  box-shadow:0 14px 30px rgba(10,8,30,.22);
+}
+.contact-profile-heading {
+  margin:0;
+  color:#f7f5ff;
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:-.01em;
+  flex:1;
+  text-align:center;
+}
+.contact-profile-edit-btn {
+  min-width:104px;
+  height:54px;
+  padding:0 18px;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.06);
+  color:#f7f5ff;
+  font-size:15px;
+  font-weight:750;
+  cursor:pointer;
+  box-shadow:0 14px 30px rgba(10,8,30,.18);
+}
+.contact-profile-hero {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  padding:14px 0 18px;
+}
+.contact-profile-avatar-shell {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:136px;
+  height:136px;
+  margin-bottom:18px;
+  border-radius:50%;
+  background:radial-gradient(circle at center, rgba(255,255,255,.12), rgba(255,255,255,0) 72%);
+}
+.contact-profile-avatar {
+  width:124px;
+  height:124px;
+  border-radius:50%;
+  font-size:40px;
+}
+.contact-profile-name {
+  color:#fff;
+  font-size:26px;
+  font-weight:800;
+  line-height:1.1;
+  letter-spacing:-.02em;
+}
+.contact-profile-subtitle {
+  margin-top:8px;
+  color:rgba(255,255,255,.56);
+  font-size:14px;
+  font-weight:650;
+}
+.contact-profile-status {
+  margin-top:14px;
+  padding:8px 14px;
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+}
+.contact-profile-quick-actions {
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:14px;
+  margin:0 0 18px;
+}
+.contact-profile-quick-card {
+  min-height:108px;
+  border-radius:26px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(18,16,44,.52);
+  color:#f8f7ff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  font-size:15px;
+  font-weight:720;
+  cursor:pointer;
+  box-shadow:0 18px 34px rgba(8,6,24,.2);
+}
+.contact-profile-quick-icon {
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background:rgba(108,99,255,.18);
+  color:#7bf1a8;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.contact-profile-card {
+  margin:0 0 16px;
+  padding:8px 0;
+  border-radius:28px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(17,15,40,.56);
+  box-shadow:0 18px 38px rgba(10,8,28,.18);
+  overflow:hidden;
+}
+.contact-profile-card-danger {
+  background:rgba(40,14,30,.34);
+}
+.contact-profile-field {
+  padding:10px 18px 14px;
+}
+.contact-profile-field + .contact-profile-field {
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.contact-profile-field-label {
+  display:block;
+  margin-bottom:10px;
+  color:rgba(255,255,255,.46);
+  font-size:11px;
+  font-weight:750;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.contact-profile-field-value {
+  min-height:54px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.05);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  padding:0 16px;
+  font-size:16px;
+  font-weight:620;
+}
+.contact-profile-name-edit {
+  position:relative;
+}
+.contact-profile-name-edit .form-input {
+  min-height:54px;
+  padding-right:42px;
+  border-radius:18px;
+  background:rgba(255,255,255,.05);
+}
+.contact-profile-field-icon {
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:rgba(255,255,255,.42);
+  pointer-events:none;
+}
+.contact-profile-chip-row {
+  gap:10px;
+}
+.contact-profile-row-button {
+  width:100%;
+  padding:16px 18px;
+  border:0;
+  background:transparent;
+  color:#f8f7ff;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  text-align:left;
+  cursor:pointer;
+}
+.contact-profile-row-button + .contact-profile-row-button {
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.contact-profile-row-button.danger {
+  color:#ff9ab2;
+}
+.contact-profile-row-icon {
+  width:40px;
+  height:40px;
+  border-radius:14px;
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(255,255,255,.06);
+  color:currentColor;
+}
+.contact-profile-row-copy {
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  flex:1;
+}
+.contact-profile-row-title {
+  font-size:16px;
+  font-weight:720;
+  color:currentColor;
+}
+.contact-profile-row-subtitle {
+  color:rgba(255,255,255,.46);
+  font-size:13px;
+  font-weight:600;
+}
+.contact-profile-row-button.danger .contact-profile-row-subtitle {
+  color:rgba(255,154,178,.62);
+}
+.contact-profile-row-arrow {
+  color:rgba(255,255,255,.34);
+  flex:0 0 auto;
+}
+.contact-profile-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:4px;
+}
+.contact-profile-footer-actions {
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.contact-profile-panel .icon-btn {
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 12px 24px rgba(10,8,26,.16);
+}
 .starred-messages-panel {
   min-height:var(--vvh, 100dvh);
 }

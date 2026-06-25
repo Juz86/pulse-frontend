@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, Clock, ArrowLeft, ArrowRight, Handshake, Logout } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, StarOutline, Clock, ArrowLeft, ArrowRight, Handshake, Logout, Bell, BellOff } from '../components/Icons';
 import { getInitials, formatTime, clearPulseUserStorage } from '../utils';
 import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
@@ -204,6 +204,15 @@ export default function ChatModals({
   setSharingContact: _sc,
   showStarredMsgs, setShowStarredMsgs,
   starredMsgs, messages, onJumpToMsg,
+  onInitiateCall,
+  onToggleConversationMute,
+  onEnterMessageSelection,
+  onClearChat,
+  onDeleteChat,
+  showChatSearch = false,
+  setShowChatSearch,
+  conversationMuted = false,
+  messageSelectionMode = false,
 
   // call modal
   showCallModal, setShowCallModal,
@@ -374,6 +383,38 @@ export default function ChatModals({
     setShowContactProfile(false);
     setViewingContact(null);
     setShowStarredMsgs(true);
+  }
+
+  function openChatSearchFromProfile() {
+    setProfileClosing(false);
+    setShowContactProfile(false);
+    setViewingContact(null);
+    setShowChatSearch?.(true);
+  }
+
+  function openSelectionFromProfile() {
+    setProfileClosing(false);
+    setShowContactProfile(false);
+    setViewingContact(null);
+    onEnterMessageSelection?.();
+  }
+
+  function toggleMuteFromProfile() {
+    onToggleConversationMute?.();
+  }
+
+  function clearChatFromProfile() {
+    setProfileClosing(false);
+    setShowContactProfile(false);
+    setViewingContact(null);
+    onClearChat?.();
+  }
+
+  function deleteChatFromProfile() {
+    setProfileClosing(false);
+    setShowContactProfile(false);
+    setViewingContact(null);
+    onDeleteChat?.();
   }
 
   async function handleLogoutFromSettings() {
@@ -1243,58 +1284,148 @@ export default function ChatModals({
         const photo     = getConvPhoto(activeConv);
         const isOnline  = uid && onlineUsers.has(uid);
         const isInactive = uid && inactiveUsers.has(uid);
+        const relationLabel = convLabels[activeConv.id];
+        const statusLabel = isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Afwezig' : 'Offline';
         return (
           <aside
               className={`chat-side-panel contact-profile-panel${profileClosing ? ' closing' : ''}`}
               aria-labelledby="contact-profile-title"
               aria-describedby="contact-profile-description"
             >
-              <button type="button" className="modal-close-btn" aria-label="Profiel sluiten" onClick={() => setShowContactProfile(false)}><span aria-hidden="true">✕</span></button>
-              <div className="panel-header-row">
-                <h2 id="contact-profile-title" className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h2>
+              <div className="contact-profile-topbar">
+                <button type="button" className="contact-profile-nav-btn" aria-label="Profiel sluiten" onClick={() => setShowContactProfile(false)}>
+                  <ArrowLeft size={20} aria-hidden="true" />
+                </button>
+                <h2 id="contact-profile-title" className="contact-profile-heading">Profiel</h2>
+                <button
+                  type="button"
+                  className="contact-profile-edit-btn"
+                  aria-label={`Bewerk ${name}`}
+                  onClick={() => document.querySelector('.contact-profile-name-input')?.focus()}
+                >
+                  Bewerk
+                </button>
               </div>
               <p id="contact-profile-description" className="sr-only">
                 Bekijk en bewerk de profielgegevens van {name}.
               </p>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-                {photo
-                  ? <img src={photo} alt={name || 'Profielfoto'} className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" />
-                  : <div className="profile-avatar-big">{getInitials(name)}</div>
-                }
-              </div>
-              <div className="form-group">
-                <label className="form-label">Naam</label>
-                <div style={{ position: 'relative' }}>
-                  <input className="form-input" value={renameValue} onChange={e => setRenameValue(e.target.value)} placeholder={name} style={{ paddingRight: '36px' }} />
-                  <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }}><MagicEdit size={22} /></span>
+              <div className="contact-profile-hero">
+                <div className="contact-profile-avatar-shell">
+                  {photo
+                    ? <img src={photo} alt={name || 'Profielfoto'} className="profile-avatar-big contact-profile-avatar" style={{ objectFit: 'cover' }} loading="lazy" />
+                    : <div className="profile-avatar-big contact-profile-avatar">{getInitials(name)}</div>
+                  }
                 </div>
-              </div>
-              {email && (
-                <div className="form-group">
-                  <label className="form-label">E-mailadres</label>
-                  <input className="form-input" value={email} disabled style={{ opacity: .7 }} />
-                </div>
-              )}
-              <div className="form-group">
-                <label className="form-label">Status</label>
-                <div className={`profile-status-badge ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
+                <div className="contact-profile-name">{name}</div>
+                {email && <div className="contact-profile-subtitle">{email}</div>}
+                <div className={`profile-status-badge contact-profile-status ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
                   <span className="profile-status-dot" />
-                  {isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Afwezig' : 'Offline'}
+                  {statusLabel}
                 </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Relatie</label>
-                <div className="label-chip-row">
-                  {['familie', 'vrienden'].map(lbl => (
-                    <button key={lbl} type="button" onClick={() => setConvLabel(activeConv.id, convLabels[activeConv.id] === lbl ? null : lbl)}
-                      className={`label-chip${convLabels[activeConv.id] === lbl ? ' active' : ''}`}>
-                      {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
-                    </button>
-                  ))}
-                </div>
+
+              <div className="contact-profile-quick-actions">
+                <button type="button" className="contact-profile-quick-card" onClick={() => onInitiateCall?.(false)}>
+                  <span className="contact-profile-quick-icon"><Phone size={24} aria-hidden="true" /></span>
+                  <span>Audio</span>
+                </button>
+                <button type="button" className="contact-profile-quick-card" onClick={() => onInitiateCall?.(true)}>
+                  <span className="contact-profile-quick-icon"><Video size={24} aria-hidden="true" /></span>
+                  <span>Video</span>
+                </button>
+                <button type="button" className="contact-profile-quick-card" onClick={openChatSearchFromProfile}>
+                  <span className="contact-profile-quick-icon"><Search size={24} aria-hidden="true" /></span>
+                  <span>Zoek</span>
+                </button>
               </div>
-              <div className="modal-actions" style={{ justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'nowrap' }}>
-                <div className="panel-header-actions" style={{ marginRight: 8 }}>
+
+              <section className="contact-profile-card">
+                <div className="contact-profile-field">
+                  <span className="contact-profile-field-label">Naam</span>
+                  <div className="contact-profile-name-edit">
+                    <input className="form-input contact-profile-name-input" value={renameValue} onChange={e => setRenameValue(e.target.value)} placeholder={name} />
+                    <span className="contact-profile-field-icon" aria-hidden="true"><MagicEdit size={18} /></span>
+                  </div>
+                </div>
+                {email && (
+                  <div className="contact-profile-field">
+                    <span className="contact-profile-field-label">E-mailadres</span>
+                    <div className="contact-profile-field-value">{email}</div>
+                  </div>
+                )}
+                <div className="contact-profile-field">
+                  <span className="contact-profile-field-label">Relatie</span>
+                  <div className="label-chip-row contact-profile-chip-row">
+                    {['familie', 'vrienden'].map(lbl => (
+                      <button key={lbl} type="button" onClick={() => setConvLabel(activeConv.id, relationLabel === lbl ? null : lbl)}
+                        className={`label-chip${relationLabel === lbl ? ' active' : ''}`}>
+                        {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              <section className="contact-profile-card">
+                <button type="button" className="contact-profile-row-button" onClick={toggleMuteFromProfile}>
+                  <span className="contact-profile-row-icon">{conversationMuted ? <BellOff size={20} aria-hidden="true" /> : <Bell size={20} aria-hidden="true" />}</span>
+                  <span className="contact-profile-row-copy">
+                    <span className="contact-profile-row-title">{conversationMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}</span>
+                    <span className="contact-profile-row-subtitle">Beheer meldingen voor dit gesprek</span>
+                  </span>
+                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                </button>
+                <button type="button" className="contact-profile-row-button" onClick={openSelectionFromProfile}>
+                  <span className="contact-profile-row-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z" />
+                    </svg>
+                  </span>
+                  <span className="contact-profile-row-copy">
+                    <span className="contact-profile-row-title">{messageSelectionMode ? 'Berichten selecteren stoppen' : 'Berichten selecteren'}</span>
+                    <span className="contact-profile-row-subtitle">Selecteer meerdere berichten tegelijk</span>
+                  </span>
+                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                </button>
+                <button type="button" className="contact-profile-row-button" onClick={openStarredFromProfile}>
+                  <span className="contact-profile-row-icon"><StarOutline size={20} aria-hidden="true" /></span>
+                  <span className="contact-profile-row-copy">
+                    <span className="contact-profile-row-title">Berichten met ster</span>
+                    <span className="contact-profile-row-subtitle">Bekijk belangrijke opgeslagen berichten</span>
+                  </span>
+                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                </button>
+                <button type="button" className="contact-profile-row-button" onClick={openChatSearchFromProfile}>
+                  <span className="contact-profile-row-icon"><Search size={20} aria-hidden="true" /></span>
+                  <span className="contact-profile-row-copy">
+                    <span className="contact-profile-row-title">{showChatSearch ? 'Zoeken openen' : 'Zoeken'}</span>
+                    <span className="contact-profile-row-subtitle">Doorzoek berichten in deze chat</span>
+                  </span>
+                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                </button>
+              </section>
+
+              <section className="contact-profile-card contact-profile-card-danger">
+                <button type="button" className="contact-profile-row-button danger" onClick={clearChatFromProfile}>
+                  <span className="contact-profile-row-icon"><Delete size={20} aria-hidden="true" /></span>
+                  <span className="contact-profile-row-copy">
+                    <span className="contact-profile-row-title">Chat wissen</span>
+                    <span className="contact-profile-row-subtitle">Verwijder berichten uit dit gesprek</span>
+                  </span>
+                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                </button>
+                <button type="button" className="contact-profile-row-button danger" onClick={deleteChatFromProfile}>
+                  <span className="contact-profile-row-icon"><Trash2 size={20} aria-hidden="true" /></span>
+                  <span className="contact-profile-row-copy">
+                    <span className="contact-profile-row-title">Chat verwijderen</span>
+                    <span className="contact-profile-row-subtitle">Verwijder dit gesprek uit je lijst</span>
+                  </span>
+                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                </button>
+              </section>
+
+              <div className="contact-profile-footer">
+                <div className="contact-profile-footer-actions">
                   <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={openStarredFromProfile}>
                     <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
                   </button>

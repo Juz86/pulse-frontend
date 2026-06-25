@@ -1,6 +1,6 @@
 // src/components/ChatHeader.js
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Bell, BellOff, Logout, MoreHoriz, Phone, StarOutline, Trash2, User, Users, Video, XIcon } from '../components/Icons';
+import { Logout, MoreHoriz, Phone, User, Users, Video } from '../components/Icons';
 import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
@@ -124,13 +124,6 @@ const ChatHeader = React.memo(function ChatHeader({
     }
   }
 
-  function openChatSearch() {
-    setShowChatSearch(true);
-    setChatSearch('');
-    setChatSearchIdx(0);
-    setTimeout(() => chatSearchRef.current?.focus(), 50);
-  }
-
   function closeChatSearch() {
     if (typeof document !== 'undefined' && document.activeElement === chatSearchRef.current) {
       chatSearchRef.current.blur();
@@ -138,14 +131,6 @@ const ChatHeader = React.memo(function ChatHeader({
     setShowChatSearch(false);
     setChatSearch('');
     setChatSearchIdx(0);
-  }
-
-  function toggleChatSearch() {
-    if (showChatSearch) {
-      closeChatSearch();
-      return;
-    }
-    openChatSearch();
   }
 
   function closeMoreActions() {
@@ -262,61 +247,6 @@ const ChatHeader = React.memo(function ChatHeader({
                   </button>
                 </>
               )}
-              <button
-                type="button"
-                role="menuitemcheckbox"
-                aria-checked={conversationMuted}
-                className={`chat-header-menu-item${conversationMuted ? ' active' : ''}`}
-                onClick={() => {
-                  closeMoreActions();
-                  onToggleConversationMute?.();
-                }}
-              >
-                {conversationMuted ? <BellOff size={16} aria-hidden="true" /> : <Bell size={16} aria-hidden="true" />}
-                <span>{conversationMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}</span>
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                className="chat-header-menu-item"
-                onClick={() => {
-                  closeMoreActions();
-                  onEnterMessageSelection?.();
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z" />
-                </svg>
-                <span>{messageSelectionMode ? 'Berichten selecteren stoppen' : 'Berichten selecteren'}</span>
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                className="chat-header-menu-item"
-                onClick={() => {
-                  closeMoreActions();
-                  onShowStarredMsgs?.();
-                }}
-              >
-                <StarOutline size={16} aria-hidden="true" />
-                <span>Berichten met ster</span>
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                className={`chat-header-menu-item${showChatSearch ? ' active' : ''}`}
-                aria-controls="chat-search-region"
-                aria-expanded={showChatSearch}
-                onClick={() => {
-                  closeMoreActions();
-                  toggleChatSearch();
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                </svg>
-                <span>{showChatSearch ? 'Zoeken sluiten' : 'Zoeken'}</span>
-              </button>
               {activeConv.isGroup ? (
                 <>
                   <div className="chat-header-menu-divider" />
@@ -334,33 +264,7 @@ const ChatHeader = React.memo(function ChatHeader({
                   </button>
                 </>
               ) : (
-                <>
-                  <div className="chat-header-menu-divider" />
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="chat-header-menu-item danger"
-                    onClick={() => {
-                      closeMoreActions();
-                      onClearChat?.();
-                    }}
-                  >
-                    <XIcon size={16} aria-hidden="true" />
-                    <span>Chat wissen</span>
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="chat-header-menu-item danger"
-                    onClick={() => {
-                      closeMoreActions();
-                      onDeleteChat?.();
-                    }}
-                  >
-                    <Trash2 size={16} aria-hidden="true" />
-                    <span>Chat verwijderen</span>
-                  </button>
-                </>
+                null
               )}
             </div>
           )}

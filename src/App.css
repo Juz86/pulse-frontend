@@ -5545,8 +5545,7 @@ font-family: 'Inter', sans-serif;
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn:active {
   transform:scale(.97);
 }
-.call-card.transparent .call-controls.video-layout .call-ctrl-btn.mute.on,
-.call-card.transparent .call-controls.video-layout .call-ctrl-btn.cam.on {
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.mute.on {
   background:linear-gradient(135deg, rgba(108,99,255,.34), rgba(139,92,246,.34));
   border:1px solid rgba(167,139,250,.66);
   color:#fff;
@@ -5564,6 +5563,17 @@ font-family: 'Inter', sans-serif;
   border:1px solid rgba(167,139,250,.66);
   color:#fff;
   box-shadow:0 0 0 1px rgba(167,139,250,.35), 0 8px 20px rgba(108,99,255,.28);
+}
+
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.cam.on {
+  background:#f7f3ed;
+  border-color:rgba(247,243,237,.95);
+  color:#111216;
+  box-shadow:none;
+}
+
+.call-card.transparent .call-controls.video-layout .call-ctrl-btn.cam.on svg {
+  color:#111216;
 }
 .call-card.transparent .call-controls.video-layout .call-ctrl-btn svg {
   width:clamp(24px, 4.2vw, 34px);

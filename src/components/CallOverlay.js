@@ -563,12 +563,12 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
                   </button>
                   <button
                     type="button"
-                    className={`call-ctrl-btn cam call-ctrl-round ${camOff ? 'on' : ''}`}
-                    aria-pressed={camOff}
+                    className={`call-ctrl-btn cam call-ctrl-round ${!camOff ? 'on' : ''}`}
+                    aria-pressed={!camOff}
                     onClick={toggleCam}
                     aria-label={camOff ? 'Camera aanzetten' : 'Camera uitzetten'}
                   >
-                    {camOff ? <Cancel size={18} aria-hidden="true" /> : <Video size={18} aria-hidden="true" />}<span>Camera</span>
+                    <Video size={18} aria-hidden="true" /><span>Camera</span>
                   </button>
                   <button
                     type="button"
@@ -633,8 +633,8 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
                 </button>
               )}
               {isVideo && !isVideoActiveLayout && (
-                <button type="button" className={`call-ctrl-btn cam ${camOff ? 'on' : ''}`} aria-pressed={camOff} onClick={toggleCam}>
-                  {camOff ? <Cancel size={18} aria-hidden="true" /> : <Camera size={18} aria-hidden="true" />}<span>Camera</span>
+                <button type="button" className={`call-ctrl-btn cam ${!camOff ? 'on' : ''}`} aria-pressed={!camOff} onClick={toggleCam}>
+                  <Camera size={18} aria-hidden="true" /><span>Camera</span>
                 </button>
               )}
               {!isVoiceActiveLayout && !isVideoActiveLayout && (

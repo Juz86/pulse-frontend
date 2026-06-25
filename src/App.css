@@ -4985,6 +4985,18 @@ font-family: 'Inter', sans-serif;
   filter:none;
 }
 
+.call-overlay.video-pending-mode .video-container.video-container-placeholder {
+  background:transparent;
+}
+
+.call-overlay.video-pending-mode .video-container.video-container-placeholder::before {
+  display:none;
+}
+
+.call-overlay.video-pending-mode .video-container::after {
+  background:linear-gradient(180deg, rgba(6,5,9,.10) 0%, rgba(6,5,9,.04) 24%, rgba(6,5,9,.16) 100%);
+}
+
 /* ── MINIMIZE BUTTON ── */
 .call-minimize-btn {
   position:absolute; top:14px; left:14px;

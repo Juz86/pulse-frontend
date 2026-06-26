@@ -613,37 +613,76 @@ export default function ChatModals({
 
       {/* ── GEDEELD CONTACT PROFIEL ── */}
       {viewingSharedContact && (
-          <aside className="chat-side-panel shared-contact-panel" aria-labelledby="shared-contact-title">
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setViewingSharedContact(null)}><span aria-hidden="true">✕</span></button>
-            <h2 id="shared-contact-title" className="modal-title" style={{ fontSize: '18px' }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Contactpersoon</h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 0 20px' }}>
-                <div className="avatar-wrap" style={{ flexShrink: 0 }}>
-                <div className="avatar-circle" style={{ width: 52, height: 52, fontSize: 20 }}>{getInitials(viewingSharedContact.name || '')}</div>
-                {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid) && <span className={`online-dot${inactiveUsers.has(viewingSharedContact.uid) ? ' inactive' : ''}`} />}
+          <aside className="chat-side-panel shared-contact-panel contact-profile-panel" aria-labelledby="shared-contact-title">
+            <div className="contact-profile-topbar">
+              <button type="button" className="contact-profile-nav-btn" aria-label="Contact sluiten" onClick={() => setViewingSharedContact(null)}>
+                <ArrowLeft size={20} aria-hidden="true" />
+              </button>
+              <h2 id="shared-contact-title" className="contact-profile-heading">Contactpersoon</h2>
+              <button
+                type="button"
+                className="contact-profile-edit-btn"
+                aria-label="Contact sluiten"
+                onClick={() => setViewingSharedContact(null)}
+              >
+                Sluit
+              </button>
+            </div>
+
+            <div className="contact-profile-hero shared-contact-hero">
+              <div className="contact-profile-avatar-shell">
+                <div className="profile-avatar-big contact-profile-avatar">{getInitials(viewingSharedContact.name || '')}</div>
               </div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '16px' }}>{viewingSharedContact.name || 'Onbekend'}</div>
-                {viewingSharedContact.email && <div style={{ fontSize: '13px', color: 'var(--text3)', marginTop: 2 }}>{viewingSharedContact.email}</div>}
-                <div style={{ fontSize: '12px', marginTop: 4, display: 'flex', alignItems: 'center', gap: 5 }}>
-                  {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid)
-                    ? inactiveUsers.has(viewingSharedContact.uid)
-                      ? <><span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} /><span style={{ color: '#f59e0b' }}>Afwezig</span></>
-                      : <><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} /><span style={{ color: 'var(--success)' }}>Online</span></>
-                    : <><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--text3)', display: 'inline-block' }} /><span style={{ color: 'var(--text3)' }}>Offline</span></>
-                  }
+              <div className="contact-profile-name">{viewingSharedContact.name || 'Onbekend contact'}</div>
+              {viewingSharedContact.email && <div className="contact-profile-subtitle">{viewingSharedContact.email}</div>}
+              <div className={`profile-status-badge contact-profile-status ${viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid) && !inactiveUsers.has(viewingSharedContact.uid) ? 'online' : viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid) ? 'inactive' : 'offline'}`}>
+                <span className="profile-status-dot" />
+                {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid)
+                  ? inactiveUsers.has(viewingSharedContact.uid) ? 'Afwezig' : 'Online'
+                  : 'Offline'}
+              </div>
+            </div>
+
+            <section className="contact-profile-card shared-contact-card">
+              <div className="contact-profile-field">
+                <span className="contact-profile-field-label">Naam</span>
+                <div className="contact-profile-field-value">{viewingSharedContact.name || 'Onbekend contact'}</div>
+              </div>
+              {viewingSharedContact.email && (
+                <div className="contact-profile-field">
+                  <span className="contact-profile-field-label">E-mailadres</span>
+                  <div className="contact-profile-field-value">{viewingSharedContact.email}</div>
                 </div>
+              )}
+            </section>
+
+            <section className="contact-profile-card shared-contact-card">
+              <div className="shared-contact-panel-note">
+                {viewingSharedContact.isAlreadyContact
+                  ? 'Dit gedeelde contact staat al in je contactenlijst.'
+                  : 'Voeg deze contactpersoon toe om direct te kunnen chatten, bellen of videobellen in Pulse.'}
               </div>
-            </div>
-            <div className="modal-actions" style={{ justifyContent: 'space-between' }}>
-              <button type="button" className="btn-secondary" onClick={() => setViewingSharedContact(null)}>Sluiten</button>
-              {viewingSharedContact.isAlreadyContact
-                ? <span style={{ fontSize: '13px', color: 'var(--success)', display: 'flex', alignItems: 'center', gap: '5px' }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg> Al in contacten</span>
-                : <button type="button" className="btn-primary" disabled={friendReqLoading || friendReqSent}
-                    onClick={() => sendFriendRequestToEmail(viewingSharedContact.email)}>
-                    {friendReqSent ? '✓ Verzoek verzonden' : friendReqLoading ? 'Verzenden…' : 'Vriendschapsverzoek'}
+              <div className="shared-contact-panel-actions">
+                <button type="button" className="btn-secondary shared-contact-panel-close" onClick={() => setViewingSharedContact(null)}>
+                  Sluiten
+                </button>
+                {viewingSharedContact.isAlreadyContact ? (
+                  <div className="shared-contact-panel-badge" role="status" aria-live="polite">
+                    <Check size={16} aria-hidden="true" />
+                    <span>Al in contacten</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn-primary shared-contact-panel-primary"
+                    disabled={friendReqLoading || friendReqSent || !viewingSharedContact.email}
+                    onClick={() => sendFriendRequestToEmail(viewingSharedContact.email)}
+                  >
+                    {friendReqSent ? 'Verzoek verzonden' : friendReqLoading ? 'Verzenden…' : 'Vriendschapsverzoek'}
                   </button>
-              }
-            </div>
+                )}
+              </div>
+            </section>
           </aside>
       )}
 

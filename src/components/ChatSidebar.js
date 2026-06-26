@@ -658,7 +658,7 @@ export default function ChatSidebar({
           >
             <div className="pulse-sheet-handle" aria-hidden="true" />
             <div className="pulse-sheet-header pulse-sheet-header--sidebar-actions">
-              <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">Nieuwe chat</div>
+              <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">Meer opties</div>
               <button
                 type="button"
                 className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
@@ -667,10 +667,6 @@ export default function ChatSidebar({
               >
                 <XIcon size={20} aria-hidden="true" />
               </button>
-            </div>
-            <div className="pulse-sheet-search" aria-hidden="true">
-              <Search size={19} />
-              <span>Zoek naam of telefoonnummer</span>
             </div>
             <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
               <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); onShowAddContact(); }}>

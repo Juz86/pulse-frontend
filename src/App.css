@@ -2252,27 +2252,29 @@ font-family: 'Inter', sans-serif;
 .sidebar-footer-actions {
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:8px;
   flex-shrink:0;
 }
 .sidebar-footer-actions .icon-btn {
-  width:46px;
-  height:46px;
-  border-radius:16px;
-  border:1px solid rgba(115,94,204,.18);
-  background:rgba(255,255,255,.06);
-  color:#f4f1ff;
+  width:54px;
+  height:54px;
+  border-radius:20px;
+  border:1px solid rgba(115,94,204,.12);
+  background:rgba(255,255,255,.72);
+  color:#251f49;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.06),
-    0 10px 22px rgba(11,8,28,.22);
+    inset 0 1px 0 rgba(255,255,255,.82),
+    0 12px 28px rgba(22,16,46,.12);
 }
 .sidebar-footer-actions .icon-btn:hover {
-  background:rgba(255,255,255,.1);
-  color:#fff;
-  border-color:rgba(142,121,232,.34);
+  background:rgba(255,255,255,.84);
+  color:#251f49;
+  border-color:rgba(115,94,204,.18);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 14px 28px rgba(11,8,28,.26);
+    inset 0 1px 0 rgba(255,255,255,.88),
+    0 14px 30px rgba(22,16,46,.14);
 }
 .sidebar-footer-actions .icon-btn:active {
   transform:scale(0.97);

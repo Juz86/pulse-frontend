@@ -714,16 +714,39 @@ export default function ChatSidebar({
       {/* Footer */}
       <div className="sidebar-footer">
         <div className="sidebar-footer-tabbar" role="navigation" aria-label="Sidebar navigatie">
+          <div className="sidebar-footer-tab-wrap" ref={moreActionsMenuRef}>
+            <button
+              type="button"
+              className="sidebar-footer-tab sidebar-footer-tab-profile"
+              aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`}
+              onClick={onOpenProfile}
+              title="Jij"
+            >
+              <span className="sidebar-footer-profile-avatar" aria-hidden="true">
+                <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" decorative />
+                <span className="sidebar-footer-profile-dot" />
+              </span>
+              <span className="sidebar-footer-tab-label">Jij</span>
+            </button>
+          </div>
+
           <button
             type="button"
-            className="sidebar-footer-tab"
-            aria-label="Updates"
-            title="Updates"
+            className={`sidebar-footer-tab ${activeTab === 'chats' ? 'active' : ''}`}
+            aria-label="Chats"
+            onClick={() => {
+              setActiveTab('chats');
+              onNewChat();
+            }}
+            title="Chats"
           >
-            <span className="sidebar-footer-tab-icon" aria-hidden="true">
-              <PulseLogo size={28} />
+            <span className="sidebar-footer-tab-wrap">
+              <span className="sidebar-footer-tab-icon" aria-hidden="true">
+                <Message size={26} aria-hidden="true" />
+              </span>
+              {hasMissedCall && !callsAvailable && <span className="sidebar-footer-tab-badge" aria-hidden="true" />}
             </span>
-            <span className="sidebar-footer-tab-label">Updates</span>
+            <span className="sidebar-footer-tab-label">Chats</span>
           </button>
 
           {callsAvailable && (
@@ -748,9 +771,9 @@ export default function ChatSidebar({
             <button
               type="button"
               className="sidebar-footer-tab"
-              aria-label={parentActivityBadge > 0 ? `Open community, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open community'}
+              aria-label={parentActivityBadge > 0 ? `Open ouderportaal, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open ouderportaal'}
               onClick={onOpenDashboard}
-              title="Community"
+              title="Ouderportaal"
             >
               <span className="sidebar-footer-tab-wrap">
                 <span className="sidebar-footer-tab-icon" aria-hidden="true">
@@ -758,55 +781,20 @@ export default function ChatSidebar({
                 </span>
                 {parentActivityBadge > 0 && <span className="sidebar-footer-tab-count" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
               </span>
-              <span className="sidebar-footer-tab-label">Community</span>
+              <span className="sidebar-footer-tab-label">Ouderportaal</span>
             </button>
           )}
 
           <button
             type="button"
-            className={`sidebar-footer-tab ${activeTab === 'chats' ? 'active' : ''}`}
-            aria-label="Chats"
-            onClick={() => {
-              setActiveTab('chats');
-              onNewChat();
-            }}
-            title="Chats"
+            className="sidebar-footer-more-btn"
+            aria-label="Meer acties"
+            aria-expanded={moreActionsMenuOpen}
+            onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
+            title="Meer acties"
           >
-            <span className="sidebar-footer-tab-wrap">
-              <span className="sidebar-footer-tab-icon" aria-hidden="true">
-                <Message size={26} aria-hidden="true" />
-              </span>
-              {hasMissedCall && !callsAvailable && <span className="sidebar-footer-tab-badge" aria-hidden="true" />}
-            </span>
-            <span className="sidebar-footer-tab-label">Chats</span>
+            <MoreHoriz size={22} aria-hidden="true" />
           </button>
-
-          <div className="sidebar-footer-tab-wrap" ref={moreActionsMenuRef}>
-            <button
-              type="button"
-              className="sidebar-footer-tab sidebar-footer-tab-profile"
-              aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`}
-              onClick={onOpenProfile}
-              title="Jij"
-            >
-              <span className="sidebar-footer-profile-avatar" aria-hidden="true">
-                <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" decorative />
-                <span className="sidebar-footer-profile-dot" />
-              </span>
-              <span className="sidebar-footer-tab-label">Jij</span>
-            </button>
-
-            <button
-              type="button"
-              className="sidebar-footer-more-btn"
-              aria-label="Meer acties"
-              aria-expanded={moreActionsMenuOpen}
-              onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
-              title="Meer acties"
-            >
-              <MoreHoriz size={22} aria-hidden="true" />
-            </button>
-          </div>
         </div>
       </div>
     </aside>

@@ -92,6 +92,7 @@ export default function ChatSidebar({
   const [moreActionsMenuOpen, setMoreActionsMenuOpen] = useState(false);
   const moreActionsMenuRef = useRef(null);
   const convSheetHistoryPushedRef = useRef(false);
+  const moreActionsSheetHistoryPushedRef = useRef(false);
   const normalizedSearch = searchQuery.trim().toLowerCase();
 
   const filteredContacts = useMemo(() => contacts.filter((contact) => (
@@ -103,12 +104,40 @@ export default function ChatSidebar({
   useEffect(() => {
     if (!moreActionsMenuOpen) return;
     function handleClickOutside(e) {
+      if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {
         setMoreActionsMenuOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [moreActionsMenuOpen]);
+
+  useEffect(() => {
+    if (!moreActionsMenuOpen) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      if (moreActionsSheetHistoryPushedRef.current) {
+        moreActionsSheetHistoryPushedRef.current = false;
+        window.history.back();
+        return;
+      }
+      setMoreActionsMenuOpen(false);
+    };
+    const onPopState = () => {
+      moreActionsSheetHistoryPushedRef.current = false;
+      setMoreActionsMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('popstate', onPopState);
+    if (!moreActionsSheetHistoryPushedRef.current) {
+      window.history.pushState({ pulseSheet: 'sidebar-actions' }, '');
+      moreActionsSheetHistoryPushedRef.current = true;
+    }
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('popstate', onPopState);
+    };
   }, [moreActionsMenuOpen]);
 
   useEffect(() => {
@@ -185,6 +214,14 @@ export default function ChatSidebar({
       return;
     }
     setConvActionsSheet(null);
+  }, []);
+  const closeMoreActionsSheet = useCallback(() => {
+    if (moreActionsSheetHistoryPushedRef.current) {
+      moreActionsSheetHistoryPushedRef.current = false;
+      window.history.back();
+      return;
+    }
+    setMoreActionsMenuOpen(false);
   }, []);
 
   const renderConvActions = useCallback((conv, otherUid, onDone) => {
@@ -607,6 +644,69 @@ export default function ChatSidebar({
         );
       })()}
 
+      {moreActionsMenuOpen && (
+        <div
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--sidebar-actions"
+          onClick={closeMoreActionsSheet}
+        >
+          <div
+            className="pulse-sheet pulse-sheet--sidebar-actions"
+            role="menu"
+            aria-label="Meer acties"
+            data-sidebar-actions-menu
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--sidebar-actions">
+              <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">Nieuwe chat</div>
+              <button
+                type="button"
+                className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
+                aria-label="Sluiten"
+                onClick={closeMoreActionsSheet}
+              >
+                <XIcon size={20} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="pulse-sheet-search" aria-hidden="true">
+              <Search size={19} />
+              <span>Zoek naam of telefoonnummer</span>
+            </div>
+            <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); onShowAddContact(); }}>
+                <Plus size={18} aria-hidden="true" />
+                <span>Nieuw contact</span>
+              </button>
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewGroup(); }}>
+                <Users size={18} aria-hidden="true" />
+                <span>Nieuwe groep</span>
+              </button>
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
+                <Handshake size={18} aria-hidden="true" />
+                <span>Verzoeken</span>
+                {(friendRequests.length + sentFriendRequests.length) > 0 && (
+                  <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
+                )}
+              </button>
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
+                <Message size={18} aria-hidden="true" />
+                <span>{selectionMode ? 'Chats selecteren stoppen' : 'Chats selecteren'}</span>
+              </button>
+              <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { closeMoreActionsSheet(); onToggleDnd(); }}>
+                {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
+                <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
+              </button>
+              {callsAvailable && (
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onShowCallModal(); }}>
+                  <Phone size={18} aria-hidden="true" />
+                  <span>Oproepen</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="sidebar-footer">
         <button type="button" className="user-chip" style={{ cursor: 'pointer' }} aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`} onClick={onOpenProfile}>
@@ -639,49 +739,6 @@ export default function ChatSidebar({
               <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
             )}
           </button>
-          {moreActionsMenuOpen && (
-            <div
-              role="menu"
-              aria-label="Meer acties"
-              className="chat-header-menu"
-              style={{
-                position: 'absolute',
-                bottom: 42,
-                right: 0,
-                zIndex: 500,
-              }}
-            >
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); onShowAddContact(); }}>
-                <Plus size={15} aria-hidden="true" />
-                <span>Nieuw contact</span>
-              </button>
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); onNewGroup(); }}>
-                <Users size={15} aria-hidden="true" />
-                <span>Nieuwe groep</span>
-              </button>
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
-                <Handshake size={15} aria-hidden="true" />
-                <span>Verzoeken</span>
-                {(friendRequests.length + sentFriendRequests.length) > 0 && (
-                  <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
-                )}
-              </button>
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
-                <Message size={15} aria-hidden="true" />
-                <span>{selectionMode ? 'Chats selecteren stoppen' : 'Chats selecteren'}</span>
-              </button>
-              <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { setMoreActionsMenuOpen(false); onToggleDnd(); }}>
-                {dnd ? <BellOff size={15} aria-hidden="true" /> : <Bell size={15} aria-hidden="true" />}
-                <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
-              </button>
-              {callsAvailable && (
-                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { setMoreActionsMenuOpen(false); onShowCallModal(); }}>
-                  <Phone size={15} aria-hidden="true" />
-                  <span>Oproepen</span>
-                </button>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </aside>

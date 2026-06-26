@@ -714,21 +714,19 @@ export default function ChatSidebar({
       {/* Footer */}
       <div className="sidebar-footer">
         <div className="sidebar-footer-tabbar" role="navigation" aria-label="Sidebar navigatie">
-          <div className="sidebar-footer-tab-wrap" ref={moreActionsMenuRef}>
-            <button
-              type="button"
-              className="sidebar-footer-tab sidebar-footer-tab-profile"
-              aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`}
-              onClick={onOpenProfile}
-              title="Jij"
-            >
-              <span className="sidebar-footer-profile-avatar" aria-hidden="true">
-                <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" decorative />
-                <span className="sidebar-footer-profile-dot" />
-              </span>
-              <span className="sidebar-footer-tab-label">Jij</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            className="sidebar-footer-tab sidebar-footer-tab-profile"
+            aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`}
+            onClick={onOpenProfile}
+            title="Jij"
+          >
+            <span className="sidebar-footer-profile-avatar" aria-hidden="true">
+              <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" decorative />
+              <span className="sidebar-footer-profile-dot" />
+            </span>
+            <span className="sidebar-footer-tab-label">Jij</span>
+          </button>
 
           <button
             type="button"
@@ -763,7 +761,7 @@ export default function ChatSidebar({
                 </span>
                 {hasMissedCall && <span className="sidebar-footer-tab-badge" aria-hidden="true" />}
               </span>
-              <span className="sidebar-footer-tab-label">Oproepen</span>
+              <span className="sidebar-footer-tab-label">Bellen</span>
             </button>
           )}
 
@@ -781,20 +779,25 @@ export default function ChatSidebar({
                 </span>
                 {parentActivityBadge > 0 && <span className="sidebar-footer-tab-count" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
               </span>
-              <span className="sidebar-footer-tab-label">Ouderportaal</span>
+              <span className="sidebar-footer-tab-label">Portaal</span>
             </button>
           )}
 
-          <button
-            type="button"
-            className="sidebar-footer-more-btn"
-            aria-label="Meer acties"
-            aria-expanded={moreActionsMenuOpen}
-            onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
-            title="Meer acties"
-          >
-            <MoreHoriz size={22} aria-hidden="true" />
-          </button>
+          <div ref={moreActionsMenuRef}>
+            <button
+              type="button"
+              className="sidebar-footer-tab sidebar-footer-tab-more"
+              aria-label="Meer acties"
+              aria-expanded={moreActionsMenuOpen}
+              onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
+              title="Meer acties"
+            >
+              <span className="sidebar-footer-tab-icon" aria-hidden="true">
+                <MoreHoriz size={22} aria-hidden="true" />
+              </span>
+              <span className="sidebar-footer-tab-label">Meer</span>
+            </button>
+          </div>
         </div>
       </div>
     </aside>

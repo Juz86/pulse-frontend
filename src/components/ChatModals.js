@@ -1576,17 +1576,9 @@ export default function ChatModals({
                 </div>
               ) : (
                 <>
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+                  <div className="call-log-toolbar">
                     <div
-                      className="starred-search-wrap"
-                      style={{
-                        marginBottom: 0,
-                        flex: 1,
-                        minWidth: 0,
-                        minHeight: 42,
-                        padding: '0 12px',
-                        borderRadius: 12,
-                      }}
+                      className="starred-search-wrap call-log-search-wrap"
                     >
                       <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
                       <input
@@ -1603,13 +1595,9 @@ export default function ChatModals({
                     </div>
                     <button
                       type="button"
-                      className="call-btn voice"
+                      className={`call-btn voice call-log-toolbar-btn${callActionMode === 'voice' ? ' active' : ''}`}
                       aria-label="Nieuw belgesprek"
                       title="Bel contact"
-                      style={{
-                        flexShrink: 0,
-                        ...(callActionMode === 'voice' ? { boxShadow: '0 0 0 2px rgba(67,233,123,.35) inset' } : {}),
-                      }}
                       onClick={() => setCallActionMode((prev) => (prev === 'voice' ? null : 'voice'))}
                     >
                       <Phone size={16} aria-hidden="true" />
@@ -1634,11 +1622,11 @@ export default function ChatModals({
                   )}
 
                   {callActionMode && (
-                    <div style={{ marginBottom: 12 }}>
-                      <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 8 }}>
+                    <div className="call-log-picker">
+                      <div className="call-log-picker-title">
                         Kies een contactpersoon om te bellen of videobellen:
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 180, overflowY: 'auto' }}>
+                      <div className="call-log-picker-list">
                         {filteredCallContacts.length === 0 ? (
                           <div className="empty-convs" style={{ paddingTop: 6, paddingBottom: 6 }}>
                             <p>Geen contacten gevonden.</p>
@@ -1703,7 +1691,6 @@ export default function ChatModals({
                         {filteredCallLog.map((entry, i) => {
                           const contact = contacts.find(c => c.uid === entry.uid);
                           const dirIcon = entry.direction === 'outgoing' ? <PhoneOutgoing size={13} /> : entry.direction === 'missed' ? <Cancel size={13} /> : <PhoneCall size={13} />;
-                          const dirColor = entry.direction === 'missed' ? 'var(--danger)' : entry.direction === 'outgoing' ? 'var(--accent)' : 'var(--success)';
                           const displayTime = formatTime(entry.ts);
                           return (
                             <div key={i} className="call-log-row">
@@ -1713,11 +1700,15 @@ export default function ChatModals({
                               </div>
                               <div className="call-log-copy">
                                 <div className="call-log-meta">
-                                  <span style={{ color: dirColor, fontWeight: 700, fontSize: 13 }} aria-hidden="true">{dirIcon}</span>
                                   <span className="conv-name">{entry.name}</span>
-                                  <span style={{ fontSize: 11, color: 'var(--text3)', marginLeft: 'auto' }}>{displayTime}</span>
+                                  <span className="call-log-time">{displayTime}</span>
                                 </div>
-                                <div className="conv-preview" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>{entry.isVideo ? <><Video size={12} aria-hidden="true" /> Videogesprek</> : <><Phone size={12} aria-hidden="true" /> Gesprek</>}</div>
+                                <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
+                                  <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
+                                  <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
+                                  <span className="call-log-type-separator" aria-hidden="true">·</span>
+                                  <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
+                                </div>
                               </div>
                               {contact && (
                                 <div className="call-log-actions">

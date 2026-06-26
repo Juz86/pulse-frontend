@@ -5319,15 +5319,71 @@ font-family: 'Inter', sans-serif;
 .call-panel-empty {
   text-align:center;
   padding:24px 0;
-  color:var(--text3);
+  color:#8a819f;
+}
+.call-log-toolbar {
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.call-log-search-wrap {
+  margin-bottom:0;
+  flex:1;
+  min-width:0;
+  min-height:50px;
+  padding:0 16px;
+  border-radius:18px;
+  background:rgba(255,255,255,.92);
+  border:1px solid rgba(129,111,204,.12);
+  box-shadow:none;
+}
+.call-log-search-wrap .starred-search-input {
+  color:#24193f;
+}
+.call-log-search-wrap .starred-search-input::placeholder {
+  color:#998fb3;
+}
+.call-log-toolbar-btn {
+  flex-shrink:0;
+  width:50px;
+  height:50px;
+  border-radius:18px;
+  background:#dff7e8;
+  color:#17a34a;
+  border:1px solid rgba(23,163,74,.14);
+  box-shadow:none;
+}
+.call-log-toolbar-btn.active {
+  background:#c8f0d7;
+  box-shadow:0 0 0 2px rgba(23,163,74,.12) inset;
+}
+.call-log-picker {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.call-log-picker-title {
+  font-size:12px;
+  color:#7f7599;
+}
+.call-log-picker-list {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  max-height:180px;
+  overflow-y:auto;
 }
 .call-log-list {
   display:flex;
   flex-direction:column;
-  gap:6px;
+  gap:0;
   margin-bottom:16px;
   max-height:min(22.5rem, 45vh);
   overflow-y:auto;
+  background:rgba(255,255,255,.9);
+  border:1px solid rgba(140,122,214,.14);
+  border-radius:28px;
+  box-shadow:0 14px 30px rgba(74,55,148,.08);
 }
 .call-log-copy {
   flex:1;
@@ -5336,7 +5392,7 @@ font-family: 'Inter', sans-serif;
 .call-log-meta {
   display:flex;
   align-items:center;
-  gap:6px;
+  gap:8px;
   min-width:0;
 }
 .call-log-meta .conv-name {
@@ -5344,11 +5400,45 @@ font-family: 'Inter', sans-serif;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
+  font-size:16px;
+  font-weight:500;
+  color:#23173f;
+}
+.call-log-time {
+  margin-left:auto;
+  flex-shrink:0;
+  font-size:12px;
+  color:#817696;
+}
+.call-log-subline {
+  display:flex;
+  align-items:center;
+  gap:4px;
+  margin-top:4px;
+  font-size:12px;
+  color:#736986;
+}
+.call-log-subline.missed {
+  color:#d4566d;
+}
+.call-log-direction-icon {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.call-log-type-separator {
+  opacity:.55;
 }
 .call-log-actions {
   display:flex;
   gap:6px;
   flex-shrink:0;
+}
+.call-log-actions .call-btn {
+  width:42px;
+  height:42px;
+  border-radius:16px;
+  box-shadow:none;
 }
 .share-contact-panel .contact-row {
   background:rgba(255,255,255,.035);
@@ -6891,11 +6981,19 @@ font-family: 'Inter', sans-serif;
   background:rgba(108,99,255,.05);
 }
 .call-log-row {
-  display:flex; align-items:center; gap:12px;
-  padding:10px 12px; border:1px solid var(--border); border-radius:14px;
-  background:var(--surface2); transition:.2s;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 18px;
+  background:transparent;
+  transition:.2s;
 }
-.call-log-row:hover { border-color:rgba(108,99,255,.3); background:rgba(108,99,255,.05); }
+.call-log-row + .call-log-row {
+  border-top:1px solid rgba(112,92,191,.1);
+}
+.call-log-row:hover {
+  background:rgba(108,99,255,.045);
+}
 
 @media (max-width: 600px) {
   .block-confirm-actions {

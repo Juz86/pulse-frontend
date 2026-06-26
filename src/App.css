@@ -592,7 +592,8 @@ body {
   box-shadow: none;
 }
 
-.new-chat-sheet-result {
+.new-chat-sheet-result,
+.search-result.new-chat-sheet-result {
   width: 100%;
   border: none;
   border-radius: 0;
@@ -600,14 +601,23 @@ body {
   min-height: 72px;
   padding: 14px 18px;
   text-align: left;
+  margin-bottom: 0;
+  box-shadow: none;
+  transform: none;
+  cursor: pointer;
 }
 
-.new-chat-sheet-result + .new-chat-sheet-result {
+.new-chat-sheet-result + .new-chat-sheet-result,
+.search-result.new-chat-sheet-result + .search-result.new-chat-sheet-result {
   border-top: 1px solid rgba(112, 92, 191, 0.1);
 }
 
-.new-chat-sheet-result:hover {
+.new-chat-sheet-result:hover,
+.search-result.new-chat-sheet-result:hover {
+  border-color: transparent;
   background: rgba(108, 99, 255, 0.045);
+  box-shadow: none;
+  transform: none;
 }
 
 .new-chat-sheet-result .conv-name {

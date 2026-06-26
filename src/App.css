@@ -2245,7 +2245,7 @@ font-family: 'Inter', sans-serif;
 .sidebar-footer {
   margin:12px 14px max(12px, env(safe-area-inset-bottom));
   padding:10px 12px;
-  display:flex; align-items:center; gap:12px;
+  display:flex; align-items:center; gap:14px;
   position:relative;
   border-radius:28px;
   border:1px solid rgba(115,94,204,.10);
@@ -2261,7 +2261,7 @@ font-family: 'Inter', sans-serif;
   align-items:center;
   gap:6px;
   flex-shrink:0;
-  padding:7px;
+  padding:6px;
   border-radius:24px;
   border:1px solid rgba(115,94,204,.10);
   background:rgba(255,255,255,.72);
@@ -2283,7 +2283,7 @@ font-family: 'Inter', sans-serif;
 .sidebar-footer-actions .icon-btn:active {
   transform:scale(0.97);
 }
-.user-chip      { display:flex; align-items:center; gap:12px; flex:1; min-height:54px; background:none; border:none; padding:0; cursor:pointer; text-align:left; }
+.user-chip      { display:flex; align-items:center; gap:14px; flex:1; min-height:54px; background:none; border:none; padding:0; cursor:pointer; text-align:left; }
 .user-chip-info {
   display:flex;
   flex-direction:column;

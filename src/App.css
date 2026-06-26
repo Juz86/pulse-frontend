@@ -264,7 +264,7 @@ body {
 .conv-item-swipe-actions {
   position: absolute;
   inset: 0 0 0 auto;
-  width: 88px;
+  width: 176px;
   display: flex;
   justify-content: stretch;
   align-items: stretch;
@@ -272,6 +272,7 @@ body {
   opacity: 0;
   transform: translateX(12px);
   transition: opacity .18s ease, transform .18s ease;
+  gap: 0;
 }
 
 .conv-item-swipe-shell.swiped-open .conv-item-swipe-actions {
@@ -280,25 +281,38 @@ body {
   transform: translateX(0);
 }
 
-.conv-swipe-more-btn {
-  width: 100%;
+.conv-swipe-action-btn {
+  width: 88px;
   border: none;
-  background: #5f6369;
-  color: #fff;
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
+  transition: filter .18s ease, transform .18s ease;
+}
+
+.conv-swipe-more-btn {
+  background: #8f8b91;
+  color: #fff;
+}
+
+.conv-swipe-delete-btn {
+  background: #ff4f6b;
+  color: #fff;
+}
+
+.conv-swipe-action-btn:hover {
+  filter: brightness(1.04);
+}
+
+.conv-swipe-action-btn:active {
+  transform: scale(0.98);
 }
 
 .conv-item-swipe-shell .conv-item {
   will-change: transform;
-  transition: transform .2s ease;
+  transition: transform .24s ease;
 }
 
 .pulse-sheet-backdrop {

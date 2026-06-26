@@ -1,6 +1,6 @@
 // src/components/ConversationItem.js
 import React from 'react';
-import { Pin, MoreHoriz, Phone, Video } from '../components/Icons';
+import { Pin, MoreHoriz, Phone, Video, Trash2 } from '../components/Icons';
 import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview, formatConversationListTime } from '../utils';
@@ -23,9 +23,10 @@ function ConversationItemBase({
   onToggleSelect,
   onOpen,
   onSwipeMoreActions,
+  onSwipeDelete,
 }) {
-  const SWIPE_ACTION_WIDTH = 88;
-  const SWIPE_OPEN_THRESHOLD = 46;
+  const SWIPE_ACTION_WIDTH = 176;
+  const SWIPE_OPEN_THRESHOLD = 72;
   const SWIPE_CLOSE_THRESHOLD = 28;
   const [swipeOffset, setSwipeOffset] = React.useState(0);
   const pointerStateRef = React.useRef({
@@ -140,7 +141,7 @@ function ConversationItemBase({
       <div className="conv-item-swipe-actions" aria-hidden={!isSwipedOpen}>
         <button
           type="button"
-          className="conv-swipe-more-btn"
+          className="conv-swipe-action-btn conv-swipe-more-btn"
           aria-label={`Meer acties voor ${conv.name}`}
           onClick={(e) => {
             e.stopPropagation();
@@ -149,7 +150,18 @@ function ConversationItemBase({
           }}
         >
           <MoreHoriz size={20} aria-hidden="true" />
-          <span>Meer</span>
+        </button>
+        <button
+          type="button"
+          className="conv-swipe-action-btn conv-swipe-delete-btn"
+          aria-label={`Chat verwijderen van ${conv.name}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            closeSwipe();
+            onSwipeDelete?.();
+          }}
+        >
+          <Trash2 size={20} aria-hidden="true" />
         </button>
       </div>
       <div

@@ -1727,15 +1727,9 @@ export default function ChatModals({
                   )}
                 </>
               )}
-              {!callActionMode && (
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={closeCallSheet}>Sluiten</button>
-                  {callsAvailable && callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={async () => { await clearCallLog?.(); closeCallSheet(); }}>Wissen</button>}
-                </div>
-              )}
-              </div>
-            </aside>
-          </div>
+            </div>
+          </aside>
+        </div>
         );
       })()}
 

@@ -798,14 +798,16 @@ export default function ChatModals({
               </p>
 
               <div className="new-chat-sheet-search" style={{ marginBottom: searchErr || searchResult ? 10 : 18 }}>
-                <input
-                  className="form-input"
-                  placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam"
-                  value={searchEmail}
-                  onChange={e => setSearchEmail(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && searchUser()}
-                />
-                <button type="button" className="btn-primary" onClick={searchUser}>Zoeken</button>
+                <div className="starred-search-wrap call-log-search-wrap new-chat-search-wrap">
+                  <input
+                    className="starred-search-input"
+                    placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam"
+                    value={searchEmail}
+                    onChange={e => setSearchEmail(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && searchUser()}
+                  />
+                </div>
+                <button type="button" className="btn-primary new-chat-search-btn" onClick={searchUser}>Zoeken</button>
               </div>
 
               {searchErr && <div className="auth-error" style={{ marginBottom: 14 }}>⚠️ {searchErr}</div>}

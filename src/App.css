@@ -557,7 +557,17 @@ body {
 .new-chat-sheet-search {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+}
+
+.new-chat-search-wrap {
+  min-height: 50px;
+}
+
+.new-chat-search-btn {
+  min-height: 50px;
+  border-radius: 18px;
+  box-shadow: none;
 }
 
 .new-chat-sheet-kicker {
@@ -575,11 +585,11 @@ body {
 }
 
 .pulse-sheet-list--new-chat {
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(140, 122, 214, 0.14);
-  border-radius: 28px;
-  overflow: hidden;
-  box-shadow: 0 14px 30px rgba(74, 55, 148, 0.08);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
 }
 
 .new-chat-sheet-result {
@@ -587,13 +597,28 @@ body {
   border: none;
   border-radius: 0;
   background: transparent;
-  min-height: 74px;
-  padding: 0 20px;
+  min-height: 72px;
+  padding: 14px 18px;
   text-align: left;
 }
 
 .new-chat-sheet-result + .new-chat-sheet-result {
   border-top: 1px solid rgba(112, 92, 191, 0.1);
+}
+
+.new-chat-sheet-result:hover {
+  background: rgba(108, 99, 255, 0.045);
+}
+
+.new-chat-sheet-result .conv-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #23173f;
+}
+
+.new-chat-sheet-result .conv-preview {
+  margin-top: 4px;
+  color: #736986;
 }
 
 .new-chat-sheet-empty {

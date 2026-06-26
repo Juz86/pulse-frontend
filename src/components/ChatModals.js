@@ -1579,7 +1579,7 @@ export default function ChatModals({
                 <>
                   <div className="call-log-toolbar">
                     <div
-                      className="starred-search-wrap call-log-search-wrap"
+                      className="starred-search-wrap call-log-search-wrap call-log-search-wrap--full"
                     >
                       <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
                       <input
@@ -1594,15 +1594,6 @@ export default function ChatModals({
                         </button>
                       )}
                     </div>
-                    <button
-                      type="button"
-                      className={`call-btn voice call-log-toolbar-btn${callActionMode === 'voice' ? ' active' : ''}`}
-                      aria-label="Nieuw belgesprek"
-                      title="Bel contact"
-                      onClick={() => setCallActionMode((prev) => (prev === 'voice' ? null : 'voice'))}
-                    >
-                      <Phone size={16} aria-hidden="true" />
-                    </button>
                   </div>
                   {remainingRateLimitSeconds > 0 && (
                     <div

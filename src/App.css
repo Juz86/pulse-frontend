@@ -5416,6 +5416,9 @@ font-family: 'Inter', sans-serif;
   border:1px solid rgba(129,111,204,.12);
   box-shadow:none;
 }
+.call-log-search-wrap--full {
+  width: 100%;
+}
 .call-log-search-wrap .starred-search-input {
   color:#24193f;
 }

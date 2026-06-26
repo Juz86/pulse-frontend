@@ -1534,15 +1534,40 @@ export default function ChatModals({
               return displayName.includes(normalizedCallSearch) || email.includes(normalizedCallSearch);
             })
           : contacts;
+        const closeCallSheet = () => {
+          setShowCallModal(false);
+          setCallActionMode(null);
+          setCallSearch('');
+        };
         return (
-            <aside className="chat-side-panel call-log-panel" aria-labelledby="call-log-title" aria-describedby="call-log-description">
-              <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setShowCallModal(false); setCallActionMode(null); setCallSearch(''); }}><span aria-hidden="true">✕</span></button>
-              <h2 id="call-log-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Phone size={18} /></span> {callsAvailable ? 'Recent' : 'Alleen in de app'}</h2>
+          <div
+            className="pulse-sheet-backdrop pulse-sheet-backdrop--call-log"
+            onClick={closeCallSheet}
+          >
+            <aside
+              className="pulse-sheet pulse-sheet--call-log"
+              aria-labelledby="call-log-title"
+              aria-describedby="call-log-description"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="pulse-sheet-handle" aria-hidden="true" />
+              <div className="pulse-sheet-header pulse-sheet-header--call-log">
+                <div className="pulse-sheet-title pulse-sheet-title--call-log">{callsAvailable ? 'Recent' : 'Alleen in de app'}</div>
+                <button
+                  type="button"
+                  className="pulse-sheet-close pulse-sheet-close--call-log"
+                  aria-label="Sluiten"
+                  onClick={closeCallSheet}
+                >
+                  <span aria-hidden="true">✕</span>
+                </button>
+              </div>
               <p id="call-log-description" className="sr-only">
                 {callsAvailable
                   ? 'Bekijk recente oproepen en start een nieuwe bel- of video-oproep.'
                   : 'Bellen en videobellen zijn in Pulse Web niet beschikbaar.'}
               </p>
+              <div className="call-log-sheet-body">
               {!callsAvailable ? (
                 <div className="call-panel-note">
                   <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{PULSE_WEB_CALLS_UNAVAILABLE_TITLE}</div>
@@ -1713,11 +1738,13 @@ export default function ChatModals({
               )}
               {!callActionMode && (
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => { setShowCallModal(false); setCallActionMode(null); setCallSearch(''); }}>Sluiten</button>
-                  {callsAvailable && callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={async () => { await clearCallLog?.(); setShowCallModal(false); setCallActionMode(null); setCallSearch(''); }}>Wissen</button>}
+                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={closeCallSheet}>Sluiten</button>
+                  {callsAvailable && callLog.length > 0 && <button type="button" className="btn-secondary" style={{ flex: 1, color: 'var(--danger)' }} onClick={async () => { await clearCallLog?.(); closeCallSheet(); }}>Wissen</button>}
                 </div>
               )}
+              </div>
             </aside>
+          </div>
         );
       })()}
 

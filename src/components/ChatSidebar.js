@@ -93,6 +93,7 @@ export default function ChatSidebar({
   const moreActionsMenuRef = useRef(null);
   const convSheetHistoryPushedRef = useRef(false);
   const moreActionsSheetHistoryPushedRef = useRef(false);
+  const contactSheetHistoryPushedRef = useRef(false);
   const normalizedSearch = searchQuery.trim().toLowerCase();
 
   const filteredContacts = useMemo(() => contacts.filter((contact) => (
@@ -180,20 +181,37 @@ export default function ChatSidebar({
     };
   }, [convActionsSheet]);
 
+  useEffect(() => {
+    if (!contactMenu) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      if (contactSheetHistoryPushedRef.current) {
+        contactSheetHistoryPushedRef.current = false;
+        window.history.back();
+        return;
+      }
+      setContactMenu(null);
+    };
+    const onPopState = () => {
+      contactSheetHistoryPushedRef.current = false;
+      setContactMenu(null);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('popstate', onPopState);
+    if (!contactSheetHistoryPushedRef.current) {
+      window.history.pushState({ pulseSheet: 'contact-actions' }, '');
+      contactSheetHistoryPushedRef.current = true;
+    }
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('popstate', onPopState);
+    };
+  }, [contactMenu]);
+
   const hasMissedCall = callsAvailable && (((!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert));
 
   function openContactMenu(contactUid, anchorEl) {
-    const rect = anchorEl?.getBoundingClientRect?.();
-    if (!rect) return;
-    const menuWidth = 160;
-    const menuHeight = 320;
-    const spacing = 8;
-    const direction = rect.top < 420 ? 'down' : 'up';
-    const left = Math.max(12, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 12));
-    const top = direction === 'down'
-      ? Math.min(rect.bottom + spacing, window.innerHeight - menuHeight - 12)
-      : Math.max(12, rect.top - menuHeight - spacing);
-    setContactMenu(prev => prev?.uid === contactUid ? null : { uid: contactUid, direction, top, left });
+    setContactMenu(prev => prev?.uid === contactUid ? null : { uid: contactUid });
   }
 
   function handleOpenConversation(conv) {
@@ -222,6 +240,14 @@ export default function ChatSidebar({
       return;
     }
     setMoreActionsMenuOpen(false);
+  }, []);
+  const closeContactActionsSheet = useCallback(() => {
+    if (contactSheetHistoryPushedRef.current) {
+      contactSheetHistoryPushedRef.current = false;
+      window.history.back();
+      return;
+    }
+    setContactMenu(null);
   }, []);
 
   const renderConvActions = useCallback((conv, otherUid, onDone) => {
@@ -590,56 +616,65 @@ export default function ChatSidebar({
         const isProtectedParentContact = !isParent && contact?.role === 'parent';
         return (
           <div
-            role="menu"
-            aria-label={`Acties voor ${getContactDisplayName(contact)}`}
-            data-sidebar-actions-menu
-            onClick={e => e.stopPropagation()}
-            className="chat-header-menu"
-            style={{
-              position: 'fixed', zIndex: 3000,
-              top: contactMenu.top, left: contactMenu.left,
-              minWidth: 160, gap: 2,
-            }}
+            className="pulse-sheet-backdrop pulse-sheet-backdrop--contact-actions"
+            onClick={closeContactActionsSheet}
           >
-            <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onViewContact(contact); setContactMenu(null); }} title="Profiel">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
-              <span>Profiel</span>
-            </button>
-            {!isParentBlocked && <>
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onStartChat(contact); setContactMenu(null); }} title="Bericht sturen">
-                <Message size={14} aria-hidden="true" />
-                <span>Bericht sturen</span>
-              </button>
-              {callsAvailable && (
-                <>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, false); setContactMenu(null); }} title="Bellen">
-                    <Phone size={14} aria-hidden="true" />
-                    <span>Bellen</span>
+            <div
+              className="pulse-sheet pulse-sheet--contact-actions"
+              role="menu"
+              aria-label={`Acties voor ${getContactDisplayName(contact)}`}
+              data-sidebar-actions-menu
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="pulse-sheet-handle" aria-hidden="true" />
+              <div className="pulse-sheet-header pulse-sheet-header--contact-actions">
+                <div className="pulse-sheet-title pulse-sheet-title--contact-actions">{getContactDisplayName(contact)}</div>
+                <button type="button" className="pulse-sheet-close pulse-sheet-close--contact-actions" aria-label="Sluiten" onClick={closeContactActionsSheet}>
+                  <XIcon size={18} aria-hidden="true" />
+                </button>
+              </div>
+              <div className="pulse-sheet-list pulse-sheet-list--contact-actions">
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onViewContact(contact); closeContactActionsSheet(); }} title="Profiel">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
+                  <span>Profiel</span>
+                </button>
+                {!isParentBlocked && <>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onStartChat(contact); closeContactActionsSheet(); }} title="Bericht sturen">
+                    <Message size={14} aria-hidden="true" />
+                    <span>Bericht sturen</span>
                   </button>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, true); setContactMenu(null); }} title="Videobellen">
-                    <Video size={14} aria-hidden="true" />
-                    <span>Videobellen</span>
+                  {callsAvailable && (
+                    <>
+                      <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, false); closeContactActionsSheet(); }} title="Bellen">
+                        <Phone size={14} aria-hidden="true" />
+                        <span>Bellen</span>
+                      </button>
+                      <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, true); closeContactActionsSheet(); }} title="Videobellen">
+                        <Video size={14} aria-hidden="true" />
+                        <span>Videobellen</span>
+                      </button>
+                    </>
+                  )}
+                  <button type="button" role="menuitem" className={`chat-header-menu-item${pinnedContacts.includes(contact.uid) ? ' active' : ''}`} onClick={() => { onTogglePin(contact.uid); closeContactActionsSheet(); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
+                    <Pin size={14} aria-hidden="true" />
+                    <span>{pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}</span>
                   </button>
-                </>
-              )}
-              <button type="button" role="menuitem" className={`chat-header-menu-item${pinnedContacts.includes(contact.uid) ? ' active' : ''}`} onClick={() => { onTogglePin(contact.uid); setContactMenu(null); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
-                <Pin size={14} aria-hidden="true" />
-                <span>{pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}</span>
-              </button>
-            </>}
-            {!isProtectedParentContact && <div className="chat-header-menu-divider" />}
-            {!isProtectedParentContact && !isParentBlocked && (
-              <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onBlockContact(contact); setContactMenu(null); }} title="Blokkeren">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
-                <span>Blokkeren</span>
-              </button>
-            )}
-            {!isProtectedParentContact && (
-              <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onRemoveContact(contact.uid); setContactMenu(null); }} title="Verwijderen">
-                <Trash2 size={14} aria-hidden="true" />
-                <span>Verwijderen</span>
-              </button>
-            )}
+                </>}
+                {!isProtectedParentContact && <div className="chat-header-menu-divider" />}
+                {!isProtectedParentContact && !isParentBlocked && (
+                  <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onBlockContact(contact); closeContactActionsSheet(); }} title="Blokkeren">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+                    <span>Blokkeren</span>
+                  </button>
+                )}
+                {!isProtectedParentContact && (
+                  <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onRemoveContact(contact.uid); closeContactActionsSheet(); }} title="Verwijderen">
+                    <Trash2 size={14} aria-hidden="true" />
+                    <span>Verwijderen</span>
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         );
       })()}

@@ -2243,47 +2243,47 @@ font-family: 'Inter', sans-serif;
 }
 
 .sidebar-footer {
-  margin:12px 14px max(12px, env(safe-area-inset-bottom));
-  padding:10px 12px;
-  display:flex; align-items:center; gap:14px;
+  padding:14px 18px; padding-bottom:max(14px, env(safe-area-inset-bottom));
+  display:flex; align-items:center; gap:10px;
+  border-top:1px solid var(--border);
+  background:linear-gradient(0deg, rgba(108,99,255,.04) 0%, transparent 100%);
   position:relative;
-  border-radius:28px;
-  border:1px solid rgba(115,94,204,.10);
-  background:rgba(255,255,255,.74);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.84),
-    0 14px 30px rgba(22,16,46,.12);
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
 }
 .sidebar-footer-actions {
   display:flex;
   align-items:center;
-  gap:6px;
+  gap:8px;
   flex-shrink:0;
-  padding:6px;
-  border-radius:24px;
-  border:1px solid rgba(115,94,204,.10);
-  background:rgba(255,255,255,.72);
 }
 .sidebar-footer-actions .icon-btn {
   width:54px;
   height:54px;
   border-radius:20px;
-  border:0;
-  background:transparent;
+  border:1px solid rgba(115,94,204,.12);
+  background:rgba(255,255,255,.72);
   color:#251f49;
-  box-shadow:none;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.82),
+    0 12px 28px rgba(22,16,46,.12);
 }
 .sidebar-footer-actions .icon-btn:hover {
-  background:rgba(255,255,255,.52);
+  background:rgba(255,255,255,.84);
   color:#251f49;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.75);
+  border-color:rgba(115,94,204,.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.88),
+    0 14px 30px rgba(22,16,46,.14);
 }
 .sidebar-footer-actions .icon-btn:active {
   transform:scale(0.97);
 }
-.user-chip      { display:flex; align-items:center; gap:14px; flex:1; min-height:54px; background:none; border:none; padding:0; cursor:pointer; text-align:left; }
+.sidebar-footer::before {
+  content:''; position:absolute; top:0; left:18px; right:18px; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(108,99,255,.3), transparent);
+}
+.user-chip      { display:flex; align-items:center; gap:12px; flex:1; min-height:54px; background:none; border:none; padding:0; cursor:pointer; text-align:left; }
 .user-chip-info {
   display:flex;
   flex-direction:column;

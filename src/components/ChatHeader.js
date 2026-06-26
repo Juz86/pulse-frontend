@@ -1,6 +1,6 @@
 // src/components/ChatHeader.js
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Logout, MoreHoriz, Phone, User, Users, Video } from '../components/Icons';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Logout, MoreHoriz, Phone, User, Users, Video, XIcon } from '../components/Icons';
 import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
@@ -45,9 +45,8 @@ const ChatHeader = React.memo(function ChatHeader({
   onDeleteChat,
 }) {
   const [moreActionsOpen, setMoreActionsOpen] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 12 });
   const moreActionsRef = useRef(null);
-  const moreActionsButtonRef = useRef(null);
+  const moreActionsHistoryPushedRef = useRef(false);
   const otherUid  = getOtherUid(activeConv);
   const isOnline  = otherUid && onlineUsers.has(otherUid);
   const isActive  = isOnline && !inactiveUsers.has(otherUid);
@@ -75,30 +74,28 @@ const ChatHeader = React.memo(function ChatHeader({
 
   useEffect(() => {
     if (!moreActionsOpen) return;
-    function handleClickOutside(event) {
-      if (moreActionsRef.current && !moreActionsRef.current.contains(event.target)) {
-        setMoreActionsOpen(false);
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      if (moreActionsHistoryPushedRef.current) {
+        moreActionsHistoryPushedRef.current = false;
+        window.history.back();
+        return;
       }
+      setMoreActionsOpen(false);
+    };
+    const onPopState = () => {
+      moreActionsHistoryPushedRef.current = false;
+      setMoreActionsOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('popstate', onPopState);
+    if (!moreActionsHistoryPushedRef.current) {
+      window.history.pushState({ pulseSheet: 'chat-header-actions' }, '');
+      moreActionsHistoryPushedRef.current = true;
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [moreActionsOpen]);
-
-  useLayoutEffect(() => {
-    if (!moreActionsOpen || !moreActionsButtonRef.current) return;
-    function updateMenuPosition() {
-      const rect = moreActionsButtonRef.current.getBoundingClientRect();
-      setMenuPosition({
-        top: rect.bottom + 8,
-        right: Math.max(12, window.innerWidth - rect.right),
-      });
-    }
-    updateMenuPosition();
-    window.addEventListener('resize', updateMenuPosition);
-    window.addEventListener('scroll', updateMenuPosition, true);
     return () => {
-      window.removeEventListener('resize', updateMenuPosition);
-      window.removeEventListener('scroll', updateMenuPosition, true);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('popstate', onPopState);
     };
   }, [moreActionsOpen]);
 
@@ -134,6 +131,11 @@ const ChatHeader = React.memo(function ChatHeader({
   }
 
   function closeMoreActions() {
+    if (moreActionsHistoryPushedRef.current) {
+      moreActionsHistoryPushedRef.current = false;
+      window.history.back();
+      return;
+    }
     setMoreActionsOpen(false);
   }
 
@@ -195,7 +197,6 @@ const ChatHeader = React.memo(function ChatHeader({
             <button
               type="button"
               className="chat-header-action-btn chat-header-menu-btn"
-              ref={moreActionsButtonRef}
               aria-label="Meer acties"
               aria-haspopup="menu"
               aria-expanded={moreActionsOpen}
@@ -207,71 +208,87 @@ const ChatHeader = React.memo(function ChatHeader({
           )}
           {moreActionsOpen && (
             <div
-              className="chat-header-menu"
-              role="menu"
-              aria-label="Meer acties in gesprek"
-              style={{ top: menuPosition.top, right: menuPosition.right }}
-              onClick={(event) => event.stopPropagation()}
+              className="pulse-sheet-backdrop pulse-sheet-backdrop--header-actions"
+              onClick={closeMoreActions}
             >
-              <button
-                type="button"
-                role="menuitem"
-                className="chat-header-menu-item"
-                onClick={() => {
-                  closeMoreActions();
-                  activeConv.isGroup ? onShowGroupInfo?.() : openContactProfile();
-                }}
+              <div
+                className="pulse-sheet pulse-sheet--header-actions"
+                role="menu"
+                aria-label="Meer acties in gesprek"
+                onClick={(event) => event.stopPropagation()}
               >
-                {activeConv.isGroup ? <Users size={16} aria-hidden="true" /> : <User size={16} aria-hidden="true" />}
-                <span>{activeConv.isGroup ? 'Groepsinfo' : 'Profiel'}</span>
-              </button>
-              {!activeConv.isGroup && !parentBlockedOtherUid && callsAvailable && (
-                <>
+                <div className="pulse-sheet-handle" aria-hidden="true" />
+                <div className="pulse-sheet-header pulse-sheet-header--header-actions">
+                  <div className="pulse-sheet-title pulse-sheet-title--header-actions">Gespreksopties</div>
+                  <button
+                    type="button"
+                    className="pulse-sheet-close pulse-sheet-close--header-actions"
+                    aria-label="Sluiten"
+                    onClick={closeMoreActions}
+                  >
+                    <XIcon size={18} aria-hidden="true" />
+                  </button>
+                </div>
+                <div className="pulse-sheet-list pulse-sheet-list--header-actions">
                   <button
                     type="button"
                     role="menuitem"
                     className="chat-header-menu-item"
                     onClick={() => {
                       closeMoreActions();
-                      onInitiateCall(false);
+                      activeConv.isGroup ? onShowGroupInfo?.() : openContactProfile();
                     }}
                   >
-                    <Phone size={16} aria-hidden="true" />
-                    <span>Bellen</span>
+                    {activeConv.isGroup ? <Users size={16} aria-hidden="true" /> : <User size={16} aria-hidden="true" />}
+                    <span>{activeConv.isGroup ? 'Groepsinfo' : 'Profiel'}</span>
                   </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="chat-header-menu-item"
-                    onClick={() => {
-                      closeMoreActions();
-                      onInitiateCall(true);
-                    }}
-                  >
-                    <Video size={16} aria-hidden="true" />
-                    <span>Videobellen</span>
-                  </button>
-                </>
-              )}
-              {activeConv.isGroup ? (
-                <>
-                  <div className="chat-header-menu-divider" />
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="chat-header-menu-item danger"
-                    onClick={() => {
-                      closeMoreActions();
-                      onLeaveGroup?.();
-                    }}
-                  >
-                    <Logout size={16} aria-hidden="true" />
-                    <span>Groep verlaten</span>
-                  </button>
-                </>
-              ) : (
-                null
-              )}
+                  {!activeConv.isGroup && !parentBlockedOtherUid && callsAvailable && (
+                    <>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="chat-header-menu-item"
+                        onClick={() => {
+                          closeMoreActions();
+                          onInitiateCall(false);
+                        }}
+                      >
+                        <Phone size={16} aria-hidden="true" />
+                        <span>Bellen</span>
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="chat-header-menu-item"
+                        onClick={() => {
+                          closeMoreActions();
+                          onInitiateCall(true);
+                        }}
+                      >
+                        <Video size={16} aria-hidden="true" />
+                        <span>Videobellen</span>
+                      </button>
+                    </>
+                  )}
+                  {activeConv.isGroup ? (
+                    <>
+                      <div className="chat-header-menu-divider" />
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="chat-header-menu-item danger"
+                        onClick={() => {
+                          closeMoreActions();
+                          onLeaveGroup?.();
+                        }}
+                      >
+                        <Logout size={16} aria-hidden="true" />
+                        <span>Groep verlaten</span>
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+              </div>
             </div>
           )}
         </div>

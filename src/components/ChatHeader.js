@@ -161,7 +161,7 @@ const ChatHeader = React.memo(function ChatHeader({
         >
           <div className="chat-header-avatar-wrap">
             <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm chat-header-avatar" decorative />
-            {isOnline && <span className={`online-dot sm${inactiveUsers.has(otherUid) ? ' inactive' : ''}`} aria-hidden="true" />}
+            {isOnline && <span className={`online-dot${inactiveUsers.has(otherUid) ? ' inactive' : ''}`} aria-hidden="true" />}
           </div>
           <div className="chat-header-copy">
             <div className="chat-header-name">{getConvName(activeConv)}</div>

@@ -558,25 +558,30 @@ export default function ChatSidebar({
 
       {convActionsSheet && (
         <div
-          className="pulse-sheet-backdrop"
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--contact-actions"
           onClick={closeConvActionsSheet}
           role="presentation"
         >
           <div
-            className="pulse-sheet"
+            className="pulse-sheet pulse-sheet--contact-actions"
             role="menu"
             aria-label={`Acties voor ${convActionsSheet.conv.name}`}
             data-sidebar-actions-menu
             onClick={(e) => e.stopPropagation()}
           >
             <div className="pulse-sheet-handle" aria-hidden="true" />
-            <div className="pulse-sheet-header">
-              <div className="pulse-sheet-title">{convActionsSheet.conv.name}</div>
-              <button type="button" className="icon-btn" aria-label="Sluiten" onClick={closeConvActionsSheet}>
-                <XIcon size={16} aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--contact-actions">
+              <div className="pulse-sheet-title pulse-sheet-title--contact-actions">{convActionsSheet.conv.name}</div>
+              <button
+                type="button"
+                className="pulse-sheet-close pulse-sheet-close--contact-actions"
+                aria-label="Sluiten"
+                onClick={closeConvActionsSheet}
+              >
+                <XIcon size={18} aria-hidden="true" />
               </button>
             </div>
-            <div className="pulse-sheet-list">
+            <div className="pulse-sheet-list pulse-sheet-list--contact-actions">
               {renderConvActions(convActionsSheet.conv, convActionsSheet.otherUid, closeConvActionsSheet)}
             </div>
           </div>

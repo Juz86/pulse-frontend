@@ -2181,7 +2181,6 @@ font-family: 'Inter', sans-serif;
   border-radius:26px;
   background:rgba(255,255,255,.72);
   border:1px solid rgba(115,94,204,.10);
-  box-shadow:0 12px 28px rgba(22,16,46,.10);
 }
 .chat-header-action-btn {
   width:54px;

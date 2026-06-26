@@ -2137,7 +2137,7 @@ font-family: 'Inter', sans-serif;
 .chat-header-avatar.sm {
   width:72px;
   height:72px;
-  border-radius:26px;
+  border-radius:50%;
   font-size:22px;
   box-shadow:0 14px 30px rgba(108,99,255,.18);
 }
@@ -3412,7 +3412,7 @@ font-family: 'Inter', sans-serif;
 
 /* ── AVATAR ── */
 .avatar-circle {
-  width:48px; height:48px; border-radius:15px; flex-shrink:0;
+  width:48px; height:48px; border-radius:50%; flex-shrink:0;
   background:linear-gradient(135deg, var(--accent), var(--accent2));
   display:flex; align-items:center; justify-content:center;
   font-family:'Inter',sans-serif; font-weight:800; font-size:16px; color:#fff;
@@ -3424,7 +3424,7 @@ font-family: 'Inter', sans-serif;
   content:''; position:absolute; top:0; left:0; right:0; height:50%;
   background:rgba(255,255,255,.08); border-radius:inherit;
 }
-.avatar-circle.sm { width:36px; height:36px; font-size:13px; border-radius:11px; }
+.avatar-circle.sm { width:36px; height:36px; font-size:13px; border-radius:50%; }
 
 /* ── AVATAR WRAP + ONLINE DOT ── */
 .avatar-wrap { position:relative; flex-shrink:0; }
@@ -3538,7 +3538,7 @@ font-family: 'Inter', sans-serif;
 
 /* ── PROFIEL AVATAR GROOT ── */
 .profile-avatar-big {
-  width:80px; height:80px; border-radius:22px;
+  width:80px; height:80px; border-radius:50%;
   background:linear-gradient(135deg, var(--accent), var(--accent2));
   display:flex; align-items:center; justify-content:center;
   font-family:'Inter',sans-serif; font-weight:800; font-size:28px; color:#fff;
@@ -3551,7 +3551,7 @@ font-family: 'Inter', sans-serif;
   position:relative; cursor:pointer; display:inline-block;
 }
 .profile-photo-overlay {
-  position:absolute; inset:0; border-radius:22px;
+  position:absolute; inset:0; border-radius:50%;
   background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center;
   font-size:22px; opacity:0; transition:.2s;
 }
@@ -6354,7 +6354,7 @@ font-family: 'Inter', sans-serif;
   .chat-header-avatar.sm {
     width:54px;
     height:54px;
-    border-radius:19px;
+    border-radius:50%;
     font-size:18px;
   }
   .chat-header-contact {
@@ -6517,7 +6517,7 @@ font-family: 'Inter', sans-serif;
   .chat-header-avatar.sm {
     width:46px;
     height:46px;
-    border-radius:17px;
+    border-radius:50%;
     font-size:14px;
   }
   .chat-header-contact {

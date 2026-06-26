@@ -23,7 +23,7 @@ export default function SharedContactMessageCard({
       onClick={canOpenSharedContact ? () => onViewContact(contact) : undefined}
       onKeyDown={canOpenSharedContact ? (event) => onActionCardKeyDown(event, () => onViewContact(contact)) : undefined}
     >
-      <div className="avatar-circle sm u-flex-shrink" style={{ borderRadius: 12 }} aria-hidden="true">
+      <div className="avatar-circle sm u-flex-shrink" aria-hidden="true">
         {getInitials(contact?.name || '')}
       </div>
       <div className="u-flex-1 u-min-w-0">

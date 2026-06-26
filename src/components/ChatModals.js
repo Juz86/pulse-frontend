@@ -624,8 +624,8 @@ export default function ChatModals({
             <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setViewingSharedContact(null)}><span aria-hidden="true">✕</span></button>
             <h2 id="shared-contact-title" className="modal-title" style={{ fontSize: '18px' }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Contactpersoon</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 0 20px' }}>
-              <div className="avatar-wrap" style={{ flexShrink: 0 }}>
-                <div className="avatar-circle" style={{ width: 52, height: 52, fontSize: 20, borderRadius: 14 }}>{getInitials(viewingSharedContact.name || '')}</div>
+                <div className="avatar-wrap" style={{ flexShrink: 0 }}>
+                <div className="avatar-circle" style={{ width: 52, height: 52, fontSize: 20 }}>{getInitials(viewingSharedContact.name || '')}</div>
                 {viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid) && <span className={`online-dot${inactiveUsers.has(viewingSharedContact.uid) ? ' inactive' : ''}`} />}
               </div>
               <div>

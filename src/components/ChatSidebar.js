@@ -713,63 +713,100 @@ export default function ChatSidebar({
 
       {/* Footer */}
       <div className="sidebar-footer">
-        <button type="button" className="user-chip" style={{ cursor: 'pointer' }} aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`} onClick={onOpenProfile}>
-          <div className="avatar-wrap" style={{ flexShrink: 0 }} aria-hidden="true">
-            <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" decorative />
-          </div>
-          <div className="user-chip-info" aria-hidden="true">
-            <div className="user-chip-name">{user.displayName || user.email?.split('@')[0] || 'Gebruiker'}</div>
-            <div className="user-chip-status">Online</div>
-          </div>
-        </button>
-        <div className="sidebar-footer-actions">
+        <div className="sidebar-footer-tabbar" role="navigation" aria-label="Sidebar navigatie">
           <button
             type="button"
-            className="icon-btn"
-            aria-label="Nieuw bericht"
-            onClick={onNewChat}
-            title="Nieuw bericht"
-            style={{ width: 42, height: 42 }}
+            className="sidebar-footer-tab"
+            aria-label="Updates"
+            title="Updates"
           >
-            <Message size={18} aria-hidden="true" />
+            <span className="sidebar-footer-tab-icon" aria-hidden="true">
+              <PulseLogo size={28} />
+            </span>
+            <span className="sidebar-footer-tab-label">Updates</span>
           </button>
+
           {callsAvailable && (
             <button
               type="button"
-              className="icon-btn"
+              className="sidebar-footer-tab"
               aria-label="Oproepen"
               onClick={onShowCallModal}
               title="Oproepen"
-              style={{ position: 'relative', width: 42, height: 42 }}
             >
-              <Phone size={18} aria-hidden="true" />
-              {hasMissedCall && (
-                <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
-              )}
+              <span className="sidebar-footer-tab-wrap">
+                <span className="sidebar-footer-tab-icon" aria-hidden="true">
+                  <Phone size={26} aria-hidden="true" />
+                </span>
+                {hasMissedCall && <span className="sidebar-footer-tab-badge" aria-hidden="true" />}
+              </span>
+              <span className="sidebar-footer-tab-label">Oproepen</span>
             </button>
           )}
-        {isParent && (
-          <button type="button" className="icon-btn parent-dashboard-btn" aria-label={parentActivityBadge > 0 ? `Open ouderlijk toezicht, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open ouderlijk toezicht'} onClick={onOpenDashboard} title="Ouderlijk toezicht" style={{ position: 'relative' }}>
-            <Shield size={18} aria-hidden="true" />
-            {parentActivityBadge > 0 && <span className="parent-badge" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
-          </button>
-        )}
-        <div style={{ position: 'relative' }} ref={moreActionsMenuRef}>
+
+          {isParent && (
+            <button
+              type="button"
+              className="sidebar-footer-tab"
+              aria-label={parentActivityBadge > 0 ? `Open community, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open community'}
+              onClick={onOpenDashboard}
+              title="Community"
+            >
+              <span className="sidebar-footer-tab-wrap">
+                <span className="sidebar-footer-tab-icon" aria-hidden="true">
+                  <Shield size={26} aria-hidden="true" />
+                </span>
+                {parentActivityBadge > 0 && <span className="sidebar-footer-tab-count" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
+              </span>
+              <span className="sidebar-footer-tab-label">Community</span>
+            </button>
+          )}
+
           <button
             type="button"
-            className="icon-btn"
-            aria-label="Meer acties"
-            aria-expanded={moreActionsMenuOpen}
-            onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
-            title="Meer acties"
-            style={{ position: 'relative' }}
+            className={`sidebar-footer-tab ${activeTab === 'chats' ? 'active' : ''}`}
+            aria-label="Chats"
+            onClick={() => {
+              setActiveTab('chats');
+              onNewChat();
+            }}
+            title="Chats"
           >
-            <MoreHoriz size={18} aria-hidden="true" />
-            {hasMissedCall && (
-              <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
-            )}
+            <span className="sidebar-footer-tab-wrap">
+              <span className="sidebar-footer-tab-icon" aria-hidden="true">
+                <Message size={26} aria-hidden="true" />
+              </span>
+              {hasMissedCall && !callsAvailable && <span className="sidebar-footer-tab-badge" aria-hidden="true" />}
+            </span>
+            <span className="sidebar-footer-tab-label">Chats</span>
           </button>
-        </div>
+
+          <div className="sidebar-footer-tab-wrap" ref={moreActionsMenuRef}>
+            <button
+              type="button"
+              className="sidebar-footer-tab sidebar-footer-tab-profile"
+              aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`}
+              onClick={onOpenProfile}
+              title="Jij"
+            >
+              <span className="sidebar-footer-profile-avatar" aria-hidden="true">
+                <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" decorative />
+                <span className="sidebar-footer-profile-dot" />
+              </span>
+              <span className="sidebar-footer-tab-label">Jij</span>
+            </button>
+
+            <button
+              type="button"
+              className="sidebar-footer-more-btn"
+              aria-label="Meer acties"
+              aria-expanded={moreActionsMenuOpen}
+              onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
+              title="Meer acties"
+            >
+              <MoreHoriz size={22} aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </div>
     </aside>

@@ -2251,7 +2251,7 @@ font-family: 'Inter', sans-serif;
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  gap: 3px;
+  gap: 1px;
   padding: 8px 8px;
   border-radius: 32px;
   background:
@@ -2283,9 +2283,12 @@ font-family: 'Inter', sans-serif;
   flex: 1 1 0;
   min-width: 0;
   display: flex;
+  align-items: stretch;
 }
 .sidebar-footer-tab-slot .sidebar-footer-tab {
+  flex: 1 1 0;
   width: 100%;
+  height: 100%;
 }
 .sidebar-footer-tab:hover {
   background: rgba(118, 94, 221, 0.08);
@@ -2367,7 +2370,7 @@ font-family: 'Inter', sans-serif;
     padding-right: 12px;
   }
   .sidebar-footer-tabbar {
-    gap: 2px;
+    gap: 1px;
     padding: 7px 6px;
   }
   .sidebar-footer-tab {

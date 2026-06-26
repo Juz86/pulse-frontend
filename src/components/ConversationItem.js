@@ -1,6 +1,6 @@
 // src/components/ConversationItem.js
 import React from 'react';
-import { Pin, MoreHoriz, Phone, Video, Trash2 } from '../components/Icons';
+import { Pin, MoreHoriz, Phone, Video } from '../components/Icons';
 import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
 import UserAvatar from '../components/UserAvatar';
 import { callPreview, formatConversationListTime } from '../utils';
@@ -23,10 +23,9 @@ function ConversationItemBase({
   onToggleSelect,
   onOpen,
   onSwipeMoreActions,
-  onSwipeDelete,
 }) {
-  const SWIPE_ACTION_WIDTH = 176;
-  const SWIPE_OPEN_THRESHOLD = 72;
+  const SWIPE_ACTION_WIDTH = 92;
+  const SWIPE_OPEN_THRESHOLD = 42;
   const SWIPE_CLOSE_THRESHOLD = 28;
   const [swipeOffset, setSwipeOffset] = React.useState(0);
   const pointerStateRef = React.useRef({
@@ -147,19 +146,6 @@ function ConversationItemBase({
           }}
         >
           <MoreHoriz size={20} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className="conv-swipe-action-btn conv-swipe-delete-btn"
-          aria-label={`Chat verwijderen van ${conv.name}`}
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            closeSwipe();
-            onSwipeDelete?.();
-          }}
-        >
-          <Trash2 size={20} aria-hidden="true" />
         </button>
       </div>
       <div

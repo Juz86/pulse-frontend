@@ -472,7 +472,6 @@ export default function ChatSidebar({
             getConvPhoto={getConvPhoto}
             onOpen={handleOpenConversation}
             onSwipeMoreActions={openConvActionsSheet}
-            onSwipeDelete={(conv) => onHardDeleteConversation?.(conv)}
             setLabelMenuConvId={setLabelMenuConvId}
           />
         </>

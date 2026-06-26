@@ -25,7 +25,6 @@ const ConversationList = React.memo(function ConversationList({
   getConvPhoto,
   onOpen,
   onSwipeMoreActions,
-  onSwipeDelete,
   setLabelMenuConvId,
 }) {
   const [swipedConvId, setSwipedConvId] = React.useState(null);
@@ -134,10 +133,6 @@ const ConversationList = React.memo(function ConversationList({
             onSwipeMoreActions={() => {
               setSwipedConvId(null);
               onSwipeMoreActions?.(conv, otherUid);
-            }}
-            onSwipeDelete={() => {
-              setSwipedConvId(null);
-              onSwipeDelete?.(conv, otherUid);
             }}
           />
         );

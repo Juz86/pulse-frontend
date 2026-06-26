@@ -636,7 +636,19 @@ body {
 
 .new-chat-sheet-result + .new-chat-sheet-result,
 .search-result.new-chat-sheet-result + .search-result.new-chat-sheet-result {
-  border-top: 1px solid rgba(112, 92, 191, 0.1);
+  border-top: none;
+  position: relative;
+}
+
+.new-chat-sheet-result + .new-chat-sheet-result::before,
+.search-result.new-chat-sheet-result + .search-result.new-chat-sheet-result::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 66px;
+  right: 18px;
+  height: 1px;
+  background: rgba(112, 92, 191, 0.1);
 }
 
 .new-chat-sheet-result:hover,

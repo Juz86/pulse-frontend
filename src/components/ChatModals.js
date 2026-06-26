@@ -807,7 +807,6 @@ export default function ChatModals({
                     onKeyDown={e => e.key === 'Enter' && searchUser()}
                   />
                 </div>
-                <button type="button" className="btn-primary new-chat-search-btn" onClick={searchUser}>Zoeken</button>
               </div>
 
               {searchErr && <div className="auth-error" style={{ marginBottom: 14 }}>⚠️ {searchErr}</div>}

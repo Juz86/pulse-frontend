@@ -140,65 +140,67 @@ const ChatHeader = React.memo(function ChatHeader({
   return (
     <>
       <div className="chat-header">
-        {/* Terug-knop met ongelezen badge */}
-        <button type="button" className="back-btn" onClick={onBack} title="Terug" aria-label={totalUnread > 0 ? `Terug, ${totalUnread} ongelezen ${totalUnread === 1 ? 'bericht' : 'berichten'} in andere gesprekken` : 'Terug'} style={{ position: 'relative' }}>
+        <button type="button" className="chat-header-back-btn" onClick={onBack} title="Terug" aria-label={totalUnread > 0 ? `Terug, ${totalUnread} ongelezen ${totalUnread === 1 ? 'bericht' : 'berichten'} in andere gesprekken` : 'Terug'} style={{ position: 'relative' }}>
           <span aria-hidden="true">←</span>
           {totalUnread > 0 && (
-            <span aria-hidden="true" style={{
-              position: 'absolute', top: -6, right: -6,
-              background: '#25d366', color: '#fff',
-              fontSize: 10, fontWeight: 700, lineHeight: 1,
-              minWidth: 16, height: 16, borderRadius: 8,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: '0 4px', pointerEvents: 'none',
-            }}>
+            <span aria-hidden="true" className="chat-header-back-badge">
               {totalUnread > 99 ? '99+' : totalUnread}
             </span>
           )}
         </button>
 
-        {/* Avatar */}
         <div
-          className="avatar-wrap"
+          className="chat-header-contact"
           role="button"
           tabIndex={0}
           aria-label={activeConv.isGroup ? `Open groepsinfo van ${getConvName(activeConv)}` : `Open profiel van ${getConvName(activeConv)}`}
-          style={{ cursor: 'pointer' }}
           onClick={openHeaderDetails}
           onKeyDown={handleProfileKeyDown}
         >
-          <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm" decorative />
-          {isOnline && <span className={`online-dot sm${inactiveUsers.has(otherUid) ? ' inactive' : ''}`} aria-hidden="true" />}
-        </div>
-
-        {/* Naam + status */}
-        <div
-          className="chat-header-info"
-          role="button"
-          tabIndex={0}
-          aria-label={activeConv.isGroup ? `Open groepsinfo van ${getConvName(activeConv)}` : `Open profiel van ${getConvName(activeConv)}`}
-          style={{ cursor: 'pointer' }}
-          onClick={openHeaderDetails}
-          onKeyDown={handleProfileKeyDown}
-        >
+          <div className="chat-header-avatar-wrap">
+            <UserAvatar photoURL={getConvPhoto(activeConv)} displayName={getConvName(activeConv)} className="sm chat-header-avatar" decorative />
+            {isOnline && <span className={`online-dot sm${inactiveUsers.has(otherUid) ? ' inactive' : ''}`} aria-hidden="true" />}
+          </div>
           <div className="chat-header-name">{getConvName(activeConv)}</div>
           {isOnline ? <div className="chat-header-online">{isActive ? 'Online' : 'Afwezig'}</div> : null}
         </div>
 
-        {/* Actieknoppen */}
         <div className="chat-header-actions" ref={moreActionsRef}>
-          <button
-            type="button"
-            className="icon-btn"
-            ref={moreActionsButtonRef}
-            aria-label="Meer acties"
-            aria-haspopup="menu"
-            aria-expanded={moreActionsOpen}
-            title="Meer acties"
-            onClick={() => setMoreActionsOpen((prev) => !prev)}
-          >
-            <MoreHoriz size={18} aria-hidden="true" />
-          </button>
+          {!activeConv.isGroup && !parentBlockedOtherUid && callsAvailable ? (
+            <div className="chat-header-call-pill">
+              <button
+                type="button"
+                className="chat-header-action-btn"
+                aria-label="Videobellen"
+                title="Videobellen"
+                onClick={() => onInitiateCall(true)}
+              >
+                <Video size={26} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="chat-header-action-btn"
+                aria-label="Bellen"
+                title="Bellen"
+                onClick={() => onInitiateCall(false)}
+              >
+                <Phone size={24} aria-hidden="true" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="chat-header-action-btn chat-header-menu-btn"
+              ref={moreActionsButtonRef}
+              aria-label="Meer acties"
+              aria-haspopup="menu"
+              aria-expanded={moreActionsOpen}
+              title="Meer acties"
+              onClick={() => setMoreActionsOpen((prev) => !prev)}
+            >
+              <MoreHoriz size={18} aria-hidden="true" />
+            </button>
+          )}
           {moreActionsOpen && (
             <div
               className="chat-header-menu"

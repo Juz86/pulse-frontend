@@ -390,37 +390,10 @@ export default function ChatSidebar({
       <div className="sidebar-header">
         <div className="sidebar-top">
           <PulseLogo size={30} textSize={20} color="#fff" />
-          <div style={{ display: 'flex', gap: '6px', position: 'relative' }}>
-            <button
-              type="button"
-              className="icon-btn"
-              aria-label="Nieuw bericht"
-              onClick={onNewChat}
-              title="Nieuw bericht"
-              style={{ width: 34, height: 34 }}
-            >
-              <Message size={16} aria-hidden="true" />
-            </button>
-            {callsAvailable && (
-              <button
-                type="button"
-                className="icon-btn"
-                aria-label="Oproepen"
-                onClick={onShowCallModal}
-                title="Oproepen"
-                style={{ position: 'relative', width: 34, height: 34 }}
-              >
-                <Phone size={16} aria-hidden="true" />
-                {hasMissedCall && (
-                  <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
-                )}
-              </button>
-            )}
+          <div className="search-box search-box--top">
+            <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+            <input aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'} placeholder="Zoeken…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
           </div>
-        </div>
-        <div className="search-box">
-          <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
-          <input aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'} placeholder="Zoeken…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
       </div>
 
@@ -749,6 +722,32 @@ export default function ChatSidebar({
             <div className="user-chip-status">Online</div>
           </div>
         </button>
+        <div className="sidebar-footer-actions">
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Nieuw bericht"
+            onClick={onNewChat}
+            title="Nieuw bericht"
+            style={{ width: 42, height: 42 }}
+          >
+            <Message size={18} aria-hidden="true" />
+          </button>
+          {callsAvailable && (
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Oproepen"
+              onClick={onShowCallModal}
+              title="Oproepen"
+              style={{ position: 'relative', width: 42, height: 42 }}
+            >
+              <Phone size={18} aria-hidden="true" />
+              {hasMissedCall && (
+                <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
+              )}
+            </button>
+          )}
         {isParent && (
           <button type="button" className="icon-btn parent-dashboard-btn" aria-label={parentActivityBadge > 0 ? `Open ouderlijk toezicht, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open ouderlijk toezicht'} onClick={onOpenDashboard} title="Ouderlijk toezicht" style={{ position: 'relative' }}>
             <Shield size={18} aria-hidden="true" />
@@ -770,6 +769,7 @@ export default function ChatSidebar({
               <span aria-hidden="true" style={{ position: 'absolute', top: '4px', right: '4px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--danger)', border: '2px solid var(--surface)' }} />
             )}
           </button>
+        </div>
         </div>
       </div>
     </aside>

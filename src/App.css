@@ -5882,7 +5882,6 @@ font-family: 'Inter', sans-serif;
   border-radius:34px;
   background:rgba(23,23,26,.94);
   border:1px solid rgba(255,255,255,.06);
-  box-shadow:0 20px 40px rgba(0,0,0,.32);
   gap:10px;
 }
 .call-card.transparent .call-controls { margin-top:0; padding:0; background:none; border:none; }
@@ -5900,7 +5899,6 @@ font-family: 'Inter', sans-serif;
   border-radius:34px;
   background:rgba(23,23,26,.94);
   border:1px solid rgba(255,255,255,.06);
-  box-shadow:0 20px 40px rgba(0,0,0,.32);
   z-index:4;
 }
 .call-card.transparent.call-video-pending .call-controls.video-layout {
@@ -6912,7 +6910,6 @@ font-family: 'Inter', sans-serif;
   border-radius: 34px;
   background: rgba(23,23,26,.94);
   border: 1px solid rgba(255,255,255,.06);
-  box-shadow: 0 20px 40px rgba(0,0,0,.32);
   z-index: 10;
 }
 

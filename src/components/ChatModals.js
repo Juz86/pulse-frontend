@@ -1632,7 +1632,13 @@ export default function ChatModals({
                             <p>Geen contacten gevonden.</p>
                           </div>
                         ) : (
-                          filteredCallContacts.map((contact) => (
+                          filteredCallContacts.map((contact) => {
+                            const contactTitle = getContactDisplayName(contact)
+                              || contact.displayName
+                              || contact.username
+                              || (contact.email ? contact.email.split('@')[0] : '')
+                              || 'Onbekend';
+                            return (
                             <div
                               key={contact.uid}
                               className="contact-row"
@@ -1648,16 +1654,16 @@ export default function ChatModals({
                                 textAlign: 'left',
                               }}
                             >
-                              <UserAvatar photoURL={contact.photoURL} displayName={getContactDisplayName(contact)} className="sm" decorative />
-                              <div style={{ minWidth: 0, flex: 1 }}>
-                                <div className="call-contact-name-responsive" style={{ fontSize: 14, fontWeight: 600 }}>{getContactDisplayName(contact)}</div>
-                                <div className="call-contact-email-responsive" style={{ fontSize: 12, color: 'var(--text3)' }}>{contact.email}</div>
+                              <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
+                              <div className="conv-info" style={{ flex: 1, minWidth: 0 }}>
+                                <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
+                                <div className="conv-preview call-contact-email-responsive">{contact.email || 'Geen e-mailadres'}</div>
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                 <button
                                   type="button"
                                   className="call-btn voice"
-                                  aria-label={`Bel ${getContactDisplayName(contact)}`}
+                                  aria-label={`Bel ${contactTitle}`}
                                   title="Bellen"
                                   onClick={() => (callContactFromRecent || callContact)(contact, false)}
                                 >
@@ -1666,7 +1672,7 @@ export default function ChatModals({
                                 <button
                                   type="button"
                                   className="call-btn video"
-                                  aria-label={`Videobel ${getContactDisplayName(contact)}`}
+                                  aria-label={`Videobel ${contactTitle}`}
                                   title="Videobellen"
                                   onClick={() => (callContactFromRecent || callContact)(contact, true)}
                                 >
@@ -1674,7 +1680,8 @@ export default function ChatModals({
                                 </button>
                               </div>
                             </div>
-                          ))
+                          );
+                          })
                         )}
                       </div>
                     </div>

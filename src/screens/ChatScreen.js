@@ -168,6 +168,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     await openConversation(conv);
     action?.();
   }
+
+  function openUnifiedContactProfile(contact) {
+    if (!contact) return;
+    setViewingContact(null);
+    setRenameValue(getContactNickname(contact.uid) || contact.displayName || '');
+    startChatWithContact(contact);
+    setShowContactProfile(true);
+  }
   function cancelMessageSelection() {
     setMessageSelectionMode(false);
     setSelectedMessageIds([]);
@@ -499,7 +507,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onRemindFriendRequest={remindFriendRequestById}
         onCancelFriendRequest={cancelFriendRequestById}
         onTogglePin={togglePin}
-        onViewContact={contact => { setViewingContact(contact); setRenameValue(getContactNickname(contact.uid) || contact.displayName || ''); }}
+        onViewContact={openUnifiedContactProfile}
         onStartChat={startChatWithContact} onCallContact={callContact}
         onRemoveContact={removeContact}
         onBlockContact={contact => setBlockingContact(contact)}

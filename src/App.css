@@ -395,7 +395,7 @@ body {
   box-shadow:
     0 22px 60px rgba(18, 12, 40, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  padding: 12px 14px 16px;
+  padding: 14px 16px 18px;
 }
 
 .pulse-sheet-header--sidebar-actions {
@@ -403,8 +403,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  min-height: 72px;
-  padding: 4px 6px 18px;
+  min-height: 76px;
+  padding: 6px 8px 20px;
 }
 
 .pulse-sheet-title--sidebar-actions {
@@ -412,7 +412,7 @@ body {
   left: 50%;
   transform: translateX(-50%);
   margin-left: 0;
-  font-size: 21px;
+  font-size: 22px;
   font-weight: 800;
   color: #21153a;
   letter-spacing: -0.03em;
@@ -426,9 +426,9 @@ body {
 }
 
 .pulse-sheet-close--sidebar-actions {
-  width: 60px;
-  height: 60px;
-  border-radius: 22px;
+  width: 62px;
+  height: 62px;
+  border-radius: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -442,11 +442,11 @@ body {
 .pulse-sheet-search {
   display: flex;
   align-items: center;
-  gap: 14px;
-  min-height: 70px;
-  border-radius: 28px;
-  padding: 0 24px;
-  margin: 0 6px 18px;
+  gap: 16px;
+  min-height: 72px;
+  border-radius: 30px;
+  padding: 0 26px;
+  margin: 0 8px 20px;
   color: rgba(42, 31, 74, 0.56);
   background: rgba(255, 255, 255, 0.9);
   box-shadow:
@@ -457,30 +457,38 @@ body {
   letter-spacing: -0.02em;
 }
 
+.pulse-sheet-search svg {
+  width: 24px;
+  height: 24px;
+  color: #21153a;
+}
+
 .pulse-sheet-list--sidebar-actions {
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(140, 122, 214, 0.14);
-  border-radius: 30px;
+  border-radius: 32px;
   overflow: hidden;
   box-shadow: 0 14px 30px rgba(74, 55, 148, 0.08);
 }
 
 .pulse-sheet--sidebar-actions .chat-header-menu-item {
-  min-height: 76px;
-  padding: 0 26px;
+  min-height: 78px;
+  padding: 0 28px;
   color: #251842;
   font-size: 18px;
   font-weight: 500;
-  gap: 18px;
+  gap: 20px;
   letter-spacing: -0.02em;
 }
 
 .pulse-sheet--sidebar-actions .chat-header-menu-item + .chat-header-menu-item {
-  border-top: 1px solid rgba(112, 92, 191, 0.12);
+  border-top: 1px solid rgba(112, 92, 191, 0.1);
 }
 
 .pulse-sheet--sidebar-actions .chat-header-menu-item svg {
   flex-shrink: 0;
+  width: 22px;
+  height: 22px;
   color: #6c63ff;
 }
 
@@ -507,10 +515,15 @@ body {
   }
 
   .pulse-sheet-search {
-    min-height: 62px;
+    min-height: 60px;
     padding: 0 20px;
     margin: 0 4px 16px;
     font-size: 16px;
+  }
+
+  .pulse-sheet-search svg {
+    width: 22px;
+    height: 22px;
   }
 
   .pulse-sheet-close--sidebar-actions {
@@ -524,9 +537,15 @@ body {
   }
 
   .pulse-sheet--sidebar-actions .chat-header-menu-item {
-    min-height: 68px;
+    min-height: 66px;
     padding: 0 22px;
     font-size: 16px;
+    gap: 16px;
+  }
+
+  .pulse-sheet--sidebar-actions .chat-header-menu-item svg {
+    width: 20px;
+    height: 20px;
   }
 }
 

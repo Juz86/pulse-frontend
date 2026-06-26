@@ -615,17 +615,17 @@ export default function ChatModals({
       {viewingSharedContact && (
           <aside className="chat-side-panel shared-contact-panel contact-profile-panel" aria-labelledby="shared-contact-title">
             <div className="contact-profile-topbar">
-              <button type="button" className="contact-profile-nav-btn" aria-label="Contact sluiten" onClick={() => setViewingSharedContact(null)}>
+              <button type="button" className="contact-profile-nav-btn" aria-label="Profiel sluiten" onClick={() => setViewingSharedContact(null)}>
                 <ArrowLeft size={20} aria-hidden="true" />
               </button>
-              <h2 id="shared-contact-title" className="contact-profile-heading">Contactpersoon</h2>
+              <h2 id="shared-contact-title" className="contact-profile-heading">Profiel</h2>
               <button
                 type="button"
                 className="contact-profile-edit-btn"
-                aria-label="Contact sluiten"
+                aria-label="Profiel sluiten"
                 onClick={() => setViewingSharedContact(null)}
               >
-                Sluit
+                Sluiten
               </button>
             </div>
 
@@ -678,7 +678,7 @@ export default function ChatModals({
                     disabled={friendReqLoading || friendReqSent || !viewingSharedContact.email}
                     onClick={() => sendFriendRequestToEmail(viewingSharedContact.email)}
                   >
-                    {friendReqSent ? 'Verzoek verzonden' : friendReqLoading ? 'Verzenden…' : 'Vriendschapsverzoek'}
+                    {friendReqSent ? 'Vriendschapsverzoek verzonden' : friendReqLoading ? 'Verzenden…' : 'Vriendschapsverzoek sturen'}
                   </button>
                 )}
               </div>

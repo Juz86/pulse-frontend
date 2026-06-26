@@ -266,16 +266,16 @@ body {
 .conv-item-swipe-actions {
   position: absolute;
   inset: 0 0 0 auto;
-  width: 52px;
+  width: 58px;
   display: flex;
   justify-content: center;
   align-items: center;
   pointer-events: none;
   opacity: 0;
-  transform: translateX(12px);
+  transform: translateX(8px);
   transition: opacity .18s ease, transform .18s ease;
   gap: 0;
-  padding: 0 8px;
+  padding: 0 10px 0 8px;
   z-index: 3;
   background: transparent;
 }
@@ -287,9 +287,9 @@ body {
 }
 
 .conv-swipe-action-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(129, 111, 204, 0.2);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -297,8 +297,10 @@ body {
   touch-action: manipulation;
   transition: filter .18s ease, transform .18s ease;
   border-radius: 50%;
-  flex: 0 0 36px;
-  box-shadow: none;
+  flex: 0 0 40px;
+  box-shadow:
+    0 10px 20px rgba(22, 16, 46, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .conv-swipe-more-btn {

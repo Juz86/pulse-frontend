@@ -2177,11 +2177,11 @@ font-family: 'Inter', sans-serif;
   display:flex;
   align-items:center;
   gap:6px;
-  padding:0;
-  border-radius:0;
-  background:transparent;
-  border:0;
-  box-shadow:none;
+  padding:7px;
+  border-radius:26px;
+  background:rgba(255,255,255,.72);
+  border:1px solid rgba(115,94,204,.10);
+  box-shadow:0 12px 28px rgba(22,16,46,.10);
 }
 .chat-header-action-btn {
   width:54px;
@@ -6362,8 +6362,8 @@ font-family: 'Inter', sans-serif;
   }
   .chat-header-call-pill {
     gap:6px;
-    padding:0;
-    border-radius:0;
+    padding:6px;
+    border-radius:22px;
   }
   .chat-header-action-btn {
     width:44px;
@@ -6525,8 +6525,8 @@ font-family: 'Inter', sans-serif;
   }
   .chat-header-call-pill {
     gap:4px;
-    padding:0;
-    border-radius:0;
+    padding:5px;
+    border-radius:20px;
   }
   .chat-header-action-btn {
     width:40px;

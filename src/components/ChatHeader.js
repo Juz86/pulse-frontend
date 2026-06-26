@@ -141,7 +141,9 @@ const ChatHeader = React.memo(function ChatHeader({
     <>
       <div className="chat-header">
         <button type="button" className="chat-header-back-btn" onClick={onBack} title="Terug" aria-label={totalUnread > 0 ? `Terug, ${totalUnread} ongelezen ${totalUnread === 1 ? 'bericht' : 'berichten'} in andere gesprekken` : 'Terug'} style={{ position: 'relative' }}>
-          <span aria-hidden="true">←</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
           {totalUnread > 0 && (
             <span aria-hidden="true" className="chat-header-back-badge">
               {totalUnread > 99 ? '99+' : totalUnread}

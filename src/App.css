@@ -266,7 +266,7 @@ body {
 .conv-item-swipe-actions {
   position: absolute;
   inset: 0 0 0 auto;
-  width: 92px;
+  width: 52px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -275,7 +275,7 @@ body {
   transform: translateX(12px);
   transition: opacity .18s ease, transform .18s ease;
   gap: 0;
-  padding: 0 10px 0 8px;
+  padding: 0 8px;
   z-index: 3;
   background: transparent;
 }
@@ -287,8 +287,8 @@ body {
 }
 
 .conv-swipe-action-btn {
-  width: 68px;
-  height: 68px;
+  width: 36px;
+  height: 36px;
   border: none;
   display: inline-flex;
   align-items: center;
@@ -297,7 +297,7 @@ body {
   touch-action: manipulation;
   transition: filter .18s ease, transform .18s ease;
   border-radius: 50%;
-  flex: 0 0 68px;
+  flex: 0 0 36px;
   box-shadow: none;
 }
 

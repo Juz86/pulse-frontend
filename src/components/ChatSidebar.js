@@ -783,7 +783,7 @@ export default function ChatSidebar({
             </button>
           )}
 
-          <div ref={moreActionsMenuRef}>
+          <div className="sidebar-footer-tab-slot" ref={moreActionsMenuRef}>
             <button
               type="button"
               className="sidebar-footer-tab sidebar-footer-tab-more"

@@ -2279,6 +2279,14 @@ font-family: 'Inter', sans-serif;
   cursor: pointer;
   transition: background .2s ease, transform .2s ease, color .2s ease;
 }
+.sidebar-footer-tab-slot {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+}
+.sidebar-footer-tab-slot .sidebar-footer-tab {
+  width: 100%;
+}
 .sidebar-footer-tab:hover {
   background: rgba(118, 94, 221, 0.08);
 }

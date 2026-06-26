@@ -5380,10 +5380,10 @@ font-family: 'Inter', sans-serif;
   margin-bottom:16px;
   max-height:min(22.5rem, 45vh);
   overflow-y:auto;
-  background:rgba(255,255,255,.9);
-  border:1px solid rgba(140,122,214,.14);
-  border-radius:28px;
-  box-shadow:0 14px 30px rgba(74,55,148,.08);
+  background:transparent;
+  border:none;
+  border-radius:0;
+  box-shadow:none;
 }
 .call-log-copy {
   flex:1;
@@ -6987,9 +6987,19 @@ font-family: 'Inter', sans-serif;
   padding:14px 18px;
   background:transparent;
   transition:.2s;
+  position:relative;
 }
 .call-log-row + .call-log-row {
-  border-top:1px solid rgba(112,92,191,.1);
+  border-top:none;
+}
+.call-log-row + .call-log-row::before {
+  content:'';
+  position:absolute;
+  top:0;
+  left:66px;
+  right:18px;
+  height:1px;
+  background:rgba(112,92,191,.1);
 }
 .call-log-row:hover {
   background:rgba(108,99,255,.045);

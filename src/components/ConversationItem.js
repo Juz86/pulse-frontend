@@ -133,16 +133,13 @@ function ConversationItemBase({
   return (
     <div
       className={`conv-item-swipe-shell ${isSwipedOpen ? 'swiped-open' : ''}`}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerCancel}
     >
       <div className="conv-item-swipe-actions" aria-hidden={!isSwipedOpen}>
         <button
           type="button"
           className="conv-swipe-action-btn conv-swipe-more-btn"
           aria-label={`Meer acties voor ${conv.name}`}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             closeSwipe();
@@ -155,6 +152,7 @@ function ConversationItemBase({
           type="button"
           className="conv-swipe-action-btn conv-swipe-delete-btn"
           aria-label={`Chat verwijderen van ${conv.name}`}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             closeSwipe();
@@ -169,6 +167,10 @@ function ConversationItemBase({
       role="button"
       tabIndex={0}
       aria-pressed={isActive}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
       onClick={handleOpen}
       onKeyDown={handleKeyDown}
       style={{ transform: `translateX(${swipeOffset}px)` }}

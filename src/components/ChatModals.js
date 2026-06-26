@@ -769,44 +769,86 @@ export default function ChatModals({
 
       {/* ── NIEUW GESPREK PANEEL ── */}
       {showNewChat && (
-          <aside className="chat-side-panel new-chat-panel" aria-labelledby="new-chat-title" aria-describedby="new-chat-description">
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setShowNewChat(false)}><span aria-hidden="true">✕</span></button>
-            <h2 id="new-chat-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><MagicEdit size={18} /></span> Nieuwe chat</h2>
-            <p id="new-chat-description" className="modal-sub">Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam</p>
-            <div className="search-row new-chat-search-row" style={{ marginBottom: searchErr || searchResult ? 10 : 18 }}>
-              <input className="form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={searchEmail} onChange={e => setSearchEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && searchUser()} />
-              <button type="button" className="btn-primary sm" onClick={searchUser}>Zoeken</button>
+        <div
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--new-chat"
+          onClick={() => { setShowNewChat(false); setSearchEmail(''); }}
+        >
+          <aside
+            className="pulse-sheet pulse-sheet--new-chat"
+            aria-labelledby="new-chat-title"
+            aria-describedby="new-chat-description"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--new-chat">
+              <div className="pulse-sheet-title pulse-sheet-title--new-chat">Nieuwe chat</div>
+              <button
+                type="button"
+                className="pulse-sheet-close pulse-sheet-close--new-chat"
+                aria-label="Sluiten"
+                onClick={() => { setShowNewChat(false); setSearchEmail(''); }}
+              >
+                <span aria-hidden="true">✕</span>
+              </button>
             </div>
-            {searchErr && <div className="auth-error" style={{ marginBottom: 14 }}>⚠️ {searchErr}</div>}
-            {searchResult && (
-              <div style={{ marginBottom: 18 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>Zoekresultaat</div>
-                <div className="search-result" onClick={() => startConversationWith(searchResult)}>
-                  <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" decorative />
-                  <div><div className="conv-name">{searchResult.displayName}</div><div className="conv-preview">{searchResult.email}</div></div>
-                </div>
+
+            <div className="new-chat-sheet-body">
+              <p id="new-chat-description" className="new-chat-sheet-sub">
+                Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam
+              </p>
+
+              <div className="new-chat-sheet-search" style={{ marginBottom: searchErr || searchResult ? 10 : 18 }}>
+                <input
+                  className="form-input"
+                  placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam"
+                  value={searchEmail}
+                  onChange={e => setSearchEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && searchUser()}
+                />
+                <button type="button" className="btn-primary" onClick={searchUser}>Zoeken</button>
               </div>
-            )}
-            {contacts.length > 0 && (
-              <>
-                <p className="modal-sub">Kies uit je contacten</p>
-                <div className="new-chat-contact-list">
-                  {filteredNewChatContacts.map(c => (
-                    <div key={c.uid} className="search-result" onClick={() => startConversationWith(c)}>
-                      <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" decorative />
-                      <div><div className="conv-name">{getContactDisplayName(c)}</div><div className="conv-preview">{c.email}</div></div>
-                    </div>
-                  ))}
-                  {filteredNewChatContacts.length === 0 && (
-                    <div style={{ fontSize: 13, color: 'var(--text3)', padding: '8px 2px' }}>
-                      Geen contacten die overeenkomen met je zoekopdracht.
-                    </div>
-                  )}
+
+              {searchErr && <div className="auth-error" style={{ marginBottom: 14 }}>⚠️ {searchErr}</div>}
+
+              {searchResult && (
+                <div className="new-chat-sheet-section">
+                  <div className="new-chat-sheet-kicker">Zoekresultaat</div>
+                  <div className="pulse-sheet-list pulse-sheet-list--new-chat">
+                    <button type="button" className="search-result new-chat-sheet-result" onClick={() => startConversationWith(searchResult)}>
+                      <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" decorative />
+                      <div>
+                        <div className="conv-name">{searchResult.displayName}</div>
+                        <div className="conv-preview">{searchResult.email}</div>
+                      </div>
+                    </button>
+                  </div>
                 </div>
-              </>
-            )}
-            <button type="button" className="btn-secondary" style={{ marginTop: 'auto' }} onClick={() => setShowNewChat(false)}>Sluiten</button>
+              )}
+
+              {contacts.length > 0 && (
+                <div className="new-chat-sheet-section">
+                  <div className="new-chat-sheet-kicker">Kies uit je contacten</div>
+                  <div className="pulse-sheet-list pulse-sheet-list--new-chat new-chat-contact-list">
+                    {filteredNewChatContacts.map(c => (
+                      <button key={c.uid} type="button" className="search-result new-chat-sheet-result" onClick={() => startConversationWith(c)}>
+                        <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" decorative />
+                        <div>
+                          <div className="conv-name">{getContactDisplayName(c)}</div>
+                          <div className="conv-preview">{c.email}</div>
+                        </div>
+                      </button>
+                    ))}
+                    {filteredNewChatContacts.length === 0 && (
+                      <div className="new-chat-sheet-empty">
+                        Geen contacten die overeenkomen met je zoekopdracht.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </aside>
+        </div>
       )}
 
       {/* ── GROEP AANMAKEN PANEEL ── */}

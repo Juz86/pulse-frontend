@@ -686,7 +686,7 @@ export default function ChatSidebar({
               </button>
               <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
                 <Message size={18} aria-hidden="true" />
-                <span>{selectionMode ? 'Chats selecteren stoppen' : 'Chats selecteren'}</span>
+                <span>{selectionMode ? 'Selectie stoppen' : 'Chats selecteren'}</span>
               </button>
               <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { closeMoreActionsSheet(); onToggleDnd(); }}>
                 {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}

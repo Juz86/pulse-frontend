@@ -457,11 +457,16 @@ body {
   letter-spacing: -0.02em;
 }
 
+.pulse-sheet--sidebar-actions .chat-header-menu-item > span:first-of-type {
+  flex: 1 1 auto;
+}
+
 .pulse-sheet--sidebar-actions .chat-header-menu-item + .chat-header-menu-item {
   border-top: 1px solid rgba(112, 92, 191, 0.1);
 }
 
 .pulse-sheet--sidebar-actions .chat-header-menu-item svg {
+  flex: 0 0 22px;
   flex-shrink: 0;
   width: 22px;
   height: 22px;

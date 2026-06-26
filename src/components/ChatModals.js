@@ -134,9 +134,7 @@ export default function ChatModals({
   sendFriendRequestToEmail,
 
   // contact profile
-  viewingContact, setViewingContact,
   findConvWithUid, setConvLabel, convLabels,
-  getContactNickname,
 
   // confirm dialog
   confirmDialog, setConfirmDialog,
@@ -381,21 +379,18 @@ export default function ChatModals({
   function openStarredFromProfile() {
     setProfileClosing(false);
     setShowContactProfile(false);
-    setViewingContact(null);
     setShowStarredMsgs(true);
   }
 
   function openChatSearchFromProfile() {
     setProfileClosing(false);
     setShowContactProfile(false);
-    setViewingContact(null);
     setShowChatSearch?.(true);
   }
 
   function openSelectionFromProfile() {
     setProfileClosing(false);
     setShowContactProfile(false);
-    setViewingContact(null);
     onEnterMessageSelection?.();
   }
 
@@ -406,14 +401,12 @@ export default function ChatModals({
   function clearChatFromProfile() {
     setProfileClosing(false);
     setShowContactProfile(false);
-    setViewingContact(null);
     onClearChat?.();
   }
 
   function deleteChatFromProfile() {
     setProfileClosing(false);
     setShowContactProfile(false);
-    setViewingContact(null);
     onDeleteChat?.();
   }
 
@@ -650,66 +643,6 @@ export default function ChatModals({
                     {friendReqSent ? '✓ Verzoek verzonden' : friendReqLoading ? 'Verzenden…' : 'Vriendschapsverzoek'}
                   </button>
               }
-            </div>
-          </aside>
-      )}
-
-      {/* ── CONTACT PROFIEL ── */}
-      {viewingContact && (
-          <aside className="chat-side-panel contact-list-profile-panel" aria-labelledby="contact-list-profile-title">
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setViewingContact(null)}><span aria-hidden="true">✕</span></button>
-            <div className="panel-header-row">
-              <h2 id="contact-list-profile-title" className="modal-title" style={{ margin: 0 }}><span className="modal-title-icon" aria-hidden="true"><User size={18} /></span> Profiel</h2>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-              {viewingContact.photoURL
-                ? <img src={viewingContact.photoURL} alt={getContactDisplayName(viewingContact)} className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" />
-                : <div className="profile-avatar-big">{getInitials(getContactDisplayName(viewingContact))}</div>
-              }
-            </div>
-            <div className="form-group">
-              <label className="form-label">Naam</label>
-              <div style={{ position: 'relative' }}>
-                <input className="form-input" value={renameValue} onChange={e => setRenameValue(e.target.value)} placeholder={viewingContact.displayName} style={{ paddingRight: '36px' }} />
-                <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }}><MagicEdit size={22} /></span>
-              </div>
-            </div>
-            <div className="form-group">
-              <label className="form-label">E-mailadres</label>
-              <input className="form-input" value={viewingContact.email || ''} disabled style={{ opacity: .7 }} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Status</label>
-              <div className={`profile-status-badge ${onlineUsers.has(viewingContact.uid) && !inactiveUsers.has(viewingContact.uid) ? 'online' : onlineUsers.has(viewingContact.uid) ? 'inactive' : 'offline'}`}>
-                <span className="profile-status-dot" />
-                {onlineUsers.has(viewingContact.uid) && !inactiveUsers.has(viewingContact.uid) ? 'Online' : onlineUsers.has(viewingContact.uid) ? 'Afwezig' : 'Offline'}
-              </div>
-            </div>
-            {(() => {
-              const dmConv = findConvWithUid(viewingContact.uid);
-              if (!dmConv) return null;
-              return (
-                <div className="form-group">
-                  <label className="form-label">Relatie</label>
-                  <div className="label-chip-row">
-                    {['familie', 'vrienden'].map(lbl => (
-                      <button key={lbl} type="button" onClick={() => setConvLabel(dmConv.id, convLabels[dmConv.id] === lbl ? null : lbl)}
-                        className={`label-chip${convLabels[dmConv.id] === lbl ? ' active' : ''}`}>
-                        {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
-            <div className="modal-actions" style={{ justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'nowrap' }}>
-              <div className="panel-header-actions" style={{ marginRight: 8 }}>
-                <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${getContactDisplayName(viewingContact)}`} title="Berichten met ster" onClick={openStarredFromProfile}>
-                  <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
-                </button>
-                <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${getContactDisplayName(viewingContact)}`} onClick={() => { setSharingContact(viewingContact); setViewingContact(null); }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
-              </div>
-                <button type="button" className="btn-primary" style={profilePanelSaveButtonStyle} onClick={() => { saveContactNickname(viewingContact.uid, renameValue); setContacts(prev => [...prev]); setViewingContact(null); }}>Opslaan</button>
             </div>
           </aside>
       )}

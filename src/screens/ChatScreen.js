@@ -169,13 +169,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     action?.();
   }
 
-  function openUnifiedContactProfile(contact) {
-    if (!contact) return;
-    setViewingContact(null);
-    setRenameValue(getContactNickname(contact.uid) || contact.displayName || '');
-    startChatWithContact(contact);
-    setShowContactProfile(true);
-  }
   function cancelMessageSelection() {
     setMessageSelectionMode(false);
     setSelectedMessageIds([]);
@@ -291,7 +284,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     sentFriendRequests, showFriendRequestsPanel, setShowFriendRequestsPanel,
     renamingContact, setRenamingContact, sharingContact, setSharingContact,
     shareRecipients, setShareRecipients, viewingSharedContact, setViewingSharedContact,
-    viewingContact, setViewingContact, renameValue, setRenameValue,
+    renameValue, setRenameValue,
     loadContacts, loadFriendRequests, loadBlockedContacts,
     getContactNickname, saveContactNickname, getContactDisplayName, findConvWithUid,
     addContact, sendFriendRequestToEmail, remindPendingFriendRequest, cancelPendingFriendRequest, acceptFriendRequest, declineFriendRequest,
@@ -432,13 +425,27 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const handleCloseReactionPicker = useCallback(() => {
     setReactionPickerMsgId(null);
   }, []);
+  const openUnifiedContactProfile = useCallback((contact) => {
+    if (!contact) return;
+    setRenameValue(getContactNickname(contact.uid) || contact.displayName || '');
+    startChatWithContact(contact);
+    setShowContactProfile(true);
+  }, [getContactNickname, setRenameValue, startChatWithContact]);
   const handleMessageStartCall = useCallback(({ toUid, convId, name, isVideo }) => {
     initiateCallFromConv({ id: convId, members: [user.uid, toUid], memberNames: { [toUid]: name } }, isVideo);
   }, [initiateCallFromConv, user.uid]);
   const handleViewSharedContact = useCallback((sc) => {
+    const existingContact = contacts.find((contact) =>
+      (sc?.uid && contact.uid === sc.uid)
+      || (!!sc?.email && !!contact.email && contact.email.toLowerCase() === sc.email.toLowerCase())
+    );
+    if (existingContact) {
+      openUnifiedContactProfile(existingContact);
+      return;
+    }
     setFriendReqSent(false);
     setViewingSharedContact({ ...sc, isAlreadyContact: contacts.some(c => c.uid === sc?.uid) });
-  }, [contacts, setFriendReqSent, setViewingSharedContact]);
+  }, [contacts, openUnifiedContactProfile, setFriendReqSent, setViewingSharedContact]);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   function sendContactCard(toContact, sharedContact) {
@@ -693,7 +700,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onlineUsers={onlineUsers} inactiveUsers={inactiveUsers}
         friendReqLoading={friendReqLoading} friendReqSent={friendReqSent}
         sendFriendRequestToEmail={sendFriendRequestToEmail}
-        viewingContact={viewingContact} setViewingContact={setViewingContact}
         findConvWithUid={findConvWithUid} setConvLabel={setConvLabel} convLabels={convLabels}
         getContactNickname={getContactNickname}
         confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog}

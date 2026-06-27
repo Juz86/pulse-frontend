@@ -431,9 +431,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     startChatWithContact(contact);
     setShowContactProfile(true);
   }, [getContactNickname, setRenameValue, startChatWithContact]);
-  const handleMessageStartCall = useCallback(({ toUid, convId, name, isVideo }) => {
-    initiateCallFromConv({ id: convId, members: [user.uid, toUid], memberNames: { [toUid]: name } }, isVideo);
-  }, [initiateCallFromConv, user.uid]);
   const handleViewSharedContact = useCallback((sc) => {
     const existingContact = contacts.find((contact) =>
       (sc?.uid && contact.uid === sc.uid)
@@ -473,6 +470,21 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     if (conv.isGroup) return null;
     return contactsByUid.get(getOtherUid(conv))?.photoURL || null;
   }, [contactsByUid, getOtherUid]);
+  const handleMessageStartCall = useCallback(({ toUid, convId, name, isVideo }) => {
+    const currentConv = activeConv?.id === convId ? activeConv : null;
+    const effectiveUid = currentConv ? (getOtherUid(currentConv) || toUid) : toUid;
+    const contact = contactsByUid.get(effectiveUid);
+    if (contact) {
+      callContact(contact, isVideo);
+      return;
+    }
+    const effectiveName = currentConv ? getConvName(currentConv) : name;
+    initiateCallFromConv({
+      id: convId,
+      members: [user.uid, effectiveUid],
+      memberNames: { [effectiveUid]: effectiveName },
+    }, isVideo);
+  }, [activeConv, callContact, contactsByUid, getConvName, getOtherUid, initiateCallFromConv, user.uid]);
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (

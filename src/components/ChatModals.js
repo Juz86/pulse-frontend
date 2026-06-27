@@ -740,31 +740,56 @@ export default function ChatModals({
 
       {/* ── CONTACT TOEVOEGEN MODAL ── */}
       {showAddContact && (
-          <aside className="chat-side-panel add-contact-panel" aria-labelledby="add-contact-title" aria-describedby="add-contact-description">
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); clearPendingFriendRequestState(); }}><span aria-hidden="true">✕</span></button>
-            <h2 id="add-contact-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Vriend uitnodigen</h2>
-            <p id="add-contact-description" className="modal-sub">Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam</p>
-            <div className="form-group">
-              <label className="form-label">E-mailadres of gebruikersnaam</label>
-              <input className="form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={contactEmail} onChange={e => { setContactEmail(e.target.value); clearPendingFriendRequestState(); }} onKeyDown={e => e.key === 'Enter' && addContact()} />
+        <div
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--add-contact"
+          onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); clearPendingFriendRequestState(); }}
+        >
+          <aside
+            className="pulse-sheet pulse-sheet--add-contact"
+            aria-labelledby="add-contact-title"
+            aria-describedby="add-contact-description"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--add-contact">
+              <div className="pulse-sheet-title pulse-sheet-title--add-contact">Nieuw contact</div>
+              <button
+                type="button"
+                className="pulse-sheet-close pulse-sheet-close--add-contact"
+                aria-label="Sluiten"
+                onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); clearPendingFriendRequestState(); }}
+              >
+                <span aria-hidden="true">✕</span>
+              </button>
             </div>
-            <div className="form-group">
-              <label className="form-label">Relatie</label>
-              <div className="label-chip-row">
-                {['familie', 'vrienden'].map(lbl => (
-                  <button key={lbl} type="button" onClick={() => setContactRelation(contactRelation === lbl ? null : lbl)}
-                    className={`label-chip${contactRelation === lbl ? ' active' : ''}`}>
-                    {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
-                  </button>
-                ))}
+
+            <div className="add-contact-sheet-body">
+              <p id="add-contact-description" className="new-chat-sheet-sub">
+                Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam
+              </p>
+              <div className="form-group">
+                <label className="form-label">E-mailadres of gebruikersnaam</label>
+                <input className="form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={contactEmail} onChange={e => { setContactEmail(e.target.value); clearPendingFriendRequestState(); }} onKeyDown={e => e.key === 'Enter' && addContact()} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Relatie</label>
+                <div className="label-chip-row">
+                  {['familie', 'vrienden'].map(lbl => (
+                    <button key={lbl} type="button" onClick={() => setContactRelation(contactRelation === lbl ? null : lbl)}
+                      className={`label-chip${contactRelation === lbl ? ' active' : ''}`}>
+                      {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
+              <div className="modal-actions add-contact-sheet-actions">
+                <button type="button" className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); clearPendingFriendRequestState(); }}>Sluiten</button>
+                <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={addContact} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>
               </div>
             </div>
-            {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
-            <div className="modal-actions">
-              <button type="button" className="btn-secondary" onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); clearPendingFriendRequestState(); }}>Sluiten</button>
-              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={addContact} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>
-            </div>
           </aside>
+        </div>
       )}
 
       {/* ── NIEUW GESPREK PANEEL ── */}

@@ -41,6 +41,7 @@ function ConversationItemBase({
   const conversationPreview = buildConversationPreviewPresentation(conv);
   const callPreviewText = conv.lastCallDirection ? callPreview(conv, currentUid) : '';
   const isMissedCallPreview = callPreviewText.startsWith('Gemiste ');
+  const CallPreviewIcon = conv.lastCallIsVideo ? Video : Phone;
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -199,11 +200,9 @@ function ConversationItemBase({
             </span>
           ) : conv.lastCallDirection ? (
             <span className="conv-call-preview">
-              {isMissedCallPreview && (
-                <span className="conv-call-missed-icon" aria-hidden="true">
-                  {conv.lastCallIsVideo ? <Video size={13} /> : <Phone size={13} />}
-                </span>
-              )}
+              <span className={`conv-call-icon${isMissedCallPreview ? ' conv-call-missed-icon' : ''}`} aria-hidden="true">
+                <CallPreviewIcon size={13} />
+              </span>
               <span>{callPreviewText}</span>
             </span>
           ) : (

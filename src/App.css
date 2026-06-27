@@ -2389,6 +2389,14 @@ font-family: 'Inter', sans-serif;
   white-space: nowrap;
 }
 
+.conv-call-icon {
+  color: var(--text3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .conv-call-missed-icon {
   color: var(--danger);
   display: inline-flex;

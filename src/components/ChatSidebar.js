@@ -682,6 +682,10 @@ export default function ChatSidebar({
               </button>
             </div>
             <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewChat?.(); }}>
+                <Message size={18} aria-hidden="true" />
+                <span>Nieuwe chat</span>
+              </button>
               <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); onShowAddContact(); }}>
                 <Plus size={18} aria-hidden="true" />
                 <span>Nieuw contact</span>
@@ -705,12 +709,6 @@ export default function ChatSidebar({
                 {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
                 <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
               </button>
-              {callsAvailable && (
-                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onShowCallModal(); }}>
-                  <Phone size={18} aria-hidden="true" />
-                  <span>Oproepen</span>
-                </button>
-              )}
             </div>
           </div>
         </div>

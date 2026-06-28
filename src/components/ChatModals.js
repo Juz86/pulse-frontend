@@ -1105,9 +1105,9 @@ export default function ChatModals({
                   </div>
                 )}
                 {profileTab === 'account' && (
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+                  <div className="profile-account-view">
+                    <div className="profile-account-hero">
+                      <div className="profile-account-hero-stack">
                         <div className="profile-photo-wrap" onClick={() => photoInputRef.current?.click()}>
                           {photoPreview
                             ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
@@ -1115,8 +1115,7 @@ export default function ChatModals({
                           }
                           <div className="profile-photo-overlay"><Camera size={16} /></div>
                         </div>
-                        <button type="button" onClick={() => setShowAvatarBuilder(true)}
-                          style={{ padding: '7px 16px', borderRadius: 10, border: '1px solid rgba(108,99,255,0.4)', background: 'rgba(108,99,255,0.1)', color: 'var(--accent)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                        <button type="button" className="profile-account-avatar-btn" onClick={() => setShowAvatarBuilder(true)}>
                           🎨 Avatar maken
                         </button>
                       </div>
@@ -1127,7 +1126,7 @@ export default function ChatModals({
                       <input className="form-input" placeholder="Jouw naam" value={newName} onChange={e => setNewName(e.target.value)} />
                     </div>
                     {isChildAccount && (
-                      <div className="form-group" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                      <div className="form-group profile-account-section">
                         <label className="form-label">Gebruikersnaam</label>
                         <input
                           className="form-input"
@@ -1143,13 +1142,13 @@ export default function ChatModals({
                       </div>
                     )}
                     {isParent && (
-                      <div className="form-group" style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                      <div className="form-group profile-account-section">
                         <label className="form-label">E-mailadres</label>
                         <input className="form-input" type="email" value={user.email} disabled style={{ opacity: .5 }} />
                       </div>
                     )}
                     {!user.email?.endsWith('@pulse.internal') && (
-                      <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                      <div className="profile-account-section">
                         <label className="form-label" style={{ marginBottom: '10px', display: 'block' }}>Wachtwoord wijzigen</label>
                         <div className="form-group">
                           <div style={{ position: 'relative' }}>
@@ -1173,7 +1172,7 @@ export default function ChatModals({
                         {passwordMsg && <div style={{ fontSize: '12px', marginTop: '6px', color: passwordMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{passwordMsg}</div>}
                       </div>
                     )}
-                    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '8px' }}>
+                    <div className="profile-account-section profile-account-save">
                       {profileMsg && <div style={{ fontSize: '12px', marginBottom: '10px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
                       <button type="button" className="btn-primary" style={{ width: '100%' }}
                         disabled={profileLoading}

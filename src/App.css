@@ -4786,6 +4786,83 @@ font-family: 'Inter', sans-serif;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.profile-account-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.profile-account-hero {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.profile-account-hero-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.profile-account-avatar-btn {
+  min-height: 38px;
+  padding: 0 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(127, 111, 255, 0.2);
+  background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(244,239,255,.92));
+  color: #6f5ef0;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(106, 87, 180, 0.08);
+}
+.profile-account-section {
+  border-top: 1px solid rgba(140, 122, 214, 0.12);
+  padding-top: 16px;
+}
+.profile-account-save {
+  margin-top: 8px;
+}
+.profile-account-view .form-group {
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.profile-account-view .form-label {
+  color: #8a80aa;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.profile-account-view .form-input {
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(244,239,255,.94));
+  border: 1px solid rgba(140, 122, 214, 0.14);
+  border-radius: 18px;
+  color: #241741;
+  box-shadow: 0 10px 22px rgba(106, 87, 180, 0.08);
+}
+.profile-account-view .form-input:hover {
+  border-color: rgba(127, 111, 255, 0.22);
+}
+.profile-account-view .form-input:focus {
+  border-color: #7f6fff;
+  box-shadow: 0 0 0 3px rgba(127, 111, 255, 0.14), 0 10px 22px rgba(106, 87, 180, 0.1);
+}
+.profile-account-view .form-input::placeholder {
+  color: #9087ab;
+}
+.profile-account-view .btn-secondary {
+  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(244,239,255,.94));
+  border: 1px solid rgba(140, 122, 214, 0.14);
+  color: #31244f;
+  box-shadow: 0 12px 24px rgba(106, 87, 180, 0.08);
+}
+.profile-account-view .btn-secondary:hover {
+  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,242,255,.98));
+  border-color: rgba(127, 111, 255, 0.22);
+  color: #241741;
+  box-shadow: 0 16px 30px rgba(106, 87, 180, 0.1);
+}
+.profile-account-view .btn-primary {
+  box-shadow: 0 14px 28px rgba(106, 87, 180, 0.18);
+}
 
 /* Mobiel: sidebar wordt een rij bovenaan */
 @media (max-width:620px) {

@@ -639,19 +639,25 @@ export default function ChatModals({
 
       {/* ── GEDEELD CONTACT PROFIEL ── */}
       {viewingSharedContact && (
-          <aside className="chat-side-panel shared-contact-panel contact-profile-panel" aria-labelledby="shared-contact-title">
-            <div className="contact-profile-topbar">
-              <button type="button" className="contact-profile-nav-btn" aria-label="Profiel sluiten" onClick={() => setViewingSharedContact(null)}>
-                <ArrowLeft size={20} aria-hidden="true" />
-              </button>
-              <h2 id="shared-contact-title" className="contact-profile-heading">Profiel</h2>
+        <div
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--shared-contact"
+          onClick={() => setViewingSharedContact(null)}
+        >
+          <aside
+            className="pulse-sheet pulse-sheet--shared-contact shared-contact-panel contact-profile-panel"
+            aria-labelledby="shared-contact-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--shared-contact">
+              <div className="pulse-sheet-title pulse-sheet-title--shared-contact">Profiel</div>
               <button
                 type="button"
-                className="contact-profile-edit-btn"
+                className="pulse-sheet-close pulse-sheet-close--shared-contact"
                 aria-label="Profiel sluiten"
                 onClick={() => setViewingSharedContact(null)}
               >
-                Sluiten
+                <span aria-hidden="true">✕</span>
               </button>
             </div>
 
@@ -659,7 +665,7 @@ export default function ChatModals({
               <div className="contact-profile-avatar-shell">
                 <div className="profile-avatar-big contact-profile-avatar">{getInitials(viewingSharedContact.name || '')}</div>
               </div>
-              <div className="contact-profile-name">{viewingSharedContact.name || 'Onbekend contact'}</div>
+              <div id="shared-contact-title" className="contact-profile-name">{viewingSharedContact.name || 'Onbekend contact'}</div>
               {viewingSharedContact.email && <div className="contact-profile-subtitle">{viewingSharedContact.email}</div>}
               <div className={`profile-status-badge contact-profile-status ${viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid) && !inactiveUsers.has(viewingSharedContact.uid) ? 'online' : viewingSharedContact.uid && onlineUsers.has(viewingSharedContact.uid) ? 'inactive' : 'offline'}`}>
                 <span className="profile-status-dot" />
@@ -710,6 +716,7 @@ export default function ChatModals({
               </div>
             </section>
           </aside>
+        </div>
       )}
 
       {/* ── BEVESTIGINGSDIALOOG ── */}
@@ -977,11 +984,17 @@ export default function ChatModals({
 
       {/* ── PROFIEL MODAL ── */}
       {showProfile && (
+        <div
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--settings"
+          onClick={() => setShowProfile(false)}
+        >
           <aside
-            className="profile-modal-box profile-side-panel"
+            className="pulse-sheet pulse-sheet--settings profile-modal-box profile-side-panel"
             aria-labelledby="profile-settings-title"
             aria-describedby="profile-settings-description"
+            onClick={(e) => e.stopPropagation()}
           >
+            <div className="pulse-sheet-handle" aria-hidden="true" />
             <div className="profile-modal-header">
               {profileTab !== 'overview' ? (
                 <button
@@ -1378,6 +1391,7 @@ export default function ChatModals({
               </div>
             </div>
           </aside>
+        </div>
       )}
 
       {/* ── CONTACTPROFIEL PANEEL ── */}

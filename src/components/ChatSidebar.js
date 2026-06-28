@@ -705,7 +705,7 @@ export default function ChatSidebar({
                 <Message size={18} aria-hidden="true" />
                 <span>{selectionMode ? 'Selectie stoppen' : 'Chats selecteren'}</span>
               </button>
-              <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { closeMoreActionsSheet(); onToggleDnd(); }}>
+              <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { onToggleDnd(); }}>
                 {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
                 <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
               </button>

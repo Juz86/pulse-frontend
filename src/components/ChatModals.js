@@ -481,42 +481,60 @@ export default function ChatModals({
 
       {/* ── CONTACTPERSOON DELEN ── */}
       {sharingContact && (
-          <aside className="chat-side-panel share-contact-panel" aria-labelledby="share-contact-title">
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setSharingContact(null); setShareRecipients([]); }}><span aria-hidden="true">✕</span></button>
-            <h2 id="share-contact-title" className="modal-title share-contact-title-responsive" style={{ fontSize: '16px' }}><span className="modal-title-icon" aria-hidden="true"><Share size={18} /></span> Contactpersoon delen</h2>
-            <div style={{ marginBottom: '12px', padding: '10px 14px', borderRadius: '10px', background: 'var(--surface2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div className="avatar sm">{getInitials(getContactDisplayName(sharingContact))}</div>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '14px' }}>{getContactDisplayName(sharingContact)}</div>
-                <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{sharingContact.email}</div>
+        <div
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--share-contact"
+          onClick={() => { setSharingContact(null); setShareRecipients([]); }}
+        >
+          <aside
+            className="pulse-sheet pulse-sheet--share-contact share-contact-panel"
+            aria-labelledby="share-contact-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--share-contact">
+              <div id="share-contact-title" className="pulse-sheet-title pulse-sheet-title--share-contact">Contactpersoon delen</div>
+              <button type="button" className="pulse-sheet-close pulse-sheet-close--share-contact" aria-label="Sluiten" onClick={() => { setSharingContact(null); setShareRecipients([]); }}><span aria-hidden="true">✕</span></button>
+            </div>
+            <div className="share-contact-sheet-body">
+              <div className="new-chat-sheet-section">
+                <div className="new-chat-sheet-kicker">Te delen contact</div>
+                <div className="share-contact-selected-card">
+                  <div className="avatar sm">{getInitials(getContactDisplayName(sharingContact))}</div>
+                  <div className="share-contact-selected-copy">
+                    <div className="share-contact-title-responsive">{getContactDisplayName(sharingContact)}</div>
+                    <div className="conv-preview">{sharingContact.email}</div>
+                  </div>
+                </div>
+              </div>
+              <div className="new-chat-sheet-section">
+                <div className="new-chat-sheet-kicker">Stuur naar</div>
+                <div className="pulse-sheet-list pulse-sheet-list--new-chat share-contact-list">
+                  {contacts.filter(c => c.uid !== sharingContact.uid).map(c => {
+                    const selected = shareRecipients.includes(c.uid);
+                    return (
+                      <button key={c.uid} type="button" className={`search-result new-chat-sheet-result share-contact-row${selected ? ' selected' : ''}`}
+                        onClick={() => setShareRecipients(prev => prev.includes(c.uid) ? prev.filter(id => id !== c.uid) : [...prev, c.uid])}>
+                        <div className="avatar sm">{getInitials(getContactDisplayName(c))}</div>
+                        <div className="share-contact-selected-copy">
+                          <div className="conv-name share-contact-title-responsive">{getContactDisplayName(c)}</div>
+                          <div className="conv-preview">{c.email}</div>
+                        </div>
+                        {selected && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="modal-actions add-contact-sheet-actions">
+                <button type="button" className="btn-secondary" onClick={() => { setSharingContact(null); setShareRecipients([]); }}>Sluiten</button>
+                <button type="button" className="btn-primary" disabled={shareRecipients.length === 0}
+                  onClick={() => { shareRecipients.forEach(uid => { const c = contacts.find(x => x.uid === uid); if (c) sendContactCard(c, sharingContact); }); setSharingContact(null); setShareRecipients([]); }}>
+                  Versturen{shareRecipients.length > 1 ? ` (${shareRecipients.length})` : ''}
+                </button>
               </div>
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--text3)', marginBottom: '10px' }}>Stuur naar:</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '260px', overflowY: 'auto' }}>
-              {contacts.filter(c => c.uid !== sharingContact.uid).map(c => {
-                const selected = shareRecipients.includes(c.uid);
-                return (
-                  <button key={c.uid} type="button" className="contact-row"
-                    style={{ background: selected ? 'var(--accent-soft, rgba(108,99,255,.15))' : 'none', border: selected ? '1px solid var(--accent)' : '1px solid var(--border)', borderRadius: '10px', padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text)', textAlign: 'left' }}
-                    onClick={() => setShareRecipients(prev => prev.includes(c.uid) ? prev.filter(id => id !== c.uid) : [...prev, c.uid])}>
-                    <div className="avatar sm">{getInitials(getContactDisplayName(c))}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 500, fontSize: '14px' }}>{getContactDisplayName(c)}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--text3)' }}>{c.email}</div>
-                    </div>
-                    {selected && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="modal-actions" style={{ marginTop: '14px' }}>
-              <button type="button" className="btn-secondary" onClick={() => { setSharingContact(null); setShareRecipients([]); }}>Sluiten</button>
-              <button type="button" className="btn-primary" disabled={shareRecipients.length === 0}
-                onClick={() => { shareRecipients.forEach(uid => { const c = contacts.find(x => x.uid === uid); if (c) sendContactCard(c, sharingContact); }); setSharingContact(null); setShareRecipients([]); }}>
-                Versturen{shareRecipients.length > 1 ? ` (${shareRecipients.length})` : ''}
-              </button>
-            </div>
           </aside>
+        </div>
       )}
 
       {/* ── VRIENDSCHAPSVERZOEKEN ── */}
@@ -721,19 +739,22 @@ export default function ChatModals({
 
       {/* ── BEVESTIGINGSDIALOOG ── */}
       {confirmDialog && (
-        <div className="modal-overlay" onClick={() => setConfirmDialog(null)}>
-          <div
-            className={`modal-box confirm-dialog-modal${confirmDialog.type === 'clear-chat' ? ' confirm-dialog-modal--clear-chat' : ''}`}
+        <div className="pulse-sheet-backdrop pulse-sheet-backdrop--confirm-dialog" onClick={() => setConfirmDialog(null)}>
+          <aside
+            className={`pulse-sheet pulse-sheet--confirm-dialog confirm-dialog-modal${confirmDialog.type === 'clear-chat' ? ' confirm-dialog-modal--clear-chat' : ''}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-dialog-title"
             aria-describedby="confirm-dialog-description"
             onClick={e => e.stopPropagation()}
           >
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setConfirmDialog(null)}><span aria-hidden="true">✕</span></button>
-            <h2 id="confirm-dialog-title" className="modal-title confirm-dialog-title">{confirmDialog.title || 'Bevestiging'}</h2>
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--confirm-dialog">
+              <div id="confirm-dialog-title" className="pulse-sheet-title pulse-sheet-title--confirm-dialog">{confirmDialog.title || 'Bevestiging'}</div>
+              <button type="button" className="pulse-sheet-close pulse-sheet-close--confirm-dialog" aria-label="Sluiten" onClick={() => setConfirmDialog(null)}><span aria-hidden="true">✕</span></button>
+            </div>
             {confirmDialog.message && (
-              <p id="confirm-dialog-description" style={{ color: 'var(--text)', fontSize: '15px', marginBottom: '24px', lineHeight: '1.5' }}>
+              <p id="confirm-dialog-description" className="confirm-dialog-description">
                 {confirmDialog.message}
               </p>
             )}
@@ -767,7 +788,7 @@ export default function ChatModals({
                 <span>{confirmDialog.confirmLabel || 'Verwijderen'}</span>
               </button>
             </div>
-          </div>
+          </aside>
         </div>
       )}
 

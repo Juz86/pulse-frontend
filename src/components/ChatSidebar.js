@@ -89,6 +89,7 @@ export default function ChatSidebar({
   const sidebarRef = useRef(null);
   const sidebarHeaderRef = useRef(null);
   const sidebarFooterRef = useRef(null);
+  const sidebarFooterTabbarRef = useRef(null);
   const [contactMenu, setContactMenu] = useState(null);
   const [convMenu, setConvMenu]       = useState(null); // { conv, otherUid, direction, top, left }
   const [convActionsSheet, setConvActionsSheet] = useState(null); // { conv, otherUid }
@@ -214,15 +215,17 @@ export default function ChatSidebar({
   useEffect(() => {
     const root = document.documentElement;
     const updateSidebarSheetBounds = () => {
-      if (!sidebarRef.current || !sidebarHeaderRef.current || !sidebarFooterRef.current) return;
+      if (!sidebarRef.current || !sidebarHeaderRef.current || !sidebarFooterRef.current || !sidebarFooterTabbarRef.current) return;
       const sidebarRect = sidebarRef.current.getBoundingClientRect();
       const headerRect = sidebarHeaderRef.current.getBoundingClientRect();
       const footerRect = sidebarFooterRef.current.getBoundingClientRect();
+      const footerTabbarRect = sidebarFooterTabbarRef.current.getBoundingClientRect();
 
       root.style.setProperty('--sidebar-sheet-left', `${Math.round(sidebarRect.left)}px`);
       root.style.setProperty('--sidebar-sheet-right', `${Math.round(sidebarRect.right)}px`);
       root.style.setProperty('--sidebar-sheet-top', `${Math.round(headerRect.bottom)}px`);
       root.style.setProperty('--sidebar-sheet-bottom', `${Math.round(footerRect.top)}px`);
+      root.style.setProperty('--sidebar-sheet-anchor-bottom', `${Math.round(footerTabbarRect.top)}px`);
     };
 
     updateSidebarSheetBounds();
@@ -235,6 +238,7 @@ export default function ChatSidebar({
       resizeObserver.observe(sidebarRef.current);
       resizeObserver.observe(sidebarHeaderRef.current);
       resizeObserver.observe(sidebarFooterRef.current);
+      resizeObserver.observe(sidebarFooterTabbarRef.current);
     }
 
     window.addEventListener('resize', updateSidebarSheetBounds);
@@ -755,7 +759,7 @@ export default function ChatSidebar({
 
       {/* Footer */}
       <div className="sidebar-footer" ref={sidebarFooterRef}>
-        <div className="sidebar-footer-tabbar" role="navigation" aria-label="Sidebar navigatie">
+        <div className="sidebar-footer-tabbar" ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
           <button
             type="button"
             className="sidebar-footer-tab sidebar-footer-tab-profile"

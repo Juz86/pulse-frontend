@@ -25,6 +25,7 @@
   --sidebar-sheet-right: 100vw;
   --sidebar-sheet-top: 0px;
   --sidebar-sheet-bottom: 100dvh;
+  --sidebar-sheet-anchor-bottom: 100dvh;
 
   /* ── Groottes Desktop ── */
   --text-hero:     clamp(2.5rem, 6vw, 3.75rem);
@@ -470,7 +471,7 @@ body {
   left: var(--sidebar-sheet-left);
   right: calc(100vw - var(--sidebar-sheet-right));
   top: var(--sidebar-sheet-top);
-  bottom: calc(var(--vvh, 100dvh) - var(--sidebar-sheet-bottom));
+  bottom: calc(var(--vvh, 100dvh) - var(--sidebar-sheet-anchor-bottom));
   inset: auto;
 }
 
@@ -501,7 +502,7 @@ body {
 .pulse-sheet-backdrop--new-group .pulse-sheet,
 .pulse-sheet-backdrop--call-log .pulse-sheet {
   width: 100%;
-  max-height: calc(var(--sidebar-sheet-bottom) - var(--sidebar-sheet-top));
+  max-height: calc(var(--sidebar-sheet-anchor-bottom) - var(--sidebar-sheet-top));
 }
 
 .pulse-sheet-header--add-contact,
@@ -1013,7 +1014,7 @@ body {
   .pulse-sheet-backdrop--new-chat,
   .pulse-sheet-backdrop--new-group,
   .pulse-sheet-backdrop--call-log {
-    padding: 0 8px 6px;
+    padding: 0 8px 0;
     justify-content: stretch;
     background:
       linear-gradient(180deg, rgba(12, 9, 28, 0) 0%, rgba(12, 9, 28, 0.18) 10%, rgba(12, 9, 28, 0.5) 42%, rgba(12, 9, 28, 0.74) 100%);
@@ -1063,7 +1064,7 @@ body {
     width: 100%;
     border-radius: 28px 28px 18px 18px;
     padding: 8px 10px 12px;
-    max-height: calc(var(--sidebar-sheet-bottom) - var(--sidebar-sheet-top) - 6px);
+    max-height: calc(var(--sidebar-sheet-anchor-bottom) - var(--sidebar-sheet-top));
   }
 }
 

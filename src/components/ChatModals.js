@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
-import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, StarOutline, Clock, ArrowLeft, ArrowRight, Handshake, Logout, Bell, BellOff } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, StarOutline, Clock, ArrowLeft, ArrowRight, Logout, Bell, BellOff } from '../components/Icons';
 import { getInitials, formatTime, clearPulseUserStorage } from '../utils';
 import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
@@ -521,94 +521,108 @@ export default function ChatModals({
 
       {/* ── VRIENDSCHAPSVERZOEKEN ── */}
       {showFriendRequestsPanel && (
-          <aside className="chat-side-panel friend-requests-panel" aria-labelledby="friend-requests-title">
-            <button
-              type="button"
-              className="modal-close-btn"
-              aria-label="Sluiten"
-              onClick={() => setShowFriendRequestsPanel(false)}
-            >
-              <span aria-hidden="true">✕</span>
-            </button>
-            <h2 id="friend-requests-title" className="modal-title friend-requests-title"><span className="modal-title-icon" aria-hidden="true"><Handshake size={18} /></span> Verzoeken</h2>
-
-            <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
-              <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
-                Ontvangen
-                {friendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{friendRequests.length}</span>}
-              </button>
-              <button type="button" onClick={() => setRequestsTab('verstuurd')} className={requestsTab === 'verstuurd' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
-                Verstuurd
-                {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
+        <div
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--friend-requests"
+          onClick={() => setShowFriendRequestsPanel(false)}
+        >
+          <aside
+            className="pulse-sheet pulse-sheet--friend-requests"
+            aria-labelledby="friend-requests-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--friend-requests">
+              <div id="friend-requests-title" className="pulse-sheet-title pulse-sheet-title--friend-requests">Verzoeken</div>
+              <button
+                type="button"
+                className="pulse-sheet-close pulse-sheet-close--friend-requests"
+                aria-label="Sluiten"
+                onClick={() => setShowFriendRequestsPanel(false)}
+              >
+                <span aria-hidden="true">✕</span>
               </button>
             </div>
 
-            <div className="friend-requests-list">
-              {requestsTab === 'ontvangen' && (
-                <>
-                  {friendRequests.map(req => (
-                    <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'rgba(124,111,255,0.08)', borderRadius: 10, border: '1px solid rgba(124,111,255,0.2)' }}>
-                      <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.fromName)}</div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="friend-request-person-name" style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{req.fromName}</div>
-                        <div className="friend-request-person-email" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{req.fromEmail}</div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
-                        <button type="button" className="btn-primary" style={{ padding: '4px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
-                        <button type="button" className="btn-secondary" style={{ padding: '4px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
-                      </div>
-                    </div>
-                  ))}
-                  {friendRequests.length === 0 && (
-                    <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
-                      <p>Geen ontvangen vriendschapsverzoeken.</p>
-                    </div>
-                  )}
-                </>
-              )}
+            <div className="friend-requests-sheet-body">
+              <div className="friend-requests-tabs">
+                <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
+                  Ontvangen
+                  {friendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{friendRequests.length}</span>}
+                </button>
+                <button type="button" onClick={() => setRequestsTab('verstuurd')} className={requestsTab === 'verstuurd' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
+                  Verstuurd
+                  {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
+                </button>
+              </div>
 
-              {requestsTab === 'verstuurd' && (
-                <>
-                  {friendRequestActionErr && (
-                    <div className="auth-error" style={{ marginBottom: 10 }}>
-                      ⚠️ {friendRequestActionErr}
-                    </div>
-                  )}
-                  {sentFriendRequests.map(req => {
-                    const requestId = getFriendRequestId(req);
-                    const reminderCount = Number(req.reminderCount || 0);
-                    const remindersRemaining = Math.max(0, 3 - reminderCount);
-                    return (
-                      <div key={requestId || req.toUid || req.toEmail} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.toEmail || req.toUid)}</div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div className="friend-request-person-name" style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{req.toEmail || req.toIdentifier || req.toUid}</div>
-                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                              {remindersRemaining > 0 ? `Nog ${remindersRemaining} ${remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} over` : 'Geen herinneringen meer over'}
+              <div className="friend-requests-list">
+                {requestsTab === 'ontvangen' && (
+                  <>
+                    {friendRequests.map(req => (
+                      <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'rgba(124,111,255,0.08)', borderRadius: 10, border: '1px solid rgba(124,111,255,0.2)' }}>
+                        <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.fromName)}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="friend-request-person-name" style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{req.fromName}</div>
+                          <div className="friend-request-person-email" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{req.fromEmail}</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                          <button type="button" className="btn-primary" style={{ padding: '4px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
+                          <button type="button" className="btn-secondary" style={{ padding: '4px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
+                        </div>
+                      </div>
+                    ))}
+                    {friendRequests.length === 0 && (
+                      <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
+                        <p>Geen ontvangen vriendschapsverzoeken.</p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {requestsTab === 'verstuurd' && (
+                  <>
+                    {friendRequestActionErr && (
+                      <div className="auth-error" style={{ marginBottom: 10 }}>
+                        ⚠️ {friendRequestActionErr}
+                      </div>
+                    )}
+                    {sentFriendRequests.map(req => {
+                      const requestId = getFriendRequestId(req);
+                      const reminderCount = Number(req.reminderCount || 0);
+                      const remindersRemaining = Math.max(0, 3 - reminderCount);
+                      return (
+                        <div key={requestId || req.toUid || req.toEmail} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.toEmail || req.toUid)}</div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div className="friend-request-person-name" style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{req.toEmail || req.toIdentifier || req.toUid}</div>
+                              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                                {remindersRemaining > 0 ? `Nog ${remindersRemaining} ${remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} over` : 'Geen herinneringen meer over'}
+                              </div>
                             </div>
                           </div>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <button type="button" className="btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => requestId && onCancelFriendRequest(requestId)} disabled={!requestId}>
+                              Annuleren
+                            </button>
+                            <button type="button" className="btn-primary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => requestId && onRemindFriendRequest(requestId)} disabled={!requestId || remindersRemaining <= 0}>
+                              Herinneren
+                            </button>
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <button type="button" className="btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => requestId && onCancelFriendRequest(requestId)} disabled={!requestId}>
-                            Annuleren
-                          </button>
-                          <button type="button" className="btn-primary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => requestId && onRemindFriendRequest(requestId)} disabled={!requestId || remindersRemaining <= 0}>
-                            Herinneren
-                          </button>
-                        </div>
+                      );
+                    })}
+                    {sentFriendRequests.length === 0 && (
+                      <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
+                        <p>Geen verstuurde vriendschapsverzoeken.</p>
                       </div>
-                    );
-                  })}
-                  {sentFriendRequests.length === 0 && (
-                    <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
-                      <p>Geen verstuurde vriendschapsverzoeken.</p>
-                    </div>
-                  )}
-                </>
-              )}
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </aside>
+        </div>
       )}
 
       {/* ── GEDEELD CONTACT PROFIEL ── */}

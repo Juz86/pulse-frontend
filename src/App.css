@@ -502,6 +502,7 @@ body {
 .pulse-sheet-backdrop--new-group .pulse-sheet,
 .pulse-sheet-backdrop--call-log .pulse-sheet {
   width: 100%;
+  margin-bottom: -10px;
   max-height: calc(var(--sidebar-sheet-bottom) - var(--sidebar-sheet-top));
   border-radius: 32px 32px 24px 24px;
   border-color: rgba(136, 118, 221, 0.2);
@@ -1070,6 +1071,7 @@ body {
   .pulse-sheet-backdrop--new-group .pulse-sheet,
   .pulse-sheet-backdrop--call-log .pulse-sheet {
     width: 100%;
+    margin-bottom: -12px;
     border-radius: 30px 30px 22px 22px;
     padding: 8px 10px 12px;
     max-height: calc(var(--sidebar-sheet-bottom) - var(--sidebar-sheet-top));

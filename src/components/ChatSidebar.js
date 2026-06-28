@@ -86,6 +86,9 @@ export default function ChatSidebar({
   getContactDisplayName,
   callsAvailable = true,
 }) {
+  const sidebarRef = useRef(null);
+  const sidebarHeaderRef = useRef(null);
+  const sidebarFooterRef = useRef(null);
   const [contactMenu, setContactMenu] = useState(null);
   const [convMenu, setConvMenu]       = useState(null); // { conv, otherUid, direction, top, left }
   const [convActionsSheet, setConvActionsSheet] = useState(null); // { conv, otherUid }
@@ -207,6 +210,42 @@ export default function ChatSidebar({
       window.removeEventListener('popstate', onPopState);
     };
   }, [contactMenu]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const updateSidebarSheetBounds = () => {
+      if (!sidebarRef.current || !sidebarHeaderRef.current || !sidebarFooterRef.current) return;
+      const sidebarRect = sidebarRef.current.getBoundingClientRect();
+      const headerRect = sidebarHeaderRef.current.getBoundingClientRect();
+      const footerRect = sidebarFooterRef.current.getBoundingClientRect();
+
+      root.style.setProperty('--sidebar-sheet-left', `${Math.round(sidebarRect.left)}px`);
+      root.style.setProperty('--sidebar-sheet-right', `${Math.round(sidebarRect.right)}px`);
+      root.style.setProperty('--sidebar-sheet-top', `${Math.round(headerRect.bottom)}px`);
+      root.style.setProperty('--sidebar-sheet-bottom', `${Math.round(footerRect.top)}px`);
+    };
+
+    updateSidebarSheetBounds();
+
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => updateSidebarSheetBounds())
+      : null;
+
+    if (resizeObserver) {
+      resizeObserver.observe(sidebarRef.current);
+      resizeObserver.observe(sidebarHeaderRef.current);
+      resizeObserver.observe(sidebarFooterRef.current);
+    }
+
+    window.addEventListener('resize', updateSidebarSheetBounds);
+    window.addEventListener('orientationchange', updateSidebarSheetBounds);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', updateSidebarSheetBounds);
+      window.removeEventListener('orientationchange', updateSidebarSheetBounds);
+    };
+  }, []);
 
   const hasMissedCall = callsAvailable && (((!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert));
 
@@ -385,9 +424,9 @@ export default function ChatSidebar({
   }, [contacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact]);
 
   return (
-    <aside className="sidebar" onClick={() => { setConvMenu(null); setContactMenu(null); }}>
+    <aside className="sidebar" ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
       {/* Header */}
-      <div className="sidebar-header">
+      <div className="sidebar-header" ref={sidebarHeaderRef}>
         <div className="sidebar-top">
           <PulseLogo size={30} textSize={20} color="#fff" />
           <div className="search-box search-box--top">
@@ -715,7 +754,7 @@ export default function ChatSidebar({
       )}
 
       {/* Footer */}
-      <div className="sidebar-footer">
+      <div className="sidebar-footer" ref={sidebarFooterRef}>
         <div className="sidebar-footer-tabbar" role="navigation" aria-label="Sidebar navigatie">
           <button
             type="button"

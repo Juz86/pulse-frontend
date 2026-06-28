@@ -4866,12 +4866,13 @@ font-family: 'Inter', sans-serif;
 .profile-settings-subview {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 22px;
 }
 .profile-settings-subhero {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  padding: 4px 2px 0;
 }
 .profile-settings-subtitle {
   font-family: 'Inter', sans-serif;
@@ -4889,27 +4890,29 @@ font-family: 'Inter', sans-serif;
 .profile-settings-card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
+  gap: 16px;
+  align-items: start;
 }
 .profile-settings-light-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
+  gap: 14px;
+  padding: 18px;
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(246,242,255,.8));
   border: 1px solid rgba(140, 122, 214, 0.12);
   box-shadow: 0 14px 28px rgba(106, 87, 180, 0.06);
+  min-height: 100%;
 }
 .profile-settings-light-card-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   color: #241741;
 }
 .profile-settings-field-stack {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 .profile-settings-field-label {
   font-size: 11px;
@@ -4917,11 +4920,16 @@ font-family: 'Inter', sans-serif;
   letter-spacing: .08em;
   text-transform: uppercase;
   color: #8a80aa;
+  padding-left: 2px;
 }
 .profile-settings-helper-copy,
 .profile-settings-inline-message {
   font-size: 11px;
   line-height: 1.45;
+}
+.profile-settings-inline-message {
+  grid-column: 1 / -1;
+  padding: 2px 4px 0;
 }
 .profile-settings-empty {
   text-align: center;

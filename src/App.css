@@ -6018,6 +6018,10 @@ font-family: 'Inter', sans-serif;
   align-items: flex-end;
 }
 
+.pulse-sheet-backdrop--confirm-dialog {
+  z-index: 3700;
+}
+
 .pulse-sheet--share-contact,
 .pulse-sheet--confirm-dialog {
   width: min(100%, 420px);

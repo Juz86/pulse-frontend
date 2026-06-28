@@ -1549,58 +1549,75 @@ export default function ChatModals({
           (!q || m.text.toLowerCase().includes(q) || m.senderName?.toLowerCase().includes(q))
         );
         return (
-          <aside
-            className="chat-side-panel starred-messages-panel panel-stack"
-            aria-labelledby="starred-messages-title"
-            aria-describedby="starred-messages-description"
+          <div
+            className="pulse-sheet-backdrop pulse-sheet-backdrop--starred"
+            onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); }}
           >
-              <div className="panel-header-row panel-header-row--compact">
-                <h2 id="starred-messages-title" className="modal-title" style={{ margin: 0 }}>
-                  <span className="modal-title-icon" aria-hidden="true"><StarFilled size={18} style={{ color: '#f59e0b' }} /></span>
+            <aside
+              className="pulse-sheet pulse-sheet--starred"
+              aria-labelledby="starred-messages-title"
+              aria-describedby="starred-messages-description"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="pulse-sheet-handle" aria-hidden="true" />
+              <div className="pulse-sheet-header pulse-sheet-header--starred">
+                <div id="starred-messages-title" className="pulse-sheet-title pulse-sheet-title--starred">
                   Berichten met ster
-                </h2>
-                <button type="button" className="modal-close-btn" aria-label="Berichten met ster sluiten" onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); }}><span aria-hidden="true">✕</span></button>
+                </div>
+                <button type="button" className="pulse-sheet-close pulse-sheet-close--starred" aria-label="Berichten met ster sluiten" onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); }}><span aria-hidden="true">✕</span></button>
               </div>
               <p id="starred-messages-description" className="sr-only">
                 Bekijk en doorzoek berichten met ster uit het actieve gesprek.
               </p>
-              <div className="starred-search-wrap">
-                <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
-                <input
-                  className="starred-search-input"
-                  placeholder="Zoeken…"
-                  value={starredSearch}
-                  onChange={e => setStarredSearch(e.target.value)}
-                  autoFocus
-                />
-                {starredSearch && (
-                  <button type="button" className="starred-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setStarredSearch('')}>
-                    <Cancel size={14} aria-hidden="true" />
-                  </button>
-                )}
-              </div>
-              {starred.length === 0 ? (
-                <div className="starred-empty-state">
-                  <StarFilled size={36} style={{ opacity: .3, color: '#f59e0b', marginBottom: 8 }} aria-hidden="true" />
-                  <div style={{ fontSize: 14 }}>{q ? 'Geen resultaten' : 'Nog geen berichten met ster'}</div>
+              <div className="starred-sheet-body">
+                <p className="new-chat-sheet-sub">
+                  Doorzoek belangrijke opgeslagen berichten in dezelfde rustige Pulse sheet-stijl.
+                </p>
+                <div className="new-chat-sheet-section">
+                  <div className="new-chat-sheet-kicker">Zoeken</div>
+                  <div className="starred-search-wrap call-log-search-wrap call-log-search-wrap--full">
+                    <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+                    <input
+                      className="starred-search-input"
+                      placeholder="Zoek in berichten met ster…"
+                      value={starredSearch}
+                      onChange={e => setStarredSearch(e.target.value)}
+                      autoFocus
+                    />
+                    {starredSearch && (
+                      <button type="button" className="starred-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setStarredSearch('')}>
+                        <Cancel size={14} aria-hidden="true" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div className="starred-list">
-                  {starred.map(msg => (
-                    <div key={msg.id} className="starred-msg-item" role="button" tabIndex={0}
-                      onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); onJumpToMsg(msg.id); }}
-                      onKeyDown={e => e.key === 'Enter' && (setShowStarredMsgs(false), setStarredSearch(''), onJumpToMsg(msg.id))}
-                    >
-                      <div className="starred-msg-meta">
-                        <span className="starred-msg-name">{msg.senderName}</span>
-                        <span className="starred-msg-time">{formatTime(msg.createdAt)}</span>
-                      </div>
-                      <div className="starred-msg-text">{getMessageDisplayText(msg)}</div>
+                <div className="new-chat-sheet-section">
+                  <div className="new-chat-sheet-kicker">Opgeslagen berichten</div>
+                  {starred.length === 0 ? (
+                    <div className="starred-empty-state">
+                      <StarFilled size={36} style={{ opacity: .3, color: '#f59e0b', marginBottom: 8 }} aria-hidden="true" />
+                      <div style={{ fontSize: 14 }}>{q ? 'Geen resultaten' : 'Nog geen berichten met ster'}</div>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="pulse-sheet-list pulse-sheet-list--new-chat starred-list">
+                      {starred.map(msg => (
+                        <div key={msg.id} className="starred-msg-item" role="button" tabIndex={0}
+                          onClick={() => { setShowStarredMsgs(false); setStarredSearch(''); onJumpToMsg(msg.id); }}
+                          onKeyDown={e => e.key === 'Enter' && (setShowStarredMsgs(false), setStarredSearch(''), onJumpToMsg(msg.id))}
+                        >
+                          <div className="starred-msg-meta">
+                            <span className="starred-msg-name">{msg.senderName}</span>
+                            <span className="starred-msg-time">{formatTime(msg.createdAt)}</span>
+                          </div>
+                          <div className="starred-msg-text">{getMessageDisplayText(msg)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-          </aside>
+              </div>
+            </aside>
+          </div>
         );
       })()}
 
@@ -1813,12 +1830,21 @@ export default function ChatModals({
 
       {/* ── GROEPSINFORMATIE PANEEL ── */}
       {showGroupInfo && activeConv?.isGroup && (
+        <div
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--group-info"
+          onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}
+        >
         <aside
-          className="group-info-panel"
+          className="pulse-sheet pulse-sheet--group-info group-info-panel"
           aria-labelledby="group-info-title"
           aria-describedby="group-info-description"
+          onClick={(e) => e.stopPropagation()}
         >
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}><span aria-hidden="true">✕</span></button>
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--group-info">
+              <div className="pulse-sheet-title pulse-sheet-title--group-info">Groepsinfo</div>
+              <button type="button" className="pulse-sheet-close pulse-sheet-close--group-info" aria-label="Sluiten" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}><span aria-hidden="true">✕</span></button>
+            </div>
             {addingMember ? (() => {
               const availableContacts = contacts.filter(c => !activeConv.members.includes(c.uid));
               const query = groupMemberSearch.trim().toLowerCase();
@@ -1848,17 +1874,20 @@ export default function ChatModals({
                   </div>
 
                   <label className="sr-only" htmlFor="group-member-search">Zoek contact om toe te voegen</label>
-                  <input
-                    id="group-member-search"
-                    className="group-info-search"
-                    type="search"
-                    value={groupMemberSearch}
-                    onChange={(e) => setGroupMemberSearch(e.target.value)}
-                    placeholder="Zoek contact"
-                    autoComplete="off"
-                  />
+                  <div className="starred-search-wrap call-log-search-wrap call-log-search-wrap--full group-info-search-wrap">
+                    <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+                    <input
+                      id="group-member-search"
+                      className="starred-search-input group-info-search"
+                      type="search"
+                      value={groupMemberSearch}
+                      onChange={(e) => setGroupMemberSearch(e.target.value)}
+                      placeholder="Zoek contact"
+                      autoComplete="off"
+                    />
+                  </div>
 
-                  <div id="group-add-member-list" role="list" className="group-info-member-list group-info-add-list">
+                  <div id="group-add-member-list" role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list group-info-add-list">
                     {availableContacts.length === 0 ? (
                       <div className="group-info-empty" role="status">Alle contacten zijn al lid van deze groep.</div>
                     ) : filteredContacts.length === 0 ? (
@@ -1947,7 +1976,7 @@ export default function ChatModals({
               const isAdmin = activeConv.creatorId === user.uid;
               return (
                 <>
-                  <div role="list" className="group-info-member-list">
+                  <div role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list">
                     {activeConv.members.map(memberId => {
                       const name      = activeConv.memberNames?.[memberId] || memberId;
                       const isMe      = memberId === user.uid;
@@ -1998,6 +2027,7 @@ export default function ChatModals({
               <button type="button" className="btn-secondary" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>Sluiten</button>
             </div>
         </aside>
+        </div>
       )}
 
       {/* ── ACTIEF GESPREK OVERLAY ── */}

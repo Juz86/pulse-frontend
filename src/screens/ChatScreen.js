@@ -94,9 +94,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const next = !dndRef.current;
     dndRef.current = next; setDnd(next);
     localStorage.setItem('pulse_dnd', next ? '1' : '0');
-    showErrToast(next
-      ? { icon: <BellOff size={15} aria-hidden="true" />, text: 'Meldingen uitgeschakeld', bg: 'rgba(80,80,100,0.92)' }
-      : { icon: <Bell size={15} aria-hidden="true" />,    text: 'Meldingen ingeschakeld',  bg: 'rgba(34,197,94,0.92)' });
   }
   function persistMutedConversationIds(nextIds) {
     mutedConversationIdsRef.current = nextIds;

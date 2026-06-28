@@ -47,12 +47,15 @@ const ChatInput = React.memo(function ChatInput({
     setMentionSuggestions([]);
     const conv = activeConvRef.current;
     if (conv && newText.trim()) {
-      getSocket()?.emit('typing:start', {
+      const typingPayload = {
         convId: conv.id,
         conversationId: conv.id,
         name: typingDisplayName,
         displayName: typingDisplayName,
-      });
+        typing: true,
+      };
+      getSocket()?.emit('typing:start', typingPayload);
+      getSocket()?.emit('typing', typingPayload);
       clearTimeout(typingTimerRef.current);
       typingTimerRef.current = setTimeout(stopTyping, 2000);
     }
@@ -112,12 +115,15 @@ const ChatInput = React.memo(function ChatInput({
       stopTyping();
       return;
     }
-    getSocket()?.emit('typing:start', {
+    const typingPayload = {
       convId: conv.id,
       conversationId: conv.id,
       name: typingDisplayName,
       displayName: typingDisplayName,
-    });
+      typing: true,
+    };
+    getSocket()?.emit('typing:start', typingPayload);
+    getSocket()?.emit('typing', typingPayload);
     clearTimeout(typingTimerRef.current);
     typingTimerRef.current = setTimeout(stopTyping, 2000);
   }, [activeConv, typingDisplayName, user.uid, contacts, setText, setPendingMentions, setMentionSuggestions, setMentionSelIdx, textareaRef, activeConvRef, typingTimerRef, stopTyping]);

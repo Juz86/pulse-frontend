@@ -647,10 +647,13 @@ export default function useConversations({
     clearTimeout(typingTimer.current);
     const conv = activeConvRef.current;
     if (conv) {
-      getSocket()?.emit('typing:stop', {
+      const typingStopPayload = {
         convId: conv.id,
         conversationId: conv.id,
-      });
+        typing: false,
+      };
+      getSocket()?.emit('typing:stop', typingStopPayload);
+      getSocket()?.emit('typing', typingStopPayload);
     }
   }
 

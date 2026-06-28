@@ -248,9 +248,10 @@ export default function useChat({
       });
     };
 
-    const onTypingUpdate = ({ convId, conversationId, typing, name, displayName }) => {
+    const onTypingUpdate = ({ convId, conversationId, typing, isTyping, name, displayName }) => {
       const resolvedConvId = convId || conversationId;
       const resolvedName = displayName || name;
+      const typingActive = typeof typing === 'boolean' ? typing : (typeof isTyping === 'boolean' ? isTyping : true);
       if (!resolvedConvId) return;
       const currentConvId = activeConvRef.current?.id;
       const nextDisplayName = resolvedName || 'Iemand';
@@ -261,7 +262,7 @@ export default function useChat({
         timeoutMap.delete(resolvedConvId);
       }
 
-      if (typing) {
+      if (typingActive) {
         setTypingByConv(prev => ({ ...prev, [resolvedConvId]: nextDisplayName }));
         const timeoutId = setTimeout(() => {
           setTypingByConv(prev => {
@@ -287,7 +288,7 @@ export default function useChat({
       }
 
       if (currentConvId && resolvedConvId === currentConvId) {
-        if (typing) {
+        if (typingActive) {
           setTyping(true);
           setTypingName(nextDisplayName);
           setTimeout(() => {
@@ -510,6 +511,9 @@ export default function useChat({
     socket.on('message:received', onMessageReceived);
     socket.on('message:new',      onMessageReceived);
     socket.on('typing:update',    onTypingUpdate);
+    socket.on('typing:start',     onTypingUpdate);
+    socket.on('typing:stop',      onTypingUpdate);
+    socket.on('typing',           onTypingUpdate);
     socket.on('message:status',   onMessageStatus);
     socket.on('friend:request',   onFriendRequest);
     socket.on('friend:accepted',  onFriendAccepted);
@@ -535,6 +539,9 @@ export default function useChat({
       socket.off('message:received', onMessageReceived);
       socket.off('message:new',      onMessageReceived);
       socket.off('typing:update',    onTypingUpdate);
+      socket.off('typing:start',     onTypingUpdate);
+      socket.off('typing:stop',      onTypingUpdate);
+      socket.off('typing',           onTypingUpdate);
       socket.off('message:status',   onMessageStatus);
       socket.off('friend:request',   onFriendRequest);
       socket.off('friend:accepted',  onFriendAccepted);

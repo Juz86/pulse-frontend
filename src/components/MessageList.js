@@ -250,6 +250,9 @@ const MessageList = React.memo(function MessageList({
       {typing && !loadingMsgs && (
         <div className="msg-group in typing-indicator-group" role="status" aria-live="polite" aria-label={`${typingName || 'Iemand'} typt`}>
           <div className="msg-bubble-wrap">
+            {typingName ? (
+              <div className="msg-typing-name" aria-hidden="true">{typingName}</div>
+            ) : null}
             <div className="msg-bubble msg-typing-bubble">
               <span className="sr-only">{typingName || 'Iemand'} typt…</span>
               <span className="msg-typing-dots" aria-hidden="true">

@@ -2968,31 +2968,46 @@ font-family: 'Inter', sans-serif;
   border-bottom-left-radius:5px;
   box-shadow:0 4px 10px rgba(92,71,146,.09);
 }
+.typing-indicator-group {
+  margin-top: 2px;
+}
+.msg-typing-name {
+  margin: 0 0 6px 6px;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 600;
+  color: rgba(62, 52, 96, 0.9);
+}
 .msg-typing-bubble {
-  min-width: 68px;
-  padding-top: 14px;
-  padding-bottom: 14px;
+  min-width: 62px;
+  min-height: 44px;
+  padding: 12px 16px;
+  border-bottom-left-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(221, 212, 244, 0.95);
+  box-shadow: 0 8px 18px rgba(67, 49, 122, 0.12);
 }
 .msg-typing-dots {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 .msg-typing-dots span {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: rgba(255,255,255,.72);
+  background: rgba(136, 124, 173, 0.88);
   animation: typing-dot-bounce 1.1s infinite ease-in-out;
-}
-.msg-group.in .msg-typing-dots span {
-  background: rgba(155, 140, 206, .95);
 }
 .msg-typing-dots span:nth-child(2) { animation-delay: .16s; }
 .msg-typing-dots span:nth-child(3) { animation-delay: .32s; }
 @keyframes typing-dot-bounce {
   0%, 80%, 100% { transform: translateY(0) scale(.92); opacity: .45; }
   40% { transform: translateY(-4px) scale(1); opacity: 1; }
+}
+.messages-area-wrap.has-chat-bg .msg-typing-bubble {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(227, 219, 247, 0.94);
 }
 /* Leesbaarheid op foto/kleur achtergrond */
 .messages-area-wrap.has-chat-bg .msg-group.in .msg-bubble {

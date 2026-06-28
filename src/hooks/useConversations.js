@@ -646,7 +646,12 @@ export default function useConversations({
   function stopTyping() {
     clearTimeout(typingTimer.current);
     const conv = activeConvRef.current;
-    if (conv) getSocket()?.emit('typing:stop', { convId: conv.id });
+    if (conv) {
+      getSocket()?.emit('typing:stop', {
+        convId: conv.id,
+        conversationId: conv.id,
+      });
+    }
   }
 
   function sendEditedMessage() {

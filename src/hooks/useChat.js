@@ -248,46 +248,48 @@ export default function useChat({
       });
     };
 
-    const onTypingUpdate = ({ convId, typing, name }) => {
-      if (!convId) return;
+    const onTypingUpdate = ({ convId, conversationId, typing, name, displayName }) => {
+      const resolvedConvId = convId || conversationId;
+      const resolvedName = displayName || name;
+      if (!resolvedConvId) return;
       const currentConvId = activeConvRef.current?.id;
-      const displayName = name || 'Iemand';
+      const nextDisplayName = resolvedName || 'Iemand';
       const timeoutMap = typingTimeoutsRef.current;
-      const previousTimeout = timeoutMap.get(convId);
+      const previousTimeout = timeoutMap.get(resolvedConvId);
       if (previousTimeout) {
         clearTimeout(previousTimeout);
-        timeoutMap.delete(convId);
+        timeoutMap.delete(resolvedConvId);
       }
 
       if (typing) {
-        setTypingByConv(prev => ({ ...prev, [convId]: displayName }));
+        setTypingByConv(prev => ({ ...prev, [resolvedConvId]: nextDisplayName }));
         const timeoutId = setTimeout(() => {
           setTypingByConv(prev => {
-            if (!prev[convId]) return prev;
+            if (!prev[resolvedConvId]) return prev;
             const next = { ...prev };
-            delete next[convId];
+            delete next[resolvedConvId];
             return next;
           });
-          typingTimeoutsRef.current.delete(convId);
-          if (activeConvRef.current?.id === convId) {
+          typingTimeoutsRef.current.delete(resolvedConvId);
+          if (activeConvRef.current?.id === resolvedConvId) {
             setTyping(false);
             setTypingName('');
           }
         }, 3500);
-        timeoutMap.set(convId, timeoutId);
+        timeoutMap.set(resolvedConvId, timeoutId);
       } else {
         setTypingByConv(prev => {
-          if (!prev[convId]) return prev;
+          if (!prev[resolvedConvId]) return prev;
           const next = { ...prev };
-          delete next[convId];
+          delete next[resolvedConvId];
           return next;
         });
       }
 
-      if (currentConvId && convId === currentConvId) {
+      if (currentConvId && resolvedConvId === currentConvId) {
         if (typing) {
           setTyping(true);
-          setTypingName(displayName);
+          setTypingName(nextDisplayName);
           setTimeout(() => {
             if (msgsAreaRef.current) {
               msgsAreaRef.current.scrollTo({ top: msgsAreaRef.current.scrollHeight, behavior: 'smooth' });

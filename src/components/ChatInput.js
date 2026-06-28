@@ -29,6 +29,7 @@ const ChatInput = React.memo(function ChatInput({
 }) {
   const composingRef = useRef(false);
   const canSend = text.trim().length > 0;
+  const typingDisplayName = user.displayName || user.email?.split('@')[0] || 'Iemand';
 
   const insertMention = useCallback((member) => {
     const cursorPos = textareaRef.current?.selectionStart ?? text.length;
@@ -46,7 +47,12 @@ const ChatInput = React.memo(function ChatInput({
     setMentionSuggestions([]);
     const conv = activeConvRef.current;
     if (conv && newText.trim()) {
-      getSocket()?.emit('typing:start', { convId: conv.id, name: user.displayName });
+      getSocket()?.emit('typing:start', {
+        convId: conv.id,
+        conversationId: conv.id,
+        name: typingDisplayName,
+        displayName: typingDisplayName,
+      });
       clearTimeout(typingTimerRef.current);
       typingTimerRef.current = setTimeout(stopTyping, 2000);
     }
@@ -57,7 +63,7 @@ const ChatInput = React.memo(function ChatInput({
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
     }, 0);
-  }, [text, user.displayName, setText, setPendingMentions, setMentionSuggestions, textareaRef, activeConvRef, typingTimerRef, stopTyping]);
+  }, [text, typingDisplayName, setText, setPendingMentions, setMentionSuggestions, textareaRef, activeConvRef, typingTimerRef, stopTyping]);
 
   const handleKeyDown = useCallback((e) => {
     if (composingRef.current || e.nativeEvent?.isComposing) return;
@@ -106,10 +112,15 @@ const ChatInput = React.memo(function ChatInput({
       stopTyping();
       return;
     }
-    getSocket()?.emit('typing:start', { convId: conv.id, name: user.displayName });
+    getSocket()?.emit('typing:start', {
+      convId: conv.id,
+      conversationId: conv.id,
+      name: typingDisplayName,
+      displayName: typingDisplayName,
+    });
     clearTimeout(typingTimerRef.current);
     typingTimerRef.current = setTimeout(stopTyping, 2000);
-  }, [activeConv, user, contacts, setText, setPendingMentions, setMentionSuggestions, setMentionSelIdx, textareaRef, activeConvRef, typingTimerRef, stopTyping]);
+  }, [activeConv, typingDisplayName, user.uid, contacts, setText, setPendingMentions, setMentionSuggestions, setMentionSelIdx, textareaRef, activeConvRef, typingTimerRef, stopTyping]);
 
   const textareaDescribedBy = [
     editingMsg ? 'chat-compose-editing' : null,

@@ -555,6 +555,66 @@ body {
   margin-top: 8px;
 }
 
+.sheet-input-wrap {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 0 2px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 10px 24px rgba(106, 87, 180, 0.08);
+}
+
+.sheet-form-input {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  min-height: 56px;
+  padding: 16px 18px;
+  color: #35295a;
+}
+
+.sheet-form-input:hover,
+.sheet-form-input:focus {
+  border: none;
+  box-shadow: none;
+}
+
+.add-contact-sheet-body .label-chip-row {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.add-contact-sheet-body .label-chip {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(140, 122, 214, 0.14);
+  box-shadow: 0 10px 24px rgba(106, 87, 180, 0.06);
+  color: #504676;
+}
+
+.add-contact-sheet-body .label-chip:hover {
+  background: rgba(108, 99, 255, 0.08);
+  border-color: rgba(108, 99, 255, 0.18);
+  box-shadow: 0 10px 24px rgba(106, 87, 180, 0.08);
+}
+
+.add-contact-sheet-body .label-chip.active {
+  background: linear-gradient(135deg, #7f6fff 0%, #a25cf5 100%);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 14px 28px rgba(123, 96, 233, 0.22);
+}
+
+.friend-requests-tabs .btn-primary,
+.friend-requests-tabs .btn-secondary,
+.add-contact-sheet-actions .btn-primary,
+.add-contact-sheet-actions .btn-secondary {
+  border-radius: 18px;
+}
+
 .new-chat-sheet-sub {
   margin: 0;
   color: #6b6288;
@@ -655,6 +715,153 @@ body {
   padding: 18px 20px;
   font-size: 13px;
   color: #7a709c;
+}
+
+.new-group-contact-list {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
+  margin-bottom: 4px;
+}
+
+.new-group-sheet-result {
+  align-items: center;
+}
+
+.new-group-sheet-result.selected {
+  background: rgba(108, 99, 255, 0.07);
+}
+
+.new-group-sheet-result-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+}
+
+.new-group-sheet-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(158, 142, 205, 0.55);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.new-group-sheet-check--selected {
+  background: linear-gradient(135deg, #7f6fff 0%, #a25cf5 100%);
+  border-color: transparent;
+  box-shadow: 0 8px 18px rgba(123, 96, 233, 0.18);
+}
+
+.friend-requests-list {
+  gap: 0;
+  padding-bottom: 0;
+}
+
+.friend-request-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 14px 18px;
+  position: relative;
+}
+
+.friend-request-row + .friend-request-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 66px;
+  right: 18px;
+  height: 1px;
+  background: rgba(112, 92, 191, 0.1);
+}
+
+.friend-request-row--stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.friend-request-row-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.friend-request-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.friend-request-person-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #23173f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.friend-request-person-email {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #736986;
+  overflow-wrap: anywhere;
+}
+
+.friend-request-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.friend-request-actions--wide {
+  width: 100%;
+}
+
+.friend-request-action {
+  min-width: 40px;
+  min-height: 40px;
+  border: none;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 160ms ease;
+}
+
+.friend-request-action--text {
+  flex: 1 1 0;
+  padding: 0 14px;
+}
+
+.friend-request-action--primary {
+  background: linear-gradient(135deg, #7f6fff 0%, #a25cf5 100%);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(123, 96, 233, 0.2);
+}
+
+.friend-request-action--secondary {
+  background: rgba(255, 255, 255, 0.88);
+  color: #4c426d;
+  box-shadow: inset 0 0 0 1px rgba(140, 122, 214, 0.16);
+}
+
+.friend-request-action:disabled {
+  opacity: 0.45;
+  cursor: default;
+  box-shadow: none;
 }
 
 .pulse-sheet-header--sidebar-actions,

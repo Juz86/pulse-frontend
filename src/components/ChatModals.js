@@ -559,15 +559,15 @@ export default function ChatModals({
                 {requestsTab === 'ontvangen' && (
                   <>
                     {friendRequests.map(req => (
-                      <div key={req.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: 'rgba(124,111,255,0.08)', borderRadius: 10, border: '1px solid rgba(124,111,255,0.2)' }}>
+                      <div key={req.id} className="friend-request-row">
                         <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.fromName)}</div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div className="friend-request-person-name" style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{req.fromName}</div>
-                          <div className="friend-request-person-email" style={{ fontSize: 11, color: 'var(--text-muted)' }}>{req.fromEmail}</div>
+                        <div className="friend-request-copy">
+                          <div className="friend-request-person-name">{req.fromName}</div>
+                          <div className="friend-request-person-email">{req.fromEmail}</div>
                         </div>
-                        <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
-                          <button type="button" className="btn-primary" style={{ padding: '4px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
-                          <button type="button" className="btn-secondary" style={{ padding: '4px 10px', fontSize: 12, minWidth: 0 }} onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
+                        <div className="friend-request-actions">
+                          <button type="button" className="friend-request-action friend-request-action--primary" onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
+                          <button type="button" className="friend-request-action friend-request-action--secondary" onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
                         </div>
                       </div>
                     ))}
@@ -591,21 +591,21 @@ export default function ChatModals({
                       const reminderCount = Number(req.reminderCount || 0);
                       const remindersRemaining = Math.max(0, 3 - reminderCount);
                       return (
-                        <div key={requestId || req.toUid || req.toEmail} style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.08)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div key={requestId || req.toUid || req.toEmail} className="friend-request-row friend-request-row--stacked">
+                          <div className="friend-request-row-top">
                             <div className="avatar-circle sm" aria-hidden="true">{getInitials(req.toEmail || req.toUid)}</div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div className="friend-request-person-name" style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>{req.toEmail || req.toIdentifier || req.toUid}</div>
-                              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                            <div className="friend-request-copy">
+                              <div className="friend-request-person-name">{req.toEmail || req.toIdentifier || req.toUid}</div>
+                              <div className="friend-request-person-email">
                                 {remindersRemaining > 0 ? `Nog ${remindersRemaining} ${remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} over` : 'Geen herinneringen meer over'}
                               </div>
                             </div>
                           </div>
-                          <div style={{ display: 'flex', gap: 8 }}>
-                            <button type="button" className="btn-secondary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => requestId && onCancelFriendRequest(requestId)} disabled={!requestId}>
+                          <div className="friend-request-actions friend-request-actions--wide">
+                            <button type="button" className="friend-request-action friend-request-action--secondary friend-request-action--text" onClick={() => requestId && onCancelFriendRequest(requestId)} disabled={!requestId}>
                               Annuleren
                             </button>
-                            <button type="button" className="btn-primary" style={{ flex: 1, padding: '6px 10px', fontSize: 12, minWidth: 0 }} onClick={() => requestId && onRemindFriendRequest(requestId)} disabled={!requestId || remindersRemaining <= 0}>
+                            <button type="button" className="friend-request-action friend-request-action--primary friend-request-action--text" onClick={() => requestId && onRemindFriendRequest(requestId)} disabled={!requestId || remindersRemaining <= 0}>
                               Herinneren
                             </button>
                           </div>
@@ -781,12 +781,14 @@ export default function ChatModals({
               <p id="add-contact-description" className="new-chat-sheet-sub">
                 Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam
               </p>
-              <div className="form-group">
-                <label className="form-label">E-mailadres of gebruikersnaam</label>
-                <input className="form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={contactEmail} onChange={e => { setContactEmail(e.target.value); clearPendingFriendRequestState(); }} onKeyDown={e => e.key === 'Enter' && addContact()} />
+              <div className="new-chat-sheet-section">
+                <div className="new-chat-sheet-kicker">E-mailadres of gebruikersnaam</div>
+                <div className="sheet-input-wrap">
+                  <input className="form-input sheet-form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={contactEmail} onChange={e => { setContactEmail(e.target.value); clearPendingFriendRequestState(); }} onKeyDown={e => e.key === 'Enter' && addContact()} />
+                </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Relatie</label>
+              <div className="new-chat-sheet-section">
+                <div className="new-chat-sheet-kicker">Relatie</div>
                 <div className="label-chip-row">
                   {['familie', 'vrienden'].map(lbl => (
                     <button key={lbl} type="button" onClick={() => setContactRelation(contactRelation === lbl ? null : lbl)}
@@ -917,24 +919,26 @@ export default function ChatModals({
             </div>
 
             <div className="new-group-sheet-body">
-              <div className="form-group">
-                <label className="form-label">Groepsnaam</label>
-                <input className="form-input" placeholder="Bijv. Familie, Werk…" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={50} />
+              <div className="new-chat-sheet-section">
+                <div className="new-chat-sheet-kicker">Groepsnaam</div>
+                <div className="sheet-input-wrap">
+                  <input className="form-input sheet-form-input" placeholder="Bijv. Familie, Werk…" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={50} />
+                </div>
               </div>
               <p id="new-group-description" className="new-chat-sheet-sub">Selecteer deelnemers</p>
               {contacts.length === 0 && <div className="auth-error">⚠️ Voeg eerst contacten toe.</div>}
-              <div className="new-group-contact-list">
+              <div className="pulse-sheet-list pulse-sheet-list--new-chat new-group-contact-list">
                 {contacts.map(c => {
                   const selected = groupMembers.find(m => m.uid === c.uid);
                   return (
-                    <div key={c.uid} className={`search-result ${selected ? 'selected' : ''}`} onClick={() => toggleGroupMember(c)}>
+                    <button key={c.uid} type="button" className={`search-result new-chat-sheet-result new-group-sheet-result${selected ? ' selected' : ''}`} onClick={() => toggleGroupMember(c)}>
                       <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" decorative />
-                      <div style={{ flex: 1 }}><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
+                      <div className="new-group-sheet-result-copy"><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
                       {selected
-                        ? <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#6c63ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Check size={14} color="#fff" /></span>
-                        : <span style={{ width: 22, height: 22, borderRadius: '50%', border: '1.5px solid var(--border)', display: 'inline-block', flexShrink: 0 }} />
+                        ? <span className="new-group-sheet-check new-group-sheet-check--selected"><Check size={14} color="#fff" /></span>
+                        : <span className="new-group-sheet-check" />
                       }
-                    </div>
+                    </button>
                   );
                 })}
               </div>

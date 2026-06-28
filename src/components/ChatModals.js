@@ -792,13 +792,15 @@ export default function ChatModals({
               </label>
             )}
             <div className="modal-actions confirm-dialog-actions">
-              <button
-                type="button"
-                className="btn-secondary confirm-dialog-btn"
-                onClick={() => setConfirmDialog(null)}
-              >
-                {confirmDialog.cancelLabel || 'Annuleren'}
-              </button>
+              {!confirmDialog.hideCancel && (
+                <button
+                  type="button"
+                  className="btn-secondary confirm-dialog-btn"
+                  onClick={() => setConfirmDialog(null)}
+                >
+                  {confirmDialog.cancelLabel || 'Annuleren'}
+                </button>
+              )}
               <button
                 type="button"
                 className="btn-primary confirm-dialog-btn confirm-dialog-btn-danger"
@@ -1098,6 +1100,7 @@ export default function ChatModals({
                           setConfirmDialog?.({
                             title: 'Uitloggen',
                             message: 'Weet je zeker dat je wilt uitloggen?',
+                            hideCancel: true,
                             confirmLabel: 'Uitloggen',
                             onConfirm: async () => { handleLogoutFromSettings().catch(() => {}); },
                           });

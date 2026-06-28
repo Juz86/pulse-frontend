@@ -6054,6 +6054,16 @@ font-family: 'Inter', sans-serif;
   right: 0;
 }
 
+.pulse-sheet-close--confirm-dialog {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(140, 122, 214, 0.14);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(244,239,255,.96));
+  color: #6f5ef0;
+  box-shadow: 0 10px 22px rgba(106, 87, 180, 0.08);
+}
+
 .pulse-sheet--confirm-dialog.confirm-dialog-modal--clear-chat {
   width: min(100%, 560px);
 }

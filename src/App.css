@@ -505,6 +505,8 @@ body {
   max-height: calc(var(--sidebar-sheet-anchor-bottom) - var(--sidebar-sheet-top));
   border-radius: 32px 32px 24px 24px;
   border-color: rgba(136, 118, 221, 0.2);
+  transform-origin: center bottom;
+  animation: pulse-sheet-up-from-tabbar .28s cubic-bezier(.22, .86, .24, 1) both;
   box-shadow:
     0 18px 42px rgba(19, 13, 42, 0.22),
     0 3px 10px rgba(255, 255, 255, 0.08),
@@ -1071,6 +1073,7 @@ body {
     border-radius: 30px 30px 22px 22px;
     padding: 8px 10px 12px;
     max-height: calc(var(--sidebar-sheet-anchor-bottom) - var(--sidebar-sheet-top));
+    animation-duration: .3s;
     box-shadow:
       0 16px 34px rgba(19, 13, 42, 0.18),
       0 2px 8px rgba(255, 255, 255, 0.08),
@@ -1086,6 +1089,24 @@ body {
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+@keyframes pulse-sheet-up-from-tabbar {
+  from {
+    transform: translateY(18px) scale(.975);
+    opacity: 0;
+    filter: saturate(.96);
+  }
+  55% {
+    transform: translateY(-2px) scale(1.002);
+    opacity: 1;
+    filter: saturate(1);
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: saturate(1);
   }
 }
 

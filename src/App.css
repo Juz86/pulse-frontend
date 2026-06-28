@@ -446,6 +446,7 @@ body {
 
 .pulse-sheet-backdrop--add-contact,
 .pulse-sheet-backdrop--new-chat,
+.pulse-sheet-backdrop--new-group,
 .pulse-sheet-backdrop--call-log {
   align-items: flex-end;
   justify-content: center;
@@ -457,6 +458,7 @@ body {
 
 .pulse-sheet--add-contact,
 .pulse-sheet--new-chat,
+.pulse-sheet--new-group,
 .pulse-sheet--call-log {
   width: min(100%, 560px);
   max-height: min(84dvh, calc(var(--vvh, 100dvh) - var(--safe-top) - 20px));
@@ -475,6 +477,7 @@ body {
 
 .pulse-sheet-header--add-contact,
 .pulse-sheet-header--new-chat,
+.pulse-sheet-header--new-group,
 .pulse-sheet-header--call-log {
   position: relative;
   display: flex;
@@ -486,6 +489,7 @@ body {
 
 .pulse-sheet-title--add-contact,
 .pulse-sheet-title--new-chat,
+.pulse-sheet-title--new-group,
 .pulse-sheet-title--call-log {
   position: absolute;
   left: 50%;
@@ -504,6 +508,7 @@ body {
 
 .pulse-sheet-close--add-contact,
 .pulse-sheet-close--new-chat,
+.pulse-sheet-close--new-group,
 .pulse-sheet-close--call-log {
   width: 52px;
   height: 52px;
@@ -520,6 +525,7 @@ body {
 
 .add-contact-sheet-body,
 .new-chat-sheet-body,
+.new-group-sheet-body,
 .call-log-sheet-body {
   display: flex;
   flex-direction: column;
@@ -527,6 +533,10 @@ body {
   min-height: 0;
   overflow-y: auto;
   padding: 0 2px 2px;
+}
+
+.new-group-sheet-body {
+  padding-bottom: 2px;
 }
 
 .add-contact-sheet-actions {

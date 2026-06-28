@@ -879,36 +879,59 @@ export default function ChatModals({
 
       {/* ── GROEP AANMAKEN PANEEL ── */}
       {showNewGroup && (
-          <aside className="chat-side-panel new-group-panel" aria-labelledby="new-group-title" aria-describedby="new-group-description">
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => { setShowNewGroup(false); setGroupName(''); }}><span aria-hidden="true">✕</span></button>
-            <h2 id="new-group-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><Users size={18} /></span> Nieuwe groep</h2>
-            <div className="form-group">
-              <label className="form-label">Groepsnaam</label>
-              <input className="form-input" placeholder="Bijv. Familie, Werk…" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={50} />
+        <div
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--new-group"
+          onClick={() => { setShowNewGroup(false); setGroupName(''); }}
+        >
+          <aside
+            className="pulse-sheet pulse-sheet--new-group"
+            aria-labelledby="new-group-title"
+            aria-describedby="new-group-description"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--new-group">
+              <div className="pulse-sheet-title pulse-sheet-title--new-group">Nieuwe groep</div>
+              <button
+                type="button"
+                className="pulse-sheet-close pulse-sheet-close--new-group"
+                aria-label="Sluiten"
+                onClick={() => { setShowNewGroup(false); setGroupName(''); }}
+              >
+                <span aria-hidden="true">✕</span>
+              </button>
             </div>
-            <p id="new-group-description" className="modal-sub">Selecteer deelnemers</p>
-            {contacts.length === 0 && <div className="auth-error">⚠️ Voeg eerst contacten toe.</div>}
-            <div className="new-group-contact-list">
-              {contacts.map(c => {
-                const selected = groupMembers.find(m => m.uid === c.uid);
-                return (
-                  <div key={c.uid} className={`search-result ${selected ? 'selected' : ''}`} onClick={() => toggleGroupMember(c)}>
-                    <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" decorative />
-                    <div style={{ flex: 1 }}><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
-                    {selected
-                      ? <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#6c63ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Check size={14} color="#fff" /></span>
-                      : <span style={{ width: 22, height: 22, borderRadius: '50%', border: '1.5px solid var(--border)', display: 'inline-block', flexShrink: 0 }} />
-                    }
-                  </div>
-                );
-              })}
-            </div>
-            {groupMembers.length > 0 && <p className="modal-sub">{groupMembers.length} deelnemer(s) geselecteerd</p>}
-            <div className="modal-actions">
-              <button type="button" className="btn-secondary" onClick={() => { setShowNewGroup(false); setGroupName(''); }}>Sluiten</button>
-              <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={createGroup} disabled={!groupName.trim() || groupMembers.length === 0}>Groep aanmaken →</button>
+
+            <div className="new-group-sheet-body">
+              <div className="form-group">
+                <label className="form-label">Groepsnaam</label>
+                <input className="form-input" placeholder="Bijv. Familie, Werk…" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={50} />
+              </div>
+              <p id="new-group-description" className="new-chat-sheet-sub">Selecteer deelnemers</p>
+              {contacts.length === 0 && <div className="auth-error">⚠️ Voeg eerst contacten toe.</div>}
+              <div className="new-group-contact-list">
+                {contacts.map(c => {
+                  const selected = groupMembers.find(m => m.uid === c.uid);
+                  return (
+                    <div key={c.uid} className={`search-result ${selected ? 'selected' : ''}`} onClick={() => toggleGroupMember(c)}>
+                      <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" decorative />
+                      <div style={{ flex: 1 }}><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
+                      {selected
+                        ? <span style={{ width: 22, height: 22, borderRadius: '50%', background: '#6c63ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Check size={14} color="#fff" /></span>
+                        : <span style={{ width: 22, height: 22, borderRadius: '50%', border: '1.5px solid var(--border)', display: 'inline-block', flexShrink: 0 }} />
+                      }
+                    </div>
+                  );
+                })}
+              </div>
+              {groupMembers.length > 0 && <p className="new-chat-sheet-sub">{groupMembers.length} deelnemer(s) geselecteerd</p>}
+              <div className="modal-actions add-contact-sheet-actions">
+                <button type="button" className="btn-secondary" onClick={() => { setShowNewGroup(false); setGroupName(''); }}>Sluiten</button>
+                <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={createGroup} disabled={!groupName.trim() || groupMembers.length === 0}>Groep aanmaken →</button>
+              </div>
             </div>
           </aside>
+        </div>
       )}
 
       {/* ── PROFIEL MODAL ── */}

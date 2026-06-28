@@ -223,7 +223,7 @@ export default function ChatSidebar({
 
       root.style.setProperty('--sidebar-sheet-left', `${Math.round(sidebarRect.left)}px`);
       root.style.setProperty('--sidebar-sheet-right', `${Math.round(sidebarRect.right)}px`);
-      root.style.setProperty('--sidebar-sheet-top', `${Math.round(headerRect.bottom)}px`);
+      root.style.setProperty('--sidebar-sheet-top', `${Math.round(headerRect.bottom - 2)}px`);
       root.style.setProperty('--sidebar-sheet-bottom', `${Math.round(footerRect.top)}px`);
       root.style.setProperty('--sidebar-sheet-anchor-bottom', `${Math.round(footerTabbarRect.top)}px`);
     };

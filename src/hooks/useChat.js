@@ -288,6 +288,11 @@ export default function useChat({
         if (typing) {
           setTyping(true);
           setTypingName(displayName);
+          setTimeout(() => {
+            if (msgsAreaRef.current) {
+              msgsAreaRef.current.scrollTo({ top: msgsAreaRef.current.scrollHeight, behavior: 'smooth' });
+            }
+          }, 0);
         } else {
           setTyping(false);
           setTypingName('');

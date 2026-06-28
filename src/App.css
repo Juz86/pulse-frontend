@@ -471,7 +471,7 @@ body {
   left: var(--sidebar-sheet-left);
   right: calc(100vw - var(--sidebar-sheet-right));
   top: var(--sidebar-sheet-top);
-  bottom: calc(var(--vvh, 100dvh) - var(--sidebar-sheet-anchor-bottom));
+  bottom: calc(var(--vvh, 100dvh) - var(--sidebar-sheet-bottom));
   inset: auto;
 }
 
@@ -502,7 +502,7 @@ body {
 .pulse-sheet-backdrop--new-group .pulse-sheet,
 .pulse-sheet-backdrop--call-log .pulse-sheet {
   width: 100%;
-  max-height: calc(var(--sidebar-sheet-anchor-bottom) - var(--sidebar-sheet-top));
+  max-height: calc(var(--sidebar-sheet-bottom) - var(--sidebar-sheet-top));
   border-radius: 32px 32px 24px 24px;
   border-color: rgba(136, 118, 221, 0.2);
   transform-origin: center bottom;
@@ -1072,7 +1072,7 @@ body {
     width: 100%;
     border-radius: 30px 30px 22px 22px;
     padding: 8px 10px 12px;
-    max-height: calc(var(--sidebar-sheet-anchor-bottom) - var(--sidebar-sheet-top));
+    max-height: calc(var(--sidebar-sheet-bottom) - var(--sidebar-sheet-top));
     animation-duration: .3s;
     box-shadow:
       0 16px 34px rgba(19, 13, 42, 0.18),
@@ -2668,11 +2668,15 @@ font-family: 'Inter', sans-serif;
 }
 
 .sidebar-footer {
+  position: relative;
+  z-index: 3705;
   padding: 16px 18px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
   background: linear-gradient(180deg, rgba(28, 20, 60, 0) 0%, rgba(28, 20, 60, 0.18) 100%);
 }
 .sidebar-footer-tabbar {
+  position: relative;
+  z-index: 3706;
   display: flex;
   align-items: stretch;
   justify-content: space-between;

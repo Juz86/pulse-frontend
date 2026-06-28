@@ -1681,10 +1681,11 @@ export default function ChatModals({
 
                   {callActionMode && (
                     <div className="call-log-picker">
+                      <div className="new-chat-sheet-kicker">Kies een contactpersoon</div>
                       <div className="call-log-picker-title">
-                        Kies een contactpersoon om te bellen of videobellen:
+                        Start direct een bel- of video-oproep vanuit je contacten.
                       </div>
-                      <div className="call-log-picker-list">
+                      <div className="pulse-sheet-list pulse-sheet-list--new-chat call-log-picker-list">
                         {filteredCallContacts.length === 0 ? (
                           <div className="empty-convs" style={{ paddingTop: 6, paddingBottom: 6 }}>
                             <p>Geen contacten gevonden.</p>
@@ -1699,25 +1700,14 @@ export default function ChatModals({
                             return (
                             <div
                               key={contact.uid}
-                              className="contact-row"
-                              style={{
-                                background: 'rgba(255,255,255,0.02)',
-                                border: '1px solid var(--border)',
-                                borderRadius: '10px',
-                                padding: '9px 12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                color: 'var(--text)',
-                                textAlign: 'left',
-                              }}
+                              className="call-log-picker-row"
                             >
                               <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
-                              <div className="conv-info" style={{ flex: 1, minWidth: 0 }}>
+                              <div className="conv-info call-log-picker-copy">
                                 <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
                                 <div className="conv-preview call-contact-email-responsive">{contact.email || 'Geen e-mailadres'}</div>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <div className="call-log-picker-actions">
                                 <button
                                   type="button"
                                   className="call-btn voice"

@@ -48,9 +48,16 @@ function HistorySelect({ ariaLabel, value, options, onChange, disabled = false, 
         aria-expanded={open}
         disabled={disabled}
         onClick={() => !disabled && setOpen((prev) => !prev)}
-        style={{ ...style, textAlign: 'left', cursor: disabled ? 'not-allowed' : 'pointer' }}
+        style={{
+          ...style,
+          textAlign: 'left',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.72 : 1,
+          display: 'flex',
+          alignItems: 'center',
+        }}
       >
-        <span>{selectedOption?.label || ''}</span>
+        <span style={{ color: style?.color || '#241741', fontWeight: 700 }}>{selectedOption?.label || ''}</span>
       </button>
 
       {open && !disabled && (
@@ -64,10 +71,10 @@ function HistorySelect({ ariaLabel, value, options, onChange, disabled = false, 
             right: 0,
             zIndex: 50,
             padding: '8px',
-            borderRadius: 16,
-            border: '1px solid rgba(165, 150, 255, 0.18)',
-            background: 'linear-gradient(180deg, rgba(56, 49, 103, 0.98) 0%, rgba(43, 38, 86, 0.99) 100%)',
-            boxShadow: '0 18px 36px rgba(7, 5, 20, 0.42), inset 0 1px 0 rgba(255,255,255,0.04)',
+            borderRadius: 20,
+            border: '1px solid rgba(140, 122, 214, 0.14)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,.98) 0%, rgba(244,239,255,.98) 100%)',
+            boxShadow: '0 18px 36px rgba(106, 87, 180, 0.12)',
             display: 'flex',
             flexDirection: 'column',
             gap: '6px',
@@ -88,17 +95,18 @@ function HistorySelect({ ariaLabel, value, options, onChange, disabled = false, 
                 style={{
                   width: '100%',
                   minHeight: 42,
-                  borderRadius: 12,
-                  border: isSelected ? '1px solid rgba(173, 141, 255, 0.5)' : '1px solid rgba(255,255,255,0.04)',
+                  borderRadius: 14,
+                  border: isSelected ? '1px solid rgba(173, 141, 255, 0.22)' : '1px solid rgba(140,122,214,0.08)',
                   background: isSelected
-                    ? 'linear-gradient(135deg, rgba(123, 94, 255, 0.34) 0%, rgba(183, 92, 255, 0.3) 100%)'
-                    : 'rgba(255,255,255,0.02)',
-                  color: 'var(--text)',
+                    ? 'linear-gradient(135deg, #8374ff 0%, #a855f7 100%)'
+                    : 'rgba(255,255,255,0.72)',
+                  color: isSelected ? '#fff' : '#241741',
                   fontSize: '14px',
                   fontWeight: isSelected ? 700 : 600,
                   padding: '0 14px',
                   textAlign: 'left',
                   cursor: 'pointer',
+                  boxShadow: isSelected ? '0 10px 24px rgba(106, 87, 180, 0.18)' : 'inset 0 1px 0 rgba(255,255,255,.72)',
                 }}
               >
                 {option.label}
@@ -270,19 +278,19 @@ export default function ChatModals({
   const historySelectStyle = {
     width: '100%',
     minHeight: 48,
-    borderRadius: 14,
-    border: '1px solid rgba(165, 150, 255, 0.18)',
-    background: 'linear-gradient(180deg, rgba(66, 59, 118, 0.92) 0%, rgba(53, 47, 98, 0.98) 100%)',
-    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(13, 10, 34, 0.18)',
-    color: 'var(--text)',
+    borderRadius: 18,
+    border: '1px solid rgba(140, 122, 214, 0.14)',
+    background: 'linear-gradient(180deg, rgba(255,255,255,.94) 0%, rgba(244,239,255,.96) 100%)',
+    boxShadow: '0 10px 22px rgba(106, 87, 180, 0.08)',
+    color: '#241741',
     padding: '0 44px 0 14px',
     fontSize: '14px',
-    fontWeight: 600,
+    fontWeight: 700,
     outline: 'none',
     appearance: 'none',
     WebkitAppearance: 'none',
     MozAppearance: 'none',
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23f5f1ff' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236f5ef0' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'right 14px center',
     backgroundSize: '14px',

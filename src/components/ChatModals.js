@@ -544,18 +544,29 @@ export default function ChatModals({
             </div>
 
             <div className="friend-requests-sheet-body">
-              <div className="friend-requests-tabs">
-                <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
-                  Ontvangen
-                  {friendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{friendRequests.length}</span>}
-                </button>
-                <button type="button" onClick={() => setRequestsTab('verstuurd')} className={requestsTab === 'verstuurd' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
-                  Verstuurd
-                  {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
-                </button>
+              <p className="new-chat-sheet-sub">
+                Beheer binnenkomende en verstuurde contactverzoeken vanuit dezelfde lichte sheet-opbouw als Nieuwe chat.
+              </p>
+
+              <div className="new-chat-sheet-section">
+                <div className="new-chat-sheet-kicker">Tabblad</div>
+                <div className="friend-requests-tabs">
+                  <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
+                    Ontvangen
+                    {friendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{friendRequests.length}</span>}
+                  </button>
+                  <button type="button" onClick={() => setRequestsTab('verstuurd')} className={requestsTab === 'verstuurd' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
+                    Verstuurd
+                    {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
+                  </button>
+                </div>
               </div>
 
-              <div className="friend-requests-list">
+              <div className="new-chat-sheet-section">
+                <div className="new-chat-sheet-kicker">
+                  {requestsTab === 'ontvangen' ? 'Ontvangen verzoeken' : 'Verstuurde verzoeken'}
+                </div>
+                <div className="pulse-sheet-list pulse-sheet-list--new-chat friend-requests-list">
                 {requestsTab === 'ontvangen' && (
                   <>
                     {friendRequests.map(req => (
@@ -619,6 +630,7 @@ export default function ChatModals({
                     )}
                   </>
                 )}
+                </div>
               </div>
             </div>
           </aside>
@@ -779,12 +791,18 @@ export default function ChatModals({
 
             <div className="add-contact-sheet-body">
               <p id="add-contact-description" className="new-chat-sheet-sub">
-                Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam
+                Voeg iemand toe via e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam in dezelfde lichte Pulse sheet-stijl.
               </p>
               <div className="new-chat-sheet-section">
                 <div className="new-chat-sheet-kicker">E-mailadres of gebruikersnaam</div>
                 <div className="sheet-input-wrap">
                   <input className="form-input sheet-form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={contactEmail} onChange={e => { setContactEmail(e.target.value); clearPendingFriendRequestState(); }} onKeyDown={e => e.key === 'Enter' && addContact()} />
+                </div>
+              </div>
+              <div className="new-chat-sheet-section">
+                <div className="new-chat-sheet-kicker">Weergavenaam</div>
+                <div className="sheet-input-wrap">
+                  <input className="form-input sheet-form-input" placeholder="Bijvoorbeeld Kamilah" value={contactNickname} onChange={e => setContactNickname(e.target.value)} />
                 </div>
               </div>
               <div className="new-chat-sheet-section">
@@ -919,28 +937,33 @@ export default function ChatModals({
             </div>
 
             <div className="new-group-sheet-body">
+              <p id="new-group-description" className="new-chat-sheet-sub">
+                Start een groepsgesprek met dezelfde content-first opbouw als Nieuwe chat.
+              </p>
               <div className="new-chat-sheet-section">
                 <div className="new-chat-sheet-kicker">Groepsnaam</div>
                 <div className="sheet-input-wrap">
                   <input className="form-input sheet-form-input" placeholder="Bijv. Familie, Werk…" value={groupName} onChange={e => setGroupName(e.target.value)} maxLength={50} />
                 </div>
               </div>
-              <p id="new-group-description" className="new-chat-sheet-sub">Selecteer deelnemers</p>
-              {contacts.length === 0 && <div className="auth-error">⚠️ Voeg eerst contacten toe.</div>}
-              <div className="pulse-sheet-list pulse-sheet-list--new-chat new-group-contact-list">
-                {contacts.map(c => {
-                  const selected = groupMembers.find(m => m.uid === c.uid);
-                  return (
-                    <button key={c.uid} type="button" className={`search-result new-chat-sheet-result new-group-sheet-result${selected ? ' selected' : ''}`} onClick={() => toggleGroupMember(c)}>
-                      <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" decorative />
-                      <div className="new-group-sheet-result-copy"><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
-                      {selected
-                        ? <span className="new-group-sheet-check new-group-sheet-check--selected"><Check size={14} color="#fff" /></span>
-                        : <span className="new-group-sheet-check" />
-                      }
-                    </button>
-                  );
-                })}
+              <div className="new-chat-sheet-section">
+                <div className="new-chat-sheet-kicker">Kies deelnemers</div>
+                {contacts.length === 0 && <div className="auth-error">⚠️ Voeg eerst contacten toe.</div>}
+                <div className="pulse-sheet-list pulse-sheet-list--new-chat new-group-contact-list">
+                  {contacts.map(c => {
+                    const selected = groupMembers.find(m => m.uid === c.uid);
+                    return (
+                      <button key={c.uid} type="button" className={`search-result new-chat-sheet-result new-group-sheet-result${selected ? ' selected' : ''}`} onClick={() => toggleGroupMember(c)}>
+                        <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" decorative />
+                        <div className="new-group-sheet-result-copy"><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
+                        {selected
+                          ? <span className="new-group-sheet-check new-group-sheet-check--selected"><Check size={14} color="#fff" /></span>
+                          : <span className="new-group-sheet-check" />
+                        }
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               {groupMembers.length > 0 && <p className="new-chat-sheet-sub">{groupMembers.length} deelnemer(s) geselecteerd</p>}
               <div className="modal-actions add-contact-sheet-actions">

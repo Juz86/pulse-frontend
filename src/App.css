@@ -5498,13 +5498,6 @@ font-family: 'Inter', sans-serif;
 .forward-message-row:hover {
   background:rgba(255,255,255,.035);
 }
-.new-chat-panel {
-  display:flex;
-  flex-direction:column;
-}
-.new-chat-panel .modal-sub {
-  border-bottom-color:rgba(255,255,255,.08);
-}
 .new-chat-search-row {
   align-items:stretch;
 }
@@ -5525,18 +5518,6 @@ font-family: 'Inter', sans-serif;
   max-height:38vh;
   padding-right:4px;
 }
-.new-chat-panel .search-result {
-  margin-bottom:0;
-  background:rgba(255,255,255,.045);
-  border-color:rgba(255,255,255,.08);
-}
-.new-group-panel {
-  display:flex;
-  flex-direction:column;
-}
-.new-group-panel .modal-sub {
-  border-bottom-color:rgba(255,255,255,.08);
-}
 .new-group-contact-list {
   display:flex;
   flex-direction:column;
@@ -5547,16 +5528,6 @@ font-family: 'Inter', sans-serif;
   max-height:44vh;
   padding-right:4px;
 }
-.new-group-panel .search-result {
-  margin-bottom:0;
-  background:rgba(255,255,255,.045);
-  border-color:rgba(255,255,255,.08);
-}
-.friend-requests-panel,
-.add-contact-panel {
-  display:flex;
-  flex-direction:column;
-}
 .friend-requests-title {
   margin-bottom:16px;
   padding-right:58px;
@@ -5564,15 +5535,6 @@ font-family: 'Inter', sans-serif;
   max-width:100%;
   overflow-wrap:anywhere;
   word-break:break-word;
-}
-.friend-requests-panel .modal-title,
-.add-contact-panel .modal-title,
-.rename-contact-panel .modal-title,
-.call-log-panel .modal-title,
-.share-contact-panel .modal-title,
-.shared-contact-panel .modal-title,
-.contact-list-profile-panel .modal-title {
-  padding-right:44px;
 }
 .friend-requests-list {
   display:flex;
@@ -5588,9 +5550,6 @@ font-family: 'Inter', sans-serif;
     font-size:clamp(22px, 7vw, 30px);
     padding-right:54px;
   }
-}
-.add-contact-panel .modal-sub {
-  border-bottom-color:rgba(255,255,255,.08);
 }
 .share-contact-panel,
 .shared-contact-panel,
@@ -5645,6 +5604,32 @@ font-family: 'Inter', sans-serif;
   border: 1px solid rgba(108, 99, 255, 0.18);
   border-radius: 0;
   pointer-events: none;
+}
+.pulse-sheet-backdrop--rename-contact,
+.pulse-sheet-backdrop--forward-message {
+  align-items: flex-end;
+}
+
+.pulse-sheet--rename-contact,
+.pulse-sheet--forward-message {
+  width: min(100%, 420px);
+}
+
+.pulse-sheet-header--rename-contact,
+.pulse-sheet-header--forward-message {
+  position: relative;
+}
+
+.pulse-sheet-title--rename-contact,
+.pulse-sheet-title--forward-message {
+  width: 100%;
+  text-align: center;
+}
+
+.pulse-sheet-close--rename-contact,
+.pulse-sheet-close--forward-message {
+  position: absolute;
+  right: 0;
 }
 .call-panel-note {
   display:flex;

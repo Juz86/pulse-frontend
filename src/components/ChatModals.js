@@ -457,26 +457,41 @@ export default function ChatModals({
     <>
       {/* ── CONTACT HERNOEMEN ── */}
       {renamingContact && (
-          <aside className="chat-side-panel rename-contact-panel" aria-labelledby="rename-contact-title" aria-describedby="rename-contact-description">
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setRenamingContact(null)}><span aria-hidden="true">✕</span></button>
-            <h2 id="rename-contact-title" className="modal-title"><span className="modal-title-icon" aria-hidden="true"><MagicEdit size={18} /></span> Naam wijzigen</h2>
-            <p id="rename-contact-description" className="sr-only">Wijzig de bijnaam van deze contactpersoon.</p>
-            <div className="form-group">
-              <label className="form-label">Bijnaam</label>
-              <input
-                className="form-input"
-                value={renameValue}
-                onChange={e => setRenameValue(e.target.value)}
-                placeholder={renamingContact.displayName}
-                autoFocus
-                onKeyDown={e => { if (e.key === 'Enter') { saveContactNickname(renamingContact.uid, renameValue); setRenamingContact(null); setContacts(prev => [...prev]); } }}
-              />
+        <div
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--rename-contact"
+          onClick={() => setRenamingContact(null)}
+        >
+          <aside
+            className="pulse-sheet pulse-sheet--rename-contact rename-contact-panel"
+            aria-labelledby="rename-contact-title"
+            aria-describedby="rename-contact-description"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--rename-contact">
+              <div id="rename-contact-title" className="pulse-sheet-title pulse-sheet-title--rename-contact">Naam wijzigen</div>
+              <button type="button" className="pulse-sheet-close pulse-sheet-close--rename-contact" aria-label="Sluiten" onClick={() => setRenamingContact(null)}><span aria-hidden="true">✕</span></button>
             </div>
-            <div className="modal-actions">
+            <p id="rename-contact-description" className="new-chat-sheet-sub">Wijzig de bijnaam van deze contactpersoon binnen dezelfde Pulse sheet-stijl.</p>
+            <div className="new-chat-sheet-section">
+              <div className="new-chat-sheet-kicker">Bijnaam</div>
+              <div className="sheet-input-wrap">
+                <input
+                  className="form-input sheet-form-input"
+                  value={renameValue}
+                  onChange={e => setRenameValue(e.target.value)}
+                  placeholder={renamingContact.displayName}
+                  autoFocus
+                  onKeyDown={e => { if (e.key === 'Enter') { saveContactNickname(renamingContact.uid, renameValue); setRenamingContact(null); setContacts(prev => [...prev]); } }}
+                />
+              </div>
+            </div>
+            <div className="modal-actions add-contact-sheet-actions">
               <button type="button" className="btn-secondary" onClick={() => setRenamingContact(null)}>Sluiten</button>
               <button type="button" className="btn-primary" onClick={() => { saveContactNickname(renamingContact.uid, renameValue); setRenamingContact(null); setContacts(prev => [...prev]); }}>Opslaan</button>
             </div>
           </aside>
+        </div>
       )}
 
       {/* ── CONTACTPERSOON DELEN ── */}
@@ -2087,13 +2102,21 @@ export default function ChatModals({
 
       {/* ── DOORSTUREN PANEEL ── */}
       {forwardMsg && (
+        <div
+          className="pulse-sheet-backdrop pulse-sheet-backdrop--forward-message"
+          onClick={() => setForwardMsg(null)}
+        >
           <aside
-            className="chat-side-panel forward-message-panel"
+            className="pulse-sheet pulse-sheet--forward-message forward-message-panel"
             aria-labelledby="forward-message-title"
             aria-describedby="forward-message-description"
+            onClick={(e) => e.stopPropagation()}
           >
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setForwardMsg(null)}><span aria-hidden="true">✕</span></button>
-            <h2 id="forward-message-title" className="modal-title"><span aria-hidden="true">↪️</span> Doorsturen naar…</h2>
+            <div className="pulse-sheet-handle" aria-hidden="true" />
+            <div className="pulse-sheet-header pulse-sheet-header--forward-message">
+              <div id="forward-message-title" className="pulse-sheet-title pulse-sheet-title--forward-message">Doorsturen naar…</div>
+              <button type="button" className="pulse-sheet-close pulse-sheet-close--forward-message" aria-label="Sluiten" onClick={() => setForwardMsg(null)}><span aria-hidden="true">✕</span></button>
+            </div>
             <div id="forward-message-description" className="forward-message-preview">
               {getMessageDisplayText(forwardMsg)}
             </div>
@@ -2109,6 +2132,7 @@ export default function ChatModals({
               )}
             </div>
           </aside>
+        </div>
       )}
 
       {/* ── ERROR / INFO TOAST ── */}

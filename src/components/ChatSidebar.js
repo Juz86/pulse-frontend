@@ -95,11 +95,14 @@ export default function ChatSidebar({
   const [convMenu, setConvMenu]       = useState(null); // { conv, otherUid, direction, top, left }
   const [convActionsSheet, setConvActionsSheet] = useState(null); // { conv, otherUid }
   const [moreActionsMenuOpen, setMoreActionsMenuOpen] = useState(false);
+  const [moreActionsMenuClosing, setMoreActionsMenuClosing] = useState(false);
   const moreActionsMenuRef = useRef(null);
+  const moreActionsCloseTimeoutRef = useRef(null);
   const convSheetHistoryPushedRef = useRef(false);
   const moreActionsSheetHistoryPushedRef = useRef(false);
   const contactSheetHistoryPushedRef = useRef(false);
   const normalizedSearch = searchQuery.trim().toLowerCase();
+  const moreActionsSheetVisible = moreActionsMenuOpen || moreActionsMenuClosing;
 
   const filteredContacts = useMemo(() => contacts.filter((contact) => (
     !normalizedSearch
@@ -108,16 +111,16 @@ export default function ChatSidebar({
   )), [contacts, normalizedSearch]);
 
   useEffect(() => {
-    if (!moreActionsMenuOpen) return;
+    if (!moreActionsSheetVisible) return;
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {
-        setMoreActionsMenuOpen(false);
+        setMoreActionsMenuClosing(true);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [moreActionsMenuOpen]);
+  }, [moreActionsSheetVisible]);
 
   useEffect(() => {
     if (!moreActionsMenuOpen) return undefined;
@@ -128,11 +131,11 @@ export default function ChatSidebar({
         window.history.back();
         return;
       }
-      setMoreActionsMenuOpen(false);
+      setMoreActionsMenuClosing(true);
     };
     const onPopState = () => {
       moreActionsSheetHistoryPushedRef.current = false;
-      setMoreActionsMenuOpen(false);
+      setMoreActionsMenuClosing(true);
     };
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('popstate', onPopState);
@@ -145,6 +148,12 @@ export default function ChatSidebar({
       window.removeEventListener('popstate', onPopState);
     };
   }, [moreActionsMenuOpen]);
+
+  useEffect(() => () => {
+    if (moreActionsCloseTimeoutRef.current) {
+      window.clearTimeout(moreActionsCloseTimeoutRef.current);
+    }
+  }, []);
 
   useEffect(() => {
     if (!convMenu && !contactMenu) return;
@@ -284,13 +293,37 @@ export default function ChatSidebar({
     setConvActionsSheet(null);
   }, []);
   const closeMoreActionsSheet = useCallback(() => {
+    if (moreActionsCloseTimeoutRef.current) {
+      window.clearTimeout(moreActionsCloseTimeoutRef.current);
+      moreActionsCloseTimeoutRef.current = null;
+    }
+    setMoreActionsMenuClosing(false);
+    setMoreActionsMenuOpen(false);
+  }, []);
+  const dismissMoreActionsSheet = useCallback(() => {
+    if (moreActionsMenuClosing || !moreActionsSheetVisible) return;
     if (moreActionsSheetHistoryPushedRef.current) {
       moreActionsSheetHistoryPushedRef.current = false;
       window.history.back();
       return;
     }
-    setMoreActionsMenuOpen(false);
-  }, []);
+    setMoreActionsMenuClosing(true);
+  }, [moreActionsMenuClosing, moreActionsSheetVisible]);
+
+  useEffect(() => {
+    if (!moreActionsMenuClosing) return undefined;
+    moreActionsCloseTimeoutRef.current = window.setTimeout(() => {
+      moreActionsCloseTimeoutRef.current = null;
+      setMoreActionsMenuClosing(false);
+      setMoreActionsMenuOpen(false);
+    }, 240);
+    return () => {
+      if (moreActionsCloseTimeoutRef.current) {
+        window.clearTimeout(moreActionsCloseTimeoutRef.current);
+        moreActionsCloseTimeoutRef.current = null;
+      }
+    };
+  }, [moreActionsMenuClosing]);
   const closeContactActionsSheet = useCallback(() => {
     if (contactSheetHistoryPushedRef.current) {
       contactSheetHistoryPushedRef.current = false;
@@ -301,7 +334,7 @@ export default function ChatSidebar({
   }, []);
 
   const footerTabbar = (
-    <div className={`sidebar-footer-tabbar${moreActionsMenuOpen ? ' sidebar-footer-tabbar--cluster' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
+    <div className={`sidebar-footer-tabbar${moreActionsSheetVisible ? ' sidebar-footer-tabbar--cluster' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
       <button
         type="button"
         className="sidebar-footer-tab sidebar-footer-tab-profile"
@@ -376,8 +409,19 @@ export default function ChatSidebar({
           type="button"
           className="sidebar-footer-tab sidebar-footer-tab-more"
           aria-label="Meer acties"
-          aria-expanded={moreActionsMenuOpen}
-          onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
+          aria-expanded={moreActionsSheetVisible}
+          onClick={() => {
+            if (moreActionsSheetVisible) {
+              dismissMoreActionsSheet();
+              return;
+            }
+            if (moreActionsCloseTimeoutRef.current) {
+              window.clearTimeout(moreActionsCloseTimeoutRef.current);
+              moreActionsCloseTimeoutRef.current = null;
+            }
+            setMoreActionsMenuClosing(false);
+            setMoreActionsMenuOpen(true);
+          }}
           title="Meer acties"
         >
           <span className="sidebar-footer-tab-icon" aria-hidden="true">
@@ -796,11 +840,11 @@ export default function ChatSidebar({
         );
       })()}
 
-      {moreActionsMenuOpen ? (
-        <div className="sidebar-bottom-cluster-backdrop" onClick={closeMoreActionsSheet}>
-          <div className="sidebar-bottom-cluster" data-sidebar-actions-menu onClick={(e) => e.stopPropagation()}>
+      {moreActionsSheetVisible ? (
+        <div className={`sidebar-bottom-cluster-backdrop${moreActionsMenuClosing ? ' is-closing' : ''}`} onClick={dismissMoreActionsSheet}>
+          <div className={`sidebar-bottom-cluster${moreActionsMenuClosing ? ' is-closing' : ''}`} data-sidebar-actions-menu onClick={(e) => e.stopPropagation()}>
             <div
-              className="pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet"
+              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${moreActionsMenuClosing ? ' is-closing' : ''}`}
               role="menu"
               aria-label="Meer acties"
             >
@@ -811,7 +855,7 @@ export default function ChatSidebar({
                   type="button"
                   className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
                   aria-label="Sluiten"
-                  onClick={closeMoreActionsSheet}
+                  onClick={dismissMoreActionsSheet}
                 >
                   <XIcon size={20} aria-hidden="true" />
                 </button>

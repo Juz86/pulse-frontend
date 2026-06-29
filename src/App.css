@@ -2743,15 +2743,18 @@ font-family: 'Inter', sans-serif;
   -webkit-backdrop-filter: blur(22px);
 }
 .sidebar-footer--cluster {
-  padding: 0 12px 12px;
-  background: transparent;
+  margin-top: -2px;
+  padding: 8px 12px 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(248, 246, 255, 0.94) 100%);
+  border-top: 1px solid rgba(112, 92, 191, 0.08);
 }
 .sidebar-footer-tabbar--cluster {
   border: none;
-  border-top: 1px solid rgba(112, 92, 191, 0.08);
-  border-radius: 0 0 28px 28px;
+  border-top: none;
+  border-radius: 0;
   box-shadow: none;
-  background: rgba(255, 255, 255, 0.92);
+  background: transparent;
+  padding: 0 2px;
 }
 .sidebar-footer-tab {
   flex: 1 1 0;

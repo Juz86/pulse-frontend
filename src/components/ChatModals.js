@@ -1092,37 +1092,36 @@ export default function ChatModals({
             <div className="profile-modal-body">
               <div className="profile-content">
                 {profileTab === 'overview' && (
-                  <div className="profile-settings-home">
-                    <div className="profile-settings-hero">
+                  <div className="profile-settings-sheet-content">
+                    <div className="profile-settings-sheet-user">
                       {photoPreview
                         ? <img src={photoPreview} alt={user.displayName || user.email} className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
                         : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
                       }
-                      <div className="profile-settings-hero-name">{user.displayName || user.email}</div>
+                      <div className="profile-settings-sheet-user-name">{user.displayName || user.email}</div>
                     </div>
-                    <div className="profile-settings-section-title">Instellingen</div>
-                    <div className="profile-settings-list">
+                    <div className="pulse-sheet-list pulse-sheet-list--settings-nav">
                       {profileSections.map((section) => (
                         <button
                           key={section.id}
                           type="button"
-                          className="profile-settings-item"
+                          className="chat-header-menu-item profile-settings-menu-item"
                           onClick={() => {
                             setProfileTab(section.id);
                             if (section.id === 'geschiedenis') loadHistorySettings();
                           }}
                         >
-                          <span className="profile-settings-item-icon" aria-hidden="true">{section.icon}</span>
-                          <span className="profile-settings-item-copy">
-                            <span className="profile-settings-item-title">{section.label}</span>
-                            <span className="profile-settings-item-description">{section.description}</span>
+                          <span className="profile-settings-menu-item-icon" aria-hidden="true">{section.icon}</span>
+                          <span className="profile-settings-menu-item-copy">
+                            <span className="profile-settings-menu-item-title">{section.label}</span>
+                            <span className="profile-settings-menu-item-description">{section.description}</span>
                           </span>
-                          <ArrowRight size={18} className="profile-settings-item-arrow" aria-hidden="true" />
+                          <ArrowRight size={18} className="profile-settings-menu-item-arrow" aria-hidden="true" />
                         </button>
                       ))}
                       <button
                         type="button"
-                        className="profile-settings-item"
+                        className="chat-header-menu-item profile-settings-menu-item"
                         onClick={() => {
                           setConfirmDialog?.({
                             title: 'Uitloggen',
@@ -1133,11 +1132,12 @@ export default function ChatModals({
                           });
                         }}
                       >
-                        <span className="profile-settings-item-icon" aria-hidden="true"><Logout size={18} /></span>
-                        <span className="profile-settings-item-copy">
-                          <span className="profile-settings-item-title" style={{ color: '#fda4af' }}>Uitloggen</span>
-                          <span className="profile-settings-item-description">Afmelden van dit account</span>
+                        <span className="profile-settings-menu-item-icon" aria-hidden="true"><Logout size={18} /></span>
+                        <span className="profile-settings-menu-item-copy">
+                          <span className="profile-settings-menu-item-title profile-settings-menu-item-title--danger">Uitloggen</span>
+                          <span className="profile-settings-menu-item-description">Afmelden van dit account</span>
                         </span>
+                        <ArrowRight size={18} className="profile-settings-menu-item-arrow" aria-hidden="true" />
                       </button>
                     </div>
                   </div>

@@ -1,9 +1,10 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake } from '../components/Icons';
+import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, ArrowRight } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
+import { getInitials } from '../utils';
 
 export default function ChatSidebar({
   user,
@@ -47,6 +48,12 @@ export default function ChatSidebar({
   onShowCallModal,
   onShowAddContact,
   onOpenProfile,
+  showProfile = false,
+  setShowProfile,
+  profileTab = 'overview',
+  setProfileTab,
+  onProfileHistoryOpen,
+  onRequestSettingsLogout,
   setConfirmDialog,
   // contact actions
   onAcceptFriendRequest,
@@ -96,13 +103,23 @@ export default function ChatSidebar({
   const [convActionsSheet, setConvActionsSheet] = useState(null); // { conv, otherUid }
   const [moreActionsMenuOpen, setMoreActionsMenuOpen] = useState(false);
   const [moreActionsMenuClosing, setMoreActionsMenuClosing] = useState(false);
+  const [profileSheetClosing, setProfileSheetClosing] = useState(false);
   const moreActionsMenuRef = useRef(null);
   const moreActionsCloseTimeoutRef = useRef(null);
+  const profileSheetCloseTimeoutRef = useRef(null);
   const convSheetHistoryPushedRef = useRef(false);
   const moreActionsSheetHistoryPushedRef = useRef(false);
   const contactSheetHistoryPushedRef = useRef(false);
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const moreActionsSheetVisible = moreActionsMenuOpen || moreActionsMenuClosing;
+  const settingsSheetVisible = (showProfile && profileTab === 'overview') || profileSheetClosing;
+  const footerClusterMode = settingsSheetVisible ? 'settings' : (moreActionsSheetVisible ? 'more' : null);
+  const profileSections = useMemo(() => ([
+    { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
+    ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Geschiedenis', description: 'Bewaartermijnen beheren' }] : []),
+    { id: 'styling', icon: <Palette size={18} aria-hidden="true" />, label: 'Styling', description: 'Chatachtergrond en sfeer' },
+    { id: 'geblokkeerd', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>, label: 'Geblokkeerd', description: 'Beheer geblokkeerde contacten' },
+  ]), [isParent]);
 
   const filteredContacts = useMemo(() => contacts.filter((contact) => (
     !normalizedSearch
@@ -111,16 +128,20 @@ export default function ChatSidebar({
   )), [contacts, normalizedSearch]);
 
   useEffect(() => {
-    if (!moreActionsSheetVisible) return;
+    if (!moreActionsSheetVisible && !settingsSheetVisible) return;
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {
+        if (settingsSheetVisible) {
+          setProfileSheetClosing(true);
+          return;
+        }
         setMoreActionsMenuClosing(true);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [moreActionsSheetVisible]);
+  }, [moreActionsSheetVisible, settingsSheetVisible]);
 
   useEffect(() => {
     if (!moreActionsMenuOpen) return undefined;
@@ -153,7 +174,19 @@ export default function ChatSidebar({
     if (moreActionsCloseTimeoutRef.current) {
       window.clearTimeout(moreActionsCloseTimeoutRef.current);
     }
+    if (profileSheetCloseTimeoutRef.current) {
+      window.clearTimeout(profileSheetCloseTimeoutRef.current);
+    }
   }, []);
+
+  useEffect(() => {
+    if (!showProfile || profileTab !== 'overview') {
+      setProfileSheetClosing(false);
+      return;
+    }
+    setMoreActionsMenuOpen(false);
+    setMoreActionsMenuClosing(false);
+  }, [profileTab, showProfile]);
 
   useEffect(() => {
     if (!convMenu && !contactMenu) return;
@@ -333,13 +366,52 @@ export default function ChatSidebar({
     setContactMenu(null);
   }, []);
 
+  const closeProfileOverviewSheet = useCallback(() => {
+    if (profileSheetCloseTimeoutRef.current) {
+      window.clearTimeout(profileSheetCloseTimeoutRef.current);
+      profileSheetCloseTimeoutRef.current = null;
+    }
+    setProfileSheetClosing(false);
+    setShowProfile?.(false);
+  }, [setShowProfile]);
+
+  const dismissProfileOverviewSheet = useCallback(() => {
+    if (profileSheetClosing || !settingsSheetVisible) return;
+    setProfileSheetClosing(true);
+  }, [profileSheetClosing, settingsSheetVisible]);
+
+  useEffect(() => {
+    if (!profileSheetClosing) return undefined;
+    profileSheetCloseTimeoutRef.current = window.setTimeout(() => {
+      profileSheetCloseTimeoutRef.current = null;
+      closeProfileOverviewSheet();
+    }, 220);
+    return () => {
+      if (profileSheetCloseTimeoutRef.current) {
+        window.clearTimeout(profileSheetCloseTimeoutRef.current);
+        profileSheetCloseTimeoutRef.current = null;
+      }
+    };
+  }, [closeProfileOverviewSheet, profileSheetClosing]);
+
   const footerTabbar = (
-    <div className={`sidebar-footer-tabbar${moreActionsSheetVisible ? ' sidebar-footer-tabbar--cluster' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
+    <div className={`sidebar-footer-tabbar${footerClusterMode ? ' sidebar-footer-tabbar--cluster' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
       <button
         type="button"
         className="sidebar-footer-tab sidebar-footer-tab-profile"
         aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`}
-        onClick={onOpenProfile}
+        onClick={() => {
+          if (settingsSheetVisible) {
+            dismissProfileOverviewSheet();
+            return;
+          }
+          if (profileSheetCloseTimeoutRef.current) {
+            window.clearTimeout(profileSheetCloseTimeoutRef.current);
+            profileSheetCloseTimeoutRef.current = null;
+          }
+          setProfileSheetClosing(false);
+          onOpenProfile?.();
+        }}
         title="Jij"
       >
         <span className="sidebar-footer-profile-avatar" aria-hidden="true">
@@ -840,27 +912,91 @@ export default function ChatSidebar({
         );
       })()}
 
-      {moreActionsSheetVisible ? (
-        <div className={`sidebar-bottom-cluster-backdrop${moreActionsMenuClosing ? ' is-closing' : ''}`} onClick={dismissMoreActionsSheet}>
-          <div className={`sidebar-bottom-cluster${moreActionsMenuClosing ? ' is-closing' : ''}`} data-sidebar-actions-menu onClick={(e) => e.stopPropagation()}>
+      {footerClusterMode ? (
+        <div
+          className={`sidebar-bottom-cluster-backdrop${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}`}
+          onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : dismissMoreActionsSheet}
+        >
+          <div
+            className={`sidebar-bottom-cluster${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}`}
+            data-sidebar-actions-menu
+            onClick={(e) => e.stopPropagation()}
+          >
             <div
-              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${moreActionsMenuClosing ? ' is-closing' : ''}`}
+              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}`}
               role="menu"
-              aria-label="Meer acties"
+              aria-label={footerClusterMode === 'settings' ? 'Instellingen' : 'Meer acties'}
             >
               <div className="pulse-sheet-handle" aria-hidden="true" />
               <div className="pulse-sheet-header pulse-sheet-header--sidebar-actions">
-                <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">Meer opties</div>
+                <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">{footerClusterMode === 'settings' ? 'Instellingen' : 'Meer opties'}</div>
                 <button
                   type="button"
                   className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
                   aria-label="Sluiten"
-                  onClick={dismissMoreActionsSheet}
+                  onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : dismissMoreActionsSheet}
                 >
                   <XIcon size={20} aria-hidden="true" />
                 </button>
               </div>
-              <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
+              {footerClusterMode === 'settings' ? (
+                <div className="sidebar-settings-sheet-scroll">
+                  <div className="sidebar-settings-sheet-user-card">
+                    {photoPreview || user.photoURL ? (
+                      <img
+                        src={photoPreview || user.photoURL}
+                        alt={user.displayName || user.email}
+                        className="sidebar-settings-sheet-avatar"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="sidebar-settings-sheet-avatar sidebar-settings-sheet-avatar--fallback">
+                        {getInitials(user.displayName || user.email)}
+                      </div>
+                    )}
+                    <div className="sidebar-settings-sheet-name">{user.displayName || user.email}</div>
+                  </div>
+                  <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
+                    {profileSections.map((section) => (
+                      <button
+                        key={section.id}
+                        type="button"
+                        role="menuitem"
+                        className="chat-header-menu-item"
+                        onClick={() => {
+                          closeProfileOverviewSheet();
+                          setProfileTab?.(section.id);
+                          if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
+                        }}
+                      >
+                        <span className="sidebar-settings-menu-icon" aria-hidden="true">{section.icon}</span>
+                        <span className="sidebar-settings-menu-copy">
+                          <span className="sidebar-settings-menu-title">{section.label}</span>
+                          <span className="sidebar-settings-menu-description">{section.description}</span>
+                        </span>
+                        <ArrowRight size={18} className="sidebar-settings-menu-arrow" aria-hidden="true" />
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="chat-header-menu-item"
+                      onClick={() => {
+                        closeProfileOverviewSheet();
+                        onRequestSettingsLogout?.();
+                      }}
+                    >
+                      <span className="sidebar-settings-menu-icon" aria-hidden="true"><Logout size={18} /></span>
+                      <span className="sidebar-settings-menu-copy">
+                        <span className="sidebar-settings-menu-title sidebar-settings-menu-title--danger">Uitloggen</span>
+                        <span className="sidebar-settings-menu-description">Afmelden van dit account</span>
+                      </span>
+                      <ArrowRight size={18} className="sidebar-settings-menu-arrow" aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
                 <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewChat?.(); }}>
                   <Message size={18} aria-hidden="true" />
                   <span>Nieuwe chat</span>
@@ -888,7 +1024,8 @@ export default function ChatSidebar({
                   {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
                   <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
                 </button>
-              </div>
+                </div>
+              )}
             </div>
 
             <div className="sidebar-footer sidebar-footer--cluster" ref={sidebarFooterRef}>

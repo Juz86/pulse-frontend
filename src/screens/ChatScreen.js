@@ -1,5 +1,6 @@
 // src/screens/ChatScreen.js
 import React, { useState, useEffect, useRef, lazy, Suspense, useCallback, useMemo } from 'react';
+import { signOut } from 'firebase/auth';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { Bell, BellOff, Message } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
@@ -13,7 +14,8 @@ import useChat from '../hooks/useChat';
 import useCalling from '../hooks/useCalling';
 import useProfile from '../hooks/useProfile';
 import useContacts from '../hooks/useContacts';
-import { copyTextToClipboard } from '../utils';
+import { auth } from '../firebase';
+import { clearPulseUserStorage, copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
@@ -517,6 +519,23 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         }}
         onShowAddContact={() => setShowAddContact(true)}
         onOpenProfile={() => { setShowProfile(true); openProfile(); }}
+        showProfile={showProfile}
+        setShowProfile={setShowProfile}
+        profileTab={profileTab}
+        setProfileTab={setProfileTab}
+        onProfileHistoryOpen={loadHistorySettings}
+        onRequestSettingsLogout={() => {
+          setConfirmDialog({
+            title: 'Uitloggen',
+            message: 'Weet je zeker dat je wilt uitloggen?',
+            hideCancel: true,
+            confirmLabel: 'Uitloggen',
+            onConfirm: async () => {
+              clearPulseUserStorage(user.uid);
+              await signOut(auth);
+            },
+          });
+        }}
         setConfirmDialog={setConfirmDialog}
         onAcceptFriendRequest={acceptFriendRequest}
         onDeclineFriendRequest={declineFriendRequest}

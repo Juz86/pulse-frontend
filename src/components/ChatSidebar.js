@@ -228,7 +228,7 @@ export default function ChatSidebar({
       root.style.setProperty('--sidebar-sheet-anchor-bottom', `${Math.round(footerTabbarRect.top)}px`);
 
       sidebarRef.current.style.setProperty('--sidebar-local-sheet-top', `${Math.round(headerRect.bottom - sidebarRect.top - 2)}px`);
-      sidebarRef.current.style.setProperty('--sidebar-local-sheet-bottom', `${Math.round(sidebarRect.bottom - footerTabbarRect.top)}px`);
+      sidebarRef.current.style.setProperty('--sidebar-local-sheet-bottom', `${Math.round((sidebarRect.bottom - footerTabbarRect.top) + 12)}px`);
     };
 
     updateSidebarSheetBounds();

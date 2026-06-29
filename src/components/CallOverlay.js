@@ -293,14 +293,11 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
 
   useEffect(() => {
     const onPageHide = () => safeClose('pagehide');
-    const onBeforeUnload = () => safeClose('beforeunload');
     const onPopState = () => safeClose('back_navigation');
     window.addEventListener('pagehide', onPageHide);
-    window.addEventListener('beforeunload', onBeforeUnload);
     window.addEventListener('popstate', onPopState);
     return () => {
       window.removeEventListener('pagehide', onPageHide);
-      window.removeEventListener('beforeunload', onBeforeUnload);
       window.removeEventListener('popstate', onPopState);
     };
   }, [safeClose]);

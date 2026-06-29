@@ -9,6 +9,7 @@ const legacyBridgePath = path.join(buildDir, 'e2ee-storage-bridge.html');
 const firebaseMessagingSwPath = path.join(buildDir, 'firebase-messaging-sw.js');
 const robotsPath = path.join(buildDir, 'robots.txt');
 const sitemapPath = path.join(buildDir, 'sitemap.xml');
+const assetManifestPath = path.join(buildDir, 'asset-manifest.json');
 
 const DEFAULT_MARKETING_URL = 'https://pulse-messenger.com';
 const DEFAULT_WEB_APP_URL = 'https://web.pulse-messenger.com';
@@ -20,6 +21,10 @@ const DEFAULT_FIREBASE_CONFIG = {
   storageBucket: 'pulse-messenger-3cb9d.firebasestorage.app',
   messagingSenderId: '764605255111',
   appId: '1:764605255111:web:7cecff60d89c64f08e5de2',
+};
+const STABLE_ENTRY_ALIASES = {
+  js: ['main.latest.js', 'main.dcb481f2.js'],
+  css: ['main.latest.css', 'main.2fb0d8de.css'],
 };
 
 function trimTrailingSlash(value) {
@@ -166,6 +171,18 @@ const headers = [
   '/index.html',
   '  Cache-Control: no-cache, no-store, must-revalidate',
   '',
+  '/static/js/main.latest.js',
+  '  Cache-Control: no-cache, no-store, must-revalidate',
+  '',
+  '/static/css/main.latest.css',
+  '  Cache-Control: no-cache, no-store, must-revalidate',
+  '',
+  '/static/js/main.dcb481f2.js',
+  '  Cache-Control: no-cache, no-store, must-revalidate',
+  '',
+  '/static/css/main.2fb0d8de.css',
+  '  Cache-Control: no-cache, no-store, must-revalidate',
+  '',
   '/static/*',
   '  Cache-Control: public, max-age=31536000, immutable',
   '',
@@ -180,6 +197,63 @@ console.log(`Wrote ${target} security headers to build/_headers.`);
 
 function replaceAll(html, replacements) {
   return replacements.reduce((nextHtml, [pattern, value]) => nextHtml.replace(pattern, value), html);
+}
+
+function writeStableEntryAssets() {
+  if (!fs.existsSync(indexHtmlPath)) {
+    throw new Error(`Build index not found: ${indexHtmlPath}`);
+  }
+
+  let html = fs.readFileSync(indexHtmlPath, 'utf8');
+  const jsMatch = html.match(/\/static\/js\/(main\.[^"]+\.js)/);
+  const cssMatch = html.match(/\/static\/css\/(main\.[^"]+\.css)/);
+
+  if (!jsMatch || !cssMatch) {
+    throw new Error('Unable to locate main JS/CSS entry assets in build/index.html');
+  }
+
+  const currentJsFile = jsMatch[1];
+  const currentCssFile = cssMatch[1];
+  const currentJsPath = path.join(buildDir, 'static', 'js', currentJsFile);
+  const currentCssPath = path.join(buildDir, 'static', 'css', currentCssFile);
+
+  for (const alias of STABLE_ENTRY_ALIASES.js) {
+    const aliasPath = path.join(buildDir, 'static', 'js', alias);
+    if (path.basename(currentJsPath) !== alias) {
+      fs.copyFileSync(currentJsPath, aliasPath);
+    }
+  }
+
+  for (const alias of STABLE_ENTRY_ALIASES.css) {
+    const aliasPath = path.join(buildDir, 'static', 'css', alias);
+    if (path.basename(currentCssPath) !== alias) {
+      fs.copyFileSync(currentCssPath, aliasPath);
+    }
+  }
+
+  html = html
+    .replace(`/static/js/${currentJsFile}`, '/static/js/main.latest.js')
+    .replace(`/static/css/${currentCssFile}`, '/static/css/main.latest.css');
+
+  fs.writeFileSync(indexHtmlPath, html);
+
+  if (fs.existsSync(assetManifestPath)) {
+    const manifest = JSON.parse(fs.readFileSync(assetManifestPath, 'utf8'));
+    if (manifest.files) {
+      manifest.files['main.js'] = '/static/js/main.latest.js';
+      manifest.files['main.css'] = '/static/css/main.latest.css';
+    }
+    if (manifest.entrypoints) {
+      manifest.entrypoints = manifest.entrypoints.map((entry) => {
+        if (entry === `static/js/${currentJsFile}`) return 'static/js/main.latest.js';
+        if (entry === `static/css/${currentCssFile}`) return 'static/css/main.latest.css';
+        return entry;
+      });
+    }
+    fs.writeFileSync(assetManifestPath, JSON.stringify(manifest, null, 2));
+  }
+
+  console.log(`Aliased stable webapp entry assets: ${currentJsFile} -> main.latest.js, ${currentCssFile} -> main.latest.css`);
 }
 
 function writeTargetMetadata() {
@@ -247,4 +321,5 @@ function writeTargetCrawlerFiles() {
 }
 
 writeTargetMetadata();
+writeStableEntryAssets();
 writeTargetCrawlerFiles();

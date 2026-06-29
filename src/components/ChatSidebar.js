@@ -431,7 +431,7 @@ export default function ChatSidebar({
   }, [contacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact]);
 
   return (
-    <aside className="sidebar" ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
+    <aside className={`sidebar${moreActionsMenuOpen ? ' sidebar--more-actions-open' : ''}`} ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
       {/* Header */}
       <div className="sidebar-header" ref={sidebarHeaderRef}>
         <div className="sidebar-top">
@@ -761,8 +761,8 @@ export default function ChatSidebar({
       )}
 
       {/* Footer */}
-      <div className="sidebar-footer" ref={sidebarFooterRef}>
-        <div className="sidebar-footer-tabbar" ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
+      <div className={`sidebar-footer${moreActionsMenuOpen ? ' sidebar-footer--integrated' : ''}`} ref={sidebarFooterRef}>
+        <div className={`sidebar-footer-tabbar${moreActionsMenuOpen ? ' sidebar-footer-tabbar--integrated' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
           <button
             type="button"
             className="sidebar-footer-tab sidebar-footer-tab-profile"

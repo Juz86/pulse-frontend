@@ -959,9 +959,6 @@ body {
 }
 
 .sidebar-bottom-cluster .pulse-sheet-list--sidebar-actions {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
   border-radius: 28px 28px 0 0;
   border-bottom: none;
   box-shadow: none;
@@ -2427,8 +2424,8 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-bottom-cluster-sheet {
   width: 100%;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 1 auto;
+  min-height: auto;
   max-height: calc(100% - 104px);
   display: flex;
   flex-direction: column;
@@ -2746,19 +2743,15 @@ font-family: 'Inter', sans-serif;
   -webkit-backdrop-filter: blur(22px);
 }
 .sidebar-footer--cluster {
-  margin-top: -2px;
-  padding: 8px 12px 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(248, 246, 255, 0.94) 100%);
-  border-top: 1px solid rgba(112, 92, 191, 0.08);
-  border-radius: 0 0 32px 32px;
+  padding: 0 12px 12px;
+  background: transparent;
 }
 .sidebar-footer-tabbar--cluster {
   border: none;
-  border-top: none;
+  border-top: 1px solid rgba(112, 92, 191, 0.08);
   border-radius: 0 0 28px 28px;
   box-shadow: none;
-  background: transparent;
-  padding: 0 2px;
+  background: rgba(255, 255, 255, 0.92);
 }
 .sidebar-footer-tab {
   flex: 1 1 0;

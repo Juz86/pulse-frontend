@@ -2441,7 +2441,7 @@ font-family: 'Inter', sans-serif;
   animation: pulse-sheet-backdrop-in .24s cubic-bezier(.24, .8, .28, 1) both;
 }
 .sidebar-bottom-cluster-backdrop.is-closing {
-  animation: pulse-sheet-backdrop-out .24s cubic-bezier(.4, 0, .2, 1) both;
+  animation: pulse-sheet-backdrop-out .18s cubic-bezier(.42, 0, .24, 1) both;
 }
 .sidebar-bottom-cluster {
   width: 100%;
@@ -2478,7 +2478,7 @@ font-family: 'Inter', sans-serif;
   animation: pulse-sheet-up-from-tabbar .34s cubic-bezier(.2, .88, .24, 1) both;
 }
 .sidebar-bottom-cluster-sheet.is-closing {
-  animation: pulse-sheet-down-to-tabbar .26s cubic-bezier(.38, 0, .18, 1) both;
+  animation: pulse-sheet-down-to-tabbar .2s cubic-bezier(.42, 0, .22, 1) both;
 }
 .sidebar-header {
   padding:20px 18px 14px;

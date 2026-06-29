@@ -287,11 +287,11 @@ export default function ChatSidebar({
     const updateSidebarSheetBounds = () => {
       if (!sidebarRef.current || !sidebarHeaderRef.current || !sidebarTabsRef.current || !sidebarFooterRef.current || !sidebarFooterTabbarRef.current) return;
       const sidebarRect = sidebarRef.current.getBoundingClientRect();
-      const tabsRect = sidebarTabsRef.current.getBoundingClientRect();
+      const headerRect = sidebarHeaderRef.current.getBoundingClientRect();
       const footerRect = sidebarFooterRef.current.getBoundingClientRect();
       const footerTabbarRect = sidebarFooterTabbarRef.current.getBoundingClientRect();
-      const sheetTop = Math.round(tabsRect.top - 2);
-      const localSheetTop = Math.round(tabsRect.top - sidebarRect.top - 2);
+      const sheetTop = Math.round(headerRect.bottom - 2);
+      const localSheetTop = Math.round(headerRect.bottom - sidebarRect.top - 2);
 
       root.style.setProperty('--sidebar-sheet-left', `${Math.round(sidebarRect.left)}px`);
       root.style.setProperty('--sidebar-sheet-right', `${Math.round(sidebarRect.right)}px`);

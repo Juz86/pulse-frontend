@@ -226,6 +226,9 @@ export default function ChatSidebar({
       root.style.setProperty('--sidebar-sheet-top', `${Math.round(headerRect.bottom - 2)}px`);
       root.style.setProperty('--sidebar-sheet-bottom', `${Math.round(footerRect.bottom)}px`);
       root.style.setProperty('--sidebar-sheet-anchor-bottom', `${Math.round(footerTabbarRect.top)}px`);
+
+      sidebarRef.current.style.setProperty('--sidebar-local-sheet-top', `${Math.round(headerRect.bottom - sidebarRect.top - 2)}px`);
+      sidebarRef.current.style.setProperty('--sidebar-local-sheet-bottom', `${Math.round(sidebarRect.bottom - footerTabbarRect.top)}px`);
     };
 
     updateSidebarSheetBounds();
@@ -702,11 +705,11 @@ export default function ChatSidebar({
 
       {moreActionsMenuOpen && (
         <div
-          className="pulse-sheet-backdrop pulse-sheet-backdrop--sidebar-actions"
+          className="sidebar-docked-sheet-backdrop"
           onClick={closeMoreActionsSheet}
         >
           <div
-            className="pulse-sheet pulse-sheet--sidebar-actions"
+            className="pulse-sheet pulse-sheet--sidebar-actions sidebar-docked-sheet"
             role="menu"
             aria-label="Meer acties"
             data-sidebar-actions-menu

@@ -405,7 +405,6 @@ body {
   margin: 0;
 }
 
-.pulse-sheet-backdrop--sidebar-actions,
 .pulse-sheet-backdrop--header-actions,
 .pulse-sheet-backdrop--contact-actions {
   align-items: flex-end;
@@ -462,7 +461,6 @@ body {
   z-index: 3600;
 }
 
-.pulse-sheet-backdrop--sidebar-actions,
 .pulse-sheet-backdrop--add-contact,
 .pulse-sheet-backdrop--friend-requests,
 .pulse-sheet-backdrop--new-chat,
@@ -495,7 +493,6 @@ body {
   padding: 10px 12px 14px;
 }
 
-.pulse-sheet-backdrop--sidebar-actions .pulse-sheet,
 .pulse-sheet-backdrop--add-contact .pulse-sheet,
 .pulse-sheet-backdrop--friend-requests .pulse-sheet,
 .pulse-sheet-backdrop--new-chat .pulse-sheet,
@@ -1011,17 +1008,15 @@ body {
 }
 
 @media (max-width: 767px) {
-  .pulse-sheet-backdrop--sidebar-actions,
   .pulse-sheet-backdrop--header-actions,
   .pulse-sheet-backdrop--contact-actions {
     padding: 0 max(0px, var(--safe-right)) max(0px, var(--safe-bottom)) max(0px, var(--safe-left));
   }
 
-  .pulse-sheet-backdrop--sidebar-actions,
-  .pulse-sheet-backdrop--add-contact,
-  .pulse-sheet-backdrop--friend-requests,
-  .pulse-sheet-backdrop--new-chat,
-  .pulse-sheet-backdrop--new-group,
+.pulse-sheet-backdrop--add-contact,
+.pulse-sheet-backdrop--friend-requests,
+.pulse-sheet-backdrop--new-chat,
+.pulse-sheet-backdrop--new-group,
   .pulse-sheet-backdrop--call-log {
     padding: 0 8px 0;
     justify-content: stretch;
@@ -1064,10 +1059,9 @@ body {
     gap: 14px;
   }
 
-  .pulse-sheet-backdrop--sidebar-actions .pulse-sheet,
-  .pulse-sheet-backdrop--add-contact .pulse-sheet,
-  .pulse-sheet-backdrop--friend-requests .pulse-sheet,
-  .pulse-sheet-backdrop--new-chat .pulse-sheet,
+.pulse-sheet-backdrop--add-contact .pulse-sheet,
+.pulse-sheet-backdrop--friend-requests .pulse-sheet,
+.pulse-sheet-backdrop--new-chat .pulse-sheet,
   .pulse-sheet-backdrop--new-group .pulse-sheet,
   .pulse-sheet-backdrop--call-log .pulse-sheet {
     width: 100%;
@@ -2378,6 +2372,8 @@ font-family: 'Inter', sans-serif;
 
 /* ── SIDEBAR ── */
 .sidebar {
+  --sidebar-local-sheet-top: 132px;
+  --sidebar-local-sheet-bottom: 96px;
   width:var(--pulse-sidebar-width); min-width:var(--pulse-sidebar-width); max-width:min(100vw, var(--pulse-sidebar-width));
   background:var(--surface);
   border-right:1px solid var(--border);
@@ -2388,6 +2384,26 @@ font-family: 'Inter', sans-serif;
 .sidebar::after {
   content:''; position:absolute; top:0; right:0; width:1px; height:100%;
   background:linear-gradient(180deg, rgba(108,99,255,.2), transparent 40%, transparent 60%, rgba(108,99,255,.1));
+}
+.sidebar-docked-sheet-backdrop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--sidebar-local-sheet-top);
+  bottom: var(--sidebar-local-sheet-bottom);
+  z-index: 3704;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 8px 0;
+  background:
+    linear-gradient(180deg, rgba(12, 9, 28, 0) 0%, rgba(12, 9, 28, 0.14) 10%, rgba(12, 9, 28, 0.38) 45%, rgba(12, 9, 28, 0.6) 100%);
+}
+.sidebar-docked-sheet {
+  width: 100%;
+  max-height: 100%;
+  margin: 0;
+  overflow-y: auto;
 }
 .sidebar-header {
   padding:20px 18px 14px;

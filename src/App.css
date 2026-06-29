@@ -959,6 +959,9 @@ body {
 }
 
 .sidebar-bottom-cluster .pulse-sheet-list--sidebar-actions {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
   border-radius: 28px 28px 0 0;
   border-bottom: none;
   box-shadow: none;
@@ -2424,8 +2427,8 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-bottom-cluster-sheet {
   width: 100%;
-  flex: 0 1 auto;
-  min-height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: calc(100% - 104px);
   display: flex;
   flex-direction: column;

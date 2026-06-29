@@ -517,6 +517,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           setCallLogRead(true);
           onCallLogRead?.();
         }}
+        showCallModal={showCallModal}
+        setShowCallModal={setShowCallModal}
         onShowAddContact={() => setShowAddContact(true)}
         onOpenProfile={() => { setShowProfile(true); openProfile(); }}
         showProfile={showProfile}
@@ -572,6 +574,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         getContactDisplayName={getContactDisplayName}
         callsAvailable={callsAvailable}
+        callContact={callContact}
+        callContactFromRecent={callContactFromRecent}
+        callLogRateLimitUntil={callLogRateLimitUntil}
       />
 
       <main className="chat-main" aria-label={activeConv ? `Chatvenster voor ${getConvName(activeConv)}` : 'Chatvenster'}>
@@ -798,6 +803,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         conversationMuted={mutedConversationIds.includes(activeConv?.id)}
         messageSelectionMode={messageSelectionMode}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
+        callSheetInSidebar
         showCallModal={showCallModal} setShowCallModal={setShowCallModal}
         callContact={callContact} callContactFromRecent={callContactFromRecent} getCallLog={getCallLog} refreshCallLog={refreshCallLog} clearCallLog={clearCallLog} callLogRateLimitUntil={callLogRateLimitUntil}
         showGroupInfo={showGroupInfo} setShowGroupInfo={setShowGroupInfo}

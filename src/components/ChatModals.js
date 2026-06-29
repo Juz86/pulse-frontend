@@ -219,6 +219,7 @@ export default function ChatModals({
   setShowChatSearch,
   conversationMuted = false,
   messageSelectionMode = false,
+  callSheetInSidebar = false,
 
   // call modal
   showCallModal, setShowCallModal,
@@ -1710,7 +1711,7 @@ export default function ChatModals({
       })()}
 
       {/* ── OPROEPEN PANEEL ── */}
-      {showCallModal && (() => {
+      {showCallModal && !callSheetInSidebar && (() => {
         const callLog = getCallLog();
         const remainingRateLimitMs = Math.max(0, Number(callLogRateLimitUntil || 0) - callLogStatusNow);
         const remainingRateLimitSeconds = Math.ceil(remainingRateLimitMs / 1000);

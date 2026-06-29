@@ -1,9 +1,10 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, ArrowRight } from '../components/Icons';
+import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, ArrowRight, Cancel, PhoneCall, PhoneOutgoing } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
+import { formatTime } from '../utils';
 
 export default function ChatSidebar({
   user,
@@ -45,6 +46,8 @@ export default function ChatSidebar({
   onNewChat,
   onNewGroup,
   onShowCallModal,
+  showCallModal = false,
+  setShowCallModal,
   onShowAddContact,
   onOpenProfile,
   showProfile = false,
@@ -91,6 +94,9 @@ export default function ChatSidebar({
   getConvPhoto,
   getContactDisplayName,
   callsAvailable = true,
+  callContact,
+  callContactFromRecent,
+  callLogRateLimitUntil = 0,
 }) {
   const sidebarRef = useRef(null);
   const sidebarHeaderRef = useRef(null);
@@ -102,17 +108,22 @@ export default function ChatSidebar({
   const [convActionsSheet, setConvActionsSheet] = useState(null); // { conv, otherUid }
   const [moreActionsMenuOpen, setMoreActionsMenuOpen] = useState(false);
   const [moreActionsMenuClosing, setMoreActionsMenuClosing] = useState(false);
+  const [callSheetClosing, setCallSheetClosing] = useState(false);
   const [profileSheetClosing, setProfileSheetClosing] = useState(false);
+  const [callSearch, setCallSearch] = useState('');
+  const [callActionMode, setCallActionMode] = useState(null);
   const moreActionsMenuRef = useRef(null);
   const moreActionsCloseTimeoutRef = useRef(null);
+  const callSheetCloseTimeoutRef = useRef(null);
   const profileSheetCloseTimeoutRef = useRef(null);
   const convSheetHistoryPushedRef = useRef(false);
   const moreActionsSheetHistoryPushedRef = useRef(false);
   const contactSheetHistoryPushedRef = useRef(false);
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const moreActionsSheetVisible = moreActionsMenuOpen || moreActionsMenuClosing;
+  const callSheetVisible = showCallModal || callSheetClosing;
   const settingsSheetVisible = (showProfile && profileTab === 'overview') || profileSheetClosing;
-  const footerClusterMode = settingsSheetVisible ? 'settings' : (moreActionsSheetVisible ? 'more' : null);
+  const footerClusterMode = settingsSheetVisible ? 'settings' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Geschiedenis', description: 'Bewaartermijnen beheren' }] : []),
@@ -127,7 +138,7 @@ export default function ChatSidebar({
   )), [contacts, normalizedSearch]);
 
   useEffect(() => {
-    if (!moreActionsSheetVisible && !settingsSheetVisible) return;
+    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible) return;
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {
@@ -135,12 +146,16 @@ export default function ChatSidebar({
           setProfileSheetClosing(true);
           return;
         }
+        if (callSheetVisible) {
+          setCallSheetClosing(true);
+          return;
+        }
         setMoreActionsMenuClosing(true);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [moreActionsSheetVisible, settingsSheetVisible]);
+  }, [callSheetVisible, moreActionsSheetVisible, settingsSheetVisible]);
 
   useEffect(() => {
     if (!moreActionsMenuOpen) return undefined;
@@ -173,6 +188,9 @@ export default function ChatSidebar({
     if (moreActionsCloseTimeoutRef.current) {
       window.clearTimeout(moreActionsCloseTimeoutRef.current);
     }
+    if (callSheetCloseTimeoutRef.current) {
+      window.clearTimeout(callSheetCloseTimeoutRef.current);
+    }
     if (profileSheetCloseTimeoutRef.current) {
       window.clearTimeout(profileSheetCloseTimeoutRef.current);
     }
@@ -185,7 +203,17 @@ export default function ChatSidebar({
     }
     setMoreActionsMenuOpen(false);
     setMoreActionsMenuClosing(false);
-  }, [profileTab, showProfile]);
+    setCallSheetClosing(false);
+    setShowCallModal?.(false);
+  }, [profileTab, setShowCallModal, showProfile]);
+
+  useEffect(() => {
+    if (!showCallModal) {
+      setCallSheetClosing(false);
+      setCallActionMode(null);
+      setCallSearch('');
+    }
+  }, [showCallModal]);
 
   useEffect(() => {
     if (!convMenu && !contactMenu) return;
@@ -342,6 +370,22 @@ export default function ChatSidebar({
     setMoreActionsMenuClosing(true);
   }, [moreActionsMenuClosing, moreActionsSheetVisible]);
 
+  const closeCallSheet = useCallback(() => {
+    if (callSheetCloseTimeoutRef.current) {
+      window.clearTimeout(callSheetCloseTimeoutRef.current);
+      callSheetCloseTimeoutRef.current = null;
+    }
+    setCallSheetClosing(false);
+    setShowCallModal?.(false);
+    setCallActionMode(null);
+    setCallSearch('');
+  }, [setShowCallModal]);
+
+  const dismissCallSheet = useCallback(() => {
+    if (callSheetClosing || !callSheetVisible) return;
+    setCallSheetClosing(true);
+  }, [callSheetClosing, callSheetVisible]);
+
   useEffect(() => {
     if (!moreActionsMenuClosing) return undefined;
     moreActionsCloseTimeoutRef.current = window.setTimeout(() => {
@@ -356,6 +400,20 @@ export default function ChatSidebar({
       }
     };
   }, [moreActionsMenuClosing]);
+
+  useEffect(() => {
+    if (!callSheetClosing) return undefined;
+    callSheetCloseTimeoutRef.current = window.setTimeout(() => {
+      callSheetCloseTimeoutRef.current = null;
+      closeCallSheet();
+    }, 220);
+    return () => {
+      if (callSheetCloseTimeoutRef.current) {
+        window.clearTimeout(callSheetCloseTimeoutRef.current);
+        callSheetCloseTimeoutRef.current = null;
+      }
+    };
+  }, [callSheetClosing, closeCallSheet]);
   const closeContactActionsSheet = useCallback(() => {
     if (contactSheetHistoryPushedRef.current) {
       contactSheetHistoryPushedRef.current = false;
@@ -444,7 +502,21 @@ export default function ChatSidebar({
           type="button"
           className="sidebar-footer-tab"
           aria-label="Oproepen"
-          onClick={onShowCallModal}
+          aria-expanded={callSheetVisible}
+          onClick={() => {
+            if (callSheetVisible) {
+              dismissCallSheet();
+              return;
+            }
+            if (callSheetCloseTimeoutRef.current) {
+              window.clearTimeout(callSheetCloseTimeoutRef.current);
+              callSheetCloseTimeoutRef.current = null;
+            }
+            setMoreActionsMenuClosing(false);
+            setMoreActionsMenuOpen(false);
+            setCallSheetClosing(false);
+            onShowCallModal?.();
+          }}
           title="Oproepen"
         >
           <span className="sidebar-footer-tab-wrap">
@@ -490,6 +562,7 @@ export default function ChatSidebar({
               window.clearTimeout(moreActionsCloseTimeoutRef.current);
               moreActionsCloseTimeoutRef.current = null;
             }
+            closeCallSheet();
             setMoreActionsMenuClosing(false);
             setMoreActionsMenuOpen(true);
           }}
@@ -637,6 +710,25 @@ export default function ChatSidebar({
       </>
     );
   }, [contacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact]);
+
+  const callLog = typeof getCallLog === 'function' ? getCallLog() : [];
+  const remainingRateLimitMs = Math.max(0, Number(callLogRateLimitUntil || 0) - Date.now());
+  const remainingRateLimitSeconds = Math.ceil(remainingRateLimitMs / 1000);
+  const normalizedCallSearch = callSearch.trim().toLowerCase();
+  const filteredCallLog = normalizedCallSearch
+    ? callLog.filter((entry) => {
+        const name = (entry?.name || '').toLowerCase();
+        const typeLabel = entry?.isVideo ? 'videogesprek' : 'gesprek';
+        return name.includes(normalizedCallSearch) || typeLabel.includes(normalizedCallSearch);
+      })
+    : callLog;
+  const filteredCallContacts = normalizedCallSearch
+    ? contacts.filter((contact) => {
+        const displayName = (getContactDisplayName(contact) || contact.displayName || '').toLowerCase();
+        const email = (contact.email || '').toLowerCase();
+        return displayName.includes(normalizedCallSearch) || email.includes(normalizedCallSearch);
+      })
+    : contacts;
 
   return (
     <aside className={`sidebar${moreActionsMenuOpen ? ' sidebar--more-actions-open' : ''}`} ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
@@ -913,27 +1005,29 @@ export default function ChatSidebar({
 
       {footerClusterMode ? (
         <div
-          className={`sidebar-bottom-cluster-backdrop${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}`}
-          onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : dismissMoreActionsSheet}
+          className={`sidebar-bottom-cluster-backdrop${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+          onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet)}
         >
           <div
-            className={`sidebar-bottom-cluster${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}`}
+            className={`sidebar-bottom-cluster${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
             data-sidebar-actions-menu
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}`}
+              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
               role="menu"
-              aria-label={footerClusterMode === 'settings' ? 'Instellingen' : 'Meer acties'}
+              aria-label={footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'calls' ? 'Oproepen' : 'Meer acties')}
             >
               <div className="pulse-sheet-handle" aria-hidden="true" />
               <div className="pulse-sheet-header pulse-sheet-header--sidebar-actions">
-                <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">{footerClusterMode === 'settings' ? 'Instellingen' : 'Meer opties'}</div>
+                <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">
+                  {footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'calls' ? 'Recent' : 'Meer opties')}
+                </div>
                 <button
                   type="button"
                   className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
                   aria-label="Sluiten"
-                  onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : dismissMoreActionsSheet}
+                  onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet)}
                 >
                   <XIcon size={20} aria-hidden="true" />
                 </button>
@@ -977,6 +1071,153 @@ export default function ChatSidebar({
                       </span>
                       <ArrowRight size={18} className="sidebar-settings-menu-arrow" aria-hidden="true" />
                     </button>
+                  </div>
+                </div>
+              ) : footerClusterMode === 'calls' ? (
+                <div className="sidebar-settings-sheet-scroll">
+                  <div className="call-log-sheet-body">
+                    {!callsAvailable ? (
+                      <div className="call-panel-empty">
+                        <div style={{ fontSize: 14 }}>Bellen en videobellen zijn hier niet beschikbaar.</div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="call-log-toolbar">
+                          <div className="starred-search-wrap call-log-search-wrap call-log-search-wrap--full">
+                            <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+                            <input
+                              className="starred-search-input"
+                              placeholder="Zoek recente oproepen of contact…"
+                              value={callSearch}
+                              onChange={(e) => setCallSearch(e.target.value)}
+                            />
+                            {callSearch && (
+                              <button type="button" className="starred-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
+                                <Cancel size={14} aria-hidden="true" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {remainingRateLimitSeconds > 0 && (
+                          <div
+                            role="status"
+                            aria-live="polite"
+                            style={{
+                              marginBottom: 12,
+                              fontSize: 12,
+                              color: '#fde68a',
+                              background: 'rgba(245, 158, 11, 0.12)',
+                              border: '1px solid rgba(245, 158, 11, 0.34)',
+                              borderRadius: 10,
+                              padding: '8px 10px',
+                            }}
+                          >
+                            Te veel verzoeken. Vernieuwen over {remainingRateLimitSeconds}s.
+                          </div>
+                        )}
+                        {callActionMode && (
+                          <div className="call-log-picker">
+                            <div className="new-chat-sheet-kicker">Kies een contactpersoon</div>
+                            <div className="call-log-picker-title">
+                              Start direct een bel- of video-oproep vanuit je contacten.
+                            </div>
+                            <div className="pulse-sheet-list pulse-sheet-list--new-chat call-log-picker-list">
+                              {filteredCallContacts.length === 0 ? (
+                                <div className="empty-convs" style={{ paddingTop: 6, paddingBottom: 6 }}>
+                                  <p>Geen contacten gevonden.</p>
+                                </div>
+                              ) : (
+                                filteredCallContacts.map((contact) => {
+                                  const contactTitle = getContactDisplayName(contact)
+                                    || contact.displayName
+                                    || contact.username
+                                    || (contact.email ? contact.email.split('@')[0] : '')
+                                    || 'Onbekend';
+                                  return (
+                                    <div key={contact.uid} className="call-log-picker-row">
+                                      <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
+                                      <div className="conv-info call-log-picker-copy">
+                                        <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
+                                        <div className="conv-preview call-contact-email-responsive">{contact.email || 'Geen e-mailadres'}</div>
+                                      </div>
+                                      <div className="call-log-picker-actions">
+                                        <button
+                                          type="button"
+                                          className="call-btn voice"
+                                          aria-label={`Bel ${contactTitle}`}
+                                          title="Bellen"
+                                          onClick={() => (callContactFromRecent || callContact)?.(contact, false)}
+                                        >
+                                          <Phone size={14} aria-hidden="true" />
+                                        </button>
+                                        <button
+                                          type="button"
+                                          className="call-btn video"
+                                          aria-label={`Videobel ${contactTitle}`}
+                                          title="Videobellen"
+                                          onClick={() => (callContactFromRecent || callContact)?.(contact, true)}
+                                        >
+                                          <Video size={14} aria-hidden="true" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {!callActionMode && (
+                          filteredCallLog.length === 0 ? (
+                            <div className="call-panel-empty">
+                              <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
+                              <div>{callSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</div>
+                            </div>
+                          ) : (
+                            <div className="call-log-list">
+                              {filteredCallLog.map((entry, index) => {
+                                const contact = contacts.find((item) => item.uid === entry.uid);
+                                const dirIcon = entry.direction === 'outgoing'
+                                  ? <PhoneOutgoing size={13} />
+                                  : entry.direction === 'missed'
+                                    ? <Cancel size={13} />
+                                    : <PhoneCall size={13} />;
+                                const displayTime = formatTime(entry.ts);
+                                return (
+                                  <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className="call-log-row">
+                                    <div className="avatar-wrap">
+                                      <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
+                                      {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
+                                    </div>
+                                    <div className="call-log-copy">
+                                      <div className="call-log-meta">
+                                        <span className="conv-name">{entry.name}</span>
+                                        <span className="call-log-time">{displayTime}</span>
+                                      </div>
+                                      <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
+                                        <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
+                                        <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
+                                        <span className="call-log-type-separator" aria-hidden="true">·</span>
+                                        <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
+                                      </div>
+                                    </div>
+                                    {contact && (
+                                      <div className="call-log-actions">
+                                        {entry.isVideo ? (
+                                          <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
+                                        ) : (
+                                          <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               ) : (

@@ -1,5 +1,5 @@
 // src/components/ChatModals.js
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, User, Palette, ImageIcon, ColorCircle, LayoutTemplate, EyeOn, EyeOff, Heart, AdminIcon, StarFilled, StarOutline, Clock, ArrowLeft, ArrowRight, Logout, Bell, BellOff } from '../components/Icons';
@@ -259,6 +259,7 @@ export default function ChatModals({
   const [callActionMode, setCallActionMode] = useState(null); // 'voice' | null
   const [callLogStatusNow, setCallLogStatusNow] = useState(() => Date.now());
   const [confirmCheckboxChecked, setConfirmCheckboxChecked] = useState(false);
+  const profileCloseTimeoutRef = useRef(null);
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
@@ -318,9 +319,35 @@ export default function ChatModals({
   }, [historyChildren, selectedHistoryChildUid]);
 
   useEffect(() => {
-    if (showProfile) return;
+    if (showProfile || profileClosing) return;
     setProfileTab('overview');
-  }, [setProfileTab, showProfile]);
+  }, [profileClosing, setProfileTab, showProfile]);
+
+  useEffect(() => {
+    if (!showProfile) return undefined;
+    setProfileClosing(false);
+    return undefined;
+  }, [showProfile]);
+
+  useEffect(() => {
+    if (!profileClosing) return undefined;
+    profileCloseTimeoutRef.current = window.setTimeout(() => {
+      profileCloseTimeoutRef.current = null;
+      setProfileClosing(false);
+      setShowProfile(false);
+    }, 220);
+    return () => {
+      if (profileCloseTimeoutRef.current) {
+        window.clearTimeout(profileCloseTimeoutRef.current);
+        profileCloseTimeoutRef.current = null;
+      }
+    };
+  }, [profileClosing, setShowProfile]);
+
+  const closeProfileSheet = useCallback(() => {
+    if (profileClosing) return;
+    setProfileClosing(true);
+  }, [profileClosing]);
 
   useEffect(() => {
     if (!confirmDialog) {
@@ -1029,19 +1056,19 @@ export default function ChatModals({
       )}
 
       {/* ── PROFIEL MODAL ── */}
-      {showProfile && (
+      {(showProfile || profileClosing) && (
         <div
-          className="pulse-sheet-backdrop pulse-sheet-backdrop--settings"
-          onClick={() => setShowProfile(false)}
+          className={`pulse-sheet-backdrop pulse-sheet-backdrop--settings${profileClosing ? ' is-closing' : ''}`}
+          onClick={closeProfileSheet}
         >
           <aside
-            className="pulse-sheet pulse-sheet--settings profile-modal-box profile-side-panel"
+            className={`pulse-sheet pulse-sheet--settings profile-modal-box profile-side-panel${profileClosing ? ' is-closing' : ''}`}
             aria-labelledby="profile-settings-title"
             aria-describedby="profile-settings-description"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="pulse-sheet-handle" aria-hidden="true" />
-            <div className="profile-modal-header">
+            <div className="pulse-sheet-header pulse-sheet-header--settings profile-modal-header">
               {profileTab !== 'overview' ? (
                 <button
                   type="button"
@@ -1057,7 +1084,7 @@ export default function ChatModals({
               <span id="profile-settings-title" className="profile-modal-header-title">
                 {profileTab === 'overview' ? 'Instellingen' : activeProfileSection?.label || 'Instellingen'}
               </span>
-              <button type="button" className="profile-modal-close" aria-label="Instellingen sluiten" onClick={() => setShowProfile(false)}><span aria-hidden="true">✕</span></button>
+              <button type="button" className="pulse-sheet-close pulse-sheet-close--settings profile-modal-close" aria-label="Instellingen sluiten" onClick={closeProfileSheet}><span aria-hidden="true">✕</span></button>
             </div>
             <p id="profile-settings-description" className="sr-only">
               Pas je account, styling en verwijderopties aan in dit instellingenvenster.
@@ -1197,7 +1224,7 @@ export default function ChatModals({
                         Als je je account verwijdert worden al je chats, berichten en gegevens permanent verwijderd.
                       </p>
                       <button type="button" className="btn-danger profile-danger-btn"
-                        onClick={() => { setShowProfile(false); handleDeleteAccount(); }}>
+                        onClick={() => { closeProfileSheet(); handleDeleteAccount(); }}>
                         <span className="profile-danger-btn-icon" aria-hidden="true"><Trash2 size={16} /></span>
                         <span className="profile-danger-btn-label">Account definitief verwijderen</span>
                         <span className="profile-danger-btn-spacer" aria-hidden="true" />

@@ -88,6 +88,7 @@ export default function ChatSidebar({
 }) {
   const sidebarRef = useRef(null);
   const sidebarHeaderRef = useRef(null);
+  const sidebarTabsRef = useRef(null);
   const sidebarFooterRef = useRef(null);
   const sidebarFooterTabbarRef = useRef(null);
   const [contactMenu, setContactMenu] = useState(null);
@@ -215,19 +216,21 @@ export default function ChatSidebar({
   useEffect(() => {
     const root = document.documentElement;
     const updateSidebarSheetBounds = () => {
-      if (!sidebarRef.current || !sidebarHeaderRef.current || !sidebarFooterRef.current || !sidebarFooterTabbarRef.current) return;
+      if (!sidebarRef.current || !sidebarHeaderRef.current || !sidebarTabsRef.current || !sidebarFooterRef.current || !sidebarFooterTabbarRef.current) return;
       const sidebarRect = sidebarRef.current.getBoundingClientRect();
-      const headerRect = sidebarHeaderRef.current.getBoundingClientRect();
+      const tabsRect = sidebarTabsRef.current.getBoundingClientRect();
       const footerRect = sidebarFooterRef.current.getBoundingClientRect();
       const footerTabbarRect = sidebarFooterTabbarRef.current.getBoundingClientRect();
+      const sheetTop = Math.round(tabsRect.top - 2);
+      const localSheetTop = Math.round(tabsRect.top - sidebarRect.top - 2);
 
       root.style.setProperty('--sidebar-sheet-left', `${Math.round(sidebarRect.left)}px`);
       root.style.setProperty('--sidebar-sheet-right', `${Math.round(sidebarRect.right)}px`);
-      root.style.setProperty('--sidebar-sheet-top', `${Math.round(headerRect.bottom - 2)}px`);
+      root.style.setProperty('--sidebar-sheet-top', `${sheetTop}px`);
       root.style.setProperty('--sidebar-sheet-bottom', `${Math.round(footerRect.bottom)}px`);
       root.style.setProperty('--sidebar-sheet-anchor-bottom', `${Math.round(footerTabbarRect.top)}px`);
 
-      sidebarRef.current.style.setProperty('--sidebar-local-sheet-top', `${Math.round(headerRect.bottom - sidebarRect.top - 2)}px`);
+      sidebarRef.current.style.setProperty('--sidebar-local-sheet-top', `${localSheetTop}px`);
       sidebarRef.current.style.setProperty('--sidebar-local-sheet-bottom', `${Math.round(sidebarRect.bottom - footerTabbarRect.top)}px`);
     };
 
@@ -240,6 +243,7 @@ export default function ChatSidebar({
     if (resizeObserver) {
       resizeObserver.observe(sidebarRef.current);
       resizeObserver.observe(sidebarHeaderRef.current);
+      resizeObserver.observe(sidebarTabsRef.current);
       resizeObserver.observe(sidebarFooterRef.current);
       resizeObserver.observe(sidebarFooterTabbarRef.current);
     }
@@ -533,7 +537,7 @@ export default function ChatSidebar({
       </div>
 
       {/* Tabs */}
-      <div className="sidebar-tabs">
+      <div className="sidebar-tabs" ref={sidebarTabsRef}>
         <button type="button" className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} aria-pressed={activeTab === 'chats'} onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}>
           <Message size={15} aria-hidden="true" /> Chats
         </button>

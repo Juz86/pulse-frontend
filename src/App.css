@@ -958,6 +958,14 @@ body {
   box-shadow: 0 14px 30px rgba(74, 55, 148, 0.08);
 }
 
+.sidebar-bottom-cluster .pulse-sheet-list--sidebar-actions {
+  border-radius: 28px 28px 0 0;
+  border-bottom: none;
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.92);
+  margin-bottom: -1px;
+}
+
 .pulse-sheet--sidebar-actions .chat-header-menu-item,
 .pulse-sheet--header-actions .chat-header-menu-item,
 .pulse-sheet--contact-actions .chat-header-menu-item {
@@ -2735,15 +2743,15 @@ font-family: 'Inter', sans-serif;
   -webkit-backdrop-filter: blur(22px);
 }
 .sidebar-footer--cluster {
-  padding: 0;
+  padding: 0 12px 12px;
   background: transparent;
 }
 .sidebar-footer-tabbar--cluster {
   border: none;
   border-top: 1px solid rgba(112, 92, 191, 0.08);
-  border-radius: 0;
+  border-radius: 0 0 28px 28px;
   box-shadow: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(248, 246, 255, 0.94) 100%);
+  background: rgba(255, 255, 255, 0.92);
 }
 .sidebar-footer-tab {
   flex: 1 1 0;

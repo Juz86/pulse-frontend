@@ -2422,6 +2422,7 @@ font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   margin: 0;
+  padding: 8px 12px 0;
   overflow-y: auto;
   border: none;
   border-radius: 0;

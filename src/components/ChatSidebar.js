@@ -1221,34 +1221,36 @@ export default function ChatSidebar({
                   </div>
                 </div>
               ) : (
-                <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
-                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewChat?.(); }}>
-                  <Message size={18} aria-hidden="true" />
-                  <span>Nieuwe chat</span>
-                </button>
-                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); onShowAddContact(); }}>
-                  <Plus size={18} aria-hidden="true" />
-                  <span>Nieuw contact</span>
-                </button>
-                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewGroup(); }}>
-                  <Users size={18} aria-hidden="true" />
-                  <span>Nieuwe groep</span>
-                </button>
-                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
-                  <Handshake size={18} aria-hidden="true" />
-                  <span>Verzoeken</span>
-                  {(friendRequests.length + sentFriendRequests.length) > 0 && (
-                    <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
-                  )}
-                </button>
-                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
-                  <Message size={18} aria-hidden="true" />
-                  <span>{selectionMode ? 'Selectie stoppen' : 'Chats selecteren'}</span>
-                </button>
-                <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { onToggleDnd(); }}>
-                  {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
-                  <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
-                </button>
+                <div className="sidebar-settings-sheet-scroll">
+                  <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewChat?.(); }}>
+                    <Message size={18} aria-hidden="true" />
+                    <span>Nieuwe chat</span>
+                  </button>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); onShowAddContact(); }}>
+                    <Plus size={18} aria-hidden="true" />
+                    <span>Nieuw contact</span>
+                  </button>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewGroup(); }}>
+                    <Users size={18} aria-hidden="true" />
+                    <span>Nieuwe groep</span>
+                  </button>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
+                    <Handshake size={18} aria-hidden="true" />
+                    <span>Verzoeken</span>
+                    {(friendRequests.length + sentFriendRequests.length) > 0 && (
+                      <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
+                    )}
+                  </button>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
+                    <Message size={18} aria-hidden="true" />
+                    <span>{selectionMode ? 'Selectie stoppen' : 'Chats selecteren'}</span>
+                  </button>
+                  <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { onToggleDnd(); }}>
+                    {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
+                    <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
+                  </button>
+                  </div>
                 </div>
               )}
             </div>

@@ -2465,14 +2465,14 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-bottom-cluster-sheet {
   width: 100%;
-  flex: 0 1 auto;
-  min-height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
   max-height: calc(100% - 104px);
   display: flex;
   flex-direction: column;
   margin: 0;
   padding: 8px 12px 0;
-  overflow-y: auto;
+  overflow: hidden;
   border: none;
   border-radius: 0;
   background: transparent;

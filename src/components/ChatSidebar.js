@@ -4,7 +4,6 @@ import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pi
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
-import { getInitials } from '../utils';
 
 export default function ChatSidebar({
   user,
@@ -941,21 +940,6 @@ export default function ChatSidebar({
               </div>
               {footerClusterMode === 'settings' ? (
                 <div className="sidebar-settings-sheet-scroll">
-                  <div className="sidebar-settings-sheet-user-card">
-                    {photoPreview || user.photoURL ? (
-                      <img
-                        src={photoPreview || user.photoURL}
-                        alt={user.displayName || user.email}
-                        className="sidebar-settings-sheet-avatar"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="sidebar-settings-sheet-avatar sidebar-settings-sheet-avatar--fallback">
-                        {getInitials(user.displayName || user.email)}
-                      </div>
-                    )}
-                    <div className="sidebar-settings-sheet-name">{user.displayName || user.email}</div>
-                  </div>
                   <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
                     {profileSections.map((section) => (
                       <button

@@ -2480,6 +2480,9 @@ font-family: 'Inter', sans-serif;
   transform-origin: center bottom;
   animation: pulse-sheet-up-from-tabbar .34s cubic-bezier(.2, .88, .24, 1) both;
 }
+.sidebar-bottom-cluster-sheet--settings {
+  padding-top: 8px;
+}
 .sidebar-bottom-cluster-sheet.is-closing {
   animation: pulse-sheet-down-to-tabbar .2s cubic-bezier(.42, 0, .22, 1) both;
 }
@@ -2495,7 +2498,7 @@ font-family: 'Inter', sans-serif;
   overscroll-behavior: contain;
 }
 .sidebar-settings-sheet-scroll .pulse-sheet-list--sidebar-actions {
-  border-radius: 24px 24px 0 0;
+  border-radius: 28px 28px 0 0;
 }
 .sidebar-settings-sheet-scroll .chat-header-menu-item {
   min-height: 62px;

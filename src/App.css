@@ -1114,6 +1114,24 @@ body {
   }
 }
 
+@keyframes pulse-sheet-down-to-tabbar {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    filter: saturate(1);
+  }
+  to {
+    transform: translateY(18px) scale(.978);
+    opacity: 0;
+    filter: saturate(.96);
+  }
+}
+
+@keyframes pulse-sheet-backdrop-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 .pulse-update-overlay {
   position: fixed;
   z-index: 1190;
@@ -2408,6 +2426,9 @@ font-family: 'Inter', sans-serif;
   background:
     linear-gradient(180deg, rgba(12, 9, 28, 0) 0%, rgba(12, 9, 28, 0.08) 10%, rgba(12, 9, 28, 0.22) 45%, rgba(12, 9, 28, 0.38) 100%);
 }
+.sidebar-bottom-cluster-backdrop.is-closing {
+  animation: pulse-sheet-backdrop-fade-out .24s ease forwards;
+}
 .sidebar-bottom-cluster {
   width: 100%;
   max-height: 100%;
@@ -2421,6 +2442,11 @@ font-family: 'Inter', sans-serif;
   box-shadow:
     0 26px 60px rgba(19, 13, 42, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  transform-origin: center bottom;
+  animation: pulse-sheet-up-from-tabbar .28s cubic-bezier(.22, .86, .24, 1) both;
+}
+.sidebar-bottom-cluster.is-closing {
+  animation: pulse-sheet-down-to-tabbar .24s ease forwards;
 }
 .sidebar-bottom-cluster-sheet {
   width: 100%;

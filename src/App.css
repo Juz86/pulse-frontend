@@ -2386,32 +2386,43 @@ font-family: 'Inter', sans-serif;
   content:''; position:absolute; top:0; right:0; width:1px; height:100%;
   background:linear-gradient(180deg, rgba(108,99,255,.2), transparent 40%, transparent 60%, rgba(108,99,255,.1));
 }
-.sidebar-docked-sheet-backdrop {
+.sidebar-bottom-cluster-backdrop {
   position: absolute;
   left: 0;
   right: 0;
   top: var(--sidebar-local-sheet-top);
-  bottom: var(--sidebar-local-sheet-bottom);
+  bottom: 0;
   z-index: 3704;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 0 var(--sidebar-footer-inline) 0;
+  padding: 0 var(--sidebar-footer-inline) max(16px, env(safe-area-inset-bottom));
   background:
     linear-gradient(180deg, rgba(12, 9, 28, 0) 0%, rgba(12, 9, 28, 0.08) 10%, rgba(12, 9, 28, 0.22) 45%, rgba(12, 9, 28, 0.38) 100%);
 }
-.sidebar-docked-sheet {
+.sidebar-bottom-cluster {
   width: 100%;
   max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 40px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(246, 243, 255, 0.98) 0%, rgba(255, 255, 255, 0.96) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  box-shadow:
+    0 26px 60px rgba(19, 13, 42, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+.sidebar-bottom-cluster-sheet {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   margin: 0;
   overflow-y: auto;
-}
-.sidebar--more-actions-open .sidebar-docked-sheet {
-  border-radius: 36px 36px 0 0;
-  border-bottom: none;
-  box-shadow:
-    0 18px 42px rgba(19, 13, 42, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .sidebar-header {
   padding:20px 18px 14px;
@@ -2700,11 +2711,6 @@ font-family: 'Inter', sans-serif;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
   background: linear-gradient(180deg, rgba(28, 20, 60, 0) 0%, rgba(28, 20, 60, 0.18) 100%);
 }
-.sidebar-footer--integrated {
-  padding-top: 0;
-  margin-top: 0;
-  background: transparent;
-}
 .sidebar-footer-tabbar {
   position: relative;
   z-index: 3706;
@@ -2723,12 +2729,16 @@ font-family: 'Inter', sans-serif;
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
 }
-.sidebar-footer-tabbar--integrated {
-  border-top: none;
-  border-radius: 0 0 36px 36px;
-  box-shadow:
-    0 18px 44px rgba(31, 22, 68, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+.sidebar-footer--cluster {
+  padding: 0;
+  background: transparent;
+}
+.sidebar-footer-tabbar--cluster {
+  border: none;
+  border-top: 1px solid rgba(112, 92, 191, 0.08);
+  border-radius: 0;
+  box-shadow: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(248, 246, 255, 0.94) 100%);
 }
 .sidebar-footer-tab {
   flex: 1 1 0;

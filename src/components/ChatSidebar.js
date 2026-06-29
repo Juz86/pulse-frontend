@@ -296,6 +296,95 @@ export default function ChatSidebar({
     setContactMenu(null);
   }, []);
 
+  const footerTabbar = (
+    <div className={`sidebar-footer-tabbar${moreActionsMenuOpen ? ' sidebar-footer-tabbar--cluster' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
+      <button
+        type="button"
+        className="sidebar-footer-tab sidebar-footer-tab-profile"
+        aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`}
+        onClick={onOpenProfile}
+        title="Jij"
+      >
+        <span className="sidebar-footer-profile-avatar" aria-hidden="true">
+          <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" decorative />
+          <span className="sidebar-footer-profile-dot" />
+        </span>
+        <span className="sidebar-footer-tab-label">Jij</span>
+      </button>
+
+      <button
+        type="button"
+        className={`sidebar-footer-tab ${activeTab === 'chats' ? 'active' : ''}`}
+        aria-label="Chats"
+        onClick={() => {
+          setActiveTab('chats');
+          onNewChat();
+        }}
+        title="Chats"
+      >
+        <span className="sidebar-footer-tab-wrap">
+          <span className="sidebar-footer-tab-icon" aria-hidden="true">
+            <Message size={26} aria-hidden="true" />
+          </span>
+          {hasMissedCall && !callsAvailable && <span className="sidebar-footer-tab-badge" aria-hidden="true" />}
+        </span>
+        <span className="sidebar-footer-tab-label">Chats</span>
+      </button>
+
+      {callsAvailable && (
+        <button
+          type="button"
+          className="sidebar-footer-tab"
+          aria-label="Oproepen"
+          onClick={onShowCallModal}
+          title="Oproepen"
+        >
+          <span className="sidebar-footer-tab-wrap">
+            <span className="sidebar-footer-tab-icon" aria-hidden="true">
+              <Phone size={26} aria-hidden="true" />
+            </span>
+            {hasMissedCall && <span className="sidebar-footer-tab-badge" aria-hidden="true" />}
+          </span>
+          <span className="sidebar-footer-tab-label">Bellen</span>
+        </button>
+      )}
+
+      {isParent && (
+        <button
+          type="button"
+          className="sidebar-footer-tab"
+          aria-label={parentActivityBadge > 0 ? `Open ouderportaal, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open ouderportaal'}
+          onClick={onOpenDashboard}
+          title="Ouderportaal"
+        >
+          <span className="sidebar-footer-tab-wrap">
+            <span className="sidebar-footer-tab-icon" aria-hidden="true">
+              <Shield size={26} aria-hidden="true" />
+            </span>
+            {parentActivityBadge > 0 && <span className="sidebar-footer-tab-count" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
+          </span>
+          <span className="sidebar-footer-tab-label">Portaal</span>
+        </button>
+      )}
+
+      <div className="sidebar-footer-tab-slot" ref={moreActionsMenuRef}>
+        <button
+          type="button"
+          className="sidebar-footer-tab sidebar-footer-tab-more"
+          aria-label="Meer acties"
+          aria-expanded={moreActionsMenuOpen}
+          onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
+          title="Meer acties"
+        >
+          <span className="sidebar-footer-tab-icon" aria-hidden="true">
+            <MoreHoriz size={22} aria-hidden="true" />
+          </span>
+          <span className="sidebar-footer-tab-label">Meer</span>
+        </button>
+      </div>
+    </div>
+  );
+
   const renderConvActions = useCallback((conv, otherUid, onDone) => {
     const contact = contacts.find(c => c.uid === otherUid);
     const isParentBlocked = parentBlockedUids?.includes(otherUid);
@@ -703,152 +792,67 @@ export default function ChatSidebar({
         );
       })()}
 
-      {moreActionsMenuOpen && (
-        <div
-          className="sidebar-docked-sheet-backdrop"
-          onClick={closeMoreActionsSheet}
-        >
-          <div
-            className="pulse-sheet pulse-sheet--sidebar-actions sidebar-docked-sheet"
-            role="menu"
-            aria-label="Meer acties"
-            data-sidebar-actions-menu
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="pulse-sheet-handle" aria-hidden="true" />
-            <div className="pulse-sheet-header pulse-sheet-header--sidebar-actions">
-              <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">Meer opties</div>
-              <button
-                type="button"
-                className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
-                aria-label="Sluiten"
-                onClick={closeMoreActionsSheet}
-              >
-                <XIcon size={20} aria-hidden="true" />
-              </button>
+      {moreActionsMenuOpen ? (
+        <div className="sidebar-bottom-cluster-backdrop" onClick={closeMoreActionsSheet}>
+          <div className="sidebar-bottom-cluster" data-sidebar-actions-menu onClick={(e) => e.stopPropagation()}>
+            <div
+              className="pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet"
+              role="menu"
+              aria-label="Meer acties"
+            >
+              <div className="pulse-sheet-handle" aria-hidden="true" />
+              <div className="pulse-sheet-header pulse-sheet-header--sidebar-actions">
+                <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">Meer opties</div>
+                <button
+                  type="button"
+                  className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
+                  aria-label="Sluiten"
+                  onClick={closeMoreActionsSheet}
+                >
+                  <XIcon size={20} aria-hidden="true" />
+                </button>
+              </div>
+              <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewChat?.(); }}>
+                  <Message size={18} aria-hidden="true" />
+                  <span>Nieuwe chat</span>
+                </button>
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); onShowAddContact(); }}>
+                  <Plus size={18} aria-hidden="true" />
+                  <span>Nieuw contact</span>
+                </button>
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewGroup(); }}>
+                  <Users size={18} aria-hidden="true" />
+                  <span>Nieuwe groep</span>
+                </button>
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
+                  <Handshake size={18} aria-hidden="true" />
+                  <span>Verzoeken</span>
+                  {(friendRequests.length + sentFriendRequests.length) > 0 && (
+                    <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
+                  )}
+                </button>
+                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
+                  <Message size={18} aria-hidden="true" />
+                  <span>{selectionMode ? 'Selectie stoppen' : 'Chats selecteren'}</span>
+                </button>
+                <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { onToggleDnd(); }}>
+                  {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
+                  <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
+                </button>
+              </div>
             </div>
-            <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewChat?.(); }}>
-                <Message size={18} aria-hidden="true" />
-                <span>Nieuwe chat</span>
-              </button>
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); onShowAddContact(); }}>
-                <Plus size={18} aria-hidden="true" />
-                <span>Nieuw contact</span>
-              </button>
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewGroup(); }}>
-                <Users size={18} aria-hidden="true" />
-                <span>Nieuwe groep</span>
-              </button>
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
-                <Handshake size={18} aria-hidden="true" />
-                <span>Verzoeken</span>
-                {(friendRequests.length + sentFriendRequests.length) > 0 && (
-                  <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
-                )}
-              </button>
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
-                <Message size={18} aria-hidden="true" />
-                <span>{selectionMode ? 'Selectie stoppen' : 'Chats selecteren'}</span>
-              </button>
-              <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { onToggleDnd(); }}>
-                {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
-                <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
-              </button>
+
+            <div className="sidebar-footer sidebar-footer--cluster" ref={sidebarFooterRef}>
+              {footerTabbar}
             </div>
           </div>
+        </div>
+      ) : (
+        <div className="sidebar-footer" ref={sidebarFooterRef}>
+          {footerTabbar}
         </div>
       )}
-
-      {/* Footer */}
-      <div className={`sidebar-footer${moreActionsMenuOpen ? ' sidebar-footer--integrated' : ''}`} ref={sidebarFooterRef}>
-        <div className={`sidebar-footer-tabbar${moreActionsMenuOpen ? ' sidebar-footer-tabbar--integrated' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
-          <button
-            type="button"
-            className="sidebar-footer-tab sidebar-footer-tab-profile"
-            aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`}
-            onClick={onOpenProfile}
-            title="Jij"
-          >
-            <span className="sidebar-footer-profile-avatar" aria-hidden="true">
-              <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" decorative />
-              <span className="sidebar-footer-profile-dot" />
-            </span>
-            <span className="sidebar-footer-tab-label">Jij</span>
-          </button>
-
-          <button
-            type="button"
-            className={`sidebar-footer-tab ${activeTab === 'chats' ? 'active' : ''}`}
-            aria-label="Chats"
-            onClick={() => {
-              setActiveTab('chats');
-              onNewChat();
-            }}
-            title="Chats"
-          >
-            <span className="sidebar-footer-tab-wrap">
-              <span className="sidebar-footer-tab-icon" aria-hidden="true">
-                <Message size={26} aria-hidden="true" />
-              </span>
-              {hasMissedCall && !callsAvailable && <span className="sidebar-footer-tab-badge" aria-hidden="true" />}
-            </span>
-            <span className="sidebar-footer-tab-label">Chats</span>
-          </button>
-
-          {callsAvailable && (
-            <button
-              type="button"
-              className="sidebar-footer-tab"
-              aria-label="Oproepen"
-              onClick={onShowCallModal}
-              title="Oproepen"
-            >
-              <span className="sidebar-footer-tab-wrap">
-                <span className="sidebar-footer-tab-icon" aria-hidden="true">
-                  <Phone size={26} aria-hidden="true" />
-                </span>
-                {hasMissedCall && <span className="sidebar-footer-tab-badge" aria-hidden="true" />}
-              </span>
-              <span className="sidebar-footer-tab-label">Bellen</span>
-            </button>
-          )}
-
-          {isParent && (
-            <button
-              type="button"
-              className="sidebar-footer-tab"
-              aria-label={parentActivityBadge > 0 ? `Open ouderportaal, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open ouderportaal'}
-              onClick={onOpenDashboard}
-              title="Ouderportaal"
-            >
-              <span className="sidebar-footer-tab-wrap">
-                <span className="sidebar-footer-tab-icon" aria-hidden="true">
-                  <Shield size={26} aria-hidden="true" />
-                </span>
-                {parentActivityBadge > 0 && <span className="sidebar-footer-tab-count" aria-hidden="true">{parentActivityBadge > 9 ? '9+' : parentActivityBadge}</span>}
-              </span>
-              <span className="sidebar-footer-tab-label">Portaal</span>
-            </button>
-          )}
-
-          <div className="sidebar-footer-tab-slot" ref={moreActionsMenuRef}>
-            <button
-              type="button"
-              className="sidebar-footer-tab sidebar-footer-tab-more"
-              aria-label="Meer acties"
-              aria-expanded={moreActionsMenuOpen}
-              onClick={() => setMoreActionsMenuOpen((prev) => !prev)}
-              title="Meer acties"
-            >
-              <span className="sidebar-footer-tab-icon" aria-hidden="true">
-                <MoreHoriz size={22} aria-hidden="true" />
-              </span>
-              <span className="sidebar-footer-tab-label">Meer</span>
-            </button>
-          </div>
-        </div>
-      </div>
     </aside>
   );
 }

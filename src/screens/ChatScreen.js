@@ -19,7 +19,7 @@ import { clearPulseUserStorage, copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, showParentDashboard = false, setShowParentDashboard, onParentActivitiesViewed, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
   const callsAvailable = true;
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
@@ -508,6 +508,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         unreadCounts={unreadCounts} typingByConv={typingByConv} photoPreview={photoPreview}
         isParent={isParent} parentActivityBadge={parentActivityBadge}
         onOpenDashboard={onOpenDashboard}
+        showParentDashboard={showParentDashboard}
+        setShowParentDashboard={setShowParentDashboard}
+        onParentActivitiesViewed={onParentActivitiesViewed}
         setLabelMenuConvId={() => {}}
         onNewChat={() => setShowNewChat(true)}
         showNewChat={showNewChat}

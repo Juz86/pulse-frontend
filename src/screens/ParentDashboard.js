@@ -20,7 +20,7 @@ function formatLocationLastSeen(updatedAtMs) {
   return date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function ParentDashboard({ user, onClose, parentActivityBadge = 0, onActivitiesViewed }) {
+export default function ParentDashboard({ user, onClose, parentActivityBadge = 0, onActivitiesViewed, embeddedInSidebarCluster = false }) {
   const [portalView,     setPortalView]     = useState('menu');
   const [activeTab,      setActiveTab]      = useState('add');
   const [children,       setChildren]       = useState([]);
@@ -543,38 +543,40 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const showingMenu = portalView === 'menu';
 
   return (
-    <div className="parent-root parent-root--sheet">
-      <div className="parent-container parent-container--sheet">
-        <div className="parent-sheet-shell">
-          <div className="parent-header parent-header--sheet">
-            <div className="pulse-sheet-handle parent-sheet-handle" aria-hidden="true" />
-            <div className="parent-sheet-header-row">
-              {!showingMenu && (
-                <button
-                  type="button"
-                  className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-back-btn"
-                  aria-label="Terug naar ouderportaal overzicht"
-                  onClick={() => setPortalView('menu')}
-                  title="Terug"
-                >
-                  <span aria-hidden="true">←</span>
-                </button>
-              )}
-              <div className="parent-sheet-title-wrap">
-                <div className="parent-sheet-title">{showingMenu ? 'Ouderportaal' : activeTabMeta.label}</div>
-              </div>
-              <div className="parent-header-actions">
-                {onClose && (
-                  <button type="button" className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-close-btn" aria-label="Ouderdashboard sluiten" onClick={onClose} title="Sluiten">
-                    <span aria-hidden="true">✕</span>
+    <div className={`parent-root ${embeddedInSidebarCluster ? 'parent-root--embedded' : 'parent-root--sheet'}`}>
+      <div className={`parent-container ${embeddedInSidebarCluster ? 'parent-container--embedded' : 'parent-container--sheet'}`}>
+        <div className={`parent-sheet-shell${embeddedInSidebarCluster ? ' parent-sheet-shell--embedded' : ''}`}>
+          {!embeddedInSidebarCluster && (
+            <div className="parent-header parent-header--sheet">
+              <div className="pulse-sheet-handle parent-sheet-handle" aria-hidden="true" />
+              <div className="parent-sheet-header-row">
+                {!showingMenu && (
+                  <button
+                    type="button"
+                    className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-back-btn"
+                    aria-label="Terug naar ouderportaal overzicht"
+                    onClick={() => setPortalView('menu')}
+                    title="Terug"
+                  >
+                    <span aria-hidden="true">←</span>
                   </button>
                 )}
+                <div className="parent-sheet-title-wrap">
+                  <div className="parent-sheet-title">{showingMenu ? 'Ouderportaal' : activeTabMeta.label}</div>
+                </div>
+                <div className="parent-header-actions">
+                  {onClose && (
+                    <button type="button" className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-close-btn" aria-label="Ouderdashboard sluiten" onClick={onClose} title="Sluiten">
+                      <span aria-hidden="true">✕</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {showingMenu ? (
-            <div className="parent-actions-nav" role="tablist" aria-label="Ouderportaal onderdelen">
+            <div className={`parent-actions-nav${embeddedInSidebarCluster ? ' parent-actions-nav--embedded' : ''}`} role="tablist" aria-label="Ouderportaal onderdelen">
               <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list">
                 {TABS.map(t => (
                   <button
@@ -598,8 +600,19 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
               </div>
             </div>
           ) : (
-            <div className="pd-layout pd-layout--sheet">
-              <div className="pd-content pd-content--sheet">
+            <div className={`pd-layout pd-layout--sheet${embeddedInSidebarCluster ? ' pd-layout--embedded' : ''}`}>
+              {embeddedInSidebarCluster && (
+                <div className="parent-cluster-backbar">
+                  <button
+                    type="button"
+                    className="parent-cluster-backbtn"
+                    onClick={() => setPortalView('menu')}
+                  >
+                    ← Terug naar overzicht
+                  </button>
+                </div>
+              )}
+              <div className={`pd-content pd-content--sheet${embeddedInSidebarCluster ? ' pd-content--embedded' : ''}`}>
 
             {/* Tab 1 — Kind toevoegen */}
             {activeTab === 'add' && (

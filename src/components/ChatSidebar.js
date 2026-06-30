@@ -4,6 +4,7 @@ import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pi
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
+import ParentDashboard from '../screens/ParentDashboard';
 import { formatTime } from '../utils';
 
 export default function ChatSidebar({
@@ -41,6 +42,9 @@ export default function ChatSidebar({
   isParent,
   parentActivityBadge,
   onOpenDashboard,
+  showParentDashboard = false,
+  setShowParentDashboard,
+  onParentActivitiesViewed,
   setLabelMenuConvId,
   // modal openers
   onNewChat,
@@ -141,6 +145,7 @@ export default function ChatSidebar({
   const [requestsSheetClosing, setRequestsSheetClosing] = useState(false);
   const [callSheetClosing, setCallSheetClosing] = useState(false);
   const [profileSheetClosing, setProfileSheetClosing] = useState(false);
+  const [parentPortalSheetClosing, setParentPortalSheetClosing] = useState(false);
   const [callSearch, setCallSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null);
   const [requestsTab, setRequestsTab] = useState('ontvangen');
@@ -152,6 +157,7 @@ export default function ChatSidebar({
   const requestsSheetCloseTimeoutRef = useRef(null);
   const callSheetCloseTimeoutRef = useRef(null);
   const profileSheetCloseTimeoutRef = useRef(null);
+  const parentPortalSheetCloseTimeoutRef = useRef(null);
   const convSheetHistoryPushedRef = useRef(false);
   const moreActionsSheetHistoryPushedRef = useRef(false);
   const contactSheetHistoryPushedRef = useRef(false);
@@ -165,7 +171,8 @@ export default function ChatSidebar({
   const conversationSheetVisible = !!convActionsSheet;
   const callSheetVisible = showCallModal || callSheetClosing;
   const settingsSheetVisible = (showProfile && profileTab === 'overview') || profileSheetClosing;
-  const footerClusterMode = settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null))))))));
+  const parentPortalSheetVisible = showParentDashboard || parentPortalSheetClosing;
+  const footerClusterMode = settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (parentPortalSheetVisible ? 'parent-portal' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null)))))))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Geschiedenis', description: 'Bewaartermijnen beheren' }] : []),
@@ -189,7 +196,7 @@ export default function ChatSidebar({
     : contacts;
 
   useEffect(() => {
-    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible && !newGroupSheetVisible && !addContactSheetVisible && !requestsSheetVisible) return;
+    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible && !newGroupSheetVisible && !addContactSheetVisible && !requestsSheetVisible && !parentPortalSheetVisible) return;
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {
@@ -217,12 +224,16 @@ export default function ChatSidebar({
           setCallSheetClosing(true);
           return;
         }
+        if (parentPortalSheetVisible) {
+          setParentPortalSheetClosing(true);
+          return;
+        }
         setMoreActionsMenuClosing(true);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [addContactSheetVisible, callSheetVisible, moreActionsSheetVisible, newChatSheetVisible, newGroupSheetVisible, requestsSheetVisible, settingsSheetVisible]);
+  }, [addContactSheetVisible, callSheetVisible, moreActionsSheetVisible, newChatSheetVisible, newGroupSheetVisible, parentPortalSheetVisible, requestsSheetVisible, settingsSheetVisible]);
 
   useEffect(() => {
     if (!moreActionsMenuOpen) return undefined;
@@ -273,6 +284,9 @@ export default function ChatSidebar({
     if (profileSheetCloseTimeoutRef.current) {
       window.clearTimeout(profileSheetCloseTimeoutRef.current);
     }
+    if (parentPortalSheetCloseTimeoutRef.current) {
+      window.clearTimeout(parentPortalSheetCloseTimeoutRef.current);
+    }
   }, []);
 
   useEffect(() => {
@@ -292,7 +306,9 @@ export default function ChatSidebar({
     setShowFriendRequestsPanel?.(false);
     setCallSheetClosing(false);
     setShowCallModal?.(false);
-  }, [profileTab, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, showProfile]);
+    setParentPortalSheetClosing(false);
+    setShowParentDashboard?.(false);
+  }, [profileTab, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, showProfile]);
 
   useEffect(() => {
     if (!showAddContact) {
@@ -314,7 +330,9 @@ export default function ChatSidebar({
     setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
-  }, [setContactEmail, setContactNickname, setContactRelation, setShowCallModal, setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile, showAddContact]);
+    setParentPortalSheetClosing(false);
+    setShowParentDashboard?.(false);
+  }, [setContactEmail, setContactNickname, setContactRelation, setShowCallModal, setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showAddContact]);
 
   useEffect(() => {
     if (!showNewChat) {
@@ -334,7 +352,9 @@ export default function ChatSidebar({
     setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
-  }, [setSearchEmail, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile, showNewChat]);
+    setParentPortalSheetClosing(false);
+    setShowParentDashboard?.(false);
+  }, [setSearchEmail, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showNewChat]);
 
   useEffect(() => {
     if (!showNewGroup) {
@@ -354,7 +374,9 @@ export default function ChatSidebar({
     setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
-  }, [setGroupName, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile, showNewGroup]);
+    setParentPortalSheetClosing(false);
+    setShowParentDashboard?.(false);
+  }, [setGroupName, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showNewGroup]);
 
   useEffect(() => {
     if (!showFriendRequestsPanel) {
@@ -374,7 +396,9 @@ export default function ChatSidebar({
     setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
-  }, [setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile, showFriendRequestsPanel]);
+    setParentPortalSheetClosing(false);
+    setShowParentDashboard?.(false);
+  }, [setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showFriendRequestsPanel]);
 
   useEffect(() => {
     if (!contactMenu) return;
@@ -392,7 +416,9 @@ export default function ChatSidebar({
     setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
-  }, [contactMenu, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile]);
+    setParentPortalSheetClosing(false);
+    setShowParentDashboard?.(false);
+  }, [contactMenu, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile]);
 
   useEffect(() => {
     if (!convActionsSheet) return;
@@ -410,7 +436,30 @@ export default function ChatSidebar({
     setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
-  }, [convActionsSheet, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile]);
+    setParentPortalSheetClosing(false);
+    setShowParentDashboard?.(false);
+  }, [convActionsSheet, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile]);
+
+  useEffect(() => {
+    if (!showParentDashboard) {
+      setParentPortalSheetClosing(false);
+      return;
+    }
+    setMoreActionsMenuOpen(false);
+    setMoreActionsMenuClosing(false);
+    setAddContactSheetClosing(false);
+    setShowAddContact?.(false);
+    setNewChatSheetClosing(false);
+    setShowNewChat?.(false);
+    setNewGroupSheetClosing(false);
+    setShowNewGroup?.(false);
+    setRequestsSheetClosing(false);
+    setShowFriendRequestsPanel?.(false);
+    setCallSheetClosing(false);
+    setShowCallModal?.(false);
+    setProfileSheetClosing(false);
+    setShowProfile?.(false);
+  }, [setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile, showParentDashboard]);
 
   useEffect(() => {
     if (!showCallModal) {
@@ -654,6 +703,20 @@ export default function ChatSidebar({
     setCallSheetClosing(true);
   }, [callSheetClosing, callSheetVisible]);
 
+  const closeParentPortalSheet = useCallback(() => {
+    if (parentPortalSheetCloseTimeoutRef.current) {
+      window.clearTimeout(parentPortalSheetCloseTimeoutRef.current);
+      parentPortalSheetCloseTimeoutRef.current = null;
+    }
+    setParentPortalSheetClosing(false);
+    setShowParentDashboard?.(false);
+  }, [setShowParentDashboard]);
+
+  const dismissParentPortalSheet = useCallback(() => {
+    if (parentPortalSheetClosing || !parentPortalSheetVisible) return;
+    setParentPortalSheetClosing(true);
+  }, [parentPortalSheetClosing, parentPortalSheetVisible]);
+
   useEffect(() => {
     if (!moreActionsMenuClosing) return undefined;
     moreActionsCloseTimeoutRef.current = window.setTimeout(() => {
@@ -738,6 +801,20 @@ export default function ChatSidebar({
       }
     };
   }, [callSheetClosing, closeCallSheet]);
+
+  useEffect(() => {
+    if (!parentPortalSheetClosing) return undefined;
+    parentPortalSheetCloseTimeoutRef.current = window.setTimeout(() => {
+      parentPortalSheetCloseTimeoutRef.current = null;
+      closeParentPortalSheet();
+    }, 220);
+    return () => {
+      if (parentPortalSheetCloseTimeoutRef.current) {
+        window.clearTimeout(parentPortalSheetCloseTimeoutRef.current);
+        parentPortalSheetCloseTimeoutRef.current = null;
+      }
+    };
+  }, [closeParentPortalSheet, parentPortalSheetClosing]);
   const closeContactActionsSheet = useCallback(() => {
     if (contactSheetHistoryPushedRef.current) {
       contactSheetHistoryPushedRef.current = false;
@@ -793,6 +870,7 @@ export default function ChatSidebar({
           closeContactActionsSheet();
           closeConvActionsSheet();
           closeCallSheet();
+          closeParentPortalSheet();
           if (profileSheetCloseTimeoutRef.current) {
             window.clearTimeout(profileSheetCloseTimeoutRef.current);
             profileSheetCloseTimeoutRef.current = null;
@@ -823,6 +901,7 @@ export default function ChatSidebar({
           closeConvActionsSheet();
           closeCallSheet();
           closeProfileOverviewSheet();
+          closeParentPortalSheet();
           setActiveTab('chats');
         }}
         title="Chats"
@@ -854,6 +933,7 @@ export default function ChatSidebar({
             closeRequestsSheet();
             closeContactActionsSheet();
             closeConvActionsSheet();
+            closeParentPortalSheet();
             if (callSheetCloseTimeoutRef.current) {
               window.clearTimeout(callSheetCloseTimeoutRef.current);
               callSheetCloseTimeoutRef.current = null;
@@ -880,7 +960,27 @@ export default function ChatSidebar({
           type="button"
           className="sidebar-footer-tab"
           aria-label={parentActivityBadge > 0 ? `Open ouderportaal, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open ouderportaal'}
-          onClick={onOpenDashboard}
+          aria-expanded={parentPortalSheetVisible}
+          onClick={() => {
+            if (parentPortalSheetVisible) {
+              dismissParentPortalSheet();
+              return;
+            }
+            closeProfileOverviewSheet();
+            closeAddContactSheet();
+            closeNewChatSheet();
+            closeNewGroupSheet();
+            closeRequestsSheet();
+            closeContactActionsSheet();
+            closeConvActionsSheet();
+            closeCallSheet();
+            if (parentPortalSheetCloseTimeoutRef.current) {
+              window.clearTimeout(parentPortalSheetCloseTimeoutRef.current);
+              parentPortalSheetCloseTimeoutRef.current = null;
+            }
+            setParentPortalSheetClosing(false);
+            onOpenDashboard?.();
+          }}
           title="Ouderportaal"
         >
           <span className="sidebar-footer-tab-wrap">
@@ -911,6 +1011,7 @@ export default function ChatSidebar({
             closeRequestsSheet();
             closeContactActionsSheet();
             closeConvActionsSheet();
+            closeParentPortalSheet();
             if (moreActionsCloseTimeoutRef.current) {
               window.clearTimeout(moreActionsCloseTimeoutRef.current);
               moreActionsCloseTimeoutRef.current = null;
@@ -1093,6 +1194,8 @@ export default function ChatSidebar({
           ? 'Nieuwe groep'
           : footerClusterMode === 'requests'
             ? 'Verzoeken'
+            : footerClusterMode === 'parent-portal'
+              ? 'Ouderportaal'
             : footerClusterMode === 'contact'
               ? `Acties voor ${getContactDisplayName(activeContactMenuContact || {})}`
               : footerClusterMode === 'conversation'
@@ -1110,6 +1213,8 @@ export default function ChatSidebar({
           ? 'Nieuwe groep'
           : footerClusterMode === 'requests'
             ? 'Verzoeken'
+            : footerClusterMode === 'parent-portal'
+              ? 'Ouderportaal'
             : footerClusterMode === 'contact'
               ? getContactDisplayName(activeContactMenuContact || {})
               : footerClusterMode === 'conversation'
@@ -1127,6 +1232,8 @@ export default function ChatSidebar({
           ? dismissNewGroupSheet
           : footerClusterMode === 'requests'
             ? dismissRequestsSheet
+            : footerClusterMode === 'parent-portal'
+              ? dismissParentPortalSheet
             : footerClusterMode === 'contact'
               ? closeContactActionsSheet
               : footerClusterMode === 'conversation'
@@ -1308,16 +1415,16 @@ export default function ChatSidebar({
 
       {footerClusterMode ? (
         <div
-          className={`sidebar-bottom-cluster-backdrop${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+          className={`sidebar-bottom-cluster-backdrop${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
           onClick={dismissFooterCluster}
         >
           <div
-            className={`sidebar-bottom-cluster${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+            className={`sidebar-bottom-cluster${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
             data-sidebar-actions-menu
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
               role="menu"
               aria-label={footerClusterAriaLabel}
             >
@@ -1609,6 +1716,16 @@ export default function ChatSidebar({
                       </div>
                     </div>
                   </div>
+                </div>
+              ) : footerClusterMode === 'parent-portal' ? (
+                <div className="sidebar-settings-sheet-scroll">
+                  <ParentDashboard
+                    user={user}
+                    parentActivityBadge={parentActivityBadge}
+                    onActivitiesViewed={onParentActivitiesViewed}
+                    onClose={dismissParentPortalSheet}
+                    embeddedInSidebarCluster
+                  />
                 </div>
               ) : footerClusterMode === 'contact' ? (
                 <div className="sidebar-contact-actions-scroll">

@@ -10050,7 +10050,16 @@ font-family: 'Inter', sans-serif;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0;
+}
+.parent-sheet-shell {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 32px;
+  background: linear-gradient(180deg, rgba(246, 243, 255, 0.98) 0%, rgba(255, 255, 255, 0.96) 100%);
+  border: 1px solid rgba(255,255,255,.82);
+  box-shadow: 0 24px 56px rgba(19, 13, 42, 0.12), inset 0 1px 0 rgba(255,255,255,.9);
 }
 .parent-dashboard-overlay .parent-header--sheet {
   position: relative;
@@ -10059,10 +10068,9 @@ font-family: 'Inter', sans-serif;
   gap: 14px;
   padding: 16px 18px 12px;
   margin-bottom: 0;
-  border-radius: 32px;
-  background: linear-gradient(180deg, rgba(246, 243, 255, 0.98) 0%, rgba(255, 255, 255, 0.96) 100%);
-  border: 1px solid rgba(255,255,255,.82);
-  box-shadow: 0 24px 56px rgba(19, 13, 42, 0.12), inset 0 1px 0 rgba(255,255,255,.9);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 .parent-sheet-handle {
   align-self: center;
@@ -10092,9 +10100,10 @@ font-family: 'Inter', sans-serif;
 .parent-actions-nav {
   display: flex;
   flex-direction: column;
+  padding: 0 12px 12px;
 }
 .parent-actions-list {
-  border-radius: 28px;
+  border-radius: 28px 28px 0 0;
 }
 .parent-actions-item {
   min-height: 68px;
@@ -10135,10 +10144,8 @@ font-family: 'Inter', sans-serif;
 .parent-dashboard-overlay .pd-content--sheet {
   overflow: visible;
   padding: 24px 24px 28px;
-  border-radius: 28px;
-  background: linear-gradient(180deg, rgba(246, 243, 255, 0.98) 0%, rgba(255, 255, 255, 0.96) 100%);
-  border: 1px solid rgba(255,255,255,.82);
-  box-shadow: 0 24px 56px rgba(19, 13, 42, 0.12), inset 0 1px 0 rgba(255,255,255,.9);
+  border-top: 1px solid rgba(115, 94, 204, 0.08);
+  background: linear-gradient(180deg, rgba(246, 243, 255, 0.18) 0%, rgba(255, 255, 255, 0) 100%);
 }
 .parent-dashboard-overlay .pd-layout {
   flex-direction:column; min-height:unset; overflow:hidden;
@@ -14921,17 +14928,19 @@ font-family: 'Inter', sans-serif;
   }
 
   .parent-dashboard-overlay .parent-container--sheet {
-    gap: 12px;
+    gap: 0;
   }
 
   .parent-dashboard-overlay .parent-header--sheet {
-    border-radius: 28px;
     padding: 14px 14px 10px;
   }
 
   .parent-dashboard-overlay .pd-content--sheet {
     padding: 18px 16px 22px;
-    border-radius: 24px;
+  }
+
+  .parent-actions-nav {
+    padding: 0 10px 10px;
   }
 
   .parent-actions-item {

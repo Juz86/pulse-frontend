@@ -21,6 +21,7 @@ function formatLocationLastSeen(updatedAtMs) {
 }
 
 export default function ParentDashboard({ user, onClose, parentActivityBadge = 0, onActivitiesViewed }) {
+  const [portalView,     setPortalView]     = useState('menu');
   const [activeTab,      setActiveTab]      = useState('add');
   const [children,       setChildren]       = useState([]);
   const [loading,        setLoading]        = useState(true);
@@ -538,51 +539,67 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const filteredActivities = selectedChildUid
     ? activities.filter(a => a.childUid === selectedChildUid)
     : activities;
+  const activeTabMeta = TABS.find((tab) => tab.id === activeTab) || TABS[0];
+  const showingMenu = portalView === 'menu';
 
   return (
     <div className="parent-root parent-root--sheet">
       <div className="parent-container parent-container--sheet">
-
-        <div className="parent-header parent-header--sheet">
-          <div className="pulse-sheet-handle parent-sheet-handle" aria-hidden="true" />
-          <div className="parent-sheet-header-row">
-            <div className="parent-sheet-title-wrap">
-              <div className="parent-sheet-title">Ouderportaal</div>
-            </div>
-            <div className="parent-header-actions">
-              {onClose && (
-                <button type="button" className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-close-btn" aria-label="Ouderdashboard sluiten" onClick={onClose} title="Sluiten">
-                  <span aria-hidden="true">✕</span>
+        <div className="parent-sheet-shell">
+          <div className="parent-header parent-header--sheet">
+            <div className="pulse-sheet-handle parent-sheet-handle" aria-hidden="true" />
+            <div className="parent-sheet-header-row">
+              {!showingMenu && (
+                <button
+                  type="button"
+                  className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-back-btn"
+                  aria-label="Terug naar ouderportaal overzicht"
+                  onClick={() => setPortalView('menu')}
+                  title="Terug"
+                >
+                  <span aria-hidden="true">←</span>
                 </button>
               )}
+              <div className="parent-sheet-title-wrap">
+                <div className="parent-sheet-title">{showingMenu ? 'Ouderportaal' : activeTabMeta.label}</div>
+              </div>
+              <div className="parent-header-actions">
+                {onClose && (
+                  <button type="button" className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-close-btn" aria-label="Ouderdashboard sluiten" onClick={onClose} title="Sluiten">
+                    <span aria-hidden="true">✕</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="parent-actions-nav" role="tablist" aria-label="Ouderportaal onderdelen">
-          <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list">
-            {TABS.map(t => (
-              <button
-                type="button"
-                key={t.id}
-                className={`chat-header-menu-item parent-actions-item${activeTab === t.id ? ' active' : ''}`}
-                aria-pressed={activeTab === t.id}
-                onClick={() => setActiveTab(t.id)}
-              >
-                <span className="parent-actions-icon" aria-hidden="true">{t.icon}</span>
-                <span className="parent-actions-label">{t.label}</span>
-                {t.badge && (
-                  <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
-                    {t.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="pd-layout pd-layout--sheet">
-          <div className="pd-content pd-content--sheet">
+          {showingMenu ? (
+            <div className="parent-actions-nav" role="tablist" aria-label="Ouderportaal onderdelen">
+              <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list">
+                {TABS.map(t => (
+                  <button
+                    type="button"
+                    key={t.id}
+                    className="chat-header-menu-item parent-actions-item"
+                    onClick={() => {
+                      setActiveTab(t.id);
+                      setPortalView('content');
+                    }}
+                  >
+                    <span className="parent-actions-icon" aria-hidden="true">{t.icon}</span>
+                    <span className="parent-actions-label">{t.label}</span>
+                    {t.badge && (
+                      <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
+                        {t.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="pd-layout pd-layout--sheet">
+              <div className="pd-content pd-content--sheet">
 
             {/* Tab 1 — Kind toevoegen */}
             {activeTab === 'add' && (
@@ -1325,7 +1342,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
               </div>
             )}
 
-          </div>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

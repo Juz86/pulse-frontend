@@ -10105,15 +10105,22 @@ font-family: 'Inter', sans-serif;
 .parent-actions-nav--embedded {
   flex: 0 0 auto;
   min-height: 0;
-  padding: 0 0 1px;
+  width: 100%;
+  padding: 0 12px 1px;
+  box-sizing: border-box;
 }
 .parent-actions-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
   border-radius: 28px 28px 0 0;
 }
 .parent-actions-item {
   min-height: 68px;
   padding: 0 22px;
-  gap: 14px;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .pulse-sheet--sidebar-actions .parent-actions-item > .parent-actions-icon {
   flex: 0 0 18px;

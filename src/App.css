@@ -10103,14 +10103,18 @@ font-family: 'Inter', sans-serif;
   padding: 0 12px 12px;
 }
 .parent-actions-nav--embedded {
-  flex: 0 0 auto;
-  min-height: 0;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 100%;
   width: 100%;
   padding: 0 12px 1px;
   box-sizing: border-box;
 }
 .parent-actions-nav--embedded .pulse-sheet-list--sidebar-actions {
   width: 100%;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 100%;
   min-width: 0;
   align-self: stretch;
 }

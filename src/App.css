@@ -10183,9 +10183,10 @@ font-family: 'Inter', sans-serif;
   flex: 1 1 auto;
   min-height: 100%;
   flex-direction: column;
+  gap: 10px;
 }
 .parent-cluster-backbar {
-  padding: 10px 20px 0;
+  padding: 8px 18px 0;
 }
 .parent-cluster-backbtn {
   display: inline-flex;
@@ -10203,10 +10204,22 @@ font-family: 'Inter', sans-serif;
   cursor: pointer;
   box-shadow: 0 10px 24px rgba(29, 18, 65, 0.08);
 }
+.parent-embedded-content-shell {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 28px 28px 0 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 246, 255, 0.96) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
 .parent-root--embedded .pd-content--sheet,
 .pd-content--embedded {
   flex: 1 1 auto;
-  overflow: visible;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 18px 20px 24px;
   border-top: 0;
   background: linear-gradient(180deg, rgba(246, 243, 255, 0.14) 0%, rgba(255, 255, 255, 0) 100%);

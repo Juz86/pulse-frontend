@@ -608,11 +608,12 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                     className="parent-cluster-backbtn"
                     onClick={() => setPortalView('menu')}
                   >
-                    ← Terug naar overzicht
+                    ← Ouderportaal
                   </button>
                 </div>
               )}
-              <div className={`pd-content pd-content--sheet${embeddedInSidebarCluster ? ' pd-content--embedded' : ''}`}>
+              <div className={embeddedInSidebarCluster ? 'parent-embedded-content-shell' : ''}>
+                <div className={`pd-content pd-content--sheet${embeddedInSidebarCluster ? ' pd-content--embedded' : ''}`}>
 
             {/* Tab 1 — Kind toevoegen */}
             {activeTab === 'add' && (
@@ -1355,6 +1356,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
               </div>
             )}
 
+                </div>
               </div>
             </div>
           )}

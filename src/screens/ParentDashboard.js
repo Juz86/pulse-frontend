@@ -540,50 +540,49 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
     : activities;
 
   return (
-    <div className="parent-root">
-      <div className="parent-container">
+    <div className="parent-root parent-root--sheet">
+      <div className="parent-container parent-container--sheet">
 
-        {/* Header */}
-        <div className="parent-header">
-          <div className="parent-logo">
-            <Users size={26} aria-hidden="true" />
-            <span className="parent-logo-name">Ouderlijk toezicht</span>
-          </div>
-          <div className="parent-header-actions">
-            {onClose && (
-              <button type="button" className="modal-close-btn pd-close-btn" aria-label="Ouderdashboard sluiten" onClick={onClose} title="Sluiten"><span aria-hidden="true">✕</span></button>
-            )}
+        <div className="parent-header parent-header--sheet">
+          <div className="pulse-sheet-handle parent-sheet-handle" aria-hidden="true" />
+          <div className="parent-sheet-header-row">
+            <div className="parent-sheet-title-wrap">
+              <div className="parent-sheet-title">Ouderportaal</div>
+            </div>
+            <div className="parent-header-actions">
+              {onClose && (
+                <button type="button" className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-close-btn" aria-label="Ouderdashboard sluiten" onClick={onClose} title="Sluiten">
+                  <span aria-hidden="true">✕</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Sidebar + content */}
-        <div className="pd-layout">
-          <div className="pd-sidebar-wrap">
-          <div className="pd-sidebar" ref={el => { if (el) el._sidebarEl = el; }}>
+        <div className="parent-actions-nav" role="tablist" aria-label="Ouderportaal onderdelen">
+          <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list">
             {TABS.map(t => (
               <button
                 type="button"
                 key={t.id}
-                className={`pd-sidebar-tab${activeTab === t.id ? ' active' : ''}`}
+                className={`chat-header-menu-item parent-actions-item${activeTab === t.id ? ' active' : ''}`}
                 aria-pressed={activeTab === t.id}
-                onClick={e => {
-                  setActiveTab(t.id);
-                  e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                }}
+                onClick={() => setActiveTab(t.id)}
               >
-                {t.icon}
-                <span>{t.label}</span>
+                <span className="parent-actions-icon" aria-hidden="true">{t.icon}</span>
+                <span className="parent-actions-label">{t.label}</span>
                 {t.badge && (
-                  <span className="parent-badge" aria-label={`${t.badge} nieuwe activiteiten`} style={{ marginLeft: '6px', position: 'static', transform: 'none', flexShrink: 0 }}>
+                  <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
                     {t.badge}
                   </span>
                 )}
               </button>
             ))}
           </div>
-          </div>
+        </div>
 
-          <div className="pd-content">
+        <div className="pd-layout pd-layout--sheet">
+          <div className="pd-content pd-content--sheet">
 
             {/* Tab 1 — Kind toevoegen */}
             {activeTab === 'add' && (

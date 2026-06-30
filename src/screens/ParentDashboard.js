@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { getInitials, timeAgo, toMs } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit, ArrowRight } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
 
@@ -512,11 +512,11 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   );
 
   const TABS = [
-    { id: 'add',        icon: <UserPlus  size={16} aria-hidden="true" />, label: 'Kind toevoegen'  },
-    { id: 'children',   icon: <Users     size={16} aria-hidden="true" />, label: 'Mijn kinderen'   },
-    { id: 'contacts',   icon: <UserCheck size={16} aria-hidden="true" />, label: 'Contacten'       },
-    { id: 'location',   icon: googleMapsTabIcon, label: 'Locatie' },
-    { id: 'activities', icon: <Activity  size={16} aria-hidden="true" />, label: 'Activiteiten', badge: parentActivityBadge > 0 ? activityTabBadge : null },
+    { id: 'add', icon: <UserPlus size={16} aria-hidden="true" />, label: 'Kind toevoegen', description: 'Maak een veilig Pulse-account voor uw kind' },
+    { id: 'children', icon: <Users size={16} aria-hidden="true" />, label: 'Mijn kinderen', description: 'Beheer accounts, pauzes en toegang' },
+    { id: 'contacts', icon: <UserCheck size={16} aria-hidden="true" />, label: 'Contacten', description: 'Bekijk en beheer contacten van uw kind' },
+    { id: 'location', icon: googleMapsTabIcon, label: 'Locatie', description: 'Zie de laatst gedeelde live locatie' },
+    { id: 'activities', icon: <Activity size={16} aria-hidden="true" />, label: 'Activiteiten', description: 'Inzicht in chats, oproepen en gebruik', badge: parentActivityBadge > 0 ? activityTabBadge : null },
   ];
 
   const createUsernameReady = createUsernameStatus === 'Beschikbaar';
@@ -588,13 +588,17 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                       setPortalView('content');
                     }}
                   >
-                    <span className="parent-actions-icon" aria-hidden="true">{t.icon}</span>
-                    <span className="parent-actions-label">{t.label}</span>
+                    <span className="sidebar-settings-menu-icon parent-actions-icon" aria-hidden="true">{t.icon}</span>
+                    <span className="sidebar-settings-menu-copy parent-actions-copy">
+                      <span className="sidebar-settings-menu-title parent-actions-title">{t.label}</span>
+                      <span className="sidebar-settings-menu-description parent-actions-description">{t.description}</span>
+                    </span>
                     {t.badge && (
                       <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
                         {t.badge}
                       </span>
                     )}
+                    <ArrowRight size={18} className="sidebar-settings-menu-arrow parent-actions-arrow" aria-hidden="true" />
                   </button>
                 ))}
               </div>

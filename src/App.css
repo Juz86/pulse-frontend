@@ -10107,7 +10107,7 @@ font-family: 'Inter', sans-serif;
   flex: 1 1 auto;
   min-height: 100%;
   width: 100%;
-  padding: 0 12px 1px;
+  padding: 0 12px 0;
   box-sizing: border-box;
 }
 .parent-actions-nav--embedded .pulse-sheet-list--sidebar-actions {
@@ -10126,6 +10126,7 @@ font-family: 'Inter', sans-serif;
   min-height: 100%;
   flex-direction: column;
   border-radius: 28px 28px 0 0;
+  margin-bottom: -1px;
 }
 .parent-actions-item {
   flex: 1 0 68px !important;
@@ -10184,6 +10185,10 @@ font-family: 'Inter', sans-serif;
   width: 100%;
   max-width: 100%;
   min-height: 100%;
+}
+.parent-root--embedded {
+  display: flex;
+  flex: 1 1 auto;
 }
 .parent-container--embedded {
   display: flex;

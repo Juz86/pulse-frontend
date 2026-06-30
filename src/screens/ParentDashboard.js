@@ -617,10 +617,12 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
             {/* Tab 1 — Kind toevoegen */}
             {activeTab === 'add' && (
-              <div>
-                <h2 className="parent-section-title">Kind toevoegen</h2>
-                <p className="parent-section-sub" style={{ marginBottom: 16 }}>Maak een account aan voor uw kind. Het kind logt in met gebruikersnaam en wachtwoord.</p>
-                <form onSubmit={createChild} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div className="parent-portal-view parent-portal-view--add">
+                <div className="parent-portal-section-header">
+                  <h2 className="parent-section-title">Kind toevoegen</h2>
+                  <p className="parent-section-sub">Maak een account aan voor uw kind. Het kind logt in met gebruikersnaam en wachtwoord.</p>
+                </div>
+                <form onSubmit={createChild} className="parent-portal-form" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   <input
                     id="child-name"
                     name="childName"
@@ -698,8 +700,8 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
             {/* Tab 2 — Mijn kinderen */}
             {activeTab === 'children' && (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div className="parent-portal-view parent-portal-view--children">
+                <div className="parent-portal-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                   <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Mijn kinderen</h2>
                   <button type="button" className="parent-btn-outline" onClick={loadChildren} style={{ fontSize: 12, padding: '6px 12px', display:'flex', alignItems:'center', gap:4 }}><Refresh size={14} aria-hidden="true" /> Vernieuwen</button>
                 </div>
@@ -921,9 +923,11 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
             {/* Tab 3 — Contacten van kind */}
             {activeTab === 'contacts' && (
-              <div>
-                <h2 className="parent-section-title">Contacten</h2>
-                <p className="parent-section-sub" style={{ marginBottom: 16 }}>Bekijk en beheer de contacten van uw kind. U kunt contacten blokkeren of verwijderen.</p>
+              <div className="parent-portal-view parent-portal-view--contacts">
+                <div className="parent-portal-section-header">
+                  <h2 className="parent-section-title">Contacten</h2>
+                  <p className="parent-section-sub">Bekijk en beheer de contacten van uw kind. U kunt contacten blokkeren of verwijderen.</p>
+                </div>
 
                 {/* Kind-selector */}
                 {children.length > 1 && (
@@ -1011,15 +1015,15 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
             {/* Tab 4 — Realtime locatie */}
             {activeTab === 'location' && (
-              <div>
-                <div className="activities-header">
+              <div className="parent-portal-view parent-portal-view--location">
+                <div className="activities-header parent-portal-toolbar">
                   <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Realtime locatie</h2>
                   <button type="button" className="parent-btn-outline activities-refresh-btn" onClick={loadChildren}>
                     <Refresh size={14} aria-hidden="true" />
                     <span className="activities-refresh-label">Vernieuwen</span>
                   </button>
                 </div>
-                <p className="parent-section-sub" style={{ marginBottom: 16 }}>
+                <p className="parent-section-sub parent-portal-inline-sub">
                   Bekijk de laatst gedeelde live locatie van uw kinderen in ouderlijk toezicht.
                 </p>
 
@@ -1100,9 +1104,9 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
             {/* Tab 5 — Pulse activiteiten */}
             {activeTab === 'activities' && (
-              <div>
+              <div className="parent-portal-view parent-portal-view--activities">
                 {/* Header met kind-selector */}
-                <div className="activities-header">
+                <div className="activities-header parent-portal-toolbar">
                   <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Pulse activiteiten</h2>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     {children.length > 0 && (

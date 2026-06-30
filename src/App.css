@@ -10103,8 +10103,8 @@ font-family: 'Inter', sans-serif;
   padding: 0 12px 12px;
 }
 .parent-actions-nav--embedded {
-  flex: 1 1 auto;
-  min-height: 100%;
+  flex: 0 0 auto;
+  min-height: 0;
   padding: 0 0 1px;
 }
 .parent-actions-list {
@@ -10181,9 +10181,6 @@ font-family: 'Inter', sans-serif;
   background: transparent;
   box-shadow: none;
   overflow: visible;
-}
-.parent-root--embedded .parent-actions-list {
-  min-height: 100%;
 }
 .parent-root--embedded .pd-layout--sheet {
   display: flex;

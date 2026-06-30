@@ -483,8 +483,10 @@ export default function ChatSidebar({
         className={`sidebar-footer-tab ${activeTab === 'chats' ? 'active' : ''}`}
         aria-label="Chats"
         onClick={() => {
+          closeMoreActionsSheet();
+          closeCallSheet();
+          closeProfileOverviewSheet();
           setActiveTab('chats');
-          onNewChat();
         }}
         title="Chats"
       >

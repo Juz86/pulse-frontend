@@ -528,6 +528,18 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         showCallModal={showCallModal}
         setShowCallModal={setShowCallModal}
         onShowAddContact={() => setShowAddContact(true)}
+        showAddContact={showAddContact}
+        setShowAddContact={setShowAddContact}
+        contactEmail={contactEmail}
+        setContactEmail={setContactEmail}
+        contactNickname={contactNickname}
+        setContactNickname={setContactNickname}
+        contactRelation={contactRelation}
+        setContactRelation={setContactRelation}
+        contactErr={contactErr}
+        contactLoading={contactLoading}
+        addContact={addContact}
+        clearPendingFriendRequestState={clearPendingFriendRequestState}
         onOpenProfile={() => { setShowProfile(true); openProfile(); }}
         showProfile={showProfile}
         setShowProfile={setShowProfile}
@@ -744,6 +756,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         findConvWithUid={findConvWithUid} setConvLabel={setConvLabel} convLabels={convLabels}
         getContactNickname={getContactNickname}
         confirmDialog={confirmDialog} setConfirmDialog={setConfirmDialog}
+        addContactSheetInSidebar
         showAddContact={showAddContact} setShowAddContact={setShowAddContact}
         contactEmail={contactEmail} setContactEmail={setContactEmail}
         contactNickname={contactNickname} setContactNickname={setContactNickname}

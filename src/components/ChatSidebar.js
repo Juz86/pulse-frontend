@@ -1,6 +1,6 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, ArrowRight, Cancel, PhoneCall, PhoneOutgoing } from '../components/Icons';
+import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, ArrowRight, Cancel, PhoneCall, PhoneOutgoing, Heart } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
@@ -57,6 +57,18 @@ export default function ChatSidebar({
   showCallModal = false,
   setShowCallModal,
   onShowAddContact,
+  showAddContact = false,
+  setShowAddContact,
+  contactEmail = '',
+  setContactEmail,
+  contactNickname = '',
+  setContactNickname,
+  contactRelation,
+  setContactRelation,
+  contactErr,
+  contactLoading = false,
+  addContact,
+  clearPendingFriendRequestState,
   onOpenProfile,
   showProfile = false,
   setShowProfile,
@@ -116,6 +128,7 @@ export default function ChatSidebar({
   const [convActionsSheet, setConvActionsSheet] = useState(null); // { conv, otherUid }
   const [moreActionsMenuOpen, setMoreActionsMenuOpen] = useState(false);
   const [moreActionsMenuClosing, setMoreActionsMenuClosing] = useState(false);
+  const [addContactSheetClosing, setAddContactSheetClosing] = useState(false);
   const [newChatSheetClosing, setNewChatSheetClosing] = useState(false);
   const [callSheetClosing, setCallSheetClosing] = useState(false);
   const [profileSheetClosing, setProfileSheetClosing] = useState(false);
@@ -123,6 +136,7 @@ export default function ChatSidebar({
   const [callActionMode, setCallActionMode] = useState(null);
   const moreActionsMenuRef = useRef(null);
   const moreActionsCloseTimeoutRef = useRef(null);
+  const addContactSheetCloseTimeoutRef = useRef(null);
   const newChatSheetCloseTimeoutRef = useRef(null);
   const callSheetCloseTimeoutRef = useRef(null);
   const profileSheetCloseTimeoutRef = useRef(null);
@@ -131,10 +145,11 @@ export default function ChatSidebar({
   const contactSheetHistoryPushedRef = useRef(false);
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const moreActionsSheetVisible = moreActionsMenuOpen || moreActionsMenuClosing;
+  const addContactSheetVisible = showAddContact || addContactSheetClosing;
   const newChatSheetVisible = showNewChat || newChatSheetClosing;
   const callSheetVisible = showCallModal || callSheetClosing;
   const settingsSheetVisible = (showProfile && profileTab === 'overview') || profileSheetClosing;
-  const footerClusterMode = settingsSheetVisible ? 'settings' : (newChatSheetVisible ? 'new-chat' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null)));
+  const footerClusterMode = settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Geschiedenis', description: 'Bewaartermijnen beheren' }] : []),
@@ -158,12 +173,16 @@ export default function ChatSidebar({
     : contacts;
 
   useEffect(() => {
-    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible) return;
+    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible && !addContactSheetVisible) return;
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {
         if (settingsSheetVisible) {
           setProfileSheetClosing(true);
+          return;
+        }
+        if (addContactSheetVisible) {
+          setAddContactSheetClosing(true);
           return;
         }
         if (newChatSheetVisible) {
@@ -179,7 +198,7 @@ export default function ChatSidebar({
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [callSheetVisible, moreActionsSheetVisible, newChatSheetVisible, settingsSheetVisible]);
+  }, [addContactSheetVisible, callSheetVisible, moreActionsSheetVisible, newChatSheetVisible, settingsSheetVisible]);
 
   useEffect(() => {
     if (!moreActionsMenuOpen) return undefined;
@@ -212,6 +231,9 @@ export default function ChatSidebar({
     if (moreActionsCloseTimeoutRef.current) {
       window.clearTimeout(moreActionsCloseTimeoutRef.current);
     }
+    if (addContactSheetCloseTimeoutRef.current) {
+      window.clearTimeout(addContactSheetCloseTimeoutRef.current);
+    }
     if (newChatSheetCloseTimeoutRef.current) {
       window.clearTimeout(newChatSheetCloseTimeoutRef.current);
     }
@@ -230,11 +252,31 @@ export default function ChatSidebar({
     }
     setMoreActionsMenuOpen(false);
     setMoreActionsMenuClosing(false);
+    setAddContactSheetClosing(false);
+    setShowAddContact?.(false);
     setNewChatSheetClosing(false);
     setShowNewChat?.(false);
     setCallSheetClosing(false);
     setShowCallModal?.(false);
-  }, [profileTab, setShowCallModal, setShowNewChat, showProfile]);
+  }, [profileTab, setShowAddContact, setShowCallModal, setShowNewChat, showProfile]);
+
+  useEffect(() => {
+    if (!showAddContact) {
+      setAddContactSheetClosing(false);
+      setContactEmail?.('');
+      setContactNickname?.('');
+      setContactRelation?.(null);
+      return;
+    }
+    setMoreActionsMenuOpen(false);
+    setMoreActionsMenuClosing(false);
+    setNewChatSheetClosing(false);
+    setShowNewChat?.(false);
+    setCallSheetClosing(false);
+    setShowCallModal?.(false);
+    setProfileSheetClosing(false);
+    setShowProfile?.(false);
+  }, [setContactEmail, setContactNickname, setContactRelation, setShowCallModal, setShowAddContact, setShowNewChat, setShowProfile, showAddContact]);
 
   useEffect(() => {
     if (!showNewChat) {
@@ -413,6 +455,24 @@ export default function ChatSidebar({
     setMoreActionsMenuClosing(true);
   }, [moreActionsMenuClosing, moreActionsSheetVisible]);
 
+  const closeAddContactSheet = useCallback(() => {
+    if (addContactSheetCloseTimeoutRef.current) {
+      window.clearTimeout(addContactSheetCloseTimeoutRef.current);
+      addContactSheetCloseTimeoutRef.current = null;
+    }
+    setAddContactSheetClosing(false);
+    setShowAddContact?.(false);
+    setContactEmail?.('');
+    setContactNickname?.('');
+    setContactRelation?.(null);
+    clearPendingFriendRequestState?.();
+  }, [clearPendingFriendRequestState, setContactEmail, setContactNickname, setContactRelation, setShowAddContact]);
+
+  const dismissAddContactSheet = useCallback(() => {
+    if (addContactSheetClosing || !addContactSheetVisible) return;
+    setAddContactSheetClosing(true);
+  }, [addContactSheetClosing, addContactSheetVisible]);
+
   const closeNewChatSheet = useCallback(() => {
     if (newChatSheetCloseTimeoutRef.current) {
       window.clearTimeout(newChatSheetCloseTimeoutRef.current);
@@ -458,6 +518,20 @@ export default function ChatSidebar({
       }
     };
   }, [moreActionsMenuClosing]);
+
+  useEffect(() => {
+    if (!addContactSheetClosing) return undefined;
+    addContactSheetCloseTimeoutRef.current = window.setTimeout(() => {
+      addContactSheetCloseTimeoutRef.current = null;
+      closeAddContactSheet();
+    }, 220);
+    return () => {
+      if (addContactSheetCloseTimeoutRef.current) {
+        window.clearTimeout(addContactSheetCloseTimeoutRef.current);
+        addContactSheetCloseTimeoutRef.current = null;
+      }
+    };
+  }, [addContactSheetClosing, closeAddContactSheet]);
 
   useEffect(() => {
     if (!newChatSheetClosing) return undefined;
@@ -534,6 +608,7 @@ export default function ChatSidebar({
             dismissProfileOverviewSheet();
             return;
           }
+          closeAddContactSheet();
           closeNewChatSheet();
           closeCallSheet();
           if (profileSheetCloseTimeoutRef.current) {
@@ -558,6 +633,7 @@ export default function ChatSidebar({
         aria-label="Chats"
         onClick={() => {
           closeMoreActionsSheet();
+          closeAddContactSheet();
           closeNewChatSheet();
           closeCallSheet();
           closeProfileOverviewSheet();
@@ -580,17 +656,18 @@ export default function ChatSidebar({
           className="sidebar-footer-tab"
           aria-label="Oproepen"
           aria-expanded={callSheetVisible}
-        onClick={() => {
-          if (callSheetVisible) {
-            dismissCallSheet();
-            return;
-          }
-          closeProfileOverviewSheet();
-          closeNewChatSheet();
-          if (callSheetCloseTimeoutRef.current) {
-            window.clearTimeout(callSheetCloseTimeoutRef.current);
-            callSheetCloseTimeoutRef.current = null;
-          }
+          onClick={() => {
+            if (callSheetVisible) {
+              dismissCallSheet();
+              return;
+            }
+            closeProfileOverviewSheet();
+            closeAddContactSheet();
+            closeNewChatSheet();
+            if (callSheetCloseTimeoutRef.current) {
+              window.clearTimeout(callSheetCloseTimeoutRef.current);
+              callSheetCloseTimeoutRef.current = null;
+            }
             setMoreActionsMenuClosing(false);
             setMoreActionsMenuOpen(false);
             setCallSheetClosing(false);
@@ -638,6 +715,7 @@ export default function ChatSidebar({
               return;
             }
             closeProfileOverviewSheet();
+            closeAddContactSheet();
             closeNewChatSheet();
             if (moreActionsCloseTimeoutRef.current) {
               window.clearTimeout(moreActionsCloseTimeoutRef.current);
@@ -1086,29 +1164,29 @@ export default function ChatSidebar({
 
       {footerClusterMode ? (
         <div
-          className={`sidebar-bottom-cluster-backdrop${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
-          onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'new-chat' ? dismissNewChatSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet))}
+          className={`sidebar-bottom-cluster-backdrop${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+          onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'add-contact' ? dismissAddContactSheet : (footerClusterMode === 'new-chat' ? dismissNewChatSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet)))}
         >
           <div
-            className={`sidebar-bottom-cluster${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+            className={`sidebar-bottom-cluster${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
             data-sidebar-actions-menu
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
               role="menu"
-              aria-label={footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'new-chat' ? 'Nieuwe chat' : (footerClusterMode === 'calls' ? 'Oproepen' : 'Meer acties'))}
+              aria-label={footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'add-contact' ? 'Nieuw contact' : (footerClusterMode === 'new-chat' ? 'Nieuwe chat' : (footerClusterMode === 'calls' ? 'Oproepen' : 'Meer acties')))}
             >
               <div className="pulse-sheet-handle" aria-hidden="true" />
               <div className="pulse-sheet-header pulse-sheet-header--sidebar-actions">
                 <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">
-                  {footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'new-chat' ? 'Nieuwe chat' : (footerClusterMode === 'calls' ? 'Recent' : 'Meer opties'))}
+                  {footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'add-contact' ? 'Nieuw contact' : (footerClusterMode === 'new-chat' ? 'Nieuwe chat' : (footerClusterMode === 'calls' ? 'Recent' : 'Meer opties')))}
                 </div>
                 <button
                   type="button"
                   className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
                   aria-label="Sluiten"
-                  onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'new-chat' ? dismissNewChatSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet))}
+                  onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'add-contact' ? dismissAddContactSheet : (footerClusterMode === 'new-chat' ? dismissNewChatSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet)))}
                 >
                   <XIcon size={20} aria-hidden="true" />
                 </button>
@@ -1152,6 +1230,52 @@ export default function ChatSidebar({
                       </span>
                       <ArrowRight size={18} className="sidebar-settings-menu-arrow" aria-hidden="true" />
                     </button>
+                  </div>
+                </div>
+              ) : footerClusterMode === 'add-contact' ? (
+                <div className="sidebar-settings-sheet-scroll">
+                  <div className="add-contact-sheet-body">
+                    <p id="add-contact-description" className="new-chat-sheet-sub">
+                      Voeg iemand toe via e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam in dezelfde lichte Pulse sheet-stijl.
+                    </p>
+                    <div className="new-chat-sheet-section">
+                      <div className="new-chat-sheet-kicker">E-mailadres of gebruikersnaam</div>
+                      <div className="sheet-input-wrap">
+                        <input
+                          className="form-input sheet-form-input"
+                          placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam"
+                          value={contactEmail}
+                          onChange={(e) => { setContactEmail?.(e.target.value); clearPendingFriendRequestState?.(); }}
+                          onKeyDown={(e) => e.key === 'Enter' && addContact?.()}
+                        />
+                      </div>
+                    </div>
+                    <div className="new-chat-sheet-section">
+                      <div className="new-chat-sheet-kicker">Weergavenaam</div>
+                      <div className="sheet-input-wrap">
+                        <input
+                          className="form-input sheet-form-input"
+                          placeholder="Bijvoorbeeld Kamilah"
+                          value={contactNickname}
+                          onChange={(e) => setContactNickname?.(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="new-chat-sheet-section">
+                      <div className="new-chat-sheet-kicker">Relatie</div>
+                      <div className="label-chip-row">
+                        {['familie', 'vrienden'].map((label) => (
+                          <button key={label} type="button" onClick={() => setContactRelation?.(contactRelation === label ? null : label)} className={`label-chip${contactRelation === label ? ' active' : ''}`}>
+                            {label === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
+                    <div className="modal-actions add-contact-sheet-actions">
+                      <button type="button" className="btn-secondary" onClick={closeAddContactSheet}>Sluiten</button>
+                      <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => addContact?.()} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>
+                    </div>
                   </div>
                 </div>
               ) : footerClusterMode === 'new-chat' ? (
@@ -1363,11 +1487,11 @@ export default function ChatSidebar({
               ) : (
                 <div className="sidebar-settings-sheet-scroll">
                   <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeProfileOverviewSheet(); closeCallSheet(); closeMoreActionsSheet(); setShowNewChat?.(true); }}>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeProfileOverviewSheet(); closeAddContactSheet(); closeCallSheet(); closeMoreActionsSheet(); setShowNewChat?.(true); }}>
                     <Message size={18} aria-hidden="true" />
                     <span>Nieuwe chat</span>
                   </button>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); onShowAddContact(); }}>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeProfileOverviewSheet(); closeNewChatSheet(); closeCallSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowAddContact?.(true); }}>
                     <Plus size={18} aria-hidden="true" />
                     <span>Nieuw contact</span>
                   </button>

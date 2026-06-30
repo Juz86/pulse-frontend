@@ -148,6 +148,7 @@ export default function ChatModals({
   confirmDialog, setConfirmDialog,
 
   // add contact
+  addContactSheetInSidebar = false,
   showAddContact, setShowAddContact,
   contactEmail, setContactEmail,
   contactNickname, setContactNickname,
@@ -847,7 +848,7 @@ export default function ChatModals({
       )}
 
       {/* ── CONTACT TOEVOEGEN MODAL ── */}
-      {showAddContact && (
+      {showAddContact && !addContactSheetInSidebar && (
         <div
           className="pulse-sheet-backdrop pulse-sheet-backdrop--add-contact"
           onClick={() => { setShowAddContact(false); setContactEmail(''); setContactNickname(''); setContactRelation(null); clearPendingFriendRequestState(); }}

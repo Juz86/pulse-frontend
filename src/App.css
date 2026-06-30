@@ -10109,6 +10109,11 @@ font-family: 'Inter', sans-serif;
   padding: 0 12px 1px;
   box-sizing: border-box;
 }
+.parent-actions-nav--embedded .pulse-sheet-list--sidebar-actions {
+  width: 100%;
+  min-width: 0;
+  align-self: stretch;
+}
 .parent-actions-list {
   width: 100%;
   display: flex;

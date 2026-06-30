@@ -511,11 +511,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         setLabelMenuConvId={() => {}}
         onNewChat={() => setShowNewChat(true)}
         onNewGroup={() => setShowNewGroup(true)}
-        onShowCallModal={async () => {
-          await refreshCallLog();
+        onShowCallModal={() => {
           setShowCallModal(true);
           setCallLogRead(true);
           onCallLogRead?.();
+          refreshCallLog();
         }}
         showCallModal={showCallModal}
         setShowCallModal={setShowCallModal}

@@ -510,6 +510,7 @@ export default function ChatSidebar({
               dismissCallSheet();
               return;
             }
+            closeProfileOverviewSheet();
             if (callSheetCloseTimeoutRef.current) {
               window.clearTimeout(callSheetCloseTimeoutRef.current);
               callSheetCloseTimeoutRef.current = null;
@@ -560,6 +561,7 @@ export default function ChatSidebar({
               dismissMoreActionsSheet();
               return;
             }
+            closeProfileOverviewSheet();
             if (moreActionsCloseTimeoutRef.current) {
               window.clearTimeout(moreActionsCloseTimeoutRef.current);
               moreActionsCloseTimeoutRef.current = null;

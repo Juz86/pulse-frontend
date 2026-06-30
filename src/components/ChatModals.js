@@ -171,6 +171,7 @@ export default function ChatModals({
   searchUser, startConversationWith,
 
   // new group
+  newGroupSheetInSidebar = false,
   showNewGroup, setShowNewGroup,
   groupName, setGroupName,
   groupMembers, toggleGroupMember, createGroup,
@@ -995,7 +996,7 @@ export default function ChatModals({
       )}
 
       {/* ── GROEP AANMAKEN PANEEL ── */}
-      {showNewGroup && (
+      {showNewGroup && !newGroupSheetInSidebar && (
         <div
           className="pulse-sheet-backdrop pulse-sheet-backdrop--new-group"
           onClick={() => { setShowNewGroup(false); setGroupName(''); }}

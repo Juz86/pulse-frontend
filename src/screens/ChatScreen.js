@@ -519,6 +519,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         searchUser={searchUser}
         startConversationWith={startConversationWith}
         onNewGroup={() => setShowNewGroup(true)}
+        showNewGroup={showNewGroup}
+        setShowNewGroup={setShowNewGroup}
+        groupName={groupName}
+        setGroupName={setGroupName}
+        groupMembers={groupMembers}
+        toggleGroupMember={toggleGroupMember}
+        createGroup={createGroup}
         onShowCallModal={() => {
           setShowCallModal(true);
           setCallLogRead(true);
@@ -780,6 +787,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         searchEmail={searchEmail} setSearchEmail={setSearchEmail}
         searchErr={searchErr} searchResult={searchResult}
         searchUser={searchUser} startConversationWith={startConversationWith}
+        newGroupSheetInSidebar
         showNewGroup={showNewGroup} setShowNewGroup={setShowNewGroup}
         groupName={groupName} setGroupName={setGroupName}
         groupMembers={groupMembers} toggleGroupMember={toggleGroupMember} createGroup={createGroup}

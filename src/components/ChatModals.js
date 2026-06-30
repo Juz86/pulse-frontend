@@ -219,6 +219,7 @@ export default function ChatModals({
   setShowChatSearch,
   conversationMuted = false,
   messageSelectionMode = false,
+  newChatSheetInSidebar = false,
   callSheetInSidebar = false,
 
   // call modal
@@ -908,7 +909,7 @@ export default function ChatModals({
       )}
 
       {/* ── NIEUW GESPREK PANEEL ── */}
-      {showNewChat && (
+      {showNewChat && !newChatSheetInSidebar && (
         <div
           className="pulse-sheet-backdrop pulse-sheet-backdrop--new-chat"
           onClick={() => { setShowNewChat(false); setSearchEmail(''); }}

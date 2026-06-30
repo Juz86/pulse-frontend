@@ -44,6 +44,14 @@ export default function ChatSidebar({
   setLabelMenuConvId,
   // modal openers
   onNewChat,
+  showNewChat = false,
+  setShowNewChat,
+  searchEmail = '',
+  setSearchEmail,
+  searchErr,
+  searchResult,
+  searchUser,
+  startConversationWith,
   onNewGroup,
   onShowCallModal,
   showCallModal = false,
@@ -108,12 +116,14 @@ export default function ChatSidebar({
   const [convActionsSheet, setConvActionsSheet] = useState(null); // { conv, otherUid }
   const [moreActionsMenuOpen, setMoreActionsMenuOpen] = useState(false);
   const [moreActionsMenuClosing, setMoreActionsMenuClosing] = useState(false);
+  const [newChatSheetClosing, setNewChatSheetClosing] = useState(false);
   const [callSheetClosing, setCallSheetClosing] = useState(false);
   const [profileSheetClosing, setProfileSheetClosing] = useState(false);
   const [callSearch, setCallSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null);
   const moreActionsMenuRef = useRef(null);
   const moreActionsCloseTimeoutRef = useRef(null);
+  const newChatSheetCloseTimeoutRef = useRef(null);
   const callSheetCloseTimeoutRef = useRef(null);
   const profileSheetCloseTimeoutRef = useRef(null);
   const convSheetHistoryPushedRef = useRef(false);
@@ -121,9 +131,10 @@ export default function ChatSidebar({
   const contactSheetHistoryPushedRef = useRef(false);
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const moreActionsSheetVisible = moreActionsMenuOpen || moreActionsMenuClosing;
+  const newChatSheetVisible = showNewChat || newChatSheetClosing;
   const callSheetVisible = showCallModal || callSheetClosing;
   const settingsSheetVisible = (showProfile && profileTab === 'overview') || profileSheetClosing;
-  const footerClusterMode = settingsSheetVisible ? 'settings' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null));
+  const footerClusterMode = settingsSheetVisible ? 'settings' : (newChatSheetVisible ? 'new-chat' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null)));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Geschiedenis', description: 'Bewaartermijnen beheren' }] : []),
@@ -136,14 +147,27 @@ export default function ChatSidebar({
       || contact.displayName?.toLowerCase().includes(normalizedSearch)
       || contact.email?.toLowerCase().includes(normalizedSearch)
   )), [contacts, normalizedSearch]);
+  const normalizedNewChatQuery = searchEmail.trim().toLowerCase();
+  const filteredNewChatContacts = normalizedNewChatQuery
+    ? contacts.filter((contact) => {
+        const displayName = (getContactDisplayName(contact) || contact.displayName || '').toLowerCase();
+        const email = (contact.email || '').toLowerCase();
+        const username = (contact.username || '').toLowerCase();
+        return displayName.includes(normalizedNewChatQuery) || email.includes(normalizedNewChatQuery) || username.includes(normalizedNewChatQuery);
+      })
+    : contacts;
 
   useEffect(() => {
-    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible) return;
+    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible) return;
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {
         if (settingsSheetVisible) {
           setProfileSheetClosing(true);
+          return;
+        }
+        if (newChatSheetVisible) {
+          setNewChatSheetClosing(true);
           return;
         }
         if (callSheetVisible) {
@@ -155,7 +179,7 @@ export default function ChatSidebar({
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [callSheetVisible, moreActionsSheetVisible, settingsSheetVisible]);
+  }, [callSheetVisible, moreActionsSheetVisible, newChatSheetVisible, settingsSheetVisible]);
 
   useEffect(() => {
     if (!moreActionsMenuOpen) return undefined;
@@ -188,6 +212,9 @@ export default function ChatSidebar({
     if (moreActionsCloseTimeoutRef.current) {
       window.clearTimeout(moreActionsCloseTimeoutRef.current);
     }
+    if (newChatSheetCloseTimeoutRef.current) {
+      window.clearTimeout(newChatSheetCloseTimeoutRef.current);
+    }
     if (callSheetCloseTimeoutRef.current) {
       window.clearTimeout(callSheetCloseTimeoutRef.current);
     }
@@ -203,9 +230,25 @@ export default function ChatSidebar({
     }
     setMoreActionsMenuOpen(false);
     setMoreActionsMenuClosing(false);
+    setNewChatSheetClosing(false);
+    setShowNewChat?.(false);
     setCallSheetClosing(false);
     setShowCallModal?.(false);
-  }, [profileTab, setShowCallModal, showProfile]);
+  }, [profileTab, setShowCallModal, setShowNewChat, showProfile]);
+
+  useEffect(() => {
+    if (!showNewChat) {
+      setNewChatSheetClosing(false);
+      setSearchEmail?.('');
+      return;
+    }
+    setMoreActionsMenuOpen(false);
+    setMoreActionsMenuClosing(false);
+    setCallSheetClosing(false);
+    setShowCallModal?.(false);
+    setProfileSheetClosing(false);
+    setShowProfile?.(false);
+  }, [setSearchEmail, setShowCallModal, setShowNewChat, setShowProfile, showNewChat]);
 
   useEffect(() => {
     if (!showCallModal) {
@@ -370,6 +413,21 @@ export default function ChatSidebar({
     setMoreActionsMenuClosing(true);
   }, [moreActionsMenuClosing, moreActionsSheetVisible]);
 
+  const closeNewChatSheet = useCallback(() => {
+    if (newChatSheetCloseTimeoutRef.current) {
+      window.clearTimeout(newChatSheetCloseTimeoutRef.current);
+      newChatSheetCloseTimeoutRef.current = null;
+    }
+    setNewChatSheetClosing(false);
+    setShowNewChat?.(false);
+    setSearchEmail?.('');
+  }, [setSearchEmail, setShowNewChat]);
+
+  const dismissNewChatSheet = useCallback(() => {
+    if (newChatSheetClosing || !newChatSheetVisible) return;
+    setNewChatSheetClosing(true);
+  }, [newChatSheetClosing, newChatSheetVisible]);
+
   const closeCallSheet = useCallback(() => {
     if (callSheetCloseTimeoutRef.current) {
       window.clearTimeout(callSheetCloseTimeoutRef.current);
@@ -400,6 +458,20 @@ export default function ChatSidebar({
       }
     };
   }, [moreActionsMenuClosing]);
+
+  useEffect(() => {
+    if (!newChatSheetClosing) return undefined;
+    newChatSheetCloseTimeoutRef.current = window.setTimeout(() => {
+      newChatSheetCloseTimeoutRef.current = null;
+      closeNewChatSheet();
+    }, 220);
+    return () => {
+      if (newChatSheetCloseTimeoutRef.current) {
+        window.clearTimeout(newChatSheetCloseTimeoutRef.current);
+        newChatSheetCloseTimeoutRef.current = null;
+      }
+    };
+  }, [closeNewChatSheet, newChatSheetClosing]);
 
   useEffect(() => {
     if (!callSheetClosing) return undefined;
@@ -462,6 +534,8 @@ export default function ChatSidebar({
             dismissProfileOverviewSheet();
             return;
           }
+          closeNewChatSheet();
+          closeCallSheet();
           if (profileSheetCloseTimeoutRef.current) {
             window.clearTimeout(profileSheetCloseTimeoutRef.current);
             profileSheetCloseTimeoutRef.current = null;
@@ -484,6 +558,7 @@ export default function ChatSidebar({
         aria-label="Chats"
         onClick={() => {
           closeMoreActionsSheet();
+          closeNewChatSheet();
           closeCallSheet();
           closeProfileOverviewSheet();
           setActiveTab('chats');
@@ -505,16 +580,17 @@ export default function ChatSidebar({
           className="sidebar-footer-tab"
           aria-label="Oproepen"
           aria-expanded={callSheetVisible}
-          onClick={() => {
-            if (callSheetVisible) {
-              dismissCallSheet();
-              return;
-            }
-            closeProfileOverviewSheet();
-            if (callSheetCloseTimeoutRef.current) {
-              window.clearTimeout(callSheetCloseTimeoutRef.current);
-              callSheetCloseTimeoutRef.current = null;
-            }
+        onClick={() => {
+          if (callSheetVisible) {
+            dismissCallSheet();
+            return;
+          }
+          closeProfileOverviewSheet();
+          closeNewChatSheet();
+          if (callSheetCloseTimeoutRef.current) {
+            window.clearTimeout(callSheetCloseTimeoutRef.current);
+            callSheetCloseTimeoutRef.current = null;
+          }
             setMoreActionsMenuClosing(false);
             setMoreActionsMenuOpen(false);
             setCallSheetClosing(false);
@@ -562,6 +638,7 @@ export default function ChatSidebar({
               return;
             }
             closeProfileOverviewSheet();
+            closeNewChatSheet();
             if (moreActionsCloseTimeoutRef.current) {
               window.clearTimeout(moreActionsCloseTimeoutRef.current);
               moreActionsCloseTimeoutRef.current = null;
@@ -1009,29 +1086,29 @@ export default function ChatSidebar({
 
       {footerClusterMode ? (
         <div
-          className={`sidebar-bottom-cluster-backdrop${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
-          onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet)}
+          className={`sidebar-bottom-cluster-backdrop${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+          onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'new-chat' ? dismissNewChatSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet))}
         >
           <div
-            className={`sidebar-bottom-cluster${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+            className={`sidebar-bottom-cluster${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
             data-sidebar-actions-menu
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
               role="menu"
-              aria-label={footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'calls' ? 'Oproepen' : 'Meer acties')}
+              aria-label={footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'new-chat' ? 'Nieuwe chat' : (footerClusterMode === 'calls' ? 'Oproepen' : 'Meer acties'))}
             >
               <div className="pulse-sheet-handle" aria-hidden="true" />
               <div className="pulse-sheet-header pulse-sheet-header--sidebar-actions">
                 <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">
-                  {footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'calls' ? 'Recent' : 'Meer opties')}
+                  {footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'new-chat' ? 'Nieuwe chat' : (footerClusterMode === 'calls' ? 'Recent' : 'Meer opties'))}
                 </div>
                 <button
                   type="button"
                   className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
                   aria-label="Sluiten"
-                  onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet)}
+                  onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'new-chat' ? dismissNewChatSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet))}
                 >
                   <XIcon size={20} aria-hidden="true" />
                 </button>
@@ -1075,6 +1152,65 @@ export default function ChatSidebar({
                       </span>
                       <ArrowRight size={18} className="sidebar-settings-menu-arrow" aria-hidden="true" />
                     </button>
+                  </div>
+                </div>
+              ) : footerClusterMode === 'new-chat' ? (
+                <div className="sidebar-settings-sheet-scroll">
+                  <div className="new-chat-sheet-body">
+                    <p id="new-chat-description" className="new-chat-sheet-sub">
+                      Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam
+                    </p>
+
+                    <div className="new-chat-sheet-search">
+                      <div className="starred-search-wrap call-log-search-wrap new-chat-search-wrap">
+                        <input
+                          className="starred-search-input"
+                          placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam"
+                          value={searchEmail}
+                          onChange={(e) => setSearchEmail?.(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && searchUser?.()}
+                        />
+                      </div>
+                    </div>
+
+                    {searchErr && <div className="auth-error" style={{ marginBottom: 14 }}>⚠️ {searchErr}</div>}
+
+                    {searchResult && (
+                      <div className="new-chat-sheet-section">
+                        <div className="new-chat-sheet-kicker">Zoekresultaat</div>
+                        <div className="pulse-sheet-list pulse-sheet-list--new-chat">
+                          <button type="button" className="search-result new-chat-sheet-result" onClick={() => startConversationWith?.(searchResult)}>
+                            <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" decorative />
+                            <div>
+                              <div className="conv-name">{searchResult.displayName}</div>
+                              <div className="conv-preview">{searchResult.email}</div>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {contacts.length > 0 && (
+                      <div className="new-chat-sheet-section new-chat-sheet-section--contacts">
+                        <div className="new-chat-sheet-kicker">Kies uit je contacten</div>
+                        <div className="pulse-sheet-list pulse-sheet-list--new-chat new-chat-contact-list">
+                          {filteredNewChatContacts.map((contact) => (
+                            <button key={contact.uid} type="button" className="search-result new-chat-sheet-result" onClick={() => startConversationWith?.(contact)}>
+                              <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} className="sm" decorative />
+                              <div>
+                                <div className="conv-name">{getContactDisplayName(contact)}</div>
+                                <div className="conv-preview">{contact.email}</div>
+                              </div>
+                            </button>
+                          ))}
+                          {filteredNewChatContacts.length === 0 && (
+                            <div className="new-chat-sheet-empty">
+                              Geen contacten die overeenkomen met je zoekopdracht.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : footerClusterMode === 'calls' ? (
@@ -1227,7 +1363,7 @@ export default function ChatSidebar({
               ) : (
                 <div className="sidebar-settings-sheet-scroll">
                   <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); onNewChat?.(); }}>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeProfileOverviewSheet(); closeCallSheet(); closeMoreActionsSheet(); setShowNewChat?.(true); }}>
                     <Message size={18} aria-hidden="true" />
                     <span>Nieuwe chat</span>
                   </button>

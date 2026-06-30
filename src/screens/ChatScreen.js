@@ -510,6 +510,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onOpenDashboard={onOpenDashboard}
         setLabelMenuConvId={() => {}}
         onNewChat={() => setShowNewChat(true)}
+        showNewChat={showNewChat}
+        setShowNewChat={setShowNewChat}
+        searchEmail={searchEmail}
+        setSearchEmail={setSearchEmail}
+        searchErr={searchErr}
+        searchResult={searchResult}
+        searchUser={searchUser}
+        startConversationWith={startConversationWith}
         onNewGroup={() => setShowNewGroup(true)}
         onShowCallModal={() => {
           setShowCallModal(true);
@@ -803,6 +811,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         conversationMuted={mutedConversationIds.includes(activeConv?.id)}
         messageSelectionMode={messageSelectionMode}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
+        newChatSheetInSidebar
         callSheetInSidebar
         showCallModal={showCallModal} setShowCallModal={setShowCallModal}
         callContact={callContact} callContactFromRecent={callContactFromRecent} getCallLog={getCallLog} refreshCallLog={refreshCallLog} clearCallLog={clearCallLog} callLogRateLimitUntil={callLogRateLimitUntil}

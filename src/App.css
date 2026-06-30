@@ -10103,27 +10103,32 @@ font-family: 'Inter', sans-serif;
   padding: 0 12px 12px;
 }
 .parent-actions-nav--embedded {
-  display: block;
-  flex: 0 0 auto;
-  min-height: 0;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 100%;
   width: 100%;
   padding: 0 12px 1px;
   box-sizing: border-box;
 }
 .parent-actions-nav--embedded .pulse-sheet-list--sidebar-actions {
   width: 100%;
-  display: block;
-  flex: 0 0 auto;
-  min-height: 0;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 100%;
+  flex-direction: column;
   min-width: 0;
   align-self: stretch;
 }
 .parent-actions-list {
   width: 100%;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 100%;
+  flex-direction: column;
   border-radius: 28px 28px 0 0;
 }
 .parent-actions-item {
-  flex: 0 0 68px !important;
+  flex: 1 0 68px !important;
   min-height: 68px;
   padding: 0 22px;
   gap: 16px;

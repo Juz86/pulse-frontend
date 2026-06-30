@@ -779,6 +779,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         friendRequests={friendRequests}
         sentFriendRequests={sentFriendRequests}
         showFriendRequestsPanel={showFriendRequestsPanel} setShowFriendRequestsPanel={setShowFriendRequestsPanel}
+        friendRequestsSheetInSidebar
         onAcceptFriendRequest={acceptFriendRequest}
         onDeclineFriendRequest={declineFriendRequest}
         onRemindFriendRequest={remindFriendRequestById}

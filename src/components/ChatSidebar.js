@@ -138,15 +138,18 @@ export default function ChatSidebar({
   const [addContactSheetClosing, setAddContactSheetClosing] = useState(false);
   const [newChatSheetClosing, setNewChatSheetClosing] = useState(false);
   const [newGroupSheetClosing, setNewGroupSheetClosing] = useState(false);
+  const [requestsSheetClosing, setRequestsSheetClosing] = useState(false);
   const [callSheetClosing, setCallSheetClosing] = useState(false);
   const [profileSheetClosing, setProfileSheetClosing] = useState(false);
   const [callSearch, setCallSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null);
+  const [requestsTab, setRequestsTab] = useState('ontvangen');
   const moreActionsMenuRef = useRef(null);
   const moreActionsCloseTimeoutRef = useRef(null);
   const addContactSheetCloseTimeoutRef = useRef(null);
   const newChatSheetCloseTimeoutRef = useRef(null);
   const newGroupSheetCloseTimeoutRef = useRef(null);
+  const requestsSheetCloseTimeoutRef = useRef(null);
   const callSheetCloseTimeoutRef = useRef(null);
   const profileSheetCloseTimeoutRef = useRef(null);
   const convSheetHistoryPushedRef = useRef(false);
@@ -157,9 +160,10 @@ export default function ChatSidebar({
   const addContactSheetVisible = showAddContact || addContactSheetClosing;
   const newChatSheetVisible = showNewChat || newChatSheetClosing;
   const newGroupSheetVisible = showNewGroup || newGroupSheetClosing;
+  const requestsSheetVisible = showFriendRequestsPanel || requestsSheetClosing;
   const callSheetVisible = showCallModal || callSheetClosing;
   const settingsSheetVisible = (showProfile && profileTab === 'overview') || profileSheetClosing;
-  const footerClusterMode = settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null)))));
+  const footerClusterMode = settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null))))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Geschiedenis', description: 'Bewaartermijnen beheren' }] : []),
@@ -183,7 +187,7 @@ export default function ChatSidebar({
     : contacts;
 
   useEffect(() => {
-    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible && !newGroupSheetVisible && !addContactSheetVisible) return;
+    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible && !newGroupSheetVisible && !addContactSheetVisible && !requestsSheetVisible) return;
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {
@@ -203,6 +207,10 @@ export default function ChatSidebar({
           setNewGroupSheetClosing(true);
           return;
         }
+        if (requestsSheetVisible) {
+          setRequestsSheetClosing(true);
+          return;
+        }
         if (callSheetVisible) {
           setCallSheetClosing(true);
           return;
@@ -212,7 +220,7 @@ export default function ChatSidebar({
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [addContactSheetVisible, callSheetVisible, moreActionsSheetVisible, newChatSheetVisible, newGroupSheetVisible, settingsSheetVisible]);
+  }, [addContactSheetVisible, callSheetVisible, moreActionsSheetVisible, newChatSheetVisible, newGroupSheetVisible, requestsSheetVisible, settingsSheetVisible]);
 
   useEffect(() => {
     if (!moreActionsMenuOpen) return undefined;
@@ -254,6 +262,9 @@ export default function ChatSidebar({
     if (newGroupSheetCloseTimeoutRef.current) {
       window.clearTimeout(newGroupSheetCloseTimeoutRef.current);
     }
+    if (requestsSheetCloseTimeoutRef.current) {
+      window.clearTimeout(requestsSheetCloseTimeoutRef.current);
+    }
     if (callSheetCloseTimeoutRef.current) {
       window.clearTimeout(callSheetCloseTimeoutRef.current);
     }
@@ -275,9 +286,11 @@ export default function ChatSidebar({
     setShowNewChat?.(false);
     setNewGroupSheetClosing(false);
     setShowNewGroup?.(false);
+    setRequestsSheetClosing(false);
+    setShowFriendRequestsPanel?.(false);
     setCallSheetClosing(false);
     setShowCallModal?.(false);
-  }, [profileTab, setShowAddContact, setShowCallModal, setShowNewChat, setShowNewGroup, showProfile]);
+  }, [profileTab, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, showProfile]);
 
   useEffect(() => {
     if (!showAddContact) {
@@ -293,11 +306,13 @@ export default function ChatSidebar({
     setShowNewChat?.(false);
     setNewGroupSheetClosing(false);
     setShowNewGroup?.(false);
+    setRequestsSheetClosing(false);
+    setShowFriendRequestsPanel?.(false);
     setCallSheetClosing(false);
     setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
-  }, [setContactEmail, setContactNickname, setContactRelation, setShowCallModal, setShowAddContact, setShowNewChat, setShowNewGroup, setShowProfile, showAddContact]);
+  }, [setContactEmail, setContactNickname, setContactRelation, setShowCallModal, setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile, showAddContact]);
 
   useEffect(() => {
     if (!showNewChat) {
@@ -307,13 +322,17 @@ export default function ChatSidebar({
     }
     setMoreActionsMenuOpen(false);
     setMoreActionsMenuClosing(false);
+    setAddContactSheetClosing(false);
+    setShowAddContact?.(false);
     setNewGroupSheetClosing(false);
     setShowNewGroup?.(false);
+    setRequestsSheetClosing(false);
+    setShowFriendRequestsPanel?.(false);
     setCallSheetClosing(false);
     setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
-  }, [setSearchEmail, setShowCallModal, setShowNewChat, setShowNewGroup, setShowProfile, showNewChat]);
+  }, [setSearchEmail, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile, showNewChat]);
 
   useEffect(() => {
     if (!showNewGroup) {
@@ -327,11 +346,33 @@ export default function ChatSidebar({
     setShowAddContact?.(false);
     setNewChatSheetClosing(false);
     setShowNewChat?.(false);
+    setRequestsSheetClosing(false);
+    setShowFriendRequestsPanel?.(false);
     setCallSheetClosing(false);
     setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
-  }, [setGroupName, setShowAddContact, setShowCallModal, setShowNewChat, setShowNewGroup, setShowProfile, showNewGroup]);
+  }, [setGroupName, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile, showNewGroup]);
+
+  useEffect(() => {
+    if (!showFriendRequestsPanel) {
+      setRequestsSheetClosing(false);
+      setRequestsTab('ontvangen');
+      return;
+    }
+    setMoreActionsMenuOpen(false);
+    setMoreActionsMenuClosing(false);
+    setAddContactSheetClosing(false);
+    setShowAddContact?.(false);
+    setNewChatSheetClosing(false);
+    setShowNewChat?.(false);
+    setNewGroupSheetClosing(false);
+    setShowNewGroup?.(false);
+    setCallSheetClosing(false);
+    setShowCallModal?.(false);
+    setProfileSheetClosing(false);
+    setShowProfile?.(false);
+  }, [setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile, showFriendRequestsPanel]);
 
   useEffect(() => {
     if (!showCallModal) {
@@ -544,6 +585,21 @@ export default function ChatSidebar({
     setNewGroupSheetClosing(true);
   }, [newGroupSheetClosing, newGroupSheetVisible]);
 
+  const closeRequestsSheet = useCallback(() => {
+    if (requestsSheetCloseTimeoutRef.current) {
+      window.clearTimeout(requestsSheetCloseTimeoutRef.current);
+      requestsSheetCloseTimeoutRef.current = null;
+    }
+    setRequestsSheetClosing(false);
+    setShowFriendRequestsPanel?.(false);
+    setRequestsTab('ontvangen');
+  }, [setShowFriendRequestsPanel]);
+
+  const dismissRequestsSheet = useCallback(() => {
+    if (requestsSheetClosing || !requestsSheetVisible) return;
+    setRequestsSheetClosing(true);
+  }, [requestsSheetClosing, requestsSheetVisible]);
+
   const closeCallSheet = useCallback(() => {
     if (callSheetCloseTimeoutRef.current) {
       window.clearTimeout(callSheetCloseTimeoutRef.current);
@@ -618,6 +674,20 @@ export default function ChatSidebar({
   }, [closeNewGroupSheet, newGroupSheetClosing]);
 
   useEffect(() => {
+    if (!requestsSheetClosing) return undefined;
+    requestsSheetCloseTimeoutRef.current = window.setTimeout(() => {
+      requestsSheetCloseTimeoutRef.current = null;
+      closeRequestsSheet();
+    }, 220);
+    return () => {
+      if (requestsSheetCloseTimeoutRef.current) {
+        window.clearTimeout(requestsSheetCloseTimeoutRef.current);
+        requestsSheetCloseTimeoutRef.current = null;
+      }
+    };
+  }, [closeRequestsSheet, requestsSheetClosing]);
+
+  useEffect(() => {
     if (!callSheetClosing) return undefined;
     callSheetCloseTimeoutRef.current = window.setTimeout(() => {
       callSheetCloseTimeoutRef.current = null;
@@ -681,6 +751,7 @@ export default function ChatSidebar({
           closeAddContactSheet();
           closeNewChatSheet();
           closeNewGroupSheet();
+          closeRequestsSheet();
           closeCallSheet();
           if (profileSheetCloseTimeoutRef.current) {
             window.clearTimeout(profileSheetCloseTimeoutRef.current);
@@ -707,6 +778,7 @@ export default function ChatSidebar({
           closeAddContactSheet();
           closeNewChatSheet();
           closeNewGroupSheet();
+          closeRequestsSheet();
           closeCallSheet();
           closeProfileOverviewSheet();
           setActiveTab('chats');
@@ -737,6 +809,7 @@ export default function ChatSidebar({
             closeAddContactSheet();
             closeNewChatSheet();
             closeNewGroupSheet();
+            closeRequestsSheet();
             if (callSheetCloseTimeoutRef.current) {
               window.clearTimeout(callSheetCloseTimeoutRef.current);
               callSheetCloseTimeoutRef.current = null;
@@ -791,6 +864,7 @@ export default function ChatSidebar({
             closeAddContactSheet();
             closeNewChatSheet();
             closeNewGroupSheet();
+            closeRequestsSheet();
             if (moreActionsCloseTimeoutRef.current) {
               window.clearTimeout(moreActionsCloseTimeoutRef.current);
               moreActionsCloseTimeoutRef.current = null;
@@ -1238,29 +1312,29 @@ export default function ChatSidebar({
 
       {footerClusterMode ? (
         <div
-          className={`sidebar-bottom-cluster-backdrop${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
-          onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'add-contact' ? dismissAddContactSheet : (footerClusterMode === 'new-chat' ? dismissNewChatSheet : (footerClusterMode === 'new-group' ? dismissNewGroupSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet))))}
+          className={`sidebar-bottom-cluster-backdrop${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+          onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'add-contact' ? dismissAddContactSheet : (footerClusterMode === 'new-chat' ? dismissNewChatSheet : (footerClusterMode === 'new-group' ? dismissNewGroupSheet : (footerClusterMode === 'requests' ? dismissRequestsSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet)))))}
         >
           <div
-            className={`sidebar-bottom-cluster${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+            className={`sidebar-bottom-cluster${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
             data-sidebar-actions-menu
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
               role="menu"
-              aria-label={footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'add-contact' ? 'Nieuw contact' : (footerClusterMode === 'new-chat' ? 'Nieuwe chat' : (footerClusterMode === 'new-group' ? 'Nieuwe groep' : (footerClusterMode === 'calls' ? 'Oproepen' : 'Meer acties'))))}
+              aria-label={footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'add-contact' ? 'Nieuw contact' : (footerClusterMode === 'new-chat' ? 'Nieuwe chat' : (footerClusterMode === 'new-group' ? 'Nieuwe groep' : (footerClusterMode === 'requests' ? 'Verzoeken' : (footerClusterMode === 'calls' ? 'Oproepen' : 'Meer acties')))))}
             >
               <div className="pulse-sheet-handle" aria-hidden="true" />
               <div className="pulse-sheet-header pulse-sheet-header--sidebar-actions">
                 <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">
-                  {footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'add-contact' ? 'Nieuw contact' : (footerClusterMode === 'new-chat' ? 'Nieuwe chat' : (footerClusterMode === 'new-group' ? 'Nieuwe groep' : (footerClusterMode === 'calls' ? 'Recent' : 'Meer opties'))))}
+                  {footerClusterMode === 'settings' ? 'Instellingen' : (footerClusterMode === 'add-contact' ? 'Nieuw contact' : (footerClusterMode === 'new-chat' ? 'Nieuwe chat' : (footerClusterMode === 'new-group' ? 'Nieuwe groep' : (footerClusterMode === 'requests' ? 'Verzoeken' : (footerClusterMode === 'calls' ? 'Recent' : 'Meer opties')))))}
                 </div>
                 <button
                   type="button"
                   className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
                   aria-label="Sluiten"
-                  onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'add-contact' ? dismissAddContactSheet : (footerClusterMode === 'new-chat' ? dismissNewChatSheet : (footerClusterMode === 'new-group' ? dismissNewGroupSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet))))}
+                  onClick={footerClusterMode === 'settings' ? dismissProfileOverviewSheet : (footerClusterMode === 'add-contact' ? dismissAddContactSheet : (footerClusterMode === 'new-chat' ? dismissNewChatSheet : (footerClusterMode === 'new-group' ? dismissNewGroupSheet : (footerClusterMode === 'requests' ? dismissRequestsSheet : (footerClusterMode === 'calls' ? dismissCallSheet : dismissMoreActionsSheet)))))}
                 >
                   <XIcon size={20} aria-hidden="true" />
                 </button>
@@ -1452,6 +1526,94 @@ export default function ChatSidebar({
                     </div>
                   </div>
                 </div>
+              ) : footerClusterMode === 'requests' ? (
+                <div className="sidebar-settings-sheet-scroll">
+                  <div className="friend-requests-sheet-body">
+                    <p className="new-chat-sheet-sub">
+                      Beheer binnenkomende en verstuurde contactverzoeken vanuit dezelfde lichte sheet-opbouw als Nieuwe chat.
+                    </p>
+
+                    <div className="new-chat-sheet-section">
+                      <div className="new-chat-sheet-kicker">Tabblad</div>
+                      <div className="friend-requests-tabs">
+                        <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
+                          Ontvangen
+                          {friendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{friendRequests.length}</span>}
+                        </button>
+                        <button type="button" onClick={() => setRequestsTab('verstuurd')} className={requestsTab === 'verstuurd' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
+                          Verstuurd
+                          {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="new-chat-sheet-section">
+                      <div className="new-chat-sheet-kicker">
+                        {requestsTab === 'ontvangen' ? 'Ontvangen verzoeken' : 'Verstuurde verzoeken'}
+                      </div>
+                      <div className="pulse-sheet-list pulse-sheet-list--new-chat friend-requests-list">
+                        {requestsTab === 'ontvangen' && (
+                          <>
+                            {friendRequests.map((req) => (
+                              <div key={req.id} className="friend-request-row">
+                                <div className="avatar-circle sm" aria-hidden="true">{req.fromName?.slice?.(0, 2)?.toUpperCase?.() || 'VR'}</div>
+                                <div className="friend-request-copy">
+                                  <div className="friend-request-person-name">{req.fromName}</div>
+                                  <div className="friend-request-person-email">{req.fromEmail}</div>
+                                </div>
+                                <div className="friend-request-actions">
+                                  <button type="button" className="friend-request-action friend-request-action--primary" onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
+                                  <button type="button" className="friend-request-action friend-request-action--secondary" onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
+                                </div>
+                              </div>
+                            ))}
+                            {friendRequests.length === 0 && (
+                              <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
+                                <p>Geen ontvangen vriendschapsverzoeken.</p>
+                              </div>
+                            )}
+                          </>
+                        )}
+
+                        {requestsTab === 'verstuurd' && (
+                          <>
+                            {sentFriendRequests.map((req) => {
+                              const requestId = req?.id || req?.requestId || null;
+                              const reminderCount = Number(req.reminderCount || 0);
+                              const remindersRemaining = Math.max(0, 3 - reminderCount);
+                              return (
+                                <div key={requestId || req.toUid || req.toEmail} className="friend-request-row friend-request-row--stacked">
+                                  <div className="friend-request-row-top">
+                                    <div className="avatar-circle sm" aria-hidden="true">{(req.toEmail || req.toUid || 'VR').slice(0, 2).toUpperCase()}</div>
+                                    <div className="friend-request-copy">
+                                      <div className="friend-request-person-name">{req.toEmail || req.toIdentifier || req.toUid}</div>
+                                      <div className="friend-request-person-email">
+                                        {remindersRemaining > 0 ? `Nog ${remindersRemaining} ${remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} over` : 'Geen herinneringen meer over'}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="friend-request-actions friend-request-actions--wide">
+                                    <button type="button" className="friend-request-action friend-request-action--secondary friend-request-action--text" onClick={() => requestId && onCancelFriendRequest(requestId)} disabled={!requestId}>
+                                      Annuleren
+                                    </button>
+                                    <button type="button" className="friend-request-action friend-request-action--primary friend-request-action--text" onClick={() => requestId && onRemindFriendRequest(requestId)} disabled={!requestId || remindersRemaining <= 0}>
+                                      Herinneren
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            {sentFriendRequests.length === 0 && (
+                              <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
+                                <p>Geen verstuurde vriendschapsverzoeken.</p>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ) : footerClusterMode === 'calls' ? (
                 <div className="sidebar-settings-sheet-scroll">
                   <div className="call-log-sheet-body">
@@ -1614,7 +1776,7 @@ export default function ChatSidebar({
                     <Users size={18} aria-hidden="true" />
                     <span>Nieuwe groep</span>
                   </button>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel(true); }}>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewChatSheet(); closeNewGroupSheet(); closeCallSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel?.(true); }}>
                     <Handshake size={18} aria-hidden="true" />
                     <span>Verzoeken</span>
                     {(friendRequests.length + sentFriendRequests.length) > 0 && (

@@ -159,6 +159,7 @@ export default function ChatModals({
   friendRequests,
   sentFriendRequests,
   showFriendRequestsPanel, setShowFriendRequestsPanel,
+  friendRequestsSheetInSidebar = false,
   onAcceptFriendRequest,
   onDeclineFriendRequest,
   onRemindFriendRequest,
@@ -592,7 +593,7 @@ export default function ChatModals({
       )}
 
       {/* ── VRIENDSCHAPSVERZOEKEN ── */}
-      {showFriendRequestsPanel && (
+      {showFriendRequestsPanel && !friendRequestsSheetInSidebar && (
         <div
           className="pulse-sheet-backdrop pulse-sheet-backdrop--friend-requests"
           onClick={() => setShowFriendRequestsPanel(false)}

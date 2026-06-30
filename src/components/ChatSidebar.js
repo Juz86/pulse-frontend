@@ -1568,8 +1568,8 @@ export default function ChatSidebar({
                   </div>
                 </div>
               ) : footerClusterMode === 'contact' ? (
-                <div className="sidebar-settings-sheet-scroll">
-                  <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
+                <div className="sidebar-contact-actions-scroll">
+                  <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions sidebar-contact-actions-list">
                     {(() => {
                       const contact = contacts.find((c) => c.uid === contactMenu?.uid);
                       if (!contact) return null;

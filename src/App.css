@@ -2537,8 +2537,30 @@ font-family: 'Inter', sans-serif;
   flex-direction: column;
   border-radius: 28px 28px 0 0;
 }
+.sidebar-contact-actions-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 0 1px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.sidebar-contact-actions-list {
+  display: flex;
+  flex: 1 0 auto;
+  min-height: max-content;
+  flex-direction: column;
+  border-radius: 28px 28px 0 0;
+}
 .sidebar-settings-sheet-scroll .chat-header-menu-item {
   flex: 1 0 68px;
+  min-height: 68px;
+  padding: 0 22px;
+  gap: 14px;
+}
+.sidebar-contact-actions-scroll .chat-header-menu-item {
+  flex: 0 0 68px;
   min-height: 68px;
   padding: 0 22px;
   gap: 14px;

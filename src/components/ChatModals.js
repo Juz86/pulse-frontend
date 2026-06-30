@@ -937,7 +937,7 @@ export default function ChatModals({
                 Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam
               </p>
 
-              <div className="new-chat-sheet-search" style={{ marginBottom: searchErr || searchResult ? 10 : 18 }}>
+              <div className="new-chat-sheet-search">
                 <div className="starred-search-wrap call-log-search-wrap new-chat-search-wrap">
                   <input
                     className="starred-search-input"
@@ -967,7 +967,7 @@ export default function ChatModals({
               )}
 
               {contacts.length > 0 && (
-                <div className="new-chat-sheet-section">
+                <div className="new-chat-sheet-section new-chat-sheet-section--contacts">
                   <div className="new-chat-sheet-kicker">Kies uit je contacten</div>
                   <div className="pulse-sheet-list pulse-sheet-list--new-chat new-chat-contact-list">
                     {filteredNewChatContacts.map(c => (

@@ -570,6 +570,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding: 0 2px 2px;
@@ -660,10 +661,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin-bottom: 2px;
 }
 
 .new-chat-search-wrap {
   min-height: 50px;
+  border-radius: 24px;
+  border: 1px solid rgba(140, 122, 214, 0.14);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: none;
+  padding: 0 4px;
 }
 
 .new-chat-search-btn {
@@ -684,6 +691,32 @@ body {
 .new-chat-sheet-section {
   display: flex;
   flex-direction: column;
+}
+
+.new-chat-sheet-section--contacts {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.new-chat-sheet-body .pulse-sheet-list--new-chat {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(140, 122, 214, 0.14);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.new-chat-sheet-body .new-chat-contact-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.new-chat-sheet-body .new-chat-sheet-result,
+.new-chat-sheet-body .search-result.new-chat-sheet-result {
+  min-height: 68px;
+  padding: 0 22px;
 }
 
 .pulse-sheet-list--new-chat {

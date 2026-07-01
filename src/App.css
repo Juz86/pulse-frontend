@@ -15059,7 +15059,6 @@ font-family: 'Inter', sans-serif;
 .app-screen,
 .chat-main,
 .sidebar,
-.parent-root,
 .parent-dashboard-overlay .parent-root {
   min-height: 100dvh;
 }

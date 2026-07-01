@@ -10128,6 +10128,10 @@ font-family: 'Inter', sans-serif;
   border-radius: 28px 28px 0 0;
   margin-bottom: -1px;
 }
+.parent-actions-list--embedded {
+  flex: 1 1 auto;
+  min-height: 100%;
+}
 .parent-actions-item {
   flex: 1 0 68px !important;
   min-height: 68px;
@@ -10135,6 +10139,10 @@ font-family: 'Inter', sans-serif;
   gap: 16px;
   width: 100%;
   box-sizing: border-box;
+}
+.sidebar-settings-sheet-scroll .parent-actions-item--embedded {
+  flex: 0 0 68px;
+  min-height: 68px;
 }
 .pulse-sheet--sidebar-actions .parent-actions-item > .parent-actions-icon {
   flex: 0 0 18px;

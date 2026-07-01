@@ -577,12 +577,12 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
 
           {showingMenu ? (
             embeddedInSidebarCluster ? (
-              <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions" role="tablist" aria-label="Ouderportaal onderdelen">
+              <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list parent-actions-list--embedded" role="tablist" aria-label="Ouderportaal onderdelen">
                 {TABS.map((t) => (
                   <button
                     type="button"
                     key={t.id}
-                    className="chat-header-menu-item"
+                    className="chat-header-menu-item parent-actions-item parent-actions-item--embedded"
                     onClick={() => {
                       setActiveTab(t.id);
                       setPortalView('content');

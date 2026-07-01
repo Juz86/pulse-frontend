@@ -10227,7 +10227,7 @@ font-family: 'Inter', sans-serif;
   flex: 1 1 auto;
   flex-direction: column;
   border: 0;
-  border-radius: 0;
+  border-radius: 28px;
   background: transparent;
   box-shadow: none;
   overflow: visible;

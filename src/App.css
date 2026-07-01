@@ -2530,6 +2530,13 @@ font-family: 'Inter', sans-serif;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+.sidebar-parent-portal-scroll {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+  overflow: visible;
+}
 .sidebar-settings-sheet-scroll .pulse-sheet-list--sidebar-actions {
   display: flex;
   flex: 1 1 auto;

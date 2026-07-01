@@ -1718,7 +1718,7 @@ export default function ChatSidebar({
                   </div>
                 </div>
               ) : footerClusterMode === 'parent-portal' ? (
-                <div className="sidebar-settings-sheet-scroll">
+                <div className="sidebar-parent-portal-scroll">
                   <ParentDashboard
                     user={user}
                     parentActivityBadge={parentActivityBadge}

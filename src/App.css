@@ -10221,6 +10221,7 @@ font-family: 'Inter', sans-serif;
   gap: 0;
   padding: 0;
   background: rgba(255, 255, 255, 0.92);
+  border-radius: 28px 28px 0 0;
 }
 .parent-sheet-shell--embedded {
   display: flex;

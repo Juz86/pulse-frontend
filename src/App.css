@@ -2544,7 +2544,10 @@ font-family: 'Inter', sans-serif;
   flex: 1 1 auto;
   min-height: 0;
   flex-direction: column;
-  overflow: visible;
+  overflow-y: auto;
+  padding: 0 0 1px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 .sidebar-settings-sheet-scroll .pulse-sheet-list--sidebar-actions {
   display: flex;
@@ -10258,9 +10261,8 @@ font-family: 'Inter', sans-serif;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 18px 0 24px;
+  overflow: visible;
+  padding: 18px 0 104px;
   border-radius: 0;
   border-top: 0;
   background: linear-gradient(180deg, rgba(246, 243, 255, 0.14) 0%, rgba(255, 255, 255, 0) 100%);

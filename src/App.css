@@ -10267,8 +10267,8 @@ font-family: 'Inter', sans-serif;
 }
 .parent-root--embedded .parent-portal-view {
   display: flex;
-  flex: 1 1 auto;
-  min-height: 100%;
+  flex: 0 0 auto;
+  min-height: auto;
   flex-direction: column;
   gap: 16px;
 }

@@ -10216,6 +10216,7 @@ font-family: 'Inter', sans-serif;
   overflow: visible;
 }
 .parent-root--embedded .pd-layout--sheet {
+  position: relative;
   display: flex;
   flex: 1 1 auto;
   min-height: 100%;
@@ -10223,10 +10224,13 @@ font-family: 'Inter', sans-serif;
   gap: 8px;
 }
 .parent-cluster-backbar {
+  position: absolute;
+  top: -78px;
+  left: 16px;
+  z-index: 3;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 20px 0;
+  padding: 0;
 }
 .parent-cluster-backbtn {
   width: 64px;
@@ -10234,10 +10238,7 @@ font-family: 'Inter', sans-serif;
   font-size: 30px;
 }
 .parent-cluster-backtitle {
-  font-size: 15px;
-  font-weight: 800;
-  color: #221742;
-  letter-spacing: -0.02em;
+  display: none;
 }
 .parent-embedded-content-shell {
   display: flex;

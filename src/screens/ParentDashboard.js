@@ -542,6 +542,32 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const activeTabMeta = TABS.find((tab) => tab.id === activeTab) || TABS[0];
   const showingMenu = portalView === 'menu';
 
+  if (embeddedInSidebarCluster && showingMenu) {
+    return (
+      <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list parent-actions-list--embedded" role="tablist" aria-label="Ouderportaal onderdelen">
+        {TABS.map((t) => (
+          <button
+            type="button"
+            key={t.id}
+            className="chat-header-menu-item parent-actions-item parent-actions-item--embedded"
+            onClick={() => {
+              setActiveTab(t.id);
+              setPortalView('content');
+            }}
+          >
+            {t.icon}
+            <span>{t.label}</span>
+            {t.badge && (
+              <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
+                {t.badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className={`parent-root ${embeddedInSidebarCluster ? 'parent-root--embedded' : 'parent-root--sheet'}`}>
       <div className={`parent-container ${embeddedInSidebarCluster ? 'parent-container--embedded' : 'parent-container--sheet'}`}>
@@ -576,20 +602,20 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
           )}
 
           {showingMenu ? (
-            embeddedInSidebarCluster ? (
-              <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list parent-actions-list--embedded" role="tablist" aria-label="Ouderportaal onderdelen">
-                {TABS.map((t) => (
+            <div className="parent-actions-nav" role="tablist" aria-label="Ouderportaal onderdelen">
+              <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list">
+                {TABS.map(t => (
                   <button
                     type="button"
                     key={t.id}
-                    className="chat-header-menu-item parent-actions-item parent-actions-item--embedded"
+                    className="chat-header-menu-item parent-actions-item"
                     onClick={() => {
                       setActiveTab(t.id);
                       setPortalView('content');
                     }}
                   >
-                    {t.icon}
-                    <span>{t.label}</span>
+                    <span className="parent-actions-icon" aria-hidden="true">{t.icon}</span>
+                    <span className="parent-actions-label">{t.label}</span>
                     {t.badge && (
                       <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
                         {t.badge}
@@ -598,31 +624,7 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                   </button>
                 ))}
               </div>
-            ) : (
-              <div className="parent-actions-nav" role="tablist" aria-label="Ouderportaal onderdelen">
-                <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list">
-                  {TABS.map(t => (
-                    <button
-                      type="button"
-                      key={t.id}
-                      className="chat-header-menu-item parent-actions-item"
-                      onClick={() => {
-                        setActiveTab(t.id);
-                        setPortalView('content');
-                      }}
-                    >
-                      <span className="parent-actions-icon" aria-hidden="true">{t.icon}</span>
-                      <span className="parent-actions-label">{t.label}</span>
-                      {t.badge && (
-                        <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
-                          {t.badge}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )
+            </div>
           ) : (
             <div className={`pd-layout pd-layout--sheet${embeddedInSidebarCluster ? ' pd-layout--embedded' : ''}`}>
               {embeddedInSidebarCluster && (

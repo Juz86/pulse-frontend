@@ -588,8 +588,8 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                       setPortalView('content');
                     }}
                   >
-                    <span className="parent-actions-icon" aria-hidden="true">{t.icon}</span>
-                    <span className="parent-actions-label">{t.label}</span>
+                    {t.icon}
+                    <span>{t.label}</span>
                     {t.badge && (
                       <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
                         {t.badge}

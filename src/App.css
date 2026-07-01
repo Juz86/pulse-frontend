@@ -10246,8 +10246,8 @@ font-family: 'Inter', sans-serif;
 }
 .parent-embedded-content-shell {
   display: flex;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
+  min-height: auto;
   overflow: hidden;
   border-radius: 0 0 28px 28px;
   background: rgba(255, 255, 255, 0.92);
@@ -10257,12 +10257,12 @@ font-family: 'Inter', sans-serif;
 }
 .parent-root--embedded .pd-content--sheet,
 .pd-content--embedded {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 0 0 auto;
+  min-height: auto;
   display: flex;
   flex-direction: column;
   overflow: visible;
-  padding: 18px 0 104px;
+  padding: 18px 0 24px;
   border-radius: 0;
   border-top: 0;
   background: linear-gradient(180deg, rgba(246, 243, 255, 0.14) 0%, rgba(255, 255, 255, 0) 100%);

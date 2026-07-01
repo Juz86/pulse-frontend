@@ -1135,12 +1135,12 @@ export default function ParentDashboard({
               </div>
             )}
 
-            {/* Tab 5 — Pulse activiteiten */}
+            {/* Tab 5 — Activiteiten */}
             {activeTab === 'activities' && (
               <div className="parent-portal-view parent-portal-view--activities">
                 {/* Header met kind-selector */}
                 <div className="activities-header parent-portal-toolbar">
-                  <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Pulse activiteiten</h2>
+                  <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Activiteiten</h2>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     {children.length > 0 && (
                       <div style={{ position:'relative' }}>

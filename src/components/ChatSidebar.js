@@ -1518,17 +1518,6 @@ export default function ChatSidebar({
                       </div>
                     </div>
                     <div className="new-chat-sheet-section">
-                      <div className="new-chat-sheet-kicker">Weergavenaam</div>
-                      <div className="sheet-input-wrap">
-                        <input
-                          className="form-input sheet-form-input"
-                          placeholder="Bijvoorbeeld Kamilah"
-                          value={contactNickname}
-                          onChange={(e) => setContactNickname?.(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="new-chat-sheet-section">
                       <div className="new-chat-sheet-kicker">Relatie</div>
                       <div className="label-chip-row">
                         {['familie', 'vrienden'].map((label) => (
@@ -1540,7 +1529,6 @@ export default function ChatSidebar({
                     </div>
                     {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
                     <div className="modal-actions add-contact-sheet-actions">
-                      <button type="button" className="btn-secondary" onClick={closeAddContactSheet}>Sluiten</button>
                       <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => addContact?.()} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>
                     </div>
                   </div>

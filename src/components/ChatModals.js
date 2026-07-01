@@ -1016,7 +1016,7 @@ export default function ChatModals({
 
             <div className="new-group-sheet-body">
               <p id="new-group-description" className="new-chat-sheet-sub">
-                Start een groepsgesprek met dezelfde content-first opbouw als Nieuwe chat.
+                Start een groepsgesprek met familie en vrienden.
               </p>
               <div className="new-chat-sheet-section">
                 <div className="new-chat-sheet-kicker">Groepsnaam</div>

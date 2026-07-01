@@ -146,6 +146,7 @@ export default function ChatSidebar({
   const [callSheetClosing, setCallSheetClosing] = useState(false);
   const [profileSheetClosing, setProfileSheetClosing] = useState(false);
   const [parentPortalSheetClosing, setParentPortalSheetClosing] = useState(false);
+  const [parentPortalView, setParentPortalView] = useState('menu');
   const [callSearch, setCallSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null);
   const [requestsTab, setRequestsTab] = useState('ontvangen');
@@ -709,6 +710,7 @@ export default function ChatSidebar({
       parentPortalSheetCloseTimeoutRef.current = null;
     }
     setParentPortalSheetClosing(false);
+    setParentPortalView('menu');
     setShowParentDashboard?.(false);
   }, [setShowParentDashboard]);
 
@@ -979,6 +981,7 @@ export default function ChatSidebar({
               parentPortalSheetCloseTimeoutRef.current = null;
             }
             setParentPortalSheetClosing(false);
+            setParentPortalView('menu');
             onOpenDashboard?.();
           }}
           title="Ouderportaal"
@@ -1429,7 +1432,20 @@ export default function ChatSidebar({
               aria-label={footerClusterAriaLabel}
             >
               <div className="pulse-sheet-handle" aria-hidden="true" />
-              <div className="pulse-sheet-header pulse-sheet-header--sidebar-actions">
+              <div className={`pulse-sheet-header pulse-sheet-header--sidebar-actions${footerClusterMode === 'parent-portal' && parentPortalView !== 'menu' ? ' has-back-button' : ''}`}>
+                {footerClusterMode === 'parent-portal' && parentPortalView !== 'menu' && (
+                  <button
+                    type="button"
+                    className="pulse-sheet-close pulse-sheet-close--sidebar-actions pulse-sheet-back-btn"
+                    aria-label="Terug naar ouderportaal"
+                    title="Terug"
+                    onClick={() => setParentPortalView('menu')}
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M15 18l-6-6 6-6" />
+                    </svg>
+                  </button>
+                )}
                 <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">
                   {footerClusterTitle}
                 </div>
@@ -1725,6 +1741,8 @@ export default function ChatSidebar({
                     onActivitiesViewed={onParentActivitiesViewed}
                     onClose={dismissParentPortalSheet}
                     embeddedInSidebarCluster
+                    embeddedPortalView={parentPortalView}
+                    onEmbeddedPortalViewChange={setParentPortalView}
                   />
                 </div>
               ) : footerClusterMode === 'contact' ? (

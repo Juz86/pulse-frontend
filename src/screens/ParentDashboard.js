@@ -20,8 +20,16 @@ function formatLocationLastSeen(updatedAtMs) {
   return date.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function ParentDashboard({ user, onClose, parentActivityBadge = 0, onActivitiesViewed, embeddedInSidebarCluster = false }) {
-  const [portalView,     setPortalView]     = useState('menu');
+export default function ParentDashboard({
+  user,
+  onClose,
+  parentActivityBadge = 0,
+  onActivitiesViewed,
+  embeddedInSidebarCluster = false,
+  embeddedPortalView = null,
+  onEmbeddedPortalViewChange,
+}) {
+  const [portalViewState, setPortalViewState] = useState('menu');
   const [activeTab,      setActiveTab]      = useState('add');
   const [children,       setChildren]       = useState([]);
   const [loading,        setLoading]        = useState(true);
@@ -539,6 +547,16 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
   const filteredActivities = selectedChildUid
     ? activities.filter(a => a.childUid === selectedChildUid)
     : activities;
+  const portalView = embeddedInSidebarCluster && embeddedPortalView !== null
+    ? embeddedPortalView
+    : portalViewState;
+  const setPortalView = useCallback((nextView) => {
+    if (embeddedInSidebarCluster && onEmbeddedPortalViewChange) {
+      onEmbeddedPortalViewChange(nextView);
+      return;
+    }
+    setPortalViewState(nextView);
+  }, [embeddedInSidebarCluster, onEmbeddedPortalViewChange]);
   const activeTabMeta = TABS.find((tab) => tab.id === activeTab) || TABS[0];
   const showingMenu = portalView === 'menu';
 
@@ -627,22 +645,6 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
             </div>
           ) : (
             <div className={`pd-layout pd-layout--sheet${embeddedInSidebarCluster ? ' pd-layout--embedded' : ''}`}>
-              {embeddedInSidebarCluster && (
-                <div className="parent-cluster-backbar">
-                  <button
-                    type="button"
-                    className="chat-header-back-btn parent-cluster-backbtn"
-                    aria-label="Terug naar ouderportaal"
-                    title="Terug"
-                    onClick={() => setPortalView('menu')}
-                  >
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M15 18l-6-6 6-6" />
-                    </svg>
-                  </button>
-                  <span className="parent-cluster-backtitle">Ouderportaal</span>
-                </div>
-              )}
               <div className={embeddedInSidebarCluster ? 'parent-embedded-content-shell' : ''}>
                 <div className={`pd-content pd-content--sheet${embeddedInSidebarCluster ? ' pd-content--embedded' : ''}`}>
 

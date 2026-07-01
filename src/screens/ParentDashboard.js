@@ -631,11 +631,14 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                 <div className="parent-cluster-backbar">
                   <button
                     type="button"
-                    className="parent-cluster-backbtn"
+                    className="chat-header-back-btn parent-cluster-backbtn"
                     aria-label="Terug naar ouderportaal"
+                    title="Terug"
                     onClick={() => setPortalView('menu')}
                   >
-                    <span aria-hidden="true">←</span>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M15 18l-6-6 6-6" />
+                    </svg>
                   </button>
                   <span className="parent-cluster-backtitle">Ouderportaal</span>
                 </div>

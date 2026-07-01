@@ -10229,20 +10229,9 @@ font-family: 'Inter', sans-serif;
   padding: 8px 20px 0;
 }
 .parent-cluster-backbtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid rgba(112, 94, 240, 0.16);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.88);
-  color: #4a3b86;
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 10px 24px rgba(29, 18, 65, 0.08);
+  width: 64px;
+  height: 64px;
+  font-size: 30px;
 }
 .parent-cluster-backtitle {
   font-size: 15px;

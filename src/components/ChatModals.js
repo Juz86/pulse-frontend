@@ -879,7 +879,7 @@ export default function ChatModals({
                 Voeg familie en vrienden toe via e-mailadres of naam<code>@pulse.internal</code>.
               </p>
               <div className="new-chat-sheet-section">
-                <div className="new-chat-sheet-kicker">E-mailadres of gebruikersnaam</div>
+                <div className="new-chat-sheet-kicker">E-mailadres of naam@pulse.internal</div>
                 <div className="sheet-input-wrap">
                   <input className="form-input sheet-form-input" placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam" value={contactEmail} onChange={e => { setContactEmail(e.target.value); clearPendingFriendRequestState(); }} onKeyDown={e => e.key === 'Enter' && addContact()} />
                 </div>

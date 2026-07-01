@@ -576,13 +576,13 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
           )}
 
           {showingMenu ? (
-            <div className={`parent-actions-nav${embeddedInSidebarCluster ? ' parent-actions-nav--embedded' : ''}`} role="tablist" aria-label="Ouderportaal onderdelen">
-              <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list">
-                {TABS.map(t => (
+            embeddedInSidebarCluster ? (
+              <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions" role="tablist" aria-label="Ouderportaal onderdelen">
+                {TABS.map((t) => (
                   <button
                     type="button"
                     key={t.id}
-                    className="chat-header-menu-item parent-actions-item"
+                    className="chat-header-menu-item"
                     onClick={() => {
                       setActiveTab(t.id);
                       setPortalView('content');
@@ -598,7 +598,31 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                   </button>
                 ))}
               </div>
-            </div>
+            ) : (
+              <div className="parent-actions-nav" role="tablist" aria-label="Ouderportaal onderdelen">
+                <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list">
+                  {TABS.map(t => (
+                    <button
+                      type="button"
+                      key={t.id}
+                      className="chat-header-menu-item parent-actions-item"
+                      onClick={() => {
+                        setActiveTab(t.id);
+                        setPortalView('content');
+                      }}
+                    >
+                      <span className="parent-actions-icon" aria-hidden="true">{t.icon}</span>
+                      <span className="parent-actions-label">{t.label}</span>
+                      {t.badge && (
+                        <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
+                          {t.badge}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
           ) : (
             <div className={`pd-layout pd-layout--sheet${embeddedInSidebarCluster ? ' pd-layout--embedded' : ''}`}>
               {embeddedInSidebarCluster && (

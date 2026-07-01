@@ -10237,7 +10237,8 @@ font-family: 'Inter', sans-serif;
   flex: 1 1 auto;
   min-height: 100%;
   flex-direction: column;
-  gap: 0;
+  border-radius: 0;
+  gap: 8px;
 }
 .parent-embedded-content-shell {
   display: flex;
@@ -10517,7 +10518,7 @@ font-family: 'Inter', sans-serif;
 /* ── Sidebar + tabs layout ── */
 .pd-layout {
   display:flex; background:#fff; border-radius:16px;
-  box-shadow:0 2px 12px rgba(0,0,0,.08);
+  box-shadow:none;
   overflow:hidden; min-height:420px;
 }
 .pd-sidebar {

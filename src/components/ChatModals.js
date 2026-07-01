@@ -876,7 +876,7 @@ export default function ChatModals({
 
             <div className="add-contact-sheet-body">
               <p id="add-contact-description" className="new-chat-sheet-sub">
-                Voeg iemand toe via e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam in dezelfde lichte Pulse sheet-stijl.
+                Voeg familie en vrienden toe via e-mailadres of naam<code>@pulse.internal</code>.
               </p>
               <div className="new-chat-sheet-section">
                 <div className="new-chat-sheet-kicker">E-mailadres of gebruikersnaam</div>

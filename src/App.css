@@ -10223,23 +10223,32 @@ font-family: 'Inter', sans-serif;
   gap: 8px;
 }
 .parent-cluster-backbar {
-  padding: 8px 18px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 20px 0;
 }
 .parent-cluster-backbtn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0 14px;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   border: 1px solid rgba(112, 94, 240, 0.16);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.88);
   color: #4a3b86;
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   cursor: pointer;
   box-shadow: 0 10px 24px rgba(29, 18, 65, 0.08);
+}
+.parent-cluster-backtitle {
+  font-size: 15px;
+  font-weight: 800;
+  color: #221742;
+  letter-spacing: -0.02em;
 }
 .parent-embedded-content-shell {
   display: flex;

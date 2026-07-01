@@ -632,10 +632,12 @@ export default function ParentDashboard({ user, onClose, parentActivityBadge = 0
                   <button
                     type="button"
                     className="parent-cluster-backbtn"
+                    aria-label="Terug naar ouderportaal"
                     onClick={() => setPortalView('menu')}
                   >
-                    ← Ouderportaal
+                    <span aria-hidden="true">←</span>
                   </button>
+                  <span className="parent-cluster-backtitle">Ouderportaal</span>
                 </div>
               )}
               <div className={embeddedInSidebarCluster ? 'parent-embedded-content-shell' : ''}>

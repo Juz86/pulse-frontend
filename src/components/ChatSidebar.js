@@ -1641,7 +1641,7 @@ export default function ChatSidebar({
                 <div className="sidebar-settings-sheet-scroll">
                   <div className="friend-requests-sheet-body">
                     <p className="new-chat-sheet-sub">
-                      Beheer binnenkomende en verstuurde contactverzoeken vanuit dezelfde lichte sheet-opbouw als Nieuwe chat.
+                      Beheer binnenkomende en verstuurde vriendschapsverzoeken.
                     </p>
 
                     <div className="new-chat-sheet-section">

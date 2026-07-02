@@ -6330,7 +6330,7 @@ font-family: 'Inter', sans-serif;
   margin-bottom:16px;
   overflow-y:auto;
   min-height:0;
-  max-height:44vh;
+  max-height:min(44vh, 196px);
   padding-right:4px;
 }
 .friend-requests-title {

@@ -1610,11 +1610,16 @@ export default function ChatSidebar({
                       <div className="pulse-sheet-list pulse-sheet-list--new-chat new-group-contact-list">
                         {contacts.map((contact) => {
                           const selected = groupMembers.find((member) => member.uid === contact.uid);
+                          const contactTitle = getContactDisplayName(contact)
+                            || contact.displayName
+                            || contact.username
+                            || (contact.email ? contact.email.split('@')[0] : '')
+                            || 'Contactpersoon';
                           return (
                             <button key={contact.uid} type="button" className={`search-result new-chat-sheet-result new-group-sheet-result${selected ? ' selected' : ''}`} onClick={() => toggleGroupMember?.(contact)}>
-                              <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} className="sm" decorative />
+                              <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
                               <div className="new-group-sheet-result-copy">
-                                <div className="conv-name">{contact.displayName}</div>
+                                <div className="conv-name">{contactTitle}</div>
                                 <div className="conv-preview">{contact.email}</div>
                               </div>
                               {selected

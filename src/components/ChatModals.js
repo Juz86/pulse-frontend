@@ -1030,10 +1030,15 @@ export default function ChatModals({
                 <div className="pulse-sheet-list pulse-sheet-list--new-chat new-group-contact-list">
                   {contacts.map(c => {
                     const selected = groupMembers.find(m => m.uid === c.uid);
+                    const contactTitle = getContactDisplayName(c)
+                      || c.displayName
+                      || c.username
+                      || (c.email ? c.email.split('@')[0] : '')
+                      || 'Contactpersoon';
                     return (
                       <button key={c.uid} type="button" className={`search-result new-chat-sheet-result new-group-sheet-result${selected ? ' selected' : ''}`} onClick={() => toggleGroupMember(c)}>
-                        <UserAvatar photoURL={c.photoURL} displayName={c.displayName} className="sm" decorative />
-                        <div className="new-group-sheet-result-copy"><div className="conv-name">{c.displayName}</div><div className="conv-preview">{c.email}</div></div>
+                        <UserAvatar photoURL={c.photoURL} displayName={contactTitle} className="sm" decorative />
+                        <div className="new-group-sheet-result-copy"><div className="conv-name">{contactTitle}</div><div className="conv-preview">{c.email}</div></div>
                         {selected
                           ? <span className="new-group-sheet-check new-group-sheet-check--selected"><Check size={14} color="#fff" /></span>
                           : <span className="new-group-sheet-check" />

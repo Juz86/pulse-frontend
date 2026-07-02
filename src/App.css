@@ -2481,7 +2481,7 @@ font-family: 'Inter', sans-serif;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 0 var(--sidebar-footer-inline) max(16px, env(safe-area-inset-bottom));
+  padding: 0 var(--sidebar-footer-inline) max(10px, env(safe-area-inset-bottom));
   background:
     linear-gradient(180deg, rgba(12, 9, 28, 0) 0%, rgba(12, 9, 28, 0.05) 12%, rgba(12, 9, 28, 0.16) 46%, rgba(12, 9, 28, 0.28) 100%);
   animation: pulse-sheet-backdrop-in .22s cubic-bezier(.24, .78, .28, 1) both;

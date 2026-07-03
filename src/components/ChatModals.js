@@ -1058,7 +1058,7 @@ export default function ChatModals({
       )}
 
       {/* ── PROFIEL MODAL ── */}
-      {(showProfile || profileClosing) && profileTab !== 'overview' && profileTab !== 'account' && (
+      {(showProfile || profileClosing) && profileTab !== 'overview' && profileTab !== 'account' && profileTab !== 'geschiedenis' && (
         <div
           className={`pulse-sheet-backdrop pulse-sheet-backdrop--settings${profileClosing ? ' is-closing' : ''}`}
           onClick={closeProfileSheet}

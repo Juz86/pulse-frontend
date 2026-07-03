@@ -5,7 +5,110 @@ import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
 import ParentDashboard from '../screens/ParentDashboard';
-import { formatTime, getInitials } from '../utils';
+import { formatTime, getInitials, HISTORY_RETENTION_OPTIONS, normalizeHistoryRules } from '../utils';
+
+function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = false, style }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const selectedOption = options.find((option) => String(option.value) === String(value)) || options[0];
+
+  useEffect(() => {
+    if (!open) return undefined;
+    function handlePointerDown(event) {
+      if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false);
+    }
+    function handleEscape(event) {
+      if (event.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        disabled={disabled}
+        onClick={() => !disabled && setOpen((prev) => !prev)}
+        style={{
+          ...style,
+          textAlign: 'left',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.72 : 1,
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        <span style={{ color: style?.color || '#241741', fontWeight: 700 }}>{selectedOption?.label || ''}</span>
+      </button>
+
+      {open && !disabled && (
+        <div
+          role="listbox"
+          aria-label={ariaLabel}
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 8px)',
+            left: 0,
+            right: 0,
+            zIndex: 50,
+            padding: '8px',
+            borderRadius: 20,
+            border: '1px solid rgba(140, 122, 214, 0.14)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,.98) 0%, rgba(244,239,255,.98) 100%)',
+            boxShadow: '0 18px 36px rgba(106, 87, 180, 0.12)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px',
+          }}
+        >
+          {options.map((option) => {
+            const isSelected = String(option.value) === String(value);
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+                style={{
+                  width: '100%',
+                  minHeight: 42,
+                  borderRadius: 14,
+                  border: isSelected ? '1px solid rgba(173, 141, 255, 0.22)' : '1px solid rgba(140,122,214,0.08)',
+                  background: isSelected
+                    ? 'linear-gradient(135deg, #8374ff 0%, #a855f7 100%)'
+                    : 'rgba(255,255,255,0.72)',
+                  color: isSelected ? '#fff' : '#241741',
+                  fontSize: '14px',
+                  fontWeight: isSelected ? 700 : 600,
+                  padding: '0 14px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  boxShadow: isSelected ? '0 10px 24px rgba(106, 87, 180, 0.18)' : 'inset 0 1px 0 rgba(255,255,255,.72)',
+                }}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ChatSidebar({
   user,
@@ -99,8 +202,18 @@ export default function ChatSidebar({
   passwordMsg = '',
   profileMsg = '',
   profileLoading = false,
+  historyRules,
+  setHistoryRules,
+  childHistoryRulesByUid,
+  setChildHistoryRulesByUid,
+  historyChildren = [],
+  historySettingsLoading = false,
+  historySettingsSavingTarget,
+  historySettingsMsg = '',
   saveProfile,
   changePassword,
+  saveHistorySettings,
+  saveChildHistorySettings,
   handlePhotoChange,
   handleDeleteAccount,
   photoInputRef,
@@ -170,6 +283,7 @@ export default function ChatSidebar({
   const [callSearch, setCallSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null);
   const [requestsTab, setRequestsTab] = useState('ontvangen');
+  const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const moreActionsMenuRef = useRef(null);
   const moreActionsCloseTimeoutRef = useRef(null);
   const addContactSheetCloseTimeoutRef = useRef(null);
@@ -191,7 +305,7 @@ export default function ChatSidebar({
   const contactSheetVisible = !!contactMenu;
   const conversationSheetVisible = !!convActionsSheet;
   const callSheetVisible = showCallModal || callSheetClosing;
-  const embeddedSettingsActive = showProfile && (profileTab === 'overview' || profileTab === 'account');
+  const embeddedSettingsActive = showProfile && (profileTab === 'overview' || profileTab === 'account' || profileTab === 'geschiedenis');
   const settingsSheetVisible = embeddedSettingsActive || profileSheetClosing;
   const parentPortalSheetVisible = showParentDashboard || parentPortalSheetClosing;
   const footerClusterMode = settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (parentPortalSheetVisible ? 'parent-portal' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null)))))))));
@@ -203,6 +317,45 @@ export default function ChatSidebar({
   ]), [isParent]);
   const activeProfileSection = profileSections.find((section) => section.id === profileTab) || null;
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
+  const primaryHistoryChild = historyChildren.find((child) => child.uid === selectedHistoryChildUid) || historyChildren[0] || null;
+  const primaryHistoryRules = normalizeHistoryRules(primaryHistoryChild ? childHistoryRulesByUid?.[primaryHistoryChild.uid] : {});
+  const canManagePrimaryHistoryChild = !!primaryHistoryChild?.canManageHistory;
+  const historySettingRows = [
+    { key: 'chatRetentionDays', label: 'Chatgeschiedenis' },
+    { key: 'callRetentionDays', label: 'Belgeschiedenis' },
+    { key: 'videoRetentionDays', label: 'Videobelgeschiedenis' },
+  ];
+  const historySelectStyle = {
+    width: '100%',
+    minHeight: 48,
+    borderRadius: 18,
+    border: '1px solid rgba(140, 122, 214, 0.14)',
+    background: 'linear-gradient(180deg, rgba(255,255,255,.94) 0%, rgba(244,239,255,.96) 100%)',
+    boxShadow: '0 10px 22px rgba(106, 87, 180, 0.08)',
+    color: '#241741',
+    padding: '0 44px 0 14px',
+    fontSize: '14px',
+    fontWeight: 700,
+    outline: 'none',
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    MozAppearance: 'none',
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236f5ef0' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 14px center',
+    backgroundSize: '14px',
+    display: 'flex',
+    alignItems: 'center',
+  };
+
+  useEffect(() => {
+    if (!historyChildren.length) {
+      setSelectedHistoryChildUid('');
+      return;
+    }
+    if (historyChildren.some((child) => child.uid === selectedHistoryChildUid)) return;
+    setSelectedHistoryChildUid(historyChildren[0].uid);
+  }, [historyChildren, selectedHistoryChildUid]);
 
   const filteredContacts = useMemo(() => contacts.filter((contact) => (
     !normalizedSearch
@@ -1648,6 +1801,98 @@ export default function ChatSidebar({
                             <span className="profile-danger-btn-label">Account definitief verwijderen</span>
                             <span className="profile-danger-btn-spacer" aria-hidden="true" />
                           </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : profileTab === 'geschiedenis' && isParent ? (
+                    <div className="profile-account-scroll">
+                      <div className="profile-settings-subview">
+                        <div className="profile-settings-section-card">
+                          <div className="profile-settings-subhero">
+                            <h4 className="profile-settings-subtitle">Geschiedenis</h4>
+                            <p className="profile-settings-subcopy">
+                              Beheer per account hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis worden bewaard. Zonder wijziging blijft de standaard op 30 dagen.
+                            </p>
+                          </div>
+
+                          <div className="profile-settings-card-grid">
+                            <div className="profile-settings-light-card">
+                              <div className="profile-settings-light-card-title">Ouderaccount</div>
+                              {historySettingRows.map((row) => (
+                                <div key={`parent-${row.key}`} className="profile-settings-field-stack">
+                                  <div className="profile-settings-field-label">{row.label}</div>
+                                  <SidebarHistorySelect
+                                    ariaLabel={`${row.label} ouderaccount`}
+                                    value={historyRules?.[row.key] ?? 30}
+                                    options={HISTORY_RETENTION_OPTIONS}
+                                    onChange={(nextValue) => setHistoryRules?.((prev) => ({ ...normalizeHistoryRules(prev), [row.key]: Number(nextValue) }))}
+                                    disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
+                                    style={historySelectStyle}
+                                  />
+                                </div>
+                              ))}
+                              <button type="button" className="btn-primary" onClick={() => saveHistorySettings?.()} disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}>
+                                {historySettingsSavingTarget === 'parent' ? 'Opslaan…' : 'Opslaan'}
+                              </button>
+                            </div>
+
+                            <div className="profile-settings-light-card">
+                              <div className="profile-settings-light-card-title">Kindaccount</div>
+                              <SidebarHistorySelect
+                                ariaLabel="Kies kindaccount"
+                                value={selectedHistoryChildUid}
+                                options={
+                                  historyChildren.length === 0
+                                    ? [{ value: '', label: 'Geen kindaccounts' }]
+                                    : historyChildren.map((child) => ({ value: child.uid, label: child.displayName }))
+                                }
+                                onChange={(nextValue) => setSelectedHistoryChildUid(String(nextValue))}
+                                disabled={!historyChildren.length || historySettingsLoading}
+                                style={historySelectStyle}
+                              />
+                              {historySettingRows.map((row) => (
+                                <div key={`child-${row.key}`} className="profile-settings-field-stack">
+                                  <div className="profile-settings-field-label">{row.label}</div>
+                                  <SidebarHistorySelect
+                                    ariaLabel={`${row.label} kindaccount`}
+                                    value={primaryHistoryRules[row.key]}
+                                    options={HISTORY_RETENTION_OPTIONS}
+                                    onChange={(nextValue) => {
+                                      if (!primaryHistoryChild) return;
+                                      setChildHistoryRulesByUid?.((prev) => ({
+                                        ...prev,
+                                        [primaryHistoryChild.uid]: {
+                                          ...normalizeHistoryRules(prev?.[primaryHistoryChild.uid]),
+                                          [row.key]: Number(nextValue),
+                                        },
+                                      }));
+                                    }}
+                                    disabled={!primaryHistoryChild || !canManagePrimaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
+                                    style={historySelectStyle}
+                                  />
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                className="btn-primary"
+                                onClick={() => primaryHistoryChild && saveChildHistorySettings?.(primaryHistoryChild.uid)}
+                                disabled={!primaryHistoryChild || !canManagePrimaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
+                              >
+                                {historySettingsSavingTarget === primaryHistoryChild?.uid ? 'Opslaan…' : 'Opslaan'}
+                              </button>
+                              {primaryHistoryChild && !canManagePrimaryHistoryChild && (
+                                <div className="profile-settings-helper-copy">
+                                  Alleen ouder A kan de bewaartermijn voor dit kindaccount aanpassen.
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {historySettingsMsg && (
+                            <div className="profile-settings-inline-message" style={{ color: historySettingsMsg.startsWith('Fout:') ? 'var(--danger)' : 'var(--success)' }}>
+                              {historySettingsMsg}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

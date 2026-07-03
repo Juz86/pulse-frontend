@@ -1145,96 +1145,98 @@ export default function ChatModals({
                   </div>
                 )}
                 {profileTab === 'account' && (
-                  <div className="profile-account-view">
-                    <div className="profile-account-card">
-                      <div className="profile-account-hero">
-                        <div className="profile-account-hero-stack">
-                          <div className="profile-photo-wrap" onClick={() => photoInputRef.current?.click()}>
-                            {photoPreview
-                              ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
-                              : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
-                            }
-                            <div className="profile-photo-overlay"><Camera size={16} /></div>
-                          </div>
-                          <button type="button" className="profile-account-avatar-btn" onClick={() => setShowAvatarBuilder(true)}>
-                            🎨 Avatar maken
-                          </button>
-                        </div>
-                        <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
-                      </div>
-                      <div className="profile-account-form">
-                        <div className="form-group">
-                          <label className="form-label">Weergavenaam</label>
-                          <input className="form-input" placeholder="Jouw naam" value={newName} onChange={e => setNewName(e.target.value)} />
-                        </div>
-                        {isChildAccount && (
-                          <div className="form-group profile-account-section">
-                            <label className="form-label">Gebruikersnaam</label>
-                            <input
-                              className="form-input"
-                              value={newUsername}
-                              readOnly
-                              disabled
-                              aria-readonly="true"
-                              style={{ opacity: 0.72, cursor: 'not-allowed' }}
-                            />
-                            <div className="profile-account-helper">
-                              Deze loginnaam is ingesteld door je ouder en kan alleen in het ouderportaal worden gewijzigd.
+                  <div className="profile-account-scroll">
+                    <div className="profile-account-view">
+                      <div className="profile-account-card">
+                        <div className="profile-account-hero">
+                          <div className="profile-account-hero-stack">
+                            <div className="profile-photo-wrap" onClick={() => photoInputRef.current?.click()}>
+                              {photoPreview
+                                ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
+                                : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
+                              }
+                              <div className="profile-photo-overlay"><Camera size={16} /></div>
                             </div>
+                            <button type="button" className="profile-account-avatar-btn" onClick={() => setShowAvatarBuilder(true)}>
+                              🎨 Avatar maken
+                            </button>
                           </div>
-                        )}
-                        {isParent && (
-                          <div className="form-group profile-account-section">
-                            <label className="form-label">E-mailadres</label>
-                            <input className="form-input profile-account-input-disabled" type="email" value={user.email} disabled />
+                          <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+                        </div>
+                        <div className="profile-account-form">
+                          <div className="form-group">
+                            <label className="form-label">Weergavenaam</label>
+                            <input className="form-input" placeholder="Jouw naam" value={newName} onChange={e => setNewName(e.target.value)} />
                           </div>
-                        )}
-                        {!user.email?.endsWith('@pulse.internal') && (
-                          <div className="profile-account-section">
-                            <label className="form-label profile-account-password-label">Wachtwoord wijzigen</label>
-                            <div className="form-group">
-                              <div style={{ position: 'relative' }}>
-                                <input className="form-input" type={showNewPassword ? 'text' : 'password'}
-                                  placeholder="Nieuw wachtwoord" aria-label="Nieuw wachtwoord" value={newPassword} onChange={e => setNewPassword(e.target.value)}
-                                  style={{ paddingRight: '42px' }} />
-                                <button type="button" aria-label={showNewPassword ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'} onClick={() => setShowNewPassword(p => !p)}
-                                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 0 }}>
-                                  {showNewPassword ? <EyeOff size={18} /> : <EyeOn size={18} />}
-                                </button>
+                          {isChildAccount && (
+                            <div className="form-group profile-account-section">
+                              <label className="form-label">Gebruikersnaam</label>
+                              <input
+                                className="form-input"
+                                value={newUsername}
+                                readOnly
+                                disabled
+                                aria-readonly="true"
+                                style={{ opacity: 0.72, cursor: 'not-allowed' }}
+                              />
+                              <div className="profile-account-helper">
+                                Deze loginnaam is ingesteld door je ouder en kan alleen in het ouderportaal worden gewijzigd.
                               </div>
                             </div>
-                            <div className="form-group">
-                              <input className="form-input" type={showNewPassword ? 'text' : 'password'}
-                                placeholder="Bevestig wachtwoord" aria-label="Bevestig wachtwoord" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+                          )}
+                          {isParent && (
+                            <div className="form-group profile-account-section">
+                              <label className="form-label">E-mailadres</label>
+                              <input className="form-input profile-account-input-disabled" type="email" value={user.email} disabled />
                             </div>
-                            <button type="button" className="btn-secondary" style={{ width: '100%' }}
-                              disabled={passwordLoading || !newPassword} onClick={changePassword}>
-                              {passwordLoading ? 'Bezig…' : 'Wachtwoord wijzigen'}
+                          )}
+                          {!user.email?.endsWith('@pulse.internal') && (
+                            <div className="profile-account-section">
+                              <label className="form-label profile-account-password-label">Wachtwoord wijzigen</label>
+                              <div className="form-group">
+                                <div style={{ position: 'relative' }}>
+                                  <input className="form-input" type={showNewPassword ? 'text' : 'password'}
+                                    placeholder="Nieuw wachtwoord" aria-label="Nieuw wachtwoord" value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                                    style={{ paddingRight: '42px' }} />
+                                  <button type="button" aria-label={showNewPassword ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'} onClick={() => setShowNewPassword(p => !p)}
+                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 0 }}>
+                                    {showNewPassword ? <EyeOff size={18} /> : <EyeOn size={18} />}
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="form-group">
+                                <input className="form-input" type={showNewPassword ? 'text' : 'password'}
+                                  placeholder="Bevestig wachtwoord" aria-label="Bevestig wachtwoord" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+                              </div>
+                              <button type="button" className="btn-secondary" style={{ width: '100%' }}
+                                disabled={passwordLoading || !newPassword} onClick={changePassword}>
+                                {passwordLoading ? 'Bezig…' : 'Wachtwoord wijzigen'}
+                              </button>
+                              {passwordMsg && <div style={{ fontSize: '12px', marginTop: '6px', color: passwordMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{passwordMsg}</div>}
+                            </div>
+                          )}
+                          <div className="profile-account-section profile-account-save">
+                            {profileMsg && <div style={{ fontSize: '12px', marginBottom: '10px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
+                            <button type="button" className="btn-primary" style={{ width: '100%' }}
+                              disabled={profileLoading}
+                              onClick={saveProfile}>
+                              {profileLoading ? 'Opslaan…' : 'Opslaan →'}
                             </button>
-                            {passwordMsg && <div style={{ fontSize: '12px', marginTop: '6px', color: passwordMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{passwordMsg}</div>}
                           </div>
-                        )}
-                        <div className="profile-account-section profile-account-save">
-                          {profileMsg && <div style={{ fontSize: '12px', marginBottom: '10px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
-                          <button type="button" className="btn-primary" style={{ width: '100%' }}
-                            disabled={profileLoading}
-                            onClick={saveProfile}>
-                            {profileLoading ? 'Opslaan…' : 'Opslaan →'}
-                          </button>
                         </div>
                       </div>
-                    </div>
-                    <div className="profile-danger-card">
-                      <div className="profile-danger-title">Account verwijderen</div>
-                      <p className="profile-danger-copy">
-                        Als je je account verwijdert worden al je chats, berichten en gegevens permanent verwijderd.
-                      </p>
-                      <button type="button" className="btn-danger profile-danger-btn"
-                        onClick={() => { closeProfileSheet(); handleDeleteAccount(); }}>
-                        <span className="profile-danger-btn-icon" aria-hidden="true"><Trash2 size={16} /></span>
-                        <span className="profile-danger-btn-label">Account definitief verwijderen</span>
-                        <span className="profile-danger-btn-spacer" aria-hidden="true" />
-                      </button>
+                      <div className="profile-danger-card">
+                        <div className="profile-danger-title">Account verwijderen</div>
+                        <p className="profile-danger-copy">
+                          Als je je account verwijdert worden al je chats, berichten en gegevens permanent verwijderd.
+                        </p>
+                        <button type="button" className="btn-danger profile-danger-btn"
+                          onClick={() => { closeProfileSheet(); handleDeleteAccount(); }}>
+                          <span className="profile-danger-btn-icon" aria-hidden="true"><Trash2 size={16} /></span>
+                          <span className="profile-danger-btn-label">Account definitief verwijderen</span>
+                          <span className="profile-danger-btn-spacer" aria-hidden="true" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

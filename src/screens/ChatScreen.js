@@ -555,6 +555,25 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         setShowProfile={setShowProfile}
         profileTab={profileTab}
         setProfileTab={setProfileTab}
+        newName={newName}
+        setNewName={setNewName}
+        newUsername={newUsername}
+        showNewPassword={showNewPassword}
+        setShowNewPassword={setShowNewPassword}
+        newPassword={newPassword}
+        setNewPassword={setNewPassword}
+        confirmPassword={confirmPassword}
+        setConfirmPassword={setConfirmPassword}
+        passwordLoading={passwordLoading}
+        passwordMsg={passwordMsg}
+        profileMsg={profileMsg}
+        profileLoading={profileLoading}
+        saveProfile={saveProfile}
+        changePassword={changePassword}
+        handlePhotoChange={handlePhotoChange}
+        handleDeleteAccount={handleDeleteAccount}
+        photoInputRef={photoInputRef}
+        setShowAvatarBuilder={setShowAvatarBuilder}
         onProfileHistoryOpen={loadHistorySettings}
         onRequestSettingsLogout={() => {
           setConfirmDialog({
@@ -607,6 +626,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         callContact={callContact}
         callContactFromRecent={callContactFromRecent}
         callLogRateLimitUntil={callLogRateLimitUntil}
+        setPhotoPreview={setPhotoPreview}
       />
 
       <main className="chat-main" aria-label={activeConv ? `Chatvenster voor ${getConvName(activeConv)}` : 'Chatvenster'}>

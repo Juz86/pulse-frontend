@@ -1148,6 +1148,12 @@ export default function ChatModals({
                   <div className="profile-account-scroll">
                     <div className="profile-account-view">
                       <div className="profile-account-card">
+                        <div className="profile-account-intro">
+                          <h4 className="profile-account-title">Mijn account</h4>
+                          <p className="profile-account-subcopy">
+                            Werk je naam, avatar en wachtwoord bij in dezelfde compacte Pulse sheet-stijl.
+                          </p>
+                        </div>
                         <div className="profile-account-hero">
                           <div className="profile-account-hero-stack">
                             <div className="profile-photo-wrap" onClick={() => photoInputRef.current?.click()}>

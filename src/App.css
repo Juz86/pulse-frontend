@@ -2928,7 +2928,7 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-footer--cluster {
   margin-top: -10px;
-  padding: 0 12px 10px;
+  padding: 0 12px 0;
   background: transparent;
 }
 .sidebar-footer-tabbar--cluster {
@@ -2938,7 +2938,7 @@ font-family: 'Inter', sans-serif;
   box-shadow: none;
   background: rgba(255, 255, 255, 0.92);
   margin-top: 0;
-  padding: 0 8px 8px;
+  padding: 0 8px 0;
 }
 .sidebar-footer-tab {
   flex: 1 1 0;

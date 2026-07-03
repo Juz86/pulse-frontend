@@ -5145,15 +5145,15 @@ font-family: 'Inter', sans-serif;
 .profile-account-view {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   min-height: max-content;
 }
 .profile-account-card {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: 16px;
-  padding: 16px 16px 18px;
+  gap: 14px;
+  padding: 14px 14px 16px;
   border-radius: 28px;
   border: 1px solid rgba(140, 122, 214, 0.12);
   background: linear-gradient(180deg, rgba(255,255,255,.92) 0%, rgba(248,244,255,.84) 100%);
@@ -5162,7 +5162,7 @@ font-family: 'Inter', sans-serif;
 .profile-account-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 .profile-account-hero {
   display: flex;
@@ -5173,11 +5173,18 @@ font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+}
+.profile-account-hero .profile-avatar-big,
+.profile-account-hero .profile-photo-wrap .profile-avatar-big {
+  width: 72px;
+  height: 72px;
+  font-size: 24px;
+  box-shadow: 0 8px 20px rgba(108,99,255,.26);
 }
 .profile-account-avatar-btn {
-  min-height: 42px;
-  padding: 0 18px;
+  min-height: 40px;
+  padding: 0 16px;
   border-radius: 16px;
   border: 1px solid rgba(140, 122, 214, 0.16);
   background: rgba(255, 255, 255, 0.92);
@@ -5189,10 +5196,10 @@ font-family: 'Inter', sans-serif;
 }
 .profile-account-section {
   border-top: 1px solid rgba(140, 122, 214, 0.12);
-  padding-top: 14px;
+  padding-top: 12px;
 }
 .profile-account-save {
-  margin-top: 8px;
+  margin-top: 6px;
 }
 .profile-account-view .form-group {
   margin-top: 0;
@@ -5205,7 +5212,7 @@ font-family: 'Inter', sans-serif;
   letter-spacing: .08em;
 }
 .profile-account-view .form-input {
-  min-height: 56px;
+  min-height: 54px;
   background: rgba(255,255,255,.94);
   border: 1px solid rgba(140, 122, 214, 0.16);
   border-radius: 18px;
@@ -5234,10 +5241,10 @@ font-family: 'Inter', sans-serif;
 }
 .profile-account-password-label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .profile-account-view .btn-secondary {
-  min-height: 56px;
+  min-height: 54px;
   background: rgba(255,255,255,.92);
   border: 1px solid rgba(140, 122, 214, 0.16);
   color: #31244f;
@@ -5250,7 +5257,7 @@ font-family: 'Inter', sans-serif;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.92);
 }
 .profile-account-view .btn-primary {
-  min-height: 56px;
+  min-height: 54px;
   border-radius: 18px;
   box-shadow: 0 18px 32px rgba(123, 96, 236, 0.22);
 }

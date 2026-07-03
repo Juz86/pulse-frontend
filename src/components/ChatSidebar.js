@@ -1,11 +1,12 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, ArrowRight, Cancel, PhoneCall, PhoneOutgoing, Heart, Check, Camera, EyeOn, EyeOff } from '../components/Icons';
+import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, ArrowRight, Cancel, PhoneCall, PhoneOutgoing, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
 import ParentDashboard from '../screens/ParentDashboard';
 import { formatTime, getInitials, HISTORY_RETENTION_OPTIONS, normalizeHistoryRules } from '../utils';
+import chatDefaultPattern from '../assets/chatachtergrond.jpeg';
 
 function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = false, style }) {
   const [open, setOpen] = useState(false);
@@ -210,13 +211,22 @@ export default function ChatSidebar({
   historySettingsLoading = false,
   historySettingsSavingTarget,
   historySettingsMsg = '',
+  chatBgTab,
+  setChatBgTab,
+  chatBgMsg = '',
+  chatBg,
+  chatBgLoading = false,
   saveProfile,
   changePassword,
   saveHistorySettings,
   saveChildHistorySettings,
+  uploadChatBgPhoto,
+  saveChatBgColor,
+  removeChatBg,
   handlePhotoChange,
   handleDeleteAccount,
   photoInputRef,
+  bgInputRef,
   setShowAvatarBuilder,
   onProfileHistoryOpen,
   onRequestSettingsLogout,
@@ -284,6 +294,8 @@ export default function ChatSidebar({
   const [callActionMode, setCallActionMode] = useState(null);
   const [requestsTab, setRequestsTab] = useState('ontvangen');
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
+  const [pendingColor, setPendingColor] = useState(null);
+  const [pendingPhoto, setPendingPhoto] = useState(null);
   const moreActionsMenuRef = useRef(null);
   const moreActionsCloseTimeoutRef = useRef(null);
   const addContactSheetCloseTimeoutRef = useRef(null);
@@ -305,7 +317,7 @@ export default function ChatSidebar({
   const contactSheetVisible = !!contactMenu;
   const conversationSheetVisible = !!convActionsSheet;
   const callSheetVisible = showCallModal || callSheetClosing;
-  const embeddedSettingsActive = showProfile && (profileTab === 'overview' || profileTab === 'account' || profileTab === 'geschiedenis');
+  const embeddedSettingsActive = showProfile && (profileTab === 'overview' || profileTab === 'account' || profileTab === 'geschiedenis' || profileTab === 'styling');
   const settingsSheetVisible = embeddedSettingsActive || profileSheetClosing;
   const parentPortalSheetVisible = showParentDashboard || parentPortalSheetClosing;
   const footerClusterMode = settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (parentPortalSheetVisible ? 'parent-portal' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null)))))))));
@@ -356,6 +368,12 @@ export default function ChatSidebar({
     if (historyChildren.some((child) => child.uid === selectedHistoryChildUid)) return;
     setSelectedHistoryChildUid(historyChildren[0].uid);
   }, [historyChildren, selectedHistoryChildUid]);
+
+  useEffect(() => () => {
+    if (pendingPhoto?.url) {
+      URL.revokeObjectURL(pendingPhoto.url);
+    }
+  }, [pendingPhoto]);
 
   const filteredContacts = useMemo(() => contacts.filter((contact) => (
     !normalizedSearch
@@ -1893,6 +1911,182 @@ export default function ChatSidebar({
                               {historySettingsMsg}
                             </div>
                           )}
+                        </div>
+                      </div>
+                    </div>
+                  ) : profileTab === 'styling' ? (
+                    <div className="profile-account-scroll">
+                      <div className="profile-settings-subview">
+                        <div className="profile-settings-section-card">
+                          <div className="profile-settings-subhero">
+                            <h4 className="profile-settings-subtitle">Styling</h4>
+                            <p className="profile-settings-subcopy">
+                              Kies een achtergrond die past bij jouw Pulse-gesprekken.
+                            </p>
+                          </div>
+                          <div className="profile-settings-light-card profile-settings-light-card--stacked">
+                            <label className="form-label" style={{ marginBottom: '12px', display: 'block' }}>Chat achtergrond</label>
+                            <div className="profile-styling-tabs">
+                              {[
+                                ['foto', <ImageIcon size={14} />, 'Foto'],
+                                ['kleur', <ColorCircle size={14} />, 'Kleur'],
+                                ['standaard', <LayoutTemplate size={14} />, 'Standaard'],
+                              ].map(([id, icon, label]) => (
+                                <button
+                                  key={id}
+                                  type="button"
+                                  onClick={() => {
+                                    setChatBgTab?.(id);
+                                    if (id === 'kleur' && !pendingColor && chatBg?.type !== 'color') setPendingColor('#000000');
+                                  }}
+                                  className="profile-styling-tab"
+                                  style={{
+                                    flex: 1,
+                                    padding: '7px 4px',
+                                    border: 'none',
+                                    borderRadius: '14px',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all .15s',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '5px',
+                                    background: chatBgTab === id ? 'linear-gradient(135deg,#7c6fff,#a855f7)' : 'transparent',
+                                    color: chatBgTab === id ? '#fff' : '#6f6788',
+                                  }}
+                                >
+                                  {icon}{label}
+                                </button>
+                              ))}
+                            </div>
+                            <div
+                              className="profile-styling-preview"
+                              style={{
+                                borderRadius: '18px',
+                                overflow: 'hidden',
+                                marginBottom: '14px',
+                                height: '110px',
+                                position: 'relative',
+                                background: chatBgTab === 'kleur'
+                                  ? (pendingColor || (chatBg?.type === 'color' ? chatBg.value : '#000000'))
+                                  : chatBgTab === 'foto'
+                                    ? (pendingPhoto ? `url(${pendingPhoto.url}) center/cover` : chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : 'var(--bg)')
+                                    : (chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : `#eeeaf8 url(${chatDefaultPattern}) center top / 180px auto repeat`),
+                                border: '1px solid rgba(140, 122, 214, 0.12)',
+                              }}
+                            >
+                              {chatBgTab === 'foto' && (pendingPhoto || chatBg?.type === 'photo') && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.15)' }} />}
+                              {chatBgTab === 'foto' && (pendingPhoto || chatBg?.type === 'photo') && (
+                                <button
+                                  type="button"
+                                  disabled={chatBgLoading}
+                                  onClick={() => {
+                                    if (pendingPhoto?.url) URL.revokeObjectURL(pendingPhoto.url);
+                                    if (pendingPhoto) setPendingPhoto(null);
+                                    else removeChatBg?.();
+                                  }}
+                                  style={{ position: 'absolute', top: '8px', right: '8px', width: '26px', height: '26px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)', zIndex: 1 }}
+                                  title="Achtergrond verwijderen"
+                                >
+                                  ×
+                                </button>
+                              )}
+                              <div style={{ position: 'absolute', bottom: '8px', left: '10px' }}>
+                                <div style={{ background: '#f7f2ff', border: '1px solid #e6dcfb', borderRadius: '12px 12px 12px 3px', padding: '6px 12px', fontSize: '12px', color: '#3f3560' }}>Hallo! 👋</div>
+                              </div>
+                              <div style={{ position: 'absolute', bottom: '8px', right: '10px' }}>
+                                <div style={{ background: 'linear-gradient(135deg,#8c7bff 0%, #7160f5 100%)', borderRadius: '12px 12px 3px 12px', padding: '6px 12px', fontSize: '12px', color: '#fff' }}>Hey!</div>
+                              </div>
+                            </div>
+                            {chatBgTab === 'foto' && (
+                              <div>
+                                {!pendingPhoto && chatBg?.type === 'photo' && <div style={{ fontSize: '12px', color: 'var(--success)', marginBottom: '8px' }}>✓ Foto achtergrond actief</div>}
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button type="button" className="btn-secondary" style={{ flex: 1 }} disabled={chatBgLoading} onClick={() => bgInputRef?.current?.click()}>
+                                    {chatBg?.type === 'photo' || pendingPhoto ? 'Andere foto kiezen' : 'Foto kiezen'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn-primary"
+                                    style={{ flex: 1 }}
+                                    disabled={chatBgLoading || !pendingPhoto}
+                                    onClick={() => {
+                                      uploadChatBgPhoto?.(pendingPhoto.file);
+                                      if (pendingPhoto?.url) URL.revokeObjectURL(pendingPhoto.url);
+                                      setPendingPhoto(null);
+                                    }}
+                                  >
+                                    {chatBgLoading ? 'Uploaden…' : 'Opslaan'}
+                                  </button>
+                                </div>
+                                <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '6px', textAlign: 'center' }}>JPG, PNG of WEBP · max 5 MB</div>
+                                <input
+                                  ref={bgInputRef}
+                                  type="file"
+                                  accept=".jpg,.jpeg,.png,.webp"
+                                  style={{ display: 'none' }}
+                                  onChange={(e) => {
+                                    const f = e.target.files[0];
+                                    e.target.value = '';
+                                    if (pendingPhoto?.url) URL.revokeObjectURL(pendingPhoto.url);
+                                    if (f) setPendingPhoto({ file: f, url: URL.createObjectURL(f) });
+                                  }}
+                                />
+                              </div>
+                            )}
+                            {chatBgTab === 'kleur' && (
+                              <div>
+                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '12px' }}>
+                                  {['#1e0a3c', '#051236', '#0a1f0e', '#1f0a10', '#0f1923', '#1a1206', '#000000', '#1c1a18'].map((color) => {
+                                    const isActive = (pendingColor ?? (chatBg?.type === 'color' ? chatBg.value : null)) === color;
+                                    return (
+                                      <button
+                                        key={color}
+                                        type="button"
+                                        disabled={chatBgLoading}
+                                        onClick={() => setPendingColor(color)}
+                                        style={{
+                                          width: '36px',
+                                          height: '36px',
+                                          borderRadius: '50%',
+                                          background: color,
+                                          border: isActive ? '3px solid var(--accent)' : '2px solid var(--border)',
+                                          cursor: 'pointer',
+                                          position: 'relative',
+                                          transition: 'all .15s',
+                                          boxShadow: isActive ? '0 0 0 2px var(--bg),0 0 0 4px var(--accent)' : 'none',
+                                        }}
+                                      >
+                                        {isActive && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px' }}>✓</span>}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn-primary"
+                                  style={{ width: '100%' }}
+                                  disabled={chatBgLoading || !pendingColor}
+                                  onClick={() => {
+                                    saveChatBgColor?.(pendingColor);
+                                    setPendingColor(null);
+                                  }}
+                                >
+                                  {chatBgLoading ? 'Opslaan…' : 'Opslaan'}
+                                </button>
+                              </div>
+                            )}
+                            {chatBgTab === 'standaard' && (
+                              chatBg
+                                ? <button type="button" className="btn-secondary" style={{ width: '100%' }} disabled={chatBgLoading} onClick={() => removeChatBg?.()}>
+                                    {chatBgLoading ? 'Bezig…' : 'Standaard achtergrond herstellen'}
+                                  </button>
+                                : <div className="profile-settings-helper-copy">Je gebruikt al de standaard Pulse-achtergrond.</div>
+                            )}
+                            {chatBgMsg && chatBgMsg.startsWith('Fout') && <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--danger)' }}>{chatBgMsg}</div>}
+                          </div>
                         </div>
                       </div>
                     </div>

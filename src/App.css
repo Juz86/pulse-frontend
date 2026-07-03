@@ -2937,7 +2937,8 @@ font-family: 'Inter', sans-serif;
   bottom: 0;
   z-index: 2;
   margin-top: 0;
-  padding: 8px 12px 0;
+  padding: 16px var(--sidebar-footer-inline);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
   background: transparent;
 }
 .sidebar-footer-tabbar--cluster {

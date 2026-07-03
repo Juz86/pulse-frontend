@@ -855,7 +855,7 @@ export default function ChatSidebar({
   }, [closeProfileOverviewSheet, profileSheetClosing]);
 
   const footerTabbar = (
-    <div className={`sidebar-footer-tabbar${footerClusterMode ? ' sidebar-footer-tabbar--cluster' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
+    <div className="sidebar-footer-tabbar" ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
       <button
         type="button"
         className="sidebar-footer-tab sidebar-footer-tab-profile"

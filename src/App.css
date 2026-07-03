@@ -6048,8 +6048,7 @@ font-family: 'Inter', sans-serif;
   left: var(--sidebar-sheet-left);
   right: calc(100vw - var(--sidebar-sheet-right));
   top: var(--sidebar-sheet-top);
-  bottom: calc(var(--vvh, 100dvh) - var(--sidebar-sheet-bottom));
-  inset: auto;
+  bottom: calc(var(--vvh, 100dvh) - var(--sidebar-sheet-anchor-bottom));
 }
 
 .pulse-sheet-backdrop--settings.is-closing {
@@ -6069,7 +6068,7 @@ font-family: 'Inter', sans-serif;
   height: auto;
   min-height: 0;
   margin-bottom: -10px;
-  max-height: calc(var(--sidebar-sheet-bottom) - var(--sidebar-sheet-top));
+  max-height: calc(var(--sidebar-sheet-anchor-bottom) - var(--sidebar-sheet-top));
   display: flex;
   flex-direction: column;
   background:

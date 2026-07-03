@@ -2481,7 +2481,7 @@ font-family: 'Inter', sans-serif;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 0 var(--sidebar-footer-inline) max(16px, env(safe-area-inset-bottom));
+  padding: 0 var(--sidebar-footer-inline) max(6px, env(safe-area-inset-bottom));
   background:
     linear-gradient(180deg, rgba(12, 9, 28, 0) 0%, rgba(12, 9, 28, 0.05) 12%, rgba(12, 9, 28, 0.16) 46%, rgba(12, 9, 28, 0.28) 100%);
   animation: pulse-sheet-backdrop-in .22s cubic-bezier(.24, .78, .28, 1) both;
@@ -2490,7 +2490,6 @@ font-family: 'Inter', sans-serif;
   animation: pulse-sheet-backdrop-out .16s cubic-bezier(.42, 0, .24, 1) both;
 }
 .sidebar-bottom-cluster {
-  --sidebar-cluster-footer-space: 104px;
   width: 100%;
   height: 100%;
   max-height: 100%;
@@ -2513,7 +2512,7 @@ font-family: 'Inter', sans-serif;
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
-  max-height: calc(100% - var(--sidebar-cluster-footer-space));
+  max-height: calc(100% - 104px);
   position: relative;
   z-index: 1;
   display: flex;
@@ -2931,14 +2930,10 @@ font-family: 'Inter', sans-serif;
   -webkit-backdrop-filter: blur(22px);
 }
 .sidebar-footer--cluster {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
   z-index: 2;
-  margin-top: 0;
-  padding: 16px var(--sidebar-footer-inline);
-  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  margin-top: -10px;
+  padding: 0 12px 0;
   background: transparent;
 }
 .sidebar-footer-tabbar--cluster {
@@ -5150,30 +5145,45 @@ font-family: 'Inter', sans-serif;
 .profile-account-view {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
+}
+.profile-account-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px 18px 20px;
+  border-radius: 28px;
+  border: 1px solid rgba(140, 122, 214, 0.12);
+  background: linear-gradient(180deg, rgba(255,255,255,.92) 0%, rgba(248,244,255,.84) 100%);
+  box-shadow: 0 18px 38px rgba(106, 87, 180, 0.08), inset 0 1px 0 rgba(255,255,255,.88);
+}
+.profile-account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 .profile-account-hero {
   display: flex;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
 }
 .profile-account-hero-stack {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .profile-account-avatar-btn {
-  min-height: 38px;
+  min-height: 42px;
   padding: 0 18px;
   border-radius: 16px;
-  border: 1px solid rgba(127, 111, 255, 0.2);
-  background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(244,239,255,.92));
-  color: #6f5ef0;
+  border: 1px solid rgba(140, 122, 214, 0.16);
+  background: rgba(255, 255, 255, 0.92);
+  color: #5f5684;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(106, 87, 180, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
 }
 .profile-account-section {
   border-top: 1px solid rgba(140, 122, 214, 0.12);
@@ -5193,36 +5203,54 @@ font-family: 'Inter', sans-serif;
   letter-spacing: .08em;
 }
 .profile-account-view .form-input {
-  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(244,239,255,.94));
-  border: 1px solid rgba(140, 122, 214, 0.14);
+  min-height: 56px;
+  background: rgba(255,255,255,.94);
+  border: 1px solid rgba(140, 122, 214, 0.16);
   border-radius: 18px;
   color: #241741;
-  box-shadow: 0 10px 22px rgba(106, 87, 180, 0.08);
+  box-shadow: none;
 }
 .profile-account-view .form-input:hover {
   border-color: rgba(127, 111, 255, 0.22);
 }
 .profile-account-view .form-input:focus {
   border-color: #7f6fff;
-  box-shadow: 0 0 0 3px rgba(127, 111, 255, 0.14), 0 10px 22px rgba(106, 87, 180, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 0 0 4px rgba(124, 108, 255, 0.12);
 }
 .profile-account-view .form-input::placeholder {
   color: #9087ab;
 }
+.profile-account-input-disabled {
+  opacity: .72;
+  cursor: not-allowed;
+}
+.profile-account-helper {
+  font-size: 11px;
+  color: #7a7391;
+  margin-top: 6px;
+  line-height: 1.45;
+}
+.profile-account-password-label {
+  display: block;
+  margin-bottom: 10px;
+}
 .profile-account-view .btn-secondary {
-  background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(244,239,255,.94));
-  border: 1px solid rgba(140, 122, 214, 0.14);
+  min-height: 56px;
+  background: rgba(255,255,255,.92);
+  border: 1px solid rgba(140, 122, 214, 0.16);
   color: #31244f;
-  box-shadow: 0 12px 24px rgba(106, 87, 180, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.88);
 }
 .profile-account-view .btn-secondary:hover {
-  background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(246,242,255,.98));
+  background: rgba(255,255,255,.98);
   border-color: rgba(127, 111, 255, 0.22);
   color: #241741;
-  box-shadow: 0 16px 30px rgba(106, 87, 180, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92);
 }
 .profile-account-view .btn-primary {
-  box-shadow: 0 14px 28px rgba(106, 87, 180, 0.18);
+  min-height: 56px;
+  border-radius: 18px;
+  box-shadow: 0 18px 32px rgba(123, 96, 236, 0.22);
 }
 .profile-settings-subview {
   display: flex;

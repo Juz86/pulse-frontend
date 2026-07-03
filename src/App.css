@@ -5147,17 +5147,15 @@ font-family: 'Inter', sans-serif;
   flex: 0 0 auto;
   flex-direction: column;
   gap: 10px;
-  min-height: max-content;
+  min-height: 0;
 }
 .profile-account-scroll {
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   flex-direction: column;
-  overflow-y: auto;
-  padding: 0 0 1px;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  overflow: visible;
+  padding: 0;
   scrollbar-width: none;
 }
 .profile-account-scroll::-webkit-scrollbar {
@@ -6171,7 +6169,7 @@ font-family: 'Inter', sans-serif;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 0 2px 18px;
+  padding: 0 2px 0;
   background: none;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -6181,7 +6179,7 @@ font-family: 'Inter', sans-serif;
   display: none;
 }
 .pulse-sheet--settings .profile-account-scroll {
-  padding-bottom: 18px;
+  padding-bottom: 0;
 }
 
 .pulse-sheet--settings .profile-settings-sheet-content {

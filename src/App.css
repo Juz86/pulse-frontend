@@ -5255,13 +5255,23 @@ font-family: 'Inter', sans-serif;
 .profile-settings-subview {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
+}
+.profile-settings-section-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px 18px 20px;
+  border-radius: 28px;
+  border: 1px solid rgba(140, 122, 214, 0.12);
+  background: linear-gradient(180deg, rgba(255,255,255,.92) 0%, rgba(248,244,255,.84) 100%);
+  box-shadow: 0 18px 38px rgba(106, 87, 180, 0.08), inset 0 1px 0 rgba(255,255,255,.88);
 }
 .profile-settings-subhero {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 4px 2px 0;
+  padding: 0;
 }
 .profile-settings-subtitle {
   font-family: 'Inter', sans-serif;
@@ -5292,6 +5302,9 @@ font-family: 'Inter', sans-serif;
   border: 1px solid rgba(140, 122, 214, 0.12);
   box-shadow: 0 14px 28px rgba(106, 87, 180, 0.06);
   min-height: 100%;
+}
+.profile-settings-light-card--stacked {
+  min-height: 0;
 }
 .profile-settings-light-card-title {
   font-size: 14px;
@@ -5324,7 +5337,7 @@ font-family: 'Inter', sans-serif;
   text-align: center;
   color: #8a80aa;
   font-size: 14px;
-  padding-top: 24px;
+  padding: 16px 0 4px;
 }
 .profile-settings-block {
   display: flex;

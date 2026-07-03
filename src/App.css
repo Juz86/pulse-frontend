@@ -3045,6 +3045,9 @@ font-family: 'Inter', sans-serif;
   .sidebar {
     --sidebar-footer-inline: 12px;
   }
+  .sidebar-settings-sheet-scroll .pulse-sheet-list--sidebar-actions {
+    margin-top: 20px;
+  }
   .sidebar-footer {
     padding-left: var(--sidebar-footer-inline);
     padding-right: var(--sidebar-footer-inline);

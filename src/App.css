@@ -2490,6 +2490,7 @@ font-family: 'Inter', sans-serif;
   animation: pulse-sheet-backdrop-out .16s cubic-bezier(.42, 0, .24, 1) both;
 }
 .sidebar-bottom-cluster {
+  --sidebar-cluster-footer-space: 104px;
   width: 100%;
   height: 100%;
   max-height: 100%;
@@ -2512,7 +2513,7 @@ font-family: 'Inter', sans-serif;
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
-  max-height: calc(100% - 104px);
+  max-height: calc(100% - var(--sidebar-cluster-footer-space));
   position: relative;
   z-index: 1;
   display: flex;
@@ -2930,7 +2931,10 @@ font-family: 'Inter', sans-serif;
   -webkit-backdrop-filter: blur(22px);
 }
 .sidebar-footer--cluster {
-  position: relative;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 2;
   margin-top: 0;
   padding: 8px 12px 0;

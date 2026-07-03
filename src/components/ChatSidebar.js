@@ -1468,7 +1468,6 @@ export default function ChatSidebar({
                         role="menuitem"
                         className="chat-header-menu-item"
                         onClick={() => {
-                          closeProfileOverviewSheet();
                           setProfileTab?.(section.id);
                           if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
                         }}

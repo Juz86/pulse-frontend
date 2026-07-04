@@ -325,8 +325,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   const {
     profileTab, setProfileTab, newName, setNewName, photoPreview, setPhotoPreview,
-    profileLoading, profileMsg, setProfileMsg, newUsername, setNewUsername,
-    usernameLoading, usernameMsg, newPassword, setNewPassword,
+    profileLoading, profileMsg, setProfileMsg, newUsername, newPassword, setNewPassword,
     confirmPassword, setConfirmPassword, showNewPassword, setShowNewPassword,
     passwordLoading, passwordMsg, chatBg, chatBgLoading, chatBgTab, setChatBgTab,
     chatBgMsg, showAvatarBuilder, setShowAvatarBuilder, avatarOptions, setAvatarOptions,
@@ -334,7 +333,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     childHistoryRulesByUid, setChildHistoryRulesByUid,
     historyChildren, historySettingsLoading, historySettingsSavingTarget, historySettingsMsg,
     photoInputRef, bgInputRef, openProfile,
-    handlePhotoChange, saveProfile, saveUsername, changePassword,
+    handlePhotoChange, saveProfile, changePassword,
     uploadChatBgPhoto, saveChatBgColor, removeChatBg, uploadGroupPhoto, handleDeleteAccount,
     loadHistorySettings, saveHistorySettings, saveChildHistorySettings,
   } = useProfile({ user, activeConv, setActiveConv, setConversations, showErrToast, setConfirmDialog, isParent });
@@ -834,31 +833,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         showNewGroup={showNewGroup} setShowNewGroup={setShowNewGroup}
         groupName={groupName} setGroupName={setGroupName}
         groupMembers={groupMembers} toggleGroupMember={toggleGroupMember} createGroup={createGroup}
-        showProfile={showProfile} setShowProfile={setShowProfile}
-        profileTab={profileTab} setProfileTab={setProfileTab}
         photoPreview={photoPreview} setPhotoPreview={setPhotoPreview}
-        newName={newName} setNewName={setNewName}
-        newUsername={newUsername} setNewUsername={setNewUsername}
-        isParent={isParent} user={user}
-        showNewPassword={showNewPassword} setShowNewPassword={setShowNewPassword}
-        newPassword={newPassword} setNewPassword={setNewPassword}
-        confirmPassword={confirmPassword} setConfirmPassword={setConfirmPassword}
-        passwordLoading={passwordLoading} passwordMsg={passwordMsg}
-        profileMsg={profileMsg} setProfileMsg={setProfileMsg} profileLoading={profileLoading}
-        usernameLoading={usernameLoading} usernameMsg={usernameMsg}
-        historyRules={historyRules} setHistoryRules={setHistoryRules}
-        childHistoryRulesByUid={childHistoryRulesByUid} setChildHistoryRulesByUid={setChildHistoryRulesByUid}
-        historyChildren={historyChildren}
-        historySettingsLoading={historySettingsLoading}
-        historySettingsSavingTarget={historySettingsSavingTarget}
-        historySettingsMsg={historySettingsMsg}
-        chatBgTab={chatBgTab} setChatBgTab={setChatBgTab}
-        chatBgMsg={chatBgMsg} chatBg={chatBg} chatBgLoading={chatBgLoading}
-        saveProfile={saveProfile} saveUsername={saveUsername} changePassword={changePassword}
-        loadHistorySettings={loadHistorySettings} saveHistorySettings={saveHistorySettings} saveChildHistorySettings={saveChildHistorySettings}
-        uploadChatBgPhoto={uploadChatBgPhoto} saveChatBgColor={saveChatBgColor} removeChatBg={removeChatBg}
-        handlePhotoChange={handlePhotoChange} handleDeleteAccount={handleDeleteAccount}
-        photoInputRef={photoInputRef} bgInputRef={bgInputRef}
+        user={user}
+        setProfileMsg={setProfileMsg}
         avatarOptions={avatarOptions} setAvatarOptions={setAvatarOptions}
         showAvatarBuilder={showAvatarBuilder} setShowAvatarBuilder={setShowAvatarBuilder}
         showContactProfile={showContactProfile} setShowContactProfile={setShowContactProfile}

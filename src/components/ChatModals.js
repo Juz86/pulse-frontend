@@ -1,5 +1,5 @@
 // src/components/ChatModals.js
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowLeft, ArrowRight, Bell, BellOff } from '../components/Icons';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
@@ -70,35 +70,12 @@ export default function ChatModals({
   groupName, setGroupName,
   groupMembers, toggleGroupMember, createGroup,
 
-  // profile modal
-  showProfile, setShowProfile,
-  profileTab, setProfileTab,
+  // profile/avatar support
   photoPreview, setPhotoPreview,
-  newName, setNewName,
-  newUsername, setNewUsername,
-  isParent, user,
-  showNewPassword, setShowNewPassword,
-  newPassword, setNewPassword,
-  confirmPassword, setConfirmPassword,
-  passwordLoading, passwordMsg,
-  profileMsg, profileLoading,
-  usernameLoading: _usernameLoading, usernameMsg: _usernameMsg,
-  historyRules, setHistoryRules,
-  childHistoryRulesByUid, setChildHistoryRulesByUid,
-  historyChildren,
-  historySettingsLoading,
-  historySettingsSavingTarget,
-  historySettingsMsg,
-  chatBgTab, setChatBgTab,
-  chatBgMsg, chatBg, chatBgLoading,
-  saveProfile, saveUsername: _saveUsername, changePassword,
-  loadHistorySettings, saveHistorySettings, saveChildHistorySettings,
-  uploadChatBgPhoto, saveChatBgColor, removeChatBg,
-  handlePhotoChange, handleDeleteAccount,
-  photoInputRef, bgInputRef,
+  user,
   avatarOptions, setAvatarOptions,
   showAvatarBuilder, setShowAvatarBuilder,
-  profileMsg: _pm, setProfileMsg,
+  setProfileMsg,
 
   // contact profile modal (from chat header)
   showContactProfile, setShowContactProfile,
@@ -147,14 +124,12 @@ export default function ChatModals({
   callsAvailable = true,
 }) {
   const [starredSearch,   setStarredSearch]   = useState('');
-  const [profileClosing,  setProfileClosing]  = useState(false);
   const [requestsTab,     setRequestsTab]     = useState('ontvangen');
   const [groupMemberSearch, setGroupMemberSearch] = useState('');
   const [callSearch, setCallSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null); // 'voice' | null
   const [callLogStatusNow, setCallLogStatusNow] = useState(() => Date.now());
   const [confirmCheckboxChecked, setConfirmCheckboxChecked] = useState(false);
-  const profileCloseTimeoutRef = useRef(null);
   const profilePanelSaveButtonStyle = {
     flex: 1,
     minWidth: 0,
@@ -165,32 +140,6 @@ export default function ChatModals({
     alignItems: 'center',
     justifyContent: 'center',
   };
-
-  useEffect(() => {
-    if (showProfile || profileClosing) return;
-    setProfileTab('overview');
-  }, [profileClosing, setProfileTab, showProfile]);
-
-  useEffect(() => {
-    if (!showProfile) return undefined;
-    setProfileClosing(false);
-    return undefined;
-  }, [showProfile]);
-
-  useEffect(() => {
-    if (!profileClosing) return undefined;
-    profileCloseTimeoutRef.current = window.setTimeout(() => {
-      profileCloseTimeoutRef.current = null;
-      setProfileClosing(false);
-      setShowProfile(false);
-    }, 220);
-    return () => {
-      if (profileCloseTimeoutRef.current) {
-        window.clearTimeout(profileCloseTimeoutRef.current);
-        profileCloseTimeoutRef.current = null;
-      }
-    };
-  }, [profileClosing, setShowProfile]);
 
   useEffect(() => {
     if (!confirmDialog) {
@@ -255,19 +204,16 @@ export default function ChatModals({
 
 
   function openStarredFromProfile() {
-    setProfileClosing(false);
     setShowContactProfile(false);
     setShowStarredMsgs(true);
   }
 
   function openChatSearchFromProfile() {
-    setProfileClosing(false);
     setShowContactProfile(false);
     setShowChatSearch?.(true);
   }
 
   function openSelectionFromProfile() {
-    setProfileClosing(false);
     setShowContactProfile(false);
     onEnterMessageSelection?.();
   }
@@ -277,13 +223,11 @@ export default function ChatModals({
   }
 
   function clearChatFromProfile() {
-    setProfileClosing(false);
     setShowContactProfile(false);
     onClearChat?.();
   }
 
   function deleteChatFromProfile() {
-    setProfileClosing(false);
     setShowContactProfile(false);
     onDeleteChat?.();
   }
@@ -901,7 +845,7 @@ export default function ChatModals({
         const statusLabel = isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Afwezig' : 'Offline';
         return (
           <aside
-              className={`chat-side-panel contact-profile-panel${profileClosing ? ' closing' : ''}`}
+              className="chat-side-panel contact-profile-panel"
               aria-labelledby="contact-profile-title"
               aria-describedby="contact-profile-description"
             >

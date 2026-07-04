@@ -317,7 +317,7 @@ export default function ChatSidebar({
   const contactSheetVisible = !!contactMenu;
   const conversationSheetVisible = !!convActionsSheet;
   const callSheetVisible = showCallModal || callSheetClosing;
-  const embeddedSettingsActive = showProfile && (profileTab === 'overview' || profileTab === 'account' || profileTab === 'geschiedenis' || profileTab === 'styling');
+  const embeddedSettingsActive = showProfile && (profileTab === 'overview' || profileTab === 'account' || profileTab === 'geschiedenis' || profileTab === 'styling' || profileTab === 'geblokkeerd');
   const settingsSheetVisible = embeddedSettingsActive || profileSheetClosing;
   const parentPortalSheetVisible = showParentDashboard || parentPortalSheetClosing;
   const footerClusterMode = settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (parentPortalSheetVisible ? 'parent-portal' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null)))))))));
@@ -1914,6 +1914,62 @@ export default function ChatSidebar({
                         </div>
                       </div>
                     </div>
+                  ) : profileTab === 'geblokkeerd' ? (
+                    (() => {
+                      const selfBlocked = (blockedContacts || []).filter((c) => !parentBlockedUids?.includes(c.uid));
+                      const parentBlocked = (blockedContacts || []).filter((c) => parentBlockedUids?.includes(c.uid));
+                      return (
+                        <div className="profile-account-scroll">
+                          <div className="profile-settings-subview">
+                            <div className="profile-settings-section-card">
+                              <div className="profile-settings-subhero">
+                                <h4 className="profile-settings-subtitle">Geblokkeerd</h4>
+                                <p className="profile-settings-subcopy">
+                                  Beheer welke contacten door jou of door een ouder zijn geblokkeerd.
+                                </p>
+                              </div>
+                              {selfBlocked.length === 0 && parentBlocked.length === 0 && (
+                                <div className="profile-settings-empty">
+                                  Geen geblokkeerde contacten.
+                                </div>
+                              )}
+                              {selfBlocked.length > 0 && (
+                                <div className="profile-settings-light-card profile-settings-light-card--stacked">
+                                  <div className="profile-settings-light-card-title">Door jou geblokkeerd</div>
+                                  <div className="profile-settings-list-rows">
+                                    {selfBlocked.map((c) => (
+                                      <div key={c.uid} className="profile-settings-contact-row">
+                                        <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                          <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
+                                        </div>
+                                        <button type="button" className="btn-secondary" style={{ fontSize: '12px', padding: '5px 12px', flexShrink: 0, width: 'auto', marginTop: 0 }} onClick={() => onUnblockContact?.(c.uid)}>Deblokkeren</button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              {parentBlocked.length > 0 && (
+                                <div className="profile-settings-light-card profile-settings-light-card--stacked">
+                                  <div className="profile-settings-light-card-title">Geblokkeerd door ouder</div>
+                                  <div className="profile-settings-list-rows">
+                                    {parentBlocked.map((c) => (
+                                      <div key={c.uid} className="profile-settings-contact-row profile-settings-contact-row--danger">
+                                        <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                          <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
+                                          <div className="profile-settings-contact-note">Geblokkeerd door ouder</div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()
                   ) : profileTab === 'styling' ? (
                     <div className="profile-account-scroll">
                       <div className="profile-settings-subview">

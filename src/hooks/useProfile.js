@@ -24,8 +24,6 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
   const [profileMsg,     setProfileMsg]     = useState('');
 
   const [newUsername,      setNewUsername]      = useState('');
-  const [usernameLoading,  setUsernameLoading]  = useState(false);
-  const [usernameMsg,      setUsernameMsg]      = useState('');
 
   const [newPassword,      setNewPassword]      = useState('');
   const [confirmPassword,  setConfirmPassword]  = useState('');
@@ -152,28 +150,6 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
       setProfileMsg(hadPhoto ? 'Profielfoto opgeslagen!' : 'Opgeslagen!');
     } catch (err) { setProfileMsg('Fout bij opslaan: ' + (err.message || err.code)); }
     finally { setProfileLoading(false); }
-  }
-
-  // ── Gebruikersnaam opslaan ────────────────────────────────────────────────
-  async function saveUsername() {
-    if (user.email?.endsWith('@pulse.internal')) {
-      setUsernameMsg('Deze gebruikersnaam wordt beheerd door je ouder.');
-      return;
-    }
-    const clean = newUsername.trim().toLowerCase();
-    if (!clean) { setUsernameMsg('Fout: Gebruikersnaam mag niet leeg zijn.'); return; }
-    if (!/^[a-z0-9_]{3,20}$/.test(clean)) { setUsernameMsg('Fout: 3–20 tekens, alleen letters, cijfers en _.'); return; }
-    setUsernameLoading(true); setUsernameMsg('');
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/users/lookup-username?username=${encodeURIComponent(clean)}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.email !== user.email) { setUsernameMsg('Fout: Gebruikersnaam is al in gebruik.'); return; }
-      }
-      await updateDoc(doc(db, 'users', user.uid), { username: clean });
-      setUsernameMsg('Gebruikersnaam opgeslagen!');
-    } catch (err) { setUsernameMsg('Fout: ' + err.message); }
-    finally { setUsernameLoading(false); }
   }
 
   // ── Wachtwoord wijzigen ───────────────────────────────────────────────────
@@ -394,8 +370,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
     newName, setNewName,
     photoPreview, setPhotoPreview,
     profileLoading, profileMsg, setProfileMsg,
-    newUsername, setNewUsername,
-    usernameLoading, usernameMsg,
+    newUsername,
     newPassword, setNewPassword,
     confirmPassword, setConfirmPassword,
     showNewPassword, setShowNewPassword,
@@ -414,7 +389,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
     photoInputRef, bgInputRef,
     // functions
     openProfile,
-    handlePhotoChange, saveProfile, saveUsername, changePassword,
+    handlePhotoChange, saveProfile, changePassword,
     uploadChatBgPhoto, saveChatBgColor, removeChatBg,
     uploadGroupPhoto, handleDeleteAccount,
     loadHistorySettings, saveHistorySettings, saveChildHistorySettings,

@@ -152,7 +152,6 @@ export default function ChatSidebar({
   onParentActivitiesViewed,
   setLabelMenuConvId,
   // modal openers
-  onNewChat,
   showNewChat = false,
   setShowNewChat,
   searchEmail = '',
@@ -161,7 +160,6 @@ export default function ChatSidebar({
   searchResult,
   searchUser,
   startConversationWith,
-  onNewGroup,
   showNewGroup = false,
   setShowNewGroup,
   groupName = '',
@@ -172,7 +170,6 @@ export default function ChatSidebar({
   onShowCallModal,
   showCallModal = false,
   setShowCallModal,
-  onShowAddContact,
   showAddContact = false,
   setShowAddContact,
   contactEmail = '',
@@ -230,7 +227,6 @@ export default function ChatSidebar({
   setShowAvatarBuilder,
   onProfileHistoryOpen,
   onRequestSettingsLogout,
-  setConfirmDialog,
   // contact actions
   onAcceptFriendRequest,
   onDeclineFriendRequest,

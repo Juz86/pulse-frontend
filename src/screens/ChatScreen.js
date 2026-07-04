@@ -511,7 +511,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         setShowParentDashboard={setShowParentDashboard}
         onParentActivitiesViewed={onParentActivitiesViewed}
         setLabelMenuConvId={() => {}}
-        onNewChat={() => setShowNewChat(true)}
         showNewChat={showNewChat}
         setShowNewChat={setShowNewChat}
         searchEmail={searchEmail}
@@ -520,7 +519,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         searchResult={searchResult}
         searchUser={searchUser}
         startConversationWith={startConversationWith}
-        onNewGroup={() => setShowNewGroup(true)}
         showNewGroup={showNewGroup}
         setShowNewGroup={setShowNewGroup}
         groupName={groupName}
@@ -536,7 +534,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         }}
         showCallModal={showCallModal}
         setShowCallModal={setShowCallModal}
-        onShowAddContact={() => setShowAddContact(true)}
         showAddContact={showAddContact}
         setShowAddContact={setShowAddContact}
         contactEmail={contactEmail}
@@ -605,7 +602,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             },
           });
         }}
-        setConfirmDialog={setConfirmDialog}
         onAcceptFriendRequest={acceptFriendRequest}
         onDeclineFriendRequest={declineFriendRequest}
         onRemindFriendRequest={remindFriendRequestById}

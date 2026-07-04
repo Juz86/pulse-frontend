@@ -2606,8 +2606,31 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-bottom-cluster-panel--more .chat-header-menu-item {
   min-height: 66px;
+  padding: 0 22px;
+  color: #251842;
+  font-size: 16px;
+  font-weight: 600;
+  gap: 16px;
   padding-left: 22px;
   padding-right: 22px;
+}
+.sidebar-bottom-cluster-panel--more .chat-header-menu-item > span:first-of-type {
+  flex: 1 1 auto;
+}
+.sidebar-bottom-cluster-panel--more .chat-header-menu-item + .chat-header-menu-item {
+  border-top: 1px solid rgba(112, 92, 191, 0.1);
+}
+.sidebar-bottom-cluster-panel--more .chat-header-menu-item svg {
+  flex: 0 0 20px;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: #6c63ff;
+}
+.sidebar-bottom-cluster-panel--more .chat-header-menu-item:hover,
+.sidebar-bottom-cluster-panel--more .chat-header-menu-item.active {
+  background: rgba(108, 99, 255, 0.08);
+  color: #241741;
 }
 .sidebar-bottom-cluster-panel--more .sidebar-settings-sheet-scroll {
   padding-bottom: 18px;

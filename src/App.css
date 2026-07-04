@@ -2551,12 +2551,12 @@ font-family: 'Inter', sans-serif;
 .sidebar-bottom-cluster-sheet--more.sidebar-bottom-cluster-sheet--detached-footer {
   max-height: calc(100% - var(--sidebar-local-sheet-bottom) - 14px);
   margin-bottom: calc(var(--sidebar-local-sheet-bottom) - 4px);
-  padding: 8px 16px 0;
+  padding: 8px 14px 0;
 }
 .sidebar-bottom-cluster-sheet--more .pulse-sheet-header--sidebar-actions {
   min-height: 52px;
-  padding: 6px 8px 6px;
-  border-radius: 28px;
+  padding: 6px 6px 6px;
+  border-radius: 30px;
   background: linear-gradient(180deg, rgba(248, 245, 255, 0.88) 0%, rgba(245, 241, 255, 0.76) 100%);
   border: 1px solid rgba(140, 122, 214, 0.12);
   box-shadow:
@@ -2567,8 +2567,8 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-bottom-cluster-sheet--more .pulse-sheet-title--sidebar-actions {
   top: 50%;
-  left: calc(50% - 8px);
-  max-width: calc(100% - 132px);
+  left: calc(50% - 6px);
+  max-width: calc(100% - 126px);
   font-size: 17px;
   letter-spacing: -0.04em;
   text-shadow: none;
@@ -2583,7 +2583,7 @@ font-family: 'Inter', sans-serif;
     0 3px 8px rgba(88, 69, 164, 0.03);
 }
 .sidebar-bottom-cluster-sheet--more .pulse-sheet-list--sidebar-actions {
-  margin-top: 0;
+  margin-top: 4px;
   margin-bottom: 0;
   border-radius: 30px;
   border: 1px solid rgba(140, 122, 214, 0.1);

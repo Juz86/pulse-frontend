@@ -1047,12 +1047,17 @@ export default function ChatSidebar({
       }
     };
   }, [closeProfileOverviewSheet, profileSheetClosing]);
+  const profileFooterActive = settingsSheetVisible;
+  const callsFooterActive = callSheetVisible;
+  const parentFooterActive = parentPortalSheetVisible;
+  const moreFooterActive = moreActionsSheetVisible || addContactSheetVisible || newChatSheetVisible || newGroupSheetVisible || requestsSheetVisible;
+  const chatsFooterActive = activeTab === 'chats' && !profileFooterActive && !callsFooterActive && !parentFooterActive && !moreFooterActive;
 
   const footerTabbar = (
     <div className={`sidebar-footer-tabbar${footerClusterMode ? ' sidebar-footer-tabbar--cluster' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
       <button
         type="button"
-        className="sidebar-footer-tab sidebar-footer-tab-profile"
+        className={`sidebar-footer-tab sidebar-footer-tab-profile${profileFooterActive ? ' active' : ''}`}
         aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`}
         onClick={() => {
           if (settingsSheetVisible) {
@@ -1085,7 +1090,7 @@ export default function ChatSidebar({
 
       <button
         type="button"
-        className={`sidebar-footer-tab ${activeTab === 'chats' ? 'active' : ''}`}
+        className={`sidebar-footer-tab ${chatsFooterActive ? 'active' : ''}`}
         aria-label="Chats"
         onClick={() => {
           closeMoreActionsSheet();
@@ -1114,7 +1119,7 @@ export default function ChatSidebar({
       {callsAvailable && (
         <button
           type="button"
-          className="sidebar-footer-tab"
+          className={`sidebar-footer-tab${callsFooterActive ? ' active' : ''}`}
           aria-label="Oproepen"
           aria-expanded={callSheetVisible}
           onClick={() => {
@@ -1154,7 +1159,7 @@ export default function ChatSidebar({
       {isParent && (
         <button
           type="button"
-          className="sidebar-footer-tab"
+          className={`sidebar-footer-tab${parentFooterActive ? ' active' : ''}`}
           aria-label={parentActivityBadge > 0 ? `Open ouderportaal, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open ouderportaal'}
           aria-expanded={parentPortalSheetVisible}
           onClick={() => {
@@ -1193,7 +1198,7 @@ export default function ChatSidebar({
       <div className="sidebar-footer-tab-slot" ref={moreActionsMenuRef}>
         <button
           type="button"
-          className="sidebar-footer-tab sidebar-footer-tab-more"
+          className={`sidebar-footer-tab sidebar-footer-tab-more${moreFooterActive ? ' active' : ''}`}
           aria-label="Meer acties"
           aria-expanded={moreActionsSheetVisible}
           onClick={() => {

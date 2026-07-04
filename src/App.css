@@ -2549,9 +2549,9 @@ font-family: 'Inter', sans-serif;
   margin-bottom: calc(var(--sidebar-local-sheet-bottom) - 8px);
 }
 .sidebar-bottom-cluster-sheet--more.sidebar-bottom-cluster-sheet--detached-footer {
-  min-height: calc(100% - var(--sidebar-local-sheet-bottom) - 10px);
-  max-height: calc(100% - var(--sidebar-local-sheet-bottom) - 10px);
-  margin-bottom: calc(var(--sidebar-local-sheet-bottom) - 4px);
+  min-height: calc(100% - var(--sidebar-local-sheet-bottom) + 8px);
+  max-height: calc(100% - var(--sidebar-local-sheet-bottom) + 8px);
+  margin-bottom: calc(var(--sidebar-local-sheet-bottom) - 2px);
   padding: 10px 14px 0;
   border-radius: 34px;
   background: linear-gradient(180deg, rgba(248, 245, 255, 0.98) 0%, rgba(244, 240, 255, 0.94) 100%);
@@ -2602,7 +2602,7 @@ font-family: 'Inter', sans-serif;
   padding-right: 22px;
 }
 .sidebar-bottom-cluster-sheet--more .sidebar-settings-sheet-scroll {
-  padding-bottom: 2px;
+  padding-bottom: 18px;
 }
 .sidebar-footer--more-open {
   background: linear-gradient(180deg, rgba(248, 244, 255, 0) 0%, rgba(248, 244, 255, 0.4) 58%, rgba(248, 244, 255, 0.78) 100%);

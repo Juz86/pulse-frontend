@@ -2548,7 +2548,13 @@ font-family: 'Inter', sans-serif;
   max-height: calc(100% - var(--sidebar-local-sheet-bottom) - 8px);
   margin-bottom: calc(var(--sidebar-local-sheet-bottom) - 8px);
 }
-.sidebar-bottom-cluster-sheet--more.sidebar-bottom-cluster-sheet--detached-footer {
+.sidebar-bottom-cluster-panel--more {
+  width: 100%;
+  flex: 0 1 auto;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
   min-height: calc(100% - var(--sidebar-local-sheet-bottom) + 8px);
   max-height: calc(100% - var(--sidebar-local-sheet-bottom) + 8px);
   margin-bottom: calc(var(--sidebar-local-sheet-bottom) - 2px);
@@ -2562,8 +2568,10 @@ font-family: 'Inter', sans-serif;
   backdrop-filter: blur(16px) saturate(1.02);
   -webkit-backdrop-filter: blur(16px) saturate(1.02);
   overflow: hidden;
+  transform-origin: center bottom;
+  animation: pulse-sheet-up-from-tabbar .34s cubic-bezier(.2, .88, .24, 1) both;
 }
-.sidebar-bottom-cluster-sheet--more .pulse-sheet-header--sidebar-actions {
+.sidebar-bottom-cluster-panel--more .pulse-sheet-header--sidebar-actions {
   min-height: 10px;
   padding: 0;
   border-radius: 0;
@@ -2571,7 +2579,7 @@ font-family: 'Inter', sans-serif;
   border: none;
   box-shadow: none;
 }
-.sidebar-bottom-cluster-sheet--more .pulse-sheet-title--sidebar-actions {
+.sidebar-bottom-cluster-panel--more .pulse-sheet-title--sidebar-actions {
   top: 50%;
   left: calc(50% - 6px);
   max-width: calc(100% - 126px);
@@ -2579,7 +2587,7 @@ font-family: 'Inter', sans-serif;
   letter-spacing: -0.04em;
   text-shadow: none;
 }
-.sidebar-bottom-cluster-sheet--more .pulse-sheet-close--sidebar-actions {
+.sidebar-bottom-cluster-panel--more .pulse-sheet-close--sidebar-actions {
   width: 44px;
   height: 44px;
   border-radius: 14px;
@@ -2588,7 +2596,7 @@ font-family: 'Inter', sans-serif;
     inset 0 1px 0 rgba(255, 255, 255, 0.88),
     0 3px 8px rgba(88, 69, 164, 0.03);
 }
-.sidebar-bottom-cluster-sheet--more .pulse-sheet-list--sidebar-actions {
+.sidebar-bottom-cluster-panel--more .pulse-sheet-list--sidebar-actions {
   margin-top: 8px;
   margin-bottom: 0;
   border-radius: 28px;
@@ -2596,13 +2604,16 @@ font-family: 'Inter', sans-serif;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 10px 22px rgba(74, 55, 148, 0.04);
 }
-.sidebar-bottom-cluster-sheet--more .chat-header-menu-item {
+.sidebar-bottom-cluster-panel--more .chat-header-menu-item {
   min-height: 66px;
   padding-left: 22px;
   padding-right: 22px;
 }
-.sidebar-bottom-cluster-sheet--more .sidebar-settings-sheet-scroll {
+.sidebar-bottom-cluster-panel--more .sidebar-settings-sheet-scroll {
   padding-bottom: 18px;
+}
+.sidebar-bottom-cluster-panel--more.is-closing {
+  animation: pulse-sheet-down-to-tabbar .2s cubic-bezier(.42, 0, .22, 1) both;
 }
 .sidebar-footer--more-open {
   background: linear-gradient(180deg, rgba(248, 244, 255, 0) 0%, rgba(248, 244, 255, 0.4) 58%, rgba(248, 244, 255, 0.78) 100%);

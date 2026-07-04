@@ -1421,6 +1421,10 @@ export default function ChatSidebar({
                 : footerClusterMode === 'calls'
                   ? 'Recent'
                   : 'Meer opties';
+  const isMoreFooterCluster = footerClusterMode === 'more';
+  const footerClusterSheetClassName = isMoreFooterCluster
+    ? `sidebar-bottom-cluster-panel sidebar-bottom-cluster-panel--more${moreActionsMenuClosing ? ' is-closing' : ''}`
+    : `pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${!footerEmbeddedInCluster ? ' sidebar-bottom-cluster-sheet--detached-footer' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`;
   const dismissFooterCluster = footerClusterMode === 'settings'
     ? dismissProfileOverviewSheet
     : footerClusterMode === 'add-contact'
@@ -1623,7 +1627,7 @@ export default function ChatSidebar({
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className={`pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${!footerEmbeddedInCluster ? ' sidebar-bottom-cluster-sheet--detached-footer' : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+              className={footerClusterSheetClassName}
               role="menu"
               aria-label={footerClusterAriaLabel}
             >

@@ -2487,7 +2487,7 @@ font-family: 'Inter', sans-serif;
   animation: pulse-sheet-backdrop-in .22s cubic-bezier(.24, .78, .28, 1) both;
 }
 .sidebar-bottom-cluster-backdrop--more {
-  top: calc(var(--sidebar-local-sheet-top) + 30px);
+  top: var(--sidebar-local-sheet-top);
   background:
     linear-gradient(180deg, rgba(10, 8, 24, 0.08) 0%, rgba(10, 8, 24, 0.16) 18%, rgba(10, 8, 24, 0.26) 52%, rgba(10, 8, 24, 0.36) 100%);
   backdrop-filter: blur(6px) saturate(0.95);
@@ -2549,15 +2549,18 @@ font-family: 'Inter', sans-serif;
   margin-bottom: calc(var(--sidebar-local-sheet-bottom) - 8px);
 }
 .sidebar-bottom-cluster-sheet--more.sidebar-bottom-cluster-sheet--detached-footer {
-  max-height: calc(100% - var(--sidebar-local-sheet-bottom) - 14px);
+  min-height: calc(100% - var(--sidebar-local-sheet-bottom) - 10px);
+  max-height: calc(100% - var(--sidebar-local-sheet-bottom) - 10px);
   margin-bottom: calc(var(--sidebar-local-sheet-bottom) - 4px);
   padding: 10px 14px 0;
-  border-radius: 34px 34px 0 0;
+  border-radius: 34px;
   background: linear-gradient(180deg, rgba(248, 245, 255, 0.98) 0%, rgba(244, 240, 255, 0.94) 100%);
   border: 1px solid rgba(255, 255, 255, 0.86);
   box-shadow:
     0 20px 40px rgba(34, 22, 76, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px) saturate(1.02);
+  -webkit-backdrop-filter: blur(16px) saturate(1.02);
   overflow: hidden;
 }
 .sidebar-bottom-cluster-sheet--more .pulse-sheet-header--sidebar-actions {
@@ -2588,7 +2591,7 @@ font-family: 'Inter', sans-serif;
 .sidebar-bottom-cluster-sheet--more .pulse-sheet-list--sidebar-actions {
   margin-top: 4px;
   margin-bottom: 0;
-  border-radius: 28px 28px 0 0;
+  border-radius: 28px;
   border: 1px solid rgba(140, 122, 214, 0.1);
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 10px 22px rgba(74, 55, 148, 0.04);

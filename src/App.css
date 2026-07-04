@@ -2508,6 +2508,12 @@ font-family: 'Inter', sans-serif;
 .sidebar-bottom-cluster.is-closing {
   pointer-events: none;
 }
+.sidebar-bottom-cluster--detached-footer {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+}
 .sidebar-bottom-cluster-sheet {
   width: 100%;
   flex: 1 1 auto;
@@ -2529,6 +2535,11 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-bottom-cluster-sheet--settings {
   padding-top: 8px;
+}
+.sidebar-bottom-cluster-sheet--detached-footer {
+  flex: 0 1 auto;
+  max-height: calc(100% - var(--sidebar-local-sheet-bottom) - 8px);
+  margin-bottom: calc(var(--sidebar-local-sheet-bottom) - 8px);
 }
 .sidebar-bottom-cluster-sheet.is-closing {
   animation: pulse-sheet-down-to-tabbar .2s cubic-bezier(.42, 0, .22, 1) both;

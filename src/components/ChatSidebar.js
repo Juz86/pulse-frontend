@@ -1655,17 +1655,21 @@ export default function ChatSidebar({
                     </svg>
                   </button>
                 )}
-                <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">
-                  {footerClusterTitle}
-                </div>
-                <button
-                  type="button"
-                  className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
-                  aria-label="Sluiten"
-                  onClick={dismissFooterCluster}
-                >
-                  <XIcon size={20} aria-hidden="true" />
-                </button>
+                {footerClusterMode !== 'more' && (
+                  <>
+                    <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">
+                      {footerClusterTitle}
+                    </div>
+                    <button
+                      type="button"
+                      className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
+                      aria-label="Sluiten"
+                      onClick={dismissFooterCluster}
+                    >
+                      <XIcon size={20} aria-hidden="true" />
+                    </button>
+                  </>
+                )}
               </div>
               {footerClusterMode === 'settings' ? (
                 <div className="sidebar-settings-sheet-scroll">

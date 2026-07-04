@@ -2549,7 +2549,7 @@ font-family: 'Inter', sans-serif;
   margin-bottom: calc(var(--sidebar-local-sheet-bottom) - 8px);
 }
 .sidebar-bottom-cluster-sheet--more.sidebar-bottom-cluster-sheet--detached-footer {
-  max-height: calc(100% - var(--sidebar-local-sheet-bottom) - 28px);
+  max-height: calc(100% - var(--sidebar-local-sheet-bottom) - 14px);
   margin-bottom: calc(var(--sidebar-local-sheet-bottom) - 4px);
   padding: 8px 16px 0;
 }
@@ -2597,6 +2597,16 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-bottom-cluster-sheet--more .sidebar-settings-sheet-scroll {
   padding-bottom: 2px;
+}
+.sidebar-footer--more-open {
+  background: linear-gradient(180deg, rgba(248, 244, 255, 0) 0%, rgba(248, 244, 255, 0.4) 58%, rgba(248, 244, 255, 0.78) 100%);
+}
+.sidebar-footer--more-open .sidebar-footer-tabbar {
+  border-top: 1px solid rgba(140, 122, 214, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.84),
+    0 10px 22px rgba(31, 22, 68, 0.12);
+  background: rgba(255, 255, 255, 0.94);
 }
 .sidebar-bottom-cluster-sheet.is-closing {
   animation: pulse-sheet-down-to-tabbar .2s cubic-bezier(.42, 0, .22, 1) both;

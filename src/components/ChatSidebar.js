@@ -333,6 +333,16 @@ export default function ChatSidebar({
     { key: 'callRetentionDays', label: 'Belgeschiedenis' },
     { key: 'videoRetentionDays', label: 'Videobelgeschiedenis' },
   ];
+  const settingsDisplayName = user.displayName || user.email?.split('@')[0] || 'Gebruiker';
+  const settingsEmail = user.email || '';
+  const isCurrentUserOnline = !!(user?.uid && onlineUsers?.has(user.uid));
+  const isCurrentUserInactive = !!(user?.uid && inactiveUsers?.has(user.uid));
+  const settingsStatusClass = isCurrentUserOnline
+    ? (isCurrentUserInactive ? 'inactive' : 'online')
+    : 'offline';
+  const settingsStatusLabel = isCurrentUserOnline
+    ? (isCurrentUserInactive ? 'Afwezig' : 'Online')
+    : 'Offline';
   const historySelectStyle = {
     width: '100%',
     minHeight: 48,
@@ -371,6 +381,76 @@ export default function ChatSidebar({
             {item.trailing || null}
           </button>
         ))}
+      </div>
+    </div>
+  );
+  const renderSettingsOverviewSheet = () => (
+    <div className="profile-settings-sheet-content profile-settings-sheet-content--overview">
+      <div className="profile-settings-sheet-user">
+        <div className="profile-settings-sheet-user-avatar">
+          <UserAvatar
+            photoURL={photoPreview || undefined}
+            displayName={settingsDisplayName}
+            className="profile-avatar-big"
+          />
+        </div>
+        <div className="profile-settings-sheet-user-name">{settingsDisplayName}</div>
+        {settingsEmail ? (
+          <div className="profile-settings-sheet-user-email">{settingsEmail}</div>
+        ) : null}
+        <div className={`profile-settings-sheet-user-status profile-settings-sheet-user-status--${settingsStatusClass}`}>
+          <span className="profile-settings-sheet-user-status-dot" aria-hidden="true" />
+          <span>{settingsStatusLabel}</span>
+        </div>
+      </div>
+
+      <div className="profile-settings-section-title">Instellingen</div>
+
+      <div className="pulse-sheet-list pulse-sheet-list--settings-nav">
+        {profileSections.map((section) => (
+          <button
+            key={section.id}
+            type="button"
+            className="profile-settings-menu-item"
+            onClick={() => {
+              setProfileTab?.(section.id);
+              if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
+            }}
+          >
+            <span className="profile-settings-menu-item-icon" aria-hidden="true">{section.icon}</span>
+            <span className="profile-settings-menu-item-copy">
+              <span className="profile-settings-menu-item-title">{section.label}</span>
+              <span className="profile-settings-menu-item-description">{section.description}</span>
+            </span>
+            <span className="profile-settings-menu-item-arrow" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </span>
+          </button>
+        ))}
+
+        <button
+          type="button"
+          className="profile-settings-menu-item"
+          onClick={() => {
+            closeProfileOverviewSheet();
+            onRequestSettingsLogout?.();
+          }}
+        >
+          <span className="profile-settings-menu-item-icon" aria-hidden="true">
+            <Logout size={18} />
+          </span>
+          <span className="profile-settings-menu-item-copy">
+            <span className="profile-settings-menu-item-title profile-settings-menu-item-title--danger">Uitloggen</span>
+            <span className="profile-settings-menu-item-description">Afmelden van dit account</span>
+          </span>
+          <span className="profile-settings-menu-item-arrow" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </span>
+        </button>
       </div>
     </div>
   );
@@ -1702,26 +1782,7 @@ export default function ChatSidebar({
               {footerClusterMode === 'settings' ? (
                 <div className="sidebar-settings-sheet-scroll">
                   {profileTab === 'overview' ? (
-                    renderSimpleSidebarActionList([
-                      ...profileSections.map((section) => ({
-                        key: section.id,
-                        icon: section.icon,
-                        label: section.label,
-                        onClick: () => {
-                          setProfileTab?.(section.id);
-                          if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
-                        },
-                      })),
-                      {
-                        key: 'logout',
-                        icon: <Logout size={18} aria-hidden="true" />,
-                        label: 'Uitloggen',
-                        onClick: () => {
-                          closeProfileOverviewSheet();
-                          onRequestSettingsLogout?.();
-                        },
-                      },
-                    ])
+                    renderSettingsOverviewSheet()
                   ) : profileTab === 'account' ? (
                     <div className="profile-account-scroll">
                       <div className="profile-account-view">

@@ -355,6 +355,25 @@ export default function ChatSidebar({
     display: 'flex',
     alignItems: 'center',
   };
+  const renderSimpleSidebarActionList = (items) => (
+    <div className="sidebar-settings-sheet-scroll">
+      <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
+        {items.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            role="menuitem"
+            className={`chat-header-menu-item${item.active ? ' active' : ''}`}
+            onClick={item.onClick}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+            {item.trailing || null}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
   useEffect(() => {
     if (!historyChildren.length) {
@@ -1682,35 +1701,26 @@ export default function ChatSidebar({
               {footerClusterMode === 'settings' ? (
                 <div className="sidebar-settings-sheet-scroll">
                   {profileTab === 'overview' ? (
-                    <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
-                      {profileSections.map((section) => (
-                        <button
-                          key={section.id}
-                          type="button"
-                          role="menuitem"
-                          className="chat-header-menu-item"
-                          onClick={() => {
-                            setProfileTab?.(section.id);
-                            if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
-                          }}
-                        >
-                          {section.icon}
-                          <span>{section.label}</span>
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="chat-header-menu-item"
-                        onClick={() => {
+                    renderSimpleSidebarActionList([
+                      ...profileSections.map((section) => ({
+                        key: section.id,
+                        icon: section.icon,
+                        label: section.label,
+                        onClick: () => {
+                          setProfileTab?.(section.id);
+                          if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
+                        },
+                      })),
+                      {
+                        key: 'logout',
+                        icon: <Logout size={18} aria-hidden="true" />,
+                        label: 'Uitloggen',
+                        onClick: () => {
                           closeProfileOverviewSheet();
                           onRequestSettingsLogout?.();
-                        }}
-                      >
-                        <Logout size={18} aria-hidden="true" />
-                        <span>Uitloggen</span>
-                      </button>
-                    </div>
+                        },
+                      },
+                    ])
                   ) : profileTab === 'account' ? (
                     <div className="profile-account-scroll">
                       <div className="profile-account-view">
@@ -2600,37 +2610,48 @@ export default function ChatSidebar({
                   </div>
                 </div>
               ) : (
-                <div className="sidebar-settings-sheet-scroll">
-                  <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions">
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeProfileOverviewSheet(); closeAddContactSheet(); closeCallSheet(); closeNewGroupSheet(); closeMoreActionsSheet(); setShowNewChat?.(true); }}>
-                    <Message size={18} aria-hidden="true" />
-                    <span>Nieuwe chat</span>
-                  </button>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeProfileOverviewSheet(); closeNewChatSheet(); closeCallSheet(); closeNewGroupSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowAddContact?.(true); }}>
-                    <Plus size={18} aria-hidden="true" />
-                    <span>Nieuw contact</span>
-                  </button>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewChatSheet(); closeCallSheet(); closeMoreActionsSheet(); setShowNewGroup?.(true); }}>
-                    <Users size={18} aria-hidden="true" />
-                    <span>Nieuwe groep</span>
-                  </button>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewChatSheet(); closeNewGroupSheet(); closeCallSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel?.(true); }}>
-                    <Handshake size={18} aria-hidden="true" />
-                    <span>Verzoeken</span>
-                    {(friendRequests.length + sentFriendRequests.length) > 0 && (
-                      <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
-                    )}
-                  </button>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { closeMoreActionsSheet(); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } }}>
-                    <Message size={18} aria-hidden="true" />
-                    <span>{selectionMode ? 'Selectie stoppen' : 'Chats selecteren'}</span>
-                  </button>
-                  <button type="button" role="menuitem" className={`chat-header-menu-item${dnd ? ' active' : ''}`} onClick={() => { onToggleDnd(); }}>
-                    {dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
-                    <span>Meldingen {dnd ? 'aan' : 'uit'}</span>
-                  </button>
-                  </div>
-                </div>
+                renderSimpleSidebarActionList([
+                  {
+                    key: 'new-chat',
+                    icon: <Message size={18} aria-hidden="true" />,
+                    label: 'Nieuwe chat',
+                    onClick: () => { closeProfileOverviewSheet(); closeAddContactSheet(); closeCallSheet(); closeNewGroupSheet(); closeMoreActionsSheet(); setShowNewChat?.(true); },
+                  },
+                  {
+                    key: 'new-contact',
+                    icon: <Plus size={18} aria-hidden="true" />,
+                    label: 'Nieuw contact',
+                    onClick: () => { closeProfileOverviewSheet(); closeNewChatSheet(); closeCallSheet(); closeNewGroupSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowAddContact?.(true); },
+                  },
+                  {
+                    key: 'new-group',
+                    icon: <Users size={18} aria-hidden="true" />,
+                    label: 'Nieuwe groep',
+                    onClick: () => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewChatSheet(); closeCallSheet(); closeMoreActionsSheet(); setShowNewGroup?.(true); },
+                  },
+                  {
+                    key: 'requests',
+                    icon: <Handshake size={18} aria-hidden="true" />,
+                    label: 'Verzoeken',
+                    onClick: () => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewChatSheet(); closeNewGroupSheet(); closeCallSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel?.(true); },
+                    trailing: (friendRequests.length + sentFriendRequests.length) > 0
+                      ? <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
+                      : null,
+                  },
+                  {
+                    key: 'selection',
+                    icon: <Message size={18} aria-hidden="true" />,
+                    label: selectionMode ? 'Selectie stoppen' : 'Chats selecteren',
+                    onClick: () => { closeMoreActionsSheet(); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } },
+                  },
+                  {
+                    key: 'dnd',
+                    icon: dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />,
+                    label: `Meldingen ${dnd ? 'aan' : 'uit'}`,
+                    onClick: () => { onToggleDnd(); },
+                    active: dnd,
+                  },
+                ])
               )}
             </div>
 

@@ -2601,7 +2601,6 @@ font-family: 'Inter', sans-serif;
   border: 1px solid rgba(140, 122, 214, 0.1);
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 10px 22px rgba(74, 55, 148, 0.04);
-  overflow: hidden;
 }
 .sidebar-bottom-cluster-panel--more .chat-header-menu-item {
   min-height: 66px;
@@ -2630,10 +2629,6 @@ font-family: 'Inter', sans-serif;
 .sidebar-bottom-cluster-panel--more .chat-header-menu-item.active {
   background: rgba(108, 99, 255, 0.08);
   color: #241741;
-}
-.sidebar-bottom-cluster-panel--more .chat-header-menu-item:last-child {
-  border-bottom-left-radius: 28px;
-  border-bottom-right-radius: 28px;
 }
 .sidebar-bottom-cluster-panel--more .sidebar-settings-sheet-scroll {
   padding-bottom: 18px;

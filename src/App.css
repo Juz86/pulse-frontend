@@ -2555,6 +2555,10 @@ font-family: 'Inter', sans-serif;
 .sidebar-bottom-cluster--settings-screen .sidebar-bottom-cluster-sheet--settings {
   max-height: calc(100% - 96px);
   padding: 8px 14px 0;
+  animation: settings-page-enter .28s cubic-bezier(.22, .86, .24, 1) both;
+}
+.sidebar-bottom-cluster--settings-screen .pulse-sheet-handle {
+  display: none;
 }
 .sidebar-bottom-cluster--settings-screen .pulse-sheet-header--settings-screen {
   min-height: 68px;
@@ -2566,6 +2570,10 @@ font-family: 'Inter', sans-serif;
   border: none;
   background: transparent;
   gap: 12px;
+}
+.sidebar-bottom-cluster--settings-screen .pulse-sheet-header--settings-overview {
+  min-height: 0;
+  padding: 0;
 }
 .sidebar-bottom-cluster--settings-screen .profile-modal-header-title {
   position: absolute;
@@ -2625,6 +2633,45 @@ font-family: 'Inter', sans-serif;
   gap: 22px;
   min-height: min-content;
   padding-bottom: 2px;
+}
+.settings-overview-topbar {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+}
+.settings-overview-topbar-title {
+  font-size: 20px;
+  line-height: 1.15;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  text-align: center;
+}
+.settings-overview-topbar-btn {
+  min-height: 52px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f5f1ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 30px rgba(10, 8, 24, 0.24);
+  cursor: pointer;
+}
+.settings-overview-topbar-btn--back {
+  width: 52px;
+  padding: 0;
+}
+.settings-overview-topbar-btn--action {
+  padding: 0 18px;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 .settings-overview-hero {
   display: flex;
@@ -2748,6 +2795,16 @@ font-family: 'Inter', sans-serif;
   justify-content: center;
   color: rgba(194, 184, 235, 0.74);
   flex: 0 0 18px;
+}
+@keyframes settings-page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(-22px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 .sidebar-bottom-cluster-sheet--detached-footer {
   flex: 0 1 auto;

@@ -386,6 +386,30 @@ export default function ChatSidebar({
   );
   const renderSettingsOverviewSheet = () => (
     <div className="settings-overview-screen">
+      <div className="settings-overview-topbar">
+        <button
+          type="button"
+          className="settings-overview-topbar-btn settings-overview-topbar-btn--back"
+          aria-label="Instellingen sluiten"
+          title="Terug"
+          onClick={dismissProfileOverviewSheet}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <div className="settings-overview-topbar-title">Instellingen</div>
+        <button
+          type="button"
+          className="settings-overview-topbar-btn settings-overview-topbar-btn--action"
+          aria-label="Open mijn account"
+          title="Mijn account"
+          onClick={() => setProfileTab?.('account')}
+        >
+          Mijn account
+        </button>
+      </div>
+
       <div className="settings-overview-hero">
         <div className="settings-overview-avatar">
           <UserAvatar
@@ -1734,7 +1758,7 @@ export default function ChatSidebar({
               aria-label={footerClusterAriaLabel}
             >
               <div className="pulse-sheet-handle" aria-hidden="true" />
-              <div className={`pulse-sheet-header pulse-sheet-header--sidebar-actions${footerClusterMode === 'settings' ? ' pulse-sheet-header--settings-screen' : ''}${(footerClusterMode === 'parent-portal' && parentPortalView !== 'menu') || (footerClusterMode === 'settings' && profileTab !== 'overview') ? ' has-back-button' : ''}`}>
+              <div className={`pulse-sheet-header pulse-sheet-header--sidebar-actions${footerClusterMode === 'settings' ? ' pulse-sheet-header--settings-screen' : ''}${footerClusterMode === 'settings' && profileTab === 'overview' ? ' pulse-sheet-header--settings-overview' : ''}${(footerClusterMode === 'parent-portal' && parentPortalView !== 'menu') || (footerClusterMode === 'settings' && profileTab !== 'overview') ? ' has-back-button' : ''}`}>
                 {footerClusterMode === 'parent-portal' && parentPortalView !== 'menu' && (
                   <button
                     type="button"
@@ -1761,12 +1785,12 @@ export default function ChatSidebar({
                     </svg>
                   </button>
                 )}
-                {!isLightFooterCluster && (
+                {!(footerClusterMode === 'settings' && profileTab === 'overview') && !isLightFooterCluster && (
                   <>
                     <div className={`pulse-sheet-title pulse-sheet-title--sidebar-actions${footerClusterMode === 'settings' ? ' profile-modal-header-title' : ''}`}>
                       {footerClusterTitle}
-                    </div>
-                    <button
+            </div>
+            <button
                       type="button"
                       className={`pulse-sheet-close pulse-sheet-close--sidebar-actions${footerClusterMode === 'settings' ? ' profile-modal-close pulse-sheet-close--settings' : ''}`}
                       aria-label="Sluiten"

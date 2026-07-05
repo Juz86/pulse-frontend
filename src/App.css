@@ -2493,6 +2493,13 @@ font-family: 'Inter', sans-serif;
   backdrop-filter: blur(6px) saturate(0.95);
   -webkit-backdrop-filter: blur(6px) saturate(0.95);
 }
+.sidebar-bottom-cluster-backdrop--settings {
+  top: 0;
+  padding-top: 0;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(116, 97, 208, 0.24) 0%, rgba(116, 97, 208, 0.12) 18%, rgba(116, 97, 208, 0) 42%),
+    linear-gradient(180deg, rgba(23, 17, 52, 0.92) 0%, rgba(18, 13, 41, 0.98) 100%);
+}
 .sidebar-bottom-cluster-backdrop.is-closing {
   animation: pulse-sheet-backdrop-out .16s cubic-bezier(.42, 0, .24, 1) both;
 }
@@ -2553,8 +2560,9 @@ font-family: 'Inter', sans-serif;
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 .sidebar-bottom-cluster--settings-screen .sidebar-bottom-cluster-sheet--settings {
+  flex: 1 1 auto;
   max-height: calc(100% - 96px);
-  padding: 8px 14px 0;
+  padding: 12px 14px 0;
   animation: settings-page-enter .28s cubic-bezier(.22, .86, .24, 1) both;
 }
 .sidebar-bottom-cluster--settings-screen .pulse-sheet-handle {

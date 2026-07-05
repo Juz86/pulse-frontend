@@ -1546,6 +1546,7 @@ export default function ChatSidebar({
                   ? 'Recent'
                   : 'Meer opties';
   const isMoreFooterCluster = footerClusterMode === 'more';
+  const isSettingsPageMode = footerClusterMode === 'settings';
   const isLightFooterCluster = isMoreFooterCluster;
   const useDetachedFooterCluster = isLightFooterCluster || !footerEmbeddedInCluster;
   const footerClusterSheetClassName = isLightFooterCluster
@@ -1573,153 +1574,157 @@ export default function ChatSidebar({
 
   return (
     <aside className={`sidebar${moreActionsMenuOpen ? ' sidebar--more-actions-open' : ''}`} ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
-      {/* Header */}
-      <div className="sidebar-header" ref={sidebarHeaderRef}>
-        <div className="sidebar-top">
-          <PulseLogo size={30} textSize={20} color="#fff" />
-          <div className="search-box search-box--top">
-            <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
-            <input aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'} placeholder="Zoeken…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="sidebar-tabs" ref={sidebarTabsRef}>
-        <button type="button" className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} aria-pressed={activeTab === 'chats'} onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}>
-          <Message size={15} aria-hidden="true" /> Chats
-        </button>
-        <button type="button" className={`sidebar-tab ${activeTab === 'contacts' ? 'active' : ''}`} aria-pressed={activeTab === 'contacts'} onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}>
-          <Users size={15} aria-hidden="true" /> Contacten
-          {friendRequests.length > 0 && <span className="unread-badge" aria-label={`${friendRequests.length} openstaande ${friendRequests.length === 1 ? 'uitnodiging' : 'uitnodigingen'}`} style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{friendRequests.length}</span>}
-        </button>
-      </div>
-
-      {/* Filters */}
-      {activeTab === 'chats' && (
-        <div className="chat-filters" role="group" aria-label="Chatfilters">
-          {['all', 'familie', 'vrienden'].map(f => (
-            <button key={f} className={`chat-filter-chip${chatFilter === f ? ' active' : ''}`}
-              type="button"
-              aria-pressed={chatFilter === f}
-              onClick={() => { setChatFilter(f); setSelectedGroupId(null); }}>
-              {f === 'all' ? 'Alles' : f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-          <button type="button" className={`chat-filter-chip${chatFilter === 'groepen' ? ' active' : ''}`}
-            aria-pressed={chatFilter === 'groepen'}
-            onClick={() => { setChatFilter('groepen'); setSelectedGroupId(null); }}>
-            Groepen
-          </button>
-        </div>
-      )}
-
-      {/* Chats tab */}
-      {activeTab === 'chats' && (
+      {!isSettingsPageMode && (
         <>
-          {selectionMode && (
-            <div style={{ padding: '0 18px 12px' }}>
-              <div className="chat-selection-bar" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
-                <div className="chat-selection-count" style={{ fontSize: 12, color: 'var(--text2)' }}>
-                  {`${selectedConversationIds.length} geselecteerd`}
-                </div>
-                <button type="button" className="btn-danger chat-selection-delete-btn" style={{ padding: '4px 7px', fontSize: 10, minWidth: 0 }} disabled={selectedConversationIds.length === 0} onClick={onDeleteSelectedConversations}>Verwijderen</button>
-                <button
+          {/* Header */}
+          <div className="sidebar-header" ref={sidebarHeaderRef}>
+            <div className="sidebar-top">
+              <PulseLogo size={30} textSize={20} color="#fff" />
+              <div className="search-box search-box--top">
+                <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+                <input aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'} placeholder="Zoeken…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="sidebar-tabs" ref={sidebarTabsRef}>
+            <button type="button" className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} aria-pressed={activeTab === 'chats'} onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}>
+              <Message size={15} aria-hidden="true" /> Chats
+            </button>
+            <button type="button" className={`sidebar-tab ${activeTab === 'contacts' ? 'active' : ''}`} aria-pressed={activeTab === 'contacts'} onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}>
+              <Users size={15} aria-hidden="true" /> Contacten
+              {friendRequests.length > 0 && <span className="unread-badge" aria-label={`${friendRequests.length} openstaande ${friendRequests.length === 1 ? 'uitnodiging' : 'uitnodigingen'}`} style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{friendRequests.length}</span>}
+            </button>
+          </div>
+
+          {/* Filters */}
+          {activeTab === 'chats' && (
+            <div className="chat-filters" role="group" aria-label="Chatfilters">
+              {['all', 'familie', 'vrienden'].map(f => (
+                <button key={f} className={`chat-filter-chip${chatFilter === f ? ' active' : ''}`}
                   type="button"
-                  className="icon-btn chat-selection-close-btn"
-                  aria-label="Selectie sluiten"
-                  title="Sluiten"
-                  style={{ width: 30, height: 30, flexShrink: 0 }}
-                  onClick={onCancelConversationSelection}
-                >
-                  <XIcon size={16} aria-hidden="true" />
+                  aria-pressed={chatFilter === f}
+                  onClick={() => { setChatFilter(f); setSelectedGroupId(null); }}>
+                  {f === 'all' ? 'Alles' : f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
-              </div>
+              ))}
+              <button type="button" className={`chat-filter-chip${chatFilter === 'groepen' ? ' active' : ''}`}
+                aria-pressed={chatFilter === 'groepen'}
+                onClick={() => { setChatFilter('groepen'); setSelectedGroupId(null); }}>
+                Groepen
+              </button>
             </div>
           )}
-          <ConversationList
-            conversations={conversations}
-            activeConv={activeConv}
-            loadingConvs={loadingConvs}
-            searchQuery={searchQuery}
-            chatFilter={chatFilter}
-            selectedGroupId={selectedGroupId}
-            convLabels={convLabels}
-            pinnedContacts={pinnedContacts}
-            unreadCounts={unreadCounts}
-            typingByConv={typingByConv}
-            onlineUsers={onlineUsers}
-            inactiveUsers={inactiveUsers}
-            currentUid={user.uid}
-            selectionMode={selectionMode}
-            selectedConversationIds={selectedConversationIds}
-            onToggleSelectConversation={onToggleConversationSelection}
-            getConvName={getConvName}
-            getOtherUid={getOtherUid}
-            getConvPhoto={getConvPhoto}
-            onOpen={handleOpenConversation}
-            onSwipeMoreActions={openConvActionsSheet}
-            setLabelMenuConvId={setLabelMenuConvId}
-          />
+
+          {/* Chats tab */}
+          {activeTab === 'chats' && (
+            <>
+              {selectionMode && (
+                <div style={{ padding: '0 18px 12px' }}>
+                  <div className="chat-selection-bar" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
+                    <div className="chat-selection-count" style={{ fontSize: 12, color: 'var(--text2)' }}>
+                      {`${selectedConversationIds.length} geselecteerd`}
+                    </div>
+                    <button type="button" className="btn-danger chat-selection-delete-btn" style={{ padding: '4px 7px', fontSize: 10, minWidth: 0 }} disabled={selectedConversationIds.length === 0} onClick={onDeleteSelectedConversations}>Verwijderen</button>
+                    <button
+                      type="button"
+                      className="icon-btn chat-selection-close-btn"
+                      aria-label="Selectie sluiten"
+                      title="Sluiten"
+                      style={{ width: 30, height: 30, flexShrink: 0 }}
+                      onClick={onCancelConversationSelection}
+                    >
+                      <XIcon size={16} aria-hidden="true" />
+                    </button>
+                  </div>
+                </div>
+              )}
+              <ConversationList
+                conversations={conversations}
+                activeConv={activeConv}
+                loadingConvs={loadingConvs}
+                searchQuery={searchQuery}
+                chatFilter={chatFilter}
+                selectedGroupId={selectedGroupId}
+                convLabels={convLabels}
+                pinnedContacts={pinnedContacts}
+                unreadCounts={unreadCounts}
+                typingByConv={typingByConv}
+                onlineUsers={onlineUsers}
+                inactiveUsers={inactiveUsers}
+                currentUid={user.uid}
+                selectionMode={selectionMode}
+                selectedConversationIds={selectedConversationIds}
+                onToggleSelectConversation={onToggleConversationSelection}
+                getConvName={getConvName}
+                getOtherUid={getOtherUid}
+                getConvPhoto={getConvPhoto}
+                onOpen={handleOpenConversation}
+                onSwipeMoreActions={openConvActionsSheet}
+                setLabelMenuConvId={setLabelMenuConvId}
+              />
+            </>
+          )}
+
+          {/* Contacten tab */}
+          {activeTab === 'contacts' && (
+            <div className="conv-list">
+              {contactSuccess && (
+                <div style={{ padding: '0 18px 12px' }}>
+                  <div role="status" aria-live="polite" style={{ padding: '8px 12px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', color: '#4ade80', fontSize: '13px' }}>
+                    <span aria-hidden="true">✅ </span>{contactSuccess}
+                  </div>
+                </div>
+              )}
+
+              {contacts.length === 0 && friendRequests.length === 0 && sentFriendRequests.length === 0 && (
+                <div className="empty-convs">
+                  <p>Nog geen contacten.</p>
+                  <p>Voeg iemand toe via e-mailadres.</p>
+                </div>
+              )}
+
+              {filteredContacts.map(contact => (
+                <div key={contact.uid} className="sidebar-contact-card" aria-label={`Contact ${getContactDisplayName(contact)}${contact.email ? `, ${contact.email}` : ''}`}>
+                  <div className="sidebar-contact-row">
+                    <div className="avatar-wrap" aria-hidden="true">
+                      <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} decorative />
+                      {onlineUsers.has(contact.uid) && <span className={`online-dot${inactiveUsers.has(contact.uid) ? ' inactive' : ''}`} aria-hidden="true" />}
+                    </div>
+                    <div className="conv-info" style={{ flex: 1, minWidth: 0 }} aria-hidden="true">
+                      <div className="conv-name">{getContactDisplayName(contact)}</div>
+                      <div className="conv-preview">{contact.email}</div>
+                    </div>
+                    <div
+                      style={{ position: 'relative' }}
+                    >
+                      <button
+                        type="button"
+                        className="icon-btn sidebar-item-actions-btn"
+                        aria-label={`Meer acties voor ${getContactDisplayName(contact)}`}
+                        data-sidebar-actions-trigger
+                        onClick={(e) => { e.stopPropagation(); openContactMenu(contact.uid, e.currentTarget); }}
+                        title="Meer acties"
+                        style={parentBlockedUids?.includes(contact.uid) ? { color: 'var(--danger, #ef4444)' } : undefined}
+                      >
+                        <MoreHoriz size={18} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {contacts.length > 0 && normalizedSearch && filteredContacts.length === 0 && (
+                <div className="empty-convs" role="status" aria-live="polite">
+                  <p>Geen contacten gevonden.</p>
+                  <p>Er zijn geen resultaten voor "{searchQuery}".</p>
+                </div>
+              )}
+
+            </div>
+          )}
         </>
-      )}
-
-      {/* Contacten tab */}
-      {activeTab === 'contacts' && (
-        <div className="conv-list">
-          {contactSuccess && (
-            <div style={{ padding: '0 18px 12px' }}>
-              <div role="status" aria-live="polite" style={{ padding: '8px 12px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', color: '#4ade80', fontSize: '13px' }}>
-                <span aria-hidden="true">✅ </span>{contactSuccess}
-              </div>
-            </div>
-          )}
-
-          {contacts.length === 0 && friendRequests.length === 0 && sentFriendRequests.length === 0 && (
-            <div className="empty-convs">
-              <p>Nog geen contacten.</p>
-              <p>Voeg iemand toe via e-mailadres.</p>
-            </div>
-          )}
-
-          {filteredContacts.map(contact => (
-            <div key={contact.uid} className="sidebar-contact-card" aria-label={`Contact ${getContactDisplayName(contact)}${contact.email ? `, ${contact.email}` : ''}`}>
-              <div className="sidebar-contact-row">
-                <div className="avatar-wrap" aria-hidden="true">
-                  <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} decorative />
-                  {onlineUsers.has(contact.uid) && <span className={`online-dot${inactiveUsers.has(contact.uid) ? ' inactive' : ''}`} aria-hidden="true" />}
-                </div>
-                <div className="conv-info" style={{ flex: 1, minWidth: 0 }} aria-hidden="true">
-                  <div className="conv-name">{getContactDisplayName(contact)}</div>
-                  <div className="conv-preview">{contact.email}</div>
-                </div>
-                <div
-                  style={{ position: 'relative' }}
-                >
-                  <button
-                    type="button"
-                    className="icon-btn sidebar-item-actions-btn"
-                    aria-label={`Meer acties voor ${getContactDisplayName(contact)}`}
-                    data-sidebar-actions-trigger
-                    onClick={(e) => { e.stopPropagation(); openContactMenu(contact.uid, e.currentTarget); }}
-                    title="Meer acties"
-                    style={parentBlockedUids?.includes(contact.uid) ? { color: 'var(--danger, #ef4444)' } : undefined}
-                  >
-                    <MoreHoriz size={18} aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {contacts.length > 0 && normalizedSearch && filteredContacts.length === 0 && (
-            <div className="empty-convs" role="status" aria-live="polite">
-              <p>Geen contacten gevonden.</p>
-              <p>Er zijn geen resultaten voor "{searchQuery}".</p>
-            </div>
-          )}
-
-        </div>
       )}
 
       {convMenu && (() => {

@@ -1692,7 +1692,7 @@ export default function ChatSidebar({
                             if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
                           }}
                         >
-                          <span className="sidebar-settings-menu-icon" aria-hidden="true">{section.icon}</span>
+                          {section.icon}
                           <span>{section.label}</span>
                         </button>
                       ))}
@@ -1705,8 +1705,8 @@ export default function ChatSidebar({
                           onRequestSettingsLogout?.();
                         }}
                       >
-                        <span className="sidebar-settings-menu-icon" aria-hidden="true"><Logout size={18} /></span>
-                        <span className="sidebar-settings-menu-title--danger">Uitloggen</span>
+                        <Logout size={18} aria-hidden="true" />
+                        <span>Uitloggen</span>
                       </button>
                     </div>
                   ) : profileTab === 'account' ? (

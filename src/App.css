@@ -2772,6 +2772,20 @@ font-family: 'Inter', sans-serif;
   color: #7b719b;
   flex-shrink: 0;
 }
+.sidebar-bottom-cluster-panel--settings .sidebar-settings-sheet-scroll .chat-header-menu-item {
+  flex: 0 0 66px;
+  min-height: 66px;
+  padding: 0 22px;
+  gap: 16px;
+}
+.sidebar-bottom-cluster-panel--settings .sidebar-settings-sheet-scroll .chat-header-menu-item > span:first-of-type {
+  flex: 1 1 auto;
+}
+.sidebar-bottom-cluster-panel--settings .sidebar-settings-sheet-scroll .chat-header-menu-item svg {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+}
 .sidebar-header {
   padding:20px 18px 14px;
   border-bottom:1px solid var(--border);

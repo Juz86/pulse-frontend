@@ -2642,7 +2642,7 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-bottom-cluster-panel--more .pulse-sheet-list--sidebar-actions {
   margin-top: 8px;
-  margin-bottom: 0;
+  margin-bottom: 10px;
   border-radius: 28px;
   border: 1px solid rgba(140, 122, 214, 0.1);
   background: rgba(255, 255, 255, 0.96);
@@ -2650,7 +2650,7 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-bottom-cluster-panel--settings .pulse-sheet-list--sidebar-actions {
   margin-top: 8px;
-  margin-bottom: 0;
+  margin-bottom: 10px;
   border-radius: 28px;
   border: 1px solid rgba(140, 122, 214, 0.1);
   background: rgba(255, 255, 255, 0.96);

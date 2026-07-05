@@ -1422,10 +1422,8 @@ export default function ChatSidebar({
                   ? 'Recent'
                   : 'Meer opties';
   const isMoreFooterCluster = footerClusterMode === 'more';
-  const isSettingsOverviewFooterCluster = footerClusterMode === 'settings' && profileTab === 'overview';
-  const isLightFooterCluster = isMoreFooterCluster || isSettingsOverviewFooterCluster;
-  const footerClusterSheetClassName = isLightFooterCluster
-    ? `sidebar-bottom-cluster-panel sidebar-bottom-cluster-panel--${isMoreFooterCluster ? 'more' : 'settings'}${isMoreFooterCluster && moreActionsMenuClosing ? ' is-closing' : ''}${isSettingsOverviewFooterCluster && profileSheetClosing ? ' is-closing' : ''}`
+  const footerClusterSheetClassName = isMoreFooterCluster
+    ? `sidebar-bottom-cluster-panel sidebar-bottom-cluster-panel--more${moreActionsMenuClosing ? ' is-closing' : ''}`
     : `pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${!footerEmbeddedInCluster ? ' sidebar-bottom-cluster-sheet--detached-footer' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`;
   const dismissFooterCluster = footerClusterMode === 'settings'
     ? dismissProfileOverviewSheet
@@ -1661,7 +1659,7 @@ export default function ChatSidebar({
                     </svg>
                   </button>
                 )}
-                {!isLightFooterCluster && (
+                {footerClusterMode !== 'more' && (
                   <>
                     <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">
                       {footerClusterTitle}

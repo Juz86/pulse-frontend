@@ -2649,7 +2649,7 @@ export default function ChatSidebar({
         </div>
       ) : null}
       {footerEmbeddedInCluster ? null : (
-        <div className={`sidebar-footer${footerClusterMode === 'more' ? ' sidebar-footer--more-open' : ''}`} ref={sidebarFooterRef}>
+        <div className={`sidebar-footer${isLightFooterCluster ? ' sidebar-footer--more-open' : ''}`} ref={sidebarFooterRef}>
           {footerTabbar}
         </div>
       )}

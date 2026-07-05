@@ -2645,6 +2645,14 @@ font-family: 'Inter', sans-serif;
 .sidebar-bottom-cluster-panel--settings .sidebar-settings-sheet-scroll {
   padding-bottom: 18px;
 }
+.sidebar-bottom-cluster-panel--settings .sidebar-settings-sheet-scroll {
+  flex: 0 1 auto;
+}
+.sidebar-bottom-cluster-panel--settings .sidebar-settings-sheet-scroll .pulse-sheet-list--sidebar-actions {
+  flex: 0 0 auto;
+  min-height: auto;
+  border-radius: 28px;
+}
 .sidebar-bottom-cluster-panel--more.is-closing,
 .sidebar-bottom-cluster-panel--settings.is-closing {
   animation: pulse-sheet-down-to-tabbar .2s cubic-bezier(.42, 0, .22, 1) both;

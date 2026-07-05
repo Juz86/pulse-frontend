@@ -1048,7 +1048,9 @@ export default function ChatSidebar({
   const parentFooterActive = parentPortalSheetVisible;
   const moreFooterActive = moreActionsSheetVisible || addContactSheetVisible || newChatSheetVisible || newGroupSheetVisible || requestsSheetVisible;
   const chatsFooterActive = activeTab === 'chats' && !profileFooterActive && !callsFooterActive && !parentFooterActive && !moreFooterActive;
-  const footerEmbeddedInCluster = !!footerClusterMode && footerClusterMode !== 'more';
+  const footerEmbeddedInCluster = !!footerClusterMode
+    && footerClusterMode !== 'more'
+    && !(footerClusterMode === 'settings' && profileTab === 'overview');
 
   const footerTabbar = (
     <div className={`sidebar-footer-tabbar${footerEmbeddedInCluster ? ' sidebar-footer-tabbar--cluster' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">

@@ -1,6 +1,6 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, Cancel, PhoneCall, PhoneOutgoing, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
+import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, ArrowRight, Cancel, PhoneCall, PhoneOutgoing, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
@@ -1693,7 +1693,11 @@ export default function ChatSidebar({
                           }}
                         >
                           <span className="sidebar-settings-menu-icon" aria-hidden="true">{section.icon}</span>
-                          <span>{section.label}</span>
+                          <span className="sidebar-settings-menu-copy">
+                            <span className="sidebar-settings-menu-title">{section.label}</span>
+                            <span className="sidebar-settings-menu-description">{section.description}</span>
+                          </span>
+                          <ArrowRight size={18} className="sidebar-settings-menu-arrow" aria-hidden="true" />
                         </button>
                       ))}
                       <button
@@ -1706,7 +1710,11 @@ export default function ChatSidebar({
                         }}
                       >
                         <span className="sidebar-settings-menu-icon" aria-hidden="true"><Logout size={18} /></span>
-                        <span className="sidebar-settings-menu-title--danger">Uitloggen</span>
+                        <span className="sidebar-settings-menu-copy">
+                          <span className="sidebar-settings-menu-title sidebar-settings-menu-title--danger">Uitloggen</span>
+                          <span className="sidebar-settings-menu-description">Afmelden van dit account</span>
+                        </span>
+                        <ArrowRight size={18} className="sidebar-settings-menu-arrow" aria-hidden="true" />
                       </button>
                     </div>
                   ) : profileTab === 'account' ? (

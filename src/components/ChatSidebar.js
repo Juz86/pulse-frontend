@@ -1421,10 +1421,10 @@ export default function ChatSidebar({
                 : footerClusterMode === 'calls'
                   ? 'Recent'
                   : 'Meer opties';
-  const isLightFooterPanel = footerClusterMode === 'more' || footerClusterMode === 'new-chat';
-  const footerClusterSheetClassName = isLightFooterPanel
-    ? `sidebar-bottom-cluster-panel sidebar-bottom-cluster-panel--${footerClusterMode}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}`
-    : `pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${!footerEmbeddedInCluster ? ' sidebar-bottom-cluster-sheet--detached-footer' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`;
+  const isMoreFooterCluster = footerClusterMode === 'more';
+  const footerClusterSheetClassName = isMoreFooterCluster
+    ? `sidebar-bottom-cluster-panel sidebar-bottom-cluster-panel--more${moreActionsMenuClosing ? ' is-closing' : ''}`
+    : `pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${!footerEmbeddedInCluster ? ' sidebar-bottom-cluster-sheet--detached-footer' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`;
   const dismissFooterCluster = footerClusterMode === 'settings'
     ? dismissProfileOverviewSheet
     : footerClusterMode === 'add-contact'
@@ -1659,7 +1659,7 @@ export default function ChatSidebar({
                     </svg>
                   </button>
                 )}
-                {footerClusterMode !== 'more' && footerClusterMode !== 'new-chat' && (
+                {footerClusterMode !== 'more' && (
                   <>
                     <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">
                       {footerClusterTitle}

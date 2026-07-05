@@ -385,72 +385,71 @@ export default function ChatSidebar({
     </div>
   );
   const renderSettingsOverviewSheet = () => (
-    <div className="profile-settings-sheet-content profile-settings-sheet-content--overview">
-      <div className="profile-settings-sheet-user">
-        <div className="profile-settings-sheet-user-avatar">
+    <div className="settings-overview-screen">
+      <div className="settings-overview-hero">
+        <div className="settings-overview-avatar">
           <UserAvatar
             photoURL={photoPreview || undefined}
             displayName={settingsDisplayName}
             className="profile-avatar-big"
           />
         </div>
-        <div className="profile-settings-sheet-user-name">{settingsDisplayName}</div>
-        {settingsEmail ? (
-          <div className="profile-settings-sheet-user-email">{settingsEmail}</div>
-        ) : null}
-        <div className={`profile-settings-sheet-user-status profile-settings-sheet-user-status--${settingsStatusClass}`}>
-          <span className="profile-settings-sheet-user-status-dot" aria-hidden="true" />
-          <span>{settingsStatusLabel}</span>
+        <div className="settings-overview-name">{settingsDisplayName}</div>
+        {settingsEmail ? <div className="settings-overview-email">{settingsEmail}</div> : null}
+        <div className={`profile-status-badge settings-overview-status ${settingsStatusClass}`}>
+          <span className="profile-status-dot" aria-hidden="true" />
+          {settingsStatusLabel}
         </div>
       </div>
 
-      <div className="profile-settings-section-title">Instellingen</div>
+      <div className="settings-overview-card">
+        <div className="settings-overview-section-title">Instellingen</div>
+        <div className="settings-overview-list">
+          {profileSections.map((section) => (
+            <button
+              key={section.id}
+              type="button"
+              className="settings-overview-item"
+              onClick={() => {
+                setProfileTab?.(section.id);
+                if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
+              }}
+            >
+              <span className="settings-overview-item-icon" aria-hidden="true">{section.icon}</span>
+              <span className="settings-overview-item-copy">
+                <span className="settings-overview-item-title">{section.label}</span>
+                <span className="settings-overview-item-description">{section.description}</span>
+              </span>
+              <span className="settings-overview-item-arrow" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </span>
+            </button>
+          ))}
 
-      <div className="pulse-sheet-list pulse-sheet-list--settings-nav">
-        {profileSections.map((section) => (
           <button
-            key={section.id}
             type="button"
-            className="profile-settings-menu-item"
+            className="settings-overview-item settings-overview-item--danger"
             onClick={() => {
-              setProfileTab?.(section.id);
-              if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
+              closeProfileOverviewSheet();
+              onRequestSettingsLogout?.();
             }}
           >
-            <span className="profile-settings-menu-item-icon" aria-hidden="true">{section.icon}</span>
-            <span className="profile-settings-menu-item-copy">
-              <span className="profile-settings-menu-item-title">{section.label}</span>
-              <span className="profile-settings-menu-item-description">{section.description}</span>
+            <span className="settings-overview-item-icon" aria-hidden="true">
+              <Logout size={18} />
             </span>
-            <span className="profile-settings-menu-item-arrow" aria-hidden="true">
+            <span className="settings-overview-item-copy">
+              <span className="settings-overview-item-title settings-overview-item-title--danger">Uitloggen</span>
+              <span className="settings-overview-item-description">Afmelden van dit account</span>
+            </span>
+            <span className="settings-overview-item-arrow" aria-hidden="true">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 18l6-6-6-6" />
               </svg>
             </span>
           </button>
-        ))}
-
-        <button
-          type="button"
-          className="profile-settings-menu-item"
-          onClick={() => {
-            closeProfileOverviewSheet();
-            onRequestSettingsLogout?.();
-          }}
-        >
-          <span className="profile-settings-menu-item-icon" aria-hidden="true">
-            <Logout size={18} />
-          </span>
-          <span className="profile-settings-menu-item-copy">
-            <span className="profile-settings-menu-item-title profile-settings-menu-item-title--danger">Uitloggen</span>
-            <span className="profile-settings-menu-item-description">Afmelden van dit account</span>
-          </span>
-          <span className="profile-settings-menu-item-arrow" aria-hidden="true">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </span>
-        </button>
+        </div>
       </div>
     </div>
   );
@@ -1523,11 +1522,10 @@ export default function ChatSidebar({
                   ? 'Recent'
                   : 'Meer opties';
   const isMoreFooterCluster = footerClusterMode === 'more';
-  const isSettingsOverviewFooterCluster = footerClusterMode === 'settings' && profileTab === 'overview';
-  const isLightFooterCluster = isMoreFooterCluster || isSettingsOverviewFooterCluster;
+  const isLightFooterCluster = isMoreFooterCluster;
   const useDetachedFooterCluster = isLightFooterCluster || !footerEmbeddedInCluster;
   const footerClusterSheetClassName = isLightFooterCluster
-    ? `sidebar-bottom-cluster-panel sidebar-bottom-cluster-panel--${isMoreFooterCluster ? 'more' : 'settings'}${isMoreFooterCluster && moreActionsMenuClosing ? ' is-closing' : ''}${isSettingsOverviewFooterCluster && profileSheetClosing ? ' is-closing' : ''}`
+    ? `sidebar-bottom-cluster-panel sidebar-bottom-cluster-panel--more${isMoreFooterCluster && moreActionsMenuClosing ? ' is-closing' : ''}`
     : `pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${useDetachedFooterCluster ? ' sidebar-bottom-cluster-sheet--detached-footer' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`;
   const dismissFooterCluster = footerClusterMode === 'settings'
     ? dismissProfileOverviewSheet
@@ -1726,7 +1724,7 @@ export default function ChatSidebar({
           onClick={dismissFooterCluster}
         >
           <div
-            className={`sidebar-bottom-cluster${useDetachedFooterCluster ? ' sidebar-bottom-cluster--detached-footer' : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+            className={`sidebar-bottom-cluster${useDetachedFooterCluster ? ' sidebar-bottom-cluster--detached-footer' : ''}${footerClusterMode === 'settings' ? ' sidebar-bottom-cluster--settings-screen' : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
             data-sidebar-actions-menu
             onClick={(e) => e.stopPropagation()}
           >
@@ -1736,7 +1734,7 @@ export default function ChatSidebar({
               aria-label={footerClusterAriaLabel}
             >
               <div className="pulse-sheet-handle" aria-hidden="true" />
-              <div className={`pulse-sheet-header pulse-sheet-header--sidebar-actions${(footerClusterMode === 'parent-portal' && parentPortalView !== 'menu') || (footerClusterMode === 'settings' && profileTab !== 'overview') ? ' has-back-button' : ''}`}>
+              <div className={`pulse-sheet-header pulse-sheet-header--sidebar-actions${footerClusterMode === 'settings' ? ' pulse-sheet-header--settings-screen' : ''}${(footerClusterMode === 'parent-portal' && parentPortalView !== 'menu') || (footerClusterMode === 'settings' && profileTab !== 'overview') ? ' has-back-button' : ''}`}>
                 {footerClusterMode === 'parent-portal' && parentPortalView !== 'menu' && (
                   <button
                     type="button"
@@ -1753,7 +1751,7 @@ export default function ChatSidebar({
                 {footerClusterMode === 'settings' && profileTab !== 'overview' && (
                   <button
                     type="button"
-                    className="pulse-sheet-close pulse-sheet-close--sidebar-actions pulse-sheet-back-btn"
+                    className="pulse-sheet-close pulse-sheet-close--sidebar-actions pulse-sheet-back-btn profile-modal-back"
                     aria-label="Terug naar instellingen"
                     title="Terug"
                     onClick={() => setProfileTab?.('overview')}
@@ -1765,12 +1763,12 @@ export default function ChatSidebar({
                 )}
                 {!isLightFooterCluster && (
                   <>
-                    <div className="pulse-sheet-title pulse-sheet-title--sidebar-actions">
+                    <div className={`pulse-sheet-title pulse-sheet-title--sidebar-actions${footerClusterMode === 'settings' ? ' profile-modal-header-title' : ''}`}>
                       {footerClusterTitle}
                     </div>
                     <button
                       type="button"
-                      className="pulse-sheet-close pulse-sheet-close--sidebar-actions"
+                      className={`pulse-sheet-close pulse-sheet-close--sidebar-actions${footerClusterMode === 'settings' ? ' profile-modal-close pulse-sheet-close--settings' : ''}`}
                       aria-label="Sluiten"
                       onClick={dismissFooterCluster}
                     >
@@ -1780,10 +1778,11 @@ export default function ChatSidebar({
                 )}
               </div>
               {footerClusterMode === 'settings' ? (
-                <div className="sidebar-settings-sheet-scroll">
-                  {profileTab === 'overview' ? (
-                    renderSettingsOverviewSheet()
-                  ) : profileTab === 'account' ? (
+                <div className="profile-modal-body">
+                  <div className="profile-content">
+                    {profileTab === 'overview' ? (
+                      renderSettingsOverviewSheet()
+                    ) : profileTab === 'account' ? (
                     <div className="profile-account-scroll">
                       <div className="profile-account-view">
                         <div className="profile-account-card">
@@ -1900,7 +1899,7 @@ export default function ChatSidebar({
                         </div>
                       </div>
                     </div>
-                  ) : profileTab === 'geschiedenis' && isParent ? (
+                    ) : profileTab === 'geschiedenis' && isParent ? (
                     <div className="profile-account-scroll">
                       <div className="profile-settings-subview">
                         <div className="profile-settings-section-card">
@@ -1992,7 +1991,7 @@ export default function ChatSidebar({
                         </div>
                       </div>
                     </div>
-                  ) : profileTab === 'geblokkeerd' ? (
+                    ) : profileTab === 'geblokkeerd' ? (
                     (() => {
                       const selfBlocked = (blockedContacts || []).filter((c) => !parentBlockedUids?.includes(c.uid));
                       const parentBlocked = (blockedContacts || []).filter((c) => parentBlockedUids?.includes(c.uid));
@@ -2048,7 +2047,7 @@ export default function ChatSidebar({
                         </div>
                       );
                     })()
-                  ) : profileTab === 'styling' ? (
+                    ) : profileTab === 'styling' ? (
                     <div className="profile-account-scroll">
                       <div className="profile-settings-subview">
                         <div className="profile-settings-section-card">
@@ -2224,7 +2223,8 @@ export default function ChatSidebar({
                         </div>
                       </div>
                     </div>
-                  ) : null}
+                    ) : null}
+                  </div>
                 </div>
               ) : footerClusterMode === 'add-contact' ? (
                 <div className="sidebar-settings-sheet-scroll">

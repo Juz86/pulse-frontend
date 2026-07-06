@@ -385,8 +385,6 @@ export default function ChatSidebar({
     </div>
   );
   const renderSettingsOverviewSheet = () => {
-    const primarySections = profileSections.filter((section) => ['account', 'geschiedenis'].includes(section.id));
-    const secondarySections = profileSections.filter((section) => !['account', 'geschiedenis'].includes(section.id));
     const renderOverviewRow = (section, extraClassName = '') => (
       <button
         key={section.id}
@@ -424,7 +422,7 @@ export default function ChatSidebar({
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
-          <div className="settings-overview-topbar-spacer" aria-hidden="true" />
+          <div className="settings-overview-topbar-title">Instellingen</div>
           <button
             type="button"
             className="settings-overview-topbar-btn settings-overview-topbar-btn--action"
@@ -432,13 +430,11 @@ export default function ChatSidebar({
             title="Mijn account"
             onClick={() => setProfileTab?.('account')}
           >
-            <User size={18} aria-hidden="true" />
-            <span>Mijn account</span>
+            Mijn account
           </button>
         </div>
 
         <div className="settings-overview-hero">
-          <div className="settings-overview-badge">Pulse instellingen</div>
           <div className="settings-overview-avatar">
             <UserAvatar
               photoURL={photoPreview || undefined}
@@ -446,17 +442,7 @@ export default function ChatSidebar({
               className="profile-avatar-big"
             />
           </div>
-          <div className="settings-overview-name-row">
-            <div className="settings-overview-name">{settingsDisplayName}</div>
-            <button
-              type="button"
-              className="settings-overview-inline-action"
-              aria-label="Open mijn account"
-              onClick={() => setProfileTab?.('account')}
-            >
-              <Plus size={16} aria-hidden="true" />
-            </button>
-          </div>
+          <div className="settings-overview-name">{settingsDisplayName}</div>
           {settingsEmail ? <div className="settings-overview-email">{settingsEmail}</div> : null}
           <div className={`profile-status-badge settings-overview-status ${settingsStatusClass}`}>
             <span className="profile-status-dot" aria-hidden="true" />
@@ -464,33 +450,32 @@ export default function ChatSidebar({
           </div>
         </div>
 
-        <div className="settings-overview-group">
-          {primarySections.map((section) => renderOverviewRow(section))}
-        </div>
-
-        <div className="settings-overview-group">
-          {secondarySections.map((section) => renderOverviewRow(section))}
-          <button
-            type="button"
-            className="settings-overview-item settings-overview-item--danger"
-            onClick={() => {
-              closeProfileOverviewSheet();
-              onRequestSettingsLogout?.();
-            }}
-          >
-            <span className="settings-overview-item-icon" aria-hidden="true">
-              <Logout size={18} />
-            </span>
-            <span className="settings-overview-item-copy">
-              <span className="settings-overview-item-title settings-overview-item-title--danger">Uitloggen</span>
-              <span className="settings-overview-item-description">Afmelden van dit account</span>
-            </span>
-            <span className="settings-overview-item-arrow" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </span>
-          </button>
+        <div className="settings-overview-card">
+          <div className="settings-overview-section-title">Instellingen</div>
+          <div className="settings-overview-list">
+            {profileSections.map((section) => renderOverviewRow(section))}
+            <button
+              type="button"
+              className="settings-overview-item settings-overview-item--danger"
+              onClick={() => {
+                closeProfileOverviewSheet();
+                onRequestSettingsLogout?.();
+              }}
+            >
+              <span className="settings-overview-item-icon" aria-hidden="true">
+                <Logout size={18} />
+              </span>
+              <span className="settings-overview-item-copy">
+                <span className="settings-overview-item-title settings-overview-item-title--danger">Uitloggen</span>
+                <span className="settings-overview-item-description">Afmelden van dit account</span>
+              </span>
+              <span className="settings-overview-item-arrow" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     );

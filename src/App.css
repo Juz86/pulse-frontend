@@ -2638,9 +2638,9 @@ font-family: 'Inter', sans-serif;
 .settings-overview-screen {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 24px;
   min-height: min-content;
-  padding-bottom: 2px;
+  padding-bottom: 8px;
 }
 .settings-overview-topbar {
   display: grid;
@@ -2650,17 +2650,17 @@ font-family: 'Inter', sans-serif;
   min-height: 56px;
 }
 .settings-overview-topbar-title {
-  font-size: 20px;
+  font-size: 17px;
   line-height: 1.15;
   font-weight: 800;
   color: #ffffff;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   text-align: center;
 }
 .settings-overview-topbar-btn {
   min-height: 52px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
   background: rgba(255, 255, 255, 0.08);
   color: #f5f1ff;
   display: inline-flex;
@@ -2668,7 +2668,9 @@ font-family: 'Inter', sans-serif;
   justify-content: center;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 14px 30px rgba(10, 8, 24, 0.24);
+    0 12px 28px rgba(22, 16, 46, 0.16);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   cursor: pointer;
 }
 .settings-overview-topbar-btn--back {
@@ -2677,7 +2679,7 @@ font-family: 'Inter', sans-serif;
 }
 .settings-overview-topbar-btn--action {
   padding: 0 18px;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -2685,8 +2687,8 @@ font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 8px 10px 0;
+  gap: 10px;
+  padding: 4px 8px 0;
   text-align: center;
 }
 .settings-overview-avatar .profile-avatar-big {
@@ -2717,12 +2719,12 @@ font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 22px 18px 16px;
-  border-radius: 30px;
-  background: rgba(24, 18, 56, 0.88);
-  border: 1px solid rgba(115, 97, 201, 0.22);
+  padding: 22px 18px 18px;
+  border-radius: 32px;
+  background: rgba(27, 21, 63, 0.94);
+  border: 1px solid rgba(108, 99, 176, 0.22);
   box-shadow:
-    0 20px 44px rgba(12, 10, 28, 0.34),
+    0 20px 44px rgba(12, 10, 28, 0.28),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .settings-overview-section-title {
@@ -2736,10 +2738,10 @@ font-family: 'Inter', sans-serif;
 .settings-overview-list {
   display: flex;
   flex-direction: column;
-  border-radius: 28px;
+  border-radius: 26px;
   overflow: hidden;
-  border: 1px solid rgba(95, 80, 166, 0.28);
-  background: rgba(33, 26, 73, 0.96);
+  border: 1px solid rgba(95, 80, 166, 0.22);
+  background: rgba(40, 31, 88, 0.88);
 }
 .settings-overview-item {
   width: 100%;
@@ -2766,7 +2768,7 @@ font-family: 'Inter', sans-serif;
   flex: 0 0 42px;
   border-radius: 16px;
   background: rgba(111, 94, 240, 0.16);
-  color: #81a0ff;
+  color: #8d82ff;
   display: inline-flex;
   align-items: center;
   justify-content: center;

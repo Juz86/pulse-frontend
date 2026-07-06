@@ -450,8 +450,7 @@ export default function ChatSidebar({
           </div>
         </div>
 
-        <div className="settings-overview-card">
-          <div className="settings-overview-section-title">Instellingen</div>
+        <div className="settings-overview-list-wrap">
           <div className="settings-overview-list">
             {profileSections.map((section) => renderOverviewRow(section))}
             <button

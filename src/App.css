@@ -2640,7 +2640,7 @@ font-family: 'Inter', sans-serif;
   flex-direction: column;
   gap: 22px;
   min-height: min-content;
-  padding: 2px 0 8px;
+  padding: 2px 14px 8px;
   color: #ffffff;
 }
 .settings-overview-topbar {
@@ -2716,33 +2716,21 @@ font-family: 'Inter', sans-serif;
   border-color: rgba(255, 255, 255, 0.08);
   color: rgba(233, 227, 255, 0.76);
 }
-.settings-overview-card {
+.settings-overview-list-wrap {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 22px 18px 18px;
-  border-radius: 32px;
-  background: rgba(27, 21, 63, 0.94);
-  border: 1px solid rgba(108, 99, 176, 0.22);
-  box-shadow:
-    0 20px 44px rgba(12, 10, 28, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-.settings-overview-section-title {
-  padding: 0 4px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(182, 171, 221, 0.78);
+  min-width: 0;
 }
 .settings-overview-list {
   display: flex;
   flex-direction: column;
-  border-radius: 26px;
+  border-radius: 32px;
   overflow: hidden;
-  border: 1px solid rgba(95, 80, 166, 0.22);
-  background: rgba(40, 31, 88, 0.88);
+  border: 1px solid rgba(108, 99, 176, 0.22);
+  background: rgba(27, 21, 63, 0.94);
+  box-shadow:
+    0 20px 44px rgba(12, 10, 28, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 .settings-overview-item {
   width: 100%;

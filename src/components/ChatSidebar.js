@@ -1172,7 +1172,7 @@ export default function ChatSidebar({
   const chatsFooterActive = activeTab === 'chats' && !profileFooterActive && !callsFooterActive && !parentFooterActive && !moreFooterActive;
   const footerEmbeddedInCluster = !!footerClusterMode
     && footerClusterMode !== 'more'
-    && !(footerClusterMode === 'settings' && profileTab === 'overview');
+    && footerClusterMode !== 'settings';
 
   const footerTabbar = (
     <div className={`sidebar-footer-tabbar${footerEmbeddedInCluster ? ' sidebar-footer-tabbar--cluster' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
@@ -1573,7 +1573,7 @@ export default function ChatSidebar({
                   : dismissMoreActionsSheet;
 
   return (
-    <aside className={`sidebar${moreActionsMenuOpen ? ' sidebar--more-actions-open' : ''}`} ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
+    <aside className={`sidebar${moreActionsMenuOpen ? ' sidebar--more-actions-open' : ''}${isSettingsPageMode ? ' sidebar--settings-open' : ''}`} ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
       {!isSettingsPageMode && (
         <>
           {/* Header */}

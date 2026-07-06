@@ -2622,7 +2622,7 @@ font-family: 'Inter', sans-serif;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 0 0 12px;
+  padding: 0 0 calc(var(--sidebar-local-sheet-bottom) + 28px);
   background: none;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
@@ -3556,6 +3556,15 @@ font-family: 'Inter', sans-serif;
   padding: 16px var(--sidebar-footer-inline);
   padding-bottom: max(16px, env(safe-area-inset-bottom));
   background: linear-gradient(180deg, rgba(28, 20, 60, 0) 0%, rgba(28, 20, 60, 0.18) 100%);
+}
+.sidebar--settings-open .sidebar-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.sidebar--settings-open .sidebar-bottom-cluster-backdrop--settings {
+  padding-bottom: calc(var(--sidebar-local-sheet-bottom) + 16px);
 }
 .sidebar-footer-tabbar {
   position: relative;

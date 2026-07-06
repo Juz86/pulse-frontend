@@ -384,74 +384,92 @@ export default function ChatSidebar({
       </div>
     </div>
   );
-  const renderSettingsOverviewSheet = () => (
-    <div className="settings-overview-screen">
-      <div className="settings-overview-topbar">
-        <button
-          type="button"
-          className="settings-overview-topbar-btn settings-overview-topbar-btn--back"
-          aria-label="Instellingen sluiten"
-          title="Terug"
-          onClick={dismissProfileOverviewSheet}
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" />
+  const renderSettingsOverviewSheet = () => {
+    const primarySections = profileSections.filter((section) => ['account', 'geschiedenis'].includes(section.id));
+    const secondarySections = profileSections.filter((section) => !['account', 'geschiedenis'].includes(section.id));
+    const renderOverviewRow = (section, extraClassName = '') => (
+      <button
+        key={section.id}
+        type="button"
+        className={`settings-overview-item${extraClassName ? ` ${extraClassName}` : ''}`}
+        onClick={() => {
+          setProfileTab?.(section.id);
+          if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
+        }}
+      >
+        <span className="settings-overview-item-icon" aria-hidden="true">{section.icon}</span>
+        <span className="settings-overview-item-copy">
+          <span className="settings-overview-item-title">{section.label}</span>
+          <span className="settings-overview-item-description">{section.description}</span>
+        </span>
+        <span className="settings-overview-item-arrow" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6" />
           </svg>
-        </button>
-        <div className="settings-overview-topbar-title">Instellingen</div>
-        <button
-          type="button"
-          className="settings-overview-topbar-btn settings-overview-topbar-btn--action"
-          aria-label="Open mijn account"
-          title="Mijn account"
-          onClick={() => setProfileTab?.('account')}
-        >
-          Mijn account
-        </button>
-      </div>
+        </span>
+      </button>
+    );
 
-      <div className="settings-overview-hero">
-        <div className="settings-overview-avatar">
-          <UserAvatar
-            photoURL={photoPreview || undefined}
-            displayName={settingsDisplayName}
-            className="profile-avatar-big"
-          />
+    return (
+      <div className="settings-overview-screen">
+        <div className="settings-overview-topbar">
+          <button
+            type="button"
+            className="settings-overview-topbar-btn settings-overview-topbar-btn--back"
+            aria-label="Instellingen sluiten"
+            title="Terug"
+            onClick={dismissProfileOverviewSheet}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <div className="settings-overview-topbar-spacer" aria-hidden="true" />
+          <button
+            type="button"
+            className="settings-overview-topbar-btn settings-overview-topbar-btn--action"
+            aria-label="Open mijn account"
+            title="Mijn account"
+            onClick={() => setProfileTab?.('account')}
+          >
+            <User size={18} aria-hidden="true" />
+            <span>Mijn account</span>
+          </button>
         </div>
-        <div className="settings-overview-name">{settingsDisplayName}</div>
-        {settingsEmail ? <div className="settings-overview-email">{settingsEmail}</div> : null}
-        <div className={`profile-status-badge settings-overview-status ${settingsStatusClass}`}>
-          <span className="profile-status-dot" aria-hidden="true" />
-          {settingsStatusLabel}
-        </div>
-      </div>
 
-      <div className="settings-overview-card">
-        <div className="settings-overview-section-title">Instellingen</div>
-        <div className="settings-overview-list">
-          {profileSections.map((section) => (
+        <div className="settings-overview-hero">
+          <div className="settings-overview-badge">Pulse instellingen</div>
+          <div className="settings-overview-avatar">
+            <UserAvatar
+              photoURL={photoPreview || undefined}
+              displayName={settingsDisplayName}
+              className="profile-avatar-big"
+            />
+          </div>
+          <div className="settings-overview-name-row">
+            <div className="settings-overview-name">{settingsDisplayName}</div>
             <button
-              key={section.id}
               type="button"
-              className="settings-overview-item"
-              onClick={() => {
-                setProfileTab?.(section.id);
-                if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
-              }}
+              className="settings-overview-inline-action"
+              aria-label="Open mijn account"
+              onClick={() => setProfileTab?.('account')}
             >
-              <span className="settings-overview-item-icon" aria-hidden="true">{section.icon}</span>
-              <span className="settings-overview-item-copy">
-                <span className="settings-overview-item-title">{section.label}</span>
-                <span className="settings-overview-item-description">{section.description}</span>
-              </span>
-              <span className="settings-overview-item-arrow" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </span>
+              <Plus size={16} aria-hidden="true" />
             </button>
-          ))}
+          </div>
+          {settingsEmail ? <div className="settings-overview-email">{settingsEmail}</div> : null}
+          <div className={`profile-status-badge settings-overview-status ${settingsStatusClass}`}>
+            <span className="profile-status-dot" aria-hidden="true" />
+            {settingsStatusLabel}
+          </div>
+        </div>
 
+        <div className="settings-overview-group">
+          {primarySections.map((section) => renderOverviewRow(section))}
+        </div>
+
+        <div className="settings-overview-group">
+          {secondarySections.map((section) => renderOverviewRow(section))}
           <button
             type="button"
             className="settings-overview-item settings-overview-item--danger"
@@ -475,8 +493,8 @@ export default function ChatSidebar({
           </button>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   useEffect(() => {
     if (!historyChildren.length) {

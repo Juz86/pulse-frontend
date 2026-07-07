@@ -386,8 +386,7 @@ export default function ChatSidebar({
     </div>
   );
   const renderSettingsOverviewSheet = () => {
-    const quickSections = profileSections.slice(0, 3);
-    const rowSections = profileSections.slice(3);
+    const rowSections = profileSections;
     const renderOverviewRow = (section, extraClassName = '') => (
       <button
         key={section.id}
@@ -408,21 +407,6 @@ export default function ChatSidebar({
         </svg>
       </button>
     );
-    const renderQuickCard = (section) => (
-      <button
-        key={section.id}
-        type="button"
-        className="contact-profile-quick-card"
-        onClick={() => {
-          setProfileTab?.(section.id);
-          if (section.id === 'geschiedenis') onProfileHistoryOpen?.();
-        }}
-      >
-        <span className="contact-profile-quick-icon" aria-hidden="true">{section.icon}</span>
-        <span>{section.label}</span>
-      </button>
-    );
-
     return (
       <aside
         className="chat-side-panel contact-profile-panel"
@@ -471,11 +455,6 @@ export default function ChatSidebar({
             {settingsStatusLabel}
           </div>
         </div>
-
-        <div className="contact-profile-quick-actions">
-          {quickSections.map(renderQuickCard)}
-        </div>
-
         <section className="contact-profile-card">
           <div className="contact-profile-field">
             <span className="contact-profile-field-label">Naam</span>
@@ -494,7 +473,6 @@ export default function ChatSidebar({
         </section>
 
         <section className="contact-profile-card">
-          {quickSections.map((section) => renderOverviewRow(section))}
           {rowSections.map((section) => renderOverviewRow(section))}
         </section>
 
@@ -520,36 +498,6 @@ export default function ChatSidebar({
           </button>
         </section>
 
-        <div className="contact-profile-footer">
-          <div className="contact-profile-footer-actions">
-            <button
-              type="button"
-              className="icon-btn"
-              aria-label="Open geschiedenis"
-              title="Geschiedenis"
-              onClick={() => { setProfileTab?.('geschiedenis'); onProfileHistoryOpen?.(); }}
-            >
-              <Clock size={18} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="icon-btn"
-              aria-label="Open styling"
-              title="Styling"
-              onClick={() => setProfileTab?.('styling')}
-            >
-              <Palette size={18} aria-hidden="true" />
-            </button>
-          </div>
-          <button
-            type="button"
-            className="btn-primary"
-            style={{ flex: '1 1 0', minWidth: 0, minHeight: 42, padding: '0 12px', marginTop: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            onClick={() => setProfileTab?.('account')}
-          >
-            Mijn account
-          </button>
-        </div>
       </aside>
     );
   };

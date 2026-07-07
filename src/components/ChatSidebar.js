@@ -456,23 +456,6 @@ export default function ChatSidebar({
           </div>
         </div>
         <section className="contact-profile-card">
-          <div className="contact-profile-field">
-            <span className="contact-profile-field-label">Naam</span>
-            <div className="contact-profile-field-value">{settingsDisplayName}</div>
-          </div>
-          {settingsEmail && (
-            <div className="contact-profile-field">
-              <span className="contact-profile-field-label">E-mailadres</span>
-              <div className="contact-profile-field-value">{settingsEmail}</div>
-            </div>
-          )}
-          <div className="contact-profile-field">
-            <span className="contact-profile-field-label">Status</span>
-            <div className="contact-profile-field-value">{settingsStatusLabel}</div>
-          </div>
-        </section>
-
-        <section className="contact-profile-card">
           {rowSections.map((section) => renderOverviewRow(section))}
         </section>
 

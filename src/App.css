@@ -3394,6 +3394,10 @@ font-family: 'Inter', sans-serif;
   right: 0;
   bottom: 0;
 }
+.sidebar--settings-open .contact-profile-panel {
+  padding-bottom: calc(max(22px, env(safe-area-inset-bottom) + 12px) + 116px);
+  scroll-padding-bottom: calc(max(22px, env(safe-area-inset-bottom) + 12px) + 116px);
+}
 .sidebar--settings-open .sidebar-bottom-cluster-backdrop--settings {
   padding-bottom: calc(var(--sidebar-local-sheet-bottom) + 16px);
 }

@@ -315,8 +315,9 @@ export default function ChatSidebar({
   const callSheetVisible = showCallModal || callSheetClosing;
   const embeddedSettingsActive = showProfile && (profileTab === 'overview' || profileTab === 'account' || profileTab === 'geschiedenis' || profileTab === 'styling' || profileTab === 'geblokkeerd');
   const settingsSheetVisible = embeddedSettingsActive || profileSheetClosing;
+  const settingsProfilePageVisible = embeddedSettingsActive && profileTab === 'overview';
   const parentPortalSheetVisible = showParentDashboard || parentPortalSheetClosing;
-  const footerClusterMode = settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (parentPortalSheetVisible ? 'parent-portal' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null)))))))));
+  const footerClusterMode = settingsProfilePageVisible ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (parentPortalSheetVisible ? 'parent-portal' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null))))))))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Geschiedenis', description: 'Bewaartermijnen beheren' }] : []),
@@ -476,31 +477,79 @@ export default function ChatSidebar({
         </div>
 
         <section className="contact-profile-card">
+          <div className="contact-profile-field">
+            <span className="contact-profile-field-label">Naam</span>
+            <div className="contact-profile-field-value">{settingsDisplayName}</div>
+          </div>
+          {settingsEmail && (
+            <div className="contact-profile-field">
+              <span className="contact-profile-field-label">E-mailadres</span>
+              <div className="contact-profile-field-value">{settingsEmail}</div>
+            </div>
+          )}
+          <div className="contact-profile-field">
+            <span className="contact-profile-field-label">Status</span>
+            <div className="contact-profile-field-value">{settingsStatusLabel}</div>
+          </div>
+        </section>
+
+        <section className="contact-profile-card">
           {quickSections.map((section) => renderOverviewRow(section))}
           {rowSections.map((section) => renderOverviewRow(section))}
         </section>
 
         <section className="contact-profile-card contact-profile-card-danger">
+          <button
+            type="button"
+            className="contact-profile-row-button danger"
+            onClick={() => {
+              closeProfileOverviewSheet();
+              onRequestSettingsLogout?.();
+            }}
+          >
+            <span className="contact-profile-row-icon" aria-hidden="true">
+              <Logout size={18} />
+            </span>
+            <span className="contact-profile-row-copy">
+              <span className="contact-profile-row-title">Uitloggen</span>
+              <span className="contact-profile-row-subtitle">Afmelden van dit account</span>
+            </span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </section>
+
+        <div className="contact-profile-footer">
+          <div className="contact-profile-footer-actions">
             <button
               type="button"
-              className="contact-profile-row-button danger"
-              onClick={() => {
-                closeProfileOverviewSheet();
-                onRequestSettingsLogout?.();
-              }}
+              className="icon-btn"
+              aria-label="Open geschiedenis"
+              title="Geschiedenis"
+              onClick={() => { setProfileTab?.('geschiedenis'); onProfileHistoryOpen?.(); }}
             >
-              <span className="contact-profile-row-icon" aria-hidden="true">
-                <Logout size={18} />
-              </span>
-              <span className="contact-profile-row-copy">
-                <span className="contact-profile-row-title">Uitloggen</span>
-                <span className="contact-profile-row-subtitle">Afmelden van dit account</span>
-              </span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
+              <Clock size={18} aria-hidden="true" />
             </button>
-        </section>
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Open styling"
+              title="Styling"
+              onClick={() => setProfileTab?.('styling')}
+            >
+              <Palette size={18} aria-hidden="true" />
+            </button>
+          </div>
+          <button
+            type="button"
+            className="btn-primary"
+            style={{ flex: '1 1 0', minWidth: 0, minHeight: 42, padding: '0 12px', marginTop: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onClick={() => setProfileTab?.('account')}
+          >
+            Mijn account
+          </button>
+        </div>
       </aside>
     );
   };
@@ -1573,7 +1622,7 @@ export default function ChatSidebar({
                   ? 'Recent'
                   : 'Meer opties';
   const isMoreFooterCluster = footerClusterMode === 'more';
-  const isSettingsPageMode = footerClusterMode === 'settings';
+  const isSettingsPageMode = embeddedSettingsActive;
   const isLightFooterCluster = isMoreFooterCluster;
   const useDetachedFooterCluster = isLightFooterCluster || !footerEmbeddedInCluster;
   const footerClusterSheetClassName = isLightFooterCluster
@@ -1773,6 +1822,8 @@ export default function ChatSidebar({
           </div>
         );
       })()}
+
+      {settingsProfilePageVisible ? renderSettingsOverviewSheet() : null}
 
       {footerClusterMode ? (
         <div

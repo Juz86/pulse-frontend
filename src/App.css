@@ -6205,6 +6205,19 @@ font-family: 'Inter', sans-serif;
   cursor:pointer;
   box-shadow:0 14px 30px rgba(10,8,30,.18);
 }
+.contact-profile-close-btn {
+  min-width: 52px;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: none;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #241741;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 14px 30px rgba(88, 69, 164, 0.1);
+}
 .contact-profile-hero {
   display:flex;
   flex-direction:column;

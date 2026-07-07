@@ -428,7 +428,7 @@ export default function ChatSidebar({
           <h2 id="settings-profile-title" className="contact-profile-heading">Instellingen</h2>
           <button
             type="button"
-            className="contact-profile-edit-btn"
+            className="contact-profile-edit-btn contact-profile-close-btn"
             aria-label="Instellingen sluiten"
             title="Sluiten"
             onClick={dismissProfileOverviewSheet}

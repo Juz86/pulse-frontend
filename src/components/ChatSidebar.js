@@ -423,7 +423,11 @@ export default function ChatSidebar({
     );
 
     return (
-      <div className="contact-profile-panel settings-profile-page">
+      <aside
+        className="chat-side-panel contact-profile-panel"
+        aria-labelledby="settings-profile-title"
+        aria-describedby="settings-profile-description"
+      >
         <div className="contact-profile-topbar">
           <button
             type="button"
@@ -436,7 +440,7 @@ export default function ChatSidebar({
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
-          <h2 className="contact-profile-heading">Instellingen</h2>
+          <h2 id="settings-profile-title" className="contact-profile-heading">Instellingen</h2>
           <button
             type="button"
             className="contact-profile-edit-btn"
@@ -447,6 +451,9 @@ export default function ChatSidebar({
             Bewerk
           </button>
         </div>
+        <p id="settings-profile-description" className="sr-only">
+          Bekijk en beheer je instellingen in dezelfde profielopbouw.
+        </p>
 
         <div className="contact-profile-hero">
           <div className="contact-profile-avatar-shell">
@@ -494,7 +501,7 @@ export default function ChatSidebar({
               </svg>
             </button>
         </section>
-      </div>
+      </aside>
     );
   };
 

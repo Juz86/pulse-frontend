@@ -2635,10 +2635,6 @@ font-family: 'Inter', sans-serif;
   background: transparent;
   border-top: none;
 }
-.settings-profile-page {
-  min-height: 100%;
-  box-sizing: border-box;
-}
 @keyframes settings-page-enter {
   from {
     opacity: 0;

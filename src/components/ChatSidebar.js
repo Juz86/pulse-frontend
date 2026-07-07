@@ -316,8 +316,9 @@ export default function ChatSidebar({
   const embeddedSettingsActive = showProfile && (profileTab === 'overview' || profileTab === 'account' || profileTab === 'geschiedenis' || profileTab === 'styling' || profileTab === 'geblokkeerd');
   const settingsSheetVisible = embeddedSettingsActive || profileSheetClosing;
   const settingsProfilePageVisible = embeddedSettingsActive && profileTab === 'overview';
+  const accountProfilePageVisible = embeddedSettingsActive && profileTab === 'account';
   const parentPortalSheetVisible = showParentDashboard || parentPortalSheetClosing;
-  const footerClusterMode = settingsProfilePageVisible ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (parentPortalSheetVisible ? 'parent-portal' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null))))))))));
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (parentPortalSheetVisible ? 'parent-portal' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null))))))))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Geschiedenis', description: 'Bewaartermijnen beheren' }] : []),
@@ -484,6 +485,160 @@ export default function ChatSidebar({
       </aside>
     );
   };
+  const renderSettingsAccountSheet = () => (
+    <aside
+      className="chat-side-panel contact-profile-panel"
+      aria-labelledby="settings-account-title"
+      aria-describedby="settings-account-description"
+    >
+      <div className="contact-profile-topbar">
+        <button
+          type="button"
+          className="contact-profile-nav-btn"
+          aria-label="Terug naar instellingen"
+          title="Terug"
+          onClick={() => setProfileTab?.('overview')}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <h2 id="settings-account-title" className="contact-profile-heading">Mijn account</h2>
+        <button
+          type="button"
+          className="contact-profile-edit-btn contact-profile-close-btn"
+          aria-label="Mijn account sluiten"
+          title="Sluiten"
+          onClick={dismissProfileOverviewSheet}
+        >
+          <XIcon size={20} aria-hidden="true" />
+        </button>
+      </div>
+      <p id="settings-account-description" className="sr-only">
+        Werk je naam, avatar en wachtwoord bij in dezelfde profielopbouw.
+      </p>
+
+      <div className="contact-profile-hero">
+        <div className="contact-profile-avatar-shell">
+          <div className="profile-photo-wrap" onClick={() => photoInputRef?.current?.click()}>
+            {photoPreview
+              ? <img src={photoPreview} alt="avatar" className="profile-avatar-big contact-profile-avatar" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview?.(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
+              : <div className="profile-avatar-big contact-profile-avatar">{getInitials(user.displayName || user.email)}</div>
+            }
+            <div className="profile-photo-overlay"><Camera size={16} /></div>
+          </div>
+        </div>
+        <div className="contact-profile-name">{settingsDisplayName}</div>
+        {settingsEmail ? <div className="contact-profile-subtitle">{settingsEmail}</div> : null}
+        <div className={`profile-status-badge contact-profile-status ${settingsStatusClass}`}>
+          <span className="profile-status-dot" aria-hidden="true" />
+          {settingsStatusLabel}
+        </div>
+        <button type="button" className="profile-account-avatar-btn" onClick={() => setShowAvatarBuilder?.(true)}>
+          🎨 Avatar maken
+        </button>
+        <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+      </div>
+
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
+          <span className="contact-profile-field-label">Weergavenaam</span>
+          <input className="form-input" placeholder="Jouw naam" value={newName} onChange={(e) => setNewName?.(e.target.value)} />
+        </div>
+        {isChildAccount && (
+          <div className="contact-profile-field">
+            <span className="contact-profile-field-label">Gebruikersnaam</span>
+            <input
+              className="form-input"
+              value={newUsername}
+              readOnly
+              disabled
+              aria-readonly="true"
+              style={{ opacity: 0.72, cursor: 'not-allowed' }}
+            />
+            <div className="profile-account-helper" style={{ marginTop: '8px' }}>
+              Deze loginnaam is ingesteld door je ouder en kan alleen in het ouderportaal worden gewijzigd.
+            </div>
+          </div>
+        )}
+        {isParent && (
+          <div className="contact-profile-field">
+            <span className="contact-profile-field-label">E-mailadres</span>
+            <input className="form-input profile-account-input-disabled" type="email" value={user.email} disabled />
+          </div>
+        )}
+      </section>
+
+      {!user.email?.endsWith('@pulse.internal') && (
+        <section className="contact-profile-card">
+          <div className="contact-profile-field">
+            <span className="contact-profile-field-label">Wachtwoord wijzigen</span>
+            <div style={{ position: 'relative' }}>
+              <input
+                className="form-input"
+                type={showNewPassword ? 'text' : 'password'}
+                placeholder="Nieuw wachtwoord"
+                aria-label="Nieuw wachtwoord"
+                value={newPassword}
+                onChange={(e) => setNewPassword?.(e.target.value)}
+                style={{ paddingRight: '42px' }}
+              />
+              <button
+                type="button"
+                aria-label={showNewPassword ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'}
+                onClick={() => setShowNewPassword?.((prev) => !prev)}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 0 }}
+              >
+                {showNewPassword ? <EyeOff size={18} /> : <EyeOn size={18} />}
+              </button>
+            </div>
+          </div>
+          <div className="contact-profile-field">
+            <input
+              className="form-input"
+              type={showNewPassword ? 'text' : 'password'}
+              placeholder="Bevestig wachtwoord"
+              aria-label="Bevestig wachtwoord"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword?.(e.target.value)}
+            />
+          </div>
+          <div className="contact-profile-field">
+            <button type="button" className="btn-secondary" style={{ width: '100%', marginTop: 0 }} disabled={passwordLoading || !newPassword} onClick={() => changePassword?.()}>
+              {passwordLoading ? 'Bezig…' : 'Wachtwoord wijzigen'}
+            </button>
+            {passwordMsg && <div style={{ fontSize: '12px', marginTop: '8px', color: passwordMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{passwordMsg}</div>}
+          </div>
+        </section>
+      )}
+
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
+          {profileMsg && <div style={{ fontSize: '12px', marginBottom: '10px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
+          <button type="button" className="btn-primary" style={{ width: '100%', marginTop: 0 }} disabled={profileLoading} onClick={() => saveProfile?.()}>
+            {profileLoading ? 'Opslaan…' : 'Opslaan →'}
+          </button>
+        </div>
+      </section>
+
+      <section className="contact-profile-card contact-profile-card-danger">
+        <button
+          type="button"
+          className="contact-profile-row-button danger"
+          onClick={() => { dismissProfileOverviewSheet(); handleDeleteAccount?.(); }}
+        >
+          <span className="contact-profile-row-icon" aria-hidden="true"><Trash2 size={18} /></span>
+          <span className="contact-profile-row-copy">
+            <span className="contact-profile-row-title">Account verwijderen</span>
+            <span className="contact-profile-row-subtitle">Verwijder chats, berichten en gegevens permanent</span>
+          </span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
+            <path d="M9 18l6-6-6-6" />
+          </svg>
+        </button>
+      </section>
+    </aside>
+  );
 
   useEffect(() => {
     if (!historyChildren.length) {
@@ -1755,6 +1910,7 @@ export default function ChatSidebar({
       })()}
 
       {settingsProfilePageVisible ? renderSettingsOverviewSheet() : null}
+      {accountProfilePageVisible ? renderSettingsAccountSheet() : null}
 
       {footerClusterMode ? (
         <div

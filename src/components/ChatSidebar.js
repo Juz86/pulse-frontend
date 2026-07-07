@@ -518,7 +518,7 @@ export default function ChatSidebar({
         Werk je naam, avatar en wachtwoord bij in dezelfde profielopbouw.
       </p>
 
-      <div className="contact-profile-hero">
+      <div className="contact-profile-hero contact-profile-hero--account">
         <div className="contact-profile-avatar-shell">
           <div className="profile-photo-wrap" onClick={() => photoInputRef?.current?.click()}>
             {photoPreview
@@ -527,12 +527,6 @@ export default function ChatSidebar({
             }
             <div className="profile-photo-overlay"><Camera size={16} /></div>
           </div>
-        </div>
-        <div className="contact-profile-name">{settingsDisplayName}</div>
-        {settingsEmail ? <div className="contact-profile-subtitle">{settingsEmail}</div> : null}
-        <div className={`profile-status-badge contact-profile-status ${settingsStatusClass}`}>
-          <span className="profile-status-dot" aria-hidden="true" />
-          {settingsStatusLabel}
         </div>
         <button type="button" className="profile-account-avatar-btn" onClick={() => setShowAvatarBuilder?.(true)}>
           🎨 Avatar maken
@@ -567,6 +561,12 @@ export default function ChatSidebar({
             <input className="form-input profile-account-input-disabled" type="email" value={user.email} disabled />
           </div>
         )}
+        <div className="contact-profile-field">
+          {profileMsg && <div style={{ fontSize: '12px', marginBottom: '10px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
+          <button type="button" className="btn-primary" style={{ width: '100%', marginTop: 0 }} disabled={profileLoading} onClick={() => saveProfile?.()}>
+            {profileLoading ? 'Opslaan…' : 'Opslaan →'}
+          </button>
+        </div>
       </section>
 
       {!user.email?.endsWith('@pulse.internal') && (
@@ -611,15 +611,6 @@ export default function ChatSidebar({
           </div>
         </section>
       )}
-
-      <section className="contact-profile-card">
-        <div className="contact-profile-field">
-          {profileMsg && <div style={{ fontSize: '12px', marginBottom: '10px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
-          <button type="button" className="btn-primary" style={{ width: '100%', marginTop: 0 }} disabled={profileLoading} onClick={() => saveProfile?.()}>
-            {profileLoading ? 'Opslaan…' : 'Opslaan →'}
-          </button>
-        </div>
-      </section>
 
       <section className="contact-profile-card contact-profile-card-danger">
         <button

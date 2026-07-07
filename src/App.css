@@ -6228,6 +6228,9 @@ font-family: 'Inter', sans-serif;
   text-align:center;
   padding:10px 0 20px;
 }
+.contact-profile-hero--account {
+  padding: 8px 0 14px;
+}
 .contact-profile-avatar-shell {
   display:flex;
   align-items:center;

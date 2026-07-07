@@ -429,11 +429,11 @@ export default function ChatSidebar({
           <button
             type="button"
             className="contact-profile-edit-btn"
-            aria-label="Open mijn account"
-            title="Mijn account"
-            onClick={() => setProfileTab?.('account')}
+            aria-label="Instellingen sluiten"
+            title="Sluiten"
+            onClick={dismissProfileOverviewSheet}
           >
-            Bewerk
+            <XIcon size={20} aria-hidden="true" />
           </button>
         </div>
         <p id="settings-profile-description" className="sr-only">

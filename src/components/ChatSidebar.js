@@ -652,6 +652,29 @@ export default function ChatSidebar({
     <>
       <section className="contact-profile-card">
         <div className="contact-profile-field">
+          <span className="contact-profile-field-label">Overzicht</span>
+          <h3 className="profile-settings-page-title">Bewaartermijnen beheren</h3>
+          <p className="profile-settings-section-copy profile-settings-section-copy--lead">
+            Stel per account in hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis zichtbaar blijven binnen Pulse.
+          </p>
+          <div className="profile-settings-stat-grid">
+            <div className="profile-settings-stat-card">
+              <div className="profile-settings-stat-label">Standaard</div>
+              <div className="profile-settings-stat-value">30 dagen</div>
+            </div>
+            <div className="profile-settings-stat-card">
+              <div className="profile-settings-stat-label">Per account</div>
+              <div className="profile-settings-stat-value">Apart</div>
+            </div>
+            <div className="profile-settings-stat-card">
+              <div className="profile-settings-stat-label">Onderdelen</div>
+              <div className="profile-settings-stat-value">Chat, bel, video</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
           <span className="contact-profile-field-label">Ouderaccount</span>
           <p className="profile-settings-section-copy">
             Beheer hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis voor jouw account wordt bewaard.
@@ -724,12 +747,12 @@ export default function ChatSidebar({
             {historySettingsSavingTarget === primaryHistoryChild?.uid ? 'Opslaan…' : 'Opslaan'}
           </button>
           {primaryHistoryChild && !canManagePrimaryHistoryChild && (
-            <div className="profile-settings-helper-copy" style={{ marginTop: '10px' }}>
+            <div className="profile-settings-helper-copy profile-settings-helper-copy--spaced">
               Alleen ouder A kan de bewaartermijn voor dit kindaccount aanpassen.
             </div>
           )}
           {historySettingsMsg && (
-            <div className="profile-settings-inline-message" style={{ color: historySettingsMsg.startsWith('Fout:') ? 'var(--danger)' : 'var(--success)', marginTop: '10px' }}>
+            <div className={`profile-settings-inline-message profile-settings-inline-message--stacked profile-settings-inline-message--spaced ${historySettingsMsg.startsWith('Fout:') ? 'is-error' : 'is-success'}`}>
               {historySettingsMsg}
             </div>
           )}

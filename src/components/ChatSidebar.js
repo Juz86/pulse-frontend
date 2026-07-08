@@ -293,6 +293,7 @@ export default function ChatSidebar({
   const [pendingColor, setPendingColor] = useState(null);
   const [pendingPhoto, setPendingPhoto] = useState(null);
   const moreActionsMenuRef = useRef(null);
+  const profilePanelRef = useRef(null);
   const moreActionsCloseTimeoutRef = useRef(null);
   const addContactSheetCloseTimeoutRef = useRef(null);
   const newChatSheetCloseTimeoutRef = useRef(null);
@@ -410,6 +411,7 @@ export default function ChatSidebar({
     );
     return (
       <aside
+        ref={profilePanelRef}
         className="chat-side-panel contact-profile-panel"
         aria-labelledby="settings-profile-title"
         aria-describedby="settings-profile-description"
@@ -487,6 +489,7 @@ export default function ChatSidebar({
   };
   const renderSettingsAccountSheet = () => (
     <aside
+      ref={profilePanelRef}
       className="chat-side-panel contact-profile-panel"
       aria-labelledby="settings-account-title"
       aria-describedby="settings-account-description"
@@ -665,6 +668,7 @@ export default function ChatSidebar({
     if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible && !newGroupSheetVisible && !addContactSheetVisible && !requestsSheetVisible && !parentPortalSheetVisible) return;
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
+      if (profilePanelRef.current?.contains?.(e.target)) return;
       if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {
         if (settingsSheetVisible) {
           setProfileSheetClosing(true);

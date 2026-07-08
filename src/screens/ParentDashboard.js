@@ -1318,7 +1318,12 @@ export default function ParentDashboard({
           type="button"
           key={tab.id}
           className="contact-profile-row-button"
-          onClick={() => {
+          onMouseDown={(event) => {
+            event.stopPropagation();
+          }}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
             setActiveTab(tab.id);
             setPortalView('content');
           }}
@@ -1396,7 +1401,12 @@ export default function ParentDashboard({
             type="button"
             key={t.id}
             className="chat-header-menu-item parent-actions-item parent-actions-item--embedded"
-            onClick={() => {
+            onMouseDown={(event) => {
+              event.stopPropagation();
+            }}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
               setActiveTab(t.id);
               setPortalView('content');
             }}

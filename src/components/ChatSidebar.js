@@ -318,8 +318,11 @@ export default function ChatSidebar({
   const settingsSheetVisible = embeddedSettingsActive || profileSheetClosing;
   const settingsProfilePageVisible = embeddedSettingsActive && profileTab === 'overview';
   const accountProfilePageVisible = embeddedSettingsActive && profileTab === 'account';
+  const historyProfilePageVisible = embeddedSettingsActive && profileTab === 'geschiedenis';
+  const stylingProfilePageVisible = embeddedSettingsActive && profileTab === 'styling';
+  const blockedProfilePageVisible = embeddedSettingsActive && profileTab === 'geblokkeerd';
   const parentPortalSheetVisible = showParentDashboard || parentPortalSheetClosing;
-  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (parentPortalSheetVisible ? 'parent-portal' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null))))))))));
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (parentPortalSheetVisible ? 'parent-portal' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null))))))))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Geschiedenis', description: 'Bewaartermijnen beheren' }] : []),
@@ -632,6 +635,277 @@ export default function ChatSidebar({
         </button>
       </section>
     </aside>
+  );
+  const renderSettingsSubpageShell = (title, description, children) => (
+    <aside
+      ref={profilePanelRef}
+      className="chat-side-panel contact-profile-panel"
+      aria-labelledby={`settings-${title.toLowerCase()}-title`}
+      aria-describedby={`settings-${title.toLowerCase()}-description`}
+    >
+      <div className="contact-profile-topbar">
+        <button
+          type="button"
+          className="contact-profile-nav-btn"
+          aria-label="Terug naar instellingen"
+          title="Terug"
+          onClick={() => setProfileTab?.('overview')}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <h2 id={`settings-${title.toLowerCase()}-title`} className="contact-profile-heading">{title}</h2>
+        <button
+          type="button"
+          className="contact-profile-edit-btn contact-profile-close-btn"
+          aria-label={`${title} sluiten`}
+          title="Sluiten"
+          onClick={dismissProfileOverviewSheet}
+        >
+          <XIcon size={20} aria-hidden="true" />
+        </button>
+      </div>
+      <p id={`settings-${title.toLowerCase()}-description`} className="sr-only">{description}</p>
+      {children}
+    </aside>
+  );
+  const renderSettingsHistorySheet = () => renderSettingsSubpageShell(
+    'Geschiedenis',
+    'Beheer per account hoe lang geschiedenis wordt bewaard.',
+    <>
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
+          <span className="contact-profile-field-label">Overzicht</span>
+          <div style={{ color: 'rgba(255,255,255,.68)', fontSize: '14px', lineHeight: 1.6 }}>
+            Beheer per account hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis worden bewaard. Zonder wijziging blijft de standaard op 30 dagen.
+          </div>
+        </div>
+      </section>
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
+          <span className="contact-profile-field-label">Ouderaccount</span>
+          {historySettingRows.map((row) => (
+            <div key={`parent-${row.key}`} className="profile-settings-field-stack" style={{ marginTop: '10px' }}>
+              <div className="profile-settings-field-label">{row.label}</div>
+              <SidebarHistorySelect
+                ariaLabel={`${row.label} ouderaccount`}
+                value={historyRules?.[row.key] ?? 30}
+                options={HISTORY_RETENTION_OPTIONS}
+                onChange={(nextValue) => setHistoryRules?.((prev) => ({ ...normalizeHistoryRules(prev), [row.key]: Number(nextValue) }))}
+                disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
+                style={historySelectStyle}
+              />
+            </div>
+          ))}
+          <button type="button" className="btn-primary" style={{ width: '100%', marginTop: '14px' }} onClick={() => saveHistorySettings?.()} disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}>
+            {historySettingsSavingTarget === 'parent' ? 'Opslaan…' : 'Opslaan'}
+          </button>
+        </div>
+      </section>
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
+          <span className="contact-profile-field-label">Kindaccount</span>
+          <SidebarHistorySelect
+            ariaLabel="Kies kindaccount"
+            value={selectedHistoryChildUid}
+            options={
+              historyChildren.length === 0
+                ? [{ value: '', label: 'Geen kindaccounts' }]
+                : historyChildren.map((child) => ({ value: child.uid, label: child.displayName }))
+            }
+            onChange={(nextValue) => setSelectedHistoryChildUid(String(nextValue))}
+            disabled={!historyChildren.length || historySettingsLoading}
+            style={historySelectStyle}
+          />
+          {historySettingRows.map((row) => (
+            <div key={`child-${row.key}`} className="profile-settings-field-stack" style={{ marginTop: '10px' }}>
+              <div className="profile-settings-field-label">{row.label}</div>
+              <SidebarHistorySelect
+                ariaLabel={`${row.label} kindaccount`}
+                value={primaryHistoryRules[row.key]}
+                options={HISTORY_RETENTION_OPTIONS}
+                onChange={(nextValue) => {
+                  if (!primaryHistoryChild) return;
+                  setChildHistoryRulesByUid?.((prev) => ({
+                    ...prev,
+                    [primaryHistoryChild.uid]: {
+                      ...normalizeHistoryRules(prev?.[primaryHistoryChild.uid]),
+                      [row.key]: Number(nextValue),
+                    },
+                  }));
+                }}
+                disabled={!primaryHistoryChild || !canManagePrimaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
+                style={historySelectStyle}
+              />
+            </div>
+          ))}
+          <button
+            type="button"
+            className="btn-primary"
+            style={{ width: '100%', marginTop: '14px' }}
+            onClick={() => primaryHistoryChild && saveChildHistorySettings?.(primaryHistoryChild.uid)}
+            disabled={!primaryHistoryChild || !canManagePrimaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
+          >
+            {historySettingsSavingTarget === primaryHistoryChild?.uid ? 'Opslaan…' : 'Opslaan'}
+          </button>
+          {primaryHistoryChild && !canManagePrimaryHistoryChild && (
+            <div className="profile-settings-helper-copy" style={{ marginTop: '10px' }}>
+              Alleen ouder A kan de bewaartermijn voor dit kindaccount aanpassen.
+            </div>
+          )}
+          {historySettingsMsg && (
+            <div className="profile-settings-inline-message" style={{ color: historySettingsMsg.startsWith('Fout:') ? 'var(--danger)' : 'var(--success)', marginTop: '10px' }}>
+              {historySettingsMsg}
+            </div>
+          )}
+        </div>
+      </section>
+    </>,
+  );
+  const renderSettingsBlockedSheet = () => {
+    const selfBlocked = (blockedContacts || []).filter((c) => !parentBlockedUids?.includes(c.uid));
+    const parentBlocked = (blockedContacts || []).filter((c) => parentBlockedUids?.includes(c.uid));
+    return renderSettingsSubpageShell(
+      'Geblokkeerd',
+      'Beheer welke contacten geblokkeerd zijn.',
+      <>
+        <section className="contact-profile-card">
+          <div className="contact-profile-field">
+            <span className="contact-profile-field-label">Overzicht</span>
+            <div style={{ color: 'rgba(255,255,255,.68)', fontSize: '14px', lineHeight: 1.6 }}>
+              Beheer welke contacten door jou of door een ouder zijn geblokkeerd.
+            </div>
+          </div>
+        </section>
+        {selfBlocked.length > 0 && (
+          <section className="contact-profile-card">
+            <div className="contact-profile-field">
+              <span className="contact-profile-field-label">Door jou geblokkeerd</span>
+              <div className="profile-settings-list-rows">
+                {selfBlocked.map((c) => (
+                  <div key={c.uid} className="profile-settings-contact-row">
+                    <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
+                    </div>
+                    <button type="button" className="btn-secondary" style={{ fontSize: '12px', padding: '5px 12px', flexShrink: 0, width: 'auto', marginTop: 0 }} onClick={() => onUnblockContact?.(c.uid)}>Deblokkeren</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+        {parentBlocked.length > 0 && (
+          <section className="contact-profile-card">
+            <div className="contact-profile-field">
+              <span className="contact-profile-field-label">Geblokkeerd door ouder</span>
+              <div className="profile-settings-list-rows">
+                {parentBlocked.map((c) => (
+                  <div key={c.uid} className="profile-settings-contact-row profile-settings-contact-row--danger">
+                    <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
+                      <div className="profile-settings-contact-note">Geblokkeerd door ouder</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+        {selfBlocked.length === 0 && parentBlocked.length === 0 && (
+          <section className="contact-profile-card">
+            <div className="contact-profile-field">
+              <div className="profile-settings-empty">Geen geblokkeerde contacten.</div>
+            </div>
+          </section>
+        )}
+      </>,
+    );
+  };
+  const renderSettingsStylingSheet = () => renderSettingsSubpageShell(
+    'Styling',
+    'Kies een achtergrond die past bij jouw Pulse-gesprekken.',
+    <section className="contact-profile-card">
+      <div className="contact-profile-field">
+        <span className="contact-profile-field-label">Chat achtergrond</span>
+        <div className="profile-styling-tabs">
+          {[
+            ['foto', <ImageIcon size={14} />, 'Foto'],
+            ['kleur', <ColorCircle size={14} />, 'Kleur'],
+            ['standaard', <LayoutTemplate size={14} />, 'Standaard'],
+          ].map(([id, icon, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => {
+                setChatBgTab?.(id);
+                if (id === 'kleur' && !pendingColor && chatBg?.type !== 'color') setPendingColor('#000000');
+              }}
+              className="profile-styling-tab"
+              style={{
+                flex: 1,
+                padding: '7px 4px',
+                border: 'none',
+                borderRadius: '14px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all .15s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                background: chatBgTab === id ? 'linear-gradient(135deg,#7c6fff,#a855f7)' : 'transparent',
+                color: chatBgTab === id ? '#fff' : '#6f6788',
+              }}
+            >
+              {icon}{label}
+            </button>
+          ))}
+        </div>
+        <div
+          className="profile-styling-preview"
+          style={{
+            borderRadius: '18px',
+            overflow: 'hidden',
+            marginBottom: '14px',
+            height: '110px',
+            position: 'relative',
+            background: chatBgTab === 'kleur'
+              ? (pendingColor || (chatBg?.type === 'color' ? chatBg.value : '#000000'))
+              : chatBgTab === 'foto'
+                ? (pendingPhoto ? `url(${pendingPhoto.url}) center/cover` : chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : 'var(--bg)')
+                : (chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : `#eeeaf8 url(${chatDefaultPattern}) center top / 180px auto repeat`),
+            border: '1px solid rgba(140, 122, 214, 0.12)',
+          }}
+        >
+          {chatBgTab === 'foto' && (pendingPhoto || chatBg?.type === 'photo') && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.15)' }} />}
+          {chatBgTab === 'foto' && (pendingPhoto || chatBg?.type === 'photo') && (
+            <button
+              type="button"
+              disabled={chatBgLoading}
+              onClick={() => {
+                if (pendingPhoto?.url) URL.revokeObjectURL(pendingPhoto.url);
+                if (pendingPhoto) setPendingPhoto(null);
+                else removeChatBg?.();
+              }}
+              style={{ position: 'absolute', top: '8px', right: '8px', width: '26px', height: '26px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)', zIndex: 1 }}
+              title="Achtergrond verwijderen"
+            >
+              ×
+            </button>
+          )}
+          <div style={{ position: 'absolute', bottom: '8px', left: '10px' }}>
+            <div style={{ background: '#f7f2ff', border: '1px solid #e6dcfb', borderRadius: '12px 12px 12px 3px', padding: '6px 12px', fontSize: '12px', color: '#3f3560' }}>Hallo! 👋</div>
+          </div>
+          <div style={{ position: 'absolute', bottom: '8px', right: '10px' }}>
+            <div style={{ background: 'linear-gradient(135deg,#8c7bff 0%, #7160f5 100%)', borderRadius: '12px 12px 3px 12px', padding: '6px 12px', fontSize: '12px', color: '#fff' }}>Hey!</div>
+          </div>
+        </div>
+      </div>
+    </section>,
   );
 
   useEffect(() => {
@@ -1906,6 +2180,9 @@ export default function ChatSidebar({
 
       {settingsProfilePageVisible ? renderSettingsOverviewSheet() : null}
       {accountProfilePageVisible ? renderSettingsAccountSheet() : null}
+      {historyProfilePageVisible && isParent ? renderSettingsHistorySheet() : null}
+      {stylingProfilePageVisible ? renderSettingsStylingSheet() : null}
+      {blockedProfilePageVisible ? renderSettingsBlockedSheet() : null}
 
       {footerClusterMode ? (
         <div

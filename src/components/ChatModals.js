@@ -1,6 +1,7 @@
 // src/components/ChatModals.js
 import React, { useEffect, useState } from 'react';
-import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowLeft, ArrowRight, Bell, BellOff } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff } from '../components/Icons';
+import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
@@ -844,16 +845,13 @@ export default function ChatModals({
         const relationLabel = convLabels[activeConv.id];
         const statusLabel = isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Afwezig' : 'Offline';
         return (
-          <aside
-              className="chat-side-panel contact-profile-panel"
-              aria-labelledby="contact-profile-title"
-              aria-describedby="contact-profile-description"
-            >
-              <div className="contact-profile-topbar">
-                <button type="button" className="contact-profile-nav-btn" aria-label="Profiel sluiten" onClick={() => setShowContactProfile(false)}>
-                  <ArrowLeft size={20} aria-hidden="true" />
-                </button>
-                <h2 id="contact-profile-title" className="contact-profile-heading">Profiel</h2>
+            <ProfilePageShell
+              titleId="contact-profile-title"
+              title="Profiel"
+              description={`Bekijk en bewerk de profielgegevens van ${name}.`}
+              onBack={() => setShowContactProfile(false)}
+              backLabel="Profiel sluiten"
+              headerAction={(
                 <button
                   type="button"
                   className="contact-profile-edit-btn"
@@ -862,24 +860,25 @@ export default function ChatModals({
                 >
                   Bewerk
                 </button>
-              </div>
-              <p id="contact-profile-description" className="sr-only">
-                Bekijk en bewerk de profielgegevens van {name}.
-              </p>
-              <div className="contact-profile-hero contact-profile-hero--main">
-                <div className="contact-profile-avatar-shell">
-                  {photo
+              )}
+              hero={(
+                <ProfilePageHero
+                  className="contact-profile-hero contact-profile-hero--main"
+                  avatar={photo
                     ? <img src={photo} alt={name || 'Profielfoto'} className="profile-avatar-big contact-profile-avatar" style={{ objectFit: 'cover' }} loading="lazy" />
                     : <div className="profile-avatar-big contact-profile-avatar">{getInitials(name)}</div>
                   }
-                </div>
-                <div className="contact-profile-name">{name}</div>
-                {email && <div className="contact-profile-subtitle">{email}</div>}
-                <div className={`profile-status-badge contact-profile-status ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
-                  <span className="profile-status-dot" />
-                  {statusLabel}
-                </div>
-              </div>
+                  name={name}
+                  subtitle={email || null}
+                  status={(
+                    <div className={`profile-status-badge contact-profile-status ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
+                      <span className="profile-status-dot" />
+                      {statusLabel}
+                    </div>
+                  )}
+                />
+              )}
+            >
 
               <div className="contact-profile-quick-actions">
                 <button type="button" className="contact-profile-quick-card" onClick={() => onInitiateCall?.(false)}>
@@ -990,7 +989,7 @@ export default function ChatModals({
                 </div>
                 <button type="button" className="btn-primary" style={profilePanelSaveButtonStyle} onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
               </div>
-            </aside>
+            </ProfilePageShell>
         );
       })()}
 

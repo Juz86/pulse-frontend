@@ -1,0 +1,61 @@
+import React from 'react';
+
+export function ProfilePageShell({
+  panelRef,
+  titleId,
+  title,
+  description,
+  onBack,
+  backLabel = 'Terug',
+  headerAction = null,
+  hero = null,
+  children,
+  className = 'chat-side-panel contact-profile-panel',
+}) {
+  return (
+    <aside
+      ref={panelRef}
+      className={className}
+      aria-labelledby={titleId}
+      aria-describedby={`${titleId}-description`}
+    >
+      <div className="contact-profile-topbar">
+        <button
+          type="button"
+          className="contact-profile-nav-btn"
+          aria-label={backLabel}
+          title="Terug"
+          onClick={onBack}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <h2 id={titleId} className="contact-profile-heading">{title}</h2>
+        {headerAction || <span className="contact-profile-topbar-spacer" aria-hidden="true" />}
+      </div>
+      <p id={`${titleId}-description`} className="sr-only">{description}</p>
+      {hero}
+      {children}
+    </aside>
+  );
+}
+
+export function ProfilePageHero({
+  avatar,
+  name,
+  subtitle = null,
+  status = null,
+  className = 'contact-profile-hero',
+  children = null,
+}) {
+  return (
+    <div className={className}>
+      {avatar ? <div className="contact-profile-avatar-shell">{avatar}</div> : null}
+      {name ? <div className="contact-profile-name">{name}</div> : null}
+      {subtitle ? <div className="contact-profile-subtitle">{subtitle}</div> : null}
+      {status}
+      {children}
+    </div>
+  );
+}

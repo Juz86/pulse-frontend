@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, Cancel, PhoneCall, PhoneOutgoing, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
+import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
 import ParentDashboard from '../screens/ParentDashboard';
@@ -413,25 +414,14 @@ export default function ChatSidebar({
       </button>
     );
     return (
-      <aside
-        ref={profilePanelRef}
-        className="chat-side-panel contact-profile-panel"
-        aria-labelledby="settings-profile-title"
-        aria-describedby="settings-profile-description"
-      >
-        <div className="contact-profile-topbar">
-          <button
-            type="button"
-            className="contact-profile-nav-btn"
-            aria-label="Instellingen sluiten"
-            title="Terug"
-            onClick={dismissProfileOverviewSheet}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <h2 id="settings-profile-title" className="contact-profile-heading">Instellingen</h2>
+      <ProfilePageShell
+        panelRef={profilePanelRef}
+        titleId="settings-profile-title"
+        title="Instellingen"
+        description="Bekijk en beheer je instellingen in dezelfde profielopbouw."
+        onBack={dismissProfileOverviewSheet}
+        backLabel="Instellingen sluiten"
+        headerAction={(
           <button
             type="button"
             className="contact-profile-edit-btn contact-profile-close-btn"
@@ -441,26 +431,27 @@ export default function ChatSidebar({
           >
             <XIcon size={20} aria-hidden="true" />
           </button>
-        </div>
-        <p id="settings-profile-description" className="sr-only">
-          Bekijk en beheer je instellingen in dezelfde profielopbouw.
-        </p>
-
-        <div className="contact-profile-hero">
-          <div className="contact-profile-avatar-shell">
-            <UserAvatar
-              photoURL={photoPreview || undefined}
-              displayName={settingsDisplayName}
-              className="profile-avatar-big contact-profile-avatar"
-            />
-          </div>
-          <div className="contact-profile-name">{settingsDisplayName}</div>
-          {settingsEmail ? <div className="contact-profile-subtitle">{settingsEmail}</div> : null}
-          <div className={`profile-status-badge contact-profile-status ${settingsStatusClass}`}>
-            <span className="profile-status-dot" aria-hidden="true" />
-            {settingsStatusLabel}
-          </div>
-        </div>
+        )}
+        hero={(
+          <ProfilePageHero
+            avatar={(
+              <UserAvatar
+                photoURL={photoPreview || undefined}
+                displayName={settingsDisplayName}
+                className="profile-avatar-big contact-profile-avatar"
+              />
+            )}
+            name={settingsDisplayName}
+            subtitle={settingsEmail || null}
+            status={(
+              <div className={`profile-status-badge contact-profile-status ${settingsStatusClass}`}>
+                <span className="profile-status-dot" aria-hidden="true" />
+                {settingsStatusLabel}
+              </div>
+            )}
+          />
+        )}
+      >
         <section className="contact-profile-card">
           {rowSections.map((section) => renderOverviewRow(section))}
         </section>
@@ -486,30 +477,18 @@ export default function ChatSidebar({
             </svg>
           </button>
         </section>
-
-      </aside>
+      </ProfilePageShell>
     );
   };
   const renderSettingsAccountSheet = () => (
-    <aside
-      ref={profilePanelRef}
-      className="chat-side-panel contact-profile-panel"
-      aria-labelledby="settings-account-title"
-      aria-describedby="settings-account-description"
-    >
-      <div className="contact-profile-topbar">
-        <button
-          type="button"
-          className="contact-profile-nav-btn"
-          aria-label="Terug naar instellingen"
-          title="Terug"
-          onClick={() => setProfileTab?.('overview')}
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <h2 id="settings-account-title" className="contact-profile-heading">Mijn account</h2>
+    <ProfilePageShell
+      panelRef={profilePanelRef}
+      titleId="settings-account-title"
+      title="Mijn account"
+      description="Werk je naam, avatar en wachtwoord bij in dezelfde profielopbouw."
+      onBack={() => setProfileTab?.('overview')}
+      backLabel="Terug naar instellingen"
+      headerAction={(
         <button
           type="button"
           className="contact-profile-edit-btn contact-profile-close-btn"
@@ -519,27 +498,27 @@ export default function ChatSidebar({
         >
           <XIcon size={20} aria-hidden="true" />
         </button>
-      </div>
-      <p id="settings-account-description" className="sr-only">
-        Werk je naam, avatar en wachtwoord bij in dezelfde profielopbouw.
-      </p>
-
-      <div className="contact-profile-hero contact-profile-hero--account">
-        <div className="contact-profile-avatar-shell">
-          <div className="profile-photo-wrap" onClick={() => photoInputRef?.current?.click()}>
-            {photoPreview
-              ? <img src={photoPreview} alt="avatar" className="profile-avatar-big contact-profile-avatar" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview?.(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
-              : <div className="profile-avatar-big contact-profile-avatar">{getInitials(user.displayName || user.email)}</div>
-            }
-            <div className="profile-photo-overlay"><Camera size={16} /></div>
-          </div>
-        </div>
-        <button type="button" className="profile-account-avatar-btn" onClick={() => setShowAvatarBuilder?.(true)}>
-          🎨 Avatar maken
-        </button>
-        <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
-      </div>
-
+      )}
+      hero={(
+        <ProfilePageHero
+          className="contact-profile-hero contact-profile-hero--account"
+          avatar={(
+            <div className="profile-photo-wrap" onClick={() => photoInputRef?.current?.click()}>
+              {photoPreview
+                ? <img src={photoPreview} alt="avatar" className="profile-avatar-big contact-profile-avatar" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview?.(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
+                : <div className="profile-avatar-big contact-profile-avatar">{getInitials(user.displayName || user.email)}</div>
+              }
+              <div className="profile-photo-overlay"><Camera size={16} /></div>
+            </div>
+          )}
+        >
+          <button type="button" className="profile-account-avatar-btn" onClick={() => setShowAvatarBuilder?.(true)}>
+            🎨 Avatar maken
+          </button>
+          <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+        </ProfilePageHero>
+      )}
+    >
       <section className="contact-profile-card">
         <div className="contact-profile-field">
           <p className="profile-settings-section-copy profile-account-section-copy">
@@ -642,28 +621,17 @@ export default function ChatSidebar({
           </svg>
         </button>
       </section>
-    </aside>
+    </ProfilePageShell>
   );
   const renderSettingsSubpageShell = (title, description, children) => (
-    <aside
-      ref={profilePanelRef}
-      className="chat-side-panel contact-profile-panel"
-      aria-labelledby={`settings-${title.toLowerCase()}-title`}
-      aria-describedby={`settings-${title.toLowerCase()}-description`}
-    >
-      <div className="contact-profile-topbar">
-        <button
-          type="button"
-          className="contact-profile-nav-btn"
-          aria-label="Terug naar instellingen"
-          title="Terug"
-          onClick={() => setProfileTab?.('overview')}
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <h2 id={`settings-${title.toLowerCase()}-title`} className="contact-profile-heading">{title}</h2>
+    <ProfilePageShell
+      panelRef={profilePanelRef}
+      titleId={`settings-${title.toLowerCase()}-title`}
+      title={title}
+      description={description}
+      onBack={() => setProfileTab?.('overview')}
+      backLabel="Terug naar instellingen"
+      headerAction={(
         <button
           type="button"
           className="contact-profile-edit-btn contact-profile-close-btn"
@@ -673,10 +641,10 @@ export default function ChatSidebar({
         >
           <XIcon size={20} aria-hidden="true" />
         </button>
-      </div>
-      <p id={`settings-${title.toLowerCase()}-description`} className="sr-only">{description}</p>
+      )}
+    >
       {children}
-    </aside>
+    </ProfilePageShell>
   );
   const renderSettingsHistorySheet = () => renderSettingsSubpageShell(
     'Geschiedenis',

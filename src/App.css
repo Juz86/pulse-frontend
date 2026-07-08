@@ -6256,6 +6256,11 @@ font-family: 'Inter', sans-serif;
   gap:12px;
   margin-bottom:14px;
 }
+.contact-profile-topbar-spacer {
+  width: 50px;
+  height: 50px;
+  flex: 0 0 auto;
+}
 .contact-profile-nav-btn {
   width:50px;
   height:50px;

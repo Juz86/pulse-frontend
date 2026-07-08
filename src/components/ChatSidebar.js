@@ -453,29 +453,6 @@ export default function ChatSidebar({
         )}
       >
         <section className="contact-profile-card">
-          <div className="contact-profile-field">
-            <span className="contact-profile-field-label">Overzicht</span>
-            <h3 className="profile-settings-page-title">Jouw Pulse instellingen</h3>
-            <p className="profile-settings-section-copy profile-settings-section-copy--lead">
-              Beheer account, bewaartermijnen, achtergrond en geblokkeerde contacten vanuit dezelfde rustige profielomgeving.
-            </p>
-            <div className="profile-settings-stat-grid">
-              <div className="profile-settings-stat-card">
-                <div className="profile-settings-stat-label">Account</div>
-                <div className="profile-settings-stat-value">Naam, avatar, wachtwoord</div>
-              </div>
-              <div className="profile-settings-stat-card">
-                <div className="profile-settings-stat-label">Privacy</div>
-                <div className="profile-settings-stat-value">Geschiedenis en blokkades</div>
-              </div>
-              <div className="profile-settings-stat-card">
-                <div className="profile-settings-stat-label">Uiterlijk</div>
-                <div className="profile-settings-stat-value">Chatachtergrond beheren</div>
-              </div>
-            </div>
-          </div>
-        </section>
-        <section className="contact-profile-card">
           {rowSections.map((section) => renderOverviewRow(section))}
         </section>
 

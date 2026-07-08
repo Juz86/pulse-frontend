@@ -5,6 +5,7 @@ import { getInitials, timeAgo, toMs } from '../utils';
 import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
+import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INTERNAL_ACCOUNT_EMAIL_RE = /@(kind\.pulse\.local|pulse\.internal)$/i;
@@ -560,94 +561,8 @@ export default function ParentDashboard({
   const activeTabMeta = TABS.find((tab) => tab.id === activeTab) || TABS[0];
   const showingMenu = portalView === 'menu';
 
-  if (embeddedInSidebarCluster && showingMenu) {
-    return (
-      <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list parent-actions-list--embedded" role="tablist" aria-label="Ouderportaal onderdelen">
-        {TABS.map((t) => (
-          <button
-            type="button"
-            key={t.id}
-            className="chat-header-menu-item parent-actions-item parent-actions-item--embedded"
-            onClick={() => {
-              setActiveTab(t.id);
-              setPortalView('content');
-            }}
-          >
-            {t.icon}
-            <span>{t.label}</span>
-            {t.badge && (
-              <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
-                {t.badge}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <div className={`parent-root ${embeddedInSidebarCluster ? 'parent-root--embedded' : 'parent-root--sheet'}`}>
-      <div className={`parent-container ${embeddedInSidebarCluster ? 'parent-container--embedded' : 'parent-container--sheet'}`}>
-        <div className={`parent-sheet-shell${embeddedInSidebarCluster ? ' parent-sheet-shell--embedded' : ''}`}>
-          {!embeddedInSidebarCluster && (
-            <div className="parent-header parent-header--sheet">
-              <div className="pulse-sheet-handle parent-sheet-handle" aria-hidden="true" />
-              <div className="parent-sheet-header-row">
-                <button
-                  type="button"
-                  className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-back-btn"
-                  aria-label={showingMenu ? 'Terug' : 'Terug naar ouderportaal overzicht'}
-                  onClick={() => {
-                    if (showingMenu) onClose?.();
-                    else setPortalView('menu');
-                  }}
-                  title="Terug"
-                >
-                  <span aria-hidden="true">←</span>
-                </button>
-                <div className="parent-sheet-title-wrap">
-                  <div className="parent-sheet-title">{showingMenu ? 'Ouderportaal' : activeTabMeta.label}</div>
-                </div>
-                <div className="parent-header-actions">
-                  {onClose && (
-                    <button type="button" className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-close-btn" aria-label="Ouderdashboard sluiten" onClick={onClose} title="Sluiten">
-                      <span aria-hidden="true">✕</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {showingMenu ? (
-            <div className="parent-actions-nav" role="tablist" aria-label="Ouderportaal onderdelen">
-              <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list">
-                {TABS.map(t => (
-                  <button
-                    type="button"
-                    key={t.id}
-                    className="chat-header-menu-item parent-actions-item"
-                    onClick={() => {
-                      setActiveTab(t.id);
-                      setPortalView('content');
-                    }}
-                  >
-                    <span className="parent-actions-icon" aria-hidden="true">{t.icon}</span>
-                    <span className="parent-actions-label">{t.label}</span>
-                    {t.badge && (
-                      <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
-                        {t.badge}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className={`pd-layout pd-layout--sheet${embeddedInSidebarCluster ? ' pd-layout--embedded' : ''}`}>
-              <div className={embeddedInSidebarCluster ? 'parent-embedded-content-shell' : ''}>
-                <div className={`pd-content pd-content--sheet${embeddedInSidebarCluster ? ' pd-content--embedded' : ''}`}>
+  const renderPortalContent = () => (
+    <>
 
             {/* Tab 1 — Kind toevoegen */}
             {activeTab === 'add' && (
@@ -1393,13 +1308,150 @@ export default function ParentDashboard({
                 </div>
               </div>
             )}
+    </>
+  );
 
+  const portalHero = (
+    <ProfilePageHero
+      avatar={<div className="contact-profile-avatar" aria-hidden="true">{getInitials(user?.displayName || user?.email || 'Ouder')}</div>}
+      name={user?.displayName || 'Ouderaccount'}
+      subtitle={user?.email || 'Beheer kinderen, contacten, locatie en activiteiten.'}
+      status={<div className="contact-profile-status">Ouderportaal</div>}
+    />
+  );
+
+  const renderPortalMenuRows = () => (
+    <section className="contact-profile-card contact-profile-card--profile-actions">
+      {TABS.map((tab) => (
+        <button
+          type="button"
+          key={tab.id}
+          className="contact-profile-row-button"
+          onClick={() => {
+            setActiveTab(tab.id);
+            setPortalView('content');
+          }}
+        >
+          <span className="contact-profile-row-icon" aria-hidden="true">{tab.icon}</span>
+          <span className="contact-profile-row-copy">
+            <span className="contact-profile-row-title">{tab.label}</span>
+            <span className="contact-profile-row-subtitle">Open {tab.label.toLowerCase()} binnen het ouderportaal.</span>
+          </span>
+          {tab.badge && (
+            <span className="parent-badge parent-badge--inline" aria-label={`${tab.badge} nieuwe activiteiten`}>
+              {tab.badge}
+            </span>
+          )}
+          <span className="contact-profile-row-arrow" aria-hidden="true">›</span>
+        </button>
+      ))}
+    </section>
+  );
+
+  if (!embeddedInSidebarCluster) {
+    return (
+      <ProfilePageShell
+        titleId="parent-portal-title"
+        title={showingMenu ? 'Ouderportaal' : activeTabMeta.label}
+        description="Beheer kinderen, contacten, locatie en activiteiten vanuit dezelfde profielopbouw."
+        onBack={() => {
+          if (showingMenu) onClose?.();
+          else setPortalView('menu');
+        }}
+        backLabel={showingMenu ? 'Ouderportaal sluiten' : 'Terug naar ouderportaal overzicht'}
+        headerAction={onClose ? (
+          <button
+            type="button"
+            className="contact-profile-nav-btn contact-profile-close-btn"
+            aria-label="Ouderdashboard sluiten"
+            title="Sluiten"
+            onClick={onClose}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M18 6L6 18" />
+              <path d="M6 6l12 12" />
+            </svg>
+          </button>
+        ) : null}
+        hero={portalHero}
+        className="chat-side-panel contact-profile-panel parent-dashboard-panel"
+      >
+        <div className="contact-profile-quick-actions">
+          {TABS.slice(0, 3).map((tab) => (
+            <button
+              type="button"
+              key={tab.id}
+              className="contact-profile-quick-card"
+              onClick={() => {
+                setActiveTab(tab.id);
+                setPortalView('content');
+              }}
+            >
+              <span className="contact-profile-quick-icon" aria-hidden="true">{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+        {showingMenu ? (
+          renderPortalMenuRows()
+        ) : (
+          <>
+            <section className="contact-profile-card parent-dashboard-content-card">
+              <div className="pd-layout pd-layout--sheet parent-dashboard-layout">
+                <div className="pd-content pd-content--sheet parent-dashboard-content">
+                  {renderPortalContent()}
                 </div>
               </div>
+            </section>
+            <div className="contact-profile-footer">
+              <div className="contact-profile-footer-actions">
+                <button type="button" className="btn-secondary" onClick={() => setPortalView('menu')}>Terug naar overzicht</button>
+              </div>
             </div>
-          )}
-        </div>
+          </>
+        )}
+      </ProfilePageShell>
+    );
+  }
 
+  if (showingMenu) {
+    return (
+      <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list parent-actions-list--embedded" role="tablist" aria-label="Ouderportaal onderdelen">
+        {TABS.map((t) => (
+          <button
+            type="button"
+            key={t.id}
+            className="chat-header-menu-item parent-actions-item parent-actions-item--embedded"
+            onClick={() => {
+              setActiveTab(t.id);
+              setPortalView('content');
+            }}
+          >
+            {t.icon}
+            <span>{t.label}</span>
+            {t.badge && (
+              <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
+                {t.badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="parent-root parent-root--embedded">
+      <div className="parent-container parent-container--embedded">
+        <div className="parent-sheet-shell parent-sheet-shell--embedded">
+          <div className="pd-layout pd-layout--sheet pd-layout--embedded">
+            <div className="parent-embedded-content-shell">
+              <div className="pd-content pd-content--sheet pd-content--embedded">
+                {renderPortalContent()}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Bevestigingsdialoog verwijderen */}

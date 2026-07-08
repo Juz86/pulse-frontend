@@ -5848,6 +5848,9 @@ font-family: 'Inter', sans-serif;
   flex-direction: column;
   gap: 8px;
 }
+.profile-settings-field-stack--spaced {
+  margin-top: 10px;
+}
 .profile-settings-section-copy {
   margin: 6px 0 0;
   font-size: 13px;
@@ -5881,6 +5884,9 @@ font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.profile-settings-action {
+  margin-top: 14px;
 }
 .profile-settings-card-stack {
   display: flex;
@@ -5923,6 +5929,16 @@ font-family: 'Inter', sans-serif;
   font-size: 11px;
   color: var(--danger);
   margin-top: 2px;
+}
+.profile-settings-actions-row {
+  display: flex;
+  gap: 8px;
+}
+.profile-settings-meta-copy {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 6px;
+  text-align: center;
 }
 .profile-styling-tabs {
   display: flex;
@@ -5970,6 +5986,9 @@ font-family: 'Inter', sans-serif;
   }
   .profile-settings-hero-name {
     font-size:22px;
+  }
+  .profile-settings-actions-row {
+    flex-direction: column;
   }
 }
 

@@ -681,7 +681,7 @@ export default function ChatSidebar({
             Beheer hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis voor jouw account wordt bewaard.
           </p>
           {historySettingRows.map((row) => (
-            <div key={`parent-${row.key}`} className="profile-settings-field-stack" style={{ marginTop: '10px' }}>
+            <div key={`parent-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced">
               <div className="profile-settings-field-label">{row.label}</div>
               <SidebarHistorySelect
                 ariaLabel={`${row.label} ouderaccount`}
@@ -693,7 +693,7 @@ export default function ChatSidebar({
               />
             </div>
           ))}
-          <button type="button" className="btn-primary" style={{ width: '100%', marginTop: '14px' }} onClick={() => saveHistorySettings?.()} disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}>
+          <button type="button" className="btn-primary profile-settings-action" style={{ width: '100%' }} onClick={() => saveHistorySettings?.()} disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}>
             {historySettingsSavingTarget === 'parent' ? 'Opslaan…' : 'Opslaan'}
           </button>
         </div>
@@ -717,7 +717,7 @@ export default function ChatSidebar({
             style={historySelectStyle}
           />
           {historySettingRows.map((row) => (
-            <div key={`child-${row.key}`} className="profile-settings-field-stack" style={{ marginTop: '10px' }}>
+            <div key={`child-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced">
               <div className="profile-settings-field-label">{row.label}</div>
               <SidebarHistorySelect
                 ariaLabel={`${row.label} kindaccount`}
@@ -740,8 +740,8 @@ export default function ChatSidebar({
           ))}
           <button
             type="button"
-            className="btn-primary"
-            style={{ width: '100%', marginTop: '14px' }}
+            className="btn-primary profile-settings-action"
+            style={{ width: '100%' }}
             onClick={() => primaryHistoryChild && saveChildHistorySettings?.(primaryHistoryChild.uid)}
             disabled={!primaryHistoryChild || !canManagePrimaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
           >
@@ -823,6 +823,9 @@ export default function ChatSidebar({
     <section className="contact-profile-card">
       <div className="contact-profile-field">
         <span className="contact-profile-field-label">Chat achtergrond</span>
+        <p className="profile-settings-section-copy">
+          Kies een foto, een rustige kleur of zet de standaard Pulse-achtergrond terug.
+        </p>
         <div className="profile-styling-tabs">
           {[
             ['foto', <ImageIcon size={14} />, 'Foto'],
@@ -898,9 +901,9 @@ export default function ChatSidebar({
           </div>
         </div>
         {chatBgTab === 'foto' && (
-          <div>
+          <div className="profile-settings-block">
             {!pendingPhoto && chatBg?.type === 'photo' && <div style={{ fontSize: '12px', color: 'var(--success)', marginBottom: '8px' }}>✓ Foto achtergrond actief</div>}
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div className="profile-settings-actions-row">
               <button type="button" className="btn-secondary" style={{ flex: 1 }} disabled={chatBgLoading} onClick={() => bgInputRef?.current?.click()}>
                 {chatBg?.type === 'photo' || pendingPhoto ? 'Andere foto kiezen' : 'Foto kiezen'}
               </button>
@@ -918,7 +921,7 @@ export default function ChatSidebar({
                 {chatBgLoading ? 'Uploaden…' : 'Opslaan'}
               </button>
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '6px', textAlign: 'center' }}>JPG, PNG of WEBP · max 5 MB</div>
+            <div className="profile-settings-meta-copy">JPG, PNG of WEBP · max 5 MB</div>
             <input
               ref={bgInputRef}
               type="file"
@@ -934,7 +937,7 @@ export default function ChatSidebar({
           </div>
         )}
         {chatBgTab === 'kleur' && (
-          <div>
+          <div className="profile-settings-block">
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '12px' }}>
               {['#1e0a3c', '#051236', '#0a1f0e', '#1f0a10', '#0f1923', '#1a1206', '#000000', '#1c1a18'].map((color) => {
                 const isActive = (pendingColor ?? (chatBg?.type === 'color' ? chatBg.value : null)) === color;

@@ -866,7 +866,7 @@ export default function ChatModals({
               <p id="contact-profile-description" className="sr-only">
                 Bekijk en bewerk de profielgegevens van {name}.
               </p>
-              <div className="contact-profile-hero">
+              <div className="contact-profile-hero contact-profile-hero--main">
                 <div className="contact-profile-avatar-shell">
                   {photo
                     ? <img src={photo} alt={name || 'Profielfoto'} className="profile-avatar-big contact-profile-avatar" style={{ objectFit: 'cover' }} loading="lazy" />
@@ -896,7 +896,7 @@ export default function ChatModals({
                 </button>
               </div>
 
-              <section className="contact-profile-card">
+              <section className="contact-profile-card contact-profile-card--profile-meta">
                 <div className="contact-profile-field">
                   <span className="contact-profile-field-label">Naam</span>
                   <div className="contact-profile-name-edit">
@@ -912,7 +912,7 @@ export default function ChatModals({
                 )}
                 <div className="contact-profile-field">
                   <span className="contact-profile-field-label">Relatie</span>
-                  <div className="label-chip-row contact-profile-chip-row">
+                  <div className="label-chip-row contact-profile-chip-row contact-profile-chip-row--profile">
                     {['familie', 'vrienden'].map(lbl => (
                       <button key={lbl} type="button" onClick={() => setConvLabel(activeConv.id, relationLabel === lbl ? null : lbl)}
                         className={`label-chip${relationLabel === lbl ? ' active' : ''}`}>
@@ -923,7 +923,7 @@ export default function ChatModals({
                 </div>
               </section>
 
-              <section className="contact-profile-card">
+              <section className="contact-profile-card contact-profile-card--profile-actions">
                 <button type="button" className="contact-profile-row-button" onClick={toggleMuteFromProfile}>
                   <span className="contact-profile-row-icon">{conversationMuted ? <BellOff size={20} aria-hidden="true" /> : <Bell size={20} aria-hidden="true" />}</span>
                   <span className="contact-profile-row-copy">
@@ -962,7 +962,7 @@ export default function ChatModals({
                 </button>
               </section>
 
-              <section className="contact-profile-card contact-profile-card-danger">
+              <section className="contact-profile-card contact-profile-card-danger contact-profile-card--profile-danger">
                 <button type="button" className="contact-profile-row-button danger" onClick={clearChatFromProfile}>
                   <span className="contact-profile-row-icon"><Delete size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">

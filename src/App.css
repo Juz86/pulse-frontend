@@ -6314,6 +6314,9 @@ font-family: 'Inter', sans-serif;
   text-align:center;
   padding:10px 0 20px;
 }
+.contact-profile-hero--main {
+  padding: 8px 0 18px;
+}
 .contact-profile-hero--account {
   padding: 8px 0 14px;
 }
@@ -6443,6 +6446,29 @@ font-family: 'Inter', sans-serif;
 }
 .contact-profile-chip-row {
   gap:10px;
+}
+.contact-profile-chip-row--profile {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.contact-profile-card--profile-meta,
+.contact-profile-card--profile-actions,
+.contact-profile-card--profile-danger {
+  margin-bottom: 12px;
+}
+.contact-profile-card--profile-actions .contact-profile-row-button,
+.contact-profile-card--profile-danger .contact-profile-row-button {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+.contact-profile-card--profile-actions .contact-profile-row-copy,
+.contact-profile-card--profile-danger .contact-profile-row-copy {
+  gap: 5px;
+}
+.contact-profile-card--profile-actions .contact-profile-row-subtitle,
+.contact-profile-card--profile-danger .contact-profile-row-subtitle {
+  line-height: 1.4;
 }
 .contact-profile-row-button {
   width:100%;

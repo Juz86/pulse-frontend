@@ -769,6 +769,29 @@ export default function ChatSidebar({
       <>
         <section className="contact-profile-card">
           <div className="contact-profile-field">
+            <span className="contact-profile-field-label">Overzicht</span>
+            <h3 className="profile-settings-page-title">Geblokkeerde contacten</h3>
+            <p className="profile-settings-section-copy profile-settings-section-copy--lead">
+              Bekijk welke contacten door jou of door een ouder zijn geblokkeerd en beheer direct wat weer toegankelijk mag worden.
+            </p>
+            <div className="profile-settings-stat-grid">
+              <div className="profile-settings-stat-card">
+                <div className="profile-settings-stat-label">Door jou</div>
+                <div className="profile-settings-stat-value">{selfBlocked.length}</div>
+              </div>
+              <div className="profile-settings-stat-card">
+                <div className="profile-settings-stat-label">Door ouder</div>
+                <div className="profile-settings-stat-value">{parentBlocked.length}</div>
+              </div>
+              <div className="profile-settings-stat-card">
+                <div className="profile-settings-stat-label">Totaal</div>
+                <div className="profile-settings-stat-value">{selfBlocked.length + parentBlocked.length}</div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="contact-profile-card">
+          <div className="contact-profile-field">
             <span className="contact-profile-field-label">Contacten</span>
             <p className="profile-settings-section-copy">
               Beheer welke contacten door jou of door een ouder zijn geblokkeerd.
@@ -819,63 +842,87 @@ export default function ChatSidebar({
   const renderSettingsStylingSheet = () => renderSettingsSubpageShell(
     'Styling',
     'Kies een achtergrond die past bij jouw Pulse-gesprekken.',
-    <section className="contact-profile-card">
-      <div className="contact-profile-field">
-        <span className="contact-profile-field-label">Chat achtergrond</span>
-        <p className="profile-settings-section-copy">
-          Kies een foto, een rustige kleur of zet de standaard Pulse-achtergrond terug.
-        </p>
-        <div className="profile-styling-tabs">
-          {[
-            ['foto', <ImageIcon size={14} />, 'Foto'],
-            ['kleur', <ColorCircle size={14} />, 'Kleur'],
-            ['standaard', <LayoutTemplate size={14} />, 'Standaard'],
-          ].map(([id, icon, label]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => {
-                setChatBgTab?.(id);
-                if (id === 'kleur' && !pendingColor && chatBg?.type !== 'color') setPendingColor('#000000');
-              }}
-              className="profile-styling-tab"
-              style={{
-                flex: 1,
-                padding: '7px 4px',
-                border: 'none',
-                borderRadius: '14px',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all .15s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '5px',
-                background: chatBgTab === id ? 'linear-gradient(135deg,#7c6fff,#a855f7)' : 'transparent',
-                color: chatBgTab === id ? '#fff' : '#6f6788',
-              }}
-            >
-              {icon}{label}
-            </button>
-          ))}
+    <>
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
+          <span className="contact-profile-field-label">Overzicht</span>
+          <h3 className="profile-settings-page-title">Chatachtergrond kiezen</h3>
+          <p className="profile-settings-section-copy profile-settings-section-copy--lead">
+            Geef gesprekken een rustige eigen sfeer met een foto, een effen kleur of de standaard Pulse-achtergrond.
+          </p>
+          <div className="profile-settings-stat-grid">
+            <div className="profile-settings-stat-card">
+              <div className="profile-settings-stat-label">Modi</div>
+              <div className="profile-settings-stat-value">Foto, kleur, standaard</div>
+            </div>
+            <div className="profile-settings-stat-card">
+              <div className="profile-settings-stat-label">Actief</div>
+              <div className="profile-settings-stat-value">{chatBg?.type === 'photo' ? 'Foto' : chatBg?.type === 'color' ? 'Kleur' : 'Standaard'}</div>
+            </div>
+            <div className="profile-settings-stat-card">
+              <div className="profile-settings-stat-label">Preview</div>
+              <div className="profile-settings-stat-value">Live in de pagina</div>
+            </div>
+          </div>
         </div>
-        <div
-          className="profile-styling-preview"
-          style={{
-            borderRadius: '18px',
-            overflow: 'hidden',
-            marginBottom: '14px',
-            height: '110px',
-            position: 'relative',
-            background: chatBgTab === 'kleur'
-              ? (pendingColor || (chatBg?.type === 'color' ? chatBg.value : '#000000'))
-              : chatBgTab === 'foto'
-                ? (pendingPhoto ? `url(${pendingPhoto.url}) center/cover` : chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : 'var(--bg)')
-                : (chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : `#eeeaf8 url(${chatDefaultPattern}) center top / 180px auto repeat`),
-            border: '1px solid rgba(140, 122, 214, 0.12)',
-          }}
-        >
+      </section>
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
+          <span className="contact-profile-field-label">Chat achtergrond</span>
+          <p className="profile-settings-section-copy">
+            Kies een foto, een rustige kleur of zet de standaard Pulse-achtergrond terug.
+          </p>
+          <div className="profile-styling-tabs">
+            {[
+              ['foto', <ImageIcon size={14} />, 'Foto'],
+              ['kleur', <ColorCircle size={14} />, 'Kleur'],
+              ['standaard', <LayoutTemplate size={14} />, 'Standaard'],
+            ].map(([id, icon, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  setChatBgTab?.(id);
+                  if (id === 'kleur' && !pendingColor && chatBg?.type !== 'color') setPendingColor('#000000');
+                }}
+                className="profile-styling-tab"
+                style={{
+                  flex: 1,
+                  padding: '7px 4px',
+                  border: 'none',
+                  borderRadius: '14px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all .15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '5px',
+                  background: chatBgTab === id ? 'linear-gradient(135deg,#7c6fff,#a855f7)' : 'transparent',
+                  color: chatBgTab === id ? '#fff' : '#6f6788',
+                }}
+              >
+                {icon}{label}
+              </button>
+            ))}
+          </div>
+          <div
+            className="profile-styling-preview"
+            style={{
+              borderRadius: '18px',
+              overflow: 'hidden',
+              marginBottom: '14px',
+              height: '110px',
+              position: 'relative',
+              background: chatBgTab === 'kleur'
+                ? (pendingColor || (chatBg?.type === 'color' ? chatBg.value : '#000000'))
+                : chatBgTab === 'foto'
+                  ? (pendingPhoto ? `url(${pendingPhoto.url}) center/cover` : chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : 'var(--bg)')
+                  : (chatBg?.type === 'photo' ? `url(${chatBg.url}) center/cover` : chatBg?.type === 'color' ? chatBg.value : `#eeeaf8 url(${chatDefaultPattern}) center top / 180px auto repeat`),
+              border: '1px solid rgba(140, 122, 214, 0.12)',
+            }}
+          >
           {chatBgTab === 'foto' && (pendingPhoto || chatBg?.type === 'photo') && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.15)' }} />}
           {chatBgTab === 'foto' && (pendingPhoto || chatBg?.type === 'photo') && (
             <button
@@ -977,15 +1024,16 @@ export default function ChatSidebar({
             </button>
           </div>
         )}
-        {chatBgTab === 'standaard' && (
-          chatBg
-            ? <button type="button" className="btn-secondary" style={{ width: '100%' }} disabled={chatBgLoading} onClick={() => removeChatBg?.()}>
-                {chatBgLoading ? 'Herstellen…' : 'Standaard herstellen'}
-              </button>
-            : <div style={{ fontSize: '12px', color: 'var(--success)', textAlign: 'center' }}>✓ Standaard achtergrond actief</div>
-        )}
-      </div>
-    </section>,
+          {chatBgTab === 'standaard' && (
+            chatBg
+              ? <button type="button" className="btn-secondary" style={{ width: '100%' }} disabled={chatBgLoading} onClick={() => removeChatBg?.()}>
+                  {chatBgLoading ? 'Herstellen…' : 'Standaard herstellen'}
+                </button>
+              : <div style={{ fontSize: '12px', color: 'var(--success)', textAlign: 'center' }}>✓ Standaard achtergrond actief</div>
+          )}
+        </div>
+      </section>
+    </>,
   );
 
   useEffect(() => {

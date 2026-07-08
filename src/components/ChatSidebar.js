@@ -542,6 +542,11 @@ export default function ChatSidebar({
 
       <section className="contact-profile-card">
         <div className="contact-profile-field">
+          <p className="profile-settings-section-copy profile-account-section-copy">
+            Werk je naam, avatar en accountgegevens bij in dezelfde rustige profielstijl.
+          </p>
+        </div>
+        <div className="contact-profile-field">
           <span className="contact-profile-field-label">Weergavenaam</span>
           <input className="form-input" placeholder="Jouw naam" value={newName} onChange={(e) => setNewName?.(e.target.value)} />
         </div>
@@ -568,7 +573,7 @@ export default function ChatSidebar({
           </div>
         )}
         <div className="contact-profile-field">
-          {profileMsg && <div style={{ fontSize: '12px', marginBottom: '10px', color: profileMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{profileMsg}</div>}
+          {profileMsg && <div className={`profile-settings-inline-message profile-settings-inline-message--stacked ${profileMsg.startsWith('Fout') ? 'is-error' : 'is-success'}`}>{profileMsg}</div>}
           <button type="button" className="btn-primary" style={{ width: '100%', marginTop: 0 }} disabled={profileLoading} onClick={() => saveProfile?.()}>
             {profileLoading ? 'Opslaan…' : 'Opslaan →'}
           </button>
@@ -579,6 +584,9 @@ export default function ChatSidebar({
         <section className="contact-profile-card">
           <div className="contact-profile-field">
             <span className="contact-profile-field-label">Wachtwoord wijzigen</span>
+            <p className="profile-settings-section-copy profile-account-section-copy">
+              Kies een nieuw wachtwoord en bevestig het hieronder.
+            </p>
             <div style={{ position: 'relative' }}>
               <input
                 className="form-input"
@@ -593,7 +601,7 @@ export default function ChatSidebar({
                 type="button"
                 aria-label={showNewPassword ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'}
                 onClick={() => setShowNewPassword?.((prev) => !prev)}
-                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', padding: 0 }}
+                className="profile-account-password-toggle"
               >
                 {showNewPassword ? <EyeOff size={18} /> : <EyeOn size={18} />}
               </button>
@@ -613,7 +621,7 @@ export default function ChatSidebar({
             <button type="button" className="btn-secondary" style={{ width: '100%', marginTop: 0 }} disabled={passwordLoading || !newPassword} onClick={() => changePassword?.()}>
               {passwordLoading ? 'Bezig…' : 'Wachtwoord wijzigen'}
             </button>
-            {passwordMsg && <div style={{ fontSize: '12px', marginTop: '8px', color: passwordMsg.startsWith('Fout') ? 'var(--danger)' : 'var(--success)' }}>{passwordMsg}</div>}
+            {passwordMsg && <div className={`profile-settings-inline-message profile-settings-inline-message--stacked ${passwordMsg.startsWith('Fout') ? 'is-error' : 'is-success'}`}>{passwordMsg}</div>}
           </div>
         </section>
       )}
@@ -788,7 +796,7 @@ export default function ChatSidebar({
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
                           </div>
-                          <button type="button" className="btn-secondary" style={{ fontSize: '12px', padding: '5px 12px', flexShrink: 0, width: 'auto', marginTop: 0 }} onClick={() => onUnblockContact?.(c.uid)}>Deblokkeren</button>
+                          <button type="button" className="profile-settings-inline-btn" onClick={() => onUnblockContact?.(c.uid)}>Deblokkeren</button>
                         </div>
                       ))}
                     </div>

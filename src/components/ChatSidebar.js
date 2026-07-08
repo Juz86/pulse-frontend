@@ -904,6 +904,91 @@ export default function ChatSidebar({
             <div style={{ background: 'linear-gradient(135deg,#8c7bff 0%, #7160f5 100%)', borderRadius: '12px 12px 3px 12px', padding: '6px 12px', fontSize: '12px', color: '#fff' }}>Hey!</div>
           </div>
         </div>
+        {chatBgTab === 'foto' && (
+          <div>
+            {!pendingPhoto && chatBg?.type === 'photo' && <div style={{ fontSize: '12px', color: 'var(--success)', marginBottom: '8px' }}>✓ Foto achtergrond actief</div>}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button type="button" className="btn-secondary" style={{ flex: 1 }} disabled={chatBgLoading} onClick={() => bgInputRef?.current?.click()}>
+                {chatBg?.type === 'photo' || pendingPhoto ? 'Andere foto kiezen' : 'Foto kiezen'}
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ flex: 1 }}
+                disabled={chatBgLoading || !pendingPhoto}
+                onClick={() => {
+                  uploadChatBgPhoto?.(pendingPhoto.file);
+                  if (pendingPhoto?.url) URL.revokeObjectURL(pendingPhoto.url);
+                  setPendingPhoto(null);
+                }}
+              >
+                {chatBgLoading ? 'Uploaden…' : 'Opslaan'}
+              </button>
+            </div>
+            <div style={{ fontSize: '11px', color: 'var(--text3)', marginTop: '6px', textAlign: 'center' }}>JPG, PNG of WEBP · max 5 MB</div>
+            <input
+              ref={bgInputRef}
+              type="file"
+              accept=".jpg,.jpeg,.png,.webp"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                const f = e.target.files[0];
+                e.target.value = '';
+                if (pendingPhoto?.url) URL.revokeObjectURL(pendingPhoto.url);
+                if (f) setPendingPhoto({ file: f, url: URL.createObjectURL(f) });
+              }}
+            />
+          </div>
+        )}
+        {chatBgTab === 'kleur' && (
+          <div>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '12px' }}>
+              {['#1e0a3c', '#051236', '#0a1f0e', '#1f0a10', '#0f1923', '#1a1206', '#000000', '#1c1a18'].map((color) => {
+                const isActive = (pendingColor ?? (chatBg?.type === 'color' ? chatBg.value : null)) === color;
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    disabled={chatBgLoading}
+                    onClick={() => setPendingColor(color)}
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      background: color,
+                      border: isActive ? '3px solid var(--accent)' : '2px solid var(--border)',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      transition: 'all .15s',
+                      boxShadow: isActive ? '0 0 0 2px var(--bg),0 0 0 4px var(--accent)' : 'none',
+                    }}
+                  >
+                    {isActive && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '14px' }}>✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              className="btn-primary"
+              style={{ width: '100%' }}
+              disabled={chatBgLoading || !pendingColor}
+              onClick={() => {
+                saveChatBgColor?.(pendingColor);
+                setPendingColor(null);
+              }}
+            >
+              {chatBgLoading ? 'Opslaan…' : 'Opslaan'}
+            </button>
+          </div>
+        )}
+        {chatBgTab === 'standaard' && (
+          chatBg
+            ? <button type="button" className="btn-secondary" style={{ width: '100%' }} disabled={chatBgLoading} onClick={() => removeChatBg?.()}>
+                {chatBgLoading ? 'Herstellen…' : 'Standaard herstellen'}
+              </button>
+            : <div style={{ fontSize: '12px', color: 'var(--success)', textAlign: 'center' }}>✓ Standaard achtergrond actief</div>
+        )}
       </div>
     </section>,
   );

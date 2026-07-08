@@ -652,29 +652,6 @@ export default function ChatSidebar({
     <>
       <section className="contact-profile-card">
         <div className="contact-profile-field">
-          <span className="contact-profile-field-label">Overzicht</span>
-          <h3 className="profile-settings-page-title">Bewaartermijnen beheren</h3>
-          <p className="profile-settings-section-copy profile-settings-section-copy--lead">
-            Stel per account in hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis zichtbaar blijven binnen Pulse.
-          </p>
-          <div className="profile-settings-stat-grid">
-            <div className="profile-settings-stat-card">
-              <div className="profile-settings-stat-label">Standaard</div>
-              <div className="profile-settings-stat-value">30 dagen</div>
-            </div>
-            <div className="profile-settings-stat-card">
-              <div className="profile-settings-stat-label">Per account</div>
-              <div className="profile-settings-stat-value">Apart</div>
-            </div>
-            <div className="profile-settings-stat-card">
-              <div className="profile-settings-stat-label">Onderdelen</div>
-              <div className="profile-settings-stat-value">Chat, bel, video</div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section className="contact-profile-card">
-        <div className="contact-profile-field">
           <span className="contact-profile-field-label">Ouderaccount</span>
           <p className="profile-settings-section-copy">
             Beheer hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis voor jouw account wordt bewaard.

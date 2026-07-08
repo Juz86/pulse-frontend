@@ -3395,7 +3395,6 @@ font-family: 'Inter', sans-serif;
   bottom: 0;
 }
 .sidebar--settings-open .contact-profile-panel {
-  padding-bottom: calc(max(22px, env(safe-area-inset-bottom) + 12px) + 116px);
   scroll-padding-bottom: calc(max(22px, env(safe-area-inset-bottom) + 12px) + 116px);
 }
 .sidebar--settings-open .sidebar-bottom-cluster-backdrop--settings {
@@ -5849,6 +5848,12 @@ font-family: 'Inter', sans-serif;
   flex-direction: column;
   gap: 8px;
 }
+.profile-settings-section-copy {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #726a93;
+}
 .profile-settings-field-label {
   font-size: 11px;
   font-weight: 800;
@@ -5876,6 +5881,20 @@ font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+.profile-settings-card-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 12px;
+}
+.profile-settings-subsection-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #7b719b;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding-left: 2px;
 }
 .profile-settings-list-rows {
   display: flex;
@@ -6161,7 +6180,8 @@ font-family: 'Inter', sans-serif;
   background:
     radial-gradient(circle at top center, rgba(139,92,246,.24), transparent 28%),
     linear-gradient(180deg, #262358 0%, #221f4e 100%);
-  padding: max(16px, env(safe-area-inset-top)) 18px max(22px, calc(env(safe-area-inset-bottom) + 12px));
+  padding: max(16px, env(safe-area-inset-top)) 18px calc(max(22px, env(safe-area-inset-bottom) + 12px) + 116px);
+  scroll-padding-bottom: calc(max(22px, env(safe-area-inset-bottom) + 12px) + 116px);
 }
 .contact-profile-topbar {
   display:flex;

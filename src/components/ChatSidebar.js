@@ -676,15 +676,10 @@ export default function ChatSidebar({
     <>
       <section className="contact-profile-card">
         <div className="contact-profile-field">
-          <span className="contact-profile-field-label">Overzicht</span>
-          <div style={{ color: 'rgba(255,255,255,.68)', fontSize: '14px', lineHeight: 1.6 }}>
-            Beheer per account hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis worden bewaard. Zonder wijziging blijft de standaard op 30 dagen.
-          </div>
-        </div>
-      </section>
-      <section className="contact-profile-card">
-        <div className="contact-profile-field">
           <span className="contact-profile-field-label">Ouderaccount</span>
+          <p className="profile-settings-section-copy">
+            Beheer hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis voor jouw account wordt bewaard.
+          </p>
           {historySettingRows.map((row) => (
             <div key={`parent-${row.key}`} className="profile-settings-field-stack" style={{ marginTop: '10px' }}>
               <div className="profile-settings-field-label">{row.label}</div>
@@ -706,6 +701,9 @@ export default function ChatSidebar({
       <section className="contact-profile-card">
         <div className="contact-profile-field">
           <span className="contact-profile-field-label">Kindaccount</span>
+          <p className="profile-settings-section-copy">
+            Kies een kindaccount en stel dezelfde bewaartermijnen per onderdeel in.
+          </p>
           <SidebarHistorySelect
             ariaLabel="Kies kindaccount"
             value={selectedHistoryChildUid}
@@ -772,55 +770,50 @@ export default function ChatSidebar({
       <>
         <section className="contact-profile-card">
           <div className="contact-profile-field">
-            <span className="contact-profile-field-label">Overzicht</span>
-            <div style={{ color: 'rgba(255,255,255,.68)', fontSize: '14px', lineHeight: 1.6 }}>
+            <span className="contact-profile-field-label">Contacten</span>
+            <p className="profile-settings-section-copy">
               Beheer welke contacten door jou of door een ouder zijn geblokkeerd.
-            </div>
+            </p>
+            {selfBlocked.length === 0 && parentBlocked.length === 0 ? (
+              <div className="profile-settings-empty">Geen geblokkeerde contacten.</div>
+            ) : (
+              <div className="profile-settings-card-stack">
+                {selfBlocked.length > 0 && (
+                  <div className="profile-settings-block">
+                    <div className="profile-settings-subsection-title">Door jou geblokkeerd</div>
+                    <div className="profile-settings-list-rows">
+                      {selfBlocked.map((c) => (
+                        <div key={c.uid} className="profile-settings-contact-row">
+                          <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
+                          </div>
+                          <button type="button" className="btn-secondary" style={{ fontSize: '12px', padding: '5px 12px', flexShrink: 0, width: 'auto', marginTop: 0 }} onClick={() => onUnblockContact?.(c.uid)}>Deblokkeren</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {parentBlocked.length > 0 && (
+                  <div className="profile-settings-block">
+                    <div className="profile-settings-subsection-title">Geblokkeerd door ouder</div>
+                    <div className="profile-settings-list-rows">
+                      {parentBlocked.map((c) => (
+                        <div key={c.uid} className="profile-settings-contact-row profile-settings-contact-row--danger">
+                          <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
+                            <div className="profile-settings-contact-note">Geblokkeerd door ouder</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </section>
-        {selfBlocked.length > 0 && (
-          <section className="contact-profile-card">
-            <div className="contact-profile-field">
-              <span className="contact-profile-field-label">Door jou geblokkeerd</span>
-              <div className="profile-settings-list-rows">
-                {selfBlocked.map((c) => (
-                  <div key={c.uid} className="profile-settings-contact-row">
-                    <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
-                    </div>
-                    <button type="button" className="btn-secondary" style={{ fontSize: '12px', padding: '5px 12px', flexShrink: 0, width: 'auto', marginTop: 0 }} onClick={() => onUnblockContact?.(c.uid)}>Deblokkeren</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-        {parentBlocked.length > 0 && (
-          <section className="contact-profile-card">
-            <div className="contact-profile-field">
-              <span className="contact-profile-field-label">Geblokkeerd door ouder</span>
-              <div className="profile-settings-list-rows">
-                {parentBlocked.map((c) => (
-                  <div key={c.uid} className="profile-settings-contact-row profile-settings-contact-row--danger">
-                    <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
-                      <div className="profile-settings-contact-note">Geblokkeerd door ouder</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-        {selfBlocked.length === 0 && parentBlocked.length === 0 && (
-          <section className="contact-profile-card">
-            <div className="contact-profile-field">
-              <div className="profile-settings-empty">Geen geblokkeerde contacten.</div>
-            </div>
-          </section>
-        )}
       </>,
     );
   };

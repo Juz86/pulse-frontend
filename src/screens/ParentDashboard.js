@@ -5,7 +5,7 @@ import { getInitials, timeAgo, toMs } from '../utils';
 import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
-import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
+import { ProfilePageShell } from '../components/ProfilePageShell';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INTERNAL_ACCOUNT_EMAIL_RE = /@(kind\.pulse\.local|pulse\.internal)$/i;
@@ -1311,15 +1311,6 @@ export default function ParentDashboard({
     </>
   );
 
-  const portalHero = (
-    <ProfilePageHero
-      avatar={<div className="contact-profile-avatar" aria-hidden="true">{getInitials(user?.displayName || user?.email || 'Ouder')}</div>}
-      name={user?.displayName || 'Ouderaccount'}
-      subtitle={user?.email || 'Beheer kinderen, contacten, locatie en activiteiten.'}
-      status={<div className="contact-profile-status">Ouderportaal</div>}
-    />
-  );
-
   const renderPortalMenuRows = () => (
     <section className="contact-profile-card contact-profile-card--profile-actions">
       {TABS.map((tab) => (
@@ -1373,25 +1364,8 @@ export default function ParentDashboard({
             </svg>
           </button>
         ) : null}
-        hero={portalHero}
         className="chat-side-panel contact-profile-panel parent-dashboard-panel"
       >
-        <div className="contact-profile-quick-actions">
-          {TABS.slice(0, 3).map((tab) => (
-            <button
-              type="button"
-              key={tab.id}
-              className="contact-profile-quick-card"
-              onClick={() => {
-                setActiveTab(tab.id);
-                setPortalView('content');
-              }}
-            >
-              <span className="contact-profile-quick-icon" aria-hidden="true">{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
         {showingMenu ? (
           renderPortalMenuRows()
         ) : (

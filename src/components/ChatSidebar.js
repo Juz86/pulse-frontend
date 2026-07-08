@@ -322,8 +322,8 @@ export default function ChatSidebar({
   const historyProfilePageVisible = embeddedSettingsActive && profileTab === 'geschiedenis';
   const stylingProfilePageVisible = embeddedSettingsActive && profileTab === 'styling';
   const blockedProfilePageVisible = embeddedSettingsActive && profileTab === 'geblokkeerd';
-  const parentPortalSheetVisible = showParentDashboard || parentPortalSheetClosing;
-  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (parentPortalSheetVisible ? 'parent-portal' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null))))))))));
+  const parentPortalPageVisible = showParentDashboard || parentPortalSheetClosing;
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null)))))))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Geschiedenis', description: 'Bewaartermijnen beheren' }] : []),
@@ -1090,7 +1090,7 @@ export default function ChatSidebar({
     : contacts;
 
   useEffect(() => {
-    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible && !newGroupSheetVisible && !addContactSheetVisible && !requestsSheetVisible && !parentPortalSheetVisible) return;
+    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible && !newGroupSheetVisible && !addContactSheetVisible && !requestsSheetVisible && !parentPortalPageVisible) return;
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (profilePanelRef.current?.contains?.(e.target)) return;
@@ -1119,7 +1119,7 @@ export default function ChatSidebar({
           setCallSheetClosing(true);
           return;
         }
-        if (parentPortalSheetVisible) {
+        if (parentPortalPageVisible) {
           setParentPortalSheetClosing(true);
           return;
         }
@@ -1128,7 +1128,7 @@ export default function ChatSidebar({
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [addContactSheetVisible, callSheetVisible, moreActionsSheetVisible, newChatSheetVisible, newGroupSheetVisible, parentPortalSheetVisible, requestsSheetVisible, settingsSheetVisible]);
+  }, [addContactSheetVisible, callSheetVisible, moreActionsSheetVisible, newChatSheetVisible, newGroupSheetVisible, parentPortalPageVisible, requestsSheetVisible, settingsSheetVisible]);
 
   useEffect(() => {
     if (!moreActionsMenuOpen) return undefined;
@@ -1609,9 +1609,9 @@ export default function ChatSidebar({
   }, [setShowParentDashboard]);
 
   const dismissParentPortalSheet = useCallback(() => {
-    if (parentPortalSheetClosing || !parentPortalSheetVisible) return;
+    if (parentPortalSheetClosing || !parentPortalPageVisible) return;
     setParentPortalSheetClosing(true);
-  }, [parentPortalSheetClosing, parentPortalSheetVisible]);
+  }, [parentPortalSheetClosing, parentPortalPageVisible]);
 
   useEffect(() => {
     if (!moreActionsMenuClosing) return undefined;
@@ -1749,7 +1749,7 @@ export default function ChatSidebar({
   }, [closeProfileOverviewSheet, profileSheetClosing]);
   const profileFooterActive = settingsSheetVisible;
   const callsFooterActive = callSheetVisible;
-  const parentFooterActive = parentPortalSheetVisible;
+  const parentFooterActive = parentPortalPageVisible;
   const moreFooterActive = moreActionsSheetVisible || addContactSheetVisible || newChatSheetVisible || newGroupSheetVisible || requestsSheetVisible;
   const chatsFooterActive = activeTab === 'chats' && !profileFooterActive && !callsFooterActive && !parentFooterActive && !moreFooterActive;
   const footerEmbeddedInCluster = !!footerClusterMode
@@ -1864,9 +1864,9 @@ export default function ChatSidebar({
           type="button"
           className={`sidebar-footer-tab${parentFooterActive ? ' active' : ''}`}
           aria-label={parentActivityBadge > 0 ? `Open ouderportaal, ${parentActivityBadge > 9 ? 'meer dan 9' : parentActivityBadge} nieuwe activiteiten` : 'Open ouderportaal'}
-          aria-expanded={parentPortalSheetVisible}
+          aria-expanded={parentPortalPageVisible}
           onClick={() => {
-            if (parentPortalSheetVisible) {
+            if (parentPortalPageVisible) {
               dismissParentPortalSheet();
               return;
             }
@@ -2334,6 +2334,14 @@ export default function ChatSidebar({
       {historyProfilePageVisible && isParent ? renderSettingsHistorySheet() : null}
       {stylingProfilePageVisible ? renderSettingsStylingSheet() : null}
       {blockedProfilePageVisible ? renderSettingsBlockedSheet() : null}
+      {parentPortalPageVisible ? (
+        <ParentDashboard
+          user={user}
+          parentActivityBadge={parentActivityBadge}
+          onActivitiesViewed={onParentActivitiesViewed}
+          onClose={dismissParentPortalSheet}
+        />
+      ) : null}
 
       {footerClusterMode ? (
         <div

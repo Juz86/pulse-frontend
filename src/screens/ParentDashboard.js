@@ -594,17 +594,18 @@ export default function ParentDashboard({
             <div className="parent-header parent-header--sheet">
               <div className="pulse-sheet-handle parent-sheet-handle" aria-hidden="true" />
               <div className="parent-sheet-header-row">
-                {!showingMenu && (
-                  <button
-                    type="button"
-                    className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-back-btn"
-                    aria-label="Terug naar ouderportaal overzicht"
-                    onClick={() => setPortalView('menu')}
-                    title="Terug"
-                  >
-                    <span aria-hidden="true">←</span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="pulse-sheet-close pulse-sheet-close--sidebar-actions parent-sheet-back-btn"
+                  aria-label={showingMenu ? 'Terug' : 'Terug naar ouderportaal overzicht'}
+                  onClick={() => {
+                    if (showingMenu) onClose?.();
+                    else setPortalView('menu');
+                  }}
+                  title="Terug"
+                >
+                  <span aria-hidden="true">←</span>
+                </button>
                 <div className="parent-sheet-title-wrap">
                   <div className="parent-sheet-title">{showingMenu ? 'Ouderportaal' : activeTabMeta.label}</div>
                 </div>

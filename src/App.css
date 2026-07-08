@@ -10892,6 +10892,91 @@ font-family: 'Inter', sans-serif;
   top: 0;
   right: 0;
 }
+.parent-sheet-back-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.parent-root--sheet {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top, rgba(148, 116, 255, 0.18) 0%, rgba(44, 34, 104, 0.22) 18%, rgba(35, 29, 84, 0.9) 42%, rgba(35, 29, 84, 1) 100%);
+  color: #f7f4ff;
+}
+.parent-container--sheet {
+  max-width: none;
+  padding: 14px 12px 108px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.parent-root--sheet .parent-sheet-shell:not(.parent-sheet-shell--embedded) {
+  flex: 0 0 auto;
+  overflow: visible;
+  border-radius: 28px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.parent-root--sheet .parent-header--sheet {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 8px 2px;
+  margin-bottom: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+.parent-root--sheet .parent-sheet-title {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.parent-root--sheet .parent-actions-nav:not(.parent-actions-nav--embedded) {
+  padding: 0 0 8px;
+}
+.parent-root--sheet .parent-actions-list:not(.parent-actions-list--embedded) {
+  flex: 0 0 auto;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(118, 101, 209, 0.34);
+  background: rgba(34, 26, 78, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  margin-bottom: 0;
+}
+.parent-root--sheet .parent-actions-item {
+  min-height: 78px;
+  flex: 0 0 78px !important;
+  color: #f7f4ff;
+}
+.parent-root--sheet .parent-actions-item + .parent-actions-item {
+  border-top: 1px solid rgba(118, 101, 209, 0.22);
+}
+.parent-root--sheet .parent-actions-icon {
+  color: #8d7dff;
+}
+.parent-root--sheet .parent-actions-item.active {
+  background: rgba(118, 101, 209, 0.14);
+  color: #fff;
+}
+.parent-root--sheet .pd-layout--sheet {
+  display: block;
+  min-height: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+.parent-root--sheet .pd-content--sheet {
+  padding: 0;
+  border-top: 0;
+  background: transparent;
+}
 .parent-actions-nav {
   display: flex;
   flex-direction: column;

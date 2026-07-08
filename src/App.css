@@ -11279,6 +11279,167 @@ font-family: 'Inter', sans-serif;
 .parent-root--embedded .analytics-section-title {
   color: #241741;
 }
+
+.parent-dashboard-panel .parent-dashboard-content-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.parent-dashboard-panel .parent-dashboard-layout {
+  display: block;
+  min-height: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.parent-dashboard-panel .parent-dashboard-content {
+  padding: 24px 24px 28px;
+  border-top: 0;
+  background: transparent;
+}
+
+.parent-dashboard-panel .parent-portal-view {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.parent-dashboard-panel .parent-portal-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.parent-dashboard-panel .parent-portal-toolbar {
+  margin-bottom: 0 !important;
+}
+
+.parent-dashboard-panel .parent-section-title {
+  margin: 0;
+  color: #f7f4ff;
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+.parent-dashboard-panel .parent-section-sub,
+.parent-dashboard-panel .parent-portal-inline-sub {
+  margin: 0;
+  color: #b7b0d3;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.parent-dashboard-panel .parent-portal-form,
+.parent-dashboard-panel .pd-contacts-list,
+.parent-dashboard-panel .pd-location-list,
+.parent-dashboard-panel .parent-activity-overview,
+.parent-dashboard-panel .parent-activity-log-card {
+  margin-top: 0;
+}
+
+.parent-dashboard-panel .parent-input,
+.parent-dashboard-panel .coparent-invite-search {
+  min-height: 58px;
+  border-radius: 18px;
+  border: 1px solid rgba(120, 104, 198, 0.32);
+  background: rgba(53, 43, 97, 0.92);
+  color: #f7f4ff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  padding: 0 18px;
+}
+
+.parent-dashboard-panel .parent-input::placeholder,
+.parent-dashboard-panel .coparent-invite-search::placeholder {
+  color: #9e96c3;
+}
+
+.parent-dashboard-panel .parent-input:focus,
+.parent-dashboard-panel .coparent-invite-search:focus {
+  border-color: rgba(150, 130, 255, 0.62);
+  box-shadow: 0 0 0 4px rgba(135, 111, 255, 0.14);
+}
+
+.parent-dashboard-panel .parent-btn-primary {
+  min-height: 56px;
+  border-radius: 18px;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 18px 32px rgba(109, 84, 227, 0.24);
+}
+
+.parent-dashboard-panel .parent-btn-outline,
+.parent-dashboard-panel .parent-btn-orange,
+.parent-dashboard-panel .parent-btn-green {
+  min-height: 42px;
+  border-radius: 16px;
+}
+
+.parent-dashboard-panel .parent-btn-outline {
+  border: 1px solid rgba(120, 104, 198, 0.26);
+  background: rgba(49, 40, 90, 0.92);
+  color: #ddd8f4;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.parent-dashboard-panel .parent-btn-outline:hover {
+  border-color: rgba(150, 130, 255, 0.44);
+  background: rgba(58, 47, 104, 0.96);
+  color: #fff;
+}
+
+.parent-dashboard-panel .parent-child-row,
+.parent-dashboard-panel .pd-contact-row,
+.parent-dashboard-panel .pd-location-card,
+.parent-dashboard-panel .analytics-profile-card,
+.parent-dashboard-panel .parent-usage-card,
+.parent-dashboard-panel .parent-top-contacts-card,
+.parent-dashboard-panel .parent-activity-log-card {
+  border: 1px solid rgba(110, 94, 188, 0.22);
+  background: rgba(38, 30, 73, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+  color: #f7f4ff;
+}
+
+.parent-dashboard-panel .parent-child-row,
+.parent-dashboard-panel .pd-contact-row,
+.parent-dashboard-panel .pd-location-card {
+  border-radius: 22px;
+}
+
+.parent-dashboard-panel .analytics-profile-card,
+.parent-dashboard-panel .parent-usage-card,
+.parent-dashboard-panel .parent-top-contacts-card,
+.parent-dashboard-panel .parent-activity-log-card {
+  border-radius: 24px;
+}
+
+.parent-dashboard-panel .parent-child-row {
+  padding: 18px;
+}
+
+.parent-dashboard-panel .analytics-section-title,
+.parent-dashboard-panel .parent-child-name,
+.parent-dashboard-panel .pd-contact-name,
+.parent-dashboard-panel .pd-location-name {
+  color: #f7f4ff;
+}
+
+.parent-dashboard-panel .parent-child-meta,
+.parent-dashboard-panel .parent-activity-time,
+.parent-dashboard-panel .pd-contact-meta,
+.parent-dashboard-panel .pd-location-meta,
+.parent-dashboard-panel .parent-top-contact-copy span,
+.parent-dashboard-panel .parent-usage-label,
+.parent-dashboard-panel .parent-activity-text {
+  color: #b7b0d3;
+}
+
+.parent-dashboard-panel .contact-profile-footer {
+  padding-top: 2px;
+}
 .parent-dashboard-overlay .pd-layout {
   flex-direction:column; min-height:unset; overflow:hidden;
   border-radius:16px;

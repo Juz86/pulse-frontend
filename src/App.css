@@ -10343,7 +10343,7 @@ font-family: 'Inter', sans-serif;
   display:flex;
   flex-direction:column;
   align-items:flex-start;
-  gap:8px;
+  gap:10px;
   min-width:0;
   flex:1;
 }
@@ -10351,8 +10351,9 @@ font-family: 'Inter', sans-serif;
 .pd-child-secondary-controls {
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:10px;
   flex-wrap:wrap;
+  padding-left:2px;
 }
 
 /* Pauze/Hervat dropdown menu */
@@ -12372,9 +12373,11 @@ font-family: 'Inter', sans-serif;
   }
   .pd-child-primary-controls {
     min-width: 0;
+    gap: 8px;
   }
   .pd-child-secondary-controls {
     gap: 6px;
+    padding-left: 0;
   }
   .pd-child-top-action { min-width:30px; min-height:30px; padding:4px 5px !important; }
   .pd-child-top-action--assign { max-width:30px; }

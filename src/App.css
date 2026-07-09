@@ -11288,6 +11288,32 @@ font-family: 'Inter', sans-serif;
   overflow: hidden;
 }
 
+.parent-dashboard-panel .contact-profile-card--parent-portal-meta {
+  padding: 0;
+}
+
+.parent-dashboard-panel .parent-dashboard-meta-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.parent-dashboard-panel .parent-dashboard-meta-title {
+  color: #f7f4ff;
+  font-size: 26px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.parent-dashboard-panel .parent-dashboard-meta-subtitle {
+  color: #b7b0d3;
+  font-size: 14px;
+  line-height: 1.65;
+  font-weight: 600;
+  max-width: 32ch;
+}
+
 .parent-dashboard-panel .parent-dashboard-layout {
   display: block;
   min-height: 0;

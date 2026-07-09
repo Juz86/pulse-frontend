@@ -578,7 +578,7 @@ export default function ParentDashboard({
                   <h2 className="parent-section-title">Kind toevoegen</h2>
                   <p className="parent-section-sub">Maak een account aan voor uw kind. Het kind logt in met gebruikersnaam en wachtwoord.</p>
                 </div>
-                <form onSubmit={createChild} className="parent-portal-form" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <form onSubmit={createChild} className="parent-portal-form parent-portal-form-card">
                   <input
                     id="child-name"
                     name="childName"
@@ -613,19 +613,17 @@ export default function ParentDashboard({
                     maxLength={20}
                   />
                   <div
-                    style={{
-                      fontSize: 12,
-                      color: createUsernameStatus === 'Beschikbaar'
-                        ? '#16a34a'
-                        : (createUsernameStatus ? '#dc2626' : '#6b7280'),
-                      marginTop: -2,
-                    }}
+                    className={`parent-portal-helper-text${
+                      createUsernameStatus === 'Beschikbaar'
+                        ? ' is-success'
+                        : (createUsernameStatus ? ' is-error' : '')
+                    }`}
                   >
                     {createUsernameLoading
                       ? 'Gebruikersnaam controleren…'
                       : createUsernameStatus || '3–20 tekens · alleen letters, cijfers en _. Deze loginnaam is uniek binnen Pulse.'}
                   </div>
-                  <div style={{ position: 'relative' }}>
+                  <div className="parent-portal-password-field">
                     <input
                       id="child-password"
                       name="childPassword"
@@ -638,10 +636,13 @@ export default function ParentDashboard({
                       onChange={e => setChildPassword(e.target.value)}
                       required
                       minLength={6}
-                      style={{ paddingRight: 42, width: '100%', boxSizing: 'border-box' }}
                     />
-                    <button type="button" aria-label={showCreatePw ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'} onClick={() => setShowCreatePw(p => !p)}
-                      style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
+                    <button
+                      type="button"
+                      className="parent-portal-password-toggle"
+                      aria-label={showCreatePw ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'}
+                      onClick={() => setShowCreatePw(p => !p)}
+                    >
                       {showCreatePw ? <EyeOff size={18} aria-hidden="true" /> : <EyeOn size={18} aria-hidden="true" />}
                     </button>
                   </div>
@@ -649,30 +650,32 @@ export default function ParentDashboard({
                     {createLoading ? 'Aanmaken…' : 'Kindaccount aanmaken →'}
                   </button>
                 </form>
-                {createError   && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginTop: 10 }}><span aria-hidden="true">⚠️ </span>{createError}</div>}
-                {createSuccess && <div className="parent-success" role="status" aria-live="polite" style={{ marginTop: 10 }}><span aria-hidden="true">✓ </span>{createSuccess}</div>}
+                {createError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{createError}</div>}
+                {createSuccess && <div className="parent-success" role="status" aria-live="polite"><span aria-hidden="true">✓ </span>{createSuccess}</div>}
               </div>
             )}
 
             {/* Tab 2 — Mijn kinderen */}
             {activeTab === 'children' && (
               <div className="parent-portal-view parent-portal-view--children">
-                <div className="parent-portal-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Mijn kinderen</h2>
-                  <button type="button" className="parent-btn-outline" onClick={loadChildren} style={{ fontSize: 12, padding: '6px 12px', display:'flex', alignItems:'center', gap:4 }}><Refresh size={14} aria-hidden="true" /> Vernieuwen</button>
+                <div className="parent-portal-toolbar parent-portal-toolbar--spread">
+                  <h2 className="parent-section-title">Mijn kinderen</h2>
+                  <button type="button" className="parent-btn-outline parent-btn-outline--compact" onClick={loadChildren}>
+                    <Refresh size={14} aria-hidden="true" /> Vernieuwen
+                  </button>
                 </div>
-                {childError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{childError}</div>}
+                {childError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{childError}</div>}
 
                 {loading ? (
-                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Laden…</div>
+                  <div className="parent-portal-empty-state">Laden…</div>
                 ) : children.length === 0 ? (
-                  <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>
+                  <div className="parent-portal-empty-state" role="status" aria-live="polite">
                     <Users size={40} color="#ccc" style={{ marginBottom: 8 }} aria-hidden="true" />
                     <p>Nog geen kinderen toegevoegd.</p>
-                    <p style={{ fontSize: 13, marginTop: 4 }}>Voeg een kind toe via het tabblad "Kind toevoegen".</p>
+                    <p className="parent-portal-inline-sub">Voeg een kind toe via het tabblad "Kind toevoegen".</p>
                   </div>
                 ) : children.map(child => (
-                  <div key={child.uid} style={{ marginBottom: 16 }}>
+                  <div key={child.uid} className="parent-portal-stack">
                     {(() => {
                       const pf = child.pausedFeatures || { chat: false, call: false, video: false };
                       const anyPaused = pf.chat || pf.call || pf.video;
@@ -784,11 +787,11 @@ export default function ParentDashboard({
 
                     {/* Wachtwoord wijzigen inline */}
                     {editingUsernameUid === child.uid && (
-                      <div style={{ background: '#f9f9fc', borderRadius: 10, padding: '12px 16px', marginBottom: 8, border: '1px solid #e0e0e8' }}>
-                        <p style={{ fontSize: 13, marginBottom: 8, color: '#555' }}>
+                      <div className="parent-child-inline-editor">
+                        <p className="parent-child-inline-editor__copy">
                           Gebruikersnaam voor <strong>{child.displayName}</strong>. Deze loginnaam is uniek binnen Pulse en alleen door de ouder te wijzigen.
                         </p>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <div className="parent-child-inline-editor__actions">
                           <input
                             className="parent-input"
                             type="text"
@@ -802,14 +805,13 @@ export default function ParentDashboard({
                             }}
                             minLength={3}
                             maxLength={20}
-                            style={{ width: '100%', boxSizing: 'border-box', minHeight: 44 }}
                             autoFocus
                             autoCapitalize="none"
                             autoCorrect="off"
                           />
                             <button
                             type="button"
-                            style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(34,197,94,.18)', color:'#16a34a', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, opacity: (usernameSaving || !editingUsername.trim()) ? .45 : 1 }}
+                            className="parent-child-inline-editor__icon-btn parent-child-inline-editor__icon-btn--confirm"
                             aria-label={`Sla gebruikersnaam op voor ${child.displayName}`}
                             onClick={() => changeChildUsername(child.uid)}
                             disabled={usernameSaving || !editingUsername.trim()}
@@ -818,24 +820,24 @@ export default function ParentDashboard({
                           </button>
                           <button
                             type="button"
-                            style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(239,68,68,.12)', color:'#ef4444', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}
+                            className="parent-child-inline-editor__icon-btn parent-child-inline-editor__icon-btn--cancel"
                             aria-label={`Annuleer gebruikersnaambewerking voor ${child.displayName}`}
                             onClick={() => { setEditingUsernameUid(null); setEditingUsername(''); setUsernameError(''); setUsernameSuccess(''); }}
                             title="Annuleren">
                             <Cancel size={22} aria-hidden="true" />
                           </button>
                         </div>
-                        <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>3–20 tekens · alleen letters, cijfers en _</div>
-                        {usernameError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginTop: 6, fontSize: 13 }}><span aria-hidden="true">⚠️ </span>{usernameError}</div>}
-                        {usernameSuccess && <div className="parent-success" role="status" aria-live="polite" style={{ marginTop: 6, fontSize: 13 }}><span aria-hidden="true">✓ </span>{usernameSuccess}</div>}
+                        <div className="parent-child-inline-editor__hint">3–20 tekens · alleen letters, cijfers en _</div>
+                        {usernameError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{usernameError}</div>}
+                        {usernameSuccess && <div className="parent-success" role="status" aria-live="polite"><span aria-hidden="true">✓ </span>{usernameSuccess}</div>}
                       </div>
                     )}
 
                     {changingPwUid === child.uid && (
-                      <div style={{ background: '#f9f9fc', borderRadius: 10, padding: '12px 16px', marginBottom: 8, border: '1px solid #e0e0e8' }}>
-                        <p style={{ fontSize: 13, marginBottom: 8, color: '#555' }}>Nieuw wachtwoord voor <strong>{child.displayName}</strong>:</p>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                          <div style={{ position: 'relative', flex: 1 }}>
+                      <div className="parent-child-inline-editor">
+                        <p className="parent-child-inline-editor__copy">Nieuw wachtwoord voor <strong>{child.displayName}</strong>:</p>
+                        <div className="parent-child-inline-editor__actions">
+                          <div className="parent-portal-password-field parent-portal-password-field--inline">
                             <input
                               className="parent-input"
                               type={showNewPw ? 'text' : 'password'}
@@ -844,17 +846,20 @@ export default function ParentDashboard({
                               value={newPassword}
                               onChange={e => setNewPassword(e.target.value)}
                               minLength={6}
-                              style={{ paddingRight: 40, width: '100%', boxSizing: 'border-box', minHeight: 44 }}
                               autoFocus
                             />
-                            <button type="button" aria-label={showNewPw ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'} onClick={() => setShowNewPw(p => !p)}
-                              style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0, display: 'flex' }}>
+                            <button
+                              type="button"
+                              className="parent-portal-password-toggle"
+                              aria-label={showNewPw ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'}
+                              onClick={() => setShowNewPw(p => !p)}
+                            >
                               {showNewPw ? <EyeOff size={16} aria-hidden="true" /> : <EyeOn size={16} aria-hidden="true" />}
                             </button>
                           </div>
                           <button
                             type="button"
-                            style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(34,197,94,.18)', color:'#16a34a', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, opacity: (pwLoading || newPassword.length < 6) ? .45 : 1 }}
+                            className="parent-child-inline-editor__icon-btn parent-child-inline-editor__icon-btn--confirm"
                             aria-label={`Sla nieuw wachtwoord op voor ${child.displayName}`}
                             onClick={() => changePassword(child.uid)} disabled={pwLoading || newPassword.length < 6}
                             title="Opslaan">
@@ -862,14 +867,14 @@ export default function ParentDashboard({
                           </button>
                           <button
                             type="button"
-                            style={{ width:44, height:44, borderRadius:'50%', border:'none', cursor:'pointer', background:'rgba(239,68,68,.12)', color:'#ef4444', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}
+                            className="parent-child-inline-editor__icon-btn parent-child-inline-editor__icon-btn--cancel"
                             aria-label={`Annuleer wachtwoordwijziging voor ${child.displayName}`}
                             onClick={() => { setChangingPwUid(null); setNewPassword(''); setPwError(''); }}
                             title="Annuleren">
                             <Cancel size={22} aria-hidden="true" />
                           </button>
                         </div>
-                        {pwError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginTop: 6, fontSize: 13 }}><span aria-hidden="true">⚠️ </span>{pwError}</div>}
+                        {pwError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{pwError}</div>}
                       </div>
                     )}
                   </div>
@@ -887,11 +892,10 @@ export default function ParentDashboard({
 
                 {/* Kind-selector */}
                 {children.length > 1 && (
-                  <div style={{ marginBottom: 16, position: 'relative', display: 'inline-block' }}>
+                  <div className="parent-portal-filter-row">
                     <button
                       type="button"
                       className="parent-btn-outline"
-                      style={{ display: 'flex', alignItems: 'center', gap: 8 }}
                       onClick={e => { e.stopPropagation(); setChildDropdownOpen(v => !v); }}
                     >
                       <Users size={15} aria-hidden="true" />
@@ -912,14 +916,14 @@ export default function ParentDashboard({
                   </div>
                 )}
 
-                {contactsError && <div className="parent-error" role="alert" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{contactsError}</div>}
+                {contactsError && <div className="parent-error" role="alert"><span aria-hidden="true">⚠️ </span>{contactsError}</div>}
 
                 {contactsLoading ? (
-                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Contacten laden…</div>
+                  <div className="parent-portal-empty-state">Contacten laden…</div>
                 ) : childContacts.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>
+                  <div className="parent-portal-empty-state">
                     <Users size={32} color="#ccc" style={{ marginBottom: 8 }} aria-hidden="true" />
-                    <p style={{ fontSize: 13 }}>Dit kind heeft nog geen contacten.</p>
+                    <p className="parent-portal-inline-sub">Dit kind heeft nog geen contacten.</p>
                   </div>
                 ) : (
                   <div className="pd-contacts-list">
@@ -941,7 +945,7 @@ export default function ParentDashboard({
                               <button
                                 type="button"
                                 className="parent-btn-outline"
-                                style={{ fontSize: 12, padding: '5px 10px', color: contact.isBlocked ? '#22c55e' : '#f97316', borderColor: contact.isBlocked ? '#22c55e' : '#f97316', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
+                                style={{ color: contact.isBlocked ? '#22c55e' : '#f97316', borderColor: contact.isBlocked ? '#22c55e' : '#f97316', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
                                 disabled={contactActionUid === contact.uid}
                                 onClick={() => contact.isBlocked
                                   ? parentUnblockContact(contactsChildUid, contact.uid)
@@ -953,7 +957,7 @@ export default function ParentDashboard({
                               <button
                                 type="button"
                                 className="parent-btn-outline"
-                                style={{ fontSize: 12, padding: '5px 10px', color: '#ef4444', borderColor: '#ef4444', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
+                                style={{ color: '#ef4444', borderColor: '#ef4444', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
                                 disabled={contactActionUid === contact.uid}
                                 onClick={() => parentRemoveContact(contactsChildUid, contact.uid)}
                               >

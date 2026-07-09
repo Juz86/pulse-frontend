@@ -11345,6 +11345,14 @@ font-family: 'Inter', sans-serif;
   margin-bottom: 0 !important;
 }
 
+.parent-dashboard-panel .parent-portal-toolbar--spread {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
 .parent-dashboard-panel .parent-section-title {
   margin: 0;
   color: #f7f4ff;
@@ -11367,6 +11375,90 @@ font-family: 'Inter', sans-serif;
 .parent-dashboard-panel .parent-activity-overview,
 .parent-dashboard-panel .parent-activity-log-card {
   margin-top: 0;
+}
+
+.parent-dashboard-panel .parent-portal-form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.parent-dashboard-panel .parent-portal-helper-text {
+  margin-top: -2px;
+  color: #9e96c3;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.parent-dashboard-panel .parent-portal-helper-text.is-success {
+  color: #4ade80;
+}
+
+.parent-dashboard-panel .parent-portal-helper-text.is-error {
+  color: #fca5a5;
+}
+
+.parent-dashboard-panel .parent-portal-password-field {
+  position: relative;
+}
+
+.parent-dashboard-panel .parent-portal-password-field .parent-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 46px;
+}
+
+.parent-dashboard-panel .parent-portal-password-field--inline {
+  flex: 1;
+}
+
+.parent-dashboard-panel .parent-portal-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #9e96c3;
+  cursor: pointer;
+}
+
+.parent-dashboard-panel .parent-portal-filter-row {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 2px;
+}
+
+.parent-dashboard-panel .parent-btn-outline--compact {
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.parent-dashboard-panel .parent-portal-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 32px 0;
+  text-align: center;
+  color: #b7b0d3;
+}
+
+.parent-dashboard-panel .parent-portal-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .parent-dashboard-panel .parent-input,
@@ -11449,6 +11541,64 @@ font-family: 'Inter', sans-serif;
   padding: 18px;
 }
 
+.parent-dashboard-panel .parent-child-inline-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(110, 94, 188, 0.22);
+  background: rgba(38, 30, 73, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+  color: #f7f4ff;
+}
+
+.parent-dashboard-panel .parent-child-inline-editor__copy {
+  margin: 0;
+  color: #b7b0d3;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.parent-dashboard-panel .parent-child-inline-editor__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.parent-dashboard-panel .parent-child-inline-editor__hint {
+  color: #9e96c3;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.parent-dashboard-panel .parent-child-inline-editor__icon-btn {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.parent-dashboard-panel .parent-child-inline-editor__icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.parent-dashboard-panel .parent-child-inline-editor__icon-btn--confirm {
+  background: rgba(34,197,94,.18);
+  color: #4ade80;
+}
+
+.parent-dashboard-panel .parent-child-inline-editor__icon-btn--cancel {
+  background: rgba(239,68,68,.12);
+  color: #f87171;
+}
+
 .parent-dashboard-panel .analytics-section-title,
 .parent-dashboard-panel .parent-child-name,
 .parent-dashboard-panel .pd-contact-name,
@@ -11468,6 +11618,12 @@ font-family: 'Inter', sans-serif;
 
 .parent-dashboard-panel .contact-profile-footer {
   padding-top: 2px;
+}
+
+.parent-dashboard-panel .pd-contact-actions .parent-btn-outline {
+  min-height: 38px;
+  padding: 6px 12px;
+  font-size: 12px;
 }
 .parent-dashboard-overlay .pd-layout {
   flex-direction:column; min-height:unset; overflow:hidden;

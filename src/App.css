@@ -5285,7 +5285,7 @@ font-family: 'Inter', sans-serif;
 
 /* ── MODAL ── */
 .modal-overlay {
-  position:fixed; inset:0; z-index:1000;
+  position:fixed; inset:0; z-index:4000;
   background:radial-gradient(ellipse at center, rgba(108,99,255,.06) 0%, rgba(0,0,0,.85) 100%);
   display:flex; align-items:center; justify-content:center;
   padding:var(--modal-padding);
@@ -11662,6 +11662,8 @@ font-family: 'Inter', sans-serif;
   flex-direction: column;
   gap: 10px;
   padding: 16px 18px;
+  position: relative;
+  z-index: 3810;
   border-radius: 22px;
   border: 1px solid rgba(110, 94, 188, 0.22);
   background: rgba(38, 30, 73, 0.96);

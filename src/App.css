@@ -10306,6 +10306,10 @@ font-family: 'Inter', sans-serif;
 }
 .parent-child-row:last-child { margin-bottom:0; }
 .parent-child-row.paused { background:rgba(249,115,22,.04); border-color:rgba(249,115,22,.3); }
+.parent-dashboard-panel .parent-child-row {
+  position: relative;
+  z-index: 3808;
+}
 .parent-child-avatar {
   width:44px; height:44px; border-radius:999px; flex-shrink:0;
   background:linear-gradient(135deg,#6c63ff,#a855f7);
@@ -10329,11 +10333,14 @@ font-family: 'Inter', sans-serif;
   gap:8px;
   flex-wrap:nowrap;
   margin-top:10px;
+  position: relative;
+  z-index: 3809;
+  pointer-events: auto;
 }
 
 /* Pauze/Hervat dropdown menu */
 .pcd-dropdown {
-  position:absolute; top:calc(100% + 6px); left:0; z-index:200;
+  position:absolute; top:calc(100% + 6px); left:0; z-index:3810;
   background:#fff; border:1.5px solid #e5e7eb; border-radius:12px;
   box-shadow:0 8px 24px rgba(0,0,0,.12);
   min-width:160px; padding:4px; overflow:hidden;

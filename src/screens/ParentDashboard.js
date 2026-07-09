@@ -703,24 +703,6 @@ export default function ParentDashboard({
                               <div className="parent-child-name">{child.displayName}</div>
                               {child.username && <div className="parent-child-username">@{child.username}</div>}
                             </div>
-                            <div className="pd-child-top-status parent-child-meta parent-child-meta--responsive">
-                              {child.online ? (
-                                <>
-                                  <span className="pd-child-top-status-line">
-                                    <span className="parent-status-dot online" />
-                                    <span>Online</span>
-                                  </span>
-                                </>
-                              ) : (
-                                <>
-                                  <span className="pd-child-top-status-line">
-                                    <span className="parent-status-dot offline" />
-                                    <span>Offline</span>
-                                  </span>
-                                  <span className="pd-child-top-status-subline">{timeAgo(child.lastSeen, 'Onbekend')}</span>
-                                </>
-                              )}
-                            </div>
                           </div>
                         </div>
                       </div>

@@ -51,6 +51,7 @@ export default function ParentDashboard({
   const [changingPwUid,  setChangingPwUid]  = useState(null);
   const [newPassword,    setNewPassword]    = useState('');
   const [pwError,        setPwError]        = useState('');
+  const [pwSuccess,      setPwSuccess]      = useState('');
   const [pwLoading,      setPwLoading]      = useState(false);
   const [showNewPw,      setShowNewPw]      = useState(false);
   const [editingUsernameUid, setEditingUsernameUid] = useState(null);
@@ -417,7 +418,18 @@ export default function ParentDashboard({
   }
 
   async function changePassword(childUid) {
-    setPwError(''); setPwLoading(true);
+    if (!childUid) {
+      setPwError('Geen kind geselecteerd.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPwSuccess('');
+      setPwError('Wachtwoord moet minimaal 6 tekens bevatten.');
+      return;
+    }
+    setPwError('');
+    setPwSuccess('');
+    setPwLoading(true);
     try {
       const res = await authFetch(`${BACKEND}/api/parent/change-child-password/${childUid}`, {
         method: 'POST',
@@ -425,6 +437,7 @@ export default function ParentDashboard({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Wijzigen mislukt.');
+      setPwSuccess('Wachtwoord succesvol gewijzigd.');
       setChangingPwUid(null); setNewPassword(''); setShowNewPw(false);
     } catch (err) { setPwError(err.message); }
     setPwLoading(false);
@@ -818,7 +831,7 @@ export default function ParentDashboard({
                             onMouseDown={swallowChildActionEvent}
                             onPointerDown={swallowChildActionEvent}
                             onTouchStart={swallowChildActionEvent}
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setPwSuccess(''); setShowNewPw(false); }}
                             style={{ padding:'4px 6px' }}>
                             <KeyRound size={15} aria-hidden="true" />
                           </button>
@@ -939,12 +952,13 @@ export default function ParentDashboard({
                             type="button"
                             className="parent-child-inline-editor__icon-btn parent-child-inline-editor__icon-btn--cancel"
                             aria-label={`Annuleer wachtwoordwijziging voor ${child.displayName}`}
-                            onClick={() => { setChangingPwUid(null); setNewPassword(''); setPwError(''); }}
+                            onClick={() => { setChangingPwUid(null); setNewPassword(''); setPwError(''); setPwSuccess(''); }}
                             title="Annuleren">
                             <Cancel size={22} aria-hidden="true" />
                           </button>
                         </div>
                         {pwError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{pwError}</div>}
+                        {pwSuccess && <div className="parent-success" role="status" aria-live="polite"><span aria-hidden="true">✓ </span>{pwSuccess}</div>}
                       </div>
                     )}
                   </div>

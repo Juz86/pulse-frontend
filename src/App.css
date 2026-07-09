@@ -10334,6 +10334,13 @@ font-family: 'Inter', sans-serif;
   overflow: hidden;
 }
 .parent-child-name { font-weight:600; font-size:15px; color:#1a1a2e; }
+.parent-child-title-group {
+  min-width: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
 .parent-child-username { color:#888; font-weight:400; font-size:12px; }
 .parent-child-meta { display:flex; align-items:center; gap:6px; font-size:12px; color:#888; }
 .pd-child-control-row {

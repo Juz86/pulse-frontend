@@ -657,11 +657,11 @@ export default function ParentDashboard({
 
             {/* Tab 2 — Mijn kinderen */}
             {activeTab === 'children' && (
-              <div className="parent-portal-view parent-portal-view--children">
-                <div className="parent-portal-toolbar parent-portal-toolbar--spread">
+                <div className="parent-portal-view parent-portal-view--children">
+                  <div className="parent-portal-toolbar parent-portal-toolbar--spread">
                   <h2 className="parent-section-title">Mijn kinderen</h2>
                   <button type="button" className="parent-btn-outline parent-btn-outline--compact" onClick={loadChildren}>
-                    <Refresh size={14} aria-hidden="true" /> Vernieuwen
+                    <Refresh size={14} aria-hidden="true" />
                   </button>
                 </div>
                 {childError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{childError}</div>}
@@ -693,7 +693,10 @@ export default function ParentDashboard({
                         </div>
                         <div className="parent-child-copy">
                           <div className="parent-child-header-row">
-                            <div className="parent-child-name">{child.displayName}</div>
+                            <div className="parent-child-title-group">
+                              <div className="parent-child-name">{child.displayName}</div>
+                              {child.username && <div className="parent-child-username">@{child.username}</div>}
+                            </div>
                             <div className="pd-child-top-status parent-child-meta parent-child-meta--responsive">
                               {child.online ? (
                                 <>
@@ -713,24 +716,23 @@ export default function ParentDashboard({
                               )}
                             </div>
                           </div>
-                          {child.username && <div className="parent-child-username">@{child.username}</div>}
                         </div>
                       </div>
 
                       {/* Rij 2: Knoppen uitgelijnd met avatar */}
-                      <div className="pd-child-control-row">
+                      <div className="pd-child-control-row" onClick={(e) => e.stopPropagation()}>
                         {/* Pauze dropdown */}
                         {!allPaused && (
-                          <div style={{ position:'relative' }}>
-                            <button type="button" className="parent-btn-orange" aria-label={`Open pauzemenu voor ${child.displayName}`} aria-expanded={pauseMenuUid === child.uid} onClick={e => { e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}>
+                          <div style={{ position:'relative' }} onClick={(e) => e.stopPropagation()}>
+                            <button type="button" className="parent-btn-orange" aria-label={`Open pauzemenu voor ${child.displayName}`} aria-expanded={pauseMenuUid === child.uid} onClick={e => { e.preventDefault(); e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}>
                               <PauseCircle size={16} aria-hidden="true" /> Pauze <ChevronDown size={14} aria-hidden="true" />
                             </button>
                             {pauseMenuUid === child.uid && (
-                              <div className="pcd-dropdown">
-                                {!pf.chat  && <button type="button" className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'chat')}><Message size={14} aria-hidden="true" /> Chat</button>}
-                                {!pf.call  && <button type="button" className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'call')}><Phone size={14} aria-hidden="true" /> Bellen</button>}
-                                {!pf.video && <button type="button" className="pcd-dropdown-item" onClick={() => pauseChild(child.uid, 'video')}><Video size={14} aria-hidden="true" /> Videobellen</button>}
-                                {(!pf.chat || !pf.call || !pf.video) && <button type="button" className="pcd-dropdown-item pcd-dropdown-item--all" onClick={() => pauseChild(child.uid, 'all')}><PauseCircle size={14} aria-hidden="true" /> Alles pauzeren</button>}
+                              <div className="pcd-dropdown" onClick={(e) => e.stopPropagation()}>
+                                {!pf.chat  && <button type="button" className="pcd-dropdown-item" onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'chat'); }}><Message size={14} aria-hidden="true" /> Chat</button>}
+                                {!pf.call  && <button type="button" className="pcd-dropdown-item" onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'call'); }}><Phone size={14} aria-hidden="true" /> Bellen</button>}
+                                {!pf.video && <button type="button" className="pcd-dropdown-item" onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'video'); }}><Video size={14} aria-hidden="true" /> Videobellen</button>}
+                                {(!pf.chat || !pf.call || !pf.video) && <button type="button" className="pcd-dropdown-item pcd-dropdown-item--all" onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'all'); }}><PauseCircle size={14} aria-hidden="true" /> Alles pauzeren</button>}
                               </div>
                             )}
                           </div>
@@ -738,16 +740,16 @@ export default function ParentDashboard({
 
                         {/* Hervat dropdown */}
                         {anyPaused && (
-                          <div style={{ position:'relative' }}>
-                            <button type="button" className="parent-btn-green" aria-label={`Open hervatmenu voor ${child.displayName}`} aria-expanded={resumeMenuUid === child.uid} onClick={e => { e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }}>
+                          <div style={{ position:'relative' }} onClick={(e) => e.stopPropagation()}>
+                            <button type="button" className="parent-btn-green" aria-label={`Open hervatmenu voor ${child.displayName}`} aria-expanded={resumeMenuUid === child.uid} onClick={e => { e.preventDefault(); e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }}>
                               <PlayCircle size={16} aria-hidden="true" /> Hervat <ChevronDown size={14} aria-hidden="true" />
                             </button>
                             {resumeMenuUid === child.uid && (
-                              <div className="pcd-dropdown">
-                                {pf.chat  && <button type="button" className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'chat')}><Message size={14} aria-hidden="true" /> Chat</button>}
-                                {pf.call  && <button type="button" className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'call')}><Phone size={14} aria-hidden="true" /> Bellen</button>}
-                                {pf.video && <button type="button" className="pcd-dropdown-item" onClick={() => resumeChild(child.uid, 'video')}><Video size={14} aria-hidden="true" /> Videobellen</button>}
-                                {(pf.chat || pf.call || pf.video) && <button type="button" className="pcd-dropdown-item pcd-dropdown-item--all" onClick={() => resumeChild(child.uid, 'all')}><PlayCircle size={14} aria-hidden="true" /> Alles hervatten</button>}
+                              <div className="pcd-dropdown" onClick={(e) => e.stopPropagation()}>
+                                {pf.chat  && <button type="button" className="pcd-dropdown-item" onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'chat'); }}><Message size={14} aria-hidden="true" /> Chat</button>}
+                                {pf.call  && <button type="button" className="pcd-dropdown-item" onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'call'); }}><Phone size={14} aria-hidden="true" /> Bellen</button>}
+                                {pf.video && <button type="button" className="pcd-dropdown-item" onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'video'); }}><Video size={14} aria-hidden="true" /> Videobellen</button>}
+                                {(pf.chat || pf.call || pf.video) && <button type="button" className="pcd-dropdown-item pcd-dropdown-item--all" onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'all'); }}><PlayCircle size={14} aria-hidden="true" /> Alles hervatten</button>}
                               </div>
                             )}
                           </div>
@@ -765,12 +767,12 @@ export default function ParentDashboard({
                         <div className="pd-child-top-actions pd-child-top-actions--inline">
                           {child.canInviteCoparent && (
                             <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 6px', fontSize: 11, display:'flex', alignItems:'center', gap:6 }}
-                              onClick={() => { setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
                               <UserPlus2 size={14} aria-hidden="true" />
                             </button>
                           )}
                           <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Wijzig wachtwoord voor ${child.displayName}`} title="Wachtwoord wijzigen"
-                            onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
                             style={{ padding:'4px 6px' }}>
                             <KeyRound size={15} aria-hidden="true" />
                           </button>
@@ -779,7 +781,9 @@ export default function ParentDashboard({
                             className="parent-btn-outline pd-child-top-action"
                             aria-label={`Beheer gebruikersnaam voor ${child.displayName}`}
                             title="Gebruikersnaam beheren"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
                               setEditingUsernameUid(child.uid);
                               setEditingUsername(child.username || '');
                               setUsernameError('');
@@ -790,7 +794,7 @@ export default function ParentDashboard({
                             <MagicEdit size={15} aria-hidden="true" />
                           </button>
                           <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Verwijder account van ${child.displayName}`} style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
-                            onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmDelete({ uid: child.uid, displayName: child.displayName }); }}>
                             <Trash2 size={15} color="#ef4444" aria-hidden="true" />
                           </button>
                         </div>

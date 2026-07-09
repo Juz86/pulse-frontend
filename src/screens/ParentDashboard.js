@@ -694,13 +694,13 @@ export default function ParentDashboard({
                         <div style={{ minWidth:0, flex:1 }}>
                           <div className="parent-child-name" style={{ display:'flex', alignItems:'baseline', gap:6 }}>
                             {child.displayName}
-                            {child.username && <span style={{ color:'#888', fontWeight:400, fontSize:12 }}>Loginnaam: @{child.username}</span>}
+                            {child.username && <span className="parent-child-username">@{child.username}</span>}
                           </div>
-                          <div className="parent-child-meta parent-child-meta--responsive" style={{ marginTop:5 }}>
+                          <div className="pd-child-top-status parent-child-meta parent-child-meta--responsive">
                             <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
                             <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
                           </div>
-                          <div className="pd-child-top-actions">
+                          <div className="pd-child-top-actions pd-child-top-actions--inline">
                             <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Wijzig wachtwoord voor ${child.displayName}`} title="Wachtwoord wijzigen"
                               onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
                               style={{ padding:'4px 6px' }}>

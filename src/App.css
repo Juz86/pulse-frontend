@@ -10267,6 +10267,18 @@ font-family: 'Inter', sans-serif;
   align-items:center;
   flex-wrap:nowrap;
 }
+.pd-child-top-actions--inline {
+  position: static;
+  margin-top: 10px;
+}
+.pd-child-top-status {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  justify-content: flex-end;
+  text-align: right;
+  max-width: 150px;
+}
 .pd-child-top-action {
   min-width:32px;
   min-height:32px;
@@ -10291,6 +10303,7 @@ font-family: 'Inter', sans-serif;
   font-weight:700; font-size:16px;
 }
 .parent-child-name { font-weight:600; font-size:15px; color:#1a1a2e; }
+.parent-child-username { color:#888; font-weight:400; font-size:12px; }
 .parent-child-meta { display:flex; align-items:center; gap:6px; font-size:12px; color:#888; }
 
 /* Pauze/Hervat dropdown menu */
@@ -12275,6 +12288,13 @@ font-family: 'Inter', sans-serif;
     gap:3px;
     flex-wrap:wrap;
     margin-top:8px;
+  }
+  .pd-child-top-status {
+    position: static;
+    justify-content: flex-start;
+    text-align: left;
+    max-width: none;
+    margin-top: 6px;
   }
   .pd-child-top-action { min-width:30px; min-height:30px; padding:4px 5px !important; }
   .pd-child-top-action--assign { max-width:32px; }

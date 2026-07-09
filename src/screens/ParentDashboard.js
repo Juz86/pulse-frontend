@@ -735,90 +735,88 @@ export default function ParentDashboard({
                         onPointerDown={swallowChildActionEvent}
                         onTouchStart={swallowChildActionEvent}
                       >
-                        {/* Pauze dropdown */}
-                        {!allPaused && (
-                          <div
-                            style={{ position:'relative' }}
-                            onClick={(e) => e.stopPropagation()}
-                            onMouseDown={swallowChildActionEvent}
-                            onPointerDown={swallowChildActionEvent}
-                            onTouchStart={swallowChildActionEvent}
-                          >
-                            <button
-                              type="button"
-                              className="parent-btn-orange"
-                              aria-label={`Open pauzemenu voor ${child.displayName}`}
-                              aria-expanded={pauseMenuUid === child.uid}
+                        <div className="pd-child-primary-controls">
+                          {/* Pauze dropdown */}
+                          {!allPaused && (
+                            <div
+                              style={{ position:'relative' }}
+                              onClick={(e) => e.stopPropagation()}
                               onMouseDown={swallowChildActionEvent}
                               onPointerDown={swallowChildActionEvent}
                               onTouchStart={swallowChildActionEvent}
-                              onClick={e => { e.preventDefault(); e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}
                             >
-                              <PauseCircle size={16} aria-hidden="true" /> Pauze <ChevronDown size={14} aria-hidden="true" />
-                            </button>
-                            {pauseMenuUid === child.uid && (
+                              <button
+                                type="button"
+                                className="parent-btn-orange"
+                                aria-label={`Open pauzemenu voor ${child.displayName}`}
+                                aria-expanded={pauseMenuUid === child.uid}
+                                onMouseDown={swallowChildActionEvent}
+                                onPointerDown={swallowChildActionEvent}
+                                onTouchStart={swallowChildActionEvent}
+                                onClick={e => { e.preventDefault(); e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}
+                              >
+                                <PauseCircle size={16} aria-hidden="true" /> Pauze <ChevronDown size={14} aria-hidden="true" />
+                              </button>
+                              {pauseMenuUid === child.uid && (
+                                <div
+                                  className="pcd-dropdown"
+                                  onClick={(e) => e.stopPropagation()}
+                                  onMouseDown={swallowChildActionEvent}
+                                  onPointerDown={swallowChildActionEvent}
+                                  onTouchStart={swallowChildActionEvent}
+                                >
+                                  {!pf.chat  && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'chat'); }}><Message size={14} aria-hidden="true" /> Chat</button>}
+                                  {!pf.call  && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'call'); }}><Phone size={14} aria-hidden="true" /> Bellen</button>}
+                                  {!pf.video && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'video'); }}><Video size={14} aria-hidden="true" /> Videobellen</button>}
+                                  {(!pf.chat || !pf.call || !pf.video) && <button type="button" className="pcd-dropdown-item pcd-dropdown-item--all" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'all'); }}><PauseCircle size={14} aria-hidden="true" /> Alles pauzeren</button>}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {anyPaused && (
+                            <div className="pd-child-secondary-controls">
                               <div
-                                className="pcd-dropdown"
+                                style={{ position:'relative' }}
                                 onClick={(e) => e.stopPropagation()}
                                 onMouseDown={swallowChildActionEvent}
                                 onPointerDown={swallowChildActionEvent}
                                 onTouchStart={swallowChildActionEvent}
                               >
-                                {!pf.chat  && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'chat'); }}><Message size={14} aria-hidden="true" /> Chat</button>}
-                                {!pf.call  && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'call'); }}><Phone size={14} aria-hidden="true" /> Bellen</button>}
-                                {!pf.video && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'video'); }}><Video size={14} aria-hidden="true" /> Videobellen</button>}
-                                {(!pf.chat || !pf.call || !pf.video) && <button type="button" className="pcd-dropdown-item pcd-dropdown-item--all" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); pauseChild(child.uid, 'all'); }}><PauseCircle size={14} aria-hidden="true" /> Alles pauzeren</button>}
+                                <button
+                                  type="button"
+                                  className="parent-btn-green"
+                                  aria-label={`Open hervatmenu voor ${child.displayName}`}
+                                  aria-expanded={resumeMenuUid === child.uid}
+                                  onMouseDown={swallowChildActionEvent}
+                                  onPointerDown={swallowChildActionEvent}
+                                  onTouchStart={swallowChildActionEvent}
+                                  onClick={e => { e.preventDefault(); e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }}
+                                >
+                                  <PlayCircle size={16} aria-hidden="true" /> Hervat <ChevronDown size={14} aria-hidden="true" />
+                                </button>
+                                {resumeMenuUid === child.uid && (
+                                  <div
+                                    className="pcd-dropdown"
+                                    onClick={(e) => e.stopPropagation()}
+                                    onMouseDown={swallowChildActionEvent}
+                                    onPointerDown={swallowChildActionEvent}
+                                    onTouchStart={swallowChildActionEvent}
+                                  >
+                                    {pf.chat  && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'chat'); }}><Message size={14} aria-hidden="true" /> Chat</button>}
+                                    {pf.call  && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'call'); }}><Phone size={14} aria-hidden="true" /> Bellen</button>}
+                                    {pf.video && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'video'); }}><Video size={14} aria-hidden="true" /> Videobellen</button>}
+                                    {(pf.chat || pf.call || pf.video) && <button type="button" className="pcd-dropdown-item pcd-dropdown-item--all" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'all'); }}><PlayCircle size={14} aria-hidden="true" /> Alles hervatten</button>}
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        )}
 
-                        {/* Hervat dropdown */}
-                        {anyPaused && (
-                          <div
-                            style={{ position:'relative' }}
-                            onClick={(e) => e.stopPropagation()}
-                            onMouseDown={swallowChildActionEvent}
-                            onPointerDown={swallowChildActionEvent}
-                            onTouchStart={swallowChildActionEvent}
-                          >
-                            <button
-                              type="button"
-                              className="parent-btn-green"
-                              aria-label={`Open hervatmenu voor ${child.displayName}`}
-                              aria-expanded={resumeMenuUid === child.uid}
-                              onMouseDown={swallowChildActionEvent}
-                              onPointerDown={swallowChildActionEvent}
-                              onTouchStart={swallowChildActionEvent}
-                              onClick={e => { e.preventDefault(); e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseMenuUid(null); }}
-                            >
-                              <PlayCircle size={16} aria-hidden="true" /> Hervat <ChevronDown size={14} aria-hidden="true" />
-                            </button>
-                            {resumeMenuUid === child.uid && (
-                              <div
-                                className="pcd-dropdown"
-                                onClick={(e) => e.stopPropagation()}
-                                onMouseDown={swallowChildActionEvent}
-                                onPointerDown={swallowChildActionEvent}
-                                onTouchStart={swallowChildActionEvent}
-                              >
-                                {pf.chat  && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'chat'); }}><Message size={14} aria-hidden="true" /> Chat</button>}
-                                {pf.call  && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'call'); }}><Phone size={14} aria-hidden="true" /> Bellen</button>}
-                                {pf.video && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'video'); }}><Video size={14} aria-hidden="true" /> Videobellen</button>}
-                                {(pf.chat || pf.call || pf.video) && <button type="button" className="pcd-dropdown-item pcd-dropdown-item--all" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'all'); }}><PlayCircle size={14} aria-hidden="true" /> Alles hervatten</button>}
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Gepauzeerde labels */}
-                        {anyPaused && (
-                          <>
-                            {pf.chat  && <span style={chipPause}><Message size={12} aria-hidden="true" /> Chat</span>}
-                            {pf.call  && <span style={{ ...chipPause, background:'rgba(245,158,11,.15)', color:'#d97706' }}><Phone size={12} aria-hidden="true" /> Bellen</span>}
-                            {pf.video && <span style={{ ...chipPause, background:'rgba(139,92,246,.12)', color:'#7c3aed' }}><Video size={12} aria-hidden="true" /> Video</span>}
-                          </>
-                        )}
+                              {pf.chat  && <span style={chipPause}><Message size={12} aria-hidden="true" /> Chat</span>}
+                              {pf.call  && <span style={{ ...chipPause, background:'rgba(245,158,11,.15)', color:'#d97706' }}><Phone size={12} aria-hidden="true" /> Bellen</span>}
+                              {pf.video && <span style={{ ...chipPause, background:'rgba(139,92,246,.12)', color:'#7c3aed' }}><Video size={12} aria-hidden="true" /> Video</span>}
+                            </div>
+                          )}
+                        </div>
 
                         <div className="pd-child-top-actions pd-child-top-actions--inline">
                           {child.canInviteCoparent && (

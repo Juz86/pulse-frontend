@@ -11514,10 +11514,16 @@ font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  position: relative;
 }
 
 .parent-dashboard-panel .parent-portal-stack:last-child {
   margin-bottom: 28px;
+}
+
+.parent-dashboard-panel .parent-portal-stack--menu-open {
+  z-index: 3812;
+  margin-bottom: 150px;
 }
 
 .parent-dashboard-panel .parent-portal-toolbar-actions {

@@ -698,7 +698,10 @@ export default function ParentDashboard({
                     <p className="parent-portal-inline-sub">Voeg een kind toe via het tabblad "Kind toevoegen".</p>
                   </div>
                 ) : children.map(child => (
-                  <div key={child.uid} className="parent-portal-stack">
+                  <div
+                    key={child.uid}
+                    className={`parent-portal-stack${pauseMenuUid === child.uid || resumeMenuUid === child.uid ? ' parent-portal-stack--menu-open' : ''}`}
+                  >
                     {(() => {
                       const pf = child.pausedFeatures || { chat: false, call: false, video: false };
                       const anyPaused = pf.chat || pf.call || pf.video;

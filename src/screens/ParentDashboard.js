@@ -688,15 +688,29 @@ export default function ParentDashboard({
                       <div className="pd-child-head" style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
                         <div className="parent-child-avatar" style={{ flexShrink:0 }}>
                           {child.photoURL
-                            ? <img src={child.photoURL} alt={child.displayName} style={{ width:'100%', height:'100%', borderRadius:12, objectFit:'cover' }} />
+                            ? <img src={child.photoURL} alt={child.displayName} style={{ width:'100%', height:'100%', borderRadius:'999px', objectFit:'cover' }} />
                             : getInitials(child.displayName)}
                         </div>
                         <div className="parent-child-copy">
                           <div className="parent-child-header-row">
                             <div className="parent-child-name">{child.displayName}</div>
                             <div className="pd-child-top-status parent-child-meta parent-child-meta--responsive">
-                              <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
-                              <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
+                              {child.online ? (
+                                <>
+                                  <span className="pd-child-top-status-line">
+                                    <span className="parent-status-dot online" />
+                                    <span>Online</span>
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="pd-child-top-status-line">
+                                    <span className="parent-status-dot offline" />
+                                    <span>Offline</span>
+                                  </span>
+                                  <span className="pd-child-top-status-subline">{timeAgo(child.lastSeen, 'Onbekend')}</span>
+                                </>
+                              )}
                             </div>
                           </div>
                           {child.username && <div className="parent-child-username">@{child.username}</div>}

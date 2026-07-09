@@ -10276,10 +10276,23 @@ font-family: 'Inter', sans-serif;
 }
 .pd-child-top-status {
   position: static;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
   justify-content: flex-end;
   text-align: right;
   max-width: 180px;
   flex-shrink: 0;
+}
+.pd-child-top-status-line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.pd-child-top-status-subline {
+  display: block;
 }
 .pd-child-top-action {
   min-width:42px;
@@ -10314,10 +10327,11 @@ font-family: 'Inter', sans-serif;
 .parent-child-row:last-child { margin-bottom:0; }
 .parent-child-row.paused { background:rgba(249,115,22,.04); border-color:rgba(249,115,22,.3); }
 .parent-child-avatar {
-  width:44px; height:44px; border-radius:12px; flex-shrink:0;
+  width:44px; height:44px; border-radius:999px; flex-shrink:0;
   background:linear-gradient(135deg,#6c63ff,#a855f7);
   color:#fff; display:flex; align-items:center; justify-content:center;
   font-weight:700; font-size:16px;
+  overflow: hidden;
 }
 .parent-child-name { font-weight:600; font-size:15px; color:#1a1a2e; }
 .parent-child-username { color:#888; font-weight:400; font-size:12px; }
@@ -11284,7 +11298,7 @@ font-family: 'Inter', sans-serif;
 .parent-root--embedded .parent-child-avatar {
   width: 52px;
   height: 52px;
-  border-radius: 18px;
+  border-radius: 999px;
   box-shadow: 0 12px 24px rgba(122, 95, 232, 0.18);
 }
 .parent-root--embedded .pd-contact-avatar,
@@ -12315,6 +12329,7 @@ font-family: 'Inter', sans-serif;
   }
   .pd-child-top-status {
     position: static;
+    align-items: flex-end;
     justify-content: flex-end;
     text-align: right;
     max-width: 46%;

@@ -10,7 +10,7 @@
   --section-space: clamp(56px, 9vw, 96px);
   --page-max: 1200px;
   --page-max-wide: 1320px;
-  --sidebar-width: clamp(280px, 31vw, 360px);
+  --sidebar-width: 40%;
   --modal-padding: clamp(16px, 3.5vw, 28px);
   --modal-width-sm: 26.25rem;
   --modal-width-lg: 48.75rem;
@@ -99,7 +99,7 @@
 /* Grote telefoon / kleine tablet portrait */
 @media (min-width: 700px) and (max-width: 1024px) {
   .app-screen {
-    --pulse-sidebar-width: clamp(280px, 34vw, 360px);
+    --pulse-sidebar-width: 40%;
   }
   .sidebar-header {
     padding-inline: clamp(14px, 2.2vw, 18px);
@@ -118,7 +118,7 @@
 /* Tablet landscape: stabiel split-pane gedrag zoals chat apps */
 @media (min-width: 900px) and (orientation: landscape) {
   .app-screen {
-    --pulse-sidebar-width: clamp(320px, 31vw, 420px);
+    --pulse-sidebar-width: 40%;
   }
   .sidebar {
     border-right: 1px solid rgba(255, 255, 255, 0.08);
@@ -2460,11 +2460,12 @@ font-family: 'Inter', sans-serif;
   --sidebar-local-sheet-top: 132px;
   --sidebar-local-sheet-bottom: 96px;
   --sidebar-footer-inline: 18px;
-  width:var(--pulse-sidebar-width); min-width:var(--pulse-sidebar-width); max-width:min(100vw, var(--pulse-sidebar-width));
+  width:var(--pulse-sidebar-width); min-width:var(--pulse-sidebar-width); max-width:var(--pulse-sidebar-width);
   background:var(--surface);
   border-right:1px solid var(--border);
   box-shadow:4px 0 24px rgba(0,0,0,.25);
   display:flex; flex-direction:column; height:100%;
+  flex:0 0 var(--pulse-sidebar-width);
   position:relative;
 }
 .sidebar::after {
@@ -3623,7 +3624,7 @@ font-family: 'Inter', sans-serif;
 
 /* ── CHAT MAIN ── */
 .chat-main {
-  flex:1; min-width:0; display:flex; flex-direction:column; height:100%;
+  flex:0 0 calc(100% - var(--pulse-sidebar-width)); width:calc(100% - var(--pulse-sidebar-width)); min-width:0; display:flex; flex-direction:column; height:100%;
   background-color:#eeeaf8;
   background-image:url('./assets/chatachtergrond.jpeg');
   background-size:360px auto;

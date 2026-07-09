@@ -6296,8 +6296,8 @@ font-family: 'Inter', sans-serif;
   background:
     radial-gradient(circle at top center, rgba(139,92,246,.24), transparent 28%),
     linear-gradient(180deg, #262358 0%, #221f4e 100%);
-  padding: max(16px, env(safe-area-inset-top)) 18px calc(max(22px, env(safe-area-inset-bottom) + 12px) + 116px);
-  scroll-padding-bottom: calc(max(22px, env(safe-area-inset-bottom) + 12px) + 116px);
+  padding: max(16px, env(safe-area-inset-top)) 18px calc(max(34px, env(safe-area-inset-bottom) + 20px) + 128px);
+  scroll-padding-bottom: calc(max(34px, env(safe-area-inset-bottom) + 20px) + 128px);
 }
 .contact-profile-topbar {
   display:flex;
@@ -11378,6 +11378,7 @@ font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   gap: 18px;
+  padding-bottom: 18px;
 }
 
 .parent-dashboard-panel .parent-portal-section-header {
@@ -11513,6 +11514,10 @@ font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.parent-dashboard-panel .parent-portal-stack:last-child {
+  margin-bottom: 28px;
 }
 
 .parent-dashboard-panel .parent-portal-toolbar-actions {

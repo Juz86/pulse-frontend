@@ -11502,6 +11502,14 @@ font-family: 'Inter', sans-serif;
   align-items: center;
   gap: 6px;
 }
+.parent-dashboard-panel .parent-btn-outline--icon-only {
+  width: 40px;
+  min-width: 40px;
+  padding: 0;
+  justify-content: center;
+  gap: 0;
+  flex-shrink: 0;
+}
 
 .parent-dashboard-panel .parent-portal-empty-state {
   display: flex;

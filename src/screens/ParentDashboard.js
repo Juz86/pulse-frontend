@@ -691,20 +691,20 @@ export default function ParentDashboard({
                             ? <img src={child.photoURL} alt={child.displayName} style={{ width:'100%', height:'100%', borderRadius:12, objectFit:'cover' }} />
                             : getInitials(child.displayName)}
                         </div>
-                        <div style={{ minWidth:0, flex:1 }}>
-                          <div className="parent-child-name" style={{ display:'flex', alignItems:'baseline', gap:6 }}>
-                            {child.displayName}
-                            {child.username && <span className="parent-child-username">@{child.username}</span>}
+                        <div className="parent-child-copy">
+                          <div className="parent-child-header-row">
+                            <div className="parent-child-name">{child.displayName}</div>
+                            <div className="pd-child-top-status parent-child-meta parent-child-meta--responsive">
+                              <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
+                              <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
+                            </div>
                           </div>
-                          <div className="pd-child-top-status parent-child-meta parent-child-meta--responsive">
-                            <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
-                            <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
-                          </div>
+                          {child.username && <div className="parent-child-username">@{child.username}</div>}
                         </div>
                       </div>
 
                       {/* Rij 2: Knoppen uitgelijnd met avatar */}
-                      <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap', marginTop:10 }}>
+                      <div className="pd-child-control-row">
                         {/* Pauze dropdown */}
                         {!allPaused && (
                           <div style={{ position:'relative' }}>
@@ -749,6 +749,13 @@ export default function ParentDashboard({
                         )}
 
                         <div className="pd-child-top-actions pd-child-top-actions--inline">
+                          {child.canInviteCoparent && (
+                            <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 12px', fontSize: 11, display:'flex', alignItems:'center', gap:6 }}
+                              onClick={() => { setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
+                              <UserPlus2 size={14} aria-hidden="true" />
+                              <span className="pd-child-top-action-label">Toewijzen</span>
+                            </button>
+                          )}
                           <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Wijzig wachtwoord voor ${child.displayName}`} title="Wachtwoord wijzigen"
                             onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
                             style={{ padding:'4px 6px' }}>
@@ -769,13 +776,6 @@ export default function ParentDashboard({
                           >
                             <MagicEdit size={15} aria-hidden="true" />
                           </button>
-                          {child.canInviteCoparent && (
-                            <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 8px', fontSize: 11, display:'flex', alignItems:'center', gap:3 }}
-                              onClick={() => { setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
-                              <UserPlus2 size={14} aria-hidden="true" />
-                              <span className="pd-child-top-action-label">Toewijzen</span>
-                            </button>
-                          )}
                           <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Verwijder account van ${child.displayName}`} style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
                             onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
                             <Trash2 size={15} color="#ef4444" aria-hidden="true" />

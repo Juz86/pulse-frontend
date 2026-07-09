@@ -10,7 +10,7 @@
   --section-space: clamp(56px, 9vw, 96px);
   --page-max: 1200px;
   --page-max-wide: 1320px;
-  --sidebar-width: 40%;
+  --sidebar-width: 30%;
   --modal-padding: clamp(16px, 3.5vw, 28px);
   --modal-width-sm: 26.25rem;
   --modal-width-lg: 48.75rem;
@@ -99,7 +99,7 @@
 /* Grote telefoon / kleine tablet portrait */
 @media (min-width: 700px) and (max-width: 1024px) {
   .app-screen {
-    --pulse-sidebar-width: 40%;
+    --pulse-sidebar-width: 30%;
   }
   .sidebar-header {
     padding-inline: clamp(14px, 2.2vw, 18px);
@@ -118,7 +118,7 @@
 /* Tablet landscape: stabiel split-pane gedrag zoals chat apps */
 @media (min-width: 900px) and (orientation: landscape) {
   .app-screen {
-    --pulse-sidebar-width: 40%;
+    --pulse-sidebar-width: 30%;
   }
   .sidebar {
     border-right: 1px solid rgba(255, 255, 255, 0.08);

@@ -11462,6 +11462,63 @@ font-family: 'Inter', sans-serif;
   gap: 10px;
 }
 
+.parent-dashboard-panel .parent-portal-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.parent-dashboard-panel .parent-btn-outline--picker {
+  min-width: 96px;
+  max-width: 180px;
+  justify-content: space-between;
+}
+
+.parent-dashboard-panel .parent-portal-picker {
+  position: relative;
+}
+
+.parent-dashboard-panel .parent-portal-picker-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 220;
+  min-width: 160px;
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid rgba(120, 104, 198, 0.28);
+  background: rgba(36, 28, 69, 0.98);
+  box-shadow: 0 18px 36px rgba(10, 8, 24, 0.42);
+  backdrop-filter: blur(18px);
+}
+
+.parent-dashboard-panel .parent-portal-picker-option {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #ddd8f4;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.parent-dashboard-panel .parent-portal-picker-option:hover,
+.parent-dashboard-panel .parent-portal-picker-option.active {
+  background: rgba(124, 111, 255, 0.16);
+  color: #fff;
+}
+
+.parent-dashboard-panel .parent-portal-analytics-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
 .parent-dashboard-panel .parent-input,
 .parent-dashboard-panel .coparent-invite-search {
   min-height: 58px;
@@ -11598,6 +11655,161 @@ font-family: 'Inter', sans-serif;
 .parent-dashboard-panel .parent-child-inline-editor__icon-btn--cancel {
   background: rgba(239,68,68,.12);
   color: #f87171;
+}
+
+.parent-dashboard-panel .activities-header {
+  margin-bottom: 0;
+}
+
+.parent-dashboard-panel .analytics-profile-card {
+  background: rgba(38, 30, 73, 0.96);
+  border-color: rgba(110, 94, 188, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.parent-dashboard-panel .analytics-profile-avatar-shell {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.parent-dashboard-panel .analytics-profile-avatar-photo,
+.parent-dashboard-panel .analytics-profile-avatar-fallback {
+  width: 72px;
+  height: 72px;
+  border-radius: 24px;
+  border: 3px solid rgba(134, 117, 255, 0.36);
+}
+
+.parent-dashboard-panel .analytics-profile-avatar-photo {
+  object-fit: cover;
+}
+
+.parent-dashboard-panel .analytics-profile-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg,#7c3aed,#a78bfa);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.parent-dashboard-panel .analytics-profile-status-dot {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(38, 30, 73, 0.96);
+}
+
+.parent-dashboard-panel .analytics-profile-status-dot.online {
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.18);
+}
+
+.parent-dashboard-panel .analytics-profile-status-dot.offline {
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.18);
+}
+
+.parent-dashboard-panel .analytics-profile-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.parent-dashboard-panel .analytics-profile-name {
+  color: #f7f4ff;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.parent-dashboard-panel .analytics-profile-username {
+  color: #9e96c3;
+  font-size: 13px;
+}
+
+.parent-dashboard-panel .analytics-profile-status {
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.parent-dashboard-panel .analytics-profile-status--online {
+  color: #4ade80;
+}
+
+.parent-dashboard-panel .analytics-profile-status--offline {
+  color: #9ca3af;
+}
+
+.parent-dashboard-panel .analytics-profile-summary-item strong,
+.parent-dashboard-panel .parent-top-contacts-column-title,
+.parent-dashboard-panel .parent-top-contact-copy strong,
+.parent-dashboard-panel .pd-location-coords {
+  color: #f7f4ff;
+}
+
+.parent-dashboard-panel .analytics-profile-summary-item span,
+.parent-dashboard-panel .parent-top-contacts-empty,
+.parent-dashboard-panel .pd-location-details,
+.parent-dashboard-panel .pd-location-empty,
+.parent-dashboard-panel .pd-location-meta span {
+  color: #b7b0d3;
+}
+
+.parent-dashboard-panel .parent-usage-stat,
+.parent-dashboard-panel .parent-activity-contact-row,
+.parent-dashboard-panel .parent-top-contact-pill {
+  background: rgba(53, 43, 97, 0.76);
+  border-color: rgba(120, 104, 198, 0.24);
+}
+
+.parent-dashboard-panel .parent-usage-value,
+.parent-dashboard-panel .parent-activity-contact-tag,
+.parent-dashboard-panel .parent-top-contact-rank {
+  color: #c7bcff;
+}
+
+.parent-dashboard-panel .parent-activity-contact-tag,
+.parent-dashboard-panel .parent-top-contact-rank {
+  background: rgba(124, 111, 255, 0.16);
+}
+
+.parent-dashboard-panel .pd-location-avatar-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.parent-dashboard-panel .pd-location-status.live {
+  color: #4ade80;
+  background: rgba(34,197,94,.18);
+}
+
+.parent-dashboard-panel .pd-location-status.recent {
+  color: #fbbf24;
+  background: rgba(245,158,11,.18);
+}
+
+.parent-dashboard-panel .pd-location-status.stale,
+.parent-dashboard-panel .pd-location-status.missing {
+  color: #cbd5e1;
+  background: rgba(148,163,184,.18);
+}
+
+.parent-dashboard-panel .pd-location-open-map {
+  color: #f7f4ff;
+}
+
+.parent-dashboard-panel .parent-activity-row {
+  border-bottom-color: rgba(120, 104, 198, 0.18);
+}
+
+.parent-dashboard-panel .parent-activity-icon {
+  background: rgba(53, 43, 97, 0.76);
+  border: 1px solid rgba(120, 104, 198, 0.24);
 }
 
 .parent-dashboard-panel .analytics-section-title,

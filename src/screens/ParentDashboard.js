@@ -976,8 +976,8 @@ export default function ParentDashboard({
             {/* Tab 4 — Realtime locatie */}
             {activeTab === 'location' && (
               <div className="parent-portal-view parent-portal-view--location">
-                <div className="activities-header parent-portal-toolbar">
-                  <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Realtime locatie</h2>
+                <div className="activities-header parent-portal-toolbar parent-portal-toolbar--spread">
+                  <h2 className="parent-section-title">Realtime locatie</h2>
                   <button type="button" className="parent-btn-outline activities-refresh-btn" onClick={loadChildren}>
                     <Refresh size={14} aria-hidden="true" />
                     <span className="activities-refresh-label">Vernieuwen</span>
@@ -988,19 +988,19 @@ export default function ParentDashboard({
                 </p>
 
                 {locationError && (
-                  <div className="parent-error" role="alert" style={{ marginBottom: 12 }}>
+                  <div className="parent-error" role="alert">
                     <span aria-hidden="true">⚠️ </span>{locationError}
                   </div>
                 )}
 
                 {!locationStreamReady ? (
-                  <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '28px 0', color: '#999' }}>
+                  <div className="parent-portal-empty-state" role="status" aria-live="polite">
                     Locatie laden…
                   </div>
                 ) : children.length === 0 ? (
-                  <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '28px 0', color: '#999' }}>
+                  <div className="parent-portal-empty-state" role="status" aria-live="polite">
                     <Users size={32} color="#ccc" style={{ marginBottom: 8 }} aria-hidden="true" />
-                    <p style={{ fontSize: 13 }}>Nog geen kinderen toegevoegd.</p>
+                    <p className="parent-portal-inline-sub">Nog geen kinderen toegevoegd.</p>
                   </div>
                 ) : (
                   <div className="pd-location-list">
@@ -1022,7 +1022,7 @@ export default function ParentDashboard({
                             <div className="pd-location-user">
                               <div className="pd-location-avatar" aria-hidden="true">
                                 {child.photoURL
-                                  ? <img src={child.photoURL} alt={child.displayName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                                  ? <img src={child.photoURL} alt={child.displayName} className="pd-location-avatar-photo" />
                                   : getInitials(child.displayName)}
                               </div>
                               <div className="pd-location-meta">
@@ -1066,15 +1066,14 @@ export default function ParentDashboard({
             {activeTab === 'activities' && (
               <div className="parent-portal-view parent-portal-view--activities">
                 {/* Header met kind-selector */}
-                <div className="activities-header parent-portal-toolbar">
-                  <h2 className="parent-section-title" style={{ marginBottom: 0 }}>Activiteiten</h2>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div className="activities-header parent-portal-toolbar parent-portal-toolbar--spread">
+                  <h2 className="parent-section-title">Activiteiten</h2>
+                  <div className="parent-portal-toolbar-actions">
                     {children.length > 0 && (
-                      <div style={{ position:'relative' }}>
+                      <div className="parent-portal-picker">
                         <button
                           type="button"
-                          className="parent-btn-outline"
-                          style={{ fontSize:13, padding:'6px 10px 6px 12px', display:'flex', alignItems:'center', gap:4, minWidth:80, maxWidth:160 }}
+                          className="parent-btn-outline parent-btn-outline--compact parent-btn-outline--picker"
                           aria-label="Kies kind voor activiteitenoverzicht"
                           aria-haspopup="listbox"
                           aria-expanded={childDropdownOpen}
@@ -1086,9 +1085,14 @@ export default function ParentDashboard({
                           <ChevronDown size={16} aria-hidden="true" />
                         </button>
                         {childDropdownOpen && (
-                          <div role="listbox" aria-label="Kies een kind" style={{ position:'absolute', top:'calc(100% + 4px)', right:0, background:'var(--bg1,#fff)', border:'1px solid #e0e0e8', borderRadius:8, boxShadow:'0 4px 12px rgba(0,0,0,0.12)', zIndex:200, minWidth:140, padding:4 }}>
+                          <div role="listbox" aria-label="Kies een kind" className="parent-portal-picker-menu">
                             {children.map(c => (
-                              <button key={c.uid} type="button" role="option" aria-selected={c.uid === selectedChildUid} style={{ display:'block', width:'100%', textAlign:'left', background: c.uid === selectedChildUid ? 'rgba(108,99,255,.08)' : 'none', border:'none', padding:'8px 14px', cursor:'pointer', fontSize:13, borderRadius:6, color:'var(--text1,#1a1a1a)' }}
+                              <button
+                                key={c.uid}
+                                type="button"
+                                role="option"
+                                aria-selected={c.uid === selectedChildUid}
+                                className={`parent-portal-picker-option${c.uid === selectedChildUid ? ' active' : ''}`}
                                 onClick={() => { setSelectedChildUid(c.uid); setChildDropdownOpen(false); }}>
                                 {c.displayName}
                               </button>
@@ -1106,9 +1110,9 @@ export default function ParentDashboard({
 
                 {/* Compact activiteitenoverzicht voor geselecteerd kind */}
                 {selectedChildUid && (
-                  <div style={{ marginBottom: 24 }}>
-                    {analyticsLoading && <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '32px 0', color: '#999' }}>Rapport laden…</div>}
-                    {analyticsError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{analyticsError}</div>}
+                  <div className="parent-portal-analytics-block">
+                    {analyticsLoading && <div className="parent-portal-empty-state" role="status" aria-live="polite">Rapport laden…</div>}
+                    {analyticsError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{analyticsError}</div>}
                     {analytics && !analyticsLoading && (() => {
                       const { profile, contacts, sessions, messaging } = analytics;
                       if (!profile || !sessions?.daily || !messaging || !contacts) return null;
@@ -1167,20 +1171,20 @@ export default function ParentDashboard({
                       return (
                         <div className="parent-activity-overview">
                           <div className="analytics-profile-card">
-                            <div style={{ position: 'relative', flexShrink: 0 }}>
+                            <div className="analytics-profile-avatar-shell">
                               {profile.photoURL
-                                ? <img src={profile.photoURL} alt={profile.displayName} style={{ width: 72, height: 72, borderRadius: 24, objectFit: 'cover', border: '3px solid #ece9ff' }} />
-                                : <div style={{ width: 72, height: 72, borderRadius: 24, background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 24, fontWeight: 700, border: '3px solid #ece9ff' }}>{getInitials(profile.displayName)}</div>
+                                ? <img src={profile.photoURL} alt={profile.displayName} className="analytics-profile-avatar-photo" />
+                                : <div className="analytics-profile-avatar-fallback">{getInitials(profile.displayName)}</div>
                               }
-                              <span style={{ position: 'absolute', bottom: 4, right: 4, width: 14, height: 14, borderRadius: '50%', border: '2px solid #fff', ...statusDot }} />
+                              <span className={`analytics-profile-status-dot${profile.online ? ' online' : ' offline'}`} style={statusDot} />
                             </div>
                             <div className="analytics-profile-main">
                               <div className="analytics-profile-info">
-                                <div style={{ display:'flex', alignItems:'baseline', gap:6, flexWrap:'wrap' }}>
-                                  <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--text1,#1a1a1a)' }}>{profile.displayName}</span>
-                                  {profile.username && <span style={{ fontSize: 13, color: '#888' }}>@{profile.username}</span>}
+                                <div className="analytics-profile-heading">
+                                  <span className="analytics-profile-name">{profile.displayName}</span>
+                                  {profile.username && <span className="analytics-profile-username">@{profile.username}</span>}
                                 </div>
-                                <div className="analytics-profile-status" style={{ fontSize: 13, color: profile.online ? '#22c55e' : '#9ca3af', marginTop: 6 }}>
+                                <div className={`analytics-profile-status${profile.online ? ' analytics-profile-status--online' : ' analytics-profile-status--offline'}`}>
                                   {profile.online ? <><span aria-hidden="true">● </span>Online</> : `Offline · ${timeAgo(profile.lastSeen, 'Onbekend')}`}
                                 </div>
                               </div>
@@ -1298,9 +1302,9 @@ export default function ParentDashboard({
                 <div className="analytics-section parent-activity-log-card">
                   <div className="analytics-section-title"><Activity size={15} aria-hidden="true" /> Activiteitenlog</div>
                   {filteredActivities.length === 0 ? (
-                    <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: '24px 0', color: '#999' }}>
+                    <div className="parent-portal-empty-state" role="status" aria-live="polite">
                       <Activity size={32} color="#ccc" style={{ marginBottom: 8 }} aria-hidden="true" />
-                      <p style={{ fontSize: 13 }}>Nog geen activiteiten voor dit kind.</p>
+                      <p className="parent-portal-inline-sub">Nog geen activiteiten voor dit kind.</p>
                     </div>
                   ) : filteredActivities.map(a => (
                     <div key={a.id} className="parent-activity-row">

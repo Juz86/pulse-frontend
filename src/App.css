@@ -10272,7 +10272,7 @@ font-family: 'Inter', sans-serif;
   margin-top: 0;
   gap: 8px;
   align-items: stretch;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 .pd-child-top-status {
   position: static;
@@ -10291,10 +10291,9 @@ font-family: 'Inter', sans-serif;
   padding: 0 12px !important;
 }
 .pd-child-top-action--assign {
-  max-width:none;
-}
-.pd-child-top-action-label {
-  white-space:nowrap;
+  width: 42px;
+  max-width: 42px;
+  padding: 0 !important;
 }
 .pd-child-head {
   padding-right: 0;
@@ -10327,7 +10326,7 @@ font-family: 'Inter', sans-serif;
   display:flex;
   align-items:center;
   gap:8px;
-  flex-wrap:wrap;
+  flex-wrap:nowrap;
   margin-top:10px;
 }
 
@@ -12311,7 +12310,7 @@ font-family: 'Inter', sans-serif;
   .pd-child-top-actions {
     position: static;
     gap:3px;
-    flex-wrap:wrap;
+    flex-wrap: nowrap;
     margin-top:8px;
   }
   .pd-child-top-status {
@@ -12326,10 +12325,10 @@ font-family: 'Inter', sans-serif;
   }
   .pd-child-control-row {
     align-items: stretch;
+    flex-wrap: wrap;
   }
   .pd-child-top-action { min-width:30px; min-height:30px; padding:4px 5px !important; }
   .pd-child-top-action--assign { max-width:32px; }
-  .pd-child-top-action-label { display:none; }
   .chat-selection-bar {
     gap: 6px;
     padding-right: 0;

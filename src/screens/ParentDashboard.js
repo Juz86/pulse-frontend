@@ -750,10 +750,9 @@ export default function ParentDashboard({
 
                         <div className="pd-child-top-actions pd-child-top-actions--inline">
                           {child.canInviteCoparent && (
-                            <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 12px', fontSize: 11, display:'flex', alignItems:'center', gap:6 }}
+                            <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 6px', fontSize: 11, display:'flex', alignItems:'center', gap:6 }}
                               onClick={() => { setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
                               <UserPlus2 size={14} aria-hidden="true" />
-                              <span className="pd-child-top-action-label">Toewijzen</span>
                             </button>
                           )}
                           <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Wijzig wachtwoord voor ${child.displayName}`} title="Wachtwoord wijzigen"

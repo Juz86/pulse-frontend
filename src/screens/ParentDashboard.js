@@ -700,39 +700,6 @@ export default function ParentDashboard({
                             <span className={`parent-status-dot ${child.online ? 'online' : 'offline'}`} />
                             <span>{child.online ? 'Online' : `Offline · ${timeAgo(child.lastSeen, 'Onbekend')}`}</span>
                           </div>
-                          <div className="pd-child-top-actions pd-child-top-actions--inline">
-                            <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Wijzig wachtwoord voor ${child.displayName}`} title="Wachtwoord wijzigen"
-                              onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
-                              style={{ padding:'4px 6px' }}>
-                              <KeyRound size={15} aria-hidden="true" />
-                            </button>
-                            <button
-                              type="button"
-                              className="parent-btn-outline pd-child-top-action"
-                              aria-label={`Beheer gebruikersnaam voor ${child.displayName}`}
-                              title="Gebruikersnaam beheren"
-                              onClick={() => {
-                                setEditingUsernameUid(child.uid);
-                                setEditingUsername(child.username || '');
-                                setUsernameError('');
-                                setUsernameSuccess('');
-                              }}
-                              style={{ padding:'4px 6px' }}
-                            >
-                              <MagicEdit size={15} aria-hidden="true" />
-                            </button>
-                            {child.canInviteCoparent && (
-                              <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 8px', fontSize: 11, display:'flex', alignItems:'center', gap:3 }}
-                                onClick={() => { setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
-                                <UserPlus2 size={14} aria-hidden="true" />
-                                <span className="pd-child-top-action-label">Toewijzen</span>
-                              </button>
-                            )}
-                            <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Verwijder account van ${child.displayName}`} style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
-                              onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
-                              <Trash2 size={15} color="#ef4444" aria-hidden="true" />
-                            </button>
-                          </div>
                         </div>
                       </div>
 
@@ -780,6 +747,40 @@ export default function ParentDashboard({
                             {pf.video && <span style={{ ...chipPause, background:'rgba(139,92,246,.12)', color:'#7c3aed' }}><Video size={12} aria-hidden="true" /> Video</span>}
                           </>
                         )}
+
+                        <div className="pd-child-top-actions pd-child-top-actions--inline">
+                          <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Wijzig wachtwoord voor ${child.displayName}`} title="Wachtwoord wijzigen"
+                            onClick={() => { setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setShowNewPw(false); }}
+                            style={{ padding:'4px 6px' }}>
+                            <KeyRound size={15} aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            className="parent-btn-outline pd-child-top-action"
+                            aria-label={`Beheer gebruikersnaam voor ${child.displayName}`}
+                            title="Gebruikersnaam beheren"
+                            onClick={() => {
+                              setEditingUsernameUid(child.uid);
+                              setEditingUsername(child.username || '');
+                              setUsernameError('');
+                              setUsernameSuccess('');
+                            }}
+                            style={{ padding:'4px 6px' }}
+                          >
+                            <MagicEdit size={15} aria-hidden="true" />
+                          </button>
+                          {child.canInviteCoparent && (
+                            <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 8px', fontSize: 11, display:'flex', alignItems:'center', gap:3 }}
+                              onClick={() => { setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
+                              <UserPlus2 size={14} aria-hidden="true" />
+                              <span className="pd-child-top-action-label">Toewijzen</span>
+                            </button>
+                          )}
+                          <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Verwijder account van ${child.displayName}`} style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
+                            onClick={() => setConfirmDelete({ uid: child.uid, displayName: child.displayName })}>
+                            <Trash2 size={15} color="#ef4444" aria-hidden="true" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                       );

@@ -12309,26 +12309,36 @@ font-family: 'Inter', sans-serif;
   .pd-child-head { padding-right: 0; }
   .pd-child-top-actions {
     position: static;
-    gap:3px;
+    gap:6px;
     flex-wrap: nowrap;
-    margin-top:8px;
+    margin-top:0;
   }
   .pd-child-top-status {
     position: static;
-    justify-content: flex-start;
-    text-align: left;
-    max-width: none;
+    justify-content: flex-end;
+    text-align: right;
+    max-width: 46%;
   }
   .parent-child-header-row {
-    flex-direction: column;
-    gap: 6px;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
   }
   .pd-child-control-row {
-    align-items: stretch;
-    flex-wrap: wrap;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
+  .pd-child-control-row::-webkit-scrollbar { display:none; }
   .pd-child-top-action { min-width:30px; min-height:30px; padding:4px 5px !important; }
-  .pd-child-top-action--assign { max-width:32px; }
+  .pd-child-top-action--assign { max-width:30px; }
+  .parent-child-name { font-size: 14px; }
+  .parent-child-username,
+  .parent-child-meta { font-size: 11px; }
   .chat-selection-bar {
     gap: 6px;
     padding-right: 0;

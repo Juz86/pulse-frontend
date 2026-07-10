@@ -1,5 +1,6 @@
 // src/screens/ParentDashboard.js
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { getInitials, timeAgo, toMs } from '../utils';
 import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
@@ -1457,107 +1458,8 @@ export default function ParentDashboard({
     </section>
   );
 
-  if (!embeddedInSidebarCluster) {
-    return (
-      <ProfilePageShell
-        panelRef={panelRef}
-        titleId="parent-portal-title"
-        title={showingMenu ? 'Ouderportaal' : activeTabMeta.label}
-        description="Beheer kinderen, contacten, locatie en activiteiten vanuit dezelfde profielopbouw."
-        onBack={() => {
-          if (showingMenu) onClose?.();
-          else setPortalView('menu');
-        }}
-        backLabel={showingMenu ? 'Ouderportaal sluiten' : 'Terug naar ouderportaal overzicht'}
-        headerAction={onClose ? (
-          <button
-            type="button"
-            className="contact-profile-nav-btn contact-profile-close-btn"
-            aria-label="Ouderdashboard sluiten"
-            title="Sluiten"
-            onClick={onClose}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M18 6L6 18" />
-              <path d="M6 6l12 12" />
-            </svg>
-          </button>
-        ) : null}
-        className="chat-side-panel contact-profile-panel parent-dashboard-panel"
-      >
-        {showingMenu ? (
-          <>
-            {renderPortalMetaCard(
-              'Beheer alles op één plek',
-              'Open kinderen, contacten, locatie en activiteiten vanuit dezelfde rustige profielopbouw.'
-            )}
-            {renderPortalMenuRows()}
-          </>
-        ) : (
-          <>
-            {renderPortalMetaCard(
-              activeTabMeta.label,
-              portalSectionDescriptions[activeTab] || 'Beheer dit onderdeel binnen het ouderportaal.'
-            )}
-            <section className="contact-profile-card parent-dashboard-content-card">
-              <div className="pd-layout pd-layout--sheet parent-dashboard-layout">
-                <div className="pd-content pd-content--sheet parent-dashboard-content">
-                  {renderPortalContent()}
-                </div>
-              </div>
-            </section>
-          </>
-        )}
-      </ProfilePageShell>
-    );
-  }
-
-  if (showingMenu) {
-    return (
-      <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list parent-actions-list--embedded" role="tablist" aria-label="Ouderportaal onderdelen">
-        {TABS.map((t) => (
-          <button
-            type="button"
-            key={t.id}
-            className="chat-header-menu-item parent-actions-item parent-actions-item--embedded"
-            onMouseDown={(event) => {
-              event.stopPropagation();
-            }}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              setActiveTab(t.id);
-              setPortalView('content');
-            }}
-          >
-            {t.icon}
-            <span>{t.label}</span>
-            {t.badge && (
-              <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
-                {t.badge}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <div className="parent-root parent-root--embedded">
-      <div className="parent-container parent-container--embedded">
-        <div className="parent-sheet-shell parent-sheet-shell--embedded">
-          <div className="pd-layout pd-layout--sheet pd-layout--embedded">
-            <div className="parent-embedded-content-shell">
-              <div className="pd-content pd-content--sheet pd-content--embedded">
-                {renderPortalContent()}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bevestigingsdialoog verwijderen */}
+  const parentOverlays = (
+    <>
       {confirmDelete && (
         <div className="modal-overlay" onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>
           <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="parent-delete-title" aria-describedby="parent-delete-description" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
@@ -1575,7 +1477,6 @@ export default function ParentDashboard({
         </div>
       )}
 
-      {/* Kind toewijzen modal */}
       {inviteModal && (
         <div className="modal-overlay" onClick={closeInviteModal}>
           <div className="modal-box coparent-invite-modal" role="dialog" aria-modal="true" aria-labelledby="coparent-invite-title" onClick={e => e.stopPropagation()}>
@@ -1647,7 +1548,6 @@ export default function ParentDashboard({
         </div>
       )}
 
-      {/* Co-ouder uitnodigingen voor Ouder B */}
       {coparentInvitations.length > 0 && (
         <div className="modal-overlay" onClick={() => {}}>
           <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="coparent-requests-title" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
@@ -1693,6 +1593,114 @@ export default function ParentDashboard({
           </div>
         </div>
       )}
-    </div>
+    </>
+  );
+
+  if (!embeddedInSidebarCluster) {
+    return (
+      <>
+        <ProfilePageShell
+          panelRef={panelRef}
+          titleId="parent-portal-title"
+          title={showingMenu ? 'Ouderportaal' : activeTabMeta.label}
+          description="Beheer kinderen, contacten, locatie en activiteiten vanuit dezelfde profielopbouw."
+          onBack={() => {
+            if (showingMenu) onClose?.();
+            else setPortalView('menu');
+          }}
+          backLabel={showingMenu ? 'Ouderportaal sluiten' : 'Terug naar ouderportaal overzicht'}
+          headerAction={onClose ? (
+            <button
+              type="button"
+              className="contact-profile-nav-btn contact-profile-close-btn"
+              aria-label="Ouderdashboard sluiten"
+              title="Sluiten"
+              onClick={onClose}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M18 6L6 18" />
+                <path d="M6 6l12 12" />
+              </svg>
+            </button>
+          ) : null}
+          className="chat-side-panel contact-profile-panel parent-dashboard-panel"
+        >
+          {showingMenu ? (
+            <>
+              {renderPortalMetaCard(
+                'Beheer alles op één plek',
+                'Open kinderen, contacten, locatie en activiteiten vanuit dezelfde rustige profielopbouw.'
+              )}
+              {renderPortalMenuRows()}
+            </>
+          ) : (
+            <>
+              {renderPortalMetaCard(
+                activeTabMeta.label,
+                portalSectionDescriptions[activeTab] || 'Beheer dit onderdeel binnen het ouderportaal.'
+              )}
+              <section className="contact-profile-card parent-dashboard-content-card">
+                <div className="pd-layout pd-layout--sheet parent-dashboard-layout">
+                  <div className="pd-content pd-content--sheet parent-dashboard-content">
+                    {renderPortalContent()}
+                  </div>
+                </div>
+              </section>
+            </>
+          )}
+        </ProfilePageShell>
+        {typeof document !== 'undefined' ? createPortal(parentOverlays, document.body) : null}
+      </>
+    );
+  }
+
+  if (showingMenu) {
+    return (
+      <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions parent-actions-list parent-actions-list--embedded" role="tablist" aria-label="Ouderportaal onderdelen">
+        {TABS.map((t) => (
+          <button
+            type="button"
+            key={t.id}
+            className="chat-header-menu-item parent-actions-item parent-actions-item--embedded"
+            onMouseDown={(event) => {
+              event.stopPropagation();
+            }}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setActiveTab(t.id);
+              setPortalView('content');
+            }}
+          >
+            {t.icon}
+            <span>{t.label}</span>
+            {t.badge && (
+              <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
+                {t.badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="parent-root parent-root--embedded">
+        <div className="parent-container parent-container--embedded">
+          <div className="parent-sheet-shell parent-sheet-shell--embedded">
+            <div className="pd-layout pd-layout--sheet pd-layout--embedded">
+              <div className="parent-embedded-content-shell">
+                <div className="pd-content pd-content--sheet pd-content--embedded">
+                  {renderPortalContent()}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {typeof document !== 'undefined' ? createPortal(parentOverlays, document.body) : null}
+    </>
   );
 }

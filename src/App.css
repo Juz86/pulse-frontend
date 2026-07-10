@@ -10348,6 +10348,12 @@ font-family: 'Inter', sans-serif;
   flex:1;
 }
 
+.pd-child-primary-controls .parent-btn-orange,
+.pd-child-primary-controls .parent-btn-green {
+  min-width: 122px;
+  justify-content: center;
+}
+
 .pd-child-secondary-controls {
   display:flex;
   align-items:center;
@@ -12374,6 +12380,10 @@ font-family: 'Inter', sans-serif;
   .pd-child-primary-controls {
     min-width: 0;
     gap: 8px;
+  }
+  .pd-child-primary-controls .parent-btn-orange,
+  .pd-child-primary-controls .parent-btn-green {
+    min-width: 110px;
   }
   .pd-child-secondary-controls {
     gap: 6px;

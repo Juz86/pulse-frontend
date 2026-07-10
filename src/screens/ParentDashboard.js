@@ -1461,7 +1461,7 @@ export default function ParentDashboard({
   const parentOverlays = (
     <>
       {confirmDelete && (
-        <div className="modal-overlay" onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>
+        <div className="modal-overlay" data-parent-portal-overlay="true" onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>
           <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="parent-delete-title" aria-describedby="parent-delete-description" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
             <h2 className="modal-title" id="parent-delete-title">Account verwijderen</h2>
             <p id="parent-delete-description" style={{ color: 'var(--text2)', fontSize: 14, margin: '12px 0 24px', lineHeight: 1.6 }}>
@@ -1478,7 +1478,7 @@ export default function ParentDashboard({
       )}
 
       {inviteModal && (
-        <div className="modal-overlay" onClick={closeInviteModal}>
+        <div className="modal-overlay" data-parent-portal-overlay="true" onClick={closeInviteModal}>
           <div className="modal-box coparent-invite-modal" role="dialog" aria-modal="true" aria-labelledby="coparent-invite-title" onClick={e => e.stopPropagation()}>
             <button type="button" className="modal-close-btn" aria-label="Kind toewijzen sluiten" onClick={closeInviteModal}><span aria-hidden="true">✕</span></button>
             <h2 className="modal-title" id="coparent-invite-title">Kind toewijzen</h2>
@@ -1549,7 +1549,7 @@ export default function ParentDashboard({
       )}
 
       {coparentInvitations.length > 0 && (
-        <div className="modal-overlay" onClick={() => {}}>
+        <div className="modal-overlay" data-parent-portal-overlay="true" onClick={() => {}}>
           <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="coparent-requests-title" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
             <h2 className="modal-title" id="coparent-requests-title">Co-ouder uitnodigingen</h2>
             <p style={{ color: 'var(--text2)', fontSize: 14, margin: '10px 0 20px', lineHeight: 1.6 }}>

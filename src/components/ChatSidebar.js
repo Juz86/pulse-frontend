@@ -1048,6 +1048,7 @@ export default function ChatSidebar({
     if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible && !newGroupSheetVisible && !addContactSheetVisible && !requestsSheetVisible && !parentPortalPageVisible) return;
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
+      if (e.target?.closest?.('[data-parent-portal-overlay]')) return;
       if (profilePanelRef.current?.contains?.(e.target)) return;
       if (parentPortalPanelRef.current?.contains?.(e.target)) return;
       if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {

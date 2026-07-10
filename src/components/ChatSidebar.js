@@ -295,6 +295,7 @@ export default function ChatSidebar({
   const [pendingPhoto, setPendingPhoto] = useState(null);
   const moreActionsMenuRef = useRef(null);
   const profilePanelRef = useRef(null);
+  const parentPortalPanelRef = useRef(null);
   const moreActionsCloseTimeoutRef = useRef(null);
   const addContactSheetCloseTimeoutRef = useRef(null);
   const newChatSheetCloseTimeoutRef = useRef(null);
@@ -1048,6 +1049,7 @@ export default function ChatSidebar({
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (profilePanelRef.current?.contains?.(e.target)) return;
+      if (parentPortalPanelRef.current?.contains?.(e.target)) return;
       if (moreActionsMenuRef.current && !moreActionsMenuRef.current.contains(e.target)) {
         if (settingsSheetVisible) {
           setProfileSheetClosing(true);
@@ -2291,6 +2293,7 @@ export default function ChatSidebar({
       {parentPortalPageVisible ? (
         <ParentDashboard
           user={user}
+          panelRef={parentPortalPanelRef}
           parentActivityBadge={parentActivityBadge}
           onActivitiesViewed={onParentActivitiesViewed}
           onClose={dismissParentPortalSheet}

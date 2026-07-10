@@ -24,6 +24,7 @@ function formatLocationLastSeen(updatedAtMs) {
 export default function ParentDashboard({
   user,
   onClose,
+  panelRef = null,
   parentActivityBadge = 0,
   onActivitiesViewed,
   embeddedInSidebarCluster = false,
@@ -1459,6 +1460,7 @@ export default function ParentDashboard({
   if (!embeddedInSidebarCluster) {
     return (
       <ProfilePageShell
+        panelRef={panelRef}
         titleId="parent-portal-title"
         title={showingMenu ? 'Ouderportaal' : activeTabMeta.label}
         description="Beheer kinderen, contacten, locatie en activiteiten vanuit dezelfde profielopbouw."

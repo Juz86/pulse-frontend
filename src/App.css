@@ -2873,16 +2873,16 @@ font-family: 'Inter', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 136px;
-  height: 136px;
+  width: 204px;
+  height: 204px;
   margin-bottom: 16px;
   border-radius: 50%;
   background: radial-gradient(circle at center, rgba(255,255,255,.12), rgba(255,255,255,0) 72%);
 }
 .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user .profile-avatar-big {
-  width: 124px;
-  height: 124px;
-  font-size: 40px;
+  width: 186px;
+  height: 186px;
+  font-size: 60px;
   box-shadow: 0 14px 32px rgba(108, 99, 255, 0.22);
 }
 .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user-name {
@@ -6124,15 +6124,15 @@ font-family: 'Inter', sans-serif;
   .profile-settings-sheet-user-avatar,
   .pulse-sheet--settings .profile-settings-sheet-user-avatar,
   .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user-avatar {
-    width: 104px;
-    height: 104px;
+    width: 156px;
+    height: 156px;
     margin-bottom: 12px;
   }
   .pulse-sheet--settings .profile-settings-sheet-user .profile-avatar-big,
   .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user .profile-avatar-big {
-    width: 92px;
-    height: 92px;
-    font-size: 30px;
+    width: 138px;
+    height: 138px;
+    font-size: 45px;
   }
   .contact-profile-hero {
     padding: 6px 0 16px;
@@ -6180,15 +6180,15 @@ font-family: 'Inter', sans-serif;
   .profile-settings-sheet-user-avatar,
   .pulse-sheet--settings .profile-settings-sheet-user-avatar,
   .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user-avatar {
-    width: 96px;
-    height: 96px;
+    width: 144px;
+    height: 144px;
     margin-bottom: 10px;
   }
   .pulse-sheet--settings .profile-settings-sheet-user .profile-avatar-big,
   .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user .profile-avatar-big {
-    width: 84px;
-    height: 84px;
-    font-size: 28px;
+    width: 126px;
+    height: 126px;
+    font-size: 42px;
   }
   .contact-profile-avatar-shell {
     width: 96px;

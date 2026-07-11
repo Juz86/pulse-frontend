@@ -795,7 +795,11 @@ export default function ChatSidebar({
     <>
       <section className="contact-profile-card">
         <div className="contact-profile-field">
-          <h3 className="profile-settings-page-title">Chatachtergrond kiezen</h3>
+          <span className="contact-profile-field-label">Styling</span>
+          <div className="parent-dashboard-meta-block">
+            <div className="parent-dashboard-meta-title">Chatachtergrond kiezen</div>
+            <div className="parent-dashboard-meta-subtitle">Kies een achtergrond die past bij jouw Pulse-gesprekken.</div>
+          </div>
         </div>
       </section>
       <section className="contact-profile-card">

@@ -13,6 +13,9 @@ function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = 
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
   const selectedOption = options.find((option) => String(option.value) === String(value)) || options[0];
+  const resolvedTextColor = disabled
+    ? 'rgba(255,255,255,0.9)'
+    : (style?.color || '#241741');
 
   useEffect(() => {
     if (!open) return undefined;
@@ -45,12 +48,12 @@ function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = 
           ...style,
           textAlign: 'left',
           cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.72 : 1,
+          opacity: 1,
           display: 'flex',
           alignItems: 'center',
         }}
       >
-        <span style={{ color: style?.color || '#241741', fontWeight: 700 }}>{selectedOption?.label || ''}</span>
+        <span style={{ color: resolvedTextColor, fontWeight: 700 }}>{selectedOption?.label || ''}</span>
       </button>
 
       {open && !disabled && (

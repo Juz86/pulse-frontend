@@ -6116,6 +6116,26 @@ font-family: 'Inter', sans-serif;
     width:100%;
     max-width:100%;
   }
+  .contact-profile-hero {
+    padding: 6px 0 16px;
+  }
+  .contact-profile-avatar-shell {
+    width: 104px;
+    height: 104px;
+    margin-bottom: 12px;
+  }
+  .contact-profile-avatar,
+  .profile-photo-wrap .contact-profile-avatar {
+    width: 92px;
+    height: 92px;
+    font-size: 30px;
+  }
+  .contact-profile-name {
+    font-size: 24px;
+  }
+  .contact-profile-subtitle {
+    font-size: 12px;
+  }
 }
 
 @media (max-height:760px) {
@@ -6138,6 +6158,20 @@ font-family: 'Inter', sans-serif;
   }
   .profile-settings-hero-name {
     font-size:20px;
+  }
+  .contact-profile-avatar-shell {
+    width: 96px;
+    height: 96px;
+    margin-bottom: 10px;
+  }
+  .contact-profile-avatar,
+  .profile-photo-wrap .contact-profile-avatar {
+    width: 84px;
+    height: 84px;
+    font-size: 28px;
+  }
+  .contact-profile-name {
+    font-size: 22px;
   }
 }
 .modal-sub {

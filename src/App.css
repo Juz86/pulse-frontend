@@ -11345,13 +11345,15 @@ font-family: 'Inter', sans-serif;
   padding: 0;
 }
 
-.parent-dashboard-panel .parent-dashboard-meta-block {
+.parent-dashboard-panel .parent-dashboard-meta-block,
+.contact-profile-panel .parent-dashboard-meta-block {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.parent-dashboard-panel .parent-dashboard-meta-title {
+.parent-dashboard-panel .parent-dashboard-meta-title,
+.contact-profile-panel .parent-dashboard-meta-title {
   color: #f7f4ff;
   font-size: 26px;
   line-height: 1.15;
@@ -11359,7 +11361,8 @@ font-family: 'Inter', sans-serif;
   letter-spacing: -0.02em;
 }
 
-.parent-dashboard-panel .parent-dashboard-meta-subtitle {
+.parent-dashboard-panel .parent-dashboard-meta-subtitle,
+.contact-profile-panel .parent-dashboard-meta-subtitle {
   color: #b7b0d3;
   font-size: 14px;
   line-height: 1.65;

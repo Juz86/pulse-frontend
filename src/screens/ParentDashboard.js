@@ -679,15 +679,6 @@ export default function ParentDashboard({
                 <div className="parent-portal-view parent-portal-view--children">
                   <div className="parent-portal-toolbar parent-portal-toolbar--spread">
                   <h2 className="parent-section-title">Mijn kinderen</h2>
-                  <button
-                    type="button"
-                    className="parent-btn-outline parent-btn-outline--compact parent-btn-outline--icon-only"
-                    aria-label="Vernieuw kinderen"
-                    title="Vernieuwen"
-                    onClick={loadChildren}
-                  >
-                    <Refresh size={14} aria-hidden="true" />
-                  </button>
                 </div>
                 {childError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{childError}</div>}
 

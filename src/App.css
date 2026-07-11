@@ -5873,21 +5873,12 @@ font-family: 'Inter', sans-serif;
 .profile-settings-field-stack--spaced {
   margin-top: 10px;
 }
-.profile-settings-section-copy {
-  margin: 6px 0 0;
-  font-size: 13px;
-  line-height: 1.55;
-  color: #726a93;
-}
-.profile-settings-section-copy--lead {
-  margin-bottom: 14px;
-}
 .profile-settings-page-title {
   margin: 2px 0 0;
   font-size: 22px;
   line-height: 1.15;
   font-weight: 800;
-  color: #241741;
+  color: #fff;
 }
 .profile-settings-field-label {
   font-size: 11px;
@@ -5939,11 +5930,6 @@ font-family: 'Inter', sans-serif;
   flex-direction: column;
   gap: 16px;
   margin-top: 12px;
-}
-.profile-settings-stat-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
 }
 .profile-settings-stat-card {
   display: flex;
@@ -6083,9 +6069,6 @@ font-family: 'Inter', sans-serif;
   }
   .profile-settings-actions-row {
     flex-direction: column;
-  }
-  .profile-settings-stat-grid {
-    grid-template-columns: 1fr;
   }
 }
 

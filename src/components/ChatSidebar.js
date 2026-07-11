@@ -523,17 +523,10 @@ export default function ChatSidebar({
     >
       <section className="contact-profile-card">
         <div className="contact-profile-field">
-          <p className="profile-settings-section-copy profile-account-section-copy">
-            Werk je naam, avatar en accountgegevens bij in dezelfde rustige profielstijl.
-          </p>
-        </div>
-        <div className="contact-profile-field">
-          <span className="contact-profile-field-label">Weergavenaam</span>
           <input className="form-input" placeholder="Jouw naam" value={newName} onChange={(e) => setNewName?.(e.target.value)} />
         </div>
         {isChildAccount && (
           <div className="contact-profile-field">
-            <span className="contact-profile-field-label">Gebruikersnaam</span>
             <input
               className="form-input"
               value={newUsername}
@@ -549,7 +542,6 @@ export default function ChatSidebar({
         )}
         {isParent && (
           <div className="contact-profile-field">
-            <span className="contact-profile-field-label">E-mailadres</span>
             <input className="form-input profile-account-input-disabled" type="email" value={user.email} disabled />
           </div>
         )}
@@ -564,10 +556,6 @@ export default function ChatSidebar({
       {!user.email?.endsWith('@pulse.internal') && (
         <section className="contact-profile-card">
           <div className="contact-profile-field">
-            <span className="contact-profile-field-label">Wachtwoord wijzigen</span>
-            <p className="profile-settings-section-copy profile-account-section-copy">
-              Kies een nieuw wachtwoord en bevestig het hieronder.
-            </p>
             <div style={{ position: 'relative' }}>
               <input
                 className="form-input"
@@ -654,10 +642,6 @@ export default function ChatSidebar({
     <>
       <section className="contact-profile-card">
         <div className="contact-profile-field">
-          <span className="contact-profile-field-label">Ouderaccount</span>
-          <p className="profile-settings-section-copy">
-            Beheer hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis voor jouw account wordt bewaard.
-          </p>
           {historySettingRows.map((row) => (
             <div key={`parent-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced">
               <div className="profile-settings-field-label">{row.label}</div>
@@ -678,10 +662,6 @@ export default function ChatSidebar({
       </section>
       <section className="contact-profile-card">
         <div className="contact-profile-field">
-          <span className="contact-profile-field-label">Kindaccount</span>
-          <p className="profile-settings-section-copy">
-            Kies een kindaccount en stel dezelfde bewaartermijnen per onderdeel in.
-          </p>
           <SidebarHistorySelect
             ariaLabel="Kies kindaccount"
             value={selectedHistoryChildUid}
@@ -748,33 +728,11 @@ export default function ChatSidebar({
       <>
         <section className="contact-profile-card">
           <div className="contact-profile-field">
-            <span className="contact-profile-field-label">Overzicht</span>
             <h3 className="profile-settings-page-title">Geblokkeerde contacten</h3>
-            <p className="profile-settings-section-copy profile-settings-section-copy--lead">
-              Bekijk welke contacten door jou of door een ouder zijn geblokkeerd en beheer direct wat weer toegankelijk mag worden.
-            </p>
-            <div className="profile-settings-stat-grid">
-              <div className="profile-settings-stat-card">
-                <div className="profile-settings-stat-label">Door jou</div>
-                <div className="profile-settings-stat-value">{selfBlocked.length}</div>
-              </div>
-              <div className="profile-settings-stat-card">
-                <div className="profile-settings-stat-label">Door ouder</div>
-                <div className="profile-settings-stat-value">{parentBlocked.length}</div>
-              </div>
-              <div className="profile-settings-stat-card">
-                <div className="profile-settings-stat-label">Totaal</div>
-                <div className="profile-settings-stat-value">{selfBlocked.length + parentBlocked.length}</div>
-              </div>
-            </div>
           </div>
         </section>
         <section className="contact-profile-card">
           <div className="contact-profile-field">
-            <span className="contact-profile-field-label">Contacten</span>
-            <p className="profile-settings-section-copy">
-              Beheer welke contacten door jou of door een ouder zijn geblokkeerd.
-            </p>
             {selfBlocked.length === 0 && parentBlocked.length === 0 ? (
               <div className="profile-settings-empty">Geen geblokkeerde contacten.</div>
             ) : (
@@ -824,33 +782,11 @@ export default function ChatSidebar({
     <>
       <section className="contact-profile-card">
         <div className="contact-profile-field">
-          <span className="contact-profile-field-label">Overzicht</span>
           <h3 className="profile-settings-page-title">Chatachtergrond kiezen</h3>
-          <p className="profile-settings-section-copy profile-settings-section-copy--lead">
-            Geef gesprekken een rustige eigen sfeer met een foto, een effen kleur of de standaard Pulse-achtergrond.
-          </p>
-          <div className="profile-settings-stat-grid">
-            <div className="profile-settings-stat-card">
-              <div className="profile-settings-stat-label">Modi</div>
-              <div className="profile-settings-stat-value">Foto, kleur, standaard</div>
-            </div>
-            <div className="profile-settings-stat-card">
-              <div className="profile-settings-stat-label">Actief</div>
-              <div className="profile-settings-stat-value">{chatBg?.type === 'photo' ? 'Foto' : chatBg?.type === 'color' ? 'Kleur' : 'Standaard'}</div>
-            </div>
-            <div className="profile-settings-stat-card">
-              <div className="profile-settings-stat-label">Preview</div>
-              <div className="profile-settings-stat-value">Live in de pagina</div>
-            </div>
-          </div>
         </div>
       </section>
       <section className="contact-profile-card">
         <div className="contact-profile-field">
-          <span className="contact-profile-field-label">Chat achtergrond</span>
-          <p className="profile-settings-section-copy">
-            Kies een foto, een rustige kleur of zet de standaard Pulse-achtergrond terug.
-          </p>
           <div className="profile-styling-tabs">
             {[
               ['foto', <ImageIcon size={14} />, 'Foto'],

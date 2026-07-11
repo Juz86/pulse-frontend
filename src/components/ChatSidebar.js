@@ -642,6 +642,15 @@ export default function ChatSidebar({
     <>
       <section className="contact-profile-card">
         <div className="contact-profile-field">
+          <span className="contact-profile-field-label">Geschiedenis</span>
+          <div className="parent-dashboard-meta-block">
+            <div className="parent-dashboard-meta-title">Bewaartermijnen beheren</div>
+            <div className="parent-dashboard-meta-subtitle">Beheer hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis worden bewaard.</div>
+          </div>
+        </div>
+      </section>
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
           {historySettingRows.map((row) => (
             <div key={`parent-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced">
               <div className="profile-settings-field-label">{row.label}</div>

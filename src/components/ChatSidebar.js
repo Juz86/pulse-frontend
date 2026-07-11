@@ -13,9 +13,7 @@ function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = 
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
   const selectedOption = options.find((option) => String(option.value) === String(value)) || options[0];
-  const resolvedTextColor = disabled
-    ? 'rgba(255,255,255,0.9)'
-    : (style?.color || '#241741');
+  const resolvedTextColor = 'rgba(255,255,255,0.96)';
 
   useEffect(() => {
     if (!open) return undefined;

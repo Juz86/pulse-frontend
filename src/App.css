@@ -2873,11 +2873,16 @@ font-family: 'Inter', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 136px;
+  height: 136px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(255,255,255,.12), rgba(255,255,255,0) 72%);
 }
 .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user .profile-avatar-big {
-  width: 96px;
-  height: 96px;
-  font-size: 38px;
+  width: 124px;
+  height: 124px;
+  font-size: 40px;
   box-shadow: 0 14px 32px rgba(108, 99, 255, 0.22);
 }
 .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user-name {
@@ -6116,6 +6121,19 @@ font-family: 'Inter', sans-serif;
     width:100%;
     max-width:100%;
   }
+  .profile-settings-sheet-user-avatar,
+  .pulse-sheet--settings .profile-settings-sheet-user-avatar,
+  .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user-avatar {
+    width: 104px;
+    height: 104px;
+    margin-bottom: 12px;
+  }
+  .pulse-sheet--settings .profile-settings-sheet-user .profile-avatar-big,
+  .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user .profile-avatar-big {
+    width: 92px;
+    height: 92px;
+    font-size: 30px;
+  }
   .contact-profile-hero {
     padding: 6px 0 16px;
   }
@@ -6158,6 +6176,19 @@ font-family: 'Inter', sans-serif;
   }
   .profile-settings-hero-name {
     font-size:20px;
+  }
+  .profile-settings-sheet-user-avatar,
+  .pulse-sheet--settings .profile-settings-sheet-user-avatar,
+  .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user-avatar {
+    width: 96px;
+    height: 96px;
+    margin-bottom: 10px;
+  }
+  .pulse-sheet--settings .profile-settings-sheet-user .profile-avatar-big,
+  .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user .profile-avatar-big {
+    width: 84px;
+    height: 84px;
+    font-size: 28px;
   }
   .contact-profile-avatar-shell {
     width: 96px;
@@ -6894,10 +6925,21 @@ font-family: 'Inter', sans-serif;
   box-shadow: 0 10px 22px rgba(74, 55, 148, 0.06);
 }
 
+.pulse-sheet--settings .profile-settings-sheet-user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 136px;
+  height: 136px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(255,255,255,.12), rgba(255,255,255,0) 72%);
+}
+
 .pulse-sheet--settings .profile-settings-sheet-user .profile-avatar-big {
-  width: 82px;
-  height: 82px;
-  font-size: 32px;
+  width: 124px;
+  height: 124px;
+  font-size: 40px;
 }
 
 .pulse-sheet--settings .profile-settings-sheet-user-name {

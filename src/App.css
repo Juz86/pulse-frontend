@@ -11476,8 +11476,12 @@ font-family: 'Inter', sans-serif;
   overflow: hidden;
 }
 
+.calls-dashboard-view {
+  padding-bottom: 0;
+}
+
 .calls-dashboard-search {
-  padding: 12px 18px 10px;
+  padding: 0;
 }
 
 .calls-dashboard-rate-limit {
@@ -11492,7 +11496,7 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-panel .sidebar-call-section,
 .calls-dashboard-panel .sidebar-call-list {
-  padding: 0 18px 18px;
+  padding: 0;
 }
 
 .calls-dashboard-panel .sidebar-call-list {
@@ -11506,7 +11510,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel .call-panel-empty {
-  padding: 16px 18px 26px;
+  padding: 16px 0 10px;
 }
 
 .parent-dashboard-panel .parent-portal-view {

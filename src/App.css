@@ -11461,31 +11461,23 @@ font-family: 'Inter', sans-serif;
   background: transparent;
 }
 
-.calls-profile-panel {
+.calls-dashboard-panel {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
-.calls-profile-avatar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(124,108,255,.92), rgba(208,103,255,.88));
-  color: #fff;
-  box-shadow: 0 16px 34px rgba(122, 95, 232, 0.24);
-}
-
-.calls-profile-card--search {
+.calls-dashboard-panel .contact-profile-card--parent-portal-meta {
   margin-bottom: 14px;
 }
 
-.calls-profile-card--list {
+.calls-dashboard-content-card {
+  padding: 0;
   overflow: hidden;
 }
 
 .calls-dashboard-search {
-  padding: 0;
+  padding: 12px 18px 10px;
 }
 
 .calls-dashboard-rate-limit {
@@ -11498,23 +11490,23 @@ font-family: 'Inter', sans-serif;
   padding: 8px 10px;
 }
 
-.calls-profile-panel .sidebar-call-section,
-.calls-profile-panel .sidebar-call-list {
-  padding: 0;
+.calls-dashboard-panel .sidebar-call-section,
+.calls-dashboard-panel .sidebar-call-list {
+  padding: 0 18px 18px;
 }
 
-.calls-profile-panel .sidebar-call-list {
+.calls-dashboard-panel .sidebar-call-list {
   margin-bottom: 0;
   max-height: none;
   overflow: visible;
 }
 
-.calls-profile-panel .call-log-picker-title {
+.calls-dashboard-panel .call-log-picker-title {
   margin-bottom: 10px;
 }
 
-.calls-profile-panel .call-panel-empty {
-  padding: 16px 0 10px;
+.calls-dashboard-panel .call-panel-empty {
+  padding: 16px 18px 26px;
 }
 
 .parent-dashboard-panel .parent-portal-view {

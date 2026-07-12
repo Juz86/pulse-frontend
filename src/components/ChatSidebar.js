@@ -325,7 +325,8 @@ export default function ChatSidebar({
   const stylingProfilePageVisible = embeddedSettingsActive && profileTab === 'styling';
   const blockedProfilePageVisible = embeddedSettingsActive && profileTab === 'geblokkeerd';
   const parentPortalPageVisible = showParentDashboard || parentPortalSheetClosing;
-  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null)))))))));
+  const callsProfilePageVisible = callSheetVisible;
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (moreActionsSheetVisible ? 'more' : null))))))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
@@ -969,46 +970,62 @@ export default function ChatSidebar({
   );
 
   const renderCallsProfilePage = () => (
-    <ProfilePageShell
-      panelRef={profilePanelRef}
-      titleId="calls-profile-title"
-      title="Recent"
-      description="Bekijk recente oproepen en start direct een nieuwe audio- of video-oproep."
-      onBack={() => {
-        if (callActionMode) {
-          setCallActionMode(null);
-          return;
-        }
-        dismissCallSheet();
-      }}
-      backLabel={callActionMode ? 'Terug naar recente oproepen' : 'Oproepen sluiten'}
-      headerAction={(
+    <aside
+      ref={profilePanelRef}
+      className="chat-side-panel contact-profile-panel parent-dashboard-panel calls-dashboard-panel"
+      aria-labelledby="calls-profile-title"
+      aria-describedby="calls-profile-description"
+    >
+      <div className="contact-profile-topbar">
         <button
           type="button"
-          className="contact-profile-edit-btn contact-profile-close-btn"
-          aria-label="Oproepen sluiten"
+          className="contact-profile-nav-btn"
+          aria-label={callActionMode ? 'Terug naar recente oproepen' : 'Sluit oproepen'}
+          title={callActionMode ? 'Terug' : 'Sluiten'}
+          onClick={() => {
+            if (callActionMode) {
+              setCallActionMode(null);
+              return;
+            }
+            dismissCallSheet();
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <div className="contact-profile-heading">
+          <h2 id="calls-profile-title">Recent</h2>
+        </div>
+        <button
+          type="button"
+          className="contact-profile-nav-btn contact-profile-close-btn"
+          aria-label="Sluit oproepen"
           title="Sluiten"
           onClick={dismissCallSheet}
         >
           <XIcon size={20} aria-hidden="true" />
         </button>
-      )}
-      className="chat-side-panel contact-profile-panel calls-profile-panel"
-      hero={(
-        <ProfilePageHero
-          className="contact-profile-hero contact-profile-hero--main"
-          avatar={(
-            <div className="calls-profile-avatar contact-profile-avatar" aria-hidden="true">
-              {callActionMode ? <Video size={40} /> : <Phone size={40} />}
-            </div>
-          )}
-          name={callActionMode ? 'Nieuwe oproep' : 'Recente oproepen'}
-          subtitle={callActionMode ? 'Kies een contact om direct te bellen.' : 'Zoek, bekijk en start opnieuw vanuit je oproepgeschiedenis.'}
-        />
-      )}
-    >
-      <section className="contact-profile-card calls-profile-card calls-profile-card--search">
+      </div>
+
+      <p id="calls-profile-description" className="sr-only">
+        Bekijk recente oproepen en start een nieuwe bel- of video-oproep.
+      </p>
+
+      <section className="contact-profile-card contact-profile-card--parent-portal-meta">
         <div className="contact-profile-field">
+          <span className="contact-profile-field-label">Oproepen</span>
+          <div className="parent-dashboard-meta-block">
+            <div className="parent-dashboard-meta-title">Recente oproepen</div>
+            <div className="parent-dashboard-meta-subtitle">
+              Zoek in recente oproepen of start direct een nieuwe audio- of video-oproep.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="contact-profile-card contact-profile-card--profile-actions calls-dashboard-content-card">
+        <div className="calls-dashboard-search">
           <div className="search-box search-box--top sidebar-call-search-box">
             <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
             <input
@@ -1029,118 +1046,115 @@ export default function ChatSidebar({
             </div>
           )}
         </div>
-      </section>
 
-      <section className="contact-profile-card calls-profile-card calls-profile-card--list">
-        <div className="contact-profile-field">
-          {!callsAvailable ? (
-            <div className="call-panel-empty">
-              <div style={{ fontSize: 14 }}>Bellen en videobellen zijn hier niet beschikbaar.</div>
+        {!callsAvailable ? (
+          <div className="call-panel-empty">
+            <div style={{ fontSize: 14 }}>Bellen en videobellen zijn hier niet beschikbaar.</div>
+          </div>
+        ) : callActionMode ? (
+          <div className="sidebar-call-section">
+            <div className="new-chat-sheet-kicker">Kies een contactpersoon</div>
+            <div className="call-log-picker-title">
+              Start direct een bel- of video-oproep vanuit je contacten.
             </div>
-          ) : callActionMode ? (
-            <div className="sidebar-call-section">
-              <div className="call-log-picker-title">
-                Start direct een bel- of video-oproep vanuit je contacten.
-              </div>
-              <div className="sidebar-call-list">
-                {filteredCallContacts.length === 0 ? (
-                  <div className="empty-convs" style={{ paddingTop: 6, paddingBottom: 6 }}>
-                    <p>Geen contacten gevonden.</p>
-                  </div>
-                ) : (
-                  filteredCallContacts.map((contact) => {
-                    const contactTitle = getContactDisplayName(contact)
-                      || contact.displayName
-                      || contact.username
-                      || (contact.email ? contact.email.split('@')[0] : '')
-                      || 'Onbekend';
-                    return (
-                      <div key={contact.uid} className="sidebar-contact-card sidebar-contact-card--call-log">
-                        <div className="sidebar-contact-row sidebar-contact-row--call-log">
-                          <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
-                          <div className="conv-info call-log-picker-copy">
-                            <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
-                            <div className="conv-preview call-contact-email-responsive">{contact.email || 'Geen e-mailadres'}</div>
-                          </div>
-                          <div className="call-log-picker-actions">
-                            <button
-                              type="button"
-                              className="call-btn voice"
-                              aria-label={`Bel ${contactTitle}`}
-                              title="Bellen"
-                              onClick={() => (callContactFromRecent || callContact)?.(contact, false)}
-                            >
-                              <Phone size={14} aria-hidden="true" />
-                            </button>
-                            <button
-                              type="button"
-                              className="call-btn video"
-                              aria-label={`Videobel ${contactTitle}`}
-                              title="Videobellen"
-                              onClick={() => (callContactFromRecent || callContact)?.(contact, true)}
-                            >
-                              <Video size={14} aria-hidden="true" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          ) : filteredCallLog.length === 0 ? (
-            <div className="call-panel-empty">
-              <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
-              <div>{callSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</div>
-            </div>
-          ) : (
             <div className="sidebar-call-list">
-              {filteredCallLog.map((entry, index) => {
-                const contact = contacts.find((item) => item.uid === entry.uid);
-                const dirIcon = entry.direction === 'outgoing'
-                  ? <PhoneOutgoing size={13} />
-                  : entry.direction === 'missed'
-                    ? <Cancel size={13} />
-                    : <PhoneCall size={13} />;
-                const displayTime = formatTime(entry.ts);
-                return (
-                  <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className="sidebar-contact-card sidebar-contact-card--call-log">
-                    <div className="sidebar-contact-row sidebar-contact-row--call-log">
-                      <div className="avatar-wrap">
-                        <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
-                        {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
+              {filteredCallContacts.length === 0 ? (
+                <div className="empty-convs" style={{ paddingTop: 6, paddingBottom: 6 }}>
+                  <p>Geen contacten gevonden.</p>
+                </div>
+              ) : (
+                filteredCallContacts.map((contact) => {
+                  const contactTitle = getContactDisplayName(contact)
+                    || contact.displayName
+                    || contact.username
+                    || (contact.email ? contact.email.split('@')[0] : '')
+                    || 'Onbekend';
+                  return (
+                    <div key={contact.uid} className="sidebar-contact-card sidebar-contact-card--call-log">
+                      <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                        <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
+                        <div className="conv-info call-log-picker-copy">
+                          <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
+                          <div className="conv-preview call-contact-email-responsive">{contact.email || 'Geen e-mailadres'}</div>
+                        </div>
+                        <div className="call-log-picker-actions">
+                          <button
+                            type="button"
+                            className="call-btn voice"
+                            aria-label={`Bel ${contactTitle}`}
+                            title="Bellen"
+                            onClick={() => (callContactFromRecent || callContact)?.(contact, false)}
+                          >
+                            <Phone size={14} aria-hidden="true" />
+                          </button>
+                          <button
+                            type="button"
+                            className="call-btn video"
+                            aria-label={`Videobel ${contactTitle}`}
+                            title="Videobellen"
+                            onClick={() => (callContactFromRecent || callContact)?.(contact, true)}
+                          >
+                            <Video size={14} aria-hidden="true" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="call-log-copy">
-                        <div className="call-log-meta">
-                          <span className="conv-name">{entry.name}</span>
-                          <span className="call-log-time">{displayTime}</span>
-                        </div>
-                        <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
-                          <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
-                          <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
-                          <span className="call-log-type-separator" aria-hidden="true">·</span>
-                          <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
-                        </div>
-                      </div>
-                      {contact && (
-                        <div className="call-log-actions">
-                          {entry.isVideo ? (
-                            <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
-                          ) : (
-                            <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
-                          )}
-                        </div>
-                      )}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        ) : filteredCallLog.length === 0 ? (
+          <div className="call-panel-empty">
+            <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
+            <div>{callSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</div>
+          </div>
+        ) : (
+          <div className="sidebar-call-list">
+            {filteredCallLog.map((entry, index) => {
+              const contact = contacts.find((item) => item.uid === entry.uid);
+              const dirIcon = entry.direction === 'outgoing'
+                ? <PhoneOutgoing size={13} />
+                : entry.direction === 'missed'
+                  ? <Cancel size={13} />
+                  : <PhoneCall size={13} />;
+              const displayTime = formatTime(entry.ts);
+              return (
+                <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className="sidebar-contact-card sidebar-contact-card--call-log">
+                  <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                    <div className="avatar-wrap">
+                      <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
+                      {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
+                    </div>
+                    <div className="call-log-copy">
+                      <div className="call-log-meta">
+                        <span className="conv-name">{entry.name}</span>
+                        <span className="call-log-time">{displayTime}</span>
+                      </div>
+                      <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
+                        <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
+                        <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
+                        <span className="call-log-type-separator" aria-hidden="true">·</span>
+                        <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
+                      </div>
+                    </div>
+                    {contact && (
+                      <div className="call-log-actions">
+                        {entry.isVideo ? (
+                          <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
+                        ) : (
+                          <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
-    </ProfilePageShell>
+    </aside>
   );
 
   useEffect(() => {
@@ -2191,9 +2205,7 @@ export default function ChatSidebar({
               ? `Acties voor ${getContactDisplayName(activeContactMenuContact || {})}`
               : footerClusterMode === 'conversation'
                 ? `Acties voor ${convActionsSheet?.conv?.name || 'gesprek'}`
-                : footerClusterMode === 'calls'
-                  ? 'Oproepen'
-                  : 'Meer acties';
+                : 'Meer acties';
   const footerClusterTitle = footerClusterMode === 'settings'
     ? (profileTab === 'overview' ? 'Instellingen' : activeProfileSection?.label || 'Instellingen')
     : footerClusterMode === 'add-contact'
@@ -2210,17 +2222,14 @@ export default function ChatSidebar({
               ? getContactDisplayName(activeContactMenuContact || {})
               : footerClusterMode === 'conversation'
                 ? (convActionsSheet?.conv?.name || 'Gesprek')
-                : footerClusterMode === 'calls'
-                  ? 'Recent'
-                  : 'Meer opties';
+                : 'Meer opties';
   const isMoreFooterCluster = footerClusterMode === 'more';
   const isSettingsPageMode = embeddedSettingsActive;
-  const isCallsPageMode = footerClusterMode === 'calls';
   const isLightFooterCluster = isMoreFooterCluster;
   const useDetachedFooterCluster = isLightFooterCluster || !footerEmbeddedInCluster;
   const footerClusterSheetClassName = isLightFooterCluster
     ? `sidebar-bottom-cluster-panel sidebar-bottom-cluster-panel--more${isMoreFooterCluster && moreActionsMenuClosing ? ' is-closing' : ''}`
-    : `pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${useDetachedFooterCluster ? ' sidebar-bottom-cluster-sheet--detached-footer' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`;
+    : `pulse-sheet pulse-sheet--sidebar-actions sidebar-bottom-cluster-sheet${footerClusterMode ? ` sidebar-bottom-cluster-sheet--${footerClusterMode}` : ''}${useDetachedFooterCluster ? ' sidebar-bottom-cluster-sheet--detached-footer' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}`;
   const dismissFooterCluster = footerClusterMode === 'settings'
     ? dismissProfileOverviewSheet
     : footerClusterMode === 'add-contact'
@@ -2237,9 +2246,7 @@ export default function ChatSidebar({
               ? closeContactActionsSheet
               : footerClusterMode === 'conversation'
                 ? closeConvActionsSheet
-                : footerClusterMode === 'calls'
-                  ? dismissCallSheet
-                  : dismissMoreActionsSheet;
+                : dismissMoreActionsSheet;
 
   return (
     <aside className={`sidebar${moreActionsMenuOpen ? ' sidebar--more-actions-open' : ''}${isSettingsPageMode ? ' sidebar--settings-open' : ''}`} ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
@@ -2430,14 +2437,15 @@ export default function ChatSidebar({
           onClose={dismissParentPortalSheet}
         />
       ) : null}
+      {callsProfilePageVisible ? renderCallsProfilePage() : null}
 
       {footerClusterMode ? (
         <div
-          className={`sidebar-bottom-cluster-backdrop${footerClusterMode ? ` sidebar-bottom-cluster-backdrop--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+          className={`sidebar-bottom-cluster-backdrop${footerClusterMode ? ` sidebar-bottom-cluster-backdrop--${footerClusterMode}` : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}`}
           onClick={dismissFooterCluster}
         >
           <div
-            className={`sidebar-bottom-cluster${useDetachedFooterCluster ? ' sidebar-bottom-cluster--detached-footer' : ''}${footerClusterMode === 'settings' ? ' sidebar-bottom-cluster--settings-screen' : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'calls' && callSheetClosing ? ' is-closing' : ''}`}
+            className={`sidebar-bottom-cluster${useDetachedFooterCluster ? ' sidebar-bottom-cluster--detached-footer' : ''}${footerClusterMode === 'settings' ? ' sidebar-bottom-cluster--settings-screen' : ''}${footerClusterMode === 'more' && moreActionsMenuClosing ? ' is-closing' : ''}${footerClusterMode === 'settings' && profileSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'add-contact' && addContactSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-chat' && newChatSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'new-group' && newGroupSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'requests' && requestsSheetClosing ? ' is-closing' : ''}${footerClusterMode === 'parent-portal' && parentPortalSheetClosing ? ' is-closing' : ''}`}
             data-sidebar-actions-menu
             onClick={(e) => e.stopPropagation()}
           >
@@ -2446,8 +2454,8 @@ export default function ChatSidebar({
               role="menu"
               aria-label={footerClusterAriaLabel}
             >
-              {!isCallsPageMode && <div className="pulse-sheet-handle" aria-hidden="true" />}
-              {!isCallsPageMode && <div className={`pulse-sheet-header pulse-sheet-header--sidebar-actions${footerClusterMode === 'settings' ? ' pulse-sheet-header--settings-screen' : ''}${footerClusterMode === 'settings' && profileTab === 'overview' ? ' pulse-sheet-header--settings-overview' : ''}${(footerClusterMode === 'parent-portal' && parentPortalView !== 'menu') || (footerClusterMode === 'settings' && profileTab !== 'overview') ? ' has-back-button' : ''}`}>
+              <div className="pulse-sheet-handle" aria-hidden="true" />
+              <div className={`pulse-sheet-header pulse-sheet-header--sidebar-actions${footerClusterMode === 'settings' ? ' pulse-sheet-header--settings-screen' : ''}${footerClusterMode === 'settings' && profileTab === 'overview' ? ' pulse-sheet-header--settings-overview' : ''}${(footerClusterMode === 'parent-portal' && parentPortalView !== 'menu') || (footerClusterMode === 'settings' && profileTab !== 'overview') ? ' has-back-button' : ''}`}>
                 {footerClusterMode === 'parent-portal' && parentPortalView !== 'menu' && (
                   <button
                     type="button"
@@ -2489,7 +2497,7 @@ export default function ChatSidebar({
                     </button>
                   </>
                 )}
-              </div>}
+              </div>
               {footerClusterMode === 'settings' ? (
                 <div className="profile-modal-body">
                   <div className="profile-content">
@@ -3237,8 +3245,6 @@ export default function ChatSidebar({
                     {convActionsSheet ? renderConvActions(convActionsSheet.conv, convActionsSheet.otherUid, closeConvActionsSheet) : null}
                   </div>
                 </div>
-              ) : footerClusterMode === 'calls' ? (
-                renderCallsProfilePage()
               ) : (
                 renderSimpleSidebarActionList([
                   {

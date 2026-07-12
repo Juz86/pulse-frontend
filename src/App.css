@@ -9151,7 +9151,7 @@ font-family: 'Inter', sans-serif;
   .back-btn { display:flex; }
 
   /* Kleinere avatars */
-  .avatar-circle    { width:40px; height:40px; font-size:14px; }
+  .avatar-circle    { font-size:14px; }
   .avatar-circle.sm { width:32px; height:32px; font-size:11px; }
 
   .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {

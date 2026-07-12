@@ -3321,6 +3321,73 @@ font-family: 'Inter', sans-serif;
   padding: 13px 18px;
 }
 
+.sidebar-calls-view {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sidebar-header--calls-panel {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid rgba(112, 92, 191, 0.08);
+  background: linear-gradient(180deg, rgba(255,255,255,.72) 0%, rgba(250,247,255,.62) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.sidebar-call-search-box {
+  background: rgba(255,255,255,.92);
+  border-color: rgba(140, 122, 214, 0.16);
+}
+
+.sidebar-call-search-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  color: #221c47;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.sidebar-call-search-input::placeholder {
+  color: #8f86b8;
+}
+
+.sidebar-call-search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #8f86b8;
+  cursor: pointer;
+  padding: 0;
+}
+
+.sidebar-call-section {
+  padding: 2px 0 14px;
+}
+
+.sidebar-call-list {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 8px;
+}
+
+.sidebar-contact-card--call-log {
+  margin: 0 12px;
+}
+
+.sidebar-contact-row--call-log {
+  min-height: 72px;
+}
+
 .conv-delete-btn {
   flex-shrink:0; width:44px; height:44px; border-radius:11px;
   border:1px solid rgba(255,71,87,.35); background:rgba(255,71,87,.14);

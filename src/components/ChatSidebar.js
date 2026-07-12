@@ -3062,25 +3062,24 @@ export default function ChatSidebar({
                   </div>
                 </div>
               ) : footerClusterMode === 'calls' ? (
-                <div className="sidebar-settings-sheet-scroll">
-                  <div className="call-log-sheet-body">
+                <div className="conv-list sidebar-calls-view">
                     {!callsAvailable ? (
                       <div className="call-panel-empty">
                         <div style={{ fontSize: 14 }}>Bellen en videobellen zijn hier niet beschikbaar.</div>
                       </div>
                     ) : (
                       <>
-                        <div className="call-log-toolbar">
-                          <div className="starred-search-wrap call-log-search-wrap call-log-search-wrap--full">
-                            <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+                        <div className="sidebar-header sidebar-header--calls-panel">
+                          <div className="search-box search-box--top sidebar-call-search-box">
+                            <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
                             <input
-                              className="starred-search-input"
+                              className="sidebar-call-search-input"
                               placeholder="Zoek recente oproepen of contact…"
                               value={callSearch}
                               onChange={(e) => setCallSearch(e.target.value)}
                             />
                             {callSearch && (
-                              <button type="button" className="starred-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
+                              <button type="button" className="sidebar-call-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
                                 <Cancel size={14} aria-hidden="true" />
                               </button>
                             )}
@@ -3104,12 +3103,12 @@ export default function ChatSidebar({
                           </div>
                         )}
                         {callActionMode && (
-                          <div className="call-log-picker">
+                          <div className="sidebar-call-section">
                             <div className="new-chat-sheet-kicker">Kies een contactpersoon</div>
                             <div className="call-log-picker-title">
                               Start direct een bel- of video-oproep vanuit je contacten.
                             </div>
-                            <div className="pulse-sheet-list pulse-sheet-list--new-chat call-log-picker-list">
+                            <div className="sidebar-call-list">
                               {filteredCallContacts.length === 0 ? (
                                 <div className="empty-convs" style={{ paddingTop: 6, paddingBottom: 6 }}>
                                   <p>Geen contacten gevonden.</p>
@@ -3122,31 +3121,33 @@ export default function ChatSidebar({
                                     || (contact.email ? contact.email.split('@')[0] : '')
                                     || 'Onbekend';
                                   return (
-                                    <div key={contact.uid} className="call-log-picker-row">
-                                      <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
-                                      <div className="conv-info call-log-picker-copy">
-                                        <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
-                                        <div className="conv-preview call-contact-email-responsive">{contact.email || 'Geen e-mailadres'}</div>
-                                      </div>
-                                      <div className="call-log-picker-actions">
-                                        <button
-                                          type="button"
-                                          className="call-btn voice"
-                                          aria-label={`Bel ${contactTitle}`}
-                                          title="Bellen"
-                                          onClick={() => (callContactFromRecent || callContact)?.(contact, false)}
-                                        >
-                                          <Phone size={14} aria-hidden="true" />
-                                        </button>
-                                        <button
-                                          type="button"
-                                          className="call-btn video"
-                                          aria-label={`Videobel ${contactTitle}`}
-                                          title="Videobellen"
-                                          onClick={() => (callContactFromRecent || callContact)?.(contact, true)}
-                                        >
-                                          <Video size={14} aria-hidden="true" />
-                                        </button>
+                                    <div key={contact.uid} className="sidebar-contact-card sidebar-contact-card--call-log">
+                                      <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                                        <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
+                                        <div className="conv-info call-log-picker-copy">
+                                          <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
+                                          <div className="conv-preview call-contact-email-responsive">{contact.email || 'Geen e-mailadres'}</div>
+                                        </div>
+                                        <div className="call-log-picker-actions">
+                                          <button
+                                            type="button"
+                                            className="call-btn voice"
+                                            aria-label={`Bel ${contactTitle}`}
+                                            title="Bellen"
+                                            onClick={() => (callContactFromRecent || callContact)?.(contact, false)}
+                                          >
+                                            <Phone size={14} aria-hidden="true" />
+                                          </button>
+                                          <button
+                                            type="button"
+                                            className="call-btn video"
+                                            aria-label={`Videobel ${contactTitle}`}
+                                            title="Videobellen"
+                                            onClick={() => (callContactFromRecent || callContact)?.(contact, true)}
+                                          >
+                                            <Video size={14} aria-hidden="true" />
+                                          </button>
+                                        </div>
                                       </div>
                                     </div>
                                   );
@@ -3162,7 +3163,7 @@ export default function ChatSidebar({
                               <div>{callSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</div>
                             </div>
                           ) : (
-                            <div className="call-log-list">
+                            <div className="sidebar-call-list">
                               {filteredCallLog.map((entry, index) => {
                                 const contact = contacts.find((item) => item.uid === entry.uid);
                                 const dirIcon = entry.direction === 'outgoing'
@@ -3172,32 +3173,34 @@ export default function ChatSidebar({
                                     : <PhoneCall size={13} />;
                                 const displayTime = formatTime(entry.ts);
                                 return (
-                                  <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className="call-log-row">
-                                    <div className="avatar-wrap">
-                                      <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
-                                      {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
+                                  <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className="sidebar-contact-card sidebar-contact-card--call-log">
+                                    <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                                      <div className="avatar-wrap">
+                                        <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
+                                        {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
+                                      </div>
+                                      <div className="call-log-copy">
+                                        <div className="call-log-meta">
+                                          <span className="conv-name">{entry.name}</span>
+                                          <span className="call-log-time">{displayTime}</span>
+                                        </div>
+                                        <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
+                                          <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
+                                          <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
+                                          <span className="call-log-type-separator" aria-hidden="true">·</span>
+                                          <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
+                                        </div>
+                                      </div>
+                                      {contact && (
+                                        <div className="call-log-actions">
+                                          {entry.isVideo ? (
+                                            <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
+                                          ) : (
+                                            <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
+                                          )}
+                                        </div>
+                                      )}
                                     </div>
-                                    <div className="call-log-copy">
-                                      <div className="call-log-meta">
-                                        <span className="conv-name">{entry.name}</span>
-                                        <span className="call-log-time">{displayTime}</span>
-                                      </div>
-                                      <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
-                                        <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
-                                        <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
-                                        <span className="call-log-type-separator" aria-hidden="true">·</span>
-                                        <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
-                                      </div>
-                                    </div>
-                                    {contact && (
-                                      <div className="call-log-actions">
-                                        {entry.isVideo ? (
-                                          <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
-                                        ) : (
-                                          <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
-                                        )}
-                                      </div>
-                                    )}
                                   </div>
                                 );
                               })}
@@ -3206,7 +3209,6 @@ export default function ChatSidebar({
                         )}
                       </>
                     )}
-                  </div>
                 </div>
               ) : (
                 renderSimpleSidebarActionList([

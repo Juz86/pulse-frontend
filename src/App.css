@@ -11471,6 +11471,16 @@ font-family: 'Inter', sans-serif;
   margin-bottom: 18px;
 }
 
+.calls-dashboard-panel #calls-profile-title {
+  color: #f7f5ff;
+  flex: 1 1;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  margin: 0;
+  text-align: center;
+}
+
 .calls-dashboard-panel .contact-profile-card--parent-portal-meta {
   margin-bottom: 18px;
 }

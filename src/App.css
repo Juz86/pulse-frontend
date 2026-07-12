@@ -11467,12 +11467,24 @@ font-family: 'Inter', sans-serif;
   gap: 0;
 }
 
+.calls-dashboard-panel .contact-profile-topbar {
+  margin-bottom: 18px;
+}
+
 .calls-dashboard-panel .contact-profile-card--parent-portal-meta {
   margin-bottom: 18px;
 }
 
+.calls-dashboard-panel .contact-profile-card--parent-portal-meta .contact-profile-field {
+  padding: 16px 22px 18px;
+}
+
 .calls-dashboard-panel .contact-profile-field-label {
   color: rgba(181, 173, 214, 0.82);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .calls-dashboard-content-card {
@@ -11495,6 +11507,11 @@ font-family: 'Inter', sans-serif;
   background: rgba(255,255,255,.05);
   padding: 0 16px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.calls-dashboard-panel .sidebar-call-search-box:focus-within {
+  border-color: rgba(124, 108, 255, 0.38);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 3px rgba(124,108,255,.10);
 }
 
 .calls-dashboard-panel .sidebar-call-search-box input,
@@ -11546,6 +11563,7 @@ font-family: 'Inter', sans-serif;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-bottom: 10px;
+  scrollbar-gutter: stable;
 }
 
 .calls-dashboard-panel .sidebar-contact-card {
@@ -11590,13 +11608,22 @@ font-family: 'Inter', sans-serif;
   color: #b7b0d3;
 }
 
+.calls-dashboard-panel .call-log-meta {
+  align-items: baseline;
+  gap: 12px;
+}
+
 .calls-dashboard-panel .call-log-time {
   font-size: 12px;
   font-weight: 600;
+  min-width: 44px;
+  text-align: right;
 }
 
 .calls-dashboard-panel .call-log-subline {
   margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .calls-dashboard-panel .call-log-subline.missed {
@@ -11610,9 +11637,15 @@ font-family: 'Inter', sans-serif;
   border-radius: 18px;
 }
 
+.calls-dashboard-panel .call-log-actions,
+.calls-dashboard-panel .call-log-picker-actions {
+  gap: 10px;
+}
+
 .calls-dashboard-panel .call-panel-empty {
   padding: 16px 18px 26px;
   color: #b7b0d3;
+  text-align: center;
 }
 
 .calls-dashboard-panel .empty-convs p {
@@ -11620,6 +11653,10 @@ font-family: 'Inter', sans-serif;
 }
 
 @media (max-width: 767px) {
+  .calls-dashboard-panel .contact-profile-topbar {
+    margin-bottom: 16px;
+  }
+
   .calls-dashboard-search {
     padding: 16px 18px 10px;
   }
@@ -11640,6 +11677,10 @@ font-family: 'Inter', sans-serif;
 
   .calls-dashboard-panel .sidebar-contact-row--call-log {
     padding: 16px 18px;
+  }
+
+  .calls-dashboard-panel .contact-profile-card--parent-portal-meta .contact-profile-field {
+    padding: 15px 18px 17px;
   }
 }
 

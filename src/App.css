@@ -6433,7 +6433,8 @@ font-family: 'Inter', sans-serif;
   border-radius:50%;
   background:radial-gradient(circle at center, rgba(255,255,255,.12), rgba(255,255,255,0) 72%);
 }
-.contact-profile-avatar {
+.contact-profile-avatar,
+.profile-photo-wrap .contact-profile-avatar {
   width:124px;
   height:124px;
   border-radius:50%;

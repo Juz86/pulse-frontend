@@ -2880,9 +2880,9 @@ font-family: 'Inter', sans-serif;
   background: radial-gradient(circle at center, rgba(255,255,255,.12), rgba(255,255,255,0) 72%);
 }
 .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user .profile-avatar-big {
-  width: 186px;
-  height: 186px;
-  font-size: 60px;
+  width: 124px;
+  height: 124px;
+  font-size: 40px;
   box-shadow: 0 14px 32px rgba(108, 99, 255, 0.22);
 }
 .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user-name {
@@ -6130,9 +6130,9 @@ font-family: 'Inter', sans-serif;
   }
   .pulse-sheet--settings .profile-settings-sheet-user .profile-avatar-big,
   .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user .profile-avatar-big {
-    width: 138px;
-    height: 138px;
-    font-size: 45px;
+    width: 124px;
+    height: 124px;
+    font-size: 40px;
   }
   .contact-profile-hero {
     padding: 6px 0 16px;
@@ -6186,9 +6186,9 @@ font-family: 'Inter', sans-serif;
   }
   .pulse-sheet--settings .profile-settings-sheet-user .profile-avatar-big,
   .sidebar-bottom-cluster-panel--settings .profile-settings-sheet-user .profile-avatar-big {
-    width: 126px;
-    height: 126px;
-    font-size: 42px;
+    width: 124px;
+    height: 124px;
+    font-size: 40px;
   }
   .contact-profile-avatar-shell {
     width: 96px;

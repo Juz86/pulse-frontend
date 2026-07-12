@@ -328,7 +328,7 @@ export default function ChatSidebar({
   const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (callSheetVisible ? 'calls' : (moreActionsSheetVisible ? 'more' : null)))))))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
-    ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Bewaartermijnen beheren' }] : []),
+    ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Bepaal hoe lang gegevens bewaard blijven' }] : []),
     { id: 'styling', icon: <Palette size={18} aria-hidden="true" />, label: 'Styling', description: 'Chatachtergrond en sfeer' },
     { id: 'geblokkeerd', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>, label: 'Geblokkeerd', description: 'Beheer geblokkeerde contacten' },
   ]), [isParent]);
@@ -637,15 +637,15 @@ export default function ChatSidebar({
     </ProfilePageShell>
   );
   const renderSettingsHistorySheet = () => renderSettingsSubpageShell(
-    'Geschiedenis',
-    'Beheer per account hoe lang geschiedenis wordt bewaard.',
+    'Privacy',
+    'Bepaal per account hoe lang gegevens bewaard blijven.',
     <>
       <section className="contact-profile-card">
         <div className="contact-profile-field">
-          <span className="contact-profile-field-label">Geschiedenis</span>
+          <span className="contact-profile-field-label">Privacy</span>
           <div className="parent-dashboard-meta-block">
-            <div className="parent-dashboard-meta-title">Bewaartermijnen beheren</div>
-            <div className="parent-dashboard-meta-subtitle">Beheer hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis worden bewaard.</div>
+            <div className="parent-dashboard-meta-title">Bepaal hoe lang gegevens bewaard blijven</div>
+            <div className="parent-dashboard-meta-subtitle">Stel in hoe lang chatgeschiedenis, belgeschiedenis en videobelgeschiedenis bewaard blijven.</div>
           </div>
         </div>
       </section>

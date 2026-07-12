@@ -1012,18 +1012,6 @@ export default function ChatSidebar({
         Bekijk recente oproepen en start een nieuwe bel- of video-oproep.
       </p>
 
-      <section className="contact-profile-card contact-profile-card--parent-portal-meta">
-        <div className="contact-profile-field">
-          <span className="contact-profile-field-label">Oproepen</span>
-          <div className="parent-dashboard-meta-block">
-            <div className="parent-dashboard-meta-title">Recente oproepen</div>
-            <div className="parent-dashboard-meta-subtitle">
-              Zoek in recente oproepen of start direct een nieuwe audio- of video-oproep.
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section className="contact-profile-card contact-profile-card--profile-actions calls-dashboard-content-card">
         <div className="calls-dashboard-search">
           <div className="search-box search-box--top sidebar-call-search-box">

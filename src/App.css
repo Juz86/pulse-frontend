@@ -11468,7 +11468,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel .contact-profile-card--parent-portal-meta {
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 .calls-dashboard-panel .contact-profile-field-label {
@@ -11484,7 +11484,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-search {
-  padding: 18px 18px 12px;
+  padding: 20px 22px 14px;
   border-bottom: 1px solid rgba(255,255,255,.04);
 }
 
@@ -11532,7 +11532,7 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-panel .sidebar-call-section,
 .calls-dashboard-panel .sidebar-call-list {
-  padding: 0 18px 18px;
+  padding: 0 22px 22px;
 }
 
 .calls-dashboard-panel .sidebar-call-section .new-chat-sheet-kicker {
@@ -11553,14 +11553,14 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {
-  left: calc(18px + 48px + 12px);
-  right: 18px;
+  left: calc(22px + 48px + 12px);
+  right: 22px;
   border-top-color: rgba(255,255,255,.06);
 }
 
 .calls-dashboard-panel .sidebar-contact-row--call-log {
   align-items: center;
-  padding: 16px 18px;
+  padding: 18px 22px;
 }
 
 .calls-dashboard-panel .call-log-picker-copy,
@@ -11574,7 +11574,7 @@ font-family: 'Inter', sans-serif;
   font-size: 14px;
   line-height: 1.6;
   font-weight: 600;
-  max-width: 34ch;
+  max-width: 36ch;
 }
 
 .calls-dashboard-panel .call-log-meta .conv-name,
@@ -11590,6 +11590,11 @@ font-family: 'Inter', sans-serif;
   color: #b7b0d3;
 }
 
+.calls-dashboard-panel .call-log-time {
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .calls-dashboard-panel .call-log-subline {
   margin-top: 4px;
 }
@@ -11600,8 +11605,8 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-panel .call-log-actions .call-btn,
 .calls-dashboard-panel .call-log-picker-actions .call-btn {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   border-radius: 18px;
 }
 
@@ -11616,16 +11621,25 @@ font-family: 'Inter', sans-serif;
 
 @media (max-width: 767px) {
   .calls-dashboard-search {
-    padding: 16px 16px 8px;
+    padding: 16px 18px 10px;
   }
 
   .calls-dashboard-panel .sidebar-call-section,
   .calls-dashboard-panel .sidebar-call-list {
-    padding: 0 16px 16px;
+    padding: 0 18px 18px;
   }
 
   .calls-dashboard-panel .sidebar-call-list {
     max-height: calc(var(--vvh, 100dvh) - 392px);
+  }
+
+  .calls-dashboard-panel .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {
+    left: calc(18px + 48px + 12px);
+    right: 18px;
+  }
+
+  .calls-dashboard-panel .sidebar-contact-row--call-log {
+    padding: 16px 18px;
   }
 }
 

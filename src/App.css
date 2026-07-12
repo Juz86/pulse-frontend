@@ -11468,54 +11468,62 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel .contact-profile-topbar {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
+}
+
+.calls-dashboard-panel .contact-profile-topbar-spacer {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.calls-dashboard-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .calls-dashboard-panel #calls-profile-title {
   color: #f7f5ff;
   flex: 1 1;
-  font-size: 17px;
+  font-size: 24px;
   font-weight: 800;
-  letter-spacing: -.01em;
+  letter-spacing: -0.02em;
   margin: 0;
   text-align: center;
 }
 
-.calls-dashboard-panel .contact-profile-card--parent-portal-meta {
-  margin-bottom: 18px;
+.calls-dashboard-add-btn {
+  color: #f7f5ff;
 }
 
-.calls-dashboard-panel .contact-profile-card--parent-portal-meta .contact-profile-field {
-  padding: 16px 22px 18px;
+.calls-dashboard-add-icon {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.calls-dashboard-panel .contact-profile-field-label {
-  color: rgba(181, 173, 214, 0.82);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.calls-dashboard-content-card {
-  padding: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+.calls-dashboard-add-icon svg:last-child {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 12px;
+  height: 12px;
 }
 
 .calls-dashboard-search {
-  padding: 20px 22px 14px;
-  border-bottom: 1px solid rgba(255,255,255,.04);
+  padding: 8px 0 0;
+  margin-bottom: 22px;
 }
 
 .calls-dashboard-panel .sidebar-call-search-box {
   min-height: 50px;
-  border-radius: 18px;
+  border-radius: 999px;
   border: 1px solid rgba(255,255,255,.08);
-  background: rgba(255,255,255,.05);
-  padding: 0 16px;
+  background: rgba(255,255,255,.06);
+  padding: 0 18px;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
 }
 
@@ -11557,23 +11565,67 @@ font-family: 'Inter', sans-serif;
   padding: 8px 10px;
 }
 
-.calls-dashboard-panel .sidebar-call-section,
-.calls-dashboard-panel .sidebar-call-list {
-  padding: 0 22px 22px;
+.calls-dashboard-section {
+  margin-bottom: 24px;
 }
 
-.calls-dashboard-panel .sidebar-call-section .new-chat-sheet-kicker {
-  color: rgba(181, 173, 214, 0.82);
-  margin-bottom: 8px;
+.calls-dashboard-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.calls-dashboard-section-title {
+  margin: 0;
+  color: #f7f4ff;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.calls-dashboard-link-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(67, 233, 123, 0.24);
+  background: rgba(67, 233, 123, 0.08);
+  color: #59e08a;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.calls-dashboard-link-btn:hover {
+  background: rgba(67, 233, 123, 0.14);
 }
 
 .calls-dashboard-panel .sidebar-call-list {
   margin-bottom: 0;
-  max-height: calc(var(--vvh, 100dvh) - 420px);
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding-bottom: 10px;
   scrollbar-gutter: stable;
+  padding: 0;
+}
+
+.calls-dashboard-list--recent {
+  max-height: calc(var(--vvh, 100dvh) - 440px);
+}
+
+.calls-dashboard-list--contacts {
+  max-height: calc(var(--vvh, 100dvh) - 350px);
+}
+
+.calls-dashboard-favorites {
+  display: flex;
+  flex-direction: column;
+}
+
+.calls-dashboard-section-card {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 .calls-dashboard-panel .sidebar-contact-card {
@@ -11581,14 +11633,14 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {
-  left: calc(22px + 48px + 12px);
-  right: 22px;
+  left: calc(20px + 48px + 14px);
+  right: 20px;
   border-top-color: rgba(255,255,255,.06);
 }
 
 .calls-dashboard-panel .sidebar-contact-row--call-log {
   align-items: center;
-  padding: 18px 22px;
+  padding: 18px 20px;
 }
 
 .calls-dashboard-panel .call-log-picker-copy,
@@ -11597,7 +11649,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel .call-log-picker-title {
-  margin-bottom: 10px;
+  margin: 0 20px 10px;
   color: #b7b0d3;
   font-size: 14px;
   line-height: 1.6;
@@ -11619,14 +11671,16 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel .call-log-meta {
+  display: flex;
   align-items: baseline;
+  justify-content: space-between;
   gap: 12px;
 }
 
 .calls-dashboard-panel .call-log-time {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
-  min-width: 44px;
+  min-width: 56px;
   text-align: right;
 }
 
@@ -11642,14 +11696,38 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-panel .call-log-actions .call-btn,
 .calls-dashboard-panel .call-log-picker-actions .call-btn {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 18px;
 }
 
 .calls-dashboard-panel .call-log-actions,
 .calls-dashboard-panel .call-log-picker-actions {
   gap: 10px;
+}
+
+.calls-dashboard-panel .call-log-actions .call-btn.voice,
+.calls-dashboard-panel .call-log-picker-actions .call-btn.voice {
+  background: rgba(67,233,123,.16);
+  border-color: rgba(67,233,123,.34);
+  color: #53e180;
+}
+
+.calls-dashboard-panel .call-log-actions .call-btn.video,
+.calls-dashboard-panel .call-log-picker-actions .call-btn.video {
+  background: rgba(255,255,255,.05);
+  border-color: rgba(255,255,255,.08);
+  color: #f7f4ff;
+}
+
+.calls-dashboard-panel .call-log-actions .call-btn.video:hover,
+.calls-dashboard-panel .call-log-picker-actions .call-btn.video:hover {
+  background: rgba(255,255,255,.10);
+}
+
+.calls-dashboard-panel .call-log-actions .call-btn.voice:hover,
+.calls-dashboard-panel .call-log-picker-actions .call-btn.voice:hover {
+  background: rgba(67,233,123,.22);
 }
 
 .calls-dashboard-panel .call-panel-empty {
@@ -11667,30 +11745,44 @@ font-family: 'Inter', sans-serif;
     margin-bottom: 16px;
   }
 
+  .calls-dashboard-panel #calls-profile-title {
+    font-size: 22px;
+  }
+
   .calls-dashboard-search {
-    padding: 16px 18px 10px;
+    margin-bottom: 18px;
   }
 
-  .calls-dashboard-panel .sidebar-call-section,
-  .calls-dashboard-panel .sidebar-call-list {
-    padding: 0 18px 18px;
+  .calls-dashboard-section {
+    margin-bottom: 20px;
   }
 
-  .calls-dashboard-panel .sidebar-call-list {
-    max-height: calc(var(--vvh, 100dvh) - 392px);
+  .calls-dashboard-list--recent {
+    max-height: calc(var(--vvh, 100dvh) - 404px);
+  }
+
+  .calls-dashboard-list--contacts {
+    max-height: calc(var(--vvh, 100dvh) - 330px);
   }
 
   .calls-dashboard-panel .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {
-    left: calc(18px + 48px + 12px);
-    right: 18px;
+    left: calc(16px + 48px + 14px);
+    right: 16px;
   }
 
   .calls-dashboard-panel .sidebar-contact-row--call-log {
-    padding: 16px 18px;
+    padding: 16px 16px;
   }
 
-  .calls-dashboard-panel .contact-profile-card--parent-portal-meta .contact-profile-field {
-    padding: 15px 18px 17px;
+  .calls-dashboard-panel .call-log-picker-title {
+    margin: 0 16px 10px;
+  }
+
+  .calls-dashboard-panel .call-log-actions .call-btn,
+  .calls-dashboard-panel .call-log-picker-actions .call-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 16px;
   }
 }
 

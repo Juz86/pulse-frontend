@@ -970,179 +970,254 @@ export default function ChatSidebar({
   );
 
   const renderCallsProfilePage = () => (
-    <aside
-      ref={profilePanelRef}
-      className="chat-side-panel contact-profile-panel parent-dashboard-panel calls-dashboard-panel"
-      aria-labelledby="calls-profile-title"
-      aria-describedby="calls-profile-description"
-    >
-      <div className="contact-profile-topbar">
-        <button
-          type="button"
-          className="contact-profile-nav-btn"
-          aria-label={callActionMode ? 'Terug naar recente oproepen' : 'Sluit oproepen'}
-          title={callActionMode ? 'Terug' : 'Sluiten'}
-          onClick={() => {
-            if (callActionMode) {
-              setCallActionMode(null);
-              return;
-            }
-            dismissCallSheet();
-          }}
+    (() => {
+      const favoriteContacts = filteredCallContacts.slice(0, 3);
+      return (
+        <aside
+          ref={profilePanelRef}
+          className="chat-side-panel contact-profile-panel parent-dashboard-panel calls-dashboard-panel"
+          aria-labelledby="calls-profile-title"
+          aria-describedby="calls-profile-description"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <div className="contact-profile-heading">
-          <h2 id="calls-profile-title">Recent</h2>
-        </div>
-        <button
-          type="button"
-          className="contact-profile-nav-btn contact-profile-close-btn"
-          aria-label="Sluit oproepen"
-          title="Sluiten"
-          onClick={dismissCallSheet}
-        >
-          <XIcon size={20} aria-hidden="true" />
-        </button>
-      </div>
-
-      <p id="calls-profile-description" className="sr-only">
-        Bekijk recente oproepen en start een nieuwe bel- of video-oproep.
-      </p>
-
-      <section className="contact-profile-card contact-profile-card--profile-actions calls-dashboard-content-card">
-        <div className="calls-dashboard-search">
-          <div className="search-box search-box--top sidebar-call-search-box">
-            <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
-            <input
-              className="sidebar-call-search-input"
-              placeholder="Zoek recente oproepen of contact…"
-              value={callSearch}
-              onChange={(e) => setCallSearch(e.target.value)}
-            />
-            {callSearch && (
-              <button type="button" className="sidebar-call-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
-                <Cancel size={14} aria-hidden="true" />
-              </button>
-            )}
-          </div>
-          {remainingRateLimitSeconds > 0 && (
-            <div className="calls-dashboard-rate-limit" role="status" aria-live="polite">
-              Te veel verzoeken. Vernieuwen over {remainingRateLimitSeconds}s.
+          <div className="contact-profile-topbar calls-dashboard-topbar">
+            <div className="contact-profile-topbar-spacer" aria-hidden="true" />
+            <div className="contact-profile-heading calls-dashboard-heading">
+              <h2 id="calls-profile-title">{callActionMode ? 'Nieuwe oproep' : 'Oproepen'}</h2>
             </div>
-          )}
-        </div>
-
-        {!callsAvailable ? (
-          <div className="call-panel-empty">
-            <div style={{ fontSize: 14 }}>Bellen en videobellen zijn hier niet beschikbaar.</div>
-          </div>
-        ) : callActionMode ? (
-          <div className="sidebar-call-section">
-            <div className="new-chat-sheet-kicker">Kies een contactpersoon</div>
-            <div className="call-log-picker-title">
-              Start direct een bel- of video-oproep vanuit je contacten.
-            </div>
-            <div className="sidebar-call-list">
-              {filteredCallContacts.length === 0 ? (
-                <div className="empty-convs" style={{ paddingTop: 6, paddingBottom: 6 }}>
-                  <p>Geen contacten gevonden.</p>
-                </div>
+            <button
+              type="button"
+              className="contact-profile-nav-btn calls-dashboard-add-btn"
+              aria-label={callActionMode ? 'Sluit contactkiezer' : 'Start nieuwe oproep'}
+              title={callActionMode ? 'Sluiten' : 'Nieuwe oproep'}
+              onClick={() => {
+                if (callActionMode) {
+                  setCallActionMode(null);
+                  return;
+                }
+                setCallActionMode('contacts');
+              }}
+            >
+              {callActionMode ? (
+                <XIcon size={20} aria-hidden="true" />
               ) : (
-                filteredCallContacts.map((contact) => {
-                  const contactTitle = getContactDisplayName(contact)
-                    || contact.displayName
-                    || contact.username
-                    || (contact.email ? contact.email.split('@')[0] : '')
-                    || 'Onbekend';
-                  return (
-                    <div key={contact.uid} className="sidebar-contact-card sidebar-contact-card--call-log">
-                      <div className="sidebar-contact-row sidebar-contact-row--call-log">
-                        <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
-                        <div className="conv-info call-log-picker-copy">
-                          <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
-                          <div className="conv-preview call-contact-email-responsive">{contact.email || 'Geen e-mailadres'}</div>
-                        </div>
-                        <div className="call-log-picker-actions">
-                          <button
-                            type="button"
-                            className="call-btn voice"
-                            aria-label={`Bel ${contactTitle}`}
-                            title="Bellen"
-                            onClick={() => (callContactFromRecent || callContact)?.(contact, false)}
-                          >
-                            <Phone size={14} aria-hidden="true" />
-                          </button>
-                          <button
-                            type="button"
-                            className="call-btn video"
-                            aria-label={`Videobel ${contactTitle}`}
-                            title="Videobellen"
-                            onClick={() => (callContactFromRecent || callContact)?.(contact, true)}
-                          >
-                            <Video size={14} aria-hidden="true" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
+                <span className="calls-dashboard-add-icon" aria-hidden="true">
+                  <Phone size={18} />
+                  <Plus size={12} />
+                </span>
+              )}
+            </button>
+          </div>
+
+          <p id="calls-profile-description" className="sr-only">
+            Bekijk recente oproepen en start een nieuwe bel- of video-oproep.
+          </p>
+
+          <div className="calls-dashboard-search">
+            <div className="search-box search-box--top sidebar-call-search-box">
+              <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+              <input
+                className="sidebar-call-search-input"
+                placeholder="Naam of telefoonnummer zoeken"
+                value={callSearch}
+                onChange={(e) => setCallSearch(e.target.value)}
+              />
+              {callSearch && (
+                <button type="button" className="sidebar-call-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
+                  <Cancel size={14} aria-hidden="true" />
+                </button>
               )}
             </div>
+            {remainingRateLimitSeconds > 0 && (
+              <div className="calls-dashboard-rate-limit" role="status" aria-live="polite">
+                Te veel verzoeken. Vernieuwen over {remainingRateLimitSeconds}s.
+              </div>
+            )}
           </div>
-        ) : filteredCallLog.length === 0 ? (
-          <div className="call-panel-empty">
-            <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
-            <div>{callSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</div>
-          </div>
-        ) : (
-          <div className="sidebar-call-list">
-            {filteredCallLog.map((entry, index) => {
-              const contact = contacts.find((item) => item.uid === entry.uid);
-              const dirIcon = entry.direction === 'outgoing'
-                ? <PhoneOutgoing size={13} />
-                : entry.direction === 'missed'
-                  ? <Cancel size={13} />
-                  : <PhoneCall size={13} />;
-              const displayTime = formatTime(entry.ts);
-              return (
-                <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className="sidebar-contact-card sidebar-contact-card--call-log">
-                  <div className="sidebar-contact-row sidebar-contact-row--call-log">
-                    <div className="avatar-wrap">
-                      <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
-                      {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
-                    </div>
-                    <div className="call-log-copy">
-                      <div className="call-log-meta">
-                        <span className="conv-name">{entry.name}</span>
-                        <span className="call-log-time">{displayTime}</span>
-                      </div>
-                      <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
-                        <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
-                        <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
-                        <span className="call-log-type-separator" aria-hidden="true">·</span>
-                        <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
-                      </div>
-                    </div>
-                    {contact && (
-                      <div className="call-log-actions">
-                        {entry.isVideo ? (
-                          <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
-                        ) : (
-                          <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
-                        )}
-                      </div>
-                    )}
+
+          {!callsAvailable ? (
+            <div className="contact-profile-card calls-dashboard-section-card">
+              <div className="call-panel-empty calls-dashboard-empty">
+                <div style={{ fontSize: 14 }}>Bellen en videobellen zijn hier niet beschikbaar.</div>
+              </div>
+            </div>
+          ) : callActionMode ? (
+            <section className="contact-profile-card calls-dashboard-section-card">
+              <div className="calls-dashboard-section-header">
+                <h3 className="calls-dashboard-section-title">Contacten</h3>
+              </div>
+              <div className="call-log-picker-title">
+                Kies een contactpersoon om direct te bellen of videobellen.
+              </div>
+              <div className="sidebar-call-list calls-dashboard-list calls-dashboard-list--contacts">
+                {filteredCallContacts.length === 0 ? (
+                  <div className="empty-convs calls-dashboard-empty" style={{ paddingTop: 6, paddingBottom: 6 }}>
+                    <p>Geen contacten gevonden.</p>
                   </div>
+                ) : (
+                  filteredCallContacts.map((contact) => {
+                    const contactTitle = getContactDisplayName(contact)
+                      || contact.displayName
+                      || contact.username
+                      || (contact.email ? contact.email.split('@')[0] : '')
+                      || 'Onbekend';
+                    return (
+                      <div key={contact.uid} className="sidebar-contact-card sidebar-contact-card--call-log">
+                        <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                          <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
+                          <div className="conv-info call-log-picker-copy">
+                            <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
+                            <div className="conv-preview call-contact-email-responsive">{contact.email || 'Geen e-mailadres'}</div>
+                          </div>
+                          <div className="call-log-picker-actions">
+                            <button
+                              type="button"
+                              className="call-btn video calls-dashboard-quick-btn"
+                              aria-label={`Videobel ${contactTitle}`}
+                              title="Videobellen"
+                              onClick={() => (callContactFromRecent || callContact)?.(contact, true)}
+                            >
+                              <Video size={16} aria-hidden="true" />
+                            </button>
+                            <button
+                              type="button"
+                              className="call-btn voice calls-dashboard-quick-btn"
+                              aria-label={`Bel ${contactTitle}`}
+                              title="Bellen"
+                              onClick={() => (callContactFromRecent || callContact)?.(contact, false)}
+                            >
+                              <Phone size={16} aria-hidden="true" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </section>
+          ) : (
+            <>
+              {favoriteContacts.length > 0 && (
+                <section className="calls-dashboard-section">
+                  <div className="calls-dashboard-section-header">
+                    <h3 className="calls-dashboard-section-title">Favorieten</h3>
+                    <button
+                      type="button"
+                      className="calls-dashboard-link-btn"
+                      onClick={() => setCallActionMode('contacts')}
+                    >
+                      Alles bekijken
+                    </button>
+                  </div>
+                  <div className="calls-dashboard-favorites">
+                    {favoriteContacts.map((contact) => {
+                      const contactTitle = getContactDisplayName(contact)
+                        || contact.displayName
+                        || contact.username
+                        || (contact.email ? contact.email.split('@')[0] : '')
+                        || 'Onbekend';
+                      return (
+                        <div key={contact.uid} className="sidebar-contact-card sidebar-contact-card--call-log">
+                          <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                            <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
+                            <div className="conv-info call-log-picker-copy">
+                              <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
+                            </div>
+                            <div className="call-log-picker-actions">
+                              <button
+                                type="button"
+                                className="call-btn video calls-dashboard-quick-btn"
+                                aria-label={`Videobel ${contactTitle}`}
+                                title="Videobellen"
+                                onClick={() => (callContactFromRecent || callContact)?.(contact, true)}
+                              >
+                                <Video size={16} aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                className="call-btn voice calls-dashboard-quick-btn"
+                                aria-label={`Bel ${contactTitle}`}
+                                title="Bellen"
+                                onClick={() => (callContactFromRecent || callContact)?.(contact, false)}
+                              >
+                                <Phone size={16} aria-hidden="true" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
+              <section className="calls-dashboard-section">
+                <div className="calls-dashboard-section-header">
+                  <h3 className="calls-dashboard-section-title">Recent</h3>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-    </aside>
+                {filteredCallLog.length === 0 ? (
+                  <div className="contact-profile-card calls-dashboard-section-card">
+                    <div className="call-panel-empty calls-dashboard-empty">
+                      <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
+                      <div>{callSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="contact-profile-card calls-dashboard-section-card">
+                    <div className="sidebar-call-list calls-dashboard-list calls-dashboard-list--recent">
+                      {filteredCallLog.map((entry, index) => {
+                        const contact = contacts.find((item) => item.uid === entry.uid);
+                        const dirIcon = entry.direction === 'outgoing'
+                          ? <PhoneOutgoing size={13} />
+                          : entry.direction === 'missed'
+                            ? <Cancel size={13} />
+                            : <PhoneCall size={13} />;
+                        const displayTime = formatTime(entry.ts);
+                        return (
+                          <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className="sidebar-contact-card sidebar-contact-card--call-log">
+                            <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                              <div className="avatar-wrap">
+                                <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
+                                {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
+                              </div>
+                              <div className="call-log-copy">
+                                <div className="call-log-meta">
+                                  <span className="conv-name">{entry.name}</span>
+                                  <span className="call-log-time">{displayTime}</span>
+                                </div>
+                                <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
+                                  <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
+                                  <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
+                                  {entry.direction !== 'missed' && (
+                                    <>
+                                      <span className="call-log-type-separator" aria-hidden="true">·</span>
+                                      <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              {contact && (
+                                <div className="call-log-actions">
+                                  {entry.isVideo ? (
+                                    <button type="button" className="call-btn video calls-dashboard-quick-btn" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
+                                  ) : (
+                                    <button type="button" className="call-btn voice calls-dashboard-quick-btn" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </section>
+            </>
+          )}
+        </aside>
+      );
+    })()
   );
 
   useEffect(() => {

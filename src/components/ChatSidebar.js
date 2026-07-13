@@ -902,28 +902,27 @@ export default function ChatSidebar({
             <div className="parent-dashboard-meta-subtitle">Beheer binnenkomende en verstuurde vriendschapsverzoeken.</div>
           </div>
         </div>
-        <div className="contact-profile-field">
-          <div className="contact-profile-field-label">Tabblad</div>
-          <div className="friend-requests-tabs">
-            <button
-              type="button"
-              onClick={() => setRequestsTab('ontvangen')}
-              className={`friend-requests-tab${requestsTab === 'ontvangen' ? ' active' : ''}`}
-            >
-              Ontvangen
-              {friendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{friendRequests.length}</span>}
-            </button>
-            <button
-              type="button"
-              onClick={() => setRequestsTab('verstuurd')}
-              className={`friend-requests-tab${requestsTab === 'verstuurd' ? ' active' : ''}`}
-            >
-              Verstuurd
-              {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
-            </button>
-          </div>
-        </div>
       </section>
+
+      <div className="contact-profile-field-label">Tabblad</div>
+      <div className="friend-requests-tabs">
+        <button
+          type="button"
+          onClick={() => setRequestsTab('ontvangen')}
+          className={`friend-requests-tab${requestsTab === 'ontvangen' ? ' active' : ''}`}
+        >
+          Ontvangen
+          {friendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{friendRequests.length}</span>}
+        </button>
+        <button
+          type="button"
+          onClick={() => setRequestsTab('verstuurd')}
+          className={`friend-requests-tab${requestsTab === 'verstuurd' ? ' active' : ''}`}
+        >
+          Verstuurd
+          {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
+        </button>
+      </div>
 
       <div className="contact-profile-field-label">
         {requestsTab === 'ontvangen' ? 'Ontvangen verzoeken' : 'Verstuurde verzoeken'}

@@ -1041,9 +1041,6 @@ export default function ChatSidebar({
             </div>
           ) : callActionMode ? (
             <section className="calls-dashboard-section calls-dashboard-section--contacts">
-              <div className="calls-dashboard-section-header">
-                <h3 className="calls-dashboard-section-title">Contacten</h3>
-              </div>
               <div className="call-log-picker-title">
                 Kies een contactpersoon om direct te bellen of videobellen.
               </div>
@@ -1097,9 +1094,6 @@ export default function ChatSidebar({
           ) : (
             <>
               <section className="calls-dashboard-section calls-dashboard-section--recent">
-                <div className="calls-dashboard-section-header">
-                  <h3 className="calls-dashboard-section-title">Recent</h3>
-                </div>
                 {filteredCallLog.length === 0 ? (
                   <div className="contact-profile-card calls-dashboard-section-card">
                     <div className="call-panel-empty calls-dashboard-empty">

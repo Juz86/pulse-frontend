@@ -11596,14 +11596,6 @@ font-family: 'Inter', sans-serif;
   margin: 0 0 12px;
 }
 
-.calls-dashboard-section-title {
-  margin: 0;
-  color: #f7f4ff;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
 .calls-dashboard-link-btn {
   min-height: 40px;
   padding: 0 16px;

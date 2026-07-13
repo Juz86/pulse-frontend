@@ -326,7 +326,7 @@ export default function ChatSidebar({
   const blockedProfilePageVisible = embeddedSettingsActive && profileTab === 'geblokkeerd';
   const parentPortalPageVisible = showParentDashboard || parentPortalSheetClosing;
   const callsProfilePageVisible = callSheetVisible;
-  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || moreActionsSheetVisible || newChatSheetVisible || addContactSheetVisible || newGroupSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null))));
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || moreActionsSheetVisible || newChatSheetVisible || addContactSheetVisible || newGroupSheetVisible || requestsSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
@@ -869,6 +869,115 @@ export default function ChatSidebar({
               Groep aanmaken →
             </button>
           </div>
+        </div>
+      </section>
+    </ProfilePageShell>
+  );
+
+  const renderRequestsPage = () => (
+    <ProfilePageShell
+      panelRef={profilePanelRef}
+      titleId="requests-title"
+      title="Verzoeken"
+      description="Beheer binnenkomende en verstuurde vriendschapsverzoeken."
+      onBack={dismissRequestsSheet}
+      backLabel="Verzoeken sluiten"
+      headerAction={(
+        <button
+          type="button"
+          className="contact-profile-edit-btn contact-profile-close-btn"
+          aria-label="Verzoeken sluiten"
+          title="Sluiten"
+          onClick={dismissRequestsSheet}
+        >
+          <XIcon size={20} aria-hidden="true" />
+        </button>
+      )}
+    >
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
+          <p className="new-chat-sheet-sub">
+            Beheer binnenkomende en verstuurde vriendschapsverzoeken.
+          </p>
+        </div>
+        <div className="contact-profile-field">
+          <div className="contact-profile-field-label">Tabblad</div>
+          <div className="friend-requests-tabs">
+            <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
+              Ontvangen
+              {friendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{friendRequests.length}</span>}
+            </button>
+            <button type="button" onClick={() => setRequestsTab('verstuurd')} className={requestsTab === 'verstuurd' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
+              Verstuurd
+              {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="contact-profile-card">
+        <div className="contact-profile-field-label">
+          {requestsTab === 'ontvangen' ? 'Ontvangen verzoeken' : 'Verstuurde verzoeken'}
+        </div>
+        <div className="pulse-sheet-list pulse-sheet-list--new-chat friend-requests-list">
+          {requestsTab === 'ontvangen' && (
+            <>
+              {friendRequests.map((req) => (
+                <div key={req.id} className="friend-request-row">
+                  <div className="avatar-circle sm" aria-hidden="true">{req.fromName?.slice?.(0, 2)?.toUpperCase?.() || 'VR'}</div>
+                  <div className="friend-request-copy">
+                    <div className="friend-request-person-name">{req.fromName}</div>
+                    <div className="friend-request-person-email">{req.fromEmail}</div>
+                  </div>
+                  <div className="friend-request-actions">
+                    <button type="button" className="friend-request-action friend-request-action--primary" onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
+                    <button type="button" className="friend-request-action friend-request-action--secondary" onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
+                  </div>
+                </div>
+              ))}
+              {friendRequests.length === 0 && (
+                <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
+                  <p>Geen ontvangen vriendschapsverzoeken.</p>
+                </div>
+              )}
+            </>
+          )}
+
+          {requestsTab === 'verstuurd' && (
+            <>
+              {sentFriendRequests.map((req) => {
+                const requestId = req?.id || req?.requestId || null;
+                const reminderCount = Number(req.reminderCount || 0);
+                const remindersRemaining = Math.max(0, 3 - reminderCount);
+                return (
+                  <div key={requestId || req.toUid || req.toEmail} className="friend-request-row friend-request-row--stacked">
+                    <div className="friend-request-row-top">
+                      <div className="avatar-circle sm" aria-hidden="true">{(req.toEmail || req.toUid || 'VR').slice(0, 2).toUpperCase()}</div>
+                      <div className="friend-request-copy">
+                        <div className="friend-request-person-name">{req.toEmail || req.toIdentifier || req.toUid}</div>
+                        <div className="friend-request-person-email">
+                          {remindersRemaining > 0 ? `Nog ${remindersRemaining} ${remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} over` : 'Geen herinneringen meer over'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="friend-request-actions friend-request-actions--wide">
+                      <button type="button" className="friend-request-action friend-request-action--secondary friend-request-action--text" onClick={() => requestId && onCancelFriendRequest(requestId)} disabled={!requestId}>
+                        Annuleren
+                      </button>
+                      <button type="button" className="friend-request-action friend-request-action--primary friend-request-action--text" onClick={() => requestId && onRemindFriendRequest(requestId)} disabled={!requestId || remindersRemaining <= 0}>
+                        Herinneren
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              {sentFriendRequests.length === 0 && (
+                <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
+                  <p>Geen verstuurde vriendschapsverzoeken.</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </section>
     </ProfilePageShell>
@@ -2819,6 +2928,7 @@ export default function ChatSidebar({
       {newChatSheetVisible ? renderNewChatPage() : null}
       {addContactSheetVisible ? renderAddContactPage() : null}
       {newGroupSheetVisible ? renderNewGroupPage() : null}
+      {requestsSheetVisible ? renderRequestsPage() : null}
       {accountProfilePageVisible ? renderSettingsAccountSheet() : null}
       {historyProfilePageVisible && isParent ? renderSettingsHistorySheet() : null}
       {stylingProfilePageVisible ? renderSettingsStylingSheet() : null}
@@ -3399,94 +3509,6 @@ export default function ChatSidebar({
                         </div>
                       </div>
                     )}
-                  </div>
-                </div>
-              ) : footerClusterMode === 'requests' ? (
-                <div className="sidebar-settings-sheet-scroll">
-                  <div className="friend-requests-sheet-body">
-                    <p className="new-chat-sheet-sub">
-                      Beheer binnenkomende en verstuurde vriendschapsverzoeken.
-                    </p>
-
-                    <div className="new-chat-sheet-section">
-                      <div className="new-chat-sheet-kicker">Tabblad</div>
-                      <div className="friend-requests-tabs">
-                        <button type="button" onClick={() => setRequestsTab('ontvangen')} className={requestsTab === 'ontvangen' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
-                          Ontvangen
-                          {friendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{friendRequests.length}</span>}
-                        </button>
-                        <button type="button" onClick={() => setRequestsTab('verstuurd')} className={requestsTab === 'verstuurd' ? 'btn-primary' : 'btn-secondary'} style={{ flex: 1, minWidth: 0 }}>
-                          Verstuurd
-                          {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="new-chat-sheet-section">
-                      <div className="new-chat-sheet-kicker">
-                        {requestsTab === 'ontvangen' ? 'Ontvangen verzoeken' : 'Verstuurde verzoeken'}
-                      </div>
-                      <div className="pulse-sheet-list pulse-sheet-list--new-chat friend-requests-list">
-                        {requestsTab === 'ontvangen' && (
-                          <>
-                            {friendRequests.map((req) => (
-                              <div key={req.id} className="friend-request-row">
-                                <div className="avatar-circle sm" aria-hidden="true">{req.fromName?.slice?.(0, 2)?.toUpperCase?.() || 'VR'}</div>
-                                <div className="friend-request-copy">
-                                  <div className="friend-request-person-name">{req.fromName}</div>
-                                  <div className="friend-request-person-email">{req.fromEmail}</div>
-                                </div>
-                                <div className="friend-request-actions">
-                                  <button type="button" className="friend-request-action friend-request-action--primary" onClick={() => onAcceptFriendRequest(req.id)}><span aria-hidden="true">✓</span></button>
-                                  <button type="button" className="friend-request-action friend-request-action--secondary" onClick={() => onDeclineFriendRequest(req.id)}><span aria-hidden="true">✗</span></button>
-                                </div>
-                              </div>
-                            ))}
-                            {friendRequests.length === 0 && (
-                              <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
-                                <p>Geen ontvangen vriendschapsverzoeken.</p>
-                              </div>
-                            )}
-                          </>
-                        )}
-
-                        {requestsTab === 'verstuurd' && (
-                          <>
-                            {sentFriendRequests.map((req) => {
-                              const requestId = req?.id || req?.requestId || null;
-                              const reminderCount = Number(req.reminderCount || 0);
-                              const remindersRemaining = Math.max(0, 3 - reminderCount);
-                              return (
-                                <div key={requestId || req.toUid || req.toEmail} className="friend-request-row friend-request-row--stacked">
-                                  <div className="friend-request-row-top">
-                                    <div className="avatar-circle sm" aria-hidden="true">{(req.toEmail || req.toUid || 'VR').slice(0, 2).toUpperCase()}</div>
-                                    <div className="friend-request-copy">
-                                      <div className="friend-request-person-name">{req.toEmail || req.toIdentifier || req.toUid}</div>
-                                      <div className="friend-request-person-email">
-                                        {remindersRemaining > 0 ? `Nog ${remindersRemaining} ${remindersRemaining === 1 ? 'herinnering' : 'herinneringen'} over` : 'Geen herinneringen meer over'}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <div className="friend-request-actions friend-request-actions--wide">
-                                    <button type="button" className="friend-request-action friend-request-action--secondary friend-request-action--text" onClick={() => requestId && onCancelFriendRequest(requestId)} disabled={!requestId}>
-                                      Annuleren
-                                    </button>
-                                    <button type="button" className="friend-request-action friend-request-action--primary friend-request-action--text" onClick={() => requestId && onRemindFriendRequest(requestId)} disabled={!requestId || remindersRemaining <= 0}>
-                                      Herinneren
-                                    </button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                            {sentFriendRequests.length === 0 && (
-                              <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
-                                <p>Geen verstuurde vriendschapsverzoeken.</p>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
               ) : footerClusterMode === 'parent-portal' ? (

@@ -326,7 +326,7 @@ export default function ChatSidebar({
   const blockedProfilePageVisible = embeddedSettingsActive && profileTab === 'geblokkeerd';
   const parentPortalPageVisible = showParentDashboard || parentPortalSheetClosing;
   const callsProfilePageVisible = callSheetVisible;
-  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || moreActionsSheetVisible || newChatSheetVisible || addContactSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)))));
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || moreActionsSheetVisible || newChatSheetVisible || addContactSheetVisible || newGroupSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
@@ -770,6 +770,103 @@ export default function ChatSidebar({
           <div className="modal-actions add-contact-sheet-actions">
             <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => addContact?.()} disabled={contactLoading}>
               {contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}
+            </button>
+          </div>
+        </div>
+      </section>
+    </ProfilePageShell>
+  );
+
+  const renderNewGroupPage = () => (
+    <ProfilePageShell
+      panelRef={profilePanelRef}
+      titleId="new-group-title"
+      title="Nieuwe groep"
+      description="Start een groepsgesprek vanuit dezelfde profielopbouw."
+      onBack={dismissNewGroupSheet}
+      backLabel="Nieuwe groep sluiten"
+      headerAction={(
+        <button
+          type="button"
+          className="contact-profile-edit-btn contact-profile-close-btn"
+          aria-label="Nieuwe groep sluiten"
+          title="Sluiten"
+          onClick={dismissNewGroupSheet}
+        >
+          <XIcon size={20} aria-hidden="true" />
+        </button>
+      )}
+    >
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
+          <p id="new-group-description" className="new-chat-sheet-sub">
+            Start een groepsgesprek met familie en vrienden.
+          </p>
+        </div>
+        <div className="contact-profile-field">
+          <div className="contact-profile-field-label">Groepsnaam</div>
+          <div className="sheet-input-wrap">
+            <input
+              className="form-input sheet-form-input"
+              placeholder="Bijv. Familie, Werk…"
+              value={groupName}
+              onChange={(e) => setGroupName?.(e.target.value)}
+              maxLength={50}
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="contact-profile-card">
+        <div className="contact-profile-field-label">Kies deelnemers</div>
+        {contacts.length === 0 && (
+          <div className="contact-profile-field">
+            <div className="auth-error">⚠️ Voeg eerst contacten toe.</div>
+          </div>
+        )}
+        <div className="pulse-sheet-list pulse-sheet-list--new-chat new-group-contact-list">
+          {contacts.map((contact) => {
+            const selected = groupMembers.find((member) => member.uid === contact.uid);
+            const contactTitle = getContactDisplayName(contact)
+              || contact.displayName
+              || contact.username
+              || (contact.email ? contact.email.split('@')[0] : '')
+              || 'Contactpersoon';
+            return (
+              <button
+                key={contact.uid}
+                type="button"
+                className={`search-result new-chat-sheet-result new-group-sheet-result${selected ? ' selected' : ''}`}
+                onClick={() => toggleGroupMember?.(contact)}
+              >
+                <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
+                <div className="new-group-sheet-result-copy">
+                  <div className="conv-name">{contactTitle}</div>
+                  <div className="conv-preview">{contact.email}</div>
+                </div>
+                {selected
+                  ? <span className="new-group-sheet-check new-group-sheet-check--selected"><Check size={14} color="#fff" /></span>
+                  : <span className="new-group-sheet-check" />
+                }
+              </button>
+            );
+          })}
+        </div>
+        {groupMembers.length > 0 && (
+          <div className="contact-profile-field">
+            <p className="new-chat-sheet-sub">{groupMembers.length} deelnemer(s) geselecteerd</p>
+          </div>
+        )}
+        <div className="contact-profile-field">
+          <div className="modal-actions add-contact-sheet-actions">
+            <button
+              type="button"
+              className="btn-primary"
+              style={{ flex: 1 }}
+              onClick={() => createGroup?.()}
+              disabled={!groupName.trim() || groupMembers.length === 0}
+            >
+              Groep aanmaken →
             </button>
           </div>
         </div>
@@ -2721,6 +2818,7 @@ export default function ChatSidebar({
       {moreActionsSheetVisible ? renderMoreActionsPage() : null}
       {newChatSheetVisible ? renderNewChatPage() : null}
       {addContactSheetVisible ? renderAddContactPage() : null}
+      {newGroupSheetVisible ? renderNewGroupPage() : null}
       {accountProfilePageVisible ? renderSettingsAccountSheet() : null}
       {historyProfilePageVisible && isParent ? renderSettingsHistorySheet() : null}
       {stylingProfilePageVisible ? renderSettingsStylingSheet() : null}
@@ -3301,51 +3399,6 @@ export default function ChatSidebar({
                         </div>
                       </div>
                     )}
-                  </div>
-                </div>
-              ) : footerClusterMode === 'new-group' ? (
-                <div className="sidebar-settings-sheet-scroll">
-                  <div className="new-group-sheet-body">
-                    <p id="new-group-description" className="new-chat-sheet-sub">
-                      Start een groepsgesprek met familie en vrienden.
-                    </p>
-                    <div className="new-chat-sheet-section">
-                      <div className="new-chat-sheet-kicker">Groepsnaam</div>
-                      <div className="sheet-input-wrap">
-                        <input className="form-input sheet-form-input" placeholder="Bijv. Familie, Werk…" value={groupName} onChange={(e) => setGroupName?.(e.target.value)} maxLength={50} />
-                      </div>
-                    </div>
-                    <div className="new-chat-sheet-section new-chat-sheet-section--contacts">
-                      <div className="new-chat-sheet-kicker">Kies deelnemers</div>
-                      {contacts.length === 0 && <div className="auth-error">⚠️ Voeg eerst contacten toe.</div>}
-                      <div className="pulse-sheet-list pulse-sheet-list--new-chat new-group-contact-list">
-                        {contacts.map((contact) => {
-                          const selected = groupMembers.find((member) => member.uid === contact.uid);
-                          const contactTitle = getContactDisplayName(contact)
-                            || contact.displayName
-                            || contact.username
-                            || (contact.email ? contact.email.split('@')[0] : '')
-                            || 'Contactpersoon';
-                          return (
-                            <button key={contact.uid} type="button" className={`search-result new-chat-sheet-result new-group-sheet-result${selected ? ' selected' : ''}`} onClick={() => toggleGroupMember?.(contact)}>
-                              <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
-                              <div className="new-group-sheet-result-copy">
-                                <div className="conv-name">{contactTitle}</div>
-                                <div className="conv-preview">{contact.email}</div>
-                              </div>
-                              {selected
-                                ? <span className="new-group-sheet-check new-group-sheet-check--selected"><Check size={14} color="#fff" /></span>
-                                : <span className="new-group-sheet-check" />
-                              }
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    {groupMembers.length > 0 && <p className="new-chat-sheet-sub">{groupMembers.length} deelnemer(s) geselecteerd</p>}
-                    <div className="modal-actions add-contact-sheet-actions">
-                      <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => createGroup?.()} disabled={!groupName.trim() || groupMembers.length === 0}>Groep aanmaken →</button>
-                    </div>
                   </div>
                 </div>
               ) : footerClusterMode === 'requests' ? (

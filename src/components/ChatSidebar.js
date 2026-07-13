@@ -1040,7 +1040,7 @@ export default function ChatSidebar({
               </div>
             </div>
           ) : callActionMode ? (
-            <section className="contact-profile-card calls-dashboard-section-card">
+            <section className="calls-dashboard-section calls-dashboard-section--contacts">
               <div className="calls-dashboard-section-header">
                 <h3 className="calls-dashboard-section-title">Contacten</h3>
               </div>

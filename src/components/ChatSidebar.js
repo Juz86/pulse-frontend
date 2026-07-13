@@ -326,7 +326,7 @@ export default function ChatSidebar({
   const blockedProfilePageVisible = embeddedSettingsActive && profileTab === 'geblokkeerd';
   const parentPortalPageVisible = showParentDashboard || parentPortalSheetClosing;
   const callsProfilePageVisible = callSheetVisible;
-  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || moreActionsSheetVisible || newChatSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null))))));
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || moreActionsSheetVisible || newChatSheetVisible || addContactSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
@@ -695,6 +695,85 @@ export default function ChatSidebar({
           </div>
         </section>
       )}
+    </ProfilePageShell>
+  );
+
+  const renderAddContactPage = () => (
+    <ProfilePageShell
+      panelRef={profilePanelRef}
+      titleId="add-contact-title"
+      title="Nieuw contact"
+      description="Voeg familie en vrienden toe vanuit dezelfde profielopbouw."
+      onBack={dismissAddContactSheet}
+      backLabel="Nieuw contact sluiten"
+      headerAction={(
+        <button
+          type="button"
+          className="contact-profile-edit-btn contact-profile-close-btn"
+          aria-label="Nieuw contact sluiten"
+          title="Sluiten"
+          onClick={dismissAddContactSheet}
+        >
+          <XIcon size={20} aria-hidden="true" />
+        </button>
+      )}
+    >
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
+          <p id="add-contact-description" className="new-chat-sheet-sub">
+            Voeg familie en vrienden toe via e-mailadres of naam<code>@pulse.internal</code>.
+          </p>
+        </div>
+        <div className="contact-profile-field">
+          <div className="contact-profile-field-label">E-mailadres of naam@pulse.internal</div>
+          <div className="sheet-input-wrap">
+            <input
+              className="form-input sheet-form-input"
+              placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam"
+              value={contactEmail}
+              onChange={(e) => {
+                setContactEmail?.(e.target.value);
+                clearPendingFriendRequestState?.();
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && addContact?.()}
+            />
+          </div>
+        </div>
+        <div className="contact-profile-field">
+          <div className="contact-profile-field-label">Relatie</div>
+          <div className="label-chip-row">
+            {['familie', 'vrienden'].map((label) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setContactRelation?.(contactRelation === label ? null : label)}
+                className={`label-chip${contactRelation === label ? ' active' : ''}`}
+              >
+                {label === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
+              </button>
+            ))}
+          </div>
+        </div>
+        {contactSuccess && (
+          <div className="contact-profile-field">
+            <div role="status" aria-live="polite" style={{ padding: '8px 12px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', color: '#4ade80', fontSize: '13px' }}>
+              <span aria-hidden="true">✅ </span>{contactSuccess}
+            </div>
+          </div>
+        )}
+        {contactErr && (
+          <div className="contact-profile-field">
+            <div className="auth-error">⚠️ {contactErr}</div>
+          </div>
+        )}
+        <div className="contact-profile-field">
+          <div className="modal-actions add-contact-sheet-actions">
+            <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => addContact?.()} disabled={contactLoading}>
+              {contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}
+            </button>
+          </div>
+        </div>
+      </section>
     </ProfilePageShell>
   );
 
@@ -2641,6 +2720,7 @@ export default function ChatSidebar({
       {settingsProfilePageVisible ? renderSettingsOverviewSheet() : null}
       {moreActionsSheetVisible ? renderMoreActionsPage() : null}
       {newChatSheetVisible ? renderNewChatPage() : null}
+      {addContactSheetVisible ? renderAddContactPage() : null}
       {accountProfilePageVisible ? renderSettingsAccountSheet() : null}
       {historyProfilePageVisible && isParent ? renderSettingsHistorySheet() : null}
       {stylingProfilePageVisible ? renderSettingsStylingSheet() : null}
@@ -3162,40 +3242,6 @@ export default function ChatSidebar({
                       </div>
                     </div>
                     ) : null}
-                  </div>
-                </div>
-              ) : footerClusterMode === 'add-contact' ? (
-                <div className="sidebar-settings-sheet-scroll">
-                  <div className="add-contact-sheet-body">
-                    <p id="add-contact-description" className="new-chat-sheet-sub">
-                      Voeg familie en vrienden toe via e-mailadres of naam<code>@pulse.internal</code>.
-                    </p>
-                    <div className="new-chat-sheet-section">
-                      <div className="new-chat-sheet-kicker">E-mailadres of naam@pulse.internal</div>
-                      <div className="sheet-input-wrap">
-                        <input
-                          className="form-input sheet-form-input"
-                          placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam"
-                          value={contactEmail}
-                          onChange={(e) => { setContactEmail?.(e.target.value); clearPendingFriendRequestState?.(); }}
-                          onKeyDown={(e) => e.key === 'Enter' && addContact?.()}
-                        />
-                      </div>
-                    </div>
-                    <div className="new-chat-sheet-section">
-                      <div className="new-chat-sheet-kicker">Relatie</div>
-                      <div className="label-chip-row">
-                        {['familie', 'vrienden'].map((label) => (
-                          <button key={label} type="button" onClick={() => setContactRelation?.(contactRelation === label ? null : label)} className={`label-chip${contactRelation === label ? ' active' : ''}`}>
-                            {label === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
-                    <div className="modal-actions add-contact-sheet-actions">
-                      <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => addContact?.()} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>
-                    </div>
                   </div>
                 </div>
               ) : footerClusterMode === 'new-chat' ? (

@@ -11462,22 +11462,10 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  display: block;
   background:
     radial-gradient(circle at top center, rgba(139,92,246,.24), transparent 28%),
     linear-gradient(180deg, #262358 0%, #221f4e 100%);
-}
-
-.calls-dashboard-scroll {
-  min-height: 0;
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
 }
 
 .calls-dashboard-panel .calls-dashboard-section--recent {
@@ -11620,9 +11608,9 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-panel .sidebar-call-list {
   margin-bottom: 0;
+  overscroll-behavior: contain;
   scrollbar-gutter: stable;
   padding: 0;
-  overflow: visible;
 }
 
 .calls-dashboard-list--recent {

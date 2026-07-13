@@ -11617,6 +11617,8 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-list--recent {
   max-height: calc(var(--vvh, 100dvh) - 440px);
+  padding-bottom: 132px;
+  box-sizing: border-box;
 }
 
 .calls-dashboard-list--contacts {
@@ -11639,7 +11641,7 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-panel .calls-dashboard-section:last-child .calls-dashboard-section-card {
   margin-bottom: -112px;
-  padding-bottom: 132px;
+  padding-bottom: 0;
 }
 
 .calls-dashboard-favorites .sidebar-contact-card,
@@ -11788,11 +11790,12 @@ font-family: 'Inter', sans-serif;
 
   .calls-dashboard-list--recent {
     max-height: calc(var(--vvh, 100dvh) - 404px);
+    padding-bottom: 122px;
   }
 
   .calls-dashboard-panel .calls-dashboard-section:last-child .calls-dashboard-section-card {
     margin-bottom: -104px;
-    padding-bottom: 122px;
+    padding-bottom: 0;
   }
 
   .calls-dashboard-list--contacts {

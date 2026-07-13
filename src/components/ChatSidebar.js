@@ -326,7 +326,7 @@ export default function ChatSidebar({
   const blockedProfilePageVisible = embeddedSettingsActive && profileTab === 'geblokkeerd';
   const parentPortalPageVisible = showParentDashboard || parentPortalSheetClosing;
   const callsProfilePageVisible = callSheetVisible;
-  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : (moreActionsSheetVisible ? 'more' : null))))))));
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || moreActionsSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)))))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
@@ -483,6 +483,136 @@ export default function ChatSidebar({
       </ProfilePageShell>
     );
   };
+
+  const renderMoreActionsPage = () => {
+    const rowActions = [
+      {
+        id: 'new-chat',
+        icon: <Message size={18} aria-hidden="true" />,
+        label: 'Nieuwe chat',
+        description: 'Start een nieuw gesprek.',
+        onClick: () => {
+          closeProfileOverviewSheet();
+          closeAddContactSheet();
+          closeCallSheet();
+          closeNewGroupSheet();
+          closeMoreActionsSheet();
+          setShowNewChat?.(true);
+        },
+      },
+      {
+        id: 'new-contact',
+        icon: <Plus size={18} aria-hidden="true" />,
+        label: 'Nieuw contact',
+        description: 'Voeg familie en vrienden toe.',
+        onClick: () => {
+          closeProfileOverviewSheet();
+          closeNewChatSheet();
+          closeCallSheet();
+          closeNewGroupSheet();
+          closeMoreActionsSheet();
+          setActiveTab('contacts');
+          setShowAddContact?.(true);
+        },
+      },
+      {
+        id: 'new-group',
+        icon: <Users size={18} aria-hidden="true" />,
+        label: 'Nieuwe groep',
+        description: 'Start een groepsgesprek.',
+        onClick: () => {
+          closeProfileOverviewSheet();
+          closeAddContactSheet();
+          closeNewChatSheet();
+          closeCallSheet();
+          closeMoreActionsSheet();
+          setShowNewGroup?.(true);
+        },
+      },
+      {
+        id: 'requests',
+        icon: <Handshake size={18} aria-hidden="true" />,
+        label: 'Verzoeken',
+        description: 'Beheer vriendschapsverzoeken.',
+        onClick: () => {
+          closeProfileOverviewSheet();
+          closeAddContactSheet();
+          closeNewChatSheet();
+          closeNewGroupSheet();
+          closeCallSheet();
+          closeMoreActionsSheet();
+          setActiveTab('contacts');
+          setShowFriendRequestsPanel?.(true);
+        },
+      },
+      {
+        id: 'selection',
+        icon: <Message size={18} aria-hidden="true" />,
+        label: selectionMode ? 'Selectie stoppen' : 'Chats selecteren',
+        description: selectionMode ? 'Stop met meerdere gesprekken selecteren.' : 'Selecteer meerdere gesprekken tegelijk.',
+        onClick: () => {
+          closeMoreActionsSheet();
+          if (selectionMode) onCancelConversationSelection?.();
+          else {
+            setActiveTab('chats');
+            onEnterConversationSelection?.();
+          }
+        },
+      },
+      {
+        id: 'dnd',
+        icon: dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />,
+        label: `Meldingen ${dnd ? 'aan' : 'uit'}`,
+        description: dnd ? 'Schakel meldingen weer in.' : 'Schakel meldingen tijdelijk uit.',
+        onClick: () => {
+          onToggleDnd();
+        },
+      },
+    ];
+
+    return (
+      <ProfilePageShell
+        panelRef={profilePanelRef}
+        titleId="more-actions-title"
+        title="Meer opties"
+        description="Open extra acties vanuit dezelfde profielopbouw als instellingen."
+        onBack={dismissMoreActionsSheet}
+        backLabel="Meer opties sluiten"
+        headerAction={(
+          <button
+            type="button"
+            className="contact-profile-edit-btn contact-profile-close-btn"
+            aria-label="Meer opties sluiten"
+            title="Sluiten"
+            onClick={dismissMoreActionsSheet}
+          >
+            <XIcon size={20} aria-hidden="true" />
+          </button>
+        )}
+      >
+        <section className="contact-profile-card">
+          {rowActions.map((action) => (
+            <button
+              key={action.id}
+              type="button"
+              className="contact-profile-row-button"
+              onClick={action.onClick}
+            >
+              <span className="contact-profile-row-icon" aria-hidden="true">{action.icon}</span>
+              <span className="contact-profile-row-copy">
+                <span className="contact-profile-row-title">{action.label}</span>
+                <span className="contact-profile-row-subtitle">{action.description}</span>
+              </span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          ))}
+        </section>
+      </ProfilePageShell>
+    );
+  };
+
   const renderSettingsAccountSheet = () => (
     <ProfilePageShell
       panelRef={profilePanelRef}
@@ -2424,6 +2554,7 @@ export default function ChatSidebar({
       })()}
 
       {settingsProfilePageVisible ? renderSettingsOverviewSheet() : null}
+      {moreActionsSheetVisible ? renderMoreActionsPage() : null}
       {accountProfilePageVisible ? renderSettingsAccountSheet() : null}
       {historyProfilePageVisible && isParent ? renderSettingsHistorySheet() : null}
       {stylingProfilePageVisible ? renderSettingsStylingSheet() : null}

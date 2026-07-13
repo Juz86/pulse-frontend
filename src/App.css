@@ -578,8 +578,44 @@ body {
 
 .friend-requests-tabs {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   margin-bottom: 14px;
+  background: var(--surface2);
+  border-radius: 14px;
+  padding: 5px;
+  border: 1px solid var(--border);
+}
+
+.friend-requests-tab {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s ease;
+  letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.friend-requests-tab:hover {
+  color: var(--text);
+  background: rgba(108,99,255,0.08);
+}
+
+.friend-requests-tab.active {
+  background: linear-gradient(135deg, #7c6fff, #a855f7);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(108,99,255,.5), 0 0 0 1px rgba(168,85,247,.2);
 }
 
 .new-group-sheet-body {
@@ -644,8 +680,6 @@ body {
   box-shadow: 0 14px 28px rgba(123, 96, 233, 0.22);
 }
 
-.friend-requests-tabs .btn-primary,
-.friend-requests-tabs .btn-secondary,
 .add-contact-sheet-actions .btn-primary,
 .add-contact-sheet-actions .btn-secondary {
   border-radius: 18px;

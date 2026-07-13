@@ -11462,26 +11462,19 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  display: block;
   background:
     radial-gradient(circle at top center, rgba(139,92,246,.24), transparent 28%),
     linear-gradient(180deg, #262358 0%, #221f4e 100%);
 }
 
 .calls-dashboard-panel .calls-dashboard-section--recent {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
+  display: block;
   margin-bottom: 0;
 }
 
 .calls-dashboard-panel .calls-dashboard-section--contacts {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+  display: block;
 }
 
 .calls-dashboard-panel .contact-profile-topbar {
@@ -11621,16 +11614,12 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-list--recent {
-  flex: 1 1 auto;
-  min-height: 0;
   max-height: none;
   padding-bottom: 132px;
   box-sizing: border-box;
 }
 
 .calls-dashboard-list--contacts {
-  flex: 1 1 auto;
-  min-height: 0;
   max-height: none;
   padding: 0 0 132px;
   box-sizing: border-box;

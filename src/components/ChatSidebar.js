@@ -904,7 +904,6 @@ export default function ChatSidebar({
         </div>
       </section>
 
-      <div className="contact-profile-field-label">Tabblad</div>
       <div className="friend-requests-tabs">
         <button
           type="button"
@@ -924,9 +923,6 @@ export default function ChatSidebar({
         </button>
       </div>
 
-      <div className="contact-profile-field-label">
-        {requestsTab === 'ontvangen' ? 'Ontvangen verzoeken' : 'Verstuurde verzoeken'}
-      </div>
       <section className="contact-profile-card">
         <div className="pulse-sheet-list pulse-sheet-list--new-chat friend-requests-list">
           {requestsTab === 'ontvangen' && (

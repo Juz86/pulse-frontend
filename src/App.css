@@ -11637,7 +11637,9 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-list--contacts {
-  max-height: calc(var(--vvh, 100dvh) - 350px);
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
   padding: 0 0 132px;
   box-sizing: border-box;
 }
@@ -11810,7 +11812,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .calls-dashboard-list--contacts {
-    max-height: calc(var(--vvh, 100dvh) - 330px);
+    padding-bottom: 122px;
   }
 
   .calls-dashboard-panel .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {

@@ -326,7 +326,7 @@ export default function ChatSidebar({
   const blockedProfilePageVisible = embeddedSettingsActive && profileTab === 'geblokkeerd';
   const parentPortalPageVisible = showParentDashboard || parentPortalSheetClosing;
   const callsProfilePageVisible = callSheetVisible;
-  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || moreActionsSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newChatSheetVisible ? 'new-chat' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)))))));
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || moreActionsSheetVisible || newChatSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (addContactSheetVisible ? 'add-contact' : (newGroupSheetVisible ? 'new-group' : (requestsSheetVisible ? 'requests' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null))))));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
@@ -612,6 +612,91 @@ export default function ChatSidebar({
       </ProfilePageShell>
     );
   };
+
+  const renderNewChatPage = () => (
+    <ProfilePageShell
+      panelRef={profilePanelRef}
+      titleId="new-chat-title"
+      title="Nieuwe chat"
+      description="Zoek een contact of start een gesprek vanuit dezelfde profielopbouw."
+      onBack={dismissNewChatSheet}
+      backLabel="Nieuwe chat sluiten"
+      headerAction={(
+        <button
+          type="button"
+          className="contact-profile-edit-btn contact-profile-close-btn"
+          aria-label="Nieuwe chat sluiten"
+          title="Sluiten"
+          onClick={dismissNewChatSheet}
+        >
+          <XIcon size={20} aria-hidden="true" />
+        </button>
+      )}
+    >
+      <section className="contact-profile-card">
+        <div className="contact-profile-field">
+          <p id="new-chat-description" className="new-chat-sheet-sub">
+            Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam
+          </p>
+        </div>
+        <div className="contact-profile-field">
+          <div className="new-chat-sheet-search">
+            <div className="starred-search-wrap call-log-search-wrap new-chat-search-wrap">
+              <input
+                className="starred-search-input"
+                placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam"
+                value={searchEmail}
+                onChange={(e) => setSearchEmail?.(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && searchUser?.()}
+              />
+            </div>
+          </div>
+        </div>
+        {searchErr && (
+          <div className="contact-profile-field">
+            <div className="auth-error">⚠️ {searchErr}</div>
+          </div>
+        )}
+      </section>
+
+      {searchResult && (
+        <section className="contact-profile-card">
+          <div className="contact-profile-field-label">Zoekresultaat</div>
+          <div className="pulse-sheet-list pulse-sheet-list--new-chat">
+            <button type="button" className="search-result new-chat-sheet-result" onClick={() => startConversationWith?.(searchResult)}>
+              <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" decorative />
+              <div>
+                <div className="conv-name">{searchResult.displayName}</div>
+                <div className="conv-preview">{searchResult.email}</div>
+              </div>
+            </button>
+          </div>
+        </section>
+      )}
+
+      {contacts.length > 0 && (
+        <section className="contact-profile-card">
+          <div className="contact-profile-field-label">Kies uit je contacten</div>
+          <div className="pulse-sheet-list pulse-sheet-list--new-chat new-chat-contact-list">
+            {filteredNewChatContacts.map((contact) => (
+              <button key={contact.uid} type="button" className="search-result new-chat-sheet-result" onClick={() => startConversationWith?.(contact)}>
+                <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} className="sm" decorative />
+                <div>
+                  <div className="conv-name">{getContactDisplayName(contact)}</div>
+                  <div className="conv-preview">{contact.email}</div>
+                </div>
+              </button>
+            ))}
+            {filteredNewChatContacts.length === 0 && (
+              <div className="new-chat-sheet-empty">
+                Geen contacten die overeenkomen met je zoekopdracht.
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+    </ProfilePageShell>
+  );
 
   const renderSettingsAccountSheet = () => (
     <ProfilePageShell
@@ -2555,6 +2640,7 @@ export default function ChatSidebar({
 
       {settingsProfilePageVisible ? renderSettingsOverviewSheet() : null}
       {moreActionsSheetVisible ? renderMoreActionsPage() : null}
+      {newChatSheetVisible ? renderNewChatPage() : null}
       {accountProfilePageVisible ? renderSettingsAccountSheet() : null}
       {historyProfilePageVisible && isParent ? renderSettingsHistorySheet() : null}
       {stylingProfilePageVisible ? renderSettingsStylingSheet() : null}

@@ -11617,7 +11617,6 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-panel .sidebar-call-list {
   margin-bottom: 0;
-  overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   padding: 0;

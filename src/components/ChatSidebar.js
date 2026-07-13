@@ -941,7 +941,7 @@ export default function ChatSidebar({
                 </div>
               ))}
               {friendRequests.length === 0 && (
-                <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
+                <div className="empty-convs friend-requests-empty">
                   <p>Geen ontvangen vriendschapsverzoeken.</p>
                 </div>
               )}
@@ -977,7 +977,7 @@ export default function ChatSidebar({
                 );
               })}
               {sentFriendRequests.length === 0 && (
-                <div className="empty-convs" style={{ paddingTop: 10, paddingBottom: 10 }}>
+                <div className="empty-convs friend-requests-empty">
                   <p>Geen verstuurde vriendschapsverzoeken.</p>
                 </div>
               )}

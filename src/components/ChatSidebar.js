@@ -1096,7 +1096,7 @@ export default function ChatSidebar({
             </section>
           ) : (
             <>
-              <section className="calls-dashboard-section">
+              <section className="calls-dashboard-section calls-dashboard-section--recent">
                 <div className="calls-dashboard-section-header">
                   <h3 className="calls-dashboard-section-title">Recent</h3>
                 </div>
@@ -1108,53 +1108,51 @@ export default function ChatSidebar({
                     </div>
                   </div>
                 ) : (
-                  <div className="contact-profile-card calls-dashboard-section-card">
-                    <div className="sidebar-call-list calls-dashboard-list calls-dashboard-list--recent">
-                      {filteredCallLog.map((entry, index) => {
-                        const contact = contacts.find((item) => item.uid === entry.uid);
-                        const dirIcon = entry.direction === 'outgoing'
-                          ? <PhoneOutgoing size={13} />
-                          : entry.direction === 'missed'
-                            ? <Cancel size={13} />
-                            : <PhoneCall size={13} />;
-                        const displayTime = formatTime(entry.ts);
-                        return (
-                          <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className="sidebar-contact-card sidebar-contact-card--call-log">
-                            <div className="sidebar-contact-row sidebar-contact-row--call-log">
-                              <div className="avatar-wrap">
-                                <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
-                                {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
-                              </div>
-                              <div className="call-log-copy">
-                                <div className="call-log-meta">
-                                  <span className="conv-name">{entry.name}</span>
-                                  <span className="call-log-time">{displayTime}</span>
-                                </div>
-                                <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
-                                  <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
-                                  <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
-                                  {entry.direction !== 'missed' && (
-                                    <>
-                                      <span className="call-log-type-separator" aria-hidden="true">·</span>
-                                      <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                              {contact && (
-                                <div className="call-log-actions">
-                                  {entry.isVideo ? (
-                                    <button type="button" className="call-btn video calls-dashboard-quick-btn" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
-                                  ) : (
-                                    <button type="button" className="call-btn voice calls-dashboard-quick-btn" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
-                                  )}
-                                </div>
-                              )}
+                  <div className="sidebar-call-list calls-dashboard-list calls-dashboard-list--recent">
+                    {filteredCallLog.map((entry, index) => {
+                      const contact = contacts.find((item) => item.uid === entry.uid);
+                      const dirIcon = entry.direction === 'outgoing'
+                        ? <PhoneOutgoing size={13} />
+                        : entry.direction === 'missed'
+                          ? <Cancel size={13} />
+                          : <PhoneCall size={13} />;
+                      const displayTime = formatTime(entry.ts);
+                      return (
+                        <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className="sidebar-contact-card sidebar-contact-card--call-log">
+                          <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                            <div className="avatar-wrap">
+                              <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
+                              {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
                             </div>
+                            <div className="call-log-copy">
+                              <div className="call-log-meta">
+                                <span className="conv-name">{entry.name}</span>
+                                <span className="call-log-time">{displayTime}</span>
+                              </div>
+                              <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
+                                <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
+                                <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
+                                {entry.direction !== 'missed' && (
+                                  <>
+                                    <span className="call-log-type-separator" aria-hidden="true">·</span>
+                                    <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            {contact && (
+                              <div className="call-log-actions">
+                                {entry.isVideo ? (
+                                  <button type="button" className="call-btn video calls-dashboard-quick-btn" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
+                                ) : (
+                                  <button type="button" className="call-btn voice calls-dashboard-quick-btn" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
+                                )}
+                              </div>
+                            )}
                           </div>
-                        );
-                      })}
-                    </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </section>

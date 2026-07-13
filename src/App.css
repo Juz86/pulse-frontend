@@ -11470,6 +11470,14 @@ font-family: 'Inter', sans-serif;
     linear-gradient(180deg, #262358 0%, #221f4e 100%);
 }
 
+.calls-dashboard-panel .calls-dashboard-section--recent {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-bottom: 0;
+}
+
 .calls-dashboard-panel .contact-profile-topbar {
   margin-bottom: 14px;
 }
@@ -11616,7 +11624,9 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-list--recent {
-  max-height: calc(var(--vvh, 100dvh) - 440px);
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
   padding-bottom: 132px;
   box-sizing: border-box;
 }
@@ -11639,11 +11649,6 @@ font-family: 'Inter', sans-serif;
   box-shadow: 0 18px 38px rgba(10,8,28,.18);
 }
 
-.calls-dashboard-panel .calls-dashboard-section:last-child .calls-dashboard-section-card {
-  margin-bottom: -112px;
-  padding-bottom: 0;
-}
-
 .calls-dashboard-favorites .sidebar-contact-card,
 .calls-dashboard-section-card .sidebar-contact-card {
   background: transparent;
@@ -11651,6 +11656,7 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-panel .sidebar-contact-card {
   margin: 0;
+  background: transparent;
 }
 
 .calls-dashboard-panel .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {
@@ -11789,13 +11795,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .calls-dashboard-list--recent {
-    max-height: calc(var(--vvh, 100dvh) - 404px);
     padding-bottom: 122px;
-  }
-
-  .calls-dashboard-panel .calls-dashboard-section:last-child .calls-dashboard-section-card {
-    margin-bottom: -104px;
-    padding-bottom: 0;
   }
 
   .calls-dashboard-list--contacts {

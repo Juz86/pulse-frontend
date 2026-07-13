@@ -971,7 +971,6 @@ export default function ChatSidebar({
 
   const renderCallsProfilePage = () => (
     (() => {
-      const favoriteContacts = filteredCallContacts.slice(0, 3);
       return (
         <aside
           ref={profilePanelRef}
@@ -1097,60 +1096,6 @@ export default function ChatSidebar({
             </section>
           ) : (
             <>
-              {favoriteContacts.length > 0 && (
-                <section className="calls-dashboard-section">
-                  <div className="calls-dashboard-section-header">
-                    <h3 className="calls-dashboard-section-title">Favorieten</h3>
-                    <button
-                      type="button"
-                      className="calls-dashboard-link-btn"
-                      onClick={() => setCallActionMode('contacts')}
-                    >
-                      Alles bekijken
-                    </button>
-                  </div>
-                  <div className="calls-dashboard-favorites">
-                    {favoriteContacts.map((contact) => {
-                      const contactTitle = getContactDisplayName(contact)
-                        || contact.displayName
-                        || contact.username
-                        || (contact.email ? contact.email.split('@')[0] : '')
-                        || 'Onbekend';
-                      return (
-                        <div key={contact.uid} className="sidebar-contact-card sidebar-contact-card--call-log">
-                          <div className="sidebar-contact-row sidebar-contact-row--call-log">
-                            <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
-                            <div className="conv-info call-log-picker-copy">
-                              <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
-                            </div>
-                            <div className="call-log-picker-actions">
-                              <button
-                                type="button"
-                                className="call-btn video calls-dashboard-quick-btn"
-                                aria-label={`Videobel ${contactTitle}`}
-                                title="Videobellen"
-                                onClick={() => (callContactFromRecent || callContact)?.(contact, true)}
-                              >
-                                <Video size={16} aria-hidden="true" />
-                              </button>
-                              <button
-                                type="button"
-                                className="call-btn voice calls-dashboard-quick-btn"
-                                aria-label={`Bel ${contactTitle}`}
-                                title="Bellen"
-                                onClick={() => (callContactFromRecent || callContact)?.(contact, false)}
-                              >
-                                <Phone size={16} aria-hidden="true" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              )}
-
               <section className="calls-dashboard-section">
                 <div className="calls-dashboard-section-header">
                   <h3 className="calls-dashboard-section-title">Recent</h3>

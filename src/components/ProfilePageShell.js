@@ -11,6 +11,7 @@ export function ProfilePageShell({
   hero = null,
   children,
   className = 'chat-side-panel contact-profile-panel',
+  panelProps = {},
 }) {
   return (
     <aside
@@ -18,6 +19,7 @@ export function ProfilePageShell({
       className={className}
       aria-labelledby={titleId}
       aria-describedby={`${titleId}-description`}
+      {...panelProps}
     >
       <div className="contact-profile-topbar">
         <button

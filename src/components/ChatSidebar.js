@@ -2811,7 +2811,6 @@ export default function ChatSidebar({
         return displayName.includes(normalizedCallSearch) || email.includes(normalizedCallSearch);
       })
     : contacts;
-  const activeContactMenuContact = contacts.find((contact) => contact.uid === contactMenu?.uid) || null;
   const footerClusterAriaLabel = footerClusterMode === 'settings'
     ? 'Instellingen'
     : footerClusterMode === 'add-contact'
@@ -2824,11 +2823,7 @@ export default function ChatSidebar({
             ? 'Verzoeken'
             : footerClusterMode === 'parent-portal'
               ? 'Ouderportaal'
-            : footerClusterMode === 'contact'
-              ? `Acties voor ${getContactDisplayName(activeContactMenuContact || {})}`
-              : footerClusterMode === 'conversation'
-                ? `Acties voor ${convActionsSheet?.conv?.name || 'gesprek'}`
-                : 'Meer acties';
+              : 'Meer acties';
   const footerClusterTitle = footerClusterMode === 'settings'
     ? (profileTab === 'overview' ? 'Instellingen' : activeProfileSection?.label || 'Instellingen')
     : footerClusterMode === 'add-contact'
@@ -2841,11 +2836,7 @@ export default function ChatSidebar({
             ? 'Verzoeken'
             : footerClusterMode === 'parent-portal'
               ? 'Ouderportaal'
-            : footerClusterMode === 'contact'
-              ? getContactDisplayName(activeContactMenuContact || {})
-              : footerClusterMode === 'conversation'
-                ? (convActionsSheet?.conv?.name || 'Gesprek')
-                : 'Meer opties';
+              : 'Meer opties';
   const isMoreFooterCluster = footerClusterMode === 'more';
   const isSidebarPageMode = embeddedSettingsActive
     || parentPortalPageVisible
@@ -2864,16 +2855,12 @@ export default function ChatSidebar({
       : footerClusterMode === 'new-chat'
         ? dismissNewChatSheet
         : footerClusterMode === 'new-group'
-          ? dismissNewGroupSheet
-          : footerClusterMode === 'requests'
-            ? dismissRequestsSheet
-            : footerClusterMode === 'parent-portal'
-              ? dismissParentPortalSheet
-            : footerClusterMode === 'contact'
-              ? closeContactActionsSheet
-              : footerClusterMode === 'conversation'
-                ? closeConvActionsSheet
-                : dismissMoreActionsSheet;
+        ? dismissNewGroupSheet
+        : footerClusterMode === 'requests'
+          ? dismissRequestsSheet
+          : footerClusterMode === 'parent-portal'
+            ? dismissParentPortalSheet
+            : dismissMoreActionsSheet;
 
   return (
     <aside className={`sidebar${moreActionsMenuOpen ? ' sidebar--more-actions-open' : ''}${isSidebarPageMode ? ' sidebar--settings-open' : ''}`} ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
@@ -3651,66 +3638,6 @@ export default function ChatSidebar({
                     embeddedPortalView={parentPortalView}
                     onEmbeddedPortalViewChange={setParentPortalView}
                   />
-                </div>
-              ) : footerClusterMode === 'contact' ? (
-                <div className="sidebar-contact-actions-scroll">
-                  <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions sidebar-contact-actions-list">
-                    {(() => {
-                      const contact = contacts.find((c) => c.uid === contactMenu?.uid);
-                      if (!contact) return null;
-                      const isParentBlocked = parentBlockedUids?.includes(contact.uid);
-                      const isProtectedParentContact = !isParent && contact?.role === 'parent';
-                      return (
-                        <>
-                          <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onViewContact(contact); closeContactActionsSheet(); }} title="Profiel">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
-                            <span>Profiel</span>
-                          </button>
-                          {!isParentBlocked && <>
-                            <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onStartChat(contact); closeContactActionsSheet(); }} title="Bericht sturen">
-                              <Message size={14} aria-hidden="true" />
-                              <span>Bericht sturen</span>
-                            </button>
-                            {callsAvailable && (
-                              <>
-                                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, false); closeContactActionsSheet(); }} title="Bellen">
-                                  <Phone size={14} aria-hidden="true" />
-                                  <span>Bellen</span>
-                                </button>
-                                <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, true); closeContactActionsSheet(); }} title="Videobellen">
-                                  <Video size={14} aria-hidden="true" />
-                                  <span>Videobellen</span>
-                                </button>
-                              </>
-                            )}
-                            <button type="button" role="menuitem" className={`chat-header-menu-item${pinnedContacts.includes(contact.uid) ? ' active' : ''}`} onClick={() => { onTogglePin(contact.uid); closeContactActionsSheet(); }} title={pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}>
-                              <Pin size={14} aria-hidden="true" />
-                              <span>{pinnedContacts.includes(contact.uid) ? 'Losmaken' : 'Vastzetten'}</span>
-                            </button>
-                          </>}
-                          {!isProtectedParentContact && <div className="chat-header-menu-divider" />}
-                          {!isProtectedParentContact && !isParentBlocked && (
-                            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onBlockContact(contact); closeContactActionsSheet(); }} title="Blokkeren">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
-                              <span>Blokkeren</span>
-                            </button>
-                          )}
-                          {!isProtectedParentContact && (
-                            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onRemoveContact(contact.uid); closeContactActionsSheet(); }} title="Verwijderen">
-                              <Trash2 size={14} aria-hidden="true" />
-                              <span>Verwijderen</span>
-                            </button>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
-                </div>
-              ) : footerClusterMode === 'conversation' ? (
-                <div className="sidebar-contact-actions-scroll">
-                  <div className="pulse-sheet-list pulse-sheet-list--sidebar-actions sidebar-contact-actions-list">
-                    {convActionsSheet ? renderConvActions(convActionsSheet.conv, convActionsSheet.otherUid, closeConvActionsSheet) : null}
-                  </div>
                 </div>
               ) : (
                 renderSimpleSidebarActionList([

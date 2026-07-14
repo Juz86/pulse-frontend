@@ -10584,25 +10584,32 @@ font-family: 'Inter', sans-serif;
   border-color:#ece9ff;
   box-shadow:0 10px 30px rgba(27, 30, 66, 0.04);
 }
+.parent-usage-card {
+  padding:14px 16px;
+}
+.parent-usage-card .analytics-section-title {
+  margin-bottom:10px;
+}
 .parent-usage-grid {
-  display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px;
+  display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;
 }
 .parent-usage-stat {
   background:linear-gradient(180deg,#f8f7ff 0%,#f3f2ff 100%);
   border:1px solid #ece9ff;
-  border-radius:18px;
-  padding:18px 16px;
+  border-radius:16px;
+  padding:14px 13px;
 }
 .parent-usage-value {
   color:#6c63ff;
-  font-size:22px;
+  font-size:20px;
   font-weight:800;
   line-height:1.05;
 }
 .parent-usage-label {
-  margin-top:8px;
+  margin-top:6px;
   color:#73788f;
-  font-size:14px;
+  font-size:13px;
+  line-height:1.25;
 }
 .parent-top-contacts-list {
   display:flex; flex-direction:column; gap:10px;
@@ -10731,9 +10738,12 @@ font-family: 'Inter', sans-serif;
 }
 @media (max-width:480px) {
   .analytics-profile-card { align-items:flex-start; gap:14px; padding:18px; }
-  .parent-usage-grid { grid-template-columns:1fr 1fr; gap:12px; }
-  .parent-usage-stat { padding:16px 14px; border-radius:16px; }
-  .parent-usage-value { font-size:20px; }
+  .parent-usage-card { padding:13px 14px; }
+  .parent-usage-card .analytics-section-title { margin-bottom:8px; }
+  .parent-usage-grid { grid-template-columns:1fr 1fr; gap:9px; }
+  .parent-usage-stat { padding:13px 12px; border-radius:15px; }
+  .parent-usage-value { font-size:18px; }
+  .parent-usage-label { font-size:12px; margin-top:5px; }
   .parent-activity-text { max-width:none; }
   .parent-activity-contact-row {
     align-items:flex-start;

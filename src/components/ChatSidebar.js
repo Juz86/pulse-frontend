@@ -2847,7 +2847,11 @@ export default function ChatSidebar({
                 ? (convActionsSheet?.conv?.name || 'Gesprek')
                 : 'Meer opties';
   const isMoreFooterCluster = footerClusterMode === 'more';
-  const isSettingsPageMode = embeddedSettingsActive;
+  const isSidebarPageMode = embeddedSettingsActive
+    || parentPortalPageVisible
+    || callsProfilePageVisible
+    || contactActionsPageVisible
+    || conversationActionsPageVisible;
   const isLightFooterCluster = isMoreFooterCluster;
   const useDetachedFooterCluster = isLightFooterCluster || !footerEmbeddedInCluster;
   const footerClusterSheetClassName = isLightFooterCluster
@@ -2872,8 +2876,8 @@ export default function ChatSidebar({
                 : dismissMoreActionsSheet;
 
   return (
-    <aside className={`sidebar${moreActionsMenuOpen ? ' sidebar--more-actions-open' : ''}${isSettingsPageMode ? ' sidebar--settings-open' : ''}`} ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
-      {!isSettingsPageMode && (
+    <aside className={`sidebar${moreActionsMenuOpen ? ' sidebar--more-actions-open' : ''}${isSidebarPageMode ? ' sidebar--settings-open' : ''}`} ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
+      {!isSidebarPageMode && (
         <>
           {/* Header */}
           <div className="sidebar-header" ref={sidebarHeaderRef}>

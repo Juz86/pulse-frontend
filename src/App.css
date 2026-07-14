@@ -10608,8 +10608,8 @@ font-family: 'Inter', sans-serif;
   display:flex; flex-direction:column; gap:10px;
 }
 .parent-top-contacts-grid {
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
+  display:flex;
+  flex-direction:column;
   gap:14px;
 }
 .parent-top-contacts-column {

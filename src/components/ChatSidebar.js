@@ -1019,29 +1019,29 @@ export default function ChatSidebar({
         )}
       >
         <section className="contact-profile-card contact-profile-card--action-list">
-          <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onViewContact(contact); closeContactActionsSheet(); }} title="Profiel">
+          <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onViewContact(contact); completeContactActionsSheet(); }} title="Profiel">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
             <span>Profiel</span>
           </button>
           {!isParentBlocked && (
             <>
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onStartChat(contact); closeContactActionsSheet(); }} title="Bericht sturen">
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onStartChat(contact); completeContactActionsSheet(); }} title="Bericht sturen">
                 <Message size={14} aria-hidden="true" />
                 <span>Bericht sturen</span>
               </button>
               {callsAvailable && (
                 <>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, false); closeContactActionsSheet(); }} title="Bellen">
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, false); completeContactActionsSheet(); }} title="Bellen">
                     <Phone size={14} aria-hidden="true" />
                     <span>Bellen</span>
                   </button>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, true); closeContactActionsSheet(); }} title="Videobellen">
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, true); completeContactActionsSheet(); }} title="Videobellen">
                     <Video size={14} aria-hidden="true" />
                     <span>Videobellen</span>
                   </button>
                 </>
               )}
-              <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`} onClick={() => { onTogglePin(contact.uid); closeContactActionsSheet(); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
+              <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`} onClick={() => { onTogglePin(contact.uid); completeContactActionsSheet(); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
                 <Pin size={14} aria-hidden="true" />
                 <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
               </button>
@@ -1049,13 +1049,13 @@ export default function ChatSidebar({
           )}
           {!isProtectedParentContact && <div className="chat-header-menu-divider" />}
           {!isProtectedParentContact && !isParentBlocked && (
-            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onBlockContact(contact); closeContactActionsSheet(); }} title="Blokkeren">
+            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onBlockContact(contact); completeContactActionsSheet(); }} title="Blokkeren">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
               <span>Blokkeren</span>
             </button>
           )}
           {!isProtectedParentContact && (
-            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onRemoveContact(contact.uid); closeContactActionsSheet(); }} title="Verwijderen">
+            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onRemoveContact(contact.uid); completeContactActionsSheet(); }} title="Verwijderen">
               <Trash2 size={14} aria-hidden="true" />
               <span>Verwijderen</span>
             </button>
@@ -1090,7 +1090,7 @@ export default function ChatSidebar({
         )}
       >
         <section className="contact-profile-card contact-profile-card--action-list">
-          {renderConvActions(convActionsSheet.conv, convActionsSheet.otherUid, closeConvActionsSheet)}
+          {renderConvActions(convActionsSheet.conv, convActionsSheet.otherUid, completeConvActionsSheet)}
         </section>
       </ProfilePageShell>
     );
@@ -2431,6 +2431,16 @@ export default function ChatSidebar({
       return;
     }
     setContactMenu(null);
+  }, []);
+
+  const completeContactActionsSheet = useCallback(() => {
+    contactSheetHistoryPushedRef.current = false;
+    setContactMenu(null);
+  }, []);
+
+  const completeConvActionsSheet = useCallback(() => {
+    convSheetHistoryPushedRef.current = false;
+    setConvActionsSheet(null);
   }, []);
 
   const closeProfileOverviewSheet = useCallback(() => {

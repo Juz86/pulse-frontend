@@ -326,7 +326,9 @@ export default function ChatSidebar({
   const blockedProfilePageVisible = embeddedSettingsActive && profileTab === 'geblokkeerd';
   const parentPortalPageVisible = showParentDashboard || parentPortalSheetClosing;
   const callsProfilePageVisible = callSheetVisible;
-  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || moreActionsSheetVisible || newChatSheetVisible || addContactSheetVisible || newGroupSheetVisible || requestsSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)));
+  const contactActionsPageVisible = contactSheetVisible;
+  const conversationActionsPageVisible = conversationSheetVisible;
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || contactActionsPageVisible || conversationActionsPageVisible || moreActionsSheetVisible || newChatSheetVisible || addContactSheetVisible || newGroupSheetVisible || requestsSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
@@ -987,6 +989,112 @@ export default function ChatSidebar({
       </section>
     </ProfilePageShell>
   );
+
+  const renderContactActionsPage = () => {
+    const contact = contacts.find((c) => c.uid === contactMenu?.uid);
+    if (!contact) return null;
+    const isParentBlocked = parentBlockedUids?.includes(contact.uid);
+    const isProtectedParentContact = !isParent && contact?.role === 'parent';
+    const isPinned = pinnedContacts.includes(contact.uid);
+    const title = getContactDisplayName(contact) || contact.displayName || contact.username || 'Contact';
+
+    return (
+      <ProfilePageShell
+        panelRef={profilePanelRef}
+        titleId="contact-actions-title"
+        title={title}
+        description={`Beheer acties voor ${title}.`}
+        onBack={closeContactActionsSheet}
+        backLabel={`${title} sluiten`}
+        headerAction={(
+          <button
+            type="button"
+            className="contact-profile-edit-btn contact-profile-close-btn"
+            aria-label={`${title} sluiten`}
+            title="Sluiten"
+            onClick={closeContactActionsSheet}
+          >
+            <XIcon size={20} aria-hidden="true" />
+          </button>
+        )}
+      >
+        <section className="contact-profile-card contact-profile-card--action-list">
+          <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onViewContact(contact); closeContactActionsSheet(); }} title="Profiel">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
+            <span>Profiel</span>
+          </button>
+          {!isParentBlocked && (
+            <>
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onStartChat(contact); closeContactActionsSheet(); }} title="Bericht sturen">
+                <Message size={14} aria-hidden="true" />
+                <span>Bericht sturen</span>
+              </button>
+              {callsAvailable && (
+                <>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, false); closeContactActionsSheet(); }} title="Bellen">
+                    <Phone size={14} aria-hidden="true" />
+                    <span>Bellen</span>
+                  </button>
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, true); closeContactActionsSheet(); }} title="Videobellen">
+                    <Video size={14} aria-hidden="true" />
+                    <span>Videobellen</span>
+                  </button>
+                </>
+              )}
+              <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`} onClick={() => { onTogglePin(contact.uid); closeContactActionsSheet(); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
+                <Pin size={14} aria-hidden="true" />
+                <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
+              </button>
+            </>
+          )}
+          {!isProtectedParentContact && <div className="chat-header-menu-divider" />}
+          {!isProtectedParentContact && !isParentBlocked && (
+            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onBlockContact(contact); closeContactActionsSheet(); }} title="Blokkeren">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+              <span>Blokkeren</span>
+            </button>
+          )}
+          {!isProtectedParentContact && (
+            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onRemoveContact(contact.uid); closeContactActionsSheet(); }} title="Verwijderen">
+              <Trash2 size={14} aria-hidden="true" />
+              <span>Verwijderen</span>
+            </button>
+          )}
+        </section>
+      </ProfilePageShell>
+    );
+  };
+
+  const renderConversationActionsPage = () => {
+    if (!convActionsSheet) return null;
+    const title = getConvName?.(convActionsSheet.conv) || 'Gesprek';
+
+    return (
+      <ProfilePageShell
+        panelRef={profilePanelRef}
+        titleId="conversation-actions-title"
+        title={title}
+        description={`Beheer acties voor ${title}.`}
+        onBack={closeConvActionsSheet}
+        backLabel={`${title} sluiten`}
+        headerAction={(
+          <button
+            type="button"
+            className="contact-profile-edit-btn contact-profile-close-btn"
+            aria-label={`${title} sluiten`}
+            title="Sluiten"
+            onClick={closeConvActionsSheet}
+          >
+            <XIcon size={20} aria-hidden="true" />
+          </button>
+        )}
+      >
+        <section className="contact-profile-card contact-profile-card--action-list">
+          {renderConvActions(convActionsSheet.conv, convActionsSheet.otherUid, closeConvActionsSheet)}
+        </section>
+      </ProfilePageShell>
+    );
+  };
 
   const renderSettingsAccountSheet = () => (
     <ProfilePageShell
@@ -2948,6 +3056,8 @@ export default function ChatSidebar({
         />
       ) : null}
       {callsProfilePageVisible ? renderCallsProfilePage() : null}
+      {contactActionsPageVisible ? renderContactActionsPage() : null}
+      {conversationActionsPageVisible ? renderConversationActionsPage() : null}
 
       {footerClusterMode ? (
         <div

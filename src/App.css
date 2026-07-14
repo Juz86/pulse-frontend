@@ -10529,8 +10529,10 @@ font-family: 'Inter', sans-serif;
 /* ── Analyserapport ─────────────────────────────────────────────────────── */
 .analytics-report { display:flex; flex-direction:column; gap:12px; }
 .parent-activity-overview {
-  display:grid; grid-template-columns:minmax(0, 1.1fr) minmax(260px, .9fr);
-  gap:16px; align-items:stretch;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  align-items:stretch;
 }
 
 .activities-header {

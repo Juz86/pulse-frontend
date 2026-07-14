@@ -7190,7 +7190,7 @@ font-family: 'Inter', sans-serif;
   display:flex;
   flex-direction:column;
   gap:8px;
-  margin-bottom:20px;
+  margin-bottom:12px;
   overflow-y:auto;
   min-height:0;
   max-height:38vh;
@@ -7217,6 +7217,11 @@ font-family: 'Inter', sans-serif;
   flex-direction:column;
   gap:8px;
   padding-bottom:0;
+}
+
+.contact-profile-card--new-chat-list {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .contact-profile-card--new-group-list {

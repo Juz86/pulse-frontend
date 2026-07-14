@@ -675,7 +675,7 @@ export default function ChatSidebar({
       )}
 
       {contacts.length > 0 && (
-        <section className="contact-profile-card">
+        <section className="contact-profile-card contact-profile-card--new-chat-list">
           <div className="contact-profile-field-label">Kies uit je contacten</div>
           <div className="pulse-sheet-list pulse-sheet-list--new-chat new-chat-contact-list">
             {filteredNewChatContacts.map((contact) => (

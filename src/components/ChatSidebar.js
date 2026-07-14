@@ -633,7 +633,7 @@ export default function ChatSidebar({
         </button>
       )}
     >
-      <section className="contact-profile-card">
+      <section className="contact-profile-card contact-profile-card--new-group-list">
         <div className="contact-profile-field">
           <p id="new-chat-description" className="new-chat-sheet-sub">
             Zoek op e-mailadres, <code>@pulse.internal</code>-adres of gebruikersnaam

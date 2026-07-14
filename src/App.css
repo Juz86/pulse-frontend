@@ -7200,9 +7200,7 @@ font-family: 'Inter', sans-serif;
   display:flex;
   flex-direction:column;
   gap:8px;
-  margin-bottom:16px;
-  overflow-y:auto;
-  min-height:0;
+  margin-bottom:12px;
   max-height:min(44vh, 196px);
   padding-right:4px;
 }
@@ -7219,6 +7217,11 @@ font-family: 'Inter', sans-serif;
   flex-direction:column;
   gap:8px;
   padding-bottom:0;
+}
+
+.contact-profile-card--new-group-list {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .friend-requests-empty {
@@ -17100,7 +17103,6 @@ font-family: 'Inter', sans-serif;
 }
 
 .new-chat-contact-list,
-.new-group-contact-list,
 .pd-content,
 .parent-container {
   overflow-y: auto;

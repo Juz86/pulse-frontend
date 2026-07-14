@@ -923,7 +923,7 @@ export default function ChatSidebar({
         </button>
       </div>
 
-      <section className="contact-profile-card">
+      <section className="contact-profile-card contact-profile-card--requests-list">
         <div className="pulse-sheet-list pulse-sheet-list--new-chat friend-requests-list">
           {requestsTab === 'ontvangen' && (
             <>

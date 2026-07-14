@@ -7218,13 +7218,18 @@ font-family: 'Inter', sans-serif;
   display:flex;
   flex-direction:column;
   gap:8px;
-  padding-bottom:12px;
+  padding-bottom:0;
 }
 
 .friend-requests-empty {
-  margin: 8px 12px 10px;
-  padding: 20px 16px;
+  margin: 8px 12px;
+  padding: 18px 16px;
   min-height: 0;
+}
+
+.contact-profile-card--requests-list {
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 @media (max-width:420px) {

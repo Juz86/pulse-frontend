@@ -696,16 +696,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 
 .new-chat-search-wrap {
-  min-height: 50px;
-  border-radius: 24px;
-  border: 1px solid rgba(140, 122, 214, 0.14);
-  background: rgba(255, 255, 255, 0.92);
+  min-height: 54px;
+  border-radius: 28px;
+  border: 1px solid rgba(140, 122, 214, 0.16);
+  background: rgba(255, 255, 255, 0.96);
   box-shadow: none;
-  padding: 0 4px;
+  padding: 0 8px;
 }
 
 .new-chat-search-btn {
@@ -744,7 +744,7 @@ body {
 .new-chat-sheet-body .new-chat-contact-list {
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
+  overflow: visible;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -768,8 +768,8 @@ body {
   border: none;
   border-radius: 0;
   background: transparent;
-  min-height: 72px;
-  padding: 14px 18px;
+  min-height: 78px;
+  padding: 16px 20px;
   text-align: left;
   margin-bottom: 0;
   box-shadow: none;
@@ -788,8 +788,8 @@ body {
   content: '';
   position: absolute;
   top: 0;
-  left: 66px;
-  right: 18px;
+  left: 78px;
+  right: 20px;
   height: 1px;
   background: rgba(112, 92, 191, 0.1);
 }
@@ -803,14 +803,21 @@ body {
 }
 
 .new-chat-sheet-result .conv-name {
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 17px;
+  font-weight: 600;
   color: #23173f;
 }
 
 .new-chat-sheet-result .conv-preview {
   margin-top: 4px;
   color: #736986;
+}
+
+.new-chat-sheet-result-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .new-chat-sheet-empty {
@@ -7195,12 +7202,12 @@ font-family: 'Inter', sans-serif;
 .new-chat-contact-list {
   display:flex;
   flex-direction:column;
-  gap:8px;
-  margin-bottom:12px;
-  overflow-y:auto;
+  gap:0;
+  margin-bottom:0;
+  overflow:visible;
   min-height:0;
-  max-height:38vh;
-  padding-right:4px;
+  max-height:none;
+  padding-right:0;
 }
 .new-group-contact-list {
   display:flex;

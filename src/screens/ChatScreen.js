@@ -423,10 +423,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const handleCloseReactionPicker = useCallback(() => {
     setReactionPickerMsgId(null);
   }, []);
-  const openUnifiedContactProfile = useCallback((contact) => {
+  const openUnifiedContactProfile = useCallback((contact, options = {}) => {
     if (!contact) return;
     setRenameValue(getContactNickname(contact.uid) || contact.displayName || '');
-    startChatWithContact(contact);
+    if (!options.preserveActiveConversation) {
+      startChatWithContact(contact);
+    }
     setShowContactProfile(true);
   }, [getContactNickname, setRenameValue, startChatWithContact]);
   const handleViewSharedContact = useCallback((sc) => {

@@ -1020,7 +1020,7 @@ export default function ChatSidebar({
         )}
       >
         <section className="contact-profile-card contact-profile-card--action-list">
-          <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onViewContact(contact); completeContactActionsSheet(); }} title="Profiel">
+          <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onViewContact(contact, { preserveActiveConversation: true }); completeContactActionsSheet(); }} title="Profiel">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
             <span>Profiel</span>
           </button>

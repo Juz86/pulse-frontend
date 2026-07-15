@@ -1009,6 +1009,18 @@ export default function ChatSidebar({
       onCallContact(contact, isVideo);
       completeContactActionsSheet();
     };
+    const handleTogglePinFromActions = () => {
+      onTogglePin(contact.uid);
+      completeContactActionsSheet();
+    };
+    const handleBlockContactFromActions = () => {
+      onBlockContact(contact);
+      completeContactActionsSheet();
+    };
+    const handleRemoveContactFromActions = () => {
+      onRemoveContact(contact.uid);
+      completeContactActionsSheet();
+    };
 
     return (
       <ProfilePageShell
@@ -1054,7 +1066,7 @@ export default function ChatSidebar({
                   </button>
                 </>
               )}
-              <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`} onClick={() => { onTogglePin(contact.uid); completeContactActionsSheet(); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
+              <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`} onClick={handleTogglePinFromActions} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
                 <Pin size={14} aria-hidden="true" />
                 <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
               </button>
@@ -1062,13 +1074,13 @@ export default function ChatSidebar({
           )}
           {!isProtectedParentContact && <div className="chat-header-menu-divider" />}
           {!isProtectedParentContact && !isParentBlocked && (
-            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onBlockContact(contact); completeContactActionsSheet(); }} title="Blokkeren">
+            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={handleBlockContactFromActions} title="Blokkeren">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
               <span>Blokkeren</span>
             </button>
           )}
           {!isProtectedParentContact && (
-            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={() => { onRemoveContact(contact.uid); completeContactActionsSheet(); }} title="Verwijderen">
+            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={handleRemoveContactFromActions} title="Verwijderen">
               <Trash2 size={14} aria-hidden="true" />
               <span>Verwijderen</span>
             </button>
@@ -2692,6 +2704,23 @@ export default function ChatSidebar({
       onCallFromConv(conv, isVideo);
       onDone?.();
     };
+    const handleTogglePinFromConversationActions = () => {
+      onTogglePin(otherUid);
+      onDone?.();
+    };
+    const handleBlockContactFromConversationActions = () => {
+      if (!contact) return;
+      onBlockContact(contact);
+      onDone?.();
+    };
+    const handleClearConversationFromActions = () => {
+      onClearConversation?.(conv);
+      onDone?.();
+    };
+    const handleHardDeleteConversationFromActions = () => {
+      onHardDeleteConversation?.(conv);
+      onDone?.();
+    };
     return (
       <>
         {conv.isGroup && (
@@ -2730,7 +2759,7 @@ export default function ChatSidebar({
           )}
           {!conv.isGroup && otherUid && (
             <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`}
-              onClick={() => { onTogglePin(otherUid); onDone?.(); }} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
+              onClick={handleTogglePinFromConversationActions} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
               <Pin size={14} aria-hidden="true" />
               <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
             </button>
@@ -2791,7 +2820,7 @@ export default function ChatSidebar({
               type="button"
               role="menuitem"
               className="chat-header-menu-item danger"
-              onClick={() => { onClearConversation?.(conv); onDone?.(); }}
+              onClick={handleClearConversationFromActions}
               title="Chat wissen"
             >
               <XIcon size={14} aria-hidden="true" />
@@ -2801,7 +2830,7 @@ export default function ChatSidebar({
               type="button"
               role="menuitem"
               className="chat-header-menu-item danger"
-              onClick={() => { onHardDeleteConversation?.(conv); onDone?.(); }}
+              onClick={handleHardDeleteConversationFromActions}
               title="Chat verwijderen"
             >
               <Trash2 size={14} aria-hidden="true" />
@@ -2809,7 +2838,7 @@ export default function ChatSidebar({
             </button>
             {contact && !isProtectedParentContact && (
               <button type="button" role="menuitem" className="chat-header-menu-item danger"
-                onClick={() => { onBlockContact(contact); onDone?.(); }} title="Blokkeren">
+                onClick={handleBlockContactFromConversationActions} title="Blokkeren">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
                 <span>Blokkeren</span>
               </button>

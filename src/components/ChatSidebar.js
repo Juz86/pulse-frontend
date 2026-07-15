@@ -621,8 +621,8 @@ export default function ChatSidebar({
       titleId="new-chat-title"
       title="Nieuwe chat"
       description="Zoek een contact of start een gesprek vanuit dezelfde profielopbouw."
-      onBack={dismissNewChatSheet}
-      backLabel="Nieuwe chat sluiten"
+      onBack={() => navigateBackToMoreActions(closeNewChatSheet)}
+      backLabel="Terug naar meer opties"
       headerAction={(
         <button
           type="button"
@@ -706,8 +706,8 @@ export default function ChatSidebar({
       titleId="add-contact-title"
       title="Nieuw contact"
       description="Voeg familie en vrienden toe vanuit dezelfde profielopbouw."
-      onBack={dismissAddContactSheet}
-      backLabel="Nieuw contact sluiten"
+      onBack={() => navigateBackToMoreActions(closeAddContactSheet)}
+      backLabel="Terug naar meer opties"
       headerAction={(
         <button
           type="button"
@@ -785,8 +785,8 @@ export default function ChatSidebar({
       titleId="new-group-title"
       title="Nieuwe groep"
       description="Start een groepsgesprek vanuit dezelfde profielopbouw."
-      onBack={dismissNewGroupSheet}
-      backLabel="Nieuwe groep sluiten"
+      onBack={() => navigateBackToMoreActions(closeNewGroupSheet)}
+      backLabel="Terug naar meer opties"
       headerAction={(
         <button
           type="button"
@@ -882,8 +882,8 @@ export default function ChatSidebar({
       titleId="requests-title"
       title="Verzoeken"
       description="Beheer binnenkomende en verstuurde vriendschapsverzoeken."
-      onBack={dismissRequestsSheet}
-      backLabel="Verzoeken sluiten"
+      onBack={() => navigateBackToMoreActions(closeRequestsSheet)}
+      backLabel="Terug naar meer opties"
       headerAction={(
         <button
           type="button"
@@ -2320,6 +2320,12 @@ export default function ChatSidebar({
     if (requestsSheetClosing || !requestsSheetVisible) return;
     setRequestsSheetClosing(true);
   }, [requestsSheetClosing, requestsSheetVisible]);
+
+  const navigateBackToMoreActions = useCallback((closeSheet) => {
+    closeSheet?.();
+    setMoreActionsMenuClosing(false);
+    setMoreActionsMenuOpen(true);
+  }, []);
 
   const closeCallSheet = useCallback(() => {
     if (callSheetCloseTimeoutRef.current) {

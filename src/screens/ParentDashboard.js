@@ -1059,7 +1059,6 @@ export default function ParentDashboard({
                   <h2 className="parent-section-title">Realtime locatie</h2>
                   <button type="button" className="parent-btn-outline activities-refresh-btn" onClick={loadChildren}>
                     <Refresh size={14} aria-hidden="true" />
-                    <span className="activities-refresh-label">Vernieuwen</span>
                   </button>
                 </div>
                 <p className="parent-section-sub parent-portal-inline-sub">
@@ -1182,7 +1181,6 @@ export default function ParentDashboard({
                     )}
                     <button type="button" className="parent-btn-outline activities-refresh-btn" onClick={() => { loadActivities(); if (selectedChildUid) loadAnalytics(selectedChildUid); }}>
                       <Refresh size={14} aria-hidden="true" />
-                      <span className="activities-refresh-label">Vernieuwen</span>
                     </button>
                   </div>
                 </div>

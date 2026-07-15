@@ -80,6 +80,8 @@ export default function ChatModals({
 
   // contact profile modal (from chat header)
   showContactProfile, setShowContactProfile,
+  contactProfileContact = null,
+  setContactProfileContact,
   activeConv, getConvName, getOtherUid, getConvPhoto,
   setSharingContact: _sc,
   showStarredMsgs, setShowStarredMsgs,
@@ -835,21 +837,29 @@ export default function ChatModals({
       )}
 
       {/* ── CONTACTPROFIEL PANEEL ── */}
-      {showContactProfile && activeConv && !activeConv.isGroup && (() => {
-        const uid       = getOtherUid(activeConv);
-        const name      = getConvName(activeConv);
-        const email     = activeConv.memberEmails?.[uid] || contacts.find(c => c.uid === uid)?.email || '';
-        const photo     = getConvPhoto(activeConv);
+      {showContactProfile && (() => {
+        const targetContact = contactProfileContact || (activeConv && !activeConv.isGroup ? {
+          uid: getOtherUid(activeConv),
+          displayName: getConvName(activeConv),
+          email: activeConv.memberEmails?.[getOtherUid(activeConv)] || contacts.find(c => c.uid === getOtherUid(activeConv))?.email || '',
+          photoURL: getConvPhoto(activeConv),
+        } : null);
+        if (!targetContact) return null;
+        const targetConv = targetContact?.uid ? findConvWithUid?.(targetContact.uid) : null;
+        const uid       = targetContact.uid;
+        const name      = targetContact.displayName || targetContact.name || targetContact.email || 'Contact';
+        const email     = targetContact.email || '';
+        const photo     = targetContact.photoURL || null;
         const isOnline  = uid && onlineUsers.has(uid);
         const isInactive = uid && inactiveUsers.has(uid);
-        const relationLabel = convLabels[activeConv.id];
+        const relationLabel = targetConv?.id ? convLabels[targetConv.id] : targetContact.relation;
         const statusLabel = isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Afwezig' : 'Offline';
         return (
             <ProfilePageShell
               titleId="contact-profile-title"
               title="Profiel"
               description={`Bekijk en bewerk de profielgegevens van ${name}.`}
-              onBack={() => setShowContactProfile(false)}
+              onBack={() => { setShowContactProfile(false); setContactProfileContact?.(null); }}
               backLabel="Profiel sluiten"
               headerAction={(
                 <button
@@ -881,11 +891,11 @@ export default function ChatModals({
             >
 
               <div className="contact-profile-quick-actions">
-                <button type="button" className="contact-profile-quick-card" onClick={() => onInitiateCall?.(false)}>
+                <button type="button" className="contact-profile-quick-card" onClick={() => (contactProfileContact ? callContact?.(targetContact, false) : onInitiateCall?.(false))}>
                   <span className="contact-profile-quick-icon"><Phone size={24} aria-hidden="true" /></span>
                   <span>Audio</span>
                 </button>
-                <button type="button" className="contact-profile-quick-card" onClick={() => onInitiateCall?.(true)}>
+                <button type="button" className="contact-profile-quick-card" onClick={() => (contactProfileContact ? callContact?.(targetContact, true) : onInitiateCall?.(true))}>
                   <span className="contact-profile-quick-icon"><Video size={24} aria-hidden="true" /></span>
                   <span>Video</span>
                 </button>
@@ -910,10 +920,10 @@ export default function ChatModals({
                   </div>
                 )}
                 <div className="contact-profile-field">
-                  <span className="contact-profile-field-label">Relatie</span>
-                  <div className="label-chip-row contact-profile-chip-row contact-profile-chip-row--profile">
-                    {['familie', 'vrienden'].map(lbl => (
-                      <button key={lbl} type="button" onClick={() => setConvLabel(activeConv.id, relationLabel === lbl ? null : lbl)}
+                    <span className="contact-profile-field-label">Relatie</span>
+                    <div className="label-chip-row contact-profile-chip-row contact-profile-chip-row--profile">
+                      {['familie', 'vrienden'].map(lbl => (
+                      <button key={lbl} type="button" disabled={!targetConv?.id} onClick={() => targetConv?.id && setConvLabel(targetConv.id, relationLabel === lbl ? null : lbl)}
                         className={`label-chip${relationLabel === lbl ? ' active' : ''}`}>
                         {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
                       </button>

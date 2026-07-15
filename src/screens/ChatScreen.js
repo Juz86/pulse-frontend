@@ -34,6 +34,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [showGroupInfo,  setShowGroupInfo]  = useState(false);
   const [addingMember,   setAddingMember]   = useState(false);
   const [showContactProfile, setShowContactProfile] = useState(false);
+  const [contactProfileContact, setContactProfileContact] = useState(null);
   const [confirmDialog,  setConfirmDialog]  = useState(null);
   const [replyTo,        setReplyTo]        = useState(null);
   const [showChatSearch, setShowChatSearch] = useState(false);
@@ -426,6 +427,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const openUnifiedContactProfile = useCallback((contact, options = {}) => {
     if (!contact) return;
     setRenameValue(getContactNickname(contact.uid) || contact.displayName || '');
+    setContactProfileContact(contact);
     if (!options.preserveActiveConversation) {
       startChatWithContact(contact);
     }
@@ -665,7 +667,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               typing={typing} typingName={typingName} unreadCounts={unreadCounts}
               onBack={() => setActiveConv(null)} onInitiateCall={initiateCall}
               onShowGroupInfo={() => setShowGroupInfo(true)}
-              onShowContactProfile={() => setShowContactProfile(true)}
+              onShowContactProfile={() => { setContactProfileContact(null); setShowContactProfile(true); }}
               onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
               onEnterMessageSelection={() => messageSelectionMode ? cancelMessageSelection() : enterMessageSelection()}
               onShowStarredMsgs={() => setShowStarredMsgs(true)}
@@ -837,6 +839,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         avatarOptions={avatarOptions} setAvatarOptions={setAvatarOptions}
         showAvatarBuilder={showAvatarBuilder} setShowAvatarBuilder={setShowAvatarBuilder}
         showContactProfile={showContactProfile} setShowContactProfile={setShowContactProfile}
+        contactProfileContact={contactProfileContact}
+        setContactProfileContact={setContactProfileContact}
         showStarredMsgs={showStarredMsgs} setShowStarredMsgs={setShowStarredMsgs}
         starredMsgs={starredMsgs} messages={messages}
         onJumpToMsg={handleJumpToMsg}

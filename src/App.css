@@ -12247,26 +12247,13 @@ font-family: 'Inter', sans-serif;
   flex-shrink: 0;
 }
 
-.parent-dashboard-panel .analytics-profile-avatar-photo,
-.parent-dashboard-panel .analytics-profile-avatar-fallback {
+.parent-dashboard-panel .analytics-profile-avatar {
   width: 72px;
   height: 72px;
-  border-radius: 24px;
-  border: 3px solid rgba(134, 117, 255, 0.36);
-}
-
-.parent-dashboard-panel .analytics-profile-avatar-photo {
-  object-fit: cover;
-}
-
-.parent-dashboard-panel .analytics-profile-avatar-fallback {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg,#7c3aed,#a78bfa);
-  color: #fff;
+  border-radius: 50%;
   font-size: 24px;
-  font-weight: 700;
+  border: 3px solid rgba(190, 229, 255, 0.9);
+  box-shadow: 0 10px 24px rgba(147, 112, 255, 0.28);
 }
 
 .parent-dashboard-panel .analytics-profile-status-dot {

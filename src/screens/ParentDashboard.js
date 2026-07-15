@@ -1251,10 +1251,11 @@ export default function ParentDashboard({
                         <div className="parent-activity-overview">
                           <div className="analytics-profile-card">
                             <div className="analytics-profile-avatar-shell">
-                              {profile.photoURL
-                                ? <img src={profile.photoURL} alt={profile.displayName} className="analytics-profile-avatar-photo" />
-                                : <div className="analytics-profile-avatar-fallback">{getInitials(profile.displayName)}</div>
-                              }
+                              <UserAvatar
+                                photoURL={profile.photoURL || null}
+                                displayName={profile.displayName}
+                                className="analytics-profile-avatar"
+                              />
                               <span className={`analytics-profile-status-dot${profile.online ? ' online' : ' offline'}`} style={statusDot} />
                             </div>
                             <div className="analytics-profile-main">

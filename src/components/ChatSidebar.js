@@ -2721,6 +2721,14 @@ export default function ChatSidebar({
       onHardDeleteConversation?.(conv);
       onDone?.();
     };
+    const handleToggleConversationMuteFromActions = () => {
+      onToggleConversationMute?.(conv.id);
+      onDone?.();
+    };
+    const handleLeaveGroupFromActions = () => {
+      onLeaveGroup?.(conv);
+      onDone?.();
+    };
     return (
       <>
         {conv.isGroup && (
@@ -2769,7 +2777,7 @@ export default function ChatSidebar({
             role="menuitemcheckbox"
             aria-checked={isMuted}
             className={`chat-header-menu-item${isMuted ? ' active' : ''}`}
-            onClick={() => { onToggleConversationMute?.(conv.id); onDone?.(); }}
+            onClick={handleToggleConversationMuteFromActions}
             title={isMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}
           >
             {isMuted ? <BellOff size={14} aria-hidden="true" /> : <Bell size={14} aria-hidden="true" />}
@@ -2808,7 +2816,7 @@ export default function ChatSidebar({
             type="button"
             role="menuitem"
             className="chat-header-menu-item danger"
-            onClick={() => { onLeaveGroup?.(conv); onDone?.(); }}
+            onClick={handleLeaveGroupFromActions}
             title="Groep verlaten"
           >
             <Logout size={14} aria-hidden="true" />

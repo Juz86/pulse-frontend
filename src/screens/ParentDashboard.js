@@ -7,6 +7,7 @@ import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2,
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
 import { ProfilePageShell } from '../components/ProfilePageShell';
+import UserAvatar from '../components/UserAvatar';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INTERNAL_ACCOUNT_EMAIL_RE = /@(kind\.pulse\.local|pulse\.internal)$/i;
@@ -1320,9 +1321,12 @@ export default function ParentDashboard({
                               <div className="parent-activity-contacts-list">
                                 {filteredContacts.map((contact) => (
                                   <div key={contact.uid} className="parent-activity-contact-row">
-                                    {contact.photoURL
-                                      ? <img src={contact.photoURL} alt="" className="parent-top-contact-avatar parent-top-contact-avatar-photo" />
-                                      : <div className="parent-top-contact-avatar" aria-hidden="true">{getInitials(contact.displayName || contact.email || contact.uid)}</div>}
+                                    <UserAvatar
+                                      photoURL={contact.photoURL || null}
+                                      displayName={contact.displayName || contact.email || contact.uid}
+                                      className="parent-top-contact-avatar"
+                                      decorative
+                                    />
                                     <div className="parent-top-contact-copy">
                                       <strong>{contact.displayName || contact.email || contact.uid}</strong>
                                       <span>
@@ -1355,9 +1359,12 @@ export default function ParentDashboard({
                                       {section.items.map((contact, index) => (
                                         <div key={`${section.title}-${contact.uid || index}`} className="parent-top-contact-pill">
                                           <div className="parent-top-contact-rank" aria-hidden="true">{index + 1}</div>
-                                          {contact.photoURL
-                                            ? <img src={contact.photoURL} alt="" className="parent-top-contact-avatar parent-top-contact-avatar-photo" />
-                                            : <div className="parent-top-contact-avatar" aria-hidden="true">{getInitials(contact.name)}</div>}
+                                          <UserAvatar
+                                            photoURL={contact.photoURL || null}
+                                            displayName={contact.name}
+                                            className="parent-top-contact-avatar"
+                                            decorative
+                                          />
                                           <div className="parent-top-contact-copy">
                                             <strong>{contact.name}</strong>
                                             <span>{section.metric(contact)}</span>

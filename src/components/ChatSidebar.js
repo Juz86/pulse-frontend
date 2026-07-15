@@ -1001,6 +1001,14 @@ export default function ChatSidebar({
       onViewContact(contact, { preserveActiveConversation: true });
       completeContactActionsSheet();
     };
+    const handleStartChatFromActions = () => {
+      onStartChat(contact);
+      completeContactActionsSheet();
+    };
+    const handleCallContactFromActions = (isVideo) => {
+      onCallContact(contact, isVideo);
+      completeContactActionsSheet();
+    };
 
     return (
       <ProfilePageShell
@@ -1030,17 +1038,17 @@ export default function ChatSidebar({
           </button>
           {!isParentBlocked && (
             <>
-              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onStartChat(contact); completeContactActionsSheet(); }} title="Bericht sturen">
+              <button type="button" role="menuitem" className="chat-header-menu-item" onClick={handleStartChatFromActions} title="Bericht sturen">
                 <Message size={14} aria-hidden="true" />
                 <span>Bericht sturen</span>
               </button>
               {callsAvailable && (
                 <>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, false); completeContactActionsSheet(); }} title="Bellen">
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => handleCallContactFromActions(false)} title="Bellen">
                     <Phone size={14} aria-hidden="true" />
                     <span>Bellen</span>
                   </button>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => { onCallContact(contact, true); completeContactActionsSheet(); }} title="Videobellen">
+                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => handleCallContactFromActions(true)} title="Videobellen">
                     <Video size={14} aria-hidden="true" />
                     <span>Videobellen</span>
                   </button>
@@ -2676,6 +2684,14 @@ export default function ChatSidebar({
       onViewContact(contact, { preserveActiveConversation: true });
       onDone?.();
     };
+    const handleOpenConversationFromActions = () => {
+      onOpenConversation(conv);
+      onDone?.();
+    };
+    const handleCallFromConversationActions = (isVideo) => {
+      onCallFromConv(conv, isVideo);
+      onDone?.();
+    };
     return (
       <>
         {conv.isGroup && (
@@ -2694,19 +2710,19 @@ export default function ChatSidebar({
         )}
         {!isParentBlocked && <>
           {!conv.isGroup && <button type="button" role="menuitem" className="chat-header-menu-item"
-            onClick={() => { onOpenConversation(conv); onDone?.(); }} title="Bericht sturen">
+            onClick={handleOpenConversationFromActions} title="Bericht sturen">
             <Message size={14} aria-hidden="true" />
             <span>Bericht sturen</span>
           </button>}
           {!conv.isGroup && callsAvailable && (
             <>
               <button type="button" role="menuitem" className="chat-header-menu-item"
-                onClick={() => { onCallFromConv(conv, false); onDone?.(); }} title="Bellen">
+                onClick={() => handleCallFromConversationActions(false)} title="Bellen">
                 <Phone size={14} aria-hidden="true" />
                 <span>Bellen</span>
               </button>
               <button type="button" role="menuitem" className="chat-header-menu-item"
-                onClick={() => { onCallFromConv(conv, true); onDone?.(); }} title="Videobellen">
+                onClick={() => handleCallFromConversationActions(true)} title="Videobellen">
                 <Video size={14} aria-hidden="true" />
                 <span>Videobellen</span>
               </button>

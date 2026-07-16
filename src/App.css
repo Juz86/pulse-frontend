@@ -777,6 +777,10 @@ body {
   cursor: pointer;
 }
 
+.new-chat-page-directory .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {
+  content: none;
+}
+
 .new-chat-sheet-result + .new-chat-sheet-result,
 .search-result.new-chat-sheet-result + .search-result.new-chat-sheet-result {
   border-top: none;
@@ -785,7 +789,7 @@ body {
 .new-chat-sheet-result:hover,
 .search-result.new-chat-sheet-result:hover {
   border-color: transparent;
-  background: rgba(108, 99, 255, 0.045);
+  background: var(--surface2);
   box-shadow: none;
   transform: none;
 }
@@ -793,12 +797,12 @@ body {
 .new-chat-sheet-result .conv-name {
   font-size: 17px;
   font-weight: 600;
-  color: #23173f;
+  color: #f7f4ff;
 }
 
 .new-chat-sheet-result .conv-preview {
   margin-top: 4px;
-  color: #736986;
+  color: #b7b0d3;
 }
 
 .new-chat-sheet-result-copy {

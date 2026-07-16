@@ -635,43 +635,51 @@ export default function ChatSidebar({
         </button>
       )}
     >
-      <section className="contact-profile-card contact-profile-card--new-chat-search-panel">
-        <div className="new-chat-sheet-search">
-          <div className="starred-search-wrap call-log-search-wrap new-chat-search-wrap">
-            <input
-              className="starred-search-input"
-              placeholder="Naam of e-mailadres zoeken"
-              value={searchEmail}
-              onChange={(e) => setSearchEmail?.(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && searchUser?.()}
-            />
-          </div>
-          {searchErr && (
-            <div className="contact-profile-field">
-              <div className="auth-error">⚠️ {searchErr}</div>
-            </div>
+      <div className="calls-dashboard-search new-chat-page-search">
+        <div className="search-box search-box--top sidebar-call-search-box">
+          <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+          <input
+            className="sidebar-call-search-input"
+            placeholder="Naam of telefoonnummer zoeken"
+            value={searchEmail}
+            onChange={(e) => setSearchEmail?.(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && searchUser?.()}
+          />
+          {searchEmail && (
+            <button type="button" className="sidebar-call-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setSearchEmail?.('')}>
+              <Cancel size={14} aria-hidden="true" />
+            </button>
           )}
         </div>
-      </section>
+        {searchErr && (
+          <div className="contact-profile-field">
+            <div className="auth-error">⚠️ {searchErr}</div>
+          </div>
+        )}
+      </div>
 
       {(searchResult || contacts.length > 0) && (
-        <section className="contact-profile-card contact-profile-card--new-chat-directory">
-          <div className="pulse-sheet-list pulse-sheet-list--new-chat new-chat-contact-list">
+        <section className="calls-dashboard-section calls-dashboard-section--contacts new-chat-page-directory">
+          <div className="sidebar-call-list calls-dashboard-list calls-dashboard-list--contacts new-chat-contact-list">
             {searchResult && (
-              <button type="button" className="search-result new-chat-sheet-result new-chat-sheet-result--lookup" onClick={() => startConversationWith?.(searchResult)}>
-                <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" decorative />
-                <div className="new-chat-sheet-result-copy">
-                  <div className="conv-name">{searchResult.displayName}</div>
-                  <div className="conv-preview">{searchResult.email}</div>
+              <button type="button" className="sidebar-contact-card sidebar-contact-card--call-log new-chat-sheet-result new-chat-sheet-result--lookup" onClick={() => startConversationWith?.(searchResult)}>
+                <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                  <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" decorative />
+                  <div className="conv-info call-log-picker-copy new-chat-sheet-result-copy">
+                    <div className="conv-name">{searchResult.displayName}</div>
+                    <div className="conv-preview">{searchResult.email}</div>
+                  </div>
                 </div>
               </button>
             )}
             {filteredNewChatContacts.map((contact) => (
-              <button key={contact.uid} type="button" className="search-result new-chat-sheet-result" onClick={() => startConversationWith?.(contact)}>
-                <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} className="sm" decorative />
-                <div className="new-chat-sheet-result-copy">
-                  <div className="conv-name">{getContactDisplayName(contact)}</div>
-                  <div className="conv-preview">{contact.email}</div>
+              <button key={contact.uid} type="button" className="sidebar-contact-card sidebar-contact-card--call-log new-chat-sheet-result" onClick={() => startConversationWith?.(contact)}>
+                <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                  <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} className="sm" decorative />
+                  <div className="conv-info call-log-picker-copy new-chat-sheet-result-copy">
+                    <div className="conv-name">{getContactDisplayName(contact)}</div>
+                    <div className="conv-preview">{contact.email}</div>
+                  </div>
                 </div>
               </button>
             ))}

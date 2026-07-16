@@ -692,6 +692,17 @@ body {
   line-height: 1.5;
 }
 
+.contact-profile-card--new-chat-search-panel,
+.contact-profile-card--new-chat-directory {
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
 .new-chat-sheet-search {
   display: flex;
   flex-direction: column;
@@ -699,13 +710,18 @@ body {
   margin-bottom: 0;
 }
 
-.new-chat-search-wrap {
-  min-height: 54px;
-  border-radius: 28px;
-  border: 1px solid rgba(140, 122, 214, 0.16);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: none;
-  padding: 0 8px;
+.new-chat-page-search {
+  padding-top: 8px;
+  margin-bottom: 20px;
+}
+
+.new-chat-page-directory {
+  margin-bottom: 0;
+}
+
+.new-chat-page-directory .new-chat-contact-list {
+  padding: 0 0 132px;
+  box-sizing: border-box;
 }
 
 .new-chat-search-btn {
@@ -733,14 +749,6 @@ body {
   min-height: 0;
 }
 
-.new-chat-sheet-body .pulse-sheet-list--new-chat {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(140, 122, 214, 0.14);
-  border-radius: 28px;
-  overflow: hidden;
-  box-shadow: none;
-}
-
 .new-chat-sheet-body .new-chat-contact-list {
   flex: 1 1 auto;
   min-height: 0;
@@ -751,15 +759,7 @@ body {
 .new-chat-sheet-body .new-chat-sheet-result,
 .new-chat-sheet-body .search-result.new-chat-sheet-result {
   min-height: 68px;
-  padding: 0 22px;
-}
-
-.pulse-sheet-list--new-chat {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  overflow: visible;
-  box-shadow: none;
+  padding: 0;
 }
 
 .new-chat-sheet-result,
@@ -768,8 +768,8 @@ body {
   border: none;
   border-radius: 0;
   background: transparent;
-  min-height: 78px;
-  padding: 16px 20px;
+  min-height: 0;
+  padding: 0;
   text-align: left;
   margin-bottom: 0;
   box-shadow: none;
@@ -780,18 +780,6 @@ body {
 .new-chat-sheet-result + .new-chat-sheet-result,
 .search-result.new-chat-sheet-result + .search-result.new-chat-sheet-result {
   border-top: none;
-  position: relative;
-}
-
-.new-chat-sheet-result + .new-chat-sheet-result::before,
-.search-result.new-chat-sheet-result + .search-result.new-chat-sheet-result::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 78px;
-  right: 20px;
-  height: 1px;
-  background: rgba(112, 92, 191, 0.1);
 }
 
 .new-chat-sheet-result:hover,
@@ -820,8 +808,12 @@ body {
   min-width: 0;
 }
 
+.new-chat-page-directory .sidebar-contact-card--call-log {
+  background: transparent;
+}
+
 .new-chat-sheet-empty {
-  padding: 18px 20px;
+  padding: 18px 20px 132px;
   font-size: 13px;
   color: #7a709c;
 }
@@ -6541,7 +6533,6 @@ font-family: 'Inter', sans-serif;
 }
 .contact-profile-card {
   margin:0 0 14px;
-  padding:6px 0;
   border-radius:26px;
   border:1px solid rgba(255,255,255,.08);
   background:rgba(17,15,40,.56);

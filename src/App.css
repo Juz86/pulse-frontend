@@ -11567,8 +11567,8 @@ font-family: 'Inter', sans-serif;
   padding: max(16px, env(safe-area-inset-top)) 18px 12px;
   background:
     linear-gradient(180deg, rgba(38, 35, 88, 0.985) 0%, rgba(38, 35, 88, 0.955) 68%, rgba(38, 35, 88, 0.72) 86%, rgba(38, 35, 88, 0) 100%);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
 .calls-dashboard-sticky-top::after {

@@ -717,11 +717,20 @@ body {
 
 .new-chat-page-directory {
   margin-bottom: 0;
+  overflow: visible;
 }
 
 .new-chat-page-directory .new-chat-contact-list {
   padding: 0 0 132px;
   box-sizing: border-box;
+  overflow: visible;
+  max-height: none;
+}
+
+.new-chat-page-directory .sidebar-call-list,
+.new-chat-page-directory .calls-dashboard-list {
+  overflow: visible;
+  max-height: none;
 }
 
 .new-chat-search-btn {

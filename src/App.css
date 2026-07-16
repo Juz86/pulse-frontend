@@ -11563,12 +11563,23 @@ font-family: 'Inter', sans-serif;
   position: sticky;
   top: calc(max(16px, env(safe-area-inset-top)));
   z-index: 12;
-  margin: calc(-1 * max(16px, env(safe-area-inset-top))) -18px 18px;
-  padding: max(16px, env(safe-area-inset-top)) 18px 16px;
+  margin: calc(-1 * max(16px, env(safe-area-inset-top))) -18px 16px;
+  padding: max(16px, env(safe-area-inset-top)) 18px 12px;
   background:
-    linear-gradient(180deg, rgba(38, 35, 88, 0.98) 0%, rgba(38, 35, 88, 0.94) 72%, rgba(38, 35, 88, 0) 100%);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+    linear-gradient(180deg, rgba(38, 35, 88, 0.985) 0%, rgba(38, 35, 88, 0.955) 68%, rgba(38, 35, 88, 0.72) 86%, rgba(38, 35, 88, 0) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.calls-dashboard-sticky-top::after {
+  content: '';
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 0;
+  height: 18px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
 }
 
 .calls-dashboard-panel .contact-profile-topbar-spacer {
@@ -11614,8 +11625,8 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-search {
-  padding: 8px 0 0;
-  margin-bottom: 22px;
+  padding: 6px 0 0;
+  margin-bottom: 16px;
 }
 
 .calls-dashboard-panel .sidebar-call-search-box {

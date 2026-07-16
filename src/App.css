@@ -11561,9 +11561,9 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-sticky-top {
   position: sticky;
-  top: calc(max(16px, env(safe-area-inset-top)));
+  top: 0;
   z-index: 12;
-  margin: calc(-1 * max(16px, env(safe-area-inset-top))) -18px 16px;
+  margin: 0 -18px 16px;
   padding: max(16px, env(safe-area-inset-top)) 18px 12px;
   background: #262358;
 }

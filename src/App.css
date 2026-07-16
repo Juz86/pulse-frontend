@@ -11559,6 +11559,18 @@ font-family: 'Inter', sans-serif;
   margin-bottom: 14px;
 }
 
+.calls-dashboard-sticky-top {
+  position: sticky;
+  top: calc(max(16px, env(safe-area-inset-top)));
+  z-index: 12;
+  margin: calc(-1 * max(16px, env(safe-area-inset-top))) -18px 18px;
+  padding: max(16px, env(safe-area-inset-top)) 18px 16px;
+  background:
+    linear-gradient(180deg, rgba(38, 35, 88, 0.98) 0%, rgba(38, 35, 88, 0.94) 72%, rgba(38, 35, 88, 0) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
 .calls-dashboard-panel .contact-profile-topbar-spacer {
   opacity: 0;
   pointer-events: none;

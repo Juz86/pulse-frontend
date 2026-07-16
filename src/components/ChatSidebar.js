@@ -1611,59 +1611,61 @@ export default function ChatSidebar({
           aria-labelledby="calls-profile-title"
           aria-describedby="calls-profile-description"
         >
-          <div className="contact-profile-topbar calls-dashboard-topbar">
-            <div className="contact-profile-topbar-spacer" aria-hidden="true" />
-            <div className="contact-profile-heading calls-dashboard-heading">
-              <h2 id="calls-profile-title">{callActionMode ? 'Nieuwe oproep' : 'Oproepen'}</h2>
-            </div>
-            <button
-              type="button"
-              className="contact-profile-nav-btn calls-dashboard-add-btn"
-              aria-label={callActionMode ? 'Sluit contactkiezer' : 'Start nieuwe oproep'}
-              title={callActionMode ? 'Sluiten' : 'Nieuwe oproep'}
-              onClick={() => {
-                if (callActionMode) {
-                  setCallActionMode(null);
-                  return;
-                }
-                setCallActionMode('contacts');
-              }}
-            >
-              {callActionMode ? (
-                <XIcon size={20} aria-hidden="true" />
-              ) : (
-                <span className="calls-dashboard-add-icon" aria-hidden="true">
-                  <Phone size={18} />
-                  <Plus size={12} />
-                </span>
-              )}
-            </button>
-          </div>
-
-          <p id="calls-profile-description" className="sr-only">
-            Bekijk recente oproepen en start een nieuwe bel- of video-oproep.
-          </p>
-
-          <div className="calls-dashboard-search">
-            <div className="search-box search-box--top sidebar-call-search-box">
-              <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
-              <input
-                className="sidebar-call-search-input"
-                placeholder="Naam of telefoonnummer zoeken"
-                value={callSearch}
-                onChange={(e) => setCallSearch(e.target.value)}
-              />
-              {callSearch && (
-                <button type="button" className="sidebar-call-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
-                  <Cancel size={14} aria-hidden="true" />
-                </button>
-              )}
-            </div>
-            {remainingRateLimitSeconds > 0 && (
-              <div className="calls-dashboard-rate-limit" role="status" aria-live="polite">
-                Te veel verzoeken. Vernieuwen over {remainingRateLimitSeconds}s.
+          <div className="calls-dashboard-sticky-top">
+            <div className="contact-profile-topbar calls-dashboard-topbar">
+              <div className="contact-profile-topbar-spacer" aria-hidden="true" />
+              <div className="contact-profile-heading calls-dashboard-heading">
+                <h2 id="calls-profile-title">{callActionMode ? 'Nieuwe oproep' : 'Oproepen'}</h2>
               </div>
-            )}
+              <button
+                type="button"
+                className="contact-profile-nav-btn calls-dashboard-add-btn"
+                aria-label={callActionMode ? 'Sluit contactkiezer' : 'Start nieuwe oproep'}
+                title={callActionMode ? 'Sluiten' : 'Nieuwe oproep'}
+                onClick={() => {
+                  if (callActionMode) {
+                    setCallActionMode(null);
+                    return;
+                  }
+                  setCallActionMode('contacts');
+                }}
+              >
+                {callActionMode ? (
+                  <XIcon size={20} aria-hidden="true" />
+                ) : (
+                  <span className="calls-dashboard-add-icon" aria-hidden="true">
+                    <Phone size={18} />
+                    <Plus size={12} />
+                  </span>
+                )}
+              </button>
+            </div>
+
+            <p id="calls-profile-description" className="sr-only">
+              Bekijk recente oproepen en start een nieuwe bel- of video-oproep.
+            </p>
+
+            <div className="calls-dashboard-search">
+              <div className="search-box search-box--top sidebar-call-search-box">
+                <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+                <input
+                  className="sidebar-call-search-input"
+                  placeholder="Naam of telefoonnummer zoeken"
+                  value={callSearch}
+                  onChange={(e) => setCallSearch(e.target.value)}
+                />
+                {callSearch && (
+                  <button type="button" className="sidebar-call-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
+                    <Cancel size={14} aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+              {remainingRateLimitSeconds > 0 && (
+                <div className="calls-dashboard-rate-limit" role="status" aria-live="polite">
+                  Te veel verzoeken. Vernieuwen over {remainingRateLimitSeconds}s.
+                </div>
+              )}
+            </div>
           </div>
 
           {!callsAvailable ? (

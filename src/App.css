@@ -11540,10 +11540,22 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: max(20px, calc(env(safe-area-inset-bottom) + 12px));
   background:
     radial-gradient(circle at top center, rgba(139,92,246,.24), transparent 28%),
     linear-gradient(180deg, #262358 0%, #221f4e 100%);
+}
+
+.calls-dashboard-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 0 calc(max(34px, env(safe-area-inset-bottom) + 20px) + 128px);
 }
 
 .calls-dashboard-panel .calls-dashboard-section--recent {
@@ -11560,26 +11572,13 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-sticky-top {
-  position: sticky;
-  top: 0;
-  overflow: hidden;
-  overflow: clip;
-  z-index: 12;
-  isolation: isolate;
+  flex: 0 0 auto;
   margin: 0 -18px 16px;
   padding: max(16px, env(safe-area-inset-top)) 18px 12px;
-  background: #262358;
-}
-
-.calls-dashboard-sticky-top::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
   background:
     radial-gradient(circle at top center, rgba(139,92,246,.24), transparent 32%),
     linear-gradient(180deg, #262358 0%, #221f4e 100%);
-  pointer-events: none;
+  border-bottom: 1px solid rgba(255,255,255,.04);
 }
 
 .calls-dashboard-panel .contact-profile-topbar-spacer {
@@ -11716,13 +11715,13 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-list--recent {
   max-height: none;
-  padding-bottom: 132px;
+  padding-bottom: 0;
   box-sizing: border-box;
 }
 
 .calls-dashboard-list--contacts {
   max-height: none;
-  padding: 0 0 132px;
+  padding: 0;
   box-sizing: border-box;
 }
 

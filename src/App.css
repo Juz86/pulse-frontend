@@ -11563,9 +11563,21 @@ font-family: 'Inter', sans-serif;
   position: sticky;
   top: 0;
   z-index: 12;
+  isolation: isolate;
   margin: 0 -18px 16px;
   padding: max(16px, env(safe-area-inset-top)) 18px 12px;
   background: #262358;
+}
+
+.calls-dashboard-sticky-top::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at top center, rgba(139,92,246,.24), transparent 32%),
+    linear-gradient(180deg, #262358 0%, #221f4e 100%);
+  pointer-events: none;
 }
 
 .calls-dashboard-panel .contact-profile-topbar-spacer {

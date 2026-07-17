@@ -11562,6 +11562,8 @@ font-family: 'Inter', sans-serif;
 .calls-dashboard-sticky-top {
   position: sticky;
   top: 0;
+  overflow: hidden;
+  overflow: clip;
   z-index: 12;
   isolation: isolate;
   margin: 0 -18px 16px;

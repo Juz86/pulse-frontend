@@ -3187,6 +3187,28 @@ font-family: 'Inter', sans-serif;
   flex:1 1 auto;
   min-width:0;
 }
+.sidebar-top .search-box--top {
+  min-height: 50px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.09);
+  background: rgba(34, 29, 78, 0.92);
+  padding: 0 18px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.03),
+    0 12px 28px rgba(13, 10, 36, .18);
+}
+.sidebar-top .search-box--top:focus-within {
+  border-color: rgba(124, 108, 255, 0.38);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 3px rgba(124,108,255,.10);
+}
+.sidebar-top .search-box--top input {
+  color: #f7f4ff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.sidebar-top .search-box--top input::placeholder {
+  color: rgba(183, 176, 211, 0.78);
+}
 .search-box input { background:none; border:none; outline:none; color:var(--text); font-size:14px; flex:1; }
 .search-box input::placeholder { color:var(--text3); }
 

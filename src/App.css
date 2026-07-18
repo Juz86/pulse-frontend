@@ -11570,12 +11570,10 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel .contact-profile-topbar {
-  position: relative;
-  min-height: 56px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
+  gap: 12px;
+  justify-content: space-between;
   margin-bottom: 14px;
 }
 

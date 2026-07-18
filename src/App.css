@@ -11570,30 +11570,41 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel .contact-profile-topbar {
+  position: relative;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
   margin-bottom: 14px;
 }
 
 .calls-dashboard-sticky-top {
   flex: 0 0 auto;
   margin: 0 -18px 16px;
-  padding: max(16px, env(safe-area-inset-top)) 18px 12px;
+  padding: max(8px, env(safe-area-inset-top)) 8px 2px;
 }
 
 .calls-dashboard-panel .contact-profile-topbar-spacer {
   opacity: 0;
   pointer-events: none;
+  width: 50px;
+  height: 50px;
+  flex: 0 0 auto;
 }
 
 .calls-dashboard-heading {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 0;
+  text-align: center;
 }
 
 .calls-dashboard-panel #calls-profile-title {
   color: #f7f5ff;
   flex: 1 1;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.01em;
   margin: 0;
@@ -11602,6 +11613,9 @@ font-family: 'Inter', sans-serif;
 
 .calls-dashboard-add-btn {
   color: #f7f5ff;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .calls-dashboard-add-icon {

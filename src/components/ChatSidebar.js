@@ -603,7 +603,6 @@ export default function ChatSidebar({
               <span className="contact-profile-row-icon" aria-hidden="true">{action.icon}</span>
               <span className="contact-profile-row-copy">
                 <span className="contact-profile-row-title">{action.label}</span>
-                <span className="contact-profile-row-subtitle">{action.description}</span>
               </span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
                 <path d="M9 18l6-6-6-6" />

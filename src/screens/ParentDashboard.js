@@ -1430,7 +1430,6 @@ export default function ParentDashboard({
           <span className="contact-profile-row-icon" aria-hidden="true">{tab.icon}</span>
           <span className="contact-profile-row-copy">
             <span className="contact-profile-row-title">{tab.label}</span>
-            <span className="contact-profile-row-subtitle">Open {tab.label.toLowerCase()} binnen het ouderportaal.</span>
           </span>
           {tab.badge && (
             <span className="parent-badge parent-badge--inline" aria-label={`${tab.badge} nieuwe activiteiten`}>

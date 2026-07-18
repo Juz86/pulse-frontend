@@ -680,6 +680,10 @@ body {
   box-shadow: 0 14px 28px rgba(123, 96, 233, 0.22);
 }
 
+.add-contact-sheet-body .contact-profile-field + .contact-profile-field {
+  border-top: 0;
+}
+
 .add-contact-sheet-actions .btn-primary,
 .add-contact-sheet-actions .btn-secondary {
   border-radius: 18px;

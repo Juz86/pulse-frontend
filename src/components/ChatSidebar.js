@@ -714,7 +714,7 @@ export default function ChatSidebar({
         </button>
       )}
     >
-      <section className="contact-profile-card">
+      <section className="contact-profile-card add-contact-sheet-body">
         <div className="contact-profile-field">
           <p id="add-contact-description" className="new-chat-sheet-sub">
             Voeg familie en vrienden toe via e-mailadres of naam<code>@pulse.internal</code>.

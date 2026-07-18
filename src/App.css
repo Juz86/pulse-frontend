@@ -11540,7 +11540,6 @@ font-family: 'Inter', sans-serif;
 }
 
 .calls-dashboard-panel {
-  --calls-dashboard-list-bg: #27245a;
   display: flex;
   flex-direction: column;
   overflow: hidden;

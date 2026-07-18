@@ -11645,7 +11645,8 @@ font-family: 'Inter', sans-serif;
   margin-bottom: 16px;
 }
 
-.calls-dashboard-panel .sidebar-call-search-box {
+.calls-dashboard-panel .sidebar-call-search-box,
+.new-chat-page-search .sidebar-call-search-box {
   min-height: 50px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,.09);
@@ -11656,24 +11657,30 @@ font-family: 'Inter', sans-serif;
     0 12px 28px rgba(13, 10, 36, .18);
 }
 
-.calls-dashboard-panel .sidebar-call-search-box:focus-within {
+.calls-dashboard-panel .sidebar-call-search-box:focus-within,
+.new-chat-page-search .sidebar-call-search-box:focus-within {
   border-color: rgba(124, 108, 255, 0.38);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 3px rgba(124,108,255,.10);
 }
 
 .calls-dashboard-panel .sidebar-call-search-box input,
-.calls-dashboard-panel .sidebar-call-search-input {
+.calls-dashboard-panel .sidebar-call-search-input,
+.new-chat-page-search .sidebar-call-search-box input,
+.new-chat-page-search .sidebar-call-search-input {
   color: #f7f4ff;
   font-size: 14px;
   font-weight: 600;
 }
 
 .calls-dashboard-panel .sidebar-call-search-box input::placeholder,
-.calls-dashboard-panel .sidebar-call-search-input::placeholder {
+.calls-dashboard-panel .sidebar-call-search-input::placeholder,
+.new-chat-page-search .sidebar-call-search-box input::placeholder,
+.new-chat-page-search .sidebar-call-search-input::placeholder {
   color: rgba(183, 176, 211, 0.78);
 }
 
-.calls-dashboard-panel .sidebar-call-search-clear {
+.calls-dashboard-panel .sidebar-call-search-clear,
+.new-chat-page-search .sidebar-call-search-clear {
   color: rgba(183, 176, 211, 0.88);
   background: transparent;
   border: 0;

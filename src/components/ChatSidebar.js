@@ -1305,7 +1305,7 @@ export default function ChatSidebar({
             style={historySelectStyle}
           />
           {historySettingRows.map((row) => (
-            <div key={`child-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced">
+            <div key={`child-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced profile-settings-field-stack--inline">
               <div className="profile-settings-field-label">{row.label}</div>
               <SidebarHistorySelect
                 ariaLabel={`${row.label} kindaccount`}

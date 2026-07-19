@@ -6591,6 +6591,29 @@ font-family: 'Inter', sans-serif;
 .new-group-page-section .contact-profile-field + .contact-profile-field {
   border-top:0;
 }
+
+/* Keep the add-contact form compact without the profile-card frame. */
+.add-contact-page-section {
+  margin-bottom:0;
+  gap:4px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  overflow:visible;
+}
+
+.add-contact-page-section .contact-profile-field {
+  padding:8px 18px;
+}
+
+.add-contact-page-section .contact-profile-field + .contact-profile-field {
+  border-top:0;
+}
+
+.add-contact-page-section .add-contact-sheet-actions {
+  margin-top:0;
+}
 .contact-profile-card-danger {
   background:rgba(40,14,30,.34);
 }

@@ -1261,7 +1261,7 @@ export default function ChatSidebar({
     'Privacy',
     'Bepaal per account hoe lang gegevens bewaard blijven.',
     <>
-      <section className="contact-profile-card">
+      <section className="privacy-page-section">
         <div className="contact-profile-field">
           <span className="contact-profile-field-label">Privacy</span>
           <div className="parent-dashboard-meta-block">
@@ -1270,7 +1270,7 @@ export default function ChatSidebar({
           </div>
         </div>
       </section>
-      <section className="contact-profile-card">
+      <section className="privacy-page-section">
         <div className="contact-profile-field">
           {historySettingRows.map((row) => (
             <div key={`parent-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced">
@@ -1290,7 +1290,7 @@ export default function ChatSidebar({
           </button>
         </div>
       </section>
-      <section className="contact-profile-card">
+      <section className="privacy-page-section">
         <div className="contact-profile-field">
           <SidebarHistorySelect
             ariaLabel="Kies kindaccount"

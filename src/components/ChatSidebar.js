@@ -341,9 +341,9 @@ export default function ChatSidebar({
   const primaryHistoryRules = normalizeHistoryRules(primaryHistoryChild ? childHistoryRulesByUid?.[primaryHistoryChild.uid] : {});
   const canManagePrimaryHistoryChild = !!primaryHistoryChild?.canManageHistory;
   const historySettingRows = [
-    { key: 'chatRetentionDays', label: 'Chatgeschiedenis' },
-    { key: 'callRetentionDays', label: 'Belgeschiedenis' },
-    { key: 'videoRetentionDays', label: 'Videobelgeschiedenis' },
+    { key: 'chatRetentionDays', label: 'Chats' },
+    { key: 'callRetentionDays', label: 'Bellen' },
+    { key: 'videoRetentionDays', label: 'Videobellen' },
   ];
   const settingsDisplayName = user.displayName || user.email?.split('@')[0] || 'Gebruiker';
   const settingsEmail = user.email || '';

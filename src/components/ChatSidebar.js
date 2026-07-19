@@ -1142,7 +1142,7 @@ export default function ChatSidebar({
         </ProfilePageHero>
       )}
     >
-      <section className="contact-profile-card">
+      <section className="account-page-section">
         <div className="contact-profile-field">
           <input className="form-input" placeholder="Jouw naam" value={newName} onChange={(e) => setNewName?.(e.target.value)} />
         </div>
@@ -1175,7 +1175,7 @@ export default function ChatSidebar({
       </section>
 
       {!user.email?.endsWith('@pulse.internal') && (
-        <section className="contact-profile-card">
+        <section className="account-page-section">
           <div className="contact-profile-field">
             <div style={{ position: 'relative' }}>
               <input

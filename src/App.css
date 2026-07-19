@@ -6604,7 +6604,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .add-contact-page-section .contact-profile-field {
-  padding:8px 18px;
+  padding:8px 0px 18px;
 }
 
 .add-contact-page-section .contact-profile-field + .contact-profile-field {

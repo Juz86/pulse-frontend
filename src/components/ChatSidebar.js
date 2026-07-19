@@ -385,7 +385,7 @@ export default function ChatSidebar({
             key={item.key}
             type="button"
             role="menuitem"
-            className={`chat-header-menu-item${item.active ? ' active' : ''}`}
+            className={`chat-header-menu-item${item.active ? ' active' : ''}${item.danger ? ' danger' : ''}`}
             onClick={item.onClick}
           >
             {item.icon}
@@ -563,6 +563,7 @@ export default function ChatSidebar({
         icon: dnd ? <Bell size={18} aria-hidden="true" /> : <BellOff size={18} aria-hidden="true" />,
         label: `Meldingen ${dnd ? 'aan' : 'uit'}`,
         description: dnd ? 'Schakel meldingen weer in.' : 'Schakel meldingen tijdelijk uit.',
+        danger: !dnd,
         onClick: () => {
           onToggleDnd();
         },
@@ -594,7 +595,7 @@ export default function ChatSidebar({
             <button
               key={action.id}
               type="button"
-              className="contact-profile-row-button"
+              className={`contact-profile-row-button${action.danger ? ' danger' : ''}`}
               onClick={action.onClick}
             >
               <span className="contact-profile-row-icon" aria-hidden="true">{action.icon}</span>
@@ -3729,6 +3730,7 @@ export default function ChatSidebar({
                     key: 'dnd',
                     icon: dnd ? <Bell size={18} aria-hidden="true" /> : <BellOff size={18} aria-hidden="true" />,
                     label: `Meldingen ${dnd ? 'aan' : 'uit'}`,
+                    danger: !dnd,
                     onClick: () => { onToggleDnd(); },
                     active: dnd,
                   },

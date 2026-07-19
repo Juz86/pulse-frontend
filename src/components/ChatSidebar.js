@@ -1414,7 +1414,7 @@ export default function ChatSidebar({
     'Styling',
     'Kies een achtergrond die past bij jouw Pulse-gesprekken.',
     <>
-      <section className="contact-profile-card">
+      <section className="styling-page-section">
         <div className="contact-profile-field">
           <span className="contact-profile-field-label">Styling</span>
           <div className="parent-dashboard-meta-block">
@@ -1423,7 +1423,7 @@ export default function ChatSidebar({
           </div>
         </div>
       </section>
-      <section className="contact-profile-card">
+      <section className="styling-page-section">
         <div className="contact-profile-field">
           <div className="profile-styling-tabs">
             {[

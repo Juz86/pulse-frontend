@@ -792,7 +792,7 @@ export default function ChatSidebar({
         </button>
       )}
     >
-      <section className="contact-profile-card">
+      <section className="contact-profile-card new-group-page-section">
         <div className="contact-profile-field">
           <p id="new-group-description" className="new-chat-sheet-sub">
             Start een groepsgesprek met familie en vrienden.
@@ -812,7 +812,7 @@ export default function ChatSidebar({
         </div>
       </section>
 
-      <section className="contact-profile-card">
+      <section className="contact-profile-card new-group-page-section">
         <div className="contact-profile-field-label">Kies deelnemers</div>
         {contacts.length === 0 && (
           <div className="contact-profile-field">

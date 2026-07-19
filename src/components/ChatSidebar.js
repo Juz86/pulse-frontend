@@ -547,20 +547,17 @@ export default function ChatSidebar({
           setShowFriendRequestsPanel?.(true);
         },
       },
-      {
+      ...(!selectionMode ? [{
         id: 'selection',
         icon: <Message size={18} aria-hidden="true" />,
-        label: selectionMode ? 'Selectie stoppen' : 'Chats selecteren',
-        description: selectionMode ? 'Stop met meerdere gesprekken selecteren.' : 'Selecteer meerdere gesprekken tegelijk.',
+        label: 'Chats selecteren',
+        description: 'Selecteer meerdere gesprekken tegelijk.',
         onClick: () => {
           closeMoreActionsSheet();
-          if (selectionMode) onCancelConversationSelection?.();
-          else {
-            setActiveTab('chats');
-            onEnterConversationSelection?.();
-          }
+          setActiveTab('chats');
+          onEnterConversationSelection?.();
         },
-      },
+      }] : []),
       {
         id: 'dnd',
         icon: dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />,
@@ -3722,12 +3719,12 @@ export default function ChatSidebar({
                       ? <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
                       : null,
                   },
-                  {
+                  ...(!selectionMode ? [{
                     key: 'selection',
                     icon: <Message size={18} aria-hidden="true" />,
-                    label: selectionMode ? 'Selectie stoppen' : 'Chats selecteren',
-                    onClick: () => { closeMoreActionsSheet(); if (selectionMode) onCancelConversationSelection?.(); else { setActiveTab('chats'); onEnterConversationSelection?.(); } },
-                  },
+                    label: 'Chats selecteren',
+                    onClick: () => { closeMoreActionsSheet(); setActiveTab('chats'); onEnterConversationSelection?.(); },
+                  }] : []),
                   {
                     key: 'dnd',
                     icon: dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />,

@@ -6618,7 +6618,7 @@ font-family: 'Inter', sans-serif;
   background:rgba(40,14,30,.34);
 }
 .contact-profile-field {
-  padding:12px 18px 14px;
+  padding:12px 0px 14px;
 }
 .contact-profile-field + .contact-profile-field {
   border-top:1px solid rgba(255,255,255,.06);

@@ -889,16 +889,6 @@ export default function ChatSidebar({
         </button>
       )}
     >
-      <section className="contact-profile-card">
-        <div className="contact-profile-field">
-          <span className="contact-profile-field-label">Verzoeken</span>
-          <div className="parent-dashboard-meta-block">
-            <div className="parent-dashboard-meta-title">Beheer je verzoeken</div>
-            <div className="parent-dashboard-meta-subtitle">Beheer binnenkomende en verstuurde vriendschapsverzoeken.</div>
-          </div>
-        </div>
-      </section>
-
       <div className="friend-requests-tabs">
         <button
           type="button"

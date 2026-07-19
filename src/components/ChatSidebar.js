@@ -560,7 +560,7 @@ export default function ChatSidebar({
       }] : []),
       {
         id: 'dnd',
-        icon: dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />,
+        icon: dnd ? <Bell size={18} aria-hidden="true" /> : <BellOff size={18} aria-hidden="true" />,
         label: `Meldingen ${dnd ? 'aan' : 'uit'}`,
         description: dnd ? 'Schakel meldingen weer in.' : 'Schakel meldingen tijdelijk uit.',
         onClick: () => {
@@ -3727,7 +3727,7 @@ export default function ChatSidebar({
                   }] : []),
                   {
                     key: 'dnd',
-                    icon: dnd ? <BellOff size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />,
+                    icon: dnd ? <Bell size={18} aria-hidden="true" /> : <BellOff size={18} aria-hidden="true" />,
                     label: `Meldingen ${dnd ? 'aan' : 'uit'}`,
                     onClick: () => { onToggleDnd(); },
                     active: dnd,

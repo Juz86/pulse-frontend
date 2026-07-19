@@ -1273,7 +1273,7 @@ export default function ChatSidebar({
       <section className="privacy-page-section">
         <div className="contact-profile-field">
           {historySettingRows.map((row) => (
-            <div key={`parent-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced">
+            <div key={`parent-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced profile-settings-field-stack--inline">
               <div className="profile-settings-field-label">{row.label}</div>
               <SidebarHistorySelect
                 ariaLabel={`${row.label} ouderaccount`}

@@ -5956,6 +5956,18 @@ font-family: 'Inter', sans-serif;
 .profile-settings-field-stack--spaced {
   margin-top: 10px;
 }
+.profile-settings-field-stack--inline {
+  flex-direction: row;
+  align-items: center;
+}
+.profile-settings-field-stack--inline .profile-settings-field-label {
+  flex: 0 0 92px;
+  padding-left: 2px;
+}
+.profile-settings-field-stack--inline > div:last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
 .profile-settings-page-title {
   margin: 2px 0 0;
   font-size: 22px;

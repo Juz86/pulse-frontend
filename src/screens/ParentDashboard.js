@@ -155,7 +155,7 @@ export default function ParentDashboard({
       const data = await res.json();
       const list = Array.isArray(data) ? data : [];
       setChildren(list);
-      setSelectedChildUid(prev => prev || (list[0]?.uid ?? null));
+      setSelectedChildUid(prev => list.some((child) => child.uid === prev) ? prev : (list[0]?.uid ?? null));
       setContactsChildUid(prev => prev || (list[0]?.uid ?? null));
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
     setLoading(false);
@@ -671,8 +671,41 @@ export default function ParentDashboard({
             {activeTab === 'children' && (
                 <div className="parent-portal-view parent-portal-view--children">
                   <div className="parent-portal-toolbar parent-portal-toolbar--spread">
-                  <h2 className="parent-section-title">Mijn kinderen</h2>
-                </div>
+                    <h2 className="parent-section-title">Mijn kinderen</h2>
+                    {children.length > 0 && (
+                      <div className="parent-portal-picker">
+                        <button
+                          type="button"
+                          className="parent-btn-outline parent-btn-outline--compact parent-btn-outline--picker"
+                          aria-label="Kies kind voor kinderenoverzicht"
+                          aria-haspopup="listbox"
+                          aria-expanded={childDropdownOpen}
+                          onClick={e => { e.stopPropagation(); setChildDropdownOpen(o => !o); }}
+                        >
+                          <span className="parent-child-picker-label">
+                            {children.find(c => c.uid === selectedChildUid)?.displayName || 'Kind'}
+                          </span>
+                          <ChevronDown size={16} aria-hidden="true" />
+                        </button>
+                        {childDropdownOpen && (
+                          <div role="listbox" aria-label="Kies een kind" className="parent-portal-picker-menu">
+                            {children.map(c => (
+                              <button
+                                key={c.uid}
+                                type="button"
+                                role="option"
+                                aria-selected={c.uid === selectedChildUid}
+                                className={`parent-portal-picker-option${c.uid === selectedChildUid ? ' active' : ''}`}
+                                onClick={() => { setSelectedChildUid(c.uid); setChildDropdownOpen(false); }}
+                              >
+                                {c.displayName}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 {childError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{childError}</div>}
 
                 {loading ? (
@@ -683,7 +716,7 @@ export default function ParentDashboard({
                     <p>Nog geen kinderen toegevoegd.</p>
                     <p className="parent-portal-inline-sub">Voeg een kind toe via het tabblad "Kind toevoegen".</p>
                   </div>
-                ) : children.map(child => (
+                ) : children.filter((child) => !selectedChildUid || child.uid === selectedChildUid).map(child => (
                   <div
                     key={child.uid}
                     className={`parent-portal-stack${pauseMenuUid === child.uid || resumeMenuUid === child.uid ? ' parent-portal-stack--menu-open' : ''}${changingPwUid === child.uid || editingUsernameUid === child.uid ? ' parent-portal-stack--editing' : ''}`}

@@ -1260,7 +1260,6 @@ export default function ChatSidebar({
     <>
       <section className="privacy-page-section">
         <div className="contact-profile-field">
-          <span className="contact-profile-field-label">Privacy</span>
           <div className="parent-dashboard-meta-block">
             <div className="parent-dashboard-meta-title">Jij bepaalt</div>
             <div className="parent-dashboard-meta-subtitle">Stel in hoe lang chat-, bel- en videogeschiedenis bewaard blijven.</div>

@@ -1358,15 +1358,6 @@ export default function ChatSidebar({
       <>
         <section className="contact-profile-card">
           <div className="contact-profile-field">
-            <span className="contact-profile-field-label">Geblokkeerd</span>
-            <div className="parent-dashboard-meta-block">
-              <div className="parent-dashboard-meta-title">Geblokkeerde contacten</div>
-              <div className="parent-dashboard-meta-subtitle">Bekijk welke contacten door jou of door een ouder zijn geblokkeerd en beheer direct wat weer toegankelijk mag worden.</div>
-            </div>
-          </div>
-        </section>
-        <section className="contact-profile-card">
-          <div className="contact-profile-field">
             {selfBlocked.length === 0 && parentBlocked.length === 0 ? (
               <div className="profile-settings-empty">Geen geblokkeerde contacten.</div>
             ) : (

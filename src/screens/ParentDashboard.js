@@ -1627,7 +1627,7 @@ export default function ParentDashboard({
             </>
           ) : (
             <>
-              {!['add', 'children', 'contacts'].includes(activeTab) && renderPortalMetaCard(
+              {!['add', 'children', 'contacts', 'location'].includes(activeTab) && renderPortalMetaCard(
                 activeTabMeta.label,
                 portalSectionDescriptions[activeTab] || 'Beheer dit onderdeel binnen het ouderportaal.'
               )}

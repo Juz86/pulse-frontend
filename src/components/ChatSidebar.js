@@ -457,7 +457,7 @@ export default function ChatSidebar({
           />
         )}
       >
-        <section className="contact-profile-card">
+        <section className="blocked-contacts-page-section">
           {rowSections.map((section) => renderOverviewRow(section))}
         </section>
 

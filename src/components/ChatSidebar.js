@@ -457,7 +457,7 @@ export default function ChatSidebar({
           />
         )}
       >
-        <section className="blocked-contacts-page-section">
+        <section className="contact-profile-card">
           {rowSections.map((section) => renderOverviewRow(section))}
         </section>
 
@@ -1356,7 +1356,7 @@ export default function ChatSidebar({
       'Geblokkeerd',
       'Beheer welke contacten geblokkeerd zijn.',
       <>
-        <section className="contact-profile-card">
+        <section className="blocked-contacts-page-section">
           <div className="contact-profile-field">
             {selfBlocked.length === 0 && parentBlocked.length === 0 ? (
               <div className="profile-settings-empty">Geen geblokkeerde contacten.</div>

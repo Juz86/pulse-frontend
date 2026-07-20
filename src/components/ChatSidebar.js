@@ -1289,18 +1289,21 @@ export default function ChatSidebar({
       </section>
       <section className="privacy-page-section">
         <div className="contact-profile-field">
-          <SidebarHistorySelect
-            ariaLabel="Kies kindaccount"
-            value={selectedHistoryChildUid}
-            options={
-              historyChildren.length === 0
-                ? [{ value: '', label: 'Geen kindaccounts' }]
-                : historyChildren.map((child) => ({ value: child.uid, label: child.displayName }))
-            }
-            onChange={(nextValue) => setSelectedHistoryChildUid(String(nextValue))}
-            disabled={!historyChildren.length || historySettingsLoading}
-            style={historySelectStyle}
-          />
+          <div className="profile-settings-field-stack profile-settings-field-stack--inline">
+            <div className="profile-settings-field-label">Kindaccount</div>
+            <SidebarHistorySelect
+              ariaLabel="Kies kindaccount"
+              value={selectedHistoryChildUid}
+              options={
+                historyChildren.length === 0
+                  ? [{ value: '', label: 'Geen kindaccounts' }]
+                  : historyChildren.map((child) => ({ value: child.uid, label: child.displayName }))
+              }
+              onChange={(nextValue) => setSelectedHistoryChildUid(String(nextValue))}
+              disabled={!historyChildren.length || historySettingsLoading}
+              style={historySelectStyle}
+            />
+          </div>
           {historySettingRows.map((row) => (
             <div key={`child-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced profile-settings-field-stack--inline">
               <div className="profile-settings-field-label">{row.label}</div>

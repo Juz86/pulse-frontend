@@ -411,7 +411,6 @@ export default function ChatSidebar({
         <span className="contact-profile-row-icon" aria-hidden="true">{section.icon}</span>
         <span className="contact-profile-row-copy">
           <span className="contact-profile-row-title">{section.label}</span>
-          <span className="contact-profile-row-subtitle">{section.description}</span>
         </span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
           <path d="M9 18l6-6-6-6" />
@@ -475,7 +474,6 @@ export default function ChatSidebar({
             </span>
             <span className="contact-profile-row-copy">
               <span className="contact-profile-row-title">Uitloggen</span>
-              <span className="contact-profile-row-subtitle">Afmelden van dit account</span>
             </span>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
               <path d="M9 18l6-6-6-6" />
@@ -1225,7 +1223,6 @@ export default function ChatSidebar({
           <span className="contact-profile-row-icon" aria-hidden="true"><Trash2 size={18} /></span>
           <span className="contact-profile-row-copy">
             <span className="contact-profile-row-title">Account verwijderen</span>
-            <span className="contact-profile-row-subtitle">Verwijder chats, berichten en gegevens permanent</span>
           </span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
             <path d="M9 18l6-6-6-6" />

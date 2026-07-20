@@ -6081,6 +6081,12 @@ font-family: 'Inter', sans-serif;
   font-weight: 600;
   color: #241741;
 }
+.profile-settings-contact-email {
+  margin-top: 2px;
+  color: #6b6288;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
 .profile-settings-contact-note {
   font-size: 11px;
   color: var(--danger);

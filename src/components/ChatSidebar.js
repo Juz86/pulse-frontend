@@ -1371,6 +1371,7 @@ export default function ChatSidebar({
                           <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
+                            {c.email && <div className="profile-settings-contact-email">{c.email}</div>}
                           </div>
                           <button type="button" className="profile-settings-inline-btn" onClick={() => onUnblockContact?.(c.uid)}>Deblokkeren</button>
                         </div>
@@ -1387,6 +1388,7 @@ export default function ChatSidebar({
                           <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
+                            {c.email && <div className="profile-settings-contact-email">{c.email}</div>}
                             <div className="profile-settings-contact-note">Geblokkeerd door ouder</div>
                           </div>
                         </div>
@@ -3404,6 +3406,7 @@ export default function ChatSidebar({
                                         <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                           <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
+                                          {c.email && <div className="profile-settings-contact-email">{c.email}</div>}
                                         </div>
                                         <button type="button" className="btn-secondary" style={{ fontSize: '12px', padding: '5px 12px', flexShrink: 0, width: 'auto', marginTop: 0 }} onClick={() => onUnblockContact?.(c.uid)}>Deblokkeren</button>
                                       </div>
@@ -3420,6 +3423,7 @@ export default function ChatSidebar({
                                         <UserAvatar photoURL={c.photoURL} displayName={c.displayName || c.email} className="sm" decorative style={{ flexShrink: 0 }} />
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                           <div className="blocked-contact-name-responsive profile-settings-contact-name">{c.displayName || c.email}</div>
+                                          {c.email && <div className="profile-settings-contact-email">{c.email}</div>}
                                           <div className="profile-settings-contact-note">Geblokkeerd door ouder</div>
                                         </div>
                                       </div>

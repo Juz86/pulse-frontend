@@ -12517,6 +12517,10 @@ font-family: 'Inter', sans-serif;
   color: #f7f4ff;
 }
 
+.parent-dashboard-panel .pd-location-meta strong {
+  color: #f7f4ff;
+}
+
 .parent-dashboard-panel .parent-child-meta,
 .parent-dashboard-panel .parent-activity-time,
 .parent-dashboard-panel .pd-contact-meta,

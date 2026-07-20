@@ -580,14 +580,6 @@ export default function ParentDashboard({
   }, []);
   const activeTabMeta = TABS.find((tab) => tab.id === activeTab) || TABS[0];
   const showingMenu = portalView === 'menu';
-  const portalSectionDescriptions = {
-    add: 'Maak een kindaccount aan met een eigen loginnaam en wachtwoord.',
-    children: 'Beheer bestaande kindaccounts, toegang en tijdelijke pauzes.',
-    contacts: 'Bekijk en beheer de contacten die aan een kind gekoppeld zijn.',
-    location: 'Volg realtime locatie en laatste updates per kind.',
-    activities: 'Bekijk activiteit, schermtijd en recente gebeurtenissen.',
-  };
-
   const renderPortalContent = () => (
     <>
 
@@ -1442,18 +1434,6 @@ export default function ParentDashboard({
     </section>
   );
 
-  const renderPortalMetaCard = (title, subtitle) => (
-    <section className="contact-profile-card contact-profile-card--parent-portal-meta">
-      <div className="contact-profile-field">
-        <span className="contact-profile-field-label">Ouderportaal</span>
-        <div className="parent-dashboard-meta-block">
-          <div className="parent-dashboard-meta-title">{title}</div>
-          {subtitle ? <div className="parent-dashboard-meta-subtitle">{subtitle}</div> : null}
-        </div>
-      </div>
-    </section>
-  );
-
   const parentOverlays = (
     <>
       {confirmDelete && (
@@ -1627,10 +1607,6 @@ export default function ParentDashboard({
             </>
           ) : (
             <>
-              {!['add', 'children', 'contacts', 'location'].includes(activeTab) && renderPortalMetaCard(
-                activeTabMeta.label,
-                portalSectionDescriptions[activeTab] || 'Beheer dit onderdeel binnen het ouderportaal.'
-              )}
               <section className="contact-profile-card parent-dashboard-content-card">
                 <div className="pd-layout pd-layout--sheet parent-dashboard-layout">
                   <div className="pd-content pd-content--sheet parent-dashboard-content">

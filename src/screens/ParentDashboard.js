@@ -1623,10 +1623,6 @@ export default function ParentDashboard({
         >
           {showingMenu ? (
             <>
-              {renderPortalMetaCard(
-                'Beheer alles op één plek',
-                'Open kinderen, contacten, locatie en activiteiten vanuit dezelfde rustige profielopbouw.'
-              )}
               {renderPortalMenuRows()}
             </>
           ) : (

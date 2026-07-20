@@ -686,7 +686,7 @@ export default function ParentDashboard({
                 ) : children.map(child => (
                   <div
                     key={child.uid}
-                    className={`parent-portal-stack${pauseMenuUid === child.uid || resumeMenuUid === child.uid ? ' parent-portal-stack--menu-open' : ''}`}
+                    className={`parent-portal-stack${pauseMenuUid === child.uid || resumeMenuUid === child.uid ? ' parent-portal-stack--menu-open' : ''}${changingPwUid === child.uid || editingUsernameUid === child.uid ? ' parent-portal-stack--editing' : ''}`}
                   >
                     {(() => {
                       const pf = child.pausedFeatures || { chat: false, call: false, video: false };

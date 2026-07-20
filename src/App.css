@@ -12171,6 +12171,31 @@ font-family: 'Inter', sans-serif;
   margin-bottom: 150px;
 }
 
+.parent-dashboard-panel .parent-portal-stack--editing {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid rgba(110, 94, 188, 0.22);
+  border-radius: 22px;
+  background: rgba(38, 30, 73, 0.96);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.parent-dashboard-panel .parent-portal-stack--editing .parent-child-row {
+  border: 0;
+  border-radius: 0;
+  margin-bottom: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.parent-dashboard-panel .parent-portal-stack--editing .parent-child-inline-editor {
+  border: 0;
+  border-top: 1px solid rgba(110, 94, 188, 0.22);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
 .parent-dashboard-panel .parent-portal-toolbar-actions {
   display: flex;
   align-items: center;

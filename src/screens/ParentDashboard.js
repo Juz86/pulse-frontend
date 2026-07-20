@@ -1647,7 +1647,7 @@ export default function ParentDashboard({
             </>
           ) : (
             <>
-              <section className="contact-profile-card parent-dashboard-content-card">
+              <section className={`contact-profile-card parent-dashboard-content-card parent-dashboard-content-card--${activeTab}`}>
                 <div className="pd-layout pd-layout--sheet parent-dashboard-layout">
                   <div className="pd-content pd-content--sheet parent-dashboard-content">
                     {renderPortalContent()}

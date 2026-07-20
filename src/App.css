@@ -11596,6 +11596,15 @@ font-family: 'Inter', sans-serif;
   overflow: hidden;
 }
 
+.parent-dashboard-panel .parent-dashboard-content-card--children {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
 .parent-dashboard-panel .contact-profile-card--parent-portal-meta {
   padding: 0;
 }

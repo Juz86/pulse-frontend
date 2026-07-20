@@ -12211,13 +12211,14 @@ font-family: 'Inter', sans-serif;
 
 .parent-dashboard-panel .parent-portal-picker {
   position: relative;
+  z-index: 3813;
 }
 
 .parent-dashboard-panel .parent-portal-picker-menu {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
-  z-index: 220;
+  z-index: 3814;
   min-width: 160px;
   padding: 6px;
   border-radius: 16px;

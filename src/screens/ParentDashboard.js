@@ -989,36 +989,43 @@ export default function ParentDashboard({
             {/* Tab 3 — Contacten van kind */}
             {activeTab === 'contacts' && (
               <div className="parent-portal-view parent-portal-view--contacts">
-                <div className="parent-portal-section-header">
+                <div className="parent-portal-toolbar parent-portal-toolbar--spread">
                   <h2 className="parent-section-title">Contacten</h2>
-                  <p className="parent-section-sub">Bekijk en beheer de contacten van uw kind. U kunt contacten blokkeren of verwijderen.</p>
+                  {children.length > 1 && (
+                    <div className="parent-portal-picker">
+                      <button
+                        type="button"
+                        className="parent-btn-outline parent-btn-outline--compact parent-btn-outline--picker"
+                        aria-label="Kies kind voor contactenoverzicht"
+                        aria-haspopup="listbox"
+                        aria-expanded={childDropdownOpen}
+                        onClick={e => { e.stopPropagation(); setChildDropdownOpen(v => !v); }}
+                      >
+                        <span className="parent-child-picker-label">
+                          {children.find(c => c.uid === contactsChildUid)?.displayName || 'Selecteer kind'}
+                        </span>
+                        <ChevronDown size={16} aria-hidden="true" />
+                      </button>
+                      {childDropdownOpen && (
+                        <div role="listbox" aria-label="Kies een kind" className="parent-portal-picker-menu">
+                          {children.map(c => (
+                            <button
+                              key={c.uid}
+                              type="button"
+                              role="option"
+                              aria-selected={c.uid === contactsChildUid}
+                              className={`parent-portal-picker-option${c.uid === contactsChildUid ? ' active' : ''}`}
+                              onClick={() => { setContactsChildUid(c.uid); setChildDropdownOpen(false); }}
+                            >
+                              {c.displayName}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-
-                {/* Kind-selector */}
-                {children.length > 1 && (
-                  <div className="parent-portal-filter-row">
-                    <button
-                      type="button"
-                      className="parent-btn-outline"
-                      onClick={e => { e.stopPropagation(); setChildDropdownOpen(v => !v); }}
-                    >
-                      <Users size={15} aria-hidden="true" />
-                      {children.find(c => c.uid === contactsChildUid)?.displayName || 'Selecteer kind'}
-                      <ChevronDown size={14} aria-hidden="true" />
-                    </button>
-                    {childDropdownOpen && (
-                      <div className="pd-dropdown" onClick={e => e.stopPropagation()}>
-                        {children.map(c => (
-                          <button key={c.uid} type="button" className={`pd-dropdown-item${c.uid === contactsChildUid ? ' active' : ''}`}
-                            onClick={() => { setContactsChildUid(c.uid); setChildDropdownOpen(false); }}>
-                            {c.uid === contactsChildUid && <Check size={14} aria-hidden="true" />}
-                            {c.displayName}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
+                <p className="parent-section-sub parent-portal-inline-sub">Bekijk en beheer de contacten van uw kind. U kunt contacten blokkeren of verwijderen.</p>
 
                 {contactsError && <div className="parent-error" role="alert"><span aria-hidden="true">⚠️ </span>{contactsError}</div>}
 

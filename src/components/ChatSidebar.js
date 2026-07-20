@@ -1405,13 +1405,13 @@ export default function ChatSidebar({
   };
   const renderSettingsStylingSheet = () => renderSettingsSubpageShell(
     'Styling',
-    'Kies een achtergrond die past bij jouw Pulse-gesprekken.',
+    'Kies een achtergrond die past bij jouw chats.',
     <>
       <section className="styling-page-section">
         <div className="contact-profile-field">
           <div className="parent-dashboard-meta-block">
             <div className="parent-dashboard-meta-title">Chatachtergrond kiezen</div>
-            <div className="parent-dashboard-meta-subtitle">Kies een achtergrond die past bij jouw Pulse-gesprekken.</div>
+            <div className="parent-dashboard-meta-subtitle">Kies een achtergrond die past bij jouw chats.</div>
           </div>
         </div>
       </section>
@@ -3442,7 +3442,7 @@ export default function ChatSidebar({
                           <div className="profile-settings-subhero">
                             <h4 className="profile-settings-subtitle">Styling</h4>
                             <p className="profile-settings-subcopy">
-                              Kies een achtergrond die past bij jouw Pulse-gesprekken.
+                              Kies een achtergrond die past bij jouw chats.
                             </p>
                           </div>
                           <div className="profile-settings-light-card profile-settings-light-card--stacked">

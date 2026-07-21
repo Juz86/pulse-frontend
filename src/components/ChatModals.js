@@ -937,7 +937,6 @@ export default function ChatModals({
                   <span className="contact-profile-row-icon">{conversationMuted ? <BellOff size={20} aria-hidden="true" /> : <Bell size={20} aria-hidden="true" />}</span>
                   <span className="contact-profile-row-copy">
                     <span className="contact-profile-row-title">{conversationMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}</span>
-                    <span className="contact-profile-row-subtitle">Beheer meldingen voor dit gesprek</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>
@@ -949,7 +948,6 @@ export default function ChatModals({
                   </span>
                   <span className="contact-profile-row-copy">
                     <span className="contact-profile-row-title">{messageSelectionMode ? 'Berichten selecteren stoppen' : 'Berichten selecteren'}</span>
-                    <span className="contact-profile-row-subtitle">Selecteer meerdere berichten tegelijk</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>
@@ -957,7 +955,6 @@ export default function ChatModals({
                   <span className="contact-profile-row-icon"><StarOutline size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
                     <span className="contact-profile-row-title">Berichten met ster</span>
-                    <span className="contact-profile-row-subtitle">Bekijk belangrijke opgeslagen berichten</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>
@@ -965,7 +962,6 @@ export default function ChatModals({
                   <span className="contact-profile-row-icon"><Search size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
                     <span className="contact-profile-row-title">{showChatSearch ? 'Zoeken openen' : 'Zoeken'}</span>
-                    <span className="contact-profile-row-subtitle">Doorzoek berichten in deze chat</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>
@@ -976,7 +972,6 @@ export default function ChatModals({
                   <span className="contact-profile-row-icon"><Delete size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
                     <span className="contact-profile-row-title">Chat wissen</span>
-                    <span className="contact-profile-row-subtitle">Verwijder berichten uit dit gesprek</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>
@@ -984,7 +979,6 @@ export default function ChatModals({
                   <span className="contact-profile-row-icon"><Trash2 size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
                     <span className="contact-profile-row-title">Chat verwijderen</span>
-                    <span className="contact-profile-row-subtitle">Verwijder dit gesprek uit je lijst</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>

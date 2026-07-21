@@ -2480,6 +2480,7 @@ export default function ChatSidebar({
   const parentFooterActive = parentPortalPageVisible;
   const moreFooterActive = moreActionsSheetVisible || addContactSheetVisible || newChatSheetVisible || newGroupSheetVisible || requestsSheetVisible;
   const chatsFooterActive = activeTab === 'chats' && !profileFooterActive && !callsFooterActive && !parentFooterActive && !moreFooterActive;
+  const chatUnreadCount = Object.values(unreadCounts || {}).reduce((total, count) => total + (Number(count) || 0), 0);
   const footerEmbeddedInCluster = !!footerClusterMode
     && footerClusterMode !== 'more'
     && footerClusterMode !== 'settings';
@@ -2522,7 +2523,7 @@ export default function ChatSidebar({
       <button
         type="button"
         className={`sidebar-footer-tab ${chatsFooterActive ? 'active' : ''}`}
-        aria-label="Chats"
+        aria-label={chatUnreadCount > 0 ? `Chats, ${chatUnreadCount > 99 ? 'meer dan 99' : chatUnreadCount} ongelezen ${chatUnreadCount === 1 ? 'bericht' : 'berichten'}` : 'Chats'}
         onClick={() => {
           closeMoreActionsSheet();
           closeAddContactSheet();
@@ -2542,7 +2543,10 @@ export default function ChatSidebar({
           <span className="sidebar-footer-tab-icon" aria-hidden="true">
             <Message size={26} aria-hidden="true" />
           </span>
-          {hasMissedCall && !callsAvailable && <span className="sidebar-footer-tab-badge" aria-hidden="true" />}
+          {chatUnreadCount > 0
+            ? <span className="sidebar-footer-tab-count" aria-hidden="true">{chatUnreadCount > 99 ? '99+' : chatUnreadCount}</span>
+            : hasMissedCall && !callsAvailable && <span className="sidebar-footer-tab-badge" aria-hidden="true" />
+          }
         </span>
         <span className="sidebar-footer-tab-label">Chats</span>
       </button>

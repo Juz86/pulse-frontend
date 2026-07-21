@@ -6735,6 +6735,19 @@ font-family: 'Inter', sans-serif;
   color:#ff9ab2;
 }
 
+.contact-profile-card--more-actions .contact-profile-row-button {
+  transition: background .15s ease, color .15s ease;
+}
+
+.contact-profile-card--more-actions .contact-profile-row-button:not(.danger):hover {
+  background: rgba(108,99,255,.12);
+  color: var(--accent);
+}
+
+.contact-profile-card--more-actions .contact-profile-row-button:not(.danger):hover .contact-profile-row-icon {
+  background: rgba(108,99,255,.16);
+}
+
 .pulse-sheet--sidebar-actions .chat-header-menu-item.danger,
 .pulse-sheet--header-actions .chat-header-menu-item.danger,
 .pulse-sheet--contact-actions .chat-header-menu-item.danger,

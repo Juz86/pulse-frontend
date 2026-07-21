@@ -588,7 +588,7 @@ export default function ChatSidebar({
           </button>
         )}
       >
-        <section className="contact-profile-card">
+        <section className="contact-profile-card contact-profile-card--more-actions">
           {rowActions.map((action) => (
             <button
               key={action.id}

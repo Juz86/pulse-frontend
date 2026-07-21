@@ -6677,6 +6677,10 @@ font-family: 'Inter', sans-serif;
 .contact-profile-field {
   padding:12px 0px 14px;
 }
+.contact-profile-card--profile-meta .contact-profile-field {
+  padding-left:18px;
+  padding-right:18px;
+}
 .contact-profile-field + .contact-profile-field {
   border-top:1px solid rgba(255,255,255,.06);
 }

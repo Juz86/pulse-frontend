@@ -1464,11 +1464,14 @@ export default function ChatModals({
                 <>
                   <div role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list">
                     {activeConv.members.map(memberId => {
-                      const name      = activeConv.memberNames?.[memberId] || memberId;
                       const isMe      = memberId === user.uid;
+                      const memberContact = contacts.find(c => c.uid === memberId);
+                      const name      = isMe
+                        ? (user.displayName || user.email || memberId)
+                        : ((memberContact ? getContactDisplayName(memberContact) : null) || memberContact?.displayName || activeConv.memberNames?.[memberId] || memberId);
                       const isOnline  = onlineUsers.has(memberId);
                       const isCreator = memberId === activeConv.creatorId;
-                      const photo     = contacts.find(c => c.uid === memberId)?.photoURL || null;
+                      const photo     = memberContact?.photoURL || null;
                       return (
                         <div key={memberId} role="listitem" className="search-result group-info-member-row" style={{ cursor: 'default' }}>
                           <div className="avatar-wrap">

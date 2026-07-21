@@ -456,7 +456,7 @@ export default function ChatSidebar({
           />
         )}
       >
-        <section className="contact-profile-card">
+        <section className="contact-profile-card contact-profile-card--settings-actions">
           {rowSections.map((section) => renderOverviewRow(section))}
         </section>
 

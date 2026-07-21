@@ -6735,16 +6735,19 @@ font-family: 'Inter', sans-serif;
   color:#ff9ab2;
 }
 
-.contact-profile-card--more-actions .contact-profile-row-button {
+.contact-profile-card--more-actions .contact-profile-row-button,
+.contact-profile-card--settings-actions .contact-profile-row-button {
   transition: background .15s ease, color .15s ease;
 }
 
-.contact-profile-card--more-actions .contact-profile-row-button:not(.danger):hover {
+.contact-profile-card--more-actions .contact-profile-row-button:not(.danger):hover,
+.contact-profile-card--settings-actions .contact-profile-row-button:not(.danger):hover {
   background: rgba(108,99,255,.12);
   color: var(--accent);
 }
 
-.contact-profile-card--more-actions .contact-profile-row-button:not(.danger):hover .contact-profile-row-icon {
+.contact-profile-card--more-actions .contact-profile-row-button:not(.danger):hover .contact-profile-row-icon,
+.contact-profile-card--settings-actions .contact-profile-row-button:not(.danger):hover .contact-profile-row-icon {
   background: rgba(108,99,255,.16);
 }
 

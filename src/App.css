@@ -11623,7 +11623,8 @@ font-family: 'Inter', sans-serif;
 }
 
 .parent-dashboard-panel .parent-dashboard-content-card--children,
-.parent-dashboard-panel .parent-dashboard-content-card--contacts {
+.parent-dashboard-panel .parent-dashboard-content-card--contacts,
+.parent-dashboard-panel .parent-dashboard-content-card--location {
   margin: 0;
   border: 0;
   border-radius: 0;

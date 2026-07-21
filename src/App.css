@@ -8025,16 +8025,16 @@ font-family: 'Inter', sans-serif;
 .group-info-panel .group-info-subview-subtitle { color: #aaa5cc; }
 .group-info-panel .group-info-member-list {
   margin: 0 18px;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 26px;
+  background: rgba(17, 15, 40, .56);
 }
 .group-info-panel .group-info-member-row {
   color: #f8f7ff;
 }
 .group-info-panel .group-info-member-row + .group-info-member-row::before {
-  display: none;
+  background: rgba(255, 255, 255, .08);
 }
 .group-info-panel .group-info-member-row:hover { background: rgba(108, 99, 255, .12); }
 .group-info-panel .group-info-member-row .conv-name { color: #f8f7ff; }

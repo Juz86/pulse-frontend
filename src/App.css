@@ -848,6 +848,13 @@ body {
   align-items: center;
 }
 
+.new-group-contact-list .new-group-sheet-result,
+.new-group-contact-list .search-result.new-group-sheet-result {
+  box-sizing: border-box;
+  border-radius: 16px;
+  padding: 6px 10px;
+}
+
 .new-group-sheet-result.selected {
   background: rgba(108, 99, 255, 0.07);
 }

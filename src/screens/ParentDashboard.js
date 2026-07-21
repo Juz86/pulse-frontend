@@ -38,6 +38,7 @@ export default function ParentDashboard({
   const [children,       setChildren]       = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [activities,     setActivities]     = useState([]);
+  const [unreadActivityCount, setUnreadActivityCount] = useState(0);
 
   // Kindaccount aanmaken
   const [childName,      setChildName]      = useState('');
@@ -232,13 +233,20 @@ export default function ParentDashboard({
     setContactActionUid(null);
   }
 
+  const activitySeenStorageKey = `pulse_parent_activities_seen_${user.uid}`;
+
   const loadActivities = useCallback(async () => {
     try {
       const res = await authFetch(`${BACKEND}/api/parent/activities`);
       const data = await res.json();
-      setActivities(Array.isArray(data) ? data : []);
+      const nextActivities = Array.isArray(data) ? data : [];
+      const lastSeenAt = Number(localStorage.getItem(activitySeenStorageKey) || 0);
+      setActivities(nextActivities);
+      setUnreadActivityCount(lastSeenAt > 0
+        ? nextActivities.filter((activity) => toMs(activity.createdAt) > lastSeenAt).length
+        : 0);
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
-  }, [authFetch]);
+  }, [activitySeenStorageKey, authFetch]);
 
   const loadAnalytics = useCallback(async (childUid) => {
     if (!childUid) { setAnalytics(null); setSelectedChildUid(null); return; }
@@ -285,10 +293,11 @@ export default function ParentDashboard({
   }, [createSuccess]);
 
   useEffect(() => {
-    if (activeTab === 'activities' && parentActivityBadge > 0) {
-      onActivitiesViewed?.();
-    }
-  }, [activeTab, parentActivityBadge, onActivitiesViewed]);
+    if (activeTab !== 'activities') return;
+    localStorage.setItem(activitySeenStorageKey, String(Date.now()));
+    setUnreadActivityCount(0);
+    if (parentActivityBadge > 0) onActivitiesViewed?.();
+  }, [activeTab, activitySeenStorageKey, parentActivityBadge, onActivitiesViewed]);
 
   useEffect(() => {
     setActivityContactFilter('all');
@@ -526,7 +535,8 @@ export default function ParentDashboard({
     setInvitationActionId(null);
   }
 
-  const activityTabBadge = parentActivityBadge > 9 ? '9+' : parentActivityBadge;
+  const activityBadgeCount = Math.max(parentActivityBadge, unreadActivityCount);
+  const activityTabBadge = activityBadgeCount > 9 ? '9+' : activityBadgeCount;
   const googleMapsTabIcon = (
     <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M12 2.2c-4.08 0-7.4 3.31-7.4 7.4 0 5.3 6.57 11.68 7.02 12.1a.54.54 0 0 0 .76 0c.45-.42 7.02-6.8 7.02-12.1 0-4.09-3.32-7.4-7.4-7.4z" fill="#EA4335"/>
@@ -541,7 +551,7 @@ export default function ParentDashboard({
     { id: 'children',   icon: <Users     size={16} aria-hidden="true" />, label: 'Mijn kinderen'   },
     { id: 'contacts',   icon: <UserCheck size={16} aria-hidden="true" />, label: 'Contacten'       },
     { id: 'location',   icon: googleMapsTabIcon, label: 'Locatie' },
-    { id: 'activities', icon: <Activity  size={16} aria-hidden="true" />, label: 'Activiteiten', badge: parentActivityBadge > 0 ? activityTabBadge : null },
+    { id: 'activities', icon: <Activity  size={16} aria-hidden="true" />, label: 'Activiteiten', badge: activityBadgeCount > 0 ? activityTabBadge : null },
   ];
 
   const createUsernameReady = createUsernameStatus === 'Beschikbaar';

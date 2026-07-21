@@ -2760,12 +2760,12 @@ export default function ChatSidebar({
             type="button"
             role="menuitemcheckbox"
             aria-checked={isMuted}
-            className={`chat-header-menu-item${isMuted ? ' active' : ''}`}
+            className={`chat-header-menu-item${isMuted ? ' danger' : ''}`}
             onClick={handleToggleConversationMuteFromActions}
-            title={isMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}
+            title={`Meldingen ${isMuted ? 'uit' : 'aan'}`}
           >
             {isMuted ? <BellOff size={14} aria-hidden="true" /> : <Bell size={14} aria-hidden="true" />}
-            <span>{isMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}</span>
+            <span>Meldingen {isMuted ? 'uit' : 'aan'}</span>
           </button>
           {conv.isGroup && (
             <>

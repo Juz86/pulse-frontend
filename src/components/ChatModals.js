@@ -1315,14 +1315,16 @@ export default function ChatModals({
           aria-describedby="group-info-description"
           onClick={(e) => e.stopPropagation()}
         >
-            <div className="pulse-sheet-header pulse-sheet-header--group-info">
-              <button type="button" className="group-info-header-back" aria-label="Terug" title="Terug" onClick={closeGroupInfo}><span aria-hidden="true">←</span></button>
-              <div className="pulse-sheet-title pulse-sheet-title--group-info">Groepsinfo</div>
+            <div className="contact-profile-topbar group-info-topbar">
+              <button type="button" className="contact-profile-nav-btn" aria-label="Terug" title="Terug" onClick={closeGroupInfo}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+              </button>
+              <h2 id="group-info-title" className="contact-profile-heading">Groepsinfo</h2>
               {isGroupInfoAdmin ? (
-                <button type="button" className="group-info-edit-btn" onClick={editOrSaveGroupName} disabled={editingGroupName && !groupNameDraft.trim()}>
+                <button type="button" className="contact-profile-edit-btn" onClick={editOrSaveGroupName} disabled={editingGroupName && !groupNameDraft.trim()}>
                   {editingGroupName ? 'Opslaan' : 'Bewerk'}
                 </button>
-              ) : <span className="group-info-header-spacer" aria-hidden="true" />}
+              ) : <span className="contact-profile-topbar-spacer" aria-hidden="true" />}
             </div>
             {addingMember ? (() => {
               const availableContacts = contacts.filter(c => !activeConv.members.includes(c.uid));

@@ -8003,53 +8003,10 @@ font-family: 'Inter', sans-serif;
   animation: group-info-slide-in .2s ease-out both;
 }
 .group-info-panel .pulse-sheet-handle { display: none; }
-.group-info-panel .pulse-sheet-header--group-info {
-  min-height: 80px;
-  padding: 14px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, .08);
+.group-info-topbar {
+  padding: max(16px, env(safe-area-inset-top)) 18px 0;
 }
-.group-info-header-back,
-.group-info-edit-btn,
-.group-info-header-spacer {
-  min-width: 62px;
-  height: 44px;
-  border-radius: 16px;
-  flex: 0 0 auto;
-}
-.group-info-header-back {
-  border: 1px solid rgba(255, 255, 255, .14);
-  background: rgba(255, 255, 255, .07);
-  color: #f8f7ff;
-  font-size: 26px;
-  line-height: 1;
-  cursor: pointer;
-}
-.group-info-edit-btn {
-  border: 1px solid rgba(255, 255, 255, .14);
-  background: rgba(255, 255, 255, .07);
-  color: #f8f7ff;
-  font-size: 15px;
-  font-weight: 750;
-  cursor: pointer;
-}
-.group-info-header-back:hover,
-.group-info-edit-btn:hover { background: rgba(255, 255, 255, .13); }
-.group-info-edit-btn:disabled { opacity: .45; cursor: not-allowed; }
-.group-info-panel .pulse-sheet-title--group-info {
-  color: #f8f7ff;
-  font-size: 20px;
-  font-weight: 800;
-}
-.group-info-panel .pulse-sheet-close--group-info {
-  position: static;
-  width: 52px;
-  height: 52px;
-  border: 1px solid rgba(255, 255, 255, .14);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, .07);
-  color: #f8f7ff;
-  font-size: 22px;
-}
+.group-info-panel .contact-profile-edit-btn:disabled { opacity: .45; cursor: not-allowed; }
 .group-info-panel .group-info-hero {
   padding: 30px 24px 22px;
   background: transparent;

@@ -1443,7 +1443,7 @@ export default function ParentDashboard({
   );
 
   const renderPortalMenuRows = () => (
-    <section className="contact-profile-card contact-profile-card--profile-actions">
+    <section className="contact-profile-card contact-profile-card--profile-actions contact-profile-card--parent-actions">
       {TABS.map((tab) => (
         <button
           type="button"

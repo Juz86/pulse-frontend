@@ -904,6 +904,13 @@ export default function ChatSidebar({
         </button>
       </div>
 
+      {contactSuccess && (
+        <div className="pulse-confirmation-message" role="status" aria-live="polite">
+          <span className="pulse-confirmation-message-icon" aria-hidden="true">✓</span>
+          <span>{contactSuccess}</span>
+        </div>
+      )}
+
       <section className="contact-profile-card contact-profile-card--requests-list">
         <div className="pulse-sheet-list pulse-sheet-list--new-chat friend-requests-list">
           {requestsTab === 'ontvangen' && (

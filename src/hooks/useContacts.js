@@ -503,6 +503,8 @@ export default function useContacts({
       }
       setFriendRequests(prev => prev.filter(r => r.id !== requestId));
       loadContacts();
+      setContactSuccess('Verzoek geaccepteerd!');
+      setTimeout(() => setContactSuccess(''), 4000);
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }
 
@@ -510,6 +512,8 @@ export default function useContacts({
     try {
       await authFetch(`${BACKEND_URL}/api/friend-requests/${requestId}/decline`, { method: 'POST' });
       setFriendRequests(prev => prev.filter(r => r.id !== requestId));
+      setContactSuccess('Verzoek geweigerd.');
+      setTimeout(() => setContactSuccess(''), 4000);
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }
 

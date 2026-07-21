@@ -2534,8 +2534,12 @@ export default function ChatSidebar({
           closeContactActionsSheet();
           closeConvActionsSheet();
           closeCallSheet();
+          setProfileSheetClosing(false);
+          setShowProfile?.(false);
+          setProfileTab?.('overview');
           closeProfileOverviewSheet();
           closeParentPortalSheet();
+          setSearchQuery('');
           setActiveTab('chats');
         }}
         title="Chats"

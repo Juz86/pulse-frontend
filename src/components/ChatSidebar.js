@@ -2188,7 +2188,10 @@ export default function ChatSidebar({
     };
   }, []);
 
-  const hasMissedCall = callsAvailable && (((!callLogRead && getCallLog().some(e => e.direction === 'missed')) || missedCallAlert));
+  const callLog = typeof getCallLog === 'function' ? getCallLog() : [];
+  const unreadMissedCallCount = callLogRead ? 0 : callLog.filter((entry) => entry.direction === 'missed').length;
+  const missedCallCount = callsAvailable ? Math.max(unreadMissedCallCount, missedCallAlert ? 1 : 0) : 0;
+  const hasMissedCall = missedCallCount > 0;
 
   function openContactMenu(contactUid, anchorEl) {
     setContactMenu(prev => prev?.uid === contactUid ? null : { uid: contactUid });
@@ -2555,7 +2558,7 @@ export default function ChatSidebar({
         <button
           type="button"
           className={`sidebar-footer-tab${callsFooterActive ? ' active' : ''}`}
-          aria-label="Oproepen"
+        aria-label={missedCallCount > 0 ? `Oproepen, ${missedCallCount > 99 ? 'meer dan 99' : missedCallCount} gemiste ${missedCallCount === 1 ? 'oproep' : 'oproepen'}` : 'Oproepen'}
           aria-expanded={callSheetVisible}
           onClick={() => {
             if (callSheetVisible) {
@@ -2585,7 +2588,7 @@ export default function ChatSidebar({
             <span className="sidebar-footer-tab-icon" aria-hidden="true">
               <Phone size={26} aria-hidden="true" />
             </span>
-            {hasMissedCall && <span className="sidebar-footer-tab-badge" aria-hidden="true" />}
+            {missedCallCount > 0 && <span className="sidebar-footer-tab-count" aria-hidden="true">{missedCallCount > 99 ? '99+' : missedCallCount}</span>}
           </span>
           <span className="sidebar-footer-tab-label">Bellen</span>
         </button>
@@ -2840,7 +2843,6 @@ export default function ChatSidebar({
     );
   }, [contacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact]);
 
-  const callLog = typeof getCallLog === 'function' ? getCallLog() : [];
   const remainingRateLimitMs = Math.max(0, Number(callLogRateLimitUntil || 0) - Date.now());
   const remainingRateLimitSeconds = Math.ceil(remainingRateLimitMs / 1000);
   const normalizedCallSearch = callSearch.trim().toLowerCase();

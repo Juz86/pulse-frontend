@@ -747,8 +747,9 @@ export default function ChatSidebar({
         </div>
         {contactSuccess && (
           <div className="contact-profile-field">
-            <div role="status" aria-live="polite" style={{ padding: '8px 12px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', color: '#4ade80', fontSize: '13px' }}>
-              <span aria-hidden="true">✅ </span>{contactSuccess}
+            <div className="pulse-confirmation-message" role="status" aria-live="polite">
+              <span className="pulse-confirmation-message-icon" aria-hidden="true">✓</span>
+              <span>{contactSuccess}</span>
             </div>
           </div>
         )}
@@ -3018,8 +3019,9 @@ export default function ChatSidebar({
             <div className="conv-list">
               {contactSuccess && (
                 <div style={{ padding: '0 18px 12px' }}>
-                  <div role="status" aria-live="polite" style={{ padding: '8px 12px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '8px', color: '#4ade80', fontSize: '13px' }}>
-                    <span aria-hidden="true">✅ </span>{contactSuccess}
+                  <div className="pulse-confirmation-message" role="status" aria-live="polite">
+                    <span className="pulse-confirmation-message-icon" aria-hidden="true">✓</span>
+                    <span>{contactSuccess}</span>
                   </div>
                 </div>
               )}

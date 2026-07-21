@@ -131,15 +131,18 @@ export default function ChatModals({
   const [groupMemberSearch, setGroupMemberSearch] = useState('');
   const [editingGroupName, setEditingGroupName] = useState(false);
   const [groupNameDraft, setGroupNameDraft] = useState('');
+  const [showAdminPicker, setShowAdminPicker] = useState(false);
   const [callSearch, setCallSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null); // 'voice' | null
   const [callLogStatusNow, setCallLogStatusNow] = useState(() => Date.now());
   const [confirmCheckboxChecked, setConfirmCheckboxChecked] = useState(false);
   const isGroupInfoAdmin = activeConv?.isGroup && (activeConv.adminIds?.includes(user?.uid) || activeConv.creatorId === user?.uid);
+  const hasPromotableGroupMember = activeConv?.members?.some((memberId) => memberId !== user?.uid && !(activeConv.adminIds?.includes(memberId) || memberId === activeConv.creatorId));
 
   function closeGroupInfo() {
     setEditingGroupName(false);
     setGroupNameDraft('');
+    setShowAdminPicker(false);
     setShowGroupInfo(false);
     setAddingMember(false);
   }
@@ -1487,18 +1490,24 @@ export default function ChatModals({
                               {isOnline ? 'Online' : 'Offline'}
                             </div>
                           </div>
-                          {!isMe && isAdmin && (
+                          {isMe && isAdmin && hasPromotableGroupMember && (
                             <div className="group-info-member-actions">
-                              {!isMemberAdmin && <button type="button" className="group-info-promote-btn" aria-label={`Maak ${name} beheerder`} title="Beheerder maken" onClick={() => promoteGroupAdmin?.(memberId)}><AdminIcon size={17} aria-hidden="true" /></button>}
-                              <button type="button" className="group-info-remove-btn" aria-label={`Verwijder ${name} uit de groep`} title="Verwijderen uit groep"
-                                onClick={() => removeMemberFromGroup(memberId)}
-                              ><Delete size={18} aria-hidden="true" /></button>
+                              <button type="button" className="group-info-promote-btn" aria-label="Beheerder toevoegen" title="Beheerder toevoegen" aria-expanded={showAdminPicker} onClick={() => setShowAdminPicker((visible) => !visible)}><AdminIcon size={17} aria-hidden="true" /></button>
                             </div>
                           )}
                         </div>
                       );
                     })}
                   </div>
+                  {isAdmin && hasPromotableGroupMember && showAdminPicker && (
+                    <div className="group-info-admin-picker" role="list" aria-label="Kies een nieuwe beheerder">
+                      {activeConv.members.filter((memberId) => memberId !== user.uid && !(activeConv.adminIds?.includes(memberId) || memberId === activeConv.creatorId)).map((memberId) => {
+                        const memberContact = contacts.find((contact) => contact.uid === memberId);
+                        const name = (memberContact ? getContactDisplayName(memberContact) : null) || memberContact?.displayName || activeConv.memberNames?.[memberId] || memberId;
+                        return <button key={memberId} type="button" role="listitem" onClick={() => { promoteGroupAdmin?.(memberId); setShowAdminPicker(false); }}>{name}</button>;
+                      })}
+                    </div>
+                  )}
                   {isAdmin ? (
                     <button
                       type="button"

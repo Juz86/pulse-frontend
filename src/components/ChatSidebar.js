@@ -2967,7 +2967,9 @@ export default function ChatSidebar({
                     <div className="chat-selection-count" style={{ fontSize: 12, color: 'var(--text2)' }}>
                       {`${selectedConversationIds.length} geselecteerd`}
                     </div>
-                    <button type="button" className="btn-danger chat-selection-delete-btn" style={{ padding: '4px 7px', fontSize: 10, minWidth: 0 }} disabled={selectedConversationIds.length === 0} onClick={onDeleteSelectedConversations}>Verwijderen</button>
+                    <button type="button" className="btn-danger chat-selection-delete-btn" aria-label="Geselecteerde chats verwijderen" title="Verwijderen" disabled={selectedConversationIds.length === 0} onClick={onDeleteSelectedConversations}>
+                      <Trash2 size={15} aria-hidden="true" />
+                    </button>
                     <button
                       type="button"
                       className="icon-btn chat-selection-close-btn"

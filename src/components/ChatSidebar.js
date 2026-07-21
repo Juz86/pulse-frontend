@@ -2610,7 +2610,7 @@ export default function ChatSidebar({
           aria-expanded={parentPortalPageVisible}
           onClick={() => {
             if (parentPortalPageVisible) {
-              dismissParentPortalSheet();
+              setParentPortalView('menu');
               return;
             }
             closeProfileOverviewSheet();

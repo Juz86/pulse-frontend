@@ -8036,7 +8036,7 @@ font-family: 'Inter', sans-serif;
 .group-info-panel .group-info-member-row + .group-info-member-row::before {
   background: rgba(255, 255, 255, .08);
 }
-.group-info-panel .group-info-member-row:hover { background: rgba(108, 99, 255, .12); }
+.group-info-panel .group-info-member-row:hover { background: transparent; }
 .group-info-panel .group-info-member-row .conv-name { color: #f8f7ff; }
 .group-info-panel .group-info-member-row .conv-preview { color: #aaa5cc; }
 .group-info-panel .group-info-add-btn {

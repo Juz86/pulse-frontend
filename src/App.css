@@ -8008,6 +8008,33 @@ font-family: 'Inter', sans-serif;
   padding: 14px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, .08);
 }
+.group-info-header-back,
+.group-info-edit-btn,
+.group-info-header-spacer {
+  min-width: 62px;
+  height: 44px;
+  border-radius: 16px;
+  flex: 0 0 auto;
+}
+.group-info-header-back {
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(255, 255, 255, .07);
+  color: #f8f7ff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+.group-info-edit-btn {
+  border: 1px solid rgba(255, 255, 255, .14);
+  background: rgba(255, 255, 255, .07);
+  color: #f8f7ff;
+  font-size: 15px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.group-info-header-back:hover,
+.group-info-edit-btn:hover { background: rgba(255, 255, 255, .13); }
+.group-info-edit-btn:disabled { opacity: .45; cursor: not-allowed; }
 .group-info-panel .pulse-sheet-title--group-info {
   color: #f8f7ff;
   font-size: 20px;
@@ -8029,6 +8056,14 @@ font-family: 'Inter', sans-serif;
   border-bottom: 0;
 }
 .group-info-panel .group-info-title { color: #f8f7ff; }
+.group-info-name-edit { width: min(100%, 320px); margin-top: 8px; }
+.group-info-name-edit .form-input {
+  min-height: 50px;
+  text-align: center;
+  color: #f8f7ff;
+  background: rgba(255, 255, 255, .09);
+  border-color: rgba(151, 133, 255, .45);
+}
 .group-info-panel .group-info-subtitle,
 .group-info-panel .group-info-subview-subtitle { color: #aaa5cc; }
 .group-info-panel .group-info-member-list {

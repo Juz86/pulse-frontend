@@ -106,7 +106,7 @@ export default function ChatModals({
   showGroupInfo, setShowGroupInfo,
   addingMember, setAddingMember,
   groupPhotoLoading, uploadGroupPhoto,
-  removeMemberFromGroup, addMemberToGroup,
+  removeMemberFromGroup, addMemberToGroup, renameGroup,
 
   // call overlay
   activeCall, setActiveCall,
@@ -129,10 +129,31 @@ export default function ChatModals({
   const [starredSearch,   setStarredSearch]   = useState('');
   const [requestsTab,     setRequestsTab]     = useState('ontvangen');
   const [groupMemberSearch, setGroupMemberSearch] = useState('');
+  const [editingGroupName, setEditingGroupName] = useState(false);
+  const [groupNameDraft, setGroupNameDraft] = useState('');
   const [callSearch, setCallSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null); // 'voice' | null
   const [callLogStatusNow, setCallLogStatusNow] = useState(() => Date.now());
   const [confirmCheckboxChecked, setConfirmCheckboxChecked] = useState(false);
+  const isGroupInfoAdmin = activeConv?.isGroup && activeConv.creatorId === user?.uid;
+
+  function closeGroupInfo() {
+    setEditingGroupName(false);
+    setGroupNameDraft('');
+    setShowGroupInfo(false);
+    setAddingMember(false);
+  }
+
+  function editOrSaveGroupName() {
+    if (!editingGroupName) {
+      setGroupNameDraft(getConvName(activeConv));
+      setEditingGroupName(true);
+      return;
+    }
+    if (!groupNameDraft.trim()) return;
+    renameGroup?.(groupNameDraft);
+    setEditingGroupName(false);
+  }
   const profilePanelSaveButtonStyle = {
     flex: 1,
     minWidth: 0,
@@ -1286,7 +1307,7 @@ export default function ChatModals({
       {showGroupInfo && activeConv?.isGroup && (
         <div
           className="pulse-sheet-backdrop pulse-sheet-backdrop--group-info"
-          onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}
+          onClick={closeGroupInfo}
         >
         <aside
           className="pulse-sheet pulse-sheet--group-info group-info-panel"
@@ -1294,10 +1315,14 @@ export default function ChatModals({
           aria-describedby="group-info-description"
           onClick={(e) => e.stopPropagation()}
         >
-            <div className="pulse-sheet-handle" aria-hidden="true" />
             <div className="pulse-sheet-header pulse-sheet-header--group-info">
+              <button type="button" className="group-info-header-back" aria-label="Terug" title="Terug" onClick={closeGroupInfo}><span aria-hidden="true">←</span></button>
               <div className="pulse-sheet-title pulse-sheet-title--group-info">Groepsinfo</div>
-              <button type="button" className="pulse-sheet-close pulse-sheet-close--group-info" aria-label="Sluiten" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}><span aria-hidden="true">✕</span></button>
+              {isGroupInfoAdmin ? (
+                <button type="button" className="group-info-edit-btn" onClick={editOrSaveGroupName} disabled={editingGroupName && !groupNameDraft.trim()}>
+                  {editingGroupName ? 'Opslaan' : 'Bewerk'}
+                </button>
+              ) : <span className="group-info-header-spacer" aria-hidden="true" />}
             </div>
             {addingMember ? (() => {
               const availableContacts = contacts.filter(c => !activeConv.members.includes(c.uid));
@@ -1421,7 +1446,12 @@ export default function ChatModals({
                           : `Kies een afbeelding om een groepsfoto toe te voegen voor ${getConvName(activeConv)}. Toegestane bestandssoorten zijn afbeeldingsbestanden.`}
                     </p>
                   )}
-                  <h2 id="group-info-title" className="group-info-title">{getConvName(activeConv)}</h2>
+                  {editingGroupName ? (
+                    <label className="group-info-name-edit" htmlFor="group-name-edit">
+                      <span className="sr-only">Groepsnaam</span>
+                      <input id="group-name-edit" className="form-input" value={groupNameDraft} onChange={(event) => setGroupNameDraft(event.target.value)} maxLength={50} autoFocus />
+                    </label>
+                  ) : <h2 id="group-info-title" className="group-info-title">{getConvName(activeConv)}</h2>}
                   <p id="group-info-description" className="group-info-subtitle">{activeConv.members.length} deelnemers</p>
                 </div>
               );
@@ -1478,7 +1508,7 @@ export default function ChatModals({
               </>
             )}
             <div className="modal-actions" style={{ marginTop: '16px' }}>
-              <button type="button" className="btn-secondary" onClick={() => { setShowGroupInfo(false); setAddingMember(false); }}>Sluiten</button>
+              <button type="button" className="btn-secondary" onClick={closeGroupInfo}>Sluiten</button>
             </div>
         </aside>
         </div>

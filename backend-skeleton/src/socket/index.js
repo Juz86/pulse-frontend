@@ -388,6 +388,38 @@ export function createSocketServer(server) {
       ack({ ok: true, conversation: updatedConversation });
     });
 
+    socket.on('conversation:rename', async ({ convId, groupName }, ack = () => {}) => {
+      const nextGroupName = String(groupName || '').trim();
+      if (!convId || !nextGroupName || nextGroupName.length > 50 || !uid) {
+        ack({ error: 'invalid_group_name' });
+        return;
+      }
+
+      const convDoc = await db.collection('conversations').doc(convId).get();
+      if (!convDoc.exists) {
+        ack({ error: 'conversation_not_found' });
+        return;
+      }
+
+      const conv = convDoc.data();
+      if (!conv.isGroup) {
+        ack({ error: 'not_a_group' });
+        return;
+      }
+      if (conv.creatorId !== uid) {
+        ack({ error: 'not_group_admin' });
+        return;
+      }
+
+      const updatedAt = new Date().toISOString();
+      const conversation = { id: convId, ...conv, groupName: nextGroupName, updatedAt };
+      await convDoc.ref.set({ groupName: nextGroupName, updatedAt }, { merge: true });
+      for (const memberUid of conv.members || []) {
+        emitToUser(io, memberUid, 'conversation:renamed', { conversation });
+      }
+      ack({ ok: true, conversation });
+    });
+
     socket.on('message:send', async ({ convId, message }, ack = () => {}) => {
       if (!convId || !message || !uid) {
         ack({ error: 'invalid_payload' });

@@ -1115,6 +1115,19 @@ export default function useConversations({
     });
   }
 
+  function renameGroup(nextGroupName) {
+    const socket = getSocket();
+    const groupNameValue = String(nextGroupName || '').trim();
+    if (!socket || !activeConv?.isGroup || !groupNameValue) return;
+    socket.emit('conversation:rename', { convId: activeConv.id, groupName: groupNameValue }, (res = {}) => {
+      if (res.error) return showErrToast(res.error);
+      const conversation = res.conversation;
+      if (!conversation?.id) return;
+      setConversations(prev => prev.map(conv => conv.id === conversation.id ? { ...conv, ...conversation } : conv));
+      setActiveConv(prev => prev?.id === conversation.id ? { ...prev, ...conversation } : prev);
+    });
+  }
+
   function addMemberToGroup(contact) {
     const socket = getSocket();
     if (!socket || !activeConv) return;
@@ -1179,7 +1192,7 @@ export default function useConversations({
     sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
-    toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup, leaveGroup,
+    toggleGroupMember, createGroup, renameGroup, addMemberToGroup, removeMemberFromGroup, leaveGroup,
     storeTransientConversationMessage,
   };
 }

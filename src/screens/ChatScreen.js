@@ -260,7 +260,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     sendMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
-    toggleGroupMember, createGroup, addMemberToGroup, removeMemberFromGroup, leaveGroup,
+    toggleGroupMember, createGroup, renameGroup, addMemberToGroup, removeMemberFromGroup, leaveGroup,
     storeTransientConversationMessage,
   } = useConversations({
     user, text, setText, setActiveTab, setShowChatSearch, setChatSearch,
@@ -863,7 +863,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         showGroupInfo={showGroupInfo} setShowGroupInfo={setShowGroupInfo}
         addingMember={addingMember} setAddingMember={setAddingMember}
         groupPhotoLoading={groupPhotoLoading} uploadGroupPhoto={uploadGroupPhoto}
-        removeMemberFromGroup={removeMemberFromGroup} addMemberToGroup={addMemberToGroup}
+        removeMemberFromGroup={removeMemberFromGroup} addMemberToGroup={addMemberToGroup} renameGroup={renameGroup}
         activeCall={activeCall} setActiveCall={setActiveCall}
         unreadCounts={unreadCounts}
         forwardMsg={forwardMsg} setForwardMsg={setForwardMsg}

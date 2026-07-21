@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useState } from 'react';
-import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, PhoneCall, PhoneOutgoing, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
@@ -1241,7 +1241,7 @@ export default function ChatModals({
                       <div className="call-log-list">
                         {filteredCallLog.map((entry, i) => {
                           const contact = contacts.find(c => c.uid === entry.uid);
-                          const dirIcon = entry.direction === 'outgoing' ? <PhoneOutgoing size={13} /> : entry.direction === 'missed' ? <Cancel size={13} /> : <PhoneCall size={13} />;
+                          const CallTypeIcon = entry.isVideo ? Video : Phone;
                           const displayTime = formatTime(entry.ts);
                           return (
                             <div key={i} className="call-log-row">
@@ -1255,10 +1255,8 @@ export default function ChatModals({
                                   <span className="call-log-time">{displayTime}</span>
                                 </div>
                                 <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
-                                  <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
+                                  <span className="call-log-direction-icon" aria-hidden="true"><CallTypeIcon size={14} /></span>
                                   <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
-                                  <span className="call-log-type-separator" aria-hidden="true">·</span>
-                                  <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
                                 </div>
                               </div>
                               {contact && (

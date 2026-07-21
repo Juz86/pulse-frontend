@@ -1,6 +1,6 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, Cancel, PhoneCall, PhoneOutgoing, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
+import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import UserAvatar from '../components/UserAvatar';
@@ -1725,11 +1725,7 @@ export default function ChatSidebar({
                   <div className="sidebar-call-list calls-dashboard-list calls-dashboard-list--recent">
                     {filteredCallLog.map((entry, index) => {
                       const contact = contacts.find((item) => item.uid === entry.uid);
-                      const dirIcon = entry.direction === 'outgoing'
-                        ? <PhoneOutgoing size={13} />
-                        : entry.direction === 'missed'
-                          ? <Cancel size={13} />
-                          : <PhoneCall size={13} />;
+                      const CallTypeIcon = entry.isVideo ? Video : Phone;
                       const displayTime = formatTime(entry.ts);
                       return (
                         <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className="sidebar-contact-card sidebar-contact-card--call-log">
@@ -1744,14 +1740,8 @@ export default function ChatSidebar({
                                 <span className="call-log-time">{displayTime}</span>
                               </div>
                               <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
-                                <span className="call-log-direction-icon" aria-hidden="true">{dirIcon}</span>
+                                <span className="call-log-direction-icon" aria-hidden="true"><CallTypeIcon size={14} /></span>
                                 <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
-                                {entry.direction !== 'missed' && (
-                                  <>
-                                    <span className="call-log-type-separator" aria-hidden="true">·</span>
-                                    <span>{entry.isVideo ? 'Video' : 'Audio'}</span>
-                                  </>
-                                )}
                               </div>
                             </div>
                             {contact && (

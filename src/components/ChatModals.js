@@ -933,10 +933,10 @@ export default function ChatModals({
               </section>
 
               <section className="contact-profile-card contact-profile-card--profile-actions">
-                <button type="button" className="contact-profile-row-button" onClick={toggleMuteFromProfile}>
+                <button type="button" className={`contact-profile-row-button${conversationMuted ? ' danger' : ''}`} onClick={toggleMuteFromProfile}>
                   <span className="contact-profile-row-icon">{conversationMuted ? <BellOff size={20} aria-hidden="true" /> : <Bell size={20} aria-hidden="true" />}</span>
                   <span className="contact-profile-row-copy">
-                    <span className="contact-profile-row-title">{conversationMuted ? 'Meldingen aanzetten' : 'Meldingen dempen'}</span>
+                    <span className="contact-profile-row-title">Meldingen {conversationMuted ? 'uit' : 'aan'}</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>

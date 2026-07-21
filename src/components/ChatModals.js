@@ -1493,21 +1493,21 @@ export default function ChatModals({
                           {isMe && isAdmin && hasPromotableGroupMember && (
                             <div className="group-info-member-actions">
                               <button type="button" className="group-info-promote-btn" aria-label="Beheerder toevoegen" title="Beheerder toevoegen" aria-expanded={showAdminPicker} onClick={() => setShowAdminPicker((visible) => !visible)}><AdminIcon size={17} aria-hidden="true" /></button>
+                              {showAdminPicker && (
+                                <div className="group-info-admin-picker" role="list" aria-label="Kies een nieuwe beheerder">
+                                  {activeConv.members.filter((candidateId) => candidateId !== user.uid && !(activeConv.adminIds?.includes(candidateId) || candidateId === activeConv.creatorId)).map((candidateId) => {
+                                    const candidateContact = contacts.find((contact) => contact.uid === candidateId);
+                                    const candidateName = (candidateContact ? getContactDisplayName(candidateContact) : null) || candidateContact?.displayName || activeConv.memberNames?.[candidateId] || candidateId;
+                                    return <button key={candidateId} type="button" role="listitem" onClick={() => { promoteGroupAdmin?.(candidateId); setShowAdminPicker(false); }}>{candidateName}</button>;
+                                  })}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
                       );
                     })}
                   </div>
-                  {isAdmin && hasPromotableGroupMember && showAdminPicker && (
-                    <div className="group-info-admin-picker" role="list" aria-label="Kies een nieuwe beheerder">
-                      {activeConv.members.filter((memberId) => memberId !== user.uid && !(activeConv.adminIds?.includes(memberId) || memberId === activeConv.creatorId)).map((memberId) => {
-                        const memberContact = contacts.find((contact) => contact.uid === memberId);
-                        const name = (memberContact ? getContactDisplayName(memberContact) : null) || memberContact?.displayName || activeConv.memberNames?.[memberId] || memberId;
-                        return <button key={memberId} type="button" role="listitem" onClick={() => { promoteGroupAdmin?.(memberId); setShowAdminPicker(false); }}>{name}</button>;
-                      })}
-                    </div>
-                  )}
                   {isAdmin ? (
                     <button
                       type="button"

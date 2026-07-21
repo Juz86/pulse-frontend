@@ -7919,6 +7919,7 @@ font-family: 'Inter', sans-serif;
   align-items: center;
   gap: 8px;
   flex: 0 0 auto;
+  position: relative;
 }
 .group-info-promote-btn {
   width: 38px;
@@ -7934,10 +7935,15 @@ font-family: 'Inter', sans-serif;
 }
 .group-info-promote-btn:hover { background: rgba(108, 99, 255, .24); }
 .group-info-admin-picker {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin: 10px 18px 0;
+  width: min(220px, calc(100vw - 72px));
+  margin: 0;
   padding: 8px;
   border: 1px solid rgba(151, 133, 255, .28);
   border-radius: 18px;
@@ -8070,7 +8076,7 @@ font-family: 'Inter', sans-serif;
 .group-info-panel .group-info-subview-subtitle { color: #aaa5cc; }
 .group-info-panel .group-info-member-list {
   margin: 0 18px;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid rgba(255, 255, 255, .08);
   border-radius: 26px;
   background: rgba(17, 15, 40, .56);

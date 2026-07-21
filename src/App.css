@@ -7980,6 +7980,100 @@ font-family: 'Inter', sans-serif;
   }
 }
 
+/* Groepsinfo volgt dezelfde donkere zijbalkopbouw als Profiel. */
+.pulse-sheet-backdrop--group-info {
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+  background: transparent;
+}
+.group-info-panel {
+  width: var(--pulse-sidebar-width, 360px);
+  max-width: 100%;
+  height: var(--vvh, 100dvh);
+  min-height: 0;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(135, 102, 255, .2), transparent 34%),
+    linear-gradient(180deg, #27245a 0%, #1c193f 100%);
+  color: #f8f7ff;
+  box-shadow: 28px 0 70px rgba(0, 0, 0, .28);
+  animation: group-info-slide-in .2s ease-out both;
+}
+.group-info-panel .pulse-sheet-handle { display: none; }
+.group-info-panel .pulse-sheet-header--group-info {
+  min-height: 80px;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+.group-info-panel .pulse-sheet-title--group-info {
+  color: #f8f7ff;
+  font-size: 20px;
+  font-weight: 800;
+}
+.group-info-panel .pulse-sheet-close--group-info {
+  position: static;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .07);
+  color: #f8f7ff;
+  font-size: 22px;
+}
+.group-info-panel .group-info-hero {
+  padding: 30px 24px 22px;
+  background: transparent;
+  border-bottom: 0;
+}
+.group-info-panel .group-info-title { color: #f8f7ff; }
+.group-info-panel .group-info-subtitle,
+.group-info-panel .group-info-subview-subtitle { color: #aaa5cc; }
+.group-info-panel .group-info-member-list {
+  margin: 0 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 26px;
+  background: rgba(17, 15, 40, .56);
+}
+.group-info-panel .group-info-member-row {
+  color: #f8f7ff;
+}
+.group-info-panel .group-info-member-row + .group-info-member-row::before {
+  background: rgba(255, 255, 255, .08);
+}
+.group-info-panel .group-info-member-row:hover { background: rgba(108, 99, 255, .12); }
+.group-info-panel .group-info-member-row .conv-name { color: #f8f7ff; }
+.group-info-panel .group-info-member-row .conv-preview { color: #aaa5cc; }
+.group-info-panel .group-info-add-btn {
+  width: calc(100% - 36px);
+  margin: 14px 18px 0;
+  background: rgba(108, 99, 255, .18);
+  border-color: rgba(151, 133, 255, .3);
+  color: #f8f7ff;
+  box-shadow: none;
+}
+.group-info-panel .group-info-add-btn:hover { background: rgba(108, 99, 255, .28); }
+.group-info-panel .group-info-empty {
+  background: rgba(255, 255, 255, .06);
+  color: #b7b0d3;
+  box-shadow: none;
+}
+.group-info-panel .group-info-subview-title { color: #f8f7ff; }
+.group-info-panel .group-info-back-btn {
+  background: rgba(255, 255, 255, .08);
+  color: #f8f7ff;
+  box-shadow: none;
+}
+.group-info-panel .group-info-search { color: #f8f7ff; }
+.group-info-panel .group-info-search::placeholder { color: #aaa5cc; }
+
+@media (max-width: 767px) {
+  .group-info-panel { width: 100%; }
+}
+
 /* ── CALL OVERLAY ── */
 .call-overlay {
   position:fixed; inset:0; z-index:1000;

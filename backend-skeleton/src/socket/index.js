@@ -20,6 +20,12 @@ import {
 const onlineUsers = new Map();
 const inactiveUsers = new Set();
 
+function isGroupAdmin(conversation, uid) {
+  return Array.isArray(conversation?.adminIds)
+    ? conversation.adminIds.includes(uid)
+    : conversation?.creatorId === uid;
+}
+
 async function createGroupSystemMessage({ io, convRef, conv, text, emitToUser }) {
   if (!convRef?.id || !text) return null;
 
@@ -188,6 +194,7 @@ export function createSocketServer(server) {
         isGroup,
         groupName: isGroup ? (payload.groupName || 'Groep') : null,
         creatorId: uid,
+        adminIds: isGroup ? [uid] : [],
         lastMessage: '',
         updatedAt: now,
         createdAt: now,
@@ -227,7 +234,7 @@ export function createSocketServer(server) {
         return;
       }
 
-      if (conv.creatorId !== uid) {
+      if (!isGroupAdmin(conv, uid)) {
         ack({ error: 'not_group_admin' });
         return;
       }
@@ -323,7 +330,7 @@ export function createSocketServer(server) {
       }
 
       const isSelfRemoval = uid === targetUid;
-      if (!isSelfRemoval && conv.creatorId !== uid) {
+      if (!isSelfRemoval && !isGroupAdmin(conv, uid)) {
         ack({ error: 'not_group_admin' });
         return;
       }
@@ -336,6 +343,7 @@ export function createSocketServer(server) {
       const nextMembers = conv.members.filter((memberUid) => memberUid !== targetUid);
       const nextMemberNames = { ...(conv.memberNames || {}) };
       const nextMemberEmails = { ...(conv.memberEmails || {}) };
+      const nextAdminIds = (conv.adminIds || [conv.creatorId]).filter((memberUid) => memberUid !== targetUid);
       delete nextMemberNames[targetUid];
       delete nextMemberEmails[targetUid];
       const updatedAt = new Date().toISOString();
@@ -344,6 +352,7 @@ export function createSocketServer(server) {
         members: nextMembers,
         memberNames: nextMemberNames,
         memberEmails: nextMemberEmails,
+        adminIds: nextAdminIds,
         updatedAt,
       }, { merge: true });
 
@@ -359,6 +368,7 @@ export function createSocketServer(server) {
         members: nextMembers,
         memberNames: nextMemberNames,
         memberEmails: nextMemberEmails,
+        adminIds: nextAdminIds,
         updatedAt,
       };
 
@@ -406,7 +416,7 @@ export function createSocketServer(server) {
         ack({ error: 'not_a_group' });
         return;
       }
-      if (conv.creatorId !== uid) {
+      if (!isGroupAdmin(conv, uid)) {
         ack({ error: 'not_group_admin' });
         return;
       }
@@ -416,6 +426,42 @@ export function createSocketServer(server) {
       await convDoc.ref.set({ groupName: nextGroupName, updatedAt }, { merge: true });
       for (const memberUid of conv.members || []) {
         emitToUser(io, memberUid, 'conversation:renamed', { conversation });
+      }
+      ack({ ok: true, conversation });
+    });
+
+    socket.on('conversation:promoteAdmin', async ({ convId, uid: targetUid }, ack = () => {}) => {
+      if (!convId || !targetUid || !uid) {
+        ack({ error: 'invalid_payload' });
+        return;
+      }
+
+      const convDoc = await db.collection('conversations').doc(convId).get();
+      if (!convDoc.exists) {
+        ack({ error: 'conversation_not_found' });
+        return;
+      }
+
+      const conv = convDoc.data();
+      if (!conv.isGroup) {
+        ack({ error: 'not_a_group' });
+        return;
+      }
+      if (!isGroupAdmin(conv, uid)) {
+        ack({ error: 'not_group_admin' });
+        return;
+      }
+      if (!conv.members?.includes(targetUid)) {
+        ack({ error: 'not_allowed_in_conversation' });
+        return;
+      }
+
+      const adminIds = Array.from(new Set([...(conv.adminIds || [conv.creatorId]), targetUid]));
+      const updatedAt = new Date().toISOString();
+      const conversation = { id: convId, ...conv, adminIds, updatedAt };
+      await convDoc.ref.set({ adminIds, updatedAt }, { merge: true });
+      for (const memberUid of conv.members || []) {
+        emitToUser(io, memberUid, 'conversation:admins_updated', { conversation });
       }
       ack({ ok: true, conversation });
     });

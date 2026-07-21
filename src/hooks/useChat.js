@@ -447,6 +447,7 @@ export default function useChat({
         setActiveConv((prev) => (prev?.id === conversation.id ? { ...prev, ...conversation } : prev));
       }
     };
+    const onConversationAdminsUpdated = onConversationRenamed;
 
     const onConversationHardCleared = ({ convId, mode }) => {
       if (!convId) return;
@@ -539,6 +540,7 @@ export default function useChat({
     socket.on('conversation:member_added',  onConversationMemberAdded);
     socket.on('conversation:member_removed', onConversationMemberRemoved);
     socket.on('conversation:renamed',        onConversationRenamed);
+    socket.on('conversation:admins_updated', onConversationAdminsUpdated);
     socket.on('conversation:hardCleared',    onConversationHardCleared);
     socket.on('contact:blocked-by-parent',   onContactBlockedByParent);
     socket.on('contact:unblocked-by-parent', onContactUnblockedByParent);
@@ -568,6 +570,7 @@ export default function useChat({
       socket.off('conversation:member_added',  onConversationMemberAdded);
       socket.off('conversation:member_removed', onConversationMemberRemoved);
       socket.off('conversation:renamed',        onConversationRenamed);
+      socket.off('conversation:admins_updated', onConversationAdminsUpdated);
       socket.off('conversation:hardCleared',    onConversationHardCleared);
       socket.off('contact:blocked-by-parent',   onContactBlockedByParent);
       socket.off('contact:unblocked-by-parent', onContactUnblockedByParent);

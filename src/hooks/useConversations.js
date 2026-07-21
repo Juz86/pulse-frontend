@@ -1109,7 +1109,7 @@ export default function useConversations({
     const memberNames = Object.fromEntries([[user.uid, user.displayName || user.email], ...groupMembers.map(c => [c.uid, c.displayName])]);
     socket.emit('conversation:create', { members: memberUids, memberNames, isGroup: true, groupName: groupName.trim() }, ({ convId, error }) => {
       if (error) return showErrToast(error);
-      const conv = { id: convId, members: memberUids, memberNames, isGroup: true, groupName: groupName.trim(), creatorId: user.uid };
+      const conv = { id: convId, members: memberUids, memberNames, isGroup: true, groupName: groupName.trim(), creatorId: user.uid, adminIds: [user.uid] };
       setShowNewGroup(false); setGroupName(''); setGroupMembers([]);
       openConversation(conv); loadConversations();
     });
@@ -1120,6 +1120,18 @@ export default function useConversations({
     const groupNameValue = String(nextGroupName || '').trim();
     if (!socket || !activeConv?.isGroup || !groupNameValue) return;
     socket.emit('conversation:rename', { convId: activeConv.id, groupName: groupNameValue }, (res = {}) => {
+      if (res.error) return showErrToast(res.error);
+      const conversation = res.conversation;
+      if (!conversation?.id) return;
+      setConversations(prev => prev.map(conv => conv.id === conversation.id ? { ...conv, ...conversation } : conv));
+      setActiveConv(prev => prev?.id === conversation.id ? { ...prev, ...conversation } : prev);
+    });
+  }
+
+  function promoteGroupAdmin(uid) {
+    const socket = getSocket();
+    if (!socket || !activeConv?.isGroup || !uid) return;
+    socket.emit('conversation:promoteAdmin', { convId: activeConv.id, uid }, (res = {}) => {
       if (res.error) return showErrToast(res.error);
       const conversation = res.conversation;
       if (!conversation?.id) return;
@@ -1192,7 +1204,7 @@ export default function useConversations({
     sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
-    toggleGroupMember, createGroup, renameGroup, addMemberToGroup, removeMemberFromGroup, leaveGroup,
+    toggleGroupMember, createGroup, renameGroup, promoteGroupAdmin, addMemberToGroup, removeMemberFromGroup, leaveGroup,
     storeTransientConversationMessage,
   };
 }

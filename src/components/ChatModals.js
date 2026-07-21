@@ -106,7 +106,7 @@ export default function ChatModals({
   showGroupInfo, setShowGroupInfo,
   addingMember, setAddingMember,
   groupPhotoLoading, uploadGroupPhoto,
-  removeMemberFromGroup, addMemberToGroup, renameGroup,
+  removeMemberFromGroup, addMemberToGroup, renameGroup, promoteGroupAdmin,
 
   // call overlay
   activeCall, setActiveCall,
@@ -135,7 +135,7 @@ export default function ChatModals({
   const [callActionMode, setCallActionMode] = useState(null); // 'voice' | null
   const [callLogStatusNow, setCallLogStatusNow] = useState(() => Date.now());
   const [confirmCheckboxChecked, setConfirmCheckboxChecked] = useState(false);
-  const isGroupInfoAdmin = activeConv?.isGroup && activeConv.creatorId === user?.uid;
+  const isGroupInfoAdmin = activeConv?.isGroup && (activeConv.adminIds?.includes(user?.uid) || activeConv.creatorId === user?.uid);
 
   function closeGroupInfo() {
     setEditingGroupName(false);
@@ -1395,7 +1395,7 @@ export default function ChatModals({
             })() : (
               <>
             {(() => {
-              const isAdmin = activeConv.creatorId === user.uid;
+              const isAdmin = activeConv.adminIds?.includes(user.uid) || activeConv.creatorId === user.uid;
               return (
                 <div className="group-info-hero">
                   <label
@@ -1459,7 +1459,7 @@ export default function ChatModals({
               );
             })()}
             {(() => {
-              const isAdmin = activeConv.creatorId === user.uid;
+              const isAdmin = activeConv.adminIds?.includes(user.uid) || activeConv.creatorId === user.uid;
               return (
                 <>
                   <div role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list">
@@ -1470,7 +1470,7 @@ export default function ChatModals({
                         ? (user.displayName || user.email || memberId)
                         : ((memberContact ? getContactDisplayName(memberContact) : null) || memberContact?.displayName || activeConv.memberNames?.[memberId] || memberId);
                       const isOnline  = onlineUsers.has(memberId);
-                      const isCreator = memberId === activeConv.creatorId;
+                      const isMemberAdmin = activeConv.adminIds?.includes(memberId) || memberId === activeConv.creatorId;
                       const photo     = memberContact?.photoURL || null;
                       return (
                         <div key={memberId} role="listitem" className="search-result group-info-member-row" style={{ cursor: 'default' }}>
@@ -1481,16 +1481,19 @@ export default function ChatModals({
                           <div style={{ flex: 1 }}>
                             <div className="conv-name" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               {name}{isMe ? ' (jij)' : ''}
-                              {isCreator && <span className="admin-badge"><AdminIcon size={11} aria-hidden="true" /> Beheerder</span>}
+                              {isMemberAdmin && <span className="admin-badge"><AdminIcon size={11} aria-hidden="true" /> Beheerder</span>}
                             </div>
                             <div className="conv-preview" style={isOnline ? { color: 'var(--success)' } : {}}>
                               {isOnline ? 'Online' : 'Offline'}
                             </div>
                           </div>
                           {!isMe && isAdmin && (
-                            <button type="button" className="group-info-remove-btn" aria-label={`Verwijder ${name} uit de groep`} title="Verwijderen uit groep"
-                              onClick={() => removeMemberFromGroup(memberId)}
-                            ><Delete size={18} aria-hidden="true" /></button>
+                            <div className="group-info-member-actions">
+                              {!isMemberAdmin && <button type="button" className="group-info-promote-btn" aria-label={`Maak ${name} beheerder`} title="Beheerder maken" onClick={() => promoteGroupAdmin?.(memberId)}><AdminIcon size={17} aria-hidden="true" /></button>}
+                              <button type="button" className="group-info-remove-btn" aria-label={`Verwijder ${name} uit de groep`} title="Verwijderen uit groep"
+                                onClick={() => removeMemberFromGroup(memberId)}
+                              ><Delete size={18} aria-hidden="true" /></button>
+                            </div>
                           )}
                         </div>
                       );

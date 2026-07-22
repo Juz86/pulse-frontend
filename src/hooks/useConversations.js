@@ -1138,6 +1138,28 @@ export default function useConversations({
     });
   }
 
+  function relinquishGroupAdmin() {
+    const socket = getSocket();
+    if (!socket || !activeConv?.isGroup) return;
+    const groupNameValue = activeConv.groupName || 'deze groep';
+    setConfirmDialog({
+      title: 'Beheerderrol opgeven',
+      message: `Weet je zeker dat je je beheerderrol in ${groupNameValue} wilt opgeven?`,
+      confirmLabel: 'Opgeven',
+      confirmIcon: 'trash',
+      onConfirm: () => {
+        socket.emit('conversation:relinquishAdmin', { convId: activeConv.id }, (res = {}) => {
+          if (res.error) return showErrToast(res.error);
+          if (res.conversation?.id) {
+            setConversations(prev => prev.map(conv => conv.id === res.conversation.id ? { ...conv, ...res.conversation } : conv));
+            setActiveConv(prev => prev?.id === res.conversation.id ? { ...prev, ...res.conversation } : prev);
+          }
+          showErrToast('Je hebt je beheerderrol opgegeven.');
+        });
+      },
+    });
+  }
+
   function addMemberToGroup(contact) {
     const socket = getSocket();
     if (!socket || !activeConv) return;
@@ -1202,7 +1224,7 @@ export default function useConversations({
     sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
-    toggleGroupMember, createGroup, renameGroup, promoteGroupAdmin, addMemberToGroup, removeMemberFromGroup, leaveGroup,
+    toggleGroupMember, createGroup, renameGroup, promoteGroupAdmin, relinquishGroupAdmin, addMemberToGroup, removeMemberFromGroup, leaveGroup,
     storeTransientConversationMessage,
   };
 }

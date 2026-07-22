@@ -106,7 +106,7 @@ export default function ChatModals({
   showGroupInfo, setShowGroupInfo,
   addingMember, setAddingMember,
   groupPhotoLoading, uploadGroupPhoto,
-  removeMemberFromGroup, addMemberToGroup, renameGroup, promoteGroupAdmin,
+  removeMemberFromGroup, addMemberToGroup, renameGroup, promoteGroupAdmin, relinquishGroupAdmin,
 
   // call overlay
   activeCall, setActiveCall,
@@ -1487,7 +1487,17 @@ export default function ChatModals({
                           <div style={{ flex: 1 }}>
                             <div className="conv-name" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                               {name}{isMe ? ' (jij)' : ''}
-                              {isMemberAdmin && <span className="admin-badge"><AdminIcon size={11} aria-hidden="true" /> Beheerder</span>}
+                              {isMemberAdmin && (isMe ? (
+                                <button
+                                  type="button"
+                                  className="admin-badge admin-badge--action"
+                                  aria-label="Beheerderrol opgeven"
+                                  title="Beheerderrol opgeven"
+                                  onClick={relinquishGroupAdmin}
+                                >
+                                  <AdminIcon size={11} aria-hidden="true" /> Beheerder
+                                </button>
+                              ) : <span className="admin-badge"><AdminIcon size={11} aria-hidden="true" /> Beheerder</span>)}
                             </div>
                             <div className="conv-preview" style={isOnline ? { color: 'var(--success)' } : {}}>
                               {isOnline ? 'Online' : 'Offline'}

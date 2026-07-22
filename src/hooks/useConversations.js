@@ -1149,7 +1149,13 @@ export default function useConversations({
       confirmIcon: 'trash',
       onConfirm: () => {
         socket.emit('conversation:relinquishAdmin', { convId: activeConv.id }, (res = {}) => {
-          if (res.error) return showErrToast(res.error);
+          if (res.error) {
+            return showErrToast(
+              res.error === 'last_group_admin'
+                ? 'Maak eerst een ander groepslid beheerder.'
+                : res.error,
+            );
+          }
           if (res.conversation?.id) {
             setConversations(prev => prev.map(conv => conv.id === res.conversation.id ? { ...conv, ...res.conversation } : conv));
             setActiveConv(prev => prev?.id === res.conversation.id ? { ...prev, ...res.conversation } : prev);

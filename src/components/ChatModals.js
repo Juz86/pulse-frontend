@@ -136,8 +136,13 @@ export default function ChatModals({
   const [callActionMode, setCallActionMode] = useState(null); // 'voice' | null
   const [callLogStatusNow, setCallLogStatusNow] = useState(() => Date.now());
   const [confirmCheckboxChecked, setConfirmCheckboxChecked] = useState(false);
-  const isGroupInfoAdmin = activeConv?.isGroup && (activeConv.adminIds?.includes(user?.uid) || activeConv.creatorId === user?.uid);
-  const hasPromotableGroupMember = activeConv?.members?.some((memberId) => memberId !== user?.uid && !(activeConv.adminIds?.includes(memberId) || memberId === activeConv.creatorId));
+  const isGroupAdmin = (conversation, uid) => (
+    Array.isArray(conversation?.adminIds)
+      ? conversation.adminIds.includes(uid)
+      : conversation?.creatorId === uid
+  );
+  const isGroupInfoAdmin = activeConv?.isGroup && isGroupAdmin(activeConv, user?.uid);
+  const hasPromotableGroupMember = activeConv?.members?.some((memberId) => memberId !== user?.uid && !isGroupAdmin(activeConv, memberId));
 
   function closeGroupInfo() {
     setEditingGroupName(false);
@@ -1401,7 +1406,7 @@ export default function ChatModals({
             })() : (
               <>
             {(() => {
-              const isAdmin = activeConv.adminIds?.includes(user.uid) || activeConv.creatorId === user.uid;
+              const isAdmin = isGroupAdmin(activeConv, user.uid);
               return (
                 <div className="group-info-hero">
                   <label
@@ -1465,7 +1470,7 @@ export default function ChatModals({
               );
             })()}
             {(() => {
-              const isAdmin = activeConv.adminIds?.includes(user.uid) || activeConv.creatorId === user.uid;
+              const isAdmin = isGroupAdmin(activeConv, user.uid);
               return (
                 <>
                   <div role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list">
@@ -1476,7 +1481,7 @@ export default function ChatModals({
                         ? (user.displayName || user.email || memberId)
                         : ((memberContact ? getContactDisplayName(memberContact) : null) || memberContact?.displayName || activeConv.memberNames?.[memberId] || memberId);
                       const isOnline  = onlineUsers.has(memberId);
-                      const isMemberAdmin = activeConv.adminIds?.includes(memberId) || memberId === activeConv.creatorId;
+                      const isMemberAdmin = isGroupAdmin(activeConv, memberId);
                       const photo     = memberContact?.photoURL || null;
                       return (
                         <div key={memberId} role="listitem" className="search-result group-info-member-row" style={{ cursor: 'default' }}>
@@ -1508,7 +1513,7 @@ export default function ChatModals({
                               <button type="button" className="group-info-promote-btn" aria-label="Beheerder toevoegen" title="Beheerder toevoegen" aria-expanded={showAdminPicker} onClick={() => setShowAdminPicker((visible) => !visible)}><AdminIcon size={17} aria-hidden="true" /></button>
                               {showAdminPicker && (
                                 <div className="group-info-admin-picker" role="list" aria-label="Kies een nieuwe beheerder">
-                                  {activeConv.members.filter((candidateId) => candidateId !== user.uid && !(activeConv.adminIds?.includes(candidateId) || candidateId === activeConv.creatorId)).map((candidateId) => {
+                                  {activeConv.members.filter((candidateId) => candidateId !== user.uid && !isGroupAdmin(activeConv, candidateId)).map((candidateId) => {
                                     const candidateContact = contacts.find((contact) => contact.uid === candidateId);
                                     const candidateName = (candidateContact ? getContactDisplayName(candidateContact) : null) || candidateContact?.displayName || activeConv.memberNames?.[candidateId] || candidateId;
                                     return <button key={candidateId} type="button" role="listitem" onClick={() => { promoteGroupAdmin?.(candidateId, candidateName); setShowAdminPicker(false); }}>{candidateName}</button>;

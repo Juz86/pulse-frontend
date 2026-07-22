@@ -36,6 +36,7 @@ export default function useChat({
   setBlockedContacts,
   setParentBlockedUids,
   showErrToast,
+  setConfirmDialog,
   onReconnect,
   onOpenMentionConversation,
   onTransientMessage,
@@ -454,6 +455,28 @@ export default function useChat({
         showErrToast?.(`${promotedByName || 'Een beheerder'} heeft je beheerder gemaakt in ${conversation?.groupName || 'deze groep'}.`);
       }
     };
+    const onAdminPromotionRequested = ({ request }) => {
+      if (!request?.id || request.targetUid !== user.uid) return;
+      setConfirmDialog?.({
+        title: 'Beheerderverzoek',
+        message: `${request.requestedByName || 'Een beheerder'} vraagt je beheerder te worden van ${request.groupName || 'deze groep'}.`,
+        confirmLabel: 'Accepteren',
+        cancelLabel: 'Weigeren',
+        hideClose: true,
+        onConfirm: () => {
+          socket.emit('conversation:respondToAdminPromotion', { requestId: request.id, accept: true }, (res = {}) => {
+            if (res.error) return showErrToast?.(res.error);
+            showErrToast?.('Je bent nu beheerder.');
+          });
+        },
+        onCancel: () => {
+          socket.emit('conversation:respondToAdminPromotion', { requestId: request.id, accept: false }, (res = {}) => {
+            if (res.error) return showErrToast?.(res.error);
+            showErrToast?.('Beheerderverzoek geweigerd.');
+          });
+        },
+      });
+    };
 
     const onConversationHardCleared = ({ convId, mode }) => {
       if (!convId) return;
@@ -547,6 +570,7 @@ export default function useChat({
     socket.on('conversation:member_removed', onConversationMemberRemoved);
     socket.on('conversation:renamed',        onConversationRenamed);
     socket.on('conversation:admins_updated', onConversationAdminsUpdated);
+    socket.on('conversation:admin_promotion_requested', onAdminPromotionRequested);
     socket.on('conversation:hardCleared',    onConversationHardCleared);
     socket.on('contact:blocked-by-parent',   onContactBlockedByParent);
     socket.on('contact:unblocked-by-parent', onContactUnblockedByParent);
@@ -577,6 +601,7 @@ export default function useChat({
       socket.off('conversation:member_removed', onConversationMemberRemoved);
       socket.off('conversation:renamed',        onConversationRenamed);
       socket.off('conversation:admins_updated', onConversationAdminsUpdated);
+      socket.off('conversation:admin_promotion_requested', onAdminPromotionRequested);
       socket.off('conversation:hardCleared',    onConversationHardCleared);
       socket.off('contact:blocked-by-parent',   onContactBlockedByParent);
       socket.off('contact:unblocked-by-parent', onContactUnblockedByParent);

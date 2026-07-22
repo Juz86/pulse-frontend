@@ -597,7 +597,7 @@ export default function ChatModals({
 
       {/* ── BEVESTIGINGSDIALOOG ── */}
       {confirmDialog && (
-        <div className="pulse-sheet-backdrop pulse-sheet-backdrop--confirm-dialog" onClick={() => setConfirmDialog(null)}>
+        <div className="pulse-sheet-backdrop pulse-sheet-backdrop--confirm-dialog" onClick={() => { if (!confirmDialog.hideClose) setConfirmDialog(null); }}>
           <aside
             className={`pulse-sheet pulse-sheet--confirm-dialog confirm-dialog-modal${confirmDialog.type === 'clear-chat' ? ' confirm-dialog-modal--clear-chat' : ''}`}
             role="dialog"
@@ -609,7 +609,7 @@ export default function ChatModals({
             <div className="pulse-sheet-handle" aria-hidden="true" />
             <div className="pulse-sheet-header pulse-sheet-header--confirm-dialog">
               <div id="confirm-dialog-title" className="pulse-sheet-title pulse-sheet-title--confirm-dialog">{confirmDialog.title || 'Bevestiging'}</div>
-              <button type="button" className="pulse-sheet-close pulse-sheet-close--confirm-dialog" aria-label="Sluiten" onClick={() => setConfirmDialog(null)}><span aria-hidden="true">✕</span></button>
+              {!confirmDialog.hideClose && <button type="button" className="pulse-sheet-close pulse-sheet-close--confirm-dialog" aria-label="Sluiten" onClick={() => setConfirmDialog(null)}><span aria-hidden="true">✕</span></button>}
             </div>
             {confirmDialog.message && (
               <p id="confirm-dialog-description" className="confirm-dialog-description">
@@ -631,7 +631,10 @@ export default function ChatModals({
                 <button
                   type="button"
                   className="btn-secondary confirm-dialog-btn"
-                  onClick={() => setConfirmDialog(null)}
+                  onClick={() => {
+                    confirmDialog.onCancel?.();
+                    setConfirmDialog(null);
+                  }}
                 >
                   {confirmDialog.cancelLabel || 'Annuleren'}
                 </button>

@@ -1133,11 +1133,8 @@ export default function useConversations({
     if (!socket || !activeConv?.isGroup || !uid) return;
     socket.emit('conversation:promoteAdmin', { convId: activeConv.id, uid }, (res = {}) => {
       if (res.error) return showErrToast(res.error);
-      const conversation = res.conversation;
-      if (!conversation?.id) return;
-      setConversations(prev => prev.map(conv => conv.id === conversation.id ? { ...conv, ...conversation } : conv));
-      setActiveConv(prev => prev?.id === conversation.id ? { ...prev, ...conversation } : prev);
-      showErrToast(`${displayName || 'Dit groepslid'} is nu beheerder.`);
+      if (!res.request?.id) return;
+      showErrToast(`Verzoek om ${displayName || 'dit groepslid'} beheerder te maken is verstuurd.`);
     });
   }
 

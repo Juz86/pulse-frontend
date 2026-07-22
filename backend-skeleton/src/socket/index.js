@@ -108,6 +108,15 @@ export function createSocketServer(server) {
       });
     });
 
+    db.collection('group_admin_promotions').where('targetUid', '==', uid).get()
+      .then((pendingAdminPromotions) => {
+        pendingAdminPromotions.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter((request) => request.status === 'pending')
+          .forEach((request) => socket.emit('conversation:admin_promotion_requested', { request }));
+      })
+      .catch((error) => console.warn('[Pulse] Ophalen beheerderverzoeken mislukt:', error?.message));
+
     socket.on('user:online', () => {
       inactiveUsers.delete(uid);
       io.emit('user:status', { uid, online: true, inactive: false });
@@ -455,24 +464,113 @@ export function createSocketServer(server) {
         ack({ error: 'not_allowed_in_conversation' });
         return;
       }
+      if (isGroupAdmin(conv, targetUid)) {
+        ack({ error: 'already_group_admin' });
+        return;
+      }
 
-      const adminIds = Array.from(new Set([...(conv.adminIds || [conv.creatorId]), targetUid]));
       const updatedAt = new Date().toISOString();
-      const conversation = { id: convId, ...conv, adminIds, updatedAt };
-      await convDoc.ref.set({ adminIds, updatedAt }, { merge: true });
       const promotedByName = conv.memberNames?.[uid] || conv.memberEmails?.[uid] || uid;
       const promotedName = conv.memberNames?.[targetUid] || conv.memberEmails?.[targetUid] || targetUid;
+      const requestRef = db.collection('group_admin_promotions').doc(`${convId}_${targetUid}`);
+      const existingRequest = await requestRef.get();
+      if (existingRequest.exists && existingRequest.data()?.status === 'pending') {
+        ack({ error: 'admin_promotion_already_pending' });
+        return;
+      }
+
+      const request = {
+        id: requestRef.id,
+        convId,
+        targetUid,
+        requestedByUid: uid,
+        requestedByName: promotedByName,
+        groupName: conv.groupName || 'deze groep',
+        status: 'pending',
+        createdAt: updatedAt,
+        updatedAt,
+      };
+      await requestRef.set(request);
+      await createGroupSystemMessage({
+        io,
+        convRef: convDoc.ref,
+        conv: { id: convId, ...conv },
+        text: `${promotedByName} heeft ${promotedName} gevraagd beheerder te worden.`,
+        emitToUser,
+      });
+      emitToUser(io, targetUid, 'conversation:admin_promotion_requested', { request });
+      const pushResult = await sendPushToUsers({
+        senderUid: uid,
+        recipientUids: [targetUid],
+        payload: {
+          type: 'group_admin_promotion',
+          convId,
+          title: 'Beheerderverzoek',
+          body: `${promotedByName} vraagt je beheerder te worden van ${request.groupName}.`,
+        },
+      });
+      console.info('[Pulse][Push] conversation:promoteAdmin', { convId, targetUid, pushResult });
+      ack({ ok: true, request });
+    });
+
+    socket.on('conversation:respondToAdminPromotion', async ({ requestId, accept }, ack = () => {}) => {
+      if (!requestId || !uid || typeof accept !== 'boolean') {
+        ack({ error: 'invalid_payload' });
+        return;
+      }
+
+      const requestRef = db.collection('group_admin_promotions').doc(requestId);
+      const requestDoc = await requestRef.get();
+      if (!requestDoc.exists) {
+        ack({ error: 'admin_promotion_not_found' });
+        return;
+      }
+      const request = requestDoc.data();
+      if (request.targetUid !== uid || request.status !== 'pending') {
+        ack({ error: 'admin_promotion_not_available' });
+        return;
+      }
+
+      const convDoc = await db.collection('conversations').doc(request.convId).get();
+      if (!convDoc.exists) {
+        ack({ error: 'conversation_not_found' });
+        return;
+      }
+      const conv = convDoc.data();
+      if (!conv.isGroup || !conv.members?.includes(uid)) {
+        ack({ error: 'not_allowed_in_conversation' });
+        return;
+      }
+
+      const updatedAt = new Date().toISOString();
+      await requestRef.set({ status: accept ? 'accepted' : 'declined', respondedAt: updatedAt, updatedAt }, { merge: true });
+      const targetName = conv.memberNames?.[uid] || conv.memberEmails?.[uid] || uid;
+      if (!accept) {
+        await createGroupSystemMessage({
+          io,
+          convRef: convDoc.ref,
+          conv: { id: request.convId, ...conv },
+          text: `${targetName} heeft het beheerderverzoek geweigerd.`,
+          emitToUser,
+        });
+        ack({ ok: true, accepted: false });
+        return;
+      }
+
+      const adminIds = Array.from(new Set([...(conv.adminIds || [conv.creatorId]), uid]));
+      const conversation = { id: request.convId, ...conv, adminIds, updatedAt };
+      await convDoc.ref.set({ adminIds, updatedAt }, { merge: true });
       await createGroupSystemMessage({
         io,
         convRef: convDoc.ref,
         conv: conversation,
-        text: `${promotedByName} heeft ${promotedName} beheerder gemaakt.`,
+        text: `${targetName} heeft het beheerderverzoek geaccepteerd.`,
         emitToUser,
       });
       for (const memberUid of conv.members || []) {
-        emitToUser(io, memberUid, 'conversation:admins_updated', { conversation, promotedUid: targetUid, promotedByName });
+        emitToUser(io, memberUid, 'conversation:admins_updated', { conversation, promotedUid: uid, promotedByName: request.requestedByName });
       }
-      ack({ ok: true, conversation });
+      ack({ ok: true, accepted: true, conversation });
     });
 
     socket.on('message:send', async ({ convId, message }, ack = () => {}) => {

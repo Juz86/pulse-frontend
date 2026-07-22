@@ -719,19 +719,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
                 <button type="button" className="pinned-msg-close" aria-label="Losmaken" onClick={() => handlePin(pinnedMsgs[activeConv.id])}><span aria-hidden="true">✕</span></button>
               </div>
             )}
-            {(() => {
-              const blockedOtherUid = !activeConv.isGroup && getOtherUid(activeConv);
-              const isBlockedConv   = blockedOtherUid && blockedContacts.some(c => c.uid === blockedOtherUid);
-              const isParentBlocked = blockedOtherUid && parentBlockedUids.includes(blockedOtherUid);
-              const blockedName     = isBlockedConv && !isParentBlocked && (blockedContacts.find(c => c.uid === blockedOtherUid)?.displayName || getConvName(activeConv));
-              if (!isBlockedConv || isParentBlocked) return null;
-              return (
-                <div className="blocked-conv-banner" role="status">
-                  <span>Je hebt <strong>{blockedName}</strong> geblokkeerd. Ze kunnen je niet meer berichten of bellen.</span>
-                  <button type="button" className="btn-secondary" style={{ fontSize: '13px', padding: '6px 14px' }} onClick={() => unblockContact(blockedOtherUid)}>Deblokkeren</button>
-                </div>
-              );
-            })()}
             <MessageList
               user={user}
               contacts={contacts}

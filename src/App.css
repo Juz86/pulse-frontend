@@ -6475,7 +6475,6 @@ font-family: 'Inter', sans-serif;
   background:
     radial-gradient(circle at top center, rgba(139,92,246,.24), transparent 28%),
     linear-gradient(180deg, #262358 0%, #221f4e 100%);
-  padding: max(16px, env(safe-area-inset-top)) 18px calc(max(34px, env(safe-area-inset-bottom) + 20px) + 128px);
   scroll-padding-bottom: calc(max(34px, env(safe-area-inset-bottom) + 20px) + 128px);
 }
 .contact-profile-topbar {
@@ -7768,6 +7767,19 @@ font-family: 'Inter', sans-serif;
 
 .confirm-dialog-modal--admin-promotion .confirm-dialog-btn-danger:hover {
   background: linear-gradient(135deg, #9887ff 0%, #7565ef 52%, #6252dd 100%);
+}
+
+@media (min-width: 768px) {
+  .pulse-sheet-backdrop--admin-promotion {
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 0 18px calc(112px + env(safe-area-inset-bottom));
+  }
+
+  .pulse-sheet--confirm-dialog.confirm-dialog-modal--admin-promotion {
+    width: calc(var(--sidebar-width) - 36px);
+    max-width: 540px;
+  }
 }
 
 @media (max-width: 767px) {

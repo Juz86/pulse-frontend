@@ -253,6 +253,8 @@ export default function ChatSidebar({
   onEnterMessageSelectionForConversation,
   onShowStarredForConversation,
   onLeaveGroup,
+  conversationActionsRequest,
+  onConversationActionsRequestHandled,
   mutedConversationIds = [],
   selectionMode,
   selectedConversationIds,
@@ -2206,6 +2208,11 @@ export default function ChatSidebar({
     setContactMenu(null);
     setConvActionsSheet({ conv, otherUid });
   }, []);
+  useEffect(() => {
+    if (!conversationActionsRequest?.id) return;
+    openConvActionsSheet(conversationActionsRequest, getOtherUid?.(conversationActionsRequest));
+    onConversationActionsRequestHandled?.();
+  }, [conversationActionsRequest, getOtherUid, onConversationActionsRequestHandled, openConvActionsSheet]);
   const closeConvActionsSheet = useCallback(() => {
     if (convSheetHistoryPushedRef.current) {
       convSheetHistoryPushedRef.current = false;

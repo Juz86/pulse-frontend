@@ -32,6 +32,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [showCallModal,  setShowCallModal]  = useState(false);
   const [callLogRead,    setCallLogRead]    = useState(false);
   const [showGroupInfo,  setShowGroupInfo]  = useState(false);
+  const [headerConversationActions, setHeaderConversationActions] = useState(null);
   const [addingMember,   setAddingMember]   = useState(false);
   const [showContactProfile, setShowContactProfile] = useState(false);
   const [contactProfileContact, setContactProfileContact] = useState(null);
@@ -633,6 +634,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onEnterMessageSelectionForConversation={(conv) => openConversationAndRun(conv, enterMessageSelection)}
         onShowStarredForConversation={(conv) => openConversationAndRun(conv, () => setShowStarredMsgs(true))}
         onLeaveGroup={(conv) => openConversationAndRun(conv, leaveGroup)}
+        conversationActionsRequest={headerConversationActions}
+        onConversationActionsRequestHandled={() => setHeaderConversationActions(null)}
         mutedConversationIds={mutedConversationIds}
         selectionMode={conversationSelectionMode}
         selectedConversationIds={selectedConversationIds}
@@ -673,6 +676,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
               onEnterMessageSelection={() => messageSelectionMode ? cancelMessageSelection() : enterMessageSelection()}
               onShowStarredMsgs={() => setShowStarredMsgs(true)}
+              onShowConversationActions={() => setHeaderConversationActions(activeConv)}
               onLeaveGroup={leaveGroup}
               onClearChat={() => {
                 openClearConversationConfirm(activeConv);

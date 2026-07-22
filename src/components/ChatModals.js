@@ -597,9 +597,9 @@ export default function ChatModals({
 
       {/* ── BEVESTIGINGSDIALOOG ── */}
       {confirmDialog && (
-        <div className="pulse-sheet-backdrop pulse-sheet-backdrop--confirm-dialog" onClick={() => { if (!confirmDialog.hideClose) setConfirmDialog(null); }}>
+        <div className={`pulse-sheet-backdrop pulse-sheet-backdrop--confirm-dialog${confirmDialog.type === 'admin-promotion' ? ' pulse-sheet-backdrop--admin-promotion' : ''}`} onClick={() => { if (!confirmDialog.hideClose) setConfirmDialog(null); }}>
           <aside
-            className={`pulse-sheet pulse-sheet--confirm-dialog confirm-dialog-modal${confirmDialog.type === 'clear-chat' ? ' confirm-dialog-modal--clear-chat' : ''}`}
+            className={`pulse-sheet pulse-sheet--confirm-dialog confirm-dialog-modal${confirmDialog.type === 'clear-chat' ? ' confirm-dialog-modal--clear-chat' : ''}${confirmDialog.type === 'admin-promotion' ? ' confirm-dialog-modal--admin-promotion' : ''}`}
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-dialog-title"

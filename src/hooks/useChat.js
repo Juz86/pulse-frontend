@@ -458,6 +458,7 @@ export default function useChat({
     const onAdminPromotionRequested = ({ request }) => {
       if (!request?.id || request.targetUid !== user.uid) return;
       setConfirmDialog?.({
+        type: 'admin-promotion',
         title: 'Beheerderverzoek',
         message: `${request.requestedByName || 'Een beheerder'} vraagt je beheerder te worden van ${request.groupName || 'deze groep'}.`,
         confirmLabel: 'Accepteren',

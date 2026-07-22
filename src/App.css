@@ -7712,6 +7712,100 @@ font-family: 'Inter', sans-serif;
   width: min(100%, 560px);
 }
 
+/* Beheerderverzoeken verschijnen als een losse sheet boven de mobiele sidebar-footer. */
+.pulse-sheet-backdrop--admin-promotion {
+  background: rgba(13, 9, 31, 0.38);
+  backdrop-filter: blur(9px) saturate(0.82);
+  -webkit-backdrop-filter: blur(9px) saturate(0.82);
+}
+
+.confirm-dialog-modal--admin-promotion {
+  width: min(100%, 540px);
+  padding: 10px 18px 22px;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(143, 126, 255, 0.18) 0%, rgba(143, 126, 255, 0) 38%),
+    linear-gradient(180deg, rgba(253, 251, 255, 0.99), rgba(244, 239, 255, 0.99));
+  border-color: rgba(124, 105, 238, 0.2);
+  box-shadow: 0 24px 64px rgba(10, 7, 29, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.confirm-dialog-modal--admin-promotion .pulse-sheet-handle {
+  margin: 4px auto 14px;
+  background: rgba(36, 27, 68, 0.22);
+}
+
+.confirm-dialog-modal--admin-promotion .pulse-sheet-title--confirm-dialog {
+  font-size: 24px;
+  font-weight: 800;
+  color: #171127;
+}
+
+.confirm-dialog-modal--admin-promotion .confirm-dialog-description {
+  margin: 12px 0 28px;
+  color: #302650;
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+.confirm-dialog-modal--admin-promotion .confirm-dialog-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 0.58fr) minmax(0, 1.42fr);
+  gap: 12px;
+  margin-top: 0;
+}
+
+.confirm-dialog-modal--admin-promotion .confirm-dialog-btn {
+  min-height: 56px;
+  border-radius: 20px;
+  font-size: 18px;
+}
+
+.confirm-dialog-modal--admin-promotion .confirm-dialog-btn-danger {
+  background: linear-gradient(135deg, #8b78ff 0%, #6c5ce7 52%, #5a49d6 100%);
+  box-shadow: 0 14px 26px rgba(99, 80, 218, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.confirm-dialog-modal--admin-promotion .confirm-dialog-btn-danger:hover {
+  background: linear-gradient(135deg, #9887ff 0%, #7565ef 52%, #6252dd 100%);
+}
+
+@media (max-width: 767px) {
+  .pulse-sheet-backdrop--admin-promotion {
+    align-items: flex-end;
+    padding: 0 18px calc(104px + env(safe-area-inset-bottom));
+  }
+
+  .pulse-sheet--confirm-dialog.confirm-dialog-modal--admin-promotion {
+    width: min(100%, 540px);
+    max-height: none;
+    padding: 10px 18px 22px;
+    border-radius: 32px;
+  }
+}
+
+@media (max-width: 420px) {
+  .pulse-sheet-backdrop--admin-promotion {
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .confirm-dialog-modal--admin-promotion .pulse-sheet-title--confirm-dialog {
+    font-size: 21px;
+  }
+
+  .confirm-dialog-modal--admin-promotion .confirm-dialog-description {
+    font-size: 16px;
+    margin-bottom: 22px;
+  }
+
+  .confirm-dialog-modal--admin-promotion .confirm-dialog-btn {
+    min-height: 52px;
+    font-size: 16px;
+  }
+}
+
 .group-info-panel {
   position: relative;
   width: min(100%, 420px);

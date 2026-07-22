@@ -35,6 +35,7 @@ export default function useChat({
   setActiveConv,
   setBlockedContacts,
   setParentBlockedUids,
+  showErrToast,
   onReconnect,
   onOpenMentionConversation,
   onTransientMessage,
@@ -447,7 +448,12 @@ export default function useChat({
         setActiveConv((prev) => (prev?.id === conversation.id ? { ...prev, ...conversation } : prev));
       }
     };
-    const onConversationAdminsUpdated = onConversationRenamed;
+    const onConversationAdminsUpdated = ({ conversation, promotedUid, promotedByName }) => {
+      onConversationRenamed({ conversation });
+      if (promotedUid === user.uid) {
+        showErrToast?.(`${promotedByName || 'Een beheerder'} heeft je beheerder gemaakt in ${conversation?.groupName || 'deze groep'}.`);
+      }
+    };
 
     const onConversationHardCleared = ({ convId, mode }) => {
       if (!convId) return;

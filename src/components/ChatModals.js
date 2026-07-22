@@ -1498,7 +1498,7 @@ export default function ChatModals({
                                   {activeConv.members.filter((candidateId) => candidateId !== user.uid && !(activeConv.adminIds?.includes(candidateId) || candidateId === activeConv.creatorId)).map((candidateId) => {
                                     const candidateContact = contacts.find((contact) => contact.uid === candidateId);
                                     const candidateName = (candidateContact ? getContactDisplayName(candidateContact) : null) || candidateContact?.displayName || activeConv.memberNames?.[candidateId] || candidateId;
-                                    return <button key={candidateId} type="button" role="listitem" onClick={() => { promoteGroupAdmin?.(candidateId); setShowAdminPicker(false); }}>{candidateName}</button>;
+                                    return <button key={candidateId} type="button" role="listitem" onClick={() => { promoteGroupAdmin?.(candidateId, candidateName); setShowAdminPicker(false); }}>{candidateName}</button>;
                                   })}
                                 </div>
                               )}

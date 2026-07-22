@@ -1128,7 +1128,7 @@ export default function useConversations({
     });
   }
 
-  function promoteGroupAdmin(uid) {
+  function promoteGroupAdmin(uid, displayName) {
     const socket = getSocket();
     if (!socket || !activeConv?.isGroup || !uid) return;
     socket.emit('conversation:promoteAdmin', { convId: activeConv.id, uid }, (res = {}) => {
@@ -1137,6 +1137,7 @@ export default function useConversations({
       if (!conversation?.id) return;
       setConversations(prev => prev.map(conv => conv.id === conversation.id ? { ...conv, ...conversation } : conv));
       setActiveConv(prev => prev?.id === conversation.id ? { ...prev, ...conversation } : prev);
+      showErrToast(`${displayName || 'Dit groepslid'} is nu beheerder.`);
     });
   }
 

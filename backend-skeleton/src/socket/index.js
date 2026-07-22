@@ -460,8 +460,17 @@ export function createSocketServer(server) {
       const updatedAt = new Date().toISOString();
       const conversation = { id: convId, ...conv, adminIds, updatedAt };
       await convDoc.ref.set({ adminIds, updatedAt }, { merge: true });
+      const promotedByName = conv.memberNames?.[uid] || conv.memberEmails?.[uid] || uid;
+      const promotedName = conv.memberNames?.[targetUid] || conv.memberEmails?.[targetUid] || targetUid;
+      await createGroupSystemMessage({
+        io,
+        convRef: convDoc.ref,
+        conv: conversation,
+        text: `${promotedByName} heeft ${promotedName} beheerder gemaakt.`,
+        emitToUser,
+      });
       for (const memberUid of conv.members || []) {
-        emitToUser(io, memberUid, 'conversation:admins_updated', { conversation });
+        emitToUser(io, memberUid, 'conversation:admins_updated', { conversation, promotedUid: targetUid, promotedByName });
       }
       ack({ ok: true, conversation });
     });

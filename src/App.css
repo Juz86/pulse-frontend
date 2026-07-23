@@ -11027,6 +11027,7 @@ font-family: 'Inter', sans-serif;
   color:#342b9a;
   background:#dfdcff;
 }
+.conversation-search-panel__mobile-nav { display:none; }
 @keyframes conversation-search-panel-in {
   from { opacity:0; transform:translateX(24px); }
   to { opacity:1; transform:translateX(0); }
@@ -11037,7 +11038,110 @@ font-family: 'Inter', sans-serif;
     position:fixed;
     z-index:3800;
     inset:0;
+    display:block;
+    overflow:visible;
+    pointer-events:none;
+    color:#241741;
+    border:0;
+    box-shadow:none;
+    background:transparent;
+    animation:none;
   }
+  .conversation-search-panel__header {
+    position:absolute;
+    z-index:1;
+    top:max(16px, env(safe-area-inset-top));
+    right:16px;
+    min-height:0;
+    padding:0;
+    border:0;
+    background:transparent;
+    pointer-events:auto;
+  }
+  .conversation-search-panel__header h2 { display:none; }
+  .conversation-search-panel__close {
+    width:58px;
+    height:58px;
+    color:#241741;
+    border:1px solid rgba(112,92,191,.10);
+    border-radius:50%;
+    background:rgba(255,255,255,.92);
+    box-shadow:0 8px 24px rgba(37,22,83,.13);
+  }
+  .conversation-search-panel__search {
+    position:absolute;
+    z-index:1;
+    top:max(16px, env(safe-area-inset-top));
+    right:90px;
+    left:16px;
+    min-height:58px;
+    margin:0;
+    padding:0 18px;
+    border:1px solid rgba(112,92,191,.10);
+    border-radius:30px;
+    color:#241741;
+    background:rgba(255,255,255,.94);
+    box-shadow:0 8px 24px rgba(37,22,83,.13);
+    pointer-events:auto;
+  }
+  .conversation-search-panel__search:focus-within {
+    border-color:#6c63ff;
+    box-shadow:0 8px 24px rgba(37,22,83,.13), 0 0 0 3px rgba(108,99,255,.16);
+  }
+  .conversation-search-panel__search input {
+    padding:13px 0;
+    font-size:19px;
+  }
+  .conversation-search-panel__clear {
+    width:31px;
+    height:31px;
+    color:#fff;
+    border-radius:50%;
+    background:#29213f;
+  }
+  .conversation-search-panel__clear:hover { background:#171126; }
+  .conversation-search-panel__results { display:none; }
+  .conversation-search-panel__mobile-nav {
+    position:absolute;
+    right:0;
+    bottom:max(0px, env(safe-area-inset-bottom));
+    left:0;
+    min-height:102px;
+    display:flex;
+    align-items:center;
+    gap:20px;
+    padding:18px 26px calc(18px + env(safe-area-inset-bottom));
+    color:#6a6480;
+    font-size:18px;
+    font-weight:600;
+    background:rgba(252,251,255,.96);
+    box-shadow:0 -10px 30px rgba(37,22,83,.12);
+    pointer-events:auto;
+  }
+  .conversation-search-panel__mobile-nav-buttons {
+    display:flex;
+    overflow:hidden;
+    flex:0 0 auto;
+    border:1px solid rgba(112,92,191,.10);
+    border-radius:32px;
+    background:#fff;
+    box-shadow:0 5px 15px rgba(37,22,83,.07);
+  }
+  .conversation-search-panel__mobile-nav-buttons button {
+    width:70px;
+    height:56px;
+    display:grid;
+    place-items:center;
+    padding:0;
+    border:0;
+    color:#332b51;
+    font-size:36px;
+    line-height:1;
+    background:transparent;
+  }
+  .conversation-search-panel__mobile-nav-buttons button + button { border-left:1px solid rgba(112,92,191,.12); color:#a39db4; }
+  .conversation-search-panel__mobile-nav-buttons button:disabled { color:#d3cfdd; }
+}
 }
 
 /* ── OUDERLIJK TOEZICHT DASHBOARD ── */

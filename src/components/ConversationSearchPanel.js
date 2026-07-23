@@ -96,6 +96,30 @@ export default function ConversationSearchPanel({
           );
         })}
       </div>
+
+      {query && (
+        <footer className="conversation-search-panel__mobile-nav" aria-live="polite">
+          <div className="conversation-search-panel__mobile-nav-buttons">
+            <button
+              type="button"
+              aria-label="Vorig resultaat"
+              disabled={!matches.length}
+              onClick={() => setChatSearchIdx(index => matches.length ? (index - 1 + matches.length) % matches.length : 0)}
+            >
+              <span aria-hidden="true">⌃</span>
+            </button>
+            <button
+              type="button"
+              aria-label="Volgend resultaat"
+              disabled={!matches.length}
+              onClick={() => setChatSearchIdx(index => matches.length ? (index + 1) % matches.length : 0)}
+            >
+              <span aria-hidden="true">⌄</span>
+            </button>
+          </div>
+          <span>{matches.length ? `${currentIndex + 1} van ${matches.length} resultaten` : 'Geen resultaten'}</span>
+        </footer>
+      )}
     </aside>
   );
 }

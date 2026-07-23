@@ -1,11 +1,10 @@
 // src/components/ChatHeader.js
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Logout, MoreHoriz, Phone, Search, User, Users, Video, XIcon } from '../components/Icons';
+import { Logout, MoreHoriz, Phone, User, Users, Video, XIcon } from '../components/Icons';
 import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
 } from '../lib/e2ee/config';
-import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import UserAvatar from '../components/UserAvatar';
 
 const ChatHeader = React.memo(function ChatHeader({
@@ -25,14 +24,6 @@ const ChatHeader = React.memo(function ChatHeader({
   getOtherUid,
   getConvPhoto,
   getContactNickname,
-  showChatSearch,
-  setShowChatSearch,
-  chatSearch,
-  setChatSearch,
-  chatSearchIdx,
-  setChatSearchIdx,
-  messages,
-  chatSearchRef,
   serviceTransportReady,
   callsAvailable = true,
   conversationMuted = false,
@@ -59,15 +50,6 @@ const ChatHeader = React.memo(function ChatHeader({
     [unreadCounts, activeConv?.id]
   );
 
-  const searchMatches = useMemo(() =>
-    chatSearch.trim()
-      ? messages.filter(m => getMessageDisplayText(m).toLowerCase().includes(chatSearch.toLowerCase()))
-      : [],
-    [messages, chatSearch]
-  );
-
-  const searchTotal   = searchMatches.length;
-  const searchCurrent = searchTotal > 0 ? chatSearchIdx % searchTotal : 0;
   const serviceFallbackBannerState = getServiceTransportFallbackBannerState({
     transport: E2EE_TRANSPORT,
     serviceTransportReady,
@@ -100,12 +82,6 @@ const ChatHeader = React.memo(function ChatHeader({
     };
   }, [moreActionsOpen]);
 
-  useEffect(() => {
-    if (!showChatSearch) return undefined;
-    const frame = window.requestAnimationFrame(() => chatSearchRef.current?.focus());
-    return () => window.cancelAnimationFrame(frame);
-  }, [showChatSearch, chatSearchRef]);
-
   function openContactProfile() {
     if (!activeConv.isGroup) {
       setRenameValue(getContactNickname(otherUid) || getConvName(activeConv));
@@ -126,15 +102,6 @@ const ChatHeader = React.memo(function ChatHeader({
       event.preventDefault();
       openHeaderDetails();
     }
-  }
-
-  function closeChatSearch() {
-    if (typeof document !== 'undefined' && document.activeElement === chatSearchRef.current) {
-      chatSearchRef.current.blur();
-    }
-    setShowChatSearch(false);
-    setChatSearch('');
-    setChatSearchIdx(0);
   }
 
   function closeMoreActions() {
@@ -325,44 +292,6 @@ const ChatHeader = React.memo(function ChatHeader({
           {serviceFallbackBannerState.text}
         </div>
       )}
-
-      {/* Zoekbalk in gesprek */}
-      <div id="chat-search-region" className={`chat-search-bar${showChatSearch ? ' visible' : ''}`} role="search" aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`}>
-        <div className="chat-search-panel-heading">
-          <h2>Berichten doorzoeken</h2>
-        </div>
-        <div className="chat-search-controls">
-          <Search size={20} className="chat-search-icon" aria-hidden="true" />
-          <input
-            ref={chatSearchRef}
-            className="chat-search-input"
-            aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`}
-            aria-controls="chat-messages-log"
-            aria-describedby={chatSearch.trim() ? 'chat-search-results-status' : undefined}
-            tabIndex={showChatSearch ? 0 : -1}
-            value={chatSearch}
-            onChange={e => { setChatSearch(e.target.value); setChatSearchIdx(0); }}
-            placeholder="Zoeken"
-            onKeyDown={e => {
-              if (e.key === 'Enter') setChatSearchIdx(i => (i + 1) % (searchTotal || 1));
-              if (e.key === 'Escape') closeChatSearch();
-            }}
-          />
-          {chatSearch.trim() && (
-            <span id="chat-search-results-status" className="chat-search-results-status" aria-live="polite">
-              {searchTotal === 0 ? 'Geen resultaten' : `${searchCurrent + 1} / ${searchTotal}`}
-            </span>
-          )}
-          {searchTotal > 1 && (
-            <>
-              <button type="button" aria-label="Vorig resultaat" aria-controls="chat-messages-log" tabIndex={showChatSearch ? 0 : -1} className="chat-search-nav" onClick={() => setChatSearchIdx(i => (i - 1 + searchTotal) % searchTotal)}><span aria-hidden="true">↑</span></button>
-              <button type="button" aria-label="Volgend resultaat" aria-controls="chat-messages-log" tabIndex={showChatSearch ? 0 : -1} className="chat-search-nav" onClick={() => setChatSearchIdx(i => (i + 1) % searchTotal)}><span aria-hidden="true">↓</span></button>
-            </>
-          )}
-          <button type="button" aria-label="Zoeken sluiten" tabIndex={showChatSearch ? 0 : -1} className="chat-search-close" onClick={closeChatSearch}><XIcon size={22} aria-hidden="true" /></button>
-        </div>
-        {!chatSearch.trim() && <p className="chat-search-empty">Zoek in berichten van {getConvName(activeConv)}.</p>}
-      </div>
     </>
   );
 });

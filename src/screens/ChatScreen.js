@@ -5,6 +5,7 @@ import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/
 import { Delete, Message } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
 import ChatHeader from '../components/ChatHeader';
+import ConversationSearchPanel from '../components/ConversationSearchPanel';
 import ChatSidebar from '../components/ChatSidebar';
 import MessageList from '../components/MessageList';
 import MsgContextMenu from '../components/MsgContextMenu';
@@ -651,7 +652,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         setPhotoPreview={setPhotoPreview}
       />
 
-      <main className={`chat-main${showChatSearch ? ' chat-main--search-open' : ''}`} aria-label={activeConv ? `Chatvenster voor ${getConvName(activeConv)}` : 'Chatvenster'}>
+      <main className="chat-main" aria-label={activeConv ? `Chatvenster voor ${getConvName(activeConv)}` : 'Chatvenster'}>
         {!activeConv ? (
           <div className="empty-state" role="status" aria-live="polite" aria-labelledby="chat-empty-title" aria-describedby="chat-empty-description">
             <div className="empty-icon" aria-hidden="true"><Message size={48} /></div>
@@ -688,10 +689,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               setRenameValue={setRenameValue}
               getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
               getContactNickname={getContactNickname}
-              showChatSearch={showChatSearch} setShowChatSearch={setShowChatSearch}
-              chatSearch={chatSearch} setChatSearch={setChatSearch}
-              chatSearchIdx={chatSearchIdx} setChatSearchIdx={setChatSearchIdx}
-              messages={messages} chatSearchRef={chatSearchRef}
               serviceTransportReady={serviceTransportReady}
               callsAvailable={callsAvailable}
               conversationMuted={mutedConversationIds.includes(activeConv?.id)}
@@ -779,6 +776,20 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           </>
         )}
       </main>
+
+      {activeConv && showChatSearch && (
+        <ConversationSearchPanel
+          activeConv={activeConv}
+          messages={messages}
+          chatSearch={chatSearch}
+          setChatSearch={setChatSearch}
+          chatSearchIdx={chatSearchIdx}
+          setChatSearchIdx={setChatSearchIdx}
+          chatSearchRef={chatSearchRef}
+          getConvName={getConvName}
+          onClose={() => setShowChatSearch(false)}
+        />
+      )}
 
       <Suspense fallback={null}>
       <ChatModals

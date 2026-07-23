@@ -1163,7 +1163,7 @@ export default function useConversations({
             setConversations(prev => prev.map(conv => conv.id === res.conversation.id ? { ...conv, ...res.conversation } : conv));
             setActiveConv(prev => prev?.id === res.conversation.id ? { ...prev, ...res.conversation } : prev);
           }
-          showErrToast({ text: 'Je hebt je beheerderrol opgegeven.', tone: 'success' });
+          showErrToast({ title: 'Beheerderrol opgegeven', text: 'Je hebt je beheerderrol opgegeven.', tone: 'success' });
         });
       },
     });

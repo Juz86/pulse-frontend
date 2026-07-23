@@ -11145,7 +11145,6 @@ font-family: 'Inter', sans-serif;
   .conversation-search-panel__mobile-nav-buttons button + button { border-left:1px solid rgba(112,92,191,.12); color:#a39db4; }
   .conversation-search-panel__mobile-nav-buttons button:disabled { color:#d3cfdd; }
 }
-}
 
 /* ── OUDERLIJK TOEZICHT DASHBOARD ── */
 .parent-root {

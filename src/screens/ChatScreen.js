@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, lazy, Suspense, useCallback, useMemo } from 'react';
 import { signOut } from 'firebase/auth';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
-import { Bell, BellOff, Delete, Message } from '../components/Icons';
+import { Delete, Message } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
 import ChatHeader from '../components/ChatHeader';
 import ChatSidebar from '../components/ChatSidebar';
@@ -105,19 +105,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     setMutedConversationIds(nextIds);
     localStorage.setItem(`pulse_muted_conversations_${user.uid}`, JSON.stringify(nextIds));
   }
-  function toggleConversationMute(convId = activeConv?.id, shouldShowToast = true) {
+  function toggleConversationMute(convId = activeConv?.id) {
     if (!convId) return;
     const nextIds = mutedConversationIdsRef.current.includes(convId)
       ? mutedConversationIdsRef.current.filter((id) => id !== convId)
       : [...mutedConversationIdsRef.current, convId];
     persistMutedConversationIds(nextIds);
-    if (shouldShowToast) {
-      showErrToast({
-        icon: nextIds.includes(convId) ? <BellOff size={15} aria-hidden="true" /> : <Bell size={15} aria-hidden="true" />,
-        text: nextIds.includes(convId) ? 'Meldingen gedempt voor dit gesprek' : 'Meldingen weer ingeschakeld voor dit gesprek',
-        bg: 'rgba(34,197,94,0.92)',
-      });
-    }
   }
   const handleShowContextMenu = useCallback((e, msg) => {
     e.preventDefault?.();
@@ -844,7 +837,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         starredMsgs={starredMsgs} messages={messages}
         onJumpToMsg={handleJumpToMsg}
         onInitiateCall={initiateCall}
-        onToggleConversationMute={() => toggleConversationMute(activeConv?.id, false)}
+        onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
         onEnterMessageSelection={() => messageSelectionMode ? cancelMessageSelection() : enterMessageSelection()}
         onClearChat={() => activeConv && openClearConversationConfirm(activeConv)}
         onDeleteChat={() => activeConv && openDeleteConversationConfirm(activeConv)}

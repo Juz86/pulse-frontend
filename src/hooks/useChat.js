@@ -460,9 +460,11 @@ export default function useChat({
       setConfirmDialog?.({
         type: 'admin-promotion',
         title: 'Beheerderverzoek',
-        message: `${request.requestedByName || 'Een beheerder'} vraagt je beheerder te worden van ${request.groupName || 'deze groep'}.`,
+        message: `${request.requestedByName || 'Een beheerder'} vraagt je beheerder te worden van de groep '${request.groupName || 'deze groep'}'.`,
         confirmLabel: 'Accepteren',
+        confirmIcon: 'check',
         cancelLabel: 'Weigeren',
+        cancelIcon: 'cancel',
         hideClose: true,
         onConfirm: () => {
           socket.emit('conversation:respondToAdminPromotion', { requestId: request.id, accept: true }, (res = {}) => {

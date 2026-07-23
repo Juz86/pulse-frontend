@@ -612,6 +612,7 @@ export default function ChatModals({
             !confirmDialog.hideCancel && {
               label: confirmDialog.cancelLabel || 'Annuleren',
               tone: 'neutral',
+              icon: confirmDialog.cancelIcon === 'cancel' ? Cancel : undefined,
               onSelect: () => {
                 confirmDialog.onCancel?.();
                 setConfirmDialog(null);
@@ -620,7 +621,7 @@ export default function ChatModals({
             {
               label: confirmDialog.confirmLabel || 'Verwijderen',
               tone: confirmDialog.type === 'admin-promotion' ? 'primary' : 'danger',
-              icon: confirmDialog.confirmIcon === 'trash' ? Delete : confirmDialog.confirmIcon === 'logout' ? Logout : undefined,
+              icon: confirmDialog.confirmIcon === 'trash' ? Delete : confirmDialog.confirmIcon === 'logout' ? Logout : confirmDialog.confirmIcon === 'check' ? Check : undefined,
               onSelect: () => {
                 confirmDialog.onConfirm?.({ keepStarred: confirmCheckboxChecked });
                 setConfirmDialog(null);

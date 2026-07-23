@@ -50,13 +50,6 @@ export default function ConversationSearchPanel({
 
   return (
     <aside className="conversation-search-panel" aria-label={`Berichten doorzoeken in ${getConvName(activeConv)}`}>
-      <header className="conversation-search-panel__header">
-        <button type="button" className="conversation-search-panel__close" aria-label="Zoeken sluiten" onClick={close}>
-          <XIcon size={24} aria-hidden="true" />
-        </button>
-        <h2>Berichten doorzoeken</h2>
-      </header>
-
       <div className="conversation-search-panel__search" role="search">
         <Search size={22} aria-hidden="true" />
         <input
@@ -77,6 +70,9 @@ export default function ConversationSearchPanel({
           </button>
         )}
       </div>
+      <button type="button" className="conversation-search-panel__close" aria-label="Zoeken sluiten" onClick={close}>
+        <XIcon size={24} aria-hidden="true" />
+      </button>
 
       <div className="conversation-search-panel__results" aria-live="polite">
         {!query && <p className="conversation-search-panel__hint">Zoek naar berichten in {getConvName(activeConv)}.</p>}
@@ -106,7 +102,7 @@ export default function ConversationSearchPanel({
               disabled={!matches.length}
               onClick={() => setChatSearchIdx(index => matches.length ? (index - 1 + matches.length) % matches.length : 0)}
             >
-              <span aria-hidden="true">⌃</span>
+              <span aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -114,7 +110,7 @@ export default function ConversationSearchPanel({
               disabled={!matches.length}
               onClick={() => setChatSearchIdx(index => matches.length ? (index + 1) % matches.length : 0)}
             >
-              <span aria-hidden="true">⌄</span>
+              <span aria-hidden="true" />
             </button>
           </div>
           <span>{matches.length ? `${currentIndex + 1} van ${matches.length} resultaten` : 'Geen resultaten'}</span>

@@ -10919,6 +10919,7 @@ font-family: 'Inter', sans-serif;
 
 /* ── Berichten doorzoeken: zelfstandige WhatsApp-achtige zijbalk ── */
 .conversation-search-panel {
+  position:relative;
   min-width:0;
   display:flex;
   flex-direction:column;
@@ -10928,21 +10929,6 @@ font-family: 'Inter', sans-serif;
   border-left:1px solid rgba(112,92,191,.16);
   box-shadow:-14px 0 34px rgba(37,22,83,.11);
   animation:conversation-search-panel-in .26s cubic-bezier(.22,.85,.25,1) both;
-}
-.conversation-search-panel__header {
-  min-height:72px;
-  display:flex;
-  align-items:center;
-  gap:16px;
-  padding:0 20px;
-  border-bottom:1px solid rgba(112,92,191,.12);
-  background:rgba(255,255,255,.78);
-}
-.conversation-search-panel__header h2 {
-  margin:0;
-  font-size:20px;
-  font-weight:800;
-  letter-spacing:-.025em;
 }
 .conversation-search-panel__close,
 .conversation-search-panel__clear {
@@ -10955,6 +10941,9 @@ font-family: 'Inter', sans-serif;
   background:transparent;
 }
 .conversation-search-panel__close {
+  position:absolute;
+  top:23px;
+  right:18px;
   width:38px;
   height:38px;
   border-radius:50%;
@@ -10966,7 +10955,7 @@ font-family: 'Inter', sans-serif;
   display:flex;
   align-items:center;
   gap:12px;
-  margin:16px 18px;
+  margin:16px 72px 16px 18px;
   padding:0 15px;
   border:2px solid #6c63ff;
   border-radius:28px;
@@ -11050,19 +11039,10 @@ font-family: 'Inter', sans-serif;
     background:transparent;
     animation:none;
   }
-  .conversation-search-panel__header {
-    position:absolute;
-    z-index:1;
-    top:max(16px, env(safe-area-inset-top));
-    right:16px;
-    min-height:0;
-    padding:0;
-    border:0;
-    background:transparent;
-    pointer-events:auto;
-  }
-  .conversation-search-panel__header h2 { display:none; }
   .conversation-search-panel__close {
+    z-index:2;
+    top:max(8px, env(safe-area-inset-top));
+    right:10px;
     width:58px;
     height:58px;
     color:#241741;
@@ -11074,9 +11054,9 @@ font-family: 'Inter', sans-serif;
   .conversation-search-panel__search {
     position:absolute;
     z-index:1;
-    top:max(16px, env(safe-area-inset-top));
-    right:90px;
-    left:16px;
+    top:max(8px, env(safe-area-inset-top));
+    right:78px;
+    left:10px;
     min-height:58px;
     margin:0;
     padding:0 18px;
@@ -11138,9 +11118,18 @@ font-family: 'Inter', sans-serif;
     padding:0;
     border:0;
     color:#332b51;
-    font-size:36px;
-    line-height:1;
     background:transparent;
+  }
+  .conversation-search-panel__mobile-nav-buttons button span {
+    width:15px;
+    height:15px;
+    display:block;
+    border-top:3px solid currentColor;
+    border-left:3px solid currentColor;
+    transform:rotate(45deg) translate(3px, 3px);
+  }
+  .conversation-search-panel__mobile-nav-buttons button + button span {
+    transform:rotate(225deg) translate(3px, 3px);
   }
   .conversation-search-panel__mobile-nav-buttons button + button { border-left:1px solid rgba(112,92,191,.12); color:#a39db4; }
   .conversation-search-panel__mobile-nav-buttons button:disabled { color:#d3cfdd; }

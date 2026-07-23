@@ -519,7 +519,10 @@ export default function useContacts({
 
   function removeContact(targetUid) {
     setConfirmDialog({
+      title: 'Contact verwijderen',
       message: 'Weet je zeker dat je dit contact wilt verwijderen?',
+      confirmLabel: 'Contact verwijderen',
+      confirmIcon: 'trash',
       onConfirm: async () => {
         // Eenzijdige verwijdering via backend — alleen eigen kant wordt verwijderd.
         // De ander behoudt het contact en mag nog berichten sturen.

@@ -549,7 +549,10 @@ export default function useConversations({
     }
 
     setConfirmDialog({
+      title: 'Chat verwijderen',
       message: 'Weet je zeker dat je dit gesprek wilt verwijderen?',
+      confirmLabel: 'Chat verwijderen',
+      confirmIcon: 'trash',
       onConfirm: performDelete,
     });
   }
@@ -1184,7 +1187,10 @@ export default function useConversations({
     const socket = getSocket();
     if (!socket || !activeConv) return;
     setConfirmDialog({
+      title: 'Groepslid verwijderen',
       message: 'Weet je zeker dat je deze persoon wilt verwijderen uit de groep?',
+      confirmLabel: 'Verwijderen uit groep',
+      confirmIcon: 'trash',
       onConfirm: () => {
         socket.emit('conversation:removeMember', { convId: activeConv.id, uid }, (res = {}) => {
           if (res.error) return showErrToast(res.error);
@@ -1215,7 +1221,9 @@ export default function useConversations({
       });
     };
     setConfirmDialog({
+      title: 'Groep verlaten',
       message: 'Groep verlaten? Je verlaat deze groep en ziet het gesprek niet meer in je lijst.',
+      confirmLabel: 'Groep verlaten',
       onConfirm: performLeave,
     });
   }

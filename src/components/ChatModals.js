@@ -6,6 +6,7 @@ import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
 import UserAvatar from '../components/UserAvatar';
+import PulseConfirmSheet from '../components/PulseConfirmSheet';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 import {
   PULSE_WEB_CALLS_UNAVAILABLE_HINT,
@@ -602,26 +603,32 @@ export default function ChatModals({
 
       {/* ── BEVESTIGINGSDIALOOG ── */}
       {confirmDialog && (
-        <div className={`pulse-sheet-backdrop pulse-sheet-backdrop--confirm-dialog${confirmDialog.type === 'admin-promotion' ? ' pulse-sheet-backdrop--admin-promotion' : ''}`} onClick={() => { if (!confirmDialog.hideClose) setConfirmDialog(null); }}>
-          <aside
-            className={`pulse-sheet pulse-sheet--confirm-dialog confirm-dialog-modal${confirmDialog.type === 'clear-chat' ? ' confirm-dialog-modal--clear-chat' : ''}${confirmDialog.type === 'admin-promotion' ? ' confirm-dialog-modal--admin-promotion' : ''}`}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="confirm-dialog-title"
-            aria-describedby="confirm-dialog-description"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="pulse-sheet-handle" aria-hidden="true" />
-            <div className="pulse-sheet-header pulse-sheet-header--confirm-dialog">
-              <div id="confirm-dialog-title" className="pulse-sheet-title pulse-sheet-title--confirm-dialog">{confirmDialog.title || 'Bevestiging'}</div>
-              {!confirmDialog.hideClose && <button type="button" className="pulse-sheet-close pulse-sheet-close--confirm-dialog" aria-label="Sluiten" onClick={() => setConfirmDialog(null)}><span aria-hidden="true">✕</span></button>}
-            </div>
-            {confirmDialog.message && (
-              <p id="confirm-dialog-description" className="confirm-dialog-description">
-                {confirmDialog.message}
-              </p>
-            )}
-            {confirmDialog.type === 'clear-chat' && confirmDialog.checkboxLabel && (
+        <PulseConfirmSheet
+          title={confirmDialog.title || 'Bevestiging'}
+          description={confirmDialog.message}
+          dismissible={!confirmDialog.hideClose}
+          onClose={() => setConfirmDialog(null)}
+          actions={[
+            !confirmDialog.hideCancel && {
+              label: confirmDialog.cancelLabel || 'Annuleren',
+              tone: 'neutral',
+              onSelect: () => {
+                confirmDialog.onCancel?.();
+                setConfirmDialog(null);
+              },
+            },
+            {
+              label: confirmDialog.confirmLabel || 'Verwijderen',
+              tone: confirmDialog.type === 'admin-promotion' ? 'primary' : 'danger',
+              icon: confirmDialog.confirmIcon === 'trash' ? Delete : undefined,
+              onSelect: () => {
+                confirmDialog.onConfirm?.({ keepStarred: confirmCheckboxChecked });
+                setConfirmDialog(null);
+              },
+            },
+          ]}
+        >
+          {confirmDialog.type === 'clear-chat' && confirmDialog.checkboxLabel && (
               <label className="confirm-dialog-checkbox-row">
                 <input
                   type="checkbox"
@@ -630,34 +637,8 @@ export default function ChatModals({
                 />
                 <span>{confirmDialog.checkboxLabel}</span>
               </label>
-            )}
-            <div className="modal-actions confirm-dialog-actions">
-              {!confirmDialog.hideCancel && (
-                <button
-                  type="button"
-                  className="btn-secondary confirm-dialog-btn"
-                  onClick={() => {
-                    confirmDialog.onCancel?.();
-                    setConfirmDialog(null);
-                  }}
-                >
-                  {confirmDialog.cancelLabel || 'Annuleren'}
-                </button>
-              )}
-              <button
-                type="button"
-                className="btn-primary confirm-dialog-btn confirm-dialog-btn-danger"
-                onClick={() => {
-                  confirmDialog.onConfirm?.({ keepStarred: confirmCheckboxChecked });
-                  setConfirmDialog(null);
-                }}
-              >
-                {confirmDialog.confirmIcon === 'trash' && <Delete size={16} aria-hidden="true" />}
-                <span>{confirmDialog.confirmLabel || 'Verwijderen'}</span>
-              </button>
-            </div>
-          </aside>
-        </div>
+          )}
+        </PulseConfirmSheet>
       )}
 
       {/* ── CONTACT TOEVOEGEN MODAL ── */}

@@ -8,6 +8,7 @@ import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
 import { ProfilePageShell } from '../components/ProfilePageShell';
 import UserAvatar from '../components/UserAvatar';
+import PulseConfirmSheet from '../components/PulseConfirmSheet';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INTERNAL_ACCOUNT_EMAIL_RE = /@(kind\.pulse\.local|pulse\.internal)$/i;
@@ -1487,20 +1488,17 @@ export default function ParentDashboard({
   const parentOverlays = (
     <>
       {confirmDelete && (
-        <div className="modal-overlay" data-parent-portal-overlay="true" onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>
-          <div className="modal-box" role="dialog" aria-modal="true" aria-labelledby="parent-delete-title" aria-describedby="parent-delete-description" onClick={e => e.stopPropagation()} style={{ maxWidth: 360 }}>
-            <h2 className="modal-title" id="parent-delete-title">Account verwijderen</h2>
-            <p id="parent-delete-description" style={{ color: 'var(--text2)', fontSize: 14, margin: '12px 0 24px', lineHeight: 1.6 }}>
-              Weet u zeker dat u het account van <strong>{confirmDelete.displayName}</strong> wilt verwijderen?
-              Dit kan niet ongedaan worden gemaakt.
-            </p>
-            {deleteError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{deleteError}</div>}
-            <div className="modal-actions">
-              <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => { setConfirmDelete(null); setDeleteError(''); }}>Annuleren</button>
-              <button type="button" className="btn-primary" style={{ flex: 1, background: '#ef4444' }} onClick={() => deleteChild(confirmDelete.uid)}>Verwijderen</button>
-            </div>
-          </div>
-        </div>
+        <PulseConfirmSheet
+          title="Account verwijderen"
+          description={`Weet u zeker dat u het account van ${confirmDelete.displayName} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`}
+          onClose={() => { setConfirmDelete(null); setDeleteError(''); }}
+          actions={[
+            { label: 'Annuleren', tone: 'neutral', onSelect: () => { setConfirmDelete(null); setDeleteError(''); } },
+            { label: 'Verwijderen', tone: 'danger', icon: Trash2, onSelect: () => deleteChild(confirmDelete.uid) },
+          ]}
+        >
+          {deleteError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{deleteError}</div>}
+        </PulseConfirmSheet>
       )}
 
       {inviteModal && (

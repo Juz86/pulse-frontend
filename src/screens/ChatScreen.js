@@ -2,13 +2,14 @@
 import React, { useState, useEffect, useRef, lazy, Suspense, useCallback, useMemo } from 'react';
 import { signOut } from 'firebase/auth';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
-import { Bell, BellOff, Message } from '../components/Icons';
+import { Bell, BellOff, Delete, Message } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
 import ChatHeader from '../components/ChatHeader';
 import ChatSidebar from '../components/ChatSidebar';
 import MessageList from '../components/MessageList';
 import MsgContextMenu from '../components/MsgContextMenu';
 import BlockConfirmModal from '../components/BlockConfirmModal';
+import PulseConfirmSheet from '../components/PulseConfirmSheet';
 import useConversations from '../hooks/useConversations';
 import useChat from '../hooks/useChat';
 import useCalling from '../hooks/useCalling';
@@ -237,7 +238,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   function deleteSelectedConversations() {
     if (!selectedConversationIds.length) return;
     setConfirmDialog({
+      title: 'Chats verwijderen',
       message: `${selectedConversationIds.length} gesprek${selectedConversationIds.length === 1 ? '' : 'ken'} verwijderen?`,
+      confirmLabel: 'Chats verwijderen',
+      confirmIcon: 'trash',
       onConfirm: async () => {
         for (const convId of selectedConversationIds) {
           // eslint-disable-next-line no-await-in-loop
@@ -867,50 +871,43 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       </Suspense>
 
       {deleteConfirm && (
-        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
-          <div
-            className="modal-box delete-confirm-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-popup-title"
-            aria-describedby="delete-popup-description"
-            onClick={e => e.stopPropagation()}
-          >
-            <button type="button" className="modal-close-btn" aria-label="Sluiten" onClick={() => setDeleteConfirm(null)}><span aria-hidden="true">✕</span></button>
-            <h2 className="modal-title" id="delete-popup-title">{deleteConfirm.count > 1 ? 'Berichten verwijderen' : 'Bericht verwijderen'}</h2>
-            <p className="delete-confirm-description" id="delete-popup-description">
-              {deleteConfirm.isOwn
-                ? `Kies of je ${deleteConfirm.count > 1 ? 'deze berichten' : 'dit bericht'} alleen voor jezelf of voor iedereen wilt verwijderen.`
-                : `${deleteConfirm.count > 1 ? 'Deze berichten' : 'Dit bericht'} kun je alleen voor jezelf verwijderen.`}
-            </p>
-            <div className={`delete-confirm-actions${deleteConfirm.isOwn ? ' delete-confirm-actions--two' : ''}`}>
-              <button type="button" className="delete-confirm-option" onClick={async () => {
+        <PulseConfirmSheet
+          title={deleteConfirm.count > 1 ? 'Berichten verwijderen' : 'Bericht verwijderen'}
+          description={deleteConfirm.isOwn
+            ? `Kies of je ${deleteConfirm.count > 1 ? 'deze berichten' : 'dit bericht'} alleen voor jezelf of voor iedereen wilt verwijderen.`
+            : `${deleteConfirm.count > 1 ? 'Deze berichten' : 'Dit bericht'} kun je alleen voor jezelf verwijderen.`}
+          onClose={() => setDeleteConfirm(null)}
+          actions={[
+            {
+              label: 'Voor mezelf verwijderen',
+              description: 'Alleen uit jouw chat',
+              tone: 'neutral',
+              icon: Delete,
+              onSelect: async () => {
                 for (const msgId of deleteConfirm.msgIds) {
                   // eslint-disable-next-line no-await-in-loop
                   await deleteMessage(msgId, 'self');
                 }
                 deleteConfirm.onComplete?.();
                 setDeleteConfirm(null);
-              }}>
-                <span className="delete-confirm-option-title">Voor mezelf verwijderen</span>
-                <span className="delete-confirm-option-sub">Alleen uit jouw chat</span>
-              </button>
-              {deleteConfirm.isOwn && (
-                <button type="button" className="delete-confirm-option delete-confirm-option--danger" onClick={async () => {
+              },
+            },
+            deleteConfirm.isOwn && {
+              label: 'Voor iedereen verwijderen',
+              description: 'Ook bij ontvangers',
+              tone: 'danger',
+              icon: Delete,
+              onSelect: async () => {
                   for (const msgId of deleteConfirm.msgIds) {
                     // eslint-disable-next-line no-await-in-loop
                     await deleteMessage(msgId, 'all');
-                  }
-                  deleteConfirm.onComplete?.();
-                  setDeleteConfirm(null);
-                }}>
-                  <span className="delete-confirm-option-title">Voor iedereen verwijderen</span>
-                  <span className="delete-confirm-option-sub">Ook bij ontvangers</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+                }
+                deleteConfirm.onComplete?.();
+                setDeleteConfirm(null);
+              },
+            },
+          ]}
+        />
       )}
 
       {blockingContact && (

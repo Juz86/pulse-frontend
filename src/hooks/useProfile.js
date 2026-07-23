@@ -231,7 +231,10 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
   // ── Account verwijderen ───────────────────────────────────────────────────
   function handleDeleteAccount() {
     setConfirmDialog({
+      title: 'Account verwijderen',
       message: 'Weet je zeker dat je je account wilt verwijderen? Al je chats en gegevens worden permanent verwijderd.',
+      confirmLabel: 'Account verwijderen',
+      confirmIcon: 'trash',
       onConfirm: async () => {
         try {
           await authFetch(`${BACKEND_URL}/api/account/${user.uid}`, { method: 'DELETE' });

@@ -7712,6 +7712,130 @@ font-family: 'Inter', sans-serif;
   width: min(100%, 560px);
 }
 
+/* ── UNIVERSELE BEVESTIGINGSSHEET ── */
+.pulse-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 4100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 max(12px, var(--safe-right)) max(12px, var(--safe-bottom)) max(12px, var(--safe-left));
+  background: rgba(18, 11, 42, 0.46);
+  backdrop-filter: blur(9px) saturate(.78);
+  -webkit-backdrop-filter: blur(9px) saturate(.78);
+  animation: pulse-sheet-backdrop-in .22s cubic-bezier(.24, .78, .28, 1) both;
+}
+.pulse-confirm-sheet {
+  width: min(100%, 520px);
+  max-height: min(78dvh, calc(var(--vvh, 100dvh) - var(--safe-top) - 20px));
+  overflow-y: auto;
+  padding: 8px 12px 12px;
+  color: #211642;
+  background:
+    radial-gradient(circle at 50% 0, rgba(176, 151, 255, .22), transparent 34%),
+    linear-gradient(150deg, rgba(255,255,255,.98), rgba(246,241,255,.98));
+  border: 1px solid rgba(141, 117, 225, .18);
+  border-radius: 32px;
+  box-shadow: 0 -8px 44px rgba(27, 14, 62, .28), 0 24px 64px rgba(15, 8, 38, .22);
+  animation: pulse-sheet-up .28s cubic-bezier(.2, .82, .25, 1) both;
+}
+.pulse-confirm-handle {
+  width: 44px;
+  height: 5px;
+  margin: 2px auto 10px;
+  border-radius: 99px;
+  background: rgba(53, 38, 103, .22);
+}
+.pulse-confirm-heading {
+  position: relative;
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 56px 2px;
+}
+.pulse-confirm-heading h2 {
+  margin: 0;
+  color: #20133f;
+  font-size: clamp(20px, 5vw, 25px);
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: 1.18;
+  text-align: center;
+}
+.pulse-confirm-close {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(133, 109, 221, .16);
+  border-radius: 50%;
+  color: #705cf0;
+  background: rgba(255,255,255,.68);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 6px 18px rgba(93, 72, 166, .1);
+}
+.pulse-confirm-close:hover { background: #fff; color: #553fe1; }
+.pulse-confirm-close:focus-visible,
+.pulse-confirm-action:focus-visible {
+  outline: 3px solid rgba(123, 96, 238, .38);
+  outline-offset: 2px;
+}
+.pulse-confirm-description {
+  margin: 8px 8px 18px;
+  color: #4c3a75;
+  font-size: 15px;
+  line-height: 1.52;
+  text-align: center;
+}
+.pulse-confirm-extra { margin: 0 8px 14px; }
+.pulse-confirm-actions {
+  overflow: hidden;
+  border: 1px solid rgba(122, 96, 199, .12);
+  border-radius: 24px;
+  background: rgba(255,255,255,.84);
+  box-shadow: 0 12px 28px rgba(63, 42, 130, .08);
+}
+.pulse-confirm-action {
+  width: 100%;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px 18px;
+  border: 0;
+  border-bottom: 1px solid rgba(86, 62, 151, .13);
+  color: #2b1a52;
+  background: transparent;
+  text-align: left;
+  transition: background .16s ease, transform .16s ease;
+}
+.pulse-confirm-action:last-child { border-bottom: 0; }
+.pulse-confirm-action:hover { background: rgba(115, 91, 217, .07); }
+.pulse-confirm-action:active { transform: scale(.985); }
+.pulse-confirm-action-copy { display: grid; gap: 2px; }
+.pulse-confirm-action-label { font-size: 17px; font-weight: 750; line-height: 1.22; }
+.pulse-confirm-action-description { color: #74638f; font-size: 13px; font-weight: 550; line-height: 1.3; }
+.pulse-confirm-action--primary { color: #5e45d5; }
+.pulse-confirm-action--danger { color: #dc2750; }
+.pulse-confirm-action--danger:hover { background: rgba(220, 39, 80, .06); }
+.pulse-confirm-action--danger .pulse-confirm-action-description { color: #b84c67; }
+
+@media (max-width: 767px) {
+  .pulse-confirm-backdrop {
+    padding: 0 max(0px, var(--safe-right)) max(0px, var(--safe-bottom)) max(0px, var(--safe-left));
+  }
+  .pulse-confirm-sheet {
+    width: 100%;
+    max-height: min(82dvh, calc(var(--vvh, 100dvh) - var(--safe-top)));
+    padding: 9px 16px max(14px, var(--safe-bottom));
+    border-radius: 30px 30px 0 0;
+  }
+}
+
 /* Beheerderverzoeken verschijnen als een losse sheet boven de mobiele sidebar-footer. */
 .pulse-sheet-backdrop--admin-promotion {
   background: rgba(13, 9, 31, 0.38);

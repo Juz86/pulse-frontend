@@ -3748,6 +3748,7 @@ font-family: 'Inter', sans-serif;
   background-size:360px auto;
   background-position:center top;
   background-repeat:repeat;
+  transition:flex-basis .28s cubic-bezier(.22,.85,.25,1), width .28s cubic-bezier(.22,.85,.25,1);
 }
 
 .empty-state {
@@ -10889,13 +10890,18 @@ font-family: 'Inter', sans-serif;
 .chat-search-input:focus { border-color: var(--accent); }
 
 @media (min-width: 768px) {
+  :root { --desktop-search-panel-width: min(420px, 34vw); }
+  .chat-main--search-open {
+    flex-basis:calc(100% - var(--pulse-sidebar-width) - var(--desktop-search-panel-width));
+    width:calc(100% - var(--pulse-sidebar-width) - var(--desktop-search-panel-width));
+  }
   .chat-search-bar {
     position:fixed;
     z-index:3500;
     top:0;
     right:0;
     bottom:0;
-    width:min(420px, 34vw);
+    width:var(--desktop-search-panel-width);
     max-height:none;
     padding:22px 18px;
     overflow-y:auto;

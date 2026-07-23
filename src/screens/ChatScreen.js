@@ -651,7 +651,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         setPhotoPreview={setPhotoPreview}
       />
 
-      <main className="chat-main" aria-label={activeConv ? `Chatvenster voor ${getConvName(activeConv)}` : 'Chatvenster'}>
+      <main className={`chat-main${showChatSearch ? ' chat-main--search-open' : ''}`} aria-label={activeConv ? `Chatvenster voor ${getConvName(activeConv)}` : 'Chatvenster'}>
         {!activeConv ? (
           <div className="empty-state" role="status" aria-live="polite" aria-labelledby="chat-empty-title" aria-describedby="chat-empty-description">
             <div className="empty-icon" aria-hidden="true"><Message size={48} /></div>

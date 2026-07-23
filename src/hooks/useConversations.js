@@ -1144,10 +1144,10 @@ export default function useConversations({
   function relinquishGroupAdmin() {
     const socket = getSocket();
     if (!socket || !activeConv?.isGroup) return;
-    const groupNameValue = activeConv.groupName || 'deze groep';
     setConfirmDialog({
       title: 'Beheerderrol opgeven',
-      message: `Weet je zeker dat je je beheerderrol in ${groupNameValue} wilt opgeven?`,
+      message: 'Weet je het zeker?',
+      hideCancel: true,
       confirmLabel: 'Opgeven',
       confirmIcon: 'trash',
       onConfirm: () => {

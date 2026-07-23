@@ -7842,6 +7842,24 @@ font-family: 'Inter', sans-serif;
 }
 .pulse-confirm-sheet--error .pulse-confirm-heading h2 { color: #7d1e3a; }
 
+@media (min-width: 768px) {
+  .pulse-confirm-backdrop {
+    inset: auto;
+    left: var(--sidebar-sheet-left);
+    right: calc(100vw - var(--sidebar-sheet-right));
+    top: var(--sidebar-sheet-top);
+    bottom: calc(var(--vvh, 100dvh) - var(--sidebar-sheet-anchor-bottom));
+    padding: 12px;
+    z-index: 3710;
+  }
+  .pulse-confirm-sheet {
+    width: 100%;
+    max-width: none;
+    max-height: calc(var(--sidebar-sheet-anchor-bottom) - var(--sidebar-sheet-top) - 24px);
+    margin: 0;
+  }
+}
+
 @media (max-width: 767px) {
   .pulse-confirm-backdrop {
     padding: 0 max(0px, var(--safe-right)) max(0px, var(--safe-bottom)) max(0px, var(--safe-left));

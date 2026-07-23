@@ -1039,7 +1039,7 @@ export default function ChatSidebar({
                   </button>
                 </>
               )}
-              <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`} onClick={handleTogglePinFromActions} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
+              <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' danger' : ''}`} onClick={handleTogglePinFromActions} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
                 <Pin size={14} aria-hidden="true" />
                 <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
               </button>
@@ -2745,7 +2745,7 @@ export default function ChatSidebar({
             </>
           )}
           {!conv.isGroup && otherUid && (
-            <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' active' : ''}`}
+            <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' danger' : ''}`}
               onClick={handleTogglePinFromConversationActions} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
               <Pin size={14} aria-hidden="true" />
               <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>

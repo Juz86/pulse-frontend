@@ -200,6 +200,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       message: 'Deze chat is leeg maar blijft in je chatlijst staan.',
       checkboxLabel: 'Berichten met ster opslaan',
       checkboxDefault: false,
+      hideCancel: true,
       confirmLabel: 'Chat wissen',
       confirmIcon: 'trash',
       onConfirm: async ({ keepStarred } = {}) => {

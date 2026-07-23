@@ -10139,13 +10139,41 @@ font-family: 'Inter', sans-serif;
 
 /* ── Zoeken in gesprek ── */
 .chat-search-bar {
-  display:flex; align-items:center; gap:8px;
+  display:block;
   padding:0 16px; background:var(--surface); 
   border-bottom:1px solid var(--border);
   max-height:0; opacity:0; overflow:hidden;
   transition: max-height .25s ease, opacity .25s ease, padding .25s ease;
   pointer-events:none;
 }
+.chat-search-panel-heading { display:none; }
+.chat-search-controls { display:flex; align-items:center; gap:8px; }
+.chat-search-icon { flex:0 0 auto; color:var(--text3); }
+.chat-search-input {
+  min-width:0; flex:1;
+  padding:7px 12px;
+  color:var(--text);
+  font-size:14px;
+  outline:none;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:var(--surface2);
+}
+.chat-search-results-status { flex:0 0 auto; color:var(--text3); font-size:13px; }
+.chat-search-nav,
+.chat-search-close {
+  width:30px; height:30px;
+  display:grid; place-items:center;
+  flex:0 0 auto;
+  padding:0;
+  border:0;
+  border-radius:9px;
+  color:var(--text2);
+  background:transparent;
+}
+.chat-search-nav:hover,
+.chat-search-close:hover { color:var(--accent); background:rgba(108,99,255,.1); }
+.chat-search-empty { display:none; }
 
 /* ── Final video-call control overrides: source of truth for active video calls ── */
 .call-card.transparent .call-controls.video-layout {
@@ -10858,7 +10886,84 @@ font-family: 'Inter', sans-serif;
   border-bottom:1px solid var(--border);
   pointer-events:all;
 }
-.chat-search-bar input:focus { border-color: var(--accent) !important; }
+.chat-search-input:focus { border-color: var(--accent); }
+
+@media (min-width: 768px) {
+  .chat-search-bar {
+    position:fixed;
+    z-index:3500;
+    top:0;
+    right:0;
+    bottom:0;
+    width:min(420px, 34vw);
+    max-height:none;
+    padding:22px 18px;
+    overflow-y:auto;
+    opacity:1;
+    visibility:hidden;
+    transform:translateX(100%);
+    pointer-events:none;
+    border:0;
+    border-left:1px solid rgba(112,92,191,.14);
+    background:linear-gradient(180deg, rgba(250,248,255,.99), rgba(242,237,255,.99));
+    box-shadow:-18px 0 46px rgba(37,22,83,.16);
+    transition:transform .28s cubic-bezier(.22,.85,.25,1), visibility 0s linear .28s;
+  }
+  .chat-search-bar.visible {
+    max-height:none;
+    padding:22px 18px;
+    visibility:visible;
+    transform:translateX(0);
+    pointer-events:auto;
+    transition:transform .28s cubic-bezier(.22,.85,.25,1);
+  }
+  .chat-search-panel-heading {
+    display:flex;
+    align-items:center;
+    min-height:40px;
+    padding:0 46px 14px 2px;
+  }
+  .chat-search-panel-heading h2 {
+    margin:0;
+    color:#241741;
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:-.025em;
+  }
+  .chat-search-controls {
+    min-height:52px;
+    padding:0 12px;
+    border:1px solid rgba(112,92,191,.12);
+    border-radius:18px;
+    background:rgba(255,255,255,.8);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.88);
+  }
+  .chat-search-input {
+    padding:10px 4px;
+    border:0;
+    border-radius:0;
+    background:transparent;
+  }
+  .chat-search-close {
+    position:absolute;
+    top:25px;
+    right:18px;
+    width:40px;
+    height:40px;
+    border:1px solid rgba(112,92,191,.12);
+    border-radius:50%;
+    background:rgba(255,255,255,.78);
+    color:#6c63ff;
+  }
+  .chat-search-empty {
+    display:block;
+    margin:92px 16px 0;
+    color:#76698e;
+    font-size:15px;
+    line-height:1.5;
+    text-align:center;
+  }
+}
 
 /* ── OUDERLIJK TOEZICHT DASHBOARD ── */
 .parent-root {

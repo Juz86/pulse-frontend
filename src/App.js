@@ -1109,7 +1109,7 @@ function MainApp() {
           </>
         )
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onOpenDashboard={() => setShowParentDashboard(true)} showParentDashboard={showParentDashboard} setShowParentDashboard={setShowParentDashboard} onParentActivitiesViewed={() => setParentActivityBadge(0)} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} />
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onDismissParentToast={() => setParentToast(null)} onOpenDashboard={() => setShowParentDashboard(true)} showParentDashboard={showParentDashboard} setShowParentDashboard={setShowParentDashboard} onParentActivitiesViewed={() => setParentActivityBadge(0)} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} />
           </>
       }
       {incomingCall && (

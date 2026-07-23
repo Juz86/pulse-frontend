@@ -1137,7 +1137,7 @@ export default function useConversations({
     socket.emit('conversation:promoteAdmin', { convId: activeConv.id, uid }, (res = {}) => {
       if (res.error) return showErrToast(res.error);
       if (!res.request?.id) return;
-      showErrToast(`Verzoek om ${displayName || 'dit groepslid'} beheerder te maken is verstuurd.`);
+      showErrToast({ text: `Verzoek om ${displayName || 'dit groepslid'} beheerder te maken is verstuurd.`, tone: 'success' });
     });
   }
 
@@ -1163,7 +1163,7 @@ export default function useConversations({
             setConversations(prev => prev.map(conv => conv.id === res.conversation.id ? { ...conv, ...res.conversation } : conv));
             setActiveConv(prev => prev?.id === res.conversation.id ? { ...prev, ...res.conversation } : prev);
           }
-          showErrToast('Je hebt je beheerderrol opgegeven.');
+          showErrToast({ text: 'Je hebt je beheerderrol opgegeven.', tone: 'success' });
         });
       },
     });
@@ -1217,7 +1217,7 @@ export default function useConversations({
         setConversations(prev => prev.filter(conv => conv.id !== convId));
         setActiveConv(null);
         setMessages([]);
-        showErrToast('Je hebt de groep verlaten');
+        showErrToast({ text: 'Je hebt de groep verlaten.', tone: 'success' });
       });
     };
     setConfirmDialog({

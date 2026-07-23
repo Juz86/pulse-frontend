@@ -452,7 +452,7 @@ export default function useChat({
     const onConversationAdminsUpdated = ({ conversation, promotedUid, promotedByName }) => {
       onConversationRenamed({ conversation });
       if (promotedUid === user.uid) {
-        showErrToast?.(`${promotedByName || 'Een beheerder'} heeft je beheerder gemaakt in ${conversation?.groupName || 'deze groep'}.`);
+        showErrToast?.({ text: `${promotedByName || 'Een beheerder'} heeft je beheerder gemaakt in ${conversation?.groupName || 'deze groep'}.`, tone: 'success' });
       }
     };
     const onAdminPromotionRequested = ({ request }) => {
@@ -467,13 +467,13 @@ export default function useChat({
         onConfirm: () => {
           socket.emit('conversation:respondToAdminPromotion', { requestId: request.id, accept: true }, (res = {}) => {
             if (res.error) return showErrToast?.(res.error);
-            showErrToast?.('Je bent nu beheerder.');
+            showErrToast?.({ text: 'Je bent nu beheerder.', tone: 'success' });
           });
         },
         onCancel: () => {
           socket.emit('conversation:respondToAdminPromotion', { requestId: request.id, accept: false }, (res = {}) => {
             if (res.error) return showErrToast?.(res.error);
-            showErrToast?.('Beheerderverzoek geweigerd.');
+            showErrToast?.({ text: 'Beheerderverzoek geweigerd.', tone: 'success' });
           });
         },
       });
@@ -631,5 +631,5 @@ export default function useChat({
     return () => { clearTimeout(timer); events.forEach(e => document.removeEventListener(e, onActivity)); };
   }, [socket]);
 
-  return { connected, reconnectIn, typing, typingName, typingByConv, pausedFeatures, mentionToast, playMessageSound };
+  return { connected, reconnectIn, typing, typingName, typingByConv, pausedFeatures, mentionToast, clearMentionToast: () => setMentionToast(null), playMessageSound };
 }

@@ -20,7 +20,7 @@ import { clearPulseUserStorage, copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onOpenDashboard, showParentDashboard = false, setShowParentDashboard, onParentActivitiesViewed, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onDismissParentToast, onOpenDashboard, showParentDashboard = false, setShowParentDashboard, onParentActivitiesViewed, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
   const callsAvailable = true;
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
@@ -307,7 +307,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     showErrToast, setConfirmDialog,
   });
 
-  const { typing, typingName, typingByConv, pausedFeatures, mentionToast } = useChat({
+  const { typing, typingName, typingByConv, pausedFeatures, mentionToast, clearMentionToast } = useChat({
     user, activeConvRef, conversationsRef, msgsAreaRef, dndRef, audioCtxRef,
     mutedConversationIdsRef,
     loadConversations, loadContacts, loadFriendRequests, setMessages, setConversations, setUnreadCounts,
@@ -511,7 +511,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         selectedGroupId={selectedGroupId} setSelectedGroupId={setSelectedGroupId}
         friendRequests={friendRequests} sentFriendRequests={sentFriendRequests}
         showFriendRequestsPanel={showFriendRequestsPanel} setShowFriendRequestsPanel={setShowFriendRequestsPanel}
-        contactSuccess={contactSuccess}
         contacts={contacts} conversations={conversations}
         activeConv={activeConv} loadingConvs={loadingConvs}
         convLabels={convLabels} pinnedContacts={pinnedContacts}
@@ -863,7 +862,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         unreadCounts={unreadCounts}
         forwardMsg={forwardMsg} setForwardMsg={setForwardMsg}
         conversations={conversations} forwardToConv={forwardToConv}
-        errToast={errToast} mentionToast={mentionToast} parentToast={parentToast}
+        errToast={errToast} dismissErrToast={() => setErrToast('')} mentionToast={mentionToast} dismissMentionToast={clearMentionToast} parentToast={parentToast} dismissParentToast={onDismissParentToast}
         onOpenMentionConversation={openConversation}
         blockedContacts={blockedContacts} parentBlockedUids={parentBlockedUids} unblockContact={unblockContact}
         callsAvailable={callsAvailable}
@@ -915,6 +914,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           contactName={blockingContact.displayName || blockingContact.email || 'dit contact'}
           onConfirm={() => blockContact(blockingContact.uid)}
           onCancel={() => setBlockingContact(null)}
+        />
+      )}
+
+      {contactSuccess && (
+        <PulseConfirmSheet
+          title="Gelukt"
+          description={contactSuccess}
+          tone="success"
+          onClose={() => setContactSuccess('')}
+          actions={[]}
         />
       )}
 

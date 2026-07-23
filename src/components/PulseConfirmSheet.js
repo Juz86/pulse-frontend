@@ -9,6 +9,7 @@ export default function PulseConfirmSheet({
   children,
   onClose,
   dismissible = true,
+  tone = 'default',
 }) {
   useEffect(() => {
     if (!dismissible) return undefined;
@@ -21,11 +22,11 @@ export default function PulseConfirmSheet({
 
   return (
     <div
-      className="pulse-confirm-backdrop"
+      className={`pulse-confirm-backdrop pulse-confirm-backdrop--${tone}`}
       onClick={() => { if (dismissible) onClose?.(); }}
     >
       <aside
-        className="pulse-confirm-sheet"
+        className={`pulse-confirm-sheet pulse-confirm-sheet--${tone}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="pulse-confirm-title"
@@ -43,8 +44,9 @@ export default function PulseConfirmSheet({
         </div>
         {description && <p id="pulse-confirm-description" className="pulse-confirm-description">{description}</p>}
         {children && <div className="pulse-confirm-extra">{children}</div>}
-        <div className="pulse-confirm-actions">
-          {actions.filter(Boolean).map((action, index) => {
+        {actions.filter(Boolean).length > 0 && (
+          <div className="pulse-confirm-actions">
+            {actions.filter(Boolean).map((action, index) => {
             const Icon = action.icon;
             return (
               <button
@@ -60,8 +62,9 @@ export default function PulseConfirmSheet({
                 </span>
               </button>
             );
-          })}
-        </div>
+            })}
+          </div>
+        )}
       </aside>
     </div>
   );

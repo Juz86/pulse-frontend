@@ -7823,6 +7823,24 @@ font-family: 'Inter', sans-serif;
 .pulse-confirm-action--danger { color: #dc2750; }
 .pulse-confirm-action--danger:hover { background: rgba(220, 39, 80, .06); }
 .pulse-confirm-action--danger .pulse-confirm-action-description { color: #b84c67; }
+.pulse-confirm-sheet--success {
+  background:
+    radial-gradient(circle at 50% 0, rgba(92, 211, 164, .2), transparent 34%),
+    linear-gradient(150deg, rgba(255,255,255,.98), rgba(239,255,248,.98));
+}
+.pulse-confirm-sheet--success .pulse-confirm-handle { background: rgba(27, 140, 91, .25); }
+.pulse-confirm-sheet--success .pulse-confirm-heading h2 { color: #174a35; }
+.pulse-confirm-sheet--info {
+  background:
+    radial-gradient(circle at 50% 0, rgba(136, 116, 255, .22), transparent 34%),
+    linear-gradient(150deg, rgba(255,255,255,.98), rgba(243,240,255,.98));
+}
+.pulse-confirm-sheet--error {
+  background:
+    radial-gradient(circle at 50% 0, rgba(255, 114, 142, .18), transparent 34%),
+    linear-gradient(150deg, rgba(255,255,255,.98), rgba(255,242,246,.98));
+}
+.pulse-confirm-sheet--error .pulse-confirm-heading h2 { color: #7d1e3a; }
 
 @media (max-width: 767px) {
   .pulse-confirm-backdrop {

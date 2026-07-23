@@ -135,7 +135,6 @@ export default function ChatSidebar({
   sentFriendRequests,
   showFriendRequestsPanel,
   setShowFriendRequestsPanel,
-  contactSuccess,
   contacts,
   conversations,
   activeConv,
@@ -747,14 +746,6 @@ export default function ChatSidebar({
             ))}
           </div>
         </div>
-        {contactSuccess && (
-          <div className="contact-profile-field">
-            <div className="pulse-confirmation-message" role="status" aria-live="polite">
-              <span className="pulse-confirmation-message-icon" aria-hidden="true">✓</span>
-              <span>{contactSuccess}</span>
-            </div>
-          </div>
-        )}
         {contactErr && (
           <div className="contact-profile-field">
             <div className="auth-error">⚠️ {contactErr}</div>
@@ -906,13 +897,6 @@ export default function ChatSidebar({
           {sentFriendRequests.length > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800 }}>{sentFriendRequests.length}</span>}
         </button>
       </div>
-
-      {contactSuccess && (
-        <div className="pulse-confirmation-message" role="status" aria-live="polite">
-          <span className="pulse-confirmation-message-icon" aria-hidden="true">✓</span>
-          <span>{contactSuccess}</span>
-        </div>
-      )}
 
       <section className="contact-profile-card contact-profile-card--requests-list">
         <div className="pulse-sheet-list pulse-sheet-list--new-chat friend-requests-list">
@@ -3020,15 +3004,6 @@ export default function ChatSidebar({
           {/* Contacten tab */}
           {activeTab === 'contacts' && (
             <div className="conv-list">
-              {contactSuccess && (
-                <div style={{ padding: '0 18px 12px' }}>
-                  <div className="pulse-confirmation-message" role="status" aria-live="polite">
-                    <span className="pulse-confirmation-message-icon" aria-hidden="true">✓</span>
-                    <span>{contactSuccess}</span>
-                  </div>
-                </div>
-              )}
-
               {contacts.length === 0 && friendRequests.length === 0 && sentFriendRequests.length === 0 && (
                 <div className="empty-convs">
                   <p>Nog geen contacten.</p>

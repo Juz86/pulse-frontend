@@ -118,7 +118,7 @@ export default function ChatModals({
   conversations, forwardToConv,
 
   // toasts
-  errToast, mentionToast, parentToast,
+  errToast, dismissErrToast, mentionToast, dismissMentionToast, parentToast, dismissParentToast,
   onOpenMentionConversation,
 
   // blocked contacts
@@ -1587,40 +1587,42 @@ export default function ChatModals({
 
       {/* ── ERROR / INFO TOAST ── */}
       {errToast && (
-        <div
-          className="mention-toast"
-          role="status"
-          aria-live="polite"
-          style={{ background: typeof errToast === 'object' ? errToast.bg : errToast.startsWith('📋') ? 'rgba(34,197,94,0.92)' : 'rgba(255,71,87,0.92)', display: 'flex', alignItems: 'center', gap: 7 }}
-        >
-          {typeof errToast === 'object' ? <>{errToast.icon}<span>{errToast.text}</span></> : <span>{errToast}</span>}
-        </div>
+        <PulseConfirmSheet
+          title={typeof errToast === 'object' && errToast.tone === 'success' ? 'Gelukt' : typeof errToast === 'object' ? 'Meldingen' : errToast.startsWith('📋') ? 'Gelukt' : 'Let op'}
+          description={typeof errToast === 'object' ? errToast.text : errToast}
+          tone={typeof errToast === 'object' ? (errToast.tone || 'success') : errToast.startsWith('📋') ? 'success' : 'error'}
+          onClose={dismissErrToast}
+          actions={[]}
+        />
       )}
 
       {/* ── MENTION TOAST ── */}
       {mentionToast && (
-        <button
-          type="button"
-          className="mention-toast"
-          role="status"
-          aria-live="polite"
-          onClick={() => {
-            const conv = conversations?.find?.((item) => item.id === mentionToast.convId);
-            if (conv) onOpenMentionConversation?.(conv);
-          }}
-          style={{ border: 0, cursor: mentionToast.convId ? 'pointer' : 'default' }}
-        >
-          <span className="mention-toast-icon" aria-hidden="true">@</span>
-          <span><strong>{mentionToast.senderName}</strong> heeft je vermeld in <strong>{mentionToast.groupName}</strong></span>
-        </button>
+        <PulseConfirmSheet
+          title="Nieuwe vermelding"
+          description={`${mentionToast.senderName} heeft je vermeld in ${mentionToast.groupName}.`}
+          tone="info"
+          onClose={dismissMentionToast}
+          actions={mentionToast.convId ? [{
+            label: 'Open gesprek',
+            tone: 'primary',
+            onSelect: () => {
+              const conv = conversations?.find?.((item) => item.id === mentionToast.convId);
+              if (conv) onOpenMentionConversation?.(conv);
+            },
+          }] : []}
+        />
       )}
 
       {/* ── OUDER ACTIVITEIT TOAST ── */}
       {parentToast && (
-        <div className="parent-toast" role="status" aria-live="polite">
-          <span style={{ fontSize: 18 }} aria-hidden="true">❤️</span>
-          <span>{parentToast.description}</span>
-        </div>
+        <PulseConfirmSheet
+          title="Ouderactiviteit"
+          description={parentToast.description}
+          tone="info"
+          onClose={dismissParentToast}
+          actions={[]}
+        />
       )}
 
       {/* ── AVATAR BUILDER ── */}

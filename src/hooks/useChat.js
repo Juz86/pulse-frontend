@@ -452,7 +452,7 @@ export default function useChat({
     const onConversationAdminsUpdated = ({ conversation, promotedUid, promotedByName }) => {
       onConversationRenamed({ conversation });
       if (promotedUid === user.uid) {
-        showErrToast?.({ text: `${promotedByName || 'Een beheerder'} heeft je beheerder gemaakt in ${conversation?.groupName || 'deze groep'}.`, tone: 'success' });
+        showErrToast?.({ title: 'Beheerderrol toegekend', text: `${promotedByName || 'Een beheerder'} heeft je beheerder gemaakt in de groep '${conversation?.groupName || 'deze groep'}'.`, tone: 'success' });
       }
     };
     const onAdminPromotionRequested = ({ request }) => {
@@ -469,7 +469,7 @@ export default function useChat({
         onConfirm: () => {
           socket.emit('conversation:respondToAdminPromotion', { requestId: request.id, accept: true }, (res = {}) => {
             if (res.error) return showErrToast?.(res.error);
-            showErrToast?.({ text: 'Je bent nu beheerder.', tone: 'success' });
+            showErrToast?.({ title: 'Beheerderrol geaccepteerd', text: 'Je bent nu beheerder.', tone: 'success' });
           });
         },
         onCancel: () => {

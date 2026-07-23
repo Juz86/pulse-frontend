@@ -1589,7 +1589,7 @@ export default function ChatModals({
       {/* ── ERROR / INFO TOAST ── */}
       {errToast && (
         <PulseConfirmSheet
-          title={typeof errToast === 'object' && errToast.tone === 'success' ? 'Gelukt' : typeof errToast === 'object' ? 'Meldingen' : errToast.startsWith('📋') ? 'Gelukt' : 'Let op'}
+          title={typeof errToast === 'object' ? (errToast.title || (errToast.tone === 'success' ? 'Gelukt' : 'Meldingen')) : errToast.startsWith('📋') ? 'Gelukt' : 'Let op'}
           description={typeof errToast === 'object' ? errToast.text : errToast}
           tone={typeof errToast === 'object' ? (errToast.tone || 'success') : errToast.startsWith('📋') ? 'success' : 'error'}
           onClose={dismissErrToast}

@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useState } from 'react';
-import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Logout } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
@@ -620,7 +620,7 @@ export default function ChatModals({
             {
               label: confirmDialog.confirmLabel || 'Verwijderen',
               tone: confirmDialog.type === 'admin-promotion' ? 'primary' : 'danger',
-              icon: confirmDialog.confirmIcon === 'trash' ? Delete : undefined,
+              icon: confirmDialog.confirmIcon === 'trash' ? Delete : confirmDialog.confirmIcon === 'logout' ? Logout : undefined,
               onSelect: () => {
                 confirmDialog.onConfirm?.({ keepStarred: confirmCheckboxChecked });
                 setConfirmDialog(null);

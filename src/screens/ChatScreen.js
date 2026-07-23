@@ -606,6 +606,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             message: 'Weet je zeker dat je wilt uitloggen?',
             hideCancel: true,
             confirmLabel: 'Uitloggen',
+            confirmIcon: 'logout',
             onConfirm: async () => {
               clearPulseUserStorage(user.uid);
               await signOut(auth);

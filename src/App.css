@@ -7758,7 +7758,7 @@ font-family: 'Inter', sans-serif;
 .pulse-confirm-heading h2 {
   margin: 0;
   color: #20133f;
-  font-size: clamp(20px, 5vw, 25px);
+  font-size: 20px;
   font-weight: 800;
   letter-spacing: -.035em;
   line-height: 1.18;

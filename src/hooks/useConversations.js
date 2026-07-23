@@ -551,6 +551,7 @@ export default function useConversations({
     setConfirmDialog({
       title: 'Chat verwijderen',
       message: 'Weet je zeker dat je dit gesprek wilt verwijderen?',
+      hideCancel: true,
       confirmLabel: 'Chat verwijderen',
       confirmIcon: 'trash',
       onConfirm: performDelete,

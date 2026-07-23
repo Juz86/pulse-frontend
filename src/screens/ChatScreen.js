@@ -185,6 +185,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const conversationName = getConvName(conv) || 'dit gesprek';
     setConfirmDialog({
       title: `Verwijder chat met ${conversationName}?`,
+      hideCancel: true,
       confirmLabel: 'Verwijderen',
       confirmIcon: 'trash',
       onConfirm: async () => {

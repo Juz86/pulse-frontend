@@ -10891,9 +10891,22 @@ font-family: 'Inter', sans-serif;
 
 @media (min-width: 768px) {
   :root { --desktop-search-panel-width: min(420px, 34vw); }
-  .chat-main--search-open {
-    flex-basis:calc(100% - var(--pulse-sidebar-width) - var(--desktop-search-panel-width));
-    width:calc(100% - var(--pulse-sidebar-width) - var(--desktop-search-panel-width));
+  .app-screen:has(.chat-main--search-open) {
+    display:grid;
+    grid-template-columns:minmax(260px, var(--pulse-sidebar-width)) minmax(0, 1fr) var(--desktop-search-panel-width);
+  }
+  .app-screen:has(.chat-main--search-open) .sidebar {
+    grid-column:1;
+    width:100%;
+    min-width:0;
+    max-width:none;
+    flex:none;
+  }
+  .app-screen:has(.chat-main--search-open) .chat-main--search-open {
+    grid-column:2;
+    width:auto;
+    min-width:0;
+    flex:none;
   }
   .chat-search-bar {
     position:fixed;

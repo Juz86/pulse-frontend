@@ -518,11 +518,14 @@ export default function useContacts({
   }
 
   function removeContact(targetUid) {
+    const contact = contacts.find((item) => item.uid === targetUid);
+    const contactName = contact ? (getContactDisplayName(contact) || contact.email) : 'deze contactpersoon';
     setConfirmDialog({
       title: 'Contact verwijderen',
-      message: 'Weet je zeker dat je dit contact wilt verwijderen?',
+      message: `Weet je zeker dat je ${contactName} wilt verwijderen?`,
       confirmLabel: 'Contact verwijderen',
       confirmIcon: 'trash',
+      hideCancel: true,
       onConfirm: async () => {
         // Eenzijdige verwijdering via backend — alleen eigen kant wordt verwijderd.
         // De ander behoudt het contact en mag nog berichten sturen.

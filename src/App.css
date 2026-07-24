@@ -4137,6 +4137,7 @@ font-family: 'Inter', sans-serif;
 }
 .msg-bubble-text {
   display:block;
+  padding-right:20px;
 }
 .msg-group.out .msg-bubble {
   background:linear-gradient(135deg, #8c7bff 0%, #7160f5 100%);
@@ -4260,15 +4261,16 @@ font-family: 'Inter', sans-serif;
 .msg-action-btn:hover { background:var(--surface3); }
 .msg-bubble-menu-btn {
   position:absolute;
-  top:4px;
-  right:4px;
-  width:24px;
-  height:24px;
+  top:auto;
+  right:2px;
+  bottom:2px;
+  width:22px;
+  height:22px;
   border:0;
   border-radius:0;
   background:transparent;
   color:currentColor;
-  opacity:0;
+  opacity:.72;
   cursor:pointer;
   display:flex;
   align-items:center;
@@ -4278,8 +4280,8 @@ font-family: 'Inter', sans-serif;
   transition:opacity .14s ease, background .14s ease, transform .14s ease;
 }
 .msg-bubble-menu-btn svg {
-  width:30px;
-  height:30px;
+  width:16px;
+  height:16px;
 }
 .msg-group:hover .msg-bubble-menu-btn,
 .msg-bubble-menu-btn:focus-visible {

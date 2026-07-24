@@ -4283,8 +4283,8 @@ font-family: 'Inter', sans-serif;
   transition:opacity .14s ease, background .14s ease, transform .14s ease;
 }
 .msg-bubble-menu-btn svg {
-  width:16px;
-  height:16px;
+  width:30px;
+  height:30px;
 }
 .msg-group:hover .msg-bubble-menu-btn,
 .msg-bubble-menu-btn:focus-visible {

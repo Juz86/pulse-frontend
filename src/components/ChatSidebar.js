@@ -187,6 +187,7 @@ export default function ChatSidebar({
   onOpenProfile,
   showProfile = false,
   contactProfileVisible = false,
+  onCloseContactProfile,
   setShowProfile,
   profileTab = 'overview',
   setProfileTab,
@@ -2480,7 +2481,13 @@ export default function ChatSidebar({
     && footerClusterMode !== 'settings';
 
   const footerTabbar = (
-    <div className={`sidebar-footer-tabbar${footerEmbeddedInCluster ? ' sidebar-footer-tabbar--cluster' : ''}`} ref={sidebarFooterTabbarRef} role="navigation" aria-label="Sidebar navigatie">
+    <div
+      className={`sidebar-footer-tabbar${footerEmbeddedInCluster ? ' sidebar-footer-tabbar--cluster' : ''}`}
+      ref={sidebarFooterTabbarRef}
+      role="navigation"
+      aria-label="Sidebar navigatie"
+      onClick={contactProfileVisible ? onCloseContactProfile : undefined}
+    >
       <button
         type="button"
         className={`sidebar-footer-tab sidebar-footer-tab-profile${profileFooterActive ? ' active' : ''}`}

@@ -555,6 +555,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onOpenProfile={() => { setShowProfile(true); openProfile(); }}
         showProfile={showProfile}
         contactProfileVisible={showContactProfile}
+        onCloseContactProfile={() => { setShowContactProfile(false); setContactProfileContact(null); }}
         setShowProfile={setShowProfile}
         profileTab={profileTab}
         setProfileTab={setProfileTab}

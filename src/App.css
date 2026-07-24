@@ -4249,8 +4249,8 @@ font-family: 'Inter', sans-serif;
   display:none; position:absolute; top:50%; transform:translateY(-50%);
   align-items:center; gap:4px;
 }
-.msg-group.out .msg-actions { left:-29px; }
-.msg-group.in  .msg-actions { right:-29px; }
+.msg-group.out .msg-actions { left:-27px; }
+.msg-group.in  .msg-actions { right:-27px; }
 .msg-bubble-wrap.has-reply .msg-actions { top:calc(50% + 10px); }
 .msg-group:hover .msg-actions,
 .msg-actions.picker-open { display:flex; }

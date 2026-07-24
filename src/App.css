@@ -3806,7 +3806,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .chat-header {
-  padding:clamp(10px, 1.7vw, 14px) clamp(14px, 2.2vw, 22px);
+  padding:10px clamp(14px, 2.2vw, 22px);
   display:flex;
   align-items:center;
   gap:clamp(12px, 1.9vw, 18px);
@@ -3876,8 +3876,8 @@ font-family: 'Inter', sans-serif;
 }
 .chat-header-avatar.avatar-circle.sm,
 .chat-header-avatar.sm {
-  width:72px;
-  height:72px;
+  width:56px;
+  height:56px;
   border-radius:50%;
   font-size:22px;
   box-shadow:0 14px 30px rgba(108,99,255,.18);
@@ -3891,7 +3891,7 @@ font-family: 'Inter', sans-serif;
 }
 .chat-header-name {
   font-family:'Inter',sans-serif;
-  font-size:clamp(20px, 2.25vw, 26px);
+  font-size:clamp(18px, 2vw, 22px);
   font-weight:800;
   color:#171225;
   white-space:nowrap;

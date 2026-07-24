@@ -37,7 +37,16 @@ export default function TextMessageCard({
           <span className="msg-reply-text">{getMessageDisplayText(msg.replyTo)}</span>
         </div>
       )}
-      <div className="msg-bubble" style={isFocused ? { outline: '2px solid #f59e0b', outlineOffset: '2px' } : {}}>
+      <div
+        className="msg-bubble"
+        tabIndex={-1}
+        style={isFocused ? { outline: '2px solid #f59e0b', outlineOffset: '2px' } : {}}
+        onClick={(event) => {
+          if (window.matchMedia?.('(hover: none), (pointer: coarse)').matches) {
+            event.currentTarget.focus();
+          }
+        }}
+      >
         <button
           type="button"
           className="msg-bubble-menu-btn"

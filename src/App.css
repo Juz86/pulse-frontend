@@ -4270,7 +4270,7 @@ font-family: 'Inter', sans-serif;
   border-radius:0;
   background:transparent;
   color:currentColor;
-  opacity:.72;
+  opacity:0;
   cursor:pointer;
   display:flex;
   align-items:center;
@@ -4295,6 +4295,16 @@ font-family: 'Inter', sans-serif;
 }
 .msg-group.out .msg-bubble-menu-btn:hover {
   background:transparent;
+}
+@media (hover: none), (pointer: coarse) {
+  .msg-bubble-menu-btn {
+    pointer-events:none;
+  }
+  .msg-bubble:focus .msg-bubble-menu-btn,
+  .msg-bubble:focus-within .msg-bubble-menu-btn {
+    opacity:.92;
+    pointer-events:auto;
+  }
 }
 .msg-emoji-picker {
   position:absolute;

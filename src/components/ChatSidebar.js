@@ -190,6 +190,7 @@ export default function ChatSidebar({
   onCloseContactProfile,
   groupInfoVisible = false,
   onCloseGroupInfo,
+  onShowChatsFromContextPanel,
   setShowProfile,
   profileTab = 'overview',
   setProfileTab,
@@ -2545,6 +2546,7 @@ export default function ChatSidebar({
           closeParentPortalSheet();
           setSearchQuery('');
           setActiveTab('chats');
+          if (contextPanelVisible) onShowChatsFromContextPanel?.();
         }}
         title="Chats"
       >

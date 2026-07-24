@@ -9823,8 +9823,7 @@ font-family: 'Inter', sans-serif;
 
   /* Het menu van de Meer-knop wordt door de sidebar gerenderd. Breng die
      tijdelijk terug in beeld zodat het menu niet buiten het mobiele scherm valt. */
-  .app-screen:has(.chat-header) .sidebar:has(.contact-profile-panel[data-sidebar-actions-menu]),
-  .app-screen:has(.chat-header) .sidebar:has(.calls-dashboard-panel) {
+  .app-screen:has(.chat-header) .sidebar:has(.contact-profile-panel) {
     z-index:100;
     transform:translateX(0);
   }

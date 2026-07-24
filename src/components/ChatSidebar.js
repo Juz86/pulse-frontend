@@ -188,6 +188,8 @@ export default function ChatSidebar({
   showProfile = false,
   contactProfileVisible = false,
   onCloseContactProfile,
+  groupInfoVisible = false,
+  onCloseGroupInfo,
   setShowProfile,
   profileTab = 'overview',
   setProfileTab,
@@ -2479,6 +2481,8 @@ export default function ChatSidebar({
   const footerEmbeddedInCluster = !!footerClusterMode
     && footerClusterMode !== 'more'
     && footerClusterMode !== 'settings';
+  const contextPanelVisible = contactProfileVisible || groupInfoVisible;
+  const closeContextPanel = contactProfileVisible ? onCloseContactProfile : (groupInfoVisible ? onCloseGroupInfo : undefined);
 
   const footerTabbar = (
     <div
@@ -2486,7 +2490,7 @@ export default function ChatSidebar({
       ref={sidebarFooterTabbarRef}
       role="navigation"
       aria-label="Sidebar navigatie"
-      onClick={contactProfileVisible ? onCloseContactProfile : undefined}
+      onClick={contextPanelVisible ? closeContextPanel : undefined}
     >
       <button
         type="button"
@@ -3741,9 +3745,9 @@ export default function ChatSidebar({
           </div>
         </div>
       ) : null}
-      {footerEmbeddedInCluster ? null : contactProfileVisible && typeof document !== 'undefined'
+      {footerEmbeddedInCluster ? null : contextPanelVisible && typeof document !== 'undefined'
         ? createPortal(
-          <div className="sidebar-footer sidebar-footer--contact-profile-floating" ref={sidebarFooterRef}>
+          <div className="sidebar-footer sidebar-footer--context-panel-floating" ref={sidebarFooterRef}>
             {footerTabbar}
           </div>,
           document.body,

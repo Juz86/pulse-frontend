@@ -1490,6 +1490,17 @@ export default function ChatModals({
                               {isOnline ? 'Online' : 'Offline'}
                             </div>
                           </div>
+                          {isAdmin && !isMe && (
+                            <button
+                              type="button"
+                              className="group-info-remove-btn"
+                              aria-label={`${name} uit de groep verwijderen`}
+                              title={`${name} verwijderen`}
+                              onClick={() => removeMemberFromGroup?.(memberId)}
+                            >
+                              <Delete size={19} aria-hidden="true" />
+                            </button>
+                          )}
                           {isMe && isAdmin && hasPromotableGroupMember && (
                             <div className="group-info-member-actions">
                               <button type="button" className="group-info-promote-btn" aria-label="Beheerder toevoegen" title="Beheerder toevoegen" aria-expanded={showAdminPicker} onClick={() => setShowAdminPicker((visible) => !visible)}><AdminIcon size={17} aria-hidden="true" /></button>

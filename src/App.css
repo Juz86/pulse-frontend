@@ -4312,6 +4312,10 @@ font-family: 'Inter', sans-serif;
     opacity:.92;
     pointer-events:auto;
   }
+  .msg-bubble:focus .msg-time,
+  .msg-bubble:focus-within .msg-time {
+    opacity:.35;
+  }
 }
 .msg-emoji-picker {
   position:absolute;

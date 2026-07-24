@@ -70,9 +70,6 @@ export default function ConversationSearchPanel({
           </button>
         )}
       </div>
-      <button type="button" className="conversation-search-panel__close" aria-label="Zoeken sluiten" onClick={close}>
-        <XIcon size={24} aria-hidden="true" />
-      </button>
 
       <div className="conversation-search-panel__results" aria-live="polite">
         {!query && <p className="conversation-search-panel__hint">Zoek naar berichten in {getConvName(activeConv)}.</p>}

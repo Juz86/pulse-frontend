@@ -4221,6 +4221,7 @@ font-family: 'Inter', sans-serif;
   vertical-align:baseline;
   position:relative;
   top:2px;
+  transition:opacity .14s ease;
 }
 .msg-group.out .msg-time { color:rgba(255,255,255,.78); }
 .msg-group.in  .msg-time { color:#988abf; }
@@ -4296,6 +4297,11 @@ font-family: 'Inter', sans-serif;
 }
 .msg-group.out .msg-bubble-menu-btn:hover {
   background:transparent;
+}
+@media (hover: hover) and (pointer: fine) {
+  .msg-group:hover .msg-time {
+    opacity:.35;
+  }
 }
 @media (hover: none), (pointer: coarse) {
   .msg-bubble-menu-btn {

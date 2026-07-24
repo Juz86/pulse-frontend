@@ -3548,7 +3548,7 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-footer--context-panel-floating {
   position:fixed;
-  z-index:1000;
+  z-index:3705;
   right:auto;
   bottom:0;
   left:0;
@@ -6965,11 +6965,6 @@ font-family: 'Inter', sans-serif;
     padding-right:14px;
   }
 
-  .group-info-topbar {
-    padding-right:14px;
-    padding-left:14px;
-  }
-
   .contact-profile-quick-actions {
     gap:10px;
   }
@@ -8366,6 +8361,12 @@ font-family: 'Inter', sans-serif;
 .group-info-panel .pulse-sheet-handle { display: none; }
 .group-info-topbar {
   padding: max(16px, env(safe-area-inset-top)) 18px 0;
+}
+@media (max-width: 430px) {
+  .group-info-topbar {
+    padding-right:14px;
+    padding-left:14px;
+  }
 }
 .group-info-panel .contact-profile-edit-btn:disabled { opacity: .45; cursor: not-allowed; }
 .group-info-panel .group-info-hero {

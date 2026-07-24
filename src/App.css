@@ -3819,6 +3819,13 @@ font-family: 'Inter', sans-serif;
   z-index:35;
   overflow:visible;
 }
+@media (min-width:768px) {
+  .sidebar-header,
+  .chat-header {
+    height:85px;
+    box-sizing:border-box;
+  }
+}
 .chat-header::after {
   content:'';
   position:absolute;

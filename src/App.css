@@ -5263,14 +5263,14 @@ font-family: 'Inter', sans-serif;
   cursor:default;
 }
 .msg-group.out .msg-call-card {
-  background:linear-gradient(135deg, var(--accent), #8b7cf6);
+  background:linear-gradient(135deg, #8c7bff 0%, #7160f5 100%);
   border-bottom-right-radius:5px;
-  box-shadow:0 4px 14px rgba(108,99,255,.3);
+  box-shadow:0 6px 16px rgba(113,96,245,.34);
 }
 .msg-group.in .msg-call-card {
-  background:var(--surface2); border:1px solid var(--border);
+  background:#f7f2ff; border:1px solid #e6dcfb;
   border-bottom-left-radius:5px;
-  box-shadow:0 2px 8px rgba(0,0,0,.2);
+  box-shadow:0 4px 10px rgba(92,71,146,.09);
 }
 .msg-call-icon {
   width:40px; height:40px; border-radius:50%;
@@ -5288,19 +5288,19 @@ font-family: 'Inter', sans-serif;
   text-overflow:ellipsis;
 }
 .msg-group.out .msg-call-label { color:#fff; }
-.msg-group.in  .msg-call-label { color:var(--text); }
+.msg-group.in  .msg-call-label { color:#3f3560; }
 .msg-group.in  .msg-call-card.missed .msg-call-label { color:var(--danger); }
 .msg-call-sub {
   font-size:12px; margin-top:2px;
 }
 .msg-group.out .msg-call-sub { color:rgba(255,255,255,.75); }
-.msg-group.in  .msg-call-sub { color:var(--text2); }
+.msg-group.in  .msg-call-sub { color:#766a98; }
 .msg-call-time {
   font-size:10px; letter-spacing:.3px; font-family:'Inter',sans-serif;
   align-self:flex-end; white-space:nowrap;
 }
 .msg-group.out .msg-call-time { color:rgba(255,255,255,.7); }
-.msg-group.in  .msg-call-time { color:var(--text3); }
+.msg-group.in  .msg-call-time { color:#988abf; }
 
 /* ── CONTACT MESSAGE CARD ── */
 .msg-contact-card {

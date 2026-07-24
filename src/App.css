@@ -3546,6 +3546,15 @@ font-family: 'Inter', sans-serif;
   padding: 0 12px 0;
   background: transparent;
 }
+.sidebar-footer--contact-profile-floating {
+  position:fixed;
+  z-index:1000;
+  right:auto;
+  bottom:0;
+  left:0;
+  width:var(--sidebar-width, 360px);
+  box-sizing:border-box;
+}
 .sidebar-footer-tabbar--cluster {
   position: relative;
   z-index: 3;
@@ -8291,6 +8300,11 @@ font-family: 'Inter', sans-serif;
 }
 
 @media (max-width: 767px) {
+  .sidebar-footer--contact-profile-floating {
+    width:100%;
+    padding-right:max(12px, env(safe-area-inset-right));
+    padding-left:max(12px, env(safe-area-inset-left));
+  }
   .chat-side-panel {
     inset:0;
     left:0;

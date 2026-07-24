@@ -1,5 +1,6 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
@@ -185,6 +186,7 @@ export default function ChatSidebar({
   clearPendingFriendRequestState,
   onOpenProfile,
   showProfile = false,
+  contactProfileVisible = false,
   setShowProfile,
   profileTab = 'overview',
   setProfileTab,
@@ -3732,11 +3734,18 @@ export default function ChatSidebar({
           </div>
         </div>
       ) : null}
-      {footerEmbeddedInCluster ? null : (
-        <div className={`sidebar-footer${isLightFooterCluster ? ' sidebar-footer--more-open' : ''}`} ref={sidebarFooterRef}>
-          {footerTabbar}
-        </div>
-      )}
+      {footerEmbeddedInCluster ? null : contactProfileVisible && typeof document !== 'undefined'
+        ? createPortal(
+          <div className="sidebar-footer sidebar-footer--contact-profile-floating" ref={sidebarFooterRef}>
+            {footerTabbar}
+          </div>,
+          document.body,
+        )
+        : (
+          <div className={`sidebar-footer${isLightFooterCluster ? ' sidebar-footer--more-open' : ''}`} ref={sidebarFooterRef}>
+            {footerTabbar}
+          </div>
+        )}
     </aside>
   );
 }

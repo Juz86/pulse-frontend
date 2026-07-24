@@ -554,6 +554,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         clearPendingFriendRequestState={clearPendingFriendRequestState}
         onOpenProfile={() => { setShowProfile(true); openProfile(); }}
         showProfile={showProfile}
+        contactProfileVisible={showContactProfile}
         setShowProfile={setShowProfile}
         profileTab={profileTab}
         setProfileTab={setProfileTab}

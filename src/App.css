@@ -4137,7 +4137,6 @@ font-family: 'Inter', sans-serif;
 }
 .msg-bubble-text {
   display:block;
-  padding-right:20px;
 }
 .msg-group.out .msg-bubble {
   background:linear-gradient(135deg, #8c7bff 0%, #7160f5 100%);

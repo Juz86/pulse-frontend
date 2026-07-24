@@ -8364,8 +8364,8 @@ font-family: 'Inter', sans-serif;
 }
 @media (max-width: 430px) {
   .group-info-topbar {
-    padding-right:14px;
-    padding-left:14px;
+    padding-right:max(16px, env(safe-area-inset-right));
+    padding-left:max(16px, env(safe-area-inset-left));
   }
 }
 .group-info-panel .contact-profile-edit-btn:disabled { opacity: .45; cursor: not-allowed; }
@@ -9926,6 +9926,13 @@ font-family: 'Inter', sans-serif;
   .group-info-panel {
     padding-left:max(16px, env(safe-area-inset-left));
     padding-right:max(16px, env(safe-area-inset-right));
+  }
+
+  /* Groepsinfo heeft zelf een topbar met dezelfde horizontale ruimte als
+     Profiel. Voorkom dat de paneelpadding daar nog eens bovenop komt. */
+  .group-info-panel {
+    padding-left:0;
+    padding-right:0;
   }
 
   .conv-list {

@@ -11,8 +11,6 @@ const ChatHeader = React.memo(function ChatHeader({
   activeConv,
   onlineUsers,
   inactiveUsers,
-  typing,
-  typingName,
   unreadCounts,
   onBack,
   onInitiateCall,
@@ -141,11 +139,7 @@ const ChatHeader = React.memo(function ChatHeader({
           </div>
           <div className="chat-header-copy">
             <div className="chat-header-name">{getConvName(activeConv)}</div>
-            {typing ? (
-              <div className="chat-header-typing" role="status" aria-live="polite">
-                {typingName || 'Iemand'} typt…
-              </div>
-            ) : isOnline ? <div className="chat-header-online">{isActive ? 'Online' : 'Afwezig'}</div> : null}
+            {isOnline ? <div className="chat-header-online">{isActive ? 'Online' : 'Afwezig'}</div> : null}
           </div>
         </div>
 

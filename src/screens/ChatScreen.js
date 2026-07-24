@@ -673,7 +673,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           <>
             <ChatHeader
               activeConv={activeConv} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers}
-              typing={typing} typingName={typingName} unreadCounts={unreadCounts}
+              unreadCounts={unreadCounts}
               onBack={() => setActiveConv(null)} onInitiateCall={initiateCall}
               onShowGroupInfo={() => setShowGroupInfo(true)}
               onShowContactProfile={() => { setContactProfileContact(null); setShowContactProfile(true); }}

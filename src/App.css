@@ -4220,7 +4220,7 @@ font-family: 'Inter', sans-serif;
   white-space:nowrap;
   vertical-align:baseline;
   position:relative;
-  top:2px;
+  top:3px;
   transition:opacity .14s ease;
 }
 .msg-group.out .msg-time { color:rgba(255,255,255,.78); }

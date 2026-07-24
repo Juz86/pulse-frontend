@@ -6965,6 +6965,11 @@ font-family: 'Inter', sans-serif;
     padding-right:14px;
   }
 
+  .group-info-topbar {
+    padding-right:14px;
+    padding-left:14px;
+  }
+
   .contact-profile-quick-actions {
     gap:10px;
   }

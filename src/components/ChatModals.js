@@ -1490,7 +1490,7 @@ export default function ChatModals({
                               {isOnline ? 'Online' : 'Offline'}
                             </div>
                           </div>
-                          {isAdmin && !isMe && (
+                          {isAdmin && !isMe && !isMemberAdmin && (
                             <button
                               type="button"
                               className="group-info-remove-btn"

@@ -9780,6 +9780,13 @@ font-family: 'Inter', sans-serif;
   .app-screen:has(.chat-header) .sidebar  { transform:translateX(-100%); }
   .app-screen:has(.chat-header) .chat-main { transform:translateX(0); }
 
+  /* Het menu van de Meer-knop wordt door de sidebar gerenderd. Breng die
+     tijdelijk terug in beeld zodat het menu niet buiten het mobiele scherm valt. */
+  .app-screen:has(.chat-header) .sidebar:has(.contact-profile-panel[data-sidebar-actions-menu]) {
+    z-index:100;
+    transform:translateX(0);
+  }
+
   /* Terugknop zichtbaar op mobiel */
   .back-btn { display:flex; }
 

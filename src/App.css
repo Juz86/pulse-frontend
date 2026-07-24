@@ -4215,10 +4215,10 @@ font-family: 'Inter', sans-serif;
 .messages-area-wrap.has-chat-bg .msg-time { opacity:1; }
 .msg-time {
   font-size:10px; letter-spacing:.3px; font-family:'Inter',sans-serif;
-  display:flex; align-items:center; justify-content:flex-end; gap:3px;
-  width:100%;
-  margin-top:6px;
-  white-space:nowrap; flex-shrink:0;
+  display:inline-flex; align-items:center; gap:3px;
+  margin-left:7px;
+  white-space:nowrap;
+  vertical-align:baseline;
 }
 .msg-group.out .msg-time { color:rgba(255,255,255,.78); }
 .msg-group.in  .msg-time { color:#988abf; }

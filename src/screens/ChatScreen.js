@@ -888,13 +888,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           title={deleteConfirm.count > 1 ? 'Berichten verwijderen' : 'Bericht verwijderen'}
           description={deleteConfirm.isOwn
             ? `Kies of je ${deleteConfirm.count > 1 ? 'deze berichten' : 'dit bericht'} alleen voor jezelf of voor iedereen wilt verwijderen.`
-            : `${deleteConfirm.count > 1 ? 'Deze berichten' : 'Dit bericht'} kun je alleen voor jezelf verwijderen.`}
+            : undefined}
           onClose={() => setDeleteConfirm(null)}
           actions={[
             {
               label: 'Voor mezelf verwijderen',
-              description: 'Alleen uit jouw chat',
-              tone: 'neutral',
+              tone: 'danger',
               icon: Delete,
               onSelect: async () => {
                 for (const msgId of deleteConfirm.msgIds) {

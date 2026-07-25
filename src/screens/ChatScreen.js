@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, lazy, Suspense, useCallback, useMemo } from 'react';
 import { signOut } from 'firebase/auth';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
-import { Delete, Message } from '../components/Icons';
+import { Delete, Message, Trash2 } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
 import ChatHeader from '../components/ChatHeader';
 import ConversationSearchPanel from '../components/ConversationSearchPanel';
@@ -906,9 +906,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             },
             deleteConfirm.isOwn && {
               label: 'Voor iedereen verwijderen',
-              description: 'Ook bij ontvangers',
               tone: 'danger',
-              icon: Delete,
+              icon: Trash2,
               onSelect: async () => {
                   for (const msgId of deleteConfirm.msgIds) {
                     // eslint-disable-next-line no-await-in-loop

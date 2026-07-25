@@ -859,6 +859,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onEnterMessageSelection={() => messageSelectionMode ? cancelMessageSelection() : enterMessageSelection()}
         onClearChat={() => activeConv && openClearConversationConfirm(activeConv)}
         onDeleteChat={() => activeConv && openDeleteConversationConfirm(activeConv)}
+        onBlockContact={contact => setBlockingContact(contact)}
+        onRemoveContact={removeContact}
         showChatSearch={showChatSearch}
         setShowChatSearch={setShowChatSearch}
         conversationMuted={mutedConversationIds.includes(activeConv?.id)}

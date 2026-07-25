@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useState } from 'react';
-import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Logout } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Lock, Logout } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
@@ -92,6 +92,8 @@ export default function ChatModals({
   onEnterMessageSelection,
   onClearChat,
   onDeleteChat,
+  onBlockContact,
+  onRemoveContact,
   showChatSearch = false,
   setShowChatSearch,
   conversationMuted = false,
@@ -982,6 +984,20 @@ export default function ChatModals({
               </section>
 
               <section className="contact-profile-card contact-profile-card-danger contact-profile-card--profile-danger">
+                <button type="button" className="contact-profile-row-button danger" onClick={() => onBlockContact?.(targetContact)}>
+                  <span className="contact-profile-row-icon"><Lock size={20} aria-hidden="true" /></span>
+                  <span className="contact-profile-row-copy">
+                    <span className="contact-profile-row-title">Blokkeren</span>
+                  </span>
+                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                </button>
+                <button type="button" className="contact-profile-row-button danger" onClick={() => onRemoveContact?.(uid)}>
+                  <span className="contact-profile-row-icon"><Trash2 size={20} aria-hidden="true" /></span>
+                  <span className="contact-profile-row-copy">
+                    <span className="contact-profile-row-title">Verwijderen</span>
+                  </span>
+                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                </button>
                 <button type="button" className="contact-profile-row-button danger" onClick={clearChatFromProfile}>
                   <span className="contact-profile-row-icon"><Delete size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">

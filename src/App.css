@@ -12479,7 +12479,8 @@ font-family: 'Inter', sans-serif;
 /* Laat overzichtspagina's direct op de pagina-randen uitlijnen, zonder kaartinspringing. */
 .parent-dashboard-panel .parent-dashboard-content-card--activities .parent-dashboard-content,
 .parent-dashboard-panel .parent-dashboard-content-card--children .parent-dashboard-content,
-.parent-dashboard-panel .parent-dashboard-content-card--contacts .parent-dashboard-content {
+.parent-dashboard-panel .parent-dashboard-content-card--contacts .parent-dashboard-content,
+.parent-dashboard-panel .parent-dashboard-content-card--location .parent-dashboard-content {
   padding-right: 0;
   padding-left: 0;
 }

@@ -12476,6 +12476,12 @@ font-family: 'Inter', sans-serif;
   background: transparent;
 }
 
+/* Laat Activiteiten direct op de pagina-randen uitlijnen, zonder kaartinspringing. */
+.parent-dashboard-panel .parent-dashboard-content-card--activities .parent-dashboard-content {
+  padding-right: 0;
+  padding-left: 0;
+}
+
 .calls-dashboard-panel {
   display: flex;
   flex-direction: column;

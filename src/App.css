@@ -11321,10 +11321,12 @@ font-family: 'Inter', sans-serif;
   flex-wrap:nowrap;
 }
 .pd-child-top-actions--inline {
-  position: static;
+  position: absolute;
+  top: 16px;
+  right: 16px;
   margin-top: 0;
   gap: 8px;
-  align-items: stretch;
+  align-items: center;
   flex-wrap: nowrap;
 }
 .pd-child-top-action {
@@ -11342,7 +11344,7 @@ font-family: 'Inter', sans-serif;
   padding: 0 !important;
 }
 .pd-child-head {
-  padding-right: 0;
+  padding-right: 208px;
 }
 .parent-child-copy {
   min-width: 0;

@@ -11409,7 +11409,16 @@ font-family: 'Inter', sans-serif;
   justify-content: center;
 }
 
-.pd-child-primary-controls .parent-btn-orange.pd-child-pause-trigger {
+.pd-child-pause-menu {
+  position: relative;
+}
+
+.pd-child-pause-menu .pcd-dropdown {
+  right: 0;
+  left: auto;
+}
+
+.pd-child-pause-trigger {
   width: 42px;
   min-width: 42px;
   padding: 0;

@@ -11389,8 +11389,6 @@ font-family: 'Inter', sans-serif;
   gap:12px;
   flex-wrap:nowrap;
   margin-top:10px;
-  position: relative;
-  z-index: 3809;
   pointer-events: auto;
 }
 

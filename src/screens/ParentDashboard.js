@@ -1267,6 +1267,9 @@ export default function ParentDashboard({
                       const topChatContacts = buildTopList('messagesSent');
                       const topCallContacts = buildTopList('callCount');
                       const topVideoContacts = buildTopList('videoCalls');
+                      const statusDot = profile.online
+                        ? { background: '#22c55e', boxShadow: '0 0 0 2px #dcfce7' }
+                        : { background: '#9ca3af' };
                       const usageCards = [
                         {
                           label: 'Schermtijd vandaag',
@@ -1287,6 +1290,42 @@ export default function ParentDashboard({
                       ];
                       return (
                         <div className="parent-activity-overview">
+                          <div className="analytics-profile-card">
+                            <div className="analytics-profile-avatar-shell">
+                              <UserAvatar
+                                photoURL={profile.photoURL || null}
+                                displayName={profile.displayName}
+                                className="analytics-profile-avatar"
+                              />
+                              <span className={`analytics-profile-status-dot${profile.online ? ' online' : ' offline'}`} style={statusDot} />
+                            </div>
+                            <div className="analytics-profile-main">
+                              <div className="analytics-profile-info">
+                                <div className="analytics-profile-heading">
+                                  <span className="analytics-profile-name">{profile.displayName}</span>
+                                  {profile.username && <span className="analytics-profile-username">@{profile.username}</span>}
+                                </div>
+                                <div className={`analytics-profile-status${profile.online ? ' analytics-profile-status--online' : ' analytics-profile-status--offline'}`}>
+                                  {profile.online ? <><span aria-hidden="true">● </span>Online</> : `Offline · ${timeAgo(profile.lastSeen, 'Onbekend')}`}
+                                </div>
+                              </div>
+                              <div className="analytics-profile-summary">
+                                <div className="analytics-profile-summary-item">
+                                  <strong>{contacts.total || 0}</strong>
+                                  <span>contacten</span>
+                                </div>
+                                <div className="analytics-profile-summary-item">
+                                  <strong>{messaging.totalMessagesSent || 0}</strong>
+                                  <span>berichten</span>
+                                </div>
+                                <div className="analytics-profile-summary-item">
+                                  <strong>{sessions.daily.filter(d => d.seconds > 0).length}</strong>
+                                  <span>actieve dagen</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
                           <div className="parent-usage-card analytics-section">
                             <div className="analytics-section-title"><Activity size={15} aria-hidden="true" /> Gebruik vandaag</div>
                             <div className="parent-usage-grid">

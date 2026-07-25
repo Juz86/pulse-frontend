@@ -11409,15 +11409,6 @@ font-family: 'Inter', sans-serif;
   justify-content: center;
 }
 
-.pd-child-pause-menu {
-  position: relative;
-}
-
-.pd-child-pause-menu .pcd-dropdown {
-  right: 0;
-  left: auto;
-}
-
 .pd-child-pause-trigger {
   width: 42px;
   min-width: 42px;
@@ -13256,6 +13247,35 @@ font-family: 'Inter', sans-serif;
 .parent-dashboard-panel .parent-child-inline-editor__icon-btn--cancel {
   background: rgba(239,68,68,.12);
   color: #f87171;
+}
+
+.parent-dashboard-panel .parent-child-pause-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.parent-dashboard-panel .parent-child-pause-option {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  border: 1px solid rgba(120, 104, 198, 0.3);
+  border-radius: 14px;
+  background: rgba(53, 43, 97, 0.92);
+  color: #ddd8f4;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.parent-dashboard-panel .parent-child-pause-option.is-paused {
+  border-color: rgba(248, 113, 113, 0.54);
+  background: rgba(127, 29, 29, 0.3);
+  color: #fca5a5;
+  text-decoration: line-through;
 }
 
 .parent-dashboard-panel .activities-header {

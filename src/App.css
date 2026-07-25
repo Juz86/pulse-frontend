@@ -13861,9 +13861,14 @@ font-family: 'Inter', sans-serif;
   .parent-add-form  { flex-direction:column; }
   .parent-btn-primary { width:100%; text-align:center; }
   .parent-child-row { flex-wrap:wrap; gap:8px; }
-  .pd-child-head { padding-right: 0; }
-  .pd-child-top-actions {
-    position: static;
+  .pd-child-head {
+    min-height: 42px;
+    padding-right: 242px;
+  }
+  .pd-child-top-actions--inline {
+    position: absolute;
+    top: 16px;
+    right: 16px;
     gap:6px;
     flex-wrap: nowrap;
     margin-top:0;

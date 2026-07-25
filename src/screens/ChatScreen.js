@@ -144,7 +144,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     });
   }
   function handleDeleteRequest(msg) {
-    setDeleteConfirm({ msgIds: [msg.id], isOwn: msg.senderId === user.uid, count: 1 });
+    setContextMenu(null);
+    setReactionPickerMsgId(null);
+    setMessageSelectionMode(true);
+    setSelectedMessageIds([msg.id]);
   }
   function toggleConversationSelection(convId) {
     setSelectedConversationIds((prev) => prev.includes(convId) ? prev.filter((id) => id !== convId) : [...prev, convId]);
@@ -699,24 +702,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               conversationMuted={mutedConversationIds.includes(activeConv?.id)}
               messageSelectionMode={messageSelectionMode}
             />
-            {messageSelectionMode && (
-              <div className="chat-message-selection-bar">
-                <div className="chat-message-selection-count">{selectedMessageIds.length} geselecteerd</div>
-                <div className="chat-message-selection-actions">
-                  <button
-                    type="button"
-                    className="btn-danger compact"
-                    disabled={!selectedMessageIds.length}
-                    onClick={handleDeleteSelectedMessages}
-                  >
-                    Verwijderen
-                  </button>
-                  <button type="button" className="icon-btn plain" aria-label="Berichtselectie sluiten" onClick={cancelMessageSelection}>
-                    <span aria-hidden="true">✕</span>
-                  </button>
-                </div>
-              </div>
-            )}
             {pinnedMsgs[activeConv?.id] && (
               <div className="pinned-msg-bar" role="status" aria-live="polite">
                 <span className="pinned-msg-icon" aria-hidden="true">📌</span>
@@ -755,7 +740,24 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               const blockedOtherUid = !activeConv.isGroup && getOtherUid(activeConv);
               const isBlockedConv   = blockedOtherUid && blockedContacts.some(c => c.uid === blockedOtherUid);
               const isParentBlocked = blockedOtherUid && parentBlockedUids.includes(blockedOtherUid);
-              return isBlockedConv ? (
+              return messageSelectionMode ? (
+                <div className="chat-message-selection-bar" role="toolbar" aria-label="Berichten selecteren">
+                  <button
+                    type="button"
+                    className="chat-message-selection-delete"
+                    disabled={!selectedMessageIds.length}
+                    onClick={handleDeleteSelectedMessages}
+                    aria-label={`${selectedMessageIds.length || 'Geen'} geselecteerde ${selectedMessageIds.length === 1 ? 'bericht' : 'berichten'} verwijderen`}
+                    title="Verwijderen"
+                  >
+                    <Delete size={27} aria-hidden="true" />
+                  </button>
+                  <div className="chat-message-selection-count">{selectedMessageIds.length} geselecteerd</div>
+                  <button type="button" className="chat-message-selection-close" aria-label="Berichtselectie sluiten" onClick={cancelMessageSelection}>
+                    <span aria-hidden="true">✕</span>
+                  </button>
+                </div>
+              ) : isBlockedConv ? (
                 <div className="blocked-input-overlay" role="status" aria-live="polite">
                   {isParentBlocked
                     ? 'Dit contact is geblokkeerd door je ouder.'

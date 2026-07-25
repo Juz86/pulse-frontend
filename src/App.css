@@ -4056,20 +4056,55 @@ font-family: 'Inter', sans-serif;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  gap:12px;
-  padding:10px 18px;
-  border-bottom:1px solid var(--border);
-  background:rgba(255,255,255,.03);
+  gap:8px;
+  min-height:64px;
+  margin:8px clamp(14px, 2.2vw, 22px);
+  padding:6px 12px;
+  border:1px solid rgba(226,220,247,.92);
+  border-radius:26px;
+  background:rgba(250,248,255,.96);
+  box-shadow:0 10px 26px rgba(49,37,96,.16);
+  color:#281d4a;
+  flex-shrink:0;
 }
 .chat-message-selection-count {
-  font-size:13px;
+  flex:1;
+  font-size:17px;
   font-weight:700;
-  color:var(--text2);
+  color:#281d4a;
+  text-align:center;
 }
-.chat-message-selection-actions {
-  display:flex;
+.chat-message-selection-delete,
+.chat-message-selection-close {
+  width:46px;
+  height:46px;
+  border:0;
+  border-radius:50%;
+  display:inline-flex;
   align-items:center;
-  gap:8px;
+  justify-content:center;
+  background:transparent;
+  cursor:pointer;
+  flex:0 0 auto;
+}
+.chat-message-selection-delete {
+  color:#ef315b;
+}
+.chat-message-selection-delete:hover:not(:disabled),
+.chat-message-selection-delete:focus-visible {
+  background:rgba(239,49,91,.1);
+}
+.chat-message-selection-delete:disabled {
+  color:#bcb5cf;
+  cursor:default;
+}
+.chat-message-selection-close {
+  color:#71658f;
+  font-size:24px;
+}
+.chat-message-selection-close:hover,
+.chat-message-selection-close:focus-visible {
+  background:rgba(113,101,143,.1);
 }
 .btn-danger.compact {
   width:auto;
@@ -4089,19 +4124,19 @@ font-family: 'Inter', sans-serif;
 }
 .message-select-wrap.selection-mode {
   cursor:pointer;
-  padding-left:34px;
+  padding-left:44px;
 }
 .message-select-indicator {
   position:absolute;
-  top:14px;
+  top:11px;
   left:0;
-  width:22px;
-  height:22px;
+  width:30px;
+  height:30px;
   border-radius:999px;
-  border:1px solid rgba(255,255,255,.22);
-  background:rgba(255,255,255,.04);
+  border:2px solid rgba(113,101,143,.45);
+  background:rgba(250,248,255,.92);
   color:#fff;
-  font-size:12px;
+  font-size:16px;
   font-weight:800;
   display:flex;
   align-items:center;

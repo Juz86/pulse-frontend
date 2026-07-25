@@ -777,15 +777,16 @@ export default function ParentDashboard({
                             >
                               <button
                                 type="button"
-                                className="parent-btn-orange"
+                                className="parent-btn-orange pd-child-pause-trigger"
                                 aria-label={`Open pauzemenu voor ${child.displayName}`}
+                                title="Pauzeren"
                                 aria-expanded={pauseMenuUid === child.uid}
                                 onMouseDown={swallowChildActionEvent}
                                 onPointerDown={swallowChildActionEvent}
                                 onTouchStart={swallowChildActionEvent}
                                 onClick={e => { e.preventDefault(); e.stopPropagation(); setPauseMenuUid(pauseMenuUid === child.uid ? null : child.uid); setResumeMenuUid(null); }}
                               >
-                                <PauseCircle size={16} aria-hidden="true" /> Pauze <ChevronDown size={14} aria-hidden="true" />
+                                <PauseCircle size={18} aria-hidden="true" />
                               </button>
                               {pauseMenuUid === child.uid && (
                                 <div

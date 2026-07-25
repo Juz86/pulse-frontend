@@ -11409,6 +11409,13 @@ font-family: 'Inter', sans-serif;
   justify-content: center;
 }
 
+.pd-child-primary-controls .parent-btn-orange.pd-child-pause-trigger {
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+  gap: 0;
+}
+
 .pd-child-secondary-controls {
   display:flex;
   align-items:center;

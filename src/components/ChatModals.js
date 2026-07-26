@@ -27,6 +27,7 @@ export default function ChatModals({
   // share contact
   sharingContact, setSharingContact,
   shareRecipients, setShareRecipients,
+  shareContactInSidebar = false,
   contacts, sendContactCard,
   getContactDisplayName,
 
@@ -346,7 +347,7 @@ export default function ChatModals({
       )}
 
       {/* ── CONTACTPERSOON DELEN ── */}
-      {sharingContact && (
+      {sharingContact && !shareContactInSidebar && (
         <PulseConfirmSheet
           title="Contactpersoon delen"
           onClose={() => { setSharingContact(null); setShareRecipients([]); }}

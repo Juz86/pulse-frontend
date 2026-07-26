@@ -752,6 +752,45 @@ body {
   overflow: visible;
 }
 
+.share-contact-page-selected {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(125, 105, 205, .22);
+  border-radius: 20px;
+  background: rgba(40, 31, 78, .7);
+}
+.share-contact-page-selected .conv-name,
+.share-contact-page-directory .conv-name {
+  color: #f7f4ff;
+}
+.share-contact-page-selected .conv-preview,
+.share-contact-page-directory .conv-preview {
+  color: #b7b0d3;
+}
+.share-contact-page-row {
+  position: relative;
+}
+.share-contact-page-row.selected {
+  background: rgba(113, 96, 245, .2);
+  box-shadow: inset 0 0 0 1px rgba(152, 132, 255, .48);
+}
+.share-contact-page-check {
+  flex-shrink: 0;
+  color: #a695ff;
+}
+.share-contact-page-footer {
+  position: sticky;
+  bottom: 0;
+  padding: 14px 0 8px;
+  background: linear-gradient(180deg, rgba(36, 28, 69, 0), rgba(36, 28, 69, .96) 28%);
+}
+.share-contact-page-footer .btn-primary {
+  width: 100%;
+}
+
 .new-chat-page-directory .new-chat-contact-list {
   padding: 0 0 132px;
   box-sizing: border-box;

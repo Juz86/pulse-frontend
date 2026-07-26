@@ -511,6 +511,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         friendRequests={friendRequests} sentFriendRequests={sentFriendRequests}
         showFriendRequestsPanel={showFriendRequestsPanel} setShowFriendRequestsPanel={setShowFriendRequestsPanel}
         contacts={contacts} conversations={conversations}
+        sharingContact={sharingContact} setSharingContact={setSharingContact}
+        shareRecipients={shareRecipients} setShareRecipients={setShareRecipients}
+        onShareContact={sendContactCard}
         activeConv={activeConv} loadingConvs={loadingConvs}
         convLabels={convLabels} pinnedContacts={pinnedContacts}
         unreadCounts={unreadCounts} typingByConv={typingByConv} photoPreview={photoPreview}
@@ -805,6 +808,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         saveContactNickname={saveContactNickname} setContacts={setContacts}
         sharingContact={sharingContact} setSharingContact={setSharingContact}
         shareRecipients={shareRecipients} setShareRecipients={setShareRecipients}
+        shareContactInSidebar
         contacts={contacts} sendContactCard={sendContactCard}
         getContactDisplayName={getContactDisplayName}
         viewingSharedContact={viewingSharedContact} setViewingSharedContact={setViewingSharedContact}

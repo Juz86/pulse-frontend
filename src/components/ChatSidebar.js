@@ -137,6 +137,11 @@ export default function ChatSidebar({
   showFriendRequestsPanel,
   setShowFriendRequestsPanel,
   contacts,
+  sharingContact = null,
+  setSharingContact,
+  shareRecipients = [],
+  setShareRecipients,
+  onShareContact,
   conversations,
   activeConv,
   loadingConvs,
@@ -296,6 +301,7 @@ export default function ChatSidebar({
   const [parentPortalSheetClosing, setParentPortalSheetClosing] = useState(false);
   const [parentPortalView, setParentPortalView] = useState('menu');
   const [callSearch, setCallSearch] = useState('');
+  const [shareContactSearch, setShareContactSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null);
   const [requestsTab, setRequestsTab] = useState('ontvangen');
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
@@ -319,6 +325,7 @@ export default function ChatSidebar({
   const moreActionsSheetVisible = moreActionsMenuOpen || moreActionsMenuClosing;
   const addContactSheetVisible = showAddContact || addContactSheetClosing;
   const newChatSheetVisible = showNewChat || newChatSheetClosing;
+  const shareContactPageVisible = Boolean(sharingContact);
   const newGroupSheetVisible = showNewGroup || newGroupSheetClosing;
   const requestsSheetVisible = showFriendRequestsPanel || requestsSheetClosing;
   const contactSheetVisible = !!contactMenu;
@@ -335,7 +342,7 @@ export default function ChatSidebar({
   const callsProfilePageVisible = callSheetVisible;
   const contactActionsPageVisible = contactSheetVisible;
   const conversationActionsPageVisible = conversationSheetVisible;
-  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || contactActionsPageVisible || conversationActionsPageVisible || moreActionsSheetVisible || newChatSheetVisible || addContactSheetVisible || newGroupSheetVisible || requestsSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)));
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || contactActionsPageVisible || conversationActionsPageVisible || moreActionsSheetVisible || newChatSheetVisible || shareContactPageVisible || addContactSheetVisible || newGroupSheetVisible || requestsSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)));
   const profileSections = useMemo(() => ([
     { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
@@ -695,6 +702,103 @@ export default function ChatSidebar({
       )}
     </ProfilePageShell>
   );
+
+  const renderShareContactPage = () => {
+    const closeShareContactPage = () => {
+      setSharingContact?.(null);
+      setShareRecipients?.([]);
+      setShareContactSearch('');
+    };
+    const sendSharedContact = () => {
+      if (!sharingContact || shareRecipients.length === 0) return;
+      shareRecipients.forEach((uid) => {
+        const recipient = contacts.find((contact) => contact.uid === uid);
+        if (recipient) onShareContact?.(recipient, sharingContact);
+      });
+      closeShareContactPage();
+    };
+    return (
+      <ProfilePageShell
+        panelRef={profilePanelRef}
+        titleId="share-contact-page-title"
+        title="Contact delen"
+        description="Kies contacten waarmee je deze contactpersoon wilt delen."
+        onBack={closeShareContactPage}
+        backLabel="Contact delen sluiten"
+        headerAction={(
+          <button
+            type="button"
+            className="contact-profile-edit-btn contact-profile-close-btn"
+            aria-label="Contact delen sluiten"
+            title="Sluiten"
+            onClick={closeShareContactPage}
+          >
+            <XIcon size={20} aria-hidden="true" />
+          </button>
+        )}
+      >
+        <section className="share-contact-page-selected" aria-label="Te delen contact">
+          <UserAvatar photoURL={sharingContact?.photoURL} displayName={getContactDisplayName(sharingContact)} className="sm" decorative />
+          <div className="conv-info">
+            <div className="conv-name">{getContactDisplayName(sharingContact)}</div>
+            <div className="conv-preview">{sharingContact?.email}</div>
+          </div>
+        </section>
+
+        <div className="calls-dashboard-search new-chat-page-search">
+          <div className="search-box search-box--top sidebar-call-search-box">
+            <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
+            <input
+              className="sidebar-call-search-input"
+              placeholder="Naam of telefoonnummer zoeken"
+              value={shareContactSearch}
+              onChange={(event) => setShareContactSearch(event.target.value)}
+            />
+            {shareContactSearch && (
+              <button type="button" className="sidebar-call-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setShareContactSearch('')}>
+                <Cancel size={14} aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <section className="calls-dashboard-section calls-dashboard-section--contacts new-chat-page-directory share-contact-page-directory">
+          <div className="sidebar-call-list calls-dashboard-list calls-dashboard-list--contacts new-chat-contact-list">
+            {filteredShareRecipients.map((contact) => {
+              const selected = shareRecipients.includes(contact.uid);
+              return (
+                <button
+                  key={contact.uid}
+                  type="button"
+                  className={`sidebar-contact-card sidebar-contact-card--call-log share-contact-page-row${selected ? ' selected' : ''}`}
+                  aria-pressed={selected}
+                  onClick={() => setShareRecipients?.((current) => current.includes(contact.uid) ? current.filter((uid) => uid !== contact.uid) : [...current, contact.uid])}
+                >
+                  <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                    <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} className="sm" decorative />
+                    <div className="conv-info call-log-picker-copy">
+                      <div className="conv-name">{getContactDisplayName(contact)}</div>
+                      <div className="conv-preview">{contact.email}</div>
+                    </div>
+                    {selected && <Check size={20} aria-hidden="true" className="share-contact-page-check" />}
+                  </div>
+                </button>
+              );
+            })}
+            {filteredShareRecipients.length === 0 && (
+              <div className="new-chat-sheet-empty">Geen contacten die overeenkomen met je zoekopdracht.</div>
+            )}
+          </div>
+        </section>
+
+        <div className="share-contact-page-footer">
+          <button type="button" className="btn-primary" disabled={shareRecipients.length === 0} onClick={sendSharedContact}>
+            Versturen{shareRecipients.length > 1 ? ` (${shareRecipients.length})` : ''}
+          </button>
+        </div>
+      </ProfilePageShell>
+    );
+  };
 
   const renderAddContactPage = () => (
     <ProfilePageShell
@@ -1788,6 +1892,15 @@ export default function ChatSidebar({
         return displayName.includes(normalizedNewChatQuery) || email.includes(normalizedNewChatQuery) || username.includes(normalizedNewChatQuery);
       })
     : contacts;
+  const normalizedShareContactQuery = shareContactSearch.trim().toLowerCase();
+  const filteredShareRecipients = contacts.filter((contact) => {
+    if (contact.uid === sharingContact?.uid) return false;
+    if (!normalizedShareContactQuery) return true;
+    const displayName = (getContactDisplayName(contact) || contact.displayName || '').toLowerCase();
+    const email = (contact.email || '').toLowerCase();
+    const username = (contact.username || '').toLowerCase();
+    return displayName.includes(normalizedShareContactQuery) || email.includes(normalizedShareContactQuery) || username.includes(normalizedShareContactQuery);
+  });
 
   useEffect(() => {
     if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible && !newGroupSheetVisible && !addContactSheetVisible && !requestsSheetVisible && !parentPortalPageVisible) return;
@@ -3091,6 +3204,7 @@ export default function ChatSidebar({
       {settingsProfilePageVisible ? renderSettingsOverviewSheet() : null}
       {moreActionsSheetVisible ? renderMoreActionsPage() : null}
       {newChatSheetVisible ? renderNewChatPage() : null}
+      {shareContactPageVisible ? renderShareContactPage() : null}
       {addContactSheetVisible ? renderAddContactPage() : null}
       {newGroupSheetVisible ? renderNewGroupPage() : null}
       {requestsSheetVisible ? renderRequestsPage() : null}

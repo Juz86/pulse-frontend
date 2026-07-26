@@ -1113,7 +1113,10 @@ export default function ChatSidebar({
         description={`Beheer acties voor ${title}.`}
         onBack={closeContactActionsSheet}
         backLabel={`${title} sluiten`}
-        panelProps={{ 'data-sidebar-actions-menu': 'true' }}
+        panelProps={{
+          'data-sidebar-actions-menu': 'true',
+          onClick: (event) => event.stopPropagation(),
+        }}
         headerAction={(
           <button
             type="button"

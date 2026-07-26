@@ -885,20 +885,20 @@ export default function ChatModals({
                   name={name}
                   subtitle={email || null}
                   status={(
-                    <>
+                    <div className="contact-profile-status-row">
                       <div className={`profile-status-badge contact-profile-status ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
                         <span className="profile-status-dot" />
                         {statusLabel}
                       </div>
                       <div className="contact-profile-status-actions">
-                        <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={openStarredFromProfile}>
+                        <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={openStarredFromProfile}>
                           <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
                         </button>
-                        <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen">
+                        <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen">
                           <Share size={18} aria-hidden="true" />
                         </button>
                       </div>
-                    </>
+                    </div>
                   )}
                 />
               )}

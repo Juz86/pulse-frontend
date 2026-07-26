@@ -809,7 +809,7 @@ body {
   box-sizing: border-box;
   flex: 0 0 auto;
   border: 2px solid rgba(235, 231, 255, .58);
-  border-radius: 6px;
+  border-radius: 50%;
   color: #fff;
 }
 .share-contact-page-row.selected .share-contact-page-selection {

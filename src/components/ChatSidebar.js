@@ -737,6 +737,7 @@ export default function ChatSidebar({
           </button>
         )}
       >
+        <div className="new-chat-sheet-kicker">Te delen contact</div>
         <section className="share-contact-page-selected" aria-label="Te delen contact">
           <UserAvatar photoURL={sharingContact?.photoURL} displayName={getContactDisplayName(sharingContact)} className="sm" decorative />
           <div className="conv-info">
@@ -745,6 +746,7 @@ export default function ChatSidebar({
           </div>
         </section>
 
+        <div className="new-chat-sheet-kicker">Stuur naar</div>
         <div className="calls-dashboard-search new-chat-page-search">
           <div className="search-box search-box--top sidebar-call-search-box">
             <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />

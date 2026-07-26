@@ -6867,6 +6867,9 @@ font-family: 'Inter', sans-serif;
   padding-left:18px;
   padding-right:18px;
 }
+.contact-profile-card--profile-meta .contact-profile-field + .contact-profile-field {
+  border-top:0;
+}
 .contact-profile-field + .contact-profile-field {
   border-top:1px solid rgba(255,255,255,.06);
 }

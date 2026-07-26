@@ -983,23 +983,6 @@ export default function ChatModals({
               </section>
 
               <section className="contact-profile-card contact-profile-card-danger contact-profile-card--profile-danger">
-                <button type="button" className="contact-profile-row-button danger" onClick={() => onBlockContact?.(targetContact)}>
-                  <span className="contact-profile-row-icon"><Block size={20} aria-hidden="true" /></span>
-                  <span className="contact-profile-row-copy">
-                    <span className="contact-profile-row-title">Blokkeren</span>
-                  </span>
-                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
-                </button>
-                <button type="button" className="contact-profile-row-button danger" onClick={() => onRemoveContact?.(uid)}>
-                  <span className="contact-profile-row-icon"><Trash2 size={20} aria-hidden="true" /></span>
-                  <span className="contact-profile-row-copy">
-                    <span className="contact-profile-row-title">Verwijderen</span>
-                  </span>
-                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
-                </button>
-              </section>
-
-              <section className="contact-profile-card contact-profile-card-danger contact-profile-card--profile-danger">
                 <button type="button" className="contact-profile-row-button danger" onClick={clearChatFromProfile}>
                   <span className="contact-profile-row-icon"><Delete size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
@@ -1011,6 +994,23 @@ export default function ChatModals({
                   <span className="contact-profile-row-icon"><Trash2 size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
                     <span className="contact-profile-row-title">Chat verwijderen</span>
+                  </span>
+                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                </button>
+              </section>
+
+              <section className="contact-profile-card contact-profile-card-danger contact-profile-card--profile-danger">
+                <button type="button" className="contact-profile-row-button danger" onClick={() => onBlockContact?.(targetContact)}>
+                  <span className="contact-profile-row-icon"><Block size={20} aria-hidden="true" /></span>
+                  <span className="contact-profile-row-copy">
+                    <span className="contact-profile-row-title">Blokkeren</span>
+                  </span>
+                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                </button>
+                <button type="button" className="contact-profile-row-button danger" onClick={() => onRemoveContact?.(uid)}>
+                  <span className="contact-profile-row-icon"><Trash2 size={20} aria-hidden="true" /></span>
+                  <span className="contact-profile-row-copy">
+                    <span className="contact-profile-row-title">Verwijderen</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>

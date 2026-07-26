@@ -1423,7 +1423,7 @@ export default function ParentDashboard({
             setPortalView('content');
           }}
         >
-          <span className="contact-profile-row-icon parent-actions-icon" aria-hidden="true">
+          <span className="contact-profile-row-icon parent-badge-anchor" aria-hidden="true">
             {tab.icon}
             {tab.badge && <span className="parent-badge parent-badge--inline">{tab.badge}</span>}
           </span>

@@ -12227,6 +12227,9 @@ font-family: 'Inter', sans-serif;
   flex-shrink: 0;
   margin-left: 0;
 }
+.parent-badge-anchor {
+  position: relative;
+}
 .parent-dashboard-overlay .pd-layout--sheet {
   display: block;
   min-height: 0;

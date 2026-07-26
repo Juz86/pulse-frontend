@@ -166,17 +166,6 @@ export default function ChatModals({
     renameGroup?.(groupNameDraft);
     setEditingGroupName(false);
   }
-  const profilePanelSaveButtonStyle = {
-    flex: 1,
-    minWidth: 0,
-    minHeight: 42,
-    padding: '0 12px',
-    marginTop: 0,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-
   useEffect(() => {
     if (!confirmDialog) {
       setConfirmCheckboxChecked(false);
@@ -896,10 +885,20 @@ export default function ChatModals({
                   name={name}
                   subtitle={email || null}
                   status={(
-                    <div className={`profile-status-badge contact-profile-status ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
-                      <span className="profile-status-dot" />
-                      {statusLabel}
-                    </div>
+                    <>
+                      <div className={`profile-status-badge contact-profile-status ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
+                        <span className="profile-status-dot" />
+                        {statusLabel}
+                      </div>
+                      <div className="contact-profile-status-actions">
+                        <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={openStarredFromProfile}>
+                          <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
+                        </button>
+                        <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen">
+                          <Share size={18} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </>
                   )}
                 />
               )}
@@ -936,7 +935,7 @@ export default function ChatModals({
                 )}
                 <div className="contact-profile-field">
                     <span className="contact-profile-field-label">Relatie</span>
-                    <div className="label-chip-row contact-profile-chip-row contact-profile-chip-row--profile">
+                  <div className="label-chip-row contact-profile-chip-row contact-profile-chip-row--profile">
                       {['familie', 'vrienden'].map(lbl => (
                       <button key={lbl} type="button" disabled={!targetConv?.id} onClick={() => targetConv?.id && setConvLabel(targetConv.id, relationLabel === lbl ? null : lbl)}
                         className={`label-chip${relationLabel === lbl ? ' active' : ''}`}>
@@ -945,6 +944,7 @@ export default function ChatModals({
                     ))}
                   </div>
                 </div>
+                <button type="button" className="btn-primary contact-profile-save-btn" onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
               </section>
 
               <section className="contact-profile-card contact-profile-card--profile-actions">
@@ -1016,15 +1016,6 @@ export default function ChatModals({
                 </button>
               </section>
 
-              <div className="contact-profile-footer">
-                <div className="contact-profile-footer-actions">
-                  <button type="button" className="icon-btn" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={openStarredFromProfile}>
-                    <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
-                  </button>
-                  <button type="button" className="icon-btn" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen"><Share size={18} aria-hidden="true" /></button>
-                </div>
-                <button type="button" className="btn-primary" style={profilePanelSaveButtonStyle} onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
-              </div>
             </ProfilePageShell>
         );
       })()}

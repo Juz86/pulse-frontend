@@ -6714,6 +6714,12 @@ font-family: 'Inter', sans-serif;
 .contact-profile-hero--main .contact-profile-status {
   margin-top:8px;
 }
+.contact-profile-status-actions {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+}
 .contact-profile-hero--account {
   padding: 8px 0 14px;
 }
@@ -6897,6 +6903,11 @@ font-family: 'Inter', sans-serif;
 .contact-profile-card--profile-actions,
 .contact-profile-card--profile-danger {
   margin-bottom: 12px;
+}
+.contact-profile-save-btn {
+  width:calc(100% - 36px);
+  min-height:48px;
+  margin:2px 18px 18px;
 }
 .contact-profile-card--profile-actions .contact-profile-row-button,
 .contact-profile-card--profile-danger .contact-profile-row-button {

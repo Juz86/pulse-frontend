@@ -765,7 +765,7 @@ export default function ParentDashboard({
                               onMouseDown={swallowChildActionEvent}
                               onPointerDown={swallowChildActionEvent}
                               onTouchStart={swallowChildActionEvent}
-                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPauseEditorUid(null); setInviteModal({ uid: child.uid, displayName: child.displayName }); setInviteEmail(''); setInviteError(''); setInviteSuccess(''); }}>
                               <UserPlus2 size={14} aria-hidden="true" />
                             </button>
                           )}
@@ -773,7 +773,7 @@ export default function ParentDashboard({
                             onMouseDown={swallowChildActionEvent}
                             onPointerDown={swallowChildActionEvent}
                             onTouchStart={swallowChildActionEvent}
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setPwSuccess(''); setShowNewPw(false); }}
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPauseEditorUid(null); setChangingPwUid(child.uid); setNewPassword(''); setPwError(''); setPwSuccess(''); setShowNewPw(false); }}
                             style={{ padding:'4px 6px' }}>
                             <KeyRound size={15} aria-hidden="true" />
                           </button>
@@ -788,6 +788,7 @@ export default function ParentDashboard({
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
+                              setPauseEditorUid(null);
                               setEditingUsernameUid(child.uid);
                               setEditingUsername(child.username || '');
                               setUsernameError('');
@@ -806,7 +807,7 @@ export default function ParentDashboard({
                               onMouseDown={swallowChildActionEvent}
                               onPointerDown={swallowChildActionEvent}
                               onTouchStart={swallowChildActionEvent}
-                              onClick={e => { e.preventDefault(); e.stopPropagation(); setPauseEditorUid(current => current === child.uid ? null : child.uid); }}
+                              onClick={e => { e.preventDefault(); e.stopPropagation(); setChangingPwUid(null); setEditingUsernameUid(null); setPauseEditorUid(current => current === child.uid ? null : child.uid); }}
                             >
                               <PauseCircle size={18} aria-hidden="true" />
                           </button>
@@ -814,7 +815,7 @@ export default function ParentDashboard({
                             onMouseDown={swallowChildActionEvent}
                             onPointerDown={swallowChildActionEvent}
                             onTouchStart={swallowChildActionEvent}
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmDelete({ uid: child.uid, displayName: child.displayName }); }}>
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPauseEditorUid(null); setConfirmDelete({ uid: child.uid, displayName: child.displayName }); }}>
                             <Trash2 size={15} color="#ef4444" aria-hidden="true" />
                           </button>
                         </div>

@@ -54,9 +54,13 @@ export function ProfilePageHero({
   return (
     <div className={className}>
       {avatar ? <div className="contact-profile-avatar-shell">{avatar}</div> : null}
-      {name ? <div className="contact-profile-name">{name}</div> : null}
-      {subtitle ? <div className="contact-profile-subtitle">{subtitle}</div> : null}
-      {status}
+      {(name || subtitle || status) ? (
+        <div className="contact-profile-hero-copy">
+          {name ? <div className="contact-profile-name">{name}</div> : null}
+          {subtitle ? <div className="contact-profile-subtitle">{subtitle}</div> : null}
+          {status}
+        </div>
+      ) : null}
       {children}
     </div>
   );

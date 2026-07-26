@@ -6690,7 +6690,22 @@ font-family: 'Inter', sans-serif;
   padding:10px 0 20px;
 }
 .contact-profile-hero--main {
+  gap: 12px;
   padding: 8px 0 18px;
+}
+.contact-profile-hero-copy {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.contact-profile-hero--main .contact-profile-avatar-shell {
+  margin-bottom:0;
+}
+.contact-profile-hero--main .contact-profile-subtitle {
+  margin-top:4px;
+}
+.contact-profile-hero--main .contact-profile-status {
+  margin-top:8px;
 }
 .contact-profile-hero--account {
   padding: 8px 0 14px;

@@ -867,6 +867,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onRemoveContact={removeContact}
         showChatSearch={showChatSearch}
         setShowChatSearch={setShowChatSearch}
+        onOpenConversationSearch={(conversation) => {
+          openConversation(conversation);
+          setShowChatSearch(true);
+        }}
         conversationMuted={mutedConversationIds.includes(activeConv?.id)}
         messageSelectionMode={messageSelectionMode}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}

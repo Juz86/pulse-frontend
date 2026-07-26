@@ -97,6 +97,7 @@ export default function ChatModals({
   onRemoveContact,
   showChatSearch = false,
   setShowChatSearch,
+  onOpenConversationSearch,
   conversationMuted = false,
   messageSelectionMode = false,
   newChatSheetInSidebar = false,
@@ -233,8 +234,13 @@ export default function ChatModals({
     setShowStarredMsgs(true);
   }
 
-  function openChatSearchFromProfile() {
+  function openChatSearchFromProfile(contact) {
     setShowContactProfile(false);
+    const conversation = contact?.uid ? findConvWithUid?.(contact.uid) : null;
+    if (conversation) {
+      onOpenConversationSearch?.(conversation);
+      return;
+    }
     setShowChatSearch?.(true);
   }
 
@@ -913,7 +919,7 @@ export default function ChatModals({
                   <span className="contact-profile-quick-icon"><Video size={24} aria-hidden="true" /></span>
                   <span>Video</span>
                 </button>
-                <button type="button" className="contact-profile-quick-card" onClick={openChatSearchFromProfile}>
+                <button type="button" className="contact-profile-quick-card" onClick={() => openChatSearchFromProfile(targetContact)}>
                   <span className="contact-profile-quick-icon"><Search size={24} aria-hidden="true" /></span>
                   <span>Zoek</span>
                 </button>
@@ -973,7 +979,7 @@ export default function ChatModals({
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>
-                <button type="button" className="contact-profile-row-button" onClick={openChatSearchFromProfile}>
+                <button type="button" className="contact-profile-row-button" onClick={() => openChatSearchFromProfile(targetContact)}>
                   <span className="contact-profile-row-icon"><Search size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
                     <span className="contact-profile-row-title">{showChatSearch ? 'Zoeken openen' : 'Zoeken'}</span>

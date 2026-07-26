@@ -7560,6 +7560,31 @@ font-family: 'Inter', sans-serif;
   border-radius: 0;
   pointer-events: none;
 }
+
+/* Contact delen gebruikt de lichte bevestigingssheet; overschrijf daarom de
+   donkere nieuw-chat-tekstkleur die de ontvangerlijst anders erft. */
+.pulse-confirm-sheet .share-contact-selected-card,
+.pulse-confirm-sheet .share-contact-row {
+  color: #241741;
+}
+.pulse-confirm-sheet .share-contact-selected-card .conv-preview,
+.pulse-confirm-sheet .share-contact-row .conv-preview {
+  color: #74638f;
+  opacity: 1;
+}
+.pulse-confirm-sheet .share-contact-row .conv-name {
+  color: #241741;
+}
+.pulse-confirm-sheet .share-contact-row.selected {
+  background: rgba(113, 96, 245, .13);
+  color: #4f3ac3;
+}
+.pulse-confirm-sheet .share-contact-row.selected .conv-name {
+  color: #4f3ac3;
+}
+.pulse-confirm-sheet .share-contact-row.selected .conv-preview {
+  color: #675691;
+}
 .pulse-sheet-backdrop--rename-contact,
 .pulse-sheet-backdrop--forward-message {
   align-items: flex-end;

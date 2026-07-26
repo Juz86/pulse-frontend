@@ -54,6 +54,7 @@ export default function PulseConfirmSheet({
                 type="button"
                 className={`pulse-confirm-action pulse-confirm-action--${action.tone || 'neutral'}`}
                 onClick={action.onSelect}
+                disabled={action.disabled}
               >
                 {Icon && <Icon size={24} aria-hidden="true" />}
                 <span className="pulse-confirm-action-copy">

@@ -7901,6 +7901,8 @@ font-family: 'Inter', sans-serif;
 .pulse-confirm-action:last-child { border-bottom: 0; }
 .pulse-confirm-action:hover { background: rgba(115, 91, 217, .07); }
 .pulse-confirm-action:active { transform: scale(.985); }
+.pulse-confirm-action:disabled { opacity: .42; cursor: not-allowed; }
+.pulse-confirm-action:disabled:hover { background: transparent; }
 .pulse-confirm-action-copy { display: grid; gap: 2px; }
 .pulse-confirm-action-label { font-size: 17px; font-weight: 750; line-height: 1.22; }
 .pulse-confirm-action-description { color: #74638f; font-size: 13px; font-weight: 550; line-height: 1.3; }

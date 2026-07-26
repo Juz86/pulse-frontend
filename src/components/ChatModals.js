@@ -347,21 +347,27 @@ export default function ChatModals({
 
       {/* ── CONTACTPERSOON DELEN ── */}
       {sharingContact && (
-        <div
-          className="pulse-sheet-backdrop pulse-sheet-backdrop--share-contact"
-          onClick={() => { setSharingContact(null); setShareRecipients([]); }}
+        <PulseConfirmSheet
+          title="Contactpersoon delen"
+          onClose={() => { setSharingContact(null); setShareRecipients([]); }}
+          actions={[
+            {
+              label: `Versturen${shareRecipients.length > 1 ? ` (${shareRecipients.length})` : ''}`,
+              tone: 'primary',
+              disabled: shareRecipients.length === 0,
+              onSelect: () => {
+                if (shareRecipients.length === 0) return;
+                shareRecipients.forEach(uid => {
+                  const contact = contacts.find(item => item.uid === uid);
+                  if (contact) sendContactCard(contact, sharingContact);
+                });
+                setSharingContact(null);
+                setShareRecipients([]);
+              },
+            },
+          ]}
         >
-          <aside
-            className="pulse-sheet pulse-sheet--share-contact share-contact-panel"
-            aria-labelledby="share-contact-title"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="pulse-sheet-handle" aria-hidden="true" />
-            <div className="pulse-sheet-header pulse-sheet-header--share-contact">
-              <div id="share-contact-title" className="pulse-sheet-title pulse-sheet-title--share-contact">Contactpersoon delen</div>
-              <button type="button" className="pulse-sheet-close pulse-sheet-close--share-contact" aria-label="Sluiten" onClick={() => { setSharingContact(null); setShareRecipients([]); }}><span aria-hidden="true">✕</span></button>
-            </div>
-            <div className="share-contact-sheet-body">
+          <div className="share-contact-sheet-body">
               <div className="new-chat-sheet-section">
                 <div className="new-chat-sheet-kicker">Te delen contact</div>
                 <div className="share-contact-selected-card">
@@ -391,16 +397,8 @@ export default function ChatModals({
                   })}
                 </div>
               </div>
-              <div className="modal-actions add-contact-sheet-actions">
-                <button type="button" className="btn-secondary" onClick={() => { setSharingContact(null); setShareRecipients([]); }}>Sluiten</button>
-                <button type="button" className="btn-primary" disabled={shareRecipients.length === 0}
-                  onClick={() => { shareRecipients.forEach(uid => { const c = contacts.find(x => x.uid === uid); if (c) sendContactCard(c, sharingContact); }); setSharingContact(null); setShareRecipients([]); }}>
-                  Versturen{shareRecipients.length > 1 ? ` (${shareRecipients.length})` : ''}
-                </button>
-              </div>
-            </div>
-          </aside>
-        </div>
+          </div>
+        </PulseConfirmSheet>
       )}
 
       {/* ── VRIENDSCHAPSVERZOEKEN ── */}

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { getInitials, timeAgo, toMs } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, PlayCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
 import { ProfilePageShell } from '../components/ProfilePageShell';
@@ -70,7 +70,6 @@ export default function ParentDashboard({
 
   // Inline editor en submenu voor pauzeren/hervatten
   const [pauseEditorUid, setPauseEditorUid] = useState(null);
-  const [resumeMenuUid,  setResumeMenuUid]  = useState(null);
 
   // Kind verwijderen
   const [confirmDelete,  setConfirmDelete]  = useState(null); // { uid, displayName }
@@ -274,11 +273,11 @@ export default function ParentDashboard({
   useEffect(() => { loadChildren(); loadActivities(); loadCoparentInvitations(); }, [loadChildren, loadActivities, loadCoparentInvitations]);
 
   useEffect(() => {
-    if (!resumeMenuUid && !childDropdownOpen) return;
-    const close = () => { setResumeMenuUid(null); setChildDropdownOpen(false); };
+    if (!childDropdownOpen) return;
+    const close = () => setChildDropdownOpen(false);
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
-  }, [resumeMenuUid, childDropdownOpen]);
+  }, [childDropdownOpen]);
 
   useEffect(() => { if (selectedChildUid) loadAnalytics(selectedChildUid); }, [selectedChildUid, loadAnalytics]);
 
@@ -417,7 +416,6 @@ export default function ParentDashboard({
 
   async function resumeChild(childUid, feature) {
     setChildError('');
-    setResumeMenuUid(null);
     try {
       const res = await authFetch(`${BACKEND}/api/parent/resume/${childUid}`, {
         method: 'POST',
@@ -729,14 +727,11 @@ export default function ParentDashboard({
                 ) : children.filter((child) => !selectedChildUid || child.uid === selectedChildUid).map(child => (
                   <div
                     key={child.uid}
-                    className={`parent-portal-stack${resumeMenuUid === child.uid ? ' parent-portal-stack--menu-open' : ''}${changingPwUid === child.uid || editingUsernameUid === child.uid || pauseEditorUid === child.uid ? ' parent-portal-stack--editing' : ''}`}
+                    className={`parent-portal-stack${changingPwUid === child.uid || editingUsernameUid === child.uid || pauseEditorUid === child.uid ? ' parent-portal-stack--editing' : ''}`}
                   >
                     {(() => {
                       const pf = child.pausedFeatures || { chat: false, call: false, video: false };
                       const anyPaused = pf.chat || pf.call || pf.video;
-                      const allPaused = pf.chat && pf.call && pf.video;
-                      const chipBase = { display:'flex', alignItems:'center', gap:5, padding:'5px 12px', borderRadius:20, border:'none', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:'Inter,sans-serif' };
-                      const chipPause  = { ...chipBase, background:'rgba(249,115,22,.15)', color:'#f97316' };
                       return (
                     <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
                       {/* Rij 1: Avatar + naam */}
@@ -764,51 +759,6 @@ export default function ParentDashboard({
                         onPointerDown={swallowChildActionEvent}
                         onTouchStart={swallowChildActionEvent}
                       >
-                        <div className="pd-child-primary-controls">
-                          {anyPaused && (
-                            <div className="pd-child-secondary-controls">
-                              <div
-                                style={{ position:'relative' }}
-                                onClick={(e) => e.stopPropagation()}
-                                onMouseDown={swallowChildActionEvent}
-                                onPointerDown={swallowChildActionEvent}
-                                onTouchStart={swallowChildActionEvent}
-                              >
-                                <button
-                                  type="button"
-                                  className="parent-btn-green"
-                                  aria-label={`Open hervatmenu voor ${child.displayName}`}
-                                  aria-expanded={resumeMenuUid === child.uid}
-                                  onMouseDown={swallowChildActionEvent}
-                                  onPointerDown={swallowChildActionEvent}
-                                  onTouchStart={swallowChildActionEvent}
-                                  onClick={e => { e.preventDefault(); e.stopPropagation(); setResumeMenuUid(resumeMenuUid === child.uid ? null : child.uid); setPauseEditorUid(null); }}
-                                >
-                                  <PlayCircle size={16} aria-hidden="true" /> Hervat <ChevronDown size={14} aria-hidden="true" />
-                                </button>
-                                {resumeMenuUid === child.uid && (
-                                  <div
-                                    className="pcd-dropdown"
-                                    onClick={(e) => e.stopPropagation()}
-                                    onMouseDown={swallowChildActionEvent}
-                                    onPointerDown={swallowChildActionEvent}
-                                    onTouchStart={swallowChildActionEvent}
-                                  >
-                                    {pf.chat  && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'chat'); }}><Message size={14} aria-hidden="true" /> Chat</button>}
-                                    {pf.call  && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'call'); }}><Phone size={14} aria-hidden="true" /> Bellen</button>}
-                                    {pf.video && <button type="button" className="pcd-dropdown-item" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'video'); }}><Video size={14} aria-hidden="true" /> Videobellen</button>}
-                                    {(pf.chat || pf.call || pf.video) && <button type="button" className="pcd-dropdown-item pcd-dropdown-item--all" onMouseDown={swallowChildActionEvent} onPointerDown={swallowChildActionEvent} onTouchStart={swallowChildActionEvent} onClick={(e) => { e.preventDefault(); e.stopPropagation(); resumeChild(child.uid, 'all'); }}><PlayCircle size={14} aria-hidden="true" /> Alles hervatten</button>}
-                                  </div>
-                                )}
-                              </div>
-
-                              {pf.chat  && <span style={chipPause}><Message size={12} aria-hidden="true" /> Chat</span>}
-                              {pf.call  && <span style={{ ...chipPause, background:'rgba(245,158,11,.15)', color:'#d97706' }}><Phone size={12} aria-hidden="true" /> Bellen</span>}
-                              {pf.video && <span style={{ ...chipPause, background:'rgba(139,92,246,.12)', color:'#7c3aed' }}><Video size={12} aria-hidden="true" /> Video</span>}
-                            </div>
-                          )}
-                        </div>
-
                         <div className="pd-child-top-actions pd-child-top-actions--inline">
                           {child.canInviteCoparent && (
                             <button type="button" className="parent-btn-outline pd-child-top-action pd-child-top-action--assign" aria-label={`Wijs ${child.displayName} toe aan andere ouder`} title="Kind toewijzen" style={{ padding:'4px 6px', fontSize: 11, display:'flex', alignItems:'center', gap:6 }}
@@ -847,8 +797,7 @@ export default function ParentDashboard({
                           >
                             <MagicEdit size={15} aria-hidden="true" />
                           </button>
-                          {!allPaused && (
-                            <button
+                          <button
                               type="button"
                               className="parent-btn-orange pd-child-top-action pd-child-pause-trigger"
                               aria-label={`Kies functies om te pauzeren voor ${child.displayName}`}
@@ -857,11 +806,10 @@ export default function ParentDashboard({
                               onMouseDown={swallowChildActionEvent}
                               onPointerDown={swallowChildActionEvent}
                               onTouchStart={swallowChildActionEvent}
-                              onClick={e => { e.preventDefault(); e.stopPropagation(); setPauseEditorUid(current => current === child.uid ? null : child.uid); setResumeMenuUid(null); }}
+                              onClick={e => { e.preventDefault(); e.stopPropagation(); setPauseEditorUid(current => current === child.uid ? null : child.uid); }}
                             >
                               <PauseCircle size={18} aria-hidden="true" />
-                            </button>
-                          )}
+                          </button>
                           <button type="button" className="parent-btn-outline pd-child-top-action" aria-label={`Verwijder account van ${child.displayName}`} style={{ color:'#ef4444', borderColor:'#ef4444', padding:'4px 6px' }}
                             onMouseDown={swallowChildActionEvent}
                             onPointerDown={swallowChildActionEvent}

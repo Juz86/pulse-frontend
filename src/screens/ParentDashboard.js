@@ -1412,6 +1412,7 @@ export default function ParentDashboard({
           type="button"
           key={tab.id}
           className="contact-profile-row-button"
+          aria-label={tab.badge ? `${tab.label}, ${tab.badge} nieuwe activiteiten` : tab.label}
           onMouseDown={(event) => {
             event.stopPropagation();
           }}
@@ -1422,15 +1423,13 @@ export default function ParentDashboard({
             setPortalView('content');
           }}
         >
-          <span className="contact-profile-row-icon" aria-hidden="true">{tab.icon}</span>
+          <span className="contact-profile-row-icon parent-actions-icon" aria-hidden="true">
+            {tab.icon}
+            {tab.badge && <span className="parent-badge parent-badge--inline">{tab.badge}</span>}
+          </span>
           <span className="contact-profile-row-copy">
             <span className="contact-profile-row-title">{tab.label}</span>
           </span>
-          {tab.badge && (
-            <span className="parent-badge parent-badge--inline" aria-label={`${tab.badge} nieuwe activiteiten`}>
-              {tab.badge}
-            </span>
-          )}
           <span className="contact-profile-row-arrow" aria-hidden="true">›</span>
         </button>
       ))}
@@ -1629,6 +1628,7 @@ export default function ParentDashboard({
             type="button"
             key={t.id}
             className="chat-header-menu-item parent-actions-item parent-actions-item--embedded"
+            aria-label={t.badge ? `${t.label}, ${t.badge} nieuwe activiteiten` : t.label}
             onMouseDown={(event) => {
               event.stopPropagation();
             }}
@@ -1639,13 +1639,11 @@ export default function ParentDashboard({
               setPortalView('content');
             }}
           >
-            {t.icon}
-            <span>{t.label}</span>
-            {t.badge && (
-              <span className="parent-badge parent-badge--inline" aria-label={`${t.badge} nieuwe activiteiten`}>
-                {t.badge}
-              </span>
-            )}
+            <span className="parent-actions-icon" aria-hidden="true">
+              {t.icon}
+              {t.badge && <span className="parent-badge parent-badge--inline">{t.badge}</span>}
+            </span>
+            <span className="parent-actions-label">{t.label}</span>
           </button>
         ))}
       </div>

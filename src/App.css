@@ -12195,10 +12195,12 @@ font-family: 'Inter', sans-serif;
   text-align: left;
 }
 .parent-badge--inline {
-  position: static;
+  position: absolute;
+  top: -8px;
+  right: -8px;
   transform: none;
   flex-shrink: 0;
-  margin-left: auto;
+  margin-left: 0;
 }
 .parent-dashboard-overlay .pd-layout--sheet {
   display: block;

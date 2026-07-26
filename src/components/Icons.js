@@ -48,6 +48,7 @@ export { MdDeleteForever as Trash2 }         from 'react-icons/md';
 export { MdTimeline      as Activity }       from 'react-icons/md';
 export { MdEmail         as Mail }           from 'react-icons/md';
 export { MdLock          as Lock }           from 'react-icons/md';
+export { MdBlock         as Block }          from 'react-icons/md';
 export { MdWifi          as Wifi }           from 'react-icons/md';
 export { MdPhone         as PhoneIcon }      from 'react-icons/md';
 export { MdSecurity      as Shield }         from 'react-icons/md';

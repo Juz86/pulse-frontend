@@ -1445,7 +1445,6 @@ export default function ParentDashboard({
           description={`Weet u zeker dat u het account van ${confirmDelete.displayName} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`}
           onClose={() => { setConfirmDelete(null); setDeleteError(''); }}
           actions={[
-            { label: 'Annuleren', tone: 'neutral', onSelect: () => { setConfirmDelete(null); setDeleteError(''); } },
             { label: 'Verwijderen', tone: 'danger', icon: Trash2, onSelect: () => deleteChild(confirmDelete.uid) },
           ]}
         >

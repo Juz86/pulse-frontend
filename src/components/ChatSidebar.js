@@ -1084,7 +1084,6 @@ export default function ChatSidebar({
     const title = getContactDisplayName(contact) || contact.displayName || contact.username || 'Contact';
     const handleViewContactFromActions = () => {
       onViewContact(contact, { preserveActiveConversation: true });
-      completeContactActionsSheet();
     };
     const handleStartChatFromActions = () => {
       onStartChat(contact);

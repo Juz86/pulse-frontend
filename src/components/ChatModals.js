@@ -98,6 +98,7 @@ export default function ChatModals({
   showChatSearch = false,
   setShowChatSearch,
   onOpenConversationSearch,
+  onOpenConversationStarred,
   conversationMuted = false,
   messageSelectionMode = false,
   newChatSheetInSidebar = false,
@@ -229,8 +230,13 @@ export default function ChatModals({
   }, [showCallModal, callsAvailable, callLogRateLimitUntil]);
 
 
-  function openStarredFromProfile() {
+  function openStarredFromProfile(contact) {
     setShowContactProfile(false);
+    const conversation = contact?.uid ? findConvWithUid?.(contact.uid) : null;
+    if (conversation) {
+      onOpenConversationStarred?.(conversation);
+      return;
+    }
     setShowStarredMsgs(true);
   }
 
@@ -897,7 +903,7 @@ export default function ChatModals({
                         {statusLabel}
                       </div>
                       <div className="contact-profile-status-actions">
-                        <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={openStarredFromProfile}>
+                        <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={() => openStarredFromProfile(targetContact)}>
                           <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
                         </button>
                         <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen">

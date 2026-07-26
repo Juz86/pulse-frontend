@@ -29,11 +29,17 @@ export default function ConversationSearchPanel({
   chatSearchRef,
   getConvName,
   onClose,
+  mode = 'search',
+  starredMsgs = [],
 }) {
   const query = chatSearch.trim().toLocaleLowerCase();
+  const isStarredMode = mode === 'starred';
+  const sourceMessages = useMemo(() => isStarredMode
+    ? messages.filter(message => starredMsgs.includes(message.id))
+    : messages, [messages, isStarredMode, starredMsgs]);
   const matches = useMemo(() => query
-    ? messages.filter(message => getMessageDisplayText(message).toLocaleLowerCase().includes(query))
-    : [], [messages, query]);
+    ? sourceMessages.filter(message => getMessageDisplayText(message).toLocaleLowerCase().includes(query))
+    : (isStarredMode ? sourceMessages : []), [sourceMessages, query, isStarredMode]);
   const currentIndex = matches.length ? chatSearchIdx % matches.length : 0;
 
   useEffect(() => {
@@ -49,7 +55,7 @@ export default function ConversationSearchPanel({
   }
 
   return (
-    <aside className="conversation-search-panel" aria-label={`Berichten doorzoeken in ${getConvName(activeConv)}`}>
+    <aside className="conversation-search-panel" aria-label={`${isStarredMode ? 'Berichten met ster' : 'Berichten doorzoeken'} in ${getConvName(activeConv)}`}>
       <div className="conversation-search-panel__search" role="search">
         <Search size={22} aria-hidden="true" />
         <input
@@ -60,8 +66,8 @@ export default function ConversationSearchPanel({
             if (event.key === 'Enter' && matches.length) setChatSearchIdx(index => (index + 1) % matches.length);
             if (event.key === 'Escape') close();
           }}
-          placeholder="Zoeken"
-          aria-label={`Zoeken in gesprek met ${getConvName(activeConv)}`}
+          placeholder={isStarredMode ? 'Zoeken in berichten met ster' : 'Zoeken'}
+          aria-label={`${isStarredMode ? 'Zoeken in berichten met ster' : 'Zoeken in gesprek'} met ${getConvName(activeConv)}`}
           aria-controls="chat-messages-log"
         />
         {chatSearch && (
@@ -72,8 +78,9 @@ export default function ConversationSearchPanel({
       </div>
 
       <div className="conversation-search-panel__results" aria-live="polite">
-        {!query && <p className="conversation-search-panel__hint">Zoek naar berichten in {getConvName(activeConv)}.</p>}
-        {query && !matches.length && <p className="conversation-search-panel__hint">Geen berichten gevonden.</p>}
+        {!query && !isStarredMode && <p className="conversation-search-panel__hint">Zoek naar berichten in {getConvName(activeConv)}.</p>}
+        {!query && isStarredMode && !matches.length && <p className="conversation-search-panel__hint">Nog geen berichten met ster in {getConvName(activeConv)}.</p>}
+        {query && !matches.length && <p className="conversation-search-panel__hint">{isStarredMode ? 'Geen berichten met ster gevonden.' : 'Geen berichten gevonden.'}</p>}
         {matches.slice().reverse().map((message) => {
           const originalIndex = matches.indexOf(message);
           return (

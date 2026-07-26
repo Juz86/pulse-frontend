@@ -41,6 +41,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [confirmDialog,  setConfirmDialog]  = useState(null);
   const [replyTo,        setReplyTo]        = useState(null);
   const [showChatSearch, setShowChatSearch] = useState(false);
+  const [conversationPanelMode, setConversationPanelMode] = useState('search');
   const [chatSearch,     setChatSearch]     = useState('');
   const [chatSearchIdx,  setChatSearchIdx]  = useState(0);
   const [deleteMenuMsgId, setDeleteMenuMsgId] = useState(null);
@@ -797,7 +798,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           setChatSearchIdx={setChatSearchIdx}
           chatSearchRef={chatSearchRef}
           getConvName={getConvName}
-          onClose={() => setShowChatSearch(false)}
+          mode={conversationPanelMode}
+          starredMsgs={starredMsgs}
+          onClose={() => { setShowChatSearch(false); setConversationPanelMode('search'); }}
         />
       )}
 
@@ -869,6 +872,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         setShowChatSearch={setShowChatSearch}
         onOpenConversationSearch={(conversation) => {
           openConversation(conversation);
+          setConversationPanelMode('search');
+          setShowChatSearch(true);
+        }}
+        onOpenConversationStarred={(conversation) => {
+          openConversation(conversation);
+          setConversationPanelMode('starred');
           setShowChatSearch(true);
         }}
         conversationMuted={mutedConversationIds.includes(activeConv?.id)}

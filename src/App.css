@@ -6710,8 +6710,14 @@ font-family: 'Inter', sans-serif;
   align-items:flex-start;
 }
 .contact-profile-hero--main .contact-profile-avatar-shell {
+  width:110px;
+  height:110px;
   margin-bottom:0;
   flex:0 0 auto;
+}
+.contact-profile-hero--main .contact-profile-avatar {
+  width:110px;
+  height:110px;
 }
 .contact-profile-hero--main .contact-profile-subtitle {
   margin-top:4px;

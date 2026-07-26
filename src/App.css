@@ -8505,6 +8505,13 @@ font-family: 'Inter', sans-serif;
     padding-right:max(12px, env(safe-area-inset-right));
     padding-left:max(12px, env(safe-area-inset-left));
   }
+  .sidebar-footer--contact-profile-floating {
+    left:22px;
+    right:22px;
+    width:auto;
+    padding-left:0;
+    padding-right:0;
+  }
   .chat-side-panel {
     inset:0;
     left:0;

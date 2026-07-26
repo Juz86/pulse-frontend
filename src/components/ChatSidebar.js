@@ -777,12 +777,14 @@ export default function ChatSidebar({
                   onClick={() => setShareRecipients?.((current) => current.includes(contact.uid) ? current.filter((uid) => uid !== contact.uid) : [...current, contact.uid])}
                 >
                   <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                    <span className="share-contact-page-selection" aria-hidden="true">
+                      {selected && <Check size={18} className="share-contact-page-check" />}
+                    </span>
                     <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} className="sm" decorative />
                     <div className="conv-info call-log-picker-copy">
                       <div className="conv-name">{getContactDisplayName(contact)}</div>
                       <div className="conv-preview">{contact.email}</div>
                     </div>
-                    {selected && <Check size={20} aria-hidden="true" className="share-contact-page-check" />}
                   </div>
                 </button>
               );

@@ -778,6 +778,10 @@ body {
   box-shadow: none !important;
   transition: background .16s ease;
 }
+.share-contact-page-row .sidebar-contact-row {
+  gap: 14px;
+  border-radius: inherit;
+}
 .share-contact-page-row:hover {
   background: rgba(255, 255, 255, .08) !important;
 }
@@ -786,17 +790,31 @@ body {
   box-shadow: none !important;
 }
 .share-contact-page-check {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   box-sizing: border-box;
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  padding: 5px;
   border-radius: 50%;
   background: linear-gradient(135deg, #8c7bff, #7160f5);
   color: #fff;
   box-shadow: 0 5px 12px rgba(113, 96, 245, .34);
+}
+.share-contact-page-selection {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  border: 2px solid rgba(235, 231, 255, .58);
+  border-radius: 6px;
+  color: #fff;
+}
+.share-contact-page-row.selected .share-contact-page-selection {
+  border: 0;
+  border-radius: 50%;
 }
 .share-contact-page-footer {
   position: sticky;

@@ -786,6 +786,7 @@ body {
   background: rgba(255, 255, 255, .08) !important;
 }
 .share-contact-page-row.selected {
+  border-radius: 14px;
   background: rgba(113, 96, 245, .2) !important;
   box-shadow: none !important;
 }

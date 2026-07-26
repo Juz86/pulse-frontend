@@ -1095,7 +1095,6 @@ export default function ChatSidebar({
     };
     const handleTogglePinFromActions = () => {
       onTogglePin(contact.uid);
-      completeContactActionsSheet();
     };
     const handleBlockContactFromActions = () => {
       onBlockContact(contact);

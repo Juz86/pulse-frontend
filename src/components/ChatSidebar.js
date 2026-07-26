@@ -3144,7 +3144,17 @@ export default function ChatSidebar({
 
               {filteredContacts.map(contact => (
                 <div key={contact.uid} className="sidebar-contact-card" aria-label={`Contact ${getContactDisplayName(contact)}${contact.email ? `, ${contact.email}` : ''}`}>
-                  <div className="sidebar-contact-row">
+                  <div
+                    className="sidebar-contact-row sidebar-contact-row--openable"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onStartChat?.(contact)}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'Enter' && event.key !== ' ') return;
+                      event.preventDefault();
+                      onStartChat?.(contact);
+                    }}
+                  >
                     <div className="avatar-wrap" aria-hidden="true">
                       <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} decorative />
                       {onlineUsers.has(contact.uid) && <span className={`online-dot${inactiveUsers.has(contact.uid) ? ' inactive' : ''}`} aria-hidden="true" />}

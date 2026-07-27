@@ -1762,7 +1762,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 }
 .auth-feature-dots {
   display:flex;
-  gap:5px;
+  gap:25px;
   margin-top:8px;
   justify-content:center;
 }
@@ -6715,7 +6715,7 @@ font-family: 'Inter', sans-serif;
 .contact-profile-hero--main {
   flex-direction:row;
   justify-content:center;
-  gap:18px;
+  gap:5px;
   padding:22px;
   margin:8px 0 18px;
   border:1px solid rgba(255,255,255,.08);

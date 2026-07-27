@@ -11523,6 +11523,8 @@ font-family: 'Inter', sans-serif;
 }
 .pd-child-head {
   padding-right: 208px;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 .parent-child-copy {
   min-width: 0;
@@ -14064,7 +14066,7 @@ font-family: 'Inter', sans-serif;
   .parent-child-row { flex-wrap:wrap; gap:8px; }
   .pd-child-head {
     min-height: 42px;
-    padding-right: 242px;
+    padding-right: 184px;
   }
   .pd-child-top-actions--inline {
     position: absolute;

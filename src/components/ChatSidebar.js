@@ -2189,6 +2189,7 @@ export default function ChatSidebar({
       if (target?.closest?.('[data-sidebar-actions-trigger]')) return;
       if (target?.closest?.('.pulse-confirm-backdrop')) return;
       if (target?.closest?.('.contact-profile-panel')) return;
+      if (target?.closest?.('.call-overlay, .call-mini-bar')) return;
       setConvMenu(null);
       setContactMenu(null);
     }

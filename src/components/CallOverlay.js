@@ -450,7 +450,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
 
   return (
     <div
-      className={`call-overlay ${isVideoActiveLayout ? 'video-mode call-overlay--video-reference' : ''} ${isVideoPendingLayout ? 'video-pending-mode' : ''} ${isVoiceActiveLayout ? 'call-overlay--voice-reference' : ''}`}
+      className={`call-overlay call-overlay--desktop-panel ${isVideoActiveLayout ? 'video-mode call-overlay--video-reference' : ''} ${isVideoPendingLayout ? 'video-pending-mode' : ''} ${isVoiceActiveLayout ? 'call-overlay--voice-reference' : ''}`}
       style={(isVoiceActiveLayout || isVideoPendingLayout) ? { backgroundImage: `linear-gradient(180deg, rgba(5,5,7,.76), rgba(5,5,7,.82)), url(${chatDefaultPattern})` } : undefined}
     >
 

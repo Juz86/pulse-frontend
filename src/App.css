@@ -11189,18 +11189,21 @@ font-family: 'Inter', sans-serif;
 
 @media (min-width: 768px) {
   :root { --desktop-search-panel-width: min(420px, 34vw); }
-  .app-screen:has(.conversation-search-panel) {
+  .app-screen:has(.conversation-search-panel),
+  .app-screen:has(.call-overlay--desktop-panel) {
     display:grid;
     grid-template-columns:minmax(260px, var(--pulse-sidebar-width)) minmax(0, 1fr) var(--desktop-search-panel-width);
   }
-  .app-screen:has(.conversation-search-panel) .sidebar {
+  .app-screen:has(.conversation-search-panel) .sidebar,
+  .app-screen:has(.call-overlay--desktop-panel) .sidebar {
     grid-column:1;
     width:100%;
     min-width:0;
     max-width:none;
     flex:none;
   }
-  .app-screen:has(.conversation-search-panel) .chat-main {
+  .app-screen:has(.conversation-search-panel) .chat-main,
+  .app-screen:has(.call-overlay--desktop-panel) .chat-main {
     grid-column:2;
     width:auto;
     min-width:0;
@@ -11209,6 +11212,105 @@ font-family: 'Inter', sans-serif;
   .conversation-search-panel {
     grid-column:3;
     grid-row:1;
+  }
+
+  /* Op desktop blijft een oproep naast het gesprek staan, in dezelfde
+     derde kolom als Berichten doorzoeken. */
+  .call-overlay--desktop-panel {
+    position:relative;
+    inset:auto;
+    grid-column:3;
+    grid-row:1;
+    z-index:20;
+    width:100%;
+    min-width:0;
+    min-height:0;
+    box-sizing:border-box;
+    padding:24px 20px;
+    overflow:hidden;
+    align-items:stretch;
+    justify-content:center;
+    background:
+      radial-gradient(circle at 50% 28%, rgba(138,119,255,.28), transparent 48%),
+      linear-gradient(180deg, #292154 0%, #171131 100%) !important;
+    border-left:1px solid rgba(139,121,255,.24);
+    box-shadow:-14px 0 34px rgba(18,12,48,.22);
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
+  .call-overlay--desktop-panel::before { display:none; }
+  .call-overlay--desktop-panel .call-card,
+  .call-overlay--desktop-panel .call-card.voice-active,
+  .call-overlay--desktop-panel .call-card.transparent {
+    width:100%;
+    max-width:none;
+    min-height:100%;
+    height:100%;
+    box-sizing:border-box;
+    padding:18px 0 0;
+    background:transparent;
+    border:0;
+    box-shadow:none;
+  }
+  .call-overlay--desktop-panel .call-card.voice-active {
+    justify-content:space-between;
+  }
+  .call-overlay--desktop-panel .call-minimize-btn {
+    top:18px;
+    left:18px;
+  }
+  .call-overlay--desktop-panel .call-active-head,
+  .call-overlay--desktop-panel .call-card.voice-active .call-active-head.call-active-head-centered,
+  .call-overlay--desktop-panel .call-card.transparent .call-active-head.call-active-head-centered {
+    position:relative;
+    top:auto;
+    left:auto;
+    width:100%;
+    transform:none;
+    padding:0 42px;
+    box-sizing:border-box;
+  }
+  .call-overlay--desktop-panel .call-active-head .call-name {
+    font-size:25px;
+  }
+  .call-overlay--desktop-panel .call-active-head .call-status,
+  .call-overlay--desktop-panel .call-active-head .call-timer {
+    font-size:15px;
+    margin-top:6px;
+  }
+  .call-overlay--desktop-panel .call-card.voice-active .call-avatar-big {
+    width:154px;
+    height:154px;
+    margin:auto;
+    font-size:28px;
+  }
+  .call-overlay--desktop-panel .call-card.voice-active .call-controls.active-layout,
+  .call-overlay--desktop-panel .call-card.transparent .call-controls.video-layout {
+    width:100%;
+    max-width:none;
+    margin:0;
+    box-sizing:border-box;
+  }
+  .call-overlay--desktop-panel .call-card.transparent .call-controls.video-layout {
+    left:0;
+    right:0;
+    bottom:0;
+    transform:none;
+  }
+  .call-overlay--desktop-panel .video-local {
+    top:74px;
+    left:12px;
+    width:82px;
+    height:108px;
+  }
+  .call-overlay--desktop-panel .call-card.transparent.call-video-pending .call-avatar-big,
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-card.transparent.call-video-pending .call-avatar-big {
+    position:absolute;
+    left:50% !important;
+    top:50%;
+    width:154px;
+    height:154px;
+    transform:translate(-50%, -50%);
   }
 }
 

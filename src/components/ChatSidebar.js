@@ -2187,6 +2187,8 @@ export default function ChatSidebar({
       const target = e.target;
       if (target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (target?.closest?.('[data-sidebar-actions-trigger]')) return;
+      if (target?.closest?.('.pulse-confirm-backdrop')) return;
+      if (target?.closest?.('.contact-profile-panel')) return;
       setConvMenu(null);
       setContactMenu(null);
     }

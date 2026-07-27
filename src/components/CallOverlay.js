@@ -1,7 +1,7 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade } from '../services/socket';
-import { Phone, Video, Mic, Camera, Cancel, Message, Speaker, PhoneEnd } from './Icons';
+import { Phone, Video, Mic, MicOff, Camera, Cancel, Message, Speaker, PhoneEnd } from './Icons';
 import chatDefaultPattern from '../assets/chatachtergrond.jpeg';
 
 export default function CallOverlay({ incoming, active, contacts = [], chatUnreadCount = 0, onClose, onEnd, onRetryCall }) {
@@ -346,6 +346,15 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
 
   if (minimized) return (
     <div className="call-mini-bar" role="button" tabIndex={0} aria-label={`Open gesprek met ${callName}`} onClick={() => setMinimized(false)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMinimized(false); } }}>
+      <button
+        type="button"
+        className={`call-mini-mute${muted ? ' is-muted' : ''}`}
+        aria-label={muted ? 'Dempen uitschakelen' : 'Dempen'}
+        title={muted ? 'Dempen uitschakelen' : 'Dempen'}
+        onClick={event => { event.stopPropagation(); toggleMute(); }}
+      >
+        {muted ? <MicOff size={20} aria-hidden="true" /> : <Mic size={20} aria-hidden="true" />}
+      </button>
       <div className="call-mini-avatar">{callName.slice(0,2).toUpperCase()}</div>
       <div className="call-mini-info">
         <span className="call-mini-name">{callName}</span>

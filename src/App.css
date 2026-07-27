@@ -9193,18 +9193,23 @@ font-family: 'Inter', sans-serif;
 
 /* ── MINI CALL BAR ── */
 .call-mini-bar {
-  position:fixed; top:max(16px, env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
-  z-index:9999; display:flex; align-items:center; gap:12px;
-  padding:10px 14px 10px 10px; border-radius:50px;
-  background:var(--surface); border:1px solid var(--border);
-  box-shadow:0 8px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(108,99,255,.12);
+  position:fixed; top:0; right:0; left:0; transform:none;
+  z-index:9999; min-height:85px; box-sizing:border-box; display:flex; align-items:center; gap:12px;
+  padding:10px max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left)); border-radius:0;
+  background:linear-gradient(135deg, rgba(35,27,78,.99), rgba(24,18,58,.99)); border:0;
+  box-shadow:0 8px 28px rgba(12,8,34,.34), inset 0 -1px 0 rgba(159,143,255,.14);
   cursor:pointer; transition:.2s; user-select:none;
   backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-  min-width:min(220px, calc(100vw - 32px));
-  width:min(420px, calc(100vw - 32px));
-  max-width:calc(100vw - 32px);
+  width:100%; max-width:none;
 }
-.call-mini-bar:hover { box-shadow:0 12px 40px rgba(0,0,0,.6), 0 0 0 1px rgba(108,99,255,.25); }
+.call-mini-bar:hover { box-shadow:0 8px 28px rgba(12,8,34,.42), inset 0 -1px 0 rgba(159,143,255,.22); }
+.call-mini-mute {
+  width:48px; height:48px; display:grid; place-items:center; flex:0 0 auto;
+  padding:0; border:1px solid rgba(171,158,242,.18); border-radius:50%;
+  color:#f7f4ff; background:rgba(11,8,31,.52); cursor:pointer;
+}
+.call-mini-mute.is-muted { color:#ff8ba2; background:rgba(220,39,80,.16); }
+.call-mini-mute:hover { background:rgba(11,8,31,.72); }
 .call-mini-avatar {
   width:36px; height:36px; border-radius:12px; flex-shrink:0;
   background:linear-gradient(135deg, var(--accent), var(--accent2));
@@ -9219,7 +9224,7 @@ font-family: 'Inter', sans-serif;
   box-shadow:0 0 6px rgba(67,233,123,.6); animation:pulse-dot 2s infinite;
 }
 .call-mini-end {
-  width:32px; height:32px; border-radius:50%; border:none; flex-shrink:0;
+  width:48px; height:48px; border-radius:50%; border:none; flex-shrink:0;
   background:linear-gradient(135deg, var(--danger), #ff6b7a);
   color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center;
   box-shadow:0 4px 12px rgba(255,71,87,.4); transition:.2s;

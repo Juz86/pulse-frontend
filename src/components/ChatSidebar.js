@@ -2617,7 +2617,8 @@ export default function ChatSidebar({
         aria-label={`Open profielinstellingen voor ${user.displayName || user.email?.split('@')[0] || 'gebruiker'}, online`}
         onClick={() => {
           if (settingsSheetVisible) {
-            dismissProfileOverviewSheet();
+            setProfileSheetClosing(false);
+            setProfileTab?.('overview');
             return;
           }
           closeAddContactSheet();

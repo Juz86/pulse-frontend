@@ -8110,11 +8110,12 @@ font-family: 'Inter', sans-serif;
 
 @media (max-width: 767px) {
   .pulse-confirm-backdrop {
-    padding: 0 max(0px, var(--safe-right)) max(0px, var(--safe-bottom)) max(0px, var(--safe-left));
+    --pulse-confirm-footer-clearance: max(108px, calc(96px + env(safe-area-inset-bottom)));
+    padding: 0 max(0px, var(--safe-right)) var(--pulse-confirm-footer-clearance) max(0px, var(--safe-left));
   }
   .pulse-confirm-sheet {
     width: 100%;
-    max-height: min(82dvh, calc(var(--vvh, 100dvh) - var(--safe-top)));
+    max-height: min(82dvh, calc(var(--vvh, 100dvh) - var(--safe-top) - var(--pulse-confirm-footer-clearance)));
     padding: 9px 16px max(14px, var(--safe-bottom));
     border-radius: 30px;
   }

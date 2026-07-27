@@ -8110,6 +8110,22 @@ font-family: 'Inter', sans-serif;
   }
 }
 
+/* De videobediening is ook tijdens "Belt…" direct beschikbaar. Deze regel
+   staat bewust los van de verbindingstoestand: wachten op de externe stream
+   mag de knoppen nooit verbergen. */
+@media (max-width: 767px) {
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout {
+    position:absolute;
+    left:50%;
+    bottom:max(14px, calc(env(safe-area-inset-bottom) + 8px));
+    transform:translateX(-50%);
+    display:grid !important;
+    visibility:visible;
+    opacity:1;
+    z-index:20;
+  }
+}
+
 @media (max-width: 767px) {
   .pulse-confirm-backdrop {
     --pulse-confirm-footer-clearance: max(108px, calc(96px + env(safe-area-inset-bottom)));

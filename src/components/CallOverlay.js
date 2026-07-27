@@ -365,7 +365,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
       {callState === 'active' && <div className="call-mini-pulse" aria-hidden="true" />}
       <button type="button" className="call-mini-end" aria-label={`Beeindig gesprek met ${callName}`} onClick={e => { e.stopPropagation(); handleEnd(); }}
         title="Ophangen">
-        <Cancel size={16} aria-hidden="true" />
+        <PhoneEnd size={24} aria-hidden="true" />
       </button>
     </div>
   );

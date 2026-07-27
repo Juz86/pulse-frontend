@@ -394,9 +394,9 @@ body {
     color:rgba(255,255,255,.94);
   }
   .call-overlay--desktop-panel .call-video-side-actions {
-    top:98px;
+    top:18px;
     right:18px;
-    gap:12px;
+    gap:0;
   }
   .call-overlay--desktop-panel .call-video-side-action {
     width:52px;
@@ -19463,13 +19463,13 @@ font-family: 'Inter', sans-serif;
 }
 @media (min-width: 768px) {
   .call-overlay--desktop-panel .call-video-side-actions {
-    top:104px;
+    top:18px;
     right:14px;
-    gap:10px;
+    gap:0;
   }
   .call-overlay--desktop-panel .call-video-side-action {
-    width:48px;
-    height:48px;
+    width:52px;
+    height:52px;
   }
   .call-overlay--desktop-panel .call-video-side-action svg {
     width:22px;
@@ -19512,13 +19512,13 @@ font-family: 'Inter', sans-serif;
     box-shadow:none;
   }
   .call-video-side-actions {
-    top:max(152px, calc(env(safe-area-inset-top) + 132px));
+    top:max(40px, calc(env(safe-area-inset-top) + 18px));
     right:40px;
-    gap:18px;
+    gap:0;
   }
   .call-video-side-action {
-    width:72px;
-    height:72px;
+    width:62px;
+    height:62px;
     border:0;
     background:rgba(35,33,29,.92);
     box-shadow:none;
@@ -19548,11 +19548,6 @@ font-family: 'Inter', sans-serif;
     background:#292720;
     border:0;
     box-shadow:none;
-    color:#fff;
-  }
-  .call-overlay--video-reference .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-more,
-  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.call-ctrl-more {
-    background:#292720;
     color:#fff;
   }
   .call-overlay--video-reference .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-speaker.on,

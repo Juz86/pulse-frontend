@@ -825,6 +825,7 @@ body {
 }
 .share-contact-page-footer .btn-primary {
   width: 100%;
+  box-shadow: none;
 }
 
 .new-chat-page-directory .new-chat-contact-list {

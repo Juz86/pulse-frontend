@@ -19394,3 +19394,98 @@ font-family: 'Inter', sans-serif;
     height:22px;
   }
 }
+
+/* Mobiele videobelbediening: dezelfde geometrie en contrastopbouw als de
+   WhatsApp-oproepweergave, uitgevoerd binnen de Pulse-kleurlaag. */
+@media (max-width: 767px) {
+  .call-overlay--video-reference .call-active-head.call-active-head-centered,
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-name,
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-status {
+    color:#fff;
+    text-shadow:0 2px 14px rgba(0,0,0,.28);
+  }
+  .call-overlay--video-reference .call-active-head.call-active-head-centered {
+    top:max(58px, calc(env(safe-area-inset-top) + 38px));
+  }
+  .call-overlay--video-reference .call-active-head .call-name,
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-name {
+    font-size:clamp(26px, 7.4vw, 36px);
+    font-weight:500;
+  }
+  .call-overlay--video-reference .call-active-head .call-status,
+  .call-overlay--video-reference .call-active-head .call-timer,
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-status {
+    font-size:clamp(18px, 5.2vw, 26px);
+    font-weight:400;
+    color:rgba(255,255,255,.94);
+  }
+  .call-overlay--video-reference .call-minimize-btn,
+  .call-overlay.video-pending-mode .call-minimize-btn {
+    top:max(40px, calc(env(safe-area-inset-top) + 18px));
+    left:40px;
+    width:62px;
+    height:62px;
+    border-color:rgba(255,255,255,.18);
+    background:rgba(35,33,29,.9);
+    box-shadow:none;
+  }
+  .call-video-side-actions {
+    top:max(152px, calc(env(safe-area-inset-top) + 132px));
+    right:40px;
+    gap:18px;
+  }
+  .call-video-side-action {
+    width:72px;
+    height:72px;
+    border:0;
+    background:rgba(35,33,29,.92);
+    box-shadow:none;
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
+  .call-video-side-action:hover,
+  .call-video-side-action:active {
+    background:rgba(35,33,29,.98);
+  }
+  .call-overlay--video-reference .call-card.transparent .call-controls.video-layout,
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout {
+    --video-btn-size:clamp(64px, 18vw, 88px);
+    width:calc(100vw - 32px);
+    max-width:none;
+    gap:10px;
+    padding:12px;
+    border:0;
+    border-radius:34px;
+    background:rgba(53,50,43,.66);
+    box-shadow:none;
+    backdrop-filter:blur(20px) saturate(1.08);
+    -webkit-backdrop-filter:blur(20px) saturate(1.08);
+  }
+  .call-overlay--video-reference .call-card.transparent .call-controls.video-layout .call-ctrl-btn,
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn {
+    background:#292720;
+    border:0;
+    box-shadow:none;
+    color:#fff;
+  }
+  .call-overlay--video-reference .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-more,
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.call-ctrl-more {
+    background:#292720;
+    color:#fff;
+  }
+  .call-overlay--video-reference .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-speaker.on,
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.call-ctrl-speaker.on {
+    background:#f7f3ed;
+    color:#11110f;
+    box-shadow:none;
+  }
+  .call-overlay--video-reference .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-speaker.on svg,
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.call-ctrl-speaker.on svg {
+    color:#11110f;
+  }
+  .call-overlay--video-reference .call-card.transparent .call-controls.video-layout .call-ctrl-btn.end,
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.end {
+    background:#e90046;
+    box-shadow:none;
+  }
+}

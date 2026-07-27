@@ -196,7 +196,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     setConfirmDialog({
       type: 'clear-chat',
       title: 'Deze chat wissen?',
-      message: 'Deze chat is leeg maar blijft in je chatlijst staan.',
       checkboxLabel: 'Berichten met ster opslaan',
       checkboxDefault: false,
       hideCancel: true,

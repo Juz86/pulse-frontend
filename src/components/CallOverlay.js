@@ -1,7 +1,7 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade } from '../services/socket';
-import { Phone, Video, Mic, MicOff, Camera, Cancel, Message, Speaker, PhoneEnd } from './Icons';
+import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
+import { Phone, Video, Mic, MicOff, Camera, CameraSwitch, Cancel, Message, MoreHoriz, Speaker, PhoneEnd } from './Icons';
 import chatDefaultPattern from '../assets/chatachtergrond.jpeg';
 
 export default function CallOverlay({ incoming, active, contacts = [], chatUnreadCount = 0, onClose, onEnd, onRetryCall }) {
@@ -15,6 +15,8 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   const [minimized,    setMinimized]    = useState(false);
   const [speakerEnabled, setSpeakerEnabled] = useState(true);
   const [speakerControlAvailable, setSpeakerControlAvailable] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState('user');
+  const [showVideoSideActions, setShowVideoSideActions] = useState(true);
   const [networkState, setNetworkState] = useState('stable');
   const closingRef = useRef(false);
 
@@ -190,6 +192,15 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
       if (localVideoRef.current) localVideoRef.current.srcObject = videoStream;
       setVideoUpgraded(true);
     }
+  }
+
+  async function handleSwitchCamera() {
+    const stream = localStreamRef.current;
+    const nextFacing = cameraFacing === 'user' ? 'environment' : 'user';
+    const result = await switchCameraTrack(stream, nextFacing);
+    if (!result?.ok) return;
+    setCameraFacing(nextFacing);
+    if (localVideoRef.current) localVideoRef.current.srcObject = stream;
   }
 
   async function toggleSpeakerMode() {
@@ -465,6 +476,17 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
         </div>
       )}
 
+      {isVideoActiveLayout && showVideoSideActions && (
+        <div className="call-video-side-actions" aria-label="Video-oproepacties">
+          <button type="button" className="call-video-side-action" onClick={handleOpenChat} title="Bericht versturen" aria-label="Bericht versturen">
+            <Message size={25} aria-hidden="true" />
+          </button>
+          <button type="button" className="call-video-side-action" onClick={handleSwitchCamera} title="Camera wisselen" aria-label="Camera wisselen">
+            <CameraSwitch size={27} aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
       {/* ── CALL CARD ── */}
       <div className={`call-card ${isVideoActiveLayout ? 'transparent' : ''} ${isVoiceCallLayout ? 'voice-active' : ''} ${isVideoPendingLayout ? 'call-video-pending' : ''}`}>
         {canMinimize && (
@@ -499,11 +521,13 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
         )}
         {isVideoPendingLayout ? (
           <>
-            <div className={`call-avatar-big ${callPhotoUrl ? 'call-avatar-big--photo' : ''}`}>
-              {callPhotoUrl
-                ? <img src={callPhotoUrl} alt="" className="call-avatar-big-photo" />
-                : callName.slice(0,2).toUpperCase()}
-            </div>
+            {!hasLocalVideoTrack && (
+              <div className={`call-avatar-big ${callPhotoUrl ? 'call-avatar-big--photo' : ''}`}>
+                {callPhotoUrl
+                  ? <img src={callPhotoUrl} alt="" className="call-avatar-big-photo" />
+                  : callName.slice(0,2).toUpperCase()}
+              </div>
+            )}
             {!hasActiveHeaderLayout && <div className="call-name">{callName}</div>}
             {!hasActiveHeaderLayout && callState === 'calling' && (
               <div className="call-status blink" role="status" aria-live="polite">Bellen…</div>
@@ -558,14 +582,16 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
             <>
               {isVideoActiveLayout && (
                 <>
-                  <button type="button" className="call-ctrl-btn aux call-ctrl-round call-ctrl-chat call-ctrl-secondary" onClick={handleOpenChat} title="Bericht versturen" aria-label="Bericht versturen">
-                    <Message size={18} aria-hidden="true" />
-                    <span>Bericht</span>
-                    {chatUnreadCount > 0 && (
-                      <span className="call-chat-badge" aria-label={`${chatUnreadCount} ongelezen berichten`}>
-                        {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
-                      </span>
-                    )}
+                  <button
+                    type="button"
+                    className={`call-ctrl-btn aux call-ctrl-round call-ctrl-more ${showVideoSideActions ? 'on' : ''}`}
+                    onClick={() => setShowVideoSideActions((visible) => !visible)}
+                    title="Meer opties"
+                    aria-label="Meer opties"
+                    aria-expanded={showVideoSideActions}
+                  >
+                    <MoreHoriz size={24} aria-hidden="true" />
+                    <span>Meer</span>
                   </button>
                   <button
                     type="button"

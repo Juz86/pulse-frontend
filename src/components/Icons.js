@@ -9,6 +9,7 @@ export { MdCallEnd       as PhoneEnd }      from 'react-icons/md';
 export { MdVideocam      as Video }         from 'react-icons/md';
 export { MdVideocamOff   as VideoOff }      from 'react-icons/md';
 export { MdCameraAlt     as Camera }        from 'react-icons/md';
+export { MdCameraswitch  as CameraSwitch }  from 'react-icons/md';
 export { MdMic           as Mic }           from 'react-icons/md';
 export { MdMicOff        as MicOff }        from 'react-icons/md';
 export { MdVolumeUp      as Speaker }       from 'react-icons/md';

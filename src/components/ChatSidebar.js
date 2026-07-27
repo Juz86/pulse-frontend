@@ -1737,7 +1737,7 @@ export default function ChatSidebar({
                 <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
                 <input
                   className="sidebar-call-search-input"
-                  placeholder="Naam of telefoonnummer zoeken"
+                  placeholder="Zoek op naam of e-mailadres"
                   value={callSearch}
                   onChange={(e) => setCallSearch(e.target.value)}
                 />

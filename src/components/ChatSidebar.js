@@ -1078,7 +1078,7 @@ export default function ChatSidebar({
   );
 
   const renderContactActionsPage = () => {
-    const contact = contacts.find((c) => c.uid === contactMenu?.uid);
+    const contact = contacts.find((c) => c.uid === contactMenu?.uid) || contactMenu?.contact;
     if (!contact) return null;
     const isParentBlocked = parentBlockedUids?.includes(contact.uid);
     const isProtectedParentContact = !isParent && contact?.role === 'parent';
@@ -1093,18 +1093,15 @@ export default function ChatSidebar({
     };
     const handleCallContactFromActions = (isVideo) => {
       onCallContact(contact, isVideo);
-      completeContactActionsSheet();
     };
     const handleTogglePinFromActions = () => {
       onTogglePin(contact.uid);
     };
     const handleBlockContactFromActions = () => {
       onBlockContact(contact);
-      completeContactActionsSheet();
     };
     const handleRemoveContactFromActions = () => {
       onRemoveContact(contact.uid);
-      completeContactActionsSheet();
     };
 
     return (
@@ -2302,7 +2299,8 @@ export default function ChatSidebar({
   const hasMissedCall = missedCallCount > 0;
 
   function openContactMenu(contactUid, anchorEl) {
-    setContactMenu(prev => prev?.uid === contactUid ? null : { uid: contactUid });
+    const contact = contacts.find((item) => item.uid === contactUid);
+    setContactMenu(prev => prev?.uid === contactUid ? null : { uid: contactUid, contact });
   }
 
   function handleOpenConversation(conv) {

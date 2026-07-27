@@ -572,16 +572,16 @@ export default function ParentDashboard({
   const filteredActivities = selectedChildUid
     ? activities.filter(a => a.childUid === selectedChildUid)
     : activities;
-  const portalView = embeddedInSidebarCluster && embeddedPortalView !== null
+  const portalView = embeddedPortalView !== null
     ? embeddedPortalView
     : portalViewState;
   const setPortalView = useCallback((nextView) => {
-    if (embeddedInSidebarCluster && onEmbeddedPortalViewChange) {
+    if (onEmbeddedPortalViewChange) {
       onEmbeddedPortalViewChange(nextView);
       return;
     }
     setPortalViewState(nextView);
-  }, [embeddedInSidebarCluster, onEmbeddedPortalViewChange]);
+  }, [onEmbeddedPortalViewChange]);
   const swallowChildActionEvent = useCallback((event) => {
     event.preventDefault();
     event.stopPropagation();

@@ -3235,6 +3235,8 @@ export default function ChatSidebar({
           parentActivityBadge={parentActivityBadge}
           onActivitiesViewed={onParentActivitiesViewed}
           onClose={dismissParentPortalSheet}
+          embeddedPortalView={parentPortalView}
+          onEmbeddedPortalViewChange={setParentPortalView}
         />
       ) : null}
       {callsProfilePageVisible ? renderCallsProfilePage() : null}

@@ -365,6 +365,85 @@ body {
   }
 }
 
+/* Grote schermen gebruiken in het rechter oproeppaneel dezelfde
+   WhatsApp-geïnspireerde videobelbediening als mobiel. */
+@media (min-width: 768px) {
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-minimize-btn,
+  .call-overlay--desktop-panel.video-pending-mode .call-minimize-btn {
+    top:18px;
+    left:18px;
+    width:52px;
+    height:52px;
+    border-color:rgba(255,255,255,.18);
+    background:rgba(35,33,29,.9);
+    box-shadow:none;
+  }
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-active-head.call-active-head-centered {
+    padding:0 58px;
+  }
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-active-head .call-name,
+  .call-overlay--desktop-panel.video-pending-mode .call-card.transparent.call-video-pending .call-name {
+    font-size:28px;
+    font-weight:500;
+  }
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-active-head .call-status,
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-active-head .call-timer,
+  .call-overlay--desktop-panel.video-pending-mode .call-card.transparent.call-video-pending .call-status {
+    font-size:18px;
+    font-weight:400;
+    color:rgba(255,255,255,.94);
+  }
+  .call-overlay--desktop-panel .call-video-side-actions {
+    top:98px;
+    right:18px;
+    gap:12px;
+  }
+  .call-overlay--desktop-panel .call-video-side-action {
+    width:52px;
+    height:52px;
+    border:0;
+    background:rgba(35,33,29,.92);
+    box-shadow:none;
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+  }
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-card.transparent .call-controls.video-layout,
+  .call-overlay--desktop-panel.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout {
+    --video-btn-size:clamp(44px, 5vw, 64px);
+    width:100%;
+    max-width:none;
+    gap:8px;
+    padding:10px;
+    border:0;
+    border-radius:32px;
+    background:rgba(53,50,43,.66);
+    box-shadow:none;
+    backdrop-filter:blur(20px) saturate(1.08);
+    -webkit-backdrop-filter:blur(20px) saturate(1.08);
+  }
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-card.transparent .call-controls.video-layout .call-ctrl-btn,
+  .call-overlay--desktop-panel.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn {
+    background:#292720;
+    border:0;
+    box-shadow:none;
+    color:#fff;
+  }
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-speaker.on,
+  .call-overlay--desktop-panel.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.call-ctrl-speaker.on {
+    background:#f7f3ed;
+    color:#11110f;
+  }
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-card.transparent .call-controls.video-layout .call-ctrl-btn.call-ctrl-speaker.on svg,
+  .call-overlay--desktop-panel.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.call-ctrl-speaker.on svg {
+    color:#11110f;
+  }
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-card.transparent .call-controls.video-layout .call-ctrl-btn.end,
+  .call-overlay--desktop-panel.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout .call-ctrl-btn.end {
+    background:#e90046;
+    box-shadow:none;
+  }
+}
+
 .pulse-sheet-handle {
   width: 44px;
   height: 5px;

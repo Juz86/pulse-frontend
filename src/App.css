@@ -379,6 +379,11 @@ body {
     box-shadow:none;
   }
   .call-overlay--desktop-panel.call-overlay--video-reference .call-active-head.call-active-head-centered {
+    position:absolute;
+    top:18px;
+    left:50%;
+    transform:translateX(-50%);
+    height:52px;
     padding:0 58px;
   }
   .call-overlay--desktop-panel.call-overlay--video-reference .call-active-head .call-name,
@@ -19487,7 +19492,22 @@ font-family: 'Inter', sans-serif;
     text-shadow:0 2px 14px rgba(0,0,0,.28);
   }
   .call-overlay--video-reference .call-active-head.call-active-head-centered {
-    top:max(58px, calc(env(safe-area-inset-top) + 38px));
+    top:max(40px, calc(env(safe-area-inset-top) + 18px));
+    height:62px;
+  }
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-name {
+    position:absolute;
+    top:max(40px, calc(env(safe-area-inset-top) + 18px));
+    left:50%;
+    margin:0;
+    transform:translateX(-50%);
+  }
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-status {
+    position:absolute;
+    top:calc(max(40px, env(safe-area-inset-top) + 18px) + 36px);
+    left:50%;
+    margin:0;
+    transform:translateX(-50%);
   }
   .call-overlay--video-reference .call-active-head .call-name,
   .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-name {

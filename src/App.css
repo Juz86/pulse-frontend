@@ -8655,6 +8655,12 @@ font-family: 'Inter', sans-serif;
 
 @media (max-width: 767px) {
   .group-info-panel { width: 100%; }
+
+  /* Een actieve oproep is op mobiel een volledige weergave. Houd de
+     navigatiebalk daarom achter de oproep, niet erboven. */
+  .call-overlay {
+    z-index: 4000 !important;
+  }
 }
 
 /* ── CALL OVERLAY ── */

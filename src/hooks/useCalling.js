@@ -70,9 +70,15 @@ export default function useCalling({
   function mergeCallLogs(primary = [], fallback = []) {
     const merged = [];
     const seen = new Set();
-    [...primary, ...fallback].forEach((entry) => {
+    const hasPrimaryMatch = (entry) => primary.some((primaryEntry) => (
+      primaryEntry?.uid === entry?.uid
+      && !!primaryEntry?.isVideo === !!entry?.isVideo
+      && Math.abs(Number(primaryEntry?.ts || 0) - Number(entry?.ts || 0)) <= 15000
+    ));
+    [...primary, ...fallback].forEach((entry, index) => {
       const key = `${entry?.uid || ''}:${entry?.ts || 0}:${entry?.isVideo ? 'video' : 'voice'}`;
-      if (!entry?.uid || !Number.isFinite(Number(entry?.ts)) || seen.has(key)) return;
+      const isFallbackDuplicate = index >= primary.length && hasPrimaryMatch(entry);
+      if (!entry?.uid || !Number.isFinite(Number(entry?.ts)) || seen.has(key) || isFallbackDuplicate) return;
       seen.add(key);
       merged.push(entry);
     });
@@ -285,7 +291,7 @@ export default function useCalling({
       direction: direction === 'declined' || direction === 'no-answer' ? 'missed' : 'outgoing',
       ts: Date.now(),
     };
-    if (localEntry.uid) {
+    if (localEntry.uid && callLogApiUnavailableRef.current) {
       writeLegacyCallEntry(localEntry);
       setCallLog((prev) => mergeCallLogs([localEntry], prev));
     }

@@ -6731,12 +6731,14 @@ font-family: 'Inter', sans-serif;
 }
 .contact-profile-hero--main .contact-profile-hero-copy {
   align-items:flex-start;
+  transform:translateX(-10px);
 }
 .contact-profile-hero--main .contact-profile-avatar-shell {
   width:100px;
   height:100px;
   margin-bottom:0;
   flex:0 0 auto;
+  transform:translateX(10px);
 }
 .contact-profile-hero--main .contact-profile-avatar {
   width:100px;

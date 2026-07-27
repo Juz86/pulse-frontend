@@ -2824,15 +2824,12 @@ export default function ChatSidebar({
     const handleBlockContactFromConversationActions = () => {
       if (!contact) return;
       onBlockContact(contact);
-      onDone?.();
     };
     const handleClearConversationFromActions = () => {
       onClearConversation?.(conv);
-      onDone?.();
     };
     const handleHardDeleteConversationFromActions = () => {
       onHardDeleteConversation?.(conv);
-      onDone?.();
     };
     const handleToggleConversationMuteFromActions = () => {
       onToggleConversationMute?.(conv.id);

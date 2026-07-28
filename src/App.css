@@ -996,7 +996,6 @@ body {
   position: sticky;
   bottom: 0;
   padding: 14px 0 8px;
-  background: linear-gradient(180deg, rgba(36, 28, 69, 0), rgba(36, 28, 69, .96) 28%);
 }
 .share-contact-page-footer .btn-primary {
   width: 100%;

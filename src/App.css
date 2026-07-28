@@ -19871,3 +19871,22 @@ font-family: 'Inter', sans-serif;
   position:relative;
   z-index:2;
 }
+
+/* In Profiel volgt de vaste tabbar dezelfde linker- en rechterlijn als de
+   profielkaarten (de panel-padding), ook wanneer de footer via een portal
+   boven de sidebar wordt getoond. */
+.sidebar-footer--contact-profile-floating {
+  left:18px;
+  right:auto;
+  width:calc(var(--sidebar-width, 360px) - 36px);
+  padding:0;
+  background:transparent;
+}
+@media (max-width: 767px) {
+  .sidebar-footer--contact-profile-floating {
+    left:max(18px, env(safe-area-inset-left));
+    right:max(18px, env(safe-area-inset-right));
+    width:auto;
+    padding:0;
+  }
+}

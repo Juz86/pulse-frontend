@@ -19890,3 +19890,13 @@ font-family: 'Inter', sans-serif;
     padding:0;
   }
 }
+
+/* Mobiele vijfknopsbalk: ruimere, beter raakbare knoppen zonder schaduw
+   rondom de balk zelf. Dit geldt gelijk voor audio- én videobellen. */
+@media (max-width: 767px) {
+  .call-card.voice-active .call-controls.active-layout,
+  .call-card.transparent .call-controls.video-layout {
+    --call-mobile-btn-size:clamp(54px, calc(11.8vw + 10px), 66px);
+    box-shadow:none;
+  }
+}

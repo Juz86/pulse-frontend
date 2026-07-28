@@ -396,6 +396,28 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
     </>
   );
 
+  const videoTopBar = isVideoActiveLayout ? (
+    <div className="call-video-topbar">
+      <button type="button" className="call-video-topbar-action" aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M9 9H4V4" />
+          <path d="m4 9 6-6" />
+          <path d="M15 15h5v5" />
+          <path d="m20 15-6 6" />
+        </svg>
+      </button>
+      <div className="call-video-topbar-copy">
+        <div className="call-video-topbar-name">{callName}</div>
+        <div className="call-video-topbar-status" role="status" aria-live="polite">
+          {callState === 'active' ? formatTimer(timer) : (callState === 'connecting' ? 'Verbinden…' : 'Bellen…')}
+        </div>
+      </div>
+      <button type="button" className="call-video-topbar-action" onClick={handleSwitchCamera} title="Camera wisselen" aria-label="Camera wisselen">
+        <CameraSwitch size={27} aria-hidden="true" />
+      </button>
+    </div>
+  ) : null;
+
   if (minimized) return (
     <div className="call-mini-bar" role="button" tabIndex={0} aria-label={`Open gesprek met ${callName}`} onClick={() => setMinimized(false)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMinimized(false); } }}>
       <button
@@ -517,17 +539,11 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
         </div>
       )}
 
-      {shouldShowVideoCallControls && (
-        <div className="call-video-side-actions" aria-label="Video-oproepacties">
-          <button type="button" className="call-video-side-action" onClick={handleSwitchCamera} title="Camera wisselen" aria-label="Camera wisselen">
-            <CameraSwitch size={27} aria-hidden="true" />
-          </button>
-        </div>
-      )}
+      {videoTopBar}
 
       {/* ── CALL CARD ── */}
       <div className={`call-card ${isVideoActiveLayout ? 'transparent' : ''} ${isVoiceCallLayout ? 'voice-active' : ''} ${isVideoPendingLayout ? 'call-video-pending' : ''}`}>
-        {canMinimize && (
+        {canMinimize && !isVideoActiveLayout && (
           <button type="button" className={`call-minimize-btn ${isVideoPendingLayout ? 'call-minimize-btn-right' : ''}`} aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M9 9H4V4" />
@@ -542,7 +558,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
             <Cancel size={14} aria-hidden="true" />
           </button>
         )}
-        {hasActiveHeaderLayout && (
+        {hasActiveHeaderLayout && !isVideoActiveLayout && (
           <div className={`call-active-head ${useCenteredActiveHeader ? 'call-active-head-centered' : ''}`}>
             {!useCenteredActiveHeader && <div className="call-active-head-avatar">{callName.slice(0,2).toUpperCase()}</div>}
             <div className="call-active-head-copy">
@@ -566,11 +582,11 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
                   : callName.slice(0,2).toUpperCase()}
               </div>
             )}
-            {!hasActiveHeaderLayout && <div className="call-name">{callName}</div>}
-            {!hasActiveHeaderLayout && callState === 'calling' && (
+            {!isVideoActiveLayout && !hasActiveHeaderLayout && <div className="call-name">{callName}</div>}
+            {!isVideoActiveLayout && !hasActiveHeaderLayout && callState === 'calling' && (
               <div className="call-status blink" role="status" aria-live="polite">Bellen…</div>
             )}
-            {!hasActiveHeaderLayout && callState === 'connecting' && (
+            {!isVideoActiveLayout && !hasActiveHeaderLayout && callState === 'connecting' && (
               <div className="call-status blink" role="status" aria-live="polite">Verbinden…</div>
             )}
           </>
@@ -583,7 +599,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
                   : callName.slice(0,2).toUpperCase()}
               </div>
             )}
-            {!hasActiveHeaderLayout && <div className="call-name">{callName}</div>}
+            {!isVideoActiveLayout && !hasActiveHeaderLayout && <div className="call-name">{callName}</div>}
           </>
         )}
 

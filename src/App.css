@@ -957,6 +957,7 @@ body {
   border-radius: inherit;
 }
 .share-contact-page-row:hover {
+  border-radius: 14px;
   background: rgba(255, 255, 255, .08) !important;
 }
 .share-contact-page-row.selected {

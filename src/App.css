@@ -19878,6 +19878,7 @@ font-family: 'Inter', sans-serif;
 .sidebar-footer--contact-profile-floating {
   left:18px;
   right:auto;
+  bottom:16px;
   width:calc(var(--sidebar-width, 360px) - 36px);
   padding:0;
   background:transparent;
@@ -19886,6 +19887,7 @@ font-family: 'Inter', sans-serif;
   .sidebar-footer--contact-profile-floating {
     left:max(18px, env(safe-area-inset-left));
     right:max(18px, env(safe-area-inset-right));
+    bottom:max(16px, calc(env(safe-area-inset-bottom) + 8px));
     width:auto;
     padding:0;
   }

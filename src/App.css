@@ -465,6 +465,22 @@ body {
   gap:12px;
   pointer-events:none;
 }
+.call-voice-topbar {
+  position:absolute;
+  top:max(18px, env(safe-area-inset-top));
+  left:18px;
+  right:18px;
+  z-index:18;
+  display:grid;
+  grid-template-columns:52px minmax(0, 1fr) 52px;
+  align-items:center;
+  gap:12px;
+  pointer-events:none;
+}
+.call-voice-topbar-spacer {
+  width:52px;
+  height:52px;
+}
 .call-video-topbar-action {
   width:52px;
   height:52px;
@@ -516,6 +532,16 @@ body {
     right:40px;
     grid-template-columns:56px minmax(0, 1fr) 56px;
   }
+  .call-voice-topbar {
+    top:max(40px, calc(env(safe-area-inset-top) + 18px));
+    left:40px;
+    right:40px;
+    grid-template-columns:56px minmax(0, 1fr) 56px;
+  }
+  .call-voice-topbar-spacer {
+    width:56px;
+    height:56px;
+  }
   .call-video-topbar-action {
     width:56px;
     height:56px;
@@ -530,6 +556,16 @@ body {
     left:18px;
     right:18px;
     grid-template-columns:48px minmax(0, 1fr) 48px;
+  }
+  .call-overlay--desktop-panel .call-voice-topbar {
+    top:18px;
+    left:18px;
+    right:18px;
+    grid-template-columns:48px minmax(0, 1fr) 48px;
+  }
+  .call-overlay--desktop-panel .call-voice-topbar-spacer {
+    width:48px;
+    height:48px;
   }
   .call-overlay--desktop-panel .call-video-topbar-action {
     width:48px;

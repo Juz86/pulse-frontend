@@ -423,6 +423,26 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
     </div>
   ) : null;
 
+  const voiceTopBar = isVoiceActiveLayout ? (
+    <div className="call-voice-topbar">
+      <button type="button" className="call-video-topbar-action" aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M9 9H4V4" />
+          <path d="m4 9 6-6" />
+          <path d="M15 15h5v5" />
+          <path d="m20 15-6 6" />
+        </svg>
+      </button>
+      <div className="call-video-topbar-copy">
+        <div className="call-video-topbar-name">{callName}</div>
+        <div className="call-video-topbar-status" role="status" aria-live="polite">
+          {callState === 'active' ? formatTimer(timer) : (callState === 'connecting' ? 'Verbinden…' : callingStatusLabel)}
+        </div>
+      </div>
+      <span className="call-voice-topbar-spacer" aria-hidden="true" />
+    </div>
+  ) : null;
+
   if (minimized) return (
     <div className="call-mini-bar" role="button" tabIndex={0} aria-label={`Open gesprek met ${callName}`} onClick={() => setMinimized(false)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMinimized(false); } }}>
       <button
@@ -545,10 +565,11 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
       )}
 
       {videoTopBar}
+      {voiceTopBar}
 
       {/* ── CALL CARD ── */}
       <div className={`call-card ${isVideoActiveLayout ? 'transparent' : ''} ${isVoiceCallLayout ? 'voice-active' : ''} ${isVideoPendingLayout ? 'call-video-pending' : ''}`}>
-        {canMinimize && !isVideoActiveLayout && (
+        {canMinimize && !isVideoActiveLayout && !isVoiceActiveLayout && (
           <button type="button" className={`call-minimize-btn ${isVideoPendingLayout ? 'call-minimize-btn-right' : ''}`} aria-label="Minimaliseer gesprek" onClick={() => setMinimized(true)} title="Minimaliseren">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M9 9H4V4" />
@@ -563,7 +584,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
             <Cancel size={14} aria-hidden="true" />
           </button>
         )}
-        {hasActiveHeaderLayout && !isVideoActiveLayout && (
+        {hasActiveHeaderLayout && !isVideoActiveLayout && !isVoiceActiveLayout && (
           <div className={`call-active-head ${useCenteredActiveHeader ? 'call-active-head-centered' : ''}`}>
             {!useCenteredActiveHeader && <div className="call-active-head-avatar">{callName.slice(0,2).toUpperCase()}</div>}
             <div className="call-active-head-copy">

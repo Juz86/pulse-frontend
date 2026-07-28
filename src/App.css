@@ -19918,3 +19918,17 @@ font-family: 'Inter', sans-serif;
     background:none;
   }
 }
+
+@media (min-width: 768px) {
+  .share-contact-page-footer {
+    position:fixed;
+    z-index:891;
+    left:18px;
+    right:auto;
+    bottom:calc(var(--sidebar-local-sheet-bottom, 96px) + 5px);
+    width:calc(var(--pulse-sidebar-width, var(--sidebar-width, 360px)) - 36px);
+    margin:0;
+    padding:0;
+    background:none;
+  }
+}

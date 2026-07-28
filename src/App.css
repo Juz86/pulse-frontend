@@ -3556,7 +3556,7 @@ font-family: 'Inter', sans-serif;
 .sidebar-tab:hover  { color:var(--text); background:rgba(108,99,255,0.08); }
 .sidebar-tab.active { background:linear-gradient(135deg, #7c6fff, #a855f7); color:#fff; font-weight:700; box-shadow:0 4px 16px rgba(108,99,255,.5), 0 0 0 1px rgba(168,85,247,.2); }
 
-.conv-list { flex:1; -webkit-overflow-scrolling:touch; }
+.conv-list { flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .conv-list::-webkit-scrollbar { width:4px; }
 .conv-list::-webkit-scrollbar-thumb { background:var(--surface3); border-radius:4px; }
 

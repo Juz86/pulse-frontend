@@ -19586,3 +19586,56 @@ font-family: 'Inter', sans-serif;
     box-shadow:none;
   }
 }
+
+/* Eén vaste bovenste videobelrij en een lokaal beeld dat het hoofdbeeld niet
+   meer bedekt. Deze regels staan als laatste zodat oudere oproepvarianten de
+   uitlijning niet kunnen terugzetten. */
+.call-overlay--video-reference .call-card.transparent .call-active-head.call-active-head-centered {
+  position:absolute !important;
+  top:max(18px, env(safe-area-inset-top)) !important;
+  left:50% !important;
+  transform:translateX(-50%) !important;
+  height:62px;
+  margin:0;
+  z-index:14;
+}
+.call-overlay--video-reference .video-container.video-container-live .video-local {
+  top:auto !important;
+  left:auto !important;
+  right:18px !important;
+  bottom:calc(var(--video-btn-size, 88px) + 42px) !important;
+  width:96px !important;
+  height:128px !important;
+  border-radius:18px;
+  z-index:13;
+}
+
+@media (max-width: 767px) {
+  .call-overlay--video-reference .call-card.transparent .call-active-head.call-active-head-centered {
+    top:max(40px, calc(env(safe-area-inset-top) + 18px)) !important;
+    width:calc(100% - 180px);
+    min-width:0;
+  }
+  .call-overlay--video-reference .call-card.transparent .call-active-head.call-active-head-centered .call-active-head-copy {
+    width:100%;
+  }
+  .call-overlay--video-reference .video-container.video-container-live .video-local {
+    right:20px !important;
+    bottom:calc(var(--video-btn-size, 88px) + 42px) !important;
+    width:106px !important;
+    height:142px !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-card.transparent .call-active-head.call-active-head-centered {
+    top:18px !important;
+    width:calc(100% - 140px);
+  }
+  .call-overlay--desktop-panel.call-overlay--video-reference .video-container.video-container-live .video-local {
+    right:16px !important;
+    bottom:calc(var(--video-btn-size, 64px) + 34px) !important;
+    width:84px !important;
+    height:112px !important;
+  }
+}

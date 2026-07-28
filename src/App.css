@@ -19625,6 +19625,16 @@ font-family: 'Inter', sans-serif;
   z-index:16;
 }
 
+/* Geen visuele scheidingsrand boven het schermvullende lokale videobeeld. */
+.call-overlay.video-pending-mode,
+.call-overlay.video-pending-mode .video-container {
+  border:0;
+  outline:0;
+}
+.call-overlay.video-pending-mode::before {
+  display:none;
+}
+
 @media (max-width: 767px) {
   .call-overlay--video-reference .call-card.transparent .call-active-head.call-active-head-centered {
     top:max(40px, calc(env(safe-area-inset-top) + 18px)) !important;

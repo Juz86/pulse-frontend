@@ -947,7 +947,7 @@ body {
 .share-contact-page-row {
   position: relative;
   border: 0 !important;
-  border-radius: 18px;
+  border-radius: 14px !important;
   background: transparent !important;
   box-shadow: none !important;
   transition: background .16s ease;

@@ -19664,3 +19664,57 @@ font-family: 'Inter', sans-serif;
     height:112px !important;
   }
 }
+
+/* Laatste videobelpass: voorkom dat oudere oproepregels het contrast en de
+   compacte plaatsing hieronder weer overschrijven. */
+.call-overlay--video-reference .call-active-head .call-name,
+.call-overlay--video-reference .call-active-head .call-status,
+.call-overlay--video-reference .call-active-head .call-timer,
+.call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-name,
+.call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-status {
+  color:#fff !important;
+  text-shadow:0 2px 10px rgba(0,0,0,.72), 0 0 18px rgba(0,0,0,.34) !important;
+}
+.call-overlay--video-reference .call-active-head .call-active-head-copy {
+  gap:2px;
+  justify-content:center;
+}
+.call-overlay--video-reference .call-active-head .call-name,
+.call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-name {
+  line-height:1.02;
+}
+.call-overlay--video-reference .call-active-head .call-status,
+.call-overlay--video-reference .call-active-head .call-timer {
+  margin-top:2px;
+  line-height:1.05;
+}
+
+@media (max-width: 767px) {
+  .call-overlay--video-reference .call-minimize-btn,
+  .call-overlay.video-pending-mode .call-minimize-btn,
+  .call-overlay--video-reference .call-video-side-action {
+    width:56px !important;
+    height:56px !important;
+  }
+  .call-overlay--video-reference .call-card.transparent .call-active-head.call-active-head-centered {
+    width:calc(100% - 168px);
+  }
+  .call-overlay--video-reference .call-card.transparent .call-controls.video-layout,
+  .call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout {
+    bottom:max(8px, calc(env(safe-area-inset-bottom) + 4px)) !important;
+  }
+  .call-overlay--video-reference .video-container.video-container-live .video-local {
+    bottom:calc(var(--video-btn-size, 88px) + 34px) !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-minimize-btn,
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-video-side-action {
+    width:48px !important;
+    height:48px !important;
+  }
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-card.transparent .call-active-head.call-active-head-centered {
+    height:48px;
+  }
+}

@@ -19859,3 +19859,15 @@ font-family: 'Inter', sans-serif;
   cursor:not-allowed;
   filter:saturate(.45);
 }
+
+/* Een videobeluitnodiging hoort in de vrije zone tussen de avatar en de
+   vaste vijfknopsbalk. Zonder een expliciete flex-order kwam dit element
+   vóór de avatar terecht. */
+.call-card.voice-active .call-upgrade-banner {
+  order:5;
+  flex:0 0 auto;
+  margin-top:auto;
+  margin-bottom:clamp(12px, 3vh, 28px);
+  position:relative;
+  z-index:2;
+}

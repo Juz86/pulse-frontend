@@ -19610,6 +19610,21 @@ font-family: 'Inter', sans-serif;
   z-index:13;
 }
 
+/* De lokale camera kan tijdens overgaan schermvullend zijn, maar mag de
+   vaste oproepbediening nooit afdekken. */
+.call-overlay.video-pending-mode .call-card.transparent.call-video-pending {
+  z-index:14;
+}
+.call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-minimize-btn,
+.call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-name,
+.call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-status,
+.call-overlay.video-pending-mode .call-card.transparent.call-video-pending .call-controls.video-layout {
+  z-index:15;
+}
+.call-overlay.video-pending-mode .call-video-side-actions {
+  z-index:16;
+}
+
 @media (max-width: 767px) {
   .call-overlay--video-reference .call-card.transparent .call-active-head.call-active-head-centered {
     top:max(40px, calc(env(safe-area-inset-top) + 18px)) !important;

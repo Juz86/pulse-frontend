@@ -342,7 +342,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   const isVideoPendingLayout = isVideoActiveLayout && !hasRemoteVideoTrack;
   const hasActiveHeaderLayout = (isVoiceActiveLayout || isVideoActiveLayout) && !isVideoPendingLayout;
   const useCenteredActiveHeader = isVoiceActiveLayout || isVideoActiveLayout;
-  const callingStatusLabel = isVoiceActiveLayout ? 'Belt...' : 'Bellen…';
+  const callingStatusLabel = 'Bellen…';
   const shouldShowVideoCallControls = Boolean(active?.isVideo || isVideo)
     && callState !== 'incoming'
     && callState !== 'ended';

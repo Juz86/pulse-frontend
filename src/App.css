@@ -19852,3 +19852,10 @@ font-family: 'Inter', sans-serif;
     background:#e90046;
   }
 }
+
+/* De camera is bewust vergrendeld zolang een audiogesprek nog overgaat. */
+.call-card.voice-active .call-controls.active-layout .call-ctrl-btn.cam:disabled {
+  opacity:.38;
+  cursor:not-allowed;
+  filter:saturate(.45);
+}

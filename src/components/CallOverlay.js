@@ -185,6 +185,10 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   }
 
   async function handleUpgradeToVideo() {
+    // Net als WhatsApp kan een audiogesprek pas naar video worden omgezet
+    // nadat de andere persoon heeft opgenomen. De ontvanger krijgt daarna
+    // via `call:video-upgrade` eerst de keuze om de camera te starten.
+    if (callState !== 'active') return;
     const videoStream = await upgradeToVideo();
     if (videoStream) {
       localStreamRef.current = videoStream;
@@ -334,6 +338,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   const isVoiceCallLayout = !isVideo && callState !== 'ended';
   const isVoiceActiveLayout = !isVideo && callState !== 'incoming' && callState !== 'ended';
   const isVideoActiveLayout = isVideo && callState !== 'incoming' && callState !== 'ended';
+  const canRequestVideoUpgrade = callState === 'active';
   const isVideoPendingLayout = isVideoActiveLayout && !hasRemoteVideoTrack;
   const hasActiveHeaderLayout = (isVoiceActiveLayout || isVideoActiveLayout) && !isVideoPendingLayout;
   const useCenteredActiveHeader = isVoiceActiveLayout || isVideoActiveLayout;
@@ -652,7 +657,14 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
                 </button>
               )}
               {isVoiceActiveLayout && (
-                <button type="button" className="call-ctrl-btn cam call-ctrl-round" onClick={handleUpgradeToVideo} aria-label="Video">
+                <button
+                  type="button"
+                  className="call-ctrl-btn cam call-ctrl-round"
+                  onClick={handleUpgradeToVideo}
+                  disabled={!canRequestVideoUpgrade}
+                  aria-label={canRequestVideoUpgrade ? 'Videobellen aanvragen' : 'Videobellen is beschikbaar zodra de oproep is opgenomen'}
+                  title={canRequestVideoUpgrade ? 'Videobellen aanvragen' : 'Beschikbaar zodra de oproep is opgenomen'}
+                >
                   <Video size={18} aria-hidden="true" /><span>Video</span>
                 </button>
               )}

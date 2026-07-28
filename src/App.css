@@ -19903,3 +19903,19 @@ font-family: 'Inter', sans-serif;
     box-shadow:none;
   }
 }
+
+/* Contact delen: de verzendactie hoort vast direct boven de mobiele tabbar
+   te staan, niet afhankelijk van de lengte van de contactenlijst. */
+@media (max-width: 767px) {
+  .share-contact-page-footer {
+    position:fixed;
+    z-index:891;
+    left:max(18px, env(safe-area-inset-left));
+    right:max(18px, env(safe-area-inset-right));
+    bottom:calc(var(--sidebar-local-sheet-bottom, 96px) + 5px);
+    width:auto;
+    margin:0;
+    padding:0;
+    background:none;
+  }
+}

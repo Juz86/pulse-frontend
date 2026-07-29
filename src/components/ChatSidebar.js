@@ -1071,6 +1071,7 @@ export default function ChatSidebar({
     const contact = contacts.find((c) => c.uid === contactMenu?.uid) || contactMenu?.contact;
     if (!contact) return null;
     const isParentBlocked = parentBlockedUids?.includes(contact.uid);
+    const isBlocked = (blockedContacts || []).some((blockedContact) => blockedContact.uid === contact.uid);
     const isProtectedParentContact = !isParent && contact?.role === 'parent';
     const isPinned = pinnedContacts.includes(contact.uid);
     const title = getContactDisplayName(contact) || contact.displayName || contact.username || 'Contact';
@@ -1088,6 +1089,10 @@ export default function ChatSidebar({
       onTogglePin(contact.uid);
     };
     const handleBlockContactFromActions = () => {
+      if (isBlocked) {
+        onUnblockContact?.(contact.uid);
+        return;
+      }
       onBlockContact(contact);
     };
     const handleRemoveContactFromActions = () => {
@@ -1148,10 +1153,10 @@ export default function ChatSidebar({
             </>
           )}
           {!isProtectedParentContact && <div className="chat-header-menu-divider" />}
-          {!isProtectedParentContact && !isParentBlocked && (
-            <button type="button" role="menuitem" className="chat-header-menu-item danger" onClick={handleBlockContactFromActions} title="Blokkeren">
+          {!isProtectedParentContact && (
+            <button type="button" role="menuitem" className={`chat-header-menu-item${isBlocked ? '' : ' danger'}`} onClick={handleBlockContactFromActions} title={isBlocked ? 'Deblokkeren' : 'Blokkeren'}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
-              <span>Blokkeren</span>
+              <span>{isBlocked ? 'Deblokkeren' : 'Blokkeren'}</span>
             </button>
           )}
           {!isProtectedParentContact && (
@@ -2797,6 +2802,7 @@ export default function ChatSidebar({
   const renderConvActions = useCallback((conv, otherUid, onDone) => {
     const contact = contacts.find(c => c.uid === otherUid);
     const isParentBlocked = parentBlockedUids?.includes(otherUid);
+    const isBlocked = (blockedContacts || []).some((blockedContact) => blockedContact.uid === otherUid);
     const isProtectedParentContact = !isParent && contact?.role === 'parent';
     const isPinned = pinnedContacts.includes(otherUid);
     const isMuted = mutedConversationIds.includes(conv.id);
@@ -2819,6 +2825,10 @@ export default function ChatSidebar({
     };
     const handleBlockContactFromConversationActions = () => {
       if (!contact) return;
+      if (isBlocked) {
+        onUnblockContact?.(contact.uid);
+        return;
+      }
       onBlockContact(contact);
     };
     const handleRemoveContactFromConversationActions = () => {
@@ -2955,10 +2965,10 @@ export default function ChatSidebar({
               <span>Chat verwijderen</span>
             </button>
             {contact && !isProtectedParentContact && (
-              <button type="button" role="menuitem" className="chat-header-menu-item danger"
-                onClick={handleBlockContactFromConversationActions} title="Blokkeren">
+              <button type="button" role="menuitem" className={`chat-header-menu-item${isBlocked ? '' : ' danger'}`}
+                onClick={handleBlockContactFromConversationActions} title={isBlocked ? 'Deblokkeren' : 'Blokkeren'}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
-                <span>Blokkeren</span>
+                <span>{isBlocked ? 'Deblokkeren' : 'Blokkeren'}</span>
               </button>
             )}
             {contact && !isProtectedParentContact && (
@@ -2972,7 +2982,7 @@ export default function ChatSidebar({
         )}
       </>
     );
-  }, [contacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact, onRemoveContact]);
+  }, [contacts, blockedContacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact, onUnblockContact, onRemoveContact]);
 
   const remainingRateLimitMs = Math.max(0, Number(callLogRateLimitUntil || 0) - Date.now());
   const remainingRateLimitSeconds = Math.ceil(remainingRateLimitMs / 1000);

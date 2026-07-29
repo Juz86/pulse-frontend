@@ -987,6 +987,31 @@ body {
   -webkit-overflow-scrolling:touch;
 }
 
+/* Verzoeken: houd de topbar en tabkeuze vast; alleen de lijst scrolt. */
+.friend-requests-page-panel {
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.friend-requests-page-panel .contact-profile-topbar,
+.friend-requests-page-panel .friend-requests-tabs {
+  flex:0 0 auto;
+}
+.friend-requests-page-panel .contact-profile-card--requests-list {
+  display:flex;
+  flex:1 1 auto;
+  min-height:0;
+  margin-bottom:0;
+  overflow:hidden;
+}
+.friend-requests-page-panel .contact-profile-card--requests-list .friend-requests-list {
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
 .share-contact-page-selected {
   display: flex;
   align-items: center;

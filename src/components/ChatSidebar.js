@@ -972,6 +972,7 @@ export default function ChatSidebar({
 
   const renderRequestsPage = () => (
     <ProfilePageShell
+      className="chat-side-panel contact-profile-panel friend-requests-page-panel"
       panelRef={profilePanelRef}
       titleId="requests-title"
       title="Verzoeken"

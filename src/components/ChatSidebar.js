@@ -144,6 +144,7 @@ export default function ChatSidebar({
   onShareContact,
   conversations,
   activeConv,
+  showChatSearch = false,
   loadingConvs,
   convLabels,
   pinnedContacts,
@@ -3232,7 +3233,7 @@ export default function ChatSidebar({
         />
       ) : null}
       {callsProfilePageVisible ? renderCallsProfilePage() : null}
-      {contactActionsPageVisible && !shareContactPageVisible ? renderContactActionsPage() : null}
+      {contactActionsPageVisible && !shareContactPageVisible && !showChatSearch ? renderContactActionsPage() : null}
       {conversationActionsPageVisible ? renderConversationActionsPage() : null}
 
       {footerClusterMode ? (

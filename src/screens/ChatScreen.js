@@ -514,7 +514,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         sharingContact={sharingContact} setSharingContact={setSharingContact}
         shareRecipients={shareRecipients} setShareRecipients={setShareRecipients}
         onShareContact={sendContactCard}
-        activeConv={activeConv} loadingConvs={loadingConvs}
+        activeConv={activeConv} showChatSearch={showChatSearch} loadingConvs={loadingConvs}
         convLabels={convLabels} pinnedContacts={pinnedContacts}
         unreadCounts={unreadCounts} typingByConv={typingByConv} photoPreview={photoPreview}
         isParent={isParent} parentActivityBadge={parentActivityBadge}

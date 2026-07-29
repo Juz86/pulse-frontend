@@ -326,6 +326,11 @@ export default function ChatSidebar({
   const addContactSheetVisible = showAddContact || addContactSheetClosing;
   const newChatSheetVisible = showNewChat || newChatSheetClosing;
   const shareContactPageVisible = Boolean(sharingContact);
+  const closeShareContactPage = () => {
+    setSharingContact?.(null);
+    setShareRecipients?.([]);
+    setShareContactSearch('');
+  };
   const newGroupSheetVisible = showNewGroup || newGroupSheetClosing;
   const requestsSheetVisible = showFriendRequestsPanel || requestsSheetClosing;
   const contactSheetVisible = !!contactMenu;
@@ -705,11 +710,6 @@ export default function ChatSidebar({
   );
 
   const renderShareContactPage = () => {
-    const closeShareContactPage = () => {
-      setSharingContact?.(null);
-      setShareRecipients?.([]);
-      setShareContactSearch('');
-    };
     const sendSharedContact = () => {
       if (!sharingContact || shareRecipients.length === 0) return;
       shareRecipients.forEach((uid) => {
@@ -2612,6 +2612,7 @@ export default function ChatSidebar({
           }
           closeAddContactSheet();
           closeNewChatSheet();
+          closeShareContactPage();
           closeNewGroupSheet();
           closeRequestsSheet();
           closeContactActionsSheet();
@@ -2642,6 +2643,7 @@ export default function ChatSidebar({
           closeMoreActionsSheet();
           closeAddContactSheet();
           closeNewChatSheet();
+          closeShareContactPage();
           closeNewGroupSheet();
           closeRequestsSheet();
           closeContactActionsSheet();
@@ -2684,6 +2686,7 @@ export default function ChatSidebar({
             closeProfileOverviewSheet();
             closeAddContactSheet();
             closeNewChatSheet();
+            closeShareContactPage();
             closeNewGroupSheet();
             closeRequestsSheet();
             closeContactActionsSheet();
@@ -2724,6 +2727,7 @@ export default function ChatSidebar({
             closeProfileOverviewSheet();
             closeAddContactSheet();
             closeNewChatSheet();
+            closeShareContactPage();
             closeNewGroupSheet();
             closeRequestsSheet();
             closeContactActionsSheet();
@@ -2763,6 +2767,7 @@ export default function ChatSidebar({
             closeProfileOverviewSheet();
             closeAddContactSheet();
             closeNewChatSheet();
+            closeShareContactPage();
             closeNewGroupSheet();
             closeRequestsSheet();
             closeContactActionsSheet();

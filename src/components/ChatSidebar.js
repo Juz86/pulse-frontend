@@ -738,14 +738,6 @@ export default function ChatSidebar({
           </button>
         )}
       >
-        <section className="share-contact-page-selected" aria-label="Te delen contact">
-          <UserAvatar photoURL={sharingContact?.photoURL} displayName={getContactDisplayName(sharingContact)} className="sm" decorative />
-          <div className="conv-info">
-            <div className="conv-name">{getContactDisplayName(sharingContact)}</div>
-            <div className="conv-preview">{sharingContact?.email}</div>
-          </div>
-        </section>
-
         <div className="new-chat-sheet-kicker">Stuur naar</div>
         <div className="calls-dashboard-search new-chat-page-search">
           <div className="search-box search-box--top sidebar-call-search-box">

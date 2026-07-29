@@ -853,7 +853,7 @@ export default function ChatModals({
       )}
 
       {/* ── CONTACTPROFIEL PANEEL ── */}
-      {showContactProfile && (() => {
+      {showContactProfile && !sharingContact && (() => {
         const targetContact = contactProfileContact || (activeConv && !activeConv.isGroup ? {
           uid: getOtherUid(activeConv),
           displayName: getConvName(activeConv),
@@ -906,7 +906,7 @@ export default function ChatModals({
                         <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={() => openStarredFromProfile(targetContact)}>
                           <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
                         </button>
-                        <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) { setSharingContact(c); setShowContactProfile(false); } }} title="Contactpersoon delen">
+                        <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) setSharingContact(c); }} title="Contactpersoon delen">
                           <Share size={18} aria-hidden="true" />
                         </button>
                       </div>

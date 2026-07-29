@@ -2312,6 +2312,17 @@ export default function ChatSidebar({
     setContactMenu(null);
     setConvActionsSheet({ conv, otherUid });
   }, []);
+  const openConversationProfile = useCallback((conv, otherUid) => {
+    const contact = contacts.find((item) => item.uid === otherUid);
+    if (!contact) {
+      openConvActionsSheet(conv, otherUid);
+      return;
+    }
+    setConvMenu(null);
+    setContactMenu(null);
+    setConvActionsSheet(null);
+    onViewContact(contact, { preserveActiveConversation: true });
+  }, [contacts, onViewContact, openConvActionsSheet]);
   useEffect(() => {
     if (!conversationActionsRequest?.id) return;
     openConvActionsSheet(conversationActionsRequest, getOtherUid?.(conversationActionsRequest));
@@ -3143,7 +3154,7 @@ export default function ChatSidebar({
                 getOtherUid={getOtherUid}
                 getConvPhoto={getConvPhoto}
                 onOpen={handleOpenConversation}
-                onSwipeMoreActions={openConvActionsSheet}
+                onSwipeMoreActions={openConversationProfile}
                 setLabelMenuConvId={setLabelMenuConvId}
               />
             </>

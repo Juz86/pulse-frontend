@@ -720,6 +720,7 @@ export default function ChatSidebar({
     };
     return (
       <ProfilePageShell
+        className="chat-side-panel contact-profile-panel share-contact-page-panel"
         panelRef={profilePanelRef}
         titleId="share-contact-page-title"
         title="Contact delen"

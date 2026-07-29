@@ -1012,6 +1012,31 @@ body {
   -webkit-overflow-scrolling:touch;
 }
 
+/* Contact delen: de navigatie en zoekbalk blijven vast; alleen contacten scrollen. */
+.share-contact-page-panel {
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.share-contact-page-panel .contact-profile-topbar,
+.share-contact-page-panel .new-chat-page-search {
+  flex:0 0 auto;
+}
+.share-contact-page-panel .share-contact-page-directory {
+  display:flex;
+  flex:1 1 auto;
+  min-height:0;
+  margin-bottom:0;
+  overflow:hidden;
+}
+.share-contact-page-panel .share-contact-page-directory .new-chat-contact-list {
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
 .share-contact-page-selected {
   display: flex;
   align-items: center;

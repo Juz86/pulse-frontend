@@ -738,7 +738,6 @@ export default function ChatSidebar({
           </button>
         )}
       >
-        <div className="new-chat-sheet-kicker">Te delen contact</div>
         <section className="share-contact-page-selected" aria-label="Te delen contact">
           <UserAvatar photoURL={sharingContact?.photoURL} displayName={getContactDisplayName(sharingContact)} className="sm" decorative />
           <div className="conv-info">

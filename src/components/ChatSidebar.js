@@ -2821,6 +2821,10 @@ export default function ChatSidebar({
       if (!contact) return;
       onBlockContact(contact);
     };
+    const handleRemoveContactFromConversationActions = () => {
+      if (!contact) return;
+      onRemoveContact(contact.uid);
+    };
     const handleClearConversationFromActions = () => {
       onClearConversation?.(conv);
     };
@@ -2957,11 +2961,18 @@ export default function ChatSidebar({
                 <span>Blokkeren</span>
               </button>
             )}
+            {contact && !isProtectedParentContact && (
+              <button type="button" role="menuitem" className="chat-header-menu-item danger"
+                onClick={handleRemoveContactFromConversationActions} title="Contact verwijderen">
+                <Trash2 size={14} aria-hidden="true" />
+                <span>Contact verwijderen</span>
+              </button>
+            )}
           </>
         )}
       </>
     );
-  }, [contacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact]);
+  }, [contacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact, onRemoveContact]);
 
   const remainingRateLimitMs = Math.max(0, Number(callLogRateLimitUntil || 0) - Date.now());
   const remainingRateLimitSeconds = Math.ceil(remainingRateLimitMs / 1000);

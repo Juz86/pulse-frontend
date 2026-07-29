@@ -3231,7 +3231,7 @@ export default function ChatSidebar({
         />
       ) : null}
       {callsProfilePageVisible ? renderCallsProfilePage() : null}
-      {contactActionsPageVisible ? renderContactActionsPage() : null}
+      {contactActionsPageVisible && !shareContactPageVisible ? renderContactActionsPage() : null}
       {conversationActionsPageVisible ? renderConversationActionsPage() : null}
 
       {footerClusterMode ? (

@@ -19967,7 +19967,8 @@ font-family: 'Inter', sans-serif;
 /* Contact delen: de verzendactie hoort vast direct boven de mobiele tabbar
    te staan, niet afhankelijk van de lengte van de contactenlijst. */
 @media (max-width: 767px) {
-  .share-contact-page-footer {
+  .share-contact-page-footer,
+  .new-group-page-footer {
     position:fixed;
     z-index:891;
     left:max(18px, env(safe-area-inset-left));
@@ -19981,7 +19982,8 @@ font-family: 'Inter', sans-serif;
 }
 
 @media (min-width: 768px) {
-  .share-contact-page-footer {
+  .share-contact-page-footer,
+  .new-group-page-footer {
     position:fixed;
     z-index:891;
     left:18px;

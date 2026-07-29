@@ -880,6 +880,7 @@ export default function ChatSidebar({
   const renderNewGroupPage = () => (
     <ProfilePageShell
       panelRef={profilePanelRef}
+      className="chat-side-panel contact-profile-panel new-group-page-panel"
       titleId="new-group-title"
       title="Nieuwe groep"
       description="Start een groepsgesprek vanuit dezelfde profielopbouw."
@@ -957,7 +958,7 @@ export default function ChatSidebar({
             <p className="new-chat-sheet-sub">{groupMembers.length} deelnemer(s) geselecteerd</p>
           </div>
         )}
-        <div className="contact-profile-field">
+        <div className="contact-profile-field new-group-page-footer">
           <div className="modal-actions add-contact-sheet-actions">
             <button
               type="button"

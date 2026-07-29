@@ -863,6 +863,7 @@ export default function ChatModals({
         if (!targetContact) return null;
         const targetConv = targetContact?.uid ? findConvWithUid?.(targetContact.uid) : null;
         const uid       = targetContact.uid;
+        const isBlocked = (blockedContacts || []).some((blockedContact) => blockedContact.uid === uid);
         const name      = targetContact.displayName || targetContact.name || targetContact.email || 'Contact';
         const email     = targetContact.email || '';
         const photo     = targetContact.photoURL || null;
@@ -1012,10 +1013,10 @@ export default function ChatModals({
               </section>
 
               <section className="contact-profile-card contact-profile-card-danger contact-profile-card--profile-danger">
-                <button type="button" className="contact-profile-row-button danger" onClick={() => onBlockContact?.(targetContact)}>
+                <button type="button" className={`contact-profile-row-button${isBlocked ? '' : ' danger'}`} onClick={() => (isBlocked ? unblockContact?.(uid) : onBlockContact?.(targetContact))}>
                   <span className="contact-profile-row-icon"><Block size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
-                    <span className="contact-profile-row-title">Blokkeren</span>
+                    <span className="contact-profile-row-title">{isBlocked ? 'Deblokkeren' : 'Blokkeren'}</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>

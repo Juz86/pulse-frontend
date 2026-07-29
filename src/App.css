@@ -962,6 +962,31 @@ body {
   overflow: visible;
 }
 
+/* Nieuwe chat: houd navigatie en zoeken vast; alleen de lijst met contacten
+   krijgt de beschikbare ruimte en scrolt zelfstandig. */
+.new-chat-page-panel {
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.new-chat-page-panel .contact-profile-topbar,
+.new-chat-page-panel .new-chat-page-search {
+  flex:0 0 auto;
+}
+.new-chat-page-panel .new-chat-page-directory {
+  display:flex;
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden;
+}
+.new-chat-page-panel .new-chat-page-directory .new-chat-contact-list {
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+
 .share-contact-page-selected {
   display: flex;
   align-items: center;

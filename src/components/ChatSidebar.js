@@ -627,6 +627,7 @@ export default function ChatSidebar({
   const renderNewChatPage = () => (
     <ProfilePageShell
       panelRef={profilePanelRef}
+      className="chat-side-panel contact-profile-panel new-chat-page-panel"
       titleId="new-chat-title"
       title="Nieuwe chat"
       description="Zoek een contact of start een gesprek vanuit dezelfde profielopbouw."

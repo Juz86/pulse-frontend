@@ -900,11 +900,6 @@ export default function ChatSidebar({
     >
       <section className="contact-profile-card new-group-page-section">
         <div className="contact-profile-field">
-          <p id="new-group-description" className="new-chat-sheet-sub">
-            Start een groepsgesprek met familie en vrienden.
-          </p>
-        </div>
-        <div className="contact-profile-field">
           <div className="contact-profile-field-label">Groepsnaam</div>
           <div className="sheet-input-wrap">
             <input

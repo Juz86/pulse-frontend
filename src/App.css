@@ -1218,6 +1218,23 @@ body {
   background: transparent;
 }
 
+/* Nieuwe chat: iedere contactkaart houdt voldoende eigen hoogte, zodat naam,
+   e-mailadres en avatar van opeenvolgende contacten nooit kunnen overlappen. */
+.new-chat-page-panel .new-chat-sheet-result {
+  display:block;
+  flex:0 0 auto;
+  min-height:64px;
+}
+.new-chat-page-panel .new-chat-sheet-result .sidebar-contact-row--call-log {
+  box-sizing:border-box;
+  min-height:64px;
+  padding:10px 18px;
+}
+.new-chat-page-panel .new-chat-sheet-result .conv-name,
+.new-chat-page-panel .new-chat-sheet-result .conv-preview {
+  line-height:1.25;
+}
+
 .new-chat-sheet-empty {
   padding: 18px 20px 132px;
   font-size: 13px;

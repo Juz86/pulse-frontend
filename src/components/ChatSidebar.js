@@ -303,6 +303,7 @@ export default function ChatSidebar({
   const [parentPortalView, setParentPortalView] = useState('menu');
   const [callSearch, setCallSearch] = useState('');
   const [shareContactSearch, setShareContactSearch] = useState('');
+  const [sidebarSearchOpen, setSidebarSearchOpen] = useState(false);
   const [callActionMode, setCallActionMode] = useState(null);
   const [requestsTab, setRequestsTab] = useState('ontvangen');
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
@@ -3076,11 +3077,41 @@ export default function ChatSidebar({
           <div className="sidebar-header" ref={sidebarHeaderRef}>
             <div className="sidebar-top">
               <PulseLogo size={30} textSize={20} color="#fff" />
-              <div className="search-box search-box--top">
-                <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
-                <input aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'} placeholder="Zoeken…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-              </div>
+              <button
+                type="button"
+                className="sidebar-search-trigger"
+                aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken openen' : 'Zoeken in contacten openen'}
+                aria-expanded={sidebarSearchOpen}
+                onClick={() => setSidebarSearchOpen(true)}
+              >
+                <Search size={20} aria-hidden="true" />
+              </button>
             </div>
+            {sidebarSearchOpen && (
+              <div className="sidebar-search-window" role="search">
+                <div className="search-box search-box--top">
+                  <Search size={18} aria-hidden="true" />
+                  <input
+                    autoFocus
+                    aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'}
+                    placeholder="Zoeken…"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="sidebar-search-window-close"
+                    aria-label="Zoekvenster sluiten"
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSidebarSearchOpen(false);
+                    }}
+                  >
+                    <XIcon size={18} aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Tabs */}

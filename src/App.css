@@ -3594,12 +3594,72 @@ font-family: 'Inter', sans-serif;
   flex-shrink: 0;
 }
 .sidebar-header {
+  position:relative;
   padding:20px 18px 14px;
   border-bottom:1px solid var(--border);
   background:linear-gradient(180deg, rgba(108,99,255,.07) 0%, transparent 100%);
   box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
 }
 .sidebar-top    { display:flex; align-items:center; gap:12px; }
+.sidebar-search-trigger {
+  width:50px;
+  height:50px;
+  margin-left:auto;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:50%;
+  background:rgba(34,29,78,.92);
+  color:#d9d3ff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 8px 20px rgba(13,10,36,.18);
+  cursor:pointer;
+  transition:background .15s ease, border-color .15s ease, color .15s ease;
+}
+.sidebar-search-trigger:hover,
+.sidebar-search-trigger:focus-visible {
+  border-color:rgba(184,141,255,.7);
+  background:rgba(103,78,183,.7);
+  color:#fff;
+}
+.sidebar-search-window {
+  position:absolute;
+  z-index:30;
+  top:calc(100% + 8px);
+  right:18px;
+  left:18px;
+  padding:8px;
+  border:1px solid rgba(184,141,255,.3);
+  border-radius:20px;
+  background:linear-gradient(180deg,rgba(58,49,117,.98),rgba(45,40,96,.98));
+  box-shadow:0 18px 36px rgba(11,8,33,.38);
+}
+.sidebar-search-window .search-box--top {
+  min-height:50px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.11);
+  background:rgba(34,29,78,.96);
+  padding:0 14px;
+}
+.sidebar-search-window .search-box--top input {
+  color:#f7f4ff;
+  font-size:14px;
+  font-weight:600;
+}
+.sidebar-search-window .search-box--top input::placeholder { color:rgba(183,176,211,.78); }
+.sidebar-search-window-close {
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  border:0;
+  border-radius:50%;
+  background:rgba(255,255,255,.09);
+  color:#fff;
+  cursor:pointer;
+}
+.sidebar-search-window-close:hover { background:rgba(184,141,255,.28); }
 .app-brand {
   font-family:'Inter',sans-serif; font-size:22px; font-weight:800;
   display:flex; align-items:center; gap:8px;

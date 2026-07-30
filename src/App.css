@@ -1005,6 +1005,10 @@ body {
   margin-bottom:0;
   overflow:hidden;
 }
+.friend-requests-page-panel .contact-profile-card--requests-list.is-empty {
+  flex:0 0 auto;
+  overflow:visible;
+}
 .friend-requests-page-panel .contact-profile-card--requests-list .friend-requests-list {
   flex:1 1 auto;
   min-height:0;

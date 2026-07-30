@@ -1002,7 +1002,7 @@ export default function ChatSidebar({
         </button>
       </div>
 
-      <section className="contact-profile-card contact-profile-card--requests-list">
+      <section className={`contact-profile-card contact-profile-card--requests-list${(requestsTab === 'ontvangen' ? friendRequests.length === 0 : sentFriendRequests.length === 0) ? ' is-empty' : ''}`}>
         <div className="pulse-sheet-list pulse-sheet-list--new-chat friend-requests-list">
           {requestsTab === 'ontvangen' && (
             <>

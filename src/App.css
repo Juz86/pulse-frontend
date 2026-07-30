@@ -13717,8 +13717,14 @@ font-family: 'Inter', sans-serif;
 .parent-dashboard-panel .parent-portal-analytics-block {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   margin-bottom: 24px;
+}
+.parent-dashboard-panel .parent-activity-overview {
+  margin-bottom: 0;
+}
+.parent-dashboard-panel .parent-activity-overview + .parent-activity-log-card {
+  margin-top: 0;
 }
 
 .parent-dashboard-panel .parent-input,

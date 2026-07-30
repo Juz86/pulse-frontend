@@ -7056,9 +7056,9 @@ font-family: 'Inter', sans-serif;
 .contact-profile-hero--main {
   flex-direction:row;
   justify-content:center;
-  /* De avatar staat 10px naar rechts en de tekst 10px naar links. Met
-     deze ruimte blijft er visueel 5px tussen beide over. */
-  gap:25px;
+  /* The inward offsets leave a consistent 10px visual gap between the
+     avatar and its profile copy. */
+  gap:30px;
   padding:22px;
   margin:8px 0 18px;
   border:1px solid rgba(255,255,255,.08);

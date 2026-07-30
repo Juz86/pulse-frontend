@@ -3601,10 +3601,60 @@ font-family: 'Inter', sans-serif;
   box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
 }
 .sidebar-top    { display:flex; align-items:center; gap:12px; }
+.sidebar-header-actions {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-left:auto;
+}
+.sidebar-header-tab {
+  position:relative;
+  width:50px;
+  height:50px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:50%;
+  background:rgba(34,29,78,.92);
+  color:#d9d3ff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 8px 20px rgba(13,10,36,.18);
+  cursor:pointer;
+  transition:background .15s ease, border-color .15s ease, color .15s ease;
+}
+.sidebar-header-tab:hover,
+.sidebar-header-tab:focus-visible {
+  border-color:rgba(184,141,255,.7);
+  background:rgba(103,78,183,.7);
+  color:#fff;
+}
+.sidebar-header-tab.active {
+  border-color:#b66cff;
+  background:linear-gradient(135deg,#a96aff,#7a5af8);
+  color:#fff;
+  box-shadow:0 5px 16px rgba(144,87,255,.42), inset 0 1px 0 rgba(255,255,255,.16);
+}
+.sidebar-header-tab-badge {
+  position:absolute;
+  top:-4px;
+  right:-4px;
+  min-width:18px;
+  height:18px;
+  display:grid;
+  place-items:center;
+  padding:0 4px;
+  border:2px solid #3a3175;
+  border-radius:999px;
+  background:#21c970;
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  line-height:1;
+}
 .sidebar-search-trigger {
   width:50px;
   height:50px;
-  margin-left:auto;
+  margin-left:0;
   display:grid;
   place-items:center;
   flex:0 0 auto;
@@ -3665,6 +3715,13 @@ font-family: 'Inter', sans-serif;
 @keyframes sidebar-search-window-open {
   from { opacity:0; transform:scaleX(.25); }
   to { opacity:1; transform:scaleX(1); }
+}
+@media (max-width:380px) {
+  .sidebar-header { padding-inline:16px; }
+  .sidebar-header-actions { gap:6px; }
+  .sidebar-header-tab,
+  .sidebar-search-trigger { width:42px; height:42px; }
+  .sidebar-search-window { top:20px; right:16px; left:136px; }
 }
 .app-brand {
   font-family:'Inter',sans-serif; font-size:22px; font-weight:800;

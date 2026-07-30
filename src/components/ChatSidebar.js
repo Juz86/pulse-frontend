@@ -285,7 +285,6 @@ export default function ChatSidebar({
 }) {
   const sidebarRef = useRef(null);
   const sidebarHeaderRef = useRef(null);
-  const sidebarTabsRef = useRef(null);
   const sidebarFooterRef = useRef(null);
   const sidebarFooterTabbarRef = useRef(null);
   const [contactMenu, setContactMenu] = useState(null);
@@ -2250,7 +2249,7 @@ export default function ChatSidebar({
   useEffect(() => {
     const root = document.documentElement;
     const updateSidebarSheetBounds = () => {
-      if (!sidebarRef.current || !sidebarHeaderRef.current || !sidebarTabsRef.current || !sidebarFooterRef.current || !sidebarFooterTabbarRef.current) return;
+      if (!sidebarRef.current || !sidebarHeaderRef.current || !sidebarFooterRef.current || !sidebarFooterTabbarRef.current) return;
       const sidebarRect = sidebarRef.current.getBoundingClientRect();
       const headerRect = sidebarHeaderRef.current.getBoundingClientRect();
       const footerRect = sidebarFooterRef.current.getBoundingClientRect();
@@ -2277,7 +2276,6 @@ export default function ChatSidebar({
     if (resizeObserver) {
       resizeObserver.observe(sidebarRef.current);
       resizeObserver.observe(sidebarHeaderRef.current);
-      resizeObserver.observe(sidebarTabsRef.current);
       resizeObserver.observe(sidebarFooterRef.current);
       resizeObserver.observe(sidebarFooterTabbarRef.current);
     }
@@ -3077,15 +3075,38 @@ export default function ChatSidebar({
           <div className="sidebar-header" ref={sidebarHeaderRef}>
             <div className="sidebar-top">
               <PulseLogo size={30} textSize={20} color="#fff" />
-              <button
-                type="button"
-                className="sidebar-search-trigger"
-                aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken openen' : 'Zoeken in contacten openen'}
-                aria-expanded={sidebarSearchOpen}
-                onClick={() => setSidebarSearchOpen(true)}
-              >
-                <Search size={20} aria-hidden="true" />
-              </button>
+              <div className="sidebar-header-actions">
+                <button
+                  type="button"
+                  className={`sidebar-header-tab${activeTab === 'chats' ? ' active' : ''}`}
+                  aria-label="Chats"
+                  aria-pressed={activeTab === 'chats'}
+                  title="Chats"
+                  onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}
+                >
+                  <Message size={20} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  className={`sidebar-header-tab${activeTab === 'contacts' ? ' active' : ''}`}
+                  aria-label="Contacten"
+                  aria-pressed={activeTab === 'contacts'}
+                  title="Contacten"
+                  onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}
+                >
+                  <Users size={20} aria-hidden="true" />
+                  {friendRequests.length > 0 && <span className="sidebar-header-tab-badge" aria-label={`${friendRequests.length} openstaande ${friendRequests.length === 1 ? 'uitnodiging' : 'uitnodigingen'}`}>{friendRequests.length}</span>}
+                </button>
+                <button
+                  type="button"
+                  className="sidebar-search-trigger"
+                  aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken openen' : 'Zoeken in contacten openen'}
+                  aria-expanded={sidebarSearchOpen}
+                  onClick={() => setSidebarSearchOpen(true)}
+                >
+                  <Search size={20} aria-hidden="true" />
+                </button>
+              </div>
             </div>
             {sidebarSearchOpen && (
               <div className="sidebar-search-window" role="search">
@@ -3112,17 +3133,6 @@ export default function ChatSidebar({
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Tabs */}
-          <div className="sidebar-tabs" ref={sidebarTabsRef}>
-            <button type="button" className={`sidebar-tab ${activeTab === 'chats' ? 'active' : ''}`} aria-pressed={activeTab === 'chats'} onClick={() => { setActiveTab('chats'); setSearchQuery(''); }}>
-              <Message size={15} aria-hidden="true" /> Chats
-            </button>
-            <button type="button" className={`sidebar-tab ${activeTab === 'contacts' ? 'active' : ''}`} aria-pressed={activeTab === 'contacts'} onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}>
-              <Users size={15} aria-hidden="true" /> Contacten
-              {friendRequests.length > 0 && <span className="unread-badge" aria-label={`${friendRequests.length} openstaande ${friendRequests.length === 1 ? 'uitnodiging' : 'uitnodigingen'}`} style={{ marginLeft: '6px', fontSize: '11px', padding: '1px 6px' }}>{friendRequests.length}</span>}
-            </button>
           </div>
 
           {/* Filters */}

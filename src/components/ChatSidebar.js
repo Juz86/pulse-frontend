@@ -469,9 +469,11 @@ export default function ChatSidebar({
             name={settingsDisplayName}
             subtitle={settingsEmail || null}
             status={(
-              <div className={`profile-status-badge contact-profile-status ${settingsStatusClass}`}>
-                <span className="profile-status-dot" aria-hidden="true" />
-                {settingsStatusLabel}
+              <div className="contact-profile-status-row">
+                <div className={`profile-status-badge contact-profile-status ${settingsStatusClass}`}>
+                  <span className="profile-status-dot" aria-hidden="true" />
+                  {settingsStatusLabel}
+                </div>
               </div>
             )}
           />

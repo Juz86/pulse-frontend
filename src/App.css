@@ -3607,6 +3607,7 @@ font-family: 'Inter', sans-serif;
   gap:8px;
   margin-left:auto;
 }
+.sidebar-header--search-open .sidebar-header-actions { visibility:hidden; }
 .sidebar-header-tab {
   position:relative;
   width:50px;

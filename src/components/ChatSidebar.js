@@ -3072,7 +3072,7 @@ export default function ChatSidebar({
       {!isSidebarPageMode && (
         <>
           {/* Header */}
-          <div className="sidebar-header" ref={sidebarHeaderRef}>
+          <div className={`sidebar-header${sidebarSearchOpen ? ' sidebar-header--search-open' : ''}`} ref={sidebarHeaderRef}>
             <div className="sidebar-top">
               <PulseLogo size={30} textSize={20} color="#fff" />
               <div className="sidebar-header-actions">

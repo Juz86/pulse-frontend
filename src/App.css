@@ -3681,7 +3681,7 @@ font-family: 'Inter', sans-serif;
   padding:0;
   border:0;
   border-radius:999px;
-  background:transparent;
+  background:#241f58;
   box-shadow:none;
   transform-origin:right center;
   animation:sidebar-search-window-open .16s ease-out both;
@@ -3690,7 +3690,7 @@ font-family: 'Inter', sans-serif;
   min-height:50px;
   border-radius:999px;
   border:1px solid rgba(255,255,255,.11);
-  background:rgba(34,29,78,.96);
+  background:#241f58;
   padding:0 14px;
 }
 .sidebar-search-window .search-box--top input {

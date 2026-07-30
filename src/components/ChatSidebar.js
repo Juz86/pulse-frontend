@@ -2296,11 +2296,6 @@ export default function ChatSidebar({
   const missedCallCount = callsAvailable ? Math.max(unreadMissedCallCount, missedCallAlert ? 1 : 0) : 0;
   const hasMissedCall = missedCallCount > 0;
 
-  function openContactMenu(contactUid, anchorEl) {
-    const contact = contacts.find((item) => item.uid === contactUid);
-    setContactMenu(prev => prev?.uid === contactUid ? null : { uid: contactUid, contact });
-  }
-
   function handleOpenConversation(conv) {
     setConvMenu(null);
     setContactMenu(null);
@@ -2312,6 +2307,13 @@ export default function ChatSidebar({
     setContactMenu(null);
     setConvActionsSheet({ conv, otherUid });
   }, []);
+  const openContactProfile = useCallback((contact) => {
+    if (!contact) return;
+    setConvMenu(null);
+    setContactMenu(null);
+    setConvActionsSheet(null);
+    onViewContact(contact, { preserveActiveConversation: true });
+  }, [onViewContact]);
   const openConversationProfile = useCallback((conv, otherUid) => {
     if (conv.isGroup) {
       openConvActionsSheet(conv, otherUid);
@@ -2324,11 +2326,8 @@ export default function ChatSidebar({
       email: conv.memberEmails?.[otherUid] || '',
       photoURL: getConvPhoto?.(conv),
     };
-    setConvMenu(null);
-    setContactMenu(null);
-    setConvActionsSheet(null);
-    onViewContact(contact, { preserveActiveConversation: true });
-  }, [contacts, getConvName, getConvPhoto, onViewContact, openConvActionsSheet]);
+    openContactProfile(contact);
+  }, [contacts, getConvName, getConvPhoto, openContactProfile, openConvActionsSheet]);
   useEffect(() => {
     if (!conversationActionsRequest?.id) return;
     openConvActionsSheet(conversationActionsRequest, getOtherUid?.(conversationActionsRequest));
@@ -3205,7 +3204,7 @@ export default function ChatSidebar({
                         className="icon-btn sidebar-item-actions-btn"
                         aria-label={`Meer acties voor ${getContactDisplayName(contact)}`}
                         data-sidebar-actions-trigger
-                        onClick={(e) => { e.stopPropagation(); openContactMenu(contact.uid, e.currentTarget); }}
+                        onClick={(e) => { e.stopPropagation(); openContactProfile(contact); }}
                         title="Meer acties"
                         style={parentBlockedUids?.includes(contact.uid) ? { color: 'var(--danger, #ef4444)' } : undefined}
                       >

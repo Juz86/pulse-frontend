@@ -13,7 +13,6 @@ import {
 import { ENCRYPTED_MESSAGE_PROTOCOL } from '../lib/e2ee/messageProtocolConstants';
 import {
   buildPendingMessage,
-  getMessageDisplayText,
   normalizeIncomingMessage,
 } from '../lib/e2ee/messageModel';
 import {
@@ -246,7 +245,7 @@ export default function useConversations({
     return Array.from(new Set((conv.members || []).filter((memberUid) => memberUid && memberUid !== user.uid)));
   }
 
-  const hydrateMessages = useCallback(async (rawMessages) => {
+  async function hydrateMessages(rawMessages) {
     return Promise.all(
       rawMessages.map(async (raw) => {
         try {
@@ -256,9 +255,9 @@ export default function useConversations({
         }
       })
     );
-  }, [user.uid]);
+  }
 
-  const fetchConversationMessages = useCallback(async (convId, { limit = MSG_LIMIT, offset = 0 } = {}) => {
+  async function fetchConversationMessages(convId, { limit = MSG_LIMIT, offset = 0 } = {}) {
     const query = new URLSearchParams({
       limit: String(limit),
       offset: String(offset),
@@ -287,48 +286,7 @@ export default function useConversations({
       throw error;
     }
     return legacyRes.json();
-  }, [authFetch, currentDeviceId, readJsonResponse]);
-
-  const searchConversationMessages = useCallback(async (query) => {
-    const normalizedQuery = String(query || '').trim().toLocaleLowerCase();
-    if (!normalizedQuery) return {};
-
-    const matches = await Promise.all(conversations
-      .filter((conversation) => conversation?.id && !conversation.isDraft)
-      .map(async (conversation) => {
-        const conversationId = conversation.id;
-        const cached = msgCache.current[conversationId] || readCachedMessages(user.uid, conversationId);
-        const findMatch = (items) => items.find((message) => (
-          getMessageDisplayText(message).toLocaleLowerCase().includes(normalizedQuery)
-        ));
-
-        let match = findMatch(cached);
-        if (match) return [conversationId, getMessageDisplayText(match)];
-
-        let offset = 0;
-        let pageLength = MSG_LIMIT;
-        try {
-          while (pageLength === MSG_LIMIT) {
-            // Message contents remain encrypted in transit and are only searched
-            // after local hydration on this device.
-            // eslint-disable-next-line no-await-in-loop
-            const data = await fetchConversationMessages(conversationId, { limit: MSG_LIMIT, offset });
-            const page = Array.isArray(data) ? data : [];
-            pageLength = page.length;
-            // eslint-disable-next-line no-await-in-loop
-            const hydrated = await hydrateMessages(page);
-            match = findMatch(hydrated);
-            if (match) return [conversationId, getMessageDisplayText(match)];
-            offset += pageLength;
-          }
-        } catch {
-          // A single unavailable conversation must not block the remaining results.
-        }
-        return null;
-      }));
-
-    return Object.fromEntries(matches.filter(Boolean));
-  }, [conversations, fetchConversationMessages, hydrateMessages, msgCache, user.uid]);
+  }
 
   async function markConversationMessagesAsRead(items) {
     const targets = items.filter((message) =>
@@ -1277,7 +1235,7 @@ export default function useConversations({
     messages, setMessages,
     loadingConvs, loadingMsgs, hasMore, loadingMore, msgOffset, setMsgOffset,
     currentDeviceId,
-    loadConversations, openConversation, deleteConversation, clearConversationHistoryHard, hardDeleteConversation, loadMoreMessages, searchConversationMessages,
+    loadConversations, openConversation, deleteConversation, clearConversationHistoryHard, hardDeleteConversation, loadMoreMessages,
     sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,

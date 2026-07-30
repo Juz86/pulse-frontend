@@ -1092,6 +1092,7 @@ body {
 .share-contact-page-selection {
   width: 24px;
   height: 24px;
+  margin-left: auto;
   display: grid;
   place-items: center;
   box-sizing: border-box;

@@ -1263,7 +1263,11 @@ body {
 }
 
 .new-group-sheet-result.selected {
-  background: rgba(108, 99, 255, 0.07);
+  background: transparent;
+}
+
+.new-group-sheet-result.selected:hover {
+  background: var(--surface2);
 }
 
 .new-group-sheet-result-copy {

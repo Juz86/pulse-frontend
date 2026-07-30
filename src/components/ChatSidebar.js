@@ -2313,16 +2313,22 @@ export default function ChatSidebar({
     setConvActionsSheet({ conv, otherUid });
   }, []);
   const openConversationProfile = useCallback((conv, otherUid) => {
-    const contact = contacts.find((item) => item.uid === otherUid);
-    if (!contact) {
+    if (conv.isGroup) {
       openConvActionsSheet(conv, otherUid);
       return;
     }
+    if (!otherUid) return;
+    const contact = contacts.find((item) => item.uid === otherUid) || {
+      uid: otherUid,
+      displayName: getConvName(conv),
+      email: conv.memberEmails?.[otherUid] || '',
+      photoURL: getConvPhoto?.(conv),
+    };
     setConvMenu(null);
     setContactMenu(null);
     setConvActionsSheet(null);
     onViewContact(contact, { preserveActiveConversation: true });
-  }, [contacts, onViewContact, openConvActionsSheet]);
+  }, [contacts, getConvName, getConvPhoto, onViewContact, openConvActionsSheet]);
   useEffect(() => {
     if (!conversationActionsRequest?.id) return;
     openConvActionsSheet(conversationActionsRequest, getOtherUid?.(conversationActionsRequest));

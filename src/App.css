@@ -1271,6 +1271,17 @@ body {
   background: var(--surface2);
 }
 
+/* Overschrijft de algemene .search-result.selected-stijl die later in het
+   stylesheet staat: selectie toont uitsluitend het vinkje. */
+.new-group-contact-list .search-result.new-group-sheet-result.selected {
+  background: transparent;
+  border-color: transparent;
+}
+.new-group-contact-list .search-result.new-group-sheet-result.selected:hover {
+  background: var(--surface2);
+  border-color: transparent;
+}
+
 .new-group-sheet-result-copy {
   flex: 1 1 auto;
   min-width: 0;

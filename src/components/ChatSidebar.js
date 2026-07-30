@@ -458,6 +458,7 @@ export default function ChatSidebar({
         )}
         hero={(
           <ProfilePageHero
+            className="contact-profile-hero contact-profile-hero--main"
             avatar={(
               <UserAvatar
                 photoURL={photoPreview || undefined}

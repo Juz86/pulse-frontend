@@ -3110,6 +3110,22 @@ export default function ChatSidebar({
                 onClick={() => { setChatFilter('groepen'); setSelectedGroupId(null); }}>
                 Groepen
               </button>
+              <button
+                type="button"
+                className="chat-filter-add-group-btn"
+                aria-label="Nieuwe groep maken"
+                title="Nieuwe groep"
+                onClick={() => {
+                  closeProfileOverviewSheet();
+                  closeAddContactSheet();
+                  closeNewChatSheet();
+                  closeCallSheet();
+                  closeMoreActionsSheet();
+                  setShowNewGroup?.(true);
+                }}
+              >
+                <Plus size={18} aria-hidden="true" />
+              </button>
             </div>
           )}
 

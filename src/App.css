@@ -3653,6 +3653,25 @@ font-family: 'Inter', sans-serif;
 .chat-filter-chip { padding:5px 14px; border-radius:20px; border:1.5px solid var(--border); background:transparent; color:var(--text2); font-size:12px; font-weight:500; cursor:pointer; white-space:nowrap; transition:all .15s; font-family:'Inter',sans-serif; }
 .chat-filter-chip:hover { border-color:#6c63ff; color:#6c63ff; }
 .chat-filter-chip.active { background:#6c63ff; border-color:#6c63ff; color:#fff; font-weight:600; }
+.chat-filter-add-group-btn {
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:1.5px solid var(--border);
+  border-radius:50%;
+  background:transparent;
+  color:var(--text2);
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.chat-filter-add-group-btn:hover {
+  border-color:#6c63ff;
+  background:rgba(108,99,255,.12);
+  color:#fff;
+}
 
 .groep-dropdown { position:absolute; top:calc(100% + 6px); left:0; z-index:200; background:var(--surface); border:1.5px solid var(--border); border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.18); min-width:160px; padding:4px; }
 .groep-dropdown-item { display:block; width:100%; text-align:left; background:none; border:none; padding:8px 12px; font-size:13px; font-weight:500; cursor:pointer; border-radius:8px; color:var(--text); font-family:'Inter',sans-serif; transition:background .12s; }

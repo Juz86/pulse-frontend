@@ -7196,6 +7196,20 @@ font-family: 'Inter', sans-serif;
   border-top:0;
 }
 
+/* The group-name field has a light surface, so it must not inherit the
+   application's light default input text colour. */
+.new-group-page-section .form-input.sheet-form-input,
+.new-group-sheet-body .form-input.sheet-form-input {
+  color:#251a4a;
+  caret-color:#251a4a;
+}
+
+.new-group-page-section .form-input.sheet-form-input::placeholder,
+.new-group-sheet-body .form-input.sheet-form-input::placeholder {
+  color:#756b9c;
+  opacity:1;
+}
+
 /* Keep the add-contact form compact without the profile-card frame. */
 .add-contact-page-section {
   margin-bottom:0;

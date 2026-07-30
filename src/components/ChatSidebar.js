@@ -3228,7 +3228,7 @@ export default function ChatSidebar({
 
           {/* Contacten tab */}
           {activeTab === 'contacts' && (
-            <div className="conv-list">
+            <div className="conv-list contacts-conv-list">
               {contacts.length === 0 && friendRequests.length === 0 && sentFriendRequests.length === 0 && (
                 <div className="empty-convs">
                   <p>Nog geen contacten.</p>

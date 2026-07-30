@@ -692,7 +692,7 @@ export default function ChatModals({
               </div>
               {contactErr && <div className="auth-error">⚠️ {contactErr}</div>}
               <div className="modal-actions add-contact-sheet-actions">
-                <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={addContact} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}</button>
+                <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={addContact} disabled={contactLoading}>{contactLoading ? 'Verzenden…' : 'Verzoek sturen'}</button>
               </div>
             </div>
           </aside>

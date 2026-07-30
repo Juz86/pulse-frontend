@@ -861,7 +861,7 @@ export default function ChatSidebar({
         <div className="contact-profile-field">
           <div className="modal-actions add-contact-sheet-actions">
             <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => addContact?.()} disabled={contactLoading}>
-              {contactLoading ? 'Verzenden…' : 'Verzoek sturen →'}
+              {contactLoading ? 'Verzenden…' : 'Verzoek sturen'}
             </button>
           </div>
         </div>

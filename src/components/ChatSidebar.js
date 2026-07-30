@@ -126,6 +126,8 @@ export default function ChatSidebar({
   onCallLogRead,
   searchQuery,
   setSearchQuery,
+  messageSearchHits = {},
+  messageSearchLoading = false,
   activeTab,
   setActiveTab,
   chatFilter,
@@ -3200,6 +3202,8 @@ export default function ChatSidebar({
                 activeConv={activeConv}
                 loadingConvs={loadingConvs}
                 searchQuery={searchQuery}
+                messageSearchHits={messageSearchHits}
+                messageSearchLoading={messageSearchLoading}
                 chatFilter={chatFilter}
                 selectedGroupId={selectedGroupId}
                 convLabels={convLabels}

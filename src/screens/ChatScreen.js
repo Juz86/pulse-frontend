@@ -28,6 +28,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [unreadCounts,   setUnreadCounts]   = useState({});
   const [activeTab,      setActiveTab]      = useState('chats');
   const [searchQuery,    setSearchQuery]    = useState('');
+  const [messageSearchHits, setMessageSearchHits] = useState({});
+  const [messageSearchLoading, setMessageSearchLoading] = useState(false);
   const [chatFilter,     setChatFilter]     = useState('all');
   const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [convLabels,     setConvLabels]     = useState(() => { try { return JSON.parse(localStorage.getItem(`pulse_labels_${user.uid}`) || '{}'); } catch { return {}; } });
@@ -260,7 +262,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const {
     conversations, setConversations, activeConv, setActiveConv,
     messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore,
-    loadConversations, openConversation, deleteConversation, clearConversationHistoryHard, loadMoreMessages,
+    loadConversations, openConversation, deleteConversation, clearConversationHistoryHard, loadMoreMessages, searchConversationMessages,
     sendMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
@@ -278,6 +280,30 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
     serviceTransportReady,
   });
+
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (activeTab !== 'chats' || query.length < 2) {
+      setMessageSearchHits({});
+      setMessageSearchLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      setMessageSearchLoading(true);
+      const hits = await searchConversationMessages(query).catch(() => ({}));
+      if (!cancelled) {
+        setMessageSearchHits(hits);
+        setMessageSearchLoading(false);
+      }
+    }, 280);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [activeTab, searchQuery, searchConversationMessages]);
 
   const {
     contacts, setContacts, pinnedContacts, friendRequests, setFriendRequests,
@@ -505,6 +531,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         missedCallAlert={missedCallAlert} callLogRead={callLogRead}
         getCallLog={getCallLog} onCallLogRead={onCallLogRead}
         searchQuery={searchQuery} setSearchQuery={setSearchQuery}
+        messageSearchHits={messageSearchHits} messageSearchLoading={messageSearchLoading}
         activeTab={activeTab} setActiveTab={setActiveTab}
         chatFilter={chatFilter} setChatFilter={setChatFilter}
         selectedGroupId={selectedGroupId} setSelectedGroupId={setSelectedGroupId}

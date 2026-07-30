@@ -8,6 +8,8 @@ const ConversationList = React.memo(function ConversationList({
   activeConv,
   loadingConvs,
   searchQuery,
+  messageSearchHits = {},
+  messageSearchLoading = false,
   chatFilter,
   selectedGroupId,
   convLabels,
@@ -52,7 +54,8 @@ const ConversationList = React.memo(function ConversationList({
       .filter(conv => {
         const matchSearch = !normalizedSearch ||
           getConvName(conv).toLowerCase().includes(normalizedSearch) ||
-          (conv.lastMessage || '').toLowerCase().includes(normalizedSearch);
+          (conv.lastMessage || '').toLowerCase().includes(normalizedSearch) ||
+          Boolean(messageSearchHits[conv.id]);
         const matchFilter = chatFilter === 'all'
           || (chatFilter === 'groepen' && conv.isGroup && (!selectedGroupId || conv.id === selectedGroupId))
           || convLabels[conv.id] === chatFilter;
@@ -69,7 +72,7 @@ const ConversationList = React.memo(function ConversationList({
         name:     getConvName(conv),
         photoURL: getConvPhoto(conv),
       }));
-  }, [conversations, normalizedSearch, chatFilter, selectedGroupId, convLabels, pinnedUidSet, getConvName, getOtherUid, getConvPhoto]);
+  }, [conversations, normalizedSearch, messageSearchHits, chatFilter, selectedGroupId, convLabels, pinnedUidSet, getConvName, getOtherUid, getConvPhoto]);
 
   return (
     <div
@@ -94,7 +97,13 @@ const ConversationList = React.memo(function ConversationList({
         </div>
       )}
 
-      {!loadingConvs && conversations.length > 0 && filtered.length === 0 && (
+      {!loadingConvs && messageSearchLoading && normalizedSearch && (
+        <div className="empty-convs" role="status" aria-live="polite">
+          <p>Berichten doorzoeken…</p>
+        </div>
+      )}
+
+      {!loadingConvs && !messageSearchLoading && conversations.length > 0 && filtered.length === 0 && (
         <div className="empty-convs" role="status" aria-live="polite">
           <p>Geen gesprekken gevonden.</p>
           <p>
@@ -105,7 +114,7 @@ const ConversationList = React.memo(function ConversationList({
         </div>
       )}
 
-      {filtered.map(conv => {
+      {!messageSearchLoading && filtered.map(conv => {
         const otherUid  = getOtherUid(conv);
         const isOnline  = !!(otherUid && onlineUsers.has(otherUid));
         const isInactive = isOnline && inactiveUsers.has(otherUid);
@@ -114,7 +123,7 @@ const ConversationList = React.memo(function ConversationList({
         return (
           <ConversationItem
             key={conv.id}
-            conv={conv}
+            conv={messageSearchHits[conv.id] ? { ...conv, lastMessage: messageSearchHits[conv.id] } : conv}
             isActive={activeConv?.id === conv.id}
             otherUid={otherUid}
             isOnline={isOnline}

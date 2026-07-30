@@ -3771,7 +3771,7 @@ font-family: 'Inter', sans-serif;
 
 .sidebar-tabs { display:flex; background:var(--surface2); border-radius:14px; padding:5px; margin:12px 18px; gap:5px; border:1px solid var(--border); }
 
-.chat-filters { display:flex; gap:6px; padding:0 18px 10px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
+.chat-filters { display:flex; gap:6px; padding:16px 18px 10px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
 .chat-filters::-webkit-scrollbar { display:none; }
 .chat-filter-chip { padding:5px 14px; border-radius:20px; border:1.5px solid var(--border); background:transparent; color:var(--text2); font-size:12px; font-weight:500; cursor:pointer; white-space:nowrap; transition:all .15s; font-family:'Inter',sans-serif; }
 .chat-filter-chip:hover { border-color:#6c63ff; color:#6c63ff; }

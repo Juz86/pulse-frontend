@@ -4196,9 +4196,12 @@ font-family: 'Inter', sans-serif;
   background: #22c55e;
 }
 .sidebar-footer-tab-count {
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
+  top:-6px;
+  right:-8px;
+  box-sizing:border-box;
+  min-width:20px;
+  height:20px;
+  padding:0 4px;
   background: #22c55e;
   color: #fff;
   display: inline-flex;
@@ -4217,6 +4220,7 @@ font-family: 'Inter', sans-serif;
   width: 16px;
   height: 16px;
   background: #22c55e;
+  border:0;
 }
 @media (max-width: 960px) {
   .sidebar {

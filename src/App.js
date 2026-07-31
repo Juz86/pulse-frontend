@@ -749,6 +749,10 @@ function MainApp() {
           socket.off('user:status');
           socket.off('users:online');
           socket.off('users:inactive');
+          socket.off('disconnect');
+          const markCurrentUserOnline = () => {
+            setOnlineUsers(prev => new Set([...prev, firebaseUser.uid]));
+          };
           socket.on('user:status', ({ uid, online, inactive }) => {
             if (online) {
               setOnlineUsers(prev => new Set([...prev, uid]));
@@ -759,7 +763,9 @@ function MainApp() {
             }
           });
           socket.on('users:online', (uids) => {
-            setOnlineUsers(new Set(uids));
+            // Sommige presence-snapshots bevatten alleen andere gebruikers.
+            // De ingelogde gebruiker is online zolang de eigen socket verbonden is.
+            setOnlineUsers(new Set(socket.connected ? [...uids, firebaseUser.uid] : uids));
           });
           socket.on('users:inactive', (uids) => {
             setInactiveUsers(new Set(uids));
@@ -768,9 +774,27 @@ function MainApp() {
           // Herverbinding via connect event (reconnect event werkt niet in Socket.IO v4)
           socket.off('connect');
           socket.on('connect', () => {
+            markCurrentUserOnline();
             socket.emit('user:online');
             socket.emit('users:online:request');
           });
+          socket.on('disconnect', () => {
+            setOnlineUsers(prev => {
+              const next = new Set(prev);
+              next.delete(firebaseUser.uid);
+              return next;
+            });
+            setInactiveUsers(prev => {
+              const next = new Set(prev);
+              next.delete(firebaseUser.uid);
+              return next;
+            });
+          });
+          if (socket.connected) {
+            markCurrentUserOnline();
+            socket.emit('user:online');
+            socket.emit('users:online:request');
+          }
 
           // Ouder realtime activiteitsnotificaties
           socket.off('parent:activity');

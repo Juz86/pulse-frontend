@@ -4221,6 +4221,8 @@ font-family: 'Inter', sans-serif;
   height: 16px;
   background: #22c55e;
   border:0;
+  box-shadow:0 0 6px rgba(67,233,123,.7);
+  animation:pulse-dot 2s infinite;
 }
 @media (max-width: 960px) {
   .sidebar {

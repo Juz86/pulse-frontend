@@ -14255,6 +14255,16 @@ font-family: 'Inter', sans-serif;
   padding: 6px 12px;
   font-size: 12px;
 }
+.parent-dashboard-panel .pd-contact-actions .pd-contact-icon-action {
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+  padding: 0;
+  justify-content: center;
+}
+.parent-dashboard-panel .pd-contact-actions .pd-contact-icon-action svg {
+  display: block;
+}
 .parent-dashboard-overlay .pd-layout {
   flex-direction:column; min-height:unset; overflow:hidden;
   border-radius:16px;
@@ -19100,13 +19110,13 @@ font-family: 'Inter', sans-serif;
 
 @media (max-width: 600px) {
   .pd-contact-row {
-    align-items: flex-start;
-    flex-wrap: wrap;
+    align-items: center;
+    flex-wrap: nowrap;
   }
 
   .pd-contact-actions {
-    width: 100%;
-    justify-content: flex-end;
+    width: auto;
+    justify-content: initial;
   }
 
   .pd-contact-name,

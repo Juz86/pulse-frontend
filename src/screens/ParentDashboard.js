@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { getInitials, timeAgo, toMs } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, KeyRound, Trash2, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, KeyRound, Trash2, Block, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
 import { ProfilePageShell } from '../components/ProfilePageShell';
@@ -1006,7 +1006,7 @@ export default function ParentDashboard({
                         <div className="pd-contact-avatar" aria-hidden="true">{getInitials(contact.displayName)}</div>
                         <div className="pd-contact-info">
                           <div className="pd-contact-name">{contact.displayName}</div>
-                          {contact.username && <div className="pd-contact-sub">@{contact.username}</div>}
+                          <div className="pd-contact-sub">{contact.email || (contact.username ? `@${contact.username}` : '')}</div>
                         </div>
                         <span className={`pd-contact-status${contact.isParentContact ? ' protected' : contact.isBlocked ? ' blocked' : ''}`}>
                           {contact.isParentContact ? 'Co-ouder' : contact.isBlockedByParent ? 'Geblokkeerd door ouder' : contact.isBlocked ? 'Geblokkeerd' : 'Actief'}
@@ -1018,24 +1018,28 @@ export default function ParentDashboard({
                             <>
                               <button
                                 type="button"
-                                className="parent-btn-outline"
+                                className="parent-btn-outline pd-contact-icon-action"
                                 style={{ color: contact.isBlocked ? '#22c55e' : '#f97316', borderColor: contact.isBlocked ? '#22c55e' : '#f97316', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
                                 disabled={contactActionUid === contact.uid}
+                                aria-label={contact.isBlocked ? 'Deblokkeren' : 'Blokkeren'}
+                                title={contact.isBlocked ? 'Deblokkeren' : 'Blokkeren'}
                                 onClick={() => contact.isBlocked
                                   ? parentUnblockContact(contactsChildUid, contact.uid)
                                   : parentBlockContact(contactsChildUid, contact.uid)
                                 }
                               >
-                                {contact.isBlocked ? 'Deblokkeren' : 'Blokkeren'}
+                                <Block size={17} aria-hidden="true" />
                               </button>
                               <button
                                 type="button"
-                                className="parent-btn-outline"
+                                className="parent-btn-outline pd-contact-icon-action"
                                 style={{ color: '#ef4444', borderColor: '#ef4444', opacity: contactActionUid === contact.uid ? 0.6 : 1 }}
                                 disabled={contactActionUid === contact.uid}
+                                aria-label="Verwijderen"
+                                title="Verwijderen"
                                 onClick={() => parentRemoveContact(contactsChildUid, contact.uid)}
                               >
-                                Verwijderen
+                                <Trash2 size={17} aria-hidden="true" />
                               </button>
                             </>
                           )}

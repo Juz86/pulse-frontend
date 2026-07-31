@@ -2655,7 +2655,6 @@ export default function ChatSidebar({
       >
         <span className="sidebar-footer-profile-avatar" aria-hidden="true">
           <UserAvatar photoURL={photoPreview || user.photoURL} displayName={user.displayName || user.email} className="sm" decorative />
-          <span className="sidebar-footer-profile-dot" />
         </span>
         <span className="sidebar-footer-tab-label">Jij</span>
       </button>

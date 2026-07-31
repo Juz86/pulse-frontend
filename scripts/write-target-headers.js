@@ -184,7 +184,10 @@ const headers = [
   '  Cache-Control: no-cache, no-store, must-revalidate',
   '',
   '/static/*',
-  '  Cache-Control: public, max-age=31536000, immutable',
+  // A missing lazy chunk falls through to the SPA HTML document on Pages. Never
+  // cache that fallback as an immutable JavaScript asset: a later deploy may
+  // provide the chunk, and the browser must then be able to retry it.
+  '  Cache-Control: no-cache, must-revalidate',
   '',
 ].join('\n');
 

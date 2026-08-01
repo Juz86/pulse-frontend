@@ -2211,7 +2211,7 @@ p, .body { font-size: var(--text-body); font-weight: var(--font-regular); line-h
 .web-auth-info {
   max-width: 470px;
   min-width: 0;
-  align-self: center;
+  align-self: flex-start;
 }
 
 .web-auth-info-logo {

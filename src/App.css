@@ -4104,6 +4104,12 @@ font-family: 'Inter', sans-serif;
   width:var(--sidebar-width, 360px);
   box-sizing:border-box;
 }
+.sidebar-footer--group-info-floating {
+  left:18px;
+  width:calc(var(--pulse-sidebar-width, var(--sidebar-width, 360px)) - 36px);
+  padding-left:0;
+  padding-right:0;
+}
 .sidebar-footer-tabbar--cluster {
   position: relative;
   z-index: 3;
@@ -9029,6 +9035,13 @@ font-family: 'Inter', sans-serif;
   .sidebar-footer--contact-profile-floating {
     left:22px;
     right:22px;
+    width:auto;
+    padding-left:0;
+    padding-right:0;
+  }
+  .sidebar-footer--group-info-floating {
+    left:max(18px, env(safe-area-inset-left));
+    right:max(18px, env(safe-area-inset-right));
     width:auto;
     padding-left:0;
     padding-right:0;

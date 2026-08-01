@@ -4042,7 +4042,7 @@ export default function ChatSidebar({
       ) : null}
       {footerEmbeddedInCluster ? null : contextPanelVisible && typeof document !== 'undefined'
         ? createPortal(
-          <div className={`sidebar-footer sidebar-footer--context-panel-floating${contactProfileVisible ? ' sidebar-footer--contact-profile-floating' : ''}`} ref={sidebarFooterRef}>
+          <div className={`sidebar-footer sidebar-footer--context-panel-floating${contactProfileVisible ? ' sidebar-footer--contact-profile-floating' : ''}${groupInfoVisible ? ' sidebar-footer--group-info-floating' : ''}`} ref={sidebarFooterRef}>
             {footerTabbar}
           </div>,
           document.body,

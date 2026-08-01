@@ -9023,8 +9023,8 @@ font-family: 'Inter', sans-serif;
 @media (max-width: 767px) {
   .sidebar-footer--context-panel-floating {
     width:100%;
-    padding-right:max(12px, env(safe-area-inset-right));
-    padding-left:max(12px, env(safe-area-inset-left));
+    padding-right:max(18px, env(safe-area-inset-right));
+    padding-left:max(18px, env(safe-area-inset-left));
   }
   .sidebar-footer--contact-profile-floating {
     left:22px;
@@ -9307,7 +9307,7 @@ font-family: 'Inter', sans-serif;
   top: 0;
   z-index: 2;
   padding: 4px 18px 16px;
-  background: linear-gradient(180deg, #27245a 0%, #27245a 84%, rgba(39, 36, 90, 0) 100%);
+  background: transparent;
 }
 .group-info-panel .group-info-subview-header {
   min-height: 48px;
@@ -9366,7 +9366,7 @@ font-family: 'Inter', sans-serif;
   z-index: 2;
   margin-top: auto;
   padding: 18px 18px 4px;
-  background: linear-gradient(0deg, #1c193f 0%, #1c193f 78%, rgba(28, 25, 63, 0) 100%);
+  background: transparent;
 }
 .group-info-panel .group-info-add-selected-btn {
   width: 100%;

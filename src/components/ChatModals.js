@@ -926,7 +926,7 @@ export default function ChatModals({
                       </div>
                       <div className="contact-profile-status-actions">
                         <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={() => openStarredFromProfile(targetContact)}>
-                          <StarFilled size={18} style={{ color: '#f59e0b' }} aria-hidden="true" />
+                          <StarOutline size={18} style={{ color: '#ffbd00' }} aria-hidden="true" />
                         </button>
                         <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) setSharingContact(c); }} title="Contactpersoon delen">
                           <Share size={18} aria-hidden="true" />

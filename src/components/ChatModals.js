@@ -270,6 +270,11 @@ export default function ChatModals({
     setShowStarredMsgs(true);
   }
 
+  function openGroupChatSearch() {
+    setShowGroupInfo(false);
+    onOpenConversationSearch?.(activeConv);
+  }
+
   function leaveCurrentGroup() {
     setShowGroupInfo(false);
     onLeaveGroup?.(activeConv);
@@ -1487,6 +1492,26 @@ export default function ChatModals({
                     </label>
                   ) : <h2 id="group-info-title" className="group-info-title">{getConvName(activeConv)}</h2>}
                   <p id="group-info-description" className="group-info-subtitle">{activeConv.members.length} deelnemers</p>
+                  <div className="group-info-hero-actions" aria-label="Snelle groepsacties">
+                    <button
+                      type="button"
+                      className="group-info-hero-action"
+                      onClick={() => setAddingMember(true)}
+                      disabled={!isAdmin}
+                      title={isAdmin ? 'Lid toevoegen' : 'Alleen beheerders kunnen leden toevoegen'}
+                    >
+                      <Users size={18} aria-hidden="true" />
+                      <span>Lid toevoegen</span>
+                    </button>
+                    <button type="button" className="group-info-hero-action" onClick={openGroupStarredMessages} title="Berichten met ster">
+                      <StarOutline size={18} aria-hidden="true" />
+                      <span>Berichten met ster</span>
+                    </button>
+                    <button type="button" className="group-info-hero-action" onClick={openGroupChatSearch} title="Zoeken in groep">
+                      <Search size={18} aria-hidden="true" />
+                      <span>Zoeken</span>
+                    </button>
+                  </div>
                 </div>
               );
             })()}
@@ -1558,17 +1583,6 @@ export default function ChatModals({
                       );
                     })}
                   </div>
-                  {isAdmin ? (
-                    <button
-                      type="button"
-                      className="group-info-add-btn"
-                      aria-expanded="false"
-                      aria-controls="group-add-member-list"
-                      onClick={() => setAddingMember(true)}
-                    >
-                      <span aria-hidden="true">+</span> Lid toevoegen
-                    </button>
-                  ) : null}
                 </>
               );
             })()}

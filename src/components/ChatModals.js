@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useState } from 'react';
-import { Phone, Video, Camera, Delete, Trash2, Search, Users, Check, Cancel, MagicEdit, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, Logout } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, MagicEdit, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, Logout } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
@@ -1501,7 +1501,7 @@ export default function ChatModals({
                       disabled={!isAdmin}
                       title={isAdmin ? 'Lid toevoegen' : 'Alleen beheerders kunnen leden toevoegen'}
                     >
-                      <Users size={18} aria-hidden="true" />
+                      <UserPlus size={18} aria-hidden="true" />
                       <span className="sr-only">Lid toevoegen</span>
                     </button>
                     <button type="button" className="group-info-hero-action" onClick={openGroupStarredMessages} title="Berichten met ster">

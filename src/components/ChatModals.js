@@ -1573,31 +1573,39 @@ export default function ChatModals({
               );
             })()}
             <div className="group-info-quick-actions" aria-label="Groepsacties">
-              <button
-                type="button"
-                className={`group-info-quick-card${conversationMuted ? ' is-muted' : ''}`}
-                onClick={toggleMuteFromProfile}
-                aria-pressed={conversationMuted}
-              >
-                <span className="group-info-quick-icon">
-                  {conversationMuted ? <BellOff size={22} aria-hidden="true" /> : <Bell size={22} aria-hidden="true" />}
-                </span>
-                <span>Meldingen {conversationMuted ? 'uit' : 'aan'}</span>
-              </button>
-              <button type="button" className="group-info-quick-card" onClick={openGroupMessageSelection}>
-                <span className="group-info-quick-icon" aria-hidden="true">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 6h14M5 12h14M5 18h9" /></svg>
-                </span>
-                <span>Berichten selecteren</span>
-              </button>
-              <button type="button" className="group-info-quick-card" onClick={openGroupStarredMessages}>
-                <span className="group-info-quick-icon"><StarOutline size={22} aria-hidden="true" /></span>
-                <span>Berichten met ster</span>
-              </button>
-              <button type="button" className="group-info-quick-card group-info-quick-card--danger" onClick={leaveCurrentGroup}>
-                <span className="group-info-quick-icon"><Logout size={22} aria-hidden="true" /></span>
-                <span>Groep verlaten</span>
-              </button>
+              <div className="group-info-quick-card-list">
+                <button
+                  type="button"
+                  className={`group-info-quick-card${conversationMuted ? ' is-muted' : ''}`}
+                  onClick={toggleMuteFromProfile}
+                  aria-pressed={conversationMuted}
+                >
+                  <span className="group-info-quick-icon">
+                    {conversationMuted ? <BellOff size={22} aria-hidden="true" /> : <Bell size={22} aria-hidden="true" />}
+                  </span>
+                  <span>Meldingen {conversationMuted ? 'uit' : 'aan'}</span>
+                  <ArrowRight className="group-info-quick-arrow" size={20} aria-hidden="true" />
+                </button>
+                <button type="button" className="group-info-quick-card" onClick={openGroupMessageSelection}>
+                  <span className="group-info-quick-icon" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 6h14M5 12h14M5 18h9" /></svg>
+                  </span>
+                  <span>Berichten selecteren</span>
+                  <ArrowRight className="group-info-quick-arrow" size={20} aria-hidden="true" />
+                </button>
+                <button type="button" className="group-info-quick-card" onClick={openGroupStarredMessages}>
+                  <span className="group-info-quick-icon"><StarOutline size={22} aria-hidden="true" /></span>
+                  <span>Berichten met ster</span>
+                  <ArrowRight className="group-info-quick-arrow" size={20} aria-hidden="true" />
+                </button>
+              </div>
+              <div className="group-info-quick-card-list group-info-quick-card-list--danger">
+                <button type="button" className="group-info-quick-card group-info-quick-card--danger" onClick={leaveCurrentGroup}>
+                  <span className="group-info-quick-icon"><Logout size={22} aria-hidden="true" /></span>
+                  <span>Groep verlaten</span>
+                  <ArrowRight className="group-info-quick-arrow" size={20} aria-hidden="true" />
+                </button>
+              </div>
             </div>
               </>
             )}

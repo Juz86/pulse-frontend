@@ -1485,6 +1485,7 @@ export default function ChatModals({
                           : `Kies een afbeelding om een groepsfoto toe te voegen voor ${getConvName(activeConv)}. Toegestane bestandssoorten zijn afbeeldingsbestanden.`}
                     </p>
                   )}
+                  <div className="group-info-hero-copy">
                   {editingGroupName ? (
                     <label className="group-info-name-edit" htmlFor="group-name-edit">
                       <span className="sr-only">Groepsnaam</span>
@@ -1511,6 +1512,7 @@ export default function ChatModals({
                       <Search size={18} aria-hidden="true" />
                       <span className="sr-only">Zoeken in groep</span>
                     </button>
+                  </div>
                   </div>
                 </div>
               );

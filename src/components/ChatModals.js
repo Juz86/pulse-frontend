@@ -271,6 +271,10 @@ export default function ChatModals({
 
   function openGroupStarredMessages() {
     setShowGroupInfo(false);
+    if (activeConv) {
+      onOpenConversationStarred?.(activeConv);
+      return;
+    }
     setShowStarredMsgs(true);
   }
 

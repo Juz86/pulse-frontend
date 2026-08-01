@@ -1357,6 +1357,7 @@ export default function ChatModals({
                 </button>
               ) : <span className="contact-profile-topbar-spacer" aria-hidden="true" />}
             </div>
+            <div className="group-info-content">
             {addingMember ? (() => {
               const availableContacts = contacts.filter(c => !activeConv.members.includes(c.uid));
               const query = groupMemberSearch.trim().toLowerCase();
@@ -1602,6 +1603,7 @@ export default function ChatModals({
             )}
             <div className="modal-actions" style={{ marginTop: '16px' }}>
               <button type="button" className="btn-secondary" onClick={closeGroupInfo}>Sluiten</button>
+            </div>
             </div>
         </aside>
         </div>

@@ -9083,13 +9083,27 @@ font-family: 'Inter', sans-serif;
     radial-gradient(circle at 50% 0%, rgba(135, 102, 255, .2), transparent 34%),
     linear-gradient(180deg, #27245a 0%, #1c193f 100%);
   color: #f8f7ff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   box-shadow: 28px 0 70px rgba(0, 0, 0, .28);
   animation: group-info-slide-in .2s ease-out both;
 }
 .group-info-panel .pulse-sheet-handle { display: none; }
 .group-info-topbar {
+  flex: 0 0 auto;
   padding: max(16px, env(safe-area-inset-top)) 18px 0;
 }
+.group-info-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(132px + env(safe-area-inset-bottom));
+  scrollbar-width: none;
+}
+.group-info-content::-webkit-scrollbar { display: none; }
 @media (max-width: 430px) {
   .group-info-topbar {
     padding-right:max(16px, env(safe-area-inset-right));

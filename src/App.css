@@ -9338,9 +9338,7 @@ font-family: 'Inter', sans-serif;
   text-align: left;
   cursor: pointer;
 }
-.group-info-panel .group-info-add-row:hover {
-  background: rgba(108, 99, 255, .13);
-}
+.group-info-panel .group-info-add-row:hover { background: transparent; }
 .group-info-panel .group-info-add-row.selected,
 .group-info-panel .group-info-add-row.selected:hover {
   background: transparent;

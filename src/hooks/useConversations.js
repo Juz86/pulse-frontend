@@ -1170,7 +1170,7 @@ export default function useConversations({
     });
   }
 
-  function addMemberToGroup(contact) {
+  function addMemberToGroup(contact, { closeAfterAdd = true } = {}) {
     const socket = getSocket();
     if (!socket || !activeConv) return;
     socket.emit('conversation:addMember', { convId: activeConv.id, uid: contact.uid, displayName: contact.displayName }, (res = {}) => {
@@ -1180,7 +1180,7 @@ export default function useConversations({
         members:     [...prev.members, contact.uid],
         memberNames: { ...prev.memberNames, [contact.uid]: contact.displayName },
       }));
-      setAddingMember(false);
+      if (closeAfterAdd) setAddingMember(false);
     });
   }
 

@@ -9298,6 +9298,84 @@ font-family: 'Inter', sans-serif;
 }
 .group-info-panel .group-info-search { color: #f8f7ff; }
 .group-info-panel .group-info-search::placeholder { color: #aaa5cc; }
+.group-info-panel .group-info-add-view {
+  min-height: 100%;
+  gap: 0;
+}
+.group-info-panel .group-info-add-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 4px 18px 16px;
+  background: linear-gradient(180deg, #27245a 0%, #27245a 84%, rgba(39, 36, 90, 0) 100%);
+}
+.group-info-panel .group-info-subview-header {
+  min-height: 48px;
+}
+.group-info-panel .group-info-search-wrap {
+  min-height: 56px;
+  margin: 14px 0 0;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 18px;
+  background: rgba(17, 15, 40, .56);
+  box-shadow: none;
+}
+.group-info-panel .group-info-search-wrap > svg {
+  flex: 0 0 auto;
+  color: #aaa0ff;
+}
+.group-info-panel .group-info-add-list {
+  margin: 0 18px;
+  border-radius: 24px;
+}
+.group-info-panel .group-info-add-row {
+  width: 100%;
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.group-info-panel .group-info-add-row:hover {
+  background: rgba(108, 99, 255, .13);
+}
+.group-info-panel .group-info-add-row.selected,
+.group-info-panel .group-info-add-row.selected:hover {
+  background: transparent;
+}
+.group-info-member-check {
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  border: 2px solid rgba(210, 204, 241, .62);
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.group-info-member-check.selected {
+  border-color: #8b6cff;
+  background: linear-gradient(135deg, #8c7bff, #7160f5);
+  box-shadow: 0 6px 16px rgba(126, 99, 255, .34);
+}
+.group-info-add-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-top: auto;
+  padding: 18px 18px 4px;
+  background: linear-gradient(0deg, #1c193f 0%, #1c193f 78%, rgba(28, 25, 63, 0) 100%);
+}
+.group-info-panel .group-info-add-selected-btn {
+  width: 100%;
+  min-height: 52px;
+  border-radius: 16px;
+  box-shadow: none;
+}
 
 @media (max-width: 767px) {
   .group-info-panel { width: 100%; }

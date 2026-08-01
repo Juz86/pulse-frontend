@@ -136,6 +136,7 @@ export default function ChatModals({
   const [starredSearch,   setStarredSearch]   = useState('');
   const [requestsTab,     setRequestsTab]     = useState('ontvangen');
   const [groupMemberSearch, setGroupMemberSearch] = useState('');
+  const [selectedGroupMemberUids, setSelectedGroupMemberUids] = useState([]);
   const [editingGroupName, setEditingGroupName] = useState(false);
   const [groupNameDraft, setGroupNameDraft] = useState('');
   const [showAdminPicker, setShowAdminPicker] = useState(false);
@@ -178,7 +179,10 @@ export default function ChatModals({
   }, [confirmDialog]);
 
   useEffect(() => {
-    if (!addingMember) setGroupMemberSearch('');
+    if (!addingMember) {
+      setGroupMemberSearch('');
+      setSelectedGroupMemberUids([]);
+    }
   }, [addingMember]);
 
   useEffect(() => {
@@ -1374,35 +1378,48 @@ export default function ChatModals({
                     return displayName.includes(query) || email.includes(query) || username.includes(query);
                   })
                 : availableContacts;
+              const toggleGroupMemberSelection = (uid) => {
+                setSelectedGroupMemberUids(prev => (
+                  prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]
+                ));
+              };
+              const addSelectedGroupMembers = () => {
+                const selectedContacts = availableContacts.filter(c => selectedGroupMemberUids.includes(c.uid));
+                if (selectedContacts.length === 0) return;
+                selectedContacts.forEach(contact => addMemberToGroup(contact, { closeAfterAdd: false }));
+                setAddingMember(false);
+              };
               return (
                 <div className="group-info-add-view">
-                  <div className="group-info-subview-header">
-                    <button
-                      type="button"
-                      className="group-info-back-btn"
-                      aria-label="Terug naar groepsinfo"
-                      onClick={() => setAddingMember(false)}
-                    >
-                      <span aria-hidden="true">←</span>
-                    </button>
-                    <div>
-                      <h2 id="group-info-title" className="group-info-subview-title">Groepsleden toevoegen</h2>
-                      <p id="group-info-description" className="group-info-subview-subtitle">{getConvName(activeConv)}</p>
+                  <div className="group-info-add-toolbar">
+                    <div className="group-info-subview-header">
+                      <button
+                        type="button"
+                        className="group-info-back-btn"
+                        aria-label="Terug naar groepsinfo"
+                        onClick={() => setAddingMember(false)}
+                      >
+                        <span aria-hidden="true">←</span>
+                      </button>
+                      <div>
+                        <h2 id="group-info-title" className="group-info-subview-title">Groepsleden toevoegen</h2>
+                        <p id="group-info-description" className="group-info-subview-subtitle">Selecteer contacten voor {getConvName(activeConv)}</p>
+                      </div>
                     </div>
-                  </div>
 
-                  <label className="sr-only" htmlFor="group-member-search">Zoek contact om toe te voegen</label>
-                  <div className="starred-search-wrap call-log-search-wrap call-log-search-wrap--full group-info-search-wrap">
-                    <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
-                    <input
-                      id="group-member-search"
-                      className="starred-search-input group-info-search"
-                      type="search"
-                      value={groupMemberSearch}
-                      onChange={(e) => setGroupMemberSearch(e.target.value)}
-                      placeholder="Zoek contact"
-                      autoComplete="off"
-                    />
+                    <label className="sr-only" htmlFor="group-member-search">Zoek contact om toe te voegen</label>
+                    <div className="starred-search-wrap call-log-search-wrap call-log-search-wrap--full group-info-search-wrap">
+                      <Search size={18} aria-hidden="true" />
+                      <input
+                        id="group-member-search"
+                        className="starred-search-input group-info-search"
+                        type="search"
+                        value={groupMemberSearch}
+                        onChange={(e) => setGroupMemberSearch(e.target.value)}
+                        placeholder="Zoek op naam of e-mailadres"
+                        autoComplete="off"
+                      />
+                    </div>
                   </div>
 
                   <div id="group-add-member-list" role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list group-info-add-list">
@@ -1410,22 +1427,35 @@ export default function ChatModals({
                       <div className="group-info-empty" role="status">Alle contacten zijn al lid van deze groep.</div>
                     ) : filteredContacts.length === 0 ? (
                       <div className="group-info-empty" role="status">Geen contacten gevonden.</div>
-                    ) : filteredContacts.map(c => (
-                      <button
-                        key={c.uid}
-                        type="button"
-                        role="listitem"
-                        className="search-result group-info-member-row"
-                        aria-label={`Voeg ${getContactDisplayName(c) || c.displayName} toe aan de groep`}
-                        onClick={() => addMemberToGroup(c)}
-                      >
-                        <UserAvatar photoURL={c.photoURL} displayName={getContactDisplayName(c) || c.displayName} className="sm" decorative />
-                        <div>
-                          <div className="conv-name">{getContactDisplayName(c) || c.displayName}</div>
-                          <div className="conv-preview">{c.email || c.username || 'Contactpersoon'}</div>
-                        </div>
-                      </button>
-                    ))}
+                    ) : filteredContacts.map(c => {
+                      const selected = selectedGroupMemberUids.includes(c.uid);
+                      return (
+                        <button
+                          key={c.uid}
+                          type="button"
+                          className={`search-result group-info-member-row group-info-add-row${selected ? ' selected' : ''}`}
+                          aria-pressed={selected}
+                          aria-label={`${selected ? 'Deselecteer' : 'Selecteer'} ${getContactDisplayName(c) || c.displayName}`}
+                          onClick={() => toggleGroupMemberSelection(c.uid)}
+                        >
+                          <UserAvatar photoURL={c.photoURL} displayName={getContactDisplayName(c) || c.displayName} className="sm" decorative />
+                          <div>
+                            <div className="conv-name">{getContactDisplayName(c) || c.displayName}</div>
+                            <div className="conv-preview">{c.email || c.username || 'Contactpersoon'}</div>
+                          </div>
+                          <span className={`group-info-member-check${selected ? ' selected' : ''}`} aria-hidden="true">
+                            {selected && <Check size={16} />}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="group-info-add-footer">
+                    <button type="button" className="btn-primary group-info-add-selected-btn" disabled={selectedGroupMemberUids.length === 0} onClick={addSelectedGroupMembers}>
+                      {selectedGroupMemberUids.length === 0
+                        ? 'Selecteer groepsleden'
+                        : `${selectedGroupMemberUids.length} ${selectedGroupMemberUids.length === 1 ? 'lid' : 'leden'} toevoegen`}
+                    </button>
                   </div>
                 </div>
               );

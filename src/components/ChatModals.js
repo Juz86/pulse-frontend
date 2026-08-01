@@ -1343,8 +1343,106 @@ export default function ChatModals({
         );
       })()}
 
+      {/* ── GROEPSLEDEN TOEVOEGEN PAGINA ── */}
+      {showGroupInfo && addingMember && activeConv?.isGroup && (() => {
+        const availableContacts = contacts.filter((contact) => !activeConv.members.includes(contact.uid));
+        const query = groupMemberSearch.trim().toLowerCase();
+        const filteredContacts = query
+          ? availableContacts.filter((contact) => {
+              const displayName = (getContactDisplayName(contact) || contact.displayName || '').toLowerCase();
+              const email = (contact.email || '').toLowerCase();
+              const username = (contact.username || '').toLowerCase();
+              return displayName.includes(query) || email.includes(query) || username.includes(query);
+            })
+          : availableContacts;
+        const toggleGroupMemberSelection = (uid) => {
+          setSelectedGroupMemberUids((previous) => (
+            previous.includes(uid) ? previous.filter((id) => id !== uid) : [...previous, uid]
+          ));
+        };
+        const addSelectedGroupMembers = () => {
+          const selectedContacts = availableContacts.filter((contact) => selectedGroupMemberUids.includes(contact.uid));
+          if (selectedContacts.length === 0) return;
+          selectedContacts.forEach((contact) => addMemberToGroup(contact, { closeAfterAdd: false }));
+          setAddingMember(false);
+        };
+        return (
+          <div className="pulse-sheet-backdrop pulse-sheet-backdrop--group-info" onClick={closeGroupInfo}>
+            <ProfilePageShell
+              className="chat-side-panel contact-profile-panel group-info-panel group-member-add-page-panel"
+              titleId="group-member-add-title"
+              title="Groepsleden toevoegen"
+              description={`Selecteer contacten om toe te voegen aan ${getConvName(activeConv)}.`}
+              onBack={() => setAddingMember(false)}
+              backLabel="Terug naar groepsinfo"
+              panelProps={{ onClick: (event) => event.stopPropagation() }}
+              headerAction={(
+                <button type="button" className="contact-profile-edit-btn contact-profile-close-btn" aria-label="Groepsleden toevoegen sluiten" title="Sluiten" onClick={closeGroupInfo}>
+                  <Cancel size={20} aria-hidden="true" />
+                </button>
+              )}
+            >
+              <section className="group-member-add-content group-info-add-view" aria-label="Contacten selecteren">
+                <div className="group-info-add-toolbar">
+                  <label className="sr-only" htmlFor="group-member-search-page">Zoek contact om toe te voegen</label>
+                  <div className="starred-search-wrap call-log-search-wrap call-log-search-wrap--full group-info-search-wrap">
+                    <Search size={18} aria-hidden="true" />
+                    <input
+                      id="group-member-search-page"
+                      className="starred-search-input group-info-search"
+                      type="search"
+                      value={groupMemberSearch}
+                      onChange={(event) => setGroupMemberSearch(event.target.value)}
+                      placeholder="Zoek op naam of e-mailadres"
+                      autoComplete="off"
+                    />
+                  </div>
+                </div>
+
+                <div role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list group-info-add-list">
+                  {availableContacts.length === 0 ? (
+                    <div className="group-info-empty" role="status">Alle contacten zijn al lid van deze groep.</div>
+                  ) : filteredContacts.length === 0 ? (
+                    <div className="group-info-empty" role="status">Geen contacten gevonden.</div>
+                  ) : filteredContacts.map((contact) => {
+                    const selected = selectedGroupMemberUids.includes(contact.uid);
+                    const contactName = getContactDisplayName(contact) || contact.displayName;
+                    return (
+                      <button
+                        key={contact.uid}
+                        type="button"
+                        className={`search-result group-info-member-row group-info-add-row${selected ? ' selected' : ''}`}
+                        aria-pressed={selected}
+                        aria-label={`${selected ? 'Deselecteer' : 'Selecteer'} ${contactName}`}
+                        onClick={() => toggleGroupMemberSelection(contact.uid)}
+                      >
+                        <UserAvatar photoURL={contact.photoURL} displayName={contactName} className="sm" decorative />
+                        <div>
+                          <div className="conv-name">{contactName}</div>
+                          <div className="conv-preview">{contact.email || contact.username || 'Contactpersoon'}</div>
+                        </div>
+                        <span className={`group-info-member-check${selected ? ' selected' : ''}`} aria-hidden="true">
+                          {selected && <Check size={16} />}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="group-info-add-footer">
+                  <button type="button" className="btn-primary group-info-add-selected-btn" disabled={selectedGroupMemberUids.length === 0} onClick={addSelectedGroupMembers}>
+                    {selectedGroupMemberUids.length === 0
+                      ? 'Selecteer groepsleden'
+                      : `${selectedGroupMemberUids.length} ${selectedGroupMemberUids.length === 1 ? 'lid' : 'leden'} toevoegen`}
+                  </button>
+                </div>
+              </section>
+            </ProfilePageShell>
+          </div>
+        );
+      })()}
+
       {/* ── GROEPSINFORMATIE PANEEL ── */}
-      {showGroupInfo && activeConv?.isGroup && (
+      {showGroupInfo && !addingMember && activeConv?.isGroup && (
         <div
           className="pulse-sheet-backdrop pulse-sheet-backdrop--group-info"
           onClick={closeGroupInfo}

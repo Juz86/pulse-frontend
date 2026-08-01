@@ -9374,6 +9374,28 @@ font-family: 'Inter', sans-serif;
   border-radius: 16px;
   box-shadow: none;
 }
+.group-member-add-page-panel {
+  padding: max(16px, env(safe-area-inset-top)) 18px calc(max(34px, env(safe-area-inset-bottom) + 20px) + 128px);
+  scroll-padding-bottom: calc(max(34px, env(safe-area-inset-bottom) + 20px) + 128px);
+}
+.group-member-add-page-panel .group-member-add-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.group-member-add-page-panel .group-member-add-content::-webkit-scrollbar { display: none; }
+.group-member-add-page-panel .group-info-add-toolbar {
+  padding: 0 0 16px;
+}
+.group-member-add-page-panel .group-info-add-list {
+  margin: 0;
+}
+.group-member-add-page-panel .group-info-add-footer {
+  padding: 18px 0 4px;
+}
 
 @media (max-width: 767px) {
   .group-info-panel { width: 100%; }

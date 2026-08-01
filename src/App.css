@@ -9150,12 +9150,14 @@ font-family: 'Inter', sans-serif;
 .group-info-hero-actions {
   display: flex;
   align-items: center;
+  align-self: center;
   gap: 8px;
   margin-top: 12px;
 }
 .group-info-hero-action {
   width: 48px;
   height: 48px;
+  flex: 0 0 48px;
   padding: 0;
   border: 1px solid rgba(255, 255, 255, .08);
   border-radius: 16px;
@@ -9165,6 +9167,10 @@ font-family: 'Inter', sans-serif;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+.group-info-hero-action svg {
+  width: 18px;
+  height: 18px;
 }
 .group-info-hero-action:hover:not(:disabled) {
   background: rgba(43, 37, 94, .84);

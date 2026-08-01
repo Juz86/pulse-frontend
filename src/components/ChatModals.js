@@ -1501,15 +1501,15 @@ export default function ChatModals({
                       title={isAdmin ? 'Lid toevoegen' : 'Alleen beheerders kunnen leden toevoegen'}
                     >
                       <Users size={18} aria-hidden="true" />
-                      <span>Lid toevoegen</span>
+                      <span className="sr-only">Lid toevoegen</span>
                     </button>
                     <button type="button" className="group-info-hero-action" onClick={openGroupStarredMessages} title="Berichten met ster">
                       <StarOutline size={18} aria-hidden="true" />
-                      <span>Berichten met ster</span>
+                      <span className="sr-only">Berichten met ster</span>
                     </button>
                     <button type="button" className="group-info-hero-action" onClick={openGroupChatSearch} title="Zoeken in groep">
                       <Search size={18} aria-hidden="true" />
-                      <span>Zoeken</span>
+                      <span className="sr-only">Zoeken in groep</span>
                     </button>
                   </div>
                 </div>

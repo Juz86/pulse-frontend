@@ -114,6 +114,16 @@ function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = 
   );
 }
 
+function getCallLogSelectionKey(entry) {
+  return [
+    entry?.convId || 'local',
+    entry?.id || '',
+    entry?.uid || '',
+    Number(entry?.ts) || 0,
+    entry?.isVideo ? 'video' : 'voice',
+  ].join(':');
+}
+
 export default function ChatSidebar({
   user,
   onlineUsers,
@@ -281,6 +291,7 @@ export default function ChatSidebar({
   callsAvailable = true,
   callContact,
   callContactFromRecent,
+  deleteCallLogEntries,
   callLogRateLimitUntil = 0,
 }) {
   const sidebarRef = useRef(null);
@@ -304,6 +315,8 @@ export default function ChatSidebar({
   const [shareContactSearch, setShareContactSearch] = useState('');
   const [sidebarSearchOpen, setSidebarSearchOpen] = useState(false);
   const [callActionMode, setCallActionMode] = useState(null);
+  const [callLogSelectionMode, setCallLogSelectionMode] = useState(false);
+  const [selectedCallLogEntryKeys, setSelectedCallLogEntryKeys] = useState([]);
   const [requestsTab, setRequestsTab] = useState('ontvangen');
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const [pendingColor, setPendingColor] = useState(null);
@@ -1695,18 +1708,43 @@ export default function ChatSidebar({
         >
           <div className="calls-dashboard-sticky-top">
             <div className="contact-profile-topbar calls-dashboard-topbar">
-              <div className="contact-profile-topbar-spacer" aria-hidden="true" />
+              {callActionMode ? (
+                <div className="contact-profile-topbar-spacer" aria-hidden="true" />
+              ) : (
+                <button
+                  type="button"
+                  className={`contact-profile-nav-btn calls-dashboard-selection-btn${callLogSelectionMode ? ' is-active' : ''}`}
+                  aria-label={callLogSelectionMode ? 'Selecteren annuleren' : 'Oproepen selecteren'}
+                  title={callLogSelectionMode ? 'Annuleren' : 'Oproepen selecteren'}
+                  onClick={() => {
+                    if (callLogSelectionMode) {
+                      closeCallLogSelection();
+                      return;
+                    }
+                    setCallLogSelectionMode(true);
+                  }}
+                >
+                  {callLogSelectionMode ? <XIcon size={20} aria-hidden="true" /> : <Trash2 size={19} aria-hidden="true" />}
+                </button>
+              )}
               <div className="contact-profile-heading calls-dashboard-heading">
-                <h2 id="calls-profile-title">{callActionMode ? 'Nieuwe oproep' : 'Oproepen'}</h2>
+                <h2 id="calls-profile-title">
+                  {callActionMode ? 'Nieuwe oproep' : callLogSelectionMode ? `${selectedCallLogEntries.length} geselecteerd` : 'Oproepen'}
+                </h2>
               </div>
               <button
                 type="button"
-                className="contact-profile-nav-btn calls-dashboard-add-btn"
-                aria-label={callActionMode ? 'Sluit contactkiezer' : 'Start nieuwe oproep'}
-                title={callActionMode ? 'Sluiten' : 'Nieuwe oproep'}
+                className={`contact-profile-nav-btn ${callLogSelectionMode && !callActionMode ? 'calls-dashboard-delete-btn' : 'calls-dashboard-add-btn'}`}
+                aria-label={callActionMode ? 'Sluit contactkiezer' : callLogSelectionMode ? 'Geselecteerde oproepen verwijderen' : 'Start nieuwe oproep'}
+                title={callActionMode ? 'Sluiten' : callLogSelectionMode ? 'Verwijderen' : 'Nieuwe oproep'}
+                disabled={callLogSelectionMode && !callActionMode && selectedCallLogEntries.length === 0}
                 onClick={() => {
                   if (callActionMode) {
                     setCallActionMode(null);
+                    return;
+                  }
+                  if (callLogSelectionMode) {
+                    deleteSelectedCallLogEntries();
                     return;
                   }
                   setCallActionMode('contacts');
@@ -1714,6 +1752,8 @@ export default function ChatSidebar({
               >
                 {callActionMode ? (
                   <XIcon size={20} aria-hidden="true" />
+                ) : callLogSelectionMode ? (
+                  <Trash2 size={19} aria-hidden="true" />
                 ) : (
                   <span className="calls-dashboard-add-icon" aria-hidden="true">
                     <Phone size={18} />
@@ -1823,9 +1863,22 @@ export default function ChatSidebar({
                       const contact = contacts.find((item) => item.uid === entry.uid);
                       const CallTypeIcon = entry.isVideo ? Video : Phone;
                       const displayTime = formatTime(entry.ts);
+                      const selectionKey = getCallLogSelectionKey(entry);
+                      const isSelected = selectedCallLogKeySet.has(selectionKey);
                       return (
-                        <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className="sidebar-contact-card sidebar-contact-card--call-log">
+                        <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className={`sidebar-contact-card sidebar-contact-card--call-log${callLogSelectionMode ? ' calls-dashboard-call-row--selecting' : ''}${isSelected ? ' is-selected' : ''}`}>
                           <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                            {callLogSelectionMode && (
+                              <button
+                                type="button"
+                                className={`call-log-selection-control${isSelected ? ' is-selected' : ''}`}
+                                aria-label={`${entry.name} ${isSelected ? 'deselecteren' : 'selecteren'}`}
+                                aria-pressed={isSelected}
+                                onClick={() => toggleCallLogEntry(entry)}
+                              >
+                                {isSelected && <Check size={16} aria-hidden="true" />}
+                              </button>
+                            )}
                             <div className="avatar-wrap">
                               <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
                               {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
@@ -1840,7 +1893,7 @@ export default function ChatSidebar({
                                 <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
                               </div>
                             </div>
-                            {contact && (
+                            {contact && !callLogSelectionMode && (
                               <div className="call-log-actions">
                                 {entry.isVideo ? (
                                   <button type="button" className="call-btn video calls-dashboard-quick-btn" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
@@ -2294,6 +2347,25 @@ export default function ChatSidebar({
   }, []);
 
   const callLog = typeof getCallLog === 'function' ? getCallLog() : [];
+  const selectedCallLogKeySet = new Set(selectedCallLogEntryKeys);
+  const selectedCallLogEntries = callLog.filter((entry) => selectedCallLogKeySet.has(getCallLogSelectionKey(entry)));
+  const toggleCallLogEntry = (entry) => {
+    const key = getCallLogSelectionKey(entry);
+    setSelectedCallLogEntryKeys((previous) => (
+      previous.includes(key)
+        ? previous.filter((item) => item !== key)
+        : [...previous, key]
+    ));
+  };
+  const closeCallLogSelection = () => {
+    setCallLogSelectionMode(false);
+    setSelectedCallLogEntryKeys([]);
+  };
+  const deleteSelectedCallLogEntries = async () => {
+    if (!selectedCallLogEntries.length) return;
+    const deleted = await deleteCallLogEntries?.(selectedCallLogEntries);
+    if (deleted !== false) closeCallLogSelection();
+  };
   const unreadMissedCallCount = callLogRead ? 0 : callLog.filter((entry) => entry.direction === 'missed').length;
   const missedCallCount = callsAvailable ? Math.max(unreadMissedCallCount, missedCallAlert ? 1 : 0) : 0;
   const hasMissedCall = missedCallCount > 0;

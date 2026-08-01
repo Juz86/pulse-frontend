@@ -223,6 +223,44 @@ export default function useCalling({
     }
   }, [authFetch, getLegacyCallLogKey, refreshCallLog]);
 
+  const deleteCallLogEntries = useCallback(async (entries = []) => {
+    const selected = Array.isArray(entries) ? entries.filter(Boolean) : [];
+    if (!selected.length) return true;
+
+    const isSameEntry = (left, right) => (
+      (left?.convId && left?.id && left.convId === right?.convId && left.id === right?.id)
+      || (
+        left?.uid === right?.uid
+        && Number(left?.ts) === Number(right?.ts)
+        && !!left?.isVideo === !!right?.isVideo
+      )
+    );
+    const remoteEntries = selected.filter((entry) => entry.convId && entry.id);
+
+    try {
+      const results = await Promise.all(remoteEntries.map((entry) => authFetch(
+        `${BACKEND_URL}/api/messages/${encodeURIComponent(entry.convId)}/${encodeURIComponent(entry.id)}`,
+        { method: 'DELETE' },
+      )));
+      if (results.some((response) => !response.ok && response.status !== 404)) {
+        throw new Error('Oproepen verwijderen is niet gelukt.');
+      }
+
+      const remainingLegacyEntries = readLegacyCallLog().filter((entry) => !selected.some((selectedEntry) => (
+        isSameEntry(entry, selectedEntry)
+      )));
+      localStorage.setItem(getLegacyCallLogKey(), JSON.stringify(remainingLegacyEntries));
+      setCallLog((previous) => previous.filter((entry) => !selected.some((selectedEntry) => (
+        isSameEntry(entry, selectedEntry)
+      ))));
+      await refreshCallLog({ force: true });
+      return true;
+    } catch (error) {
+      showErrToast(error?.message || 'Oproepen verwijderen is niet gelukt.');
+      return false;
+    }
+  }, [authFetch, getLegacyCallLogKey, readLegacyCallLog, refreshCallLog, showErrToast]);
+
   useEffect(() => {
     refreshCallLog();
     return () => {
@@ -455,7 +493,7 @@ export default function useCalling({
 
   return {
     activeCall, setActiveCall,
-    getCallLog, refreshCallLog, clearCallLog, callLogRateLimitUntil,
+    getCallLog, refreshCallLog, clearCallLog, deleteCallLogEntries, callLogRateLimitUntil,
     callContact, callContactFromRecent, initiateCall, initiateCallFromConv,
     sendCallMessage,
   };

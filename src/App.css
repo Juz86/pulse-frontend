@@ -13346,6 +13346,31 @@ font-family: 'Inter', sans-serif;
   color: #f7f5ff;
 }
 
+.calls-dashboard-selection-btn,
+.calls-dashboard-delete-btn {
+  justify-self: start;
+}
+
+.calls-dashboard-selection-btn {
+  color: #ff9aaf;
+}
+
+.calls-dashboard-selection-btn.is-active {
+  color: #f7f5ff;
+  background: rgba(255,255,255,.12);
+}
+
+.calls-dashboard-delete-btn {
+  color: #ff6f8e;
+  background: rgba(255, 72, 113, .12);
+  border-color: rgba(255, 117, 146, .28);
+}
+
+.calls-dashboard-delete-btn:disabled {
+  opacity: .38;
+  cursor: not-allowed;
+}
+
 .calls-dashboard-add-icon {
   position: relative;
   width: 24px;
@@ -13511,6 +13536,32 @@ font-family: 'Inter', sans-serif;
   padding: 18px 20px;
 }
 
+.calls-dashboard-panel .sidebar-contact-card--call-log.calls-dashboard-call-row--selecting .sidebar-contact-row--call-log {
+  padding-left: 20px;
+}
+
+.call-log-selection-control {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  padding: 0;
+  color: #fff;
+  border: 2px solid rgba(218, 212, 255, .72);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.call-log-selection-control.is-selected {
+  border-color: #8c7bff;
+  background: linear-gradient(135deg, #8c7bff, #7160f5);
+  box-shadow: 0 6px 16px rgba(113, 96, 245, .28);
+}
+
 .calls-dashboard-panel .call-log-picker-copy,
 .calls-dashboard-panel .call-log-copy {
   min-width: 0;
@@ -13650,6 +13701,10 @@ font-family: 'Inter', sans-serif;
 
   .calls-dashboard-panel .sidebar-contact-row--call-log {
     padding: 16px 16px;
+  }
+
+  .calls-dashboard-panel .sidebar-contact-card--call-log.calls-dashboard-call-row--selecting .sidebar-contact-row--call-log {
+    padding-left: 16px;
   }
 
   .calls-dashboard-panel .call-log-picker-title {

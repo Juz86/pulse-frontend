@@ -20543,7 +20543,8 @@ font-family: 'Inter', sans-serif;
    te staan, niet afhankelijk van de lengte van de contactenlijst. */
 @media (max-width: 767px) {
   .share-contact-page-footer,
-  .new-group-page-footer {
+  .new-group-page-footer,
+  .group-member-add-page-panel .group-info-add-footer {
     position:fixed;
     z-index:891;
     left:max(18px, env(safe-area-inset-left));
@@ -20558,7 +20559,8 @@ font-family: 'Inter', sans-serif;
 
 @media (min-width: 768px) {
   .share-contact-page-footer,
-  .new-group-page-footer {
+  .new-group-page-footer,
+  .group-member-add-page-panel .group-info-add-footer {
     position:fixed;
     z-index:891;
     left:18px;

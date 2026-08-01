@@ -845,7 +845,7 @@ export default function ChatModals({
               </div>
               {groupMembers.length > 0 && <p className="new-chat-sheet-sub">{groupMembers.length} deelnemer(s) geselecteerd</p>}
               <div className="modal-actions add-contact-sheet-actions">
-                <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={createGroup} disabled={!groupName.trim() || groupMembers.length === 0}>Groep aanmaken →</button>
+                <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={createGroup} disabled={!groupName.trim() || groupMembers.length === 0}>Groep aanmaken</button>
               </div>
             </div>
           </aside>

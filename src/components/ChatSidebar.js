@@ -970,7 +970,7 @@ export default function ChatSidebar({
               onClick={() => createGroup?.()}
               disabled={!groupName.trim() || groupMembers.length === 0}
             >
-              Groep aanmaken →
+              Groep aanmaken
             </button>
           </div>
         </div>

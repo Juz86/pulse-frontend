@@ -941,6 +941,9 @@ export default function ChatSidebar({
             aria-label="Zoek deelnemers"
           />
         </div>
+        {groupMembers.length > 0 && (
+          <p className="new-chat-sheet-sub new-group-page-selected-count">{groupMembers.length} deelnemer(s) geselecteerd</p>
+        )}
         {contacts.length === 0 && (
           <div className="contact-profile-field">
             <div className="auth-error">⚠️ Voeg eerst contacten toe.</div>
@@ -977,11 +980,6 @@ export default function ChatSidebar({
             <p className="new-group-page-search-empty">Geen contacten gevonden.</p>
           )}
         </div>
-        {groupMembers.length > 0 && (
-          <div className="contact-profile-field">
-            <p className="new-chat-sheet-sub">{groupMembers.length} deelnemer(s) geselecteerd</p>
-          </div>
-        )}
         <div className="contact-profile-field new-group-page-footer">
           <div className="modal-actions add-contact-sheet-actions">
             <button

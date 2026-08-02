@@ -313,6 +313,7 @@ export default function ChatSidebar({
   const [parentPortalView, setParentPortalView] = useState('menu');
   const [callSearch, setCallSearch] = useState('');
   const [shareContactSearch, setShareContactSearch] = useState('');
+  const [newGroupContactSearch, setNewGroupContactSearch] = useState('');
   const [sidebarSearchOpen, setSidebarSearchOpen] = useState(false);
   const [callActionMode, setCallActionMode] = useState(null);
   const [callLogSelectionMode, setCallLogSelectionMode] = useState(false);
@@ -336,6 +337,13 @@ export default function ChatSidebar({
   const moreActionsSheetHistoryPushedRef = useRef(false);
   const contactSheetHistoryPushedRef = useRef(false);
   const normalizedSearch = searchQuery.trim().toLowerCase();
+  const normalizedNewGroupContactSearch = newGroupContactSearch.trim().toLowerCase();
+  const filteredNewGroupContacts = contacts.filter((contact) => {
+    if (!normalizedNewGroupContactSearch) return true;
+    const name = (getContactDisplayName(contact) || contact.displayName || contact.username || '').toLowerCase();
+    return name.includes(normalizedNewGroupContactSearch)
+      || (contact.email || '').toLowerCase().includes(normalizedNewGroupContactSearch);
+  });
   const moreActionsSheetVisible = moreActionsMenuOpen || moreActionsMenuClosing;
   const addContactSheetVisible = showAddContact || addContactSheetClosing;
   const newChatSheetVisible = showNewChat || newChatSheetClosing;
@@ -923,13 +931,23 @@ export default function ChatSidebar({
 
       <section className="contact-profile-card new-group-page-section">
         <div className="contact-profile-field-label">Kies deelnemers</div>
+        <div className="new-group-page-search" role="search">
+          <Search size={20} aria-hidden="true" />
+          <input
+            type="search"
+            value={newGroupContactSearch}
+            onChange={(event) => setNewGroupContactSearch(event.target.value)}
+            placeholder="Zoek op naam of e-mailadres"
+            aria-label="Zoek deelnemers"
+          />
+        </div>
         {contacts.length === 0 && (
           <div className="contact-profile-field">
             <div className="auth-error">⚠️ Voeg eerst contacten toe.</div>
           </div>
         )}
         <div className="pulse-sheet-list pulse-sheet-list--new-chat new-group-contact-list">
-          {contacts.map((contact) => {
+          {filteredNewGroupContacts.map((contact) => {
             const selected = groupMembers.find((member) => member.uid === contact.uid);
             const contactTitle = getContactDisplayName(contact)
               || contact.displayName
@@ -955,6 +973,9 @@ export default function ChatSidebar({
               </button>
             );
           })}
+          {contacts.length > 0 && filteredNewGroupContacts.length === 0 && (
+            <p className="new-group-page-search-empty">Geen contacten gevonden.</p>
+          )}
         </div>
         {groupMembers.length > 0 && (
           <div className="contact-profile-field">
@@ -2123,6 +2144,7 @@ export default function ChatSidebar({
     if (!showNewGroup) {
       setNewGroupSheetClosing(false);
       setGroupName?.('');
+      setNewGroupContactSearch('');
       return;
     }
     setMoreActionsMenuOpen(false);

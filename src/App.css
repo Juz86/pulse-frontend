@@ -1349,6 +1349,36 @@ body {
   background: linear-gradient(135deg, #8c7bff, #7160f5);
   box-shadow: 0 6px 16px rgba(126, 99, 255, .34);
 }
+.new-group-page-search {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 18px;
+  background: rgba(17, 15, 40, .56);
+  color: #aaa0ff;
+}
+.new-group-page-search input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #f8f7ff;
+  font: inherit;
+  font-size: 16px;
+}
+.new-group-page-search input::placeholder { color: #aaa5cc; opacity: 1; }
+.new-group-page-search-empty {
+  margin: 0;
+  padding: 18px;
+  color: #aaa5cc;
+  font-size: 14px;
+  text-align: center;
+}
 
 .friend-requests-list {
   gap: 0;

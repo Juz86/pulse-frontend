@@ -137,6 +137,8 @@ export default function ChatModals({
   const [starredSearch,   setStarredSearch]   = useState('');
   const [requestsTab,     setRequestsTab]     = useState('ontvangen');
   const [groupMemberSearch, setGroupMemberSearch] = useState('');
+  const [allGroupMembersSearch, setAllGroupMembersSearch] = useState('');
+  const [showAllGroupMembers, setShowAllGroupMembers] = useState(false);
   const [selectedGroupMemberUids, setSelectedGroupMemberUids] = useState([]);
   const [editingGroupName, setEditingGroupName] = useState(false);
   const [groupNameDraft, setGroupNameDraft] = useState('');
@@ -157,6 +159,8 @@ export default function ChatModals({
     setEditingGroupName(false);
     setGroupNameDraft('');
     setShowAdminPicker(false);
+    setShowAllGroupMembers(false);
+    setAllGroupMembersSearch('');
     setShowGroupInfo(false);
     setAddingMember(false);
   }
@@ -1451,8 +1455,75 @@ export default function ChatModals({
         );
       })()}
 
+      {/* ── ALLE GROEPSLEDEN ── */}
+      {showGroupInfo && showAllGroupMembers && activeConv?.isGroup && (() => {
+        const query = allGroupMembersSearch.trim().toLowerCase();
+        const members = activeConv.members.filter((memberId) => {
+          if (!query) return true;
+          const contact = contacts.find((item) => item.uid === memberId);
+          const name = memberId === user.uid
+            ? (user.displayName || user.email || memberId)
+            : ((contact ? getContactDisplayName(contact) : null) || contact?.displayName || activeConv.memberNames?.[memberId] || memberId);
+          return name.toLowerCase().includes(query)
+            || (contact?.email || activeConv.memberEmails?.[memberId] || '').toLowerCase().includes(query);
+        });
+        return (
+          <div className="pulse-sheet-backdrop pulse-sheet-backdrop--group-info" onClick={closeGroupInfo}>
+            <ProfilePageShell
+              className="chat-side-panel contact-profile-panel group-member-directory-page-panel"
+              titleId="group-member-directory-title"
+              title="Alle deelnemers"
+              description={`Overzicht van alle deelnemers in ${getConvName(activeConv)}.`}
+              onBack={() => { setShowAllGroupMembers(false); setAllGroupMembersSearch(''); }}
+              backLabel="Terug naar groepsinfo"
+              panelProps={{ onClick: (event) => event.stopPropagation() }}
+              headerAction={(
+                <button type="button" className="contact-profile-edit-btn contact-profile-close-btn" aria-label="Alle deelnemers sluiten" title="Sluiten" onClick={closeGroupInfo}>
+                  <Cancel size={20} aria-hidden="true" />
+                </button>
+              )}
+            >
+              <section className="group-member-directory-content" aria-label="Groepsleden">
+                <div className="group-member-directory-search" role="search">
+                  <Search size={20} aria-hidden="true" />
+                  <input
+                    type="search"
+                    value={allGroupMembersSearch}
+                    onChange={(event) => setAllGroupMembersSearch(event.target.value)}
+                    placeholder="Zoek op naam of e-mailadres"
+                    aria-label="Zoek groepsleden"
+                  />
+                </div>
+                <div role="list" className="group-member-directory-list">
+                  {members.length === 0 ? <p className="group-member-directory-empty">Geen deelnemers gevonden.</p> : members.map((memberId) => {
+                    const isMe = memberId === user.uid;
+                    const contact = contacts.find((item) => item.uid === memberId);
+                    const name = isMe
+                      ? (user.displayName || user.email || memberId)
+                      : ((contact ? getContactDisplayName(contact) : null) || contact?.displayName || activeConv.memberNames?.[memberId] || memberId);
+                    const isOnline = onlineUsers.has(memberId);
+                    return (
+                      <div key={memberId} role="listitem" className="group-member-directory-row">
+                        <div className="avatar-wrap">
+                          <UserAvatar photoURL={contact?.photoURL || null} displayName={name} className="sm" decorative />
+                          {isOnline && <span className="online-dot sm" />}
+                        </div>
+                        <div>
+                          <div className="conv-name">{name}{isMe ? ' (jij)' : ''}{isGroupAdmin(activeConv, memberId) && <span className="admin-badge"><AdminIcon size={11} aria-hidden="true" /> Beheerder</span>}</div>
+                          <div className="conv-preview" style={isOnline ? { color: 'var(--success)' } : {}}>{isOnline ? 'Online' : 'Offline'}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            </ProfilePageShell>
+          </div>
+        );
+      })()}
+
       {/* ── GROEPSINFORMATIE PANEEL ── */}
-      {showGroupInfo && !addingMember && activeConv?.isGroup && (
+      {showGroupInfo && !addingMember && !showAllGroupMembers && activeConv?.isGroup && (
         <div
           className="pulse-sheet-backdrop pulse-sheet-backdrop--group-info"
           onClick={closeGroupInfo}
@@ -1660,7 +1731,7 @@ export default function ChatModals({
               return (
                 <>
                   <div role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list">
-                    {activeConv.members.map(memberId => {
+                    {activeConv.members.slice(0, 4).map(memberId => {
                       const isMe      = memberId === user.uid;
                       const memberContact = contacts.find(c => c.uid === memberId);
                       const name      = isMe
@@ -1722,6 +1793,13 @@ export default function ChatModals({
                         </div>
                       );
                     })}
+                    {activeConv.members.length > 4 && (
+                      <button type="button" className="group-info-member-row group-info-all-members-row" onClick={() => setShowAllGroupMembers(true)}>
+                        <span className="group-info-all-members-icon"><Users size={20} aria-hidden="true" /></span>
+                        <span>Alle deelnemers</span>
+                        <ArrowRight className="group-info-quick-arrow" size={20} aria-hidden="true" />
+                      </button>
+                    )}
                   </div>
                 </>
               );

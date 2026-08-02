@@ -1382,7 +1382,6 @@ body {
   font-size: 16px;
 }
 .new-group-page-search input::placeholder { color: #aaa5cc; opacity: 1; }
-.new-group-page-selected-count { margin: -4px 0 12px; }
 .new-group-page-search-empty {
   margin: 0;
   padding: 18px;

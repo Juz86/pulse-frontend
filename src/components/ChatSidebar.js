@@ -941,9 +941,6 @@ export default function ChatSidebar({
             aria-label="Zoek deelnemers"
           />
         </div>
-        {groupMembers.length > 0 && (
-          <p className="new-chat-sheet-sub new-group-page-selected-count">{groupMembers.length} deelnemer(s) geselecteerd</p>
-        )}
         {contacts.length === 0 && (
           <div className="contact-profile-field">
             <div className="auth-error">⚠️ Voeg eerst contacten toe.</div>
@@ -989,7 +986,7 @@ export default function ChatSidebar({
               onClick={() => createGroup?.()}
               disabled={!groupName.trim() || groupMembers.length === 0}
             >
-              Groep aanmaken
+              Groep aanmaken{groupMembers.length > 0 ? ` (${groupMembers.length})` : ''}
             </button>
           </div>
         </div>

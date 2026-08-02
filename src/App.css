@@ -8904,6 +8904,11 @@ font-family: 'Inter', sans-serif;
   text-align:center;
   box-shadow: 0 10px 24px rgba(106,87,180,.06);
 }
+.group-info-empty--all-members {
+  padding: 16px 0;
+  background: transparent;
+  box-shadow: none;
+}
 .group-info-hero {
   display:flex; flex-direction:column; align-items:center; gap:8px;
   padding:28px 24px 18px;

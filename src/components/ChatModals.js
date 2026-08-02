@@ -1415,7 +1415,7 @@ export default function ChatModals({
 
                 <div role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list group-info-add-list">
                   {availableContacts.length === 0 ? (
-                    <div className="group-info-empty" role="status">Alle contacten zijn al lid van deze groep.</div>
+                    <div className="group-info-empty group-info-empty--all-members" role="status">Alle contacten zijn al lid van deze groep.</div>
                   ) : filteredContacts.length === 0 ? (
                     <div className="group-info-empty" role="status">Geen contacten gevonden.</div>
                   ) : filteredContacts.map((contact) => {
@@ -1442,13 +1442,15 @@ export default function ChatModals({
                     );
                   })}
                 </div>
-                <div className="group-info-add-footer">
-                  <button type="button" className="btn-primary group-info-add-selected-btn" disabled={selectedGroupMemberUids.length === 0} onClick={addSelectedGroupMembers}>
-                    {selectedGroupMemberUids.length === 0
-                      ? 'Selecteer groepsleden'
-                      : `${selectedGroupMemberUids.length} ${selectedGroupMemberUids.length === 1 ? 'lid' : 'leden'} toevoegen`}
-                  </button>
-                </div>
+                {availableContacts.length > 0 && (
+                  <div className="group-info-add-footer">
+                    <button type="button" className="btn-primary group-info-add-selected-btn" disabled={selectedGroupMemberUids.length === 0} onClick={addSelectedGroupMembers}>
+                      {selectedGroupMemberUids.length === 0
+                        ? 'Selecteer groepsleden'
+                        : `${selectedGroupMemberUids.length} ${selectedGroupMemberUids.length === 1 ? 'lid' : 'leden'} toevoegen`}
+                    </button>
+                  </div>
+                )}
               </section>
             </ProfilePageShell>
           </div>
@@ -1603,7 +1605,7 @@ export default function ChatModals({
 
                   <div id="group-add-member-list" role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list group-info-add-list">
                     {availableContacts.length === 0 ? (
-                      <div className="group-info-empty" role="status">Alle contacten zijn al lid van deze groep.</div>
+                      <div className="group-info-empty group-info-empty--all-members" role="status">Alle contacten zijn al lid van deze groep.</div>
                     ) : filteredContacts.length === 0 ? (
                       <div className="group-info-empty" role="status">Geen contacten gevonden.</div>
                     ) : filteredContacts.map(c => {
@@ -1629,13 +1631,15 @@ export default function ChatModals({
                       );
                     })}
                   </div>
-                  <div className="group-info-add-footer">
-                    <button type="button" className="btn-primary group-info-add-selected-btn" disabled={selectedGroupMemberUids.length === 0} onClick={addSelectedGroupMembers}>
-                      {selectedGroupMemberUids.length === 0
-                        ? 'Selecteer groepsleden'
-                        : `${selectedGroupMemberUids.length} ${selectedGroupMemberUids.length === 1 ? 'lid' : 'leden'} toevoegen`}
-                    </button>
-                  </div>
+                  {availableContacts.length > 0 && (
+                    <div className="group-info-add-footer">
+                      <button type="button" className="btn-primary group-info-add-selected-btn" disabled={selectedGroupMemberUids.length === 0} onClick={addSelectedGroupMembers}>
+                        {selectedGroupMemberUids.length === 0
+                          ? 'Selecteer groepsleden'
+                          : `${selectedGroupMemberUids.length} ${selectedGroupMemberUids.length === 1 ? 'lid' : 'leden'} toevoegen`}
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })() : (

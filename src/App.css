@@ -1309,6 +1309,47 @@ body {
   box-shadow: 0 8px 18px rgba(123, 96, 233, 0.18);
 }
 
+/* Nieuwe groep gebruikt dezelfde compacte, doorlopende contactenkaart als
+   Groepsleden toevoegen. Selectie toont alleen het ronde vinkje. */
+.new-group-page-panel .new-group-contact-list {
+  gap: 0;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 24px;
+  background: rgba(17, 15, 40, .56);
+  box-shadow: 0 18px 38px rgba(10, 8, 28, .18);
+}
+.new-group-page-panel .new-group-contact-list .new-group-sheet-result,
+.new-group-page-panel .new-group-contact-list .search-result.new-group-sheet-result {
+  min-height: 68px;
+  padding: 10px 18px;
+  gap: 12px;
+  border-radius: 0;
+  background: transparent;
+}
+.new-group-page-panel .new-group-contact-list .new-group-sheet-result + .new-group-sheet-result {
+  border-top: 1px solid rgba(255, 255, 255, .08);
+}
+.new-group-page-panel .new-group-contact-list .new-group-sheet-result:hover,
+.new-group-page-panel .new-group-contact-list .new-group-sheet-result.selected,
+.new-group-page-panel .new-group-contact-list .new-group-sheet-result.selected:hover {
+  background: transparent;
+}
+.new-group-page-panel .new-group-contact-list .new-group-sheet-check {
+  width: 26px;
+  height: 26px;
+  border-width: 2px;
+  border-color: rgba(210, 204, 241, .62);
+}
+.new-group-page-panel .new-group-contact-list .new-group-sheet-check--selected {
+  border-color: #8b6cff;
+  background: linear-gradient(135deg, #8c7bff, #7160f5);
+  box-shadow: 0 6px 16px rgba(126, 99, 255, .34);
+}
+
 .friend-requests-list {
   gap: 0;
   padding-bottom: 0;

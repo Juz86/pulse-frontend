@@ -264,7 +264,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     sendMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
-    toggleGroupMember, createGroup, renameGroup, promoteGroupAdmin, relinquishGroupAdmin, addMemberToGroup, removeMemberFromGroup, leaveGroup,
+    toggleGroupMember, createGroup, renameGroup, promoteGroupAdmin, relinquishGroupAdmin, addMemberToGroup, removeMemberFromGroup, leaveGroup, dissolveGroup,
     storeTransientConversationMessage,
   } = useConversations({
     user, text, setText, setActiveTab, setShowChatSearch, setChatSearch,
@@ -865,6 +865,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
         onEnterMessageSelection={() => messageSelectionMode ? cancelMessageSelection() : enterMessageSelection()}
         onLeaveGroup={leaveGroup}
+        onDissolveGroup={dissolveGroup}
         onClearChat={() => activeConv && openClearConversationConfirm(activeConv)}
         onDeleteChat={() => activeConv && openDeleteConversationConfirm(activeConv)}
         onBlockContact={contact => setBlockingContact(contact)}

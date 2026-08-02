@@ -1229,6 +1229,29 @@ export default function useConversations({
     });
   }
 
+  function dissolveGroup() {
+    const socket = getSocket();
+    if (!socket || !activeConv?.isGroup) return;
+    const convId = activeConv.id;
+    setConfirmDialog({
+      title: 'Groep opheffen',
+      message: `Weet je zeker dat je ${activeConv.groupName || 'deze groep'} wilt opheffen? Dit kan niet ongedaan worden gemaakt.`,
+      confirmLabel: 'Groep opheffen',
+      confirmIcon: 'trash',
+      onConfirm: () => {
+        socket.emit('conversation:dissolveGroup', { convId }, (res = {}) => {
+          if (res.error) return showErrToast(res.error);
+          setSessionMessagesForConversation(convId, []);
+          delete msgCache.current[convId];
+          setConversations(prev => prev.filter(conv => conv.id !== convId));
+          setActiveConv(prev => (prev?.id === convId ? null : prev));
+          setMessages(prev => (activeConvRef.current?.id === convId ? [] : prev));
+          showErrToast({ text: 'De groep is opgeheven.', tone: 'success' });
+        });
+      },
+    });
+  }
+
   return {
     conversations, setConversations,
     activeConv, setActiveConv,
@@ -1239,7 +1262,7 @@ export default function useConversations({
     sendMessage, sendEditedMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
     forwardToConv, deleteMessage,
-    toggleGroupMember, createGroup, renameGroup, promoteGroupAdmin, relinquishGroupAdmin, addMemberToGroup, removeMemberFromGroup, leaveGroup,
+    toggleGroupMember, createGroup, renameGroup, promoteGroupAdmin, relinquishGroupAdmin, addMemberToGroup, removeMemberFromGroup, leaveGroup, dissolveGroup,
     storeTransientConversationMessage,
   };
 }

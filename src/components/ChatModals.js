@@ -92,6 +92,7 @@ export default function ChatModals({
   onToggleConversationMute,
   onEnterMessageSelection,
   onLeaveGroup,
+  onDissolveGroup,
   onClearChat,
   onDeleteChat,
   onBlockContact,
@@ -286,6 +287,11 @@ export default function ChatModals({
   function leaveCurrentGroup() {
     setShowGroupInfo(false);
     onLeaveGroup?.(activeConv);
+  }
+
+  function dissolveCurrentGroup() {
+    setShowGroupInfo(false);
+    onDissolveGroup?.(activeConv);
   }
 
   function clearChatFromProfile() {
@@ -1753,6 +1759,13 @@ export default function ChatModals({
                   <span>Groep verlaten</span>
                   <ArrowRight className="group-info-quick-arrow" size={20} aria-hidden="true" />
                 </button>
+                {isGroupInfoAdmin && (
+                  <button type="button" className="group-info-quick-card group-info-quick-card--danger" onClick={dissolveCurrentGroup}>
+                    <span className="group-info-quick-icon"><Trash2 size={22} aria-hidden="true" /></span>
+                    <span>Groep opheffen</span>
+                    <ArrowRight className="group-info-quick-arrow" size={20} aria-hidden="true" />
+                  </button>
+                )}
               </div>
             </div>
               </>

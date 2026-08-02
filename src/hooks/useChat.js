@@ -511,6 +511,22 @@ export default function useChat({
       });
     };
 
+    const onConversationDissolved = ({ convId }) => {
+      if (!convId) return;
+      if (activeConvRef.current?.id === convId) {
+        setActiveConv(null);
+        setMessages([]);
+      }
+      setConversations(prev => prev.filter((conversation) => conversation.id !== convId));
+      setUnreadCounts((prev) => {
+        if (!Object.prototype.hasOwnProperty.call(prev, convId)) return prev;
+        const next = { ...prev };
+        delete next[convId];
+        return next;
+      });
+      loadConversations?.();
+    };
+
     const onMessageDeleted  = ({ msgId })              => setMessages(prev => prev.filter(m => m.id !== msgId));
     const onMessageEdited   = ({ msgId, text, editedAt }) => setMessages(prev => prev.map(m => (
       m.id === msgId
@@ -575,6 +591,7 @@ export default function useChat({
     socket.on('conversation:admins_updated', onConversationAdminsUpdated);
     socket.on('conversation:admin_promotion_requested', onAdminPromotionRequested);
     socket.on('conversation:hardCleared',    onConversationHardCleared);
+    socket.on('conversation:dissolved',      onConversationDissolved);
     socket.on('contact:blocked-by-parent',   onContactBlockedByParent);
     socket.on('contact:unblocked-by-parent', onContactUnblockedByParent);
     socket.on('contact:removed-by-parent',   onContactRemovedByParent);
@@ -606,6 +623,7 @@ export default function useChat({
       socket.off('conversation:admins_updated', onConversationAdminsUpdated);
       socket.off('conversation:admin_promotion_requested', onAdminPromotionRequested);
       socket.off('conversation:hardCleared',    onConversationHardCleared);
+      socket.off('conversation:dissolved',      onConversationDissolved);
       socket.off('contact:blocked-by-parent',   onContactBlockedByParent);
       socket.off('contact:unblocked-by-parent', onContactUnblockedByParent);
       socket.off('contact:removed-by-parent',   onContactRemovedByParent);

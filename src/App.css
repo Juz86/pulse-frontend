@@ -1361,6 +1361,16 @@ body {
   background: rgba(17, 15, 40, .56);
   color: #aaa0ff;
 }
+.new-group-page-name-field {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 56px;
+  border-radius: 18px;
+}
+.new-group-page-name-field .sheet-form-input {
+  box-sizing: border-box;
+  min-height: 56px;
+}
 .new-group-page-search input {
   min-width: 0;
   width: 100%;

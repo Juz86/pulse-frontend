@@ -849,7 +849,7 @@ export default function ChatSidebar({
         </div>
         <div className="contact-profile-field">
           <div className="contact-profile-field-label">E-mailadres of naam@pulse.internal</div>
-          <div className="sheet-input-wrap">
+          <div className="sheet-input-wrap new-group-page-name-field">
             <input
               className="form-input sheet-form-input"
               placeholder="naam@voorbeeld.nl, kind@pulse.internal of gebruikersnaam"

@@ -1225,6 +1225,7 @@ export default function useConversations({
       title: 'Groep verlaten',
       message: 'Groep verlaten? Je verlaat deze groep en ziet het gesprek niet meer in je lijst.',
       confirmLabel: 'Groep verlaten',
+      hideCancel: true,
       onConfirm: performLeave,
     });
   }
@@ -1238,6 +1239,7 @@ export default function useConversations({
       message: `Weet je zeker dat je ${activeConv.groupName || 'deze groep'} wilt opheffen? Dit kan niet ongedaan worden gemaakt.`,
       confirmLabel: 'Groep opheffen',
       confirmIcon: 'trash',
+      hideCancel: true,
       onConfirm: () => {
         socket.emit('conversation:dissolveGroup', { convId }, (res = {}) => {
           if (res.error) return showErrToast(res.error);

@@ -6031,6 +6031,30 @@ font-family: 'Inter', sans-serif;
   font-size:22px; opacity:0; transition:.2s;
 }
 .profile-photo-wrap:hover .profile-photo-overlay { opacity:1; }
+.profile-photo-wrap--account {
+  cursor:default;
+}
+.profile-account-avatar-camera {
+  position:absolute;
+  right:-2px;
+  bottom:0;
+  z-index:1;
+  width:30px;
+  height:30px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border:2px solid #27245a;
+  border-radius:50%;
+  background:#7c5cff;
+  color:#fff;
+  cursor:pointer;
+  box-shadow:0 8px 18px rgba(0,0,0,.32);
+}
+.profile-account-avatar-camera:hover {
+  background:#8c70ff;
+}
 
 /* ── MEER BERICHTEN LADEN (5) ── */
 .load-more-btn {

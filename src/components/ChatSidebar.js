@@ -1257,12 +1257,20 @@ export default function ChatSidebar({
         <ProfilePageHero
           className="contact-profile-hero contact-profile-hero--account"
           avatar={(
-            <div className="profile-photo-wrap" onClick={() => photoInputRef?.current?.click()}>
+            <div className="profile-photo-wrap profile-photo-wrap--account">
               {photoPreview
                 ? <img src={photoPreview} alt="avatar" className="profile-avatar-big contact-profile-avatar" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview?.(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
                 : <div className="profile-avatar-big contact-profile-avatar">{getInitials(user.displayName || user.email)}</div>
               }
-              <div className="profile-photo-overlay"><Camera size={16} /></div>
+              <button
+                type="button"
+                className="profile-account-avatar-camera"
+                aria-label="Profielfoto wijzigen"
+                title="Profielfoto wijzigen"
+                onClick={() => photoInputRef?.current?.click()}
+              >
+                <Camera size={15} aria-hidden="true" />
+              </button>
             </div>
           )}
         >
@@ -3497,12 +3505,20 @@ export default function ChatSidebar({
                           </div>
                           <div className="profile-account-hero">
                             <div className="profile-account-hero-stack">
-                              <div className="profile-photo-wrap" onClick={() => photoInputRef?.current?.click()}>
+                              <div className="profile-photo-wrap profile-photo-wrap--account">
                                 {photoPreview
                                   ? <img src={photoPreview} alt="avatar" className="profile-avatar-big" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview?.(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
                                   : <div className="profile-avatar-big">{getInitials(user.displayName || user.email)}</div>
                                 }
-                                <div className="profile-photo-overlay"><Camera size={16} /></div>
+                                <button
+                                  type="button"
+                                  className="profile-account-avatar-camera"
+                                  aria-label="Profielfoto wijzigen"
+                                  title="Profielfoto wijzigen"
+                                  onClick={() => photoInputRef?.current?.click()}
+                                >
+                                  <Camera size={15} aria-hidden="true" />
+                                </button>
                               </div>
                               <button type="button" className="profile-account-avatar-btn" onClick={() => setShowAvatarBuilder?.(true)}>
                                 🎨 Avatar maken

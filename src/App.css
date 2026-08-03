@@ -9072,20 +9072,21 @@ font-family: 'Inter', sans-serif;
   right:18px;
 }
 .group-member-action-identity {
-  display:flex;
-  align-items:center;
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
   gap:14px;
   padding:8px 52px 18px 12px;
-  text-align:left;
+  text-align:left !important;
 }
 .group-member-action-identity .avatar-circle {
-  width:76px;
-  height:76px;
-  flex:0 0 76px;
+  width:76px !important;
+  height:76px !important;
+  flex:0 0 76px !important;
   border:2px solid rgba(132,105,255,.6);
   box-shadow:0 10px 24px rgba(95,68,182,.2);
 }
-.group-member-action-copy { min-width:0; }
+.group-member-action-copy { min-width:0; text-align:left !important; }
 .group-member-action-identity h2 {
   margin:0;
   color:#211642;

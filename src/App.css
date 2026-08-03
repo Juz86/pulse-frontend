@@ -1120,15 +1120,19 @@ body {
 }
 
 .new-chat-page-directory .new-chat-contact-list {
-  padding: 0 0 132px;
+  padding: 0 0 8px;
   box-sizing: border-box;
-  overflow: visible;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
   max-height: none;
 }
 
 .new-chat-page-directory .sidebar-call-list,
 .new-chat-page-directory .calls-dashboard-list {
-  overflow: visible;
+  overflow-x:hidden;
+  overflow-y:auto;
   max-height: none;
 }
 

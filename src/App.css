@@ -9126,33 +9126,32 @@ font-family: 'Inter', sans-serif;
   color:#654de0;
 }
 .group-member-action-list {
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;
-}
-.group-member-action-list button {
-  min-height:104px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  padding:12px 8px;
+  overflow:hidden;
   border:1px solid rgba(122,96,199,.12);
   border-radius:22px;
-  color:#2b1a52;
-  background:rgba(255,255,255,.9);
-  font:inherit;
-  font-size:14px;
-  font-weight:750;
-  line-height:1.18;
-  text-align:center;
-  cursor:pointer;
-  box-shadow:0 8px 20px rgba(63,42,130,.06);
+  background:rgba(255,255,255,.84);
 }
-.group-member-action-list button:hover { background:#fff; color:#654de0; }
+.group-member-action-list button {
+  width:100%;
+  min-height:62px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:14px 18px;
+  border:0;
+  border-bottom:1px solid rgba(86,62,151,.13);
+  color:#2b1a52;
+  background:transparent;
+  font:inherit;
+  font-size:17px;
+  font-weight:750;
+  text-align:left;
+  cursor:pointer;
+}
+.group-member-action-list button:last-child { border-bottom:0; }
+.group-member-action-list button:hover { background:rgba(115,91,217,.07); }
 .group-member-action-list-danger { color:#dc2750 !important; }
-.group-member-action-list-danger:hover { background:rgba(255,242,246,.96) !important; color:#dc2750 !important; }
+.group-member-action-list-danger:hover { background:rgba(220,39,80,.06) !important; }
 .group-info-member-actions {
   display: flex;
   align-items: center;

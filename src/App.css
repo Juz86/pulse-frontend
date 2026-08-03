@@ -8704,8 +8704,9 @@ font-family: 'Inter', sans-serif;
   }
   .group-member-action-backdrop {
     right:auto;
+    bottom:calc(var(--sidebar-local-sheet-bottom, 96px) + 5px);
     width:var(--pulse-sidebar-width);
-    padding:12px 18px;
+    padding:12px 18px 0;
   }
   .group-member-action-backdrop .group-member-action-sheet {
     width:100%;

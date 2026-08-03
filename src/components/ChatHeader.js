@@ -29,7 +29,6 @@ const ChatHeader = React.memo(function ChatHeader({
   onEnterMessageSelection,
   messageSelectionMode = false,
   onShowStarredMsgs,
-  onShowConversationActions,
   onLeaveGroup,
   onClearChat,
   onDeleteChat,
@@ -174,8 +173,8 @@ const ChatHeader = React.memo(function ChatHeader({
               aria-expanded={moreActionsOpen}
               title="Meer acties"
               onClick={() => {
-                if (activeConv.isGroup && onShowConversationActions) {
-                  onShowConversationActions();
+                if (activeConv.isGroup) {
+                  onShowGroupInfo?.();
                   return;
                 }
                 setMoreActionsOpen((prev) => !prev);

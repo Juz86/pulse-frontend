@@ -688,7 +688,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
               onEnterMessageSelection={() => messageSelectionMode ? cancelMessageSelection() : enterMessageSelection()}
               onShowStarredMsgs={() => setShowStarredMsgs(true)}
-              onShowConversationActions={() => setHeaderConversationActions(activeConv)}
               onLeaveGroup={leaveGroup}
               onClearChat={() => {
                 openClearConversationConfirm(activeConv);

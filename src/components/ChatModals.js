@@ -1503,16 +1503,15 @@ export default function ChatModals({
                     const name = isMe
                       ? (user.displayName || user.email || memberId)
                       : ((contact ? getContactDisplayName(contact) : null) || contact?.displayName || activeConv.memberNames?.[memberId] || memberId);
-                    const isOnline = onlineUsers.has(memberId);
+                    const email = isMe ? user.email : (contact?.email || activeConv.memberEmails?.[memberId] || '');
                     return (
                       <div key={memberId} role="listitem" className="group-member-directory-row">
                         <div className="avatar-wrap">
                           <UserAvatar photoURL={contact?.photoURL || null} displayName={name} className="sm" decorative />
-                          {isOnline && <span className="online-dot sm" />}
                         </div>
                         <div>
                           <div className="conv-name">{name}{isMe ? ' (jij)' : ''}{isGroupAdmin(activeConv, memberId) && <span className="admin-badge"><AdminIcon size={11} aria-hidden="true" /> Beheerder</span>}</div>
-                          <div className="conv-preview" style={isOnline ? { color: 'var(--success)' } : {}}>{isOnline ? 'Online' : 'Offline'}</div>
+                          <div className="conv-preview">{email || 'Geen e-mailadres'}</div>
                         </div>
                       </div>
                     );
@@ -1744,6 +1743,7 @@ export default function ChatModals({
                       const isOnline  = onlineUsers.has(memberId);
                       const isMemberAdmin = isGroupAdmin(activeConv, memberId);
                       const photo     = memberContact?.photoURL || null;
+                      const email     = isMe ? user.email : (memberContact?.email || activeConv.memberEmails?.[memberId] || '');
                       return (
                         <div key={memberId} role="listitem" className="search-result group-info-member-row" style={{ cursor: 'default' }}>
                           <div className="avatar-wrap">
@@ -1765,9 +1765,7 @@ export default function ChatModals({
                                 </button>
                               ) : <span className="admin-badge"><AdminIcon size={11} aria-hidden="true" /> Beheerder</span>)}
                             </div>
-                            <div className="conv-preview" style={isOnline ? { color: 'var(--success)' } : {}}>
-                              {isOnline ? 'Online' : 'Offline'}
-                            </div>
+                            <div className="conv-preview">{email || 'Geen e-mailadres'}</div>
                           </div>
                           {isAdmin && !isMe && !isMemberAdmin && (
                             <button

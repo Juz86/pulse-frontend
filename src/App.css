@@ -3025,6 +3025,7 @@ font-family: 'Inter', sans-serif;
   --sidebar-local-sheet-top: 132px;
   --sidebar-local-sheet-bottom: 96px;
   --sidebar-footer-inline: 18px;
+  --sidebar-footer-clearance: 116px;
   width:var(--pulse-sidebar-width); min-width:var(--pulse-sidebar-width); max-width:var(--pulse-sidebar-width);
   background:linear-gradient(180deg, #3a3175 0%, #2d2860 45%, #262150 100%);
   border-right:1px solid var(--border);
@@ -3902,14 +3903,14 @@ font-family: 'Inter', sans-serif;
   overflow-y:auto;
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
+  padding-bottom:calc(var(--sidebar-footer-clearance) + 6px);
+  scroll-padding-bottom:calc(var(--sidebar-footer-clearance) + 6px);
 }
 /* Header, filters en footer zijn siblings van de lijst. Reserveer onderaan
    de lijst een vaste ademruimte, zodat het laatste gesprek nooit achter de
    vaste sidebar-tabbar terechtkomt. */
 .conv-list--chats {
   box-sizing:border-box;
-  padding-bottom:12px;
-  scroll-padding-bottom:12px;
 }
 .contacts-conv-list { padding-top:16px; }
 .conv-list::-webkit-scrollbar { width:4px; }
@@ -4152,6 +4153,16 @@ font-family: 'Inter', sans-serif;
   background: linear-gradient(180deg, rgba(28, 20, 60, 0) 0%, rgba(28, 20, 60, 0.18) 100%);
   pointer-events: none;
 }
+/* De gewone Chats/Contacten-tabbar blijft altijd op haar plek. De lijsten
+   reserveren hierboven precies de benodigde ruimte zodat de laatste rij niet
+   achter de balk kan verdwijnen. */
+.sidebar:not(.sidebar--settings-open) > .sidebar-footer {
+  position:absolute;
+  right:0;
+  bottom:0;
+  left:0;
+  width:100%;
+}
 .sidebar--settings-open .sidebar-footer {
   position: absolute;
   left: 0;
@@ -4319,6 +4330,7 @@ font-family: 'Inter', sans-serif;
 @media (max-width: 960px) {
   .sidebar {
     --sidebar-footer-inline: 12px;
+    --sidebar-footer-clearance: 104px;
   }
   .sidebar-footer {
     padding-left: var(--sidebar-footer-inline);
@@ -11283,7 +11295,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .conv-list {
-    padding-bottom: 10px;
+    padding-bottom:calc(var(--sidebar-footer-clearance) + 6px);
   }
 
   /* Ouder dashboard overlay: full-screen op mobiel (zoals Nieuwe chat) */

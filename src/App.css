@@ -8702,6 +8702,15 @@ font-family: 'Inter', sans-serif;
     max-height: min(78dvh, calc(var(--vvh, 100dvh) - var(--safe-top) - 20px));
     margin: 0;
   }
+  .group-member-action-backdrop {
+    right:auto;
+    width:var(--pulse-sidebar-width);
+    padding:12px 18px;
+  }
+  .group-member-action-backdrop .group-member-action-sheet {
+    width:100%;
+    max-width:520px;
+  }
 }
 
 /* De videobediening is ook tijdens "Belt…" direct beschikbaar. Deze regel

@@ -9055,6 +9055,103 @@ font-family: 'Inter', sans-serif;
   background:rgba(255,77,109,.16);
   transform:translateY(-1px);
 }
+.group-info-member-row--action {
+  cursor:pointer !important;
+}
+.group-info-member-row--action:focus-visible {
+  outline:2px solid #8b70ff;
+  outline-offset:-2px;
+}
+.group-member-action-sheet {
+  position:relative;
+  max-width:520px;
+  padding:8px 18px 18px;
+}
+.group-member-action-sheet > .pulse-confirm-close {
+  top:20px;
+  right:18px;
+}
+.group-member-action-identity {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:8px 48px 18px;
+  text-align:center;
+}
+.group-member-action-identity .avatar-circle {
+  width:88px;
+  height:88px;
+  margin-bottom:12px;
+  border:2px solid rgba(132,105,255,.6);
+  box-shadow:0 10px 24px rgba(95,68,182,.2);
+}
+.group-member-action-identity h2 {
+  margin:0;
+  color:#211642;
+  font-size:26px;
+  font-weight:800;
+  letter-spacing:-.03em;
+}
+.group-member-action-identity p {
+  margin:3px 0 0;
+  color:#74638f;
+  font-size:15px;
+  line-height:1.35;
+}
+.group-member-action-shortcuts {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:0 0 14px;
+}
+.group-member-action-shortcuts button {
+  min-height:104px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  border:1px solid rgba(122,96,199,.12);
+  border-radius:22px;
+  color:#2b1a52;
+  background:rgba(255,255,255,.9);
+  font:inherit;
+  font-size:16px;
+  font-weight:750;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(63,42,130,.06);
+}
+.group-member-action-shortcuts button:hover {
+  background:#fff;
+  color:#654de0;
+}
+.group-member-action-list {
+  overflow:hidden;
+  border:1px solid rgba(122,96,199,.12);
+  border-radius:22px;
+  background:rgba(255,255,255,.84);
+}
+.group-member-action-list button {
+  width:100%;
+  min-height:62px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:14px 18px;
+  border:0;
+  border-bottom:1px solid rgba(86,62,151,.13);
+  color:#2b1a52;
+  background:transparent;
+  font:inherit;
+  font-size:17px;
+  font-weight:750;
+  text-align:left;
+  cursor:pointer;
+}
+.group-member-action-list button:last-child { border-bottom:0; }
+.group-member-action-list button:hover { background:rgba(115,91,217,.07); }
+.group-member-action-list-danger { color:#dc2750 !important; }
+.group-member-action-list-danger:hover { background:rgba(220,39,80,.06) !important; }
 .group-info-member-actions {
   display: flex;
   align-items: center;

@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useState } from 'react';
-import { Phone, Video, Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, MagicEdit, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, Logout } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, MagicEdit, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, Message, Logout } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
@@ -143,6 +143,7 @@ export default function ChatModals({
   const [editingGroupName, setEditingGroupName] = useState(false);
   const [groupNameDraft, setGroupNameDraft] = useState('');
   const [showAdminPicker, setShowAdminPicker] = useState(false);
+  const [groupMemberAction, setGroupMemberAction] = useState(null);
   const [callSearch, setCallSearch] = useState('');
   const [callActionMode, setCallActionMode] = useState(null); // 'voice' | null
   const [callLogStatusNow, setCallLogStatusNow] = useState(() => Date.now());
@@ -159,6 +160,7 @@ export default function ChatModals({
     setEditingGroupName(false);
     setGroupNameDraft('');
     setShowAdminPicker(false);
+    setGroupMemberAction(null);
     setShowAllGroupMembers(false);
     setAllGroupMembersSearch('');
     setShowGroupInfo(false);
@@ -1744,8 +1746,22 @@ export default function ChatModals({
                       const isMemberAdmin = isGroupAdmin(activeConv, memberId);
                       const photo     = memberContact?.photoURL || null;
                       const email     = isMe ? user.email : (memberContact?.email || activeConv.memberEmails?.[memberId] || '');
+                      const canOpenMemberActions = isAdmin && !isMe;
+                      const canManageMember = canOpenMemberActions && !isMemberAdmin;
                       return (
-                        <div key={memberId} role="listitem" className="search-result group-info-member-row" style={{ cursor: 'default' }}>
+                        <div
+                          key={memberId}
+                          role="listitem"
+                          className={`search-result group-info-member-row${canOpenMemberActions ? ' group-info-member-row--action' : ''}`}
+                          onClick={canOpenMemberActions ? () => setGroupMemberAction({ memberId, name, email, photo, contact: memberContact || { uid: memberId, displayName: name, email, photoURL: photo }, canManageMember }) : undefined}
+                          onKeyDown={canOpenMemberActions ? (event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                              event.preventDefault();
+                              setGroupMemberAction({ memberId, name, email, photo, contact: memberContact || { uid: memberId, displayName: name, email, photoURL: photo }, canManageMember });
+                            }
+                          } : undefined}
+                          tabIndex={canOpenMemberActions ? 0 : undefined}
+                        >
                           <div className="avatar-wrap">
                             <UserAvatar photoURL={photo} displayName={name} className="sm" decorative />
                             {isOnline && <span className="online-dot sm" />}
@@ -1767,17 +1783,6 @@ export default function ChatModals({
                             </div>
                             <div className="conv-preview">{email || 'Geen e-mailadres'}</div>
                           </div>
-                          {isAdmin && !isMe && !isMemberAdmin && (
-                            <button
-                              type="button"
-                              className="group-info-remove-btn"
-                              aria-label={`${name} uit de groep verwijderen`}
-                              title={`${name} verwijderen`}
-                              onClick={() => removeMemberFromGroup?.(memberId)}
-                            >
-                              <Delete size={19} aria-hidden="true" />
-                            </button>
-                          )}
                           {isMe && isAdmin && hasPromotableGroupMember && (
                             <div className="group-info-member-actions">
                               <button type="button" className="group-info-promote-btn" aria-label="Beheerder toevoegen" title="Beheerder toevoegen" aria-expanded={showAdminPicker} onClick={() => setShowAdminPicker((visible) => !visible)}><AdminIcon size={17} aria-hidden="true" /></button>
@@ -1855,6 +1860,69 @@ export default function ChatModals({
             </div>
             </div>
         </aside>
+        </div>
+      )}
+
+      {groupMemberAction && (
+        <div className="pulse-confirm-backdrop group-member-action-backdrop" onClick={() => setGroupMemberAction(null)}>
+          <aside
+            className="pulse-confirm-sheet group-member-action-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="group-member-action-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="pulse-confirm-handle" aria-hidden="true" />
+            <button type="button" className="pulse-confirm-close" aria-label="Sluiten" onClick={() => setGroupMemberAction(null)}>
+              <Cancel size={28} aria-hidden="true" />
+            </button>
+            <div className="group-member-action-identity">
+              <UserAvatar photoURL={groupMemberAction.photo} displayName={groupMemberAction.name} className="lg" decorative />
+              <h2 id="group-member-action-title">{groupMemberAction.name}</h2>
+              <p>{groupMemberAction.email || 'Geen e-mailadres'}</p>
+            </div>
+            <div className="group-member-action-shortcuts" aria-label={`Contact opnemen met ${groupMemberAction.name}`}>
+              <button type="button" onClick={() => { closeGroupInfo(); startConversationWith?.(groupMemberAction.contact); }}>
+                <Message size={27} aria-hidden="true" />
+                <span>Bericht</span>
+              </button>
+              <button type="button" onClick={() => { closeGroupInfo(); callContact?.(groupMemberAction.contact, false); }}>
+                <Phone size={29} aria-hidden="true" />
+                <span>Audio</span>
+              </button>
+              <button type="button" onClick={() => { closeGroupInfo(); callContact?.(groupMemberAction.contact, true); }}>
+                <Video size={29} aria-hidden="true" />
+                <span>Video</span>
+              </button>
+            </div>
+            <div className="group-member-action-list">
+              {groupMemberAction.canManageMember && (
+                <button type="button" onClick={() => { promoteGroupAdmin?.(groupMemberAction.memberId, groupMemberAction.name); setGroupMemberAction(null); }}>
+                  <AdminIcon size={27} aria-hidden="true" />
+                  <span>Maak groepsbeheerder</span>
+                </button>
+              )}
+              <button type="button" onClick={() => {
+                const contact = groupMemberAction.contact;
+                closeGroupInfo();
+                setContactProfileContact?.(contact);
+                setShowContactProfile(true);
+              }}>
+                <InfoIcon size={27} aria-hidden="true" />
+                <span>Info</span>
+              </button>
+              {groupMemberAction.canManageMember && (
+                <button type="button" className="group-member-action-list-danger" onClick={() => {
+                  const memberId = groupMemberAction.memberId;
+                  setGroupMemberAction(null);
+                  removeMemberFromGroup?.(memberId);
+                }}>
+                  <Block size={28} aria-hidden="true" />
+                  <span>Verwijder uit groep</span>
+                </button>
+              )}
+            </div>
+          </aside>
         </div>
       )}
 

@@ -1413,7 +1413,7 @@ export default function ChatModals({
                   </div>
                 </div>
 
-                <div role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list group-info-add-list">
+                <div role="list" className={`pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list group-info-add-list${availableContacts.length === 0 ? ' is-empty' : ''}`}>
                   {availableContacts.length === 0 ? (
                     <div className="group-info-empty group-info-empty--all-members" role="status">Alle contacten zijn al lid van deze groep.</div>
                   ) : filteredContacts.length === 0 ? (
@@ -1603,7 +1603,7 @@ export default function ChatModals({
                     </div>
                   </div>
 
-                  <div id="group-add-member-list" role="list" className="pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list group-info-add-list">
+                  <div id="group-add-member-list" role="list" className={`pulse-sheet-list pulse-sheet-list--new-chat group-info-member-list group-info-add-list${availableContacts.length === 0 ? ' is-empty' : ''}`}>
                     {availableContacts.length === 0 ? (
                       <div className="group-info-empty group-info-empty--all-members" role="status">Alle contacten zijn al lid van deze groep.</div>
                     ) : filteredContacts.length === 0 ? (

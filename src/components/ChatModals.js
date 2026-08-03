@@ -1894,8 +1894,10 @@ export default function ChatModals({
             </button>
             <div className="group-member-action-identity">
               <UserAvatar photoURL={groupMemberAction.photo} displayName={groupMemberAction.name} className="lg" decorative />
-              <h2 id="group-member-action-title">{groupMemberAction.name}</h2>
-              <p>{groupMemberAction.email || 'Geen e-mailadres'}</p>
+              <div className="group-member-action-copy">
+                <h2 id="group-member-action-title">{groupMemberAction.name}</h2>
+                <p>{groupMemberAction.email || 'Geen e-mailadres'}</p>
+              </div>
             </div>
             <div className="group-member-action-shortcuts" aria-label={`Contact opnemen met ${groupMemberAction.name}`}>
               <button type="button" onClick={() => { closeGroupInfo(); startConversationWith?.(groupMemberAction.contact); }}>

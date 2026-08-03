@@ -9073,18 +9073,19 @@ font-family: 'Inter', sans-serif;
 }
 .group-member-action-identity {
   display:flex;
-  flex-direction:column;
   align-items:center;
-  padding:8px 48px 18px;
-  text-align:center;
+  gap:14px;
+  padding:8px 52px 18px 12px;
+  text-align:left;
 }
 .group-member-action-identity .avatar-circle {
-  width:88px;
-  height:88px;
-  margin-bottom:12px;
+  width:76px;
+  height:76px;
+  flex:0 0 76px;
   border:2px solid rgba(132,105,255,.6);
   box-shadow:0 10px 24px rgba(95,68,182,.2);
 }
+.group-member-action-copy { min-width:0; }
 .group-member-action-identity h2 {
   margin:0;
   color:#211642;

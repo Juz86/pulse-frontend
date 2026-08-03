@@ -931,12 +931,13 @@ export default function ChatSidebar({
       headerAction={(
         <button
           type="button"
-          className="contact-profile-edit-btn contact-profile-close-btn"
-          aria-label="Nieuwe groep sluiten"
-          title="Sluiten"
-          onClick={dismissNewGroupSheet}
+          className="contact-profile-edit-btn new-group-create-header-btn"
+          aria-label="Groep aanmaken"
+          title="Groep aanmaken"
+          disabled={!groupName.trim() || groupMembers.length === 0}
+          onClick={() => createGroup?.()}
         >
-          <XIcon size={20} aria-hidden="true" />
+          Groep aanmaken{groupMembers.length > 0 ? ` (${groupMembers.length})` : ''}
         </button>
       )}
     >
@@ -1002,19 +1003,6 @@ export default function ChatSidebar({
           {contacts.length > 0 && filteredNewGroupContacts.length === 0 && (
             <p className="new-group-page-search-empty">Geen contacten gevonden.</p>
           )}
-        </div>
-        <div className="contact-profile-field new-group-page-footer">
-          <div className="modal-actions add-contact-sheet-actions">
-            <button
-              type="button"
-              className="btn-primary"
-              style={{ flex: 1 }}
-              onClick={() => createGroup?.()}
-              disabled={!groupName.trim() || groupMembers.length === 0}
-            >
-              Groep aanmaken{groupMembers.length > 0 ? ` (${groupMembers.length})` : ''}
-            </button>
-          </div>
         </div>
       </section>
     </ProfilePageShell>

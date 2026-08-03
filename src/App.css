@@ -1453,11 +1453,18 @@ body {
   overflow-y:auto;
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
-  padding-bottom:calc(var(--sidebar-local-sheet-bottom, 96px) + 68px);
-  scroll-padding-bottom:calc(var(--sidebar-local-sheet-bottom, 96px) + 68px);
+  padding-bottom:calc(var(--sidebar-footer-clearance, 104px) + 6px);
+  scroll-padding-bottom:calc(var(--sidebar-footer-clearance, 104px) + 6px);
 }
-.new-group-page-panel .new-group-page-footer {
-  flex:0 0 auto;
+.new-group-create-header-btn {
+  min-width:auto;
+  padding:0 14px;
+  font-size:13px;
+  white-space:nowrap;
+}
+.new-group-create-header-btn:disabled {
+  opacity:.48;
+  cursor:not-allowed;
 }
 
 .friend-requests-list {

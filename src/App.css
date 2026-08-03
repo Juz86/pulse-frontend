@@ -968,10 +968,10 @@ body {
   display:flex;
   flex-direction:column;
   overflow:hidden;
-  /* De portal-tabbar staat 16px van de onderrand en is circa 74px hoog.
-     Gebruik alleen die ruimte; de algemene profielreserve is hier te ruim. */
-  padding-bottom:calc(max(16px, env(safe-area-inset-bottom) + 8px) + 82px);
-  scroll-padding-bottom:calc(max(16px, env(safe-area-inset-bottom) + 8px) + 82px);
+  /* De tabbar heeft zelf zijn vaste portalruimte. Extra profielpadding
+     beperkte de scrollzone, waardoor de laatste contactrij werd afgekapt. */
+  padding-bottom:max(18px, calc(env(safe-area-inset-bottom) + 8px));
+  scroll-padding-bottom:max(18px, calc(env(safe-area-inset-bottom) + 8px));
 }
 .new-chat-page-panel .contact-profile-topbar,
 .new-chat-page-panel .new-chat-page-search {

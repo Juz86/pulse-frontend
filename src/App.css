@@ -20863,6 +20863,14 @@ font-family: 'Inter', sans-serif;
     width:auto;
     padding:0;
   }
+  .sidebar-footer--context-panel-floating.sidebar-footer--group-info-floating {
+    left:0;
+    right:0;
+    width:auto;
+    box-sizing:border-box;
+    padding-right:12px;
+    padding-left:12px;
+  }
 }
 
 /* Mobiele vijfknopsbalk: ruimere, beter raakbare knoppen zonder schaduw

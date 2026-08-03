@@ -1249,6 +1249,22 @@ body {
   line-height:1.25;
 }
 
+/* Nieuwe chat gebruikt dezelfde rijen als Contacten, maar zonder de
+   rechterkolom met Meer-acties. */
+.new-chat-page-directory .new-chat-page-contact-list {
+  padding-bottom:calc(var(--sidebar-footer-clearance, 104px) + 6px);
+  scroll-padding-bottom:calc(var(--sidebar-footer-clearance, 104px) + 6px);
+}
+.new-chat-page-directory .new-chat-page-contact-list .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {
+  content:"";
+}
+.new-chat-page-directory .new-chat-page-contact-list .new-chat-sheet-result:hover {
+  background:transparent;
+}
+.new-chat-page-directory .new-chat-page-contact-list .new-chat-sheet-result:hover .sidebar-contact-row {
+  background:var(--surface2);
+}
+
 .new-chat-sheet-empty {
   padding: 18px 20px 132px;
   font-size: 13px;

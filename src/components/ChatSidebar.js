@@ -700,28 +700,54 @@ export default function ChatSidebar({
 
       {(searchResult || contacts.length > 0) && (
         <section className="calls-dashboard-section calls-dashboard-section--contacts new-chat-page-directory">
-          <div className="sidebar-call-list calls-dashboard-list calls-dashboard-list--contacts new-chat-contact-list">
+          <div className="conv-list contacts-conv-list new-chat-contact-list new-chat-page-contact-list">
             {searchResult && (
-              <button type="button" className="sidebar-contact-card sidebar-contact-card--call-log new-chat-sheet-result new-chat-sheet-result--lookup" onClick={() => startConversationWith?.(searchResult)}>
-                <div className="sidebar-contact-row sidebar-contact-row--call-log">
-                  <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} className="sm" decorative />
-                  <div className="conv-info call-log-picker-copy new-chat-sheet-result-copy">
+              <div
+                className="sidebar-contact-card new-chat-sheet-result new-chat-sheet-result--lookup"
+                role="button"
+                tabIndex={0}
+                onClick={() => startConversationWith?.(searchResult)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return;
+                  event.preventDefault();
+                  startConversationWith?.(searchResult);
+                }}
+              >
+                <div className="sidebar-contact-row sidebar-contact-row--openable">
+                  <div className="avatar-wrap" aria-hidden="true">
+                    <UserAvatar photoURL={searchResult.photoURL} displayName={searchResult.displayName} decorative />
+                  </div>
+                  <div className="conv-info" aria-hidden="true">
                     <div className="conv-name">{searchResult.displayName}</div>
                     <div className="conv-preview">{searchResult.email}</div>
                   </div>
                 </div>
-              </button>
+              </div>
             )}
             {filteredNewChatContacts.map((contact) => (
-              <button key={contact.uid} type="button" className="sidebar-contact-card sidebar-contact-card--call-log new-chat-sheet-result" onClick={() => startConversationWith?.(contact)}>
-                <div className="sidebar-contact-row sidebar-contact-row--call-log">
-                  <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} className="sm" decorative />
-                  <div className="conv-info call-log-picker-copy new-chat-sheet-result-copy">
+              <div
+                key={contact.uid}
+                className="sidebar-contact-card new-chat-sheet-result"
+                role="button"
+                tabIndex={0}
+                onClick={() => startConversationWith?.(contact)}
+                onKeyDown={(event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return;
+                  event.preventDefault();
+                  startConversationWith?.(contact);
+                }}
+              >
+                <div className="sidebar-contact-row sidebar-contact-row--openable">
+                  <div className="avatar-wrap" aria-hidden="true">
+                    <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} decorative />
+                    {onlineUsers.has(contact.uid) && <span className={`online-dot${inactiveUsers.has(contact.uid) ? ' inactive' : ''}`} aria-hidden="true" />}
+                  </div>
+                  <div className="conv-info" aria-hidden="true">
                     <div className="conv-name">{getContactDisplayName(contact)}</div>
                     <div className="conv-preview">{contact.email}</div>
                   </div>
                 </div>
-              </button>
+              </div>
             ))}
             {!searchResult && filteredNewChatContacts.length === 0 && (
               <div className="new-chat-sheet-empty">

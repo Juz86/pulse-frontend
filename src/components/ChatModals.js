@@ -1506,13 +1506,29 @@ export default function ChatModals({
                       ? (user.displayName || user.email || memberId)
                       : ((contact ? getContactDisplayName(contact) : null) || contact?.displayName || activeConv.memberNames?.[memberId] || memberId);
                     const email = isMe ? user.email : (contact?.email || activeConv.memberEmails?.[memberId] || '');
+                    const isMemberAdmin = isGroupAdmin(activeConv, memberId);
+                    const canOpenMemberActions = isGroupInfoAdmin && !isMe;
+                    const canManageMember = canOpenMemberActions && !isMemberAdmin;
+                    const actionContact = contact || { uid: memberId, displayName: name, email, photoURL: contact?.photoURL || null };
                     return (
-                      <div key={memberId} role="listitem" className="group-member-directory-row">
+                      <div
+                        key={memberId}
+                        role="listitem"
+                        className={`group-member-directory-row${canOpenMemberActions ? ' group-member-directory-row--action' : ''}`}
+                        onClick={canOpenMemberActions ? () => setGroupMemberAction({ memberId, name, email, photo: contact?.photoURL || null, contact: actionContact, canManageMember }) : undefined}
+                        onKeyDown={canOpenMemberActions ? (event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setGroupMemberAction({ memberId, name, email, photo: contact?.photoURL || null, contact: actionContact, canManageMember });
+                          }
+                        } : undefined}
+                        tabIndex={canOpenMemberActions ? 0 : undefined}
+                      >
                         <div className="avatar-wrap">
                           <UserAvatar photoURL={contact?.photoURL || null} displayName={name} className="sm" decorative />
                         </div>
                         <div>
-                          <div className="conv-name">{name}{isMe ? ' (jij)' : ''}{isGroupAdmin(activeConv, memberId) && <span className="admin-badge"><AdminIcon size={11} aria-hidden="true" /> Beheerder</span>}</div>
+                          <div className="conv-name">{name}{isMe ? ' (jij)' : ''}{isMemberAdmin && <span className="admin-badge"><AdminIcon size={11} aria-hidden="true" /> Beheerder</span>}</div>
                           <div className="conv-preview">{email || 'Geen e-mailadres'}</div>
                         </div>
                       </div>

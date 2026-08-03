@@ -9575,6 +9575,16 @@ font-family: 'Inter', sans-serif;
   align-items: center;
   gap: 12px;
 }
+.group-member-directory-row--action {
+  cursor:pointer;
+}
+.group-member-directory-row--action:hover {
+  background:rgba(108,99,255,.1);
+}
+.group-member-directory-row--action:focus-visible {
+  outline:2px solid #8b70ff;
+  outline-offset:-2px;
+}
 .group-member-directory-row + .group-member-directory-row {
   border-top: 1px solid rgba(255, 255, 255, .08);
 }

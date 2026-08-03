@@ -9253,18 +9253,8 @@ font-family: 'Inter', sans-serif;
 }
 
 @media (max-width: 767px) {
-  .sidebar-footer--context-panel-floating {
-    width:100%;
-    padding-right:max(18px, env(safe-area-inset-right));
-    padding-left:max(18px, env(safe-area-inset-left));
-  }
-  .sidebar-footer--contact-profile-floating {
-    left:22px;
-    right:22px;
-    width:auto;
-    padding-left:0;
-    padding-right:0;
-  }
+  .sidebar-footer--context-panel-floating,
+  .sidebar-footer--contact-profile-floating,
   .sidebar-footer--group-info-floating {
     left:max(18px, env(safe-area-inset-left));
     right:max(18px, env(safe-area-inset-right));
@@ -9353,6 +9343,12 @@ font-family: 'Inter', sans-serif;
     width: 44px;
     height: 44px;
     border-radius: 15px;
+  }
+  .sidebar-footer--context-panel-floating,
+  .sidebar-footer--contact-profile-floating,
+  .sidebar-footer--group-info-floating {
+    left:max(16px, env(safe-area-inset-left));
+    right:max(16px, env(safe-area-inset-right));
   }
 }
 .group-info-panel .contact-profile-edit-btn:disabled { opacity: .45; cursor: not-allowed; }

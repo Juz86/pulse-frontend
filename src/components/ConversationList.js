@@ -74,7 +74,7 @@ const ConversationList = React.memo(function ConversationList({
   return (
     <div
       ref={listRef}
-      className="conv-list"
+      className="conv-list conv-list--chats"
       aria-busy={loadingConvs}
       onClick={() => { setLabelMenuConvId(null); }}
     >

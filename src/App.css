@@ -9590,6 +9590,18 @@ font-family: 'Inter', sans-serif;
 .group-member-add-page-panel .group-info-add-list {
   margin: 0;
 }
+.group-member-add-page-panel .group-info-add-list.is-empty,
+.group-info-panel .group-info-add-list.is-empty {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.group-info-panel .group-info-empty--all-members {
+  padding: 16px 0;
+  background: transparent;
+  box-shadow: none;
+}
 .group-member-add-page-panel .group-info-add-footer {
   padding: 18px 0 4px;
 }

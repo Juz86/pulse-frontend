@@ -955,7 +955,7 @@ export default function ChatSidebar({
         </div>
       </section>
 
-      <section className="contact-profile-card new-group-page-section">
+      <section className="contact-profile-card new-group-page-section new-group-page-section--members">
         <div className="contact-profile-field-label">Kies deelnemers</div>
         <div className="new-group-page-search" role="search">
           <Search size={20} aria-hidden="true" />

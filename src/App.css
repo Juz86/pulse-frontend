@@ -1421,6 +1421,45 @@ body {
   text-align: center;
 }
 
+/* Nieuwe groep: naamveld en zoekbalk blijven staan; alleen de
+   deelnemerslijst scrolt. De vaste aanmaakknop krijgt eigen ruimte boven de
+   footer-tabbar, zodat geen rij eronder kan verdwijnen. */
+.contact-profile-panel.new-group-page-panel {
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  padding-bottom:0;
+  scroll-padding-bottom:0;
+}
+.new-group-page-panel > .contact-profile-topbar,
+.new-group-page-panel > .new-group-page-section:not(.new-group-page-section--members) {
+  flex:0 0 auto;
+}
+.new-group-page-panel > .new-group-page-section--members {
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  min-height:0;
+  margin-bottom:0;
+  overflow:hidden;
+}
+.new-group-page-panel .new-group-page-search {
+  flex:0 0 auto;
+}
+.new-group-page-panel .new-group-contact-list {
+  flex:1 1 auto;
+  min-height:0;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:calc(var(--sidebar-local-sheet-bottom, 96px) + 68px);
+  scroll-padding-bottom:calc(var(--sidebar-local-sheet-bottom, 96px) + 68px);
+}
+.new-group-page-panel .new-group-page-footer {
+  flex:0 0 auto;
+}
+
 .friend-requests-list {
   gap: 0;
   padding-bottom: 0;

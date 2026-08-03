@@ -1249,6 +1249,13 @@ body {
   line-height:1.25;
 }
 
+/* Overschrijft de algemene profielpadding die later in dit stylesheet staat.
+   De eigen scrollpadding van de lijst houdt de laatste rij boven de tabbar. */
+.contact-profile-panel.new-chat-page-panel {
+  padding-bottom:0;
+  scroll-padding-bottom:0;
+}
+
 /* Nieuwe chat gebruikt dezelfde rijen als Contacten, maar zonder de
    rechterkolom met Meer-acties. */
 .new-chat-page-directory .new-chat-page-contact-list {

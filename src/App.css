@@ -1460,20 +1460,36 @@ body {
 }
 .contact-profile-edit-btn.new-group-create-header-btn {
   min-width:auto;
+  height:48px;
   padding:0 14px;
-  font-size:13px;
+  border:1px solid rgba(255, 255, 255, .20);
+  border-radius:18px;
+  background:linear-gradient(135deg, #7c6fff, #a855f7);
   white-space:nowrap;
-  border-color:rgba(205, 180, 255, .58);
-  background:linear-gradient(135deg, #8c72ff 0%, #b056ed 100%);
   color:#fff;
-  box-shadow:0 10px 24px rgba(139, 92, 246, .38);
+  font-size:14px;
+  font-weight:800;
+  line-height:1.4;
+  letter-spacing:.15px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 6px 20px rgba(108,99,255,.50), 0 0 0 1px rgba(168,85,247,.20);
+}
+.contact-profile-edit-btn.new-group-create-header-btn::after {
+  content:"";
+  position:absolute;
+  inset:0 0 auto;
+  height:50%;
+  border-radius:inherit;
+  background:rgba(255,255,255,.12);
+  pointer-events:none;
 }
 .contact-profile-edit-btn.new-group-create-header-btn:disabled {
   opacity:1;
-  border-color:rgba(193, 174, 255, .30);
-  background:rgba(141, 112, 237, .38);
-  color:rgba(255, 255, 255, .82);
-  box-shadow:none;
+  border-color:rgba(203, 190, 255, .34);
+  background:linear-gradient(135deg, rgba(124,111,255,.64), rgba(168,85,247,.64));
+  color:rgba(255, 255, 255, .88);
+  box-shadow:0 5px 16px rgba(108,99,255,.24);
   cursor:not-allowed;
 }
 

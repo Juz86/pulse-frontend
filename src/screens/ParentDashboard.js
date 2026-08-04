@@ -595,7 +595,6 @@ export default function ParentDashboard({
             {activeTab === 'add' && (
               <div className="parent-portal-view parent-portal-view--add">
                 <div className="parent-portal-section-header">
-                  <h2 className="parent-section-title">Kind toevoegen</h2>
                   <p className="parent-section-sub">Maak een account aan voor uw kind. Het kind logt in met gebruikersnaam en wachtwoord.</p>
                 </div>
                 <form onSubmit={createChild} className="parent-portal-form parent-portal-form-card">

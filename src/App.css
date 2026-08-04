@@ -1456,14 +1456,22 @@ body {
   padding-bottom:calc(var(--sidebar-footer-clearance, 104px) + 6px);
   scroll-padding-bottom:calc(var(--sidebar-footer-clearance, 104px) + 6px);
 }
-.new-group-create-header-btn {
+.contact-profile-edit-btn.new-group-create-header-btn {
   min-width:auto;
   padding:0 14px;
   font-size:13px;
   white-space:nowrap;
+  border-color:rgba(205, 180, 255, .58);
+  background:linear-gradient(135deg, #8c72ff 0%, #b056ed 100%);
+  color:#fff;
+  box-shadow:0 10px 24px rgba(139, 92, 246, .38);
 }
-.new-group-create-header-btn:disabled {
-  opacity:.48;
+.contact-profile-edit-btn.new-group-create-header-btn:disabled {
+  opacity:1;
+  border-color:rgba(193, 174, 255, .30);
+  background:rgba(141, 112, 237, .38);
+  color:rgba(255, 255, 255, .82);
+  box-shadow:none;
   cursor:not-allowed;
 }
 

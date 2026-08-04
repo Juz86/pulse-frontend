@@ -4006,12 +4006,15 @@ font-family: 'Inter', sans-serif;
   overflow-y:auto;
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
-  padding-bottom:calc(var(--sidebar-footer-clearance) + 6px);
-  scroll-padding-bottom:calc(var(--sidebar-footer-clearance) + 6px);
+  padding-bottom:6px;
+  scroll-padding-bottom:6px;
 }
 /* Header, filters en footer zijn siblings van de lijst. Reserveer onderaan
-   de lijst een vaste ademruimte, zodat het laatste gesprek nooit achter de
-   vaste sidebar-tabbar terechtkomt. */
+   fysiek ruimte voor de vaste tabbar. Daardoor kan geen rij visueel achter
+   de balk verdwijnen, ook niet terwijl er wordt gescrold. */
+.sidebar > .conv-list {
+  margin-bottom: var(--sidebar-footer-clearance);
+}
 .conv-list--chats {
   box-sizing:border-box;
 }
@@ -11461,7 +11464,7 @@ font-family: 'Inter', sans-serif;
   }
 
   .conv-list {
-    padding-bottom:calc(var(--sidebar-footer-clearance) + 6px);
+    padding-bottom:6px;
   }
 
   /* Ouder dashboard overlay: full-screen op mobiel (zoals Nieuwe chat) */

@@ -4009,14 +4009,13 @@ font-family: 'Inter', sans-serif;
   padding-bottom:6px;
   scroll-padding-bottom:6px;
 }
-/* Gebruik voor Chats en Contacten exact dezelfde scrollruimte als Oproepen:
-   de lijst vult de zone tot de tabbar, kan daar tijdelijk achter verdwijnen
-   tijdens scrollen, maar houdt onderaan voldoende ruimte om de laatste rij
-   volledig zichtbaar te kunnen maken. */
+/* Chats en Contacten krijgen een eigen scrollvenster dat exact tot de vaste
+   tabbar reikt. Daardoor schuift inhoud niet zichtbaar onder de tabbar door,
+   terwijl de laatste rij wel volledig naar boven gescrold kan worden. */
 .sidebar > .conv-list {
-  margin-bottom: 0;
-  padding-bottom: calc(max(34px, env(safe-area-inset-bottom) + 20px) + 128px);
-  scroll-padding-bottom: calc(max(34px, env(safe-area-inset-bottom) + 20px) + 128px);
+  margin-bottom: calc(var(--sidebar-footer-clearance) - 18px);
+  padding-bottom: 6px;
+  scroll-padding-bottom: 6px;
 }
 .conv-list--chats {
   box-sizing:border-box;

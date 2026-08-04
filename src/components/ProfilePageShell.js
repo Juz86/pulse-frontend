@@ -5,6 +5,7 @@ export function ProfilePageShell({
   titleId,
   title,
   description,
+  hideTitle = false,
   onBack,
   backLabel = 'Terug',
   headerAction = null,
@@ -17,7 +18,8 @@ export function ProfilePageShell({
     <aside
       ref={panelRef}
       className={className}
-      aria-labelledby={titleId}
+      aria-labelledby={hideTitle ? undefined : titleId}
+      aria-label={hideTitle ? title : undefined}
       aria-describedby={`${titleId}-description`}
       {...panelProps}
     >
@@ -33,7 +35,7 @@ export function ProfilePageShell({
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
-        <h2 id={titleId} className="contact-profile-heading">{title}</h2>
+        {!hideTitle && <h2 id={titleId} className="contact-profile-heading">{title}</h2>}
         {headerAction || <span className="contact-profile-topbar-spacer" aria-hidden="true" />}
       </div>
       <p id={`${titleId}-description`} className="sr-only">{description}</p>

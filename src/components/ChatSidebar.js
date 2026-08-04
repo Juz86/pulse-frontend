@@ -925,6 +925,7 @@ export default function ChatSidebar({
       className="chat-side-panel contact-profile-panel new-group-page-panel"
       titleId="new-group-title"
       title="Nieuwe groep"
+      hideTitle
       description="Start een groepsgesprek vanuit dezelfde profielopbouw."
       onBack={() => navigateBackToMoreActions(closeNewGroupSheet)}
       backLabel="Terug naar meer opties"

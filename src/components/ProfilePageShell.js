@@ -10,6 +10,7 @@ export function ProfilePageShell({
   backLabel = 'Terug',
   headerAction = null,
   hero = null,
+  scrollContent = false,
   children,
   className = 'chat-side-panel contact-profile-panel',
   panelProps = {},
@@ -17,7 +18,7 @@ export function ProfilePageShell({
   return (
     <aside
       ref={panelRef}
-      className={className}
+      className={`${className}${scrollContent ? ' profile-page-shell--scroll' : ''}`}
       aria-labelledby={hideTitle ? undefined : titleId}
       aria-label={hideTitle ? title : undefined}
       aria-describedby={`${titleId}-description`}
@@ -39,8 +40,17 @@ export function ProfilePageShell({
         {headerAction || <span className="contact-profile-topbar-spacer" aria-hidden="true" />}
       </div>
       <p id={`${titleId}-description`} className="sr-only">{description}</p>
-      {hero}
-      {children}
+      {scrollContent ? (
+        <div className="profile-page-scroll-content">
+          {hero}
+          {children}
+        </div>
+      ) : (
+        <>
+          {hero}
+          {children}
+        </>
+      )}
     </aside>
   );
 }

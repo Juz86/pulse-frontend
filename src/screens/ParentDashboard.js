@@ -1579,6 +1579,7 @@ export default function ParentDashboard({
       <>
         <ProfilePageShell
           panelRef={panelRef}
+          scrollContent
           titleId="parent-portal-title"
           title={showingMenu ? 'Ouderportaal' : activeTabMeta.label}
           description="Beheer kinderen, contacten, locatie en activiteiten vanuit dezelfde profielopbouw."

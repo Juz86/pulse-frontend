@@ -914,6 +914,7 @@ export default function ChatModals({
         const statusLabel = isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Afwezig' : 'Offline';
         return (
             <ProfilePageShell
+              scrollContent
               titleId="contact-profile-title"
               title="Profiel"
               description={`Bekijk en bewerk de profielgegevens van ${name}.`}

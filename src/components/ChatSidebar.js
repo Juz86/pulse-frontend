@@ -461,6 +461,7 @@ export default function ChatSidebar({
     return (
       <ProfilePageShell
         panelRef={profilePanelRef}
+        scrollContent
         titleId="settings-profile-title"
         title="Instellingen"
         description="Bekijk en beheer je instellingen in dezelfde profielopbouw."
@@ -615,6 +616,7 @@ export default function ChatSidebar({
     return (
       <ProfilePageShell
         panelRef={profilePanelRef}
+        scrollContent
         titleId="more-actions-title"
         title="Meer opties"
         description="Open extra acties vanuit dezelfde profielopbouw als instellingen."
@@ -850,6 +852,8 @@ export default function ChatSidebar({
   const renderAddContactPage = () => (
     <ProfilePageShell
       panelRef={profilePanelRef}
+      scrollContent
+      className="chat-side-panel contact-profile-panel add-contact-page-panel"
       titleId="add-contact-title"
       title="Nieuw contact"
       description="Voeg familie en vrienden toe vanuit dezelfde profielopbouw."
@@ -1149,6 +1153,7 @@ export default function ChatSidebar({
     return (
       <ProfilePageShell
         panelRef={profilePanelRef}
+        scrollContent
         titleId="contact-actions-title"
         title={title}
         description={`Beheer acties voor ${title}.`}
@@ -1224,6 +1229,7 @@ export default function ChatSidebar({
     return (
       <ProfilePageShell
         panelRef={profilePanelRef}
+        scrollContent
         titleId="conversation-actions-title"
         title={title}
         description={`Beheer acties voor ${title}.`}
@@ -1252,6 +1258,7 @@ export default function ChatSidebar({
   const renderSettingsAccountSheet = () => (
     <ProfilePageShell
       panelRef={profilePanelRef}
+      scrollContent
       titleId="settings-account-title"
       title="Mijn account"
       description="Werk je naam, avatar en wachtwoord bij in dezelfde profielopbouw."
@@ -1390,6 +1397,7 @@ export default function ChatSidebar({
   const renderSettingsSubpageShell = (title, description, children) => (
     <ProfilePageShell
       panelRef={profilePanelRef}
+      scrollContent
       titleId={`settings-${title.toLowerCase()}-title`}
       title={title}
       description={description}

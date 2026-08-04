@@ -1428,8 +1428,10 @@ body {
   display:flex;
   flex-direction:column;
   overflow:hidden;
-  padding-bottom:0;
-  scroll-padding-bottom:0;
+  /* De lijst krijgt een echte ondergrens ter hoogte van de vaste tabbar.
+     Daardoor schuiven deelnemers niet visueel onder de balk. */
+  padding-bottom:calc(var(--sidebar-local-sheet-bottom, 96px) + 5px);
+  scroll-padding-bottom:calc(var(--sidebar-local-sheet-bottom, 96px) + 5px);
 }
 .new-group-page-panel > .contact-profile-topbar,
 .new-group-page-panel > .new-group-page-section:not(.new-group-page-section--members) {
@@ -1453,8 +1455,8 @@ body {
   overflow-y:auto;
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
-  padding-bottom:calc(var(--sidebar-footer-clearance, 104px) + 6px);
-  scroll-padding-bottom:calc(var(--sidebar-footer-clearance, 104px) + 6px);
+  padding-bottom:6px;
+  scroll-padding-bottom:6px;
 }
 .contact-profile-edit-btn.new-group-create-header-btn {
   min-width:auto;

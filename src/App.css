@@ -4009,11 +4009,14 @@ font-family: 'Inter', sans-serif;
   padding-bottom:6px;
   scroll-padding-bottom:6px;
 }
-/* Header, filters en footer zijn siblings van de lijst. Reserveer onderaan
-   fysiek ruimte voor de vaste tabbar. Daardoor kan geen rij visueel achter
-   de balk verdwijnen, ook niet terwijl er wordt gescrold. */
+/* Gebruik voor Chats en Contacten exact dezelfde scrollruimte als Oproepen:
+   de lijst vult de zone tot de tabbar, kan daar tijdelijk achter verdwijnen
+   tijdens scrollen, maar houdt onderaan voldoende ruimte om de laatste rij
+   volledig zichtbaar te kunnen maken. */
 .sidebar > .conv-list {
-  margin-bottom: var(--sidebar-footer-clearance);
+  margin-bottom: 0;
+  padding-bottom: calc(max(34px, env(safe-area-inset-bottom) + 20px) + 128px);
+  scroll-padding-bottom: calc(max(34px, env(safe-area-inset-bottom) + 20px) + 128px);
 }
 .conv-list--chats {
   box-sizing:border-box;

@@ -1394,10 +1394,11 @@ export default function ChatSidebar({
       </section>
     </ProfilePageShell>
   );
-  const renderSettingsSubpageShell = (title, description, children) => (
+  const renderSettingsSubpageShell = (title, description, children, pageClassName = '') => (
     <ProfilePageShell
       panelRef={profilePanelRef}
       scrollContent
+      className={`chat-side-panel contact-profile-panel ${pageClassName}`.trim()}
       titleId={`settings-${title.toLowerCase()}-title`}
       title={title}
       description={description}
@@ -1511,6 +1512,7 @@ export default function ChatSidebar({
         </div>
       </section>
     </>,
+    'privacy-page-panel',
   );
   const renderSettingsBlockedSheet = () => {
     const selfBlocked = (blockedContacts || []).filter((c) => !parentBlockedUids?.includes(c.uid));

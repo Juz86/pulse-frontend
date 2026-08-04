@@ -14588,6 +14588,36 @@ font-family: 'Inter', sans-serif;
   position: relative;
 }
 
+.parent-dashboard-panel .parent-portal-username-field {
+  position: relative;
+}
+
+.parent-dashboard-panel .parent-portal-username-field .parent-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 52px;
+}
+
+.parent-dashboard-panel .parent-portal-username-ready {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  pointer-events: none;
+}
+
+.parent-dashboard-panel .parent-portal-username-ready svg {
+  width: 17px;
+  height: 17px;
+}
+
 .parent-dashboard-panel .parent-portal-password-field .parent-input {
   width: 100%;
   box-sizing: border-box;

@@ -610,38 +610,43 @@ export default function ParentDashboard({
                     onChange={e => setChildName(e.target.value)}
                     required
                   />
-                  <input
-                    id="child-username"
-                    name="childUsername"
-                    className="parent-input"
-                    type="text"
-                    placeholder="Gebruikersnaam (bijv. jan_2014)"
-                    aria-label="Gebruikersnaam"
-                    autoComplete="off"
-                    value={childUsername}
-                    onChange={e => {
-                      setChildUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''));
-                      setCreateUsernameStatus('');
-                      setCreateError('');
-                    }}
-                    onBlur={() => validateCreateUsername()}
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    required
-                    minLength={3}
-                    maxLength={20}
-                  />
-                  <div
-                    className={`parent-portal-helper-text${
-                      createUsernameStatus === 'Beschikbaar'
-                        ? ' is-success'
-                        : (createUsernameStatus ? ' is-error' : '')
-                    }`}
-                  >
-                    {createUsernameLoading
-                      ? 'Gebruikersnaam controleren…'
-                      : createUsernameStatus || '3–20 tekens · alleen letters, cijfers en _. Deze loginnaam is uniek binnen Pulse.'}
+                  <div className="parent-portal-username-field">
+                    <input
+                      id="child-username"
+                      name="childUsername"
+                      className="parent-input"
+                      type="text"
+                      placeholder="Gebruikersnaam (bijv. jan_2014)"
+                      aria-label="Gebruikersnaam"
+                      autoComplete="off"
+                      value={childUsername}
+                      onChange={e => {
+                        setChildUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+                        setCreateUsernameStatus('');
+                        setCreateError('');
+                      }}
+                      onBlur={() => validateCreateUsername()}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      required
+                      minLength={3}
+                      maxLength={20}
+                    />
+                    {createUsernameReady && (
+                      <span className="parent-portal-username-ready" title="Gebruikersnaam beschikbaar" aria-label="Gebruikersnaam beschikbaar">
+                        <Check />
+                      </span>
+                    )}
                   </div>
+                  {createUsernameStatus !== 'Beschikbaar' && (
+                    <div
+                      className={`parent-portal-helper-text${createUsernameStatus ? ' is-error' : ''}`}
+                    >
+                      {createUsernameLoading
+                        ? 'Gebruikersnaam controleren…'
+                        : createUsernameStatus || '3–20 tekens · alleen letters, cijfers en _. Deze loginnaam is uniek binnen Pulse.'}
+                    </div>
+                  )}
                   <div className="parent-portal-password-field">
                     <input
                       id="child-password"

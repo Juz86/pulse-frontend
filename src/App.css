@@ -14771,27 +14771,41 @@ font-family: 'Inter', sans-serif;
   color: #fff;
 }
 
-/* Binnen een smalle, scrollbare zijbalk wordt een absoluut dropdownmenu
-   door de scrollcontainer afgeknipt. Laat de kindkiezer daar daarom in de
-   paginastroom uitklappen en alleen de opties zelf scrollen. */
-@media (max-width: 700px) {
-  .parent-dashboard-panel .parent-portal-toolbar--spread {
-    align-items: flex-start;
-  }
+/* De kindkiezer wordt naar document.body geportald. Daardoor vormt hij een
+   nette zwevende laag boven de pagina, zonder dat een scrollcontainer hem
+   kan afknippen of de inhoud eronder omlaag duwt. */
+.parent-portal-picker-menu--floating {
+  position: fixed;
+  z-index: 7200;
+  max-height: min(288px, calc(100dvh - 96px));
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 6px;
+  box-sizing: border-box;
+  border: 1px solid rgba(120, 104, 198, 0.34);
+  border-radius: 18px;
+  background: rgba(36, 28, 69, 0.98);
+  box-shadow: 0 18px 36px rgba(10, 8, 24, 0.46);
+  backdrop-filter: blur(18px);
+}
 
-  .parent-dashboard-panel .parent-portal-picker {
-    z-index: auto;
-  }
+.parent-portal-picker-menu--floating .parent-portal-picker-option {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #ddd8f4;
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+}
 
-  .parent-dashboard-panel .parent-portal-picker-menu {
-    position: static;
-    width: 190px;
-    max-height: min(288px, calc(100dvh - 220px));
-    margin-top: 6px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    transform: translateX(calc(100% - 190px));
-  }
+.parent-portal-picker-menu--floating .parent-portal-picker-option:hover,
+.parent-portal-picker-menu--floating .parent-portal-picker-option.active {
+  background: rgba(124, 111, 255, 0.24);
+  color: #fff;
 }
 
 .parent-dashboard-panel .parent-portal-analytics-block {

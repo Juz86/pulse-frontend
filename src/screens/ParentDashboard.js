@@ -115,6 +115,7 @@ export default function ParentDashboard({
   const [activityContactFilter, setActivityContactFilter] = useState('all');
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
   const [childPickerPosition, setChildPickerPosition] = useState(null);
+  const [childPickerTarget, setChildPickerTarget] = useState(null);
   const [locationByChildUid, setLocationByChildUid] = useState({});
   const [locationStreamReady, setLocationStreamReady] = useState(false);
   const [locationError, setLocationError] = useState('');
@@ -289,6 +290,7 @@ export default function ParentDashboard({
     const close = () => {
       setChildDropdownOpen(false);
       setChildPickerPosition(null);
+      setChildPickerTarget(null);
     };
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
@@ -582,7 +584,7 @@ export default function ParentDashboard({
     ? activities.filter(a => a.childUid === selectedChildUid)
     : activities;
 
-  const toggleChildPicker = useCallback((event) => {
+  const toggleChildPicker = useCallback((event, target) => {
     event.stopPropagation();
     const rect = event.currentTarget.getBoundingClientRect();
     const menuWidth = Math.max(rect.width, 190);
@@ -591,15 +593,18 @@ export default function ParentDashboard({
     setChildDropdownOpen((open) => {
       if (open) {
         setChildPickerPosition(null);
+        setChildPickerTarget(null);
         return false;
       }
+      setChildPickerTarget(target);
       setChildPickerPosition({ left, top: rect.bottom + 6, width: menuWidth });
       return true;
     });
   }, []);
 
-  const renderChildPickerMenu = (selectedUid, onSelect) => {
-    if (!childDropdownOpen || !childPickerPosition || typeof document === 'undefined') return null;
+  const renderChildPickerMenu = () => {
+    if (!childDropdownOpen || !childPickerPosition || !childPickerTarget || typeof document === 'undefined') return null;
+    const { selectedUid, onSelect } = childPickerTarget;
 
     return createPortal(
       <div
@@ -620,6 +625,7 @@ export default function ParentDashboard({
               onSelect(child.uid);
               setChildDropdownOpen(false);
               setChildPickerPosition(null);
+              setChildPickerTarget(null);
             }}
           >
             {child.displayName}
@@ -752,14 +758,13 @@ export default function ParentDashboard({
                           aria-label="Kies kind voor kinderenoverzicht"
                           aria-haspopup="listbox"
                           aria-expanded={childDropdownOpen}
-                          onClick={toggleChildPicker}
+                          onClick={(event) => toggleChildPicker(event, { selectedUid: selectedChildUid, onSelect: setSelectedChildUid })}
                         >
                           <span className="parent-child-picker-label">
                             {children.find(c => c.uid === selectedChildUid)?.displayName || 'Kind'}
                           </span>
                           <ChevronDown size={16} aria-hidden="true" />
                         </button>
-                        {renderChildPickerMenu(selectedChildUid, setSelectedChildUid)}
                       </div>
                     )}
                   </div>
@@ -1011,14 +1016,13 @@ export default function ParentDashboard({
                         aria-label="Kies kind voor contactenoverzicht"
                         aria-haspopup="listbox"
                         aria-expanded={childDropdownOpen}
-                        onClick={toggleChildPicker}
+                        onClick={(event) => toggleChildPicker(event, { selectedUid: contactsChildUid, onSelect: setContactsChildUid })}
                       >
                         <span className="parent-child-picker-label">
                           {children.find(c => c.uid === contactsChildUid)?.displayName || 'Selecteer kind'}
                         </span>
                         <ChevronDown size={16} aria-hidden="true" />
                       </button>
-                      {renderChildPickerMenu(contactsChildUid, setContactsChildUid)}
                     </div>
                   )}
                 </div>
@@ -1194,14 +1198,13 @@ export default function ParentDashboard({
                           aria-label="Kies kind voor activiteitenoverzicht"
                           aria-haspopup="listbox"
                           aria-expanded={childDropdownOpen}
-                          onClick={toggleChildPicker}
+                          onClick={(event) => toggleChildPicker(event, { selectedUid: selectedChildUid, onSelect: setSelectedChildUid })}
                         >
                           <span className="parent-child-picker-label">
                             {children.find(c => c.uid === selectedChildUid)?.displayName || 'Kind'}
                           </span>
                           <ChevronDown size={16} aria-hidden="true" />
                         </button>
-                        {renderChildPickerMenu(selectedChildUid, setSelectedChildUid)}
                       </div>
                     )}
                     <button type="button" className="parent-btn-outline activities-refresh-btn" onClick={() => { loadActivities(); if (selectedChildUid) loadAnalytics(selectedChildUid); }}>
@@ -1656,6 +1659,7 @@ export default function ParentDashboard({
       <>
         {renderInvitePage()}
         {typeof document !== 'undefined' ? createPortal(parentOverlays, document.body) : null}
+        {renderChildPickerMenu()}
       </>
     );
   }
@@ -1754,6 +1758,7 @@ export default function ParentDashboard({
         </div>
       </div>
       {typeof document !== 'undefined' ? createPortal(parentOverlays, document.body) : null}
+      {renderChildPickerMenu()}
     </>
   );
 }

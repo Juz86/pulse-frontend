@@ -15,6 +15,15 @@ const INTERNAL_ACCOUNT_EMAIL_RE = /@(kind\.pulse\.local|pulse\.internal)$/i;
 const LOCATION_STALE_AFTER_MS = 2 * 60 * 1000;
 const LOCATION_OLD_AFTER_MS = 15 * 60 * 1000;
 
+function getInviteContactName(contact) {
+  const email = String(contact?.email || '');
+  const preferredName = [contact?.displayName, contact?.name, contact?.nickname, contact?.username]
+    .map(value => String(value || '').trim())
+    .find(value => value && value.toLowerCase() !== email.toLowerCase());
+
+  return preferredName || email.split('@')[0] || 'Contact';
+}
+
 function formatLocationLastSeen(updatedAtMs) {
   if (!updatedAtMs) return 'Nog niet gedeeld';
   const diffMs = Math.max(0, Date.now() - updatedAtMs);
@@ -557,7 +566,7 @@ export default function ParentDashboard({
     .filter(contact => {
       if (!inviteSearch) return true;
       return [
-        contact.displayName,
+        getInviteContactName(contact),
         contact.email,
         contact.username,
         contact.nickname,
@@ -1494,27 +1503,33 @@ export default function ParentDashboard({
                 {inviteContactsLoading ? (
                   <div className="coparent-contact-empty">Contacten laden…</div>
                 ) : filteredInviteContacts.length > 0 ? (
-                  filteredInviteContacts.map(contact => (
-                    <button
-                      key={contact.uid || contact.id || contact.email}
-                      type="button"
-                      className={`coparent-contact-option${inviteEmail === contact.email ? ' selected' : ''}`}
-                      onClick={() => {
-                        setInviteEmail(contact.email || '');
-                        setInviteContactSearch(contact.displayName || contact.email || '');
-                        setInviteError('');
-                      }}
-                    >
-                      <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName || contact.email} className="sm" decorative />
-                      <span className="coparent-contact-copy">
-                        <strong>{contact.displayName || contact.email}</strong>
-                        <span>{contact.email}</span>
-                      </span>
-                      <span className="share-contact-page-selection" aria-hidden="true">
-                        {inviteEmail === contact.email && <Check size={18} className="share-contact-page-check" />}
-                      </span>
-                    </button>
-                  ))
+                  filteredInviteContacts.map(contact => {
+                    const email = contact.email || '';
+                    const selected = inviteEmail === email;
+                    const displayName = getInviteContactName(contact);
+
+                    return (
+                      <button
+                        key={contact.uid || contact.id || email}
+                        type="button"
+                        className={`coparent-contact-option${selected ? ' selected' : ''}`}
+                        aria-pressed={selected}
+                        onClick={() => {
+                          setInviteEmail(selected ? '' : email);
+                          setInviteError('');
+                        }}
+                      >
+                        <UserAvatar photoURL={contact.photoURL} displayName={displayName} className="sm" decorative />
+                        <span className="coparent-contact-copy">
+                          <strong>{displayName}</strong>
+                          <span>{email}</span>
+                        </span>
+                        <span className="share-contact-page-selection" aria-hidden="true">
+                          {selected && <Check size={18} className="share-contact-page-check" />}
+                        </span>
+                      </button>
+                    );
+                  })
                 ) : (
                   <div className="coparent-contact-empty">Geen ouderaccount in je contacten gevonden. Voeg de ouder eerst toe als contact en probeer het daarna opnieuw.</div>
                 )}

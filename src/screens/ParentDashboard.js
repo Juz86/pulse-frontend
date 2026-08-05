@@ -287,12 +287,6 @@ export default function ParentDashboard({
   }, [activeTab]);
 
   useEffect(() => {
-    if (!createSuccess) return undefined;
-    const timeout = setTimeout(() => setCreateSuccess(''), 4000);
-    return () => clearTimeout(timeout);
-  }, [createSuccess]);
-
-  useEffect(() => {
     if (activeTab !== 'activities') return;
     localStorage.setItem(activitySeenStorageKey, String(Date.now()));
     setUnreadActivityCount(0);
@@ -675,7 +669,6 @@ export default function ParentDashboard({
                   </button>
                 </form>
                 {createError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{createError}</div>}
-                {createSuccess && <div className="parent-success" role="status" aria-live="polite"><span aria-hidden="true">✓ </span>{createSuccess}</div>}
               </div>
             )}
 
@@ -1446,6 +1439,18 @@ export default function ParentDashboard({
 
   const parentOverlays = (
     <>
+      {createSuccess && (
+        <PulseConfirmSheet
+          title="Account aangemaakt"
+          description={createSuccess}
+          tone="success"
+          onClose={() => setCreateSuccess('')}
+          actions={[
+            { label: 'Klaar', tone: 'primary', icon: Check, onSelect: () => setCreateSuccess('') },
+          ]}
+        />
+      )}
+
       {confirmDelete && (
         <PulseConfirmSheet
           title="Account verwijderen"

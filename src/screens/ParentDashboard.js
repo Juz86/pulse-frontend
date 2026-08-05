@@ -1444,7 +1444,9 @@ export default function ParentDashboard({
   const renderInvitePage = () => {
     if (!inviteModal) return null;
     const closeOrSend = inviteSuccess ? closeInviteModal : sendCoparentInvite;
-    const headerLabel = inviteSuccess ? 'Sluiten' : 'Uitnodigen';
+    const headerLabel = inviteSuccess
+      ? 'Sluiten'
+      : `Kind toewijzen${inviteEmail ? ' (1)' : ''}`;
 
     return (
       <ProfilePageShell
@@ -1452,6 +1454,7 @@ export default function ParentDashboard({
         scrollContent
         titleId="coparent-invite-title"
         title="Kind toewijzen"
+        hideTitle
         description={`Geef een andere ouder toegang tot ${inviteModal.displayName}.`}
         onBack={closeInviteModal}
         backLabel="Terug naar mijn kinderen"

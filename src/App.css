@@ -15568,15 +15568,15 @@ font-family: 'Inter', sans-serif;
   .parent-child-row { flex-wrap:wrap; gap:8px; }
   .pd-child-head {
     min-height: 42px;
-    padding-right: 184px;
+    padding-right: 0;
   }
   .pd-child-top-actions--inline {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    gap:6px;
+    position: static;
+    width: 100%;
+    justify-content: flex-end;
+    gap: 8px;
     flex-wrap: nowrap;
-    margin-top:0;
+    margin-top: 0;
   }
   .parent-child-header-row {
     flex-direction: row;
@@ -15588,6 +15588,8 @@ font-family: 'Inter', sans-serif;
     align-items: flex-start;
     flex-wrap: nowrap;
     gap: 10px;
+    width: 100%;
+    margin-top: 4px;
   }
   .pd-child-primary-controls {
     min-width: 0;
@@ -15601,8 +15603,8 @@ font-family: 'Inter', sans-serif;
     gap: 6px;
     padding-left: 0;
   }
-  .pd-child-top-action { min-width:30px; min-height:30px; padding:4px 5px !important; }
-  .pd-child-top-action--assign { max-width:30px; }
+  .pd-child-top-action { min-width:38px; min-height:38px; padding:4px 5px !important; }
+  .pd-child-top-action--assign { max-width:38px; }
   .parent-child-name { font-size: 14px; }
   .parent-child-username,
   .parent-child-meta { font-size: 11px; }

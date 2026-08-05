@@ -15585,22 +15585,11 @@ font-family: 'Inter', sans-serif;
     gap: 10px;
   }
   .pd-child-control-row {
-    position: relative;
     align-items: flex-start;
     flex-wrap: nowrap;
     gap: 10px;
     width: 100%;
-    margin-top: 10px;
-    padding-top: 10px;
-  }
-  .pd-child-control-row::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 10px;
-    left: 10px;
-    height: 1px;
-    background: rgba(181, 167, 237, 0.2);
+    margin-top: 4px;
   }
   .pd-child-primary-controls {
     min-width: 0;

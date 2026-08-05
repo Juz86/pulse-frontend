@@ -23,7 +23,12 @@ export default function PulseConfirmSheet({
   return (
     <div
       className={`pulse-confirm-backdrop pulse-confirm-backdrop--${tone}`}
-      onClick={() => { if (dismissible) onClose?.(); }}
+      onClick={(event) => {
+        // This sheet can be rendered from a nested sidebar page. Keep its
+        // close action local so a click never also closes that underlying page.
+        event.stopPropagation();
+        if (dismissible) onClose?.();
+      }}
     >
       <aside
         className={`pulse-confirm-sheet pulse-confirm-sheet--${tone}`}

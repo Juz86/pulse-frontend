@@ -1394,7 +1394,7 @@ export default function ChatModals({
               backLabel="Terug naar groepsinfo"
               panelProps={{ onClick: (event) => event.stopPropagation() }}
               headerAction={(
-                <button type="button" className="contact-profile-edit-btn contact-profile-close-btn" aria-label="Groepsleden toevoegen sluiten" title="Sluiten" onClick={closeGroupInfo}>
+                <button type="button" className="contact-profile-edit-btn contact-profile-close-btn" aria-label="Terug naar groepsinfo" title="Terug naar groepsinfo" onClick={() => setAddingMember(false)}>
                   <Cancel size={20} aria-hidden="true" />
                 </button>
               )}
@@ -1483,7 +1483,7 @@ export default function ChatModals({
               backLabel="Terug naar groepsinfo"
               panelProps={{ onClick: (event) => event.stopPropagation() }}
               headerAction={(
-                <button type="button" className="contact-profile-edit-btn contact-profile-close-btn" aria-label="Alle deelnemers sluiten" title="Sluiten" onClick={closeGroupInfo}>
+                <button type="button" className="contact-profile-edit-btn contact-profile-close-btn" aria-label="Terug naar groepsinfo" title="Terug naar groepsinfo" onClick={() => { setShowAllGroupMembers(false); setAllGroupMembersSearch(''); }}>
                   <Cancel size={20} aria-hidden="true" />
                 </button>
               )}

@@ -582,6 +582,10 @@ export default function ParentDashboard({
   }, []);
   const activeTabMeta = TABS.find((tab) => tab.id === activeTab) || TABS[0];
   const showingMenu = portalView === 'menu';
+  const returnToPreviousPortalScreen = () => {
+    if (showingMenu) onClose?.();
+    else setPortalView('menu');
+  };
   const renderPortalContent = () => (
     <>
 
@@ -1592,10 +1596,7 @@ export default function ParentDashboard({
           titleId="parent-portal-title"
           title={showingMenu ? 'Ouderportaal' : activeTabMeta.label}
           description="Beheer kinderen, contacten, locatie en activiteiten vanuit dezelfde profielopbouw."
-          onBack={() => {
-            if (showingMenu) onClose?.();
-            else setPortalView('menu');
-          }}
+          onBack={returnToPreviousPortalScreen}
           backLabel={showingMenu ? 'Ouderportaal sluiten' : 'Terug naar ouderportaal overzicht'}
           headerAction={onClose ? (
             <button
@@ -1603,7 +1604,7 @@ export default function ParentDashboard({
               className="contact-profile-nav-btn contact-profile-close-btn"
               aria-label="Ouderdashboard sluiten"
               title="Sluiten"
-              onClick={onClose}
+              onClick={returnToPreviousPortalScreen}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M18 6L6 18" />

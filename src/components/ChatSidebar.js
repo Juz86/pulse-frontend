@@ -671,7 +671,7 @@ export default function ChatSidebar({
           className="contact-profile-edit-btn contact-profile-close-btn"
           aria-label="Nieuwe chat sluiten"
           title="Sluiten"
-          onClick={dismissNewChatSheet}
+          onClick={() => navigateBackToMoreActions(closeNewChatSheet)}
         >
           <XIcon size={20} aria-hidden="true" />
         </button>
@@ -865,7 +865,7 @@ export default function ChatSidebar({
           className="contact-profile-edit-btn contact-profile-close-btn"
           aria-label="Nieuw contact sluiten"
           title="Sluiten"
-          onClick={dismissAddContactSheet}
+          onClick={() => navigateBackToMoreActions(closeAddContactSheet)}
         >
           <XIcon size={20} aria-hidden="true" />
         </button>
@@ -1028,7 +1028,7 @@ export default function ChatSidebar({
           className="contact-profile-edit-btn contact-profile-close-btn"
           aria-label="Verzoeken sluiten"
           title="Sluiten"
-          onClick={dismissRequestsSheet}
+          onClick={() => navigateBackToMoreActions(closeRequestsSheet)}
         >
           <XIcon size={20} aria-hidden="true" />
         </button>
@@ -1270,7 +1270,7 @@ export default function ChatSidebar({
           className="contact-profile-edit-btn contact-profile-close-btn"
           aria-label="Mijn account sluiten"
           title="Sluiten"
-          onClick={dismissProfileOverviewSheet}
+          onClick={() => setProfileTab?.('overview')}
         >
           <XIcon size={20} aria-hidden="true" />
         </button>
@@ -1381,7 +1381,7 @@ export default function ChatSidebar({
         <button
           type="button"
           className="contact-profile-row-button danger"
-          onClick={() => { dismissProfileOverviewSheet(); handleDeleteAccount?.(); }}
+          onClick={() => handleDeleteAccount?.()}
         >
           <span className="contact-profile-row-icon" aria-hidden="true"><Trash2 size={18} /></span>
           <span className="contact-profile-row-copy">
@@ -1410,7 +1410,7 @@ export default function ChatSidebar({
           className="contact-profile-edit-btn contact-profile-close-btn"
           aria-label={`${title} sluiten`}
           title="Sluiten"
-          onClick={dismissProfileOverviewSheet}
+          onClick={() => setProfileTab?.('overview')}
         >
           <XIcon size={20} aria-hidden="true" />
         </button>
@@ -3634,7 +3634,7 @@ export default function ChatSidebar({
                           <button
                             type="button"
                             className="btn-danger profile-danger-btn"
-                            onClick={() => { closeProfileOverviewSheet(); handleDeleteAccount?.(); }}
+                            onClick={() => handleDeleteAccount?.()}
                           >
                             <span className="profile-danger-btn-icon" aria-hidden="true"><Trash2 size={16} /></span>
                             <span className="profile-danger-btn-label">Account definitief verwijderen</span>

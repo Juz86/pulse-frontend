@@ -11,6 +11,13 @@ export default function PulseConfirmSheet({
   dismissible = true,
   tone = 'default',
 }) {
+  const closeSheet = (event) => {
+    // Een bevestigingssheet kan via een portal boven een zijbalkpagina staan.
+    // Sluiten mag uitsluitend deze tijdelijke laag sluiten, nooit de pagina eronder.
+    event?.stopPropagation();
+    onClose?.();
+  };
+
   useEffect(() => {
     if (!dismissible) return undefined;
     const onKeyDown = (event) => {
@@ -26,8 +33,8 @@ export default function PulseConfirmSheet({
       onClick={(event) => {
         // This sheet can be rendered from a nested sidebar page. Keep its
         // close action local so a click never also closes that underlying page.
-        event.stopPropagation();
-        if (dismissible) onClose?.();
+        if (dismissible) closeSheet(event);
+        else event.stopPropagation();
       }}
     >
       <aside
@@ -42,7 +49,7 @@ export default function PulseConfirmSheet({
         <div className="pulse-confirm-heading">
           <h2 id="pulse-confirm-title">{title}</h2>
           {dismissible && (
-            <button type="button" className="pulse-confirm-close" aria-label="Sluiten" onClick={onClose}>
+            <button type="button" className="pulse-confirm-close" aria-label="Sluiten" onClick={closeSheet}>
               <Cancel size={28} aria-hidden="true" />
             </button>
           )}

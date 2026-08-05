@@ -105,6 +105,7 @@ export default function ParentDashboard({
   const [contactsLoading,     setContactsLoading]     = useState(false);
   const [contactsError,       setContactsError]       = useState('');
   const [contactActionUid,    setContactActionUid]    = useState(null); // uid bezig met actie
+  const [confirmRemoveContact, setConfirmRemoveContact] = useState(null);
 
   // Analytics rapportage
   const [selectedChildUid, setSelectedChildUid] = useState(null);
@@ -231,6 +232,7 @@ export default function ParentDashboard({
   }
 
   async function parentRemoveContact(childUid, targetUid) {
+    setConfirmRemoveContact(null);
     setContactActionUid(targetUid);
     try {
       const res = await authFetch(`${BACKEND}/api/parent/child/${childUid}/remove-contact`, {
@@ -1048,7 +1050,11 @@ export default function ParentDashboard({
                                   disabled={contactActionUid === contact.uid}
                                   aria-label="Verwijderen"
                                   title="Verwijderen"
-                                  onClick={() => parentRemoveContact(contactsChildUid, contact.uid)}
+                                  onClick={() => setConfirmRemoveContact({
+                                    childUid: contactsChildUid,
+                                    targetUid: contact.uid,
+                                    displayName: contact.displayName || contact.email || 'dit contact',
+                                  })}
                                 >
                                   <Trash2 size={17} aria-hidden="true" />
                                 </button>
@@ -1571,6 +1577,22 @@ export default function ParentDashboard({
         >
           {deleteError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{deleteError}</div>}
         </PulseConfirmSheet>
+      )}
+
+      {confirmRemoveContact && (
+        <PulseConfirmSheet
+          title="Contact verwijderen"
+          description={`Weet je zeker dat je ${confirmRemoveContact.displayName} wilt verwijderen?`}
+          onClose={() => setConfirmRemoveContact(null)}
+          actions={[
+            {
+              label: 'Contact verwijderen',
+              tone: 'danger',
+              icon: Trash2,
+              onSelect: () => parentRemoveContact(confirmRemoveContact.childUid, confirmRemoveContact.targetUid),
+            },
+          ]}
+        />
       )}
 
       {coparentInvitations.length > 0 && (

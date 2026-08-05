@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { getInitials, timeAgo, toMs } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, KeyRound, Trash2, Block, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, KeyRound, Trash2, Block, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit, Search } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
 import { ProfilePageShell } from '../components/ProfilePageShell';
@@ -1441,6 +1441,91 @@ export default function ParentDashboard({
     </section>
   );
 
+  const renderInvitePage = () => {
+    if (!inviteModal) return null;
+    const closeOrSend = inviteSuccess ? closeInviteModal : sendCoparentInvite;
+    const headerLabel = inviteSuccess ? 'Sluiten' : 'Uitnodigen';
+
+    return (
+      <ProfilePageShell
+        panelRef={panelRef}
+        scrollContent
+        titleId="coparent-invite-title"
+        title="Kind toewijzen"
+        description={`Geef een andere ouder toegang tot ${inviteModal.displayName}.`}
+        onBack={closeInviteModal}
+        backLabel="Terug naar mijn kinderen"
+        className="chat-side-panel contact-profile-panel parent-dashboard-panel coparent-invite-page-panel"
+        headerAction={(
+          <button
+            type="button"
+            className="contact-profile-edit-btn new-group-create-header-btn parent-invite-header-btn"
+            disabled={!inviteSuccess && (inviteLoading || !inviteEmail.trim())}
+            onClick={closeOrSend}
+          >
+            {inviteLoading ? 'Versturen…' : headerLabel}
+          </button>
+        )}
+      >
+        <section className="parent-portal-view parent-portal-view--invite">
+          <p className="parent-section-sub">
+            Geef een andere ouder toegang tot <strong>{inviteModal.displayName}</strong>. Zij ontvangen een uitnodiging per e-mail en kunnen daarna ook dit kind beheren.
+          </p>
+
+          {!inviteSuccess ? (
+            <>
+              <div className="contact-profile-field-label">Zoeken in mijn contacten</div>
+              <label className="sr-only" htmlFor="coparent-contact-search">Zoeken in mijn contacten</label>
+              <div className="new-group-page-search parent-invite-search-wrap">
+                <Search size={20} aria-hidden="true" />
+                <input
+                  id="coparent-contact-search"
+                  type="search"
+                  placeholder="Zoek op naam, e-mail of gebruikersnaam"
+                  value={inviteContactSearch}
+                  onChange={e => setInviteContactSearch(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div className="coparent-contact-results parent-invite-contact-list" aria-live="polite">
+                {inviteContactsLoading ? (
+                  <div className="coparent-contact-empty">Contacten laden…</div>
+                ) : filteredInviteContacts.length > 0 ? (
+                  filteredInviteContacts.map(contact => (
+                    <button
+                      key={contact.uid || contact.id || contact.email}
+                      type="button"
+                      className={`coparent-contact-option${inviteEmail === contact.email ? ' selected' : ''}`}
+                      onClick={() => {
+                        setInviteEmail(contact.email || '');
+                        setInviteContactSearch(contact.displayName || contact.email || '');
+                        setInviteError('');
+                      }}
+                    >
+                      <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName || contact.email} className="sm" decorative />
+                      <span className="coparent-contact-copy">
+                        <strong>{contact.displayName || contact.email}</strong>
+                        <span>{contact.email}</span>
+                      </span>
+                      <span className="share-contact-page-selection" aria-hidden="true">
+                        {inviteEmail === contact.email && <Check size={18} className="share-contact-page-check" />}
+                      </span>
+                    </button>
+                  ))
+                ) : (
+                  <div className="coparent-contact-empty">Geen ouderaccount in je contacten gevonden. Voeg de ouder eerst toe als contact en probeer het daarna opnieuw.</div>
+                )}
+              </div>
+              {inviteError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{inviteError}</div>}
+            </>
+          ) : (
+            <div className="parent-success parent-invite-success" role="status" aria-live="polite">✓ {inviteSuccess}</div>
+          )}
+        </section>
+      </ProfilePageShell>
+    );
+  };
+
   const parentOverlays = (
     <>
       {createSuccess && (
@@ -1466,77 +1551,6 @@ export default function ParentDashboard({
         >
           {deleteError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{deleteError}</div>}
         </PulseConfirmSheet>
-      )}
-
-      {inviteModal && (
-        <div className="modal-overlay" data-parent-portal-overlay="true" onClick={closeInviteModal}>
-          <div className="modal-box coparent-invite-modal" role="dialog" aria-modal="true" aria-labelledby="coparent-invite-title" onClick={e => e.stopPropagation()}>
-            <button type="button" className="modal-close-btn" aria-label="Kind toewijzen sluiten" onClick={closeInviteModal}><span aria-hidden="true">✕</span></button>
-            <h2 className="modal-title" id="coparent-invite-title">Kind toewijzen</h2>
-            <p style={{ color: 'var(--text2)', fontSize: 14, margin: '10px 0 20px', lineHeight: 1.6 }}>
-              Geef een andere ouder toegang tot <strong>{inviteModal.displayName}</strong>. Zij ontvangen een uitnodiging per e-mail en kunnen daarna ook dit kind beheren.
-            </p>
-            {!inviteSuccess ? (
-              <>
-                <label htmlFor="coparent-contact-search" className="contact-label" style={{ color: 'var(--text3)', marginBottom: 8 }}>
-                  Zoeken in mijn contacten
-                </label>
-                <input
-                  id="coparent-contact-search"
-                  type="search"
-                  className="parent-input coparent-invite-search"
-                  placeholder="Zoek op naam, e-mail of gebruikersnaam"
-                  value={inviteContactSearch}
-                  onChange={e => setInviteContactSearch(e.target.value)}
-                  autoFocus
-                  style={{ marginBottom: 10 }}
-                />
-                <div className="coparent-contact-results" aria-live="polite">
-                  {inviteContactsLoading ? (
-                    <div className="coparent-contact-empty">Contacten laden…</div>
-                  ) : filteredInviteContacts.length > 0 ? (
-                    filteredInviteContacts.slice(0, 5).map(contact => (
-                      <button
-                        key={contact.uid || contact.id || contact.email}
-                        type="button"
-                        className={`coparent-contact-option${inviteEmail === contact.email ? ' selected' : ''}`}
-                        onClick={() => {
-                          setInviteEmail(contact.email || '');
-                          setInviteContactSearch(contact.displayName || contact.email || '');
-                          setInviteError('');
-                        }}
-                      >
-                        <span className="pd-contact-avatar" aria-hidden="true">
-                          {contact.photoURL ? <img src={contact.photoURL} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} /> : getInitials(contact.displayName || contact.email)}
-                        </span>
-                        <span className="coparent-contact-copy">
-                          <strong>{contact.displayName || contact.email}</strong>
-                          <span>{contact.email}</span>
-                        </span>
-                        {inviteEmail === contact.email && <Check size={16} aria-hidden="true" />}
-                      </button>
-                    ))
-                  ) : (
-                    <div className="coparent-contact-empty">Geen ouderaccount in je contacten gevonden. Voeg de ouder eerst toe als contact en probeer het daarna opnieuw.</div>
-                  )}
-                </div>
-                {inviteError && <div className="parent-error" role="alert" aria-live="assertive" style={{ marginBottom: 12 }}><span aria-hidden="true">⚠️ </span>{inviteError}</div>}
-                <div className="modal-actions">
-                  <button type="button" className="btn-primary coparent-invite-submit" disabled={inviteLoading || !inviteEmail.trim()} onClick={sendCoparentInvite}>
-                    {inviteLoading ? 'Versturen…' : 'Uitnodiging sturen'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="parent-success" role="status" aria-live="polite" style={{ marginBottom: 20 }}>✓ {inviteSuccess}</div>
-                <div className="modal-actions">
-                  <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => { setInviteModal(null); setInviteEmail(''); setInviteSuccess(''); }}>Sluiten</button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
       )}
 
       {coparentInvitations.length > 0 && (
@@ -1586,6 +1600,15 @@ export default function ParentDashboard({
       )}
     </>
   );
+
+  if (inviteModal) {
+    return (
+      <>
+        {renderInvitePage()}
+        {typeof document !== 'undefined' ? createPortal(parentOverlays, document.body) : null}
+      </>
+    );
+  }
 
   if (!embeddedInSidebarCluster) {
     return (

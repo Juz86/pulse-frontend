@@ -14933,6 +14933,10 @@ font-family: 'Inter', sans-serif;
   border-radius: 22px;
 }
 
+.parent-dashboard-panel .pd-contact-row {
+  align-items: flex-start;
+}
+
 .parent-dashboard-panel .analytics-profile-card,
 .parent-dashboard-panel .parent-usage-card,
 .parent-dashboard-panel .parent-top-contacts-card,
@@ -15348,7 +15352,7 @@ font-family: 'Inter', sans-serif;
 /* ── Ouderportaal: Contacten tab ────────────────────────────────────────────── */
 .pd-contacts-list { display:flex; flex-direction:column; gap:10px; margin-top:8px; }
 .pd-contact-row {
-  display:flex; align-items:center; gap:12px;
+  display:flex; align-items:flex-start; gap:12px;
   padding:12px 14px; background:#fff;
   border:1px solid #e5e7eb; border-radius:12px;
   box-shadow:0 1px 4px rgba(0,0,0,0.04);
@@ -15373,7 +15377,15 @@ font-family: 'Inter', sans-serif;
   background: rgba(124,108,255,.12);
   color: #6c63ff;
 }
-.pd-contact-actions { display:flex; gap:6px; flex-shrink:0; }
+.pd-contact-side {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding-top: 1px;
+}
+.pd-contact-actions { display:flex; gap:6px; flex-shrink:0; min-height: 24px; justify-content:flex-end; }
 .pd-contact-protected-note {
   font-size: 11px;
   font-weight: 600;

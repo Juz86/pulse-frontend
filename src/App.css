@@ -14771,6 +14771,29 @@ font-family: 'Inter', sans-serif;
   color: #fff;
 }
 
+/* Binnen een smalle, scrollbare zijbalk wordt een absoluut dropdownmenu
+   door de scrollcontainer afgeknipt. Laat de kindkiezer daar daarom in de
+   paginastroom uitklappen en alleen de opties zelf scrollen. */
+@media (max-width: 700px) {
+  .parent-dashboard-panel .parent-portal-toolbar--spread {
+    align-items: flex-start;
+  }
+
+  .parent-dashboard-panel .parent-portal-picker {
+    z-index: auto;
+  }
+
+  .parent-dashboard-panel .parent-portal-picker-menu {
+    position: static;
+    width: 190px;
+    max-height: min(288px, calc(100dvh - 220px));
+    margin-top: 6px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    transform: translateX(calc(100% - 190px));
+  }
+}
+
 .parent-dashboard-panel .parent-portal-analytics-block {
   display: flex;
   flex-direction: column;

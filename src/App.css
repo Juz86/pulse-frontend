@@ -4019,7 +4019,9 @@ font-family: 'Inter', sans-serif;
 .sidebar-tab.active { background:linear-gradient(135deg, #7c6fff, #a855f7); color:#fff; font-weight:700; box-shadow:0 4px 16px rgba(108,99,255,.5), 0 0 0 1px rgba(168,85,247,.2); }
 
 .conv-list {
-  flex:1 1 auto;
+  /* Een vaste flexbasis voorkomt dat wisselen van filter de lijstzone zelf
+     laat verspringen op basis van het aantal zichtbare gesprekken. */
+  flex:1 1 0;
   min-height:0;
   overflow-y:auto;
   overscroll-behavior:contain;

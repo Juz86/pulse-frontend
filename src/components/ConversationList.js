@@ -47,6 +47,12 @@ const ConversationList = React.memo(function ConversationList({
     return () => document.removeEventListener('pointerdown', handlePointerDownOutside, true);
   }, [swipedConvId]);
 
+  // Een ander filter begint altijd bovenaan binnen dezelfde vaste lijstzone.
+  // Daarmee blijft de positie onder de filters visueel stabiel.
+  React.useEffect(() => {
+    if (listRef.current) listRef.current.scrollTop = 0;
+  }, [chatFilter, selectedGroupId, normalizedSearch]);
+
   const filtered = useMemo(() => {
     return conversations
       .filter(conv => {

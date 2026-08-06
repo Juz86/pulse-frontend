@@ -621,8 +621,12 @@ export default function ParentDashboard({
             role="option"
             aria-selected={child.uid === selectedUid}
             className={`parent-portal-picker-option${child.uid === selectedUid ? ' active' : ''}`}
-            onPointerDown={(event) => event.stopPropagation()}
-            onClick={() => {
+            onPointerDown={(event) => {
+              event.stopPropagation();
+            }}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
               onSelect(child.uid);
               setChildDropdownOpen(false);
               setChildPickerPosition(null);

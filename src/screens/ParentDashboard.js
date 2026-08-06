@@ -586,21 +586,20 @@ export default function ParentDashboard({
 
   const toggleChildPicker = useCallback((event, target) => {
     event.stopPropagation();
+    if (childDropdownOpen) {
+      setChildDropdownOpen(false);
+      setChildPickerPosition(null);
+      setChildPickerTarget(null);
+      return;
+    }
+
     const rect = event.currentTarget.getBoundingClientRect();
     const menuWidth = Math.max(rect.width, 190);
     const left = Math.max(12, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 12));
-
-    setChildDropdownOpen((open) => {
-      if (open) {
-        setChildPickerPosition(null);
-        setChildPickerTarget(null);
-        return false;
-      }
-      setChildPickerTarget(target);
-      setChildPickerPosition({ left, top: rect.bottom + 6, width: menuWidth });
-      return true;
-    });
-  }, []);
+    setChildPickerTarget(target);
+    setChildPickerPosition({ left, top: rect.bottom + 6, width: menuWidth });
+    setChildDropdownOpen(true);
+  }, [childDropdownOpen]);
 
   const renderChildPickerMenu = () => {
     if (!childDropdownOpen || !childPickerPosition || !childPickerTarget || typeof document === 'undefined') return null;
@@ -612,6 +611,7 @@ export default function ParentDashboard({
         aria-label="Kies een kind"
         className="parent-portal-picker-menu parent-portal-picker-menu--floating"
         style={childPickerPosition}
+        onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
         {children.map((child) => (
@@ -621,6 +621,7 @@ export default function ParentDashboard({
             role="option"
             aria-selected={child.uid === selectedUid}
             className={`parent-portal-picker-option${child.uid === selectedUid ? ' active' : ''}`}
+            onPointerDown={(event) => event.stopPropagation()}
             onClick={() => {
               onSelect(child.uid);
               setChildDropdownOpen(false);
@@ -1708,6 +1709,7 @@ export default function ParentDashboard({
           )}
         </ProfilePageShell>
         {typeof document !== 'undefined' ? createPortal(parentOverlays, document.body) : null}
+        {renderChildPickerMenu()}
       </>
     );
   }

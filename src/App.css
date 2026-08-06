@@ -14777,6 +14777,7 @@ font-family: 'Inter', sans-serif;
 .parent-portal-picker-menu--floating {
   position: fixed;
   z-index: 7200;
+  pointer-events: auto;
   max-height: min(288px, calc(100dvh - 96px));
   overflow-x: hidden;
   overflow-y: auto;

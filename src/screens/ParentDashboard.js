@@ -609,6 +609,7 @@ export default function ParentDashboard({
       <div
         role="listbox"
         aria-label="Kies een kind"
+        data-parent-portal-overlay="true"
         className="parent-portal-picker-menu parent-portal-picker-menu--floating"
         style={childPickerPosition}
         onPointerDown={(event) => event.stopPropagation()}

@@ -613,6 +613,8 @@ export default function ParentDashboard({
         className="parent-portal-picker-menu parent-portal-picker-menu--floating"
         style={childPickerPosition}
         onPointerDown={(event) => event.stopPropagation()}
+        onMouseDown={(event) => event.stopPropagation()}
+        onTouchStart={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
         {children.map((child) => (
@@ -625,6 +627,8 @@ export default function ParentDashboard({
             onPointerDown={(event) => {
               event.stopPropagation();
             }}
+            onMouseDown={(event) => event.stopPropagation()}
+            onTouchStart={(event) => event.stopPropagation()}
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();

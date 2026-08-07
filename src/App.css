@@ -7659,6 +7659,21 @@ font-family: 'Inter', sans-serif;
   border-top:0;
 }
 
+/* Nieuw contact gebruikt een lichte invoerachtergrond. Houd de ingevoerde
+   tekst en cursor daarom donker, ook wanneer de browser een ingevulde waarde
+   bewaart. */
+.add-contact-page-section .form-input.sheet-form-input {
+  color:#251a4a !important;
+  caret-color:#251a4a;
+  -webkit-text-fill-color:#251a4a;
+}
+
+.add-contact-page-section .form-input.sheet-form-input::placeholder {
+  color:#756b9c;
+  opacity:1;
+  -webkit-text-fill-color:#756b9c;
+}
+
 .account-page-section .contact-profile-field + .contact-profile-field {
   border-top:0;
 }

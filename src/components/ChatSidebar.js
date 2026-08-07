@@ -3219,7 +3219,6 @@ export default function ChatSidebar({
                   onClick={() => { setActiveTab('contacts'); setSearchQuery(''); }}
                 >
                   <Users size={20} aria-hidden="true" />
-                  {friendRequests.length > 0 && <span className="sidebar-header-tab-badge" aria-label={`${friendRequests.length} openstaande ${friendRequests.length === 1 ? 'uitnodiging' : 'uitnodigingen'}`}>{friendRequests.length}</span>}
                 </button>
                 <button
                   type="button"

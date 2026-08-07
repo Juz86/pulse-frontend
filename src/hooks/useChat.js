@@ -30,7 +30,6 @@ export default function useChat({
   setUnreadCounts,
   setFriendRequests,
   setContactSuccess,
-  setShowFriendRequestsPanel,
   setContacts,
   setActiveConv,
   setBlockedContacts,
@@ -329,8 +328,12 @@ export default function useChat({
 
     const onFriendRequest = (req) => {
       setFriendRequests(prev => [req, ...prev.filter(r => r.id !== req.id)]);
-      setShowFriendRequestsPanel?.(true);
       loadFriendRequests?.();
+      showErrToast?.({
+        title: 'Nieuw verzoek',
+        text: `${req?.fromName || req?.fromEmail || 'Iemand'} wil je als contact toevoegen.`,
+        tone: 'info',
+      });
       if (dndRef.current) return;
       try {
         const ctx   = new (window.AudioContext || window.webkitAudioContext)();

@@ -310,7 +310,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     user, activeConvRef, conversationsRef, msgsAreaRef, dndRef, audioCtxRef,
     mutedConversationIdsRef,
     loadConversations, loadContacts, loadFriendRequests, setMessages, setConversations, setUnreadCounts,
-    setFriendRequests, setContactSuccess, setShowFriendRequestsPanel, setContacts, setActiveConv,
+    setFriendRequests, setContactSuccess, setContacts, setActiveConv,
     setBlockedContacts, setParentBlockedUids, showErrToast, setConfirmDialog,
     onReconnect: retryAllFailed,
     onOpenMentionConversation: openConversation,

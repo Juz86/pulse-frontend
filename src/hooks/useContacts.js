@@ -423,7 +423,7 @@ export default function useContacts({
     setContactLoading(true);
     try {
       const res = await authFetch(`${BACKEND_URL}/api/friend-requests/${requestId}/cancel`, {
-        method: 'POST',
+        method: 'DELETE',
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

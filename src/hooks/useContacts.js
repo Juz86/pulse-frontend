@@ -475,8 +475,19 @@ export default function useContacts({
       canSendReminder: Number(request.reminderCount || 0) < 3,
       canCancel: true,
     };
-    setPendingFriendRequest(targetRequest);
-    await cancelPendingFriendRequest(targetRequest);
+    const recipient = request.toName || request.toEmail || request.toIdentifier || 'deze contactpersoon';
+    setConfirmDialog({
+      type: 'cancel-friend-request',
+      title: 'Verzoek annuleren',
+      message: `Weet je zeker dat je het verzoek aan ${recipient} wilt annuleren?`,
+      confirmLabel: 'Verzoek annuleren',
+      confirmIcon: 'trash',
+      hideCancel: true,
+      onConfirm: async () => {
+        setPendingFriendRequest(targetRequest);
+        await cancelPendingFriendRequest(targetRequest);
+      },
+    });
   }
 
   async function sendFriendRequestToEmail(email) {

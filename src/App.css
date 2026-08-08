@@ -4400,6 +4400,14 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-footer-tab--requests .sidebar-footer-tab-icon {
   color: #e85b82;
+  animation: sidebar-requests-heartbeat 1.5s ease-in-out infinite;
+}
+@keyframes sidebar-requests-heartbeat {
+  0%, 100% { transform: scale(1); }
+  12% { transform: scale(1.16); }
+  24% { transform: scale(1); }
+  36% { transform: scale(1.1); }
+  48% { transform: scale(1); }
 }
 .sidebar-footer-tab-wrap {
   position: relative;

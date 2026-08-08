@@ -2867,7 +2867,7 @@ export default function ChatSidebar({
       {!isParent && (
         <button
           type="button"
-          className={`sidebar-footer-tab${requestsFooterActive ? ' active' : ''}`}
+          className={`sidebar-footer-tab sidebar-footer-tab--requests${requestsFooterActive ? ' active' : ''}`}
           aria-label={friendRequests.length > 0
             ? `Verzoeken, ${friendRequests.length} ontvangen ${friendRequests.length === 1 ? 'verzoek' : 'verzoeken'}`
             : 'Verzoeken'}

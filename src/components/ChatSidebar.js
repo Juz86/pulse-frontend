@@ -579,7 +579,9 @@ export default function ChatSidebar({
         icon: <Handshake size={18} aria-hidden="true" />,
         label: 'Verzoeken',
         description: 'Beheer vriendschapsverzoeken.',
-        badge: friendRequests.length > 0 ? friendRequests.length : null,
+        // Keep the overview in sync with the Requests page: both received and
+        // sent pending requests are actionable from this entry point.
+        badge: (friendRequests.length + sentFriendRequests.length) || null,
         onClick: () => {
           closeProfileOverviewSheet();
           closeAddContactSheet();
@@ -647,7 +649,7 @@ export default function ChatSidebar({
               <span className="contact-profile-row-copy">
                 <span className="contact-profile-row-title">{action.label}</span>
               </span>
-              {action.badge && <span className="unread-badge" aria-label={`${action.badge} ontvangen ${action.badge === 1 ? 'verzoek' : 'verzoeken'}`}>{action.badge > 99 ? '99+' : action.badge}</span>}
+              {action.badge && <span className="unread-badge" aria-label={`${action.badge} openstaand${action.badge === 1 ? ' verzoek' : 'e verzoeken'}`}>{action.badge > 99 ? '99+' : action.badge}</span>}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
                 <path d="M9 18l6-6-6-6" />
               </svg>

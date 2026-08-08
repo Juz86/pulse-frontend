@@ -291,7 +291,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     renamingContact, setRenamingContact, sharingContact, setSharingContact,
     shareRecipients, setShareRecipients, viewingSharedContact, setViewingSharedContact,
     renameValue, setRenameValue,
-    loadContacts, loadFriendRequests, loadBlockedContacts,
+    loadContacts, loadFriendRequests, loadBlockedContacts, markFriendRequestSeen,
     getContactNickname, saveContactNickname, getContactDisplayName, findConvWithUid,
     addContact, sendFriendRequestToEmail, remindPendingFriendRequest, cancelPendingFriendRequest, acceptFriendRequest, declineFriendRequest,
     remindFriendRequestById, cancelFriendRequestById,
@@ -309,7 +309,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const { typing, typingName, typingByConv, pausedFeatures, mentionToast, clearMentionToast } = useChat({
     user, activeConvRef, conversationsRef, msgsAreaRef, dndRef, audioCtxRef,
     mutedConversationIdsRef,
-    loadConversations, loadContacts, loadFriendRequests, setMessages, setConversations, setUnreadCounts,
+    loadConversations, loadContacts, loadFriendRequests, markFriendRequestSeen, setMessages, setConversations, setUnreadCounts,
     setFriendRequests, setContacts, setActiveConv,
     setBlockedContacts, setParentBlockedUids, showErrToast, setConfirmDialog,
     onReconnect: retryAllFailed,

@@ -25,6 +25,7 @@ export default function useChat({
   loadConversations,
   loadContacts,
   loadFriendRequests,
+  markFriendRequestSeen,
   setMessages,
   setConversations,
   setUnreadCounts,
@@ -126,7 +127,7 @@ export default function useChat({
       conversationsRef.current.forEach(conv => socket.emit('conversation:join', { convId: conv.id }));
       socket.emit('users:online:request');
       // Haal vriendschapsverzoeken op bij reconnect — gemiste verzoeken tijdens offline periode ophalen
-      loadFriendRequests?.();
+      loadFriendRequests?.({ force: true });
       // Herverstuurd mislukte berichten zodra socket daadwerkelijk connected is
       onReconnectRef.current?.();
     };
@@ -327,6 +328,7 @@ export default function useChat({
 
     const onFriendRequest = (req) => {
       setFriendRequests(prev => [req, ...prev.filter(r => r.id !== req.id)]);
+      markFriendRequestSeen?.(req);
       loadFriendRequests?.();
       showErrToast?.({
         title: 'Nieuw vriendschapsverzoek',

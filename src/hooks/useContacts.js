@@ -120,6 +120,29 @@ export default function useContacts({
     writeCachedBlockedContacts(user.uid, blockedContacts, parentBlockedUids);
   }, [blockedContacts, parentBlockedUids, user.uid]);
 
+  const getSeenFriendRequestIds = useCallback(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(`pulse_seen_friend_requests_${user.uid}`) || '[]');
+      return new Set(Array.isArray(stored) ? stored : []);
+    } catch {
+      return new Set();
+    }
+  }, [user.uid]);
+
+  const markFriendRequestSeen = useCallback((request) => {
+    const requestId = getFriendRequestId(request);
+    if (!requestId) return;
+    const seenIds = getSeenFriendRequestIds();
+    if (seenIds.has(requestId)) return;
+    seenIds.add(requestId);
+    try {
+      // Houd alleen de recente IDs; zo groeit de lokale registratie niet door.
+      localStorage.setItem(`pulse_seen_friend_requests_${user.uid}`, JSON.stringify([...seenIds].slice(-100)));
+    } catch (e) {
+      console.warn('[Pulse] Fout:', e.message);
+    }
+  }, [getSeenFriendRequestIds, user.uid]);
+
   // Nickname cache
   const [nicknameCache, setNicknameCache] = useState(() => {
     const cache = {};
@@ -286,8 +309,27 @@ export default function useContacts({
       ]);
       const incomingData = await incomingRes.json().catch(() => []);
       const sentData = await sentRes.json().catch(() => []);
-      setFriendRequests(Array.isArray(incomingData) ? incomingData : []);
+      const incomingRequests = Array.isArray(incomingData) ? incomingData : [];
+      const seenIds = getSeenFriendRequestIds();
+      const unseenRequests = incomingRequests.filter((request) => {
+        const requestId = getFriendRequestId(request);
+        return requestId && !seenIds.has(requestId);
+      });
+
+      setFriendRequests(incomingRequests);
       setSentFriendRequests(Array.isArray(sentData) ? sentData : []);
+
+      if (unseenRequests.length > 0) {
+        unseenRequests.forEach(markFriendRequestSeen);
+        const latestRequest = unseenRequests[0];
+        showErrToast({
+          title: unseenRequests.length === 1 ? 'Nieuw vriendschapsverzoek' : 'Nieuwe vriendschapsverzoeken',
+          text: unseenRequests.length === 1
+            ? `${latestRequest.fromName || latestRequest.fromEmail || 'Iemand'} heeft je een vriendschapsverzoek gestuurd.`
+            : `Je hebt ${unseenRequests.length} nieuwe vriendschapsverzoeken ontvangen.`,
+          tone: 'info',
+        });
+      }
     } catch (e) {
       console.warn('[Pulse] Fout:', e.message);
       if (!friendRequests.length && !sentFriendRequests.length) showErrToast('Verzoeken laden mislukt');
@@ -302,7 +344,7 @@ export default function useContacts({
         loadFriendRequestsStateRef.current.promise = null;
       }
     }
-  }, [authFetch, friendRequests.length, sentFriendRequests.length, showErrToast, user.uid]);
+  }, [authFetch, friendRequests.length, getSeenFriendRequestIds, markFriendRequestSeen, sentFriendRequests.length, showErrToast, user.uid]);
 
   // ── Contact toevoegen ─────────────────────────────────────────────────────
   async function addContact() {
@@ -670,7 +712,7 @@ export default function useContacts({
     viewingContact, setViewingContact,
     renameValue, setRenameValue,
     // loaders
-    loadContacts, loadFriendRequests, loadBlockedContacts,
+    loadContacts, loadFriendRequests, loadBlockedContacts, markFriendRequestSeen,
     // blocked
     blockedContacts, setBlockedContacts,
     parentBlockedUids, setParentBlockedUids,

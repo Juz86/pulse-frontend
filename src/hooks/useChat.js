@@ -29,7 +29,6 @@ export default function useChat({
   setConversations,
   setUnreadCounts,
   setFriendRequests,
-  setContactSuccess,
   setContacts,
   setActiveConv,
   setBlockedContacts,
@@ -330,8 +329,8 @@ export default function useChat({
       setFriendRequests(prev => [req, ...prev.filter(r => r.id !== req.id)]);
       loadFriendRequests?.();
       showErrToast?.({
-        title: 'Nieuw verzoek',
-        text: `${req?.fromName || req?.fromEmail || 'Iemand'} wil je als contact toevoegen.`,
+        title: 'Nieuw vriendschapsverzoek',
+        text: `${req?.fromName || req?.fromEmail || 'Iemand'} heeft je een vriendschapsverzoek gestuurd.`,
         tone: 'info',
       });
       if (dndRef.current) return;
@@ -363,8 +362,11 @@ export default function useChat({
     const onFriendAccepted = ({ byName }) => {
       loadContacts();
       loadFriendRequests?.();
-      setContactSuccess(`${byName} heeft je uitnodiging geaccepteerd!`);
-      setTimeout(() => setContactSuccess(''), 4000);
+      showErrToast?.({
+        title: 'Vriendschapsverzoek geaccepteerd',
+        text: `${byName || 'Je contactpersoon'} heeft je vriendschapsverzoek geaccepteerd.`,
+        tone: 'success',
+      });
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         [[500, 0], [700, 0.15], [1000, 0.30]].forEach(([freq, delay]) => {

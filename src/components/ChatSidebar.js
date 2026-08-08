@@ -1,7 +1,7 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Handshake, User, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
+import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, User, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import UserAvatar from '../components/UserAvatar';
@@ -576,7 +576,7 @@ export default function ChatSidebar({
       },
       {
         id: 'requests',
-        icon: <Handshake size={18} aria-hidden="true" />,
+        icon: <Heart size={18} aria-hidden="true" />,
         label: 'Verzoeken',
         description: 'Beheer vriendschapsverzoeken.',
         // Keep the overview in sync with the Requests page: both received and
@@ -4068,7 +4068,7 @@ export default function ChatSidebar({
                   },
                   {
                     key: 'requests',
-                    icon: <Handshake size={18} aria-hidden="true" />,
+                    icon: <Heart size={18} aria-hidden="true" />,
                     label: 'Verzoeken',
                     onClick: () => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewChatSheet(); closeNewGroupSheet(); closeCallSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel?.(true); },
                     trailing: friendRequests.length > 0

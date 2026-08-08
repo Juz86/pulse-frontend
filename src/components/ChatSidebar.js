@@ -579,6 +579,7 @@ export default function ChatSidebar({
         icon: <Handshake size={18} aria-hidden="true" />,
         label: 'Verzoeken',
         description: 'Beheer vriendschapsverzoeken.',
+        badge: friendRequests.length > 0 ? friendRequests.length : null,
         onClick: () => {
           closeProfileOverviewSheet();
           closeAddContactSheet();
@@ -646,6 +647,7 @@ export default function ChatSidebar({
               <span className="contact-profile-row-copy">
                 <span className="contact-profile-row-title">{action.label}</span>
               </span>
+              {action.badge && <span className="unread-badge" aria-label={`${action.badge} ontvangen ${action.badge === 1 ? 'verzoek' : 'verzoeken'}`}>{action.badge > 99 ? '99+' : action.badge}</span>}
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
                 <path d="M9 18l6-6-6-6" />
               </svg>
@@ -4067,8 +4069,8 @@ export default function ChatSidebar({
                     icon: <Handshake size={18} aria-hidden="true" />,
                     label: 'Verzoeken',
                     onClick: () => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewChatSheet(); closeNewGroupSheet(); closeCallSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel?.(true); },
-                    trailing: (friendRequests.length + sentFriendRequests.length) > 0
-                      ? <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length + sentFriendRequests.length}</span>
+                    trailing: friendRequests.length > 0
+                      ? <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length > 99 ? '99+' : friendRequests.length}</span>
                       : null,
                   },
                   ...(!selectionMode ? [{

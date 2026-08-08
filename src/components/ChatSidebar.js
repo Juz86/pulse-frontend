@@ -2734,7 +2734,8 @@ export default function ChatSidebar({
   const profileFooterActive = settingsSheetVisible;
   const callsFooterActive = callSheetVisible;
   const parentFooterActive = parentPortalPageVisible;
-  const moreFooterActive = moreActionsSheetVisible || addContactSheetVisible || newChatSheetVisible || newGroupSheetVisible || requestsSheetVisible;
+  const requestsFooterActive = requestsSheetVisible;
+  const moreFooterActive = moreActionsSheetVisible || addContactSheetVisible || newChatSheetVisible || newGroupSheetVisible;
   const chatsFooterActive = activeTab === 'chats' && !profileFooterActive && !callsFooterActive && !parentFooterActive && !moreFooterActive;
   const chatUnreadCount = Object.values(unreadCounts || {}).reduce((total, count) => total + (Number(count) || 0), 0);
   const footerEmbeddedInCluster = !!footerClusterMode
@@ -2860,6 +2861,46 @@ export default function ChatSidebar({
             {missedCallCount > 0 && <span className="sidebar-footer-tab-count" aria-hidden="true">{missedCallCount > 99 ? '99+' : missedCallCount}</span>}
           </span>
           <span className="sidebar-footer-tab-label">Bellen</span>
+        </button>
+      )}
+
+      {!isParent && (
+        <button
+          type="button"
+          className={`sidebar-footer-tab${requestsFooterActive ? ' active' : ''}`}
+          aria-label={friendRequests.length > 0
+            ? `Verzoeken, ${friendRequests.length} ontvangen ${friendRequests.length === 1 ? 'verzoek' : 'verzoeken'}`
+            : 'Verzoeken'}
+          aria-expanded={requestsSheetVisible}
+          onClick={() => {
+            if (requestsSheetVisible) {
+              dismissRequestsSheet();
+              return;
+            }
+            closeProfileOverviewSheet();
+            closeAddContactSheet();
+            closeNewChatSheet();
+            closeShareContactPage();
+            closeNewGroupSheet();
+            closeContactActionsSheet();
+            closeConvActionsSheet();
+            closeParentPortalSheet();
+            closeCallSheet();
+            setMoreActionsMenuClosing(false);
+            setMoreActionsMenuOpen(false);
+            setRequestsSheetClosing(false);
+            setActiveTab('contacts');
+            setShowFriendRequestsPanel?.(true);
+          }}
+          title="Verzoeken"
+        >
+          <span className="sidebar-footer-tab-wrap">
+            <span className="sidebar-footer-tab-icon" aria-hidden="true">
+              <Heart size={24} aria-hidden="true" />
+            </span>
+            {friendRequests.length > 0 && <span className="sidebar-footer-tab-count" aria-hidden="true">{friendRequests.length > 99 ? '99+' : friendRequests.length}</span>}
+          </span>
+          <span className="sidebar-footer-tab-label">Verzoeken</span>
         </button>
       )}
 

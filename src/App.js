@@ -40,6 +40,8 @@ import {
   startFlexibleUpdate,
   startImmediateUpdate,
 } from './services/appUpdate';
+import { subscribeToFeatureFlags } from './services/featureFlags';
+import { FeatureFlagsProvider } from './context/FeatureFlagsContext';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const CallOverlay        = lazy(() => import('./components/CallOverlay'));
@@ -314,6 +316,7 @@ function MainApp() {
     checking: false,
   });
   const [hideOptionalUpdate, setHideOptionalUpdate] = useState(false);
+  const [featureFlags, setFeatureFlags] = useState({});
   const showNativeDirectAuth = isNativePulseEnvironment();
   const toastTimerRef          = useRef(null);
   const pushCleanupRef         = useRef(null);
@@ -322,6 +325,8 @@ function MainApp() {
   const lastSignedInUidRef     = useRef(null);
   const authQueryHandledRef    = useRef(false);
   const updateListenerRef      = useRef(null);
+
+  useEffect(() => subscribeToFeatureFlags(BACKEND, setFeatureFlags), []);
 
   useEffect(() => {
     let active = true;
@@ -1055,6 +1060,7 @@ function MainApp() {
   );
 
   return (
+    <FeatureFlagsProvider flags={featureFlags}>
     <ErrorBoundary>
     <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
     <div className="app-root">
@@ -1155,5 +1161,6 @@ function MainApp() {
     </div>
     </Suspense>
     </ErrorBoundary>
+    </FeatureFlagsProvider>
   );
 }

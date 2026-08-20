@@ -11,6 +11,7 @@ const MENU_ICON_SIZE = 14;
 
 export default function MsgContextMenu({
   msg, isOwn, position, anchorRect, starred, pinned,
+  messageEditingEnabled = false,
   onClose, onReply, onCopy, onReact, onForward, onPin, onStar, onEdit,
   onDeleteRequest, onRetry,
 }) {
@@ -151,7 +152,7 @@ export default function MsgContextMenu({
           <span>{starred ? 'Ster verwijderen' : 'Met ster markeren'}</span>
         </button>
 
-        {isOwn && isText && canEditMessage(msg) && (
+        {messageEditingEnabled && isOwn && isText && canEditMessage(msg) && (
           <button type="button" role="menuitem" className="msg-ctx-item" onClick={doAndClose(onEdit)}>
             <MagicEdit size={MENU_ICON_SIZE} className="msg-ctx-icon" aria-hidden="true" />
             <span>Bewerken</span>

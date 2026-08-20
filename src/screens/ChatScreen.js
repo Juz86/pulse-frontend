@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, lazy, Suspense, useCallback, useMemo } from 'react';
 import { signOut } from 'firebase/auth';
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
+import { useFeatureFlag } from '../context/FeatureFlagsContext';
 import { Delete, Message, Trash2 } from '../components/Icons';
 import ChatInput from '../components/ChatInput';
 import ChatHeader from '../components/ChatHeader';
@@ -23,6 +24,7 @@ const ChatModals = lazy(() => import('../components/ChatModals'));
 
 export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onDismissParentToast, onOpenDashboard, showParentDashboard = false, setShowParentDashboard, onParentActivitiesViewed, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
   const callsAvailable = true;
+  const messageEditingEnabled = useFeatureFlag('message_editing');
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
   const [unreadCounts,   setUnreadCounts]   = useState({});
@@ -277,6 +279,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     showErrToast, setConfirmDialog,
     msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
     serviceTransportReady,
+    messageEditingEnabled,
   });
 
   const {
@@ -967,6 +970,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           anchorRect={contextMenu.anchorRect}
           starred={starredMsgs.includes(contextMenu.msg.id)}
           pinned={pinnedMsgs[activeConv?.id]?.id === contextMenu.msg.id}
+          messageEditingEnabled={messageEditingEnabled}
           onClose={() => setContextMenu(null)}
           onReply={() => { setReplyTo({ id: contextMenu.msg.id, text: contextMenu.msg.text, senderName: contextMenu.msg.senderName }); textareaRef.current?.focus(); }}
           onCopy={() => {
@@ -981,6 +985,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           onPin={() => handlePin(contextMenu.msg)}
           onStar={() => handleStar(contextMenu.msg.id)}
           onEdit={() => {
+            if (!messageEditingEnabled) {
+              showErrToast('Bericht bewerken is nog niet beschikbaar.');
+              return;
+            }
             if (!canEditMessage(contextMenu.msg)) {
               showErrToast(ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE);
               return;

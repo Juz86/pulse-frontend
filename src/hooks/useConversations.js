@@ -55,6 +55,7 @@ export default function useConversations({
   showErrToast, setConfirmDialog,
   msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
   serviceTransportReady = false,
+  messageEditingEnabled = false,
 }) {
   const authFetch = useCallback(async (url, options = {}, { forceRefresh = false } = {}) => {
     const token = await user.getIdToken(forceRefresh);
@@ -666,6 +667,12 @@ export default function useConversations({
     if (editSubmitting || !editingMsg || !text.trim()) return;
     if (!socket?.connected) {
       showErrToast('Geen verbinding. Probeer opnieuw zodra Pulse weer online is.');
+      return;
+    }
+    if (!messageEditingEnabled) {
+      showErrToast('Bericht bewerken is nog niet beschikbaar.');
+      setEditingMsg(null);
+      setText('');
       return;
     }
     if (!canEditMessage(editingMsg)) {

@@ -337,12 +337,15 @@ function MainApp() {
       const policy = await fetchUpdatePolicy(BACKEND, clientVersionCode);
       if (!active) return;
 
-      const required = !!policy?.updateRequired;
-      const availableViaPolicy = !!policy?.updateAvailable;
       const availableViaPlay = !!nativeStatus.isUpdateAvailable || !!nativeStatus.isUpdateInProgress;
       const canImmediate = !!nativeStatus.isImmediateAllowed;
       const canFlexible = !!nativeStatus.isFlexibleAllowed;
-      const shouldShow = availableViaPlay || availableViaPolicy;
+      // Het backendbeleid bepaalt de urgentie, maar Google Play blijft de enige
+      // installatiebron. Toon daarom geen updateknop voordat Play de update
+      // daadwerkelijk heeft vrijgegeven voor dit apparaat.
+      const updateCanStart = canFlexible || canImmediate;
+      const shouldShow = availableViaPlay && updateCanStart;
+      const required = !!policy?.updateRequired && shouldShow;
 
       setAppUpdate((prev) => ({
         ...prev,

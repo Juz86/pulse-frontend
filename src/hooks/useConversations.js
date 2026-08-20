@@ -684,7 +684,12 @@ export default function useConversations({
     const trimmed = text.trim();
     const editedMessageId = editingMsg.id;
     setEditSubmitting(true);
-    socket.emit('message:edit', { convId: activeConv.id, msgId: editingMsg.id, newText: trimmed }, (res) => {
+    socket.emit('message:edit', {
+      convId: activeConv.id,
+      msgId: editingMsg.id,
+      newText: trimmed,
+      featureFlagged: true,
+    }, (res) => {
       setEditSubmitting(false);
       if (res?.error) {
         showErrToast(res.error);

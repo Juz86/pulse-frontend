@@ -26,6 +26,7 @@
   --sidebar-sheet-top: 0px;
   --sidebar-sheet-bottom: 100dvh;
   --sidebar-sheet-anchor-bottom: 100dvh;
+  --pulse-call-mini-top: 0px;
 
   /* ── Groottes Desktop ── */
   --text-hero:     clamp(2.5rem, 6vw, 3.75rem);
@@ -48,6 +49,12 @@
   --leading-tight:   1.2;
   --leading-normal:  1.6;
   --leading-relaxed: 1.8;
+}
+
+/* Android WebView does not consistently expose the status-bar inset through
+   env(safe-area-inset-top). Keep only the minimized call bar below it. */
+html.pulse-platform-android {
+  --pulse-call-mini-top: 24px;
 }
 
 /* ── Responsive hardening: telefoon + tablet + WebView ───────────────────── */
@@ -10596,7 +10603,7 @@ font-family: 'Inter', sans-serif;
 
 /* ── MINI CALL BAR ── */
 .call-mini-bar {
-  position:fixed; top:0; right:0; left:0; transform:none;
+  position:fixed; top:var(--pulse-call-mini-top); right:0; left:0; transform:none;
   z-index:9999; min-height:85px; box-sizing:border-box; display:flex; align-items:center; gap:12px;
   padding:10px max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left)); border-radius:0;
   background:linear-gradient(135deg, rgba(35,27,78,.99), rgba(24,18,58,.99)); border:0;

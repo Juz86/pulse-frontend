@@ -327,6 +327,23 @@ function MainApp() {
   const authQueryHandledRef    = useRef(false);
   const updateListenerRef      = useRef(null);
 
+  useEffect(() => {
+    let isAndroid = false;
+    try {
+      isAndroid = isNativePulseEnvironment()
+        && (window.Capacitor?.getPlatform?.() === 'android' || window.Capacitor?.platform === 'android');
+    } catch {
+      isAndroid = false;
+    }
+
+    if (!isAndroid) return undefined;
+
+    // Android WebView reports a zero CSS safe-area inset on several devices.
+    // Mark the document so call-specific CSS can reserve the status-bar area.
+    document.documentElement.classList.add('pulse-platform-android');
+    return () => document.documentElement.classList.remove('pulse-platform-android');
+  }, []);
+
   useEffect(() => subscribeToFeatureFlags(BACKEND, setFeatureFlags), []);
 
   useEffect(() => {

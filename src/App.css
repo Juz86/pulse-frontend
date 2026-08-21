@@ -3805,7 +3805,7 @@ font-family: 'Inter', sans-serif;
   background:linear-gradient(180deg, rgba(108,99,255,.07) 0%, transparent 100%);
   box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
 }
-.sidebar-top    { display:flex; align-items:center; gap:12px; }
+.sidebar-top    { position:relative; display:flex; align-items:center; gap:12px; }
 .sidebar-header-actions {
   display:flex;
   align-items:center;
@@ -3881,8 +3881,9 @@ font-family: 'Inter', sans-serif;
 .sidebar-search-window {
   position:absolute;
   z-index:30;
-  top:20px;
-  right:18px;
+  top:0;
+  bottom:0;
+  right:0;
   left:150px;
   padding:0;
   border:0;
@@ -3927,7 +3928,7 @@ font-family: 'Inter', sans-serif;
   .sidebar-header-actions { gap:6px; }
   .sidebar-header-tab,
   .sidebar-search-trigger { width:42px; height:42px; }
-  .sidebar-search-window { top:20px; right:16px; left:136px; }
+  .sidebar-search-window { top:0; right:0; left:136px; }
 }
 .app-brand {
   font-family:'Inter',sans-serif; font-size:22px; font-weight:800;

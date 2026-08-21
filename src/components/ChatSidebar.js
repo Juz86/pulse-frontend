@@ -3296,32 +3296,32 @@ export default function ChatSidebar({
                   <Search size={20} aria-hidden="true" />
                 </button>
               </div>
-            </div>
-            {sidebarSearchOpen && (
-              <div className="sidebar-search-window" role="search">
-                <div className="search-box search-box--top">
-                  <Search size={18} aria-hidden="true" />
-                  <input
-                    autoFocus
-                    aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'}
-                    placeholder="Zoeken…"
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="sidebar-search-window-close"
-                    aria-label="Zoekvenster sluiten"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSidebarSearchOpen(false);
-                    }}
-                  >
-                    <XIcon size={18} aria-hidden="true" />
-                  </button>
+              {sidebarSearchOpen && (
+                <div className="sidebar-search-window" role="search">
+                  <div className="search-box search-box--top">
+                    <Search size={18} aria-hidden="true" />
+                    <input
+                      autoFocus
+                      aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'}
+                      placeholder="Zoeken…"
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="sidebar-search-window-close"
+                      aria-label="Zoekvenster sluiten"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSidebarSearchOpen(false);
+                      }}
+                    >
+                      <XIcon size={18} aria-hidden="true" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Filters */}

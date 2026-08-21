@@ -140,6 +140,33 @@ export default function useConversations({
   // Sync refs owned by ChatScreen
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv, activeConvRef]);
   useEffect(() => { conversationsRef.current = conversations; }, [conversations, conversationsRef]);
+
+  const persistActiveDraft = useCallback(() => {
+    const convId = activeConvRef.current?.id;
+    if (!convId || editingMsg) return;
+    const draftKey = `pulse_draft_${user.uid}_${convId}`;
+    if (text.trim()) localStorage.setItem(draftKey, text);
+    else localStorage.removeItem(draftKey);
+  }, [activeConvRef, editingMsg, text, user.uid]);
+
+  // Bewaar concepten tijdens het typen. Een korte debounce beperkt lokale
+  // schrijfacties; pagehide/visibilitychange voorkomt verlies bij afsluiten.
+  useEffect(() => {
+    if (editingMsg) return undefined;
+    const timeoutId = window.setTimeout(persistActiveDraft, 300);
+    const flushDraft = () => persistActiveDraft();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') flushDraft();
+    };
+    window.addEventListener('pagehide', flushDraft);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.removeEventListener('pagehide', flushDraft);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [editingMsg, persistActiveDraft]);
+
   useEffect(() => {
     let mounted = true;
 

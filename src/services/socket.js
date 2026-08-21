@@ -813,13 +813,49 @@ export async function switchCameraTrack(localStream, nextFacingMode = 'environme
   const oldTrack = localStream.getVideoTracks?.()[0];
   if (!oldTrack) return { ok: false, reason: 'no_video_track' };
 
+  const oldSettings = oldTrack.getSettings?.() || {};
+  const oldDeviceId = oldSettings.deviceId || '';
+  const oldFacingMode = oldSettings.facingMode || '';
+  const isEnvironmentCamera = (device) => /back|rear|environment|world/i.test(device?.label || '');
+  const isUserCamera = (device) => /front|user|face/i.test(device?.label || '');
+
   try {
-    const replacementStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: nextFacingMode },
+    // `facingMode: { ideal: ... }` mag dezelfde camera teruggeven. Kies daarom,
+    // zodra Android de camera's kan benoemen, expliciet een andere videoinput.
+    // Zo blijft de WebRTC-sessie actief terwijl alleen de videotrack wisselt.
+    let alternativeCamera = null;
+    if (typeof navigator.mediaDevices?.enumerateDevices === 'function') {
+      const cameras = (await navigator.mediaDevices.enumerateDevices())
+        .filter((device) => device.kind === 'videoinput' && device.deviceId && device.deviceId !== oldDeviceId);
+
+      if (cameras.length) {
+        alternativeCamera = nextFacingMode === 'environment'
+          ? cameras.find(isEnvironmentCamera)
+          : cameras.find(isUserCamera);
+        alternativeCamera = alternativeCamera || cameras[0];
+      } else if (oldDeviceId) {
+        return { ok: false, reason: 'no_alternative_camera' };
+      }
+    }
+
+    const videoConstraints = alternativeCamera
+      ? {
+        deviceId: { exact: alternativeCamera.deviceId },
         width: { ideal: 1280 },
         height: { ideal: 720 },
-      },
+        frameRate: { ideal: 30 },
+      }
+      : {
+        // Wanneer de browser geen apparaatlijst beschikbaar stelt, is exact de
+        // veiligste fallback: de oproep blijft ongewijzigd als die camera niet
+        // bestaat, in plaats van stilletjes dezelfde camera te houden.
+        facingMode: { exact: nextFacingMode },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        frameRate: { ideal: 30 },
+      };
+    const replacementStream = await navigator.mediaDevices.getUserMedia({
+      video: videoConstraints,
       audio: false,
     });
     const newTrack = replacementStream.getVideoTracks?.()[0];
@@ -828,15 +864,38 @@ export async function switchCameraTrack(localStream, nextFacingMode = 'environme
       return { ok: false, reason: 'replacement_track_missing' };
     }
 
+    const newSettings = newTrack.getSettings?.() || {};
+    const isSameDevice = Boolean(oldDeviceId && newSettings.deviceId && oldDeviceId === newSettings.deviceId);
+    const isSameFacing = Boolean(
+      oldFacingMode && newSettings.facingMode && oldFacingMode === newSettings.facingMode
+    );
+    if (isSameDevice || (!alternativeCamera && isSameFacing)) {
+      newTrack.stop();
+      replacementStream.getTracks?.().forEach((track) => track.stop());
+      return { ok: false, reason: 'same_camera' };
+    }
+
+    if (typeof peer.replaceTrack !== 'function') {
+      replacementStream.getTracks?.().forEach((track) => track.stop());
+      return { ok: false, reason: 'replace_track_unsupported' };
+    }
+
     const nextEnabled = oldTrack.enabled;
+    // simple-peer koppelt dit aan de bestaande RTCRtpSender. Daardoor blijven
+    // audio, timer en de peerverbinding doorlopen zonder heronderhandeling.
     peer.replaceTrack(oldTrack, newTrack, localStream);
     localStream.removeTrack(oldTrack);
-    oldTrack.stop();
     localStream.addTrack(newTrack);
     newTrack.enabled = nextEnabled;
+    oldTrack.stop();
+    activeLocalStream = localStream;
 
     replacementStream.getAudioTracks?.().forEach((track) => track.stop());
-    return { ok: true, facingMode: nextFacingMode };
+    return {
+      ok: true,
+      facingMode: newSettings.facingMode || nextFacingMode,
+      deviceId: newSettings.deviceId || alternativeCamera?.deviceId || '',
+    };
   } catch (error) {
     console.warn('[Pulse][Call] Camera wisselen mislukt:', error?.message || error);
     return { ok: false, reason: error?.name || 'switch_failed' };

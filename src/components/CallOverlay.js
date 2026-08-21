@@ -16,6 +16,8 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   const [speakerEnabled, setSpeakerEnabled] = useState(true);
   const [speakerControlAvailable, setSpeakerControlAvailable] = useState(false);
   const [cameraFacing, setCameraFacing] = useState('user');
+  const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
+  const [cameraSwitchMessage, setCameraSwitchMessage] = useState('');
   const [networkState, setNetworkState] = useState('stable');
   const closingRef = useRef(false);
 
@@ -28,6 +30,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   const remoteStreamRef = useRef(null);
   const remoteAudioStreamRef = useRef(null);
   const remoteTrackListenerCleanupRef = useRef(null);
+  const cameraSwitchMessageTimeoutRef = useRef(null);
 
   const attachMediaStream = useCallback(async (element, stream) => {
     if (!element || !stream) return;
@@ -131,6 +134,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   const cleanup = useCallback(() => {
     clearInterval(timerRef.current);
     clearTimeout(closeTimeoutRef.current);
+    clearTimeout(cameraSwitchMessageTimeoutRef.current);
     localStreamRef.current?.getTracks().forEach(t => t.stop());
     remoteStreamRef.current?.getTracks?.().forEach(t => t.stop());
     remoteAudioStreamRef.current?.getTracks?.().forEach(t => t.stop());
@@ -199,12 +203,42 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
 
   async function handleSwitchCamera() {
     const stream = localStreamRef.current;
+    if (isSwitchingCamera) return;
+    if (!stream) {
+      setCameraSwitchMessage('Camera is nog niet beschikbaar.');
+      return;
+    }
+
     const nextFacing = cameraFacing === 'user' ? 'environment' : 'user';
-    const result = await switchCameraTrack(stream, nextFacing);
-    if (!result?.ok) return;
-    setCameraFacing(nextFacing);
-    if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+    setIsSwitchingCamera(true);
+    try {
+      const result = await switchCameraTrack(stream, nextFacing);
+      if (!result?.ok) {
+        const messageByReason = {
+          no_alternative_camera: 'Geen andere camera beschikbaar.',
+          same_camera: 'Geen andere camera beschikbaar.',
+          NotAllowedError: 'Camera-toegang is niet toegestaan.',
+          NotFoundError: 'Geen andere camera beschikbaar.',
+          NotReadableError: 'De andere camera is nu niet beschikbaar. Probeer opnieuw.',
+          replace_track_unsupported: 'Camera wisselen wordt niet ondersteund op dit apparaat.',
+        };
+        setCameraSwitchMessage(messageByReason[result?.reason] || 'Camera wisselen is niet gelukt.');
+        return;
+      }
+
+      setCameraFacing(result.facingMode === 'environment' ? 'environment' : 'user');
+      if (localVideoRef.current) await attachMediaStream(localVideoRef.current, stream);
+    } finally {
+      setIsSwitchingCamera(false);
+    }
   }
+
+  useEffect(() => {
+    if (!cameraSwitchMessage) return undefined;
+    clearTimeout(cameraSwitchMessageTimeoutRef.current);
+    cameraSwitchMessageTimeoutRef.current = setTimeout(() => setCameraSwitchMessage(''), 3200);
+    return () => clearTimeout(cameraSwitchMessageTimeoutRef.current);
+  }, [cameraSwitchMessage]);
 
   async function toggleSpeakerMode() {
     const audioEl = remoteAudioRef.current || remoteVideoRef.current;
@@ -414,10 +448,10 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
       <div className="call-video-topbar-copy">
         <div className="call-video-topbar-name">{callName}</div>
         <div className="call-video-topbar-status" role="status" aria-live="polite">
-          {callState === 'active' ? formatTimer(timer) : (callState === 'connecting' ? 'Verbinden…' : 'Bellen…')}
+          {cameraSwitchMessage || (callState === 'active' ? formatTimer(timer) : (callState === 'connecting' ? 'Verbinden…' : 'Bellen…'))}
         </div>
       </div>
-      <button type="button" className="call-video-topbar-action" onClick={handleSwitchCamera} title="Camera wisselen" aria-label="Camera wisselen">
+      <button type="button" className={`call-video-topbar-action ${isSwitchingCamera ? 'is-switching' : ''}`} onClick={handleSwitchCamera} title="Camera wisselen" aria-label="Camera wisselen" disabled={isSwitchingCamera}>
         <CameraSwitch size={27} aria-hidden="true" />
       </button>
     </div>

@@ -504,6 +504,9 @@ body {
 }
 .call-video-topbar-action:hover { background:rgba(35,33,29,.98); }
 .call-video-topbar-action:active { transform:scale(.96); }
+.call-video-topbar-action:disabled { cursor:progress; opacity:.72; }
+.call-video-topbar-action.is-switching svg { animation:call-camera-switch-rotate .7s linear infinite; }
+@keyframes call-camera-switch-rotate { to { transform:rotate(180deg); } }
 .call-video-topbar-copy {
   min-width:0;
   display:flex;

@@ -8,7 +8,6 @@ import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
 import ParentDashboard from '../screens/ParentDashboard';
 import { formatTime, getInitials, HISTORY_RETENTION_OPTIONS, normalizeHistoryRules } from '../utils';
-import { isNativePulseEnvironment } from '../lib/platform/runtime';
 import chatDefaultPattern from '../assets/chatachtergrond.jpeg';
 
 function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = false, style }) {
@@ -497,12 +496,6 @@ export default function ChatSidebar({
                   <span className="profile-status-dot" aria-hidden="true" />
                   {settingsStatusLabel}
                 </div>
-                {isNativePulseEnvironment() ? (
-                  <span className="native-web-update-status" title="Nieuwe Pulse-webupdates worden veilig gecontroleerd en bij de volgende start toegepast.">
-                    <Shield size={14} aria-hidden="true" />
-                    Veilige updates actief
-                  </span>
-                ) : null}
               </div>
             )}
           />

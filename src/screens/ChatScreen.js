@@ -26,10 +26,19 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const callsAvailable = true;
   const messageEditingEnabled = useFeatureFlag('message_editing');
   const draftIndicatorsEnabled = useFeatureFlag('draft_indicators');
+  const markConversationUnreadEnabled = useFeatureFlag('mark_conversation_unread');
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
   const [draftPreviews,  setDraftPreviews]   = useState({});
   const [unreadCounts,   setUnreadCounts]   = useState({});
+  const [manuallyUnreadConversationIds, setManuallyUnreadConversationIds] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(`pulse_manually_unread_conversations_${user.uid}`) || '[]');
+      return Array.isArray(stored) ? stored.filter((id) => typeof id === 'string') : [];
+    } catch {
+      return [];
+    }
+  });
   const [activeTab,      setActiveTab]      = useState('chats');
   const [searchQuery,    setSearchQuery]    = useState('');
   const [chatFilter,     setChatFilter]     = useState('all');
@@ -283,6 +292,41 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     serviceTransportReady,
     messageEditingEnabled,
   });
+
+  const markConversationUnread = useCallback((conv) => {
+    if (!markConversationUnreadEnabled || !conv?.id) return;
+    setManuallyUnreadConversationIds((previous) => {
+      const nextIds = previous.includes(conv.id) ? previous : [...previous, conv.id];
+      localStorage.setItem(`pulse_manually_unread_conversations_${user.uid}`, JSON.stringify(nextIds));
+      return nextIds;
+    });
+    setActiveTab('chats');
+    setActiveConv(null);
+  }, [markConversationUnreadEnabled, user.uid, setActiveConv]);
+
+  const visibleUnreadCounts = useMemo(() => {
+    if (!markConversationUnreadEnabled || manuallyUnreadConversationIds.length === 0) return unreadCounts;
+    const nextCounts = { ...unreadCounts };
+    manuallyUnreadConversationIds.forEach((conversationId) => {
+      nextCounts[conversationId] = Math.max(1, Number(nextCounts[conversationId] || 0));
+    });
+    return nextCounts;
+  }, [manuallyUnreadConversationIds, markConversationUnreadEnabled, unreadCounts]);
+
+  const clearManuallyUnreadConversation = useCallback((conversationId) => {
+    if (!conversationId) return;
+    setManuallyUnreadConversationIds((previous) => {
+      if (!previous.includes(conversationId)) return previous;
+      const nextIds = previous.filter((id) => id !== conversationId);
+      localStorage.setItem(`pulse_manually_unread_conversations_${user.uid}`, JSON.stringify(nextIds));
+      return nextIds;
+    });
+  }, [user.uid]);
+
+  const openConversationWithUnreadClear = useCallback(async (conversation) => {
+    clearManuallyUnreadConversation(conversation?.id);
+    return openConversation(conversation);
+  }, [clearManuallyUnreadConversation, openConversation]);
 
   const formatDraftPreview = useCallback((value) => String(value || '')
     .replace(/\s+/g, ' ')
@@ -554,7 +598,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onShareContact={sendContactCard}
         activeConv={activeConv} showChatSearch={showChatSearch} loadingConvs={loadingConvs}
         convLabels={convLabels} pinnedContacts={pinnedContacts}
-        unreadCounts={unreadCounts} typingByConv={typingByConv} draftPreviews={draftPreviews} photoPreview={photoPreview}
+        unreadCounts={visibleUnreadCounts} typingByConv={typingByConv} draftPreviews={draftPreviews} photoPreview={photoPreview}
         isParent={isParent} parentActivityBadge={parentActivityBadge}
         onOpenDashboard={onOpenDashboard}
         showParentDashboard={showParentDashboard}
@@ -670,7 +714,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onUnblockContact={unblockContact}
         blockedContacts={blockedContacts}
         parentBlockedUids={parentBlockedUids}
-        onOpenConversation={openConversation}
+        onOpenConversation={openConversationWithUnreadClear}
         onCallFromConv={initiateCallFromConv}
         onClearConversation={(conv) => {
           openClearConversationConfirm(conv);
@@ -679,6 +723,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           openDeleteConversationConfirm(conv);
         }}
         onToggleConversationMute={toggleConversationMute}
+        markConversationUnreadEnabled={markConversationUnreadEnabled}
+        onMarkConversationUnread={markConversationUnread}
         onShowGroupInfo={(conv) => openConversationAndRun(conv, () => setShowGroupInfo(true))}
         onEnterMessageSelectionForConversation={(conv) => openConversationAndRun(conv, enterMessageSelection)}
         onShowStarredForConversation={(conv) => openConversationAndRun(conv, () => setShowStarredMsgs(true))}
@@ -900,6 +946,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onJumpToMsg={handleJumpToMsg}
         onInitiateCall={initiateCall}
         onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
+        markConversationUnreadEnabled={markConversationUnreadEnabled}
+        onMarkConversationUnread={markConversationUnread}
         onEnterMessageSelection={() => messageSelectionMode ? cancelMessageSelection() : enterMessageSelection()}
         onLeaveGroup={leaveGroup}
         onDissolveGroup={dissolveGroup}
@@ -931,7 +979,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         groupPhotoLoading={groupPhotoLoading} uploadGroupPhoto={uploadGroupPhoto}
         removeMemberFromGroup={removeMemberFromGroup} addMemberToGroup={addMemberToGroup} renameGroup={renameGroup} promoteGroupAdmin={promoteGroupAdmin} relinquishGroupAdmin={relinquishGroupAdmin}
         activeCall={activeCall} setActiveCall={setActiveCall}
-        unreadCounts={unreadCounts}
+        unreadCounts={visibleUnreadCounts}
         forwardMsg={forwardMsg} setForwardMsg={setForwardMsg}
         conversations={conversations} forwardToConv={forwardToConv}
         errToast={errToast} dismissErrToast={() => setErrToast('')} mentionToast={mentionToast} dismissMentionToast={clearMentionToast} parentToast={parentToast} dismissParentToast={onDismissParentToast}

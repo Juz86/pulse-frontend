@@ -271,6 +271,8 @@ export default function ChatSidebar({
   onClearConversation,
   onHardDeleteConversation,
   onToggleConversationMute,
+  markConversationUnreadEnabled = false,
+  onMarkConversationUnread,
   onShowGroupInfo,
   onEnterMessageSelectionForConversation,
   onShowStarredForConversation,
@@ -3030,6 +3032,10 @@ export default function ChatSidebar({
       onToggleConversationMute?.(conv.id);
       onDone?.();
     };
+    const handleMarkConversationUnreadFromActions = () => {
+      onMarkConversationUnread?.(conv);
+      onDone?.();
+    };
     const handleLeaveGroupFromActions = () => {
       onLeaveGroup?.(conv);
       onDone?.();
@@ -3088,6 +3094,18 @@ export default function ChatSidebar({
             {isMuted ? <BellOff size={14} aria-hidden="true" /> : <Bell size={14} aria-hidden="true" />}
             <span>Meldingen {isMuted ? 'uit' : 'aan'}</span>
           </button>
+          {markConversationUnreadEnabled && (
+            <button
+              type="button"
+              role="menuitem"
+              className="chat-header-menu-item"
+              onClick={handleMarkConversationUnreadFromActions}
+              title="Markeren als ongelezen"
+            >
+              <Message size={14} aria-hidden="true" />
+              <span>Markeren als ongelezen</span>
+            </button>
+          )}
           {conv.isGroup && (
             <>
               <button
@@ -3167,7 +3185,7 @@ export default function ChatSidebar({
         )}
       </>
     );
-  }, [contacts, blockedContacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact, onUnblockContact, onRemoveContact]);
+  }, [contacts, blockedContacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, markConversationUnreadEnabled, onMarkConversationUnread, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact, onUnblockContact, onRemoveContact]);
 
   const remainingRateLimitMs = Math.max(0, Number(callLogRateLimitUntil || 0) - Date.now());
   const remainingRateLimitSeconds = Math.ceil(remainingRateLimitMs / 1000);

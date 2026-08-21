@@ -90,6 +90,8 @@ export default function ChatModals({
   starredMsgs, messages, onJumpToMsg,
   onInitiateCall,
   onToggleConversationMute,
+  markConversationUnreadEnabled = false,
+  onMarkConversationUnread,
   onEnterMessageSelection,
   onLeaveGroup,
   onDissolveGroup,
@@ -1010,6 +1012,23 @@ export default function ChatModals({
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>
+                {markConversationUnreadEnabled && targetConv && (
+                  <button
+                    type="button"
+                    className="contact-profile-row-button"
+                    onClick={() => {
+                      onMarkConversationUnread?.(targetConv);
+                      setShowContactProfile(false);
+                      setContactProfileContact?.(null);
+                    }}
+                  >
+                    <span className="contact-profile-row-icon"><Message size={20} aria-hidden="true" /></span>
+                    <span className="contact-profile-row-copy">
+                      <span className="contact-profile-row-title">Markeren als ongelezen</span>
+                    </span>
+                    <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                  </button>
+                )}
                 <button type="button" className="contact-profile-row-button" onClick={openSelectionFromProfile}>
                   <span className="contact-profile-row-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

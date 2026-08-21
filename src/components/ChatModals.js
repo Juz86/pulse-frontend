@@ -264,6 +264,12 @@ export default function ChatModals({
     setShowChatSearch?.(true);
   }
 
+  function openChatFromProfile(contact) {
+    setShowContactProfile(false);
+    setContactProfileContact?.(null);
+    startConversationWith?.(contact);
+  }
+
   function openSelectionFromProfile() {
     setShowContactProfile(false);
     onEnterMessageSelection?.();
@@ -997,17 +1003,17 @@ export default function ChatModals({
             >
 
               <div className="contact-profile-quick-actions">
+                <button type="button" className="contact-profile-quick-card" onClick={() => openChatFromProfile(targetContact)}>
+                  <span className="contact-profile-quick-icon"><Message size={24} aria-hidden="true" /></span>
+                  <span>Chat</span>
+                </button>
                 <button type="button" className="contact-profile-quick-card" onClick={() => (contactProfileContact ? callContact?.(targetContact, false) : onInitiateCall?.(false))}>
                   <span className="contact-profile-quick-icon"><Phone size={24} aria-hidden="true" /></span>
-                  <span>Audio</span>
+                  <span>Bel</span>
                 </button>
                 <button type="button" className="contact-profile-quick-card" onClick={() => (contactProfileContact ? callContact?.(targetContact, true) : onInitiateCall?.(true))}>
                   <span className="contact-profile-quick-icon"><Video size={24} aria-hidden="true" /></span>
                   <span>Video</span>
-                </button>
-                <button type="button" className="contact-profile-quick-card" onClick={() => openChatSearchFromProfile(targetContact)}>
-                  <span className="contact-profile-quick-icon"><Search size={24} aria-hidden="true" /></span>
-                  <span>Zoek</span>
                 </button>
               </div>
 

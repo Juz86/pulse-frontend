@@ -6,9 +6,14 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+def pulseNativeUpdatePublicKey = System.getenv('PULSE_NATIVE_UPDATE_PUBLIC_KEY') ?: ''
+
 android {
     namespace "com.pulsemessenger.chat"
     compileSdk rootProject.ext.compileSdkVersion
+    buildFeatures {
+        buildConfig true
+    }
     defaultConfig {
         applicationId "com.pulsemessenger.chat"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -16,6 +21,10 @@ android {
         versionCode 24
         versionName "1.0.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // Public half of the signing key only. The private key is a Cloudflare
+        // Pages build secret and must never enter the Android project.
+        buildConfigField "String", "PULSE_NATIVE_UPDATE_PUBLIC_KEY", "\"${pulseNativeUpdatePublicKey.replace('\\', '\\\\').replace('"', '\\"')}\""
+        buildConfigField "String", "PULSE_NATIVE_UPDATE_MANIFEST_URL", "\"https://web.pulse-messenger.com/native-updates/latest.json\""
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61

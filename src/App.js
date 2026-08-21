@@ -42,6 +42,7 @@ import {
 } from './services/appUpdate';
 import { subscribeToFeatureFlags } from './services/featureFlags';
 import { FeatureFlagsProvider } from './context/FeatureFlagsContext';
+import { markNativeWebBundleHealthy, stageNativeWebUpdate } from './services/nativeWebUpdate';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const CallOverlay        = lazy(() => import('./components/CallOverlay'));
@@ -327,6 +328,26 @@ function MainApp() {
   const updateListenerRef      = useRef(null);
 
   useEffect(() => subscribeToFeatureFlags(BACKEND, setFeatureFlags), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      // A bundle that reaches a running app is safe to retain. The native side
+      // automatically restores the previous bundle if this acknowledgement is
+      // never received after activation.
+      await markNativeWebBundleHealthy();
+      const result = await stageNativeWebUpdate();
+      if (!cancelled && result?.staged) {
+        console.info('[Pulse][Native web update] Update klaar voor de volgende start.', {
+          version: result.version,
+        });
+      }
+    }, 8_000);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;

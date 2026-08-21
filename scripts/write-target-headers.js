@@ -189,6 +189,12 @@ const headers = [
   // provide the chunk, and the browser must then be able to retry it.
   '  Cache-Control: no-cache, must-revalidate',
   '',
+  '/native-updates/latest.json',
+  '  Cache-Control: no-store, max-age=0',
+  '',
+  '/native-updates/*',
+  '  Cache-Control: public, max-age=31536000, immutable',
+  '',
 ].join('\n');
 
 if (!fs.existsSync(buildDir)) {

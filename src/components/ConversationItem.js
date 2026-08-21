@@ -187,9 +187,14 @@ function ConversationItemBase({
             {conv.name}
             {isPinned && <span aria-hidden="true"><Pin size={11} style={{ color: 'var(--accent,#7c3aed)', flexShrink: 0, opacity: 0.7 }} /></span>}
           </div>
-          {(conv.updatedAt || conv.lastMessageAt) && (
-            <span className="conv-meta-time">{formatConversationListTime(conv.updatedAt || conv.lastMessageAt)}</span>
-          )}
+          <div className="conv-meta">
+            {(conv.updatedAt || conv.lastMessageAt) && (
+              <span className="conv-meta-time">{formatConversationListTime(conv.updatedAt || conv.lastMessageAt)}</span>
+            )}
+            {manuallyUnread && (
+              <span className="unread-badge unread-badge--marked" aria-label="Gemarkeerd als ongelezen" />
+            )}
+          </div>
         </div>
         <div className="conv-preview">
           {draftPreview ? (
@@ -285,9 +290,9 @@ function ConversationItemBase({
           )}
         </div>
       </div>
-      {manuallyUnread
-        ? <span className="unread-badge unread-badge--marked" aria-label="Gemarkeerd als ongelezen" />
-        : unread > 0 && <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>}
+      {!manuallyUnread && unread > 0 && (
+        <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>
+      )}
       </div>
     </div>
   );

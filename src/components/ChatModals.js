@@ -919,12 +919,9 @@ export default function ChatModals({
         const name      = getContactDisplayName?.(targetContact) || targetContact.name || targetContact.email || 'Contact';
         const email     = targetContact.email || '';
         const photo     = targetContact.photoURL || null;
-        const isOnline  = uid && onlineUsers.has(uid);
-        const isInactive = uid && inactiveUsers.has(uid);
         const relationLabel = targetConv?.id ? convLabels[targetConv.id] : targetContact.relation;
         const displayedRelationLabel = pendingProfileRelation === undefined ? relationLabel : pendingProfileRelation;
         const hasPendingProfileChanges = editingContactProfileName || pendingProfileRelation !== undefined;
-        const statusLabel = isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Afwezig' : 'Offline';
         return (
             <ProfilePageShell
               scrollContent
@@ -995,22 +992,6 @@ export default function ChatModals({
                       ))}
                     </div>
                   )}
-                  status={(
-                    <div className="contact-profile-status-row">
-                      <div className={`profile-status-badge contact-profile-status ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
-                        <span className="profile-status-dot" />
-                        {statusLabel}
-                      </div>
-                      <div className="contact-profile-status-actions">
-                        <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Open berichten met ster van ${name}`} title="Berichten met ster" onClick={() => openStarredFromProfile(targetContact)}>
-                          <StarOutline size={18} style={{ color: '#ffbd00' }} aria-hidden="true" />
-                        </button>
-                        <button type="button" className="icon-btn contact-profile-status-action" aria-label={`Deel contactpersoon ${name}`} onClick={() => { const c = contacts.find(c => c.uid === uid); if (c) setSharingContact(c); }} title="Contactpersoon delen">
-                          <Share size={18} aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 />
               )}
             >
@@ -1070,6 +1051,13 @@ export default function ChatModals({
                   <span className="contact-profile-row-icon"><StarOutline size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
                     <span className="contact-profile-row-title">Berichten met ster</span>
+                  </span>
+                  <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+                </button>
+                <button type="button" className="contact-profile-row-button" onClick={() => { const contact = contacts.find(c => c.uid === uid); if (contact) setSharingContact(contact); }}>
+                  <span className="contact-profile-row-icon"><Share size={20} aria-hidden="true" /></span>
+                  <span className="contact-profile-row-copy">
+                    <span className="contact-profile-row-title">Contact delen</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>

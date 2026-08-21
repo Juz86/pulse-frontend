@@ -7817,6 +7817,13 @@ font-family: 'Inter', sans-serif;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
+.contact-profile-relation-options {
+  width:100%;
+  margin-top:12px;
+}
+.contact-profile-relation-options .label-chip {
+  min-height:42px;
+}
 .contact-profile-card--profile-meta,
 .contact-profile-card--profile-actions,
 .contact-profile-card--profile-danger {

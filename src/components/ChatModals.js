@@ -973,6 +973,16 @@ export default function ChatModals({
                     />
                   ) : null}
                   subtitle={email || null}
+                  belowSubtitle={(
+                    <div className="label-chip-row contact-profile-chip-row contact-profile-chip-row--profile contact-profile-relation-options">
+                      {['familie', 'vrienden'].map(lbl => (
+                        <button key={lbl} type="button" disabled={!targetConv?.id} onClick={() => targetConv?.id && setConvLabel(targetConv.id, relationLabel === lbl ? null : lbl)}
+                          className={`label-chip${relationLabel === lbl ? ' active' : ''}`}>
+                          {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   status={(
                     <div className="contact-profile-status-row">
                       <div className={`profile-status-badge contact-profile-status ${isOnline && !isInactive ? 'online' : isOnline && isInactive ? 'inactive' : 'offline'}`}>
@@ -1009,17 +1019,6 @@ export default function ChatModals({
               </div>
 
               <section className="contact-profile-card contact-profile-card--profile-meta">
-                <div className="contact-profile-field">
-                    <span className="contact-profile-field-label">Relatie</span>
-                  <div className="label-chip-row contact-profile-chip-row contact-profile-chip-row--profile">
-                      {['familie', 'vrienden'].map(lbl => (
-                      <button key={lbl} type="button" disabled={!targetConv?.id} onClick={() => targetConv?.id && setConvLabel(targetConv.id, relationLabel === lbl ? null : lbl)}
-                        className={`label-chip${relationLabel === lbl ? ' active' : ''}`}>
-                        {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
-                      </button>
-                    ))}
-                  </div>
-                </div>
                 <button type="button" className="btn-primary contact-profile-save-btn" onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
               </section>
 

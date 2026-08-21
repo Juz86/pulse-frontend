@@ -60,6 +60,7 @@ export function ProfilePageHero({
   name,
   nameEditor = null,
   subtitle = null,
+  belowSubtitle = null,
   status = null,
   className = 'contact-profile-hero',
   children = null,
@@ -67,10 +68,11 @@ export function ProfilePageHero({
   return (
     <div className={className}>
       {avatar ? <div className="contact-profile-avatar-shell">{avatar}</div> : null}
-      {(name || subtitle || status) ? (
+      {(name || subtitle || belowSubtitle || status) ? (
         <div className="contact-profile-hero-copy">
           {nameEditor || (name ? <div className="contact-profile-name">{name}</div> : null)}
           {subtitle ? <div className="contact-profile-subtitle">{subtitle}</div> : null}
+          {belowSubtitle}
           {status}
         </div>
       ) : null}

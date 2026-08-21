@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useState } from 'react';
-import { Phone, Video, Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, MagicEdit, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, Message, Logout } from '../components/Icons';
+import { Phone, Video, Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, Message, Logout } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
 import CallOverlay from '../components/CallOverlay';
@@ -1009,19 +1009,6 @@ export default function ChatModals({
               </div>
 
               <section className="contact-profile-card contact-profile-card--profile-meta">
-                <div className="contact-profile-field">
-                  <span className="contact-profile-field-label">Naam</span>
-                  <div className="contact-profile-name-edit">
-                    <input className="form-input contact-profile-name-input" value={renameValue} onChange={e => setRenameValue(e.target.value)} placeholder={name} />
-                    <span className="contact-profile-field-icon" aria-hidden="true"><MagicEdit size={18} /></span>
-                  </div>
-                </div>
-                {email && (
-                  <div className="contact-profile-field">
-                    <span className="contact-profile-field-label">E-mailadres</span>
-                    <div className="contact-profile-field-value">{email}</div>
-                  </div>
-                )}
                 <div className="contact-profile-field">
                     <span className="contact-profile-field-label">Relatie</span>
                   <div className="label-chip-row contact-profile-chip-row contact-profile-chip-row--profile">

@@ -599,6 +599,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         activeConv={activeConv} showChatSearch={showChatSearch} loadingConvs={loadingConvs}
         convLabels={convLabels} pinnedContacts={pinnedContacts}
         unreadCounts={visibleUnreadCounts} typingByConv={typingByConv} draftPreviews={draftPreviews} photoPreview={photoPreview}
+        incomingUnreadCounts={unreadCounts}
+        manuallyUnreadConversationIds={markConversationUnreadEnabled ? manuallyUnreadConversationIds : []}
         isParent={isParent} parentActivityBadge={parentActivityBadge}
         onOpenDashboard={onOpenDashboard}
         showParentDashboard={showParentDashboard}

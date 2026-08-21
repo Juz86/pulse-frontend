@@ -159,6 +159,8 @@ export default function ChatSidebar({
   convLabels,
   pinnedContacts,
   unreadCounts,
+  incomingUnreadCounts = {},
+  manuallyUnreadConversationIds = [],
   typingByConv = {},
   draftPreviews = {},
   photoPreview,
@@ -3392,6 +3394,8 @@ export default function ChatSidebar({
                 convLabels={convLabels}
                 pinnedContacts={pinnedContacts}
                 unreadCounts={unreadCounts}
+                incomingUnreadCounts={incomingUnreadCounts}
+                manuallyUnreadConversationIds={manuallyUnreadConversationIds}
                 typingByConv={typingByConv}
                 draftPreviews={draftPreviews}
                 onlineUsers={onlineUsers}

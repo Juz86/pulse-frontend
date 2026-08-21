@@ -6104,6 +6104,15 @@ font-family: 'Inter', sans-serif;
   padding:0 5px; flex-shrink:0;
   box-shadow:0 2px 8px rgba(108,99,255,.4);
 }
+.unread-badge--marked {
+  width:12px;
+  min-width:12px;
+  height:12px;
+  padding:0;
+  border-radius:50%;
+  background:linear-gradient(135deg, #b06cff, #7f58f7);
+  box-shadow:0 2px 8px rgba(150,93,255,.5);
+}
 
 /* ── CALL MESSAGE CARD ── */
 .msg-call-card {

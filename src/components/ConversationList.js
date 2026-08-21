@@ -13,6 +13,8 @@ const ConversationList = React.memo(function ConversationList({
   convLabels,
   pinnedContacts,
   unreadCounts,
+  incomingUnreadCounts = {},
+  manuallyUnreadConversationIds = [],
   typingByConv,
   draftPreviews,
   onlineUsers,
@@ -32,6 +34,10 @@ const ConversationList = React.memo(function ConversationList({
   const listRef = React.useRef(null);
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const pinnedUidSet = useMemo(() => new Set(pinnedContacts), [pinnedContacts]);
+  const manuallyUnreadConversationIdSet = useMemo(
+    () => new Set(manuallyUnreadConversationIds),
+    [manuallyUnreadConversationIds],
+  );
 
   React.useEffect(() => {
     if (!swipedConvId) return undefined;
@@ -117,6 +123,8 @@ const ConversationList = React.memo(function ConversationList({
         const isOnline  = !!(otherUid && onlineUsers.has(otherUid));
         const isInactive = isOnline && inactiveUsers.has(otherUid);
         const unread    = unreadCounts[conv.id] || 0;
+        const manuallyUnread = manuallyUnreadConversationIdSet.has(conv.id)
+          && !(incomingUnreadCounts[conv.id] > 0);
         const isPinned  = pinnedUidSet.has(otherUid);
         return (
           <ConversationItem
@@ -127,6 +135,7 @@ const ConversationList = React.memo(function ConversationList({
             isOnline={isOnline}
             isInactive={isInactive}
             unread={unread}
+            manuallyUnread={manuallyUnread}
             typingName={typingByConv?.[conv.id] || ''}
             draftPreview={draftPreviews?.[conv.id] || ''}
             isPinned={isPinned}

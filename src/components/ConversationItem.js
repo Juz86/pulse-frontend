@@ -12,6 +12,7 @@ function ConversationItemBase({
   isOnline,
   isInactive,
   unread,
+  manuallyUnread,
   typingName,
   draftPreview,
   isPinned,
@@ -284,7 +285,9 @@ function ConversationItemBase({
           )}
         </div>
       </div>
-      {unread > 0 && <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>}
+      {manuallyUnread
+        ? <span className="unread-badge unread-badge--marked" aria-label="Gemarkeerd als ongelezen" />
+        : unread > 0 && <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>}
       </div>
     </div>
   );
@@ -311,6 +314,7 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.isOnline         === next.isOnline          &&
   prev.isInactive       === next.isInactive        &&
   prev.unread           === next.unread            &&
+  prev.manuallyUnread   === next.manuallyUnread    &&
   prev.typingName       === next.typingName        &&
   prev.draftPreview     === next.draftPreview      &&
   prev.isPinned         === next.isPinned          &&

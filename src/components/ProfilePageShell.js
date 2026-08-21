@@ -58,6 +58,7 @@ export function ProfilePageShell({
 export function ProfilePageHero({
   avatar,
   name,
+  nameEditor = null,
   subtitle = null,
   status = null,
   className = 'contact-profile-hero',
@@ -68,7 +69,7 @@ export function ProfilePageHero({
       {avatar ? <div className="contact-profile-avatar-shell">{avatar}</div> : null}
       {(name || subtitle || status) ? (
         <div className="contact-profile-hero-copy">
-          {name ? <div className="contact-profile-name">{name}</div> : null}
+          {nameEditor || (name ? <div className="contact-profile-name">{name}</div> : null)}
           {subtitle ? <div className="contact-profile-subtitle">{subtitle}</div> : null}
           {status}
         </div>

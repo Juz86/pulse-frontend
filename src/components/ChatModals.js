@@ -340,6 +340,11 @@ export default function ChatModals({
   }, [anyModalOpen]);
 
   const normalizedNewChatQuery = searchEmail.trim().toLowerCase();
+  const [editingContactProfileName, setEditingContactProfileName] = useState(false);
+
+  useEffect(() => {
+    if (!showContactProfile) setEditingContactProfileName(false);
+  }, [showContactProfile]);
   const filteredNewChatContacts = normalizedNewChatQuery
     ? contacts.filter(c => {
         const displayName = (getContactDisplayName(c) || c.displayName || '').toLowerCase();
@@ -907,7 +912,7 @@ export default function ChatModals({
         const targetConv = targetContact?.uid ? findConvWithUid?.(targetContact.uid) : null;
         const uid       = targetContact.uid;
         const isBlocked = (blockedContacts || []).some((blockedContact) => blockedContact.uid === uid);
-        const name      = targetContact.displayName || targetContact.name || targetContact.email || 'Contact';
+        const name      = getContactDisplayName?.(targetContact) || targetContact.name || targetContact.email || 'Contact';
         const email     = targetContact.email || '';
         const photo     = targetContact.photoURL || null;
         const isOnline  = uid && onlineUsers.has(uid);
@@ -920,16 +925,27 @@ export default function ChatModals({
               titleId="contact-profile-title"
               title="Profiel"
               description={`Bekijk en bewerk de profielgegevens van ${name}.`}
-              onBack={() => { setShowContactProfile(false); setContactProfileContact?.(null); }}
+              onBack={() => { setEditingContactProfileName(false); setShowContactProfile(false); setContactProfileContact?.(null); }}
               backLabel="Profiel sluiten"
               headerAction={(
                 <button
                   type="button"
                   className="contact-profile-edit-btn"
-                  aria-label={`Bewerk ${name}`}
-                  onClick={() => document.querySelector('.contact-profile-name-input')?.focus()}
+                  aria-label={editingContactProfileName ? `Sla ${name} op` : `Bewerk ${name}`}
+                  onClick={() => {
+                    if (!editingContactProfileName) {
+                      setRenameValue(name);
+                      setEditingContactProfileName(true);
+                      return;
+                    }
+                    const updatedName = renameValue.trim();
+                    if (!updatedName) return;
+                    saveContactNickname(uid, updatedName);
+                    setContacts(prev => [...prev]);
+                    setEditingContactProfileName(false);
+                  }}
                 >
-                  Bewerk
+                  {editingContactProfileName ? 'Opslaan' : 'Bewerk'}
                 </button>
               )}
               hero={(
@@ -940,6 +956,22 @@ export default function ChatModals({
                     : <div className="profile-avatar-big contact-profile-avatar">{getInitials(name)}</div>
                   }
                   name={name}
+                  nameEditor={editingContactProfileName ? (
+                    <input
+                      className="contact-profile-name contact-profile-name-input contact-profile-name-input--hero"
+                      value={renameValue}
+                      onChange={e => setRenameValue(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && renameValue.trim()) {
+                          saveContactNickname(uid, renameValue.trim());
+                          setContacts(prev => [...prev]);
+                          setEditingContactProfileName(false);
+                        }
+                      }}
+                      aria-label="Naam contactpersoon"
+                      autoFocus
+                    />
+                  ) : null}
                   subtitle={email || null}
                   status={(
                     <div className="contact-profile-status-row">

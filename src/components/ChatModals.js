@@ -341,9 +341,13 @@ export default function ChatModals({
 
   const normalizedNewChatQuery = searchEmail.trim().toLowerCase();
   const [editingContactProfileName, setEditingContactProfileName] = useState(false);
+  const [pendingProfileRelation, setPendingProfileRelation] = useState(undefined);
 
   useEffect(() => {
-    if (!showContactProfile) setEditingContactProfileName(false);
+    if (!showContactProfile) {
+      setEditingContactProfileName(false);
+      setPendingProfileRelation(undefined);
+    }
   }, [showContactProfile]);
   const filteredNewChatContacts = normalizedNewChatQuery
     ? contacts.filter(c => {
@@ -918,6 +922,8 @@ export default function ChatModals({
         const isOnline  = uid && onlineUsers.has(uid);
         const isInactive = uid && inactiveUsers.has(uid);
         const relationLabel = targetConv?.id ? convLabels[targetConv.id] : targetContact.relation;
+        const displayedRelationLabel = pendingProfileRelation === undefined ? relationLabel : pendingProfileRelation;
+        const hasPendingProfileChanges = editingContactProfileName || pendingProfileRelation !== undefined;
         const statusLabel = isOnline && !isInactive ? 'Online' : isOnline && isInactive ? 'Afwezig' : 'Offline';
         return (
             <ProfilePageShell
@@ -931,21 +937,27 @@ export default function ChatModals({
                 <button
                   type="button"
                   className="contact-profile-edit-btn"
-                  aria-label={editingContactProfileName ? `Sla ${name} op` : `Bewerk ${name}`}
+                  aria-label={hasPendingProfileChanges ? `Sla ${name} op` : `Bewerk ${name}`}
                   onClick={() => {
-                    if (!editingContactProfileName) {
+                    if (!hasPendingProfileChanges) {
                       setRenameValue(name);
                       setEditingContactProfileName(true);
                       return;
                     }
-                    const updatedName = renameValue.trim();
-                    if (!updatedName) return;
-                    saveContactNickname(uid, updatedName);
-                    setContacts(prev => [...prev]);
+                    if (editingContactProfileName) {
+                      const updatedName = renameValue.trim();
+                      if (!updatedName) return;
+                      saveContactNickname(uid, updatedName);
+                      setContacts(prev => [...prev]);
+                    }
+                    if (pendingProfileRelation !== undefined && targetConv?.id) {
+                      setConvLabel(targetConv.id, pendingProfileRelation);
+                    }
                     setEditingContactProfileName(false);
+                    setPendingProfileRelation(undefined);
                   }}
                 >
-                  {editingContactProfileName ? 'Opslaan' : 'Bewerk'}
+                  {hasPendingProfileChanges ? 'Opslaan' : 'Bewerk'}
                 </button>
               )}
               hero={(
@@ -976,8 +988,8 @@ export default function ChatModals({
                   belowSubtitle={(
                     <div className="label-chip-row contact-profile-chip-row contact-profile-chip-row--profile contact-profile-relation-options">
                       {['familie', 'vrienden'].map(lbl => (
-                        <button key={lbl} type="button" disabled={!targetConv?.id} onClick={() => targetConv?.id && setConvLabel(targetConv.id, relationLabel === lbl ? null : lbl)}
-                          className={`label-chip${relationLabel === lbl ? ' active' : ''}`}>
+                        <button key={lbl} type="button" disabled={!targetConv?.id} onClick={() => targetConv?.id && setPendingProfileRelation(displayedRelationLabel === lbl ? null : lbl)}
+                          className={`label-chip${displayedRelationLabel === lbl ? ' active' : ''}`}>
                           {lbl === 'familie' ? <><Heart size={15} /> Familie</> : <><Users size={15} /> Vrienden</>}
                         </button>
                       ))}
@@ -1017,10 +1029,6 @@ export default function ChatModals({
                   <span>Zoek</span>
                 </button>
               </div>
-
-              <section className="contact-profile-card contact-profile-card--profile-meta">
-                <button type="button" className="btn-primary contact-profile-save-btn" onClick={() => { saveContactNickname(uid, renameValue); setContacts(prev => [...prev]); setShowContactProfile(false); }}>Opslaan</button>
-              </section>
 
               <section className="contact-profile-card contact-profile-card--profile-actions">
                 <button type="button" className={`contact-profile-row-button${conversationMuted ? ' danger' : ''}`} onClick={toggleMuteFromProfile}>

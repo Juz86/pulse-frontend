@@ -21357,6 +21357,24 @@ font-family: 'Inter', sans-serif;
   }
 }
 
+/* Android heeft geen betrouwbare CSS safe-area voor de systeemnavigatie.
+   Houd de vijf oproepacties daarom laag, maar niet tegen de navigatieknoppen.
+   De grotere maat blijft adaptief zodat alle vijf knoppen op één rij passen. */
+@media (max-width: 767px) {
+  html.pulse-platform-android .call-overlay.call-overlay--voice-reference {
+    padding-bottom:4px;
+  }
+
+  html.pulse-platform-android .call-overlay.call-overlay--voice-reference .call-card.voice-active {
+    padding-bottom:4px;
+  }
+
+  html.pulse-platform-android .call-overlay.call-overlay--voice-reference .call-card.voice-active .call-controls.active-layout {
+    --call-mobile-btn-size:clamp(56px, calc(18vw - 9px), 64px);
+    margin-bottom:0;
+  }
+}
+
 /* Contact delen: de verzendactie hoort vast direct boven de mobiele tabbar
    te staan, niet afhankelijk van de lengte van de contactenlijst. */
 @media (max-width: 767px) {

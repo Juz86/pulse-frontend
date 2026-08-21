@@ -160,6 +160,7 @@ export default function ChatSidebar({
   pinnedContacts,
   unreadCounts,
   typingByConv = {},
+  draftPreviews = {},
   photoPreview,
   setPhotoPreview,
   isParent,
@@ -3374,6 +3375,7 @@ export default function ChatSidebar({
                 pinnedContacts={pinnedContacts}
                 unreadCounts={unreadCounts}
                 typingByConv={typingByConv}
+                draftPreviews={draftPreviews}
                 onlineUsers={onlineUsers}
                 inactiveUsers={inactiveUsers}
                 currentUid={user.uid}

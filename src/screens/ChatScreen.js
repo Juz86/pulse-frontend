@@ -25,8 +25,10 @@ const ChatModals = lazy(() => import('../components/ChatModals'));
 export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onDismissParentToast, onOpenDashboard, showParentDashboard = false, setShowParentDashboard, onParentActivitiesViewed, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
   const callsAvailable = true;
   const messageEditingEnabled = useFeatureFlag('message_editing');
+  const draftIndicatorsEnabled = useFeatureFlag('draft_indicators');
   // ── UI state ──────────────────────────────────────────────────────────────
   const [text,           setText]           = useState('');
+  const [draftPreviews,  setDraftPreviews]   = useState({});
   const [unreadCounts,   setUnreadCounts]   = useState({});
   const [activeTab,      setActiveTab]      = useState('chats');
   const [searchQuery,    setSearchQuery]    = useState('');
@@ -282,6 +284,39 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     messageEditingEnabled,
   });
 
+  const formatDraftPreview = useCallback((value) => String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 90), []);
+
+  // Concepten blijven uitsluitend lokaal opgeslagen. De indicator is een
+  // geleidelijk uitgerolde weergave van die bestaande lokale concepten.
+  useEffect(() => {
+    if (!draftIndicatorsEnabled) {
+      setDraftPreviews({});
+      return;
+    }
+    const storedDrafts = {};
+    conversations.forEach((conversation) => {
+      const preview = formatDraftPreview(localStorage.getItem(`pulse_draft_${user.uid}_${conversation.id}`));
+      if (preview) storedDrafts[conversation.id] = preview;
+    });
+    setDraftPreviews(storedDrafts);
+  }, [conversations, draftIndicatorsEnabled, formatDraftPreview, user.uid]);
+
+  useEffect(() => {
+    if (!draftIndicatorsEnabled || !activeConv?.id || editingMsg) return;
+    const preview = formatDraftPreview(text);
+    setDraftPreviews((current) => {
+      if (preview && current[activeConv.id] === preview) return current;
+      if (!preview && !current[activeConv.id]) return current;
+      const next = { ...current };
+      if (preview) next[activeConv.id] = preview;
+      else delete next[activeConv.id];
+      return next;
+    });
+  }, [activeConv?.id, draftIndicatorsEnabled, editingMsg, formatDraftPreview, text]);
+
   const {
     contacts, setContacts, pinnedContacts, friendRequests, setFriendRequests,
     contactSuccess, setContactSuccess, showAddContact, setShowAddContact,
@@ -519,7 +554,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onShareContact={sendContactCard}
         activeConv={activeConv} showChatSearch={showChatSearch} loadingConvs={loadingConvs}
         convLabels={convLabels} pinnedContacts={pinnedContacts}
-        unreadCounts={unreadCounts} typingByConv={typingByConv} photoPreview={photoPreview}
+        unreadCounts={unreadCounts} typingByConv={typingByConv} draftPreviews={draftPreviews} photoPreview={photoPreview}
         isParent={isParent} parentActivityBadge={parentActivityBadge}
         onOpenDashboard={onOpenDashboard}
         showParentDashboard={showParentDashboard}

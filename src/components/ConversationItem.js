@@ -13,6 +13,7 @@ function ConversationItemBase({
   isInactive,
   unread,
   typingName,
+  draftPreview,
   isPinned,
   currentUid,
   selectionMode,
@@ -190,7 +191,12 @@ function ConversationItemBase({
           )}
         </div>
         <div className="conv-preview">
-          {typingName ? (
+          {draftPreview ? (
+            <span className="conv-draft-preview" aria-label={`Concept: ${draftPreview}`}>
+              <span className="conv-draft-label">Concept:</span>
+              <span className="conv-preview-text">{draftPreview}</span>
+            </span>
+          ) : typingName ? (
             <span className="conv-typing-pill" aria-label={`${typingName} typt`}>
               <span className="conv-typing-dots" aria-hidden="true">
                 <span />
@@ -306,6 +312,7 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.isInactive       === next.isInactive        &&
   prev.unread           === next.unread            &&
   prev.typingName       === next.typingName        &&
+  prev.draftPreview     === next.draftPreview      &&
   prev.isPinned         === next.isPinned          &&
   prev.isSwipedOpen     === next.isSwipedOpen      &&
   prev.selectionMode    === next.selectionMode     &&

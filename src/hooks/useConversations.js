@@ -260,9 +260,21 @@ export default function useConversations({
     let nextConversations = baseConversations;
     Object.entries(sessionConversationStateRef.current || {}).forEach(([convId, messages]) => {
       if (!Array.isArray(messages) || messages.length === 0) return;
-      if (!nextConversations.some((conversation) => conversation.id === convId)) return;
+      const serverConversation = nextConversations.find((conversation) => conversation.id === convId);
+      if (!serverConversation) return;
       const latestMessage = sortConversationMessages(messages).at(-1);
       if (!latestMessage) return;
+      // Session storage can survive an Android app restart. Never let an older
+      // cached message overwrite newer, persistent conversation metadata from
+      // the server (such as a reaction preview).
+      const localTime = Date.parse(latestMessage.createdAt || latestMessage.updatedAt || '');
+      const serverTime = Date.parse(
+        serverConversation.updatedAt
+        || serverConversation.lastMessageAt
+        || serverConversation.createdAt
+        || ''
+      );
+      if (Number.isFinite(localTime) && Number.isFinite(serverTime) && localTime <= serverTime) return;
       nextConversations = applyConversationSummaryToList(
         nextConversations,
         convId,

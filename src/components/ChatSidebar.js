@@ -871,12 +871,13 @@ export default function ChatSidebar({
       headerAction={(
         <button
           type="button"
-          className="contact-profile-edit-btn contact-profile-close-btn"
-          aria-label="Nieuw contact sluiten"
-          title="Sluiten"
-          onClick={() => navigateBackToMoreActions(closeAddContactSheet)}
+          className="contact-profile-edit-btn new-group-create-header-btn add-contact-page-submit"
+          aria-label="Verzoek sturen"
+          title="Verzoek sturen"
+          onClick={() => addContact?.()}
+          disabled={contactLoading}
         >
-          <XIcon size={20} aria-hidden="true" />
+          {contactLoading ? 'Verzenden…' : 'Verzoek sturen'}
         </button>
       )}
     >
@@ -921,13 +922,6 @@ export default function ChatSidebar({
             <div className="auth-error">⚠️ {contactErr}</div>
           </div>
         )}
-        <div className="contact-profile-field">
-          <div className="modal-actions add-contact-sheet-actions">
-            <button type="button" className="btn-primary" style={{ flex: 1 }} onClick={() => addContact?.()} disabled={contactLoading}>
-              {contactLoading ? 'Verzenden…' : 'Verzoek sturen'}
-            </button>
-          </div>
-        </div>
       </section>
     </ProfilePageShell>
   );

@@ -235,6 +235,7 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
       message: 'Weet je zeker dat je je account wilt verwijderen? Al je chats en gegevens worden permanent verwijderd.',
       confirmLabel: 'Account verwijderen',
       confirmIcon: 'trash',
+      hideCancel: true,
       onConfirm: async () => {
         try {
           await authFetch(`${BACKEND_URL}/api/account/${user.uid}`, { method: 'DELETE' });

@@ -551,7 +551,11 @@ export default function useChat({
         messageId: msgId,
         emoji,
         reactorId,
-        reactions: normalizedReactions,
+        // Keep the complete server payload for the conversation preview.  The
+        // message UI only needs the current user's reaction, but filtering it
+        // here drops a reaction made by the other participant and prevents
+        // their chat-list preview from updating in real time.
+        reactions: reactions || {},
         updatedAt: reactionAt || new Date().toISOString(),
       }));
     };

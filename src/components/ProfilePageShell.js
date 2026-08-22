@@ -11,6 +11,7 @@ export function ProfilePageShell({
   headerAction = null,
   hero = null,
   scrollContent = false,
+  navigationVariant = 'page',
   children,
   className = 'chat-side-panel contact-profile-panel',
   panelProps = {},
@@ -18,7 +19,7 @@ export function ProfilePageShell({
   return (
     <aside
       ref={panelRef}
-      className={`${className}${scrollContent ? ' profile-page-shell--scroll' : ''}`}
+      className={`${className}${scrollContent ? ' profile-page-shell--scroll' : ''} pulse-navigation pulse-navigation--${navigationVariant}`}
       aria-labelledby={hideTitle ? undefined : titleId}
       aria-label={hideTitle ? title : undefined}
       aria-describedby={`${titleId}-description`}

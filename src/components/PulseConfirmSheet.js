@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Cancel } from './Icons';
 
 /** A single, mobile-first confirmation pattern for potentially consequential actions. */
@@ -11,12 +11,21 @@ export default function PulseConfirmSheet({
   dismissible = true,
   tone = 'default',
 }) {
+  const [isClosing, setIsClosing] = useState(false);
+  const closeTimerRef = useRef(null);
+
   const closeSheet = (event) => {
     // Een bevestigingssheet kan via een portal boven een zijbalkpagina staan.
     // Sluiten mag uitsluitend deze tijdelijke laag sluiten, nooit de pagina eronder.
     event?.stopPropagation();
-    onClose?.();
+    if (isClosing) return;
+    setIsClosing(true);
+    closeTimerRef.current = window.setTimeout(() => onClose?.(), 180);
   };
+
+  useEffect(() => () => {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (!dismissible) return undefined;
@@ -29,7 +38,7 @@ export default function PulseConfirmSheet({
 
   return (
     <div
-      className={`pulse-confirm-backdrop pulse-confirm-backdrop--${tone}`}
+      className={`pulse-confirm-backdrop pulse-confirm-backdrop--${tone}${isClosing ? ' is-closing' : ''}`}
       onClick={(event) => {
         // This sheet can be rendered from a nested sidebar page. Keep its
         // close action local so a click never also closes that underlying page.

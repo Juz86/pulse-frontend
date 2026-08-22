@@ -27,6 +27,11 @@
   --sidebar-sheet-bottom: 100dvh;
   --sidebar-sheet-anchor-bottom: 100dvh;
   --pulse-call-mini-top: 0px;
+  /* Gedeelde bewegingspatronen: zijbalk, volledige pagina en dialoog. */
+  --pulse-navigation-enter-duration: .28s;
+  --pulse-navigation-exit-duration: .2s;
+  --pulse-navigation-ease: cubic-bezier(.22, .86, .24, 1);
+  --pulse-navigation-exit-ease: cubic-bezier(.42, 0, .22, 1);
 
   /* ── Groottes Desktop ── */
   --text-hero:     clamp(2.5rem, 6vw, 3.75rem);
@@ -346,6 +351,7 @@ body {
   align-items: flex-end;
   justify-content: center;
   padding: 14px max(14px, var(--safe-right)) max(16px, var(--safe-bottom)) max(14px, var(--safe-left));
+  animation: pulse-navigation-backdrop-in .22s var(--pulse-navigation-ease) both;
 }
 
 .pulse-sheet {
@@ -357,7 +363,7 @@ body {
   border-radius: 18px;
   box-shadow: 0 -10px 34px rgba(0, 0, 0, 0.35);
   padding: 8px 8px 10px;
-  animation: pulse-sheet-up .22s ease-out both;
+  animation: pulse-navigation-dialog-in .22s var(--pulse-navigation-ease) both;
 }
 
 @media (max-width: 767px) {
@@ -457,6 +463,18 @@ body {
     background:#e90046;
     box-shadow:none;
   }
+}
+
+/* Houd deze regels onderaan: oudere paneelspecifieke regels mogen het gedeelde
+   navigatiepatroon niet alsnog overschrijven. */
+.chat-side-panel.pulse-navigation--page,
+.contact-profile-panel.pulse-navigation--page {
+  animation: pulse-navigation-page-in var(--pulse-navigation-enter-duration) var(--pulse-navigation-ease) both;
+}
+.chat-side-panel.pulse-navigation--page.is-closing,
+.contact-profile-panel.pulse-navigation--page.is-closing {
+  pointer-events: none;
+  animation: pulse-navigation-page-out var(--pulse-navigation-exit-duration) var(--pulse-navigation-exit-ease) both;
 }
 
 /* Vaste drie-kolomsrij voor alle actieve videobelgesprekken. */
@@ -724,7 +742,7 @@ body {
   border-radius: 32px 32px 24px 24px;
   border-color: rgba(136, 118, 221, 0.2);
   transform-origin: center bottom;
-  animation: pulse-sheet-up-from-tabbar .28s cubic-bezier(.22, .86, .24, 1) both;
+  animation: pulse-navigation-sidebar-in .28s var(--pulse-navigation-ease) both;
   box-shadow:
     0 18px 42px rgba(19, 13, 42, 0.22),
     0 3px 10px rgba(255, 255, 255, 0.08),
@@ -1812,7 +1830,10 @@ body {
   }
 }
 
-@keyframes pulse-sheet-up {
+/* ── Pulse navigatie: drie vaste patronen ───────────────────────────────
+   Zijbalk: vanuit/naar de tabbar. Pagina: horizontaal voor diepere lagen.
+   Dialoog: backdrop fade met sheet vanuit onderen. */
+@keyframes pulse-navigation-dialog-in {
   from {
     transform: translateY(26px);
     opacity: 0;
@@ -1823,7 +1844,18 @@ body {
   }
 }
 
-@keyframes pulse-sheet-up-from-tabbar {
+@keyframes pulse-navigation-dialog-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(22px);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-navigation-sidebar-in {
   from {
     transform: translateY(24px) scale(.97);
     opacity: 0;
@@ -1841,7 +1873,7 @@ body {
   }
 }
 
-@keyframes pulse-sheet-down-to-tabbar {
+@keyframes pulse-navigation-sidebar-out {
   from {
     transform: translateY(0) scale(1);
     opacity: 1;
@@ -1854,7 +1886,29 @@ body {
   }
 }
 
-@keyframes pulse-sheet-backdrop-in {
+@keyframes pulse-navigation-page-in {
+  from {
+    opacity: 0;
+    transform: translate3d(-22px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pulse-navigation-page-out {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(-16px, 0, 0);
+  }
+}
+
+@keyframes pulse-navigation-backdrop-in {
   from {
     opacity: 0;
   }
@@ -1866,13 +1920,35 @@ body {
   }
 }
 
-@keyframes pulse-sheet-backdrop-out {
+@keyframes pulse-navigation-backdrop-out {
   from {
     opacity: 1;
   }
   to {
     opacity: .02;
   }
+}
+
+/* De gedeelde shell voegt deze klasse toe aan elke diepere profiel-/portaalpagina.
+   De is-closing-variant is beschikbaar voor pagina's die hun terugroute al
+   met een vertraagde unmount afhandelen. */
+.pulse-navigation--page {
+  animation: pulse-navigation-page-in var(--pulse-navigation-enter-duration) var(--pulse-navigation-ease) both;
+}
+.pulse-navigation--page.is-closing {
+  pointer-events: none;
+  animation: pulse-navigation-page-out var(--pulse-navigation-exit-duration) var(--pulse-navigation-exit-ease) both;
+}
+
+/* Compatibiliteit voor bestaande Pulse-lagen die deze namen al gebruiken.
+   Zo volgen ook oude sheets dezelfde vaste drie animatiepatronen. */
+@keyframes pulse-sheet-slide-up {
+  from { transform: translateY(26px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes group-info-slide-in {
+  from { transform: translate3d(-22px, 0, 0); opacity: 0; }
+  to { transform: translate3d(0, 0, 0); opacity: 1; }
 }
 
 .pulse-update-overlay {
@@ -3170,7 +3246,7 @@ font-family: 'Inter', sans-serif;
   padding: 0 var(--sidebar-footer-inline) max(6px, env(safe-area-inset-bottom));
   background:
     linear-gradient(180deg, rgba(12, 9, 28, 0) 0%, rgba(12, 9, 28, 0.05) 12%, rgba(12, 9, 28, 0.16) 46%, rgba(12, 9, 28, 0.28) 100%);
-  animation: pulse-sheet-backdrop-in .22s cubic-bezier(.24, .78, .28, 1) both;
+  animation: pulse-navigation-backdrop-in .22s var(--pulse-navigation-ease) both;
 }
 .sidebar-bottom-cluster-backdrop--more {
   top: var(--sidebar-local-sheet-top);
@@ -3187,7 +3263,7 @@ font-family: 'Inter', sans-serif;
     linear-gradient(180deg, rgba(23, 17, 52, 0.92) 0%, rgba(18, 13, 41, 0.98) 100%);
 }
 .sidebar-bottom-cluster-backdrop.is-closing {
-  animation: pulse-sheet-backdrop-out .16s cubic-bezier(.42, 0, .24, 1) both;
+  animation: pulse-navigation-backdrop-out .16s var(--pulse-navigation-exit-ease) both;
 }
 .sidebar-bottom-cluster {
   width: 100%;
@@ -3231,7 +3307,7 @@ font-family: 'Inter', sans-serif;
   background: transparent;
   box-shadow: none;
   transform-origin: center bottom;
-  animation: pulse-sheet-up-from-tabbar .34s cubic-bezier(.2, .88, .24, 1) both;
+  animation: pulse-navigation-sidebar-in .34s cubic-bezier(.2, .88, .24, 1) both;
 }
 .sidebar-bottom-cluster-sheet--settings {
   padding-top: 8px;
@@ -3249,7 +3325,7 @@ font-family: 'Inter', sans-serif;
   flex: 1 1 auto;
   max-height: calc(100% - 96px);
   padding: 12px 14px 0;
-  animation: settings-page-enter .28s cubic-bezier(.22, .86, .24, 1) both;
+  animation: pulse-navigation-page-in var(--pulse-navigation-enter-duration) var(--pulse-navigation-ease) both;
 }
 .sidebar-bottom-cluster--settings-screen .pulse-sheet-handle {
   display: none;
@@ -3321,16 +3397,6 @@ font-family: 'Inter', sans-serif;
   background: transparent;
   border-top: none;
 }
-@keyframes settings-page-enter {
-  from {
-    opacity: 0;
-    transform: translate3d(-22px, 0, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
 .sidebar-bottom-cluster-sheet--detached-footer {
   flex: 0 1 auto;
   max-height: calc(100% - var(--sidebar-local-sheet-bottom) - 8px);
@@ -3355,7 +3421,7 @@ font-family: 'Inter', sans-serif;
   -webkit-backdrop-filter: none;
   overflow: visible;
   transform-origin: center bottom;
-  animation: pulse-sheet-up-from-tabbar .34s cubic-bezier(.2, .88, .24, 1) both;
+  animation: pulse-navigation-sidebar-in .34s cubic-bezier(.2, .88, .24, 1) both;
 }
 .sidebar-bottom-cluster-panel--settings {
   width: 100%;
@@ -3376,7 +3442,7 @@ font-family: 'Inter', sans-serif;
   -webkit-backdrop-filter: none;
   overflow: visible;
   transform-origin: center bottom;
-  animation: pulse-sheet-up-from-tabbar .34s cubic-bezier(.2, .88, .24, 1) both;
+  animation: pulse-navigation-sidebar-in .34s cubic-bezier(.2, .88, .24, 1) both;
 }
 .sidebar-bottom-cluster-panel--more .pulse-sheet-header--sidebar-actions {
   min-height: 10px;
@@ -3686,7 +3752,7 @@ font-family: 'Inter', sans-serif;
 }
 .sidebar-bottom-cluster-panel--more.is-closing,
 .sidebar-bottom-cluster-panel--settings.is-closing {
-  animation: pulse-sheet-down-to-tabbar .2s cubic-bezier(.42, 0, .22, 1) both;
+  animation: pulse-navigation-sidebar-out var(--pulse-navigation-exit-duration) var(--pulse-navigation-exit-ease) both;
 }
 .sidebar-footer--more-open {
   background: linear-gradient(180deg, rgba(248, 244, 255, 0) 0%, rgba(248, 244, 255, 0.4) 58%, rgba(248, 244, 255, 0.78) 100%);
@@ -3699,7 +3765,7 @@ font-family: 'Inter', sans-serif;
   background: rgba(255, 255, 255, 0.94);
 }
 .sidebar-bottom-cluster-sheet.is-closing {
-  animation: pulse-sheet-down-to-tabbar .2s cubic-bezier(.42, 0, .22, 1) both;
+  animation: pulse-navigation-sidebar-out var(--pulse-navigation-exit-duration) var(--pulse-navigation-exit-ease) both;
 }
 .sidebar-settings-sheet-scroll {
   display: flex;
@@ -8097,7 +8163,7 @@ font-family: 'Inter', sans-serif;
   background:
     linear-gradient(180deg, rgba(10, 8, 24, 0.08) 0%, rgba(10, 8, 24, 0.48) 64%, rgba(10, 8, 24, 0.74) 100%);
   padding: 18px max(18px, var(--safe-right)) max(22px, var(--safe-bottom)) max(18px, var(--safe-left));
-  animation: pulse-sheet-backdrop-in .22s cubic-bezier(.24, .78, .28, 1) both;
+  animation: pulse-navigation-backdrop-in .22s var(--pulse-navigation-ease) both;
   z-index: 3600;
   left: var(--sidebar-sheet-left);
   right: calc(100vw - var(--sidebar-sheet-right));
@@ -8106,7 +8172,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .pulse-sheet-backdrop--settings.is-closing {
-  animation: pulse-sheet-backdrop-out .18s cubic-bezier(.42, 0, .24, 1) both;
+  animation: pulse-navigation-backdrop-out .18s var(--pulse-navigation-exit-ease) both;
 }
 
 .pulse-sheet--starred,
@@ -8136,11 +8202,11 @@ font-family: 'Inter', sans-serif;
     inset 0 1px 0 rgba(255, 255, 255, 0.78);
   padding: 8px 10px 12px;
   transform-origin: center bottom;
-  animation: pulse-sheet-up-from-tabbar .28s cubic-bezier(.22, .86, .24, 1) both;
+  animation: pulse-navigation-sidebar-in .28s var(--pulse-navigation-ease) both;
 }
 
 .pulse-sheet--settings.is-closing {
-  animation: pulse-sheet-down-to-tabbar .2s cubic-bezier(.42, 0, .22, 1) both;
+  animation: pulse-navigation-sidebar-out var(--pulse-navigation-exit-duration) var(--pulse-navigation-exit-ease) both;
 }
 
 .pulse-sheet-header--starred,
@@ -8871,7 +8937,7 @@ font-family: 'Inter', sans-serif;
   background: rgba(18, 11, 42, 0.46);
   backdrop-filter: blur(9px) saturate(.78);
   -webkit-backdrop-filter: blur(9px) saturate(.78);
-  animation: pulse-sheet-backdrop-in .22s cubic-bezier(.24, .78, .28, 1) both;
+  animation: pulse-navigation-backdrop-in .22s var(--pulse-navigation-ease) both;
 }
 .pulse-confirm-sheet {
   width: min(100%, 520px);
@@ -8885,7 +8951,14 @@ font-family: 'Inter', sans-serif;
   border: 1px solid rgba(141, 117, 225, .18);
   border-radius: 32px;
   box-shadow: 0 -8px 44px rgba(27, 14, 62, .28), 0 24px 64px rgba(15, 8, 38, .22);
-  animation: pulse-sheet-up .28s cubic-bezier(.2, .82, .25, 1) both;
+  animation: pulse-navigation-dialog-in .28s var(--pulse-navigation-ease) both;
+}
+.pulse-confirm-backdrop.is-closing {
+  pointer-events: none;
+  animation: pulse-navigation-backdrop-out .18s var(--pulse-navigation-exit-ease) both;
+}
+.pulse-confirm-backdrop.is-closing .pulse-confirm-sheet {
+  animation: pulse-navigation-dialog-out .18s var(--pulse-navigation-exit-ease) both;
 }
 .pulse-confirm-handle {
   width: 44px;

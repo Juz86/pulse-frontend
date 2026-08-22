@@ -7,6 +7,7 @@ import { ENCRYPTED_MESSAGE_PROTOCOL } from '../lib/e2ee/messageProtocolConstants
 import {
   applyCallConversationSummaryToList,
   applyConversationSummaryToList,
+  applyConversationReactionSummaryToList,
 } from '../lib/e2ee/conversationSummaries';
 import { canApplyPlaintextEditUpdate } from '../lib/e2ee/policy';
 import { normalizeSingleUserReaction } from '../lib/e2ee/messageReactions';
@@ -540,9 +541,20 @@ export default function useChat({
         ? (canApplyPlaintextEditUpdate(m) ? { ...m, text, editedAt, decryptedLocally: true } : m)
         : m
     )));
-    const onMessageReaction = ({ msgId, reactions })   => setMessages(prev => prev.map(m => (
-      m.id === msgId ? { ...m, reactions: normalizeSingleUserReaction(reactions || {}, user.uid) } : m
-    )));
+    const onMessageReaction = ({ convId, msgId, reactions, emoji, reactorId, reactionAt }) => {
+      const normalizedReactions = normalizeSingleUserReaction(reactions || {}, user.uid);
+      setMessages(prev => prev.map(m => (
+        m.id === msgId ? { ...m, reactions: normalizedReactions } : m
+      )));
+      if (!convId || !emoji || !reactorId) return;
+      setConversations(prev => applyConversationReactionSummaryToList(prev, convId, {
+        messageId: msgId,
+        emoji,
+        reactorId,
+        reactions: normalizedReactions,
+        updatedAt: reactionAt || new Date().toISOString(),
+      }));
+    };
     const onAccountPaused   = ({ features } = {})      => setPausedFeatures(features || { chat: true,  call: true,  video: true  });
     const onAccountResumed  = ({ features } = {})      => setPausedFeatures(features || { chat: false, call: false, video: false });
 

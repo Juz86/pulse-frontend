@@ -24,6 +24,15 @@ function buildEmptyConversationAttachmentSummaryFields() {
   };
 }
 
+function buildEmptyConversationReactionSummaryFields() {
+  return {
+    lastReactionMessageId: null,
+    lastReactionEmoji: null,
+    lastReactionReactorId: null,
+    lastReactionAt: null,
+  };
+}
+
 function buildConversationAttachmentSummaryFields(attachmentLike) {
   const attachment = normalizeAttachmentPayload(attachmentLike);
   if (!attachment) {
@@ -183,7 +192,19 @@ function normalizeConversationAttachmentSummary(conversation = {}) {
     ...conversation,
     lastMessageType: conversation?.lastMessageType || null,
     ...buildNormalizedConversationAttachmentSummaryFields(conversation),
+    ...buildNormalizedConversationReactionSummaryFields(conversation),
   };
+}
+
+function buildNormalizedConversationReactionSummaryFields(summaryLike = {}) {
+  return summaryLike?.lastReactionMessageId && summaryLike?.lastReactionEmoji && summaryLike?.lastReactionReactorId
+    ? {
+        lastReactionMessageId: summaryLike.lastReactionMessageId,
+        lastReactionEmoji: summaryLike.lastReactionEmoji,
+        lastReactionReactorId: summaryLike.lastReactionReactorId,
+        lastReactionAt: summaryLike.lastReactionAt || summaryLike.updatedAt || null,
+      }
+    : buildEmptyConversationReactionSummaryFields();
 }
 
 function sortConversationSummaryList(conversations = []) {
@@ -380,9 +401,53 @@ export function applyConversationSummaryToList(conversations = [], conversationI
           ...summary,
           updatedAt: resolveConversationSummaryUpdatedAt(conversation, message, updatedAt),
           ...buildEmptyConversationCallSummaryFields(),
+          ...buildEmptyConversationReactionSummaryFields(),
         }
       : conversation
   )));
+}
+
+export function applyConversationReactionSummaryToList(
+  conversations = [],
+  conversationId,
+  {
+    messageId,
+    emoji,
+    reactorId,
+    reactions = {},
+    updatedAt = null,
+  } = {}
+) {
+  return sortConversationSummaryList(conversations.map((conversation) => {
+    if (conversation.id !== conversationId) return conversation;
+
+    const reactionStillPresent = Boolean(
+      emoji
+      && reactorId
+      && Array.isArray(reactions?.[emoji])
+      && reactions[emoji].includes(reactorId)
+    );
+    const isRemovingCurrentPreview =
+      conversation.lastReactionMessageId === messageId
+      && conversation.lastReactionEmoji === emoji
+      && conversation.lastReactionReactorId === reactorId
+      && !reactionStillPresent;
+
+    if (!reactionStillPresent && !isRemovingCurrentPreview) return conversation;
+
+    return {
+      ...conversation,
+      ...(reactionStillPresent
+        ? {
+            lastReactionMessageId: messageId,
+            lastReactionEmoji: emoji,
+            lastReactionReactorId: reactorId,
+            lastReactionAt: updatedAt || new Date().toISOString(),
+            updatedAt: updatedAt || new Date().toISOString(),
+          }
+        : buildEmptyConversationReactionSummaryFields()),
+    };
+  }));
 }
 
 export function applyCallConversationSummaryToList(

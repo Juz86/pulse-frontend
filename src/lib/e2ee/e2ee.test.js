@@ -13,6 +13,7 @@ import {
 } from './messageCopy';
 import {
   applyCallConversationSummaryToList,
+  applyConversationReactionSummaryToList,
   applyConversationSummaryToList,
   buildConversationPreviewPresentation,
   normalizeConversationSummaryRecord,
@@ -1067,12 +1068,40 @@ describe('e2ee attachment helpers', () => {
         lastCallDirection: null,
         lastCallSenderId: null,
         lastCallIsVideo: null,
+        lastReactionMessageId: null,
+        lastReactionEmoji: null,
+        lastReactionReactorId: null,
+        lastReactionAt: null,
       },
       {
         id: 'conv-1',
         updatedAt: '2026-01-01T10:00:00.000Z',
         lastMessage: 'Oud',
       },
+    ]);
+  });
+
+  test('applyConversationReactionSummaryToList stores the most recent reaction preview', () => {
+    expect(applyConversationReactionSummaryToList([
+      { id: 'conv-1', updatedAt: '2026-01-01T10:00:00.000Z', lastMessage: 'Hallo' },
+      { id: 'conv-2', updatedAt: '2026-01-01T09:00:00.000Z', lastMessage: 'Ander' },
+    ], 'conv-2', {
+      messageId: 'message-2',
+      emoji: '❤️',
+      reactorId: 'user-1',
+      reactions: { '❤️': ['user-1'] },
+      updatedAt: '2026-01-01T11:00:00.000Z',
+    })).toEqual([
+      {
+        id: 'conv-2',
+        updatedAt: '2026-01-01T11:00:00.000Z',
+        lastMessage: 'Ander',
+        lastReactionMessageId: 'message-2',
+        lastReactionEmoji: '❤️',
+        lastReactionReactorId: 'user-1',
+        lastReactionAt: '2026-01-01T11:00:00.000Z',
+      },
+      { id: 'conv-1', updatedAt: '2026-01-01T10:00:00.000Z', lastMessage: 'Hallo' },
     ]);
   });
 

@@ -17,6 +17,7 @@ import {
 } from '../lib/e2ee/messageModel';
 import {
   applyConversationSummaryToList,
+  applyConversationReactionSummaryToList,
   normalizeConversationSummaryRecord,
 } from '../lib/e2ee/conversationSummaries';
 import {
@@ -128,6 +129,10 @@ export default function useConversations({
       lastCallDirection: conversation.lastCallDirection || null,
       lastCallIsVideo: !!conversation.lastCallIsVideo,
       lastCallSenderId: conversation.lastCallSenderId || null,
+      lastReactionMessageId: conversation.lastReactionMessageId || null,
+      lastReactionEmoji: conversation.lastReactionEmoji || null,
+      lastReactionReactorId: conversation.lastReactionReactorId || null,
+      lastReactionAt: conversation.lastReactionAt || null,
     }));
     writeCachedConversations(user.uid, cached);
   }, [conversations, user.uid]);
@@ -1050,6 +1055,19 @@ export default function useConversations({
   function toggleReaction(msgId, emoji) {
     const socket = getSocket();
     if (!activeConv) return;
+    const applyReactionPreview = (reactions, reactionAt = null) => {
+      setConversations((previous) => applyConversationReactionSummaryToList(
+        previous,
+        activeConv.id,
+        {
+          messageId: msgId,
+          emoji,
+          reactorId: user.uid,
+          reactions: normalizeSingleUserReaction(reactions || {}, user.uid),
+          updatedAt: reactionAt || new Date().toISOString(),
+        },
+      ));
+    };
     setMessages(prev => prev.map(m => (
       m.id === msgId ? { ...m, reactions: toggleSingleUserReaction(m.reactions || {}, emoji, user.uid) } : m
     )));
@@ -1065,6 +1083,7 @@ export default function useConversations({
           setMessages(prev => prev.map(m => (
             m.id === msgId ? { ...m, reactions: normalizeSingleUserReaction(data.reactions || {}, user.uid) } : m
           )));
+          applyReactionPreview(data.reactions, data.reactionAt);
         })
         .catch(() => {
           showErrToast('Reactie bijwerken mislukt');
@@ -1085,6 +1104,7 @@ export default function useConversations({
         setMessages(prev => prev.map(m => (
           m.id === msgId ? { ...m, reactions: normalizeSingleUserReaction(data.reactions || {}, user.uid) } : m
         )));
+        applyReactionPreview(data.reactions, data.reactionAt);
       }
     });
     setReactionPickerMsgId(null);

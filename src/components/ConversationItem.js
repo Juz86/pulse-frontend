@@ -41,6 +41,17 @@ function ConversationItemBase({
     moved: false,
   });
   const conversationPreview = buildConversationPreviewPresentation(conv);
+  const reactionPreviewText = React.useMemo(() => {
+    if (!conv.lastReactionEmoji || !conv.lastReactionReactorId) return '';
+    const reactorName = conv.lastReactionReactorId === currentUid
+      ? 'Je'
+      : (conv.memberNames?.[conv.lastReactionReactorId] || 'Iemand');
+    const targetText = String(conv.lastMessage || 'een bericht')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 72);
+    return `${reactorName} reageerde met ${conv.lastReactionEmoji} op: “${targetText || 'een bericht'}”`;
+  }, [conv.lastMessage, conv.lastReactionEmoji, conv.lastReactionReactorId, conv.memberNames, currentUid]);
   const callPreviewText = conv.lastCallDirection ? callPreview(conv, currentUid) : '';
   const isMissedCallPreview = callPreviewText.startsWith('Gemiste ');
   const CallPreviewIcon = conv.lastCallIsVideo ? Video : Phone;
@@ -219,7 +230,9 @@ function ConversationItemBase({
             </span>
           ) : (
             <>
-              <span className="conv-preview-text">{conversationPreview.previewText || conv.lastMessage || 'Start een gesprek…'}</span>
+              <span className={`conv-preview-text${reactionPreviewText ? ' conv-reaction-preview' : ''}`}>
+                {reactionPreviewText || conversationPreview.previewText || conv.lastMessage || 'Start een gesprek…'}
+              </span>
               {conversationPreview.showRemoteAttachmentBadge && (
                 <>
                   <span
@@ -314,6 +327,9 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.conv.lastAttachmentWrappedMediaKeyDigest === next.conv.lastAttachmentWrappedMediaKeyDigest &&
   prev.conv.updatedAt   === next.conv.updatedAt    &&
   prev.conv.lastMessageAt === next.conv.lastMessageAt &&
+  prev.conv.lastReactionMessageId === next.conv.lastReactionMessageId &&
+  prev.conv.lastReactionEmoji === next.conv.lastReactionEmoji &&
+  prev.conv.lastReactionReactorId === next.conv.lastReactionReactorId &&
   prev.conv.photoURL    === next.conv.photoURL     &&
   prev.isActive         === next.isActive          &&
   prev.isOnline         === next.isOnline          &&

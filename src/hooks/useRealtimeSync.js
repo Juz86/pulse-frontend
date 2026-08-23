@@ -52,6 +52,7 @@ export function isRealtimePopupRelevant(eventName, payload = {}, userId = null) 
 }
 
 const RELOAD_DEBOUNCE_MS = 80;
+export const REALTIME_SYNC_PROTOCOL_VERSION = 1;
 export const SYNCABLE_REALTIME_DOMAINS = Object.freeze([
   'conversations',
   'contacts',
@@ -63,6 +64,20 @@ export function normalizeSyncRequiredDomains(domains) {
   if (!Array.isArray(domains)) return [...SYNCABLE_REALTIME_DOMAINS];
   const accepted = domains.filter((domain) => SYNCABLE_REALTIME_DOMAINS.includes(domain));
   return accepted.length > 0 ? [...new Set(accepted)] : [...SYNCABLE_REALTIME_DOMAINS];
+}
+
+export function normalizeSyncRequiredPayload(payload = {}) {
+  const protocolVersion = Number(payload?.protocolVersion || REALTIME_SYNC_PROTOCOL_VERSION);
+  const requiresFullSync = protocolVersion > REALTIME_SYNC_PROTOCOL_VERSION;
+  return {
+    protocolVersion,
+    // A newer server may introduce domains this client does not understand.
+    // Full reconciliation is safer than relying on a partial event stream.
+    requiresFullSync,
+    domains: requiresFullSync
+      ? [...SYNCABLE_REALTIME_DOMAINS]
+      : normalizeSyncRequiredDomains(payload?.domains),
+  };
 }
 
 function recordSyncSuccess({ domain, reason, durationMs }) {
@@ -146,10 +161,25 @@ export default function useRealtimeSync({
       return [eventName, handler];
     });
 
-    const onSyncRequired = ({ domains } = {}) => refresh(
-      normalizeSyncRequiredDomains(domains),
-      { reason: 'server:sync_required' }
-    );
+    const onSyncRequired = (payload = {}) => {
+      const syncRequest = normalizeSyncRequiredPayload(payload);
+      if (syncRequest.requiresFullSync) {
+        console.warn('[Pulse][RealtimeSync] newer sync protocol received', {
+          receivedVersion: syncRequest.protocolVersion,
+          supportedVersion: REALTIME_SYNC_PROTOCOL_VERSION,
+        });
+        Sentry.addBreadcrumb({
+          category: 'realtime.sync',
+          level: 'warning',
+          message: 'newer_sync_protocol_received',
+          data: {
+            receivedVersion: syncRequest.protocolVersion,
+            supportedVersion: REALTIME_SYNC_PROTOCOL_VERSION,
+          },
+        });
+      }
+      refresh(syncRequest.domains, { reason: 'server:sync_required' });
+    };
     socket.on('sync:required', onSyncRequired);
 
     // A reconnect is an invalidation boundary: events that occurred while the

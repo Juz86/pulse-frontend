@@ -1,5 +1,6 @@
 import {
   isRealtimePopupRelevant,
+  normalizeSyncRequiredPayload,
   normalizeSyncRequiredDomains,
   REALTIME_EVENT_DOMAINS,
 } from './useRealtimeSync';
@@ -29,5 +30,17 @@ describe('realtime sync event policy', () => {
     expect(normalizeSyncRequiredDomains([])).toEqual([
       'conversations', 'contacts', 'friendRequests', 'blockedContacts',
     ]);
+  });
+
+  test('uses a safe full sync for a newer server protocol', () => {
+    expect(normalizeSyncRequiredPayload({ protocolVersion: 2, domains: ['contacts'] })).toEqual({
+      protocolVersion: 2,
+      requiresFullSync: true,
+      domains: ['conversations', 'contacts', 'friendRequests', 'blockedContacts'],
+    });
+    expect(normalizeSyncRequiredPayload({})).toMatchObject({
+      protocolVersion: 1,
+      requiresFullSync: false,
+    });
   });
 });

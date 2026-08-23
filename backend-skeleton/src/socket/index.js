@@ -97,6 +97,7 @@ export function createSocketServer(server) {
     // offline period. Tell the client which cached API collections must be
     // reconciled before it resumes normal realtime handling.
     socket.emit('sync:required', {
+      protocolVersion: 1,
       domains: ['conversations', 'contacts', 'friendRequests', 'blockedContacts'],
       reason: 'socket_connected',
     });

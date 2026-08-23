@@ -1090,12 +1090,6 @@ export default function ParentDashboard({
             {/* Tab 4 — Realtime locatie */}
             {activeTab === 'location' && (
               <div className="parent-portal-view parent-portal-view--location">
-                <div className="activities-header parent-portal-toolbar parent-portal-toolbar--spread">
-                  <h2 className="parent-section-title">Realtime locatie</h2>
-                  <button type="button" className="parent-btn-outline activities-refresh-btn" onClick={loadChildren}>
-                    <Refresh size={14} aria-hidden="true" />
-                  </button>
-                </div>
                 <p className="parent-section-sub parent-portal-inline-sub">
                   Bekijk de laatst gedeelde live locatie van uw kinderen in ouderlijk toezicht.
                 </p>
@@ -1117,7 +1111,7 @@ export default function ParentDashboard({
                   </div>
                 ) : (
                   <div className="pd-location-list">
-                    {children.map((child) => {
+                    {(selectedChildUid ? children.filter((child) => child.uid === selectedChildUid) : children).map((child) => {
                       const location = locationByChildUid[child.uid] || null;
                       const hasFix = Boolean(location?.hasFix);
                       const ageMs = location?.updatedAtMs ? Math.max(0, Date.now() - location.updatedAtMs) : Infinity;
@@ -1678,7 +1672,7 @@ export default function ParentDashboard({
           backLabel={showingMenu ? 'Ouderportaal sluiten' : 'Terug naar ouderportaal overzicht'}
           headerAction={!showingMenu && activeTab === 'contacts'
             ? renderPortalChildPicker({ selectedUid: contactsChildUid, onSelect: setContactsChildUid, placeholder: 'Selecteer kind' })
-            : !showingMenu && (activeTab === 'activities' || activeTab === 'children') ? renderPortalChildPicker() : onClose ? (
+            : !showingMenu && (activeTab === 'activities' || activeTab === 'children' || activeTab === 'location') ? renderPortalChildPicker() : onClose ? (
             <button
               type="button"
               className="contact-profile-nav-btn contact-profile-close-btn"

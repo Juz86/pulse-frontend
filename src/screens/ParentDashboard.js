@@ -675,7 +675,7 @@ export default function ParentDashboard({
       <button
         type="button"
         className="parent-btn-outline parent-btn-outline--compact parent-btn-outline--picker"
-        aria-label="Kies kind voor activiteitenoverzicht"
+        aria-label="Kies kind"
         aria-haspopup="listbox"
         aria-expanded={childDropdownOpen}
         onClick={(event) => toggleChildPicker(event, { selectedUid: selectedChildUid, onSelect: setSelectedChildUid })}
@@ -780,26 +780,6 @@ export default function ParentDashboard({
             {/* Tab 2 — Mijn kinderen */}
             {activeTab === 'children' && (
                 <div className="parent-portal-view parent-portal-view--children">
-                  <div className="parent-portal-toolbar parent-portal-toolbar--spread">
-                    <h2 className="parent-section-title">Mijn kinderen</h2>
-                    {children.length > 0 && (
-                      <div className="parent-portal-picker">
-                        <button
-                          type="button"
-                          className="parent-btn-outline parent-btn-outline--compact parent-btn-outline--picker"
-                          aria-label="Kies kind voor kinderenoverzicht"
-                          aria-haspopup="listbox"
-                          aria-expanded={childDropdownOpen}
-                          onClick={(event) => toggleChildPicker(event, { selectedUid: selectedChildUid, onSelect: setSelectedChildUid })}
-                        >
-                          <span className="parent-child-picker-label">
-                            {children.find(c => c.uid === selectedChildUid)?.displayName || 'Kind'}
-                          </span>
-                          <ChevronDown size={16} aria-hidden="true" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 {childError && <div className="parent-error" role="alert" aria-live="assertive"><span aria-hidden="true">⚠️ </span>{childError}</div>}
 
                 {loading ? (
@@ -1716,7 +1696,7 @@ export default function ParentDashboard({
           description="Beheer kinderen, contacten, locatie en activiteiten vanuit dezelfde profielopbouw."
           onBack={returnToPreviousPortalScreen}
           backLabel={showingMenu ? 'Ouderportaal sluiten' : 'Terug naar ouderportaal overzicht'}
-          headerAction={!showingMenu && activeTab === 'activities' ? renderActivitiesPicker() : onClose ? (
+          headerAction={!showingMenu && (activeTab === 'activities' || activeTab === 'children') ? renderActivitiesPicker() : onClose ? (
             <button
               type="button"
               className="contact-profile-nav-btn contact-profile-close-btn"

@@ -21601,3 +21601,18 @@ font-family: 'Inter', sans-serif;
     padding-top:calc(10px + var(--pulse-android-status-inset));
   }
 }
+
+/* Op tablets is de login geen zijpaneel maar het primaire scherm. Centreer
+   hem daarom in beide oriëntaties; de mobiele, bovenaan uitgelijnde variant
+   blijft bewust ongewijzigd voor kleine of lage schermen. */
+@media (min-width: 768px) {
+  .auth-screen {
+    align-items:center;
+    justify-content:center;
+  }
+
+  html.pulse-platform-android .auth-screen {
+    padding-top:max(12px, calc(var(--pulse-android-status-inset) + 12px));
+    padding-bottom:max(20px, calc(env(safe-area-inset-bottom) + 20px));
+  }
+}

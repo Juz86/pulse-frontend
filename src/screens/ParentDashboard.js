@@ -114,6 +114,7 @@ export default function ParentDashboard({
   const [analyticsError,   setAnalyticsError]   = useState('');
   const [activityContactFilter, setActivityContactFilter] = useState('all');
   const [contactOverviewExpanded, setContactOverviewExpanded] = useState(false);
+  const [activityLogExpanded, setActivityLogExpanded] = useState(false);
   const [expandedTopContactSections, setExpandedTopContactSections] = useState({ chat: true, calls: false, video: false });
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
   const [childPickerPosition, setChildPickerPosition] = useState(null);
@@ -588,6 +589,7 @@ export default function ParentDashboard({
     ? activities.filter(a => a.childUid === selectedChildUid)
     : activities
   ).slice().sort((a, b) => toMs(b?.createdAt) - toMs(a?.createdAt));
+  const visibleActivities = activityLogExpanded ? filteredActivities : filteredActivities.slice(0, 3);
 
   const toggleChildPicker = useCallback((event, target) => {
     event.stopPropagation();
@@ -1459,7 +1461,7 @@ export default function ParentDashboard({
                       <Activity size={32} color="#ccc" style={{ marginBottom: 8 }} aria-hidden="true" />
                       <p className="parent-portal-inline-sub">Nog geen activiteiten voor dit kind.</p>
                     </div>
-                  ) : filteredActivities.map(a => (
+                  ) : visibleActivities.map(a => (
                     <div key={a.id} className="parent-activity-row">
                       <div className="parent-activity-icon" aria-hidden="true">
                         {a.type === 'friend_request_sent'     && <UserPlus2 size={18} color="#3b82f6" aria-hidden="true" />}
@@ -1473,6 +1475,16 @@ export default function ParentDashboard({
                       </div>
                     </div>
                   ))}
+                  {filteredActivities.length > 3 && (
+                    <button
+                      type="button"
+                      className="parent-contact-overview-more"
+                      aria-expanded={activityLogExpanded}
+                      onClick={() => setActivityLogExpanded((expanded) => !expanded)}
+                    >
+                      {activityLogExpanded ? 'Minder tonen' : `Meer (${filteredActivities.length - 3})`}
+                    </button>
+                  )}
                 </div>
               </div>
             )}

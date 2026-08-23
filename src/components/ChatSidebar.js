@@ -475,12 +475,12 @@ export default function ChatSidebar({
         headerAction={(
           <button
             type="button"
-            className="contact-profile-edit-btn contact-profile-close-btn"
-            aria-label="Instellingen sluiten"
-            title="Sluiten"
-            onClick={dismissProfileOverviewSheet}
+            className="contact-profile-edit-btn"
+            aria-label="Mijn account bewerken"
+            title="Bewerk mijn account"
+            onClick={() => setProfileTab?.('account')}
           >
-            <XIcon size={20} aria-hidden="true" />
+            Bewerk
           </button>
         )}
         hero={(

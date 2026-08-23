@@ -21439,15 +21439,17 @@ font-family: 'Inter', sans-serif;
 }
 
 /* Android heeft geen betrouwbare CSS safe-area voor de systeemnavigatie.
-   Houd de vijf oproepacties daarom laag, maar niet tegen de navigatieknoppen.
-   De grotere maat blijft adaptief zodat alle vijf knoppen op één rij passen. */
+   Reserveer daarom expliciet ruimte onder de vijf oproepacties: op toestellen
+   met de Android-drieknopsnavigatie rapporteert env() vaak nul. */
 @media (max-width: 767px) {
   html.pulse-platform-android .call-overlay.call-overlay--voice-reference {
-    padding-bottom:4px;
+    padding-bottom:0;
   }
 
   html.pulse-platform-android .call-overlay.call-overlay--voice-reference .call-card.voice-active {
-    padding-bottom:4px;
+    /* 64px houdt de balk boven de Android-navigatie; een echte safe area
+       vergroot die afstand op toestellen die hem wel beschikbaar stellen. */
+    padding-bottom:max(64px, calc(env(safe-area-inset-bottom) + 20px));
   }
 
   html.pulse-platform-android .call-overlay.call-overlay--voice-reference .call-card.voice-active .call-controls.active-layout {

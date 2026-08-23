@@ -252,7 +252,9 @@ export default function ParentDashboard({
     try {
       const res = await authFetch(`${BACKEND}/api/parent/activities`);
       const data = await res.json();
-      const nextActivities = Array.isArray(data) ? data : [];
+      const nextActivities = (Array.isArray(data) ? data : [])
+        .slice()
+        .sort((a, b) => toMs(b?.createdAt) - toMs(a?.createdAt));
       const lastSeenAt = Number(localStorage.getItem(activitySeenStorageKey) || 0);
       setActivities(nextActivities);
       setUnreadActivityCount(lastSeenAt > 0
@@ -580,9 +582,10 @@ export default function ParentDashboard({
         contact.nickname,
       ].some(value => String(value || '').toLowerCase().includes(inviteSearch));
     });
-  const filteredActivities = selectedChildUid
+  const filteredActivities = (selectedChildUid
     ? activities.filter(a => a.childUid === selectedChildUid)
-    : activities;
+    : activities
+  ).slice().sort((a, b) => toMs(b?.createdAt) - toMs(a?.createdAt));
 
   const toggleChildPicker = useCallback((event, target) => {
     event.stopPropagation();

@@ -14988,7 +14988,18 @@ font-family: 'Inter', sans-serif;
   max-width: 180px;
   min-height:50px;
   height:50px;
+  border:1.5px solid #b66cff;
+  background:linear-gradient(135deg,#be67ff,#8b5cf6);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(174,83,255,.42);
   justify-content: space-between;
+}
+.parent-dashboard-panel .parent-btn-outline--picker:hover {
+  border-color:#d3a5ff;
+  background:linear-gradient(135deg,#cc7cff,#9867ff);
+  color:#fff;
+  box-shadow:0 6px 16px rgba(174,83,255,.54);
+  transform:translateY(-1px);
 }
 
 .parent-dashboard-panel .parent-portal-picker {
@@ -21681,4 +21692,18 @@ font-family: 'Inter', sans-serif;
     padding-top:max(12px, calc(var(--pulse-android-status-inset) + 12px));
     padding-bottom:max(20px, calc(env(safe-area-inset-bottom) + 20px));
   }
+}
+
+/* De kindkiezer is de primaire actie in de Activiteitenbalk. */
+.parent-dashboard-panel .parent-btn-outline.parent-btn-outline--picker {
+  border-color:#b66cff;
+  background:linear-gradient(135deg,#be67ff,#8b5cf6);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(174,83,255,.42);
+}
+.parent-dashboard-panel .parent-btn-outline.parent-btn-outline--picker:hover {
+  border-color:#d3a5ff;
+  background:linear-gradient(135deg,#cc7cff,#9867ff);
+  color:#fff;
+  box-shadow:0 6px 16px rgba(174,83,255,.54);
 }

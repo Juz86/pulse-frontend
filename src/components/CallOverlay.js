@@ -615,7 +615,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
         )}
         {!isVideoActiveLayout && !isVoiceCallLayout && (
           <button type="button" className="call-close-btn" aria-label={callState === 'active' || callState === 'calling' || callState === 'connecting' ? 'Beeindig gesprek' : (callState === 'incoming' ? 'Weiger oproep' : 'Gespreksscherm sluiten')} onClick={handleOverlayClose} title="Sluiten">
-            <Cancel size={14} aria-hidden="true" />
+            <Cancel size={22} aria-hidden="true" />
           </button>
         )}
         {hasActiveHeaderLayout && !isVideoActiveLayout && !isVoiceActiveLayout && (

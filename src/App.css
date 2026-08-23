@@ -21533,3 +21533,33 @@ font-family: 'Inter', sans-serif;
     background:none;
   }
 }
+
+/* Oproepschermen gebruiken altijd dezelfde duidelijke sluitactie. Dit mag
+   niet terugvallen op de subtiele modal-X, omdat de callachtergrond donker of
+   beeldvullend kan zijn. */
+.call-close-btn {
+  position:absolute;
+  top:18px;
+  right:18px;
+  z-index:30;
+  width:44px;
+  height:44px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.24);
+  border-radius:50%;
+  background:rgba(24,21,39,.90);
+  color:#fff;
+  box-shadow:0 8px 22px rgba(0,0,0,.30);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.call-close-btn:hover {
+  background:rgba(78,67,126,.96);
+  color:#fff;
+  transform:scale(1.05);
+}
+.call-close-btn:focus-visible {
+  background:rgba(78,67,126,.96);
+  color:#fff;
+  box-shadow:0 0 0 3px rgba(192,183,255,.72), 0 8px 22px rgba(0,0,0,.30);
+}

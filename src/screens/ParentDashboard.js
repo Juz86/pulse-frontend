@@ -672,6 +672,23 @@ export default function ParentDashboard({
     if (showingMenu) onClose?.();
     else setPortalView('menu');
   };
+  const renderActivitiesPicker = () => children.length > 0 ? (
+    <div className="parent-portal-picker">
+      <button
+        type="button"
+        className="parent-btn-outline parent-btn-outline--compact parent-btn-outline--picker"
+        aria-label="Kies kind voor activiteitenoverzicht"
+        aria-haspopup="listbox"
+        aria-expanded={childDropdownOpen}
+        onClick={(event) => toggleChildPicker(event, { selectedUid: selectedChildUid, onSelect: setSelectedChildUid })}
+      >
+        <span className="parent-child-picker-label">
+          {children.find(c => c.uid === selectedChildUid)?.displayName || 'Kind'}
+        </span>
+        <ChevronDown size={16} aria-hidden="true" />
+      </button>
+    </div>
+  ) : null;
   const renderPortalContent = () => (
     <>
 
@@ -1203,33 +1220,6 @@ export default function ParentDashboard({
             {/* Tab 5 — Activiteiten */}
             {activeTab === 'activities' && (
               <div className="parent-portal-view parent-portal-view--activities">
-                {/* Header met kind-selector */}
-                <div className="activities-header parent-portal-toolbar parent-portal-toolbar--spread">
-                  <h2 className="parent-section-title">Activiteiten</h2>
-                  <div className="parent-portal-toolbar-actions">
-                    {children.length > 0 && (
-                      <div className="parent-portal-picker">
-                        <button
-                          type="button"
-                          className="parent-btn-outline parent-btn-outline--compact parent-btn-outline--picker"
-                          aria-label="Kies kind voor activiteitenoverzicht"
-                          aria-haspopup="listbox"
-                          aria-expanded={childDropdownOpen}
-                          onClick={(event) => toggleChildPicker(event, { selectedUid: selectedChildUid, onSelect: setSelectedChildUid })}
-                        >
-                          <span className="parent-child-picker-label">
-                            {children.find(c => c.uid === selectedChildUid)?.displayName || 'Kind'}
-                          </span>
-                          <ChevronDown size={16} aria-hidden="true" />
-                        </button>
-                      </div>
-                    )}
-                    <button type="button" className="parent-btn-outline activities-refresh-btn" onClick={() => { loadActivities(); if (selectedChildUid) loadAnalytics(selectedChildUid); }}>
-                      <Refresh size={14} aria-hidden="true" />
-                    </button>
-                  </div>
-                </div>
-
                 {/* Compact activiteitenoverzicht voor geselecteerd kind */}
                 {selectedChildUid && (
                   <div className="parent-portal-analytics-block">
@@ -1728,7 +1718,7 @@ export default function ParentDashboard({
           description="Beheer kinderen, contacten, locatie en activiteiten vanuit dezelfde profielopbouw."
           onBack={returnToPreviousPortalScreen}
           backLabel={showingMenu ? 'Ouderportaal sluiten' : 'Terug naar ouderportaal overzicht'}
-          headerAction={onClose ? (
+          headerAction={activeTab === 'activities' ? renderActivitiesPicker() : onClose ? (
             <button
               type="button"
               className="contact-profile-nav-btn contact-profile-close-btn"

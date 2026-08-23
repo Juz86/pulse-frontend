@@ -1988,6 +1988,10 @@ export default function ChatSidebar({
       || contact.displayName?.toLowerCase().includes(normalizedSearch)
       || contact.email?.toLowerCase().includes(normalizedSearch)
   )), [contacts, normalizedSearch]);
+  const groupConversationCount = useMemo(
+    () => conversations.filter((conversation) => conversation?.isGroup).length,
+    [conversations],
+  );
   const normalizedNewChatQuery = searchEmail.trim().toLowerCase();
   const filteredNewChatContacts = normalizedNewChatQuery
     ? contacts.filter((contact) => {
@@ -3329,6 +3333,14 @@ export default function ChatSidebar({
                   {f === 'all' ? 'Alles' : f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
               ))}
+              <button
+                type="button"
+                className={`chat-filter-chip${chatFilter === 'groepen' ? ' active' : ''}`}
+                aria-pressed={chatFilter === 'groepen'}
+                onClick={() => { setChatFilter('groepen'); setSelectedGroupId(null); }}
+              >
+                Groepen {groupConversationCount}
+              </button>
             </div>
           )}
 

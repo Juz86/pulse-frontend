@@ -1396,7 +1396,7 @@ export default function ParentDashboard({
                 )}
 
                 {/* Activiteitenlogboek */}
-                <div className="analytics-section parent-activity-log-card">
+                <div className={`analytics-section parent-activity-log-card${activityLogExpanded ? ' is-expanded' : ''}`}>
                   <div className="analytics-section-title"><Activity size={15} aria-hidden="true" /> Activiteitenlog</div>
                   {filteredActivities.length === 0 ? (
                     <div className="parent-portal-empty-state" role="status" aria-live="polite">

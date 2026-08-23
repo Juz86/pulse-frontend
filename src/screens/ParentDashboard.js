@@ -1716,7 +1716,7 @@ export default function ParentDashboard({
           description="Beheer kinderen, contacten, locatie en activiteiten vanuit dezelfde profielopbouw."
           onBack={returnToPreviousPortalScreen}
           backLabel={showingMenu ? 'Ouderportaal sluiten' : 'Terug naar ouderportaal overzicht'}
-          headerAction={activeTab === 'activities' ? renderActivitiesPicker() : onClose ? (
+          headerAction={!showingMenu && activeTab === 'activities' ? renderActivitiesPicker() : onClose ? (
             <button
               type="button"
               className="contact-profile-nav-btn contact-profile-close-btn"

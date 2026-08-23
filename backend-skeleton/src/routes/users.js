@@ -7,6 +7,42 @@ import { resolveUserRole } from '../services/userRoles.js';
 
 export const usersRouter = Router();
 
+let emitRealtimeToUser = () => {};
+
+export function configureUsersRealtime({ io, emitToUser } = {}) {
+  emitRealtimeToUser = typeof emitToUser === 'function'
+    ? (uid, event, payload) => emitToUser(io, uid, event, payload)
+    : () => {};
+}
+
+async function emitUserUpdatedToPeers(uid, user) {
+  // Conversations cover active chat partners. The collection-group lookup also
+  // covers saved contacts that do not yet have a conversation.
+  const recipients = new Set();
+
+  const [conversationSnap, contactSnap] = await Promise.all([
+    db.collection('conversations').where('members', 'array-contains', uid).get(),
+    db.collectionGroup('contacts').where('uid', '==', uid).get(),
+  ]);
+
+  conversationSnap.docs.forEach((conversation) => {
+    (conversation.data()?.members || []).forEach((memberUid) => {
+      if (memberUid && memberUid !== uid) recipients.add(memberUid);
+    });
+  });
+  contactSnap.docs.forEach((contact) => {
+    const ownerUid = contact.ref.parent.parent?.id;
+    if (ownerUid && ownerUid !== uid) recipients.add(ownerUid);
+  });
+
+  const payload = {
+    uid,
+    displayName: user.displayName || null,
+    photoURL: user.photoURL || null,
+  };
+  recipients.forEach((recipientUid) => emitRealtimeToUser(recipientUid, 'user:updated', payload));
+}
+
 async function setUserContact(userId, targetUid, data) {
   await db.collection('users').doc(userId).collection('contacts').doc(targetUid).set(
     {
@@ -94,6 +130,11 @@ async function syncSelfHandler(req, res) {
     ...existingUser,
     ...nextUser,
   });
+
+  // Profile saving must not fail just because a best-effort UI notification
+  // cannot be fanned out (for example during a local Firestore outage).
+  emitUserUpdatedToPeers(uid, nextUser)
+    .catch((error) => console.warn('[Pulse] Profielwijziging realtime verspreiden mislukt:', error?.message));
 
   return res.json({ ok: true, uid });
 }

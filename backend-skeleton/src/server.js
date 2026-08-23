@@ -10,7 +10,7 @@ import { keysRouter } from './routes/keys.js';
 import { messagesRouter } from './routes/messages.js';
 import { configureParentRealtime, parentRouter } from './routes/parent.js';
 import { callsRouter } from './routes/calls.js';
-import { usersRouter } from './routes/users.js';
+import { configureUsersRealtime, usersRouter } from './routes/users.js';
 import { requestContext } from './middleware/requestContext.js';
 import { requireFirebaseReady } from './middleware/requireFirebaseReady.js';
 import { requireAuth } from './middleware/auth.js';
@@ -34,6 +34,7 @@ const app = express();
 const server = http.createServer(app);
 const { io, emitToUser } = createSocketServer(server);
 configureParentRealtime({ io, emitToUser });
+configureUsersRealtime({ io, emitToUser });
 const startedAt = new Date().toISOString();
 const DEFAULT_STUN_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },

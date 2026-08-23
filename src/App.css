@@ -21477,17 +21477,14 @@ font-family: 'Inter', sans-serif;
   }
 }
 
-/* Tablet split-pane: gebruik één breedtevariabele voor beide kolommen.
-   De eerdere landscape-regel zette alleen de sidebar op 42vw, terwijl de chat
-   nog met 30% rekende. Daardoor kon de rechterkant op compacte tablets buiten
-   beeld vallen. Portrait en landscape houden nu dezelfde, leesbare basismaat. */
+/* Tablet split-pane: de navigatiekolom krijgt genoeg ruimte voor logo,
+   drie acties en de filtertabs. Zonder een vaste ondergrens werd hij in
+   portrait relatief smaller dan de chat en werden labels samengedrukt. */
 @media (min-width: 768px) and (max-width: 1024px) {
   .app-screen {
-    --pulse-sidebar-width: clamp(260px, 30vw, 320px);
+    --pulse-sidebar-width: clamp(340px, 38vw, 400px);
   }
-}
 
-@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
   .sidebar {
     width: var(--pulse-sidebar-width);
     min-width: var(--pulse-sidebar-width);
@@ -21497,6 +21494,28 @@ font-family: 'Inter', sans-serif;
   .chat-main {
     flex-basis: calc(100% - var(--pulse-sidebar-width));
     width: calc(100% - var(--pulse-sidebar-width));
+  }
+
+  .sidebar-header {
+    padding-inline:14px;
+  }
+
+  .sidebar-top {
+    gap:8px;
+  }
+
+  .sidebar-header-actions {
+    gap:6px;
+  }
+
+  .chat-filters {
+    gap:8px;
+    padding-inline:14px;
+  }
+
+  .chat-filter-chip {
+    flex:0 0 auto;
+    padding-inline:12px;
   }
 }
 

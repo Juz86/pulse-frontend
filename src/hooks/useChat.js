@@ -11,6 +11,7 @@ import {
 } from '../lib/e2ee/conversationSummaries';
 import { canApplyPlaintextEditUpdate } from '../lib/e2ee/policy';
 import { normalizeSingleUserReaction } from '../lib/e2ee/messageReactions';
+import { isRealtimePopupRelevant } from './useRealtimeSync';
 
 const PRIVATE_NOTIFICATION_BODY = 'Open Pulse om het bericht veilig te bekijken.';
 const PRIVATE_REQUEST_NOTIFICATION_BODY = 'Open Pulse om de uitnodiging te bekijken.';
@@ -331,11 +332,13 @@ export default function useChat({
       setFriendRequests(prev => [req, ...prev.filter(r => r.id !== req.id)]);
       markFriendRequestSeen?.(req);
       loadFriendRequests?.();
-      showErrToast?.({
-        title: 'Nieuw vriendschapsverzoek',
-        text: `${req?.fromName || req?.fromEmail || 'Iemand'} heeft je een vriendschapsverzoek gestuurd.`,
-        tone: 'info',
-      });
+      if (isRealtimePopupRelevant('friend:request', req, user.uid)) {
+        showErrToast?.({
+          title: 'Nieuw vriendschapsverzoek',
+          text: `${req?.fromName || req?.fromEmail || 'Iemand'} heeft je een vriendschapsverzoek gestuurd.`,
+          tone: 'info',
+        });
+      }
       if (dndRef.current) return;
       try {
         const ctx   = new (window.AudioContext || window.webkitAudioContext)();
@@ -365,11 +368,13 @@ export default function useChat({
     const onFriendAccepted = ({ byName }) => {
       loadContacts();
       loadFriendRequests?.();
-      showErrToast?.({
-        title: 'Vriendschapsverzoek geaccepteerd',
-        text: `${byName || 'Je contactpersoon'} heeft je vriendschapsverzoek geaccepteerd.`,
-        tone: 'success',
-      });
+      if (isRealtimePopupRelevant('friend:accepted', { byName }, user.uid)) {
+        showErrToast?.({
+          title: 'Vriendschapsverzoek geaccepteerd',
+          text: `${byName || 'Je contactpersoon'} heeft je vriendschapsverzoek geaccepteerd.`,
+          tone: 'success',
+        });
+      }
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         [[500, 0], [700, 0.15], [1000, 0.30]].forEach(([freq, delay]) => {
@@ -459,7 +464,7 @@ export default function useChat({
     };
     const onConversationAdminsUpdated = ({ conversation, promotedUid, promotedByName }) => {
       onConversationRenamed({ conversation });
-      if (promotedUid === user.uid) {
+      if (isRealtimePopupRelevant('conversation:admins_updated', { promotedUid }, user.uid)) {
         showErrToast?.({ title: 'Beheerderrol toegekend', text: `${promotedByName || 'Een beheerder'} heeft je beheerder gemaakt in de groep '${conversation?.groupName || 'deze groep'}'.`, tone: 'success' });
       }
     };

@@ -17,6 +17,7 @@ import useChat from '../hooks/useChat';
 import useCalling from '../hooks/useCalling';
 import useProfile from '../hooks/useProfile';
 import useContacts from '../hooks/useContacts';
+import useRealtimeSync from '../hooks/useRealtimeSync';
 import { auth } from '../firebase';
 import { clearPulseUserStorage, copyTextToClipboard } from '../utils';
 
@@ -397,6 +398,17 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     onReconnect: retryAllFailed,
     onOpenMentionConversation: openConversation,
     onTransientMessage: storeTransientConversationMessage,
+  });
+
+  // Central invalidation layer: local socket handlers keep the UI responsive,
+  // while this hook reloads the affected API lists for every domain event and
+  // fully reconciles them when the device comes back online.
+  useRealtimeSync({
+    user,
+    loadConversations,
+    loadContacts,
+    loadFriendRequests,
+    loadBlockedContacts,
   });
 
   useEffect(() => {

@@ -236,18 +236,3 @@ Voor een eerste Railway-gericht deploypad:
 - [E2EE_BACKEND_HANDOFF_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BACKEND_HANDOFF_CHECKLIST.md)
 > Legacy status: deze map is niet de actieve Pulse-backend en is niet de source of truth.
 > Gebruik voor alle backendimplementatie `../pulse-backend-erlang`.
-
-# Realtime socket smoke test
-
-The realtime reconnect smoke test uses two Socket.IO users and a local
-Firestore Emulator. It verifies the `sync:required` fallback, a cross-user
-message, and its read receipt.
-
-Requirements: Node 20+, Firebase CLI, and JDK 21+.
-
-```bash
-npm run smoke:socket:emulator
-```
-
-The GitHub Actions `Realtime Sync` workflow runs the same command with Temurin
-JDK 21 on every push to `main` and on relevant pull requests.

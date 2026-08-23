@@ -93,15 +93,6 @@ export function createSocketServer(server) {
     }
     onlineUsers.get(uid).add(socket.id);
 
-    // Socket.IO does not guarantee that a client saw every event during an
-    // offline period. Tell the client which cached API collections must be
-    // reconciled before it resumes normal realtime handling.
-    socket.emit('sync:required', {
-      protocolVersion: 1,
-      domains: ['conversations', 'contacts', 'friendRequests', 'blockedContacts'],
-      reason: 'socket_connected',
-    });
-
     const removedExpired = clearExpiredPendingCallInvites();
     if (removedExpired > 0) {
       console.info('[Pulse][Call] Verlopen pending call invites opgeschoond', { removed: removedExpired });

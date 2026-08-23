@@ -31,10 +31,8 @@ function connectDevSocket(devUid) {
       auth: { devUid },
       forceNew: true,
       reconnection: false,
-      autoConnect: false,
     });
 
-    const syncRequiredPromise = waitForEvent(socket, 'sync:required');
     const timer = setTimeout(() => {
       socket.close();
       reject(new Error(`timeout_connecting_${devUid}`));
@@ -42,27 +40,14 @@ function connectDevSocket(devUid) {
 
     socket.once('connect', () => {
       clearTimeout(timer);
-      resolve({ socket, syncRequiredPromise });
+      resolve(socket);
     });
 
     socket.once('connect_error', (error) => {
       clearTimeout(timer);
-      syncRequiredPromise.catch(() => {});
       reject(error);
     });
-
-    socket.connect();
   });
-}
-
-function assertSyncRequired(payload, label) {
-  const requiredDomains = ['conversations', 'contacts', 'friendRequests', 'blockedContacts'];
-  if (payload?.protocolVersion !== 1) {
-    throw new Error(`${label}:unexpected_sync_protocol:${payload?.protocolVersion}`);
-  }
-  if (!requiredDomains.every((domain) => payload?.domains?.includes(domain))) {
-    throw new Error(`${label}:missing_sync_domains`);
-  }
 }
 
 async function postJson(path, body, devUid) {
@@ -108,22 +93,10 @@ async function ensureDevice(devUid, explicitDeviceId = null) {
 }
 
 async function main() {
-  const senderConnection = await connectDevSocket(senderUid);
-  const recipientConnection = await connectDevSocket(recipientUid);
-  const senderSocket = senderConnection.socket;
-  const recipientSocket = recipientConnection.socket;
+  const senderSocket = await connectDevSocket(senderUid);
+  const recipientSocket = await connectDevSocket(recipientUid);
 
   try {
-    assertSyncRequired(await senderConnection.syncRequiredPromise, 'sender_connect');
-    assertSyncRequired(await recipientConnection.syncRequiredPromise, 'recipient_connect');
-
-    // The fallback must also arrive after an explicit reconnect, before the
-    // recipient receives the next cross-user domain event.
-    const reconnectSyncPromise = waitForEvent(recipientSocket, 'sync:required');
-    recipientSocket.disconnect();
-    recipientSocket.connect();
-    assertSyncRequired(await reconnectSyncPromise, 'recipient_reconnect');
-
     const ensuredSenderDeviceId = await ensureDevice(senderUid, senderDeviceId);
     const ensuredRecipientDeviceId = await ensureDevice(recipientUid, recipientDeviceId);
 
@@ -199,11 +172,6 @@ async function main() {
         event: 'message:status',
         status: senderStatus.status,
         deliveryState: senderStatus.deliveryState,
-      },
-      syncFallback: {
-        event: 'sync:required',
-        protocolVersion: 1,
-        verifiedOnReconnect: true,
       },
     }));
   } finally {

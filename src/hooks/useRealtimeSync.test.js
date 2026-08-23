@@ -11,6 +11,10 @@ describe('realtime sync event policy', () => {
     expect(REALTIME_EVENT_DOMAINS['friend:accepted']).toEqual(['contacts', 'friendRequests']);
     expect(REALTIME_EVENT_DOMAINS['friend:declined']).toEqual(['friendRequests']);
     expect(REALTIME_EVENT_DOMAINS['friend:request:reminder']).toEqual(['friendRequests']);
+    expect(REALTIME_EVENT_DOMAINS['contacts:updated']).toEqual([
+      'contacts', 'blockedContacts', 'conversations',
+    ]);
+    expect(REALTIME_EVENT_DOMAINS['contact-requests:updated']).toEqual(['friendRequests']);
     expect(REALTIME_EVENT_DOMAINS['contact:blocked-by-parent']).toEqual([
       'contacts', 'blockedContacts', 'conversations',
     ]);

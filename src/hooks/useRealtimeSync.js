@@ -27,6 +27,10 @@ export const REALTIME_EVENT_DOMAINS = Object.freeze({
   'friend:declined': ['friendRequests'],
   'friend:request:reminder': ['friendRequests'],
   'friend:accepted': ['contacts', 'friendRequests'],
+  // Native contact routes emit aggregate invalidations instead of the older
+  // per-action socket events. Keep all contact-derived UI lists current.
+  'contacts:updated': ['contacts', 'blockedContacts', 'conversations'],
+  'contact-requests:updated': ['friendRequests'],
   'user:updated': ['contacts', 'conversations'],
 
   'contact:blocked-by-parent': ['contacts', 'blockedContacts', 'conversations'],

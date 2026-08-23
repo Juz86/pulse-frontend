@@ -1,7 +1,7 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, User, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate } from '../components/Icons';
+import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import UserAvatar from '../components/UserAvatar';
@@ -377,7 +377,7 @@ export default function ChatSidebar({
   const conversationActionsPageVisible = conversationSheetVisible;
   const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || contactActionsPageVisible || conversationActionsPageVisible || moreActionsSheetVisible || newChatSheetVisible || shareContactPageVisible || addContactSheetVisible || newGroupSheetVisible || requestsSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)));
   const profileSections = useMemo(() => ([
-    { id: 'account', icon: <User size={18} aria-hidden="true" />, label: 'Mijn account', description: 'Naam, foto en wachtwoord' },
+    { id: 'account', icon: <KeyRound size={18} aria-hidden="true" />, label: 'Wachtwoord wijzigen', description: 'Beveilig je account met een nieuw wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
     { id: 'styling', icon: <Palette size={18} aria-hidden="true" />, label: 'Vormgeving', description: 'Chatachtergrond en sfeer' },
     { id: 'geblokkeerd', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>, label: 'Geblokkeerd', description: 'Beheer geblokkeerde contacten' },
@@ -1307,81 +1307,22 @@ export default function ChatSidebar({
       panelRef={profilePanelRef}
       scrollContent
       titleId="settings-account-title"
-      title="Mijn account"
-      description="Werk je naam, avatar en wachtwoord bij in dezelfde profielopbouw."
+      title="Wachtwoord wijzigen"
+      description="Kies een nieuw wachtwoord voor je Pulse-account."
       onBack={() => setProfileTab?.('overview')}
       backLabel="Terug naar instellingen"
       headerAction={(
         <button
           type="button"
           className="contact-profile-edit-btn contact-profile-close-btn"
-          aria-label="Mijn account sluiten"
+          aria-label="Wachtwoord wijzigen sluiten"
           title="Sluiten"
           onClick={() => setProfileTab?.('overview')}
         >
           <XIcon size={20} aria-hidden="true" />
         </button>
       )}
-      hero={(
-        <ProfilePageHero
-          className="contact-profile-hero contact-profile-hero--account"
-          avatar={(
-            <div className="profile-photo-wrap profile-photo-wrap--account">
-              {photoPreview
-                ? <img src={photoPreview} alt="avatar" className="profile-avatar-big contact-profile-avatar" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview?.(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
-                : <div className="profile-avatar-big contact-profile-avatar">{getInitials(user.displayName || user.email)}</div>
-              }
-              <button
-                type="button"
-                className="profile-account-avatar-camera"
-                aria-label="Profielfoto wijzigen"
-                title="Profielfoto wijzigen"
-                onClick={() => photoInputRef?.current?.click()}
-              >
-                <Camera size={15} aria-hidden="true" />
-              </button>
-            </div>
-          )}
-        >
-          <button type="button" className="profile-account-avatar-btn" onClick={() => setShowAvatarBuilder?.(true)}>
-            🎨 Avatar maken
-          </button>
-          <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
-        </ProfilePageHero>
-      )}
     >
-      <section className="account-page-section">
-        <div className="contact-profile-field">
-          <input className="form-input" placeholder="Jouw naam" value={newName} onChange={(e) => setNewName?.(e.target.value)} />
-        </div>
-        {isChildAccount && (
-          <div className="contact-profile-field">
-            <input
-              className="form-input"
-              value={newUsername}
-              readOnly
-              disabled
-              aria-readonly="true"
-              style={{ opacity: 0.72, cursor: 'not-allowed' }}
-            />
-            <div className="profile-account-helper" style={{ marginTop: '8px' }}>
-              Deze loginnaam is ingesteld door je ouder en kan alleen in het ouderportaal worden gewijzigd.
-            </div>
-          </div>
-        )}
-        {isParent && (
-          <div className="contact-profile-field">
-            <input className="form-input profile-account-input-disabled" type="email" value={user.email} disabled />
-          </div>
-        )}
-        <div className="contact-profile-field">
-          {profileMsg && <div className={`profile-settings-inline-message profile-settings-inline-message--stacked ${profileMsg.startsWith('Fout') ? 'is-error' : 'is-success'}`}>{profileMsg}</div>}
-          <button type="button" className="btn-primary" style={{ width: '100%', marginTop: 0 }} disabled={profileLoading} onClick={() => saveProfile?.()}>
-            {profileLoading ? 'Opslaan…' : 'Opslaan →'}
-          </button>
-        </div>
-      </section>
-
       {!user.email?.endsWith('@pulse.internal') && (
         <section className="account-page-section">
           <div className="contact-profile-field">

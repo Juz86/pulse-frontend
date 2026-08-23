@@ -394,14 +394,6 @@ export default function ChatSidebar({
   ];
   const settingsDisplayName = user.displayName || user.email?.split('@')[0] || 'Gebruiker';
   const settingsEmail = user.email || '';
-  const isCurrentUserOnline = !!(user?.uid && onlineUsers?.has(user.uid));
-  const isCurrentUserInactive = !!(user?.uid && inactiveUsers?.has(user.uid));
-  const settingsStatusClass = isCurrentUserOnline
-    ? (isCurrentUserInactive ? 'inactive' : 'online')
-    : 'offline';
-  const settingsStatusLabel = isCurrentUserOnline
-    ? (isCurrentUserInactive ? 'Afwezig' : 'Online')
-    : 'Offline';
   const historySelectStyle = {
     width: '100%',
     minHeight: 48,
@@ -532,10 +524,9 @@ export default function ChatSidebar({
             subtitle={settingsEmail || null}
             status={(
               <div className="contact-profile-status-row">
-                <div className={`profile-status-badge contact-profile-status ${settingsStatusClass}`}>
-                  <span className="profile-status-dot" aria-hidden="true" />
-                  {settingsStatusLabel}
-                </div>
+                <button type="button" className="settings-avatar-builder-btn" onClick={() => setShowAvatarBuilder?.(true)}>
+                  🎨 Avatar maken
+                </button>
               </div>
             )}
           />

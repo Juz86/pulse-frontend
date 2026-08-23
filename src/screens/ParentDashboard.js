@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { getInitials, timeAgo, toMs } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, KeyRound, Trash2, Block, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, Refresh, ChevronDown, Check, Cancel, MagicEdit, Search } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, KeyRound, Trash2, Block, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, ChevronDown, Check, Cancel, MagicEdit, Search } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
 import { ProfilePageShell } from '../components/ProfilePageShell';

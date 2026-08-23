@@ -1,5 +1,5 @@
 // src/components/ChatModals.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Phone, Video, Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, Message, Logout } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
@@ -348,6 +348,7 @@ export default function ChatModals({
   const normalizedNewChatQuery = searchEmail.trim().toLowerCase();
   const [editingContactProfileName, setEditingContactProfileName] = useState(false);
   const [pendingProfileRelation, setPendingProfileRelation] = useState(undefined);
+  const contactProfileOriginalNameRef = useRef('');
 
   useEffect(() => {
     if (!showContactProfile) {
@@ -355,6 +356,19 @@ export default function ChatModals({
       setPendingProfileRelation(undefined);
     }
   }, [showContactProfile]);
+
+  useEffect(() => {
+    if (!editingContactProfileName) return undefined;
+    const stopEditingOutside = (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('.contact-profile-name-editor, .contact-profile-name-save-header')) return;
+      setRenameValue(contactProfileOriginalNameRef.current);
+      setEditingContactProfileName(false);
+    };
+    document.addEventListener('pointerdown', stopEditingOutside);
+    return () => document.removeEventListener('pointerdown', stopEditingOutside);
+  }, [editingContactProfileName, setRenameValue]);
   const filteredNewChatContacts = normalizedNewChatQuery
     ? contacts.filter(c => {
         const displayName = (getContactDisplayName(c) || c.displayName || '').toLowerCase();
@@ -939,10 +953,11 @@ export default function ChatModals({
               headerAction={(
                 <button
                   type="button"
-                  className="contact-profile-edit-btn"
+                  className={`contact-profile-edit-btn${hasPendingProfileChanges ? ' contact-profile-name-save-header' : ''}`}
                   aria-label={hasPendingProfileChanges ? `Sla ${name} op` : `Bewerk ${name}`}
                   onClick={() => {
                     if (!hasPendingProfileChanges) {
+                      contactProfileOriginalNameRef.current = name;
                       setRenameValue(name);
                       setEditingContactProfileName(true);
                       return;
@@ -973,7 +988,7 @@ export default function ChatModals({
                   name={name}
                   nameEditor={editingContactProfileName ? (
                     <input
-                      className="contact-profile-name contact-profile-name-input contact-profile-name-input--hero"
+                      className="contact-profile-name contact-profile-name-input contact-profile-name-input--hero contact-profile-name-editor"
                       value={renameValue}
                       onChange={e => setRenameValue(e.target.value)}
                       onKeyDown={e => {

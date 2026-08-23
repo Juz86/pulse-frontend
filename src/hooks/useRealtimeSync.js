@@ -24,6 +24,8 @@ export const REALTIME_EVENT_DOMAINS = Object.freeze({
 
   'friend:request': ['friendRequests'],
   'friend:request:cancelled': ['friendRequests'],
+  'friend:declined': ['friendRequests'],
+  'friend:request:reminder': ['friendRequests'],
   'friend:accepted': ['contacts', 'friendRequests'],
   'user:updated': ['contacts', 'conversations'],
 

@@ -394,6 +394,18 @@ export default function ChatSidebar({
   ];
   const settingsDisplayName = user.displayName || user.email?.split('@')[0] || 'Gebruiker';
   const settingsEmail = user.email || '';
+  useEffect(() => {
+    if (!settingsNameEditing) return undefined;
+    const stopNameEditingOutside = (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('.contact-profile-name-editor, .settings-name-save-header')) return;
+      setNewName?.(settingsDisplayName);
+      setSettingsNameEditing(false);
+    };
+    document.addEventListener('pointerdown', stopNameEditingOutside);
+    return () => document.removeEventListener('pointerdown', stopNameEditingOutside);
+  }, [settingsDisplayName, settingsNameEditing, setNewName]);
   const historySelectStyle = {
     width: '100%',
     minHeight: 48,
@@ -468,12 +480,13 @@ export default function ChatSidebar({
         headerAction={(
           <button
             type="button"
-            className="contact-profile-edit-btn"
-            aria-label={settingsNameEditing ? 'Naam bewerken annuleren' : 'Naam bewerken'}
-            title={settingsNameEditing ? 'Annuleren' : 'Bewerk naam'}
+            className={`contact-profile-edit-btn${settingsNameEditing ? ' settings-name-save-header' : ''}`}
+            aria-label={settingsNameEditing ? 'Naam opslaan' : 'Naam bewerken'}
+            title={settingsNameEditing ? 'Opslaan' : 'Bewerk naam'}
+            disabled={settingsNameEditing && profileLoading}
             onClick={() => {
               if (settingsNameEditing) {
-                setNewName?.(settingsDisplayName);
+                saveProfile?.();
                 setSettingsNameEditing(false);
                 return;
               }
@@ -481,7 +494,7 @@ export default function ChatSidebar({
               setSettingsNameEditing(true);
             }}
           >
-            {settingsNameEditing ? 'Annuleren' : 'Bewerk'}
+            {settingsNameEditing ? 'Opslaan' : 'Bewerk'}
           </button>
         )}
         hero={(
@@ -501,6 +514,7 @@ export default function ChatSidebar({
                 onSubmit={(event) => {
                   event.preventDefault();
                   saveProfile?.();
+                  setSettingsNameEditing(false);
                 }}
               >
                 <label className="sr-only" htmlFor="settings-display-name">Weergavenaam</label>
@@ -511,14 +525,6 @@ export default function ChatSidebar({
                   onChange={(event) => setNewName?.(event.target.value)}
                   autoFocus
                 />
-                <button type="submit" className="contact-profile-name-save" disabled={profileLoading}>
-                  {profileLoading ? 'Opslaan…' : 'Opslaan'}
-                </button>
-                {profileMsg ? (
-                  <span className={`profile-settings-inline-message contact-profile-name-message ${profileMsg.startsWith('Fout') ? 'is-error' : 'is-success'}`}>
-                    {profileMsg}
-                  </span>
-                ) : null}
               </form>
             ) : null}
             subtitle={settingsEmail || null}

@@ -501,11 +501,23 @@ export default function ChatSidebar({
           <ProfilePageHero
             className="contact-profile-hero contact-profile-hero--main"
             avatar={(
-              <UserAvatar
-                photoURL={photoPreview || undefined}
-                displayName={settingsDisplayName}
-                className="profile-avatar-big contact-profile-avatar"
-              />
+              <div className="profile-photo-wrap profile-photo-wrap--account">
+                <UserAvatar
+                  photoURL={photoPreview || undefined}
+                  displayName={settingsDisplayName}
+                  className="profile-avatar-big contact-profile-avatar"
+                />
+                <button
+                  type="button"
+                  className="profile-account-avatar-camera"
+                  aria-label="Profielfoto wijzigen"
+                  title="Profielfoto wijzigen"
+                  onClick={() => photoInputRef?.current?.click()}
+                >
+                  <Camera size={15} aria-hidden="true" />
+                </button>
+                <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+              </div>
             )}
             name={settingsDisplayName}
             nameEditor={settingsNameEditing ? (

@@ -21715,3 +21715,24 @@ font-family: 'Inter', sans-serif;
   color:#fff;
   box-shadow:0 6px 16px rgba(174,83,255,.54);
 }
+
+/* Eén rustige, smalle scrollbar voor alle Pulse-schermen. Specifieke
+   verborgen horizontale scrollers blijven door hun eigen regels verborgen. */
+* {
+  scrollbar-width:thin;
+  scrollbar-color:rgba(190,178,255,.42) transparent;
+}
+*::-webkit-scrollbar {
+  width:4px;
+  height:4px;
+}
+*::-webkit-scrollbar-track {
+  background:transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background:rgba(190,178,255,.42);
+  border-radius:999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background:rgba(210,199,255,.64);
+}

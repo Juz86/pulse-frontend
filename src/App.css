@@ -60,6 +60,7 @@
    env(safe-area-inset-top). Keep only the minimized call bar below it. */
 html.pulse-platform-android {
   --pulse-call-mini-top: 24px;
+  --pulse-android-status-inset: 28px;
 }
 
 /* ── Responsive hardening: telefoon + tablet + WebView ───────────────────── */
@@ -21562,4 +21563,22 @@ font-family: 'Inter', sans-serif;
   background:rgba(78,67,126,.96);
   color:#fff;
   box-shadow:0 0 0 3px rgba(192,183,255,.72), 0 8px 22px rgba(0,0,0,.30);
+}
+
+/* Lenovo's Android WebView reports zero for env(safe-area-inset-top) even
+   when it draws below the status bar. Reserve a native status-bar row for
+   both halves of the tablet split view. */
+@media (min-width: 768px) {
+  html.pulse-platform-android .sidebar-header,
+  html.pulse-platform-android .chat-header {
+    height:calc(85px + var(--pulse-android-status-inset));
+  }
+
+  html.pulse-platform-android .sidebar-header {
+    padding-top:calc(20px + var(--pulse-android-status-inset));
+  }
+
+  html.pulse-platform-android .chat-header {
+    padding-top:calc(10px + var(--pulse-android-status-inset));
+  }
 }

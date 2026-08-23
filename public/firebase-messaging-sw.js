@@ -20,8 +20,8 @@ messaging.onBackgroundMessage((payload) => {
     ? `${data.callerName || 'Iemand'} belt je via Pulse`
     : 'Open Pulse om het bericht veilig te bekijken.';
 
-  self.registration.showNotification(title || 'Pulse', {
-    body: body || defaultBody,
+  self.registration.showNotification(title || data.title || 'Pulse', {
+    body: body || data.body || defaultBody,
     icon:  icon  || '/logo192.png',
     badge: '/logo192.png',
     tag: notificationType === 'incoming_call' && data.callSessionId ? `call_${data.callSessionId}` : undefined,

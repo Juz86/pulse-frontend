@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import * as Sentry from '@sentry/react';
 import { getSocket } from '../services/socket';
 
 // One authoritative mapping from a domain event to the cached API collections
@@ -52,6 +53,26 @@ export function isRealtimePopupRelevant(eventName, payload = {}, userId = null) 
 
 const RELOAD_DEBOUNCE_MS = 80;
 
+function recordSyncSuccess({ domain, reason, durationMs }) {
+  const details = { domain, reason, durationMs: Math.round(durationMs) };
+  console.info('[Pulse][RealtimeSync] refreshed', details);
+  Sentry.addBreadcrumb({
+    category: 'realtime.sync',
+    level: 'info',
+    message: 'domain_refreshed',
+    data: details,
+  });
+}
+
+function recordSyncFailure({ domain, reason, durationMs, error }) {
+  const details = { domain, reason, durationMs: Math.round(durationMs) };
+  console.warn('[Pulse][RealtimeSync] refresh failed', details, error);
+  Sentry.captureException(error, {
+    tags: { subsystem: 'realtime_sync', domain },
+    extra: details,
+  });
+}
+
 /**
  * Keeps API-backed lists in sync with every known domain event.  It is kept
  * separate from useChat so event-specific UI behaviour does not decide which
@@ -85,16 +106,22 @@ export default function useRealtimeSync({
     if (!socket || !user?.uid) return undefined;
     const timers = new Map();
 
-    const refresh = (domains, immediately = false) => {
+    const refresh = (domains, { immediately = false, reason = 'domain_event' } = {}) => {
       domains.forEach((domain) => {
         const existingTimer = timers.get(domain);
         if (existingTimer) clearTimeout(existingTimer);
 
-        const run = () => {
+        const run = async () => {
           timers.delete(domain);
-          // A failed refresh is handled by the existing loaders; a socket
-          // event must never produce an unhandled promise rejection.
-          loadersRef.current[domain]?.({ force: true })?.catch?.(() => {});
+          const startedAt = performance.now();
+          try {
+            // A forced refresh ignores normal UI throttling. Its outcome is
+            // observable without storing user or message data in telemetry.
+            await loadersRef.current[domain]?.({ force: true });
+            recordSyncSuccess({ domain, reason, durationMs: performance.now() - startedAt });
+          } catch (error) {
+            recordSyncFailure({ domain, reason, durationMs: performance.now() - startedAt, error });
+          }
         };
         if (immediately) run();
         else timers.set(domain, setTimeout(run, RELOAD_DEBOUNCE_MS));
@@ -102,14 +129,17 @@ export default function useRealtimeSync({
     };
 
     const handlers = Object.entries(REALTIME_EVENT_DOMAINS).map(([eventName, domains]) => {
-      const handler = () => refresh(domains);
+      const handler = () => refresh(domains, { reason: eventName });
       socket.on(eventName, handler);
       return [eventName, handler];
     });
 
     // A reconnect is an invalidation boundary: events that occurred while the
     // device was offline may not have been replayed by Socket.IO.
-    const onConnect = () => refresh(['conversations', 'contacts', 'friendRequests', 'blockedContacts'], true);
+    const onConnect = () => refresh(
+      ['conversations', 'contacts', 'friendRequests', 'blockedContacts'],
+      { immediately: true, reason: 'socket:connect' }
+    );
     socket.on('connect', onConnect);
 
     return () => {

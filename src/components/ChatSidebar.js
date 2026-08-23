@@ -3329,27 +3329,6 @@ export default function ChatSidebar({
                   {f === 'all' ? 'Alles' : f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
               ))}
-              <button type="button" className={`chat-filter-chip${chatFilter === 'groepen' ? ' active' : ''}`}
-                aria-pressed={chatFilter === 'groepen'}
-                onClick={() => { setChatFilter('groepen'); setSelectedGroupId(null); }}>
-                Groepen
-              </button>
-              <button
-                type="button"
-                className="chat-filter-add-group-btn"
-                aria-label="Nieuwe groep maken"
-                title="Nieuwe groep"
-                onClick={() => {
-                  closeProfileOverviewSheet();
-                  closeAddContactSheet();
-                  closeNewChatSheet();
-                  closeCallSheet();
-                  closeMoreActionsSheet();
-                  setShowNewGroup?.(true);
-                }}
-              >
-                <Plus size={18} aria-hidden="true" />
-              </button>
             </div>
           )}
 

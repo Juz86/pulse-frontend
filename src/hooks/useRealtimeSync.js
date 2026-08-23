@@ -52,6 +52,18 @@ export function isRealtimePopupRelevant(eventName, payload = {}, userId = null) 
 }
 
 const RELOAD_DEBOUNCE_MS = 80;
+export const SYNCABLE_REALTIME_DOMAINS = Object.freeze([
+  'conversations',
+  'contacts',
+  'friendRequests',
+  'blockedContacts',
+]);
+
+export function normalizeSyncRequiredDomains(domains) {
+  if (!Array.isArray(domains)) return [...SYNCABLE_REALTIME_DOMAINS];
+  const accepted = domains.filter((domain) => SYNCABLE_REALTIME_DOMAINS.includes(domain));
+  return accepted.length > 0 ? [...new Set(accepted)] : [...SYNCABLE_REALTIME_DOMAINS];
+}
 
 function recordSyncSuccess({ domain, reason, durationMs }) {
   const details = { domain, reason, durationMs: Math.round(durationMs) };
@@ -134,16 +146,23 @@ export default function useRealtimeSync({
       return [eventName, handler];
     });
 
+    const onSyncRequired = ({ domains } = {}) => refresh(
+      normalizeSyncRequiredDomains(domains),
+      { reason: 'server:sync_required' }
+    );
+    socket.on('sync:required', onSyncRequired);
+
     // A reconnect is an invalidation boundary: events that occurred while the
     // device was offline may not have been replayed by Socket.IO.
     const onConnect = () => refresh(
-      ['conversations', 'contacts', 'friendRequests', 'blockedContacts'],
+      SYNCABLE_REALTIME_DOMAINS,
       { immediately: true, reason: 'socket:connect' }
     );
     socket.on('connect', onConnect);
 
     return () => {
       handlers.forEach(([eventName, handler]) => socket.off(eventName, handler));
+      socket.off('sync:required', onSyncRequired);
       socket.off('connect', onConnect);
       timers.forEach((timer) => clearTimeout(timer));
       timers.clear();

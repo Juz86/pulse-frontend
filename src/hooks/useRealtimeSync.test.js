@@ -1,4 +1,8 @@
-import { isRealtimePopupRelevant, REALTIME_EVENT_DOMAINS } from './useRealtimeSync';
+import {
+  isRealtimePopupRelevant,
+  normalizeSyncRequiredDomains,
+  REALTIME_EVENT_DOMAINS,
+} from './useRealtimeSync';
 
 describe('realtime sync event policy', () => {
   test('maps each emitted server domain event to an API list', () => {
@@ -18,5 +22,12 @@ describe('realtime sync event policy', () => {
     expect(isRealtimePopupRelevant('conversation:admins_updated', { promotedUid: 'another-child' }, 'child-1')).toBe(false);
     expect(isRealtimePopupRelevant('conversation:renamed', {}, 'child-1')).toBe(false);
     expect(isRealtimePopupRelevant('message:edited', {}, 'child-1')).toBe(false);
+  });
+
+  test('accepts only known domains from the server sync fallback', () => {
+    expect(normalizeSyncRequiredDomains(['contacts', 'unknown', 'contacts'])).toEqual(['contacts']);
+    expect(normalizeSyncRequiredDomains([])).toEqual([
+      'conversations', 'contacts', 'friendRequests', 'blockedContacts',
+    ]);
   });
 });

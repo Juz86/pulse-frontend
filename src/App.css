@@ -21499,6 +21499,25 @@ font-family: 'Inter', sans-serif;
   }
 }
 
+/* Tablet/laptop calls: één compacte WhatsApp-achtige contactavatar voor
+   bellen, videobellen-in-opbouw én foutstatussen. Zonder deze regel viel een
+   niet-beschikbare oproep terug op de generieke avatar (tot 360px). */
+@media (min-width: 768px) {
+  .call-overlay--desktop-panel .call-card .call-avatar-big,
+  .call-overlay--desktop-panel .call-card.voice-active .call-avatar-big,
+  .call-overlay--desktop-panel .call-card.transparent.call-video-pending .call-avatar-big,
+  .call-overlay--desktop-panel.call-overlay--video-reference .call-card.transparent.call-video-pending .call-avatar-big {
+    width:128px;
+    height:128px;
+    min-width:128px;
+    min-height:128px;
+    max-width:128px;
+    max-height:128px;
+    margin:auto;
+    font-size:28px;
+  }
+}
+
 @media (min-width: 768px) {
   .share-contact-page-footer,
   .new-group-page-footer,

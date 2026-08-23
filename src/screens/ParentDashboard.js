@@ -1039,6 +1039,9 @@ export default function ParentDashboard({
                           <div className="pd-contact-sub">{contact.email || (contact.username ? `@${contact.username}` : '')}</div>
                         </div>
                         <div className="pd-contact-side">
+                          {contact.isParentContact && (
+                            <span className="pd-contact-status protected">Co-ouder</span>
+                          )}
                           <div className="pd-contact-actions">
                             {contact.isParentContact ? (
                               <span className="pd-contact-protected-note">Beveiligd</span>

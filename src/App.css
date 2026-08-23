@@ -13370,6 +13370,27 @@ font-family: 'Inter', sans-serif;
   font-size:13px;
   font-weight:700;
 }
+.parent-top-contacts-column-toggle {
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#232640;
+  font:inherit;
+  font-size:13px;
+  font-weight:700;
+  text-align:left;
+  cursor:pointer;
+}
+.parent-top-contacts-column-toggle svg {
+  transition:transform .18s ease;
+}
+.parent-top-contacts-column-toggle svg.is-expanded {
+  transform:rotate(180deg);
+}
 .parent-activity-filter-row {
   display:flex;
   flex-wrap:wrap;
@@ -15369,6 +15390,7 @@ font-family: 'Inter', sans-serif;
 
 .parent-dashboard-panel .analytics-profile-summary-item strong,
 .parent-dashboard-panel .parent-top-contacts-column-title,
+.parent-dashboard-panel .parent-top-contacts-column-toggle,
 .parent-dashboard-panel .parent-top-contact-copy strong,
 .parent-dashboard-panel .pd-location-coords {
   color: #f7f4ff;

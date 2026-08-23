@@ -113,6 +113,7 @@ export default function ParentDashboard({
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError,   setAnalyticsError]   = useState('');
   const [activityContactFilter, setActivityContactFilter] = useState('all');
+  const [expandedTopContactSections, setExpandedTopContactSections] = useState({ chat: true, calls: false, video: false });
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
   const [childPickerPosition, setChildPickerPosition] = useState(null);
   const [childPickerTarget, setChildPickerTarget] = useState(null);
@@ -1386,13 +1387,25 @@ export default function ParentDashboard({
                             <div className="analytics-section-title"><Users size={15} aria-hidden="true" /> Top 3 contacten</div>
                             <div className="parent-top-contacts-grid">
                               {[
-                                { title: 'Meest chat mee', items: topChatContacts, metric: (contact) => `${contact.messagesSent || 0} chats` },
-                                { title: 'Meest belt mee', items: topCallContacts, metric: (contact) => `${contact.callCount || 0} oproepen` },
-                                { title: 'Meest videobelt mee', items: topVideoContacts, metric: (contact) => `${contact.videoCalls || 0} videogesprekken` },
+                                { id: 'chat', title: 'Meest chat mee', items: topChatContacts, metric: (contact) => `${contact.messagesSent || 0} chats` },
+                                { id: 'calls', title: 'Meest belt mee', items: topCallContacts, metric: (contact) => `${contact.callCount || 0} oproepen` },
+                                { id: 'video', title: 'Meest videobelt mee', items: topVideoContacts, metric: (contact) => `${contact.videoCalls || 0} videogesprekken` },
                               ].map((section) => (
                                 <div key={section.title} className="parent-top-contacts-column">
-                                  <div className="parent-top-contacts-column-title">{section.title}</div>
-                                  {section.items.length === 0 ? (
+                                  {section.id === 'chat' ? (
+                                    <div className="parent-top-contacts-column-title">{section.title}</div>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className="parent-top-contacts-column-toggle"
+                                      aria-expanded={!!expandedTopContactSections[section.id]}
+                                      onClick={() => setExpandedTopContactSections((current) => ({ ...current, [section.id]: !current[section.id] }))}
+                                    >
+                                      <span>{section.title}</span>
+                                      <ChevronDown size={18} aria-hidden="true" className={expandedTopContactSections[section.id] ? 'is-expanded' : ''} />
+                                    </button>
+                                  )}
+                                  {(section.id === 'chat' || expandedTopContactSections[section.id]) && (section.items.length === 0 ? (
                                     <div className="parent-top-contacts-empty">Nog geen data.</div>
                                   ) : (
                                     <div className="parent-top-contacts-list">
@@ -1412,7 +1425,7 @@ export default function ParentDashboard({
                                         </div>
                                       ))}
                                     </div>
-                                  )}
+                                  ))}
                                 </div>
                               ))}
                             </div>

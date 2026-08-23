@@ -20426,6 +20426,11 @@ font-family: 'Inter', sans-serif;
   word-break: break-word;
 }
 
+.parent-child-picker-label {
+  font-size:15px;
+  font-weight:700;
+}
+
 .friend-request-person-name,
 .friend-request-person-email,
 .blocked-contact-name-responsive,

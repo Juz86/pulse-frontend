@@ -14,6 +14,7 @@
     "wipe:emulator": "node src/scripts/wipeEmulator.js",
     "smoke": "node src/scripts/smoke.js",
     "smoke:socket": "node src/scripts/socketSmoke.js",
+    "smoke:socket:emulator": "firebase emulators:exec --only firestore --project pulse-messenger-3cb9d 'bash src/scripts/runSocketSmokeWithEmulator.sh'",
     "preflight": "node src/scripts/preflight.js",
     "preflight:emulator": "node src/scripts/preflightEmulator.js",
     "test": "node --test src/services/firebaseConfig.test.js src/services/policyTime.test.js src/services/deviceKeys.test.js src/services/deviceRecords.test.js src/services/deviceValidation.test.js src/services/messageEdits.test.js src/services/messageReactions.test.js src/services/messageReceipts.test.js src/services/messageVisibility.test.js src/services/conversationVisibility.test.js src/services/userRoles.test.js src/middleware/auth.test.js src/middleware/requireFirebaseReady.test.js"

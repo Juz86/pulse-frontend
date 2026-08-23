@@ -573,6 +573,19 @@ export default function ChatSidebar({
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
+          <button
+            type="button"
+            className="contact-profile-row-button danger"
+            onClick={() => handleDeleteAccount?.()}
+          >
+            <span className="contact-profile-row-icon" aria-hidden="true"><Trash2 size={18} /></span>
+            <span className="contact-profile-row-copy">
+              <span className="contact-profile-row-title">Account verwijderen</span>
+            </span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
         </section>
       </ProfilePageShell>
     );
@@ -1364,22 +1377,6 @@ export default function ChatSidebar({
           </div>
         </section>
       )}
-
-      <section className="contact-profile-card contact-profile-card-danger">
-        <button
-          type="button"
-          className="contact-profile-row-button danger"
-          onClick={() => handleDeleteAccount?.()}
-        >
-          <span className="contact-profile-row-icon" aria-hidden="true"><Trash2 size={18} /></span>
-          <span className="contact-profile-row-copy">
-            <span className="contact-profile-row-title">Account verwijderen</span>
-          </span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </button>
-      </section>
     </ProfilePageShell>
   );
   const renderSettingsSubpageShell = (title, description, children, pageClassName = '') => (

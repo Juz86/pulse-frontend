@@ -122,6 +122,24 @@ export function isCallInProgress() {
   return ACTIVE_CALL_STATES.has(currentCallState);
 }
 
+// De call-status leeft in deze socketmodule, terwijl de zichtbare overlay in
+// React leeft. Na een onderbroken WebView of een geforceerde schermsluiting kan
+// die status achterblijven. De aanroepende UI gebruikt dit alleen wanneer er
+// zelf géén actieve overlay is. Een inkomende beltoon blijft altijd intact.
+export function clearOrphanedOutgoingCall() {
+  if (!isCallInProgress() || currentCallState === 'ringing') return false;
+
+  const sessionId = currentCallSessionId;
+  const toUid = callPeer;
+  console.warn('[Pulse][Call] ruim achtergebleven uitgaande callsessie op', {
+    sessionId,
+    state: currentCallState,
+  });
+  if (toUid) socket?.emit('call:end', { to: toUid, sessionId });
+  cleanupCall(null, sessionId);
+  return true;
+}
+
 export function registerIncomingRingingSession(sessionId, fromUid) {
   if (!sessionId) return false;
   if (isCallInProgress() && currentCallSessionId && currentCallSessionId !== sessionId) return false;

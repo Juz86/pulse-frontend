@@ -1,7 +1,7 @@
 // src/hooks/useCalling.js
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { getSocket } from '../services/socket';
-import { BACKEND_URL, startCall, getCurrentCallSessionId } from '../services/socket';
+import { BACKEND_URL, startCall, getCurrentCallSessionId, clearOrphanedOutgoingCall } from '../services/socket';
 
 export default function useCalling({
   user,
@@ -32,6 +32,7 @@ export default function useCalling({
   const callTargetUidRef = useRef('');
   const callTargetNameRef = useRef('');
   const callTargetPhotoRef = useRef('');
+  const callStartInProgressRef = useRef(false);
   const MIN_CALL_LOG_REFRESH_INTERVAL_MS = 5000;
 
   const authFetch = useCallback(async (url, options = {}) => {
@@ -370,7 +371,7 @@ export default function useCalling({
   }
 
   async function startCallTo({ toUid, convId, name, isVideo }) {
-    if (activeCall) {
+    if (activeCall || callStartInProgressRef.current) {
       showErrToast('Er is al een actief gesprek.');
       return;
     }
@@ -382,9 +383,14 @@ export default function useCalling({
       showErrToast(`⏸ ${isVideo ? 'Videobellen' : 'Bellen'} is gepauzeerd door je ouder${available ? `, maar je kan nog wel ${available}` : ''}.`);
       return;
     }
-    callConvIdRef.current    = convId;
+    // React toont geen gesprek, maar de socket kan na een onderbreking nog
+    // een oude uitgaande sessie onthouden. Ruim die eerst op zodat de gebruiker
+    // niet ten onrechte wordt geblokkeerd. Inkomende sessies worden niet geraakt.
+    clearOrphanedOutgoingCall();
+    callStartInProgressRef.current = true;
+    callConvIdRef.current = convId;
     callStartTimeRef.current = null;
-    callIsVideoRef.current   = isVideo;
+    callIsVideoRef.current = isVideo;
     fallbackNoticeShownRef.current = false;
     callTargetUidRef.current = toUid || '';
     callTargetNameRef.current = name || '';
@@ -441,6 +447,8 @@ export default function useCalling({
       }
     } catch (err) {
       showErrToast(err.message);
+    } finally {
+      callStartInProgressRef.current = false;
     }
   }
 

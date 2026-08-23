@@ -2974,7 +2974,7 @@ export default function ChatSidebar({
           title="Meer acties"
         >
           <span className="sidebar-footer-tab-icon" aria-hidden="true">
-            <MoreHoriz size={22} aria-hidden="true" />
+            <Plus size={22} aria-hidden="true" />
           </span>
           <span className="sidebar-footer-tab-label">Meer</span>
         </button>

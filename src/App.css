@@ -13391,6 +13391,22 @@ font-family: 'Inter', sans-serif;
 .parent-top-contacts-column-toggle svg.is-expanded {
   transform:rotate(180deg);
 }
+.parent-contact-overview-more {
+  width:100%;
+  min-height:40px;
+  margin-top:10px;
+  border:1px solid rgba(142,119,255,.34);
+  border-radius:12px;
+  background:rgba(133,105,255,.12);
+  color:#755cf2;
+  font:inherit;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.parent-contact-overview-more:hover {
+  background:rgba(133,105,255,.2);
+}
 .parent-activity-filter-row {
   display:flex;
   flex-wrap:wrap;

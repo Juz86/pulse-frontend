@@ -113,6 +113,7 @@ export default function ParentDashboard({
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError,   setAnalyticsError]   = useState('');
   const [activityContactFilter, setActivityContactFilter] = useState('all');
+  const [contactOverviewExpanded, setContactOverviewExpanded] = useState(false);
   const [expandedTopContactSections, setExpandedTopContactSections] = useState({ chat: true, calls: false, video: false });
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
   const [childPickerPosition, setChildPickerPosition] = useState(null);
@@ -1258,6 +1259,7 @@ export default function ParentDashboard({
                         if (relationDiff !== 0) return relationDiff;
                         return String(a.displayName || a.email || a.uid).localeCompare(String(b.displayName || b.email || b.uid), 'nl');
                       });
+                      const visibleContacts = contactOverviewExpanded ? filteredContacts : filteredContacts.slice(0, 3);
                       const topContactCandidates = Array.isArray(messaging.topContacts) ? messaging.topContacts.filter((contact) => !contact.isGroup) : [];
                       const buildTopList = (metricKey) => topContactCandidates
                         .filter((contact) => Number(contact[metricKey] || 0) > 0)
@@ -1350,7 +1352,10 @@ export default function ParentDashboard({
                                   type="button"
                                   className={`parent-activity-filter-chip${activityContactFilter === filter.id ? ' active' : ''}`}
                                   aria-pressed={activityContactFilter === filter.id}
-                                  onClick={() => setActivityContactFilter(filter.id)}
+                                  onClick={() => {
+                                    setActivityContactFilter(filter.id);
+                                    setContactOverviewExpanded(false);
+                                  }}
                                 >
                                   {filter.label} <span className="parent-activity-filter-count">{contactCounts[filter.id]}</span>
                                 </button>
@@ -1360,7 +1365,7 @@ export default function ParentDashboard({
                               <div className="parent-top-contacts-empty">Geen contacten in deze filter.</div>
                             ) : (
                               <div className="parent-activity-contacts-list">
-                                {filteredContacts.map((contact) => (
+                                {visibleContacts.map((contact) => (
                                   <div key={contact.uid} className="parent-activity-contact-row">
                                     <UserAvatar
                                       photoURL={contact.photoURL || null}
@@ -1380,6 +1385,16 @@ export default function ParentDashboard({
                                   </div>
                                 ))}
                               </div>
+                            )}
+                            {filteredContacts.length > 3 && (
+                              <button
+                                type="button"
+                                className="parent-contact-overview-more"
+                                aria-expanded={contactOverviewExpanded}
+                                onClick={() => setContactOverviewExpanded((expanded) => !expanded)}
+                              >
+                                {contactOverviewExpanded ? 'Minder tonen' : `Meer (${filteredContacts.length - 3})`}
+                              </button>
                             )}
                           </div>
 

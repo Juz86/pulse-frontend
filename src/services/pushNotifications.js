@@ -83,6 +83,19 @@ async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversat
   if (!Capacitor.isNativePlatform()) return null;
 
   const listeners = [];
+  const clearDeliveredNotifications = () => {
+    // Android launchers derive their app-icon counter from notifications that
+    // are still in the system tray. Zodra Pulse weer zichtbaar is, zijn die
+    // meldingen niet langer een goede indicatie van ongelezen activiteit.
+    PushNotifications.removeAllDeliveredNotifications().catch((error) => {
+      logWarn('Afgeleverde Android-meldingen opruimen mislukt:', error?.message || error);
+    });
+  };
+  const clearOnForeground = () => {
+    if (typeof document === 'undefined' || document.visibilityState === 'visible') {
+      clearDeliveredNotifications();
+    }
+  };
 
   const addListener = async (eventName, callback) => {
     const handle = await PushNotifications.addListener(eventName, callback);
@@ -146,10 +159,28 @@ async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversat
     sound: 'default',
   }).catch(() => {});
 
+  // Een heropende Capacitor WebView hervat vanuit de achtergrond zonder dat
+  // Android de eerder bezorgde FCM-notificaties automatisch verwijdert.
+  // Ruim ze bij zowel de eerste start als elke foreground-transitie op, zodat
+  // de teller op het Pulse-appicoon niet achterblijft.
+  clearOnForeground();
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', clearOnForeground);
+  }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('focus', clearOnForeground);
+  }
+
   await PushNotifications.register();
 
   return {
     cleanup: async () => {
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', clearOnForeground);
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('focus', clearOnForeground);
+      }
       await Promise.all(listeners.map((handle) => handle?.remove?.() || Promise.resolve()));
     },
   };

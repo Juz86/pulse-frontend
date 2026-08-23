@@ -15069,7 +15069,8 @@ font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  margin-bottom: 24px;
+  /* Gelijk aan de kaartafstand binnen het analyseoverzicht. */
+  margin-bottom: 16px;
 }
 .parent-dashboard-panel .parent-activity-overview {
   margin-bottom: 0;

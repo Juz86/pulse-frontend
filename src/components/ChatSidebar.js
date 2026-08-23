@@ -327,6 +327,7 @@ export default function ChatSidebar({
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const [pendingColor, setPendingColor] = useState(null);
   const [pendingPhoto, setPendingPhoto] = useState(null);
+  const [settingsNameEditing, setSettingsNameEditing] = useState(false);
   const moreActionsMenuRef = useRef(null);
   const profilePanelRef = useRef(null);
   const parentPortalPanelRef = useRef(null);
@@ -476,11 +477,19 @@ export default function ChatSidebar({
           <button
             type="button"
             className="contact-profile-edit-btn"
-            aria-label="Mijn account bewerken"
-            title="Bewerk mijn account"
-            onClick={() => setProfileTab?.('account')}
+            aria-label={settingsNameEditing ? 'Naam bewerken annuleren' : 'Naam bewerken'}
+            title={settingsNameEditing ? 'Annuleren' : 'Bewerk naam'}
+            onClick={() => {
+              if (settingsNameEditing) {
+                setNewName?.(settingsDisplayName);
+                setSettingsNameEditing(false);
+                return;
+              }
+              setNewName?.(newName || settingsDisplayName);
+              setSettingsNameEditing(true);
+            }}
           >
-            Bewerk
+            {settingsNameEditing ? 'Annuleren' : 'Bewerk'}
           </button>
         )}
         hero={(
@@ -494,6 +503,32 @@ export default function ChatSidebar({
               />
             )}
             name={settingsDisplayName}
+            nameEditor={settingsNameEditing ? (
+              <form
+                className="contact-profile-name-editor"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  saveProfile?.();
+                }}
+              >
+                <label className="sr-only" htmlFor="settings-display-name">Weergavenaam</label>
+                <input
+                  id="settings-display-name"
+                  className="form-input contact-profile-name-input"
+                  value={newName}
+                  onChange={(event) => setNewName?.(event.target.value)}
+                  autoFocus
+                />
+                <button type="submit" className="contact-profile-name-save" disabled={profileLoading}>
+                  {profileLoading ? 'Opslaan…' : 'Opslaan'}
+                </button>
+                {profileMsg ? (
+                  <span className={`profile-settings-inline-message contact-profile-name-message ${profileMsg.startsWith('Fout') ? 'is-error' : 'is-success'}`}>
+                    {profileMsg}
+                  </span>
+                ) : null}
+              </form>
+            ) : null}
             subtitle={settingsEmail || null}
             status={(
               <div className="contact-profile-status-row">

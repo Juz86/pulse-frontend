@@ -4529,6 +4529,26 @@ font-family: 'Inter', sans-serif;
   border-radius: 17px;
   color: currentColor;
 }
+/* De Meer-actie is de primaire toevoegactie in de onderste navigatie en
+   gebruikt daarom dezelfde opvallende plusbehandeling als de groepsknop. */
+.sidebar-footer-tab-more .sidebar-footer-tab-icon {
+  width:35px;
+  height:35px;
+  border:1.5px solid #b66cff;
+  border-radius:50%;
+  background:linear-gradient(135deg,#be67ff,#8b5cf6);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(174,83,255,.42);
+  transition:all .15s ease;
+}
+.sidebar-footer-tab-more:hover .sidebar-footer-tab-icon,
+.sidebar-footer-tab-more.active .sidebar-footer-tab-icon {
+  border-color:#d3a5ff;
+  background:linear-gradient(135deg,#cc7cff,#9867ff);
+  color:#fff;
+  box-shadow:0 6px 16px rgba(174,83,255,.54);
+  transform:translateY(-1px);
+}
 .sidebar-footer-tab-label {
   display: block;
   width: 100%;
@@ -4595,6 +4615,11 @@ font-family: 'Inter', sans-serif;
     width: 30px;
     height: 30px;
     border-radius: 15px;
+  }
+  .sidebar-footer-tab-more .sidebar-footer-tab-icon {
+    width:35px;
+    height:35px;
+    border-radius:50%;
   }
   .sidebar-footer-tab-label {
     font-size: 8px;

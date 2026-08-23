@@ -670,7 +670,7 @@ export default function ParentDashboard({
     if (showingMenu) onClose?.();
     else setPortalView('menu');
   };
-  const renderActivitiesPicker = () => children.length > 0 ? (
+  const renderPortalChildPicker = ({ selectedUid = selectedChildUid, onSelect = setSelectedChildUid, placeholder = 'Kind' } = {}) => children.length > 0 ? (
     <div className="parent-portal-picker">
       <button
         type="button"
@@ -678,10 +678,10 @@ export default function ParentDashboard({
         aria-label="Kies kind"
         aria-haspopup="listbox"
         aria-expanded={childDropdownOpen}
-        onClick={(event) => toggleChildPicker(event, { selectedUid: selectedChildUid, onSelect: setSelectedChildUid })}
+        onClick={(event) => toggleChildPicker(event, { selectedUid, onSelect })}
       >
         <span className="parent-child-picker-label">
-          {children.find(c => c.uid === selectedChildUid)?.displayName || 'Kind'}
+          {children.find(c => c.uid === selectedUid)?.displayName || placeholder}
         </span>
         <ChevronDown size={16} aria-hidden="true" />
       </button>
@@ -1018,26 +1018,6 @@ export default function ParentDashboard({
             {/* Tab 3 — Contacten van kind */}
             {activeTab === 'contacts' && (
               <div className="parent-portal-view parent-portal-view--contacts">
-                <div className="parent-portal-toolbar parent-portal-toolbar--spread">
-                  <h2 className="parent-section-title">Contacten</h2>
-                  {children.length > 1 && (
-                    <div className="parent-portal-picker">
-                      <button
-                        type="button"
-                        className="parent-btn-outline parent-btn-outline--compact parent-btn-outline--picker"
-                        aria-label="Kies kind voor contactenoverzicht"
-                        aria-haspopup="listbox"
-                        aria-expanded={childDropdownOpen}
-                        onClick={(event) => toggleChildPicker(event, { selectedUid: contactsChildUid, onSelect: setContactsChildUid })}
-                      >
-                        <span className="parent-child-picker-label">
-                          {children.find(c => c.uid === contactsChildUid)?.displayName || 'Selecteer kind'}
-                        </span>
-                        <ChevronDown size={16} aria-hidden="true" />
-                      </button>
-                    </div>
-                  )}
-                </div>
                 <p className="parent-section-sub parent-portal-inline-sub">Bekijk en beheer de contacten van uw kind. U kunt contacten blokkeren of verwijderen.</p>
 
                 {contactsError && <div className="parent-error" role="alert"><span aria-hidden="true">⚠️ </span>{contactsError}</div>}
@@ -1696,7 +1676,9 @@ export default function ParentDashboard({
           description="Beheer kinderen, contacten, locatie en activiteiten vanuit dezelfde profielopbouw."
           onBack={returnToPreviousPortalScreen}
           backLabel={showingMenu ? 'Ouderportaal sluiten' : 'Terug naar ouderportaal overzicht'}
-          headerAction={!showingMenu && (activeTab === 'activities' || activeTab === 'children') ? renderActivitiesPicker() : onClose ? (
+          headerAction={!showingMenu && activeTab === 'contacts'
+            ? renderPortalChildPicker({ selectedUid: contactsChildUid, onSelect: setContactsChildUid, placeholder: 'Selecteer kind' })
+            : !showingMenu && (activeTab === 'activities' || activeTab === 'children') ? renderPortalChildPicker() : onClose ? (
             <button
               type="button"
               className="contact-profile-nav-btn contact-profile-close-btn"

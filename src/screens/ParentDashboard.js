@@ -553,10 +553,8 @@ export default function ParentDashboard({
   const activityTabBadge = activityBadgeCount > 9 ? '9+' : activityBadgeCount;
   const googleMapsTabIcon = (
     <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 2.2c-4.08 0-7.4 3.31-7.4 7.4 0 5.3 6.57 11.68 7.02 12.1a.54.54 0 0 0 .76 0c.45-.42 7.02-6.8 7.02-12.1 0-4.09-3.32-7.4-7.4-7.4z" fill="#EA4335"/>
-      <path d="M12 2.2v19.9a.54.54 0 0 1-.38-.16c-.45-.42-7.02-6.8-7.02-12.1 0-4.09 3.32-7.4 7.4-7.4z" fill="#34A853"/>
-      <circle cx="12" cy="9.6" r="3.15" fill="#FBBC05"/>
-      <circle cx="12" cy="9.6" r="1.55" fill="#4285F4"/>
+      <path d="M12 2.2c-4.08 0-7.4 3.31-7.4 7.4 0 5.3 6.57 11.68 7.02 12.1a.54.54 0 0 0 .76 0c.45-.42 7.02-6.8 7.02-12.1 0-4.09-3.32-7.4-7.4-7.4z" fill="currentColor"/>
+      <circle cx="12" cy="9.6" r="2.2" fill="rgba(38,30,73,.9)"/>
     </svg>
   );
 

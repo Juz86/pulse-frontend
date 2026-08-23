@@ -7,6 +7,9 @@ describe('realtime sync event policy', () => {
     expect(REALTIME_EVENT_DOMAINS['contact:blocked-by-parent']).toEqual([
       'contacts', 'blockedContacts', 'conversations',
     ]);
+    expect(REALTIME_EVENT_DOMAINS['contact:policy_updated']).toEqual([
+      'contacts', 'blockedContacts', 'conversations',
+    ]);
   });
 
   test('only surfaces direct actions as pop-ups', () => {

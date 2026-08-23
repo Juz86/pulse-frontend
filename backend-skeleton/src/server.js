@@ -8,7 +8,7 @@ import { contactsRouter } from './routes/contacts.js';
 import { friendRequestsRouter } from './routes/friendRequests.js';
 import { keysRouter } from './routes/keys.js';
 import { messagesRouter } from './routes/messages.js';
-import { parentRouter } from './routes/parent.js';
+import { configureParentRealtime, parentRouter } from './routes/parent.js';
 import { callsRouter } from './routes/calls.js';
 import { usersRouter } from './routes/users.js';
 import { requestContext } from './middleware/requestContext.js';
@@ -33,6 +33,7 @@ import {
 const app = express();
 const server = http.createServer(app);
 const { io, emitToUser } = createSocketServer(server);
+configureParentRealtime({ io, emitToUser });
 const startedAt = new Date().toISOString();
 const DEFAULT_STUN_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },

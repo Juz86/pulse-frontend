@@ -16,6 +16,17 @@ import { logPolicyEvent } from '../services/policyEvents.js';
 
 export const parentRouter = Router();
 
+// The router remains directly importable for route tests.  The server injects
+// the socket delivery function at startup so REST-only parental actions reach
+// an already-open child session immediately.
+let emitRealtimeToUser = () => {};
+
+export function configureParentRealtime({ io, emitToUser } = {}) {
+  emitRealtimeToUser = typeof emitToUser === 'function'
+    ? (uid, event, payload) => emitToUser(io, uid, event, payload)
+    : () => {};
+}
+
 const CHILD_USERNAME_RE = /^[a-z0-9_]{3,20}$/;
 const DEFAULT_FIREBASE_WEB_API_KEY = 'AIzaSyC91LqqIw8z8NH7e1ChCKD3zUo_VXQeyRY';
 
@@ -678,6 +689,10 @@ parentRouter.post('/pause/:childUid', requireAuth, asyncRoute(async (req, res) =
     metadata: { feature },
   });
 
+  emitRealtimeToUser(childUid, 'account:paused', {
+    features: toPausedFeatures(policy),
+  });
+
   return res.json({ ok: true, pausedFeatures: toPausedFeatures(policy) });
 }));
 
@@ -714,6 +729,10 @@ parentRouter.post('/resume/:childUid', requireAuth, asyncRoute(async (req, res) 
     action: 'resume_feature',
     allowed: true,
     metadata: { feature },
+  });
+
+  emitRealtimeToUser(childUid, 'account:resumed', {
+    features: toPausedFeatures(policy),
   });
 
   return res.json({ ok: true, pausedFeatures: toPausedFeatures(policy) });
@@ -1130,6 +1149,8 @@ parentRouter.post('/child/:childUid/approved-contacts', requireAuth, asyncRoute(
     },
   });
 
+  emitRealtimeToUser(childUid, 'contact:policy_updated', { targetUid });
+
   return res.json({ ok: true });
 }));
 
@@ -1170,6 +1191,8 @@ parentRouter.patch('/child/:childUid/approved-contacts/:targetUid', requireAuth,
     },
   });
 
+  emitRealtimeToUser(childUid, 'contact:policy_updated', { targetUid });
+
   return res.json({ ok: true });
 }));
 
@@ -1190,6 +1213,8 @@ parentRouter.delete('/child/:childUid/approved-contacts/:targetUid', requireAuth
     action: 'remove_contact',
     allowed: true,
   });
+
+  emitRealtimeToUser(childUid, 'contact:policy_updated', { targetUid });
 
   return res.json({ ok: true });
 }));
@@ -1226,6 +1251,8 @@ parentRouter.post('/child/:childUid/block-contact', requireAuth, asyncRoute(asyn
     allowed: true,
   });
 
+  emitRealtimeToUser(childUid, 'contact:blocked-by-parent', { targetUid });
+
   return res.json({ ok: true });
 }));
 
@@ -1261,6 +1288,8 @@ parentRouter.post('/child/:childUid/unblock-contact', requireAuth, asyncRoute(as
     allowed: true,
   });
 
+  emitRealtimeToUser(childUid, 'contact:unblocked-by-parent', { targetUid });
+
   return res.json({ ok: true });
 }));
 
@@ -1286,6 +1315,8 @@ parentRouter.post('/child/:childUid/remove-contact', requireAuth, asyncRoute(asy
     action: 'remove_contact',
     allowed: true,
   });
+
+  emitRealtimeToUser(childUid, 'contact:removed-by-parent', { targetUid });
 
   return res.json({ ok: true });
 }));

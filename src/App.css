@@ -6322,6 +6322,9 @@ font-family: 'Inter', sans-serif;
 /* ── PROFIEL AVATAR GROOT ── */
 .profile-avatar-big {
   width:80px; height:80px; border-radius:50%;
+  aspect-ratio:1 / 1;
+  overflow:hidden;
+  clip-path:circle(50% at 50% 50%);
   background:linear-gradient(135deg, var(--accent), var(--accent2));
   display:flex; align-items:center; justify-content:center;
   font-family:'Inter',sans-serif; font-weight:800; font-size:28px; color:#fff;
@@ -7662,6 +7665,8 @@ font-family: 'Inter', sans-serif;
 .contact-profile-hero--main .contact-profile-avatar {
   width:100px;
   height:100px;
+  border-radius:50%;
+  object-fit:cover;
 }
 .contact-profile-hero--main .contact-profile-subtitle {
   margin-top:4px;

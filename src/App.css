@@ -7649,6 +7649,9 @@ font-family: 'Inter', sans-serif;
 }
 .contact-profile-hero--main .contact-profile-hero-copy {
   align-items:flex-start;
+  flex:0 1 220px;
+  width:220px;
+  max-width:calc(100% - 130px);
   transform:translateX(-10px);
 }
 .contact-profile-hero--main .contact-profile-avatar-shell {

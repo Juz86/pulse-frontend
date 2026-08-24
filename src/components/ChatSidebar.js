@@ -502,11 +502,10 @@ export default function ChatSidebar({
             className="contact-profile-hero contact-profile-hero--main"
             avatar={(
               <div className="profile-photo-wrap profile-photo-wrap--account">
-                <UserAvatar
-                  photoURL={photoPreview || undefined}
-                  displayName={settingsDisplayName}
-                  className="profile-avatar-big contact-profile-avatar"
-                />
+                {photoPreview
+                  ? <img src={photoPreview} alt={settingsDisplayName || 'Profielfoto'} className="profile-avatar-big contact-profile-avatar" style={{ objectFit: 'cover' }} loading="lazy" onError={() => { setPhotoPreview?.(null); localStorage.removeItem(`pulse_photo_${user.uid}`); }} />
+                  : <div className="profile-avatar-big contact-profile-avatar">{getInitials(settingsDisplayName)}</div>
+                }
                 <button
                   type="button"
                   className="profile-account-avatar-camera"

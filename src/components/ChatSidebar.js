@@ -377,10 +377,10 @@ export default function ChatSidebar({
   const conversationActionsPageVisible = conversationSheetVisible;
   const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || contactActionsPageVisible || conversationActionsPageVisible || moreActionsSheetVisible || newChatSheetVisible || shareContactPageVisible || addContactSheetVisible || newGroupSheetVisible || requestsSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)));
   const profileSections = useMemo(() => ([
-    { id: 'account', icon: <KeyRound size={18} aria-hidden="true" />, label: 'Wachtwoord wijzigen', description: 'Beveilig je account met een nieuw wachtwoord' },
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
     { id: 'styling', icon: <Palette size={18} aria-hidden="true" />, label: 'Vormgeving', description: 'Chatachtergrond en sfeer' },
     { id: 'geblokkeerd', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>, label: 'Geblokkeerd', description: 'Beheer geblokkeerde contacten' },
+    { id: 'account', icon: <KeyRound size={18} aria-hidden="true" />, label: 'Wachtwoord wijzigen', description: 'Beveilig je account met een nieuw wachtwoord' },
   ]), [isParent]);
   const activeProfileSection = profileSections.find((section) => section.id === profileTab) || null;
   const isChildAccount = !!user?.email?.endsWith('@pulse.internal');
@@ -572,6 +572,9 @@ export default function ChatSidebar({
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
+        </section>
+
+        <section className="contact-profile-card contact-profile-card-danger contact-profile-card--profile-danger">
           <button
             type="button"
             className="contact-profile-row-button danger"

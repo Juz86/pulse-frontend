@@ -7328,8 +7328,6 @@ font-family: 'Inter', sans-serif;
   }
   .contact-profile-avatar,
   .profile-photo-wrap .contact-profile-avatar {
-    width: 124px;
-    height: 124px;
     font-size: 30px;
   }
   .contact-profile-name {
@@ -7381,8 +7379,6 @@ font-family: 'Inter', sans-serif;
   }
   .contact-profile-avatar,
   .profile-photo-wrap .contact-profile-avatar {
-    width: 84px;
-    height: 84px;
     font-size: 28px;
   }
   .contact-profile-name {
@@ -7725,8 +7721,6 @@ font-family: 'Inter', sans-serif;
 }
 .contact-profile-avatar,
 .profile-photo-wrap .contact-profile-avatar {
-  width:124px;
-  height:124px;
   border-radius:50%;
   font-size:40px;
 }

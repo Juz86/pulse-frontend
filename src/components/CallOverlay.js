@@ -542,7 +542,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
 
   if (isNoAnswerEnded) {
     return (
-      <div className="call-overlay call-overlay--ended-no-answer">
+      <div className="call-overlay call-overlay--desktop-panel call-overlay--ended-no-answer">
         <div className="call-no-answer-screen" role="dialog" aria-modal="true" aria-label={`Geen antwoord van ${callName}`}>
           <div className="call-no-answer-body">
             <div className="call-no-answer-avatar-wrap">

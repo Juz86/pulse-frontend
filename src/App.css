@@ -12774,6 +12774,11 @@ font-family: 'Inter', sans-serif;
     -webkit-backdrop-filter:none;
   }
   .call-overlay--desktop-panel::before { display:none; }
+  .call-overlay--desktop-panel.call-overlay--ended-no-answer {
+    background:
+      radial-gradient(circle at 50% 34%, rgba(255,255,255,.04) 0%, rgba(255,255,255,0) 26%),
+      #050507 !important;
+  }
   .call-overlay--desktop-panel .call-card,
   .call-overlay--desktop-panel .call-card.voice-active,
   .call-overlay--desktop-panel .call-card.transparent {

@@ -13,9 +13,16 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.google.firebase.auth.FirebaseAuth;
 
 @CapacitorPlugin(name = "PulseIncomingCall")
 public class PulseIncomingCallPlugin extends Plugin {
+    @Override
+    public void load() {
+        super.load();
+        PulseTelecomManager.registerPhoneAccount(getContext());
+    }
+
     @Override
     protected void handleOnNewIntent(Intent intent) {
         notifyListeners("pendingCallChanged", new JSObject());
@@ -24,6 +31,29 @@ public class PulseIncomingCallPlugin extends Plugin {
     @PluginMethod
     public void consumePendingCall(PluginCall call) {
         call.resolve(PulseIncomingCallStore.consume(getContext()));
+    }
+
+    @PluginMethod
+    public void provisionCallAuth(PluginCall call) {
+        String customToken = call.getString("customToken");
+        if (customToken == null || customToken.trim().isEmpty()) {
+            call.reject("customToken is verplicht");
+            return;
+        }
+        FirebaseAuth.getInstance().signInWithCustomToken(customToken)
+            .addOnSuccessListener(result -> {
+                JSObject response = new JSObject();
+                response.put("ok", true);
+                response.put("uid", result.getUser() == null ? "" : result.getUser().getUid());
+                call.resolve(response);
+            })
+            .addOnFailureListener(error -> call.reject(error.getMessage() == null ? "Native oproepauthenticatie mislukt" : error.getMessage()));
+    }
+
+    @PluginMethod
+    public void clearCallAuth(PluginCall call) {
+        FirebaseAuth.getInstance().signOut();
+        call.resolve();
     }
 
     @PluginMethod

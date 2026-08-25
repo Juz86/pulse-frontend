@@ -16,7 +16,11 @@ public class PulseMessagingService extends MessagingService {
         Map<String, String> data = remoteMessage.getData();
         String type = data.get("type");
         if ("call_cancelled".equals(type) || "call_ended".equals(type)) {
-            PulseIncomingCallNotifier.cancel(this, PulseIncomingCallNotifier.sessionId(data));
+            String sessionId = PulseIncomingCallNotifier.sessionId(data);
+            PulseIncomingCallNotifier.cancel(this, sessionId);
+            boolean isOwnAnswerConfirmation = "answered".equals(data.get("reason"))
+                && PulseNativeCallService.isActive(sessionId);
+            if (!isOwnAnswerConfirmation) PulseTelecomManager.endFromPush(this, sessionId);
             return;
         }
 
@@ -25,7 +29,10 @@ public class PulseMessagingService extends MessagingService {
         // render the native screen once the WebView is backgrounded.
         if ("incoming_call".equals(type)) {
             if (!isAppInForeground()) {
-                PulseIncomingCallNotifier.show(this, data);
+                boolean isVideo = "true".equalsIgnoreCase(data.get("isVideo")) || "1".equals(data.get("isVideo"));
+                if (isVideo || !PulseTelecomManager.showIncomingCall(this, data)) {
+                    PulseIncomingCallNotifier.show(this, data);
+                }
                 return;
             }
         }

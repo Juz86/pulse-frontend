@@ -10,8 +10,14 @@ public class PulseCallActionReceiver extends BroadcastReceiver {
         if (context == null || intent == null) return;
         String action = intent.getAction();
         String callAction = PulseIncomingCallStore.ACTION_ANSWER.equals(action) ? "answer" : "decline";
-        PulseIncomingCallStore.save(context, intent, callAction);
         PulseIncomingCallNotifier.cancel(context, intent.getStringExtra("sessionId"));
+
+        boolean nativeHandled = PulseIncomingCallStore.ACTION_ANSWER.equals(action)
+            ? PulseTelecomManager.answer(context, intent)
+            : PulseTelecomManager.decline(context, intent);
+        if (nativeHandled && !intent.getBooleanExtra("isVideo", false)) return;
+
+        PulseIncomingCallStore.save(context, intent, callAction);
 
         // Weigeren gebeurt volledig vanuit de systeemmelding. Alleen opnemen
         // opent Pulse, zodat de gebruiker niet na een afwijzing in de app landt.

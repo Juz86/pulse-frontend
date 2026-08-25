@@ -1,0 +1,100 @@
+package com.pulsemessenger.chat;
+
+import android.content.Context;
+import android.net.Uri;
+import android.os.Bundle;
+import android.telecom.Connection;
+import android.telecom.DisconnectCause;
+import android.telecom.TelecomManager;
+
+import java.util.HashMap;
+import java.util.Map;
+
+final class PulseCallConnection extends Connection {
+    private final Context context;
+    private final Bundle callExtras;
+    private final String sessionId;
+    private boolean finished;
+
+    PulseCallConnection(Context context, Bundle extras) {
+        this.context = context.getApplicationContext();
+        this.callExtras = extras == null ? new Bundle() : new Bundle(extras);
+        this.sessionId = callExtras.getString(PulseTelecomManager.EXTRA_SESSION_ID);
+        String fromUid = callExtras.getString(PulseTelecomManager.EXTRA_FROM_UID, "unknown");
+        String callerName = callExtras.getString(PulseTelecomManager.EXTRA_CALLER_NAME, "Iemand");
+        setAddress(Uri.fromParts("pulse", fromUid, null), TelecomManager.PRESENTATION_ALLOWED);
+        setCallerDisplayName(callerName, TelecomManager.PRESENTATION_ALLOWED);
+    }
+
+    String getSessionId() {
+        return sessionId;
+    }
+
+    @Override
+    public void onShowIncomingCallUi() {
+        PulseIncomingCallNotifier.show(context, toDataMap(callExtras));
+    }
+
+    @Override
+    public void onAnswer() {
+        answerFromPulseUi();
+    }
+
+    @Override
+    public void onReject() {
+        rejectFromPulseUi();
+    }
+
+    @Override
+    public void onDisconnect() {
+        if (finished) return;
+        PulseNativeCallService.stop(context, sessionId, true);
+        finish(new DisconnectCause(DisconnectCause.LOCAL));
+    }
+
+    @Override
+    public void onAbort() {
+        finish(new DisconnectCause(DisconnectCause.CANCELED));
+    }
+
+    void answerFromPulseUi() {
+        if (finished) return;
+        setActive();
+        PulseIncomingCallNotifier.cancel(context, sessionId);
+        PulseNativeCallService.startAnswer(context, callExtras);
+    }
+
+    void rejectFromPulseUi() {
+        if (finished) return;
+        PulseNativeCallService.startDecline(context, callExtras);
+        finish(new DisconnectCause(DisconnectCause.REJECTED));
+    }
+
+    void endFromRemote() {
+        finish(new DisconnectCause(DisconnectCause.REMOTE));
+    }
+
+    void finishFromNativeService(int disconnectCode) {
+        finish(new DisconnectCause(disconnectCode));
+    }
+
+    private void finish(DisconnectCause cause) {
+        if (finished) return;
+        finished = true;
+        PulseIncomingCallNotifier.cancel(context, sessionId);
+        setDisconnected(cause);
+        destroy();
+        PulseTelecomManager.detach(sessionId, this);
+    }
+
+    static Map<String, String> toDataMap(Bundle extras) {
+        Map<String, String> data = new HashMap<>();
+        data.put("type", "incoming_call");
+        data.put("sessionId", extras.getString(PulseTelecomManager.EXTRA_SESSION_ID, ""));
+        data.put("callSessionId", extras.getString(PulseTelecomManager.EXTRA_SESSION_ID, ""));
+        data.put("fromUid", extras.getString(PulseTelecomManager.EXTRA_FROM_UID, ""));
+        data.put("callerName", extras.getString(PulseTelecomManager.EXTRA_CALLER_NAME, "Iemand"));
+        data.put("isVideo", String.valueOf(extras.getBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, false)));
+        return data;
+    }
+}

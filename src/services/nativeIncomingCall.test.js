@@ -2,7 +2,9 @@ import { registerPlugin } from '@capacitor/core';
 import {
   addNativeIncomingCallActionListener,
   classifyNativeIncomingCall,
+  clearNativeIncomingCallAuth,
   consumeNativeIncomingCall,
+  provisionNativeIncomingCallAuth,
 } from './nativeIncomingCall';
 
 jest.mock('@capacitor/core', () => ({
@@ -10,6 +12,8 @@ jest.mock('@capacitor/core', () => ({
 }));
 
 describe('native incoming call bridge', () => {
+  const originalFetch = global.fetch;
+
   beforeEach(() => {
     window.Capacitor = {
       getPlatform: () => 'android',
@@ -20,6 +24,7 @@ describe('native incoming call bridge', () => {
 
   afterEach(() => {
     delete window.Capacitor;
+    global.fetch = originalFetch;
   });
 
   test('subscribes to pending Android call actions', async () => {
@@ -42,6 +47,32 @@ describe('native incoming call bridge', () => {
     registerPlugin.mockReturnValue({ consumePendingCall });
 
     await expect(consumeNativeIncomingCall()).resolves.toEqual(pendingCall);
+  });
+
+  test('provisions persistent native Firebase auth through the backend', async () => {
+    const provisionCallAuth = jest.fn().mockResolvedValue({ ok: true, uid: 'callee-1' });
+    registerPlugin.mockReturnValue({ provisionCallAuth });
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ customToken: 'native-custom-token' }),
+    });
+
+    await expect(provisionNativeIncomingCallAuth('https://api.example.test', 'web-id-token'))
+      .resolves.toEqual({ ok: true, uid: 'callee-1' });
+    expect(global.fetch).toHaveBeenCalledWith('https://api.example.test/api/native-call-auth', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer web-id-token' },
+    });
+    expect(provisionCallAuth).toHaveBeenCalledWith({ customToken: 'native-custom-token' });
+  });
+
+  test('clears the native Firebase session on logout', async () => {
+    const clearCallAuth = jest.fn().mockResolvedValue(undefined);
+    registerPlugin.mockReturnValue({ clearCallAuth });
+
+    await clearNativeIncomingCallAuth();
+
+    expect(clearCallAuth).toHaveBeenCalledTimes(1);
   });
 
   test('reuses the matching ringing call instead of rejecting it as busy', () => {

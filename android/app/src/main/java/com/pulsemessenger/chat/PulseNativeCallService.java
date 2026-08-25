@@ -1,0 +1,525 @@
+package com.pulsemessenger.chat;
+
+import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.telecom.DisconnectCause;
+
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.ServiceCompat;
+import androidx.core.content.ContextCompat;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.webrtc.AudioSource;
+import org.webrtc.AudioTrack;
+import org.webrtc.DataChannel;
+import org.webrtc.IceCandidate;
+import org.webrtc.MediaConstraints;
+import org.webrtc.MediaStream;
+import org.webrtc.PeerConnection;
+import org.webrtc.PeerConnectionFactory;
+import org.webrtc.RtpReceiver;
+import org.webrtc.SdpObserver;
+import org.webrtc.SessionDescription;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import io.socket.client.IO;
+import io.socket.client.Socket;
+
+public class PulseNativeCallService extends Service {
+    private static final String ACTION_ANSWER = "com.pulsemessenger.chat.NATIVE_CALL_ANSWER";
+    private static final String ACTION_DECLINE = "com.pulsemessenger.chat.NATIVE_CALL_DECLINE";
+    private static final String ACTION_END = "com.pulsemessenger.chat.NATIVE_CALL_END";
+    private static final String API_URL = "https://api.pulse-messenger.com";
+    private static final String CHANNEL_ID = "pulse_active_calls";
+    private static final int NOTIFICATION_ID = 42_101;
+    private static volatile String activeSessionId;
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private Socket socket;
+    private PeerConnectionFactory peerFactory;
+    private PeerConnection peerConnection;
+    private AudioSource audioSource;
+    private AudioTrack localAudioTrack;
+    private String sessionId;
+    private String fromUid;
+    private String callerName;
+    private boolean stopping;
+    private boolean peerStarted;
+
+    static boolean isActive(String sessionId) {
+        return sessionId != null && sessionId.equals(activeSessionId);
+    }
+
+    static void startAnswer(Context context, Bundle extras) {
+        start(context, ACTION_ANSWER, extras);
+    }
+
+    static void startDecline(Context context, Bundle extras) {
+        start(context, ACTION_DECLINE, extras);
+    }
+
+    static void stop(Context context, String sessionId, boolean notifyPeer) {
+        if (context == null || !isActive(sessionId)) return;
+        Intent intent = new Intent(context, PulseNativeCallService.class)
+            .setAction(ACTION_END)
+            .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId)
+            .putExtra("notifyPeer", notifyPeer);
+        ContextCompat.startForegroundService(context, intent);
+    }
+
+    private static void start(Context context, String action, Bundle extras) {
+        if (context == null) return;
+        Intent intent = new Intent(context, PulseNativeCallService.class).setAction(action);
+        if (extras != null) intent.putExtras(extras);
+        ContextCompat.startForegroundService(context, intent);
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        ensureNotificationChannel();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent == null) return START_NOT_STICKY;
+        sessionId = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_SESSION_ID), sessionId);
+        fromUid = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_FROM_UID), fromUid);
+        callerName = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_CALLER_NAME), callerName);
+        String action = intent.getAction();
+
+        if (ACTION_END.equals(action)) {
+            startForegroundCompat(buildNotification("Oproep beëindigen..."), false);
+            endCall(intent.getBooleanExtra("notifyPeer", true), DisconnectCause.LOCAL);
+            return START_NOT_STICKY;
+        }
+
+        if (ACTION_DECLINE.equals(action)) {
+            startForegroundCompat(buildNotification("Oproep weigeren..."), false);
+            authenticateAndRun(token -> connectForTerminalSignal(token, "call:decline"));
+            return START_NOT_STICKY;
+        }
+
+        if (ACTION_ANSWER.equals(action)) {
+            activeSessionId = sessionId;
+            startForegroundCompat(buildNotification("Verbinden..."), true);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                failCall("Microfoontoegang ontbreekt");
+                return START_NOT_STICKY;
+            }
+            authenticateAndRun(this::startNativeAnswer);
+        }
+        return START_NOT_STICKY;
+    }
+
+    private void authenticateAndRun(TokenConsumer consumer) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            failCall("Native oproepsessie is niet aangemeld");
+            return;
+        }
+        user.getIdToken(false)
+            .addOnSuccessListener(result -> consumer.accept(result.getToken()))
+            .addOnFailureListener(error -> failCall("Oproepauthenticatie mislukt"));
+    }
+
+    private void startNativeAnswer(String token) {
+        executor.execute(() -> {
+            try {
+                JSONObject pending = getJson(
+                    API_URL + "/calls/pending/" + urlEncode(sessionId) + "?fromUid=" + urlEncode(fromUid),
+                    token
+                ).getJSONObject("call");
+                JSONObject offer = pending.getJSONObject("offer");
+                JSONArray storedCandidates = pending.optJSONArray("callerCandidates");
+                List<PeerConnection.IceServer> iceServers = fetchIceServers(token);
+                connectSocket(token, () -> createPeer(offer, storedCandidates, iceServers));
+            } catch (Exception error) {
+                android.util.Log.e("PulseNativeCall", "Oproep herstellen mislukt", error);
+                failCall("Oproep kon niet worden verbonden");
+            }
+        });
+    }
+
+    private void connectSocket(String token, Runnable onConnected) throws Exception {
+        IO.Options options = IO.Options.builder()
+            .setAuth(Collections.singletonMap("token", token))
+            .setReconnection(true)
+            .setForceNew(true)
+            .build();
+        socket = IO.socket(URI.create(API_URL), options);
+        socket.on(Socket.EVENT_CONNECT, args -> {
+            socket.emit("user:online");
+            onConnected.run();
+        });
+        socket.on(Socket.EVENT_CONNECT_ERROR, args -> failCall("Signaleringsverbinding mislukt"));
+        socket.on("call:ice-candidate", this::onRemoteCandidate);
+        socket.on("call:ended", args -> endCall(false, DisconnectCause.REMOTE));
+        socket.on("call:declined", args -> endCall(false, DisconnectCause.REMOTE));
+        socket.connect();
+    }
+
+    private void connectForTerminalSignal(String token, String event) {
+        try {
+            IO.Options options = IO.Options.builder()
+                .setAuth(Collections.singletonMap("token", token))
+                .setForceNew(true)
+                .build();
+            socket = IO.socket(URI.create(API_URL), options);
+            socket.on(Socket.EVENT_CONNECT, args -> {
+                socket.emit("user:online");
+                socket.emit(event, signalTarget());
+                executor.execute(() -> {
+                    try { Thread.sleep(250L); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+                    endCall(false, DisconnectCause.REJECTED);
+                });
+            });
+            socket.on(Socket.EVENT_CONNECT_ERROR, args -> endCall(false, DisconnectCause.ERROR));
+            socket.connect();
+        } catch (Exception error) {
+            endCall(false, DisconnectCause.ERROR);
+        }
+    }
+
+    private void createPeer(JSONObject offer, JSONArray storedCandidates, List<PeerConnection.IceServer> iceServers) {
+        synchronized (this) {
+            if (peerStarted || stopping) return;
+            peerStarted = true;
+        }
+        PeerConnectionFactory.initialize(
+            PeerConnectionFactory.InitializationOptions.builder(getApplicationContext()).createInitializationOptions()
+        );
+        peerFactory = PeerConnectionFactory.builder().createPeerConnectionFactory();
+        PeerConnection.RTCConfiguration configuration = new PeerConnection.RTCConfiguration(iceServers);
+        configuration.sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN;
+        peerConnection = peerFactory.createPeerConnection(configuration, new PeerObserver() {
+            @Override
+            public void onIceCandidate(IceCandidate candidate) {
+                if (socket == null) return;
+                JSONObject payload = signalTarget();
+                JSONObject jsonCandidate = new JSONObject();
+                try {
+                    jsonCandidate.put("candidate", candidate.sdp);
+                    jsonCandidate.put("sdpMid", candidate.sdpMid);
+                    jsonCandidate.put("sdpMLineIndex", candidate.sdpMLineIndex);
+                    payload.put("candidate", jsonCandidate);
+                    socket.emit("call:ice-candidate", payload);
+                } catch (Exception error) {
+                    android.util.Log.w("PulseNativeCall", "ICE-candidate verzenden mislukt", error);
+                }
+            }
+
+            @Override
+            public void onConnectionChange(PeerConnection.PeerConnectionState state) {
+                if (state == PeerConnection.PeerConnectionState.CONNECTED) {
+                    updateNotification("Verbonden");
+                } else if (state == PeerConnection.PeerConnectionState.FAILED) {
+                    failCall("Oproepverbinding verbroken");
+                } else if (state == PeerConnection.PeerConnectionState.CLOSED) {
+                    endCall(false, DisconnectCause.REMOTE);
+                }
+            }
+        });
+        if (peerConnection == null) {
+            failCall("WebRTC initialiseren mislukt");
+            return;
+        }
+
+        audioSource = peerFactory.createAudioSource(new MediaConstraints());
+        localAudioTrack = peerFactory.createAudioTrack("pulse-audio", audioSource);
+        localAudioTrack.setEnabled(true);
+        peerConnection.addTrack(localAudioTrack, Collections.singletonList("pulse-stream"));
+
+        SessionDescription remoteOffer = new SessionDescription(SessionDescription.Type.OFFER, offer.optString("sdp"));
+        peerConnection.setRemoteDescription(new SdpAdapter() {
+            @Override
+            public void onSetSuccess() {
+                addStoredCandidates(storedCandidates);
+                peerConnection.createAnswer(new SdpAdapter() {
+                    @Override
+                    public void onCreateSuccess(SessionDescription answer) {
+                        peerConnection.setLocalDescription(new SdpAdapter() {
+                            @Override
+                            public void onSetSuccess() {
+                                emitAnswer(answer);
+                            }
+                        }, answer);
+                    }
+                }, new MediaConstraints());
+            }
+        }, remoteOffer);
+    }
+
+    private void emitAnswer(SessionDescription answer) {
+        if (socket == null) return;
+        try {
+            JSONObject signal = new JSONObject();
+            signal.put("type", "answer");
+            signal.put("sdp", answer.description);
+            JSONObject payload = signalTarget();
+            payload.put("answer", signal);
+            socket.emit("call:answer", payload);
+        } catch (Exception error) {
+            failCall("Antwoord versturen mislukt");
+        }
+    }
+
+    private void addStoredCandidates(JSONArray candidates) {
+        if (candidates == null || peerConnection == null) return;
+        for (int index = 0; index < candidates.length(); index++) {
+            JSONObject candidate = candidates.optJSONObject(index);
+            IceCandidate parsed = parseCandidate(candidate);
+            if (parsed != null) peerConnection.addIceCandidate(parsed);
+        }
+    }
+
+    private void onRemoteCandidate(Object... args) {
+        if (peerConnection == null || args.length == 0 || !(args[0] instanceof JSONObject)) return;
+        JSONObject payload = (JSONObject) args[0];
+        if (!sessionId.equals(payload.optString("sessionId"))) return;
+        IceCandidate candidate = parseCandidate(payload.optJSONObject("candidate"));
+        if (candidate != null) peerConnection.addIceCandidate(candidate);
+    }
+
+    private IceCandidate parseCandidate(JSONObject candidate) {
+        if (candidate == null || candidate.optString("candidate").isEmpty()) return null;
+        return new IceCandidate(
+            candidate.optString("sdpMid", "0"),
+            candidate.optInt("sdpMLineIndex", 0),
+            candidate.optString("candidate")
+        );
+    }
+
+    private List<PeerConnection.IceServer> fetchIceServers(String token) {
+        List<PeerConnection.IceServer> result = new ArrayList<>();
+        try {
+            JSONArray servers = getJson(API_URL + "/api/turn-credentials", token).optJSONArray("iceServers");
+            if (servers != null) {
+                for (int index = 0; index < servers.length(); index++) {
+                    JSONObject server = servers.optJSONObject(index);
+                    if (server == null) continue;
+                    List<String> urls = new ArrayList<>();
+                    Object rawUrls = server.opt("urls");
+                    if (rawUrls instanceof JSONArray) {
+                        JSONArray array = (JSONArray) rawUrls;
+                        for (int urlIndex = 0; urlIndex < array.length(); urlIndex++) urls.add(array.optString(urlIndex));
+                    } else if (rawUrls != null) {
+                        urls.add(String.valueOf(rawUrls));
+                    }
+                    if (urls.isEmpty()) continue;
+                    PeerConnection.IceServer.Builder builder = PeerConnection.IceServer.builder(urls);
+                    builder.setUsername(server.optString("username", ""));
+                    builder.setPassword(server.optString("credential", ""));
+                    result.add(builder.createIceServer());
+                }
+            }
+        } catch (Exception error) {
+            android.util.Log.w("PulseNativeCall", "TURN-config ophalen mislukt; STUN fallback actief", error);
+        }
+        if (result.isEmpty()) {
+            result.add(PeerConnection.IceServer.builder("stun:stun.cloudflare.com:3478").createIceServer());
+            result.add(PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer());
+        }
+        return result;
+    }
+
+    private JSONObject getJson(String url, String token) throws Exception {
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(5_000);
+        connection.setReadTimeout(7_000);
+        connection.setRequestProperty("Authorization", "Bearer " + token);
+        int status = connection.getResponseCode();
+        InputStream stream = status >= 200 && status < 300 ? connection.getInputStream() : connection.getErrorStream();
+        StringBuilder body = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) body.append(line);
+        } finally {
+            connection.disconnect();
+        }
+        if (status < 200 || status >= 300) throw new IllegalStateException("HTTP " + status);
+        return new JSONObject(body.toString());
+    }
+
+    private JSONObject signalTarget() {
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("to", fromUid);
+            payload.put("sessionId", sessionId);
+        } catch (Exception ignored) {}
+        return payload;
+    }
+
+    private void failCall(String message) {
+        android.util.Log.e("PulseNativeCall", message);
+        updateNotification(message);
+        executor.execute(() -> {
+            try { Thread.sleep(1_500L); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+            endCall(false, DisconnectCause.ERROR);
+        });
+    }
+
+    private synchronized void endCall(boolean notifyPeer, int disconnectCode) {
+        if (stopping) return;
+        stopping = true;
+        if (notifyPeer && socket != null && socket.connected() && fromUid != null) {
+            socket.emit("call:end", signalTarget());
+        }
+        if (socket != null) {
+            socket.off();
+            socket.disconnect();
+            socket.close();
+            socket = null;
+        }
+        if (peerConnection != null) {
+            peerConnection.close();
+            peerConnection.dispose();
+            peerConnection = null;
+        }
+        if (localAudioTrack != null) {
+            localAudioTrack.dispose();
+            localAudioTrack = null;
+        }
+        if (audioSource != null) {
+            audioSource.dispose();
+            audioSource = null;
+        }
+        if (peerFactory != null) {
+            peerFactory.dispose();
+            peerFactory = null;
+        }
+        PulseTelecomManager.finishNativeCall(sessionId, disconnectCode);
+        if (sessionId != null && sessionId.equals(activeSessionId)) activeSessionId = null;
+        stopForeground(STOP_FOREGROUND_REMOVE);
+        stopSelf();
+    }
+
+    private void startForegroundCompat(Notification notification, boolean microphone) {
+        int type = microphone && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+            ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            : 0;
+        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type);
+    }
+
+    private void updateNotification(String status) {
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (manager != null) manager.notify(NOTIFICATION_ID, buildNotification(status));
+    }
+
+    private Notification buildNotification(String status) {
+        Intent open = new Intent(this, MainActivity.class)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent contentIntent = PendingIntent.getActivity(
+            this, NOTIFICATION_ID + 1, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        Intent end = new Intent(this, PulseNativeCallService.class)
+            .setAction(ACTION_END)
+            .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId)
+            .putExtra("notifyPeer", true);
+        PendingIntent endIntent = PendingIntent.getService(
+            this, NOTIFICATION_ID + 2, end, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_pulse_call)
+            .setContentTitle(callerName == null ? "Pulse-oproep" : callerName)
+            .setContentText(status)
+            .setCategory(NotificationCompat.CATEGORY_CALL)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setOngoing(true)
+            .setContentIntent(contentIntent)
+            .addAction(R.drawable.pulse_call_decline, "Ophangen", endIntent)
+            .build();
+    }
+
+    private void ensureNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (manager == null || manager.getNotificationChannel(CHANNEL_ID) != null) return;
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Actieve Pulse-oproepen", NotificationManager.IMPORTANCE_LOW);
+        channel.setDescription("Actieve beveiligde spraakoproepen");
+        channel.setSound(null, null);
+        manager.createNotificationChannel(channel);
+    }
+
+    private String urlEncode(String value) {
+        try {
+            return java.net.URLEncoder.encode(value == null ? "" : value, StandardCharsets.UTF_8.name());
+        } catch (Exception ignored) {
+            return "";
+        }
+    }
+
+    private String valueOrExisting(String value, String existing) {
+        return value == null || value.trim().isEmpty() ? existing : value;
+    }
+
+    @Override
+    public void onDestroy() {
+        if (!stopping) endCall(false, DisconnectCause.ERROR);
+        executor.shutdownNow();
+        super.onDestroy();
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    private interface TokenConsumer {
+        void accept(String token);
+    }
+
+    private abstract static class SdpAdapter implements SdpObserver {
+        @Override public void onCreateSuccess(SessionDescription sessionDescription) {}
+        @Override public void onSetSuccess() {}
+        @Override public void onCreateFailure(String error) { android.util.Log.e("PulseNativeCall", error); }
+        @Override public void onSetFailure(String error) { android.util.Log.e("PulseNativeCall", error); }
+    }
+
+    private abstract static class PeerObserver implements PeerConnection.Observer {
+        @Override public void onSignalingChange(PeerConnection.SignalingState state) {}
+        @Override public void onIceConnectionChange(PeerConnection.IceConnectionState state) {}
+        @Override public void onIceConnectionReceivingChange(boolean receiving) {}
+        @Override public void onIceGatheringChange(PeerConnection.IceGatheringState state) {}
+        @Override public void onIceCandidatesRemoved(IceCandidate[] candidates) {}
+        @Override public void onAddStream(MediaStream stream) {}
+        @Override public void onRemoveStream(MediaStream stream) {}
+        @Override public void onDataChannel(DataChannel dataChannel) {}
+        @Override public void onRenegotiationNeeded() {}
+        @Override public void onAddTrack(RtpReceiver receiver, MediaStream[] mediaStreams) {}
+        @Override public void onIceCandidate(IceCandidate candidate) {}
+    }
+}

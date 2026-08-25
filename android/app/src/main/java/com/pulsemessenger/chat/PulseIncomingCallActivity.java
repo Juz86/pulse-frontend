@@ -27,7 +27,7 @@ public class PulseIncomingCallActivity extends Activity {
     private static final long RING_TIMEOUT_MS = 35_000L;
 
     private final Handler timeoutHandler = new Handler(Looper.getMainLooper());
-    private final Runnable timeoutRunnable = this::finishAndRemoveTask;
+    private final Runnable timeoutRunnable = this::finish;
     private Intent callIntent;
     private BroadcastReceiver finishedReceiver;
 
@@ -77,7 +77,7 @@ public class PulseIncomingCallActivity extends Activity {
                 String activeSessionId = callIntent == null ? null : callIntent.getStringExtra("sessionId");
                 String finishedSessionId = intent == null ? null : intent.getStringExtra("sessionId");
                 if (activeSessionId == null || finishedSessionId == null || activeSessionId.equals(finishedSessionId)) {
-                    finishAndRemoveTask();
+                    finish();
                 }
             }
         };
@@ -173,7 +173,7 @@ public class PulseIncomingCallActivity extends Activity {
             .setAction(action)
             .putExtras(callIntent.getExtras() == null ? new Bundle() : callIntent.getExtras());
         sendBroadcast(intent);
-        finishAndRemoveTask();
+        finish();
     }
 
     private TextView text(String value, int sizeSp, int color) {

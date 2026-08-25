@@ -39,6 +39,20 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name=".PulseConnectionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.ConnectionService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".PulseNativeCallService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
         <receiver
             android:name=".PulseCallActionReceiver"
             android:exported="false" />
@@ -48,6 +62,7 @@
             android:excludeFromRecents="true"
             android:exported="false"
             android:showWhenLocked="true"
+            android:taskAffinity="com.pulsemessenger.chat.incomingcall"
             android:theme="@style/AppTheme.IncomingCall"
             android:turnScreenOn="true" />
 
@@ -88,6 +103,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />

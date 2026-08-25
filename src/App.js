@@ -47,7 +47,9 @@ import { markNativeWebBundleHealthy, stageNativeWebUpdate } from './services/nat
 import {
   addNativeIncomingCallActionListener,
   classifyNativeIncomingCall,
+  clearNativeIncomingCallAuth,
   consumeNativeIncomingCall,
+  provisionNativeIncomingCallAuth,
 } from './services/nativeIncomingCall';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
@@ -780,6 +782,7 @@ function MainApp() {
           const idToken = await firebaseUser.getIdToken();
           const socket = connectSocket(firebaseUser.uid, idToken);
           const authHeader = { 'Authorization': `Bearer ${idToken}` };
+          provisionNativeIncomingCallAuth(BACKEND, idToken);
 
           try {
             await fetch(`${BACKEND}/api/users/sync-self`, {
@@ -1005,10 +1008,10 @@ function MainApp() {
           };
           socket.on('call:offer', onIncomingCall);
           // Beller hangt op voor de ontvanger opneemt → gemiste oproep loggen + overlay sluiten
-          socket.on('call:ended', ({ sessionId } = {}) => {
+          socket.on('call:ended', ({ sessionId, reason } = {}) => {
             setIncomingCall(prev => {
               if (prev && sessionId && prev.sessionId && sessionId !== prev.sessionId) return prev;
-              if (prev) {
+              if (prev && reason !== 'answered_elsewhere') {
                 setMissedCallAlert(true);
               }
               clearIncomingRingingSession(sessionId || null, 'remote_end_before_answer');
@@ -1024,6 +1027,7 @@ function MainApp() {
             });
           });
         } else {
+          clearNativeIncomingCallAuth();
           clearPulseUserStorage(lastSignedInUidRef.current);
           lastSignedInUidRef.current = null;
           localStorage.removeItem('pulse_user');

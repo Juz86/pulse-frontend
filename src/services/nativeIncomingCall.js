@@ -42,6 +42,38 @@ export async function addNativeIncomingCallActionListener(listener) {
   }
 }
 
+export async function provisionNativeIncomingCallAuth(backendUrl, idToken) {
+  if (!isAndroidNative() || !backendUrl || !idToken) return null;
+
+  try {
+    const response = await fetch(`${backendUrl}/api/native-call-auth`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${idToken}` },
+    });
+    if (!response.ok) throw new Error(`native_call_auth_failed_${response.status}`);
+    const payload = await response.json();
+    if (!payload?.customToken) throw new Error('native_call_auth_token_missing');
+
+    const { registerPlugin } = await import('@capacitor/core');
+    const PulseIncomingCall = registerPlugin('PulseIncomingCall');
+    return await PulseIncomingCall.provisionCallAuth({ customToken: payload.customToken });
+  } catch (error) {
+    console.warn('[Pulse][Call] Native oproepauthenticatie mislukt:', error?.message || error);
+    return null;
+  }
+}
+
+export async function clearNativeIncomingCallAuth() {
+  if (!isAndroidNative()) return;
+  try {
+    const { registerPlugin } = await import('@capacitor/core');
+    const PulseIncomingCall = registerPlugin('PulseIncomingCall');
+    await PulseIncomingCall.clearCallAuth();
+  } catch (error) {
+    console.warn('[Pulse][Call] Native oproepauthenticatie wissen mislukt:', error?.message || error);
+  }
+}
+
 export async function ensureNativeIncomingCallAccess() {
   if (!isAndroidNative()) return null;
 

@@ -18,7 +18,7 @@ android {
         applicationId "com.pulsemessenger.chat"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 30
+        versionCode 31
         versionName "1.0.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Public half of the signing key only. The private key is a Cloudflare
@@ -79,9 +79,13 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
     implementation "com.google.android.play:app-update:2.1.0"
     implementation "com.google.android.play:app-update-ktx:2.1.0"
-    // Used directly by PulseMessagingService for data-only incoming-call FCM.
-    // Keep this aligned with Capacitor Push Notifications 8.x.
-    implementation "com.google.firebase:firebase-messaging:25.0.1"
+    implementation platform("com.google.firebase:firebase-bom:34.17.0")
+    implementation "com.google.firebase:firebase-messaging"
+    implementation "com.google.firebase:firebase-auth"
+    implementation("io.socket:socket.io-client:2.1.2") {
+        exclude group: "org.json", module: "json"
+    }
+    implementation "io.github.webrtc-sdk:android:144.7559.12"
 }
 
 apply from: 'capacitor.build.gradle'

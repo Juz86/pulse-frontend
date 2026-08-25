@@ -24,6 +24,33 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="pulse_messages" />
 
+        <!-- Replace Capacitor's default service so data-only incoming-call
+             pushes can render a native CallStyle notification while the
+             WebView is suspended. PulseMessagingService still delegates all
+             non-call notifications to Capacitor. -->
+        <service
+            android:name="com.capacitorjs.plugins.pushnotifications.MessagingService"
+            tools:node="remove" />
+        <service
+            android:name=".PulseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name=".PulseCallActionReceiver"
+            android:exported="false" />
+
+        <activity
+            android:name=".PulseIncomingCallActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:theme="@style/AppTheme.IncomingCall"
+            android:turnScreenOn="true" />
+
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation"
             android:name=".MainActivity"
@@ -64,4 +91,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 </manifest>

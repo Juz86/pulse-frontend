@@ -31,6 +31,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   const remoteAudioStreamRef = useRef(null);
   const remoteTrackListenerCleanupRef = useRef(null);
   const cameraSwitchMessageTimeoutRef = useRef(null);
+  const autoAnswerSessionRef = useRef(null);
 
   const attachMediaStream = useCallback(async (element, stream) => {
     if (!element || !stream) return;
@@ -109,6 +110,15 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
       closeTimeoutRef.current = setTimeout(() => onClose?.(), 3000);
     }
   }
+
+  useEffect(() => {
+    if (callState !== 'incoming' || !incoming?.autoAnswer || !incoming?.sessionId) return;
+    if (autoAnswerSessionRef.current === incoming.sessionId) return;
+    autoAnswerSessionRef.current = incoming.sessionId;
+    handleAccept();
+    // A native answer action must run once for this session only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [callState, incoming?.autoAnswer, incoming?.sessionId]);
 
   // ── Weigeren ─────────────────────────────────────────────────────────────
   function handleDecline() {

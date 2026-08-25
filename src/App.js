@@ -12,6 +12,7 @@ import {
   isCallInProgress,
   registerIncomingRingingSession,
   rejectCallAsBusy,
+  declineCall,
   clearIncomingRingingSession,
 } from './services/socket';
 import './App.css';
@@ -43,6 +44,7 @@ import {
 import { subscribeToFeatureFlags } from './services/featureFlags';
 import { FeatureFlagsProvider } from './context/FeatureFlagsContext';
 import { markNativeWebBundleHealthy, stageNativeWebUpdate } from './services/nativeWebUpdate';
+import { consumeNativeIncomingCall } from './services/nativeIncomingCall';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const CallOverlay        = lazy(() => import('./components/CallOverlay'));
@@ -307,6 +309,7 @@ function MainApp() {
     fromUid: urlParams.get('fromUid') || null,
     callerName: urlParams.get('callerName') || 'Iemand',
     isVideo: urlParams.get('isVideo') === '1',
+    action: 'open',
   });
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
   const [appUpdate, setAppUpdate] = useState({
@@ -326,6 +329,23 @@ function MainApp() {
   const lastSignedInUidRef     = useRef(null);
   const authQueryHandledRef    = useRef(false);
   const updateListenerRef      = useRef(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    consumeNativeIncomingCall().then((call) => {
+      if (cancelled || !call?.sessionId || !call?.fromUid) return;
+      setPendingCallBootstrap({
+        sessionId: call.sessionId,
+        fromUid: call.fromUid,
+        callerName: call.callerName || 'Iemand',
+        isVideo: !!call.isVideo,
+        action: call.action || 'open',
+      });
+    });
+
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let isAndroid = false;
@@ -491,16 +511,24 @@ function MainApp() {
       const fromUid = pendingCallBootstrap.fromUid;
       const callerName = pendingCallBootstrap.callerName || 'Iemand';
       const isVideo = !!pendingCallBootstrap.isVideo;
+      const action = pendingCallBootstrap.action || 'open';
+
+      if (action === 'decline') {
+        declineCall(fromUid, sessionId);
+        clearIncomingRingingSession(sessionId, 'native_decline');
+        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false, action: 'open' });
+        return;
+      }
 
       if (incomingCallRef.current || isCallInProgress()) {
         rejectCallAsBusy(fromUid, sessionId);
-        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false });
+        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false, action: 'open' });
         return;
       }
       const accepted = registerIncomingRingingSession(sessionId, fromUid);
       if (!accepted) {
         rejectCallAsBusy(fromUid, sessionId);
-        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false });
+        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false, action: 'open' });
         return;
       }
 
@@ -523,13 +551,14 @@ function MainApp() {
           isVideo: json.call.isVideo ?? isVideo,
           offer: json.call.offer,
           sessionId,
+          autoAnswer: action === 'answer',
         });
       } catch (error) {
         console.warn('[Pulse][Call] query-call herstel mislukt:', error?.message || error);
         clearIncomingRingingSession(sessionId, 'query_rehydrate_failed');
       } finally {
         if (!cancelled) {
-          setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false });
+          setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false, action: 'open' });
           const params = new URLSearchParams(window.location.search);
           params.delete('callSessionId');
           params.delete('fromUid');

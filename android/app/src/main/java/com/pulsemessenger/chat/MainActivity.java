@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
         PulseWebUpdateManager.prepareForAppStart(this);
         registerPlugin(PulseAppUpdatePlugin.class);
         registerPlugin(PulseWebUpdatePlugin.class);
+        registerPlugin(PulseIncomingCallPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

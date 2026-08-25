@@ -4,8 +4,10 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.telecom.Connection;
+import android.telecom.CallAudioState;
 import android.telecom.DisconnectCause;
 import android.telecom.TelecomManager;
+import android.telecom.VideoProfile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +26,9 @@ final class PulseCallConnection extends Connection {
         String callerName = callExtras.getString(PulseTelecomManager.EXTRA_CALLER_NAME, "Iemand");
         setAddress(Uri.fromParts("pulse", fromUid, null), TelecomManager.PRESENTATION_ALLOWED);
         setCallerDisplayName(callerName, TelecomManager.PRESENTATION_ALLOWED);
+        if (callExtras.getBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, false)) {
+            setVideoState(VideoProfile.STATE_BIDIRECTIONAL);
+        }
     }
 
     String getSessionId() {
@@ -60,6 +65,9 @@ final class PulseCallConnection extends Connection {
     void answerFromPulseUi() {
         if (finished) return;
         setActive();
+        if (callExtras.getBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, false)) {
+            setAudioRoute(CallAudioState.ROUTE_SPEAKER);
+        }
         PulseIncomingCallNotifier.cancel(context, sessionId);
         PulseNativeCallService.startAnswer(context, callExtras);
     }

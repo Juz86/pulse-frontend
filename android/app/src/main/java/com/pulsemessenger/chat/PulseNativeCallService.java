@@ -27,7 +27,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.webrtc.AudioSource;
 import org.webrtc.AudioTrack;
+import org.webrtc.Camera2Enumerator;
+import org.webrtc.Camera1Enumerator;
+import org.webrtc.CameraEnumerator;
+import org.webrtc.CameraVideoCapturer;
 import org.webrtc.DataChannel;
+import org.webrtc.DefaultVideoDecoderFactory;
+import org.webrtc.DefaultVideoEncoderFactory;
+import org.webrtc.EglBase;
 import org.webrtc.IceCandidate;
 import org.webrtc.MediaConstraints;
 import org.webrtc.MediaStream;
@@ -36,6 +43,11 @@ import org.webrtc.PeerConnectionFactory;
 import org.webrtc.RtpReceiver;
 import org.webrtc.SdpObserver;
 import org.webrtc.SessionDescription;
+import org.webrtc.SurfaceTextureHelper;
+import org.webrtc.SurfaceViewRenderer;
+import org.webrtc.VideoCapturer;
+import org.webrtc.VideoSource;
+import org.webrtc.VideoTrack;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -61,8 +73,12 @@ public class PulseNativeCallService extends Service {
     private static final String ACTION_END = "com.pulsemessenger.chat.NATIVE_CALL_END";
     private static final String API_URL = "https://api.pulse-messenger.com";
     private static final String CHANNEL_ID = "pulse_active_calls";
+    static final String ACTION_NATIVE_CALL_FINISHED = "com.pulsemessenger.chat.NATIVE_CALL_FINISHED";
+    static final String ACTION_NATIVE_CALL_CONNECTED = "com.pulsemessenger.chat.NATIVE_CALL_CONNECTED";
     private static final int NOTIFICATION_ID = 42_101;
     private static volatile String activeSessionId;
+    private static volatile PulseNativeCallService activeService;
+    private static EglBase sharedEglBase;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private Socket socket;
@@ -70,14 +86,63 @@ public class PulseNativeCallService extends Service {
     private PeerConnection peerConnection;
     private AudioSource audioSource;
     private AudioTrack localAudioTrack;
+    private VideoSource videoSource;
+    private VideoTrack localVideoTrack;
+    private VideoTrack remoteVideoTrack;
+    private VideoCapturer videoCapturer;
+    private SurfaceTextureHelper surfaceTextureHelper;
+    private SurfaceViewRenderer localRenderer;
+    private SurfaceViewRenderer remoteRenderer;
     private String sessionId;
     private String fromUid;
     private String callerName;
+    private boolean isVideo;
     private boolean stopping;
     private boolean peerStarted;
+    private boolean answerStarted;
+    private volatile boolean peerConnected;
+    private boolean microphoneEnabled = true;
+    private boolean cameraEnabled = true;
 
     static boolean isActive(String sessionId) {
         return sessionId != null && sessionId.equals(activeSessionId);
+    }
+
+    static synchronized EglBase.Context sharedEglContext() {
+        if (sharedEglBase == null) sharedEglBase = EglBase.create();
+        return sharedEglBase.getEglBaseContext();
+    }
+
+    static boolean attachVideoRenderers(String sessionId, SurfaceViewRenderer remote, SurfaceViewRenderer local) {
+        PulseNativeCallService service = activeService;
+        if (service == null || !isActive(sessionId)) return false;
+        service.attachRenderers(remote, local);
+        return true;
+    }
+
+    static void detachVideoRenderers(String sessionId, SurfaceViewRenderer remote, SurfaceViewRenderer local) {
+        PulseNativeCallService service = activeService;
+        if (service != null && isActive(sessionId)) service.detachRenderers(remote, local);
+    }
+
+    static boolean toggleMicrophone(String sessionId) {
+        PulseNativeCallService service = activeService;
+        return service != null && isActive(sessionId) && service.toggleMicrophoneInternal();
+    }
+
+    static boolean toggleCamera(String sessionId) {
+        PulseNativeCallService service = activeService;
+        return service != null && isActive(sessionId) && service.toggleCameraInternal();
+    }
+
+    static void switchCamera(String sessionId) {
+        PulseNativeCallService service = activeService;
+        if (service != null && isActive(sessionId)) service.switchCameraInternal();
+    }
+
+    static boolean isConnected(String sessionId) {
+        PulseNativeCallService service = activeService;
+        return service != null && isActive(sessionId) && service.peerConnected;
     }
 
     static void startAnswer(Context context, Bundle extras) {
@@ -116,27 +181,38 @@ public class PulseNativeCallService extends Service {
         sessionId = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_SESSION_ID), sessionId);
         fromUid = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_FROM_UID), fromUid);
         callerName = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_CALLER_NAME), callerName);
+        isVideo = intent.hasExtra(PulseTelecomManager.EXTRA_IS_VIDEO)
+            ? intent.getBooleanExtra(PulseTelecomManager.EXTRA_IS_VIDEO, false)
+            : isVideo;
         String action = intent.getAction();
 
         if (ACTION_END.equals(action)) {
-            startForegroundCompat(buildNotification("Oproep beëindigen..."), false);
+            startForegroundCompat(buildNotification("Oproep beëindigen..."), false, false);
             endCall(intent.getBooleanExtra("notifyPeer", true), DisconnectCause.LOCAL);
             return START_NOT_STICKY;
         }
 
         if (ACTION_DECLINE.equals(action)) {
-            startForegroundCompat(buildNotification("Oproep weigeren..."), false);
+            startForegroundCompat(buildNotification("Oproep weigeren..."), false, false);
             authenticateAndRun(token -> connectForTerminalSignal(token, "call:decline"));
             return START_NOT_STICKY;
         }
 
         if (ACTION_ANSWER.equals(action)) {
+            if (answerStarted) return START_NOT_STICKY;
+            answerStarted = true;
             activeSessionId = sessionId;
-            startForegroundCompat(buildNotification("Verbinden..."), true);
+            activeService = this;
+            startForegroundCompat(buildNotification("Verbinden..."), true, isVideo);
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 failCall("Microfoontoegang ontbreekt");
                 return START_NOT_STICKY;
             }
+            if (isVideo && ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                failCall("Cameratoegang ontbreekt");
+                return START_NOT_STICKY;
+            }
+            if (isVideo) PulseNativeVideoCallActivity.show(this, sessionId, callerName);
             authenticateAndRun(this::startNativeAnswer);
         }
         return START_NOT_STICKY;
@@ -219,7 +295,13 @@ public class PulseNativeCallService extends Service {
         PeerConnectionFactory.initialize(
             PeerConnectionFactory.InitializationOptions.builder(getApplicationContext()).createInitializationOptions()
         );
-        peerFactory = PeerConnectionFactory.builder().createPeerConnectionFactory();
+        PeerConnectionFactory.Builder factoryBuilder = PeerConnectionFactory.builder();
+        if (isVideo) {
+            EglBase.Context eglContext = sharedEglContext();
+            factoryBuilder.setVideoEncoderFactory(new DefaultVideoEncoderFactory(eglContext, true, true));
+            factoryBuilder.setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglContext));
+        }
+        peerFactory = factoryBuilder.createPeerConnectionFactory();
         PeerConnection.RTCConfiguration configuration = new PeerConnection.RTCConfiguration(iceServers);
         configuration.sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN;
         peerConnection = peerFactory.createPeerConnection(configuration, new PeerObserver() {
@@ -242,11 +324,23 @@ public class PulseNativeCallService extends Service {
             @Override
             public void onConnectionChange(PeerConnection.PeerConnectionState state) {
                 if (state == PeerConnection.PeerConnectionState.CONNECTED) {
+                    peerConnected = true;
                     updateNotification("Verbonden");
+                    sendBroadcast(new Intent(ACTION_NATIVE_CALL_CONNECTED)
+                        .setPackage(getPackageName())
+                        .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId));
                 } else if (state == PeerConnection.PeerConnectionState.FAILED) {
                     failCall("Oproepverbinding verbroken");
                 } else if (state == PeerConnection.PeerConnectionState.CLOSED) {
                     endCall(false, DisconnectCause.REMOTE);
+                }
+            }
+
+            @Override
+            public void onAddTrack(RtpReceiver receiver, MediaStream[] mediaStreams) {
+                if (receiver.track() instanceof VideoTrack) {
+                    remoteVideoTrack = (VideoTrack) receiver.track();
+                    attachRemoteRenderer();
                 }
             }
         });
@@ -257,8 +351,10 @@ public class PulseNativeCallService extends Service {
 
         audioSource = peerFactory.createAudioSource(new MediaConstraints());
         localAudioTrack = peerFactory.createAudioTrack("pulse-audio", audioSource);
-        localAudioTrack.setEnabled(true);
+        localAudioTrack.setEnabled(microphoneEnabled);
         peerConnection.addTrack(localAudioTrack, Collections.singletonList("pulse-stream"));
+
+        if (isVideo && !startLocalVideo()) return;
 
         SessionDescription remoteOffer = new SessionDescription(SessionDescription.Type.OFFER, offer.optString("sdp"));
         peerConnection.setRemoteDescription(new SdpAdapter() {
@@ -278,6 +374,98 @@ public class PulseNativeCallService extends Service {
                 }, new MediaConstraints());
             }
         }, remoteOffer);
+    }
+
+    private boolean startLocalVideo() {
+        videoCapturer = createCameraCapturer();
+        if (videoCapturer == null) {
+            failCall("Geen camera beschikbaar");
+            return false;
+        }
+        surfaceTextureHelper = SurfaceTextureHelper.create("PulseCameraCapture", sharedEglContext());
+        videoSource = peerFactory.createVideoSource(false);
+        videoCapturer.initialize(surfaceTextureHelper, getApplicationContext(), videoSource.getCapturerObserver());
+        try {
+            videoCapturer.startCapture(1280, 720, 30);
+        } catch (Exception error) {
+            android.util.Log.e("PulseNativeCall", "Camera starten mislukt", error);
+            failCall("Camera starten mislukt");
+            return false;
+        }
+        localVideoTrack = peerFactory.createVideoTrack("pulse-video", videoSource);
+        localVideoTrack.setEnabled(cameraEnabled);
+        peerConnection.addTrack(localVideoTrack, Collections.singletonList("pulse-stream"));
+        attachLocalRenderer();
+        return true;
+    }
+
+    private VideoCapturer createCameraCapturer() {
+        CameraEnumerator enumerator = Camera2Enumerator.isSupported(this)
+            ? new Camera2Enumerator(this)
+            : new Camera1Enumerator(true);
+        String[] deviceNames = enumerator.getDeviceNames();
+        for (String deviceName : deviceNames) {
+            if (!enumerator.isFrontFacing(deviceName)) continue;
+            VideoCapturer capturer = enumerator.createCapturer(deviceName, null);
+            if (capturer != null) return capturer;
+        }
+        for (String deviceName : deviceNames) {
+            VideoCapturer capturer = enumerator.createCapturer(deviceName, null);
+            if (capturer != null) return capturer;
+        }
+        return null;
+    }
+
+    private synchronized void attachRenderers(SurfaceViewRenderer remote, SurfaceViewRenderer local) {
+        detachRenderers(remoteRenderer, localRenderer);
+        remoteRenderer = remote;
+        localRenderer = local;
+        attachRemoteRenderer();
+        attachLocalRenderer();
+    }
+
+    private synchronized void detachRenderers(SurfaceViewRenderer remote, SurfaceViewRenderer local) {
+        if (remoteVideoTrack != null && remote != null) remoteVideoTrack.removeSink(remote);
+        if (localVideoTrack != null && local != null) localVideoTrack.removeSink(local);
+        if (remoteRenderer == remote) remoteRenderer = null;
+        if (localRenderer == local) localRenderer = null;
+    }
+
+    private synchronized void attachRemoteRenderer() {
+        if (remoteVideoTrack != null && remoteRenderer != null) remoteVideoTrack.addSink(remoteRenderer);
+    }
+
+    private synchronized void attachLocalRenderer() {
+        if (localVideoTrack != null && localRenderer != null) localVideoTrack.addSink(localRenderer);
+    }
+
+    private synchronized boolean toggleMicrophoneInternal() {
+        microphoneEnabled = !microphoneEnabled;
+        if (localAudioTrack != null) localAudioTrack.setEnabled(microphoneEnabled);
+        return microphoneEnabled;
+    }
+
+    private synchronized boolean toggleCameraInternal() {
+        cameraEnabled = !cameraEnabled;
+        if (localVideoTrack != null) localVideoTrack.setEnabled(cameraEnabled);
+        return cameraEnabled;
+    }
+
+    private synchronized void switchCameraInternal() {
+        if (videoCapturer instanceof CameraVideoCapturer) {
+            ((CameraVideoCapturer) videoCapturer).switchCamera(new CameraVideoCapturer.CameraSwitchHandler() {
+                @Override
+                public void onCameraSwitchDone(boolean isFrontCamera) {
+                    SurfaceViewRenderer renderer = localRenderer;
+                    if (renderer != null) renderer.post(() -> renderer.setMirror(isFrontCamera));
+                }
+
+                @Override
+                public void onCameraSwitchError(String errorDescription) {
+                    android.util.Log.w("PulseNativeCall", "Camera wisselen mislukt: " + errorDescription);
+                }
+            });
+        }
     }
 
     private void emitAnswer(SessionDescription answer) {
@@ -402,10 +590,29 @@ public class PulseNativeCallService extends Service {
             socket.close();
             socket = null;
         }
+        detachRenderers(remoteRenderer, localRenderer);
         if (peerConnection != null) {
             peerConnection.close();
             peerConnection.dispose();
             peerConnection = null;
+        }
+        if (videoCapturer != null) {
+            try { videoCapturer.stopCapture(); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+            videoCapturer.dispose();
+            videoCapturer = null;
+        }
+        if (localVideoTrack != null) {
+            localVideoTrack.dispose();
+            localVideoTrack = null;
+        }
+        remoteVideoTrack = null;
+        if (videoSource != null) {
+            videoSource.dispose();
+            videoSource = null;
+        }
+        if (surfaceTextureHelper != null) {
+            surfaceTextureHelper.dispose();
+            surfaceTextureHelper = null;
         }
         if (localAudioTrack != null) {
             localAudioTrack.dispose();
@@ -421,14 +628,21 @@ public class PulseNativeCallService extends Service {
         }
         PulseTelecomManager.finishNativeCall(sessionId, disconnectCode);
         if (sessionId != null && sessionId.equals(activeSessionId)) activeSessionId = null;
+        if (activeService == this) activeService = null;
+        peerConnected = false;
+        sendBroadcast(new Intent(ACTION_NATIVE_CALL_FINISHED)
+            .setPackage(getPackageName())
+            .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId));
         stopForeground(STOP_FOREGROUND_REMOVE);
         stopSelf();
     }
 
-    private void startForegroundCompat(Notification notification, boolean microphone) {
-        int type = microphone && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
-            ? ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
-            : 0;
+    private void startForegroundCompat(Notification notification, boolean microphone, boolean camera) {
+        int type = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (microphone) type |= ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
+            if (camera) type |= ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA;
+        }
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type);
     }
 
@@ -438,8 +652,12 @@ public class PulseNativeCallService extends Service {
     }
 
     private Notification buildNotification(String status) {
-        Intent open = new Intent(this, MainActivity.class)
+        Intent open = new Intent(this, isVideo ? PulseNativeVideoCallActivity.class : MainActivity.class)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        if (isVideo) {
+            open.putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId);
+            open.putExtra(PulseTelecomManager.EXTRA_CALLER_NAME, callerName);
+        }
         PendingIntent contentIntent = PendingIntent.getActivity(
             this, NOTIFICATION_ID + 1, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );

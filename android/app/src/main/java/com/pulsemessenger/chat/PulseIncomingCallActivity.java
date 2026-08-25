@@ -1,5 +1,6 @@
 package com.pulsemessenger.chat;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -24,6 +25,8 @@ import android.widget.TextView;
 import androidx.core.content.ContextCompat;
 
 public class PulseIncomingCallActivity extends Activity {
+    static final String EXTRA_REQUEST_ANSWER_PERMISSIONS = "requestAnswerPermissions";
+    private static final int MEDIA_PERMISSION_REQUEST = 8401;
     private static final long RING_TIMEOUT_MS = 35_000L;
 
     private final Handler timeoutHandler = new Handler(Looper.getMainLooper());
@@ -39,6 +42,7 @@ public class PulseIncomingCallActivity extends Activity {
         callIntent = getIntent();
         showCallScreen();
         scheduleTimeout();
+        if (callIntent.getBooleanExtra(EXTRA_REQUEST_ANSWER_PERMISSIONS, false)) requestAnswerPermissions();
     }
 
     @Override
@@ -48,6 +52,7 @@ public class PulseIncomingCallActivity extends Activity {
         callIntent = intent;
         showCallScreen();
         scheduleTimeout();
+        if (callIntent.getBooleanExtra(EXTRA_REQUEST_ANSWER_PERMISSIONS, false)) requestAnswerPermissions();
     }
 
     @Override
@@ -169,11 +174,34 @@ public class PulseIncomingCallActivity extends Activity {
     }
 
     private void performAction(String action) {
+        if (PulseIncomingCallStore.ACTION_ANSWER.equals(action)
+            && !PulseTelecomManager.hasRequiredMediaPermissions(this, callIntent)) {
+            requestAnswerPermissions();
+            return;
+        }
         Intent intent = new Intent(this, PulseCallActionReceiver.class)
             .setAction(action)
             .putExtras(callIntent.getExtras() == null ? new Bundle() : callIntent.getExtras());
         sendBroadcast(intent);
         finish();
+    }
+
+    private void requestAnswerPermissions() {
+        boolean isVideo = callIntent != null && callIntent.getBooleanExtra("isVideo", false);
+        String[] permissions = isVideo
+            ? new String[] { Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA }
+            : new String[] { Manifest.permission.RECORD_AUDIO };
+        requestPermissions(permissions, MEDIA_PERMISSION_REQUEST);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != MEDIA_PERMISSION_REQUEST) return;
+        if (PulseTelecomManager.hasRequiredMediaPermissions(this, callIntent)) {
+            callIntent.removeExtra(EXTRA_REQUEST_ANSWER_PERMISSIONS);
+            performAction(PulseIncomingCallStore.ACTION_ANSWER);
+        }
     }
 
     private TextView text(String value, int sizeSp, int color) {

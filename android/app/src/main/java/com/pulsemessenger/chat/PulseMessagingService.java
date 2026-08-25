@@ -29,8 +29,7 @@ public class PulseMessagingService extends MessagingService {
         // render the native screen once the WebView is backgrounded.
         if ("incoming_call".equals(type)) {
             if (!isAppInForeground()) {
-                boolean isVideo = "true".equalsIgnoreCase(data.get("isVideo")) || "1".equals(data.get("isVideo"));
-                if (isVideo || !PulseTelecomManager.showIncomingCall(this, data)) {
+                if (!PulseTelecomManager.showIncomingCall(this, data)) {
                     PulseIncomingCallNotifier.show(this, data);
                 }
                 return;

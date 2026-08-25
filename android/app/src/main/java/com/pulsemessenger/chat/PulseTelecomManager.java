@@ -1,14 +1,18 @@
 package com.pulsemessenger.chat;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
+
+import androidx.core.content.ContextCompat;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -81,7 +85,6 @@ final class PulseTelecomManager {
     }
 
     static boolean answer(Context context, Intent intent) {
-        if (intent != null && intent.getBooleanExtra(EXTRA_IS_VIDEO, false)) return false;
         String sessionId = intent == null ? null : intent.getStringExtra(EXTRA_SESSION_ID);
         PulseCallConnection connection = CONNECTIONS.get(sessionId);
         if (connection != null) {
@@ -95,8 +98,17 @@ final class PulseTelecomManager {
         return false;
     }
 
+    static boolean hasRequiredMediaPermissions(Context context, Intent intent) {
+        if (context == null) return false;
+        boolean audioGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO)
+            == PackageManager.PERMISSION_GRANTED;
+        boolean isVideo = intent != null && intent.getBooleanExtra(EXTRA_IS_VIDEO, false);
+        boolean cameraGranted = !isVideo || ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED;
+        return audioGranted && cameraGranted;
+    }
+
     static boolean decline(Context context, Intent intent) {
-        if (intent != null && intent.getBooleanExtra(EXTRA_IS_VIDEO, false)) return false;
         String sessionId = intent == null ? null : intent.getStringExtra(EXTRA_SESSION_ID);
         PulseCallConnection connection = CONNECTIONS.get(sessionId);
         if (connection != null) {

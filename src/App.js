@@ -44,7 +44,11 @@ import {
 import { subscribeToFeatureFlags } from './services/featureFlags';
 import { FeatureFlagsProvider } from './context/FeatureFlagsContext';
 import { markNativeWebBundleHealthy, stageNativeWebUpdate } from './services/nativeWebUpdate';
-import { consumeNativeIncomingCall } from './services/nativeIncomingCall';
+import {
+  addNativeIncomingCallActionListener,
+  classifyNativeIncomingCall,
+  consumeNativeIncomingCall,
+} from './services/nativeIncomingCall';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const CallOverlay        = lazy(() => import('./components/CallOverlay'));
@@ -332,19 +336,50 @@ function MainApp() {
 
   useEffect(() => {
     let cancelled = false;
+    let consuming = false;
+    let nativeListener = null;
 
-    consumeNativeIncomingCall().then((call) => {
-      if (cancelled || !call?.sessionId || !call?.fromUid) return;
-      setPendingCallBootstrap({
-        sessionId: call.sessionId,
-        fromUid: call.fromUid,
-        callerName: call.callerName || 'Iemand',
-        isVideo: !!call.isVideo,
-        action: call.action || 'open',
-      });
+    const consumePendingCall = async () => {
+      if (cancelled || consuming) return;
+      consuming = true;
+      try {
+        const call = await consumeNativeIncomingCall();
+        if (cancelled || !call?.sessionId || !call?.fromUid) return;
+        setPendingCallBootstrap({
+          sessionId: call.sessionId,
+          fromUid: call.fromUid,
+          callerName: call.callerName || 'Iemand',
+          isVideo: !!call.isVideo,
+          action: call.action || 'open',
+        });
+      } finally {
+        consuming = false;
+      }
+    };
+
+    const consumeWhenVisible = () => {
+      if (document.visibilityState === 'visible') consumePendingCall();
+    };
+
+    consumePendingCall();
+    addNativeIncomingCallActionListener(consumePendingCall).then((listener) => {
+      if (cancelled) {
+        listener?.remove?.();
+        return;
+      }
+      nativeListener = listener;
     });
+    document.addEventListener('visibilitychange', consumeWhenVisible);
+    window.addEventListener('focus', consumePendingCall);
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', consumeWhenVisible);
+      window.removeEventListener('focus', consumePendingCall);
+      if (nativeListener?.remove) {
+        Promise.resolve(nativeListener.remove()).catch(() => {});
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -520,7 +555,25 @@ function MainApp() {
         return;
       }
 
-      if (incomingCallRef.current || isCallInProgress()) {
+      const existingIncomingCall = incomingCallRef.current;
+      const disposition = classifyNativeIncomingCall(
+        existingIncomingCall,
+        sessionId,
+        isCallInProgress(),
+      );
+      if (disposition === 'existing') {
+        if (action === 'answer') {
+          setIncomingCall((current) => (
+            current?.sessionId === sessionId
+              ? { ...current, autoAnswer: true }
+              : current
+          ));
+        }
+        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false, action: 'open' });
+        return;
+      }
+
+      if (disposition === 'busy') {
         rejectCallAsBusy(fromUid, sessionId);
         setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false, action: 'open' });
         return;

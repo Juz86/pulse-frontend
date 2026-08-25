@@ -16,6 +16,11 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 @CapacitorPlugin(name = "PulseIncomingCall")
 public class PulseIncomingCallPlugin extends Plugin {
+    @Override
+    protected void handleOnNewIntent(Intent intent) {
+        notifyListeners("pendingCallChanged", new JSObject());
+    }
+
     @PluginMethod
     public void consumePendingCall(PluginCall call) {
         call.resolve(PulseIncomingCallStore.consume(getContext()));

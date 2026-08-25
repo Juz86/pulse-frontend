@@ -136,8 +136,8 @@ public class PulseIncomingCallActivity extends Activity {
         LinearLayout actions = new LinearLayout(this);
         actions.setGravity(Gravity.CENTER);
         actions.setOrientation(LinearLayout.HORIZONTAL);
-        LinearLayout decline = action("Weigeren", Color.rgb(240, 0, 58), 135f, PulseIncomingCallStore.ACTION_DECLINE);
-        LinearLayout answer = action("Beantwoorden", Color.rgb(28, 183, 97), 0f, PulseIncomingCallStore.ACTION_ANSWER);
+        LinearLayout decline = action("Weigeren", Color.rgb(240, 0, 58), R.drawable.pulse_call_decline, PulseIncomingCallStore.ACTION_DECLINE);
+        LinearLayout answer = action("Beantwoorden", Color.rgb(28, 183, 97), R.drawable.pulse_call_answer, PulseIncomingCallStore.ACTION_ANSWER);
         actions.addView(decline, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         actions.addView(answer, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         root.addView(actions, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -149,15 +149,15 @@ public class PulseIncomingCallActivity extends Activity {
         setContentView(scene);
     }
 
-    private LinearLayout action(String label, int color, float rotation, String action) {
+    private LinearLayout action(String label, int color, int iconResource, String action) {
         LinearLayout container = new LinearLayout(this);
         container.setOrientation(LinearLayout.VERTICAL);
         container.setGravity(Gravity.CENTER);
 
         ImageButton button = new ImageButton(this);
-        button.setImageResource(android.R.drawable.sym_action_call);
+        button.setImageResource(iconResource);
         button.setColorFilter(Color.WHITE);
-        button.setRotation(rotation);
+        button.setPadding(dp(16), dp(16), dp(16), dp(16));
         button.setBackground(circle(color));
         button.setContentDescription(label);
         button.setOnClickListener(v -> performAction(action));

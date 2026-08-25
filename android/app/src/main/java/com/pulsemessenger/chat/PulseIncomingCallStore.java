@@ -56,7 +56,13 @@ final class PulseIncomingCallStore {
         result.put(KEY_CALLER_NAME, prefs.getString(KEY_CALLER_NAME, "Iemand"));
         result.put(KEY_IS_VIDEO, prefs.getBoolean(KEY_IS_VIDEO, false));
         result.put(KEY_ACTION, prefs.getString(KEY_ACTION, "open"));
-        prefs.edit().clear().apply();
+        prefs.edit()
+            .remove(KEY_SESSION_ID)
+            .remove(KEY_FROM_UID)
+            .remove(KEY_CALLER_NAME)
+            .remove(KEY_IS_VIDEO)
+            .remove(KEY_ACTION)
+            .apply();
         return result;
     }
 

@@ -1,4 +1,5 @@
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
+import { ensureNativeIncomingCallAccess } from './nativeIncomingCall';
 
 function logInfo(...args) {
   console.info('[Pulse][Push]', ...args);
@@ -150,14 +151,7 @@ async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversat
     sound: 'default',
   }).catch(() => {});
 
-  await PushNotifications.createChannel({
-    id: 'pulse_calls',
-    name: 'Pulse oproepen',
-    description: 'Meldingen voor inkomende oproepen',
-    importance: 5,
-    visibility: 1,
-    sound: 'default',
-  }).catch(() => {});
+  await ensureNativeIncomingCallAccess();
 
   // Een heropende Capacitor WebView hervat vanuit de achtergrond zonder dat
   // Android de eerder bezorgde FCM-notificaties automatisch verwijdert.

@@ -13,6 +13,10 @@ public class PulseCallActionReceiver extends BroadcastReceiver {
         PulseIncomingCallStore.save(context, intent, callAction);
         PulseIncomingCallNotifier.cancel(context, intent.getStringExtra("sessionId"));
 
+        // Weigeren gebeurt volledig vanuit de systeemmelding. Alleen opnemen
+        // opent Pulse, zodat de gebruiker niet na een afwijzing in de app landt.
+        if (!PulseIncomingCallStore.ACTION_ANSWER.equals(action)) return;
+
         Intent launch = new Intent(context, MainActivity.class)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP)
             .putExtras(intent.getExtras() == null ? new android.os.Bundle() : intent.getExtras());

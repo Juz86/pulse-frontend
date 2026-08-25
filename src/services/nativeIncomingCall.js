@@ -22,3 +22,16 @@ export async function consumeNativeIncomingCall() {
     return null;
   }
 }
+
+export async function ensureNativeIncomingCallAccess() {
+  if (!isAndroidNative()) return null;
+
+  try {
+    const { registerPlugin } = await import('@capacitor/core');
+    const PulseIncomingCall = registerPlugin('PulseIncomingCall');
+    return await PulseIncomingCall.ensureCallNotificationAccess();
+  } catch (error) {
+    console.warn('[Pulse][Call] Native oproeptoegang controleren mislukt:', error?.message || error);
+    return null;
+  }
+}

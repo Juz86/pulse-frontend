@@ -64,6 +64,7 @@ let socket            = null;
 let peer              = null;
 let iceHandler        = null;
 let renegotiateHandler = null;
+let peerResumedHandler = null;
 let videoUpgradeHandler = null;
 let callPeer          = null; // bewaar de remote uid voor renegotiatie
 let callAnswerHandler = null;
@@ -78,8 +79,17 @@ let activeLocalStream = null;
 let activeRemoteStream = null;
 let pendingRemoteIceCandidates = [];
 let remoteDescriptionReady = false;
+let networkRecoveryTimeoutId = null;
+let iceRestartDelayId = null;
+let iceRestartAttempts = 0;
+let lastIceRestartAt = 0;
+let removeNetworkListeners = null;
+let localCallInitiator = false;
 
 const ACTIVE_CALL_STATES = new Set(['ringing', 'connecting', 'connected', 'reconnecting']);
+const NETWORK_RECOVERY_TIMEOUT_MS = 20000;
+const ICE_RESTART_DELAY_MS = 1200;
+const MAX_ICE_RESTART_ATTEMPTS = 3;
 
 function buildCallSessionId() {
   return `call_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -233,6 +243,104 @@ function clearCallLifecycleHandlers() {
   }
 }
 
+function clearNetworkRecovery({ resetAttempts = true } = {}) {
+  if (networkRecoveryTimeoutId) {
+    clearTimeout(networkRecoveryTimeoutId);
+    networkRecoveryTimeoutId = null;
+  }
+  if (iceRestartDelayId) {
+    clearTimeout(iceRestartDelayId);
+    iceRestartDelayId = null;
+  }
+  if (resetAttempts) iceRestartAttempts = 0;
+}
+
+function markNetworkRecovered(source) {
+  clearNetworkRecovery();
+  setCallState('connected', { source });
+}
+
+function failNetworkRecovery() {
+  if (!peer || !currentCallSessionId) return;
+  const failedSessionId = currentCallSessionId;
+  const failedPeerUid = callPeer;
+  clearNetworkRecovery();
+  setCallState('failed', { source: 'network_recovery_timeout' });
+  if (failedPeerUid) socket?.emit('call:end', { to: failedPeerUid, sessionId: failedSessionId });
+  peer.destroy(new Error('network_recovery_timeout'));
+}
+
+function startNetworkRecoveryTimeout() {
+  if (networkRecoveryTimeoutId) return;
+  networkRecoveryTimeoutId = setTimeout(failNetworkRecovery, NETWORK_RECOVERY_TIMEOUT_MS);
+}
+
+function requestIceRestart(source, { immediate = false, notifyServer = true } = {}) {
+  const pc = peer?._pc;
+  if (!pc || !currentCallSessionId || currentCallState === 'ringing') return;
+  setCallState('reconnecting', { source });
+  startNetworkRecoveryTimeout();
+  if (notifyServer) {
+    socket?.emit('call:resume', {
+      to: callPeer,
+      sessionId: currentCallSessionId,
+      needsAnswer: !remoteDescriptionReady,
+    });
+  }
+
+  // Alleen de oorspronkelijke beller maakt een ICE-restartoffer. De
+  // ontvanger meldt zijn herstel en antwoordt op die offer, wat glare voorkomt.
+  if (!localCallInitiator) return;
+
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+  if (!socket?.connected || typeof pc.restartIce !== 'function') return;
+  if (iceRestartAttempts >= MAX_ICE_RESTART_ATTEMPTS) return;
+
+  const elapsed = Date.now() - lastIceRestartAt;
+  const delay = immediate ? 0 : Math.max(ICE_RESTART_DELAY_MS - elapsed, 0);
+  if (iceRestartDelayId) clearTimeout(iceRestartDelayId);
+  iceRestartDelayId = setTimeout(() => {
+    iceRestartDelayId = null;
+    if (!peer?._pc || iceRestartAttempts >= MAX_ICE_RESTART_ATTEMPTS) return;
+    iceRestartAttempts += 1;
+    lastIceRestartAt = Date.now();
+    try {
+      peer._pc.restartIce();
+      console.info('[Pulse][Call] ICE restart gestart', {
+        sessionId: currentCallSessionId,
+        attempt: iceRestartAttempts,
+        source,
+      });
+      if (iceRestartAttempts < MAX_ICE_RESTART_ATTEMPTS) {
+        iceRestartDelayId = setTimeout(() => {
+          iceRestartDelayId = null;
+          if (currentCallState === 'reconnecting') {
+            requestIceRestart('ice_restart_retry', { immediate: true, notifyServer });
+          }
+        }, 5000);
+      }
+    } catch (error) {
+      console.warn('[Pulse][Call] ICE restart mislukt:', error?.message || error);
+    }
+  }, delay);
+}
+
+function installNetworkRecoveryListeners() {
+  removeNetworkListeners?.();
+  if (typeof window === 'undefined') {
+    removeNetworkListeners = null;
+    return;
+  }
+  const onOffline = () => requestIceRestart('browser_offline');
+  const onOnline = () => requestIceRestart('browser_online', { immediate: true });
+  window.addEventListener('offline', onOffline);
+  window.addEventListener('online', onOnline);
+  removeNetworkListeners = () => {
+    window.removeEventListener('offline', onOffline);
+    window.removeEventListener('online', onOnline);
+  };
+}
+
 function bindPeerConnectionDebugHandlers(peerInstance, sessionId) {
   const pc = peerInstance?._pc;
   if (!pc) return () => {};
@@ -244,11 +352,11 @@ function bindPeerConnectionDebugHandlers(peerInstance, sessionId) {
       iceConnectionState: pc.iceConnectionState,
     });
     if (pc.connectionState === 'connected') {
-      setCallState('connected', { source: 'pc_connectionstate_connected' });
+      markNetworkRecovered('pc_connectionstate_connected');
     } else if (pc.connectionState === 'failed') {
-      setCallState('failed', { source: 'pc_connectionstate_failed' });
+      requestIceRestart('pc_connectionstate_failed', { immediate: true });
     } else if (pc.connectionState === 'disconnected') {
-      setCallState('reconnecting', { source: 'pc_connectionstate_disconnected' });
+      requestIceRestart('pc_connectionstate_disconnected');
     } else if (pc.connectionState === 'connecting') {
       setCallState('connecting', { source: 'pc_connectionstate_connecting' });
     }
@@ -261,20 +369,40 @@ function bindPeerConnectionDebugHandlers(peerInstance, sessionId) {
       connectionState: pc.connectionState,
     });
     if (pc.iceConnectionState === 'failed') {
-      setCallState('failed', { source: 'pc_ice_failed' });
+      requestIceRestart('pc_ice_failed', { immediate: true });
     } else if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'checking') {
       setCallState('reconnecting', { source: 'pc_ice_reconnecting' });
     } else if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
-      setCallState('connected', { source: 'pc_ice_connected' });
+      markNetworkRecovered('pc_ice_connected');
     }
   };
 
   pc.addEventListener('connectionstatechange', onConnectionStateChange);
   pc.addEventListener('iceconnectionstatechange', onIceConnectionStateChange);
+  if (peerResumedHandler) socket?.off('call:peer-resumed', peerResumedHandler);
+  const boundPeerResumedHandler = ({ sessionId: resumedSessionId } = {}) => {
+    if (resumedSessionId && !isSessionEventCurrent(resumedSessionId)) return;
+    if (localCallInitiator) {
+      requestIceRestart('remote_peer_resumed', { immediate: true, notifyServer: false });
+    } else {
+      setCallState('reconnecting', { source: 'remote_peer_resumed' });
+      startNetworkRecoveryTimeout();
+    }
+  };
+  peerResumedHandler = boundPeerResumedHandler;
+  socket?.on('call:peer-resumed', peerResumedHandler);
+  installNetworkRecoveryListeners();
 
   return () => {
     pc.removeEventListener('connectionstatechange', onConnectionStateChange);
     pc.removeEventListener('iceconnectionstatechange', onIceConnectionStateChange);
+    if (peerResumedHandler === boundPeerResumedHandler) {
+      socket?.off('call:peer-resumed', boundPeerResumedHandler);
+      peerResumedHandler = null;
+    }
+    removeNetworkListeners?.();
+    removeNetworkListeners = null;
+    clearNetworkRecovery();
   };
 }
 
@@ -371,8 +499,10 @@ export function connectSocket(uid, token) {
     timeout: 10000,
   });
   socket.on('connect', () => {
-    if (isCallInProgress()) setCallState('connecting', { source: 'socket_reconnect_success' });
     socket.emit('user:online');
+    if (peer && currentCallSessionId) {
+      requestIceRestart('socket_reconnect_success', { immediate: true });
+    }
   });
   socket.on('connect_error', (error) => {
     console.warn('[Pulse] Socket connect_error:', error?.message || error);
@@ -420,6 +550,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   }
 
   callPeer = toUid;
+  localCallInitiator = true;
   activeLocalStream = stream;
   const iceServers = await getIceServers(undefined, onConnectionFallback);
   clearCallLifecycleHandlers();
@@ -646,6 +777,7 @@ export async function answerCall({ fromUid, offer, sessionId: incomingSessionId 
   }
 
   callPeer = fromUid;
+  localCallInitiator = false;
   activeLocalStream = stream;
   const iceServers = await getIceServers(undefined, onConnectionFallback);
   clearCallLifecycleHandlers();
@@ -923,6 +1055,9 @@ export async function switchCameraTrack(localStream, nextFacingMode = 'environme
 function cleanupCall(stream, sessionId = null) {
   if (sessionId && currentCallSessionId && sessionId !== currentCallSessionId) return;
   clearCallLifecycleHandlers();
+  clearNetworkRecovery();
+  removeNetworkListeners?.();
+  removeNetworkListeners = null;
   try {
     peer?._pc?.close?.();
   } catch (error) {
@@ -931,6 +1066,7 @@ function cleanupCall(stream, sessionId = null) {
   peer?.destroy();
   peer = null;
   callPeer = null;
+  localCallInitiator = false;
   remoteDescriptionReady = false;
   pendingRemoteIceCandidates = [];
   currentCallSessionId = null;
@@ -941,6 +1077,7 @@ function cleanupCall(stream, sessionId = null) {
   activeRemoteStream = null;
   if (iceHandler)         { socket?.off('call:ice-candidate', iceHandler);   iceHandler = null; }
   if (renegotiateHandler) { socket?.off('call:renegotiate',   renegotiateHandler); renegotiateHandler = null; }
+  if (peerResumedHandler) { socket?.off('call:peer-resumed', peerResumedHandler); peerResumedHandler = null; }
   if (videoUpgradeHandler){ socket?.off('call:video-upgrade', videoUpgradeHandler); videoUpgradeHandler = null; }
   console.info('[Pulse][Call] cleanup completed');
 }

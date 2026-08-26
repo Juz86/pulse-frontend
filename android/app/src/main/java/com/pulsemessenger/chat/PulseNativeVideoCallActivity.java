@@ -181,6 +181,8 @@ public class PulseNativeVideoCallActivity extends Activity {
                 if (sessionId == null || eventSessionId == null || !sessionId.equals(eventSessionId)) return;
                 if (PulseNativeCallService.ACTION_NATIVE_CALL_CONNECTED.equals(intent.getAction())) {
                     statusView.setText("Verbonden");
+                } else if (PulseNativeCallService.ACTION_NATIVE_CALL_RECONNECTING.equals(intent.getAction())) {
+                    statusView.setText("Opnieuw verbinden...");
                 } else {
                     finish();
                 }
@@ -188,6 +190,7 @@ public class PulseNativeVideoCallActivity extends Activity {
         };
         IntentFilter filter = new IntentFilter();
         filter.addAction(PulseNativeCallService.ACTION_NATIVE_CALL_CONNECTED);
+        filter.addAction(PulseNativeCallService.ACTION_NATIVE_CALL_RECONNECTING);
         filter.addAction(PulseNativeCallService.ACTION_NATIVE_CALL_FINISHED);
         ContextCompat.registerReceiver(this, callReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
     }

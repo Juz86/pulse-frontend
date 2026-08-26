@@ -10,9 +10,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
+import android.net.ConnectivityManager;
+import android.net.Network;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.telecom.DisconnectCause;
 
 import androidx.annotation.Nullable;
@@ -75,12 +79,15 @@ public class PulseNativeCallService extends Service {
     private static final String CHANNEL_ID = "pulse_active_calls";
     static final String ACTION_NATIVE_CALL_FINISHED = "com.pulsemessenger.chat.NATIVE_CALL_FINISHED";
     static final String ACTION_NATIVE_CALL_CONNECTED = "com.pulsemessenger.chat.NATIVE_CALL_CONNECTED";
+    static final String ACTION_NATIVE_CALL_RECONNECTING = "com.pulsemessenger.chat.NATIVE_CALL_RECONNECTING";
     private static final int NOTIFICATION_ID = 42_101;
+    private static final long NETWORK_RECOVERY_TIMEOUT_MS = 20_000L;
     private static volatile String activeSessionId;
     private static volatile PulseNativeCallService activeService;
     private static EglBase sharedEglBase;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private Socket socket;
     private PeerConnectionFactory peerFactory;
     private PeerConnection peerConnection;
@@ -101,6 +108,10 @@ public class PulseNativeCallService extends Service {
     private boolean peerStarted;
     private boolean answerStarted;
     private volatile boolean peerConnected;
+    private boolean networkRecoveryActive;
+    private ConnectivityManager connectivityManager;
+    private ConnectivityManager.NetworkCallback networkCallback;
+    private final Runnable networkRecoveryTimeout = () -> failCall("Netwerkverbinding kon niet worden hersteld");
     private boolean microphoneEnabled = true;
     private boolean cameraEnabled = true;
 
@@ -173,6 +184,7 @@ public class PulseNativeCallService extends Service {
     public void onCreate() {
         super.onCreate();
         ensureNotificationChannel();
+        registerNetworkCallback();
     }
 
     @Override
@@ -256,10 +268,19 @@ public class PulseNativeCallService extends Service {
         socket = IO.socket(URI.create(API_URL), options);
         socket.on(Socket.EVENT_CONNECT, args -> {
             socket.emit("user:online");
-            onConnected.run();
+            if (peerStarted) {
+                requestNativeRecovery("socket_reconnect");
+            } else {
+                onConnected.run();
+            }
         });
-        socket.on(Socket.EVENT_CONNECT_ERROR, args -> failCall("Signaleringsverbinding mislukt"));
+        socket.on(Socket.EVENT_CONNECT_ERROR, args -> {
+            if (peerStarted) beginNetworkRecovery("socket_connect_error");
+            else failCall("Signaleringsverbinding mislukt");
+        });
         socket.on("call:ice-candidate", this::onRemoteCandidate);
+        socket.on("call:renegotiate", this::onRenegotiate);
+        socket.on("call:peer-resumed", this::onPeerResumed);
         socket.on("call:ended", args -> endCall(false, DisconnectCause.REMOTE));
         socket.on("call:declined", args -> endCall(false, DisconnectCause.REMOTE));
         socket.connect();
@@ -324,15 +345,25 @@ public class PulseNativeCallService extends Service {
             @Override
             public void onConnectionChange(PeerConnection.PeerConnectionState state) {
                 if (state == PeerConnection.PeerConnectionState.CONNECTED) {
-                    peerConnected = true;
-                    updateNotification("Verbonden");
-                    sendBroadcast(new Intent(ACTION_NATIVE_CALL_CONNECTED)
-                        .setPackage(getPackageName())
-                        .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId));
+                    markNativeNetworkRecovered();
                 } else if (state == PeerConnection.PeerConnectionState.FAILED) {
-                    failCall("Oproepverbinding verbroken");
+                    requestNativeRecovery("peer_failed");
+                } else if (state == PeerConnection.PeerConnectionState.DISCONNECTED) {
+                    requestNativeRecovery("peer_disconnected");
                 } else if (state == PeerConnection.PeerConnectionState.CLOSED) {
                     endCall(false, DisconnectCause.REMOTE);
+                }
+            }
+
+            @Override
+            public void onIceConnectionChange(PeerConnection.IceConnectionState state) {
+                if (state == PeerConnection.IceConnectionState.CONNECTED
+                    || state == PeerConnection.IceConnectionState.COMPLETED) {
+                    markNativeNetworkRecovered();
+                } else if (state == PeerConnection.IceConnectionState.FAILED) {
+                    requestNativeRecovery("ice_failed");
+                } else if (state == PeerConnection.IceConnectionState.DISCONNECTED) {
+                    requestNativeRecovery("ice_disconnected");
                 }
             }
 
@@ -482,6 +513,109 @@ public class PulseNativeCallService extends Service {
         }
     }
 
+    private void onRenegotiate(Object... args) {
+        if (peerConnection == null || args.length == 0 || !(args[0] instanceof JSONObject)) return;
+        JSONObject payload = (JSONObject) args[0];
+        if (!sessionId.equals(payload.optString("sessionId"))) return;
+        JSONObject signal = payload.optJSONObject("signal");
+        if (signal == null) return;
+        SessionDescription.Type type = "offer".equals(signal.optString("type"))
+            ? SessionDescription.Type.OFFER
+            : SessionDescription.Type.ANSWER;
+        SessionDescription description = new SessionDescription(type, signal.optString("sdp"));
+        peerConnection.setRemoteDescription(new SdpAdapter() {
+            @Override
+            public void onSetSuccess() {
+                if (type != SessionDescription.Type.OFFER) return;
+                peerConnection.createAnswer(new SdpAdapter() {
+                    @Override
+                    public void onCreateSuccess(SessionDescription answer) {
+                        peerConnection.setLocalDescription(new SdpAdapter() {
+                            @Override
+                            public void onSetSuccess() {
+                                emitRenegotiationSignal(answer);
+                            }
+                        }, answer);
+                    }
+                }, new MediaConstraints());
+            }
+        }, description);
+    }
+
+    private void emitRenegotiationSignal(SessionDescription description) {
+        if (socket == null) return;
+        try {
+            JSONObject signal = new JSONObject();
+            signal.put("type", description.type.canonicalForm());
+            signal.put("sdp", description.description);
+            JSONObject payload = signalTarget();
+            payload.put("signal", signal);
+            socket.emit("call:renegotiate", payload);
+        } catch (Exception error) {
+            android.util.Log.w("PulseNativeCall", "Heronderhandeling versturen mislukt", error);
+        }
+    }
+
+    private synchronized void beginNetworkRecovery(String source) {
+        if (stopping || !peerStarted) return;
+        peerConnected = false;
+        if (!networkRecoveryActive) {
+            networkRecoveryActive = true;
+            updateNotification("Opnieuw verbinden...");
+            sendBroadcast(new Intent(ACTION_NATIVE_CALL_RECONNECTING)
+                .setPackage(getPackageName())
+                .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId));
+            mainHandler.postDelayed(networkRecoveryTimeout, NETWORK_RECOVERY_TIMEOUT_MS);
+        }
+        android.util.Log.i("PulseNativeCall", "Netwerkherstel gestart: " + source);
+    }
+
+    private synchronized void requestNativeRecovery(String source) {
+        if (stopping || peerConnection == null) return;
+        beginNetworkRecovery(source);
+        if (socket != null && socket.connected()) socket.emit("call:resume", signalTarget());
+    }
+
+    private void onPeerResumed(Object... args) {
+        if (args.length == 0 || !(args[0] instanceof JSONObject)) return;
+        JSONObject payload = (JSONObject) args[0];
+        if (!sessionId.equals(payload.optString("sessionId"))) return;
+        beginNetworkRecovery("remote_peer_resumed");
+    }
+
+    private synchronized void markNativeNetworkRecovered() {
+        if (stopping || peerConnected) return;
+        peerConnected = true;
+        networkRecoveryActive = false;
+        mainHandler.removeCallbacks(networkRecoveryTimeout);
+        updateNotification("Verbonden");
+        sendBroadcast(new Intent(ACTION_NATIVE_CALL_CONNECTED)
+            .setPackage(getPackageName())
+            .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId));
+    }
+
+    private void registerNetworkCallback() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return;
+        connectivityManager = getSystemService(ConnectivityManager.class);
+        if (connectivityManager == null) return;
+        networkCallback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onLost(Network network) {
+                beginNetworkRecovery("network_lost");
+            }
+
+            @Override
+            public void onAvailable(Network network) {
+                if (peerStarted && !peerConnected) requestNativeRecovery("network_available");
+            }
+        };
+        try {
+            connectivityManager.registerDefaultNetworkCallback(networkCallback);
+        } catch (RuntimeException error) {
+            android.util.Log.w("PulseNativeCall", "Netwerkcallback registreren mislukt", error);
+        }
+    }
+
     private void addStoredCandidates(JSONArray candidates) {
         if (candidates == null || peerConnection == null) return;
         for (int index = 0; index < candidates.length(); index++) {
@@ -581,6 +715,7 @@ public class PulseNativeCallService extends Service {
     private synchronized void endCall(boolean notifyPeer, int disconnectCode) {
         if (stopping) return;
         stopping = true;
+        mainHandler.removeCallbacks(networkRecoveryTimeout);
         if (notifyPeer && socket != null && socket.connected() && fromUid != null) {
             socket.emit("call:end", signalTarget());
         }
@@ -706,6 +841,9 @@ public class PulseNativeCallService extends Service {
     @Override
     public void onDestroy() {
         if (!stopping) endCall(false, DisconnectCause.ERROR);
+        if (connectivityManager != null && networkCallback != null) {
+            try { connectivityManager.unregisterNetworkCallback(networkCallback); } catch (RuntimeException ignored) {}
+        }
         executor.shutdownNow();
         super.onDestroy();
     }

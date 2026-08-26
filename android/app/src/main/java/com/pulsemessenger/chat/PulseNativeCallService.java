@@ -82,6 +82,7 @@ public class PulseNativeCallService extends Service {
     static final String ACTION_NATIVE_CALL_RECONNECTING = "com.pulsemessenger.chat.NATIVE_CALL_RECONNECTING";
     private static final int NOTIFICATION_ID = 42_101;
     private static final long NETWORK_RECOVERY_TIMEOUT_MS = 20_000L;
+    private static final int MAX_PENDING_REMOTE_CANDIDATES = 64;
     private static volatile String activeSessionId;
     private static volatile PulseNativeCallService activeService;
     private static EglBase sharedEglBase;
@@ -109,6 +110,8 @@ public class PulseNativeCallService extends Service {
     private boolean answerStarted;
     private volatile boolean peerConnected;
     private boolean networkRecoveryActive;
+    private boolean remoteDescriptionApplied;
+    private final List<IceCandidate> pendingRemoteCandidates = new ArrayList<>();
     private ConnectivityManager connectivityManager;
     private ConnectivityManager.NetworkCallback networkCallback;
     private final Runnable networkRecoveryTimeout = () -> failCall("Netwerkverbinding kon niet worden hersteld");
@@ -391,7 +394,11 @@ public class PulseNativeCallService extends Service {
         peerConnection.setRemoteDescription(new SdpAdapter() {
             @Override
             public void onSetSuccess() {
+                synchronized (PulseNativeCallService.this) {
+                    remoteDescriptionApplied = true;
+                }
                 addStoredCandidates(storedCandidates);
+                flushPendingRemoteCandidates();
                 peerConnection.createAnswer(new SdpAdapter() {
                     @Override
                     public void onCreateSuccess(SessionDescription answer) {
@@ -508,6 +515,7 @@ public class PulseNativeCallService extends Service {
             JSONObject payload = signalTarget();
             payload.put("answer", signal);
             socket.emit("call:answer", payload);
+            armConnectionTimeout();
         } catch (Exception error) {
             failCall("Antwoord versturen mislukt");
         }
@@ -565,9 +573,14 @@ public class PulseNativeCallService extends Service {
             sendBroadcast(new Intent(ACTION_NATIVE_CALL_RECONNECTING)
                 .setPackage(getPackageName())
                 .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId));
-            mainHandler.postDelayed(networkRecoveryTimeout, NETWORK_RECOVERY_TIMEOUT_MS);
+            armConnectionTimeout();
         }
         android.util.Log.i("PulseNativeCall", "Netwerkherstel gestart: " + source);
+    }
+
+    private synchronized void armConnectionTimeout() {
+        mainHandler.removeCallbacks(networkRecoveryTimeout);
+        mainHandler.postDelayed(networkRecoveryTimeout, NETWORK_RECOVERY_TIMEOUT_MS);
     }
 
     private synchronized void requestNativeRecovery(String source) {
@@ -625,12 +638,37 @@ public class PulseNativeCallService extends Service {
         }
     }
 
+    private synchronized void addOrQueueRemoteCandidate(IceCandidate candidate) {
+        if (candidate == null) return;
+        if (peerConnection != null && remoteDescriptionApplied) {
+            peerConnection.addIceCandidate(candidate);
+            return;
+        }
+        if (pendingRemoteCandidates.size() < MAX_PENDING_REMOTE_CANDIDATES) {
+            pendingRemoteCandidates.add(candidate);
+        }
+    }
+
+    private synchronized void flushPendingRemoteCandidates() {
+        if (peerConnection == null || !remoteDescriptionApplied) return;
+        for (IceCandidate candidate : pendingRemoteCandidates) {
+            peerConnection.addIceCandidate(candidate);
+        }
+        if (!pendingRemoteCandidates.isEmpty()) {
+            android.util.Log.i(
+                "PulseNativeCall",
+                "Gebufferde ICE-kandidaten toegepast: " + pendingRemoteCandidates.size()
+            );
+        }
+        pendingRemoteCandidates.clear();
+    }
+
     private void onRemoteCandidate(Object... args) {
-        if (peerConnection == null || args.length == 0 || !(args[0] instanceof JSONObject)) return;
+        if (args.length == 0 || !(args[0] instanceof JSONObject)) return;
         JSONObject payload = (JSONObject) args[0];
         if (!sessionId.equals(payload.optString("sessionId"))) return;
         IceCandidate candidate = parseCandidate(payload.optJSONObject("candidate"));
-        if (candidate != null) peerConnection.addIceCandidate(candidate);
+        addOrQueueRemoteCandidate(candidate);
     }
 
     private IceCandidate parseCandidate(JSONObject candidate) {
@@ -731,6 +769,8 @@ public class PulseNativeCallService extends Service {
             peerConnection.dispose();
             peerConnection = null;
         }
+        pendingRemoteCandidates.clear();
+        remoteDescriptionApplied = false;
         if (videoCapturer != null) {
             try { videoCapturer.stopCapture(); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
             videoCapturer.dispose();

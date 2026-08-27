@@ -43,6 +43,7 @@
     "verify:e2ee:acceptance-preflight": "npm run lint && npm run test:e2ee -- --runInBand && npm --prefix backend-skeleton run test && npm --prefix backend-skeleton run smoke && npm --prefix backend-skeleton run smoke:socket",
     "verify:cloudflare": "npm run lint && npm run test -- --runInBand && npm run verify:public-headers && npm run test:deployed-targets && npm run verify:landing && npm run verify:webapp",
     "android:sync": "npx cap sync android",
+    "android:test:native": "cd android && GRADLE_USER_HOME=../.gradle-android ./gradlew :app:testDebugUnitTest :app:lintRelease",
     "android:version:bump": "node scripts/bumpAndroidVersionCode.js",
     "android:build": "npm run build:webapp && npm run android:sync && cd android && GRADLE_USER_HOME=../.gradle-android ./gradlew assembleDebug",
     "android:build:play": "npm run android:version:bump && REACT_APP_BACKEND_URL=https://api.pulse-messenger.com REACT_APP_API_URL=https://api.pulse-messenger.com REACT_APP_NATIVE_API_URL= npm run build:webapp && npm run android:sync && cd android && GRADLE_USER_HOME=../.gradle-android ./gradlew bundleRelease",

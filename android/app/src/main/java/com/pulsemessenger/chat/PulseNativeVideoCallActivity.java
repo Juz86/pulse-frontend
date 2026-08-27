@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -200,7 +201,7 @@ public class PulseNativeVideoCallActivity extends Activity {
         button.setImageResource(icon);
         button.setColorFilter(Color.WHITE);
         button.setContentDescription(description);
-        button.setTooltipText(description);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) button.setTooltipText(description);
         button.setPadding(dp(16), dp(16), dp(16), dp(16));
         GradientDrawable background = new GradientDrawable();
         background.setShape(GradientDrawable.OVAL);

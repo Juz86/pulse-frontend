@@ -24,7 +24,7 @@ final class PulseTelecomManager {
     static final String EXTRA_IS_VIDEO = "isVideo";
 
     private static final String PHONE_ACCOUNT_ID = "pulse-voip";
-    private static final Map<String, PulseCallConnection> CONNECTIONS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, PulseCallConnection> CONNECTIONS = new ConcurrentHashMap<>();
 
     private PulseTelecomManager() {}
 
@@ -87,7 +87,7 @@ final class PulseTelecomManager {
     static boolean answer(Context context, Intent intent) {
         String sessionId = intent == null ? null : intent.getStringExtra(EXTRA_SESSION_ID);
         PulseCallConnection connection = CONNECTIONS.get(sessionId);
-        if (connection != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && connection != null) {
             connection.answerFromPulseUi();
             return true;
         }
@@ -111,7 +111,7 @@ final class PulseTelecomManager {
     static boolean decline(Context context, Intent intent) {
         String sessionId = intent == null ? null : intent.getStringExtra(EXTRA_SESSION_ID);
         PulseCallConnection connection = CONNECTIONS.get(sessionId);
-        if (connection != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && connection != null) {
             connection.rejectFromPulseUi();
             return true;
         }
@@ -124,13 +124,15 @@ final class PulseTelecomManager {
 
     static void endFromPush(Context context, String sessionId) {
         PulseCallConnection connection = CONNECTIONS.get(sessionId);
-        if (connection != null) connection.endFromRemote();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && connection != null) connection.endFromRemote();
         PulseNativeCallService.stop(context, sessionId, false);
     }
 
     static void finishNativeCall(String sessionId, int disconnectCode) {
         PulseCallConnection connection = CONNECTIONS.get(sessionId);
-        if (connection != null) connection.finishFromNativeService(disconnectCode);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && connection != null) {
+            connection.finishFromNativeService(disconnectCode);
+        }
     }
 
     static PhoneAccountHandle phoneAccountHandle(Context context) {

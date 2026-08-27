@@ -179,7 +179,12 @@ public class PulseAppUpdatePlugin extends Plugin {
     private boolean isInstalledFromPlay() {
         try {
             PackageManager pm = getContext().getPackageManager();
-            String installer = pm.getInstallSourceInfo(getContext().getPackageName()).getInstallingPackageName();
+            String installer;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                installer = pm.getInstallSourceInfo(getContext().getPackageName()).getInstallingPackageName();
+            } else {
+                installer = pm.getInstallerPackageName(getContext().getPackageName());
+            }
             return "com.android.vending".equals(installer);
         } catch (Exception ignored) {
             return false;

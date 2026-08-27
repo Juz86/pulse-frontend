@@ -42,7 +42,8 @@
         <service
             android:name=".PulseConnectionService"
             android:exported="true"
-            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE">
+            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE"
+            tools:targetApi="o">
             <intent-filter>
                 <action android:name="android.telecom.ConnectionService" />
             </intent-filter>

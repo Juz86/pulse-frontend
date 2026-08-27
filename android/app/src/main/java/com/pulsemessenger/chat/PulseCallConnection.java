@@ -2,6 +2,7 @@ package com.pulsemessenger.chat;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.telecom.Connection;
 import android.telecom.CallAudioState;
@@ -9,9 +10,12 @@ import android.telecom.DisconnectCause;
 import android.telecom.TelecomManager;
 import android.telecom.VideoProfile;
 
+import androidx.annotation.RequiresApi;
+
 import java.util.HashMap;
 import java.util.Map;
 
+@RequiresApi(api = Build.VERSION_CODES.O)
 final class PulseCallConnection extends Connection {
     private final Context context;
     private final Bundle callExtras;

@@ -6,8 +6,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.net.ConnectivityManager;
@@ -17,11 +19,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.telecom.DisconnectCause;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.Person;
 import androidx.core.app.ServiceCompat;
 import androidx.core.content.ContextCompat;
 
@@ -74,8 +78,7 @@ import io.socket.client.Socket;
 
 public class PulseNativeCallService extends Service {
     private static final String ACTION_ANSWER = "com.pulsemessenger.chat.NATIVE_CALL_ANSWER";
-    private static final String ACTION_DECLINE = "com.pulsemessenger.chat.NATIVE_CALL_DECLINE";
-    private static final String ACTION_END = "com.pulsemessenger.chat.NATIVE_CALL_END";
+    private static final String ACTION_OUTGOING = "com.pulsemessenger.chat.NATIVE_CALL_OUTGOING";
     private static final String API_URL = "https://api.pulse-messenger.com";
     private static final String CHANNEL_ID = "pulse_active_calls";
     static final String ACTION_NATIVE_CALL_FINISHED = "com.pulsemessenger.chat.NATIVE_CALL_FINISHED";
@@ -83,6 +86,7 @@ public class PulseNativeCallService extends Service {
     static final String ACTION_NATIVE_CALL_RECONNECTING = "com.pulsemessenger.chat.NATIVE_CALL_RECONNECTING";
     private static final int NOTIFICATION_ID = 42_101;
     private static final long NETWORK_RECOVERY_TIMEOUT_MS = 20_000L;
+    private static final long CONNECTION_TIMEOUT_MS = 30_000L;
     private static final int MAX_PENDING_REMOTE_CANDIDATES = 64;
     private static volatile String activeSessionId;
     private static volatile PulseNativeCallService activeService;
@@ -104,8 +108,11 @@ public class PulseNativeCallService extends Service {
     private SurfaceViewRenderer remoteRenderer;
     private String sessionId;
     private String fromUid;
+    private String localCallerName;
+    private String conversationId;
     private String callerName;
     private boolean isVideo;
+    private boolean outgoing;
     private boolean peerStarted;
     private final PulseCallLifecycle callLifecycle = new PulseCallLifecycle();
     private final PulseIceCandidateBuffer<IceCandidate> remoteCandidateBuffer =
@@ -117,11 +124,29 @@ public class PulseNativeCallService extends Service {
             failCall("Netwerkverbinding kon niet worden hersteld");
         }
     };
+    private final Runnable connectionTimeout = () -> {
+        if (!callLifecycle.isConnected() && !callLifecycle.isStopped()) {
+            failCall(outgoing ? "Geen antwoord" : "Oproep verbinden duurde te lang");
+        }
+    };
     private boolean microphoneEnabled = true;
-    private boolean cameraEnabled = true;
+    private final PulseCameraLifecycle cameraLifecycle = new PulseCameraLifecycle(true);
+    private boolean cameraCaptureStarting;
+    private BroadcastReceiver screenReceiver;
+    private String notificationStatus = "Verbinden...";
+    private long connectedAtElapsedMs;
 
     static boolean isActive(String sessionId) {
         return sessionId != null && sessionId.equals(activeSessionId);
+    }
+
+    static boolean hasActiveCall() {
+        return activeService != null && activeSessionId != null && !activeService.callLifecycle.isStopped();
+    }
+
+    static void reopenActiveCallUi() {
+        PulseNativeCallService service = activeService;
+        if (service != null && hasActiveCall()) service.showActiveCallUi();
     }
 
     static synchronized EglBase.Context sharedEglContext() {
@@ -151,6 +176,23 @@ public class PulseNativeCallService extends Service {
         return service != null && isActive(sessionId) && service.toggleCameraInternal();
     }
 
+    static boolean isCameraEnabledByUser(String sessionId) {
+        PulseNativeCallService service = activeService;
+        return service != null && isActive(sessionId) && service.cameraLifecycle.isEnabledByUser();
+    }
+
+    static boolean isCameraCaptureActive(String sessionId) {
+        PulseNativeCallService service = activeService;
+        return service != null && isActive(sessionId) && service.cameraLifecycle.isCaptureActive();
+    }
+
+    static void updateVideoPresentation(String sessionId, boolean visible, boolean pictureInPicture) {
+        PulseNativeCallService service = activeService;
+        if (service == null || !isActive(sessionId)) return;
+        service.cameraLifecycle.setPresentation(visible, pictureInPicture);
+        service.reconcileCameraCapture();
+    }
+
     static void switchCamera(String sessionId) {
         PulseNativeCallService service = activeService;
         if (service != null && isActive(sessionId)) service.switchCameraInternal();
@@ -161,28 +203,31 @@ public class PulseNativeCallService extends Service {
         return service != null && isActive(sessionId) && service.callLifecycle.isConnected();
     }
 
-    static void startAnswer(Context context, Bundle extras) {
-        start(context, ACTION_ANSWER, extras);
+    static boolean startAnswer(Context context, Bundle extras) {
+        return start(context, ACTION_ANSWER, extras);
     }
 
-    static void startDecline(Context context, Bundle extras) {
-        start(context, ACTION_DECLINE, extras);
+    static boolean startOutgoing(Context context, Bundle extras) {
+        return start(context, ACTION_OUTGOING, extras);
     }
 
     static void stop(Context context, String sessionId, boolean notifyPeer) {
-        if (context == null || !isActive(sessionId)) return;
-        Intent intent = new Intent(context, PulseNativeCallService.class)
-            .setAction(ACTION_END)
-            .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId)
-            .putExtra("notifyPeer", notifyPeer);
-        ContextCompat.startForegroundService(context, intent);
+        PulseNativeCallService service = activeService;
+        if (context == null || service == null || !isActive(sessionId)) return;
+        service.mainHandler.post(() -> service.endCall(notifyPeer, DisconnectCause.LOCAL));
     }
 
-    private static void start(Context context, String action, Bundle extras) {
-        if (context == null) return;
+    private static boolean start(Context context, String action, Bundle extras) {
+        if (context == null) return false;
         Intent intent = new Intent(context, PulseNativeCallService.class).setAction(action);
         if (extras != null) intent.putExtras(extras);
-        ContextCompat.startForegroundService(context, intent);
+        try {
+            ContextCompat.startForegroundService(context, intent);
+            return true;
+        } catch (RuntimeException error) {
+            android.util.Log.e("PulseNativeCall", "Foreground service kon niet starten", error);
+            return false;
+        }
     }
 
     @Override
@@ -190,6 +235,7 @@ public class PulseNativeCallService extends Service {
         super.onCreate();
         ensureNotificationChannel();
         registerNetworkCallback();
+        registerScreenReceiver();
     }
 
     @Override
@@ -197,39 +243,31 @@ public class PulseNativeCallService extends Service {
         if (intent == null) return START_NOT_STICKY;
         sessionId = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_SESSION_ID), sessionId);
         fromUid = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_FROM_UID), fromUid);
+        localCallerName = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_LOCAL_CALLER_NAME), localCallerName);
+        conversationId = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_CONVERSATION_ID), conversationId);
         callerName = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_CALLER_NAME), callerName);
         isVideo = intent.hasExtra(PulseTelecomManager.EXTRA_IS_VIDEO)
             ? intent.getBooleanExtra(PulseTelecomManager.EXTRA_IS_VIDEO, false)
             : isVideo;
         String action = intent.getAction();
 
-        if (ACTION_END.equals(action)) {
-            startForegroundCompat(buildNotification("Oproep beëindigen..."), false, false);
-            endCall(intent.getBooleanExtra("notifyPeer", true), DisconnectCause.LOCAL);
-            return START_NOT_STICKY;
-        }
-
-        if (ACTION_DECLINE.equals(action)) {
-            startForegroundCompat(buildNotification("Oproep weigeren..."), false, false);
-            authenticateAndRun(token -> connectForTerminalSignal(token, "call:decline"));
-            return START_NOT_STICKY;
-        }
-
-        if (ACTION_ANSWER.equals(action)) {
+        if (ACTION_ANSWER.equals(action) || ACTION_OUTGOING.equals(action)) {
             if (!callLifecycle.beginAnswer()) return START_NOT_STICKY;
+            outgoing = ACTION_OUTGOING.equals(action);
             activeSessionId = sessionId;
             activeService = this;
-            startForegroundCompat(buildNotification("Verbinden..."), true, isVideo);
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                failCall("Microfoontoegang ontbreekt");
+                failBeforeForeground("Microfoontoegang ontbreekt");
                 return START_NOT_STICKY;
             }
-            if (isVideo && ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                failCall("Cameratoegang ontbreekt");
-                return START_NOT_STICKY;
+            if (isVideo) {
+                boolean cameraGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_GRANTED;
+                cameraLifecycle.setEnabledByUser(cameraGranted);
             }
-            if (isVideo) PulseNativeVideoCallActivity.show(this, sessionId, callerName);
-            authenticateAndRun(this::startNativeAnswer);
+            if (!startForegroundCompat(buildNotification(notificationStatus))) return START_NOT_STICKY;
+            showActiveCallUi();
+            authenticateAndRun(outgoing ? this::startNativeOutgoing : this::startNativeAnswer);
         }
         return START_NOT_STICKY;
     }
@@ -255,10 +293,22 @@ public class PulseNativeCallService extends Service {
                 JSONObject offer = pending.getJSONObject("offer");
                 JSONArray storedCandidates = pending.optJSONArray("callerCandidates");
                 List<PeerConnection.IceServer> iceServers = fetchIceServers(token);
-                connectSocket(token, () -> createPeer(offer, storedCandidates, iceServers));
+                connectSocket(token, () -> createIncomingPeer(offer, storedCandidates, iceServers));
             } catch (Exception error) {
                 android.util.Log.e("PulseNativeCall", "Oproep herstellen mislukt", error);
                 failCall("Oproep kon niet worden verbonden");
+            }
+        });
+    }
+
+    private void startNativeOutgoing(String token) {
+        executor.execute(() -> {
+            try {
+                List<PeerConnection.IceServer> iceServers = fetchIceServers(token);
+                connectSocket(token, () -> createOutgoingPeer(iceServers));
+            } catch (Exception error) {
+                android.util.Log.e("PulseNativeCall", "Uitgaande oproep starten mislukt", error);
+                failCall("Oproep kon niet worden gestart");
             }
         });
     }
@@ -285,36 +335,17 @@ public class PulseNativeCallService extends Service {
         socket.on("call:ice-candidate", this::onRemoteCandidate);
         socket.on("call:renegotiate", this::onRenegotiate);
         socket.on("call:peer-resumed", this::onPeerResumed);
-        socket.on("call:ended", args -> endCall(false, DisconnectCause.REMOTE));
-        socket.on("call:declined", args -> endCall(false, DisconnectCause.REMOTE));
+        socket.on("call:answer", this::onAnswer);
+        socket.on("call:ended", args -> endIfCurrent(args, DisconnectCause.REMOTE));
+        socket.on("call:declined", args -> endIfCurrent(args, DisconnectCause.REJECTED));
+        socket.on("call:unavailable", args -> endIfCurrent(args, DisconnectCause.ERROR));
+        socket.on("call:busy", args -> endIfCurrent(args, DisconnectCause.BUSY));
         socket.connect();
     }
 
-    private void connectForTerminalSignal(String token, String event) {
-        try {
-            IO.Options options = IO.Options.builder()
-                .setAuth(Collections.singletonMap("token", token))
-                .setForceNew(true)
-                .build();
-            socket = IO.socket(URI.create(API_URL), options);
-            socket.on(Socket.EVENT_CONNECT, args -> {
-                socket.emit("user:online");
-                socket.emit(event, signalTarget());
-                executor.execute(() -> {
-                    try { Thread.sleep(250L); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
-                    endCall(false, DisconnectCause.REJECTED);
-                });
-            });
-            socket.on(Socket.EVENT_CONNECT_ERROR, args -> endCall(false, DisconnectCause.ERROR));
-            socket.connect();
-        } catch (Exception error) {
-            endCall(false, DisconnectCause.ERROR);
-        }
-    }
-
-    private void createPeer(JSONObject offer, JSONArray storedCandidates, List<PeerConnection.IceServer> iceServers) {
+    private boolean createPeerConnection(List<PeerConnection.IceServer> iceServers) {
         synchronized (this) {
-            if (peerStarted || callLifecycle.isStopped()) return;
+            if (peerStarted || callLifecycle.isStopped()) return false;
             peerStarted = true;
         }
         PeerConnectionFactory.initialize(
@@ -381,7 +412,7 @@ public class PulseNativeCallService extends Service {
         });
         if (peerConnection == null) {
             failCall("WebRTC initialiseren mislukt");
-            return;
+            return false;
         }
 
         audioSource = peerFactory.createAudioSource(new MediaConstraints());
@@ -389,7 +420,12 @@ public class PulseNativeCallService extends Service {
         localAudioTrack.setEnabled(microphoneEnabled);
         peerConnection.addTrack(localAudioTrack, Collections.singletonList("pulse-stream"));
 
-        if (isVideo && !startLocalVideo()) return;
+        if (isVideo && !prepareLocalVideo()) return false;
+        return true;
+    }
+
+    private void createIncomingPeer(JSONObject offer, JSONArray storedCandidates, List<PeerConnection.IceServer> iceServers) {
+        if (!createPeerConnection(iceServers)) return;
 
         SessionDescription remoteOffer = new SessionDescription(SessionDescription.Type.OFFER, offer.optString("sdp"));
         peerConnection.setRemoteDescription(new SdpAdapter() {
@@ -412,7 +448,22 @@ public class PulseNativeCallService extends Service {
         }, remoteOffer);
     }
 
-    private boolean startLocalVideo() {
+    private void createOutgoingPeer(List<PeerConnection.IceServer> iceServers) {
+        if (!createPeerConnection(iceServers)) return;
+        peerConnection.createOffer(new SdpAdapter() {
+            @Override
+            public void onCreateSuccess(SessionDescription offer) {
+                peerConnection.setLocalDescription(new SdpAdapter() {
+                    @Override
+                    public void onSetSuccess() {
+                        emitOffer(offer);
+                    }
+                }, offer);
+            }
+        }, new MediaConstraints());
+    }
+
+    private boolean prepareLocalVideo() {
         videoCapturer = createCameraCapturer();
         if (videoCapturer == null) {
             failCall("Geen camera beschikbaar");
@@ -421,17 +472,11 @@ public class PulseNativeCallService extends Service {
         surfaceTextureHelper = SurfaceTextureHelper.create("PulseCameraCapture", sharedEglContext());
         videoSource = peerFactory.createVideoSource(false);
         videoCapturer.initialize(surfaceTextureHelper, getApplicationContext(), videoSource.getCapturerObserver());
-        try {
-            videoCapturer.startCapture(1280, 720, 30);
-        } catch (Exception error) {
-            android.util.Log.e("PulseNativeCall", "Camera starten mislukt", error);
-            failCall("Camera starten mislukt");
-            return false;
-        }
         localVideoTrack = peerFactory.createVideoTrack("pulse-video", videoSource);
-        localVideoTrack.setEnabled(cameraEnabled);
+        localVideoTrack.setEnabled(false);
         peerConnection.addTrack(localVideoTrack, Collections.singletonList("pulse-stream"));
         attachLocalRenderer();
+        reconcileCameraCapture();
         return true;
     }
 
@@ -482,13 +527,17 @@ public class PulseNativeCallService extends Service {
     }
 
     private synchronized boolean toggleCameraInternal() {
-        cameraEnabled = !cameraEnabled;
-        if (localVideoTrack != null) localVideoTrack.setEnabled(cameraEnabled);
-        return cameraEnabled;
+        boolean enabled = !cameraLifecycle.isEnabledByUser();
+        if (enabled && ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            return false;
+        }
+        cameraLifecycle.setEnabledByUser(enabled);
+        reconcileCameraCapture();
+        return enabled;
     }
 
     private synchronized void switchCameraInternal() {
-        if (videoCapturer instanceof CameraVideoCapturer) {
+        if (cameraLifecycle.isCaptureActive() && videoCapturer instanceof CameraVideoCapturer) {
             ((CameraVideoCapturer) videoCapturer).switchCamera(new CameraVideoCapturer.CameraSwitchHandler() {
                 @Override
                 public void onCameraSwitchDone(boolean isFrontCamera) {
@@ -502,6 +551,95 @@ public class PulseNativeCallService extends Service {
                 }
             });
         }
+    }
+
+    private synchronized void reconcileCameraCapture() {
+        if (!isVideo || videoCapturer == null || localVideoTrack == null || callLifecycle.isStopped()) return;
+        boolean shouldCapture = cameraLifecycle.shouldCapture();
+        if (shouldCapture == cameraLifecycle.isCaptureActive()) {
+            localVideoTrack.setEnabled(shouldCapture);
+            updateForegroundTypes();
+            return;
+        }
+        if (shouldCapture) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                cameraLifecycle.setEnabledByUser(false);
+                localVideoTrack.setEnabled(false);
+                updateForegroundTypes();
+                return;
+            }
+            cameraCaptureStarting = true;
+            if (!updateForegroundTypes()) {
+                cameraCaptureStarting = false;
+                return;
+            }
+            try {
+                videoCapturer.startCapture(1280, 720, 30);
+                cameraLifecycle.setCaptureActive(true);
+                localVideoTrack.setEnabled(true);
+            } catch (Exception error) {
+                android.util.Log.e("PulseNativeCall", "Camera starten mislukt", error);
+                cameraLifecycle.setCaptureActive(false);
+                localVideoTrack.setEnabled(false);
+            } finally {
+                cameraCaptureStarting = false;
+            }
+        } else {
+            localVideoTrack.setEnabled(false);
+            try {
+                videoCapturer.stopCapture();
+            } catch (InterruptedException error) {
+                Thread.currentThread().interrupt();
+            } catch (RuntimeException error) {
+                android.util.Log.w("PulseNativeCall", "Camera stoppen mislukt", error);
+            }
+            cameraLifecycle.setCaptureActive(false);
+        }
+        updateForegroundTypes();
+    }
+
+    private void emitOffer(SessionDescription offer) {
+        if (socket == null) return;
+        try {
+            JSONObject signal = new JSONObject();
+            signal.put("type", "offer");
+            signal.put("sdp", offer.description);
+            JSONObject payload = signalTarget();
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            payload.put("from", user == null ? JSONObject.NULL : user.getUid());
+            payload.put("offer", signal);
+            payload.put("isVideo", isVideo);
+            payload.put("callerName", localCallerName == null ? "Pulse-gebruiker" : localCallerName);
+            socket.emit("call:offer", payload);
+            armConnectionTimeout();
+        } catch (Exception error) {
+            failCall("Oproepaanbod versturen mislukt");
+        }
+    }
+
+    private void onAnswer(Object... args) {
+        if (!outgoing || peerConnection == null || args.length == 0 || !(args[0] instanceof JSONObject)) return;
+        JSONObject payload = (JSONObject) args[0];
+        if (!isCurrentSession(payload)) return;
+        JSONObject answer = payload.optJSONObject("answer");
+        if (answer == null) return;
+        SessionDescription remoteAnswer = new SessionDescription(SessionDescription.Type.ANSWER, answer.optString("sdp"));
+        peerConnection.setRemoteDescription(new SdpAdapter() {
+            @Override
+            public void onSetSuccess() {
+                flushPendingRemoteCandidates();
+            }
+        }, remoteAnswer);
+    }
+
+    private void endIfCurrent(Object[] args, int disconnectCode) {
+        if (args.length > 0 && args[0] instanceof JSONObject && !isCurrentSession((JSONObject) args[0])) return;
+        endCall(false, disconnectCode);
+    }
+
+    private boolean isCurrentSession(JSONObject payload) {
+        String incomingSessionId = payload == null ? null : payload.optString("sessionId", null);
+        return incomingSessionId == null || incomingSessionId.isEmpty() || incomingSessionId.equals(sessionId);
     }
 
     private void emitAnswer(SessionDescription answer) {
@@ -569,7 +707,8 @@ public class PulseNativeCallService extends Service {
             NETWORK_RECOVERY_TIMEOUT_MS
         );
         if (recoveryStarted) {
-            updateNotification("Opnieuw verbinden...");
+            notificationStatus = "Opnieuw verbinden...";
+            updateNotification(notificationStatus);
             sendBroadcast(new Intent(ACTION_NATIVE_CALL_RECONNECTING)
                 .setPackage(getPackageName())
                 .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId));
@@ -580,7 +719,12 @@ public class PulseNativeCallService extends Service {
 
     private synchronized void armConnectionTimeout() {
         mainHandler.removeCallbacks(networkRecoveryTimeout);
-        mainHandler.postDelayed(networkRecoveryTimeout, NETWORK_RECOVERY_TIMEOUT_MS);
+        mainHandler.removeCallbacks(connectionTimeout);
+        if (callLifecycle.state() == PulseCallLifecycle.State.RECONNECTING) {
+            mainHandler.postDelayed(networkRecoveryTimeout, NETWORK_RECOVERY_TIMEOUT_MS);
+        } else {
+            mainHandler.postDelayed(connectionTimeout, CONNECTION_TIMEOUT_MS);
+        }
     }
 
     private synchronized void requestNativeRecovery(String source) {
@@ -598,8 +742,12 @@ public class PulseNativeCallService extends Service {
 
     private synchronized void markNativeNetworkRecovered() {
         if (!callLifecycle.markConnected()) return;
+        if (connectedAtElapsedMs == 0L) connectedAtElapsedMs = SystemClock.elapsedRealtime();
         mainHandler.removeCallbacks(networkRecoveryTimeout);
-        updateNotification("Verbonden");
+        mainHandler.removeCallbacks(connectionTimeout);
+        notificationStatus = "Verbonden";
+        updateNotification(notificationStatus);
+        PulseTelecomManager.markActive(sessionId);
         sendBroadcast(new Intent(ACTION_NATIVE_CALL_CONNECTED)
             .setPackage(getPackageName())
             .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId));
@@ -736,19 +884,35 @@ public class PulseNativeCallService extends Service {
 
     private void failCall(String message) {
         android.util.Log.e("PulseNativeCall", message);
-        updateNotification(message);
+        notificationStatus = message;
+        updateNotification(notificationStatus);
         executor.execute(() -> {
             try { Thread.sleep(1_500L); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
             endCall(false, DisconnectCause.ERROR);
         });
     }
 
+    private void failBeforeForeground(String message) {
+        android.util.Log.e("PulseNativeCall", message);
+        callLifecycle.stop();
+        if (sessionId != null && sessionId.equals(activeSessionId)) activeSessionId = null;
+        if (activeService == this) activeService = null;
+        sendBroadcast(new Intent(ACTION_NATIVE_CALL_FINISHED)
+            .setPackage(getPackageName())
+            .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId)
+            .putExtra("error", message));
+        PulseTelecomManager.finishNativeCall(sessionId, DisconnectCause.ERROR);
+        stopSelf();
+    }
+
     private synchronized void endCall(boolean notifyPeer, int disconnectCode) {
         if (!callLifecycle.stop()) return;
         mainHandler.removeCallbacks(networkRecoveryTimeout);
+        mainHandler.removeCallbacks(connectionTimeout);
         if (notifyPeer && socket != null && socket.connected() && fromUid != null) {
             socket.emit("call:end", signalTarget());
         }
+        emitOutgoingCallLog(disconnectCode);
         if (socket != null) {
             socket.off();
             socket.disconnect();
@@ -763,7 +927,10 @@ public class PulseNativeCallService extends Service {
         }
         remoteCandidateBuffer.reset();
         if (videoCapturer != null) {
-            try { videoCapturer.stopCapture(); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+            if (cameraLifecycle.isCaptureActive()) {
+                try { videoCapturer.stopCapture(); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+            }
+            cameraLifecycle.setCaptureActive(false);
             videoCapturer.dispose();
             videoCapturer = null;
         }
@@ -806,13 +973,55 @@ public class PulseNativeCallService extends Service {
         stopSelf();
     }
 
-    private void startForegroundCompat(Notification notification, boolean microphone, boolean camera) {
-        int type = 0;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (microphone) type |= ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
-            if (camera) type |= ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA;
+    private void emitOutgoingCallLog(int disconnectCode) {
+        if (!outgoing || socket == null || !socket.connected() || conversationId == null) return;
+        long durationSeconds = connectedAtElapsedMs == 0L
+            ? 0L
+            : Math.max(0L, (SystemClock.elapsedRealtime() - connectedAtElapsedMs) / 1_000L);
+        String direction = connectedAtElapsedMs > 0L
+            ? "completed"
+            : disconnectCode == DisconnectCause.REJECTED ? "declined" : "no-answer";
+        JSONObject payload = new JSONObject();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        try {
+            payload.put("convId", conversationId);
+            payload.put("isVideo", isVideo);
+            payload.put("direction", direction);
+            payload.put("duration", durationSeconds);
+            payload.put("senderId", user == null ? JSONObject.NULL : user.getUid());
+            payload.put("senderName", localCallerName == null ? "Pulse-gebruiker" : localCallerName);
+            socket.emit("call:log", payload);
+        } catch (Exception error) {
+            android.util.Log.w("PulseNativeCall", "Oproeplog versturen mislukt", error);
         }
-        ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type);
+    }
+
+    private boolean startForegroundCompat(Notification notification) {
+        int type = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            type |= ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            type |= ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
+            if (cameraCaptureStarting || cameraLifecycle.isCaptureActive()) {
+                type |= ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA;
+            }
+        }
+        try {
+            ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, type);
+            return true;
+        } catch (RuntimeException error) {
+            android.util.Log.e("PulseNativeCall", "Foreground service promotie geweigerd", error);
+            failBeforeForeground("Oproep kon niet op de achtergrond worden gestart");
+            return false;
+        }
+    }
+
+    private boolean updateForegroundTypes() {
+        if (activeService == this && !callLifecycle.isStopped()) {
+            return startForegroundCompat(buildNotification(notificationStatus));
+        }
+        return false;
     }
 
     private void updateNotification(String status) {
@@ -821,22 +1030,24 @@ public class PulseNativeCallService extends Service {
     }
 
     private Notification buildNotification(String status) {
-        Intent open = new Intent(this, isVideo ? PulseNativeVideoCallActivity.class : MainActivity.class)
+        Intent open = new Intent(this, isVideo ? PulseNativeVideoCallActivity.class : PulseNativeAudioCallActivity.class)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        if (isVideo) {
-            open.putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId);
-            open.putExtra(PulseTelecomManager.EXTRA_CALLER_NAME, callerName);
-        }
+        open.putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId);
+        open.putExtra(PulseTelecomManager.EXTRA_CALLER_NAME, callerName);
         PendingIntent contentIntent = PendingIntent.getActivity(
             this, NOTIFICATION_ID + 1, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
-        Intent end = new Intent(this, PulseNativeCallService.class)
-            .setAction(ACTION_END)
+        Intent end = new Intent(this, PulseCallActionReceiver.class)
+            .setAction(PulseCallActionReceiver.ACTION_END_ACTIVE)
             .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId)
             .putExtra("notifyPeer", true);
-        PendingIntent endIntent = PendingIntent.getService(
+        PendingIntent endIntent = PendingIntent.getBroadcast(
             this, NOTIFICATION_ID + 2, end, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
+        Person person = new Person.Builder()
+            .setName(callerName == null ? "Pulse-oproep" : callerName)
+            .setImportant(true)
+            .build();
         return new NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_pulse_call)
             .setContentTitle(callerName == null ? "Pulse-oproep" : callerName)
@@ -846,8 +1057,39 @@ public class PulseNativeCallService extends Service {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setContentIntent(contentIntent)
-            .addAction(R.drawable.pulse_call_decline, "Ophangen", endIntent)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
+            .setStyle(NotificationCompat.CallStyle.forOngoingCall(person, endIntent))
             .build();
+    }
+
+    private void showActiveCallUi() {
+        if (sessionId == null) return;
+        if (isVideo) {
+            PulseNativeVideoCallActivity.show(this, sessionId, callerName);
+        } else {
+            PulseNativeAudioCallActivity.show(this, sessionId, callerName);
+        }
+    }
+
+    private void registerScreenReceiver() {
+        PowerManager powerManager = getSystemService(PowerManager.class);
+        cameraLifecycle.setScreenInteractive(powerManager == null || powerManager.isInteractive());
+        screenReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent == null) return;
+                if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+                    cameraLifecycle.setScreenInteractive(false);
+                    reconcileCameraCapture();
+                } else if (Intent.ACTION_USER_PRESENT.equals(intent.getAction())) {
+                    cameraLifecycle.setScreenInteractive(true);
+                }
+            }
+        };
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_USER_PRESENT);
+        ContextCompat.registerReceiver(this, screenReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
     }
 
     private void ensureNotificationChannel() {
@@ -877,6 +1119,10 @@ public class PulseNativeCallService extends Service {
         if (!callLifecycle.isStopped()) endCall(false, DisconnectCause.ERROR);
         if (connectivityManager != null && networkCallback != null) {
             try { connectivityManager.unregisterNetworkCallback(networkCallback); } catch (RuntimeException ignored) {}
+        }
+        if (screenReceiver != null) {
+            try { unregisterReceiver(screenReceiver); } catch (RuntimeException ignored) {}
+            screenReceiver = null;
         }
         executor.shutdownNow();
         super.onDestroy();

@@ -15,16 +15,22 @@ import android.telecom.TelecomManager;
 import androidx.core.content.ContextCompat;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
 final class PulseTelecomManager {
     static final String EXTRA_SESSION_ID = "sessionId";
     static final String EXTRA_FROM_UID = "fromUid";
+    static final String EXTRA_LOCAL_CALLER_NAME = "localCallerName";
+    static final String EXTRA_CONVERSATION_ID = "conversationId";
     static final String EXTRA_CALLER_NAME = "callerName";
     static final String EXTRA_IS_VIDEO = "isVideo";
 
     private static final String PHONE_ACCOUNT_ID = "pulse-voip";
     private static final ConcurrentHashMap<String, PulseCallConnection> CONNECTIONS = new ConcurrentHashMap<>();
+    private static final Set<String> RINGING_SESSIONS =
+        Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     private PulseTelecomManager() {}
 
@@ -51,6 +57,7 @@ final class PulseTelecomManager {
         String sessionId = PulseIncomingCallNotifier.sessionId(data);
         String fromUid = data.get(EXTRA_FROM_UID);
         if (isBlank(sessionId) || isBlank(fromUid)) return false;
+        if (CONNECTIONS.containsKey(sessionId) || !RINGING_SESSIONS.add(sessionId)) return true;
 
         registerPhoneAccount(context);
         TelecomManager telecom = context.getSystemService(TelecomManager.class);
@@ -66,8 +73,30 @@ final class PulseTelecomManager {
             telecom.addNewIncomingCall(phoneAccountHandle(context), extras);
             return true;
         } catch (SecurityException | IllegalArgumentException error) {
+            RINGING_SESSIONS.remove(sessionId);
             android.util.Log.w("PulseTelecom", "Inkomende Telecom-oproep registreren mislukt", error);
             return false;
+        }
+    }
+
+    static boolean startOutgoingCall(Context context, Bundle callExtras) {
+        if (context == null || callExtras == null) return false;
+        String sessionId = callExtras.getString(EXTRA_SESSION_ID);
+        String remoteUid = callExtras.getString(EXTRA_FROM_UID);
+        if (isBlank(sessionId) || isBlank(remoteUid)) return false;
+        if (!supportsNativeCalls()) return PulseNativeCallService.startOutgoing(context, callExtras);
+        registerPhoneAccount(context);
+        TelecomManager telecom = context.getSystemService(TelecomManager.class);
+        if (telecom == null) return false;
+        Bundle telecomExtras = new Bundle();
+        telecomExtras.putParcelable(TelecomManager.EXTRA_PHONE_ACCOUNT_HANDLE, phoneAccountHandle(context));
+        telecomExtras.putBundle(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS, new Bundle(callExtras));
+        try {
+            telecom.placeCall(Uri.fromParts("pulse", remoteUid, null), telecomExtras);
+            return true;
+        } catch (SecurityException | IllegalArgumentException error) {
+            android.util.Log.w("PulseTelecom", "Uitgaande Telecom-oproep starten mislukt", error);
+            return PulseNativeCallService.startOutgoing(context, callExtras);
         }
     }
 
@@ -77,11 +106,17 @@ final class PulseTelecomManager {
     }
 
     static void attach(String sessionId, PulseCallConnection connection) {
-        if (!isBlank(sessionId) && connection != null) CONNECTIONS.put(sessionId, connection);
+        if (!isBlank(sessionId) && connection != null) {
+            RINGING_SESSIONS.add(sessionId);
+            CONNECTIONS.put(sessionId, connection);
+        }
     }
 
     static void detach(String sessionId, PulseCallConnection connection) {
-        if (!isBlank(sessionId) && connection != null) CONNECTIONS.remove(sessionId, connection);
+        if (!isBlank(sessionId) && connection != null) {
+            CONNECTIONS.remove(sessionId, connection);
+            RINGING_SESSIONS.remove(sessionId);
+        }
     }
 
     static boolean answer(Context context, Intent intent) {
@@ -91,9 +126,8 @@ final class PulseTelecomManager {
             connection.answerFromPulseUi();
             return true;
         }
-        if (supportsNativeCalls() && !isBlank(sessionId)) {
-            PulseNativeCallService.startAnswer(context, extrasFrom(intent));
-            return true;
+        if (!isBlank(sessionId)) {
+            return PulseNativeCallService.startAnswer(context, extrasFrom(intent));
         }
         return false;
     }
@@ -115,14 +149,15 @@ final class PulseTelecomManager {
             connection.rejectFromPulseUi();
             return true;
         }
-        if (supportsNativeCalls() && !isBlank(sessionId)) {
-            PulseNativeCallService.startDecline(context, extrasFrom(intent));
+        if (!isBlank(sessionId)) {
+            PulseTerminalCallSignal.send(extrasFrom(intent), "call:decline", null);
             return true;
         }
         return false;
     }
 
     static void endFromPush(Context context, String sessionId) {
+        RINGING_SESSIONS.remove(sessionId);
         PulseCallConnection connection = CONNECTIONS.get(sessionId);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && connection != null) connection.endFromRemote();
         PulseNativeCallService.stop(context, sessionId, false);
@@ -133,6 +168,11 @@ final class PulseTelecomManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && connection != null) {
             connection.finishFromNativeService(disconnectCode);
         }
+    }
+
+    static void markActive(String sessionId) {
+        PulseCallConnection connection = CONNECTIONS.get(sessionId);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && connection != null) connection.markActive();
     }
 
     static PhoneAccountHandle phoneAccountHandle(Context context) {

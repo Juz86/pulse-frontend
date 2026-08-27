@@ -5,14 +5,23 @@ import android.content.Context;
 import android.content.Intent;
 
 public class PulseCallActionReceiver extends BroadcastReceiver {
+    static final String ACTION_END_ACTIVE = "com.pulsemessenger.chat.CALL_END_ACTIVE";
+
     @Override
     public void onReceive(Context context, Intent intent) {
         if (context == null || intent == null) return;
         String action = intent.getAction();
+        if (ACTION_END_ACTIVE.equals(action)) {
+            PulseNativeCallService.stop(
+                context,
+                intent.getStringExtra(PulseTelecomManager.EXTRA_SESSION_ID),
+                intent.getBooleanExtra("notifyPeer", true)
+            );
+            return;
+        }
         String callAction = PulseIncomingCallStore.ACTION_ANSWER.equals(action) ? "answer" : "decline";
 
         if (PulseIncomingCallStore.ACTION_ANSWER.equals(action)
-            && PulseTelecomManager.supportsNativeCalls()
             && !PulseTelecomManager.hasRequiredMediaPermissions(context, intent)) {
             Intent permissionIntent = new Intent(context, PulseIncomingCallActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP)

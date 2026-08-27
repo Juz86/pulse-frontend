@@ -51,6 +51,7 @@ import {
   consumeNativeIncomingCall,
   provisionNativeIncomingCallAuth,
 } from './services/nativeIncomingCall';
+import { isAndroidNativeCalling, presentNativeIncomingCall } from './services/nativeCalling';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const CallOverlay        = lazy(() => import('./components/CallOverlay'));
@@ -982,10 +983,20 @@ function MainApp() {
           socket.off('call:offer');
           socket.off('call:ended');
           socket.off('call:busy');
-          const onIncomingCall = (data = {}) => {
+          const onIncomingCall = async (data = {}) => {
             const fromUid = data.from || data.fromUid || null;
             const sessionId = data.sessionId || null;
             if (!fromUid) return;
+
+            if (isAndroidNativeCalling()) {
+              try {
+                await presentNativeIncomingCall({ ...data, fromUid, sessionId });
+              } catch (error) {
+                console.warn('[Pulse][Call] Native inkomende oproep tonen mislukt:', error?.message || error);
+                rejectCallAsBusy(fromUid, sessionId);
+              }
+              return;
+            }
 
             if (incomingCallRef.current || isCallInProgress()) {
               console.info('[Pulse][Call] inkomende oproep geweigerd: al actief', { fromUid, sessionId });

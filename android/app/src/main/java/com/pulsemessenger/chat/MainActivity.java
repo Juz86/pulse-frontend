@@ -12,4 +12,10 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(PulseIncomingCallPlugin.class);
         super.onCreate(savedInstanceState);
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        PulseNativeCallService.reopenActiveCallUi();
+    }
 }

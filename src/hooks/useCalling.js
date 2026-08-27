@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { getSocket } from '../services/socket';
 import { BACKEND_URL, startCall, getCurrentCallSessionId, clearOrphanedOutgoingCall } from '../services/socket';
+import { isAndroidNativeCalling, startNativeOutgoingCall } from '../services/nativeCalling';
 
 export default function useCalling({
   user,
@@ -381,6 +382,23 @@ export default function useCalling({
       const canVideo  = !pausedFeatures.video;
       const available = [canChat && 'chatten', canCall && 'bellen', canVideo && 'videobellen'].filter(Boolean).join(' en ');
       showErrToast(`⏸ ${isVideo ? 'Videobellen' : 'Bellen'} is gepauzeerd door je ouder${available ? `, maar je kan nog wel ${available}` : ''}.`);
+      return;
+    }
+    if (isAndroidNativeCalling()) {
+      callStartInProgressRef.current = true;
+      try {
+        await startNativeOutgoingCall({
+          toUid,
+          convId,
+          contactName: name,
+          callerName: user.displayName || user.email,
+          isVideo,
+        });
+      } catch (error) {
+        showErrToast(error?.message || 'Native oproep kon niet worden gestart.');
+      } finally {
+        callStartInProgressRef.current = false;
+      }
       return;
     }
     // React toont geen gesprek, maar de socket kan na een onderbreking nog

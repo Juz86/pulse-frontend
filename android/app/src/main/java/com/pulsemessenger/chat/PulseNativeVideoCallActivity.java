@@ -1,16 +1,22 @@
 package com.pulsemessenger.chat;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.PictureInPictureParams;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.GradientDrawable;
+import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Rational;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -20,6 +26,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
+import androidx.annotation.RequiresApi;
 
 import org.webrtc.RendererCommon;
 import org.webrtc.SurfaceViewRenderer;
@@ -32,10 +39,15 @@ public class PulseNativeVideoCallActivity extends Activity {
     private SurfaceViewRenderer remoteRenderer;
     private SurfaceViewRenderer localRenderer;
     private TextView statusView;
+    private View headingView;
+    private View controlsView;
+    private ImageButton cameraButton;
     private String sessionId;
     private boolean renderersReleased;
     private int attachAttempts;
     private BroadcastReceiver callReceiver;
+    private boolean enteringPictureInPicture;
+    private static final int CAMERA_PERMISSION_REQUEST = 2104;
 
     static void show(Context context, String sessionId, String callerName) {
         if (context == null || sessionId == null) return;
@@ -60,6 +72,8 @@ public class PulseNativeVideoCallActivity extends Activity {
         setContentView(buildContent());
         registerCallReceiver();
         attachRenderersWhenReady();
+        updatePictureInPictureParams();
+        remoteRenderer.post(this::updatePictureInPictureParams);
     }
 
     @Override
@@ -111,6 +125,7 @@ public class PulseNativeVideoCallActivity extends Activity {
             Gravity.TOP
         );
         root.addView(heading, headingParams);
+        headingView = heading;
 
         localRenderer = new SurfaceViewRenderer(this);
         localRenderer.init(PulseNativeCallService.sharedEglContext(), null);
@@ -144,13 +159,21 @@ public class PulseNativeVideoCallActivity extends Activity {
         });
         controls.addView(end, controlParams());
 
-        ImageButton camera = control(R.drawable.pulse_camera_on, "Camera uitschakelen", 0xff3b3b3b);
-        camera.setOnClickListener(view -> {
-            boolean enabled = PulseNativeCallService.toggleCamera(sessionId);
-            camera.setImageResource(enabled ? R.drawable.pulse_camera_on : R.drawable.pulse_camera_off);
-            camera.setContentDescription(enabled ? "Camera uitschakelen" : "Camera inschakelen");
+        boolean cameraEnabled = PulseNativeCallService.isCameraEnabledByUser(sessionId);
+        cameraButton = control(
+            cameraEnabled ? R.drawable.pulse_camera_on : R.drawable.pulse_camera_off,
+            cameraEnabled ? "Camera uitschakelen" : "Camera inschakelen",
+            0xff3b3b3b
+        );
+        cameraButton.setOnClickListener(view -> {
+            if (!PulseNativeCallService.isCameraEnabledByUser(sessionId)
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[] { Manifest.permission.CAMERA }, CAMERA_PERMISSION_REQUEST);
+                return;
+            }
+            updateCameraButton(PulseNativeCallService.toggleCamera(sessionId));
         });
-        controls.addView(camera, controlParams());
+        controls.addView(cameraButton, controlParams());
 
         ImageButton switchCamera = control(R.drawable.pulse_camera_switch, "Camera wisselen", 0xff3b3b3b);
         switchCamera.setOnClickListener(view -> PulseNativeCallService.switchCamera(sessionId));
@@ -162,7 +185,24 @@ public class PulseNativeVideoCallActivity extends Activity {
             Gravity.BOTTOM
         );
         root.addView(controls, controlBarParams);
+        controlsView = controls;
         return root;
+    }
+
+    private void updateCameraButton(boolean enabled) {
+        if (cameraButton == null) return;
+        cameraButton.setImageResource(enabled ? R.drawable.pulse_camera_on : R.drawable.pulse_camera_off);
+        cameraButton.setContentDescription(enabled ? "Camera uitschakelen" : "Camera inschakelen");
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST
+            && grantResults.length > 0
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            updateCameraButton(PulseNativeCallService.toggleCamera(sessionId));
+        }
     }
 
     private void attachRenderersWhenReady() {
@@ -194,6 +234,71 @@ public class PulseNativeVideoCallActivity extends Activity {
         filter.addAction(PulseNativeCallService.ACTION_NATIVE_CALL_RECONNECTING);
         filter.addAction(PulseNativeCallService.ACTION_NATIVE_CALL_FINISHED);
         ContextCompat.registerReceiver(this, callReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+    }
+
+    private void updatePictureInPictureParams() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
+        setPictureInPictureParams(buildPictureInPictureParams());
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private PictureInPictureParams buildPictureInPictureParams() {
+        PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder()
+            .setAspectRatio(new Rational(9, 16));
+        Rect sourceRect = new Rect();
+        if (remoteRenderer != null && remoteRenderer.getGlobalVisibleRect(sourceRect) && !sourceRect.isEmpty()) {
+            builder.setSourceRectHint(sourceRect);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(true);
+            builder.setSeamlessResizeEnabled(true);
+        }
+        return builder.build();
+    }
+
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !PulseNativeCallService.isActive(sessionId)) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) return;
+        try {
+            enteringPictureInPicture = enterPictureInPictureMode(buildPictureInPictureParams());
+            if (enteringPictureInPicture) {
+                PulseNativeCallService.updateVideoPresentation(sessionId, false, true);
+            }
+        } catch (IllegalStateException error) {
+            android.util.Log.w("PulseNativeVideo", "PiP starten mislukt", error);
+        }
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+        enteringPictureInPicture = isInPictureInPictureMode;
+        if (headingView != null) headingView.setVisibility(isInPictureInPictureMode ? View.GONE : View.VISIBLE);
+        if (controlsView != null) controlsView.setVisibility(isInPictureInPictureMode ? View.GONE : View.VISIBLE);
+        if (localRenderer != null) localRenderer.setVisibility(isInPictureInPictureMode ? View.GONE : View.VISIBLE);
+        if (isInPictureInPictureMode) {
+            PulseNativeCallService.updateVideoPresentation(sessionId, false, true);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || !isInPictureInPictureMode()) {
+            enteringPictureInPicture = false;
+            PulseNativeCallService.updateVideoPresentation(sessionId, true, false);
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        boolean inPictureInPicture = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode();
+        if (!inPictureInPicture && !enteringPictureInPicture && !isChangingConfigurations()) {
+            PulseNativeCallService.updateVideoPresentation(sessionId, false, false);
+        }
+        super.onStop();
     }
 
     private ImageButton control(int icon, String description, int color) {
@@ -238,6 +343,10 @@ public class PulseNativeVideoCallActivity extends Activity {
             PulseNativeCallService.detachVideoRenderers(sessionId, remoteRenderer, localRenderer);
             remoteRenderer.release();
             localRenderer.release();
+        }
+        boolean inPictureInPicture = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode();
+        if (!inPictureInPicture && !isChangingConfigurations()) {
+            PulseNativeCallService.updateVideoPresentation(sessionId, false, false);
         }
         super.onDestroy();
     }

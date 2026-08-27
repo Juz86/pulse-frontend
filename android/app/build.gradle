@@ -18,8 +18,8 @@ android {
         applicationId "com.pulsemessenger.chat"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 35
-        versionName "1.0.4"
+        versionCode 36
+        versionName "1.0.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Public half of the signing key only. The private key is a Cloudflare
         // Pages build secret and must never enter the Android project.
@@ -54,6 +54,39 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+}
+
+def releaseMainBundles = fileTree(
+    dir: file('src/main/assets/public/static/js'),
+    include: ['main*.js']
+)
+
+def verifyReleaseWebAssets = tasks.register('verifyReleaseWebAssets') {
+    inputs.files(releaseMainBundles)
+    doLast {
+        def mainBundles = releaseMainBundles.files
+        if (mainBundles.isEmpty()) {
+            throw new GradleException('Geen gesynchroniseerde Pulse-webbundle gevonden voor de release-build.')
+        }
+
+        def bundledJavascript = mainBundles.collect { it.getText('UTF-8') }.join('\n')
+        def containsNativeHttpOverride = bundledJavascript.contains('REACT_APP_NATIVE_API_URL:"http://') ||
+            bundledJavascript.contains('"REACT_APP_NATIVE_API_URL":"http://')
+        if (containsNativeHttpOverride) {
+            throw new GradleException(
+                'Release geblokkeerd: de Android-webbundle bevat een lokale REACT_APP_NATIVE_API_URL.'
+            )
+        }
+        if (!bundledJavascript.contains('https://api.pulse-messenger.com')) {
+            throw new GradleException(
+                'Release geblokkeerd: de Android-webbundle bevat de productie-API niet.'
+            )
+        }
+    }
+}
+
+tasks.matching { it.name == 'preReleaseBuild' }.configureEach {
+    dependsOn verifyReleaseWebAssets
 }
 
 repositories {

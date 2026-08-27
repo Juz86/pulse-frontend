@@ -5,7 +5,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.telecom.Connection;
-import android.telecom.CallAudioState;
 import android.telecom.DisconnectCause;
 import android.telecom.TelecomManager;
 import android.telecom.VideoProfile;
@@ -76,9 +75,6 @@ final class PulseCallConnection extends Connection {
     void answerFromPulseUi() {
         if (finished) return;
         setActive();
-        if (callExtras.getBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, false)) {
-            setAudioRoute(CallAudioState.ROUTE_SPEAKER);
-        }
         PulseIncomingCallNotifier.cancel(context, sessionId);
         if (!PulseNativeCallService.startAnswer(context, callExtras)) {
             finish(new DisconnectCause(DisconnectCause.ERROR));

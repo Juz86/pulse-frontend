@@ -60,8 +60,10 @@
 
         <activity
             android:name=".PulseIncomingCallActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode|navigation"
             android:excludeFromRecents="true"
             android:exported="false"
+            android:resizeableActivity="true"
             android:showWhenLocked="true"
             android:taskAffinity="com.pulsemessenger.chat.incomingcall"
             android:theme="@style/AppTheme.IncomingCall"
@@ -69,7 +71,7 @@
 
         <activity
             android:name=".PulseNativeVideoCallActivity"
-            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode|navigation"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTop"
@@ -82,9 +84,11 @@
 
         <activity
             android:name=".PulseNativeAudioCallActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode|navigation"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTop"
+            android:resizeableActivity="true"
             android:showWhenLocked="true"
             android:taskAffinity="com.pulsemessenger.chat.nativeaudiocall"
             android:theme="@style/AppTheme.IncomingCall"

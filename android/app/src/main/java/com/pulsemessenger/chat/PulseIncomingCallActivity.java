@@ -9,13 +9,17 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.StateListDrawable;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -23,6 +27,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+
+import java.util.Locale;
 
 public class PulseIncomingCallActivity extends Activity {
     static final String EXTRA_REQUEST_ANSWER_PERMISSIONS = "requestAnswerPermissions";
@@ -33,6 +42,7 @@ public class PulseIncomingCallActivity extends Activity {
     private final Runnable timeoutRunnable = this::finish;
     private Intent callIntent;
     private BroadcastReceiver finishedReceiver;
+    private PulseCallWindowProfile windowProfile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,12 +110,15 @@ public class PulseIncomingCallActivity extends Activity {
     }
 
     private void showCallScreen() {
+        Configuration configuration = getResources().getConfiguration();
+        windowProfile = PulseCallWindowProfile.from(configuration.screenWidthDp, configuration.screenHeightDp);
         String callerName = callIntent.getStringExtra("callerName");
         if (callerName == null || callerName.trim().isEmpty()) callerName = "Iemand";
         boolean isVideo = callIntent.getBooleanExtra("isVideo", false);
 
         FrameLayout scene = new FrameLayout(this);
         scene.setBackgroundColor(Color.rgb(8, 17, 24));
+        applySystemBarInsets(scene);
         ImageView background = new ImageView(this);
         background.setImageResource(R.drawable.pulse_call_background);
         background.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -116,27 +129,37 @@ public class PulseIncomingCallActivity extends Activity {
         ));
 
         LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setGravity(Gravity.CENTER_HORIZONTAL);
-        root.setPadding(dp(24), dp(42), dp(24), dp(34));
+        root.setOrientation(windowProfile.useTwoPaneIncomingLayout() ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+        root.setGravity(Gravity.CENTER);
+        root.setPadding(dp(24), dp(24), dp(24), dp(24));
         root.setBackgroundColor(Color.TRANSPARENT);
 
+        LinearLayout identity = new LinearLayout(this);
+        identity.setOrientation(LinearLayout.VERTICAL);
+        identity.setGravity(Gravity.CENTER);
         TextView appName = text("Pulse", 18, Color.rgb(194, 185, 239));
         TextView name = text(callerName, 36, Color.WHITE);
         name.setTypeface(name.getTypeface(), android.graphics.Typeface.BOLD);
+        name.setMaxLines(2);
         TextView status = text(isVideo ? "Inkomend videogesprek" : "Inkomende spraakoproep", 18, Color.rgb(190, 198, 205));
 
-        root.addView(appName, layoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0, 0, 0, 26));
-        root.addView(name, layoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0, 0, 0, 8));
-        root.addView(status, layoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0, 0, 0, 0));
+        identity.addView(appName, layoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0, 0, 0, 18));
+        identity.addView(name, layoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0, 0, 0, 8));
+        identity.addView(status, layoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0, 0, 0, 0));
 
         LinearLayout avatarSpace = new LinearLayout(this);
         avatarSpace.setGravity(Gravity.CENTER);
         TextView avatar = text(initials(callerName), 72, Color.WHITE);
         avatar.setTypeface(avatar.getTypeface(), android.graphics.Typeface.BOLD);
         avatar.setBackground(circle(Color.rgb(106, 78, 214)));
-        avatarSpace.addView(avatar, new LinearLayout.LayoutParams(dp(220), dp(220)));
-        root.addView(avatarSpace, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+        avatarSpace.addView(avatar, new LinearLayout.LayoutParams(dp(windowProfile.avatarSizeDp), dp(windowProfile.avatarSizeDp)));
+        LinearLayout.LayoutParams avatarSpaceParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            windowProfile.useTwoPaneIncomingLayout() ? LinearLayout.LayoutParams.WRAP_CONTENT : 0,
+            windowProfile.useTwoPaneIncomingLayout() ? 0f : 1f
+        );
+        avatarSpaceParams.topMargin = dp(windowProfile.landscape ? 16 : 28);
+        identity.addView(avatarSpace, avatarSpaceParams);
 
         LinearLayout actions = new LinearLayout(this);
         actions.setGravity(Gravity.CENTER);
@@ -145,12 +168,20 @@ public class PulseIncomingCallActivity extends Activity {
         LinearLayout answer = action("Beantwoorden", Color.rgb(28, 183, 97), R.drawable.pulse_call_answer, PulseIncomingCallStore.ACTION_ANSWER);
         actions.addView(decline, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         actions.addView(answer, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        root.addView(actions, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        if (windowProfile.useTwoPaneIncomingLayout()) {
+            root.addView(identity, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f));
+            LinearLayout.LayoutParams actionsParams = new LinearLayout.LayoutParams(
+                dp(Math.min(320, windowProfile.availableWidthDp / 3)),
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            actionsParams.leftMargin = dp(24);
+            root.addView(actions, actionsParams);
+        } else {
+            root.addView(identity, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+            root.addView(actions, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        }
 
-        scene.addView(root, new FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT
-        ));
+        scene.addView(root, new FrameLayout.LayoutParams(dp(windowProfile.contentWidthDp), FrameLayout.LayoutParams.MATCH_PARENT, Gravity.CENTER));
         setContentView(scene);
     }
 
@@ -163,14 +194,42 @@ public class PulseIncomingCallActivity extends Activity {
         button.setImageResource(iconResource);
         button.setColorFilter(Color.WHITE);
         button.setPadding(dp(16), dp(16), dp(16), dp(16));
-        button.setBackground(circle(color));
+        button.setBackground(focusableCircle(color));
         button.setContentDescription(label);
+        button.setFocusable(true);
+        button.setClickable(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) button.setTooltipText(label);
         button.setOnClickListener(v -> performAction(action));
-        container.addView(button, new LinearLayout.LayoutParams(dp(72), dp(72)));
+        container.addView(button, new LinearLayout.LayoutParams(dp(windowProfile.controlSizeDp), dp(windowProfile.controlSizeDp)));
 
         TextView text = text(label, 16, Color.WHITE);
         container.addView(text, layoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 0, 12, 0, 0));
         return container;
+    }
+
+    private void applySystemBarInsets(View root) {
+        ViewCompat.setOnApplyWindowInsetsListener(root, (view, windowInsets) -> {
+            Insets insets = windowInsets.getInsets(
+                WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
+            );
+            view.setPadding(insets.left, insets.top, insets.right, insets.bottom);
+            return windowInsets;
+        });
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        showCallScreen();
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.KEYCODE_ESCAPE && event.getAction() == KeyEvent.ACTION_UP) {
+            moveTaskToBack(true);
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
     }
 
     private void performAction(String action) {
@@ -221,12 +280,28 @@ public class PulseIncomingCallActivity extends Activity {
         return background;
     }
 
+    private StateListDrawable focusableCircle(int color) {
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[] { android.R.attr.state_focused }, circle(blendWithWhite(color)));
+        states.addState(new int[] { android.R.attr.state_pressed }, circle(blendWithWhite(color)));
+        states.addState(new int[0], circle(color));
+        return states;
+    }
+
+    private int blendWithWhite(int color) {
+        return Color.rgb(
+            (Color.red(color) + 255) / 2,
+            (Color.green(color) + 255) / 2,
+            (Color.blue(color) + 255) / 2
+        );
+    }
+
     private String initials(String name) {
         if (name == null || name.trim().isEmpty()) return "P";
         String[] words = name.trim().split("\\s+");
         String first = words[0].substring(0, 1);
         String second = words.length > 1 ? words[words.length - 1].substring(0, 1) : "";
-        return (first + second).toUpperCase();
+        return (first + second).toUpperCase(Locale.ROOT);
     }
 
     private LinearLayout.LayoutParams layoutParams(int width, int height, int left, int top, int right, int bottom) {

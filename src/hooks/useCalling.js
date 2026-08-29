@@ -383,12 +383,15 @@ export default function useCalling({
     }
     if (isAndroidNativeCalling()) {
       try {
+        const idToken = await user.getIdToken();
         await startNativeOutgoingCall({
           toUid,
           convId,
           contactName: name,
           callerName: user.displayName || user.email,
           isVideo,
+          backendUrl: BACKEND_URL,
+          idToken,
         });
       } catch (error) {
         showErrToast(error?.message || 'Native oproep kon niet worden gestart.');

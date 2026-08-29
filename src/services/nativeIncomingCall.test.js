@@ -66,6 +66,29 @@ describe('native incoming call bridge', () => {
     expect(provisionCallAuth).toHaveBeenCalledWith({ customToken: 'native-custom-token' });
   });
 
+  test('deduplicates simultaneous native auth provisioning', async () => {
+    let resolveProvision;
+    const provisionCallAuth = jest.fn().mockReturnValue(new Promise((resolve) => {
+      resolveProvision = resolve;
+    }));
+    registerPlugin.mockReturnValue({ provisionCallAuth });
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ customToken: 'shared-native-token' }),
+    });
+
+    const first = provisionNativeIncomingCallAuth('https://api.example.test', 'shared-web-token');
+    const second = provisionNativeIncomingCallAuth('https://api.example.test', 'shared-web-token');
+    resolveProvision({ ok: true, uid: 'callee-1' });
+
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      { ok: true, uid: 'callee-1' },
+      { ok: true, uid: 'callee-1' },
+    ]);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(provisionCallAuth).toHaveBeenCalledTimes(1);
+  });
+
   test('clears the native Firebase session on logout', async () => {
     const clearCallAuth = jest.fn().mockResolvedValue(undefined);
     registerPlugin.mockReturnValue({ clearCallAuth });

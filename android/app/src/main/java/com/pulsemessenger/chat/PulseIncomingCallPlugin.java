@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.provider.Settings;
 
 import androidx.core.app.NotificationManagerCompat;
@@ -32,6 +35,10 @@ import java.util.UUID;
     }
 )
 public class PulseIncomingCallPlugin extends Plugin {
+    private static final long OUTGOING_START_TIMEOUT_MS = 5_000L;
+    private static final long OUTGOING_START_POLL_MS = 50L;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     @Override
     public void load() {
         super.load();
@@ -134,10 +141,25 @@ public class PulseIncomingCallPlugin extends Plugin {
             call.reject("Native oproep kon niet worden gestart");
             return;
         }
-        JSObject result = new JSObject();
-        result.put("sessionId", sessionId);
-        result.put("native", true);
-        call.resolve(result);
+        awaitOutgoingServiceStart(call, sessionId, SystemClock.elapsedRealtime());
+    }
+
+    private void awaitOutgoingServiceStart(PluginCall call, String sessionId, long startedAtMs) {
+        if (PulseNativeCallService.isActive(sessionId) && PulseNativeCallService.hasActiveCall()) {
+            JSObject result = new JSObject();
+            result.put("sessionId", sessionId);
+            result.put("native", true);
+            call.resolve(result);
+            return;
+        }
+        if (SystemClock.elapsedRealtime() - startedAtMs >= OUTGOING_START_TIMEOUT_MS) {
+            call.reject("Native oproepservice reageert niet. Probeer opnieuw.");
+            return;
+        }
+        mainHandler.postDelayed(
+            () -> awaitOutgoingServiceStart(call, sessionId, startedAtMs),
+            OUTGOING_START_POLL_MS
+        );
     }
 
     @PluginMethod

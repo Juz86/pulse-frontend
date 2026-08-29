@@ -1,5 +1,11 @@
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
 
+let nativeCallAuthState = {
+  idToken: null,
+  promise: null,
+  result: null,
+};
+
 function isAndroidNative() {
   if (!isNativePulseEnvironment()) return false;
   try {
@@ -45,6 +51,25 @@ export async function addNativeIncomingCallActionListener(listener) {
 export async function provisionNativeIncomingCallAuth(backendUrl, idToken) {
   if (!isAndroidNative() || !backendUrl || !idToken) return null;
 
+  if (nativeCallAuthState.idToken === idToken) {
+    if (nativeCallAuthState.result?.ok) return nativeCallAuthState.result;
+    if (nativeCallAuthState.promise) return nativeCallAuthState.promise;
+  }
+
+  const provisionPromise = provisionNativeCallAuth(backendUrl, idToken);
+  nativeCallAuthState = { idToken, promise: provisionPromise, result: null };
+
+  const result = await provisionPromise;
+  if (nativeCallAuthState.promise === provisionPromise) {
+    nativeCallAuthState = result?.ok
+      ? { idToken, promise: null, result }
+      : { idToken: null, promise: null, result: null };
+  }
+  return result;
+}
+
+async function provisionNativeCallAuth(backendUrl, idToken) {
+
   try {
     const response = await fetch(`${backendUrl}/api/native-call-auth`, {
       method: 'POST',
@@ -63,7 +88,16 @@ export async function provisionNativeIncomingCallAuth(backendUrl, idToken) {
   }
 }
 
+export async function requireNativeCallAuth(backendUrl, idToken) {
+  const result = await provisionNativeIncomingCallAuth(backendUrl, idToken);
+  if (!result?.ok) {
+    throw new Error('Oproepbeveiliging kon niet worden voorbereid. Controleer je verbinding en probeer opnieuw.');
+  }
+  return result;
+}
+
 export async function clearNativeIncomingCallAuth() {
+  nativeCallAuthState = { idToken: null, promise: null, result: null };
   if (!isAndroidNative()) return;
   try {
     const { registerPlugin } = await import('@capacitor/core');

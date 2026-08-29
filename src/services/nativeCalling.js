@@ -1,4 +1,5 @@
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
+import { requireNativeCallAuth } from './nativeIncomingCall';
 
 export function isAndroidNativeCalling() {
   if (!isNativePulseEnvironment()) return false;
@@ -14,8 +15,17 @@ async function nativeCallPlugin() {
   return registerPlugin('PulseIncomingCall');
 }
 
-export async function startNativeOutgoingCall({ toUid, convId, contactName, callerName, isVideo }) {
+export async function startNativeOutgoingCall({
+  toUid,
+  convId,
+  contactName,
+  callerName,
+  isVideo,
+  backendUrl,
+  idToken,
+}) {
   if (!isAndroidNativeCalling()) return null;
+  await requireNativeCallAuth(backendUrl, idToken);
   const plugin = await nativeCallPlugin();
   return plugin.startOutgoingCall({
     toUid,

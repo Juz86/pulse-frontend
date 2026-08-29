@@ -2009,6 +2009,7 @@ export default function ChatModals({
           onRetryCall={(toUid, isVideo) => {
             const contact = contacts.find((item) => item?.uid === toUid);
             if (contact) {
+              setActiveCall(null);
               callContact(contact, isVideo);
               return;
             }

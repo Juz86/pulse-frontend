@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { getSocket } from '../services/socket';
 import { BACKEND_URL, startCall, getCurrentCallSessionId, clearOrphanedOutgoingCall } from '../services/socket';
 import { isAndroidNativeCalling, startNativeOutgoingCall } from '../services/nativeCalling';
+import { CALL_REQUEST_ADMISSION, getCallRequestAdmission } from './callRequestState';
 
 export default function useCalling({
   user,
@@ -461,9 +462,14 @@ export default function useCalling({
   }
 
   async function runCallRequest(buildRequest) {
-    if (activeCall || callStartInProgressRef.current) {
+    const admission = getCallRequestAdmission(activeCall, callStartInProgressRef.current);
+    if (admission === CALL_REQUEST_ADMISSION.DUPLICATE) return;
+    if (admission === CALL_REQUEST_ADMISSION.ACTIVE) {
       showErrToast('Er is al een actief gesprek.');
       return;
+    }
+    if (admission === CALL_REQUEST_ADMISSION.CLEAR_ENDED) {
+      setActiveCall(null);
     }
     callStartInProgressRef.current = true;
     try {

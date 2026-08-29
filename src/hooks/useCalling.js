@@ -372,10 +372,6 @@ export default function useCalling({
   }
 
   async function startCallTo({ toUid, convId, name, isVideo }) {
-    if (activeCall || callStartInProgressRef.current) {
-      showErrToast('Er is al een actief gesprek.');
-      return;
-    }
     if (isVideo ? pausedFeatures.video : pausedFeatures.call) {
       const canChat   = !pausedFeatures.chat;
       const canCall   = !pausedFeatures.call;
@@ -385,7 +381,6 @@ export default function useCalling({
       return;
     }
     if (isAndroidNativeCalling()) {
-      callStartInProgressRef.current = true;
       try {
         await startNativeOutgoingCall({
           toUid,
@@ -396,8 +391,6 @@ export default function useCalling({
         });
       } catch (error) {
         showErrToast(error?.message || 'Native oproep kon niet worden gestart.');
-      } finally {
-        callStartInProgressRef.current = false;
       }
       return;
     }
@@ -405,7 +398,6 @@ export default function useCalling({
     // een oude uitgaande sessie onthouden. Ruim die eerst op zodat de gebruiker
     // niet ten onrechte wordt geblokkeerd. Inkomende sessies worden niet geraakt.
     clearOrphanedOutgoingCall();
-    callStartInProgressRef.current = true;
     callConvIdRef.current = convId;
     callStartTimeRef.current = null;
     callIsVideoRef.current = isVideo;
@@ -465,56 +457,78 @@ export default function useCalling({
       }
     } catch (err) {
       showErrToast(err.message);
+    }
+  }
+
+  async function runCallRequest(buildRequest) {
+    if (activeCall || callStartInProgressRef.current) {
+      showErrToast('Er is al een actief gesprek.');
+      return;
+    }
+    callStartInProgressRef.current = true;
+    try {
+      const request = await buildRequest();
+      if (request) await startCallTo(request);
+    } catch (error) {
+      showErrToast(error?.message || 'Oproep kon niet worden voorbereid.');
     } finally {
       callStartInProgressRef.current = false;
     }
   }
 
   async function callContact(contact, isVideo) {
-    reopenRecentAfterCallRef.current = false;
-    setShowCallModal(false);
-    const toUid = contact.uid;
-    const name  = contact.displayName;
-    callTargetPhotoRef.current = contact.photoURL || '';
-    const convId = await ensureDirectConversationForCall({
-      toUid,
-      name: contact.displayName || contact.email || toUid,
-      email: contact.email || null,
+    await runCallRequest(async () => {
+      reopenRecentAfterCallRef.current = false;
+      setShowCallModal(false);
+      const toUid = contact.uid;
+      const name  = contact.displayName;
+      callTargetPhotoRef.current = contact.photoURL || '';
+      const convId = await ensureDirectConversationForCall({
+        toUid,
+        name: contact.displayName || contact.email || toUid,
+        email: contact.email || null,
+      });
+      return { toUid, convId, name, isVideo };
     });
-    await startCallTo({ toUid, convId, name, isVideo });
   }
 
   async function callContactFromRecent(contact, isVideo) {
-    reopenRecentAfterCallRef.current = true;
-    setShowCallModal(false);
-    const toUid = contact.uid;
-    const name  = contact.displayName;
-    callTargetPhotoRef.current = contact.photoURL || '';
-    const convId = await ensureDirectConversationForCall({
-      toUid,
-      name: contact.displayName || contact.email || toUid,
-      email: contact.email || null,
+    await runCallRequest(async () => {
+      reopenRecentAfterCallRef.current = true;
+      setShowCallModal(false);
+      const toUid = contact.uid;
+      const name  = contact.displayName;
+      callTargetPhotoRef.current = contact.photoURL || '';
+      const convId = await ensureDirectConversationForCall({
+        toUid,
+        name: contact.displayName || contact.email || toUid,
+        email: contact.email || null,
+      });
+      return { toUid, convId, name, isVideo };
     });
-    await startCallTo({ toUid, convId, name, isVideo });
   }
 
   async function initiateCall(isVideo) {
-    const conv = activeConvRef.current;
-    if (!conv || !Array.isArray(conv.members)) return;
-    const toUid = conv.members.find(m => m !== user.uid);
-    if (!toUid) return;
-    const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
-    callTargetPhotoRef.current = '';
-    await startCallTo({ toUid, convId: conv.id, name, isVideo });
+    await runCallRequest(async () => {
+      const conv = activeConvRef.current;
+      if (!conv || !Array.isArray(conv.members)) return null;
+      const toUid = conv.members.find(m => m !== user.uid);
+      if (!toUid) return null;
+      const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
+      callTargetPhotoRef.current = '';
+      return { toUid, convId: conv.id, name, isVideo };
+    });
   }
 
   async function initiateCallFromConv(conv, isVideo) {
-    if (!Array.isArray(conv.members)) return;
-    const toUid = conv.members.find(m => m !== user.uid);
-    if (!toUid) return;
-    const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
-    callTargetPhotoRef.current = '';
-    await startCallTo({ toUid, convId: conv.id, name, isVideo });
+    await runCallRequest(async () => {
+      if (!Array.isArray(conv.members)) return null;
+      const toUid = conv.members.find(m => m !== user.uid);
+      if (!toUid) return null;
+      const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
+      callTargetPhotoRef.current = '';
+      return { toUid, convId: conv.id, name, isVideo };
+    });
   }
 
   return {

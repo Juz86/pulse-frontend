@@ -160,9 +160,39 @@ public class PulseNativeCallService extends Service {
         return activeService != null && activeSessionId != null && !activeService.callLifecycle.isStopped();
     }
 
+    static boolean clearStaleCallIfNeeded(Runnable onCleared) {
+        PulseNativeCallService service = activeService;
+        if (service == null || !hasActiveCall() || !service.isStaleForAdmission(SystemClock.elapsedRealtime())) {
+            return false;
+        }
+        android.util.Log.w(
+            "PulseNativeCall",
+            "Achtergebleven oproepsessie opruimen voor nieuw gesprek: " + activeSessionId
+        );
+        service.mainHandler.post(() -> {
+            service.endCall(true, DisconnectCause.ERROR);
+            if (onCleared != null) service.mainHandler.postDelayed(onCleared, 250L);
+        });
+        return true;
+    }
+
     static void reopenActiveCallUi() {
         PulseNativeCallService service = activeService;
         if (service != null && hasActiveCall()) service.showActiveCallUi();
+    }
+
+    private synchronized boolean isStaleForAdmission(long nowMs) {
+        PulseCallLifecycle.State state = callLifecycle.state();
+        if (state == PulseCallLifecycle.State.IDLE || state == PulseCallLifecycle.State.STOPPED) return true;
+        if (sessionId == null || sessionId.trim().isEmpty() || fromUid == null || fromUid.trim().isEmpty()) return true;
+        if (callLifecycle.isExpired(nowMs)) return true;
+        if (state == PulseCallLifecycle.State.CONNECTED) {
+            return !peerStarted || peerConnection == null || connectedAtElapsedMs <= 0L;
+        }
+        if (state == PulseCallLifecycle.State.RECONNECTING) {
+            return !peerStarted || peerConnection == null;
+        }
+        return false;
     }
 
     static synchronized EglBase.Context sharedEglContext() {
@@ -422,6 +452,7 @@ public class PulseNativeCallService extends Service {
         socket.on("call:renegotiate", this::onRenegotiate);
         socket.on("call:peer-resumed", this::onPeerResumed);
         socket.on("call:answer", this::onAnswer);
+        socket.on("call:heartbeat:ack", this::onHeartbeatAck);
         socket.on("call:ended", args -> endIfCurrent(args, DisconnectCause.REMOTE));
         socket.on("call:declined", args -> endIfCurrent(args, DisconnectCause.REJECTED));
         socket.on("call:unavailable", args -> endIfCurrent(args, DisconnectCause.ERROR));
@@ -760,6 +791,14 @@ public class PulseNativeCallService extends Service {
                 flushPendingRemoteCandidates();
             }
         }, remoteAnswer);
+    }
+
+    private void onHeartbeatAck(Object... args) {
+        if (args.length == 0 || !(args[0] instanceof JSONObject)) return;
+        JSONObject payload = (JSONObject) args[0];
+        if (!isCurrentSession(payload) || payload.optBoolean("active", true)) return;
+        android.util.Log.w("PulseNativeCall", "Oproepsessie is niet meer actief op de server: " + sessionId);
+        endCall(false, DisconnectCause.REMOTE);
     }
 
     private void endIfCurrent(Object[] args, int disconnectCode) {

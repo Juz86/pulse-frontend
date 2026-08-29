@@ -50,6 +50,7 @@ public class PulseIncomingCallPlugin extends Plugin {
 
     @PluginMethod
     public void presentIncomingCall(PluginCall call) {
+        if (PulseNativeCallService.clearStaleCallIfNeeded(() -> presentIncomingCall(call))) return;
         String sessionId = call.getString("sessionId");
         String fromUid = call.getString("fromUid");
         if (sessionId == null || fromUid == null) {
@@ -81,7 +82,9 @@ public class PulseIncomingCallPlugin extends Plugin {
 
     @PluginMethod
     public void startOutgoingCall(PluginCall call) {
+        if (PulseNativeCallService.clearStaleCallIfNeeded(() -> startOutgoingCall(call))) return;
         if (PulseNativeCallService.hasActiveCall()) {
+            PulseNativeCallService.reopenActiveCallUi();
             call.reject("Er is al een actief gesprek");
             return;
         }

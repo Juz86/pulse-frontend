@@ -41,6 +41,20 @@ public class PulseCallLifecycleTest {
         assertTrue(lifecycle.beginAnswer(1_000L, 30_000L));
         assertTrue(lifecycle.markConnected());
         assertFalse(lifecycle.isConnectionTimedOut(60_000L));
+        assertFalse(lifecycle.isExpired(60_000L));
+    }
+
+    @Test
+    public void connectingAndRecoveringCallsExposeOneExpiryCheck() {
+        PulseCallLifecycle connecting = new PulseCallLifecycle();
+        assertTrue(connecting.beginAnswer(1_000L, 30_000L));
+        assertFalse(connecting.isExpired(30_999L));
+        assertTrue(connecting.isExpired(31_000L));
+
+        PulseCallLifecycle recovering = connectedLifecycle();
+        assertTrue(recovering.beginRecovery(true, 5_000L, 20_000L));
+        assertFalse(recovering.isExpired(24_999L));
+        assertTrue(recovering.isExpired(25_000L));
     }
 
     @Test

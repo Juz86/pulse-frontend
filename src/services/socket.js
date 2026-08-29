@@ -72,6 +72,7 @@ let callEndedHandler = null;
 let callDeclinedHandler = null;
 let callUnavailableHandler = null;
 let callBusyHandler = null;
+let callHeartbeatAckHandler = null;
 let activeCallTimeoutId = null;
 let currentCallSessionId = null;
 let currentCallState = 'idle';
@@ -265,6 +266,21 @@ function clearCallLifecycleHandlers() {
     socket?.off('call:busy', callBusyHandler);
     callBusyHandler = null;
   }
+  if (callHeartbeatAckHandler) {
+    socket?.off('call:heartbeat:ack', callHeartbeatAckHandler);
+    callHeartbeatAckHandler = null;
+  }
+}
+
+function installCallHeartbeatAckHandler({ stream, sessionId, onEnd }) {
+  if (callHeartbeatAckHandler) socket?.off('call:heartbeat:ack', callHeartbeatAckHandler);
+  callHeartbeatAckHandler = ({ sessionId: incomingSessionId, active = true } = {}) => {
+    if (active || !isSessionEventCurrent(incomingSessionId)) return;
+    setCallState('ended', { source: 'server_lease_expired' });
+    onEnd?.('expired');
+    cleanupCall(stream, sessionId);
+  };
+  socket?.on('call:heartbeat:ack', callHeartbeatAckHandler);
 }
 
 function clearNetworkRecovery({ resetAttempts = true } = {}) {
@@ -769,6 +785,7 @@ export async function startCall({ toUid, fromUid, callerName, isVideo, onStream,
   socket.on('call:declined', callDeclinedHandler);
   socket.on('call:unavailable', callUnavailableHandler);
   socket.on('call:busy', callBusyHandler);
+  installCallHeartbeatAckHandler({ stream, sessionId, onEnd: fireOnEnd });
 
   return stream;
 }
@@ -932,6 +949,7 @@ export async function answerCall({ fromUid, offer, sessionId: incomingSessionId 
     cleanupCall(stream, sessionId);
   };
   socket.on('call:ended', callEndedHandler);
+  installCallHeartbeatAckHandler({ stream, sessionId, onEnd });
 
   return stream;
 }

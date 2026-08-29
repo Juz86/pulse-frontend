@@ -49,6 +49,10 @@ final class PulseCallLifecycle {
         return state == State.RECONNECTING && recoveryDeadlineMs >= 0L && nowMs >= recoveryDeadlineMs;
     }
 
+    synchronized boolean isExpired(long nowMs) {
+        return isConnectionTimedOut(nowMs) || isRecoveryTimedOut(nowMs);
+    }
+
     synchronized boolean stop() {
         if (state == State.STOPPED) return false;
         state = State.STOPPED;

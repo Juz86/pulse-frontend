@@ -26,6 +26,24 @@ public class PulseCallLifecycleTest {
     }
 
     @Test
+    public void connectingCallTimesOutFromInitialServiceStart() {
+        PulseCallLifecycle lifecycle = new PulseCallLifecycle();
+
+        assertTrue(lifecycle.beginAnswer(1_000L, 30_000L));
+        assertFalse(lifecycle.isConnectionTimedOut(30_999L));
+        assertTrue(lifecycle.isConnectionTimedOut(31_000L));
+    }
+
+    @Test
+    public void connectedCallClearsInitialConnectionDeadline() {
+        PulseCallLifecycle lifecycle = new PulseCallLifecycle();
+
+        assertTrue(lifecycle.beginAnswer(1_000L, 30_000L));
+        assertTrue(lifecycle.markConnected());
+        assertFalse(lifecycle.isConnectionTimedOut(60_000L));
+    }
+
+    @Test
     public void reconnectCompletesAndCancelsTimeoutState() {
         PulseCallLifecycle lifecycle = connectedLifecycle();
 

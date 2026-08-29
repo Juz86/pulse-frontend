@@ -89,6 +89,7 @@ public class PulseNativeCallService extends Service {
     private static final int NOTIFICATION_ID = 42_101;
     private static final long NETWORK_RECOVERY_TIMEOUT_MS = 20_000L;
     private static final long CONNECTION_TIMEOUT_MS = 30_000L;
+    private static final long CALL_HEARTBEAT_INTERVAL_MS = 15_000L;
     private static final int MAX_PENDING_REMOTE_CANDIDATES = 64;
     private static volatile String activeSessionId;
     private static volatile PulseNativeCallService activeService;
@@ -130,8 +131,18 @@ public class PulseNativeCallService extends Service {
         }
     };
     private final Runnable connectionTimeout = () -> {
-        if (!callLifecycle.isConnected() && !callLifecycle.isStopped()) {
+        if (callLifecycle.isConnectionTimedOut(SystemClock.elapsedRealtime())) {
             failCall(outgoing ? "Geen antwoord" : "Oproep verbinden duurde te lang");
+        }
+    };
+    private final Runnable callHeartbeat = new Runnable() {
+        @Override
+        public void run() {
+            if (callLifecycle.isStopped()) return;
+            if (callLifecycle.isConnected() && socket != null && socket.connected()) {
+                socket.emit("call:heartbeat", signalTarget());
+            }
+            mainHandler.postDelayed(this, CALL_HEARTBEAT_INTERVAL_MS);
         }
     };
     private boolean microphoneEnabled = true;
@@ -299,6 +310,12 @@ public class PulseNativeCallService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) return START_NOT_STICKY;
+        String action = intent.getAction();
+        if (ACTION_ANSWER.equals(action) || ACTION_OUTGOING.equals(action)) {
+            if (!callLifecycle.beginAnswer(SystemClock.elapsedRealtime(), CONNECTION_TIMEOUT_MS)) {
+                return START_NOT_STICKY;
+            }
+        }
         sessionId = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_SESSION_ID), sessionId);
         fromUid = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_FROM_UID), fromUid);
         localCallerName = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_LOCAL_CALLER_NAME), localCallerName);
@@ -307,10 +324,8 @@ public class PulseNativeCallService extends Service {
         isVideo = intent.hasExtra(PulseTelecomManager.EXTRA_IS_VIDEO)
             ? intent.getBooleanExtra(PulseTelecomManager.EXTRA_IS_VIDEO, false)
             : isVideo;
-        String action = intent.getAction();
 
         if (ACTION_ANSWER.equals(action) || ACTION_OUTGOING.equals(action)) {
-            if (!callLifecycle.beginAnswer()) return START_NOT_STICKY;
             outgoing = ACTION_OUTGOING.equals(action);
             activeSessionId = sessionId;
             activeService = this;
@@ -324,6 +339,7 @@ public class PulseNativeCallService extends Service {
                 cameraLifecycle.setEnabledByUser(cameraGranted);
             }
             if (!startForegroundCompat(buildNotification(notificationStatus))) return START_NOT_STICKY;
+            armInitialConnectionTimeout();
             startAudioRouting();
             showActiveCallUi();
             authenticateAndRun(outgoing ? this::startNativeOutgoing : this::startNativeAnswer);
@@ -833,12 +849,15 @@ public class PulseNativeCallService extends Service {
 
     private synchronized void armConnectionTimeout() {
         mainHandler.removeCallbacks(networkRecoveryTimeout);
-        mainHandler.removeCallbacks(connectionTimeout);
         if (callLifecycle.state() == PulseCallLifecycle.State.RECONNECTING) {
+            mainHandler.removeCallbacks(connectionTimeout);
             mainHandler.postDelayed(networkRecoveryTimeout, NETWORK_RECOVERY_TIMEOUT_MS);
-        } else {
-            mainHandler.postDelayed(connectionTimeout, CONNECTION_TIMEOUT_MS);
         }
+    }
+
+    private synchronized void armInitialConnectionTimeout() {
+        mainHandler.removeCallbacks(connectionTimeout);
+        mainHandler.postDelayed(connectionTimeout, CONNECTION_TIMEOUT_MS);
     }
 
     private synchronized void requestNativeRecovery(String source) {
@@ -859,6 +878,8 @@ public class PulseNativeCallService extends Service {
         if (connectedAtElapsedMs == 0L) connectedAtElapsedMs = SystemClock.elapsedRealtime();
         mainHandler.removeCallbacks(networkRecoveryTimeout);
         mainHandler.removeCallbacks(connectionTimeout);
+        mainHandler.removeCallbacks(callHeartbeat);
+        mainHandler.post(callHeartbeat);
         notificationStatus = "Verbonden";
         updateNotification(notificationStatus);
         PulseTelecomManager.markActive(sessionId);
@@ -1003,7 +1024,7 @@ public class PulseNativeCallService extends Service {
         updateNotification(notificationStatus);
         executor.execute(() -> {
             try { Thread.sleep(1_500L); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
-            endCall(false, DisconnectCause.ERROR);
+            endCall(true, DisconnectCause.ERROR);
         });
     }
 
@@ -1024,6 +1045,7 @@ public class PulseNativeCallService extends Service {
         if (!callLifecycle.stop()) return;
         mainHandler.removeCallbacks(networkRecoveryTimeout);
         mainHandler.removeCallbacks(connectionTimeout);
+        mainHandler.removeCallbacks(callHeartbeat);
         if (notifyPeer && socket != null && socket.connected() && fromUid != null) {
             socket.emit("call:end", signalTarget());
         }

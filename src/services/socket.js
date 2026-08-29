@@ -85,11 +85,13 @@ let iceRestartAttempts = 0;
 let lastIceRestartAt = 0;
 let removeNetworkListeners = null;
 let localCallInitiator = false;
+let callHeartbeatIntervalId = null;
 
 const ACTIVE_CALL_STATES = new Set(['ringing', 'connecting', 'connected', 'reconnecting']);
 const NETWORK_RECOVERY_TIMEOUT_MS = 20000;
 const ICE_RESTART_DELAY_MS = 1200;
 const MAX_ICE_RESTART_ATTEMPTS = 3;
+const CALL_HEARTBEAT_INTERVAL_MS = 15000;
 
 function buildCallSessionId() {
   return `call_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -99,12 +101,34 @@ function setCallState(nextState, context = {}) {
   if (currentCallState === nextState) return;
   const prevState = currentCallState;
   currentCallState = nextState;
+  if (nextState === 'connected') startCallHeartbeat();
+  else if (!ACTIVE_CALL_STATES.has(nextState)) stopCallHeartbeat();
   console.info('[Pulse][Call] state', {
     from: prevState,
     to: nextState,
     sessionId: currentCallSessionId,
     ...context,
   });
+}
+
+function stopCallHeartbeat() {
+  if (!callHeartbeatIntervalId) return;
+  clearInterval(callHeartbeatIntervalId);
+  callHeartbeatIntervalId = null;
+}
+
+function emitCallHeartbeat() {
+  if (!socket?.connected || !currentCallSessionId || currentCallState !== 'connected') return;
+  socket.emit('call:heartbeat', {
+    to: callPeer,
+    sessionId: currentCallSessionId,
+  });
+}
+
+function startCallHeartbeat() {
+  stopCallHeartbeat();
+  emitCallHeartbeat();
+  callHeartbeatIntervalId = setInterval(emitCallHeartbeat, CALL_HEARTBEAT_INTERVAL_MS);
 }
 
 function isSessionEventCurrent(sessionId) {
@@ -517,6 +541,7 @@ export function connectSocket(uid, token) {
 export function getSocket() { return socket; }
 
 export function disconnectSocket() {
+  stopCallHeartbeat();
   socket?.disconnect();
   socket = null;
 }
@@ -1056,6 +1081,7 @@ function cleanupCall(stream, sessionId = null) {
   if (sessionId && currentCallSessionId && sessionId !== currentCallSessionId) return;
   clearCallLifecycleHandlers();
   clearNetworkRecovery();
+  stopCallHeartbeat();
   removeNetworkListeners?.();
   removeNetworkListeners = null;
   try {

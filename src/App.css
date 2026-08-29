@@ -4113,12 +4113,13 @@ font-family: 'Inter', sans-serif;
   padding-bottom:6px;
   scroll-padding-bottom:6px;
 }
-/* Chats en Contacten lopen bewust door onder de vaste tabbar, zoals de
-   oproepenlijst. De tabbar ligt er visueel bovenop zonder extra tussenruimte. */
+/* Houd de laatste rij volledig boven de vaste tabbar bereikbaar. De tabbar
+   blijft visueel boven de lijst zweven, terwijl de extra scrollruimte ook de
+   onderste safe area van mobiele apparaten meeneemt. */
 .sidebar > .conv-list {
   margin-bottom: 0;
-  padding-bottom: 0;
-  scroll-padding-bottom: 0;
+  padding-bottom:calc(var(--sidebar-footer-clearance) + max(6px, env(safe-area-inset-bottom)));
+  scroll-padding-bottom:calc(var(--sidebar-footer-clearance) + max(6px, env(safe-area-inset-bottom)));
 }
 .conv-list--chats {
   box-sizing:border-box;

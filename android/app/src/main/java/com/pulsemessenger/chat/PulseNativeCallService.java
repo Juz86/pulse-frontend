@@ -151,6 +151,7 @@ public class PulseNativeCallService extends Service {
     private BroadcastReceiver screenReceiver;
     private String notificationStatus = "Verbinden...";
     private long connectedAtElapsedMs;
+    private String lastIcePathSummary;
 
     static boolean isActive(String sessionId) {
         return sessionId != null && sessionId.equals(activeSessionId);
@@ -926,6 +927,18 @@ public class PulseNativeCallService extends Service {
         sendBroadcast(new Intent(ACTION_NATIVE_CALL_CONNECTED)
             .setPackage(getPackageName())
             .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId));
+        logSelectedIcePath();
+    }
+
+    private void logSelectedIcePath() {
+        PeerConnection connection = peerConnection;
+        if (connection == null) return;
+        connection.getStats(report -> {
+            String summary = PulseIcePathDiagnostics.summarize(report);
+            if (summary.equals(lastIcePathSummary)) return;
+            lastIcePathSummary = summary;
+            android.util.Log.i("PulseNativeCall", "Selected ICE candidate pair: " + summary);
+        });
     }
 
     private void registerNetworkCallback() {
@@ -999,7 +1012,8 @@ public class PulseNativeCallService extends Service {
     private List<PeerConnection.IceServer> fetchIceServers(String token) {
         List<PeerConnection.IceServer> result = new ArrayList<>();
         try {
-            JSONArray servers = getJson(API_URL + "/api/turn-credentials", token).optJSONArray("iceServers");
+            JSONObject configuration = getJson(API_URL + "/api/turn-credentials", token);
+            JSONArray servers = configuration.optJSONArray("iceServers");
             if (servers != null) {
                 for (int index = 0; index < servers.length(); index++) {
                     JSONObject server = servers.optJSONObject(index);
@@ -1019,6 +1033,12 @@ public class PulseNativeCallService extends Service {
                     result.add(builder.createIceServer());
                 }
             }
+            android.util.Log.i(
+                "PulseNativeCall",
+                "ICE-config geladen: source=" + configuration.optString("source", "unknown")
+                    + ", hasTurn=" + configuration.optBoolean("hasTurn", false)
+                    + ", serverCount=" + result.size()
+            );
         } catch (Exception error) {
             android.util.Log.w("PulseNativeCall", "TURN-config ophalen mislukt; STUN fallback actief", error);
         }

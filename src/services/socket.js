@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 import SimplePeer from 'simple-peer';
 import { RTC_CONFIG_URL, SIGNALING_URL } from '../config/runtimeConfig';
 import { resolveBackendUrl } from '../lib/backendUrl';
+import { logSelectedIceCandidatePair } from './iceDiagnostics';
 
 export const BACKEND_URL = resolveBackendUrl();
 export const SOCKET_URL = SIGNALING_URL || BACKEND_URL;
@@ -393,6 +394,7 @@ function bindPeerConnectionDebugHandlers(peerInstance, sessionId) {
     });
     if (pc.connectionState === 'connected') {
       markNetworkRecovered('pc_connectionstate_connected');
+      logSelectedIceCandidatePair(peerInstance, describeSession(sessionId));
     } else if (pc.connectionState === 'failed') {
       requestIceRestart('pc_connectionstate_failed', { immediate: true });
     } else if (pc.connectionState === 'disconnected') {

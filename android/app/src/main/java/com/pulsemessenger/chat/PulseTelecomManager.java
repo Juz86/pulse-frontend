@@ -87,16 +87,30 @@ final class PulseTelecomManager {
         if (!supportsNativeCalls()) return PulseNativeCallService.startOutgoing(context, callExtras);
         registerPhoneAccount(context);
         TelecomManager telecom = context.getSystemService(TelecomManager.class);
-        if (telecom == null) return false;
+        if (telecom == null) return PulseNativeCallService.startOutgoing(context, callExtras);
+        PhoneAccountHandle accountHandle = phoneAccountHandle(context);
+        try {
+            if (!telecom.isOutgoingCallPermitted(accountHandle)) {
+                android.util.Log.w("PulseTelecom", "Uitgaande oproep is niet toegestaan door Telecom");
+                return false;
+            }
+        } catch (SecurityException error) {
+            android.util.Log.w("PulseTelecom", "Uitgaande oproeptoestemming controleren mislukt", error);
+            return false;
+        }
         Bundle telecomExtras = new Bundle();
-        telecomExtras.putParcelable(TelecomManager.EXTRA_PHONE_ACCOUNT_HANDLE, phoneAccountHandle(context));
+        telecomExtras.putParcelable(TelecomManager.EXTRA_PHONE_ACCOUNT_HANDLE, accountHandle);
         telecomExtras.putBundle(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS, new Bundle(callExtras));
         try {
             telecom.placeCall(Uri.fromParts("pulse", remoteUid, null), telecomExtras);
+            // placeCall() bindt ConnectionService asynchroon. Start de media-
+            // service meteen na toelating, zodat een trage OEM-callback de
+            // zichtbare belactie niet kan laten verdwijnen.
+            PulseNativeCallService.startOutgoing(context, callExtras);
             return true;
         } catch (SecurityException | IllegalArgumentException error) {
             android.util.Log.w("PulseTelecom", "Uitgaande Telecom-oproep starten mislukt", error);
-            return PulseNativeCallService.startOutgoing(context, callExtras);
+            return false;
         }
     }
 

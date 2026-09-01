@@ -83,6 +83,7 @@ final class PulseCallConnection extends Connection {
 
     void startOutgoingFromPulseUi() {
         if (finished || !outgoing) return;
+        if (PulseNativeCallService.isActive(sessionId) && PulseNativeCallService.hasActiveCall()) return;
         if (!PulseNativeCallService.startOutgoing(context, callExtras)) {
             finish(new DisconnectCause(DisconnectCause.ERROR));
         }

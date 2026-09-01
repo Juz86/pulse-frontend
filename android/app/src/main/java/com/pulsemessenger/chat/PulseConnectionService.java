@@ -42,7 +42,8 @@ public class PulseConnectionService extends ConnectionService {
     public void onCreateOutgoingConnectionFailed(PhoneAccountHandle connectionManagerPhoneAccount, ConnectionRequest request) {
         Bundle requestExtras = request == null || request.getExtras() == null ? new Bundle() : request.getExtras();
         Bundle nestedExtras = requestExtras.getBundle(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS);
-        PulseNativeCallService.startOutgoing(this, nestedExtras == null ? requestExtras : nestedExtras);
+        Bundle extras = nestedExtras == null ? requestExtras : nestedExtras;
+        PulseNativeCallService.stop(this, extras.getString(PulseTelecomManager.EXTRA_SESSION_ID), true);
     }
 
     @Override

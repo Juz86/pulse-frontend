@@ -75,6 +75,23 @@ describe('Android native calling bridge', () => {
     expect(startOutgoingCall).not.toHaveBeenCalled();
   });
 
+  test('reports a rate-limited call bootstrap without starting Telecom', async () => {
+    const startOutgoingCall = jest.fn();
+    registerPlugin.mockReturnValue({ startOutgoingCall });
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 429 });
+
+    await expect(startNativeOutgoingCall({
+      toUid: 'peer-1',
+      contactName: 'Yousef',
+      callerName: 'Habibi',
+      isVideo: false,
+      backendUrl: 'https://api.example.test',
+      idToken: 'web-id-token-rate-limit',
+    })).rejects.toThrow('te veel verzoeken');
+
+    expect(startOutgoingCall).not.toHaveBeenCalled();
+  });
+
   test('forwards foreground socket offers to native Telecom', async () => {
     const presentIncomingCall = jest.fn().mockResolvedValue({ shown: true });
     registerPlugin.mockReturnValue({ presentIncomingCall });

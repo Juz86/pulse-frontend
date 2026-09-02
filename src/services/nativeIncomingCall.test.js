@@ -62,6 +62,7 @@ describe('native incoming call bridge', () => {
     expect(global.fetch).toHaveBeenCalledWith('https://api.example.test/api/native-call-auth', {
       method: 'POST',
       headers: { Authorization: 'Bearer web-id-token' },
+      signal: expect.any(AbortSignal),
     });
     expect(provisionCallAuth).toHaveBeenCalledWith({ customToken: 'native-custom-token' });
   });

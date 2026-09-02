@@ -6,6 +6,8 @@ let nativeCallAuthState = {
   result: null,
 };
 
+const NATIVE_CALL_AUTH_TIMEOUT_MS = 8000;
+
 function isAndroidNative() {
   if (!isNativePulseEnvironment()) return false;
   try {
@@ -69,28 +71,49 @@ export async function provisionNativeIncomingCallAuth(backendUrl, idToken) {
 }
 
 async function provisionNativeCallAuth(backendUrl, idToken) {
-
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), NATIVE_CALL_AUTH_TIMEOUT_MS);
   try {
     const response = await fetch(`${backendUrl}/api/native-call-auth`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${idToken}` },
+      signal: controller.signal,
     });
-    if (!response.ok) throw new Error(`native_call_auth_failed_${response.status}`);
+    if (!response.ok) {
+      return {
+        ok: false,
+        reason: response.status === 429 ? 'rate_limited' : `http_${response.status}`,
+      };
+    }
     const payload = await response.json();
-    if (!payload?.customToken) throw new Error('native_call_auth_token_missing');
+    if (!payload?.customToken) return { ok: false, reason: 'token_missing' };
 
     const { registerPlugin } = await import('@capacitor/core');
     const PulseIncomingCall = registerPlugin('PulseIncomingCall');
     return await PulseIncomingCall.provisionCallAuth({ customToken: payload.customToken });
   } catch (error) {
     console.warn('[Pulse][Call] Native oproepauthenticatie mislukt:', error?.message || error);
-    return null;
+    return {
+      ok: false,
+      reason: error?.name === 'AbortError' ? 'timeout' : 'network_error',
+    };
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
 export async function requireNativeCallAuth(backendUrl, idToken) {
   const result = await provisionNativeIncomingCallAuth(backendUrl, idToken);
   if (!result?.ok) {
+    if (result?.reason === 'rate_limited') {
+      throw new Error('De oproepdienst heeft te veel verzoeken ontvangen. Probeer het over enkele seconden opnieuw.');
+    }
+    if (result?.reason === 'timeout') {
+      throw new Error('De oproepdienst reageert niet. Controleer je internetverbinding en probeer opnieuw.');
+    }
+    if (result?.reason === 'http_401') {
+      throw new Error('Je Pulse-sessie is verlopen. Meld je opnieuw aan om te bellen.');
+    }
     throw new Error('Oproepbeveiliging kon niet worden voorbereid. Controleer je verbinding en probeer opnieuw.');
   }
   return result;

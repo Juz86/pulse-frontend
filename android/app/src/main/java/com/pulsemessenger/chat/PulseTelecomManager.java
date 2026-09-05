@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
 final class PulseTelecomManager {
+    static final String URI_SCHEME = "pulse";
     static final String EXTRA_SESSION_ID = "sessionId";
     static final String EXTRA_FROM_UID = "fromUid";
     static final String EXTRA_LOCAL_CALLER_NAME = "localCallerName";
@@ -45,9 +46,10 @@ final class PulseTelecomManager {
         try {
             PhoneAccount account = PhoneAccount.builder(phoneAccountHandle(context), "Pulse")
                 .setCapabilities(PhoneAccount.CAPABILITY_SELF_MANAGED)
+                .addSupportedUriScheme(URI_SCHEME)
                 .build();
             telecom.registerPhoneAccount(account);
-        } catch (SecurityException error) {
+        } catch (SecurityException | IllegalArgumentException error) {
             android.util.Log.w("PulseTelecom", "PhoneAccount registreren mislukt", error);
         }
     }
@@ -68,7 +70,7 @@ final class PulseTelecomManager {
         extras.putString(EXTRA_FROM_UID, fromUid);
         extras.putString(EXTRA_CALLER_NAME, blankToDefault(data.get(EXTRA_CALLER_NAME), "Iemand"));
         extras.putBoolean(EXTRA_IS_VIDEO, parseBoolean(data.get(EXTRA_IS_VIDEO)));
-        extras.putParcelable(TelecomManager.EXTRA_INCOMING_CALL_ADDRESS, Uri.fromParts("pulse", fromUid, null));
+        extras.putParcelable(TelecomManager.EXTRA_INCOMING_CALL_ADDRESS, callAddress(fromUid));
         try {
             telecom.addNewIncomingCall(phoneAccountHandle(context), extras);
             return true;
@@ -90,8 +92,20 @@ final class PulseTelecomManager {
         if (telecom == null) return PulseNativeCallService.startOutgoing(context, callExtras);
         PhoneAccountHandle accountHandle = phoneAccountHandle(context);
         try {
+            PhoneAccount account = telecom.getPhoneAccount(accountHandle);
+            if (account == null || !account.supportsUriScheme(URI_SCHEME)) {
+                android.util.Log.e(
+                    "PulseTelecom",
+                    "Uitgaande oproep geweigerd: Pulse PhoneAccount ondersteunt het pulse URI-schema niet"
+                );
+                return false;
+            }
             if (!telecom.isOutgoingCallPermitted(accountHandle)) {
-                android.util.Log.w("PulseTelecom", "Uitgaande oproep is niet toegestaan door Telecom");
+                android.util.Log.w(
+                    "PulseTelecom",
+                    "Uitgaande oproep geweigerd door Telecom: sessionId=" + sessionId
+                        + ", isVideo=" + callExtras.getBoolean(EXTRA_IS_VIDEO, false)
+                );
                 return false;
             }
         } catch (SecurityException error) {
@@ -102,7 +116,7 @@ final class PulseTelecomManager {
         telecomExtras.putParcelable(TelecomManager.EXTRA_PHONE_ACCOUNT_HANDLE, accountHandle);
         telecomExtras.putBundle(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS, new Bundle(callExtras));
         try {
-            telecom.placeCall(Uri.fromParts("pulse", remoteUid, null), telecomExtras);
+            telecom.placeCall(callAddress(remoteUid), telecomExtras);
             // placeCall() bindt ConnectionService asynchroon. Start de media-
             // service meteen na toelating, zodat een trage OEM-callback de
             // zichtbare belactie niet kan laten verdwijnen.
@@ -191,6 +205,10 @@ final class PulseTelecomManager {
 
     static PhoneAccountHandle phoneAccountHandle(Context context) {
         return new PhoneAccountHandle(new ComponentName(context, PulseConnectionService.class), PHONE_ACCOUNT_ID);
+    }
+
+    static Uri callAddress(String uid) {
+        return Uri.fromParts(URI_SCHEME, uid, null);
     }
 
     private static boolean parseBoolean(String value) {

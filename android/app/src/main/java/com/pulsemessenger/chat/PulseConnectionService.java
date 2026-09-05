@@ -43,7 +43,15 @@ public class PulseConnectionService extends ConnectionService {
         Bundle requestExtras = request == null || request.getExtras() == null ? new Bundle() : request.getExtras();
         Bundle nestedExtras = requestExtras.getBundle(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS);
         Bundle extras = nestedExtras == null ? requestExtras : nestedExtras;
-        PulseNativeCallService.stop(this, extras.getString(PulseTelecomManager.EXTRA_SESSION_ID), true);
+        String sessionId = extras.getString(PulseTelecomManager.EXTRA_SESSION_ID);
+        android.util.Log.e(
+            "PulseTelecom",
+            "Telecom kon uitgaande Pulse-oproep niet maken: sessionId=" + sessionId
+                + ", account=" + connectionManagerPhoneAccount
+                + ", address=" + (request == null ? null : request.getAddress())
+                + ", isVideo=" + extras.getBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, false)
+        );
+        PulseNativeCallService.stop(this, sessionId, true);
     }
 
     @Override

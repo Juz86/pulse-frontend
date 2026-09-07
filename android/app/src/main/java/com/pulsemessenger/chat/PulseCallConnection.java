@@ -1,7 +1,6 @@
 package com.pulsemessenger.chat;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.telecom.Connection;
@@ -33,7 +32,7 @@ final class PulseCallConnection extends Connection {
         this.sessionId = callExtras.getString(PulseTelecomManager.EXTRA_SESSION_ID);
         String fromUid = callExtras.getString(PulseTelecomManager.EXTRA_FROM_UID, "unknown");
         String callerName = callExtras.getString(PulseTelecomManager.EXTRA_CALLER_NAME, "Iemand");
-        setAddress(Uri.fromParts("pulse", fromUid, null), TelecomManager.PRESENTATION_ALLOWED);
+        setAddress(PulseTelecomManager.callAddress(fromUid), TelecomManager.PRESENTATION_ALLOWED);
         setCallerDisplayName(callerName, TelecomManager.PRESENTATION_ALLOWED);
         if (callExtras.getBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, false)) {
             setVideoState(VideoProfile.STATE_BIDIRECTIONAL);

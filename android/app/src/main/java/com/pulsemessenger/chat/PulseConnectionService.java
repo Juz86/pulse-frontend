@@ -51,7 +51,10 @@ public class PulseConnectionService extends ConnectionService {
                 + ", address=" + (request == null ? null : request.getAddress())
                 + ", isVideo=" + extras.getBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, false)
         );
-        PulseNativeCallService.stop(this, sessionId, true);
+        // Telecom is de systeemintegratie rond de oproep; PulseNativeCallService
+        // beheert de daadwerkelijke WebRTC-media. Sommige OEMs weigeren een
+        // self-managed Connection ondanks een toegestane, door de gebruiker
+        // gestarte oproep. Laat die afwijzing de actieve media niet beëindigen.
     }
 
     @Override

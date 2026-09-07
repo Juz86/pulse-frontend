@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.telecom.PhoneAccount;
 import android.telecom.PhoneAccountHandle;
 import android.telecom.TelecomManager;
+import android.telecom.VideoProfile;
 
 import androidx.core.content.ContextCompat;
 
@@ -45,7 +46,11 @@ final class PulseTelecomManager {
         if (telecom == null) return;
         try {
             PhoneAccount account = PhoneAccount.builder(phoneAccountHandle(context), "Pulse")
-                .setCapabilities(PhoneAccount.CAPABILITY_SELF_MANAGED)
+                .setCapabilities(
+                    PhoneAccount.CAPABILITY_SELF_MANAGED
+                        | PhoneAccount.CAPABILITY_SUPPORTS_VIDEO_CALLING
+                        | PhoneAccount.CAPABILITY_VIDEO_CALLING
+                )
                 .addSupportedUriScheme(URI_SCHEME)
                 .build();
             telecom.registerPhoneAccount(account);
@@ -71,6 +76,12 @@ final class PulseTelecomManager {
         extras.putString(EXTRA_CALLER_NAME, blankToDefault(data.get(EXTRA_CALLER_NAME), "Iemand"));
         extras.putBoolean(EXTRA_IS_VIDEO, parseBoolean(data.get(EXTRA_IS_VIDEO)));
         extras.putParcelable(TelecomManager.EXTRA_INCOMING_CALL_ADDRESS, callAddress(fromUid));
+        extras.putInt(
+            TelecomManager.EXTRA_INCOMING_VIDEO_STATE,
+            parseBoolean(data.get(EXTRA_IS_VIDEO))
+                ? VideoProfile.STATE_BIDIRECTIONAL
+                : VideoProfile.STATE_AUDIO_ONLY
+        );
         try {
             telecom.addNewIncomingCall(phoneAccountHandle(context), extras);
             return true;
@@ -94,11 +105,11 @@ final class PulseTelecomManager {
         try {
             PhoneAccount account = telecom.getPhoneAccount(accountHandle);
             if (account == null || !account.supportsUriScheme(URI_SCHEME)) {
-                android.util.Log.e(
+                android.util.Log.w(
                     "PulseTelecom",
-                    "Uitgaande oproep geweigerd: Pulse PhoneAccount ondersteunt het pulse URI-schema niet"
+                    "Pulse PhoneAccount is niet bruikbaar; uitgaande oproep gaat verder via native WebRTC"
                 );
-                return false;
+                return PulseNativeCallService.startOutgoing(context, callExtras);
             }
             if (!telecom.isOutgoingCallPermitted(accountHandle)) {
                 android.util.Log.w(
@@ -115,16 +126,25 @@ final class PulseTelecomManager {
         Bundle telecomExtras = new Bundle();
         telecomExtras.putParcelable(TelecomManager.EXTRA_PHONE_ACCOUNT_HANDLE, accountHandle);
         telecomExtras.putBundle(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS, new Bundle(callExtras));
+        telecomExtras.putInt(
+            TelecomManager.EXTRA_START_CALL_WITH_VIDEO_STATE,
+            callExtras.getBoolean(EXTRA_IS_VIDEO, false)
+                ? VideoProfile.STATE_BIDIRECTIONAL
+                : VideoProfile.STATE_AUDIO_ONLY
+        );
         try {
             telecom.placeCall(callAddress(remoteUid), telecomExtras);
             // placeCall() bindt ConnectionService asynchroon. Start de media-
             // service meteen na toelating, zodat een trage OEM-callback de
             // zichtbare belactie niet kan laten verdwijnen.
-            PulseNativeCallService.startOutgoing(context, callExtras);
-            return true;
+            return PulseNativeCallService.startOutgoing(context, callExtras);
         } catch (SecurityException | IllegalArgumentException error) {
-            android.util.Log.w("PulseTelecom", "Uitgaande Telecom-oproep starten mislukt", error);
-            return false;
+            android.util.Log.w(
+                "PulseTelecom",
+                "Uitgaande Telecom-oproep starten mislukt; oproep gaat verder via native WebRTC",
+                error
+            );
+            return PulseNativeCallService.startOutgoing(context, callExtras);
         }
     }
 

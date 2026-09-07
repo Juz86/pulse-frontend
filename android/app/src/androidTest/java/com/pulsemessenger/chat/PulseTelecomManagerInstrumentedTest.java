@@ -32,6 +32,8 @@ public class PulseTelecomManagerInstrumentedTest {
 
             assertNotNull(account);
             assertTrue(account.hasCapabilities(PhoneAccount.CAPABILITY_SELF_MANAGED));
+            assertTrue(account.hasCapabilities(PhoneAccount.CAPABILITY_SUPPORTS_VIDEO_CALLING));
+            assertTrue(account.hasCapabilities(PhoneAccount.CAPABILITY_VIDEO_CALLING));
             assertTrue(account.supportsUriScheme(PulseTelecomManager.URI_SCHEME));
             assertTrue(PulseTelecomManager.callAddress("contact-uid").toString().startsWith("pulse:"));
         } finally {

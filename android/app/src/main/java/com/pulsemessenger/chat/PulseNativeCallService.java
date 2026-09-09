@@ -373,7 +373,16 @@ public class PulseNativeCallService extends Service {
             armInitialConnectionTimeout();
             startAudioRouting();
             showActiveCallUi();
-            authenticateAndRun(outgoing ? this::startNativeOutgoing : this::startNativeAnswer);
+            if (outgoing) {
+                String idToken = PulseOutgoingCallCredentials.consume(sessionId);
+                if (idToken == null || idToken.trim().isEmpty()) {
+                    failCall("Oproepsessie ontbreekt. Open Pulse opnieuw en probeer nogmaals.");
+                } else {
+                    startNativeOutgoing(idToken);
+                }
+            } else {
+                authenticateAndRun(this::startNativeAnswer);
+            }
         }
         return START_NOT_STICKY;
     }
@@ -447,7 +456,11 @@ public class PulseNativeCallService extends Service {
         });
         socket.on(Socket.EVENT_CONNECT_ERROR, args -> {
             if (peerStarted) beginNetworkRecovery("socket_connect_error");
-            else failCall("Signaleringsverbinding mislukt");
+            else {
+                notificationStatus = "Verbinden...";
+                updateNotification(notificationStatus);
+                android.util.Log.w("PulseNativeCall", "Signaleringsverbinding nog niet beschikbaar; opnieuw proberen");
+            }
         });
         socket.on("call:ice-candidate", this::onRemoteCandidate);
         socket.on("call:renegotiate", this::onRenegotiate);
@@ -1092,6 +1105,7 @@ public class PulseNativeCallService extends Service {
         callLifecycle.stop();
         if (sessionId != null && sessionId.equals(activeSessionId)) activeSessionId = null;
         if (activeService == this) activeService = null;
+        PulseOutgoingCallCredentials.remove(sessionId);
         sendBroadcast(new Intent(ACTION_NATIVE_CALL_FINISHED)
             .setPackage(getPackageName())
             .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId)
@@ -1102,6 +1116,7 @@ public class PulseNativeCallService extends Service {
 
     private synchronized void endCall(boolean notifyPeer, int disconnectCode) {
         if (!callLifecycle.stop()) return;
+        PulseOutgoingCallCredentials.remove(sessionId);
         mainHandler.removeCallbacks(networkRecoveryTimeout);
         mainHandler.removeCallbacks(connectionTimeout);
         mainHandler.removeCallbacks(callHeartbeat);

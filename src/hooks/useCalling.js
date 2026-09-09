@@ -3,7 +3,13 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { getSocket } from '../services/socket';
 import { BACKEND_URL, startCall, getCurrentCallSessionId, clearOrphanedOutgoingCall } from '../services/socket';
 import { isAndroidNativeCalling, startNativeOutgoingCall } from '../services/nativeCalling';
-import { CALL_REQUEST_ADMISSION, getCallRequestAdmission } from './callRequestState';
+import {
+  CALL_REQUEST_ADMISSION,
+  getCallRequestAdmission,
+  withCallPreparationTimeout,
+} from './callRequestState';
+
+const CALL_PREPARATION_TIMEOUT_MS = 15_000;
 
 export default function useCalling({
   user,
@@ -372,7 +378,7 @@ export default function useCalling({
     });
   }
 
-  async function startCallTo({ toUid, convId, name, isVideo }) {
+  async function startCallTo({ toUid, convId, name, isVideo, idToken }) {
     if (isVideo ? pausedFeatures.video : pausedFeatures.call) {
       const canChat   = !pausedFeatures.chat;
       const canCall   = !pausedFeatures.call;
@@ -383,7 +389,6 @@ export default function useCalling({
     }
     if (isAndroidNativeCalling()) {
       try {
-        const idToken = await user.getIdToken();
         await startNativeOutgoingCall({
           toUid,
           convId,
@@ -466,7 +471,10 @@ export default function useCalling({
 
   async function runCallRequest(buildRequest) {
     const admission = getCallRequestAdmission(activeCall, callStartInProgressRef.current);
-    if (admission === CALL_REQUEST_ADMISSION.DUPLICATE) return;
+    if (admission === CALL_REQUEST_ADMISSION.DUPLICATE) {
+      showErrToast('De oproep wordt al voorbereid.');
+      return;
+    }
     if (admission === CALL_REQUEST_ADMISSION.ACTIVE) {
       showErrToast('Er is al een actief gesprek.');
       return;
@@ -476,8 +484,21 @@ export default function useCalling({
     }
     callStartInProgressRef.current = true;
     try {
-      const request = await buildRequest();
-      if (request) await startCallTo(request);
+      const request = await withCallPreparationTimeout(buildRequest, CALL_PREPARATION_TIMEOUT_MS);
+      if (!request) return;
+      const preparedRequest = isAndroidNativeCalling()
+        ? {
+            ...request,
+            idToken: await withCallPreparationTimeout(
+              () => user.getIdToken(),
+              CALL_PREPARATION_TIMEOUT_MS,
+            ),
+          }
+        : request;
+      await withCallPreparationTimeout(
+        () => startCallTo(preparedRequest),
+        CALL_PREPARATION_TIMEOUT_MS,
+      );
     } catch (error) {
       showErrToast(error?.message || 'Oproep kon niet worden voorbereid.');
     } finally {

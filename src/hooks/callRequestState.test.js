@@ -1,4 +1,8 @@
-import { CALL_REQUEST_ADMISSION, getCallRequestAdmission } from './callRequestState';
+import {
+  CALL_REQUEST_ADMISSION,
+  getCallRequestAdmission,
+  withCallPreparationTimeout,
+} from './callRequestState';
 
 describe('getCallRequestAdmission', () => {
   test('allows a call when no call exists', () => {
@@ -22,5 +26,13 @@ describe('getCallRequestAdmission', () => {
 
   test('coalesces a duplicate request while the first request is preparing', () => {
     expect(getCallRequestAdmission(null, true)).toBe(CALL_REQUEST_ADMISSION.DUPLICATE);
+  });
+
+  test('times out a call preparation that never completes', async () => {
+    jest.useFakeTimers();
+    const pending = withCallPreparationTimeout(() => new Promise(() => {}), 1000);
+    jest.advanceTimersByTime(1000);
+    await expect(pending).rejects.toThrow('Oproep voorbereiden duurde te lang');
+    jest.useRealTimers();
   });
 });

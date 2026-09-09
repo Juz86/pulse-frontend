@@ -8,23 +8,16 @@ import {
 jest.mock('@capacitor/core', () => ({ registerPlugin: jest.fn() }));
 
 describe('Android native calling bridge', () => {
-  const originalFetch = global.fetch;
-
   beforeEach(() => {
     registerPlugin.mockReset();
     window.Capacitor = {
       isNativePlatform: () => true,
       getPlatform: () => 'android',
     };
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ customToken: 'native-custom-token' }),
-    });
   });
 
   afterEach(() => {
     delete window.Capacitor;
-    global.fetch = originalFetch;
   });
 
   test('selects native calling only for Android native builds', () => {
@@ -35,8 +28,7 @@ describe('Android native calling bridge', () => {
 
   test('starts outgoing video without browser getUserMedia', async () => {
     const startOutgoingCall = jest.fn().mockResolvedValue({ sessionId: 'call-1', native: true });
-    const provisionCallAuth = jest.fn().mockResolvedValue({ ok: true, uid: 'caller-1' });
-    registerPlugin.mockReturnValue({ startOutgoingCall, provisionCallAuth });
+    registerPlugin.mockReturnValue({ startOutgoingCall });
 
     await startNativeOutgoingCall({
       toUid: 'peer-1',
@@ -48,20 +40,19 @@ describe('Android native calling bridge', () => {
       idToken: 'web-id-token-outgoing',
     });
 
-    expect(provisionCallAuth).toHaveBeenCalledWith({ customToken: 'native-custom-token' });
     expect(startOutgoingCall).toHaveBeenCalledWith({
       toUid: 'peer-1',
       convId: null,
       contactName: 'Yousef',
       callerName: 'Habibi',
       isVideo: true,
+      idToken: 'web-id-token-outgoing',
     });
   });
 
-  test('does not start Telecom when native authentication fails', async () => {
+  test('rejects a native call without an authenticated web session', async () => {
     const startOutgoingCall = jest.fn();
     registerPlugin.mockReturnValue({ startOutgoingCall });
-    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 503 });
 
     await expect(startNativeOutgoingCall({
       toUid: 'peer-1',
@@ -69,25 +60,8 @@ describe('Android native calling bridge', () => {
       callerName: 'Habibi',
       isVideo: false,
       backendUrl: 'https://api.example.test',
-      idToken: 'web-id-token-failure',
-    })).rejects.toThrow('Oproepbeveiliging kon niet worden voorbereid');
-
-    expect(startOutgoingCall).not.toHaveBeenCalled();
-  });
-
-  test('reports a rate-limited call bootstrap without starting Telecom', async () => {
-    const startOutgoingCall = jest.fn();
-    registerPlugin.mockReturnValue({ startOutgoingCall });
-    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 429 });
-
-    await expect(startNativeOutgoingCall({
-      toUid: 'peer-1',
-      contactName: 'Yousef',
-      callerName: 'Habibi',
-      isVideo: false,
-      backendUrl: 'https://api.example.test',
-      idToken: 'web-id-token-rate-limit',
-    })).rejects.toThrow('te veel verzoeken');
+      idToken: '',
+    })).rejects.toThrow('Pulse-sessie is verlopen');
 
     expect(startOutgoingCall).not.toHaveBeenCalled();
   });

@@ -1,5 +1,4 @@
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
-import { requireNativeCallAuth } from './nativeIncomingCall';
 
 export function isAndroidNativeCalling() {
   if (!isNativePulseEnvironment()) return false;
@@ -21,11 +20,10 @@ export async function startNativeOutgoingCall({
   contactName,
   callerName,
   isVideo,
-  backendUrl,
   idToken,
 }) {
   if (!isAndroidNativeCalling()) return null;
-  await requireNativeCallAuth(backendUrl, idToken);
+  if (!idToken) throw new Error('Je Pulse-sessie is verlopen. Meld je opnieuw aan om te bellen.');
   const plugin = await nativeCallPlugin();
   return plugin.startOutgoingCall({
     toUid,
@@ -33,6 +31,7 @@ export async function startNativeOutgoingCall({
     contactName: contactName || 'Contactpersoon',
     callerName: callerName || 'Pulse-gebruiker',
     isVideo: Boolean(isVideo),
+    idToken,
   });
 }
 

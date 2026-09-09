@@ -125,11 +125,17 @@ public class PulseIncomingCallPlugin extends Plugin {
 
     private void startOutgoingAfterPermissions(PluginCall call) {
         String toUid = call.getString("toUid");
+        String idToken = call.getString("idToken");
         if (toUid == null || toUid.trim().isEmpty()) {
             call.reject("toUid is verplicht");
             return;
         }
+        if (idToken == null || idToken.trim().isEmpty()) {
+            call.reject("Je Pulse-sessie is verlopen. Meld je opnieuw aan om te bellen.");
+            return;
+        }
         String sessionId = "call_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8);
+        PulseOutgoingCallCredentials.put(sessionId, idToken);
         Bundle extras = new Bundle();
         extras.putString(PulseTelecomManager.EXTRA_SESSION_ID, sessionId);
         extras.putString(PulseTelecomManager.EXTRA_FROM_UID, toUid);
@@ -138,6 +144,7 @@ public class PulseIncomingCallPlugin extends Plugin {
         extras.putString(PulseTelecomManager.EXTRA_CONVERSATION_ID, call.getString("convId"));
         extras.putBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, call.getBoolean("isVideo", false));
         if (!PulseTelecomManager.startOutgoingCall(getContext(), extras)) {
+            PulseOutgoingCallCredentials.remove(sessionId);
             call.reject("Native oproep kon niet worden gestart");
             return;
         }

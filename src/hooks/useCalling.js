@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { getSocket } from '../services/socket';
 import { BACKEND_URL, startCall, getCurrentCallSessionId, clearOrphanedOutgoingCall } from '../services/socket';
 import { isAndroidNativeCalling, startNativeOutgoingCall } from '../services/nativeCalling';
+import { getCachedNativeCallIdToken } from '../services/nativeIncomingCall';
 import {
   CALL_REQUEST_ADMISSION,
   getCallRequestAdmission,
@@ -486,10 +487,11 @@ export default function useCalling({
     try {
       const request = await withCallPreparationTimeout(buildRequest, CALL_PREPARATION_TIMEOUT_MS);
       if (!request) return;
+      const cachedIdToken = getCachedNativeCallIdToken();
       const preparedRequest = isAndroidNativeCalling()
         ? {
             ...request,
-            idToken: await withCallPreparationTimeout(
+            idToken: cachedIdToken || await withCallPreparationTimeout(
               () => user.getIdToken(),
               CALL_PREPARATION_TIMEOUT_MS,
             ),

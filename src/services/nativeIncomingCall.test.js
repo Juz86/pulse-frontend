@@ -4,6 +4,7 @@ import {
   classifyNativeIncomingCall,
   clearNativeIncomingCallAuth,
   consumeNativeIncomingCall,
+  getCachedNativeCallIdToken,
   provisionNativeIncomingCallAuth,
 } from './nativeIncomingCall';
 
@@ -65,6 +66,7 @@ describe('native incoming call bridge', () => {
       signal: expect.any(AbortSignal),
     });
     expect(provisionCallAuth).toHaveBeenCalledWith({ customToken: 'native-custom-token' });
+    expect(getCachedNativeCallIdToken()).toBe('web-id-token');
   });
 
   test('deduplicates simultaneous native auth provisioning', async () => {

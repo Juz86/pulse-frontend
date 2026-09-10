@@ -5,8 +5,27 @@ let nativeCallAuthState = {
   promise: null,
   result: null,
 };
+let nativeCallWebSession = {
+  idToken: null,
+  cachedAt: 0,
+};
 
 const NATIVE_CALL_AUTH_TIMEOUT_MS = 8000;
+const NATIVE_CALL_ID_TOKEN_CACHE_MS = 45 * 60 * 1000;
+
+export function cacheNativeCallIdToken(idToken) {
+  if (!idToken) return;
+  nativeCallWebSession = { idToken, cachedAt: Date.now() };
+}
+
+export function getCachedNativeCallIdToken() {
+  if (!nativeCallWebSession.idToken) return null;
+  if (Date.now() - nativeCallWebSession.cachedAt >= NATIVE_CALL_ID_TOKEN_CACHE_MS) {
+    nativeCallWebSession = { idToken: null, cachedAt: 0 };
+    return null;
+  }
+  return nativeCallWebSession.idToken;
+}
 
 function isAndroidNative() {
   if (!isNativePulseEnvironment()) return false;
@@ -52,6 +71,7 @@ export async function addNativeIncomingCallActionListener(listener) {
 
 export async function provisionNativeIncomingCallAuth(backendUrl, idToken) {
   if (!isAndroidNative() || !backendUrl || !idToken) return null;
+  cacheNativeCallIdToken(idToken);
 
   if (nativeCallAuthState.idToken === idToken) {
     if (nativeCallAuthState.result?.ok) return nativeCallAuthState.result;
@@ -121,6 +141,7 @@ export async function requireNativeCallAuth(backendUrl, idToken) {
 
 export async function clearNativeIncomingCallAuth() {
   nativeCallAuthState = { idToken: null, promise: null, result: null };
+  nativeCallWebSession = { idToken: null, cachedAt: 0 };
   if (!isAndroidNative()) return;
   try {
     const { registerPlugin } = await import('@capacitor/core');

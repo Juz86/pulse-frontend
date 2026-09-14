@@ -1105,6 +1105,7 @@ public class PulseNativeCallService extends Service {
         callLifecycle.stop();
         if (sessionId != null && sessionId.equals(activeSessionId)) activeSessionId = null;
         if (activeService == this) activeService = null;
+        PulseCallCoordinator.callFinished(sessionId);
         PulseOutgoingCallCredentials.remove(sessionId);
         sendBroadcast(new Intent(ACTION_NATIVE_CALL_FINISHED)
             .setPackage(getPackageName())
@@ -1177,6 +1178,7 @@ public class PulseNativeCallService extends Service {
         PulseTelecomManager.finishNativeCall(sessionId, disconnectCode);
         if (sessionId != null && sessionId.equals(activeSessionId)) activeSessionId = null;
         if (activeService == this) activeService = null;
+        PulseCallCoordinator.callFinished(sessionId);
         sendBroadcast(new Intent(ACTION_NATIVE_CALL_FINISHED)
             .setPackage(getPackageName())
             .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId));

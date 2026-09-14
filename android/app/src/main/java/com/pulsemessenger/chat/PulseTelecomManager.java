@@ -92,15 +92,15 @@ final class PulseTelecomManager {
         }
     }
 
-    static boolean startOutgoingCall(Context context, Bundle callExtras) {
+    static boolean presentOutgoingCall(Context context, Bundle callExtras) {
         if (context == null || callExtras == null) return false;
         String sessionId = callExtras.getString(EXTRA_SESSION_ID);
         String remoteUid = callExtras.getString(EXTRA_FROM_UID);
         if (isBlank(sessionId) || isBlank(remoteUid)) return false;
-        if (!supportsNativeCalls()) return PulseNativeCallService.startOutgoing(context, callExtras);
+        if (!supportsNativeCalls()) return false;
         registerPhoneAccount(context);
         TelecomManager telecom = context.getSystemService(TelecomManager.class);
-        if (telecom == null) return PulseNativeCallService.startOutgoing(context, callExtras);
+        if (telecom == null) return false;
         PhoneAccountHandle accountHandle = phoneAccountHandle(context);
         try {
             PhoneAccount account = telecom.getPhoneAccount(accountHandle);
@@ -109,7 +109,7 @@ final class PulseTelecomManager {
                     "PulseTelecom",
                     "Pulse PhoneAccount is niet bruikbaar; uitgaande oproep gaat verder via native WebRTC"
                 );
-                return PulseNativeCallService.startOutgoing(context, callExtras);
+                return false;
             }
             if (!telecom.isOutgoingCallPermitted(accountHandle)) {
                 android.util.Log.w(
@@ -134,17 +134,14 @@ final class PulseTelecomManager {
         );
         try {
             telecom.placeCall(callAddress(remoteUid), telecomExtras);
-            // placeCall() bindt ConnectionService asynchroon. Start de media-
-            // service meteen na toelating, zodat een trage OEM-callback de
-            // zichtbare belactie niet kan laten verdwijnen.
-            return PulseNativeCallService.startOutgoing(context, callExtras);
+            return true;
         } catch (SecurityException | IllegalArgumentException error) {
             android.util.Log.w(
                 "PulseTelecom",
-                "Uitgaande Telecom-oproep starten mislukt; oproep gaat verder via native WebRTC",
+                "Uitgaande oproep kon niet aan Telecom worden gekoppeld; WebRTC blijft actief",
                 error
             );
-            return PulseNativeCallService.startOutgoing(context, callExtras);
+            return false;
         }
     }
 
@@ -175,7 +172,7 @@ final class PulseTelecomManager {
             return true;
         }
         if (!isBlank(sessionId)) {
-            return PulseNativeCallService.startAnswer(context, extrasFrom(intent));
+            return PulseCallCoordinator.startAnswer(context, extrasFrom(intent));
         }
         return false;
     }
@@ -208,7 +205,7 @@ final class PulseTelecomManager {
         RINGING_SESSIONS.remove(sessionId);
         PulseCallConnection connection = CONNECTIONS.get(sessionId);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && connection != null) connection.endFromRemote();
-        PulseNativeCallService.stop(context, sessionId, false);
+        PulseCallCoordinator.end(context, sessionId, false);
     }
 
     static void finishNativeCall(String sessionId, int disconnectCode) {

@@ -143,7 +143,7 @@ public class PulseIncomingCallPlugin extends Plugin {
         extras.putString(PulseTelecomManager.EXTRA_LOCAL_CALLER_NAME, call.getString("callerName", "Pulse-gebruiker"));
         extras.putString(PulseTelecomManager.EXTRA_CONVERSATION_ID, call.getString("convId"));
         extras.putBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, call.getBoolean("isVideo", false));
-        if (!PulseTelecomManager.startOutgoingCall(getContext(), extras)) {
+        if (!PulseCallCoordinator.startOutgoing(getContext(), extras)) {
             PulseOutgoingCallCredentials.remove(sessionId);
             call.reject("Native oproep kon niet worden gestart");
             return;
@@ -160,6 +160,7 @@ public class PulseIncomingCallPlugin extends Plugin {
             return;
         }
         if (SystemClock.elapsedRealtime() - startedAtMs >= OUTGOING_START_TIMEOUT_MS) {
+            PulseCallCoordinator.launchTimedOut(sessionId);
             call.reject("Native oproepservice reageert niet. Probeer opnieuw.");
             return;
         }

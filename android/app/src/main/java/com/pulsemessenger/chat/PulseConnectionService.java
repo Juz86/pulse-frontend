@@ -29,12 +29,11 @@ public class PulseConnectionService extends ConnectionService {
         Bundle requestExtras = request == null || request.getExtras() == null ? new Bundle() : request.getExtras();
         Bundle nestedExtras = requestExtras.getBundle(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS);
         Bundle extras = nestedExtras == null ? requestExtras : nestedExtras;
-        PulseCallConnection connection = new PulseCallConnection(this, extras, true);
+        PulseCallConnection connection = new PulseCallConnection(this, extras);
         connection.setConnectionProperties(Connection.PROPERTY_SELF_MANAGED);
         connection.setAudioModeIsVoip(true);
         connection.setDialing();
         PulseTelecomManager.attach(connection.getSessionId(), connection);
-        connection.startOutgoingFromPulseUi();
         return connection;
     }
 

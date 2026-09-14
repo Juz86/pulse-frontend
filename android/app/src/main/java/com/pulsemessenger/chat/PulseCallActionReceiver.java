@@ -12,7 +12,7 @@ public class PulseCallActionReceiver extends BroadcastReceiver {
         if (context == null || intent == null) return;
         String action = intent.getAction();
         if (ACTION_END_ACTIVE.equals(action)) {
-            PulseNativeCallService.stop(
+            PulseCallCoordinator.end(
                 context,
                 intent.getStringExtra(PulseTelecomManager.EXTRA_SESSION_ID),
                 intent.getBooleanExtra("notifyPeer", true)

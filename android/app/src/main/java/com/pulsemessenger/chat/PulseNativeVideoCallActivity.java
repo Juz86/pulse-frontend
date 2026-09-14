@@ -189,7 +189,7 @@ public class PulseNativeVideoCallActivity extends Activity {
 
         ImageButton end = control(R.drawable.pulse_call_decline, "Ophangen", 0xffef233c);
         end.setOnClickListener(view -> {
-            PulseNativeCallService.stop(this, sessionId, true);
+            PulseCallCoordinator.end(this, sessionId, true);
             finish();
         });
         controls.addView(end, controlParams());

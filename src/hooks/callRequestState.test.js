@@ -1,6 +1,7 @@
 import {
   CALL_REQUEST_ADMISSION,
   getCallRequestAdmission,
+  resolveDirectCallTarget,
   withCallPreparationTimeout,
 } from './callRequestState';
 
@@ -34,5 +35,26 @@ describe('getCallRequestAdmission', () => {
     jest.advanceTimersByTime(1000);
     await expect(pending).rejects.toThrow('Oproep voorbereiden duurde te lang');
     jest.useRealTimers();
+  });
+});
+
+describe('resolveDirectCallTarget', () => {
+  test('uses the remote member of a normal direct conversation', () => {
+    expect(resolveDirectCallTarget({
+      id: 'conv-1',
+      members: ['me', 'contact'],
+      memberNames: { contact: 'Yousef' },
+    }, 'me')).toEqual({ toUid: 'contact', convId: 'conv-1', name: 'Yousef' });
+  });
+
+  test('recovers a remote member from cached metadata', () => {
+    expect(resolveDirectCallTarget({
+      id: 'conv-cached',
+      memberNames: { me: 'Kamilah', contact: 'Yousef' },
+    }, 'me')).toEqual({ toUid: 'contact', convId: 'conv-cached', name: 'Yousef' });
+  });
+
+  test('returns null when no remote contact exists', () => {
+    expect(resolveDirectCallTarget({ id: 'conv-invalid', members: ['me'] }, 'me')).toBeNull();
   });
 });

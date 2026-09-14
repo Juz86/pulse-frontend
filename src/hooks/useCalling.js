@@ -7,6 +7,7 @@ import { getCachedNativeCallIdToken } from '../services/nativeIncomingCall';
 import {
   CALL_REQUEST_ADMISSION,
   getCallRequestAdmission,
+  resolveDirectCallTarget,
   withCallPreparationTimeout,
 } from './callRequestState';
 
@@ -540,26 +541,25 @@ export default function useCalling({
     });
   }
 
-  async function initiateCall(isVideo) {
+  async function initiateCall(isVideo, visibleConversation = null) {
     await runCallRequest(async () => {
-      const conv = activeConvRef.current;
-      if (!conv || !Array.isArray(conv.members)) return null;
-      const toUid = conv.members.find(m => m !== user.uid);
-      if (!toUid) return null;
-      const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
+      const target = resolveDirectCallTarget(visibleConversation || activeConvRef.current, user.uid);
+      if (!target) {
+        throw new Error('Contact voor deze oproep kon niet worden bepaald. Open het gesprek opnieuw.');
+      }
       callTargetPhotoRef.current = '';
-      return { toUid, convId: conv.id, name, isVideo };
+      return { ...target, isVideo };
     });
   }
 
   async function initiateCallFromConv(conv, isVideo) {
     await runCallRequest(async () => {
-      if (!Array.isArray(conv.members)) return null;
-      const toUid = conv.members.find(m => m !== user.uid);
-      if (!toUid) return null;
-      const name  = conv.memberNames?.[toUid] || 'Contactpersoon';
+      const target = resolveDirectCallTarget(conv, user.uid);
+      if (!target) {
+        throw new Error('Contact voor deze oproep kon niet worden bepaald. Open het gesprek opnieuw.');
+      }
       callTargetPhotoRef.current = '';
-      return { toUid, convId: conv.id, name, isVideo };
+      return { ...target, isVideo };
     });
   }
 

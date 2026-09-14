@@ -150,7 +150,7 @@ const ChatHeader = React.memo(function ChatHeader({
                 className="chat-header-action-btn"
                 aria-label="Videobellen"
                 title="Videobellen"
-                onClick={() => onInitiateCall(true)}
+                onClick={() => onInitiateCall(true, activeConv)}
               >
                 <Video size={26} aria-hidden="true" />
               </button>
@@ -159,7 +159,7 @@ const ChatHeader = React.memo(function ChatHeader({
                 className="chat-header-action-btn"
                 aria-label="Bellen"
                 title="Bellen"
-                onClick={() => onInitiateCall(false)}
+                onClick={() => onInitiateCall(false, activeConv)}
               >
                 <Phone size={24} aria-hidden="true" />
               </button>

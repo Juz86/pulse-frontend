@@ -12,6 +12,26 @@ export function getCallRequestAdmission(activeCall, startInProgress) {
   return CALL_REQUEST_ADMISSION.ACTIVE;
 }
 
+export function resolveDirectCallTarget(conversation, currentUid) {
+  if (!conversation || !currentUid) return null;
+
+  const candidates = [
+    ...(Array.isArray(conversation.members) ? conversation.members : []),
+    ...Object.keys(conversation.memberNames || {}),
+    ...Object.keys(conversation.memberEmails || {}),
+  ];
+  const toUid = candidates.find((uid) => uid && uid !== currentUid);
+  if (!toUid) return null;
+
+  return {
+    toUid,
+    convId: conversation.id || null,
+    name: conversation.memberNames?.[toUid]
+      || conversation.memberEmails?.[toUid]
+      || 'Contactpersoon',
+  };
+}
+
 export function withCallPreparationTimeout(operation, timeoutMs) {
   let timeoutId;
   const timeout = new Promise((_, reject) => {

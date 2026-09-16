@@ -1,6 +1,8 @@
 const FEATURE_FLAG_POLL_INTERVAL_MS = 60_000;
 
-export const FEATURE_FLAG_DEFAULTS = Object.freeze({});
+export const FEATURE_FLAG_DEFAULTS = Object.freeze({
+  realtimekit_calls_v2: false,
+});
 
 export function normalizeFeatureFlags(flags) {
   if (!flags || typeof flags !== 'object' || Array.isArray(flags)) return { ...FEATURE_FLAG_DEFAULTS };

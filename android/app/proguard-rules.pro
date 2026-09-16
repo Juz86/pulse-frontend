@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Cloudflare RealtimeKit bundles a namespaced WebRTC runtime.
+-keep class realtimekit.org.webrtc.** { *; }
+-dontwarn org.chromium.build.BuildHooksAndroid

@@ -11,6 +11,11 @@ def pulseNativeUpdatePublicKey = System.getenv('PULSE_NATIVE_UPDATE_PUBLIC_KEY')
 android {
     namespace "com.pulsemessenger.chat"
     compileSdk rootProject.ext.compileSdkVersion
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
     buildFeatures {
         buildConfig true
     }
@@ -101,6 +106,7 @@ configurations.all {
 }
 
 dependencies {
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.5"
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
@@ -118,6 +124,7 @@ dependencies {
     implementation("io.socket:socket.io-client:2.1.2") {
         exclude group: "org.json", module: "json"
     }
+    implementation "com.cloudflare.realtimekit:core-android:2.1.0"
     implementation "io.github.webrtc-sdk:android:144.7559.12"
 }
 

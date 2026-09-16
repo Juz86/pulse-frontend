@@ -34,12 +34,13 @@ public class PulseNativeAudioCallActivity extends Activity {
     private PulseAudioRouteDialog audioRouteDialog;
     private BroadcastReceiver callReceiver;
 
-    static void show(Context context, String sessionId, String callerName) {
+    static void show(Context context, String sessionId, String callerName, String callEngine) {
         if (context == null || sessionId == null) return;
         Intent intent = new Intent(context, PulseNativeAudioCallActivity.class)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP)
             .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId)
-            .putExtra(PulseTelecomManager.EXTRA_CALLER_NAME, callerName);
+            .putExtra(PulseTelecomManager.EXTRA_CALLER_NAME, callerName)
+            .putExtra(PulseTelecomManager.EXTRA_CALL_ENGINE, callEngine);
         try {
             context.startActivity(intent);
         } catch (RuntimeException error) {
@@ -68,6 +69,7 @@ public class PulseNativeAudioCallActivity extends Activity {
 
     private void readIntent(Intent intent) {
         sessionId = intent == null ? null : intent.getStringExtra(PulseTelecomManager.EXTRA_SESSION_ID);
+        PulseNativeCallService.attachRealtimeKitHost(this, sessionId);
     }
 
     private void rebuildContent() {

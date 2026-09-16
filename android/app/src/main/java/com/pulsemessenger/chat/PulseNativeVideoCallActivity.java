@@ -51,18 +51,20 @@ public class PulseNativeVideoCallActivity extends Activity {
     private ImageButton audioRouteButton;
     private PulseAudioRouteDialog audioRouteDialog;
     private String sessionId;
+    private boolean realtimeKitCall;
     private boolean renderersReleased;
     private int attachAttempts;
     private BroadcastReceiver callReceiver;
     private boolean enteringPictureInPicture;
     private static final int CAMERA_PERMISSION_REQUEST = 2104;
 
-    static void show(Context context, String sessionId, String callerName) {
+    static void show(Context context, String sessionId, String callerName, String callEngine) {
         if (context == null || sessionId == null) return;
         Intent intent = new Intent(context, PulseNativeVideoCallActivity.class)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP)
             .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId)
-            .putExtra(PulseTelecomManager.EXTRA_CALLER_NAME, callerName);
+            .putExtra(PulseTelecomManager.EXTRA_CALLER_NAME, callerName)
+            .putExtra(PulseTelecomManager.EXTRA_CALL_ENGINE, callEngine);
         context.startActivity(intent);
     }
 
@@ -85,7 +87,7 @@ public class PulseNativeVideoCallActivity extends Activity {
             }
         });
         registerCallReceiver();
-        attachRenderersWhenReady();
+        if (!realtimeKitCall) attachRenderersWhenReady();
         updatePictureInPictureParams();
         remoteRenderer.post(this::updatePictureInPictureParams);
     }
@@ -96,11 +98,15 @@ public class PulseNativeVideoCallActivity extends Activity {
         setIntent(intent);
         readIntent(intent);
         attachAttempts = 0;
-        attachRenderersWhenReady();
+        if (!realtimeKitCall) attachRenderersWhenReady();
     }
 
     private void readIntent(Intent intent) {
         sessionId = intent == null ? null : intent.getStringExtra(PulseTelecomManager.EXTRA_SESSION_ID);
+        realtimeKitCall = intent != null && PulseRealtimeKitCredentialsClient.ENGINE.equals(
+            intent.getStringExtra(PulseTelecomManager.EXTRA_CALL_ENGINE)
+        );
+        PulseNativeCallService.attachRealtimeKitHost(this, sessionId);
     }
 
     private View buildContent() {
@@ -544,7 +550,9 @@ public class PulseNativeVideoCallActivity extends Activity {
         if (callReceiver != null) unregisterReceiver(callReceiver);
         if (!renderersReleased) {
             renderersReleased = true;
-            PulseNativeCallService.detachVideoRenderers(sessionId, remoteRenderer, localRenderer);
+            if (!realtimeKitCall) {
+                PulseNativeCallService.detachVideoRenderers(sessionId, remoteRenderer, localRenderer);
+            }
             remoteRenderer.release();
             localRenderer.release();
         }

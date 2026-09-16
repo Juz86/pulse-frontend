@@ -12,7 +12,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 final class PulseRealtimeKitCredentialsClient {
-    static final String ENGINE = "realtimekit-v2";
+    static final String ENGINE = PulseCallEngine.REALTIMEKIT_V2;
     private static final String DEFAULT_API_URL = "https://api.pulse-messenger.com";
     private static final int CONNECT_TIMEOUT_MS = 5_000;
     private static final int READ_TIMEOUT_MS = 7_000;

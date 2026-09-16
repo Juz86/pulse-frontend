@@ -6,6 +6,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -72,7 +73,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.lang.ref.WeakReference;
 
+import io.socket.client.Ack;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 
@@ -117,6 +120,7 @@ public class PulseNativeCallService extends Service {
     private String localCallerName;
     private String conversationId;
     private String callerName;
+    private String callEngine = PulseCallEngine.WEBRTC_V1;
     private boolean isVideo;
     private boolean outgoing;
     private boolean peerStarted;
@@ -152,9 +156,23 @@ public class PulseNativeCallService extends Service {
     private String notificationStatus = "Verbinden...";
     private long connectedAtElapsedMs;
     private String lastIcePathSummary;
+    private PulseRealtimeKitSession realtimeKitSession;
+    private PulseRealtimeKitCredentialsClient.Credentials realtimeKitCredentials;
+    private WeakReference<Activity> realtimeKitHostActivity;
+    private boolean realtimeKitRemoteAnswered;
 
     static boolean isActive(String sessionId) {
         return sessionId != null && sessionId.equals(activeSessionId);
+    }
+
+    static boolean attachRealtimeKitHost(Activity activity, String sessionId) {
+        PulseNativeCallService service = activeService;
+        if (activity == null || service == null || !isActive(sessionId) || !service.isRealtimeKitCall()) {
+            return false;
+        }
+        service.realtimeKitHostActivity = new WeakReference<>(activity);
+        service.mainHandler.post(service::startRealtimeKitSessionIfReady);
+        return true;
     }
 
     static boolean hasActiveCall() {
@@ -188,9 +206,15 @@ public class PulseNativeCallService extends Service {
         if (sessionId == null || sessionId.trim().isEmpty() || fromUid == null || fromUid.trim().isEmpty()) return true;
         if (callLifecycle.isExpired(nowMs)) return true;
         if (state == PulseCallLifecycle.State.CONNECTED) {
+            if (isRealtimeKitCall()) {
+                return realtimeKitSession == null
+                    || realtimeKitSession.state() != PulseRealtimeKitSession.State.ACTIVE
+                    || connectedAtElapsedMs <= 0L;
+            }
             return !peerStarted || peerConnection == null || connectedAtElapsedMs <= 0L;
         }
         if (state == PulseCallLifecycle.State.RECONNECTING) {
+            if (isRealtimeKitCall()) return realtimeKitSession == null;
             return !peerStarted || peerConnection == null;
         }
         return false;
@@ -352,6 +376,10 @@ public class PulseNativeCallService extends Service {
         localCallerName = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_LOCAL_CALLER_NAME), localCallerName);
         conversationId = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_CONVERSATION_ID), conversationId);
         callerName = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_CALLER_NAME), callerName);
+        callEngine = normalizeCallEngine(valueOrExisting(
+            intent.getStringExtra(PulseTelecomManager.EXTRA_CALL_ENGINE),
+            callEngine
+        ));
         isVideo = intent.hasExtra(PulseTelecomManager.EXTRA_IS_VIDEO)
             ? intent.getBooleanExtra(PulseTelecomManager.EXTRA_IS_VIDEO, false)
             : isVideo;
@@ -377,11 +405,13 @@ public class PulseNativeCallService extends Service {
                 String idToken = PulseOutgoingCallCredentials.consume(sessionId);
                 if (idToken == null || idToken.trim().isEmpty()) {
                     failCall("Oproepsessie ontbreekt. Open Pulse opnieuw en probeer nogmaals.");
+                } else if (isRealtimeKitCall()) {
+                    startRealtimeKitOutgoing(idToken);
                 } else {
                     startNativeOutgoing(idToken);
                 }
             } else {
-                authenticateAndRun(this::startNativeAnswer);
+                authenticateAndRun(isRealtimeKitCall() ? this::startRealtimeKitAnswer : this::startNativeAnswer);
             }
         }
         return START_NOT_STICKY;
@@ -437,6 +467,142 @@ public class PulseNativeCallService extends Service {
                 failCall("Oproep kon niet worden gestart");
             }
         });
+    }
+
+    private void startRealtimeKitOutgoing(String token) {
+        executor.execute(() -> {
+            try {
+                connectSocket(token, () -> emitRealtimeKitOffer(token));
+            } catch (Exception error) {
+                android.util.Log.e("PulseCallV2", "RealtimeKit signaling starten mislukt", error);
+                failCall("Oproep kon niet worden gestart");
+            }
+        });
+    }
+
+    private void startRealtimeKitAnswer(String token) {
+        executor.execute(() -> {
+            try {
+                connectSocket(token, () -> bootstrapRealtimeKit(token));
+            } catch (Exception error) {
+                android.util.Log.e("PulseCallV2", "RealtimeKit antwoord starten mislukt", error);
+                failCall("Oproep kon niet worden verbonden");
+            }
+        });
+    }
+
+    private void emitRealtimeKitOffer(String token) {
+        if (socket == null || callLifecycle.isStopped()) return;
+        try {
+            JSONObject offer = new JSONObject().put("engine", PulseRealtimeKitCredentialsClient.ENGINE);
+            JSONObject payload = signalTarget();
+            payload.put("offer", offer);
+            payload.put("isVideo", isVideo);
+            payload.put("callerName", localCallerName == null ? "Pulse-gebruiker" : localCallerName);
+            socket.emit("call:offer", payload, (Ack) args -> {
+                JSONObject acknowledgement = firstJsonObject(args);
+                if (acknowledgement == null || !acknowledgement.optBoolean("ok", false)) {
+                    failCall("Oproepaanbod is geweigerd");
+                    return;
+                }
+                bootstrapRealtimeKit(token);
+            });
+            armConnectionTimeout();
+        } catch (Exception error) {
+            failCall("Oproepaanbod versturen mislukt");
+        }
+    }
+
+    private void bootstrapRealtimeKit(String token) {
+        executor.execute(() -> {
+            try {
+                PulseRealtimeKitCredentialsClient.Credentials credentials =
+                    new PulseRealtimeKitCredentialsClient().fetch(sessionId, token, localCallerName, null);
+                if (credentials.video != isVideo) {
+                    throw new IllegalStateException("Videotype van RealtimeKit-sessie wijkt af");
+                }
+                realtimeKitCredentials = credentials;
+                mainHandler.post(this::startRealtimeKitSessionIfReady);
+            } catch (Exception error) {
+                android.util.Log.e("PulseCallV2", "RealtimeKit-token ophalen mislukt", error);
+                failCall("Nieuwe oproepverbinding kon niet worden voorbereid");
+            }
+        });
+    }
+
+    private synchronized void startRealtimeKitSessionIfReady() {
+        if (callLifecycle.isStopped() || realtimeKitSession != null || realtimeKitCredentials == null) return;
+        Activity activity = realtimeKitHostActivity == null ? null : realtimeKitHostActivity.get();
+        if (activity == null || activity.isFinishing()
+            || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed())) return;
+
+        if (isVideo && cameraLifecycle.shouldCapture()) {
+            cameraCaptureStarting = true;
+            if (!updateForegroundTypes()) {
+                cameraCaptureStarting = false;
+                return;
+            }
+        }
+
+        try {
+            realtimeKitSession = PulseRealtimeKitSession.create(activity, new PulseRealtimeKitSession.Listener() {
+                @Override
+                public void onStateChanged(PulseRealtimeKitSession.State state) {
+                    mainHandler.post(() -> onRealtimeKitStateChanged(state));
+                }
+
+                @Override
+                public void onError(String message) {
+                    android.util.Log.w("PulseCallV2", message);
+                }
+            });
+            if (!realtimeKitSession.start(realtimeKitCredentials.authToken, isVideo)) {
+                failCall("Nieuwe oproepverbinding kon niet worden gestart");
+            }
+        } catch (RuntimeException error) {
+            android.util.Log.e("PulseCallV2", "RealtimeKit SDK initialiseren mislukt", error);
+            realtimeKitSession = null;
+            failCall("Nieuwe oproepverbinding kon niet worden gestart");
+        } finally {
+            cameraCaptureStarting = false;
+        }
+    }
+
+    private synchronized void onRealtimeKitStateChanged(PulseRealtimeKitSession.State state) {
+        if (callLifecycle.isStopped()) return;
+        if (state == PulseRealtimeKitSession.State.ACTIVE) {
+            peerStarted = true;
+            cameraLifecycle.setCaptureActive(isVideo && cameraLifecycle.shouldCapture());
+            updateForegroundTypes();
+            if (outgoing) {
+                if (realtimeKitRemoteAnswered) markNativeNetworkRecovered();
+            } else {
+                emitRealtimeKitAnswer();
+            }
+        } else if (state == PulseRealtimeKitSession.State.FAILED) {
+            failCall("Nieuwe oproepverbinding is mislukt");
+        }
+    }
+
+    private void emitRealtimeKitAnswer() {
+        if (socket == null || !socket.connected()) {
+            failCall("Signaleringsverbinding is niet beschikbaar");
+            return;
+        }
+        try {
+            JSONObject payload = signalTarget();
+            payload.put("answer", new JSONObject().put("engine", PulseRealtimeKitCredentialsClient.ENGINE));
+            socket.emit("call:answer", payload, (Ack) args -> {
+                JSONObject acknowledgement = firstJsonObject(args);
+                if (acknowledgement == null || !acknowledgement.optBoolean("ok", false)) {
+                    failCall("Oproep beantwoorden is geweigerd");
+                    return;
+                }
+                markNativeNetworkRecovered();
+            });
+        } catch (Exception error) {
+            failCall("Oproep beantwoorden mislukt");
+        }
     }
 
     private void connectSocket(String token, Runnable onConnected) throws Exception {
@@ -689,12 +855,24 @@ public class PulseNativeCallService extends Service {
 
     private synchronized boolean toggleMicrophoneInternal() {
         microphoneEnabled = !microphoneEnabled;
+        if (isRealtimeKitCall()) {
+            if (realtimeKitSession == null || !realtimeKitSession.setMuted(!microphoneEnabled)) {
+                microphoneEnabled = !microphoneEnabled;
+            }
+            return microphoneEnabled;
+        }
         if (localAudioTrack != null) localAudioTrack.setEnabled(microphoneEnabled);
         return microphoneEnabled;
     }
 
     private synchronized boolean toggleCameraInternal() {
         boolean enabled = !cameraLifecycle.isEnabledByUser();
+        if (isRealtimeKitCall()) {
+            if (realtimeKitSession == null) return false;
+            cameraLifecycle.setEnabledByUser(enabled);
+            reconcileRealtimeKitCamera();
+            return enabled;
+        }
         if (enabled && videoCapturer == null) return false;
         if (enabled && ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             return false;
@@ -705,10 +883,18 @@ public class PulseNativeCallService extends Service {
     }
 
     private synchronized boolean canSwitchCameraInternal() {
+        if (isRealtimeKitCall()) {
+            return isVideo
+                && realtimeKitSession != null
+                && realtimeKitSession.state() == PulseRealtimeKitSession.State.ACTIVE;
+        }
         return availableCameraCount > 1 && videoCapturer instanceof CameraVideoCapturer;
     }
 
     private synchronized boolean switchCameraInternal() {
+        if (isRealtimeKitCall()) {
+            return realtimeKitSession != null && realtimeKitSession.switchCamera();
+        }
         if (cameraLifecycle.isCaptureActive() && canSwitchCameraInternal()) {
             ((CameraVideoCapturer) videoCapturer).switchCamera(new CameraVideoCapturer.CameraSwitchHandler() {
                 @Override
@@ -729,6 +915,10 @@ public class PulseNativeCallService extends Service {
     }
 
     private synchronized void reconcileCameraCapture() {
+        if (isRealtimeKitCall()) {
+            reconcileRealtimeKitCamera();
+            return;
+        }
         if (!isVideo || videoCapturer == null || localVideoTrack == null || callLifecycle.isStopped()) return;
         boolean shouldCapture = cameraLifecycle.shouldCapture();
         if (shouldCapture == cameraLifecycle.isCaptureActive()) {
@@ -773,6 +963,20 @@ public class PulseNativeCallService extends Service {
         updateForegroundTypes();
     }
 
+    private synchronized void reconcileRealtimeKitCamera() {
+        if (!isVideo || realtimeKitSession == null || callLifecycle.isStopped()) return;
+        boolean shouldCapture = cameraLifecycle.shouldCapture();
+        if (realtimeKitSession.state() != PulseRealtimeKitSession.State.ACTIVE) {
+            cameraLifecycle.setCaptureActive(false);
+            updateForegroundTypes();
+            return;
+        }
+        if (realtimeKitSession.setCameraEnabled(shouldCapture)) {
+            cameraLifecycle.setCaptureActive(shouldCapture);
+        }
+        updateForegroundTypes();
+    }
+
     private void emitOffer(SessionDescription offer) {
         if (socket == null) return;
         try {
@@ -793,11 +997,21 @@ public class PulseNativeCallService extends Service {
     }
 
     private void onAnswer(Object... args) {
-        if (!outgoing || peerConnection == null || args.length == 0 || !(args[0] instanceof JSONObject)) return;
+        if (!outgoing || args.length == 0 || !(args[0] instanceof JSONObject)) return;
         JSONObject payload = (JSONObject) args[0];
         if (!isCurrentSession(payload)) return;
         JSONObject answer = payload.optJSONObject("answer");
         if (answer == null) return;
+        if (isRealtimeKitCall()) {
+            if (!PulseRealtimeKitCredentialsClient.ENGINE.equals(answer.optString("engine"))) return;
+            realtimeKitRemoteAnswered = true;
+            if (realtimeKitSession != null
+                && realtimeKitSession.state() == PulseRealtimeKitSession.State.ACTIVE) {
+                markNativeNetworkRecovered();
+            }
+            return;
+        }
+        if (peerConnection == null) return;
         SessionDescription remoteAnswer = new SessionDescription(SessionDescription.Type.ANSWER, answer.optString("sdp"));
         peerConnection.setRemoteDescription(new SdpAdapter() {
             @Override
@@ -884,6 +1098,7 @@ public class PulseNativeCallService extends Service {
     }
 
     private synchronized void beginNetworkRecovery(String source) {
+        if (isRealtimeKitCall()) return;
         boolean recoveryStarted = callLifecycle.beginRecovery(
             peerStarted,
             SystemClock.elapsedRealtime(),
@@ -914,6 +1129,7 @@ public class PulseNativeCallService extends Service {
     }
 
     private synchronized void requestNativeRecovery(String source) {
+        if (isRealtimeKitCall()) return;
         if (callLifecycle.isStopped() || peerConnection == null) return;
         beginNetworkRecovery(source);
         if (socket != null && socket.connected()) socket.emit("call:resume", signalTarget());
@@ -1131,6 +1347,14 @@ public class PulseNativeCallService extends Service {
             socket.close();
             socket = null;
         }
+        if (realtimeKitSession != null) {
+            realtimeKitSession.end();
+            realtimeKitSession = null;
+        }
+        realtimeKitCredentials = null;
+        realtimeKitHostActivity = null;
+        realtimeKitRemoteAnswered = false;
+        cameraLifecycle.setCaptureActive(false);
         detachRenderers(remoteRenderer, localRenderer);
         if (peerConnection != null) {
             peerConnection.close();
@@ -1251,6 +1475,7 @@ public class PulseNativeCallService extends Service {
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         open.putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId);
         open.putExtra(PulseTelecomManager.EXTRA_CALLER_NAME, callerName);
+        open.putExtra(PulseTelecomManager.EXTRA_CALL_ENGINE, callEngine);
         PendingIntent contentIntent = PendingIntent.getActivity(
             this, NOTIFICATION_ID + 1, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
@@ -1282,9 +1507,9 @@ public class PulseNativeCallService extends Service {
     private void showActiveCallUi() {
         if (sessionId == null) return;
         if (isVideo) {
-            PulseNativeVideoCallActivity.show(this, sessionId, callerName);
+            PulseNativeVideoCallActivity.show(this, sessionId, callerName, callEngine);
         } else {
-            PulseNativeAudioCallActivity.show(this, sessionId, callerName);
+            PulseNativeAudioCallActivity.show(this, sessionId, callerName, callEngine);
         }
     }
 
@@ -1329,6 +1554,20 @@ public class PulseNativeCallService extends Service {
 
     private String valueOrExisting(String value, String existing) {
         return value == null || value.trim().isEmpty() ? existing : value;
+    }
+
+    private boolean isRealtimeKitCall() {
+        return PulseCallEngine.isRealtimeKit(callEngine);
+    }
+
+    private static String normalizeCallEngine(String value) {
+        return PulseCallEngine.normalize(value);
+    }
+
+    private static JSONObject firstJsonObject(Object[] args) {
+        return args != null && args.length > 0 && args[0] instanceof JSONObject
+            ? (JSONObject) args[0]
+            : null;
     }
 
     @Override

@@ -69,6 +69,7 @@ public class PulseIncomingCallPlugin extends Plugin {
         data.put("fromUid", fromUid);
         data.put("callerName", call.getString("callerName", "Iemand"));
         data.put("isVideo", String.valueOf(call.getBoolean("isVideo", false)));
+        data.put("callEngine", call.getString("callEngine", "webrtc-v1"));
         if (PulseNativeCallService.hasActiveCall()) {
             Bundle extras = new Bundle();
             extras.putString(PulseTelecomManager.EXTRA_SESSION_ID, sessionId);
@@ -143,6 +144,7 @@ public class PulseIncomingCallPlugin extends Plugin {
         extras.putString(PulseTelecomManager.EXTRA_LOCAL_CALLER_NAME, call.getString("callerName", "Pulse-gebruiker"));
         extras.putString(PulseTelecomManager.EXTRA_CONVERSATION_ID, call.getString("convId"));
         extras.putBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, call.getBoolean("isVideo", false));
+        extras.putString(PulseTelecomManager.EXTRA_CALL_ENGINE, call.getString("callEngine", "webrtc-v1"));
         if (!PulseCallCoordinator.startOutgoing(getContext(), extras)) {
             PulseOutgoingCallCredentials.remove(sessionId);
             call.reject("Native oproep kon niet worden gestart");

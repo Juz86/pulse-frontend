@@ -47,6 +47,7 @@ describe('Android native calling bridge', () => {
       callerName: 'Habibi',
       isVideo: true,
       idToken: 'web-id-token-outgoing',
+      callEngine: 'webrtc-v1',
     });
   });
 
@@ -75,6 +76,7 @@ describe('Android native calling bridge', () => {
       sessionId: 'call-2',
       callerName: 'Yousef',
       isVideo: false,
+      callEngine: 'webrtc-v1',
     });
 
     expect(presentIncomingCall).toHaveBeenCalledWith({
@@ -82,6 +84,25 @@ describe('Android native calling bridge', () => {
       fromUid: 'peer-2',
       callerName: 'Yousef',
       isVideo: false,
+      callEngine: 'webrtc-v1',
     });
+  });
+
+  test('preserves RealtimeKit engine metadata for incoming native calls', async () => {
+    const presentIncomingCall = jest.fn().mockResolvedValue({ shown: true });
+    registerPlugin.mockReturnValue({ presentIncomingCall });
+
+    await presentNativeIncomingCall({
+      fromUid: 'peer-3',
+      sessionId: 'call-3',
+      callerName: 'Habiba',
+      isVideo: true,
+      callEngine: 'realtimekit-v2',
+    });
+
+    expect(presentIncomingCall).toHaveBeenCalledWith(expect.objectContaining({
+      sessionId: 'call-3',
+      callEngine: 'realtimekit-v2',
+    }));
   });
 });

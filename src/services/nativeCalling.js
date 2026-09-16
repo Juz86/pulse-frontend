@@ -21,6 +21,7 @@ export async function startNativeOutgoingCall({
   callerName,
   isVideo,
   idToken,
+  callEngine = 'webrtc-v1',
 }) {
   if (!isAndroidNativeCalling()) return null;
   if (!idToken) throw new Error('Je Pulse-sessie is verlopen. Meld je opnieuw aan om te bellen.');
@@ -32,6 +33,7 @@ export async function startNativeOutgoingCall({
     callerName: callerName || 'Pulse-gebruiker',
     isVideo: Boolean(isVideo),
     idToken,
+    callEngine,
   });
 }
 
@@ -46,5 +48,6 @@ export async function presentNativeIncomingCall(data = {}) {
     fromUid,
     callerName: data.callerName || 'Iemand',
     isVideo: Boolean(data.isVideo),
+    callEngine: data.callEngine || data.offer?.engine || 'webrtc-v1',
   });
 }

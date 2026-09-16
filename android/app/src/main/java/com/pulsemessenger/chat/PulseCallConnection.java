@@ -109,6 +109,7 @@ final class PulseCallConnection extends Connection {
         data.put("fromUid", extras.getString(PulseTelecomManager.EXTRA_FROM_UID, ""));
         data.put("callerName", extras.getString(PulseTelecomManager.EXTRA_CALLER_NAME, "Iemand"));
         data.put("isVideo", String.valueOf(extras.getBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, false)));
+        data.put("callEngine", extras.getString(PulseTelecomManager.EXTRA_CALL_ENGINE, "webrtc-v1"));
         return data;
     }
 }

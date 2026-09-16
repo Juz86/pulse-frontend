@@ -15,6 +15,7 @@ final class PulseIncomingCallStore {
     private static final String KEY_FROM_UID = "fromUid";
     private static final String KEY_CALLER_NAME = "callerName";
     private static final String KEY_IS_VIDEO = "isVideo";
+    private static final String KEY_CALL_ENGINE = "callEngine";
     private static final String KEY_ACTION = "action";
 
     private PulseIncomingCallStore() {}
@@ -27,11 +28,24 @@ final class PulseIncomingCallStore {
             intent.getStringExtra(KEY_FROM_UID),
             intent.getStringExtra(KEY_CALLER_NAME),
             intent.getBooleanExtra(KEY_IS_VIDEO, false),
+            intent.getStringExtra(KEY_CALL_ENGINE),
             action
         );
     }
 
     static void save(Context context, String sessionId, String fromUid, String callerName, boolean isVideo, String action) {
+        save(context, sessionId, fromUid, callerName, isVideo, "webrtc-v1", action);
+    }
+
+    static void save(
+        Context context,
+        String sessionId,
+        String fromUid,
+        String callerName,
+        boolean isVideo,
+        String callEngine,
+        String action
+    ) {
         if (context == null || isBlank(sessionId) || isBlank(fromUid)) return;
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .edit()
@@ -39,6 +53,7 @@ final class PulseIncomingCallStore {
             .putString(KEY_FROM_UID, fromUid)
             .putString(KEY_CALLER_NAME, isBlank(callerName) ? "Iemand" : callerName)
             .putBoolean(KEY_IS_VIDEO, isVideo)
+            .putString(KEY_CALL_ENGINE, isBlank(callEngine) ? "webrtc-v1" : callEngine)
             .putString(KEY_ACTION, action == null ? "open" : action)
             .apply();
     }
@@ -55,12 +70,14 @@ final class PulseIncomingCallStore {
         result.put(KEY_FROM_UID, fromUid);
         result.put(KEY_CALLER_NAME, prefs.getString(KEY_CALLER_NAME, "Iemand"));
         result.put(KEY_IS_VIDEO, prefs.getBoolean(KEY_IS_VIDEO, false));
+        result.put(KEY_CALL_ENGINE, prefs.getString(KEY_CALL_ENGINE, "webrtc-v1"));
         result.put(KEY_ACTION, prefs.getString(KEY_ACTION, "open"));
         prefs.edit()
             .remove(KEY_SESSION_ID)
             .remove(KEY_FROM_UID)
             .remove(KEY_CALLER_NAME)
             .remove(KEY_IS_VIDEO)
+            .remove(KEY_CALL_ENGINE)
             .remove(KEY_ACTION)
             .apply();
         return result;

@@ -32,6 +32,7 @@ final class PulseIncomingCallNotifier {
     private static final String EXTRA_FROM_UID = "fromUid";
     private static final String EXTRA_CALLER_NAME = "callerName";
     private static final String EXTRA_IS_VIDEO = "isVideo";
+    private static final String EXTRA_CALL_ENGINE = "callEngine";
     private static final long RING_TIMEOUT_MS = 35_000L;
 
     private PulseIncomingCallNotifier() {}
@@ -49,12 +50,14 @@ final class PulseIncomingCallNotifier {
         String callerName = data.get(EXTRA_CALLER_NAME);
         if (isBlank(callerName)) callerName = "Iemand";
         boolean isVideo = "true".equalsIgnoreCase(data.get(EXTRA_IS_VIDEO)) || "1".equals(data.get(EXTRA_IS_VIDEO));
+        String callEngine = data.get(EXTRA_CALL_ENGINE);
+        if (isBlank(callEngine)) callEngine = "webrtc-v1";
         prepare(context);
 
         int notificationId = notificationId(sessionId);
-        PendingIntent declineIntent = actionIntent(context, PulseIncomingCallStore.ACTION_DECLINE, sessionId, fromUid, callerName, isVideo, notificationId + 1);
-        PendingIntent answerIntent = actionIntent(context, PulseIncomingCallStore.ACTION_ANSWER, sessionId, fromUid, callerName, isVideo, notificationId + 2);
-        PendingIntent fullScreenIntent = fullScreenIntent(context, sessionId, fromUid, callerName, isVideo, notificationId + 3);
+        PendingIntent declineIntent = actionIntent(context, PulseIncomingCallStore.ACTION_DECLINE, sessionId, fromUid, callerName, isVideo, callEngine, notificationId + 1);
+        PendingIntent answerIntent = actionIntent(context, PulseIncomingCallStore.ACTION_ANSWER, sessionId, fromUid, callerName, isVideo, callEngine, notificationId + 2);
+        PendingIntent fullScreenIntent = fullScreenIntent(context, sessionId, fromUid, callerName, isVideo, callEngine, notificationId + 3);
 
         Person caller = new Person.Builder()
             .setName(callerName)
@@ -102,22 +105,24 @@ final class PulseIncomingCallNotifier {
         return 41_000 + Math.abs(sessionId == null ? 0 : sessionId.hashCode() % 9_000);
     }
 
-    private static PendingIntent actionIntent(Context context, String action, String sessionId, String fromUid, String callerName, boolean isVideo, int requestCode) {
+    private static PendingIntent actionIntent(Context context, String action, String sessionId, String fromUid, String callerName, boolean isVideo, String callEngine, int requestCode) {
         Intent intent = new Intent(context, PulseCallActionReceiver.class)
             .setAction(action)
             .putExtra(EXTRA_SESSION_ID, sessionId)
             .putExtra(EXTRA_FROM_UID, fromUid)
             .putExtra(EXTRA_CALLER_NAME, callerName)
-            .putExtra(EXTRA_IS_VIDEO, isVideo);
+            .putExtra(EXTRA_IS_VIDEO, isVideo)
+            .putExtra(EXTRA_CALL_ENGINE, callEngine);
         return PendingIntent.getBroadcast(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
-    private static PendingIntent fullScreenIntent(Context context, String sessionId, String fromUid, String callerName, boolean isVideo, int requestCode) {
+    private static PendingIntent fullScreenIntent(Context context, String sessionId, String fromUid, String callerName, boolean isVideo, String callEngine, int requestCode) {
         Intent intent = new Intent(context, PulseIncomingCallActivity.class)
             .putExtra(EXTRA_SESSION_ID, sessionId)
             .putExtra(EXTRA_FROM_UID, fromUid)
             .putExtra(EXTRA_CALLER_NAME, callerName)
             .putExtra(EXTRA_IS_VIDEO, isVideo)
+            .putExtra(EXTRA_CALL_ENGINE, callEngine)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         return PendingIntent.getActivity(context, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }

@@ -28,6 +28,7 @@ final class PulseTelecomManager {
     static final String EXTRA_CONVERSATION_ID = "conversationId";
     static final String EXTRA_CALLER_NAME = "callerName";
     static final String EXTRA_IS_VIDEO = "isVideo";
+    static final String EXTRA_CALL_ENGINE = "callEngine";
 
     private static final String PHONE_ACCOUNT_ID = "pulse-voip";
     private static final ConcurrentHashMap<String, PulseCallConnection> CONNECTIONS = new ConcurrentHashMap<>();
@@ -75,6 +76,7 @@ final class PulseTelecomManager {
         extras.putString(EXTRA_FROM_UID, fromUid);
         extras.putString(EXTRA_CALLER_NAME, blankToDefault(data.get(EXTRA_CALLER_NAME), "Iemand"));
         extras.putBoolean(EXTRA_IS_VIDEO, parseBoolean(data.get(EXTRA_IS_VIDEO)));
+        extras.putString(EXTRA_CALL_ENGINE, blankToDefault(data.get(EXTRA_CALL_ENGINE), "webrtc-v1"));
         extras.putParcelable(TelecomManager.EXTRA_INCOMING_CALL_ADDRESS, callAddress(fromUid));
         extras.putInt(
             TelecomManager.EXTRA_INCOMING_VIDEO_STATE,

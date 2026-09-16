@@ -26,6 +26,7 @@ const ChatModals = lazy(() => import('../components/ChatModals'));
 export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onDismissParentToast, onOpenDashboard, showParentDashboard = false, setShowParentDashboard, onParentActivitiesViewed, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
   const callsAvailable = true;
   const messageEditingEnabled = useFeatureFlag('message_editing');
+  const realtimeKitCallsV2Enabled = useFeatureFlag('realtimekit_calls_v2');
   const draftIndicatorsEnabled = useFeatureFlag('draft_indicators');
   const markConversationUnreadEnabled = useFeatureFlag('mark_conversation_unread');
   // ── UI state ──────────────────────────────────────────────────────────────
@@ -422,6 +423,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const { activeCall, setActiveCall, getCallLog, refreshCallLog, clearCallLog, deleteCallLogEntries, callLogRateLimitUntil, callContact, callContactFromRecent, initiateCall, initiateCallFromConv } = useCalling({
     user, pausedFeatures, activeConvRef, msgsAreaRef,
     setMessages, loadConversations, findConvWithUid, setShowCallModal, showErrToast,
+    realtimeKitCallsV2Enabled,
   });
 
   const {

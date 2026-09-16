@@ -4,6 +4,7 @@ import { getSocket } from '../services/socket';
 import { BACKEND_URL, startCall, getCurrentCallSessionId, clearOrphanedOutgoingCall } from '../services/socket';
 import { isAndroidNativeCalling, startNativeOutgoingCall } from '../services/nativeCalling';
 import { getCachedNativeCallIdToken } from '../services/nativeIncomingCall';
+import { startOutgoingRealtimeKitCall } from '../services/realtimeKitCallCoordinator';
 import {
   CALL_REQUEST_ADMISSION,
   getCallRequestAdmission,
@@ -23,6 +24,7 @@ export default function useCalling({
   findConvWithUid,
   setShowCallModal,
   showErrToast,
+  realtimeKitCallsV2Enabled = false,
 }) {
   const [activeCall,  setActiveCall]  = useState(null);
   const [callLog, setCallLog] = useState([]);
@@ -415,6 +417,61 @@ export default function useCalling({
     fallbackNoticeShownRef.current = false;
     callTargetUidRef.current = toUid || '';
     callTargetNameRef.current = name || '';
+    const finishCall = (reason) => {
+      const wasConnected = callStartTimeRef.current !== null;
+      const duration = wasConnected ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
+      callStartTimeRef.current = null;
+      const callDir = reason === 'declined' ? 'declined'
+        : (!wasConnected || reason === 'timeout' || reason === 'unavailable' || reason === 'busy') ? 'no-answer'
+          : 'completed';
+      if (reason !== 'busy') {
+        sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
+      }
+      callLogRefreshTimersRef.current.forEach((timerId) => clearTimeout(timerId));
+      callLogRefreshTimersRef.current = [400, 2400].map((delay) => (
+        setTimeout(() => {
+          refreshCallLog();
+          if (reopenRecentAfterCallRef.current) setShowCallModal(true);
+        }, delay)
+      ));
+      setTimeout(() => { reopenRecentAfterCallRef.current = false; }, 2200);
+      if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout' || reason === 'busy') {
+        setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
+      } else {
+        setActiveCall(null);
+      }
+    };
+
+    if (realtimeKitCallsV2Enabled) {
+      try {
+        const controller = await startOutgoingRealtimeKitCall({
+          toUid,
+          callerName: user.displayName || user.email,
+          isVideo,
+          idToken,
+          picture: user.photoURL || '',
+          onRemoteStream: (remoteStream, localStream) => {
+            if (!callStartTimeRef.current) callStartTimeRef.current = Date.now();
+            setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
+          },
+          onEnd: finishCall,
+        });
+        setActiveCall({
+          engine: 'realtimekit-v2',
+          callController: controller,
+          toUid,
+          isVideo,
+          name,
+          sessionId: controller.sessionId,
+          localStream: controller.getLocalStream(),
+          remoteStream: null,
+        });
+      } catch (error) {
+        showErrToast(error?.message || 'De oproep kon niet worden gestart.');
+      }
+      return;
+    }
+
     try {
       const stream = await startCall({
         toUid, fromUid: user.uid, callerName: user.displayName || user.email, isVideo,
@@ -423,32 +480,7 @@ export default function useCalling({
           setActiveCall(prev => ({ ...prev, remoteStream, localStream }));
         },
         onEnd: (reason) => {
-          const wasConnected = callStartTimeRef.current !== null;
-          const duration     = wasConnected ? Math.round((Date.now() - callStartTimeRef.current) / 1000) : 0;
-          callStartTimeRef.current = null;
-          const callDir = reason === 'declined'  ? 'declined'
-            : (!wasConnected || reason === 'timeout' || reason === 'unavailable' || reason === 'busy') ? 'no-answer'
-            : 'completed';
-          if (reason !== 'busy') {
-            sendCallMessage({ isVideo: callIsVideoRef.current, direction: callDir, duration });
-          }
-          callLogRefreshTimersRef.current.forEach((timerId) => clearTimeout(timerId));
-          callLogRefreshTimersRef.current = [400, 2400].map((delay) => (
-            setTimeout(() => {
-              refreshCallLog();
-              if (reopenRecentAfterCallRef.current) {
-                setShowCallModal(true);
-              }
-            }, delay)
-          ));
-          setTimeout(() => {
-            reopenRecentAfterCallRef.current = false;
-          }, 2200);
-          if (reason === 'unavailable' || reason === 'declined' || reason === 'timeout' || reason === 'busy') {
-            setActiveCall(prev => prev ? { ...prev, endReason: reason } : null);
-          } else {
-            setActiveCall(null);
-          }
+          finishCall(reason);
         },
         onVideoUpgrade: (localStream) => {
           callIsVideoRef.current = true;
@@ -489,7 +521,7 @@ export default function useCalling({
       const request = await withCallPreparationTimeout(buildRequest, CALL_PREPARATION_TIMEOUT_MS);
       if (!request) return;
       const cachedIdToken = getCachedNativeCallIdToken();
-      const preparedRequest = isAndroidNativeCalling()
+      const preparedRequest = (isAndroidNativeCalling() || realtimeKitCallsV2Enabled)
         ? {
             ...request,
             idToken: cachedIdToken || await withCallPreparationTimeout(

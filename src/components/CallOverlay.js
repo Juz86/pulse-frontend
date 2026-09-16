@@ -1,10 +1,11 @@
 // src/components/CallOverlay.js
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { answerCall, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
+import { answerCall, clearIncomingRingingSession, declineCall, endCall, upgradeToVideo, acceptVideoUpgrade, switchCameraTrack } from '../services/socket';
+import { answerIncomingRealtimeKitCall, isRealtimeKitV2Offer } from '../services/realtimeKitCallCoordinator';
 import { Phone, Video, Mic, MicOff, Camera, CameraSwitch, Cancel, Message, Speaker, PhoneEnd } from './Icons';
 import chatDefaultPattern from '../assets/chatachtergrond.jpeg';
 
-export default function CallOverlay({ incoming, active, contacts = [], chatUnreadCount = 0, onClose, onEnd, onRetryCall }) {
+export default function CallOverlay({ incoming, active, user, contacts = [], chatUnreadCount = 0, onClose, onEnd, onRetryCall }) {
   const [callState,    setCallState]    = useState(incoming ? 'incoming' : 'calling');
   const [callMsg,      setCallMsg]      = useState('');
   const [timer,        setTimer]        = useState(0);
@@ -32,6 +33,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   const remoteTrackListenerCleanupRef = useRef(null);
   const cameraSwitchMessageTimeoutRef = useRef(null);
   const autoAnswerSessionRef = useRef(null);
+  const callControllerRef = useRef(active?.callController || null);
 
   const attachMediaStream = useCallback(async (element, stream) => {
     if (!element || !stream) return;
@@ -81,6 +83,32 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   async function handleAccept() {
     setCallState('connecting');
     try {
+      if (isRealtimeKitV2Offer(incoming)) {
+        const controller = await answerIncomingRealtimeKitCall({
+          incoming,
+          idToken: await user.getIdToken(),
+          name: user.displayName || user.email || 'Pulse-gebruiker',
+          picture: user.photoURL || '',
+          onRemoteStream: (remoteStream, localStream) => {
+            localStreamRef.current = localStream;
+            remoteStreamRef.current = remoteStream;
+            if (localVideoRef.current) attachMediaStream(localVideoRef.current, localStream);
+            if (remoteVideoRef.current) attachMediaStream(remoteVideoRef.current, remoteStream);
+            bindRemoteAudioStream(remoteStream);
+            setCallState('active');
+            startTimer();
+          },
+          onEnd: () => { cleanup(); onClose?.(true); },
+        });
+        callControllerRef.current = controller;
+        clearIncomingRingingSession(incoming.sessionId || null, 'realtimekit_answered');
+        const localStream = controller.getLocalStream();
+        localStreamRef.current = localStream;
+        if (localVideoRef.current) attachMediaStream(localVideoRef.current, localStream);
+        setCallState('active');
+        startTimer();
+        return;
+      }
       const localStream = await answerCall({
         fromUid:  incoming.from,
         offer:    incoming.offer,
@@ -128,7 +156,11 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   }
 
   // ── Ophangen ─────────────────────────────────────────────────────────────
-  function handleEnd() {
+  async function handleEnd() {
+    if (callControllerRef.current) {
+      await callControllerRef.current.end('local_end');
+      return;
+    }
     const toUid = incoming?.from || active?.toUid;
     if (toUid) endCall(toUid, incoming?.sessionId || active?.sessionId || null);
     cleanup();
@@ -156,6 +188,10 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
   const safeClose = useCallback((reason = 'local_close') => {
     if (closingRef.current) return;
     closingRef.current = true;
+    if (callControllerRef.current) {
+      callControllerRef.current.end(reason);
+      return;
+    }
     if (callState === 'incoming') {
       declineCall(incoming?.from, incoming?.sessionId || null);
       cleanup();
@@ -178,12 +214,22 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
     safeClose('overlay_close');
   }
 
-  function toggleMute() {
+  async function toggleMute() {
+    if (callControllerRef.current) {
+      await callControllerRef.current.setMicrophoneEnabled(muted);
+      setMuted(!muted);
+      return;
+    }
     const audioTrack = localStreamRef.current?.getAudioTracks()[0];
     if (audioTrack) { audioTrack.enabled = muted; setMuted(!muted); }
   }
 
-  function toggleCam() {
+  async function toggleCam() {
+    if (callControllerRef.current) {
+      await callControllerRef.current.setCameraEnabled(camOff);
+      setCamOff(!camOff);
+      return;
+    }
     const videoTrack = localStreamRef.current?.getVideoTracks()[0];
     if (videoTrack) { videoTrack.enabled = camOff; setCamOff(!camOff); }
   }
@@ -277,6 +323,7 @@ export default function CallOverlay({ incoming, active, contacts = [], chatUnrea
 
   // Actief gesprek: koppel streams en activeer zodra remoteStream beschikbaar is
   useEffect(() => {
+    if (active?.callController) callControllerRef.current = active.callController;
     if (active?.localStream) {
       localStreamRef.current = active.localStream;
       if (localVideoRef.current) attachMediaStream(localVideoRef.current, active.localStream);

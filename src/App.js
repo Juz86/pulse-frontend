@@ -42,6 +42,7 @@ import {
   startImmediateUpdate,
 } from './services/appUpdate';
 import { subscribeToFeatureFlags } from './services/featureFlags';
+import { isRealtimeKitCallInProgress } from './services/realtimeKitCallCoordinator';
 import { FeatureFlagsProvider } from './context/FeatureFlagsContext';
 import { markNativeWebBundleHealthy, stageNativeWebUpdate } from './services/nativeWebUpdate';
 import {
@@ -998,7 +999,7 @@ function MainApp() {
               return;
             }
 
-            if (incomingCallRef.current || isCallInProgress()) {
+            if (incomingCallRef.current || isCallInProgress() || isRealtimeKitCallInProgress()) {
               console.info('[Pulse][Call] inkomende oproep geweigerd: al actief', { fromUid, sessionId });
               rejectCallAsBusy(fromUid, sessionId);
               return;

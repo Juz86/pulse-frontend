@@ -19,6 +19,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -232,6 +233,7 @@ public class PulseNativeAudioCallActivity extends Activity {
                 } else if (PulseNativeCallService.ACTION_NATIVE_CALL_RECONNECTING.equals(intent.getAction())) {
                     statusView.setText("Opnieuw verbinden...");
                 } else {
+                    showTerminalError(intent);
                     finish();
                 }
             }
@@ -242,6 +244,13 @@ public class PulseNativeAudioCallActivity extends Activity {
         filter.addAction(PulseNativeCallService.ACTION_NATIVE_CALL_FINISHED);
         filter.addAction(PulseNativeCallService.ACTION_AUDIO_ROUTES_CHANGED);
         ContextCompat.registerReceiver(this, callReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+    }
+
+    private void showTerminalError(Intent intent) {
+        String error = intent == null ? null : intent.getStringExtra("error");
+        if (error != null && !error.trim().isEmpty()) {
+            Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+        }
     }
 
     private ImageButton control(int icon, String description, int color) {

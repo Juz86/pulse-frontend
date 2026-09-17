@@ -86,6 +86,30 @@ final class PulseRealtimeKitCredentialsClient {
         return parseResponse(status, responseBody, sessionId);
     }
 
+    void verifyReadiness(String idToken) throws Exception {
+        requireValue(idToken, "idToken");
+        HttpURLConnection connection = (HttpURLConnection) new URL(
+            apiUrl + "/api/calls/realtimekit/status"
+        ).openConnection();
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        connection.setReadTimeout(READ_TIMEOUT_MS);
+        connection.setRequestProperty("Authorization", "Bearer " + idToken.trim());
+        connection.setRequestProperty("Cache-Control", "no-store");
+
+        int status = connection.getResponseCode();
+        InputStream stream = status >= 200 && status < 300
+            ? connection.getInputStream()
+            : connection.getErrorStream();
+        String responseBody;
+        try {
+            responseBody = readBody(stream);
+        } finally {
+            connection.disconnect();
+        }
+        parseReadiness(status, responseBody);
+    }
+
     static Credentials parseResponse(int status, String responseBody, String expectedSessionId) throws Exception {
         JSONObject payload;
         try {
@@ -104,6 +128,49 @@ final class PulseRealtimeKitCredentialsClient {
             throw new BootstrapException(status, "invalid_realtimekit_response");
         }
         return new Credentials(authToken, sessionId, payload.optBoolean("isVideo", false));
+    }
+
+    static void parseReadiness(int status, String responseBody) throws Exception {
+        JSONObject payload;
+        try {
+            payload = new JSONObject(responseBody == null || responseBody.trim().isEmpty() ? "{}" : responseBody);
+        } catch (Exception error) {
+            throw new BootstrapException(status, "invalid_realtimekit_response");
+        }
+        if (status < 200 || status >= 300) {
+            throw new BootstrapException(status, payload.optString("error", "realtimekit_status_failed"));
+        }
+        if (!payload.optBoolean("realtimeKitCallsEnabled", false)) {
+            throw new BootstrapException(status, "realtimekit_disabled");
+        }
+        if (!payload.optBoolean("realtimeKitConfigured", false)) {
+            throw new BootstrapException(status, "realtimekit_not_configured");
+        }
+    }
+
+    static String userMessageFor(Exception error) {
+        if (error instanceof BootstrapException) {
+            String code = ((BootstrapException) error).code;
+            if ("realtimekit_disabled".equals(code)) {
+                return "De nieuwe belverbinding staat op de server nog uit";
+            }
+            if ("realtimekit_not_configured".equals(code)) {
+                return "De nieuwe belverbinding is op de server nog niet volledig ingesteld";
+            }
+            if ("realtimekit_api_failed".equals(code)) {
+                return "Cloudflare RealtimeKit is tijdelijk niet bereikbaar";
+            }
+            if ("pending_call_not_found".equals(code)) {
+                return "De oproepsessie is verlopen. Probeer opnieuw";
+            }
+            if ("call_access_denied".equals(code)) {
+                return "Je hebt geen toegang tot deze oproepsessie";
+            }
+            if ("invalid_realtimekit_response".equals(code)) {
+                return "De nieuwe belverbinding gaf een ongeldig antwoord";
+            }
+        }
+        return "De nieuwe belverbinding kon niet worden voorbereid";
     }
 
     static String joinUrl(String apiUrl, String sessionId) throws Exception {

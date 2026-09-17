@@ -56,6 +56,48 @@ public class PulseRealtimeKitCredentialsClientTest {
     }
 
     @Test
+    public void readinessRequiresEnabledAndConfiguredServer() throws Exception {
+        PulseRealtimeKitCredentialsClient.parseReadiness(
+            200,
+            "{\"ok\":true,\"realtimeKitCallsEnabled\":true,\"realtimeKitConfigured\":true}"
+        );
+
+        PulseRealtimeKitCredentialsClient.BootstrapException disabled = assertThrows(
+            PulseRealtimeKitCredentialsClient.BootstrapException.class,
+            () -> PulseRealtimeKitCredentialsClient.parseReadiness(
+                200,
+                "{\"ok\":true,\"realtimeKitCallsEnabled\":false,\"realtimeKitConfigured\":true}"
+            )
+        );
+        assertEquals("realtimekit_disabled", disabled.code);
+
+        PulseRealtimeKitCredentialsClient.BootstrapException missing = assertThrows(
+            PulseRealtimeKitCredentialsClient.BootstrapException.class,
+            () -> PulseRealtimeKitCredentialsClient.parseReadiness(
+                200,
+                "{\"ok\":true,\"realtimeKitCallsEnabled\":true,\"realtimeKitConfigured\":false}"
+            )
+        );
+        assertEquals("realtimekit_not_configured", missing.code);
+    }
+
+    @Test
+    public void mapsBootstrapCodesToSafeUserMessages() {
+        assertEquals(
+            "De nieuwe belverbinding staat op de server nog uit",
+            PulseRealtimeKitCredentialsClient.userMessageFor(
+                new PulseRealtimeKitCredentialsClient.BootstrapException(503, "realtimekit_disabled")
+            )
+        );
+        assertEquals(
+            "De nieuwe belverbinding is op de server nog niet volledig ingesteld",
+            PulseRealtimeKitCredentialsClient.userMessageFor(
+                new PulseRealtimeKitCredentialsClient.BootstrapException(503, "realtimekit_not_configured")
+            )
+        );
+    }
+
+    @Test
     public void rejectsWrongEngineOrSession() {
         assertThrows(
             PulseRealtimeKitCredentialsClient.BootstrapException.class,

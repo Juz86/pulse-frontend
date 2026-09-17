@@ -156,6 +156,7 @@ public class PulseNativeCallService extends Service {
     private String notificationStatus = "Verbinden...";
     private long connectedAtElapsedMs;
     private String lastIcePathSummary;
+    private String terminalErrorMessage;
     private PulseRealtimeKitSession realtimeKitSession;
     private PulseRealtimeKitCredentialsClient.Credentials realtimeKitCredentials;
     private WeakReference<Activity> realtimeKitHostActivity;
@@ -406,6 +407,8 @@ public class PulseNativeCallService extends Service {
             if (!callLifecycle.beginAnswer(SystemClock.elapsedRealtime(), CONNECTION_TIMEOUT_MS)) {
                 return START_NOT_STICKY;
             }
+            terminalErrorMessage = null;
+            notificationStatus = "Verbinden...";
         }
         sessionId = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_SESSION_ID), sessionId);
         fromUid = valueOrExisting(intent.getStringExtra(PulseTelecomManager.EXTRA_FROM_UID), fromUid);
@@ -508,10 +511,11 @@ public class PulseNativeCallService extends Service {
     private void startRealtimeKitOutgoing(String token) {
         executor.execute(() -> {
             try {
+                new PulseRealtimeKitCredentialsClient().verifyReadiness(token);
                 connectSocket(token, () -> emitRealtimeKitOffer(token));
             } catch (Exception error) {
                 android.util.Log.e("PulseCallV2", "RealtimeKit signaling starten mislukt", error);
-                failCall("Oproep kon niet worden gestart");
+                failCall(PulseRealtimeKitCredentialsClient.userMessageFor(error));
             }
         });
     }
@@ -561,7 +565,7 @@ public class PulseNativeCallService extends Service {
                 mainHandler.post(this::startRealtimeKitSessionIfReady);
             } catch (Exception error) {
                 android.util.Log.e("PulseCallV2", "RealtimeKit-token ophalen mislukt", error);
-                failCall("Nieuwe oproepverbinding kon niet worden voorbereid");
+                failCall(PulseRealtimeKitCredentialsClient.userMessageFor(error));
             }
         });
     }
@@ -1348,6 +1352,7 @@ public class PulseNativeCallService extends Service {
 
     private void failCall(String message) {
         android.util.Log.e("PulseNativeCall", message);
+        terminalErrorMessage = message;
         notificationStatus = message;
         updateNotification(notificationStatus);
         executor.execute(() -> {
@@ -1444,9 +1449,13 @@ public class PulseNativeCallService extends Service {
         if (sessionId != null && sessionId.equals(activeSessionId)) activeSessionId = null;
         if (activeService == this) activeService = null;
         PulseCallCoordinator.callFinished(sessionId);
-        sendBroadcast(new Intent(ACTION_NATIVE_CALL_FINISHED)
+        Intent finishedIntent = new Intent(ACTION_NATIVE_CALL_FINISHED)
             .setPackage(getPackageName())
-            .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId));
+            .putExtra(PulseTelecomManager.EXTRA_SESSION_ID, sessionId);
+        if (terminalErrorMessage != null && !terminalErrorMessage.trim().isEmpty()) {
+            finishedIntent.putExtra("error", terminalErrorMessage);
+        }
+        sendBroadcast(finishedIntent);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE);
         } else {

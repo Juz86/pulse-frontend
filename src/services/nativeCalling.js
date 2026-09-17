@@ -1,5 +1,22 @@
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
 
+export const NATIVE_CALL_ENGINES = Object.freeze({
+  LEGACY: 'webrtc-v1',
+  REALTIMEKIT: 'realtimekit-v2',
+});
+
+export function selectNativeCallEngine(realtimeKitCallsV2Enabled) {
+  return realtimeKitCallsV2Enabled
+    ? NATIVE_CALL_ENGINES.REALTIMEKIT
+    : NATIVE_CALL_ENGINES.LEGACY;
+}
+
+function normalizeNativeCallEngine(callEngine) {
+  return callEngine === NATIVE_CALL_ENGINES.REALTIMEKIT
+    ? NATIVE_CALL_ENGINES.REALTIMEKIT
+    : NATIVE_CALL_ENGINES.LEGACY;
+}
+
 export function isAndroidNativeCalling() {
   if (!isNativePulseEnvironment()) return false;
   try {
@@ -21,7 +38,7 @@ export async function startNativeOutgoingCall({
   callerName,
   isVideo,
   idToken,
-  callEngine = 'webrtc-v1',
+  callEngine = NATIVE_CALL_ENGINES.LEGACY,
 }) {
   if (!isAndroidNativeCalling()) return null;
   if (!idToken) throw new Error('Je Pulse-sessie is verlopen. Meld je opnieuw aan om te bellen.');
@@ -33,7 +50,7 @@ export async function startNativeOutgoingCall({
     callerName: callerName || 'Pulse-gebruiker',
     isVideo: Boolean(isVideo),
     idToken,
-    callEngine,
+    callEngine: normalizeNativeCallEngine(callEngine),
   });
 }
 
@@ -48,6 +65,6 @@ export async function presentNativeIncomingCall(data = {}) {
     fromUid,
     callerName: data.callerName || 'Iemand',
     isVideo: Boolean(data.isVideo),
-    callEngine: data.callEngine || data.offer?.engine || 'webrtc-v1',
+    callEngine: normalizeNativeCallEngine(data.callEngine || data.offer?.engine),
   });
 }

@@ -2,7 +2,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { getSocket } from '../services/socket';
 import { BACKEND_URL, startCall, getCurrentCallSessionId, clearOrphanedOutgoingCall } from '../services/socket';
-import { isAndroidNativeCalling, startNativeOutgoingCall } from '../services/nativeCalling';
+import {
+  isAndroidNativeCalling,
+  selectNativeCallEngine,
+  startNativeOutgoingCall,
+} from '../services/nativeCalling';
 import { getCachedNativeCallIdToken } from '../services/nativeIncomingCall';
 import { startOutgoingRealtimeKitCall } from '../services/realtimeKitCallCoordinator';
 import {
@@ -401,6 +405,7 @@ export default function useCalling({
           isVideo,
           backendUrl: BACKEND_URL,
           idToken,
+          callEngine: selectNativeCallEngine(realtimeKitCallsV2Enabled),
         });
       } catch (error) {
         showErrToast(error?.message || 'Native oproep kon niet worden gestart.');

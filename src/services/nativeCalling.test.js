@@ -1,7 +1,9 @@
 import { registerPlugin } from '@capacitor/core';
 import {
   isAndroidNativeCalling,
+  NATIVE_CALL_ENGINES,
   presentNativeIncomingCall,
+  selectNativeCallEngine,
   startNativeOutgoingCall,
 } from './nativeCalling';
 
@@ -24,6 +26,12 @@ describe('Android native calling bridge', () => {
     expect(isAndroidNativeCalling()).toBe(true);
     window.Capacitor.getPlatform = () => 'web';
     expect(isAndroidNativeCalling()).toBe(false);
+  });
+
+  test('selects RealtimeKit only when its feature flag is enabled', () => {
+    expect(selectNativeCallEngine(false)).toBe(NATIVE_CALL_ENGINES.LEGACY);
+    expect(selectNativeCallEngine(undefined)).toBe(NATIVE_CALL_ENGINES.LEGACY);
+    expect(selectNativeCallEngine(true)).toBe(NATIVE_CALL_ENGINES.REALTIMEKIT);
   });
 
   test('starts outgoing video without browser getUserMedia', async () => {
@@ -65,6 +73,43 @@ describe('Android native calling bridge', () => {
     })).rejects.toThrow('Pulse-sessie is verlopen');
 
     expect(startOutgoingCall).not.toHaveBeenCalled();
+  });
+
+  test('routes an outgoing native call through RealtimeKit v2 when selected', async () => {
+    const startOutgoingCall = jest.fn().mockResolvedValue({ sessionId: 'call-v2', native: true });
+    registerPlugin.mockReturnValue({ startOutgoingCall });
+
+    await startNativeOutgoingCall({
+      toUid: 'peer-v2',
+      contactName: 'Habiba',
+      callerName: 'Yousef',
+      isVideo: false,
+      idToken: 'web-id-token-v2',
+      callEngine: NATIVE_CALL_ENGINES.REALTIMEKIT,
+    });
+
+    expect(startOutgoingCall).toHaveBeenCalledWith(expect.objectContaining({
+      toUid: 'peer-v2',
+      callEngine: 'realtimekit-v2',
+    }));
+  });
+
+  test('falls back to the legacy engine for unknown native engine values', async () => {
+    const startOutgoingCall = jest.fn().mockResolvedValue({ sessionId: 'call-safe', native: true });
+    registerPlugin.mockReturnValue({ startOutgoingCall });
+
+    await startNativeOutgoingCall({
+      toUid: 'peer-safe',
+      contactName: 'Habiba',
+      callerName: 'Yousef',
+      isVideo: true,
+      idToken: 'web-id-token-safe',
+      callEngine: 'unknown-engine',
+    });
+
+    expect(startOutgoingCall).toHaveBeenCalledWith(expect.objectContaining({
+      callEngine: 'webrtc-v1',
+    }));
   });
 
   test('forwards foreground socket offers to native Telecom', async () => {

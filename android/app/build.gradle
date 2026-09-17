@@ -7,6 +7,9 @@ if (keystorePropertiesFile.exists()) {
 }
 
 def pulseNativeUpdatePublicKey = System.getenv('PULSE_NATIVE_UPDATE_PUBLIC_KEY') ?: ''
+def pulseForceRealtimeKitCallsV2 = String.valueOf(
+    System.getenv('PULSE_FORCE_REALTIMEKIT_CALLS_V2') ?: 'false'
+).equalsIgnoreCase('true')
 
 android {
     namespace "com.pulsemessenger.chat"
@@ -47,7 +50,13 @@ android {
         }
     }
     buildTypes {
+        debug {
+            buildConfigField "boolean", "PULSE_FORCE_REALTIMEKIT_CALLS_V2", "${pulseForceRealtimeKitCallsV2}"
+        }
         release {
+            // A Play build may only switch engines through the remotely managed
+            // feature flag. Local environment variables can never force v2.
+            buildConfigField "boolean", "PULSE_FORCE_REALTIMEKIT_CALLS_V2", "false"
             if (keystorePropertiesFile.exists()) {
                 signingConfig signingConfigs.release
             }

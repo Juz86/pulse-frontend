@@ -144,20 +144,35 @@ public class PulseIncomingCallPlugin extends Plugin {
         extras.putString(PulseTelecomManager.EXTRA_LOCAL_CALLER_NAME, call.getString("callerName", "Pulse-gebruiker"));
         extras.putString(PulseTelecomManager.EXTRA_CONVERSATION_ID, call.getString("convId"));
         extras.putBoolean(PulseTelecomManager.EXTRA_IS_VIDEO, call.getBoolean("isVideo", false));
-        extras.putString(PulseTelecomManager.EXTRA_CALL_ENGINE, call.getString("callEngine", "webrtc-v1"));
+        String callEngine = PulseCallEngine.selectOutgoing(
+            call.getString("callEngine", PulseCallEngine.WEBRTC_V1),
+            BuildConfig.PULSE_FORCE_REALTIMEKIT_CALLS_V2
+        );
+        extras.putString(PulseTelecomManager.EXTRA_CALL_ENGINE, callEngine);
+        android.util.Log.i(
+            "PulseCallEngine",
+            "Uitgaande oproep gebruikt " + callEngine
+                + (BuildConfig.PULSE_FORCE_REALTIMEKIT_CALLS_V2 ? " (debug override)" : "")
+        );
         if (!PulseCallCoordinator.startOutgoing(getContext(), extras)) {
             PulseOutgoingCallCredentials.remove(sessionId);
             call.reject("Native oproep kon niet worden gestart");
             return;
         }
-        awaitOutgoingServiceStart(call, sessionId, SystemClock.elapsedRealtime());
+        awaitOutgoingServiceStart(call, sessionId, callEngine, SystemClock.elapsedRealtime());
     }
 
-    private void awaitOutgoingServiceStart(PluginCall call, String sessionId, long startedAtMs) {
+    private void awaitOutgoingServiceStart(
+        PluginCall call,
+        String sessionId,
+        String callEngine,
+        long startedAtMs
+    ) {
         if (PulseNativeCallService.isActive(sessionId) && PulseNativeCallService.hasActiveCall()) {
             JSObject result = new JSObject();
             result.put("sessionId", sessionId);
             result.put("native", true);
+            result.put("callEngine", callEngine);
             call.resolve(result);
             return;
         }
@@ -167,7 +182,7 @@ public class PulseIncomingCallPlugin extends Plugin {
             return;
         }
         mainHandler.postDelayed(
-            () -> awaitOutgoingServiceStart(call, sessionId, startedAtMs),
+            () -> awaitOutgoingServiceStart(call, sessionId, callEngine, startedAtMs),
             OUTGOING_START_POLL_MS
         );
     }

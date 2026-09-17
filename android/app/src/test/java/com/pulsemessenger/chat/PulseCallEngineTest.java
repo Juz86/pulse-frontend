@@ -21,4 +21,12 @@ public class PulseCallEngineTest {
         assertEquals("webrtc-v1", PulseCallEngine.normalize("unknown"));
         assertEquals("realtimekit-v2", PulseCallEngine.normalize("realtimekit-v2"));
     }
+
+    @Test
+    public void debugOverrideSelectsRealtimeKitWithoutChangingReleaseSelection() {
+        assertEquals("realtimekit-v2", PulseCallEngine.selectOutgoing("webrtc-v1", true));
+        assertEquals("webrtc-v1", PulseCallEngine.selectOutgoing("webrtc-v1", false));
+        assertEquals("realtimekit-v2", PulseCallEngine.selectOutgoing("realtimekit-v2", false));
+        assertEquals("webrtc-v1", PulseCallEngine.selectOutgoing("unknown", false));
+    }
 }

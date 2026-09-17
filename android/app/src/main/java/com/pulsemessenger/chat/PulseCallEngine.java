@@ -13,4 +13,8 @@ final class PulseCallEngine {
     static boolean isRealtimeKit(String value) {
         return REALTIMEKIT_V2.equals(normalize(value));
     }
+
+    static String selectOutgoing(String requestedEngine, boolean forceRealtimeKitV2) {
+        return forceRealtimeKitV2 ? REALTIMEKIT_V2 : normalize(requestedEngine);
+    }
 }

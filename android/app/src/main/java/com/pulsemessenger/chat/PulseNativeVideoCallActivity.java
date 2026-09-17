@@ -21,6 +21,7 @@ import android.util.Rational;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
@@ -33,6 +34,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.cloudflare.realtimekit.platform.VideoView;
+
 import org.webrtc.RendererCommon;
 import org.webrtc.SurfaceViewRenderer;
 
@@ -42,6 +45,10 @@ public class PulseNativeVideoCallActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private SurfaceViewRenderer remoteRenderer;
     private SurfaceViewRenderer localRenderer;
+    private FrameLayout remoteVideoContainer;
+    private FrameLayout localVideoContainer;
+    private VideoView realtimeKitRemoteView;
+    private VideoView realtimeKitLocalView;
     private FrameLayout rootView;
     private TextView statusView;
     private LinearLayout headingView;
@@ -57,6 +64,8 @@ public class PulseNativeVideoCallActivity extends Activity {
     private BroadcastReceiver callReceiver;
     private boolean enteringPictureInPicture;
     private static final int CAMERA_PERMISSION_REQUEST = 2104;
+    private final PulseRealtimeKitSession.VideoListener realtimeKitVideoListener =
+        (remoteView, localView) -> runOnUiThread(() -> bindRealtimeKitVideoViews(remoteView, localView));
 
     static void show(Context context, String sessionId, String callerName, String callEngine) {
         if (context == null || sessionId == null) return;
@@ -87,9 +96,9 @@ public class PulseNativeVideoCallActivity extends Activity {
             }
         });
         registerCallReceiver();
-        if (!realtimeKitCall) attachRenderersWhenReady();
+        attachVideoWhenReady();
         updatePictureInPictureParams();
-        remoteRenderer.post(this::updatePictureInPictureParams);
+        remoteVideoContainer.post(this::updatePictureInPictureParams);
     }
 
     @Override
@@ -98,7 +107,7 @@ public class PulseNativeVideoCallActivity extends Activity {
         setIntent(intent);
         readIntent(intent);
         attachAttempts = 0;
-        if (!realtimeKitCall) attachRenderersWhenReady();
+        attachVideoWhenReady();
     }
 
     private void readIntent(Intent intent) {
@@ -115,14 +124,18 @@ public class PulseNativeVideoCallActivity extends Activity {
         rootView = root;
         applySystemBarInsets(root);
 
-        remoteRenderer = new SurfaceViewRenderer(this);
-        remoteRenderer.init(PulseNativeCallService.sharedEglContext(), null);
-        remoteRenderer.setEnableHardwareScaler(true);
-        remoteRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_BALANCED);
-        root.addView(remoteRenderer, new FrameLayout.LayoutParams(
+        remoteVideoContainer = new FrameLayout(this);
+        root.addView(remoteVideoContainer, new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT
         ));
+        if (!realtimeKitCall) {
+            remoteRenderer = new SurfaceViewRenderer(this);
+            remoteRenderer.init(PulseNativeCallService.sharedEglContext(), null);
+            remoteRenderer.setEnableHardwareScaler(true);
+            remoteRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_BALANCED);
+            remoteVideoContainer.addView(remoteRenderer, matchParentParams());
+        }
 
         LinearLayout heading = new LinearLayout(this);
         heading.setOrientation(LinearLayout.VERTICAL);
@@ -150,16 +163,20 @@ public class PulseNativeVideoCallActivity extends Activity {
         root.addView(heading, headingParams);
         headingView = heading;
 
-        localRenderer = new SurfaceViewRenderer(this);
-        localRenderer.init(PulseNativeCallService.sharedEglContext(), null);
-        localRenderer.setEnableHardwareScaler(true);
-        localRenderer.setMirror(PulseNativeCallService.isCurrentCameraFront(sessionId));
-        localRenderer.setZOrderMediaOverlay(true);
-        localRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL);
-        localRenderer.setBackgroundColor(0xff242424);
+        localVideoContainer = new FrameLayout(this);
+        localVideoContainer.setBackgroundColor(0xff242424);
+        if (!realtimeKitCall) {
+            localRenderer = new SurfaceViewRenderer(this);
+            localRenderer.init(PulseNativeCallService.sharedEglContext(), null);
+            localRenderer.setEnableHardwareScaler(true);
+            localRenderer.setMirror(PulseNativeCallService.isCurrentCameraFront(sessionId));
+            localRenderer.setZOrderMediaOverlay(true);
+            localRenderer.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL);
+            localVideoContainer.addView(localRenderer, matchParentParams());
+        }
         FrameLayout.LayoutParams localParams = new FrameLayout.LayoutParams(dp(160), dp(90), Gravity.TOP | Gravity.END);
         localParams.setMargins(dp(16), dp(92), dp(16), 0);
-        root.addView(localRenderer, localParams);
+        root.addView(localVideoContainer, localParams);
 
         LinearLayout controls = new LinearLayout(this);
         controls.setOrientation(LinearLayout.HORIZONTAL);
@@ -237,19 +254,21 @@ public class PulseNativeVideoCallActivity extends Activity {
             configuration.screenWidthDp,
             configuration.screenHeightDp
         );
-        remoteRenderer.setScalingType(
-            profile.fitRemoteVideo()
-                ? RendererCommon.ScalingType.SCALE_ASPECT_FIT
-                : RendererCommon.ScalingType.SCALE_ASPECT_FILL
-        );
+        if (remoteRenderer != null) {
+            remoteRenderer.setScalingType(
+                profile.fitRemoteVideo()
+                    ? RendererCommon.ScalingType.SCALE_ASPECT_FIT
+                    : RendererCommon.ScalingType.SCALE_ASPECT_FILL
+            );
+        }
 
         headingView.setPadding(dp(20), dp(profile.landscape ? 10 : 16), dp(20), dp(profile.landscape ? 10 : 16));
-        FrameLayout.LayoutParams previewParams = (FrameLayout.LayoutParams) localRenderer.getLayoutParams();
+        FrameLayout.LayoutParams previewParams = (FrameLayout.LayoutParams) localVideoContainer.getLayoutParams();
         previewParams.width = dp(profile.previewWidthDp);
         previewParams.height = dp(profile.previewHeightDp);
         previewParams.gravity = Gravity.TOP | Gravity.END;
         previewParams.setMargins(dp(16), dp(profile.landscape ? 72 : 92), dp(16), 0);
-        localRenderer.setLayoutParams(previewParams);
+        localVideoContainer.setLayoutParams(previewParams);
 
         controlsView.setPadding(dp(12), dp(10), dp(12), dp(12));
         FrameLayout.LayoutParams controlsParams = (FrameLayout.LayoutParams) controlsView.getLayoutParams();
@@ -267,7 +286,9 @@ public class PulseNativeVideoCallActivity extends Activity {
             control.setLayoutParams(params);
         }
         switchCameraButton.setVisibility(PulseNativeCallService.canSwitchCamera(sessionId) ? View.VISIBLE : View.GONE);
-        localRenderer.setMirror(PulseNativeCallService.isCurrentCameraFront(sessionId));
+        if (localRenderer != null) {
+            localRenderer.setMirror(PulseNativeCallService.isCurrentCameraFront(sessionId));
+        }
         rootView.requestLayout();
         updatePictureInPictureParams();
     }
@@ -305,14 +326,81 @@ public class PulseNativeVideoCallActivity extends Activity {
         }
     }
 
-    private void attachRenderersWhenReady() {
+    private void attachVideoWhenReady() {
         if (renderersReleased || sessionId == null) return;
-        if (PulseNativeCallService.attachVideoRenderers(sessionId, remoteRenderer, localRenderer)) {
+        boolean attached = realtimeKitCall
+            ? PulseNativeCallService.attachRealtimeKitVideoHost(this, sessionId, realtimeKitVideoListener)
+            : PulseNativeCallService.attachVideoRenderers(sessionId, remoteRenderer, localRenderer);
+        if (attached) {
             if (PulseNativeCallService.isConnected(sessionId)) statusView.setText("Verbonden");
             applyResponsiveLayout();
             return;
         }
-        if (++attachAttempts < ATTACH_RETRIES) handler.postDelayed(this::attachRenderersWhenReady, 250L);
+        if (++attachAttempts < ATTACH_RETRIES) handler.postDelayed(this::attachVideoWhenReady, 250L);
+    }
+
+    private void bindRealtimeKitVideoViews(VideoView remoteView, VideoView localView) {
+        if (!realtimeKitCall || renderersReleased) return;
+        realtimeKitRemoteView = replaceRealtimeKitView(
+            remoteVideoContainer,
+            realtimeKitRemoteView,
+            remoteView,
+            false
+        );
+        realtimeKitLocalView = replaceRealtimeKitView(
+            localVideoContainer,
+            realtimeKitLocalView,
+            localView,
+            true
+        );
+        updateRealtimeKitRendering();
+        updatePictureInPictureParams();
+    }
+
+    private VideoView replaceRealtimeKitView(
+        FrameLayout container,
+        VideoView current,
+        VideoView replacement,
+        boolean overlay
+    ) {
+        if (current == replacement) return current;
+        if (current != null) {
+            current.stopVideoRender();
+            if (current.getParent() instanceof ViewGroup) {
+                ((ViewGroup) current.getParent()).removeView(current);
+            }
+        }
+        container.removeAllViews();
+        if (replacement != null) {
+            if (replacement.getParent() instanceof ViewGroup) {
+                ((ViewGroup) replacement.getParent()).removeView(replacement);
+            }
+            replacement.setZOrderMediaOverlay(overlay);
+            container.addView(replacement, matchParentParams());
+        }
+        return replacement;
+    }
+
+    private void updateRealtimeKitRendering() {
+        if (!realtimeKitCall) return;
+        boolean pictureInPicture = isInPictureInPicture();
+        boolean activityVisible = !isFinishing() && !isDestroyed()
+            && getWindow().getDecorView().getWindowVisibility() == View.VISIBLE;
+        if (realtimeKitRemoteView != null) {
+            if (activityVisible || pictureInPicture) realtimeKitRemoteView.renderVideo();
+            else realtimeKitRemoteView.stopVideoRender();
+        }
+        if (realtimeKitLocalView != null) {
+            if (activityVisible && !pictureInPicture) realtimeKitLocalView.renderVideo();
+            else realtimeKitLocalView.stopVideoRender();
+        }
+    }
+
+    private FrameLayout.LayoutParams matchParentParams() {
+        return new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        );
     }
 
     private void registerCallReceiver() {
@@ -326,6 +414,7 @@ public class PulseNativeVideoCallActivity extends Activity {
                     if (audioRouteDialog != null) audioRouteDialog.refresh();
                 } else if (PulseNativeCallService.ACTION_NATIVE_CALL_CONNECTED.equals(intent.getAction())) {
                     statusView.setText("Verbonden");
+                    applyResponsiveLayout();
                 } else if (PulseNativeCallService.ACTION_NATIVE_CALL_RECONNECTING.equals(intent.getAction())) {
                     statusView.setText("Opnieuw verbinden...");
                 } else {
@@ -357,8 +446,8 @@ public class PulseNativeVideoCallActivity extends Activity {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private PictureInPictureParams buildPictureInPictureParams() {
-        int width = remoteRenderer == null ? 0 : remoteRenderer.getWidth();
-        int height = remoteRenderer == null ? 0 : remoteRenderer.getHeight();
+        int width = remoteVideoContainer == null ? 0 : remoteVideoContainer.getWidth();
+        int height = remoteVideoContainer == null ? 0 : remoteVideoContainer.getHeight();
         if (width <= 0 || height <= 0) {
             Configuration configuration = getResources().getConfiguration();
             width = Math.max(1, configuration.screenWidthDp);
@@ -371,7 +460,9 @@ public class PulseNativeVideoCallActivity extends Activity {
         PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder()
             .setAspectRatio(aspectRatio);
         Rect sourceRect = new Rect();
-        if (remoteRenderer != null && remoteRenderer.getGlobalVisibleRect(sourceRect) && !sourceRect.isEmpty()) {
+        if (remoteVideoContainer != null
+            && remoteVideoContainer.getGlobalVisibleRect(sourceRect)
+            && !sourceRect.isEmpty()) {
             builder.setSourceRectHint(sourceRect);
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -421,10 +512,13 @@ public class PulseNativeVideoCallActivity extends Activity {
         enteringPictureInPicture = isInPictureInPictureMode;
         if (headingView != null) headingView.setVisibility(isInPictureInPictureMode ? View.GONE : View.VISIBLE);
         if (controlsView != null) controlsView.setVisibility(isInPictureInPictureMode ? View.GONE : View.VISIBLE);
-        if (localRenderer != null) localRenderer.setVisibility(isInPictureInPictureMode ? View.GONE : View.VISIBLE);
+        if (localVideoContainer != null) {
+            localVideoContainer.setVisibility(isInPictureInPictureMode ? View.GONE : View.VISIBLE);
+        }
         if (isInPictureInPictureMode) {
             PulseNativeCallService.updateVideoPresentation(sessionId, false, true);
         }
+        updateRealtimeKitRendering();
         applyResponsiveLayout();
     }
 
@@ -465,6 +559,7 @@ public class PulseNativeVideoCallActivity extends Activity {
             enteringPictureInPicture = false;
             PulseNativeCallService.updateVideoPresentation(sessionId, true, false);
         }
+        updateRealtimeKitRendering();
     }
 
     @Override
@@ -475,6 +570,10 @@ public class PulseNativeVideoCallActivity extends Activity {
             && getWindow().getDecorView().getWindowVisibility() == View.VISIBLE;
         if (!inPictureInPicture && !enteringPictureInPicture && !visibleInMultiWindow && !isChangingConfigurations()) {
             PulseNativeCallService.updateVideoPresentation(sessionId, false, false);
+        }
+        if (!inPictureInPicture && !visibleInMultiWindow) {
+            if (realtimeKitRemoteView != null) realtimeKitRemoteView.stopVideoRender();
+            if (realtimeKitLocalView != null) realtimeKitLocalView.stopVideoRender();
         }
         super.onStop();
     }
@@ -550,11 +649,19 @@ public class PulseNativeVideoCallActivity extends Activity {
         if (callReceiver != null) unregisterReceiver(callReceiver);
         if (!renderersReleased) {
             renderersReleased = true;
-            if (!realtimeKitCall) {
+            if (realtimeKitCall) {
+                PulseNativeCallService.detachRealtimeKitVideoHost(sessionId, realtimeKitVideoListener);
+                if (realtimeKitRemoteView != null) realtimeKitRemoteView.stopVideoRender();
+                if (realtimeKitLocalView != null) realtimeKitLocalView.stopVideoRender();
+                if (remoteVideoContainer != null) remoteVideoContainer.removeAllViews();
+                if (localVideoContainer != null) localVideoContainer.removeAllViews();
+                realtimeKitRemoteView = null;
+                realtimeKitLocalView = null;
+            } else {
                 PulseNativeCallService.detachVideoRenderers(sessionId, remoteRenderer, localRenderer);
+                remoteRenderer.release();
+                localRenderer.release();
             }
-            remoteRenderer.release();
-            localRenderer.release();
         }
         boolean inPictureInPicture = isInPictureInPicture();
         if (!inPictureInPicture && !isChangingConfigurations()) {

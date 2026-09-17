@@ -4,7 +4,15 @@ import android.app.Activity;
 
 import com.cloudflare.realtimekit.RealtimeKitClient;
 import com.cloudflare.realtimekit.RealtimeKitMeetingBuilder;
+import com.cloudflare.realtimekit.RtkParticipant;
 import com.cloudflare.realtimekit.models.RtkMeetingInfo;
+import com.cloudflare.realtimekit.participants.RtkParticipants;
+import com.cloudflare.realtimekit.participants.RtkParticipantsEventListener;
+import com.cloudflare.realtimekit.participants.RtkRemoteParticipant;
+import com.cloudflare.realtimekit.platform.VideoView;
+
+import java.util.List;
+import java.util.Map;
 
 import kotlin.Unit;
 
@@ -29,6 +37,10 @@ final class PulseRealtimeKitSession {
         void complete(String error);
     }
 
+    interface VideoListener {
+        void onVideoViewsChanged(VideoView remoteView, VideoView localView);
+    }
+
     interface Backend {
         void initialize(String authToken, boolean enableVideo, Completion completion);
 
@@ -39,6 +51,10 @@ final class PulseRealtimeKitSession {
         void setVideoEnabled(boolean enabled, Completion completion);
 
         void switchCamera();
+
+        void setVideoListener(VideoListener listener);
+
+        void clearVideoListener(VideoListener listener);
 
         void leave(Completion completion);
 
@@ -84,6 +100,14 @@ final class PulseRealtimeKitSession {
         if (state != State.ACTIVE) return false;
         backend.switchCamera();
         return true;
+    }
+
+    synchronized void attachVideoListener(VideoListener videoListener) {
+        backend.setVideoListener(videoListener);
+    }
+
+    synchronized void detachVideoListener(VideoListener videoListener) {
+        backend.clearVideoListener(videoListener);
     }
 
     synchronized boolean end() {
@@ -163,9 +187,68 @@ final class PulseRealtimeKitSession {
     }
 
     private static final class CloudflareBackend implements Backend {
+        private final Activity activity;
         private final RealtimeKitClient client;
+        private VideoListener videoListener;
+        private VideoView localVideoView;
+        private VideoView remoteVideoView;
+        private String remoteParticipantId;
+        private boolean participantListenerRegistered;
+        private boolean roomJoined;
+        private boolean released;
+
+        private final RtkParticipantsEventListener participantsEventListener = new RtkParticipantsEventListener() {
+            @Override
+            public void onParticipantJoin(RtkRemoteParticipant participant) {
+                refreshVideoViews();
+            }
+
+            @Override
+            public void onParticipantLeave(RtkRemoteParticipant participant) {
+                refreshVideoViews();
+            }
+
+            @Override
+            public void onAudioUpdate(RtkRemoteParticipant participant, boolean enabled) {}
+
+            @Override
+            public void onVideoUpdate(RtkRemoteParticipant participant, boolean enabled) {
+                refreshVideoViews();
+            }
+
+            @Override
+            public void onScreenShareUpdate(RtkRemoteParticipant participant, boolean enabled) {}
+
+            @Override
+            public void onParticipantPinned(RtkRemoteParticipant participant) {}
+
+            @Override
+            public void onParticipantUnpinned(RtkRemoteParticipant participant) {}
+
+            @Override
+            public void onActiveParticipantsChanged(List<RtkRemoteParticipant> participants) {
+                refreshVideoViews();
+            }
+
+            @Override
+            public void onActiveSpeakerChanged(RtkRemoteParticipant participant) {}
+
+            @Override
+            public void onAllParticipantsUpdated(List<RtkParticipant> participants) {
+                refreshVideoViews();
+            }
+
+            @Override
+            public void onNewBroadcastMessage(String type, Map<String, ?> payload) {}
+
+            @Override
+            public void onUpdate(RtkParticipants participants) {
+                refreshVideoViews();
+            }
+        };
 
         CloudflareBackend(Activity activity) {
+            this.activity = activity;
             client = RealtimeKitMeetingBuilder.INSTANCE.build(activity);
         }
 
@@ -174,7 +257,10 @@ final class PulseRealtimeKitSession {
             RtkMeetingInfo meetingInfo = new RtkMeetingInfo(authToken, true, enableVideo);
             client.init(
                 meetingInfo,
-                () -> completeSuccess(completion),
+                () -> {
+                    registerParticipantListener();
+                    return completeSuccess(completion);
+                },
                 error -> completeFailure(completion, error)
             );
         }
@@ -182,7 +268,11 @@ final class PulseRealtimeKitSession {
         @Override
         public void join(Completion completion) {
             client.joinRoom(
-                () -> completeSuccess(completion),
+                () -> {
+                    roomJoined = true;
+                    refreshVideoViews();
+                    return completeSuccess(completion);
+                },
                 error -> completeFailure(completion, error)
             );
         }
@@ -211,7 +301,19 @@ final class PulseRealtimeKitSession {
         }
 
         @Override
+        public void setVideoListener(VideoListener listener) {
+            videoListener = listener;
+            refreshVideoViews();
+        }
+
+        @Override
+        public void clearVideoListener(VideoListener listener) {
+            if (videoListener == listener) videoListener = null;
+        }
+
+        @Override
         public void leave(Completion completion) {
+            roomJoined = false;
             client.leaveRoom(
                 () -> completeSuccess(completion),
                 error -> completeFailure(completion, error)
@@ -220,10 +322,86 @@ final class PulseRealtimeKitSession {
 
         @Override
         public void release(Completion completion) {
-            client.release(
-                () -> completeSuccess(completion),
-                error -> completeFailure(completion, error)
-            );
+            released = true;
+            roomJoined = false;
+            if (participantListenerRegistered) {
+                client.removeParticipantsEventListener(participantsEventListener);
+                participantListenerRegistered = false;
+            }
+            activity.runOnUiThread(() -> {
+                releaseVideoViews();
+                client.release(
+                    () -> completeSuccess(completion),
+                    error -> completeFailure(completion, error)
+                );
+            });
+        }
+
+        private void registerParticipantListener() {
+            if (participantListenerRegistered || released) return;
+            client.addParticipantsEventListener(participantsEventListener);
+            participantListenerRegistered = true;
+        }
+
+        private void refreshVideoViews() {
+            VideoListener listener = videoListener;
+            if (listener == null || released || !roomJoined) return;
+            activity.runOnUiThread(() -> {
+                if (released || !roomJoined || videoListener == null) return;
+                if (localVideoView == null) localVideoView = client.getLocalUser().getSelfPreview();
+
+                RtkRemoteParticipant participant = selectRemoteParticipant();
+                String participantId = participant == null ? null : participant.getId();
+                VideoView previousRemoteView = null;
+                if (!sameValue(remoteParticipantId, participantId)) {
+                    previousRemoteView = remoteVideoView;
+                    remoteVideoView = null;
+                    remoteParticipantId = participantId;
+                    if (participant != null) remoteVideoView = participant.getVideoView();
+                }
+                videoListener.onVideoViewsChanged(remoteVideoView, localVideoView);
+                releaseDetachedVideoView(previousRemoteView);
+            });
+        }
+
+        private RtkRemoteParticipant selectRemoteParticipant() {
+            List<RtkRemoteParticipant> joined = client.getParticipants().getJoined();
+            if (joined == null || joined.isEmpty()) return null;
+            for (RtkRemoteParticipant participant : joined) {
+                if (participant != null && participant.getVideoEnabled()) return participant;
+            }
+            return joined.get(0);
+        }
+
+        private void releaseVideoViews() {
+            VideoListener listener = videoListener;
+            if (listener != null) listener.onVideoViewsChanged(null, null);
+            releaseRemoteVideoView();
+            if (localVideoView != null) {
+                localVideoView.stopVideoRender();
+                localVideoView.release();
+                localVideoView = null;
+            }
+            videoListener = null;
+        }
+
+        private void releaseRemoteVideoView() {
+            if (remoteVideoView != null) {
+                remoteVideoView.stopVideoRender();
+                remoteVideoView.release();
+                remoteVideoView = null;
+            }
+            remoteParticipantId = null;
+        }
+
+        private void releaseDetachedVideoView(VideoView videoView) {
+            if (videoView == null) return;
+            videoView.stopVideoRender();
+            videoView.release();
+        }
+
+        private static boolean sameValue(String first, String second) {
+            return first == null ? second == null : first.equals(second);
         }
 
         private static Unit completeSuccess(Completion completion) {

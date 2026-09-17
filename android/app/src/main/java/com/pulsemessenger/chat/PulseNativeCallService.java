@@ -159,6 +159,7 @@ public class PulseNativeCallService extends Service {
     private PulseRealtimeKitSession realtimeKitSession;
     private PulseRealtimeKitCredentialsClient.Credentials realtimeKitCredentials;
     private WeakReference<Activity> realtimeKitHostActivity;
+    private WeakReference<PulseRealtimeKitSession.VideoListener> realtimeKitVideoListener;
     private boolean realtimeKitRemoteAnswered;
 
     static boolean isActive(String sessionId) {
@@ -173,6 +174,41 @@ public class PulseNativeCallService extends Service {
         service.realtimeKitHostActivity = new WeakReference<>(activity);
         service.mainHandler.post(service::startRealtimeKitSessionIfReady);
         return true;
+    }
+
+    static boolean attachRealtimeKitVideoHost(
+        Activity activity,
+        String sessionId,
+        PulseRealtimeKitSession.VideoListener listener
+    ) {
+        if (listener == null || !attachRealtimeKitHost(activity, sessionId)) return false;
+        PulseNativeCallService service = activeService;
+        if (service == null) return false;
+        service.realtimeKitVideoListener = new WeakReference<>(listener);
+        service.mainHandler.post(() -> {
+            if (service.realtimeKitSession != null) {
+                service.realtimeKitSession.attachVideoListener(listener);
+            }
+        });
+        return true;
+    }
+
+    static void detachRealtimeKitVideoHost(
+        String sessionId,
+        PulseRealtimeKitSession.VideoListener listener
+    ) {
+        PulseNativeCallService service = activeService;
+        if (service == null || listener == null || !isActive(sessionId)) return;
+        PulseRealtimeKitSession.VideoListener attached = service.realtimeKitVideoListener == null
+            ? null
+            : service.realtimeKitVideoListener.get();
+        if (attached != listener) return;
+        service.realtimeKitVideoListener = null;
+        service.mainHandler.post(() -> {
+            if (service.realtimeKitSession != null) {
+                service.realtimeKitSession.detachVideoListener(listener);
+            }
+        });
     }
 
     static boolean hasActiveCall() {
@@ -556,6 +592,10 @@ public class PulseNativeCallService extends Service {
                     android.util.Log.w("PulseCallV2", message);
                 }
             });
+            PulseRealtimeKitSession.VideoListener videoListener = realtimeKitVideoListener == null
+                ? null
+                : realtimeKitVideoListener.get();
+            if (videoListener != null) realtimeKitSession.attachVideoListener(videoListener);
             if (!realtimeKitSession.start(realtimeKitCredentials.authToken, isVideo)) {
                 failCall("Nieuwe oproepverbinding kon niet worden gestart");
             }
@@ -1353,6 +1393,7 @@ public class PulseNativeCallService extends Service {
         }
         realtimeKitCredentials = null;
         realtimeKitHostActivity = null;
+        realtimeKitVideoListener = null;
         realtimeKitRemoteAnswered = false;
         cameraLifecycle.setCaptureActive(false);
         detachRenderers(remoteRenderer, localRenderer);

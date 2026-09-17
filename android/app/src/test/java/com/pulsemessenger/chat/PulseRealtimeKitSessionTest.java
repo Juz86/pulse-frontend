@@ -94,6 +94,18 @@ public class PulseRealtimeKitSessionTest {
         assertFalse(session.start(" ", false));
     }
 
+    @Test
+    public void videoListenerIsAttachedAndDetachedThroughBackend() {
+        FakeBackend backend = activeBackend();
+        PulseRealtimeKitSession.VideoListener listener = (remote, local) -> {};
+
+        backend.session.attachVideoListener(listener);
+        assertEquals(listener, backend.videoListener);
+
+        backend.session.detachVideoListener(listener);
+        assertEquals(null, backend.videoListener);
+    }
+
     private FakeBackend activeBackend() {
         FakeBackend backend = new FakeBackend();
         backend.session = new PulseRealtimeKitSession(backend, null);
@@ -130,6 +142,7 @@ public class PulseRealtimeKitSessionTest {
         PulseRealtimeKitSession.Completion initializeCompletion;
         PulseRealtimeKitSession.Completion joinCompletion;
         PulseRealtimeKitSession.Completion leaveCompletion;
+        PulseRealtimeKitSession.VideoListener videoListener;
 
         @Override
         public void initialize(String authToken, boolean enableVideo, PulseRealtimeKitSession.Completion completion) {
@@ -158,6 +171,16 @@ public class PulseRealtimeKitSessionTest {
         @Override
         public void switchCamera() {
             switchCameraCount++;
+        }
+
+        @Override
+        public void setVideoListener(PulseRealtimeKitSession.VideoListener listener) {
+            videoListener = listener;
+        }
+
+        @Override
+        public void clearVideoListener(PulseRealtimeKitSession.VideoListener listener) {
+            if (videoListener == listener) videoListener = null;
         }
 
         @Override

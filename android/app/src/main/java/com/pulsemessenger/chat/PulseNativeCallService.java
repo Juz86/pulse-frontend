@@ -233,8 +233,14 @@ public class PulseNativeCallService extends Service {
     }
 
     static void reopenActiveCallUi() {
+        reopenActiveCallUi(null);
+    }
+
+    static void reopenActiveCallUi(Context launchContext) {
         PulseNativeCallService service = activeService;
-        if (service != null && hasActiveCall()) service.showActiveCallUi();
+        if (service != null && hasActiveCall()) {
+            service.showActiveCallUi(launchContext == null ? service : launchContext);
+        }
     }
 
     private synchronized boolean isStaleForAdmission(long nowMs) {
@@ -439,7 +445,7 @@ public class PulseNativeCallService extends Service {
             if (!startForegroundCompat(buildNotification(notificationStatus))) return START_NOT_STICKY;
             armInitialConnectionTimeout();
             startAudioRouting();
-            showActiveCallUi();
+            showActiveCallUi(this);
             if (outgoing) {
                 String idToken = PulseOutgoingCallCredentials.consume(sessionId);
                 if (idToken == null || idToken.trim().isEmpty()) {
@@ -1554,12 +1560,18 @@ public class PulseNativeCallService extends Service {
             .build();
     }
 
-    private void showActiveCallUi() {
+    private void showActiveCallUi(Context launchContext) {
         if (sessionId == null) return;
+        Context context = launchContext == null ? this : launchContext;
+        android.util.Log.i(
+            "PulseNativeCall",
+            "Native oproepscherm openen via " + context.getClass().getSimpleName()
+                + ": sessionId=" + sessionId + ", engine=" + callEngine
+        );
         if (isVideo) {
-            PulseNativeVideoCallActivity.show(this, sessionId, callerName, callEngine);
+            PulseNativeVideoCallActivity.show(context, sessionId, callerName, callEngine);
         } else {
-            PulseNativeAudioCallActivity.show(this, sessionId, callerName, callEngine);
+            PulseNativeAudioCallActivity.show(context, sessionId, callerName, callEngine);
         }
     }
 

@@ -564,6 +564,7 @@ public class PulseNativeVideoCallActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        PulseNativeCallService.attachRealtimeKitHost(this, sessionId);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || !isInPictureInPictureMode()) {
             enteringPictureInPicture = false;
             PulseNativeCallService.updateVideoPresentation(sessionId, true, false);

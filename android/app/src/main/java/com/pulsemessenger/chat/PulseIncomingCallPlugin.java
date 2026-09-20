@@ -1,6 +1,7 @@
 package com.pulsemessenger.chat;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.Intent;
 import android.net.Uri;
@@ -169,6 +170,8 @@ public class PulseIncomingCallPlugin extends Plugin {
         long startedAtMs
     ) {
         if (PulseNativeCallService.isActive(sessionId) && PulseNativeCallService.hasActiveCall()) {
+            Activity activity = getActivity();
+            PulseNativeCallService.reopenActiveCallUi(activity == null ? getContext() : activity);
             JSObject result = new JSObject();
             result.put("sessionId", sessionId);
             result.put("native", true);

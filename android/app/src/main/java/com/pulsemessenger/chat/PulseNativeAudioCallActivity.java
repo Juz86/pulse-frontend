@@ -68,6 +68,12 @@ public class PulseNativeAudioCallActivity extends Activity {
         rebuildContent();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        PulseNativeCallService.attachRealtimeKitHost(this, sessionId);
+    }
+
     private void readIntent(Intent intent) {
         sessionId = intent == null ? null : intent.getStringExtra(PulseTelecomManager.EXTRA_SESSION_ID);
         PulseNativeCallService.attachRealtimeKitHost(this, sessionId);

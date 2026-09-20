@@ -445,7 +445,6 @@ public class PulseNativeCallService extends Service {
             if (!startForegroundCompat(buildNotification(notificationStatus))) return START_NOT_STICKY;
             armInitialConnectionTimeout();
             startAudioRouting();
-            showActiveCallUi(this);
             if (outgoing) {
                 String idToken = PulseOutgoingCallCredentials.consume(sessionId);
                 if (idToken == null || idToken.trim().isEmpty()) {
@@ -456,6 +455,7 @@ public class PulseNativeCallService extends Service {
                     startNativeOutgoing(idToken);
                 }
             } else {
+                showActiveCallUi(this);
                 authenticateAndRun(isRealtimeKitCall() ? this::startRealtimeKitAnswer : this::startNativeAnswer);
             }
         }

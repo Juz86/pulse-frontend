@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.provider.Settings;
+import android.widget.Toast;
 
 import androidx.core.app.NotificationManagerCompat;
 
@@ -38,6 +39,7 @@ import java.util.UUID;
 public class PulseIncomingCallPlugin extends Plugin {
     private static final long OUTGOING_START_TIMEOUT_MS = 5_000L;
     private static final long OUTGOING_START_POLL_MS = 50L;
+    private static final long OUTGOING_UI_HANDOFF_DELAY_MS = 300L;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
@@ -155,37 +157,64 @@ public class PulseIncomingCallPlugin extends Plugin {
             "Uitgaande oproep gebruikt " + callEngine
                 + (BuildConfig.PULSE_FORCE_REALTIMEKIT_CALLS_V2 ? " (debug override)" : "")
         );
-        if (!PulseCallCoordinator.startOutgoing(getContext(), extras)) {
+        Activity activity = getActivity();
+        if (!PulseCallCoordinator.startOutgoing(activity == null ? getContext() : activity, extras)) {
             PulseOutgoingCallCredentials.remove(sessionId);
             call.reject("Native oproep kon niet worden gestart");
             return;
         }
-        awaitOutgoingServiceStart(call, sessionId, callEngine, SystemClock.elapsedRealtime());
+
+        JSObject result = new JSObject();
+        result.put("sessionId", sessionId);
+        result.put("native", true);
+        result.put("accepted", true);
+        result.put("callEngine", callEngine);
+        call.resolve(result);
+
+        android.util.Log.i(
+            "PulseCallLaunch",
+            "Uitgaande oproep geaccepteerd; service wordt asynchroon gekoppeld: sessionId=" + sessionId
+        );
+        long serviceStartRequestedAtMs = SystemClock.elapsedRealtime();
+        mainHandler.postDelayed(
+            () -> awaitOutgoingServiceStart(sessionId, new Bundle(extras), serviceStartRequestedAtMs),
+            OUTGOING_UI_HANDOFF_DELAY_MS
+        );
     }
 
-    private void awaitOutgoingServiceStart(
-        PluginCall call,
-        String sessionId,
-        String callEngine,
-        long startedAtMs
-    ) {
-        if (PulseNativeCallService.isActive(sessionId) && PulseNativeCallService.hasActiveCall()) {
+    private void awaitOutgoingServiceStart(String sessionId, Bundle extras, long startedAtMs) {
+        PulseOutgoingServiceStartPolicy.Result state = PulseOutgoingServiceStartPolicy.evaluate(
+            PulseNativeCallService.isActive(sessionId) && PulseNativeCallService.hasActiveCall(),
+            SystemClock.elapsedRealtime() - startedAtMs,
+            OUTGOING_START_TIMEOUT_MS
+        );
+        if (state == PulseOutgoingServiceStartPolicy.Result.READY) {
             Activity activity = getActivity();
-            PulseNativeCallService.reopenActiveCallUi(activity == null ? getContext() : activity);
-            JSObject result = new JSObject();
-            result.put("sessionId", sessionId);
-            result.put("native", true);
-            result.put("callEngine", callEngine);
-            call.resolve(result);
+            android.content.Context launchContext = activity == null ? getContext() : activity;
+            PulseTelecomManager.presentOutgoingCall(launchContext, extras);
+            PulseNativeCallService.reopenActiveCallUi(launchContext);
+            android.util.Log.i(
+                "PulseCallLaunch",
+                "Native oproepservice actief; oproepscherm geopend: sessionId=" + sessionId
+            );
             return;
         }
-        if (SystemClock.elapsedRealtime() - startedAtMs >= OUTGOING_START_TIMEOUT_MS) {
+        if (state == PulseOutgoingServiceStartPolicy.Result.TIMED_OUT) {
             PulseCallCoordinator.launchTimedOut(sessionId);
-            call.reject("Native oproepservice reageert niet. Probeer opnieuw.");
+            android.util.Log.e(
+                "PulseCallLaunch",
+                "Native oproepservice startte niet binnen " + OUTGOING_START_TIMEOUT_MS
+                    + " ms: sessionId=" + sessionId
+            );
+            Toast.makeText(
+                getContext(),
+                "Oproep kon niet worden gestart. Probeer opnieuw.",
+                Toast.LENGTH_LONG
+            ).show();
             return;
         }
         mainHandler.postDelayed(
-            () -> awaitOutgoingServiceStart(call, sessionId, callEngine, startedAtMs),
+            () -> awaitOutgoingServiceStart(sessionId, extras, startedAtMs),
             OUTGOING_START_POLL_MS
         );
     }

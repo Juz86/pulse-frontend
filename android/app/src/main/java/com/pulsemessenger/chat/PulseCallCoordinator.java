@@ -22,8 +22,6 @@ final class PulseCallCoordinator {
             return false;
         }
 
-        // Telecom mirrors the call to Android. It never owns or starts WebRTC.
-        PulseTelecomManager.presentOutgoingCall(context, extras);
         return true;
     }
 

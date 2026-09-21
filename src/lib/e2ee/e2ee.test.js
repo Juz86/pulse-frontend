@@ -12,7 +12,6 @@ import {
   getSharedContactDisplayText,
 } from './messageCopy';
 import {
-  applyCallConversationSummaryToList,
   applyConversationReactionSummaryToList,
   applyConversationSummaryToList,
   buildConversationPreviewPresentation,
@@ -1065,9 +1064,6 @@ describe('e2ee attachment helpers', () => {
         lastAttachmentMediaKeyId: null,
         lastAttachmentKeyWrapAlg: null,
         lastAttachmentWrappedMediaKeyDigest: null,
-        lastCallDirection: null,
-        lastCallSenderId: null,
-        lastCallIsVideo: null,
         lastReactionMessageId: null,
         lastReactionEmoji: null,
         lastReactionReactorId: null,
@@ -1102,52 +1098,6 @@ describe('e2ee attachment helpers', () => {
         lastReactionAt: '2026-01-01T11:00:00.000Z',
       },
       { id: 'conv-1', updatedAt: '2026-01-01T10:00:00.000Z', lastMessage: 'Hallo' },
-    ]);
-  });
-
-  test('applyCallConversationSummaryToList updates call preview and call metadata centrally', () => {
-    expect(applyCallConversationSummaryToList([
-      {
-        id: 'conv-1',
-        updatedAt: '2026-01-01T10:00:00.000Z',
-        lastMessage: 'Oud',
-        lastAttachmentName: 'rapport.pdf',
-        lastAttachmentTransfer: 'remote',
-      },
-      { id: 'conv-2', updatedAt: '2026-01-01T09:00:00.000Z', lastMessage: 'Ander' },
-    ], 'conv-2', {
-      type: 'call',
-      senderId: 'user-2',
-      direction: 'completed',
-      isVideo: true,
-      createdAt: '2026-01-01T11:00:00.000Z',
-    }, 'user-1')).toEqual([
-      {
-        id: 'conv-2',
-        updatedAt: '2026-01-01T11:00:00.000Z',
-        lastMessage: 'Video-oproep',
-        lastMessageType: 'call',
-        lastAttachmentName: null,
-        lastAttachmentTransfer: null,
-        lastAttachmentStrategyKey: null,
-        lastAttachmentEncoding: null,
-        lastAttachmentEnvelopeKind: null,
-        lastAttachmentOriginalMimeType: null,
-        lastAttachmentExpectedPayloadSha256: null,
-        lastAttachmentMediaKeyId: null,
-        lastAttachmentKeyWrapAlg: null,
-        lastAttachmentWrappedMediaKeyDigest: null,
-        lastCallDirection: 'completed',
-        lastCallSenderId: 'user-2',
-        lastCallIsVideo: true,
-      },
-      {
-        id: 'conv-1',
-        updatedAt: '2026-01-01T10:00:00.000Z',
-        lastMessage: 'Oud',
-        lastAttachmentName: 'rapport.pdf',
-        lastAttachmentTransfer: 'remote',
-      },
     ]);
   });
 

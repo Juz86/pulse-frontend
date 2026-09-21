@@ -9,7 +9,6 @@ const forbiddenPatterns = [
   'secureKeyStore',
   'ChatScreen',
   'ParentDashboard',
-  'CallOverlay',
   'firebase/auth',
   'AuthModal',
   'ParentAuthModal',
@@ -42,4 +41,4 @@ if (violations.length) {
   process.exit(1);
 }
 
-console.log('Landing build is clean: no webapp-only auth, E2EE, chat or call code found.');
+console.log('Landing build is clean: no webapp-only auth, E2EE or chat code found.');

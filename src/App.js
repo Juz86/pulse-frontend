@@ -9,11 +9,6 @@ import {
   connectSocket,
   disconnectSocket,
   BACKEND_URL,
-  isCallInProgress,
-  registerIncomingRingingSession,
-  rejectCallAsBusy,
-  declineCall,
-  clearIncomingRingingSession,
 } from './services/socket';
 import './App.css';
 import PulseLogo from './components/PulseLogo';
@@ -42,20 +37,10 @@ import {
   startImmediateUpdate,
 } from './services/appUpdate';
 import { subscribeToFeatureFlags } from './services/featureFlags';
-import { isRealtimeKitCallInProgress } from './services/realtimeKitCallCoordinator';
 import { FeatureFlagsProvider } from './context/FeatureFlagsContext';
 import { markNativeWebBundleHealthy, stageNativeWebUpdate } from './services/nativeWebUpdate';
-import {
-  addNativeIncomingCallActionListener,
-  classifyNativeIncomingCall,
-  clearNativeIncomingCallAuth,
-  consumeNativeIncomingCall,
-  provisionNativeIncomingCallAuth,
-} from './services/nativeIncomingCall';
-import { isAndroidNativeCalling, presentNativeIncomingCall } from './services/nativeCalling';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
-const CallOverlay        = lazy(() => import('./components/CallOverlay'));
 const ResetPasswordScreen = lazy(() => import('./screens/ResetPasswordScreen'));
 const FunctiePagina       = lazy(() => import('./screens/FunctiePagina'));
 const OuderlijkToezichtPagina = lazy(() => import('./screens/OuderlijkToezichtPagina'));
@@ -171,7 +156,7 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
             <ol className="web-auth-steps" aria-label="Inloggen bij Pulse Web">
               <li><span>1</span> Vul je e-mailadres of gebruikersnaam in</li>
               <li><span>2</span> Vul je wachtwoord in</li>
-              <li><span>3</span> Veilig chatten, bellen en videobellen</li>
+              <li><span>3</span> Veilig chatten en bestanden delen</li>
             </ol>
 
             <p className="web-auth-help">
@@ -300,8 +285,6 @@ function MainApp() {
   const urlParams = new URLSearchParams(window.location.search);
   const [user,         setUser]         = useState(null);
   const [authReady,    setAuthReady]    = useState(false);
-  const [incomingCall,    setIncomingCall]    = useState(null);
-  const [missedCallAlert, setMissedCallAlert] = useState(false);
   const [onlineUsers,   setOnlineUsers]   = useState(new Set());
   const [inactiveUsers, setInactiveUsers] = useState(new Set());
   const [userRole,            setUserRole]            = useState(null);
@@ -312,13 +295,6 @@ function MainApp() {
   const [parentActivityBadge, setParentActivityBadge] = useState(0);
   const [parentToast,         setParentToast]         = useState(null);
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
-  const [pendingCallBootstrap, setPendingCallBootstrap] = useState({
-    sessionId: urlParams.get('callSessionId') || null,
-    fromUid: urlParams.get('fromUid') || null,
-    callerName: urlParams.get('callerName') || 'Iemand',
-    isVideo: urlParams.get('isVideo') === '1',
-    action: 'open',
-  });
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
   const [appUpdate, setAppUpdate] = useState({
     ready: false,
@@ -333,58 +309,9 @@ function MainApp() {
   const toastTimerRef          = useRef(null);
   const pushCleanupRef         = useRef(null);
   const onlineVisibilityRef    = useRef(null);
-  const incomingCallRef        = useRef(null);
   const lastSignedInUidRef     = useRef(null);
   const authQueryHandledRef    = useRef(false);
   const updateListenerRef      = useRef(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    let consuming = false;
-    let nativeListener = null;
-
-    const consumePendingCall = async () => {
-      if (cancelled || consuming) return;
-      consuming = true;
-      try {
-        const call = await consumeNativeIncomingCall();
-        if (cancelled || !call?.sessionId || !call?.fromUid) return;
-        setPendingCallBootstrap({
-          sessionId: call.sessionId,
-          fromUid: call.fromUid,
-          callerName: call.callerName || 'Iemand',
-          isVideo: !!call.isVideo,
-          action: call.action || 'open',
-        });
-      } finally {
-        consuming = false;
-      }
-    };
-
-    const consumeWhenVisible = () => {
-      if (document.visibilityState === 'visible') consumePendingCall();
-    };
-
-    consumePendingCall();
-    addNativeIncomingCallActionListener(consumePendingCall).then((listener) => {
-      if (cancelled) {
-        listener?.remove?.();
-        return;
-      }
-      nativeListener = listener;
-    });
-    document.addEventListener('visibilitychange', consumeWhenVisible);
-    window.addEventListener('focus', consumePendingCall);
-
-    return () => {
-      cancelled = true;
-      document.removeEventListener('visibilitychange', consumeWhenVisible);
-      window.removeEventListener('focus', consumePendingCall);
-      if (nativeListener?.remove) {
-        Promise.resolve(nativeListener.remove()).catch(() => {});
-      }
-    };
-  }, []);
 
   useEffect(() => {
     let isAndroid = false;
@@ -398,7 +325,6 @@ function MainApp() {
     if (!isAndroid) return undefined;
 
     // Android WebView reports a zero CSS safe-area inset on several devices.
-    // Mark the document so call-specific CSS can reserve the status-bar area.
     document.documentElement.classList.add('pulse-platform-android');
     return () => document.documentElement.classList.remove('pulse-platform-android');
   }, []);
@@ -493,24 +419,6 @@ function MainApp() {
     };
   }, []);
 
-  useEffect(() => {
-    incomingCallRef.current = incomingCall;
-  }, [incomingCall]);
-
-  useEffect(() => {
-    if (!incomingCall?.sessionId || !incomingCall?.from) return undefined;
-    const timeoutId = setTimeout(() => {
-      setIncomingCall((prev) => {
-        if (!prev || prev.sessionId !== incomingCall.sessionId) return prev;
-        console.info('[Pulse][Call] inkomende oproep timeout', { sessionId: incomingCall.sessionId, fromUid: incomingCall.from });
-        setMissedCallAlert(true);
-        clearIncomingRingingSession(incomingCall.sessionId, 'incoming_timeout');
-        return null;
-      });
-    }, 35_000);
-    return () => clearTimeout(timeoutId);
-  }, [incomingCall?.sessionId, incomingCall?.from]);
-
   useEffect(() => scheduleIdleTask(() => {
     fetch(`${BACKEND}/`, { method: 'GET', keepalive: true }).catch((e) => {
       console.warn('[Pulse] Backend fout:', e.message);
@@ -541,158 +449,14 @@ function MainApp() {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (!user || !pendingCallBootstrap?.sessionId || !pendingCallBootstrap?.fromUid) return undefined;
-    let cancelled = false;
-
-    const rehydrateIncomingCall = async () => {
-      const sessionId = pendingCallBootstrap.sessionId;
-      const fromUid = pendingCallBootstrap.fromUid;
-      const callerName = pendingCallBootstrap.callerName || 'Iemand';
-      const isVideo = !!pendingCallBootstrap.isVideo;
-      const action = pendingCallBootstrap.action || 'open';
-
-      if (action === 'decline') {
-        declineCall(fromUid, sessionId);
-        clearIncomingRingingSession(sessionId, 'native_decline');
-        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false, action: 'open' });
-        return;
-      }
-
-      const existingIncomingCall = incomingCallRef.current;
-      const disposition = classifyNativeIncomingCall(
-        existingIncomingCall,
-        sessionId,
-        isCallInProgress(),
-      );
-      if (disposition === 'existing') {
-        if (action === 'answer') {
-          setIncomingCall((current) => (
-            current?.sessionId === sessionId
-              ? { ...current, autoAnswer: true }
-              : current
-          ));
-        }
-        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false, action: 'open' });
-        return;
-      }
-
-      if (disposition === 'busy') {
-        rejectCallAsBusy(fromUid, sessionId);
-        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false, action: 'open' });
-        return;
-      }
-      const accepted = registerIncomingRingingSession(sessionId, fromUid);
-      if (!accepted) {
-        rejectCallAsBusy(fromUid, sessionId);
-        setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false, action: 'open' });
-        return;
-      }
-
-      try {
-        const idToken = await user.getIdToken();
-        const pendingUrl = new URL(`${BACKEND}/calls/pending/${encodeURIComponent(sessionId)}`);
-        pendingUrl.searchParams.set('fromUid', fromUid);
-        const response = await fetch(pendingUrl.toString(), {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${idToken}` },
-        });
-        if (!response.ok) throw new Error(`pending_call_fetch_failed_${response.status}`);
-        const json = await response.json().catch(() => ({}));
-        if (!json?.ok || !json?.call?.offer) throw new Error('pending_call_offer_missing');
-        if (cancelled) return;
-        setIncomingCall({
-          from: fromUid,
-          fromUid,
-          callerName: json.call.callerName || callerName,
-          isVideo: json.call.isVideo ?? isVideo,
-          offer: json.call.offer,
-          sessionId,
-          autoAnswer: action === 'answer',
-        });
-      } catch (error) {
-        console.warn('[Pulse][Call] query-call herstel mislukt:', error?.message || error);
-        clearIncomingRingingSession(sessionId, 'query_rehydrate_failed');
-      } finally {
-        if (!cancelled) {
-          setPendingCallBootstrap({ sessionId: null, fromUid: null, callerName: 'Iemand', isVideo: false, action: 'open' });
-          const params = new URLSearchParams(window.location.search);
-          params.delete('callSessionId');
-          params.delete('fromUid');
-          params.delete('callerName');
-          params.delete('isVideo');
-          const nextSearch = params.toString();
-          const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ''}${window.location.hash}`;
-          window.history.replaceState(null, '', nextUrl);
-        }
-      }
-    };
-
-    rehydrateIncomingCall();
-    return () => {
-      cancelled = true;
-    };
-  }, [user, pendingCallBootstrap]);
-
   // Fix iOS Safari keyboard: sync visual viewport height to CSS variable
   // Service worker → deep-link naar gesprek via notificatie-tik (één keer registreren)
   useEffect(() => {
     if (!navigator.serviceWorker) return;
-    const openIncomingCallFromPayload = async (payload = {}) => {
-      const fromUid = payload.fromUid || payload.senderUid || payload.from || null;
-      const sessionId = payload.callSessionId || payload.sessionId || null;
-      const callerName = payload.callerName || 'Iemand';
-      const isVideo = payload.isVideo === true || payload.isVideo === '1' || payload.isVideo === 1;
-      if (!fromUid || !sessionId) return;
-
-      if (incomingCallRef.current || isCallInProgress()) {
-        rejectCallAsBusy(fromUid, sessionId);
-        return;
-      }
-
-      const accepted = registerIncomingRingingSession(sessionId, fromUid);
-      if (!accepted) {
-        rejectCallAsBusy(fromUid, sessionId);
-        return;
-      }
-
-      try {
-        const firebaseUser = auth.currentUser;
-        if (!firebaseUser) throw new Error('auth_user_missing');
-        const idToken = await firebaseUser.getIdToken();
-        const pendingUrl = new URL(`${BACKEND}/calls/pending/${encodeURIComponent(sessionId)}`);
-        pendingUrl.searchParams.set('fromUid', fromUid);
-        const response = await fetch(pendingUrl.toString(), {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
-        if (!response.ok) throw new Error(`pending_call_fetch_failed_${response.status}`);
-        const json = await response.json().catch(() => ({}));
-        if (!json?.ok || !json?.call?.offer) throw new Error('pending_call_offer_missing');
-        setIncomingCall({
-          from: fromUid,
-          fromUid,
-          callerName: json.call.callerName || callerName,
-          isVideo: json.call.isVideo ?? isVideo,
-          offer: json.call.offer,
-          sessionId,
-        });
-        console.info('[Pulse][Call] incoming call geopend via push click', { sessionId, fromUid });
-      } catch (error) {
-        console.warn('[Pulse][Call] push-click call herstel mislukt:', error?.message || error);
-        clearIncomingRingingSession(sessionId, 'push_rehydrate_failed');
-      }
-    };
-
     const handler = (event) => {
       if (event.data?.type !== 'notification_click') return;
       const payload = event.data || {};
       if (payload.convId) setPendingConvId(payload.convId);
-      if (payload.notificationType === 'incoming_call' || payload.type === 'incoming_call') {
-        openIncomingCallFromPayload(payload);
-      }
     };
     navigator.serviceWorker.addEventListener('message', handler);
     return () => navigator.serviceWorker.removeEventListener('message', handler);
@@ -784,7 +548,6 @@ function MainApp() {
           const idToken = await firebaseUser.getIdToken();
           const socket = connectSocket(firebaseUser.uid, idToken);
           const authHeader = { 'Authorization': `Bearer ${idToken}` };
-          provisionNativeIncomingCallAuth(BACKEND, idToken);
 
           try {
             await fetch(`${BACKEND}/api/users/sync-self`, {
@@ -816,53 +579,6 @@ function MainApp() {
             authHeader,
             uid: firebaseUser.uid,
             onOpenConversation: (convId) => setPendingConvId(convId),
-            onPushAction: async (data = {}) => {
-              const type = data?.type || '';
-              if (data?.convId) setPendingConvId(data.convId);
-              if (type !== 'incoming_call') return;
-
-              const fromUid = data?.fromUid || data?.senderUid || null;
-              const sessionId = data?.callSessionId || data?.sessionId || null;
-              const callerName = data?.callerName || 'Iemand';
-              const isVideo = data?.isVideo === true || data?.isVideo === '1' || data?.isVideo === 1;
-              if (!fromUid || !sessionId) return;
-
-              if (incomingCallRef.current || isCallInProgress()) {
-                rejectCallAsBusy(fromUid, sessionId);
-                return;
-              }
-              const accepted = registerIncomingRingingSession(sessionId, fromUid);
-              if (!accepted) {
-                rejectCallAsBusy(fromUid, sessionId);
-                return;
-              }
-
-              try {
-                const latestToken = await firebaseUser.getIdToken();
-                const pendingUrl = new URL(`${BACKEND}/calls/pending/${encodeURIComponent(sessionId)}`);
-                pendingUrl.searchParams.set('fromUid', fromUid);
-                const response = await fetch(pendingUrl.toString(), {
-                  method: 'GET',
-                  headers: {
-                    Authorization: `Bearer ${latestToken}`,
-                  },
-                });
-                if (!response.ok) throw new Error(`pending_call_fetch_failed_${response.status}`);
-                const json = await response.json().catch(() => ({}));
-                if (!json?.ok || !json?.call?.offer) throw new Error('pending_call_offer_missing');
-                setIncomingCall({
-                  from: fromUid,
-                  fromUid,
-                  callerName: json.call.callerName || callerName,
-                  isVideo: json.call.isVideo ?? isVideo,
-                  offer: json.call.offer,
-                  sessionId,
-                });
-              } catch (error) {
-                console.warn('[Pulse][Call] native push-action call herstel mislukt:', error?.message || error);
-                clearIncomingRingingSession(sessionId, 'native_push_rehydrate_failed');
-              }
-            },
           });
 
           // Profiel opslaan in backend
@@ -980,66 +696,7 @@ function MainApp() {
           };
           document.addEventListener('visibilitychange', onlineVisibilityRef.current);
 
-          // Inkomende oproepen
-          socket.off('call:offer');
-          socket.off('call:ended');
-          socket.off('call:busy');
-          const onIncomingCall = async (data = {}) => {
-            const fromUid = data.from || data.fromUid || null;
-            const sessionId = data.sessionId || null;
-            if (!fromUid) return;
-
-            if (isAndroidNativeCalling()) {
-              try {
-                await presentNativeIncomingCall({ ...data, fromUid, sessionId });
-              } catch (error) {
-                console.warn('[Pulse][Call] Native inkomende oproep tonen mislukt:', error?.message || error);
-                rejectCallAsBusy(fromUid, sessionId);
-              }
-              return;
-            }
-
-            if (incomingCallRef.current || isCallInProgress() || isRealtimeKitCallInProgress()) {
-              console.info('[Pulse][Call] inkomende oproep geweigerd: al actief', { fromUid, sessionId });
-              rejectCallAsBusy(fromUid, sessionId);
-              return;
-            }
-
-            const accepted = registerIncomingRingingSession(sessionId, fromUid);
-            if (!accepted) {
-              console.info('[Pulse][Call] inkomende oproep geweigerd: session guard', { fromUid, sessionId });
-              rejectCallAsBusy(fromUid, sessionId);
-              return;
-            }
-
-            setIncomingCall({
-              ...data,
-              from: fromUid,
-              sessionId,
-            });
-          };
-          socket.on('call:offer', onIncomingCall);
-          // Beller hangt op voor de ontvanger opneemt → gemiste oproep loggen + overlay sluiten
-          socket.on('call:ended', ({ sessionId, reason } = {}) => {
-            setIncomingCall(prev => {
-              if (prev && sessionId && prev.sessionId && sessionId !== prev.sessionId) return prev;
-              if (prev && reason !== 'answered_elsewhere') {
-                setMissedCallAlert(true);
-              }
-              clearIncomingRingingSession(sessionId || null, 'remote_end_before_answer');
-              return null;
-            });
-          });
-          socket.on('call:busy', ({ sessionId } = {}) => {
-            setIncomingCall(prev => {
-              if (!prev) return prev;
-              if (sessionId && prev.sessionId && sessionId !== prev.sessionId) return prev;
-              clearIncomingRingingSession(sessionId || null, 'remote_busy_before_answer');
-              return null;
-            });
-          });
         } else {
-          clearNativeIncomingCallAuth();
           clearPulseUserStorage(lastSignedInUidRef.current);
           lastSignedInUidRef.current = null;
           localStorage.removeItem('pulse_user');
@@ -1278,22 +935,9 @@ function MainApp() {
           </>
         )
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} missedCallAlert={missedCallAlert} onCallLogRead={() => setMissedCallAlert(false)} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onDismissParentToast={() => setParentToast(null)} onOpenDashboard={() => setShowParentDashboard(true)} showParentDashboard={showParentDashboard} setShowParentDashboard={setShowParentDashboard} onParentActivitiesViewed={() => setParentActivityBadge(0)} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} />
+            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onDismissParentToast={() => setParentToast(null)} onOpenDashboard={() => setShowParentDashboard(true)} showParentDashboard={showParentDashboard} setShowParentDashboard={setShowParentDashboard} onParentActivitiesViewed={() => setParentActivityBadge(0)} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} />
           </>
       }
-      {incomingCall && (
-        <CallOverlay
-          incoming={incomingCall}
-          user={user}
-          onClose={(answered) => {
-            if (!answered && user) {
-              setMissedCallAlert(true);
-            }
-            clearIncomingRingingSession(incomingCall?.sessionId || null, answered ? 'incoming_answered' : 'incoming_closed');
-            setIncomingCall(null);
-          }}
-        />
-      )}
     </div>
     </Suspense>
     </ErrorBoundary>

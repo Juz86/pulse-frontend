@@ -1,6 +1,5 @@
 import React from 'react';
 import AttachmentMessageCard from './AttachmentMessageCard';
-import CallMessageCard from './CallMessageCard';
 import MessageBubbleGroup from './MessageBubbleGroup';
 import SharedContactMessageCard from './SharedContactMessageCard';
 import StandardMessageBubble from './StandardMessageBubble';
@@ -71,21 +70,6 @@ function buildContactMessageCardRenderConfig(presentation, handlers) {
   );
 }
 
-function buildCallMessageCardRenderProps(handlers) {
-  return {
-    onStartCall: handlers.onStartCall,
-    onActionCardKeyDown: handlers.onActionCardKeyDown,
-  };
-}
-
-function buildCallMessageCardRenderConfig(presentation, handlers) {
-  return buildPresentationCardRenderConfig(
-    CallMessageCard,
-    presentation,
-    buildCallMessageCardRenderProps(handlers),
-  );
-}
-
 function buildTextMessageCardRenderProps(handlers) {
   return {
     onContextMenu: handlers.onContextMenu,
@@ -114,7 +98,6 @@ const MESSAGE_BUBBLE_RENDER_CONFIG_BUILDERS = {
   system: ({ card }) => buildSystemMessageCardRenderConfig(card.presentation.text),
   attachment: ({ card }) => buildAttachmentMessageCardRenderConfig(card.presentation),
   contact: ({ card, handlers }) => buildContactMessageCardRenderConfig(card.presentation, handlers),
-  call: ({ card, handlers }) => buildCallMessageCardRenderConfig(card.presentation, handlers),
   text: ({ card, handlers }) => buildTextMessageCardRenderConfig(card.presentation, handlers),
 };
 

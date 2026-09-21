@@ -33,7 +33,7 @@ export default function PrivacybeleidPagina() {
       <LegalSection title="Inleiding">
         <p>
           Pulse is ontwikkeld als een veilige communicatieomgeving voor kinderen en families. Pulse is geen socialmediaplatform.
-          De dienst is bedoeld voor chatten op web en bellen of videobellen in de app binnen een besloten omgeving met vertrouwde contacten, onder
+          De dienst is bedoeld voor chatten binnen een besloten omgeving met vertrouwde contacten, onder
           ouderlijke regie. Dat productontwerp is leidend voor hoe wij met persoonsgegevens omgaan.
         </p>
         <p>
@@ -61,8 +61,7 @@ export default function PrivacybeleidPagina() {
 
       <LegalSection title="Waarvoor Pulse bedoeld is">
         <p>
-          Pulse is bedoeld voor veilige, rustige en familiegerichte communicatie. De kernfuncties zijn chatten, bellen en
-          videobellen. Pulse bevat nadrukkelijk geen foto’s delen, GIFs, algoritmes, eindeloos scrollen of entertainment-first
+          Pulse is bedoeld voor veilige, rustige en familiegerichte communicatie. De kernfunctie is chatten. Pulse bevat nadrukkelijk geen foto’s delen, GIFs, algoritmes, eindeloos scrollen of entertainment-first
           functies. Die keuzes zijn niet alleen productmatig, maar ook privacyrelevant: Pulse probeert alleen die gegevens te
           verwerken die nodig zijn voor accountbeheer, toegangscontrole, veilige communicatie en beveiliging.
         </p>
@@ -111,7 +110,7 @@ export default function PrivacybeleidPagina() {
         <LegalSubsection title="Communicatiegerelateerde gegevens">
           <p>
             Naast accountgegevens verwerkt Pulse gegevens die samenhangen met de communicatievoorzieningen, zoals informatie die
-            nodig is om berichten, oproepen en videogesprekken te verzenden, af te leveren, te synchroniseren en te beveiligen.
+            nodig is om berichten te verzenden, af te leveren, te synchroniseren en te beveiligen.
             Daarbij maken wij in beginsel onderscheid tussen inhoud van communicatie, technische metadata en beveiligings- of
             loggegevens die nodig zijn om de dienst betrouwbaar en veilig te laten functioneren.
             Voor een meer gerichte uitleg daarover verwijzen wij ook naar het afzonderlijke AVG-beleid voor elektronische communicatie.

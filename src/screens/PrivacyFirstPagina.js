@@ -49,7 +49,7 @@ const retentionRows = [
   { label: 'Accountgegevens ouder',       Icon: User,     duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
   { label: 'Accountgegevens kind',     Icon: Child,   duration: 'Zolang actief',     onDelete: 'Bij verwijderen → direct weg' },
   { label: 'Vertrouwde contacten',         Icon: Users,    duration: 'Zolang gekoppeld',  onDelete: 'Bij ontkoppelen → direct weg' },
-  { label: 'Chat, bellen en videobellen',    Icon: Message,  duration: '24 uur, 7 dagen of niet bewaren, standaard 30 dagen', why: 'Zodat je recente gesprekken kunt teruglezen.',           onDelete: 'Daarna → automatisch verwijderd' },
+  { label: 'Chatberichten',                  Icon: Message,  duration: '24 uur, 7 dagen of niet bewaren, standaard 30 dagen', why: 'Zodat je recente gesprekken kunt teruglezen.',           onDelete: 'Daarna → automatisch verwijderd' },
   { label: 'Logbestanden',                 Icon: Activity, duration: 'Maximaal 7 dagen',  why: 'Alleen voor veiligheid en technische stabiliteit.',      onDelete: 'Daarna → automatisch verwijderd' },
   { label: 'Support- en privacyverzoeken', Icon: Mail,     duration: 'Maximaal 30 dagen', why: 'Om je goed te kunnen helpen.',                           onDelete: 'Daarna → automatisch verwijderd' },
 ];

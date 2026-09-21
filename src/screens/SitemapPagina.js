@@ -8,8 +8,6 @@ const SITEMAP = [
     title: 'Functies',
     links: [
       { label: 'Chatten',       href: '/functies#chatten' },
-      { label: 'Bellen',        href: '/functies#bellen' },
-      { label: 'Videobellen',   href: '/functies#videobellen' },
       { label: 'Alle functies', href: '/functies' },
     ],
   },

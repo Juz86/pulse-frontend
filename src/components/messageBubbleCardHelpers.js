@@ -1,4 +1,3 @@
-import { buildCallMessageCardPresentation } from './callMessageHelpers';
 import {
   buildSharedContactMessageCardPresentation,
   buildStandardMessageBubblePresentation,
@@ -16,14 +15,10 @@ const MESSAGE_BUBBLE_CARD_BUILDERS = {
     }),
   }),
   call: (message) => ({
-    type: 'call',
-    presentation: withMessageCreatedAt(
-      message,
-      buildCallMessageCardPresentation(message.msg, {
-        isOwn: message.isOwn,
-        isFocused: message.isFocused,
-      }),
-    ),
+    type: 'system',
+    presentation: {
+      text: message.msg.isVideo ? 'Videogesprek uit een eerdere versie' : 'Gesprek uit een eerdere versie',
+    },
   }),
   system: (message) => ({
     type: 'system',
@@ -103,7 +98,6 @@ export function buildMessageBubbleHandlers({
   reactionPickerOpen,
   onCloseReactionPicker,
   onRetry,
-  onStartCall,
   onViewContact,
   interactions,
 }) {
@@ -114,7 +108,6 @@ export function buildMessageBubbleHandlers({
     reactionPickerOpen,
     onCloseReactionPicker,
     onRetry,
-    onStartCall,
     onViewContact,
     onContextMenu: interactions.handleContextMenu,
     onTouchStart: interactions.handleTouchStart,

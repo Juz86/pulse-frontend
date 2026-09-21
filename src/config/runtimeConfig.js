@@ -108,8 +108,6 @@ export const API_URL = (!shouldUseLocalRuntimeFallback() && isLocalApiUrl(RAW_AP
   : RAW_API_URL;
 
 export const WS_URL = trimTrailingSlash(process.env.REACT_APP_WS_URL || API_URL);
-export const SIGNALING_URL = trimTrailingSlash(process.env.REACT_APP_SIGNALING_URL || WS_URL);
-export const RTC_CONFIG_URL = trimTrailingSlash(process.env.REACT_APP_RTC_CONFIG_URL || API_URL);
 
 export const FIREBASE_AUTH_DOMAIN =
   process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || DEFAULT_FIREBASE_CONFIG.authDomain;
@@ -134,8 +132,6 @@ export const RUNTIME_CONFIG = {
   WEB_APP_URL,
   API_URL,
   WS_URL,
-  SIGNALING_URL,
-  RTC_CONFIG_URL,
   FIREBASE_AUTH_DOMAIN,
   FIREBASE_CONFIG,
   SITE_TARGET,

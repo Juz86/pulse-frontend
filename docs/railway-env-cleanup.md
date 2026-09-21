@@ -26,12 +26,6 @@ Gebruik dit als praktische opschoon- en verificatielijst voor Railway.
 
 - [ ] `DATABASE_URL`
   Nodig voor native/Postgres-routes in `auth.native.js`.
-- [ ] `TURN_URL`
-  Nodig voor TURN-relay bij calls.
-- [ ] `TURN_USERNAME`
-  Hoort bij TURN-configuratie.
-- [ ] `TURN_CREDENTIAL`
-  Hoort bij TURN-configuratie.
 - [ ] `EMAIL_FROM` of `RESEND_FROM`
   Alleen nodig als jullie een expliciete afzender willen instellen.
 - [ ] `NATIVE_AUTH_JWT_SECRET`

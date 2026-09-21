@@ -1,6 +1,6 @@
 // src/components/ChatHeader.js
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Logout, MoreHoriz, Phone, User, Users, Video, XIcon } from '../components/Icons';
+import { Logout, MoreHoriz, User, Users, XIcon } from '../components/Icons';
 import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
@@ -13,17 +13,14 @@ const ChatHeader = React.memo(function ChatHeader({
   inactiveUsers,
   unreadCounts,
   onBack,
-  onInitiateCall,
   onShowGroupInfo,
   onShowContactProfile,
-  parentBlockedOtherUid,
   setRenameValue,
   getConvName,
   getOtherUid,
   getConvPhoto,
   getContactNickname,
   serviceTransportReady,
-  callsAvailable = true,
   conversationMuted = false,
   onToggleConversationMute,
   onEnterMessageSelection,
@@ -143,46 +140,23 @@ const ChatHeader = React.memo(function ChatHeader({
         </div>
 
         <div className="chat-header-actions" ref={moreActionsRef}>
-          {!activeConv.isGroup && !parentBlockedOtherUid && callsAvailable ? (
-            <div className="chat-header-call-pill">
-              <button
-                type="button"
-                className="chat-header-action-btn"
-                aria-label="Videobellen"
-                title="Videobellen"
-                onClick={() => onInitiateCall(true, activeConv)}
-              >
-                <Video size={26} aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                className="chat-header-action-btn"
-                aria-label="Bellen"
-                title="Bellen"
-                onClick={() => onInitiateCall(false, activeConv)}
-              >
-                <Phone size={24} aria-hidden="true" />
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="chat-header-action-btn chat-header-menu-btn"
-              aria-label="Meer acties"
-              aria-haspopup="menu"
-              aria-expanded={moreActionsOpen}
-              title="Meer acties"
-              onClick={() => {
-                if (activeConv.isGroup) {
-                  onShowGroupInfo?.();
-                  return;
-                }
-                setMoreActionsOpen((prev) => !prev);
-              }}
-            >
-              <MoreHoriz size={18} aria-hidden="true" />
-            </button>
-          )}
+          <button
+            type="button"
+            className="chat-header-action-btn chat-header-menu-btn"
+            aria-label="Meer acties"
+            aria-haspopup="menu"
+            aria-expanded={moreActionsOpen}
+            title="Meer acties"
+            onClick={() => {
+              if (activeConv.isGroup) {
+                onShowGroupInfo?.();
+                return;
+              }
+              setMoreActionsOpen((prev) => !prev);
+            }}
+          >
+            <MoreHoriz size={18} aria-hidden="true" />
+          </button>
           {moreActionsOpen && (
             <div
               className="pulse-sheet-backdrop pulse-sheet-backdrop--header-actions"
@@ -219,34 +193,6 @@ const ChatHeader = React.memo(function ChatHeader({
                     {activeConv.isGroup ? <Users size={16} aria-hidden="true" /> : <User size={16} aria-hidden="true" />}
                     <span>{activeConv.isGroup ? 'Groepsinfo' : 'Profiel'}</span>
                   </button>
-                  {!activeConv.isGroup && !parentBlockedOtherUid && callsAvailable && (
-                    <>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="chat-header-menu-item"
-                        onClick={() => {
-                          closeMoreActions();
-                          onInitiateCall(false);
-                        }}
-                      >
-                        <Phone size={16} aria-hidden="true" />
-                        <span>Bellen</span>
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="chat-header-menu-item"
-                        onClick={() => {
-                          closeMoreActions();
-                          onInitiateCall(true);
-                        }}
-                      >
-                        <Video size={16} aria-hidden="true" />
-                        <span>Videobellen</span>
-                      </button>
-                    </>
-                  )}
                   {activeConv.isGroup ? (
                     <>
                       <div className="chat-header-menu-divider" />

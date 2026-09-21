@@ -30,7 +30,6 @@ const MessageBubble = React.memo(function MessageBubble({
   reactionPickerOpen,
   onCloseReactionPicker,
   onRetry,
-  onStartCall,
   onViewContact,
 }) {
   const interactions = useMessageBubbleInteractions(onShowContextMenu, onOpenReactionPicker);
@@ -57,7 +56,6 @@ const MessageBubble = React.memo(function MessageBubble({
     reactionPickerOpen,
     onCloseReactionPicker,
     onRetry,
-    onStartCall,
     onViewContact,
     interactions,
   });

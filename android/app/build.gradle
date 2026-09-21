@@ -7,10 +7,6 @@ if (keystorePropertiesFile.exists()) {
 }
 
 def pulseNativeUpdatePublicKey = System.getenv('PULSE_NATIVE_UPDATE_PUBLIC_KEY') ?: ''
-def pulseForceRealtimeKitCallsV2 = String.valueOf(
-    System.getenv('PULSE_FORCE_REALTIMEKIT_CALLS_V2') ?: 'false'
-).equalsIgnoreCase('true')
-
 android {
     namespace "com.pulsemessenger.chat"
     compileSdk rootProject.ext.compileSdkVersion
@@ -50,13 +46,8 @@ android {
         }
     }
     buildTypes {
-        debug {
-            buildConfigField "boolean", "PULSE_FORCE_REALTIMEKIT_CALLS_V2", "${pulseForceRealtimeKitCallsV2}"
-        }
+        debug {}
         release {
-            // A Play build may only switch engines through the remotely managed
-            // feature flag. Local environment variables can never force v2.
-            buildConfigField "boolean", "PULSE_FORCE_REALTIMEKIT_CALLS_V2", "false"
             if (keystorePropertiesFile.exists()) {
                 signingConfig signingConfigs.release
             }
@@ -113,11 +104,6 @@ def verifyReleaseWebAssets = tasks.register('verifyReleaseWebAssets') {
                 'Release geblokkeerd: de Android-webbundle bevat de productie-API niet.'
             )
         }
-        if (!bundledJavascript.contains('realtimekit-v2')) {
-            throw new GradleException(
-                'Release geblokkeerd: de Android-webbundle bevat niet de actuele native call-engine bridge.'
-            )
-        }
     }
 }
 
@@ -156,8 +142,6 @@ dependencies {
     implementation("io.socket:socket.io-client:2.1.2") {
         exclude group: "org.json", module: "json"
     }
-    implementation "com.cloudflare.realtimekit:core-android:2.1.0"
-    implementation "io.github.webrtc-sdk:android:144.7559.12"
 }
 
 apply from: 'capacitor.build.gradle'

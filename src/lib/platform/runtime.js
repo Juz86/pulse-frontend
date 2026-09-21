@@ -1,7 +1,3 @@
-export const PULSE_WEB_CALLS_UNAVAILABLE_TITLE = 'Bellen is alleen beschikbaar in de app';
-export const PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE = 'Bellen en videobellen zijn alleen beschikbaar in de Pulse app.';
-export const PULSE_WEB_CALLS_UNAVAILABLE_HINT = 'Open Pulse op je telefoon of tablet om veilig te bellen of videobellen.';
-
 export function isNativePulseEnvironment() {
   if (typeof window === 'undefined') return false;
 

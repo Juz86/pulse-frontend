@@ -15,16 +15,12 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
   const { icon, title, body } = payload.notification || {};
   const data = payload.data || {};
-  const notificationType = data.type || 'new_message';
-  const defaultBody = notificationType === 'incoming_call'
-    ? `${data.callerName || 'Iemand'} belt je via Pulse`
-    : 'Open Pulse om het bericht veilig te bekijken.';
+  const defaultBody = 'Open Pulse om het bericht veilig te bekijken.';
 
   self.registration.showNotification(title || data.title || 'Pulse', {
     body: body || data.body || defaultBody,
     icon:  icon  || '/logo192.png',
     badge: '/logo192.png',
-    tag: notificationType === 'incoming_call' && data.callSessionId ? `call_${data.callSessionId}` : undefined,
     data,
   });
 });
@@ -33,11 +29,8 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const data    = event.notification.data || {};
   const convId  = data.convId;
-  const isIncomingCall = data.type === 'incoming_call' && data.callSessionId;
   const origin  = self.location.origin;
-  const url = isIncomingCall
-    ? `${origin}/?callSessionId=${encodeURIComponent(data.callSessionId)}&fromUid=${encodeURIComponent(data.fromUid || '')}&isVideo=${encodeURIComponent(data.isVideo || '0')}&callerName=${encodeURIComponent(data.callerName || '')}`
-    : (convId ? `${origin}/?convId=${convId}` : origin);
+  const url = convId ? `${origin}/?convId=${convId}` : origin;
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
@@ -48,10 +41,6 @@ self.addEventListener('notificationclick', (event) => {
             type: 'notification_click',
             convId: convId || '',
             notificationType: data.type || '',
-            callSessionId: data.callSessionId || '',
-            fromUid: data.fromUid || '',
-            callerName: data.callerName || '',
-            isVideo: data.isVideo || '0',
           });
           return client.focus();
         }

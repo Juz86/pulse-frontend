@@ -5,7 +5,6 @@ import { messagingService } from '../lib/e2ee/messagingService';
 import { normalizeIncomingMessage } from '../lib/e2ee/messageModel';
 import { ENCRYPTED_MESSAGE_PROTOCOL } from '../lib/e2ee/messageProtocolConstants';
 import {
-  applyCallConversationSummaryToList,
   applyConversationSummaryToList,
   applyConversationReactionSummaryToList,
 } from '../lib/e2ee/conversationSummaries';
@@ -55,7 +54,7 @@ export default function useChat({
   const [typing,         setTyping]         = useState(false);
   const [typingName,     setTypingName]     = useState('');
   const [typingByConv,   setTypingByConv]   = useState({});
-  const [pausedFeatures, setPausedFeatures] = useState({ chat: false, call: false, video: false });
+  const [pausedFeatures, setPausedFeatures] = useState({ chat: false });
   const [mentionToast,   setMentionToast]   = useState(null);
   const typingTimeoutsRef = useRef(new Map());
 
@@ -184,16 +183,6 @@ export default function useChat({
           messagingService.sendReceipt({ user, messageId: hydratedMsg.id, type: 'read' }).catch(() => {});
         }
         setMessages(prev => {
-          if (hydratedMsg.type === 'call') {
-            const callPendingIdx = prev.findIndex(m => m.pending && m.type === 'call' && m.senderId === hydratedMsg.senderId);
-            if (callPendingIdx !== -1) {
-              const next = [...prev];
-              next[callPendingIdx] = { ...hydratedMsg, pending: false };
-              return next;
-            }
-            if (prev.some(m => m.id && m.id === hydratedMsg.id)) return prev;
-            return [...prev, hydratedMsg];
-          }
           const pendingIdx = prev.findIndex(m => (
             m.pending
             && m.senderId === hydratedMsg.senderId
@@ -232,20 +221,10 @@ export default function useChat({
       setConversations(prev => {
         const exists = prev.some(c => c.id === convId);
         if (!exists) return prev;
-        if (hydratedMsg.type !== 'call') {
-          return applyConversationSummaryToList(
-            prev,
-            convId,
-            hydratedMsg,
-            hydratedMsg.createdAt || new Date().toISOString()
-          );
-        }
-
-        return applyCallConversationSummaryToList(
+        return applyConversationSummaryToList(
           prev,
           convId,
           hydratedMsg,
-          user.uid,
           hydratedMsg.createdAt || new Date().toISOString()
         );
       });
@@ -509,9 +488,6 @@ export default function useChat({
                     ...conversation,
                     lastMessage: '',
                     lastMessageAt: null,
-                    lastCallDirection: null,
-                    lastCallIsVideo: false,
-                    lastCallSenderId: null,
                   }
                 : conversation
             ))
@@ -564,8 +540,8 @@ export default function useChat({
         updatedAt: reactionAt || new Date().toISOString(),
       }));
     };
-    const onAccountPaused   = ({ features } = {})      => setPausedFeatures(features || { chat: true,  call: true,  video: true  });
-    const onAccountResumed  = ({ features } = {})      => setPausedFeatures(features || { chat: false, call: false, video: false });
+    const onAccountPaused   = ({ features } = {})      => setPausedFeatures({ chat: features?.chat !== false });
+    const onAccountResumed  = ({ features } = {})      => setPausedFeatures({ chat: !!features?.chat });
 
     const onContactBlockedByParent = ({ targetUid, targetName }) => {
       setBlockedContacts?.(prev => {

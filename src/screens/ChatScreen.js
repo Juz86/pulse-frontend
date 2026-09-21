@@ -14,7 +14,6 @@ import BlockConfirmModal from '../components/BlockConfirmModal';
 import PulseConfirmSheet from '../components/PulseConfirmSheet';
 import useConversations from '../hooks/useConversations';
 import useChat from '../hooks/useChat';
-import useCalling from '../hooks/useCalling';
 import useProfile from '../hooks/useProfile';
 import useContacts from '../hooks/useContacts';
 import useRealtimeSync from '../hooks/useRealtimeSync';
@@ -23,10 +22,8 @@ import { clearPulseUserStorage, copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), missedCallAlert, onCallLogRead, isParent, parentActivityBadge = 0, parentToast = null, onDismissParentToast, onOpenDashboard, showParentDashboard = false, setShowParentDashboard, onParentActivitiesViewed, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
-  const callsAvailable = true;
+export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), isParent, parentActivityBadge = 0, parentToast = null, onDismissParentToast, onOpenDashboard, showParentDashboard = false, setShowParentDashboard, onParentActivitiesViewed, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
   const messageEditingEnabled = useFeatureFlag('message_editing');
-  const realtimeKitCallsV2Enabled = useFeatureFlag('realtimekit_calls_v2');
   const draftIndicatorsEnabled = useFeatureFlag('draft_indicators');
   const markConversationUnreadEnabled = useFeatureFlag('mark_conversation_unread');
   // ── UI state ──────────────────────────────────────────────────────────────
@@ -46,8 +43,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [chatFilter,     setChatFilter]     = useState('all');
   const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [convLabels,     setConvLabels]     = useState(() => { try { return JSON.parse(localStorage.getItem(`pulse_labels_${user.uid}`) || '{}'); } catch { return {}; } });
-  const [showCallModal,  setShowCallModal]  = useState(false);
-  const [callLogRead,    setCallLogRead]    = useState(false);
   const [showGroupInfo,  setShowGroupInfo]  = useState(false);
   const [headerConversationActions, setHeaderConversationActions] = useState(null);
   const [addingMember,   setAddingMember]   = useState(false);
@@ -420,12 +415,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     cancelMessageSelection();
   }, [activeConv?.id]);
 
-  const { activeCall, setActiveCall, getCallLog, refreshCallLog, clearCallLog, deleteCallLogEntries, callLogRateLimitUntil, callContact, callContactFromRecent, initiateCall, initiateCallFromConv } = useCalling({
-    user, pausedFeatures, activeConvRef, msgsAreaRef,
-    setMessages, loadConversations, findConvWithUid, setShowCallModal, showErrToast,
-    realtimeKitCallsV2Enabled,
-  });
-
   const {
     profileTab, setProfileTab, newName, setNewName, photoPreview, setPhotoPreview,
     profileLoading, profileMsg, setProfileMsg, newUsername, newPassword, setNewPassword,
@@ -497,12 +486,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       else if (showNewChat)   { setShowNewChat(false); setSearchEmail(''); }
       else if (showNewGroup)  { setShowNewGroup(false); setGroupName(''); setGroupMembers([]); }
       else if (showProfile)   setShowProfile(false);
-      else if (showCallModal) setShowCallModal(false);
       else if (showGroupInfo) { setShowGroupInfo(false); setAddingMember(false); }
     }
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [setContactEmail, setSearchEmail, setShowAddContact, setShowNewChat, showAddContact, showCallModal, showGroupInfo, showNewChat, showNewGroup, showProfile]);
+  }, [setContactEmail, setSearchEmail, setShowAddContact, setShowNewChat, showAddContact, showGroupInfo, showNewChat, showNewGroup, showProfile]);
 
   const visibleMessages = useMemo(
     () => {
@@ -574,22 +562,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     if (conv.isGroup) return null;
     return contactsByUid.get(getOtherUid(conv))?.photoURL || null;
   }, [contactsByUid, getOtherUid]);
-  const handleMessageStartCall = useCallback(({ toUid, convId, name, isVideo }) => {
-    const currentConv = activeConv?.id === convId ? activeConv : null;
-    const effectiveUid = currentConv ? (getOtherUid(currentConv) || toUid) : toUid;
-    const contact = contactsByUid.get(effectiveUid);
-    if (contact) {
-      callContact(contact, isVideo);
-      return;
-    }
-    const effectiveName = currentConv ? getConvName(currentConv) : name;
-    initiateCallFromConv({
-      id: convId,
-      members: [user.uid, effectiveUid],
-      memberNames: { [effectiveUid]: effectiveName },
-    }, isVideo);
-  }, [activeConv, callContact, contactsByUid, getConvName, getOtherUid, initiateCallFromConv, user.uid]);
-
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="app-screen">
@@ -598,8 +570,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         user={user}
         onlineUsers={onlineUsers} inactiveUsers={inactiveUsers}
         dnd={dnd} onToggleDnd={toggleDnd}
-        missedCallAlert={missedCallAlert} callLogRead={callLogRead}
-        getCallLog={getCallLog} onCallLogRead={onCallLogRead}
         searchQuery={searchQuery} setSearchQuery={setSearchQuery}
         activeTab={activeTab} setActiveTab={setActiveTab}
         chatFilter={chatFilter} setChatFilter={setChatFilter}
@@ -636,14 +606,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         groupMembers={groupMembers}
         toggleGroupMember={toggleGroupMember}
         createGroup={createGroup}
-        onShowCallModal={() => {
-          setShowCallModal(true);
-          setCallLogRead(true);
-          onCallLogRead?.();
-          refreshCallLog();
-        }}
-        showCallModal={showCallModal}
-        setShowCallModal={setShowCallModal}
         showAddContact={showAddContact}
         setShowAddContact={setShowAddContact}
         contactEmail={contactEmail}
@@ -724,14 +686,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onCancelFriendRequest={cancelFriendRequestById}
         onTogglePin={togglePin}
         onViewContact={openUnifiedContactProfile}
-        onStartChat={startChatWithContact} onCallContact={callContact}
+        onStartChat={startChatWithContact}
         onRemoveContact={removeContact}
         onBlockContact={contact => setBlockingContact(contact)}
         onUnblockContact={unblockContact}
         blockedContacts={blockedContacts}
         parentBlockedUids={parentBlockedUids}
         onOpenConversation={openConversationWithUnreadClear}
-        onCallFromConv={initiateCallFromConv}
         onClearConversation={(conv) => {
           openClearConversationConfirm(conv);
         }}
@@ -756,11 +717,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onDeleteSelectedConversations={deleteSelectedConversations}
         getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         getContactDisplayName={getContactDisplayName}
-        callsAvailable={callsAvailable}
-        callContact={callContact}
-        callContactFromRecent={callContactFromRecent}
-        deleteCallLogEntries={deleteCallLogEntries}
-        callLogRateLimitUntil={callLogRateLimitUntil}
         setPhotoPreview={setPhotoPreview}
       />
 
@@ -782,7 +738,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
             <ChatHeader
               activeConv={activeConv} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers}
               unreadCounts={unreadCounts}
-              onBack={() => setActiveConv(null)} onInitiateCall={initiateCall}
+              onBack={() => setActiveConv(null)}
               onShowGroupInfo={() => setShowGroupInfo(true)}
               onShowContactProfile={() => { setContactProfileContact(null); setShowContactProfile(true); }}
               onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
@@ -795,13 +751,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onDeleteChat={() => {
                 openDeleteConversationConfirm(activeConv);
               }}
-              parentBlockedOtherUid={!activeConv?.isGroup && parentBlockedUids.includes(getOtherUid(activeConv))}
-
               setRenameValue={setRenameValue}
               getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
               getContactNickname={getContactNickname}
               serviceTransportReady={serviceTransportReady}
-              callsAvailable={callsAvailable}
               conversationMuted={mutedConversationIds.includes(activeConv?.id)}
               messageSelectionMode={messageSelectionMode}
             />
@@ -833,7 +786,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onCloseReactionPicker={handleCloseReactionPicker}
               jumpToMsgId={jumpToMsgId}
               onRetry={handleMessageRetry}
-              onStartCall={callsAvailable ? handleMessageStartCall : undefined}
               onViewContact={handleViewSharedContact}
               selectionMode={messageSelectionMode}
               selectedMessageIds={selectedMessageIds}
@@ -960,7 +912,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         showStarredMsgs={showStarredMsgs} setShowStarredMsgs={setShowStarredMsgs}
         starredMsgs={starredMsgs} messages={messages}
         onJumpToMsg={handleJumpToMsg}
-        onInitiateCall={initiateCall}
         onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
         markConversationUnreadEnabled={markConversationUnreadEnabled}
         onMarkConversationUnread={markConversationUnread}
@@ -987,21 +938,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         messageSelectionMode={messageSelectionMode}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         newChatSheetInSidebar
-        callSheetInSidebar
-        showCallModal={showCallModal} setShowCallModal={setShowCallModal}
-        callContact={callContact} callContactFromRecent={callContactFromRecent} getCallLog={getCallLog} refreshCallLog={refreshCallLog} clearCallLog={clearCallLog} callLogRateLimitUntil={callLogRateLimitUntil}
         showGroupInfo={showGroupInfo} setShowGroupInfo={setShowGroupInfo}
         addingMember={addingMember} setAddingMember={setAddingMember}
         groupPhotoLoading={groupPhotoLoading} uploadGroupPhoto={uploadGroupPhoto}
         removeMemberFromGroup={removeMemberFromGroup} addMemberToGroup={addMemberToGroup} renameGroup={renameGroup} promoteGroupAdmin={promoteGroupAdmin} relinquishGroupAdmin={relinquishGroupAdmin}
-        activeCall={activeCall} setActiveCall={setActiveCall}
         unreadCounts={visibleUnreadCounts}
         forwardMsg={forwardMsg} setForwardMsg={setForwardMsg}
         conversations={conversations} forwardToConv={forwardToConv}
         errToast={errToast} dismissErrToast={() => setErrToast('')} mentionToast={mentionToast} dismissMentionToast={clearMentionToast} parentToast={parentToast} dismissParentToast={onDismissParentToast}
         onOpenMentionConversation={openConversation}
         blockedContacts={blockedContacts} parentBlockedUids={parentBlockedUids} unblockContact={unblockContact}
-        callsAvailable={callsAvailable}
       />
       </Suspense>
 

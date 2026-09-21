@@ -9,11 +9,9 @@ import {
   Heart,
   Login,
   Message,
-  Phone,
   PhoneIcon,
   Shield,
   Users,
-  Video,
   XIcon,
 } from '../components/Icons';
 
@@ -58,22 +56,6 @@ function FeatureStrip() {
         <div>
           <strong>Chatten</strong>
           <span>Veilig berichten sturen</span>
-        </div>
-      </div>
-      <div className="op-strip-divider" />
-      <div className="op-strip-item">
-        <div className="op-strip-icon"><Phone size={20} /></div>
-        <div>
-          <strong>Bellen</strong>
-          <span>Zonder telefoonnummer</span>
-        </div>
-      </div>
-      <div className="op-strip-divider" />
-      <div className="op-strip-item">
-        <div className="op-strip-icon"><Video size={20} /></div>
-        <div>
-          <strong>Videobellen</strong>
-          <span>Met vertrouwde contacten</span>
         </div>
       </div>
       <div className="op-strip-footer">
@@ -199,7 +181,7 @@ export default function OverPulsePagina({ onParentClick }) {
                 Hij heeft het zijn missie gemaakt om een veilige manier van communiceren terug te brengen.
               </p>
               <p className="pf-paragraph-spaced">
-                Een plek waar kinderen veilig kunnen chatten, bellen en videobellen met hun ouders, familie en vertrouwde mensen om hen heen.
+                Een plek waar kinderen veilig kunnen chatten met hun ouders, familie en vertrouwde mensen om hen heen.
               </p>
               <div className="op-mission-list">
                 {['Zonder filters', 'Zonder gifs of memes', 'Zonder social media prikkels'].map((item) => (
@@ -221,7 +203,7 @@ export default function OverPulsePagina({ onParentClick }) {
                 <div className="op-mission-card-list">
                   {[
                     'Chatten met vertrouwde contacten',
-                    'Bellen en videobellen zonder telefoonnummer',
+                    'Chatten zonder telefoonnummer',
                     'Ouderlijk toezicht',
                     'AVG-compliant en privacy-first',
                     'Geen data-verzameling',

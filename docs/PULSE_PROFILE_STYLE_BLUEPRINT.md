@@ -445,8 +445,6 @@ Aanbevolen volgorde:
 
 1. Chatlijst
 2. Chatdetail
-3. Calls
-4. Video calls
 
 ## QA-checklist voor elke omzetting
 

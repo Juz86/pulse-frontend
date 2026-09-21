@@ -1,7 +1,7 @@
 {
   "name": "Pulse Messenger",
   "short_name": "Pulse",
-  "description": "Chat, bel en videobel zonder telefoonnummer",
+  "description": "Veilig chatten zonder telefoonnummer",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

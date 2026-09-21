@@ -9,12 +9,12 @@ import PageMeta from '../components/PageMeta';
 import SafeSvgImage from '../components/SafeSvgImage';
 import useMarketingAuth from '../hooks/useMarketingAuth';
 import {
-  Phone, Video, VideoOff, Mic,
+  Phone, Video,
   Message, Users, User, Search, Bell,
-  Pin, StarFilled, CheckDouble, Shield,
+  Pin, StarFilled, CheckDouble,
   Forward, Reply, ImageIcon, Palette,
   Clock, Logout, Login,
-  Lightbulb, PhoneCall, PhoneMissed, PhoneEnd,
+  Lightbulb,
 } from '../components/Icons';
 import { MdAlternateEmail, MdSend, MdSmartphone } from 'react-icons/md';
 
@@ -229,7 +229,7 @@ function SidebarMockup() {
       </div>
       {/* Contact rij */}
       {[
-        { letter: 'Y', name: 'Yousef', sub: 'Spraakoproep', gradient: 'linear-gradient(135deg,#ec4899,#8b5cf6)', online: true, unread: null },
+        { letter: 'Y', name: 'Yousef', sub: 'Tot straks!', gradient: 'linear-gradient(135deg,#ec4899,#8b5cf6)', online: true, unread: null },
         { letter: 'S', name: 'Sara', sub: 'Goedemorgen! ☀️', gradient: 'linear-gradient(135deg,#7c3aed,#a78bfa)', online: true, unread: 2 },
         { letter: 'GR', name: 'Groep Familie', sub: 'Papa: Wij zijn er!', gradient: 'linear-gradient(135deg,#059669,#34d399)', online: false, unread: null },
       ].map(c => (
@@ -342,112 +342,6 @@ function BgMockup() {
   );
 }
 
-// ── Mockup 6: Spraakoproep ───────────────────────────────────────────────────
-function CallMockup() {
-  return (
-    <PhoneMockup>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-        <MockAvatar letter="S" size={56} online />
-        <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Sara</div>
-        <div style={{ fontSize: 10, color: '#22c55e', fontWeight: 600 }}>02:47</div>
-        <div style={{ display: 'flex', gap: 16, marginTop: 8 }}>
-          <div className="fp-call-btn"><Mic size={14} color="#fff" /></div>
-          <div className="fp-call-btn fp-call-btn--end"><PhoneEnd size={14} color="#fff" /></div>
-        </div>
-      </div>
-    </PhoneMockup>
-  );
-}
-
-// ── Mockup 7: Belgeschiedenis ────────────────────────────────────────────────
-function CallHistoryMockup() {
-  const items = [
-    { letter: 'S', name: 'Sara', gradient: 'linear-gradient(135deg,#7c3aed,#a78bfa)', Icon: PhoneCall, iconColor: '#22c55e', time: 'Vandaag 14:02', dur: '3m 12s' },
-    { letter: 'P', name: 'Papa', gradient: 'linear-gradient(135deg,#059669,#34d399)', Icon: PhoneMissed, iconColor: '#ef4444', time: 'Gisteren', dur: 'Gemist' },
-    { letter: 'S', name: 'Sara', gradient: 'linear-gradient(135deg,#7c3aed,#a78bfa)', Icon: PhoneCall, iconColor: '#22c55e', time: 'Ma 10:00', dur: '8m 55s' },
-  ];
-  return (
-    <PhoneMockup>
-      <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.4)', marginBottom: 6 }}>Belgeschiedenis</div>
-      {items.map((c, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-          <MockAvatar letter={c.letter} gradient={c.gradient} size={26} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>{c.name}</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <c.Icon size={10} color={c.iconColor} />{c.time}
-            </div>
-          </div>
-          <div style={{ fontSize: 9, color: c.dur === 'Gemist' ? '#ef4444' : 'rgba(255,255,255,0.4)' }}>{c.dur}</div>
-        </div>
-      ))}
-    </PhoneMockup>
-  );
-}
-
-// ── Mockup 8: Videogesprek ───────────────────────────────────────────────────
-function VideoMockup() {
-  return (
-    <PhoneMockup>
-      {/* Volledig scherm: remote persoon */}
-      <div style={{ flex: 1, background: 'linear-gradient(180deg,#1a0a2e 0%,#0d0820 100%)', borderRadius: 8, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 260 }}>
-        {/* Remote: grote emoji + naam */}
-        <div style={{ fontSize: 56, lineHeight: 1, filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.5))' }}>👩</div>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Sara</div>
-
-        {/* Timer linksboven */}
-        <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(0,0,0,0.55)', borderRadius: 6, padding: '2px 8px', fontSize: 9, color: '#fff', display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e' }} />05:33
-        </div>
-
-        {/* PiP: lokale camera rechtsonder */}
-        <div style={{ position: 'absolute', bottom: 44, right: 8, width: 44, height: 60, background: 'linear-gradient(135deg,#7c3aed,#a78bfa)', borderRadius: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2, border: '2px solid rgba(255,255,255,0.2)', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-          <div style={{ fontSize: 22, lineHeight: 1 }}>🧒</div>
-          <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', fontWeight: 600 }}>Jij</div>
-        </div>
-
-        {/* Bediening onderaan */}
-        <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div className="fp-call-btn fp-call-btn--sm"><Mic size={11} color="#fff" /></div>
-          <div className="fp-call-btn fp-call-btn--end fp-call-btn--sm"><PhoneEnd size={11} color="#fff" /></div>
-          <div className="fp-call-btn fp-call-btn--sm"><VideoOff size={11} color="#fff" /></div>
-        </div>
-      </div>
-    </PhoneMockup>
-  );
-}
-
-// ── Mockup 9: Camera privacy ────────────────────────────────────────────────
-function PrivacyVideoMockup() {
-  return (
-    <PhoneMockup>
-      <div style={{ flex: 1, background: 'linear-gradient(180deg,#1a0a2e 0%,#0d0820 100%)', borderRadius: 8, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 260 }}>
-        {/* Remote: grote emoji + naam */}
-        <div style={{ fontSize: 56, lineHeight: 1 }}>👩</div>
-        <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>Sara</div>
-
-        {/* PiP: camera uit */}
-        <div style={{ position: 'absolute', bottom: 44, right: 8, width: 44, height: 60, background: 'rgba(255,255,255,0.06)', borderRadius: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, border: '2px solid rgba(255,255,255,0.1)' }}>
-          <VideoOff size={16} color="rgba(255,255,255,0.4)" />
-          <div style={{ fontSize: 7, color: 'rgba(255,255,255,0.4)' }}>Jij</div>
-        </div>
-
-        {/* Timer */}
-        <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(0,0,0,0.55)', borderRadius: 6, padding: '2px 8px', fontSize: 9, color: '#fff', display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e' }} />03:21
-        </div>
-
-        {/* Bediening */}
-        <div style={{ position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8 }}>
-          <div className="fp-call-btn fp-call-btn--sm"><Mic size={11} color="#fff" /></div>
-          <div className="fp-call-btn fp-call-btn--end fp-call-btn--sm"><PhoneEnd size={11} color="#fff" /></div>
-          <div className="fp-call-btn fp-call-btn--sm fp-call-btn--active"><Video size={11} color="#fff" /></div>
-        </div>
-      </div>
-    </PhoneMockup>
-  );
-}
-
 // ── Feature rij ──────────────────────────────────────────────────────────────
 function FeatureRow({ reverse, mockup, title, text, features, id }) {
   const [ref, visible] = useFadeIn();
@@ -499,23 +393,17 @@ export default function FunctiePagina({ onParentClick }) {
   const [menuOpen,      setMenuOpen]      = useState(false);
   const [scrolled,      setScrolled]      = useState(false);
   const [chatSlide,     setChatSlide]     = useState(0);
-  const [callVideoSlide, setCallVideoSlide] = useState(0);
   const [activeGridTab, setActiveGridTab] = useState('chatten');
   const [expandedGridTabs, setExpandedGridTabs] = useState({
     chatten: false,
-    bellen: false,
-    videobellen: false,
   });
   const { openParentSignup, openLogin, modals: marketingAuthModals } = useMarketingAuth({ onParentClick });
   const chatTabRefs     = useRef([]);
-  const callTabRefs     = useRef([]);
   const gridTabRefs     = useRef([]);
   const gridTabsMenuRef = useRef(null);
   const chatTouchStartX = useRef(null);
-  const callTouchStartX = useRef(null);
 
   const chatSlideInitial    = useRef(true);
-  const callSlideInitial    = useRef(true);
   const gridTabInitial      = useRef(true);
 
   const scrollTabRowToActive = (tabElement) => {
@@ -545,11 +433,6 @@ export default function FunctiePagina({ onParentClick }) {
     if (chatSlideInitial.current) { chatSlideInitial.current = false; return; }
     scrollTabRowToActive(chatTabRefs.current[chatSlide]);
   }, [chatSlide]);
-
-  useEffect(() => {
-    if (callSlideInitial.current) { callSlideInitial.current = false; return; }
-    scrollTabRowToActive(callTabRefs.current[callVideoSlide]);
-  }, [callVideoSlide]);
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 50);
@@ -584,29 +467,6 @@ export default function FunctiePagina({ onParentClick }) {
       : (index - 1 + chatSlides.length) % chatSlides.length;
     setChatSlide(nextIndex);
     chatTabRefs.current[nextIndex]?.focus();
-  };
-
-  const handleCallTabKeyDown = (event, index) => {
-    if (event.key === 'Home') {
-      event.preventDefault();
-      setCallVideoSlide(0);
-      callTabRefs.current[0]?.focus();
-      return;
-    }
-    if (event.key === 'End') {
-      event.preventDefault();
-      const lastIndex = callVideoSlides.length - 1;
-      setCallVideoSlide(lastIndex);
-      callTabRefs.current[lastIndex]?.focus();
-      return;
-    }
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
-    event.preventDefault();
-    const nextIndex = event.key === 'ArrowRight'
-      ? (index + 1) % callVideoSlides.length
-      : (index - 1 + callVideoSlides.length) % callVideoSlides.length;
-    setCallVideoSlide(nextIndex);
-    callTabRefs.current[nextIndex]?.focus();
   };
 
   const navItems = [
@@ -676,65 +536,6 @@ export default function FunctiePagina({ onParentClick }) {
 
   const currentChatSlide = chatSlides[chatSlide];
 
-  const callVideoSlides = [
-    {
-      key: 'hd-spraakoproepen',
-      label: 'HD spraakoproepen',
-      mockup: <CallMockup />,
-      title: 'HD spraakoproepen',
-      text: 'Bel met heldere geluidskwaliteit. Werkt op wifi en mobiel data, ook bij trage verbinding.',
-      features: [
-        { icon: <Phone size={15} />, label: '1-op-1 spraakoproepen' },
-        { icon: <Mic size={15} />, label: 'Microfoon dempen / activeren' },
-        { icon: <Clock size={15} />, label: 'Gespreksduur timer' },
-        { icon: <PhoneMissed size={15} />, label: 'Gemiste oproepen badge' },
-      ],
-    },
-    {
-      key: 'belgeschiedenis',
-      label: 'Belgeschiedenis',
-      reverse: true,
-      mockup: <CallHistoryMockup />,
-      title: 'Belgeschiedenis',
-      text: 'Zie al je gesprekken terug in de chat en in het belgeschiedenisoverzicht. Mis nooit een oproep.',
-      features: [
-        { icon: <PhoneCall size={15} />, label: 'Belgeschiedenis in gesprek' },
-        { icon: <PhoneMissed size={15} />, label: 'Gemiste oproepen melding' },
-        { icon: <Bell size={15} />, label: 'Push notificatie bij gemiste oproep' },
-        { icon: <Phone size={15} />, label: 'Bezet-status bij dubbele oproep' },
-      ],
-    },
-    {
-      key: 'hd-videogesprekken',
-      label: 'HD videogesprekken',
-      mockup: <VideoMockup />,
-      title: 'HD videogesprekken',
-      text: 'Videobel met scherpe HD-kwaliteit. Wissel eenvoudig van spraak naar video tijdens een gesprek.',
-      features: [
-        { icon: <Video size={15} />, label: '1-op-1 videogesprekken' },
-        { icon: <VideoOff size={15} />, label: 'Camera aan/uit' },
-        { icon: <Mic size={15} />, label: 'Microfoon dempen' },
-        { icon: <Phone size={15} />, label: 'Spraak upgraden naar video' },
-        { icon: <Message size={15} />, label: 'Gesprek minimaliseren (overlay)' },
-      ],
-    },
-    {
-      key: 'jij-bepaalt-wat-zichtbaar-is',
-      label: 'Jij bepaalt wat zichtbaar is',
-      reverse: true,
-      mockup: <PrivacyVideoMockup />,
-      title: 'Jij bepaalt wat zichtbaar is',
-      text: 'Schakel je camera uit wanneer je wilt. Je gesprekken zijn beveiligd en alleen jij en je gesprekspartner kunnen meedoen.',
-      features: [
-        { icon: <VideoOff size={15} />, label: 'Camera aan/uit tijdens gesprek' },
-        { icon: <PhoneCall size={15} />, label: 'Beltoon bij inkomend gesprek' },
-        { icon: <Bell size={15} />, label: 'Push notificatie bij gemiste video' },
-      ],
-    },
-  ];
-
-  const currentCallVideoSlide = callVideoSlides[callVideoSlide];
-
   const featureGridGroups = useMemo(() => [
     {
       key: 'chatten',
@@ -747,34 +548,6 @@ export default function FunctiePagina({ onParentClick }) {
         { icon: <ImageIcon size={18} />, title: 'Chatachtergrond', desc: 'Foto of kleur naar keuze' },
         { icon: <StarFilled size={18} />, title: 'Berichten sterren', desc: 'Sla belangrijke berichten op' },
         { icon: <Message size={18} />, title: 'Conceptberichten', desc: 'Bewaard per gesprek' },
-      ],
-    },
-    {
-      key: 'bellen',
-      label: 'Bellen',
-      tabIcon: <Phone size={16} />,
-      headerIcon: <Phone size={16} />,
-      items: [
-        { icon: <Phone size={18} />, title: 'HD Spraakoproepen', desc: 'Helder geluid' },
-        { icon: <PhoneCall size={18} />, title: 'Belgeschiedenis', desc: 'Overzicht in chat & logboek' },
-        { icon: <PhoneMissed size={18} />, title: 'Gemiste oproepen melding', desc: 'Badge & notificatie' },
-        { icon: <Bell size={18} />, title: 'Push notificaties', desc: 'Ook als app op achtergrond' },
-        { icon: <Clock size={18} />, title: 'Gespreksduur timer', desc: 'Altijd zichtbaar tijdens gesprek' },
-        { icon: <Phone size={18} />, title: 'Bezet-status', desc: 'Automatisch bij dubbele oproep' },
-      ],
-    },
-    {
-      key: 'videobellen',
-      label: 'Videobellen',
-      tabIcon: <Video size={16} />,
-      headerIcon: <Video size={16} />,
-      items: [
-        { icon: <Video size={18} />, title: 'HD Videogesprekken', desc: 'Scherp beeld' },
-        { icon: <VideoOff size={18} />, title: 'Camera aan/uit', desc: 'Jij bepaalt wat zichtbaar is' },
-        { icon: <Phone size={18} />, title: 'Spraak → Video upgrade', desc: 'Wissel tijdens gesprek' },
-        { icon: <Message size={18} />, title: 'Gesprek minimaliseren', desc: 'Overlay terwijl je chat' },
-        { icon: <Bell size={18} />, title: 'Beltoon inkomend gesprek', desc: 'Nooit een oproep missen' },
-        { icon: <Shield size={18} />, title: 'Privacy & versleuteld', desc: 'Beveiligde verbinding' },
       ],
     },
   ], []);
@@ -793,8 +566,8 @@ export default function FunctiePagina({ onParentClick }) {
   return (
     <div className="hp-root">
       <PageMeta
-        title="Functies van Pulse — Chatten op web, bellen in de app"
-        description="Ontdek Pulse functies: veilig chatten op web, bellen en videobellen in de app, groepsgesprekken, @-vermeldingen en rustige communicatie zonder afleiding."
+        title="Functies van Pulse — Veilig chatten"
+        description="Ontdek Pulse functies: veilig chatten, groepsgesprekken, @-vermeldingen en rustige communicatie zonder afleiding."
         canonical="/functies"
       />
 
@@ -820,7 +593,7 @@ export default function FunctiePagina({ onParentClick }) {
               Veilig verbonden blijven.
             </h1>
             <p className="ot-hero-sub">
-              Chatten, bellen of videobellen komen samen in één vertrouwde en beveiligde omgeving voor familie en vrienden.
+              Veilig chatten met familie en vrienden in één vertrouwde en beveiligde omgeving.
             </p>
             <div className="ot-hero-actions">
               <button type="button" className="hp-cta-btn" onClick={() => scrollTo('chatten')}>
@@ -918,93 +691,6 @@ export default function FunctiePagina({ onParentClick }) {
                   aria-current={index === chatSlide ? 'true' : undefined}
                   className={`fp-slider-dot${index === chatSlide ? ' fp-slider-dot--active' : ''}`}
                   onClick={() => setChatSlide(index)}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── BELLEN ── */}
-      <section className="hp-section hp-section--gray" id="bellen">
-        <div className="hp-section-inner">
-          <SectionHeader
-            headingId="videobellen"
-            title="Bellen & videobellen in de app"
-            sub="Bel of videobel met vrienden en familie in de Pulse app — zonder telefoonnummer."
-          />
-          <div className="fp-slider">
-            <div className="fp-slider-header">
-              <button
-                type="button"
-                className="fp-slider-arrow"
-                aria-label="Vorige bel- of videofunctie"
-                onClick={() => setCallVideoSlide((prev) => (prev === 0 ? callVideoSlides.length - 1 : prev - 1))}
-              >
-                <span aria-hidden="true">←</span> Vorige
-              </button>
-              <div className="fp-slider-tabs" role="tablist" aria-label="Bel- en videofuncties" aria-orientation="horizontal">
-                {callVideoSlides.map((slide, index) => (
-                  <button
-                    key={slide.key}
-                    ref={(element) => { callTabRefs.current[index] = element; }}
-                    id={`call-tab-${slide.key}`}
-                    type="button"
-                    role="tab"
-                    aria-selected={index === callVideoSlide}
-                    aria-controls={`call-panel-${slide.key}`}
-                    tabIndex={index === callVideoSlide ? 0 : -1}
-                    className={`fp-slider-tab${index === callVideoSlide ? ' fp-slider-tab--active' : ''}`}
-                    onClick={() => setCallVideoSlide(index)}
-                    onKeyDown={(event) => handleCallTabKeyDown(event, index)}
-                  >
-                    {slide.label}
-                  </button>
-                ))}
-              </div>
-              <button
-                type="button"
-                className="fp-slider-arrow"
-                aria-label="Volgende bel- of videofunctie"
-                onClick={() => setCallVideoSlide((prev) => (prev === callVideoSlides.length - 1 ? 0 : prev + 1))}
-              >
-                Volgende <span aria-hidden="true">→</span>
-              </button>
-            </div>
-
-            <div
-              id={`call-panel-${currentCallVideoSlide.key}`}
-              role="tabpanel"
-              aria-labelledby={`call-tab-${currentCallVideoSlide.key}`}
-              tabIndex={0}
-              onTouchStart={(e) => { callTouchStartX.current = e.touches[0].clientX; }}
-              onTouchEnd={(e) => {
-                if (callTouchStartX.current === null) return;
-                const delta = e.changedTouches[0].clientX - callTouchStartX.current;
-                if (delta < -40) setCallVideoSlide((prev) => (prev === callVideoSlides.length - 1 ? 0 : prev + 1));
-                else if (delta > 40) setCallVideoSlide((prev) => (prev === 0 ? callVideoSlides.length - 1 : prev - 1));
-                callTouchStartX.current = null;
-              }}
-            >
-              <FeatureRow
-                key={currentCallVideoSlide.key}
-                reverse={currentCallVideoSlide.reverse}
-                mockup={currentCallVideoSlide.mockup}
-                title={currentCallVideoSlide.title}
-                text={currentCallVideoSlide.text}
-                features={currentCallVideoSlide.features}
-              />
-            </div>
-
-            <div className="fp-slider-dots">
-              {callVideoSlides.map((slide, index) => (
-                <button
-                  key={slide.key}
-                  type="button"
-                  aria-label={`Ga naar ${slide.label}`}
-                  aria-current={index === callVideoSlide ? 'true' : undefined}
-                  className={`fp-slider-dot${index === callVideoSlide ? ' fp-slider-dot--active' : ''}`}
-                  onClick={() => setCallVideoSlide(index)}
                 />
               ))}
             </div>

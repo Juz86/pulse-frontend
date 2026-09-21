@@ -69,8 +69,6 @@ Zie ook:
 De frontend bevat een gecontroleerde tussenfase voor E2EE voor:
 
 - chatten
-- bellen
-- videobellen
 
 Huidige veilige defaults:
 
@@ -113,14 +111,5 @@ Belangrijkste documenten:
 
 - frontendvoorbereiding voor E2EE is ingebouwd
 - build, tests en lint zijn eerder succesvol gedraaid
-- de actieve scope is chat, bel en video
+- de actieve scope is chat
 - de volgende grote stap ligt aan backendkant
-
-## Backend Startpunt
-
-Er staat nu ook een minimale backend-skeleton klaar in:
-
-- [backend-skeleton/README.md](/home/yushuaabdulkadir/pulse-frontend/backend-skeleton/README.md)
-
-Die map is bedoeld als implementatiestart voor de eerste E2EE-serviceflow, niet als af productiebackend.
-De actieve backend source of truth staat in `../pulse-backend-erlang`; `backend-skeleton` is legacy referentiemateriaal.

@@ -34,14 +34,14 @@ export default function ElektronischeCommunicatieBeleidPagina() {
         <p>
           Voor Pulse is elektronische communicatie de kern van de dienst. Juist daarom gelden er hoge eisen aan vertrouwelijkheid,
           minimale gegevensverwerking, beperkte toegang en passende beveiliging. Dit beleid legt uit hoe Pulse met communicatiegegevens
-          omgaat binnen chatten op web en bellen of videobellen in de app.
+          omgaat binnen chatten in de app.
         </p>
       </LegalSection>
 
       <LegalSection title="Doel en reikwijdte van dit beleid">
         <p>
           Dit beleid is van toepassing op de verwerking van gegevens die samenhangen met elektronische communicatie binnen Pulse,
-          waaronder berichten, oproepen, videocommunicatie, technische metadata, beveiligingslogs en daarmee verbonden support- of
+          waaronder berichten, technische metadata, beveiligingslogs en daarmee verbonden support- of
           incidentgegevens.
         </p>
       </LegalSection>
@@ -49,8 +49,6 @@ export default function ElektronischeCommunicatieBeleidPagina() {
       <LegalSection title="Wat onder elektronische communicatie binnen Pulse valt">
         <ul className="legal-list">
           <li>het uitwisselen van tekstberichten;</li>
-          <li>het opzetten, ontvangen en afhandelen van spraakoproepen;</li>
-          <li>het opzetten, ontvangen en afhandelen van videogesprekken;</li>
           <li>de technische processen die nodig zijn om die communicatie veilig en betrouwbaar te laten functioneren.</li>
         </ul>
       </LegalSection>
@@ -70,8 +68,6 @@ export default function ElektronischeCommunicatieBeleidPagina() {
       <LegalSection title="Welke communicatievormen Pulse ondersteunt">
         <ul className="legal-list">
           <li>chatten;</li>
-          <li>bellen;</li>
-          <li>videobellen.</li>
         </ul>
         <p>
           Pulse ondersteunt geen open sociale interactie, algoritmische aanbevelingen of entertainmentfuncties rond communicatie.
@@ -81,7 +77,6 @@ export default function ElektronischeCommunicatieBeleidPagina() {
       <LegalSection title="Welke communicatiegegevens kunnen worden verwerkt">
         <ul className="legal-list">
           <li>inhoud van tekstberichten;</li>
-          <li>gegevens die nodig zijn om oproepen en videogesprekken tot stand te brengen;</li>
           <li>afzender- en ontvangerrelaties binnen het trusted contacts model;</li>
           <li>tijdstippen van verzending, aflevering, oproepstart of oproepeinde;</li>
           <li>technische metadata die nodig zijn voor routering, synchronisatie, stabiliteit en beveiliging;</li>

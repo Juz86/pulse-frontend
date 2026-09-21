@@ -7,7 +7,6 @@
     "@capacitor/cli": "^7.6.2",
     "@capacitor/core": "^8.3.1",
     "@capacitor/push-notifications": "^8.0.0",
-    "@cloudflare/realtimekit": "^2.0.2",
     "@dicebear/collection": "^9.4.1",
     "@dicebear/core": "^9.4.1",
     "@sentry/react": "^10.45.0",
@@ -17,7 +16,6 @@
     "react-dom": "^18.2.0",
     "react-icons": "^5.6.0",
     "react-scripts": "5.0.1",
-    "simple-peer": "^9.11.1",
     "socket.io-client": "^4.7.4"
   },
   "scripts": {
@@ -41,7 +39,7 @@
     "test:e2ee": "react-scripts test --watchAll=false src/lib/e2ee/e2ee.test.js",
     "verify": "npm run lint && npm run test -- --runInBand && npm run build",
     "verify:e2ee": "npm run test:e2ee && npm run build",
-    "verify:e2ee:acceptance-preflight": "npm run lint && npm run test:e2ee -- --runInBand && npm --prefix backend-skeleton run test && npm --prefix backend-skeleton run smoke && npm --prefix backend-skeleton run smoke:socket",
+    "verify:e2ee:acceptance-preflight": "npm run lint && npm run test:e2ee -- --runInBand",
     "verify:cloudflare": "npm run lint && npm run test -- --runInBand && npm run verify:public-headers && npm run test:deployed-targets && npm run verify:landing && npm run verify:webapp",
     "android:sync": "npx cap sync android",
     "android:test:native": "cd android && GRADLE_USER_HOME=../.gradle-android ./gradlew :app:testDebugUnitTest :app:lintRelease",

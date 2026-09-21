@@ -24,7 +24,6 @@ const MessageListRow = React.memo(function MessageListRow({
   reactionPickerOpen,
   onCloseReactionPicker,
   onRetry,
-  onStartCall,
   onViewContact,
 }) {
   const isOwn = msg.senderId === currentUid;
@@ -60,10 +59,6 @@ const MessageListRow = React.memo(function MessageListRow({
     onRetry(msg);
   }, [msg, onRetry]);
 
-  const handleStartCall = useCallback((isVideo) => {
-    onStartCall?.({ toUid: msg.senderId, convId: activeConv.id, name: msg.senderName, isVideo });
-  }, [activeConv.id, msg.senderId, msg.senderName, onStartCall]);
-
   return (
     <div
       className={`message-select-wrap${selectionMode ? ' selection-mode' : ''}${isSelected ? ' selected' : ''}`}
@@ -95,7 +90,6 @@ const MessageListRow = React.memo(function MessageListRow({
         reactionPickerOpen={reactionPickerOpen}
         onCloseReactionPicker={handleCloseReactionPicker}
         onRetry={handleRetry}
-        onStartCall={handleStartCall}
         onViewContact={onViewContact}
       />
     </div>
@@ -126,7 +120,6 @@ const MessageList = React.memo(function MessageList({
   reactionPickerMsgId,
   onCloseReactionPicker,
   onRetry,
-  onStartCall,
   onViewContact,
   jumpToMsgId,
   typing = false,
@@ -189,7 +182,6 @@ const MessageList = React.memo(function MessageList({
           reactionPickerOpen={reactionPickerMsgId === msg.id}
           onCloseReactionPicker={onCloseReactionPicker}
           onRetry={onRetry}
-          onStartCall={onStartCall}
           onViewContact={onViewContact}
         />
       );
@@ -198,7 +190,7 @@ const MessageList = React.memo(function MessageList({
     return result;
   }, [messages, activeConv, currentUid, currentUser, user, contacts, chatSearch, focusedMsgId, selectedMessageIdSet,
       onReact, onShowContextMenu, onOpenReactionPicker, reactionPickerMsgId, onCloseReactionPicker,
-      onRetry, onStartCall, onViewContact, selectionMode, onToggleMessageSelection]);
+      onRetry, onViewContact, selectionMode, onToggleMessageSelection]);
 
   const bgStyle = useMemo(() => {
     if (chatBg?.type === 'photo') return {

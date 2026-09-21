@@ -126,9 +126,6 @@ export default function useConversations({
       lastMessage: conversation.lastMessage || '',
       updatedAt: conversation.updatedAt || conversation.lastMessageAt || null,
       lastMessageAt: conversation.lastMessageAt || conversation.updatedAt || null,
-      lastCallDirection: conversation.lastCallDirection || null,
-      lastCallIsVideo: !!conversation.lastCallIsVideo,
-      lastCallSenderId: conversation.lastCallSenderId || null,
       lastReactionMessageId: conversation.lastReactionMessageId || null,
       lastReactionEmoji: conversation.lastReactionEmoji || null,
       lastReactionReactorId: conversation.lastReactionReactorId || null,
@@ -615,9 +612,6 @@ export default function useConversations({
               ...conversation,
               lastMessage: '',
               lastMessageAt: null,
-              lastCallDirection: null,
-              lastCallIsVideo: false,
-              lastCallSenderId: null,
             }
           : conversation
       )));

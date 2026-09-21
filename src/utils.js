@@ -29,8 +29,6 @@ export function normalizeHistoryRetentionDays(value) {
 export function normalizeHistoryRules(rules = {}) {
   return {
     chatRetentionDays: normalizeHistoryRetentionDays(rules?.chatRetentionDays),
-    callRetentionDays: normalizeHistoryRetentionDays(rules?.callRetentionDays),
-    videoRetentionDays: normalizeHistoryRetentionDays(rules?.videoRetentionDays),
   };
 }
 
@@ -250,11 +248,11 @@ const USER_STORAGE_PREFIXES = [
   'pulse_pinned_',
   'pulse_pinned_msgs_',
   'pulse_starred_',
+  'pulse_calls_',
 ];
 
-export function clearPulseUserStorage(uid, options = {}) {
+export function clearPulseUserStorage(uid) {
   if (typeof window === 'undefined' || !uid) return;
-  const { includeCallLog = false } = options;
 
   const clearStorageKeys = (storageLike) => {
     if (!storageLike) return;
@@ -264,10 +262,9 @@ export function clearPulseUserStorage(uid, options = {}) {
       if (!key) continue;
 
       const isUserScoped = USER_STORAGE_PREFIXES.some((prefix) => key === `${prefix}${uid}` || key.startsWith(`${prefix}${uid}_`));
-      const isCallLogKey = includeCallLog && (key === `pulse_calls_${uid}` || key.startsWith(`pulse_calls_${uid}_`));
       const isNicknameCache = key.startsWith('pulse_nick_');
 
-      if (isUserScoped || isCallLogKey || isNicknameCache) {
+      if (isUserScoped || isNicknameCache) {
         keysToRemove.push(key);
       }
     }
@@ -332,17 +329,6 @@ export function formatConversationListTime(val) {
   if (msgDay.getTime() === today.getTime()) return formatTime(d);
   if (msgDay.getTime() === yesterday.getTime()) return 'Gisteren';
   return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
-}
-
-/** Chat: preview-tekst voor oproepen in de gesprekkenlijst */
-export function callPreview(conv, currentUid) {
-  const { lastCallSenderId, lastCallDirection, lastCallIsVideo } = conv;
-  if (!lastCallDirection) return conv.lastMessage || '';
-  const isOwn = lastCallSenderId === currentUid;
-  const iv = lastCallIsVideo;
-  if (lastCallDirection === 'completed') return iv ? 'Video-oproep' : 'Spraakoproep';
-  if (lastCallDirection === 'declined')  return isOwn ? 'Geweigerd' : (iv ? 'Gemiste video-oproep' : 'Gemiste oproep');
-  return isOwn ? (iv ? 'Video-oproep' : 'Spraakoproep') : (iv ? 'Gemiste video-oproep' : 'Gemiste oproep');
 }
 
 /** Relatieve tijdweergave vanuit een Firestore Timestamp */

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { getInitials, timeAgo, toMs } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, KeyRound, Trash2, Block, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, ChevronDown, Check, Cancel, MagicEdit, Search } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, KeyRound, Trash2, Block, Activity, Users, UserPlus, EyeOn, EyeOff, Message, ChevronDown, Check, Cancel, MagicEdit, Search } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
 import { ProfilePageShell } from '../components/ProfilePageShell';
@@ -115,7 +115,6 @@ export default function ParentDashboard({
   const [activityContactFilter, setActivityContactFilter] = useState('all');
   const [contactOverviewExpanded, setContactOverviewExpanded] = useState(false);
   const [activityLogExpanded, setActivityLogExpanded] = useState(false);
-  const [expandedTopContactSections, setExpandedTopContactSections] = useState({ chat: true, calls: false, video: false });
   const [childDropdownOpen, setChildDropdownOpen] = useState(false);
   const [childPickerPosition, setChildPickerPosition] = useState(null);
   const [childPickerTarget, setChildPickerTarget] = useState(null);
@@ -393,7 +392,7 @@ export default function ParentDashboard({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Aanmaken mislukt.');
-      setChildren(prev => [...prev, { uid: data.uid, displayName: data.displayName, username: data.username, online: false, pausedFeatures: { chat: false, call: false, video: false } }]);
+      setChildren(prev => [...prev, { uid: data.uid, displayName: data.displayName, username: data.username, online: false, pausedFeatures: { chat: false } }]);
       setCreateSuccess(`Account voor ${data.displayName} aangemaakt.`);
       setChildName(''); setChildUsername(''); setChildPassword('');
       setCreateUsernameStatus('');
@@ -796,8 +795,8 @@ export default function ParentDashboard({
                     className={`parent-portal-stack${changingPwUid === child.uid || editingUsernameUid === child.uid || pauseEditorUid === child.uid ? ' parent-portal-stack--editing' : ''}`}
                   >
                     {(() => {
-                      const pf = child.pausedFeatures || { chat: false, call: false, video: false };
-                      const anyPaused = pf.chat || pf.call || pf.video;
+                      const pf = child.pausedFeatures || { chat: false };
+                      const anyPaused = pf.chat;
                       return (
                     <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
                       {/* Rij 1: Avatar + naam */}
@@ -990,8 +989,6 @@ export default function ParentDashboard({
                         <div className="parent-child-pause-options" role="group" aria-label={`Functies pauzeren voor ${child.displayName}`}>
                           {[
                             { id: 'chat', label: 'Chatten', icon: Message },
-                            { id: 'call', label: 'Bellen', icon: Phone },
-                            { id: 'video', label: 'Videobellen', icon: Video },
                           ].map(({ id, label, icon: Icon }) => {
                             const paused = Boolean(child.pausedFeatures?.[id]);
                             return (
@@ -1210,8 +1207,6 @@ export default function ParentDashboard({
                         .sort((a, b) => Number(b[metricKey] || 0) - Number(a[metricKey] || 0))
                         .slice(0, 3);
                       const topChatContacts = buildTopList('messagesSent');
-                      const topCallContacts = buildTopList('callCount');
-                      const topVideoContacts = buildTopList('videoCalls');
                       const statusDot = profile.online
                         ? { background: '#22c55e', boxShadow: '0 0 0 2px #dcfce7' }
                         : { background: '#9ca3af' };
@@ -1223,10 +1218,6 @@ export default function ParentDashboard({
                         {
                           label: 'Berichten',
                           value: messaging.totalMessagesSent || 0,
-                        },
-                        {
-                          label: 'Oproepen',
-                          value: fmtSecs((messaging.totalCallSecs || 0) + (messaging.totalVideoSecs || 0)),
                         },
                         {
                           label: 'Contacten',
@@ -1347,24 +1338,10 @@ export default function ParentDashboard({
                             <div className="parent-top-contacts-grid">
                               {[
                                 { id: 'chat', title: 'Meest chat mee', items: topChatContacts, metric: (contact) => `${contact.messagesSent || 0} chats` },
-                                { id: 'calls', title: 'Meest belt mee', items: topCallContacts, metric: (contact) => `${contact.callCount || 0} oproepen` },
-                                { id: 'video', title: 'Meest videobelt mee', items: topVideoContacts, metric: (contact) => `${contact.videoCalls || 0} videogesprekken` },
                               ].map((section) => (
                                 <div key={section.title} className="parent-top-contacts-column">
-                                  {section.id === 'chat' ? (
-                                    <div className="parent-top-contacts-column-title">{section.title}</div>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      className="parent-top-contacts-column-toggle"
-                                      aria-expanded={!!expandedTopContactSections[section.id]}
-                                      onClick={() => setExpandedTopContactSections((current) => ({ ...current, [section.id]: !current[section.id] }))}
-                                    >
-                                      <span>{section.title}</span>
-                                      <ChevronDown size={18} aria-hidden="true" className={expandedTopContactSections[section.id] ? 'is-expanded' : ''} />
-                                    </button>
-                                  )}
-                                  {(section.id === 'chat' || expandedTopContactSections[section.id]) && (section.items.length === 0 ? (
+                                  <div className="parent-top-contacts-column-title">{section.title}</div>
+                                  {section.items.length === 0 ? (
                                     <div className="parent-top-contacts-empty">Nog geen data.</div>
                                   ) : (
                                     <div className="parent-top-contacts-list">
@@ -1384,7 +1361,7 @@ export default function ParentDashboard({
                                         </div>
                                       ))}
                                     </div>
-                                  ))}
+                                  )}
                                 </div>
                               ))}
                             </div>

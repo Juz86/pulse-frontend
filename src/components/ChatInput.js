@@ -178,10 +178,7 @@ const ChatInput = React.memo(function ChatInput({
       {pausedFeatures.chat ? (
         <div className="chat-paused-notice" role="status" aria-live="polite">
           <PauseCircle size={16} style={{ flexShrink: 0 }} aria-hidden="true" />
-          {' '}Chatten is gepauzeerd door je ouder
-          {(!pausedFeatures.call || !pausedFeatures.video)
-            ? `, maar je kan nog wel ${[!pausedFeatures.call && 'bellen', !pausedFeatures.video && 'videobellen'].filter(Boolean).join(' en ')}`
-            : ''}.
+          {' '}Chatten is gepauzeerd door je ouder.
         </div>
       ) : (
         <div className="input-row">

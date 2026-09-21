@@ -29,7 +29,6 @@ Belangrijkste domeinhooks:
 
 - `src/hooks/useConversations.js`
 - `src/hooks/useChat.js`
-- `src/hooks/useCalling.js`
 - `src/hooks/useProfile.js`
 - `src/hooks/useContacts.js`
 

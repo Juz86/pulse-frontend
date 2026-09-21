@@ -145,8 +145,6 @@ function PauseMockup() {
           <Refresh size={13} />
         </div>
         <div className="ot-option ot-option--warning">⏸ Chat</div>
-        <div className="ot-option">⏸ Bellen</div>
-        <div className="ot-option">⏸ Videobellen</div>
       </div>
       <div className="ot-kid-notice">
         <div className="ot-kid-notice-icon"><PauseCircle size={18} /></div>
@@ -189,7 +187,6 @@ function StatsMockup() {
   const stats = [
     ['Schermtijd', '1u 23m'],
     ['Berichten', '47'],
-    ['Oproepen', '3'],
     ['Contacten', '5'],
   ];
 
@@ -301,7 +298,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
     <div className="hp-root">
       <PageMeta
         title="Ouderlijk toezicht met Pulse — Overzicht en controle voor ouders"
-        description="Met het ouderportaal van Pulse hou je overzicht, pauzeer je chatten, bellen of videobellen per kind en ontvang je real-time meldingen."
+        description="Met het ouderportaal van Pulse hou je overzicht, pauzeer je chatten per kind en ontvang je real-time meldingen."
         canonical="/ouderlijk-toezicht"
       />
       <MarketingNavbar
@@ -360,11 +357,9 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
             reverse
             mockup={<PauseMockup />}
             title="Pauzeer per functie"
-            text="Niet één grote aan/uit knop — maar volledige controle per functie. Pauzeer alleen chatten tijdens huiswerk, of alleen bellen tijdens bedtijd."
+            text="Pauzeer chatten tijdens huiswerk, bedtijd of wanneer rust nodig is."
             list={[
               'Chat pauzeren / hervatten',
-              'Bellen pauzeren / hervatten',
-              'Videobellen pauzeren / hervatten',
               'Kind ziet directe melding bij pauzeren',
               'Lopende gesprekken worden beëindigd',
             ]}
@@ -394,11 +389,10 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
             reverse
             mockup={<StatsMockup />}
             title="Inzicht in gebruik"
-            text="Bekijk per kind hoeveel tijd er wordt besteed aan chatten en oproepen in de app. Zo houd je schermtijd gezond zonder te streng te zijn."
+            text="Bekijk per kind hoeveel tijd er wordt besteed aan chatten in de app. Zo houd je schermtijd gezond zonder te streng te zijn."
             list={[
               'Schermtijd per kind',
               'Aantal berichten per kind',
-              'Aantal oproepen per kind',
               'Overzicht per dag',
             ]}
           />

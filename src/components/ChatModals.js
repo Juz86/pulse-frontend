@@ -1,18 +1,12 @@
 // src/components/ChatModals.js
 import React, { useEffect, useRef, useState } from 'react';
-import { Phone, Video, Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, Message, Logout } from '../components/Icons';
+import { Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, Message, Logout } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
-import CallOverlay from '../components/CallOverlay';
 import AvatarBuilder from '../components/AvatarBuilder';
 import UserAvatar from '../components/UserAvatar';
 import PulseConfirmSheet from '../components/PulseConfirmSheet';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
-import {
-  PULSE_WEB_CALLS_UNAVAILABLE_HINT,
-  PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE,
-  PULSE_WEB_CALLS_UNAVAILABLE_TITLE,
-} from '../lib/platform/runtime';
 
 function getFriendRequestId(request) {
   return request?.id || request?.requestId || null;
@@ -88,7 +82,6 @@ export default function ChatModals({
   setSharingContact: _sc,
   showStarredMsgs, setShowStarredMsgs,
   starredMsgs, messages, onJumpToMsg,
-  onInitiateCall,
   onToggleConversationMute,
   markConversationUnreadEnabled = false,
   onMarkConversationUnread,
@@ -106,21 +99,12 @@ export default function ChatModals({
   conversationMuted = false,
   messageSelectionMode = false,
   newChatSheetInSidebar = false,
-  callSheetInSidebar = false,
-
-  // call modal
-  showCallModal, setShowCallModal,
-  callContact, callContactFromRecent, getCallLog, refreshCallLog, clearCallLog, callLogRateLimitUntil = 0,
 
   // group info
   showGroupInfo, setShowGroupInfo,
   addingMember, setAddingMember,
   groupPhotoLoading, uploadGroupPhoto,
   removeMemberFromGroup, addMemberToGroup, renameGroup, promoteGroupAdmin, relinquishGroupAdmin,
-
-  // call overlay
-  activeCall, setActiveCall,
-  unreadCounts = {},
 
   // forward
   forwardMsg, setForwardMsg,
@@ -133,8 +117,6 @@ export default function ChatModals({
   // blocked contacts
   blockedContacts, parentBlockedUids, unblockContact,
 
-  // helpers
-  callsAvailable = true,
 }) {
   const [starredSearch,   setStarredSearch]   = useState('');
   const [requestsTab,     setRequestsTab]     = useState('ontvangen');
@@ -146,9 +128,6 @@ export default function ChatModals({
   const [groupNameDraft, setGroupNameDraft] = useState('');
   const [showAdminPicker, setShowAdminPicker] = useState(false);
   const [groupMemberAction, setGroupMemberAction] = useState(null);
-  const [callSearch, setCallSearch] = useState('');
-  const [callActionMode, setCallActionMode] = useState(null); // 'voice' | null
-  const [callLogStatusNow, setCallLogStatusNow] = useState(() => Date.now());
   const [confirmCheckboxChecked, setConfirmCheckboxChecked] = useState(false);
   const isGroupAdmin = (conversation, uid) => (
     Array.isArray(conversation?.adminIds)
@@ -193,56 +172,6 @@ export default function ChatModals({
       setSelectedGroupMemberUids([]);
     }
   }, [addingMember]);
-
-  useEffect(() => {
-    if (!showCallModal || !callsAvailable || !refreshCallLog) return undefined;
-
-    let intervalId = null;
-
-    const startPolling = () => {
-      if (intervalId !== null || document.visibilityState !== 'visible') return;
-      intervalId = setInterval(() => {
-        if (document.visibilityState === 'visible') {
-          refreshCallLog();
-        }
-      }, 20000);
-    };
-
-    const stopPolling = () => {
-      if (intervalId === null) return;
-      clearInterval(intervalId);
-      intervalId = null;
-    };
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        refreshCallLog();
-        startPolling();
-        return;
-      }
-      stopPolling();
-    };
-
-    refreshCallLog();
-    startPolling();
-    document.addEventListener('visibilitychange', onVisibilityChange);
-
-    return () => {
-      stopPolling();
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-    };
-  }, [showCallModal, callsAvailable, refreshCallLog]);
-
-  useEffect(() => {
-    if (!showCallModal || !callsAvailable) return undefined;
-    if (Number(callLogRateLimitUntil || 0) <= Date.now()) return undefined;
-    setCallLogStatusNow(Date.now());
-    const timerId = setInterval(() => {
-      setCallLogStatusNow(Date.now());
-    }, 1000);
-    return () => clearInterval(timerId);
-  }, [showCallModal, callsAvailable, callLogRateLimitUntil]);
-
 
   function openStarredFromProfile(contact) {
     setShowContactProfile(false);
@@ -648,7 +577,7 @@ export default function ChatModals({
               <div className="shared-contact-panel-note">
                 {viewingSharedContact.isAlreadyContact
                   ? 'Dit gedeelde contact staat al in je contactenlijst.'
-                  : 'Voeg deze contactpersoon toe om direct te kunnen chatten, bellen of videobellen in Pulse.'}
+                  : 'Voeg deze contactpersoon toe om direct te kunnen chatten in Pulse.'}
               </div>
               <div className="shared-contact-panel-actions">
                 <button type="button" className="btn-secondary shared-contact-panel-close" onClick={() => setViewingSharedContact(null)}>
@@ -1022,14 +951,6 @@ export default function ChatModals({
                   <span className="contact-profile-quick-icon"><Message size={24} aria-hidden="true" /></span>
                   <span>Chat</span>
                 </button>
-                <button type="button" className="contact-profile-quick-card" onClick={() => (contactProfileContact ? callContact?.(targetContact, false) : onInitiateCall?.(false))}>
-                  <span className="contact-profile-quick-icon"><Phone size={24} aria-hidden="true" /></span>
-                  <span>Bel</span>
-                </button>
-                <button type="button" className="contact-profile-quick-card" onClick={() => (contactProfileContact ? callContact?.(targetContact, true) : onInitiateCall?.(true))}>
-                  <span className="contact-profile-quick-icon"><Video size={24} aria-hidden="true" /></span>
-                  <span>Video</span>
-                </button>
               </div>
 
               <section className="contact-profile-card contact-profile-card--profile-actions">
@@ -1206,211 +1127,6 @@ export default function ChatModals({
               </div>
             </aside>
           </div>
-        );
-      })()}
-
-      {/* ── OPROEPEN PANEEL ── */}
-      {showCallModal && !callSheetInSidebar && (() => {
-        const callLog = getCallLog();
-        const remainingRateLimitMs = Math.max(0, Number(callLogRateLimitUntil || 0) - callLogStatusNow);
-        const remainingRateLimitSeconds = Math.ceil(remainingRateLimitMs / 1000);
-        const normalizedCallSearch = callSearch.trim().toLowerCase();
-        const filteredCallLog = normalizedCallSearch
-          ? callLog.filter((entry) => {
-              const name = (entry?.name || '').toLowerCase();
-              const typeLabel = entry?.isVideo ? 'videogesprek' : 'gesprek';
-              return name.includes(normalizedCallSearch) || typeLabel.includes(normalizedCallSearch);
-            })
-          : callLog;
-        const filteredCallContacts = normalizedCallSearch
-          ? contacts.filter((c) => {
-              const displayName = (getContactDisplayName(c) || c.displayName || '').toLowerCase();
-              const email = (c.email || '').toLowerCase();
-              return displayName.includes(normalizedCallSearch) || email.includes(normalizedCallSearch);
-            })
-          : contacts;
-        const closeCallSheet = () => {
-          setShowCallModal(false);
-          setCallActionMode(null);
-          setCallSearch('');
-        };
-        return (
-          <div
-            className="pulse-sheet-backdrop pulse-sheet-backdrop--call-log"
-            onClick={closeCallSheet}
-          >
-            <aside
-              className="pulse-sheet pulse-sheet--call-log"
-              aria-labelledby="call-log-title"
-              aria-describedby="call-log-description"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="pulse-sheet-handle" aria-hidden="true" />
-              <div className="pulse-sheet-header pulse-sheet-header--call-log">
-                <div className="pulse-sheet-title pulse-sheet-title--call-log">{callsAvailable ? 'Recent' : 'Alleen in de app'}</div>
-                <button
-                  type="button"
-                  className="pulse-sheet-close pulse-sheet-close--call-log"
-                  aria-label="Sluiten"
-                  onClick={closeCallSheet}
-                >
-                  <span aria-hidden="true">✕</span>
-                </button>
-              </div>
-              <p id="call-log-description" className="sr-only">
-                {callsAvailable
-                  ? 'Bekijk recente oproepen en start een nieuwe bel- of video-oproep.'
-                  : 'Bellen en videobellen zijn in Pulse Web niet beschikbaar.'}
-              </p>
-              <div className="call-log-sheet-body">
-              {!callsAvailable ? (
-                <div className="call-panel-note">
-                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{PULSE_WEB_CALLS_UNAVAILABLE_TITLE}</div>
-                  <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.6 }}>{PULSE_WEB_CALLS_UNAVAILABLE_MESSAGE}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text3)', lineHeight: 1.55 }}>{PULSE_WEB_CALLS_UNAVAILABLE_HINT}</div>
-                </div>
-              ) : (
-                <>
-                  <div className="call-log-toolbar">
-                    <div
-                      className="starred-search-wrap call-log-search-wrap call-log-search-wrap--full"
-                    >
-                      <Search size={15} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
-                      <input
-                        className="starred-search-input"
-                        placeholder="Zoek recente oproepen of contact…"
-                        value={callSearch}
-                        onChange={(e) => setCallSearch(e.target.value)}
-                      />
-                      {callSearch && (
-                        <button type="button" className="starred-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
-                          <Cancel size={14} aria-hidden="true" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  {remainingRateLimitSeconds > 0 && (
-                    <div
-                      role="status"
-                      aria-live="polite"
-                      style={{
-                        marginBottom: 12,
-                        fontSize: 12,
-                        color: '#fde68a',
-                        background: 'rgba(245, 158, 11, 0.12)',
-                        border: '1px solid rgba(245, 158, 11, 0.34)',
-                        borderRadius: 10,
-                        padding: '8px 10px',
-                      }}
-                    >
-                      Te veel verzoeken. Vernieuwen over {remainingRateLimitSeconds}s.
-                    </div>
-                  )}
-
-                  {callActionMode && (
-                    <div className="call-log-picker">
-                      <div className="new-chat-sheet-kicker">Kies een contactpersoon</div>
-                      <div className="call-log-picker-title">
-                        Start direct een bel- of video-oproep vanuit je contacten.
-                      </div>
-                      <div className="pulse-sheet-list pulse-sheet-list--new-chat call-log-picker-list">
-                        {filteredCallContacts.length === 0 ? (
-                          <div className="empty-convs" style={{ paddingTop: 6, paddingBottom: 6 }}>
-                            <p>Geen contacten gevonden.</p>
-                          </div>
-                        ) : (
-                          filteredCallContacts.map((contact) => {
-                            const contactTitle = getContactDisplayName(contact)
-                              || contact.displayName
-                              || contact.username
-                              || (contact.email ? contact.email.split('@')[0] : '')
-                              || 'Onbekend';
-                            return (
-                            <div
-                              key={contact.uid}
-                              className="call-log-picker-row"
-                            >
-                              <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
-                              <div className="conv-info call-log-picker-copy">
-                                <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
-                                <div className="conv-preview call-contact-email-responsive">{contact.email || 'Geen e-mailadres'}</div>
-                              </div>
-                              <div className="call-log-picker-actions">
-                                <button
-                                  type="button"
-                                  className="call-btn voice"
-                                  aria-label={`Bel ${contactTitle}`}
-                                  title="Bellen"
-                                  onClick={() => (callContactFromRecent || callContact)(contact, false)}
-                                >
-                                  <Phone size={14} aria-hidden="true" />
-                                </button>
-                                <button
-                                  type="button"
-                                  className="call-btn video"
-                                  aria-label={`Videobel ${contactTitle}`}
-                                  title="Videobellen"
-                                  onClick={() => (callContactFromRecent || callContact)(contact, true)}
-                                >
-                                  <Video size={14} aria-hidden="true" />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {!callActionMode && (
-                    filteredCallLog.length === 0 ? (
-                      <div className="call-panel-empty">
-                        <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
-                        <div>{callSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</div>
-                      </div>
-                    ) : (
-                      <div className="call-log-list">
-                        {filteredCallLog.map((entry, i) => {
-                          const contact = contacts.find(c => c.uid === entry.uid);
-                          const CallTypeIcon = entry.isVideo ? Video : Phone;
-                          const displayTime = formatTime(entry.ts);
-                          return (
-                            <div key={i} className="call-log-row">
-                              <div className="avatar-wrap">
-                                <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
-                                {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
-                              </div>
-                              <div className="call-log-copy">
-                                <div className="call-log-meta">
-                                  <span className="conv-name">{entry.name}</span>
-                                  <span className="call-log-time">{displayTime}</span>
-                                </div>
-                                <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
-                                  <span className="call-log-direction-icon" aria-hidden="true"><CallTypeIcon size={14} /></span>
-                                  <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
-                                </div>
-                              </div>
-                              {contact && (
-                                <div className="call-log-actions">
-                                  {entry.isVideo ? (
-                                    <button type="button" className="call-btn video" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
-                                  ) : (
-                                    <button type="button" className="call-btn voice" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )
-                  )}
-                </>
-              )}
-            </div>
-          </aside>
-        </div>
         );
       })()}
 
@@ -1959,14 +1675,6 @@ export default function ChatModals({
                 <Message size={27} aria-hidden="true" />
                 <span>Bericht</span>
               </button>
-              <button type="button" onClick={() => { closeGroupInfo(); callContact?.(groupMemberAction.contact, false); }}>
-                <Phone size={29} aria-hidden="true" />
-                <span>Audio</span>
-              </button>
-              <button type="button" onClick={() => { closeGroupInfo(); callContact?.(groupMemberAction.contact, true); }}>
-                <Video size={29} aria-hidden="true" />
-                <span>Video</span>
-              </button>
             </div>
             <div className="group-member-action-list">
               {groupMemberAction.canManageMember && (
@@ -1997,27 +1705,6 @@ export default function ChatModals({
             </div>
           </aside>
         </div>
-      )}
-
-      {/* ── ACTIEF GESPREK OVERLAY ── */}
-      {callsAvailable && activeCall && (
-        <CallOverlay
-          active={activeCall}
-          contacts={contacts}
-          user={user}
-          chatUnreadCount={Object.values(unreadCounts || {}).reduce((sum, count) => sum + (Number(count) || 0), 0)}
-          onRetryCall={(toUid, isVideo) => {
-            const contact = contacts.find((item) => item?.uid === toUid);
-            if (contact) {
-              setActiveCall(null);
-              callContact(contact, isVideo);
-              return;
-            }
-            setActiveCall(null);
-          }}
-          onClose={() => setActiveCall(null)}
-          onEnd={() => setActiveCall(null)}
-        />
       )}
 
       {/* ── DOORSTUREN PANEEL ── */}

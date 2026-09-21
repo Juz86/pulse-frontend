@@ -1,9 +1,9 @@
 // src/components/ConversationItem.js
 import React from 'react';
-import { Pin, MoreHoriz, Phone, Video } from '../components/Icons';
+import { Pin, MoreHoriz } from '../components/Icons';
 import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
 import UserAvatar from '../components/UserAvatar';
-import { callPreview, formatConversationListTime } from '../utils';
+import { formatConversationListTime } from '../utils';
 
 function ConversationItemBase({
   conv,
@@ -52,9 +52,6 @@ function ConversationItemBase({
       .slice(0, 72);
     return `${reactorName} reageerde met ${conv.lastReactionEmoji} op: “${targetText || 'een bericht'}”`;
   }, [conv.lastMessage, conv.lastReactionEmoji, conv.lastReactionReactorId, conv.memberNames, currentUid]);
-  const callPreviewText = conv.lastCallDirection ? callPreview(conv, currentUid) : '';
-  const isMissedCallPreview = callPreviewText.startsWith('Gemiste ');
-  const CallPreviewIcon = conv.lastCallIsVideo ? Video : Phone;
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
@@ -220,13 +217,6 @@ function ConversationItemBase({
                 <span />
                 <span />
               </span>
-            </span>
-          ) : conv.lastCallDirection ? (
-            <span className="conv-call-preview">
-              <span className={`conv-call-icon${isMissedCallPreview ? ' conv-call-missed-icon' : ''}`} aria-hidden="true">
-                <CallPreviewIcon size={13} />
-              </span>
-              <span>{callPreviewText}</span>
             </span>
           ) : (
             <>

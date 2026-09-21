@@ -29,7 +29,7 @@ const downloadOptionCards = [
   },
   {
     title: 'iPhone/iPad',
-    description: 'Profiteer van chatten, bellen en videobellen met de iPhone- en iPad-app.',
+    description: 'Chat veilig met familie en vrienden via de iPhone- en iPad-app.',
     href: '#',
     ctaLabel: 'Downloaden',
     icon: AppleIcon,
@@ -37,7 +37,7 @@ const downloadOptionCards = [
   },
   {
     title: 'Mobiel/tablet',
-    description: 'Profiteer van chatten, bellen en videobellen met de Android-app.',
+    description: 'Chat veilig met familie en vrienden via de Android-app.',
     href: '#',
     ctaLabel: 'Downloaden',
     icon: AndroidIcon,
@@ -45,7 +45,7 @@ const downloadOptionCards = [
   },
   {
     title: 'Windows',
-    description: 'Profiteer van chatten, bellen en videobellen met de Windows-app.',
+    description: 'Chat veilig met familie en vrienden via de Windows-app.',
     href: '#',
     ctaLabel: 'Downloaden',
     icon: WindowsIcon,
@@ -53,7 +53,7 @@ const downloadOptionCards = [
   },
   {
     title: 'Mac',
-    description: 'Profiteer van chatten, bellen en videobellen met de Mac-app.',
+    description: 'Chat veilig met familie en vrienden via de Mac-app.',
     href: '#',
     ctaLabel: 'Downloaden',
     icon: AppleIcon,
@@ -207,7 +207,7 @@ export default function Homepage({ onParentClick }) {
     <div className="hp-root">
       <PageMeta
         title="Pulse — Voor ouder en kind. Veilig verbonden."
-        description="Pulse is een veilige Nederlandse communicatie-app voor kinderen: chatten, bellen en videobellen, zonder telefoonnummer en e-mailadres, onder ouderlijk toezicht."
+        description="Pulse is een veilige Nederlandse chat-app voor kinderen, zonder telefoonnummer en e-mailadres, onder ouderlijk toezicht."
         canonical="/"
       />
 
@@ -228,14 +228,14 @@ export default function Homepage({ onParentClick }) {
           <div className="hp-hero-text">
             <ul className="hp-hero-features hp-hero-features--lead" aria-label="Belangrijkste voordelen">
               <li className="hp-hero-feature"><span aria-hidden="true"><Shield size={16} /></span> Versleuteld &amp; privé</li>
-              <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Chatten en (video)bellen</li>
+              <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Veilig chatten</li>
               <li className="hp-hero-feature"><span aria-hidden="true"><Users size={16} /></span> Ouderlijk toezicht</li>
             </ul>
             <h1 id="homepage-hero-title" className="hp-hero-title">
-              Veilig chatten, bellen en videobellen<br className="hp-hero-title-break" /> voor elk kind
+              Veilig chatten<br className="hp-hero-title-break" /> voor elk kind
             </h1>
             <p className="hp-hero-sub">
-            Met Pulse kunnen kinderen zonder telefoonnummer en e-mailadres veilig chatten, bellen en videobellen. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
+            Met Pulse kunnen kinderen zonder telefoonnummer en e-mailadres veilig chatten. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
             <div className="hp-hero-cta-row">
               <button type="button" className="hp-cta-btn" onClick={openParentSignup}>
                 Start met Pulse
@@ -300,10 +300,10 @@ export default function Homepage({ onParentClick }) {
             </div>
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Communicatie</div>
-              <h2 id="homepage-feature-communication">Chatten, bellen en videobellen in de app</h2>
-              <p>Blijf veilig verbonden met familie en vrienden in de Pulse app. Chatten, bellen en videobellen zonder telefoonnummer, foto’s, gifs of algoritmes. Pulse is pure communicatie.
+              <h2 id="homepage-feature-communication">Veilig chatten in de app</h2>
+              <p>Blijf veilig verbonden met familie en vrienden in de Pulse app. Chatten zonder telefoonnummer, foto’s, gifs of algoritmes. Pulse is pure communicatie.
               </p>
-              <a href="/functies#chatten" className="hp-read-more-btn" aria-label="Lees meer over chatten op web en bellen in de app">
+              <a href="/functies#chatten" className="hp-read-more-btn" aria-label="Lees meer over veilig chatten">
                 Lees meer <span aria-hidden="true">→</span>
               </a>
             </div>
@@ -314,7 +314,7 @@ export default function Homepage({ onParentClick }) {
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Ouderlijk toezicht</div>
               <h2 id="homepage-feature-parental-controls">Volledig overzicht voor ouders</h2>
-              <p>Ouders hebben volledig toezicht via een eigen dashboard. Chatten, bellen en videobellen in de app blijven overzichtelijk beheerd. Direct meldingen bij nieuwe activiteiten van je kinderen.</p>
+              <p>Ouders hebben volledig toezicht via een eigen dashboard. Chatten in de app blijft overzichtelijk beheerd, met directe meldingen bij nieuwe activiteiten van je kinderen.</p>
               <a href="/ouderlijk-toezicht#dashboard" className="hp-read-more-btn" aria-label="Lees meer over ouderlijk toezicht">
                 Lees meer <span aria-hidden="true">→</span>
               </a>

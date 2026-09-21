@@ -1,13 +1,13 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Phone, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound } from '../components/Icons';
+import { Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
 import ParentDashboard from '../screens/ParentDashboard';
-import { formatTime, getInitials, HISTORY_RETENTION_OPTIONS, normalizeHistoryRules } from '../utils';
+import { getInitials, HISTORY_RETENTION_OPTIONS, normalizeHistoryRules } from '../utils';
 import chatDefaultPattern from '../assets/chatachtergrond.jpeg';
 
 function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = false, style }) {
@@ -114,26 +114,12 @@ function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = 
   );
 }
 
-function getCallLogSelectionKey(entry) {
-  return [
-    entry?.convId || 'local',
-    entry?.id || '',
-    entry?.uid || '',
-    Number(entry?.ts) || 0,
-    entry?.isVideo ? 'video' : 'voice',
-  ].join(':');
-}
-
 export default function ChatSidebar({
   user,
   onlineUsers,
   inactiveUsers,
   dnd,
   onToggleDnd,
-  missedCallAlert,
-  callLogRead,
-  getCallLog,
-  onCallLogRead,
   searchQuery,
   setSearchQuery,
   activeTab,
@@ -188,9 +174,6 @@ export default function ChatSidebar({
   groupMembers = [],
   toggleGroupMember,
   createGroup,
-  onShowCallModal,
-  showCallModal = false,
-  setShowCallModal,
   showAddContact = false,
   setShowAddContact,
   contactEmail = '',
@@ -261,7 +244,6 @@ export default function ChatSidebar({
   onTogglePin,
   onViewContact,
   onStartChat,
-  onCallContact,
   onRemoveContact,
   onBlockContact,
   onUnblockContact,
@@ -269,7 +251,6 @@ export default function ChatSidebar({
   parentBlockedUids,
   // conv actions
   onOpenConversation,
-  onCallFromConv,
   onClearConversation,
   onHardDeleteConversation,
   onToggleConversationMute,
@@ -293,11 +274,6 @@ export default function ChatSidebar({
   getOtherUid,
   getConvPhoto,
   getContactDisplayName,
-  callsAvailable = true,
-  callContact,
-  callContactFromRecent,
-  deleteCallLogEntries,
-  callLogRateLimitUntil = 0,
 }) {
   const sidebarRef = useRef(null);
   const sidebarHeaderRef = useRef(null);
@@ -312,17 +288,12 @@ export default function ChatSidebar({
   const [newChatSheetClosing, setNewChatSheetClosing] = useState(false);
   const [newGroupSheetClosing, setNewGroupSheetClosing] = useState(false);
   const [requestsSheetClosing, setRequestsSheetClosing] = useState(false);
-  const [callSheetClosing, setCallSheetClosing] = useState(false);
   const [profileSheetClosing, setProfileSheetClosing] = useState(false);
   const [parentPortalSheetClosing, setParentPortalSheetClosing] = useState(false);
   const [parentPortalView, setParentPortalView] = useState('menu');
-  const [callSearch, setCallSearch] = useState('');
   const [shareContactSearch, setShareContactSearch] = useState('');
   const [newGroupContactSearch, setNewGroupContactSearch] = useState('');
   const [sidebarSearchOpen, setSidebarSearchOpen] = useState(false);
-  const [callActionMode, setCallActionMode] = useState(null);
-  const [callLogSelectionMode, setCallLogSelectionMode] = useState(false);
-  const [selectedCallLogEntryKeys, setSelectedCallLogEntryKeys] = useState([]);
   const [requestsTab, setRequestsTab] = useState('ontvangen');
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const [pendingColor, setPendingColor] = useState(null);
@@ -336,7 +307,6 @@ export default function ChatSidebar({
   const newChatSheetCloseTimeoutRef = useRef(null);
   const newGroupSheetCloseTimeoutRef = useRef(null);
   const requestsSheetCloseTimeoutRef = useRef(null);
-  const callSheetCloseTimeoutRef = useRef(null);
   const profileSheetCloseTimeoutRef = useRef(null);
   const parentPortalSheetCloseTimeoutRef = useRef(null);
   const convSheetHistoryPushedRef = useRef(false);
@@ -363,7 +333,6 @@ export default function ChatSidebar({
   const requestsSheetVisible = showFriendRequestsPanel || requestsSheetClosing;
   const contactSheetVisible = !!contactMenu;
   const conversationSheetVisible = !!convActionsSheet;
-  const callSheetVisible = showCallModal || callSheetClosing;
   const embeddedSettingsActive = showProfile && (profileTab === 'overview' || profileTab === 'account' || profileTab === 'geschiedenis' || profileTab === 'styling' || profileTab === 'geblokkeerd');
   const settingsSheetVisible = embeddedSettingsActive || profileSheetClosing;
   const settingsProfilePageVisible = embeddedSettingsActive && profileTab === 'overview';
@@ -372,10 +341,9 @@ export default function ChatSidebar({
   const stylingProfilePageVisible = embeddedSettingsActive && profileTab === 'styling';
   const blockedProfilePageVisible = embeddedSettingsActive && profileTab === 'geblokkeerd';
   const parentPortalPageVisible = showParentDashboard || parentPortalSheetClosing;
-  const callsProfilePageVisible = callSheetVisible;
   const contactActionsPageVisible = contactSheetVisible;
   const conversationActionsPageVisible = conversationSheetVisible;
-  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || callsProfilePageVisible || contactActionsPageVisible || conversationActionsPageVisible || moreActionsSheetVisible || newChatSheetVisible || shareContactPageVisible || addContactSheetVisible || newGroupSheetVisible || requestsSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)));
+  const footerClusterMode = (settingsProfilePageVisible || accountProfilePageVisible || historyProfilePageVisible || stylingProfilePageVisible || blockedProfilePageVisible || parentPortalPageVisible || contactActionsPageVisible || conversationActionsPageVisible || moreActionsSheetVisible || newChatSheetVisible || shareContactPageVisible || addContactSheetVisible || newGroupSheetVisible || requestsSheetVisible) ? null : (settingsSheetVisible ? 'settings' : (contactSheetVisible ? 'contact' : (conversationSheetVisible ? 'conversation' : null)));
   const profileSections = useMemo(() => ([
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
     { id: 'styling', icon: <Palette size={18} aria-hidden="true" />, label: 'Vormgeving', description: 'Chatachtergrond en sfeer' },
@@ -389,8 +357,6 @@ export default function ChatSidebar({
   const canManagePrimaryHistoryChild = !!primaryHistoryChild?.canManageHistory;
   const historySettingRows = [
     { key: 'chatRetentionDays', label: 'Chats' },
-    { key: 'callRetentionDays', label: 'Bellen' },
-    { key: 'videoRetentionDays', label: 'Videobellen' },
   ];
   const settingsDisplayName = user.displayName || user.email?.split('@')[0] || 'Gebruiker';
   const settingsEmail = user.email || '';
@@ -603,7 +569,6 @@ export default function ChatSidebar({
         onClick: () => {
           closeProfileOverviewSheet();
           closeAddContactSheet();
-          closeCallSheet();
           closeNewGroupSheet();
           closeMoreActionsSheet();
           setShowNewChat?.(true);
@@ -617,7 +582,6 @@ export default function ChatSidebar({
         onClick: () => {
           closeProfileOverviewSheet();
           closeNewChatSheet();
-          closeCallSheet();
           closeNewGroupSheet();
           closeMoreActionsSheet();
           setActiveTab('contacts');
@@ -633,7 +597,6 @@ export default function ChatSidebar({
           closeProfileOverviewSheet();
           closeAddContactSheet();
           closeNewChatSheet();
-          closeCallSheet();
           closeMoreActionsSheet();
           setShowNewGroup?.(true);
         },
@@ -651,7 +614,6 @@ export default function ChatSidebar({
           closeAddContactSheet();
           closeNewChatSheet();
           closeNewGroupSheet();
-          closeCallSheet();
           closeMoreActionsSheet();
           setActiveTab('contacts');
           setShowFriendRequestsPanel?.(true);
@@ -1195,9 +1157,6 @@ export default function ChatSidebar({
       onStartChat(contact);
       completeContactActionsSheet();
     };
-    const handleCallContactFromActions = (isVideo) => {
-      onCallContact(contact, isVideo);
-    };
     const handleTogglePinFromActions = () => {
       onTogglePin(contact.uid);
     };
@@ -1248,18 +1207,6 @@ export default function ChatSidebar({
                 <Message size={14} aria-hidden="true" />
                 <span>Bericht sturen</span>
               </button>
-              {callsAvailable && (
-                <>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => handleCallContactFromActions(false)} title="Bellen">
-                    <Phone size={14} aria-hidden="true" />
-                    <span>Bellen</span>
-                  </button>
-                  <button type="button" role="menuitem" className="chat-header-menu-item" onClick={() => handleCallContactFromActions(true)} title="Videobellen">
-                    <Video size={14} aria-hidden="true" />
-                    <span>Videobellen</span>
-                  </button>
-                </>
-              )}
               <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' danger' : ''}`} onClick={handleTogglePinFromActions} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
                 <Pin size={14} aria-hidden="true" />
                 <span>{isPinned ? 'Losmaken' : 'Vastzetten'}</span>
@@ -1733,225 +1680,6 @@ export default function ChatSidebar({
     </>,
   );
 
-  const renderCallsProfilePage = () => (
-    (() => {
-      return (
-        <aside
-          ref={profilePanelRef}
-          className="chat-side-panel contact-profile-panel parent-dashboard-panel calls-dashboard-panel"
-          aria-labelledby="calls-profile-title"
-          aria-describedby="calls-profile-description"
-        >
-          <div className="calls-dashboard-sticky-top">
-            <div className="contact-profile-topbar calls-dashboard-topbar">
-              {callActionMode ? (
-                <div className="contact-profile-topbar-spacer" aria-hidden="true" />
-              ) : (
-                <button
-                  type="button"
-                  className={`contact-profile-nav-btn calls-dashboard-selection-btn${callLogSelectionMode ? ' is-active' : ''}`}
-                  aria-label={callLogSelectionMode ? 'Selecteren annuleren' : 'Oproepen selecteren'}
-                  title={callLogSelectionMode ? 'Annuleren' : 'Oproepen selecteren'}
-                  onClick={() => {
-                    if (callLogSelectionMode) {
-                      closeCallLogSelection();
-                      return;
-                    }
-                    setCallLogSelectionMode(true);
-                  }}
-                >
-                  {callLogSelectionMode ? <XIcon size={20} aria-hidden="true" /> : <Trash2 size={19} aria-hidden="true" />}
-                </button>
-              )}
-              <div className="contact-profile-heading calls-dashboard-heading">
-                <h2 id="calls-profile-title">
-                  {callActionMode ? 'Nieuwe oproep' : callLogSelectionMode ? `${selectedCallLogEntries.length} geselecteerd` : 'Oproepen'}
-                </h2>
-              </div>
-              <button
-                type="button"
-                className={`contact-profile-nav-btn ${callLogSelectionMode && !callActionMode ? 'calls-dashboard-delete-btn' : 'calls-dashboard-add-btn'}`}
-                aria-label={callActionMode ? 'Sluit contactkiezer' : callLogSelectionMode ? 'Geselecteerde oproepen verwijderen' : 'Start nieuwe oproep'}
-                title={callActionMode ? 'Sluiten' : callLogSelectionMode ? 'Verwijderen' : 'Nieuwe oproep'}
-                disabled={callLogSelectionMode && !callActionMode && selectedCallLogEntries.length === 0}
-                onClick={() => {
-                  if (callActionMode) {
-                    setCallActionMode(null);
-                    return;
-                  }
-                  if (callLogSelectionMode) {
-                    deleteSelectedCallLogEntries();
-                    return;
-                  }
-                  setCallActionMode('contacts');
-                }}
-              >
-                {callActionMode ? (
-                  <XIcon size={20} aria-hidden="true" />
-                ) : callLogSelectionMode ? (
-                  <Trash2 size={19} aria-hidden="true" />
-                ) : (
-                  <span className="calls-dashboard-add-icon" aria-hidden="true">
-                    <Phone size={18} />
-                    <Plus size={12} />
-                  </span>
-                )}
-              </button>
-            </div>
-
-            <p id="calls-profile-description" className="sr-only">
-              Bekijk recente oproepen en start een nieuwe bel- of video-oproep.
-            </p>
-
-            <div className="calls-dashboard-search">
-              <div className="search-box search-box--top sidebar-call-search-box">
-                <Search size={16} style={{ color: 'var(--text3)', flexShrink: 0 }} aria-hidden="true" />
-                <input
-                  className="sidebar-call-search-input"
-                  placeholder="Zoek op naam of e-mailadres"
-                  value={callSearch}
-                  onChange={(e) => setCallSearch(e.target.value)}
-                />
-                {callSearch && (
-                  <button type="button" className="sidebar-call-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setCallSearch('')}>
-                    <Cancel size={14} aria-hidden="true" />
-                  </button>
-                )}
-              </div>
-              {remainingRateLimitSeconds > 0 && (
-                <div className="calls-dashboard-rate-limit" role="status" aria-live="polite">
-                  Te veel verzoeken. Vernieuwen over {remainingRateLimitSeconds}s.
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="calls-dashboard-scroll">
-            {!callsAvailable ? (
-              <div className="contact-profile-card calls-dashboard-section-card">
-                <div className="call-panel-empty calls-dashboard-empty">
-                  <div style={{ fontSize: 14 }}>Bellen en videobellen zijn hier niet beschikbaar.</div>
-                </div>
-              </div>
-            ) : callActionMode ? (
-              <section className="calls-dashboard-section calls-dashboard-section--contacts">
-                <div className="call-log-picker-title">
-                  Kies een contactpersoon om direct te bellen of videobellen.
-                </div>
-                <div className="sidebar-call-list calls-dashboard-list calls-dashboard-list--contacts">
-                  {filteredCallContacts.length === 0 ? (
-                    <div className="empty-convs calls-dashboard-empty" style={{ paddingTop: 6, paddingBottom: 6 }}>
-                      <p>Geen contacten gevonden.</p>
-                    </div>
-                  ) : (
-                    filteredCallContacts.map((contact) => {
-                      const contactTitle = getContactDisplayName(contact)
-                        || contact.displayName
-                        || contact.username
-                        || (contact.email ? contact.email.split('@')[0] : '')
-                        || 'Onbekend';
-                      return (
-                        <div key={contact.uid} className="sidebar-contact-card sidebar-contact-card--call-log">
-                          <div className="sidebar-contact-row sidebar-contact-row--call-log">
-                            <UserAvatar photoURL={contact.photoURL} displayName={contactTitle} className="sm" decorative />
-                            <div className="conv-info call-log-picker-copy">
-                              <div className="conv-name call-contact-name-responsive">{contactTitle}</div>
-                              <div className="conv-preview call-contact-email-responsive">{contact.email || 'Geen e-mailadres'}</div>
-                            </div>
-                            <div className="call-log-picker-actions">
-                              <button
-                                type="button"
-                                className="call-btn video calls-dashboard-quick-btn"
-                                aria-label={`Videobel ${contactTitle}`}
-                                title="Videobellen"
-                                onClick={() => (callContactFromRecent || callContact)?.(contact, true)}
-                              >
-                                <Video size={16} aria-hidden="true" />
-                              </button>
-                              <button
-                                type="button"
-                                className="call-btn voice calls-dashboard-quick-btn"
-                                aria-label={`Bel ${contactTitle}`}
-                                title="Bellen"
-                                onClick={() => (callContactFromRecent || callContact)?.(contact, false)}
-                              >
-                                <Phone size={16} aria-hidden="true" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </section>
-            ) : (
-              <section className="calls-dashboard-section calls-dashboard-section--recent">
-                {filteredCallLog.length === 0 ? (
-                  <div className="contact-profile-card calls-dashboard-section-card">
-                    <div className="call-panel-empty calls-dashboard-empty">
-                      <div style={{ fontSize: 40, marginBottom: 8 }} aria-hidden="true"><Cancel size={40} /></div>
-                      <div>{callSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="sidebar-call-list calls-dashboard-list calls-dashboard-list--recent">
-                    {filteredCallLog.map((entry, index) => {
-                      const contact = contacts.find((item) => item.uid === entry.uid);
-                      const CallTypeIcon = entry.isVideo ? Video : Phone;
-                      const displayTime = formatTime(entry.ts);
-                      const selectionKey = getCallLogSelectionKey(entry);
-                      const isSelected = selectedCallLogKeySet.has(selectionKey);
-                      return (
-                        <div key={`${entry.uid || entry.name}-${entry.ts || index}`} className={`sidebar-contact-card sidebar-contact-card--call-log${callLogSelectionMode ? ' calls-dashboard-call-row--selecting' : ''}${isSelected ? ' is-selected' : ''}`}>
-                          <div className="sidebar-contact-row sidebar-contact-row--call-log">
-                            {callLogSelectionMode && (
-                              <button
-                                type="button"
-                                className={`call-log-selection-control${isSelected ? ' is-selected' : ''}`}
-                                aria-label={`${entry.name} ${isSelected ? 'deselecteren' : 'selecteren'}`}
-                                aria-pressed={isSelected}
-                                onClick={() => toggleCallLogEntry(entry)}
-                              >
-                                {isSelected && <Check size={16} aria-hidden="true" />}
-                              </button>
-                            )}
-                            <div className="avatar-wrap">
-                              <UserAvatar photoURL={entry.photoURL} displayName={entry.name} className="sm" decorative />
-                              {contact && onlineUsers.has(entry.uid) && <span className="online-dot sm" />}
-                            </div>
-                            <div className="call-log-copy">
-                              <div className="call-log-meta">
-                                <span className="conv-name">{entry.name}</span>
-                                <span className="call-log-time">{displayTime}</span>
-                              </div>
-                              <div className={`call-log-subline ${entry.direction === 'missed' ? 'missed' : ''}`}>
-                                <span className="call-log-direction-icon" aria-hidden="true"><CallTypeIcon size={14} /></span>
-                                <span>{entry.direction === 'missed' ? 'Gemist' : entry.direction === 'outgoing' ? 'Uitgaand' : 'Inkomend'}</span>
-                              </div>
-                            </div>
-                            {contact && !callLogSelectionMode && (
-                              <div className="call-log-actions">
-                                {entry.isVideo ? (
-                                  <button type="button" className="call-btn video calls-dashboard-quick-btn" aria-label={`Videobel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, true)} title="Videobellen"><Video size={16} aria-hidden="true" /></button>
-                                ) : (
-                                  <button type="button" className="call-btn voice calls-dashboard-quick-btn" aria-label={`Bel ${entry.name}`} onClick={() => (callContactFromRecent || callContact)?.(contact, false)} title="Bellen"><Phone size={16} aria-hidden="true" /></button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-            )}
-          </div>
-        </aside>
-      );
-    })()
-  );
-
   useEffect(() => {
     if (!historyChildren.length) {
       setSelectedHistoryChildUid('');
@@ -1996,7 +1724,7 @@ export default function ChatSidebar({
   });
 
   useEffect(() => {
-    if (!moreActionsSheetVisible && !settingsSheetVisible && !callSheetVisible && !newChatSheetVisible && !newGroupSheetVisible && !addContactSheetVisible && !requestsSheetVisible && !parentPortalPageVisible) return;
+    if (!moreActionsSheetVisible && !settingsSheetVisible && !newChatSheetVisible && !newGroupSheetVisible && !addContactSheetVisible && !requestsSheetVisible && !parentPortalPageVisible) return;
     function handleClickOutside(e) {
       if (e.target?.closest?.('[data-sidebar-actions-menu]')) return;
       if (e.target?.closest?.('[data-parent-portal-overlay]')) return;
@@ -2023,10 +1751,6 @@ export default function ChatSidebar({
           setRequestsSheetClosing(true);
           return;
         }
-        if (callSheetVisible) {
-          setCallSheetClosing(true);
-          return;
-        }
         if (parentPortalPageVisible) {
           setParentPortalSheetClosing(true);
           return;
@@ -2036,7 +1760,7 @@ export default function ChatSidebar({
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [addContactSheetVisible, callSheetVisible, moreActionsSheetVisible, newChatSheetVisible, newGroupSheetVisible, parentPortalPageVisible, requestsSheetVisible, settingsSheetVisible]);
+  }, [addContactSheetVisible, moreActionsSheetVisible, newChatSheetVisible, newGroupSheetVisible, parentPortalPageVisible, requestsSheetVisible, settingsSheetVisible]);
 
   useEffect(() => {
     if (!moreActionsMenuOpen) return undefined;
@@ -2081,9 +1805,6 @@ export default function ChatSidebar({
     if (requestsSheetCloseTimeoutRef.current) {
       window.clearTimeout(requestsSheetCloseTimeoutRef.current);
     }
-    if (callSheetCloseTimeoutRef.current) {
-      window.clearTimeout(callSheetCloseTimeoutRef.current);
-    }
     if (profileSheetCloseTimeoutRef.current) {
       window.clearTimeout(profileSheetCloseTimeoutRef.current);
     }
@@ -2107,11 +1828,9 @@ export default function ChatSidebar({
     setShowNewGroup?.(false);
     setRequestsSheetClosing(false);
     setShowFriendRequestsPanel?.(false);
-    setCallSheetClosing(false);
-    setShowCallModal?.(false);
     setParentPortalSheetClosing(false);
     setShowParentDashboard?.(false);
-  }, [embeddedSettingsActive, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard]);
+  }, [embeddedSettingsActive, setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard]);
 
   useEffect(() => {
     if (!showAddContact) {
@@ -2129,13 +1848,11 @@ export default function ChatSidebar({
     setShowNewGroup?.(false);
     setRequestsSheetClosing(false);
     setShowFriendRequestsPanel?.(false);
-    setCallSheetClosing(false);
-    setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
     setParentPortalSheetClosing(false);
     setShowParentDashboard?.(false);
-  }, [setContactEmail, setContactNickname, setContactRelation, setShowCallModal, setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showAddContact]);
+  }, [setContactEmail, setContactNickname, setContactRelation, setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showAddContact]);
 
   useEffect(() => {
     if (!showNewChat) {
@@ -2151,13 +1868,11 @@ export default function ChatSidebar({
     setShowNewGroup?.(false);
     setRequestsSheetClosing(false);
     setShowFriendRequestsPanel?.(false);
-    setCallSheetClosing(false);
-    setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
     setParentPortalSheetClosing(false);
     setShowParentDashboard?.(false);
-  }, [setSearchEmail, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showNewChat]);
+  }, [setSearchEmail, setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showNewChat]);
 
   useEffect(() => {
     if (!showNewGroup) {
@@ -2174,13 +1889,11 @@ export default function ChatSidebar({
     setShowNewChat?.(false);
     setRequestsSheetClosing(false);
     setShowFriendRequestsPanel?.(false);
-    setCallSheetClosing(false);
-    setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
     setParentPortalSheetClosing(false);
     setShowParentDashboard?.(false);
-  }, [setGroupName, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showNewGroup]);
+  }, [setGroupName, setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showNewGroup]);
 
   useEffect(() => {
     if (!showFriendRequestsPanel) {
@@ -2196,13 +1909,11 @@ export default function ChatSidebar({
     setShowNewChat?.(false);
     setNewGroupSheetClosing(false);
     setShowNewGroup?.(false);
-    setCallSheetClosing(false);
-    setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
     setParentPortalSheetClosing(false);
     setShowParentDashboard?.(false);
-  }, [setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showFriendRequestsPanel]);
+  }, [setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile, showFriendRequestsPanel]);
 
   useEffect(() => {
     if (!contactMenu) return;
@@ -2216,13 +1927,11 @@ export default function ChatSidebar({
     setShowNewGroup?.(false);
     setRequestsSheetClosing(false);
     setShowFriendRequestsPanel?.(false);
-    setCallSheetClosing(false);
-    setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
     setParentPortalSheetClosing(false);
     setShowParentDashboard?.(false);
-  }, [contactMenu, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile]);
+  }, [contactMenu, setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile]);
 
   useEffect(() => {
     if (!convActionsSheet) return;
@@ -2236,13 +1945,11 @@ export default function ChatSidebar({
     setShowNewGroup?.(false);
     setRequestsSheetClosing(false);
     setShowFriendRequestsPanel?.(false);
-    setCallSheetClosing(false);
-    setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
     setParentPortalSheetClosing(false);
     setShowParentDashboard?.(false);
-  }, [convActionsSheet, setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile]);
+  }, [convActionsSheet, setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowParentDashboard, setShowProfile]);
 
   useEffect(() => {
     if (!showParentDashboard) {
@@ -2259,19 +1966,9 @@ export default function ChatSidebar({
     setShowNewGroup?.(false);
     setRequestsSheetClosing(false);
     setShowFriendRequestsPanel?.(false);
-    setCallSheetClosing(false);
-    setShowCallModal?.(false);
     setProfileSheetClosing(false);
     setShowProfile?.(false);
-  }, [setShowAddContact, setShowCallModal, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile, showParentDashboard]);
-
-  useEffect(() => {
-    if (!showCallModal) {
-      setCallSheetClosing(false);
-      setCallActionMode(null);
-      setCallSearch('');
-    }
-  }, [showCallModal]);
+  }, [setShowAddContact, setShowFriendRequestsPanel, setShowNewChat, setShowNewGroup, setShowProfile, showParentDashboard]);
 
   useEffect(() => {
     if (!convMenu && !contactMenu) return;
@@ -2281,7 +1978,6 @@ export default function ChatSidebar({
       if (target?.closest?.('[data-sidebar-actions-trigger]')) return;
       if (target?.closest?.('.pulse-confirm-backdrop')) return;
       if (target?.closest?.('.contact-profile-panel')) return;
-      if (target?.closest?.('.call-overlay, .call-mini-bar')) return;
       setConvMenu(null);
       setContactMenu(null);
     }
@@ -2386,30 +2082,6 @@ export default function ChatSidebar({
       window.removeEventListener('orientationchange', updateSidebarSheetBounds);
     };
   }, []);
-
-  const callLog = typeof getCallLog === 'function' ? getCallLog() : [];
-  const selectedCallLogKeySet = new Set(selectedCallLogEntryKeys);
-  const selectedCallLogEntries = callLog.filter((entry) => selectedCallLogKeySet.has(getCallLogSelectionKey(entry)));
-  const toggleCallLogEntry = (entry) => {
-    const key = getCallLogSelectionKey(entry);
-    setSelectedCallLogEntryKeys((previous) => (
-      previous.includes(key)
-        ? previous.filter((item) => item !== key)
-        : [...previous, key]
-    ));
-  };
-  const closeCallLogSelection = () => {
-    setCallLogSelectionMode(false);
-    setSelectedCallLogEntryKeys([]);
-  };
-  const deleteSelectedCallLogEntries = async () => {
-    if (!selectedCallLogEntries.length) return;
-    const deleted = await deleteCallLogEntries?.(selectedCallLogEntries);
-    if (deleted !== false) closeCallLogSelection();
-  };
-  const unreadMissedCallCount = callLogRead ? 0 : callLog.filter((entry) => entry.direction === 'missed').length;
-  const missedCallCount = callsAvailable ? Math.max(unreadMissedCallCount, missedCallAlert ? 1 : 0) : 0;
-  const hasMissedCall = missedCallCount > 0;
 
   function handleOpenConversation(conv) {
     setConvMenu(null);
@@ -2543,22 +2215,6 @@ export default function ChatSidebar({
     setMoreActionsMenuOpen(true);
   }, []);
 
-  const closeCallSheet = useCallback(() => {
-    if (callSheetCloseTimeoutRef.current) {
-      window.clearTimeout(callSheetCloseTimeoutRef.current);
-      callSheetCloseTimeoutRef.current = null;
-    }
-    setCallSheetClosing(false);
-    setShowCallModal?.(false);
-    setCallActionMode(null);
-    setCallSearch('');
-  }, [setShowCallModal]);
-
-  const dismissCallSheet = useCallback(() => {
-    if (callSheetClosing || !callSheetVisible) return;
-    setCallSheetClosing(true);
-  }, [callSheetClosing, callSheetVisible]);
-
   const closeParentPortalSheet = useCallback(() => {
     if (parentPortalSheetCloseTimeoutRef.current) {
       window.clearTimeout(parentPortalSheetCloseTimeoutRef.current);
@@ -2646,20 +2302,6 @@ export default function ChatSidebar({
   }, [closeRequestsSheet, requestsSheetClosing]);
 
   useEffect(() => {
-    if (!callSheetClosing) return undefined;
-    callSheetCloseTimeoutRef.current = window.setTimeout(() => {
-      callSheetCloseTimeoutRef.current = null;
-      closeCallSheet();
-    }, 220);
-    return () => {
-      if (callSheetCloseTimeoutRef.current) {
-        window.clearTimeout(callSheetCloseTimeoutRef.current);
-        callSheetCloseTimeoutRef.current = null;
-      }
-    };
-  }, [callSheetClosing, closeCallSheet]);
-
-  useEffect(() => {
     if (!parentPortalSheetClosing) return undefined;
     parentPortalSheetCloseTimeoutRef.current = window.setTimeout(() => {
       parentPortalSheetCloseTimeoutRef.current = null;
@@ -2719,11 +2361,10 @@ export default function ChatSidebar({
     };
   }, [closeProfileOverviewSheet, profileSheetClosing]);
   const profileFooterActive = settingsSheetVisible;
-  const callsFooterActive = callSheetVisible;
   const parentFooterActive = parentPortalPageVisible;
   const requestsFooterActive = requestsSheetVisible;
   const moreFooterActive = moreActionsSheetVisible || addContactSheetVisible || newChatSheetVisible || newGroupSheetVisible;
-  const chatsFooterActive = activeTab === 'chats' && !profileFooterActive && !callsFooterActive && !parentFooterActive && !moreFooterActive;
+  const chatsFooterActive = activeTab === 'chats' && !profileFooterActive && !parentFooterActive && !moreFooterActive;
   const chatUnreadCount = Object.values(unreadCounts || {}).reduce((total, count) => total + (Number(count) || 0), 0);
   const footerEmbeddedInCluster = !!footerClusterMode
     && footerClusterMode !== 'more'
@@ -2756,7 +2397,6 @@ export default function ChatSidebar({
           closeRequestsSheet();
           closeContactActionsSheet();
           closeConvActionsSheet();
-          closeCallSheet();
           closeParentPortalSheet();
           if (profileSheetCloseTimeoutRef.current) {
             window.clearTimeout(profileSheetCloseTimeoutRef.current);
@@ -2786,7 +2426,6 @@ export default function ChatSidebar({
           closeRequestsSheet();
           closeContactActionsSheet();
           closeConvActionsSheet();
-          closeCallSheet();
           setProfileSheetClosing(false);
           setShowProfile?.(false);
           setProfileTab?.('overview');
@@ -2802,54 +2441,10 @@ export default function ChatSidebar({
           <span className="sidebar-footer-tab-icon" aria-hidden="true">
             <Message size={26} aria-hidden="true" />
           </span>
-          {chatUnreadCount > 0
-            ? <span className="sidebar-footer-tab-count" aria-hidden="true">{chatUnreadCount > 99 ? '99+' : chatUnreadCount}</span>
-            : hasMissedCall && !callsAvailable && <span className="sidebar-footer-tab-badge" aria-hidden="true" />
-          }
+          {chatUnreadCount > 0 && <span className="sidebar-footer-tab-count" aria-hidden="true">{chatUnreadCount > 99 ? '99+' : chatUnreadCount}</span>}
         </span>
         <span className="sidebar-footer-tab-label">Chats</span>
       </button>
-
-      {callsAvailable && (
-        <button
-          type="button"
-          className={`sidebar-footer-tab${callsFooterActive ? ' active' : ''}`}
-        aria-label={missedCallCount > 0 ? `Oproepen, ${missedCallCount > 99 ? 'meer dan 99' : missedCallCount} gemiste ${missedCallCount === 1 ? 'oproep' : 'oproepen'}` : 'Oproepen'}
-          aria-expanded={callSheetVisible}
-          onClick={() => {
-            if (callSheetVisible) {
-              dismissCallSheet();
-              return;
-            }
-            closeProfileOverviewSheet();
-            closeAddContactSheet();
-            closeNewChatSheet();
-            closeShareContactPage();
-            closeNewGroupSheet();
-            closeRequestsSheet();
-            closeContactActionsSheet();
-            closeConvActionsSheet();
-            closeParentPortalSheet();
-            if (callSheetCloseTimeoutRef.current) {
-              window.clearTimeout(callSheetCloseTimeoutRef.current);
-              callSheetCloseTimeoutRef.current = null;
-            }
-            setMoreActionsMenuClosing(false);
-            setMoreActionsMenuOpen(false);
-            setCallSheetClosing(false);
-            onShowCallModal?.();
-          }}
-          title="Oproepen"
-        >
-          <span className="sidebar-footer-tab-wrap">
-            <span className="sidebar-footer-tab-icon" aria-hidden="true">
-              <Phone size={26} aria-hidden="true" />
-            </span>
-            {missedCallCount > 0 && <span className="sidebar-footer-tab-count" aria-hidden="true">{missedCallCount > 99 ? '99+' : missedCallCount}</span>}
-          </span>
-          <span className="sidebar-footer-tab-label">Bellen</span>
-        </button>
-      )}
 
       {!isParent && (
         <button
@@ -2872,7 +2467,6 @@ export default function ChatSidebar({
             closeContactActionsSheet();
             closeConvActionsSheet();
             closeParentPortalSheet();
-            closeCallSheet();
             setMoreActionsMenuClosing(false);
             setMoreActionsMenuOpen(false);
             setRequestsSheetClosing(false);
@@ -2910,7 +2504,6 @@ export default function ChatSidebar({
             closeRequestsSheet();
             closeContactActionsSheet();
             closeConvActionsSheet();
-            closeCallSheet();
             if (parentPortalSheetCloseTimeoutRef.current) {
               window.clearTimeout(parentPortalSheetCloseTimeoutRef.current);
               parentPortalSheetCloseTimeoutRef.current = null;
@@ -2955,7 +2548,6 @@ export default function ChatSidebar({
               window.clearTimeout(moreActionsCloseTimeoutRef.current);
               moreActionsCloseTimeoutRef.current = null;
             }
-            closeCallSheet();
             setMoreActionsMenuClosing(false);
             setMoreActionsMenuOpen(true);
           }}
@@ -2984,10 +2576,6 @@ export default function ChatSidebar({
     };
     const handleOpenConversationFromActions = () => {
       onOpenConversation(conv);
-      onDone?.();
-    };
-    const handleCallFromConversationActions = (isVideo) => {
-      onCallFromConv(conv, isVideo);
       onDone?.();
     };
     const handleTogglePinFromConversationActions = () => {
@@ -3046,20 +2634,6 @@ export default function ChatSidebar({
             <Message size={14} aria-hidden="true" />
             <span>Bericht sturen</span>
           </button>}
-          {!conv.isGroup && callsAvailable && (
-            <>
-              <button type="button" role="menuitem" className="chat-header-menu-item"
-                onClick={() => handleCallFromConversationActions(false)} title="Bellen">
-                <Phone size={14} aria-hidden="true" />
-                <span>Bellen</span>
-              </button>
-              <button type="button" role="menuitem" className="chat-header-menu-item"
-                onClick={() => handleCallFromConversationActions(true)} title="Videobellen">
-                <Video size={14} aria-hidden="true" />
-                <span>Videobellen</span>
-              </button>
-            </>
-          )}
           {!conv.isGroup && otherUid && (
             <button type="button" role="menuitem" className={`chat-header-menu-item${isPinned ? ' danger' : ''}`}
               onClick={handleTogglePinFromConversationActions} title={isPinned ? 'Losmaken' : 'Vastzetten'}>
@@ -3169,25 +2743,7 @@ export default function ChatSidebar({
         )}
       </>
     );
-  }, [contacts, blockedContacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, callsAvailable, onCallFromConv, onTogglePin, onToggleConversationMute, markConversationUnreadEnabled, onMarkConversationUnread, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact, onUnblockContact, onRemoveContact]);
-
-  const remainingRateLimitMs = Math.max(0, Number(callLogRateLimitUntil || 0) - Date.now());
-  const remainingRateLimitSeconds = Math.ceil(remainingRateLimitMs / 1000);
-  const normalizedCallSearch = callSearch.trim().toLowerCase();
-  const filteredCallLog = normalizedCallSearch
-    ? callLog.filter((entry) => {
-        const name = (entry?.name || '').toLowerCase();
-        const typeLabel = entry?.isVideo ? 'videogesprek' : 'gesprek';
-        return name.includes(normalizedCallSearch) || typeLabel.includes(normalizedCallSearch);
-      })
-    : callLog;
-  const filteredCallContacts = normalizedCallSearch
-    ? contacts.filter((contact) => {
-        const displayName = (getContactDisplayName(contact) || contact.displayName || '').toLowerCase();
-        const email = (contact.email || '').toLowerCase();
-        return displayName.includes(normalizedCallSearch) || email.includes(normalizedCallSearch);
-      })
-    : contacts;
+  }, [contacts, blockedContacts, parentBlockedUids, isParent, pinnedContacts, mutedConversationIds, onShowGroupInfo, onViewContact, onOpenConversation, onTogglePin, onToggleConversationMute, markConversationUnreadEnabled, onMarkConversationUnread, onEnterMessageSelectionForConversation, onShowStarredForConversation, onLeaveGroup, onClearConversation, onHardDeleteConversation, onBlockContact, onUnblockContact, onRemoveContact]);
   const footerClusterAriaLabel = footerClusterMode === 'settings'
     ? 'Instellingen'
     : footerClusterMode === 'add-contact'
@@ -3217,7 +2773,6 @@ export default function ChatSidebar({
   const isMoreFooterCluster = footerClusterMode === 'more';
   const isSidebarPageMode = embeddedSettingsActive
     || parentPortalPageVisible
-    || callsProfilePageVisible
     || contactActionsPageVisible
     || conversationActionsPageVisible;
   const isLightFooterCluster = isMoreFooterCluster;
@@ -3487,7 +3042,6 @@ export default function ChatSidebar({
           onEmbeddedPortalViewChange={setParentPortalView}
         />
       ) : null}
-      {callsProfilePageVisible ? renderCallsProfilePage() : null}
       {contactActionsPageVisible && !shareContactPageVisible && !showChatSearch ? renderContactActionsPage() : null}
       {conversationActionsPageVisible ? renderConversationActionsPage() : null}
 
@@ -4086,25 +3640,25 @@ export default function ChatSidebar({
                     key: 'new-chat',
                     icon: <Message size={18} aria-hidden="true" />,
                     label: 'Nieuwe chat',
-                    onClick: () => { closeProfileOverviewSheet(); closeAddContactSheet(); closeCallSheet(); closeNewGroupSheet(); closeMoreActionsSheet(); setShowNewChat?.(true); },
+                    onClick: () => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewGroupSheet(); closeMoreActionsSheet(); setShowNewChat?.(true); },
                   },
                   {
                     key: 'new-contact',
                     icon: <Plus size={18} aria-hidden="true" />,
                     label: 'Nieuw contact',
-                    onClick: () => { closeProfileOverviewSheet(); closeNewChatSheet(); closeCallSheet(); closeNewGroupSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowAddContact?.(true); },
+                    onClick: () => { closeProfileOverviewSheet(); closeNewChatSheet(); closeNewGroupSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowAddContact?.(true); },
                   },
                   {
                     key: 'new-group',
                     icon: <Users size={18} aria-hidden="true" />,
                     label: 'Nieuwe groep',
-                    onClick: () => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewChatSheet(); closeCallSheet(); closeMoreActionsSheet(); setShowNewGroup?.(true); },
+                    onClick: () => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewChatSheet(); closeMoreActionsSheet(); setShowNewGroup?.(true); },
                   },
                   {
                     key: 'requests',
                     icon: <Heart size={18} aria-hidden="true" />,
                     label: 'Verzoeken',
-                    onClick: () => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewChatSheet(); closeNewGroupSheet(); closeCallSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel?.(true); },
+                    onClick: () => { closeProfileOverviewSheet(); closeAddContactSheet(); closeNewChatSheet(); closeNewGroupSheet(); closeMoreActionsSheet(); setActiveTab('contacts'); setShowFriendRequestsPanel?.(true); },
                     trailing: friendRequests.length > 0
                       ? <span className="unread-badge" style={{ marginLeft: 'auto', fontSize: 10, padding: '1px 6px' }}>{friendRequests.length > 99 ? '99+' : friendRequests.length}</span>
                       : null,

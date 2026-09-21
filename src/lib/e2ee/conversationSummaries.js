@@ -7,7 +7,6 @@ import {
   getEncryptedMessageDisplayText,
   getSharedContactDisplayText,
 } from './messageCopy';
-import { deriveCallMessagePresentation } from '../../components/callMessageHelpers';
 
 function buildEmptyConversationAttachmentSummaryFields() {
   return {
@@ -219,29 +218,6 @@ function resolveConversationSummaryUpdatedAt(conversation = {}, message = {}, up
   return updatedAt || message?.createdAt || conversation.updatedAt;
 }
 
-function buildEmptyConversationCallSummaryFields() {
-  return {
-    lastCallDirection: null,
-    lastCallSenderId: null,
-    lastCallIsVideo: null,
-  };
-}
-
-function buildConversationCallSummaryFields(message = {}) {
-  return {
-    lastCallDirection: message?.direction || null,
-    lastCallSenderId: message?.senderId || null,
-    lastCallIsVideo: !!message?.isVideo,
-  };
-}
-
-function resolveConversationCallSummaryLabel(message = {}, currentUserId) {
-  return deriveCallMessagePresentation(
-    message,
-    message?.senderId === currentUserId
-  ).callLabel;
-}
-
 function buildConversationMessageSummaryFields(lastMessage = '', lastMessageType = 'text') {
   return {
     lastMessage,
@@ -400,7 +376,6 @@ export function applyConversationSummaryToList(conversations = [], conversationI
           ...conversation,
           ...summary,
           updatedAt: resolveConversationSummaryUpdatedAt(conversation, message, updatedAt),
-          ...buildEmptyConversationCallSummaryFields(),
           ...buildEmptyConversationReactionSummaryFields(),
         }
       : conversation
@@ -448,27 +423,4 @@ export function applyConversationReactionSummaryToList(
         : buildEmptyConversationReactionSummaryFields()),
     };
   }));
-}
-
-export function applyCallConversationSummaryToList(
-  conversations = [],
-  conversationId,
-  message = {},
-  currentUserId,
-  updatedAt = null
-) {
-  return sortConversationSummaryList(conversations.map((conversation) => (
-    conversation.id === conversationId
-      ? {
-          ...conversation,
-          ...buildEmptyConversationAttachmentSummaryFields(),
-          ...buildConversationMessageSummaryFields(
-            resolveConversationCallSummaryLabel(message, currentUserId),
-            'call'
-          ),
-          updatedAt: resolveConversationSummaryUpdatedAt(conversation, message, updatedAt),
-          ...buildConversationCallSummaryFields(message),
-        }
-      : conversation
-  )));
 }

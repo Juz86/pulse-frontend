@@ -49,7 +49,7 @@ describe('utils safety helpers', () => {
     expect(getSafeInternalPath('https://evil.example')).toBe('/');
   });
 
-  test('clearPulseUserStorage removes user-scoped privacy keys but keeps call log by default', () => {
+  test('clearPulseUserStorage removes all user-scoped privacy keys', () => {
     localStorage.setItem('pulse_calls_user-1', '[]');
     localStorage.setItem('pulse_history_rules_user-1', '{}');
     localStorage.setItem('pulse_draft_user-1_conv-1', 'concept');
@@ -62,7 +62,7 @@ describe('utils safety helpers', () => {
 
     clearPulseUserStorage('user-1');
 
-    expect(localStorage.getItem('pulse_calls_user-1')).toBe('[]');
+    expect(localStorage.getItem('pulse_calls_user-1')).toBeNull();
     expect(localStorage.getItem('pulse_history_rules_user-1')).toBeNull();
     expect(localStorage.getItem('pulse_draft_user-1_conv-1')).toBeNull();
     expect(localStorage.getItem('pulse_starred_user-1')).toBeNull();
@@ -73,26 +73,16 @@ describe('utils safety helpers', () => {
     expect(sessionStorage.getItem('pulse_session_conversations_user-1')).toBeNull();
   });
 
-  test('clearPulseUserStorage can optionally clear call log', () => {
-    localStorage.setItem('pulse_calls_user-1', '[]');
-    clearPulseUserStorage('user-1', { includeCallLog: true });
-    expect(localStorage.getItem('pulse_calls_user-1')).toBeNull();
-  });
-
   test('normalizeHistoryRules keeps defaults when values are absent', () => {
     expect(normalizeHistoryRules({})).toEqual({
       chatRetentionDays: DEFAULT_HISTORY_RETENTION_DAYS,
-      callRetentionDays: DEFAULT_HISTORY_RETENTION_DAYS,
-      videoRetentionDays: DEFAULT_HISTORY_RETENTION_DAYS,
     });
   });
 
   test('stored history rules roundtrip safely', () => {
-    writeStoredHistoryRules('user-1', { chatRetentionDays: 7, callRetentionDays: 0, videoRetentionDays: 1 });
+    writeStoredHistoryRules('user-1', { chatRetentionDays: 7 });
     expect(readStoredHistoryRules('user-1')).toEqual({
       chatRetentionDays: 7,
-      callRetentionDays: 0,
-      videoRetentionDays: 1,
     });
   });
 

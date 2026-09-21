@@ -3,7 +3,7 @@ import MarketingNavbar from '../components/MarketingNavbar';
 import MarketingFooter from '../components/MarketingFooter';
 import PageMeta from '../components/PageMeta';
 import useMarketingAuth from '../hooks/useMarketingAuth';
-import { Mail, Shield, Check, Send, Message, Phone, Video, Users, Login, PhoneIcon } from '../components/Icons';
+import { Mail, Shield, Check, Send, Message, Users, Login, PhoneIcon } from '../components/Icons';
 import { resolveBackendUrl } from '../lib/backendUrl';
 
 function useFadeIn() {
@@ -24,7 +24,7 @@ function useFadeIn() {
 
 const BADGES = [
   { icon: <Shield size={16} />,   label: 'Versleuteld & privé' },
-  { icon: <PhoneIcon size={16} />, label: 'Chatten en (video)bellen' },
+  { icon: <PhoneIcon size={16} />, label: 'Veilig chatten' },
   { icon: <Users size={16} />,    label: 'Ouderlijk toezicht' },
 ];
 
@@ -107,8 +107,6 @@ function ContactInfoCard() {
           <div className="contact-feature-list">
             {[
               { icon: <Message size={18} />, label: 'Chatten', sub: 'Veilig berichten sturen' },
-              { icon: <Phone size={18} />,   label: 'Bellen',  sub: 'In de Pulse app' },
-              { icon: <Video size={18} />,   label: 'Videobellen', sub: 'In de Pulse app' },
             ].map(({ icon, label, sub }) => (
               <div key={label} className="contact-feature-item">
                 <span className="contact-feature-icon">{icon}</span>

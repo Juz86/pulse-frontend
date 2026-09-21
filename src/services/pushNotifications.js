@@ -1,5 +1,4 @@
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
-import { ensureNativeIncomingCallAccess } from './nativeIncomingCall';
 
 function logInfo(...args) {
   console.info('[Pulse][Push]', ...args);
@@ -75,7 +74,7 @@ async function registerWebPush({ messaging, vapidKey, backendUrl, authHeader, ui
   return { token, transport: 'fcm_web' };
 }
 
-async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversation, onPushAction }) {
+async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversation }) {
   const [{ Capacitor }, { PushNotifications }] = await Promise.all([
     import('@capacitor/core'),
     import('@capacitor/push-notifications'),
@@ -119,10 +118,6 @@ async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversat
 
   await addListener('pushNotificationActionPerformed', (event) => {
     const data = event?.notification?.data || {};
-    if (typeof onPushAction === 'function') {
-      onPushAction(data);
-      return;
-    }
     const convId = data?.convId;
     if (convId && typeof onOpenConversation === 'function') {
       onOpenConversation(convId);
@@ -150,8 +145,6 @@ async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversat
     visibility: 1,
     sound: 'default',
   }).catch(() => {});
-
-  await ensureNativeIncomingCallAccess();
 
   // Een heropende Capacitor WebView hervat vanuit de achtergrond zonder dat
   // Android de eerder bezorgde FCM-notificaties automatisch verwijdert.
@@ -187,7 +180,6 @@ export async function setupPulsePushNotifications({
   authHeader,
   uid,
   onOpenConversation,
-  onPushAction,
 }) {
   if (!uid || !authHeader?.Authorization) return () => {};
 
@@ -198,7 +190,6 @@ export async function setupPulsePushNotifications({
         authHeader,
         uid,
         onOpenConversation,
-        onPushAction,
       });
       return async () => {
         await nativeSetup?.cleanup?.();

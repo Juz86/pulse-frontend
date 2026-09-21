@@ -92,6 +92,8 @@ npm run android:build:play
 Verwachte output:
 
 - `.aab` op `android/app/build/outputs/bundle/release/app-release.aab`
+- Gradle bouwt en kopieert de actuele React-webapp zelf voordat de release wordt verpakt
+- een rechtstreekse `bundleRelease` gebruikt daardoor nooit stilzwijgend verouderde web-assets
 
 Na release-build:
 

@@ -32,11 +32,11 @@ export function resolveDirectCallTarget(conversation, currentUid) {
   };
 }
 
-export function withCallPreparationTimeout(operation, timeoutMs) {
+export function withCallPreparationTimeout(operation, timeoutMs, timeoutMessage = 'Oproep voorbereiden duurde te lang. Controleer je verbinding en probeer opnieuw.') {
   let timeoutId;
   const timeout = new Promise((_, reject) => {
     timeoutId = setTimeout(
-      () => reject(new Error('Oproep voorbereiden duurde te lang. Controleer je verbinding en probeer opnieuw.')),
+      () => reject(new Error(timeoutMessage)),
       timeoutMs,
     );
   });

@@ -523,7 +523,11 @@ export default function useCalling({
     }
     callStartInProgressRef.current = true;
     try {
-      const request = await withCallPreparationTimeout(buildRequest, CALL_PREPARATION_TIMEOUT_MS);
+      const request = await withCallPreparationTimeout(
+        buildRequest,
+        CALL_PREPARATION_TIMEOUT_MS,
+        'De oproepgegevens konden niet op tijd worden voorbereid. Probeer opnieuw.',
+      );
       if (!request) return;
       const cachedIdToken = getCachedNativeCallIdToken();
       const preparedRequest = (isAndroidNativeCalling() || realtimeKitCallsV2Enabled)
@@ -532,12 +536,14 @@ export default function useCalling({
             idToken: cachedIdToken || await withCallPreparationTimeout(
               () => user.getIdToken(),
               CALL_PREPARATION_TIMEOUT_MS,
+              'De aanmelding voor bellen duurde te lang. Meld je opnieuw aan en probeer opnieuw.',
             ),
           }
         : request;
       await withCallPreparationTimeout(
         () => startCallTo(preparedRequest),
         CALL_PREPARATION_TIMEOUT_MS,
+        'De native oproepstart duurde te lang. Probeer opnieuw.',
       );
     } catch (error) {
       showErrToast(error?.message || 'Oproep kon niet worden voorbereid.');

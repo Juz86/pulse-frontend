@@ -75,7 +75,24 @@ def releaseMainBundles = fileTree(
     include: ['main*.js']
 )
 
+def pulseProjectDir = rootProject.projectDir.parentFile
+
+def buildReleaseWebAssets = tasks.register('buildReleaseWebAssets', Exec) {
+    workingDir pulseProjectDir
+    environment 'REACT_APP_BACKEND_URL', 'https://api.pulse-messenger.com'
+    environment 'REACT_APP_API_URL', 'https://api.pulse-messenger.com'
+    environment 'REACT_APP_NATIVE_API_URL', ''
+    commandLine 'npm', 'run', 'build:webapp'
+}
+
+def copyReleaseWebAssets = tasks.register('copyReleaseWebAssets', Exec) {
+    dependsOn buildReleaseWebAssets
+    workingDir pulseProjectDir
+    commandLine file("${pulseProjectDir}/node_modules/.bin/cap"), 'copy', 'android'
+}
+
 def verifyReleaseWebAssets = tasks.register('verifyReleaseWebAssets') {
+    dependsOn copyReleaseWebAssets
     inputs.files(releaseMainBundles)
     doLast {
         def mainBundles = releaseMainBundles.files
@@ -94,6 +111,11 @@ def verifyReleaseWebAssets = tasks.register('verifyReleaseWebAssets') {
         if (!bundledJavascript.contains('https://api.pulse-messenger.com')) {
             throw new GradleException(
                 'Release geblokkeerd: de Android-webbundle bevat de productie-API niet.'
+            )
+        }
+        if (!bundledJavascript.contains('realtimekit-v2')) {
+            throw new GradleException(
+                'Release geblokkeerd: de Android-webbundle bevat niet de actuele native call-engine bridge.'
             )
         }
     }

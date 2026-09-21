@@ -36,6 +36,18 @@ describe('getCallRequestAdmission', () => {
     await expect(pending).rejects.toThrow('Oproep voorbereiden duurde te lang');
     jest.useRealTimers();
   });
+
+  test('reports the exact stage that timed out', async () => {
+    jest.useFakeTimers();
+    const pending = withCallPreparationTimeout(
+      () => new Promise(() => {}),
+      1000,
+      'De native oproepstart duurde te lang. Probeer opnieuw.',
+    );
+    jest.advanceTimersByTime(1000);
+    await expect(pending).rejects.toThrow('De native oproepstart duurde te lang');
+    jest.useRealTimers();
+  });
 });
 
 describe('resolveDirectCallTarget', () => {

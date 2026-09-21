@@ -93,15 +93,23 @@ public class PulseIncomingCallPlugin extends Plugin {
 
     @PluginMethod
     public void startOutgoingCall(PluginCall call) {
+        boolean isVideo = call.getBoolean("isVideo", false);
+        PermissionState microphoneState = getPermissionState("microphone");
+        PermissionState cameraState = getPermissionState("camera");
+        android.util.Log.i(
+            "PulseCallLaunch",
+            "startOutgoingCall ontvangen: video=" + isVideo
+                + ", microphone=" + microphoneState
+                + ", camera=" + cameraState
+        );
         if (PulseNativeCallService.clearStaleCallIfNeeded(() -> startOutgoingCall(call))) return;
         if (PulseNativeCallService.hasActiveCall()) {
             PulseNativeCallService.reopenActiveCallUi();
             call.reject("Er is al een actief gesprek");
             return;
         }
-        boolean isVideo = call.getBoolean("isVideo", false);
-        boolean microphoneGranted = getPermissionState("microphone") == PermissionState.GRANTED;
-        boolean cameraGranted = !isVideo || getPermissionState("camera") == PermissionState.GRANTED;
+        boolean microphoneGranted = microphoneState == PermissionState.GRANTED;
+        boolean cameraGranted = !isVideo || cameraState == PermissionState.GRANTED;
         if (!microphoneGranted || !cameraGranted) {
             requestPermissionForAliases(
                 isVideo ? new String[] { "microphone", "camera" } : new String[] { "microphone" },

@@ -61,6 +61,11 @@ Rules:
 9. Local media readiness sends `MEDIA_CONNECTED`; only the resulting Railway snapshot may
    move the local call to `ACTIVE`.
 
+The native Socket.IO adapter waits up to 5 seconds for an acknowledgement and retries a
+timed-out operation at most twice. Retries reuse the same `requestId` or `eventId`, so Railway
+deduplicates them. A reconnect never resumes from memory alone: it first requests the active
+session snapshot.
+
 ## Time budgets
 
 - command acknowledgement: 5 seconds, with bounded retries using the same `eventId`;

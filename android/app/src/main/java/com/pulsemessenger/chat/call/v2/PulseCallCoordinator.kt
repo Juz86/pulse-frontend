@@ -11,6 +11,8 @@ class PulseCallCoordinator private constructor(
     private val lock = Any()
     private val mutableState = MutableStateFlow(PulseCallSnapshot())
     private var request: PulseCallRequest? = null
+    private var signalingRevision = 0L
+    private var localMediaReady = false
     private var telecomRegistered = false
     private var telecomActive = false
 
@@ -35,6 +37,8 @@ class PulseCallCoordinator private constructor(
             PulseCallEvent.RECEIVE_INCOMING
         }
         this.request = request
+        signalingRevision = 0L
+        localMediaReady = false
         telecomRegistered = false
         telecomActive = false
         val result = applyLocked(request.sessionId, event)
@@ -49,17 +53,8 @@ class PulseCallCoordinator private constructor(
         if (!ownsLocked(sessionId)) return@synchronized PulseCoordinatorResult.REJECTED_SESSION
         if (telecomRegistered) return@synchronized PulseCoordinatorResult.IDEMPOTENT
         telecomRegistered = true
-
-        val result = if (
-            request?.direction == PulseCallDirection.OUTGOING &&
-            stateMachine.state == PulseCallState.PREPARING
-        ) {
-            applyLocked(sessionId, PulseCallEvent.SIGNALING_READY)
-        } else {
-            publishLocked()
-            PulseCoordinatorResult.APPLIED
-        }
-        result
+        publishLocked()
+        PulseCoordinatorResult.APPLIED
     }
 
     fun onTelecomSetActive(sessionId: String): PulseCoordinatorResult = synchronized(lock) {
@@ -71,19 +66,19 @@ class PulseCallCoordinator private constructor(
             return@synchronized PulseCoordinatorResult.REJECTED_TRANSITION
         }
         telecomActive = true
+        publishLocked()
+        PulseCoordinatorResult.APPLIED
+    }
 
-        val result = if (stateMachine.state == PulseCallState.RINGING) {
-            val event = if (request?.direction == PulseCallDirection.INCOMING) {
-                PulseCallEvent.LOCAL_ACCEPTED
-            } else {
-                PulseCallEvent.REMOTE_ACCEPTED
-            }
-            applyLocked(sessionId, event)
-        } else {
-            publishLocked()
-            PulseCoordinatorResult.APPLIED
+    fun onLocalAnswer(sessionId: String): PulseCoordinatorResult = synchronized(lock) {
+        if (!ownsLocked(sessionId)) return@synchronized PulseCoordinatorResult.REJECTED_SESSION
+        if (request?.direction != PulseCallDirection.INCOMING) {
+            return@synchronized PulseCoordinatorResult.REJECTED_TRANSITION
         }
-        result
+        if (stateMachine.state == PulseCallState.CONNECTING) {
+            return@synchronized PulseCoordinatorResult.IDEMPOTENT
+        }
+        applyLocked(sessionId, PulseCallEvent.LOCAL_ACCEPTED)
     }
 
     fun onTelecomSetInactive(sessionId: String): PulseCoordinatorResult = synchronized(lock) {
@@ -96,7 +91,50 @@ class PulseCallCoordinator private constructor(
 
     fun onMediaConnected(sessionId: String): PulseCoordinatorResult = synchronized(lock) {
         if (!ownsLocked(sessionId)) return@synchronized PulseCoordinatorResult.REJECTED_SESSION
-        applyLocked(sessionId, PulseCallEvent.MEDIA_CONNECTED)
+        if (localMediaReady) return@synchronized PulseCoordinatorResult.IDEMPOTENT
+        if (stateMachine.state !in setOf(PulseCallState.CONNECTING, PulseCallState.ACTIVE)) {
+            return@synchronized PulseCoordinatorResult.REJECTED_TRANSITION
+        }
+        localMediaReady = true
+        publishLocked()
+        PulseCoordinatorResult.APPLIED
+    }
+
+    fun onSignalingSnapshot(
+        snapshot: PulseServerCallSession,
+        localUid: String,
+    ): PulseCoordinatorResult = synchronized(lock) {
+        if (snapshot.protocolVersion != PULSE_CALL_PROTOCOL_VERSION) {
+            return@synchronized PulseCoordinatorResult.REJECTED_PROTOCOL
+        }
+        val currentRequest = request
+        val expectedUid = if (currentRequest?.direction == PulseCallDirection.OUTGOING) {
+            snapshot.callerUid
+        } else {
+            snapshot.calleeUid
+        }
+        if (!ownsLocked(snapshot.sessionId) ||
+            localUid != expectedUid ||
+            currentRequest?.mediaType != snapshot.mediaType
+        ) {
+            return@synchronized PulseCoordinatorResult.REJECTED_SESSION
+        }
+        if (snapshot.revision <= 0 || snapshot.revision < signalingRevision) {
+            return@synchronized PulseCoordinatorResult.REJECTED_REVISION
+        }
+        if (snapshot.revision == signalingRevision) {
+            return@synchronized PulseCoordinatorResult.IDEMPOTENT
+        }
+
+        val transitionResult = reconcileServerStateLocked(snapshot, localUid)
+        if (transitionResult != PulseCoordinatorResult.APPLIED &&
+            transitionResult != PulseCoordinatorResult.IDEMPOTENT
+        ) {
+            return@synchronized transitionResult
+        }
+        signalingRevision = snapshot.revision
+        publishLocked()
+        PulseCoordinatorResult.APPLIED
     }
 
     fun beginEnding(sessionId: String, remote: Boolean): PulseCoordinatorResult = synchronized(lock) {
@@ -105,6 +143,7 @@ class PulseCallCoordinator private constructor(
             return@synchronized PulseCoordinatorResult.IDEMPOTENT
         }
         telecomActive = false
+        localMediaReady = false
         applyLocked(
             sessionId,
             if (remote) PulseCallEvent.REMOTE_ENDED else PulseCallEvent.END_REQUESTED,
@@ -148,6 +187,59 @@ class PulseCallCoordinator private constructor(
     private fun ownsLocked(sessionId: String): Boolean =
         sessionId.isNotBlank() && stateMachine.sessionId == sessionId
 
+    private fun reconcileServerStateLocked(
+        snapshot: PulseServerCallSession,
+        localUid: String,
+    ): PulseCoordinatorResult {
+        if (snapshot.state == PulseServerCallState.ENDED) {
+            if (stateMachine.state in setOf(PulseCallState.ENDING, PulseCallState.ENDED)) {
+                return PulseCoordinatorResult.IDEMPOTENT
+            }
+            telecomActive = false
+            return applyLocked(
+                snapshot.sessionId,
+                if (snapshot.terminalByUid == localUid) {
+                    PulseCallEvent.END_REQUESTED
+                } else {
+                    PulseCallEvent.REMOTE_ENDED
+                },
+                publish = false,
+            )
+        }
+
+        if (snapshot.state in setOf(
+                PulseServerCallState.RINGING,
+                PulseServerCallState.CONNECTING,
+                PulseServerCallState.ACTIVE,
+            ) && stateMachine.state == PulseCallState.PREPARING
+        ) {
+            val ready = applyLocked(snapshot.sessionId, PulseCallEvent.SIGNALING_READY, publish = false)
+            if (ready != PulseCoordinatorResult.APPLIED) return ready
+        }
+
+        if (snapshot.state in setOf(PulseServerCallState.CONNECTING, PulseServerCallState.ACTIVE) &&
+            stateMachine.state == PulseCallState.RINGING
+        ) {
+            val accepted = applyLocked(
+                snapshot.sessionId,
+                if (request?.direction == PulseCallDirection.INCOMING) {
+                    PulseCallEvent.LOCAL_ACCEPTED
+                } else {
+                    PulseCallEvent.REMOTE_ACCEPTED
+                },
+                publish = false,
+            )
+            if (accepted != PulseCoordinatorResult.APPLIED) return accepted
+        }
+
+        if (snapshot.state == PulseServerCallState.ACTIVE && stateMachine.state == PulseCallState.CONNECTING) {
+            val connected = applyLocked(snapshot.sessionId, PulseCallEvent.MEDIA_CONNECTED, publish = false)
+            if (connected != PulseCoordinatorResult.APPLIED) return connected
+        }
+
+        return PulseCoordinatorResult.APPLIED
+    }
+
     private fun publishLocked() {
         val currentRequest = request
         mutableState.value = PulseCallSnapshot(
@@ -157,6 +249,8 @@ class PulseCallCoordinator private constructor(
             mediaType = currentRequest?.mediaType,
             state = stateMachine.state,
             sequence = stateMachine.lastSequence,
+            signalingRevision = signalingRevision,
+            localMediaReady = localMediaReady,
             telecomRegistered = telecomRegistered,
             telecomActive = telecomActive,
         )
@@ -166,6 +260,8 @@ class PulseCallCoordinator private constructor(
         val sessionId = stateMachine.sessionId ?: return
         applyLocked(sessionId, PulseCallEvent.RESET, publish = false)
         request = null
+        signalingRevision = 0L
+        localMediaReady = false
         telecomRegistered = false
         telecomActive = false
         publishLocked()

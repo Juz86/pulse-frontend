@@ -65,7 +65,7 @@ class PulseCallService : Service(), PulseTelecomCallbacks {
     }
 
     override suspend fun onAnswer(sessionId: String, callType: Int) {
-        coordinator.onTelecomSetActive(sessionId)
+        coordinator.onLocalAnswer(sessionId)
     }
 
     override suspend fun onDisconnect(sessionId: String, cause: DisconnectCause) {

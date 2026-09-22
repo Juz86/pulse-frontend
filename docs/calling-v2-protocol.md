@@ -9,7 +9,8 @@ Status: design contract, no production calling is enabled.
 - Railway will be authoritative for session membership and ordered signaling events.
 - FCM will only wake the recipient and identify a pending session.
 - TURN will only relay media when direct ICE connectivity fails.
-- Android Telecom may be added later as an adapter. It must not create or own a media session.
+- Android Core-Telecom is the system call-control adapter from the first native phase. It must
+  not create or own a signaling or media session.
 - The WebView must not own, restore or negotiate calls.
 
 ## State model
@@ -57,6 +58,8 @@ Rules:
 6. The server acknowledges every accepted command with the resulting session revision.
 7. Reconnecting clients fetch the server snapshot before sending new commands.
 8. One user can hold at most one live session lease at a time.
+9. Local media readiness sends `MEDIA_CONNECTED`; only the resulting Railway snapshot may
+   move the local call to `ACTIVE`.
 
 ## Time budgets
 
@@ -92,7 +95,7 @@ No Play Store build may enable calling until all applicable gates pass:
 7. ICE can recover or fall back to a relay without creating a second PeerConnection.
 8. A failed call releases microphone, camera, audio focus and foreground notification.
 9. Video is added only after every audio gate passes.
-10. Android Telecom is added only after native audio and video pass without it.
+10. Telecom callbacks never invent remote signaling state; Railway snapshots remain authoritative.
 
 ## Diagnostics contract
 

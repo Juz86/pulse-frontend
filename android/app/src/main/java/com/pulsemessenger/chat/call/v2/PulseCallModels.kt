@@ -24,6 +24,8 @@ data class PulseCallSnapshot(
     val mediaType: PulseCallMediaType? = null,
     val state: PulseCallState = PulseCallState.IDLE,
     val sequence: Long = 0,
+    val signalingRevision: Long = 0,
+    val localMediaReady: Boolean = false,
     val telecomRegistered: Boolean = false,
     val telecomActive: Boolean = false,
 )
@@ -32,6 +34,8 @@ enum class PulseCoordinatorResult {
     APPLIED,
     IDEMPOTENT,
     REJECTED_BUSY,
+    REJECTED_PROTOCOL,
+    REJECTED_REVISION,
     REJECTED_SESSION,
     REJECTED_TRANSITION,
 }

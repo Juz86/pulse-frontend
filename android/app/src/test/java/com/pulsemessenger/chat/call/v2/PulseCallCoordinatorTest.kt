@@ -30,7 +30,7 @@ class PulseCallCoordinatorTest {
     }
 
     @Test
-    fun `incoming Telecom activation moves the call to connecting`() {
+    fun `incoming Telecom answer moves the call to connecting`() {
         val coordinator = PulseCallCoordinator.createForTests()
         coordinator.begin(request("session-one", PulseCallDirection.INCOMING))
 
@@ -40,11 +40,11 @@ class PulseCallCoordinatorTest {
         )
         assertEquals(
             PulseCoordinatorResult.APPLIED,
-            coordinator.onTelecomSetActive("session-one"),
+            coordinator.onLocalAnswer("session-one"),
         )
         assertEquals(PulseCallState.CONNECTING, coordinator.state.value.state)
         assertEquals(true, coordinator.state.value.telecomRegistered)
-        assertEquals(true, coordinator.state.value.telecomActive)
+        assertEquals(false, coordinator.state.value.telecomActive)
     }
 
     @Test
@@ -85,16 +85,103 @@ class PulseCallCoordinatorTest {
     }
 
     @Test
-    fun `outgoing call cannot activate before Telecom registration`() {
+    fun `Telecom registration does not invent signaling readiness`() {
         val coordinator = PulseCallCoordinator.createForTests()
         coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
 
         assertEquals(
-            PulseCoordinatorResult.REJECTED_TRANSITION,
-            coordinator.onTelecomSetActive("session-one"),
+            PulseCoordinatorResult.APPLIED,
+            coordinator.onTelecomRegistered("session-one"),
         )
-        assertEquals(false, coordinator.state.value.telecomActive)
         assertEquals(PulseCallState.PREPARING, coordinator.state.value.state)
+    }
+
+    @Test
+    fun `Railway snapshot advances outgoing call using authoritative revision`() {
+        val coordinator = PulseCallCoordinator.createForTests()
+        coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
+
+        assertEquals(
+            PulseCoordinatorResult.APPLIED,
+            coordinator.onSignalingSnapshot(
+                serverSession(state = PulseServerCallState.RINGING, revision = 2),
+                localUid = "caller",
+            ),
+        )
+        assertEquals(PulseCallState.RINGING, coordinator.state.value.state)
+        assertEquals(2L, coordinator.state.value.signalingRevision)
+
+        assertEquals(
+            PulseCoordinatorResult.APPLIED,
+            coordinator.onSignalingSnapshot(
+                serverSession(state = PulseServerCallState.CONNECTING, revision = 3),
+                localUid = "caller",
+            ),
+        )
+        assertEquals(PulseCallState.CONNECTING, coordinator.state.value.state)
+    }
+
+    @Test
+    fun `stale Railway snapshot cannot roll call state back`() {
+        val coordinator = PulseCallCoordinator.createForTests()
+        coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.CONNECTING, revision = 3),
+            localUid = "caller",
+        )
+
+        assertEquals(
+            PulseCoordinatorResult.REJECTED_REVISION,
+            coordinator.onSignalingSnapshot(
+                serverSession(state = PulseServerCallState.RINGING, revision = 2),
+                localUid = "caller",
+            ),
+        )
+        assertEquals(PulseCallState.CONNECTING, coordinator.state.value.state)
+        assertEquals(3L, coordinator.state.value.signalingRevision)
+    }
+
+    @Test
+    fun `Railway terminal snapshot enters ending without pretending cleanup finished`() {
+        val coordinator = PulseCallCoordinator.createForTests()
+        coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.RINGING, revision = 2),
+            localUid = "caller",
+        )
+
+        assertEquals(
+            PulseCoordinatorResult.APPLIED,
+            coordinator.onSignalingSnapshot(
+                serverSession(
+                    state = PulseServerCallState.ENDED,
+                    revision = 3,
+                    terminalByUid = "callee",
+                ),
+                localUid = "caller",
+            ),
+        )
+        assertEquals(PulseCallState.ENDING, coordinator.state.value.state)
+    }
+
+    @Test
+    fun `local media readiness waits for authoritative active snapshot`() {
+        val coordinator = PulseCallCoordinator.createForTests()
+        coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.CONNECTING, revision = 3),
+            localUid = "caller",
+        )
+
+        assertEquals(PulseCoordinatorResult.APPLIED, coordinator.onMediaConnected("session-one"))
+        assertEquals(true, coordinator.state.value.localMediaReady)
+        assertEquals(PulseCallState.CONNECTING, coordinator.state.value.state)
+
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.ACTIVE, revision = 4),
+            localUid = "caller",
+        )
+        assertEquals(PulseCallState.ACTIVE, coordinator.state.value.state)
     }
 
     private fun request(
@@ -104,5 +191,23 @@ class PulseCallCoordinatorTest {
         sessionId = sessionId,
         displayName = "Test contact",
         direction = direction,
+    )
+
+    private fun serverSession(
+        state: PulseServerCallState,
+        revision: Long,
+        terminalByUid: String? = null,
+    ) = PulseServerCallSession(
+        protocolVersion = PULSE_CALL_PROTOCOL_VERSION,
+        sessionId = "session-one",
+        requestId = "request-one",
+        callerUid = "caller",
+        calleeUid = "callee",
+        mediaType = PulseCallMediaType.AUDIO,
+        state = state,
+        revision = revision,
+        mediaReadyUids = emptySet(),
+        terminalReason = if (state == PulseServerCallState.ENDED) "hangup" else null,
+        terminalByUid = terminalByUid,
     )
 }

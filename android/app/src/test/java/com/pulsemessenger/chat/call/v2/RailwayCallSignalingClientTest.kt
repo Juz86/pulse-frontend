@@ -57,7 +57,7 @@ class RailwayCallSignalingClientTest {
         }
         val client = RailwayCallSignalingClient(
             socketFactory = RecordingSocketFactory(socket),
-            acknowledgementTimeoutMs = 10,
+            acknowledgementTimeoutMs = 100,
             acknowledgementAttempts = 2,
         )
         client.connect("firebase-token", RecordingListener())

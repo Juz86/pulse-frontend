@@ -66,6 +66,21 @@ timed-out operation at most twice. Retries reuse the same `requestId` or `eventI
 deduplicates them. A reconnect never resumes from memory alone: it first requests the active
 session snapshot.
 
+## Native orchestration order
+
+The native session orchestrator uses one strict launch order:
+
+1. obtain the current Firebase user and ID token;
+2. connect the authenticated Railway socket;
+3. create or fetch the authoritative Railway session;
+4. admit that `sessionId` into `PulseCallCoordinator`;
+5. register the call with Core-Telecom;
+6. send `INVITE_READY` for outgoing calls or `ACCEPT` after an incoming answer.
+
+Telecom callbacks return without waiting for network retries. They enqueue the matching Railway
+command through the orchestrator, while every resulting snapshot is reconciled through the same
+coordinator.
+
 ## Time budgets
 
 - command acknowledgement: 5 seconds, with bounded retries using the same `eventId`;

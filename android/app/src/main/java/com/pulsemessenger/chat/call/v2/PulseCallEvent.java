@@ -1,0 +1,18 @@
+package com.pulsemessenger.chat.call.v2;
+
+public enum PulseCallEvent {
+    START_OUTGOING,
+    RECEIVE_INCOMING,
+    SIGNALING_READY,
+    LOCAL_ACCEPTED,
+    REMOTE_ACCEPTED,
+    MEDIA_CONNECTED,
+    NETWORK_LOST,
+    END_REQUESTED,
+    REMOTE_ENDED,
+    REMOTE_DECLINED,
+    TIMED_OUT,
+    FAILED,
+    CLEANUP_COMPLETED,
+    RESET
+}

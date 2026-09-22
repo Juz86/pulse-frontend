@@ -29,28 +29,29 @@ Only an incoming call accepts `LOCAL_ACCEPTED`. Only an outgoing call accepts
 `REMOTE_ACCEPTED`. Every failure or explicit end first enters `ENDING`; resource
 cleanup must complete before `ENDED`. `RESET` returns the coordinator to `IDLE`.
 
-## Event envelope
+## Railway command and snapshot contract
 
-Every server and client event will contain:
+Client commands contain:
 
 ```json
 {
-  "protocolVersion": 2,
   "sessionId": "globally-unique-id",
   "eventId": "globally-unique-id",
-  "sequence": 1,
-  "type": "call.event",
-  "senderDeviceId": "registered-device-id",
-  "issuedAt": "2026-09-22T10:00:00.000Z",
-  "payload": {}
+  "expectedRevision": 1,
+  "command": "INVITE_READY"
 }
 ```
+
+Railway acknowledges the command with the complete authoritative session
+snapshot. That snapshot contains `protocolVersion`, `revision`, both participant
+IDs, media type, state, readiness and terminal fields. The Android coordinator
+maps the server `revision` to its local ordered `sequence`.
 
 Rules:
 
 1. `sessionId` is never reused.
 2. `eventId` makes retries idempotent.
-3. `sequence` is strictly increasing within a session.
+3. `revision` is strictly increasing within a server session.
 4. Events for a different or retired session are ignored.
 5. Out-of-order events trigger a snapshot request instead of a guessed transition.
 6. The server acknowledges every accepted command with the resulting session revision.
@@ -71,9 +72,12 @@ when a limit is reached.
 
 ## Terminal reasons
 
-At minimum: `local_hangup`, `remote_hangup`, `declined`, `no_answer`,
-`signaling_timeout`, `media_timeout`, `network_lost`, `permission_denied`,
-`busy`, `replaced`, and `internal_error`.
+Railway stores one perspective-neutral reason: `declined`, `hangup`, `cancelled`,
+`missed`, `invite_timeout`, `connect_timeout`, `media_error` or
+`signaling_error`. For `hangup`, `terminalByUid` identifies who ended the call;
+each client derives whether that was local or remote. Local-only failures such
+as `permission_denied` remain diagnostics and are mapped to a permitted server
+failure command where applicable.
 
 ## Acceptance gates
 

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pulse_call_notification_incoming">Inkomende oproep</string>
+    <string name="pulse_call_notification_ringing">Overgaan…</string>
+    <string name="pulse_call_notification_connecting">Verbinden…</string>
+    <string name="pulse_call_notification_active">Verbonden</string>
+    <string name="pulse_call_notification_ending">Oproep beëindigen…</string>
+</resources>

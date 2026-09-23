@@ -129,6 +129,7 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation "androidx.core:core-telecom:1.0.0"
+    implementation "io.github.webrtc-sdk:android:144.7559.15"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"

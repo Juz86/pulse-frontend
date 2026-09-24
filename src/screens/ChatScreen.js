@@ -18,6 +18,11 @@ import useProfile from '../hooks/useProfile';
 import useContacts from '../hooks/useContacts';
 import useRealtimeSync from '../hooks/useRealtimeSync';
 import { auth } from '../firebase';
+import {
+  getNativeCallCapabilities,
+  nativeCallErrorMessage,
+  startNativeAudioCall,
+} from '../services/nativeCall';
 import { clearPulseUserStorage, copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
@@ -49,6 +54,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [showContactProfile, setShowContactProfile] = useState(false);
   const [contactProfileContact, setContactProfileContact] = useState(null);
   const [confirmDialog,  setConfirmDialog]  = useState(null);
+  const [nativeCallCapabilities, setNativeCallCapabilities] = useState({ audio: false, video: false });
+  const [callLaunchPending, setCallLaunchPending] = useState(false);
   const [replyTo,        setReplyTo]        = useState(null);
   const [showChatSearch, setShowChatSearch] = useState(false);
   const [conversationPanelMode, setConversationPanelMode] = useState('search');
@@ -101,6 +108,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const audioCtxRef    = useRef(null);
   const chatSearchRef  = useRef(null);
   const mutedConversationIdsRef = useRef(mutedConversationIds);
+
+  useEffect(() => {
+    let active = true;
+    getNativeCallCapabilities().then((capabilities) => {
+      if (active) setNativeCallCapabilities(capabilities);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function showErrToast(msg) {
     setErrToast(msg);
@@ -562,6 +579,30 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     if (conv.isGroup) return null;
     return contactsByUid.get(getOtherUid(conv))?.photoURL || null;
   }, [contactsByUid, getOtherUid]);
+
+  async function handleStartAudioCall() {
+    if (!activeConv || activeConv.isGroup || callLaunchPending) return;
+    const calleeUid = getOtherUid(activeConv);
+    if (!calleeUid || blockedContacts.some((contact) => contact.uid === calleeUid) || parentBlockedUids.includes(calleeUid)) {
+      showErrToast('Dit contact kan niet worden gebeld.');
+      return;
+    }
+
+    setCallLaunchPending(true);
+    try {
+      await startNativeAudioCall({
+        calleeUid,
+        displayName: getConvName(activeConv),
+      });
+    } catch (error) {
+      showErrToast(nativeCallErrorMessage(error));
+      const capabilities = await getNativeCallCapabilities();
+      setNativeCallCapabilities(capabilities);
+    } finally {
+      setCallLaunchPending(false);
+    }
+  }
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="app-screen">
@@ -757,6 +798,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               serviceTransportReady={serviceTransportReady}
               conversationMuted={mutedConversationIds.includes(activeConv?.id)}
               messageSelectionMode={messageSelectionMode}
+              nativeAudioCallingAvailable={nativeCallCapabilities.audio}
+              callLaunchPending={callLaunchPending}
+              onStartAudioCall={handleStartAudioCall}
             />
             {pinnedMsgs[activeConv?.id] && (
               <div className="pinned-msg-bar" role="status" aria-live="polite">

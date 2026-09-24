@@ -1,6 +1,6 @@
 // src/components/ChatHeader.js
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Logout, MoreHoriz, User, Users, XIcon } from '../components/Icons';
+import { Logout, MoreHoriz, Phone, User, Users, XIcon } from '../components/Icons';
 import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
@@ -27,6 +27,9 @@ const ChatHeader = React.memo(function ChatHeader({
   messageSelectionMode = false,
   onShowStarredMsgs,
   onLeaveGroup,
+  nativeAudioCallingAvailable = false,
+  callLaunchPending = false,
+  onStartAudioCall,
   onClearChat,
   onDeleteChat,
 }) {
@@ -140,6 +143,18 @@ const ChatHeader = React.memo(function ChatHeader({
         </div>
 
         <div className="chat-header-actions" ref={moreActionsRef}>
+          {!activeConv.isGroup && nativeAudioCallingAvailable && (
+            <button
+              type="button"
+              className="chat-header-action-btn chat-header-menu-btn"
+              aria-label={`Bel ${getConvName(activeConv)}`}
+              title="Bellen"
+              disabled={callLaunchPending}
+              onClick={onStartAudioCall}
+            >
+              <Phone size={20} aria-hidden="true" />
+            </button>
+          )}
           <button
             type="button"
             className="chat-header-action-btn chat-header-menu-btn"

@@ -8,6 +8,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         PulseWebUpdateManager.prepareForAppStart(this);
         registerPlugin(PulseAppUpdatePlugin.class);
+        registerPlugin(PulseCallPlugin.class);
         registerPlugin(PulseWebUpdatePlugin.class);
         super.onCreate(savedInstanceState);
     }

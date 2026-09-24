@@ -1,11 +1,14 @@
 package com.pulsemessenger.chat.call.v2
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -94,6 +97,42 @@ class PulseCallMediaSessionControllerTest {
         assertFalse(subject.handleRemote(answer.copy(senderUid = "caller")))
 
         assertEquals(1, engine.remoteDescriptions.size)
+    }
+
+    @Test
+    fun `remote media received during startup is applied in order after engine is ready`() = runBlocking {
+        val engine = FakeMediaEngine().apply {
+            startGate = CompletableDeferred()
+        }
+        val subject = subject(FakeSignaling(), engine, RecordingCallbacks())
+        val starting = async {
+            subject.start(session(PulseServerCallState.CONNECTING), "caller")
+        }
+        yield()
+
+        val answer = PulseRemoteDescriptionSignal(
+            sessionId = "session-123",
+            messageId = "message-123",
+            senderUid = "callee",
+            description = PulseSessionDescription(PulseSessionDescriptionType.ANSWER, "v=0"),
+        )
+        val candidate = PulseRemoteIceCandidateSignal(
+            sessionId = "session-123",
+            messageId = "message-456",
+            senderUid = "callee",
+            candidate = PulseIceCandidate("audio", 0, "candidate:value"),
+        )
+
+        assertTrue(subject.handleRemote(answer))
+        assertTrue(subject.handleRemote(candidate))
+        assertTrue(engine.remoteDescriptions.isEmpty())
+        assertTrue(engine.remoteCandidates.isEmpty())
+
+        engine.startGate?.complete(Unit)
+        assertTrue(starting.await())
+
+        assertEquals(listOf(answer.description), engine.remoteDescriptions)
+        assertEquals(listOf(candidate.candidate), engine.remoteCandidates)
     }
 
     @Test
@@ -249,6 +288,7 @@ class PulseCallMediaSessionControllerTest {
         var listener: PulseCallMediaListener? = null
         var startCount = 0
         var closeCount = 0
+        var startGate: CompletableDeferred<Unit>? = null
         val remoteDescriptions = mutableListOf<PulseSessionDescription>()
         val remoteCandidates = mutableListOf<PulseIceCandidate>()
 
@@ -257,6 +297,7 @@ class PulseCallMediaSessionControllerTest {
             this.config = config
             this.listener = listener
             startCount += 1
+            startGate?.await()
             mutableState.value = PulseMediaState.NEGOTIATING
         }
 

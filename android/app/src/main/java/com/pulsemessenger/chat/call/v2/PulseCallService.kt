@@ -1,5 +1,6 @@
 package com.pulsemessenger.chat.call.v2
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,12 +9,14 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
+import androidx.core.content.ContextCompat
 import com.pulsemessenger.chat.MainActivity
 import com.pulsemessenger.chat.R
 import java.net.URI
@@ -46,6 +49,8 @@ class PulseCallService : Service() {
             signaling = RailwayCallSignalingClient(URI.create(CALLING_API_URL)),
             telecom = telecom,
             coordinator = coordinator,
+            mediaEngineFactory = PulseCallMediaEngineFactory { WebRtcAudioEngine(this) },
+            beforeMediaStart = ::promoteToMicrophoneForeground,
         )
         stateJob = serviceScope.launch {
             coordinator.state.collectLatest(::onCallStateChanged)
@@ -67,8 +72,14 @@ class PulseCallService : Service() {
     override fun onDestroy() {
         launchJob?.cancel()
         stateJob?.cancel()
-        if (::orchestrator.isInitialized) orchestrator.shutdown()
-        serviceScope.cancel()
+        if (::orchestrator.isInitialized) {
+            serviceScope.launch {
+                orchestrator.shutdown()
+                serviceScope.cancel()
+            }
+        } else {
+            serviceScope.cancel()
+        }
         super.onDestroy()
     }
 
@@ -112,6 +123,38 @@ class PulseCallService : Service() {
             ?: return stopIfIdle()
         orchestrator.requestDisconnect(sessionId)
     }
+
+    private fun promoteToMicrophoneForeground(): Boolean {
+        if (!hasRecordAudioPermission()) {
+            Log.w(TAG, "Microphone foreground promotion rejected: permission missing")
+            return false
+        }
+        val displayName = foregroundDisplayName ?: return false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return true
+
+        return runCatching {
+            ServiceCompat.startForeground(
+                this,
+                NOTIFICATION_ID,
+                buildNotification(
+                    displayName,
+                    getString(R.string.pulse_call_notification_connecting),
+                ),
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL or
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE,
+            )
+            true
+        }.getOrElse { error ->
+            Log.e(TAG, "Microphone foreground promotion failed", error)
+            false
+        }
+    }
+
+    private fun hasRecordAudioPermission(): Boolean =
+        ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.RECORD_AUDIO,
+        ) == PackageManager.PERMISSION_GRANTED
 
     private fun startPreparingForeground(callId: String, displayName: String): Boolean {
         if (foregroundCallId != null) {

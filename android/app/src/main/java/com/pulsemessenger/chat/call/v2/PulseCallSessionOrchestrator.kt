@@ -5,6 +5,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -24,11 +25,16 @@ class PulseCallSessionOrchestrator(
     private val signaling: PulseCallSignalingGateway,
     private val telecom: PulseTelecomController,
     private val coordinator: PulseCallCoordinator = PulseCallCoordinator.instance,
-) : PulseCallSignalingListener, PulseTelecomCallbacks {
+    mediaEngineFactory: PulseCallMediaEngineFactory? = null,
+    private val beforeMediaStart: () -> Boolean = { true },
+) : PulseCallSignalingListener, PulseTelecomCallbacks, PulseCallMediaSessionCallbacks {
     private val launchMutex = Mutex()
     private val identity = AtomicReference<PulseCallIdentity?>(null)
     private val serverSession = AtomicReference<PulseServerCallSession?>(null)
     private val terminating = AtomicBoolean(false)
+    private val mediaSessions = mediaEngineFactory?.let { factory ->
+        PulseCallMediaSessionController(scope, signaling, factory, this)
+    }
     private var telecomJob: Job? = null
 
     suspend fun startOutgoing(
@@ -132,12 +138,13 @@ class PulseCallSessionOrchestrator(
         }
     }
 
-    fun shutdown() {
+    suspend fun shutdown() {
         terminating.set(true)
         telecomJob?.cancel()
         telecomJob = null
         val snapshot = coordinator.state.value
         snapshot.sessionId?.let { sessionId ->
+            mediaSessions?.close(sessionId)
             if (snapshot.state !in setOf(PulseCallState.ENDING, PulseCallState.ENDED)) {
                 coordinator.beginEnding(sessionId, remote = false)
             }
@@ -160,11 +167,19 @@ class PulseCallSessionOrchestrator(
         if (result !in setOf(PulseCoordinatorResult.APPLIED, PulseCoordinatorResult.IDEMPOTENT)) return
 
         when (coordinator.state.value.state) {
-            PulseCallState.CONNECTING, PulseCallState.ACTIVE -> scope.launch {
-                telecom.setActive(session.sessionId)
+            PulseCallState.CONNECTING, PulseCallState.ACTIVE -> scope.launch(
+                start = CoroutineStart.UNDISPATCHED,
+            ) {
+                if (!telecom.setActive(session.sessionId)) {
+                    onMediaFailure(session.sessionId, MEDIA_ERROR)
+                    return@launch
+                }
+                startMedia(session, localIdentity.uid)
             }
             PulseCallState.ENDING -> scope.launch {
                 if (!terminating.get() &&
+                    serverSession.get()?.sessionId == session.sessionId &&
+                    coordinator.state.value.state == PulseCallState.ENDING &&
                     !telecom.disconnect(session.sessionId, DisconnectCause(DisconnectCause.REMOTE))
                 ) {
                     completeCleanup(session.sessionId)
@@ -175,6 +190,15 @@ class PulseCallSessionOrchestrator(
     }
 
     override fun onConnectionChanged(connected: Boolean) = Unit
+
+    override fun onMediaSignal(signal: PulseRemoteMediaSignal) {
+        val session = serverSession.get() ?: return
+        val localIdentity = identity.get() ?: return
+        if (signal.sessionId != session.sessionId || signal.senderUid == localIdentity.uid) return
+        scope.launch(start = CoroutineStart.UNDISPATCHED) {
+            mediaSessions?.handleRemote(signal)
+        }
+    }
 
     override fun onRegistered(sessionId: String) {
         if (coordinator.onTelecomRegistered(sessionId) != PulseCoordinatorResult.APPLIED) return
@@ -205,6 +229,24 @@ class PulseCallSessionOrchestrator(
         coordinator.onTelecomSetInactive(sessionId)
     }
 
+    override fun onMediaConnected(sessionId: String) {
+        if (coordinator.onMediaConnected(sessionId) !in setOf(
+                PulseCoordinatorResult.APPLIED,
+                PulseCoordinatorResult.IDEMPOTENT,
+            )
+        ) return
+        scope.launch { sendCommand(PulseSignalingCommand.MEDIA_CONNECTED) }
+    }
+
+    override fun onMediaReconnecting(sessionId: String) {
+        if (serverSession.get()?.sessionId != sessionId || terminating.get()) return
+        scope.launch { sendCommand(PulseSignalingCommand.NETWORK_LOST) }
+    }
+
+    override fun onMediaFailure(sessionId: String, reason: String) {
+        scope.launch { failMedia(sessionId, reason) }
+    }
+
     private suspend fun connectSignaling(localIdentity: PulseCallIdentity): Boolean =
         runCatching { signaling.connect(localIdentity.authToken, this) }.isSuccess
 
@@ -220,6 +262,26 @@ class PulseCallSessionOrchestrator(
                     endLocally(request.sessionId)
                 }
             }
+        }
+    }
+
+    private suspend fun startMedia(session: PulseServerCallSession, localUid: String) {
+        val controller = mediaSessions ?: return
+        if (session.mediaType != PulseCallMediaType.AUDIO || !beforeMediaStart()) {
+            onMediaFailure(session.sessionId, MEDIA_ERROR)
+            return
+        }
+        if (!controller.start(session, localUid) && !terminating.get()) {
+            onMediaFailure(session.sessionId, MEDIA_ERROR)
+        }
+    }
+
+    private suspend fun failMedia(sessionId: String, reason: String) {
+        if (serverSession.get()?.sessionId != sessionId || !terminating.compareAndSet(false, true)) return
+        coordinator.beginEnding(sessionId, remote = false)
+        sendCommand(PulseSignalingCommand.FAIL, reason)
+        if (!telecom.disconnect(sessionId, DisconnectCause(DisconnectCause.ERROR))) {
+            completeCleanup(sessionId)
         }
     }
 
@@ -239,7 +301,8 @@ class PulseCallSessionOrchestrator(
         completeCleanup(sessionId)
     }
 
-    private fun completeCleanup(sessionId: String) {
+    private suspend fun completeCleanup(sessionId: String) {
+        mediaSessions?.close(sessionId)
         coordinator.completeCleanup(sessionId)
         signaling.disconnect()
         identity.set(null)
@@ -273,5 +336,9 @@ class PulseCallSessionOrchestrator(
         PulseSignalingStatus.BUSY -> PulseCallLaunchResult.BUSY
         PulseSignalingStatus.SERVICE_UNAVAILABLE -> PulseCallLaunchResult.SIGNALING_UNAVAILABLE
         else -> PulseCallLaunchResult.REJECTED
+    }
+
+    private companion object {
+        const val MEDIA_ERROR = "media_error"
     }
 }

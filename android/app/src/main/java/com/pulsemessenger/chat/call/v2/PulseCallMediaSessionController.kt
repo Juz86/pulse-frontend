@@ -25,6 +25,9 @@ class PulseCallMediaSessionController(
         val sessionId: String,
         val localUid: String,
         val engine: PulseCallMediaEngine,
+        val ready: AtomicBoolean = AtomicBoolean(false),
+        val pendingMutex: Mutex = Mutex(),
+        val pendingSignals: ArrayDeque<PulseRemoteMediaSignal> = ArrayDeque(),
     )
 
     private val lifecycleMutex = Mutex()
@@ -41,21 +44,24 @@ class PulseCallMediaSessionController(
                 return@withLock false
             }
 
-            val iceConfiguration = signaling.fetchIceConfiguration(session.sessionId)
-            if (!iceConfiguration.ok ||
-                iceConfiguration.status != PulseSignalingStatus.FOUND ||
-                iceConfiguration.iceServers.isEmpty()
-            ) {
-                callbacks.onMediaFailure(session.sessionId, SIGNALING_ERROR)
-                return@withLock false
-            }
-
             val engine = engineFactory.create()
             val mediaSession = ActiveMediaSession(session.sessionId, localUid, engine)
             active.set(mediaSession)
             connectedReported.set(false)
             reconnectingReported.set(false)
             failureReported.set(false)
+
+            val iceConfiguration = signaling.fetchIceConfiguration(session.sessionId)
+            if (!iceConfiguration.ok ||
+                iceConfiguration.status != PulseSignalingStatus.FOUND ||
+                iceConfiguration.iceServers.isEmpty()
+            ) {
+                active.compareAndSet(mediaSession, null)
+                runCatching { engine.close() }
+                callbacks.onMediaFailure(session.sessionId, SIGNALING_ERROR)
+                return@withLock false
+            }
+
             try {
                 engine.start(
                     PulseAudioSessionConfig(
@@ -69,6 +75,13 @@ class PulseCallMediaSessionController(
                     ),
                     this,
                 )
+                val pending = mediaSession.pendingMutex.withLock {
+                    mediaSession.ready.set(true)
+                    mediaSession.pendingSignals.toList().also {
+                        mediaSession.pendingSignals.clear()
+                    }
+                }
+                pending.forEach { signal -> applyRemote(mediaSession, signal) }
                 true
             } catch (_: Throwable) {
                 active.compareAndSet(mediaSession, null)
@@ -83,6 +96,26 @@ class PulseCallMediaSessionController(
         if (signal.sessionId != mediaSession.sessionId || signal.senderUid == mediaSession.localUid) {
             return false
         }
+        if (!mediaSession.ready.get()) {
+            return mediaSession.pendingMutex.withLock {
+                if (mediaSession.ready.get()) {
+                    applyRemote(mediaSession, signal)
+                } else if (mediaSession.pendingSignals.size >= MAX_PENDING_SIGNALS) {
+                    reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
+                    false
+                } else {
+                    mediaSession.pendingSignals.addLast(signal)
+                    true
+                }
+            }
+        }
+        return applyRemote(mediaSession, signal)
+    }
+
+    private suspend fun applyRemote(
+        mediaSession: ActiveMediaSession,
+        signal: PulseRemoteMediaSignal,
+    ): Boolean {
         return try {
             when (signal) {
                 is PulseRemoteDescriptionSignal ->
@@ -114,6 +147,7 @@ class PulseCallMediaSessionController(
             failureReported.set(false)
             current
         }
+        mediaSession?.pendingMutex?.withLock { mediaSession.pendingSignals.clear() }
         mediaSession?.engine?.close()
     }
 
@@ -180,5 +214,6 @@ class PulseCallMediaSessionController(
         val MEDIA_STATES = setOf(PulseServerCallState.CONNECTING, PulseServerCallState.ACTIVE)
         const val SIGNALING_ERROR = "signaling_error"
         const val MEDIA_ERROR = "media_error"
+        const val MAX_PENDING_SIGNALS = 128
     }
 }

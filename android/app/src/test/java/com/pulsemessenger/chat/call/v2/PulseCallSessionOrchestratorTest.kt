@@ -4,6 +4,8 @@ import android.telecom.DisconnectCause
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -17,7 +19,9 @@ class PulseCallSessionOrchestratorTest {
 
     @After
     fun tearDown() {
-        orchestrator?.shutdown()
+        runBlocking {
+            orchestrator?.shutdown()
+        }
     }
 
     @Test
@@ -125,6 +129,91 @@ class PulseCallSessionOrchestratorTest {
     }
 
     @Test
+    fun `accepted call starts audio and reports media connected to Railway`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+            commandResponses += response(session(PulseServerCallState.CONNECTING, revision = 3))
+            commandResponses += response(session(PulseServerCallState.ACTIVE, revision = 4))
+        }
+        val engine = FakeMediaEngine()
+        val telecom = FakeTelecom()
+        val subject = subject(
+            coordinator = coordinator,
+            signaling = signaling,
+            telecom = telecom,
+            mediaEngine = engine,
+        )
+
+        assertEquals(
+            PulseCallLaunchResult.STARTED,
+            subject.registerIncoming("session-123", "Test contact"),
+        )
+        telecom.callbacks?.onAnswer("session-123", 0)
+
+        assertEquals(PulseMediaRole.ANSWERER, engine.config?.role)
+        signaling.listener?.onMediaSignal(
+            PulseRemoteDescriptionSignal(
+                sessionId = "session-123",
+                messageId = "message-123",
+                senderUid = "caller",
+                description = PulseSessionDescription(PulseSessionDescriptionType.OFFER, "v=0"),
+            ),
+        )
+        assertEquals(1, engine.remoteDescriptions.size)
+
+        engine.listener?.onMediaStateChanged(PulseMediaState.CONNECTED)
+
+        assertEquals(
+            listOf("snapshot", "command:ACCEPT", "ice", "command:MEDIA_CONNECTED"),
+            signaling.operations,
+        )
+        assertEquals(PulseCallState.ACTIVE, coordinator.state.value.state)
+        assertTrue(coordinator.state.value.localMediaReady)
+    }
+
+    @Test
+    fun `microphone foreground rejection fails call before WebRTC capture`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            startResponse = response(session(PulseServerCallState.PREPARING, revision = 1))
+            commandResponses += response(session(PulseServerCallState.RINGING, revision = 2))
+            commandResponses += response(
+                session(
+                    state = PulseServerCallState.ENDED,
+                    revision = 4,
+                    terminalByUid = "caller",
+                ),
+            )
+        }
+        val engine = FakeMediaEngine()
+        val telecom = FakeTelecom()
+        val subject = subject(
+            coordinator = coordinator,
+            signaling = signaling,
+            telecom = telecom,
+            identityUid = "caller",
+            mediaEngine = engine,
+            beforeMediaStart = { false },
+        )
+        subject.startOutgoing(
+            requestId = "request-123",
+            calleeUid = "callee",
+            displayName = "Test contact",
+            mediaType = PulseCallMediaType.AUDIO,
+        )
+
+        signaling.listener?.onSessionUpdated(
+            session(PulseServerCallState.CONNECTING, revision = 3),
+        )
+
+        assertEquals(0, engine.startCount)
+        assertEquals(PulseSignalingCommand.FAIL to "media_error", signaling.commandReasons.last())
+        assertEquals(PulseCallState.ENDED, coordinator.state.value.state)
+        assertEquals(listOf("session-123"), telecom.disconnectedSessions)
+    }
+
+    @Test
     fun `missing Firebase identity fails before contacting Railway`() = runBlocking {
         val coordinator = PulseCallCoordinator.createForTests()
         val signaling = FakeSignaling()
@@ -154,6 +243,8 @@ class PulseCallSessionOrchestratorTest {
         signaling: FakeSignaling,
         telecom: FakeTelecom,
         identityUid: String = "callee",
+        mediaEngine: FakeMediaEngine? = null,
+        beforeMediaStart: () -> Boolean = { true },
     ) = PulseCallSessionOrchestrator(
         scope = scope,
         identityProvider = PulseCallIdentityProvider {
@@ -162,6 +253,10 @@ class PulseCallSessionOrchestratorTest {
         signaling = signaling,
         telecom = telecom,
         coordinator = coordinator,
+        mediaEngineFactory = mediaEngine?.let { engine ->
+            PulseCallMediaEngineFactory { engine }
+        },
+        beforeMediaStart = beforeMediaStart,
     ).also { orchestrator = it }
 
     private fun response(session: PulseServerCallSession) = PulseSignalingResponse(
@@ -197,6 +292,7 @@ class PulseCallSessionOrchestratorTest {
         var snapshotResponse: PulseSignalingResponse? = null
         val commandResponses = ArrayDeque<PulseSignalingResponse>()
         val operations = mutableListOf<String>()
+        val commandReasons = mutableListOf<Pair<PulseSignalingCommand, String?>>()
         var disconnected = false
 
         override suspend fun connect(authToken: String, listener: PulseCallSignalingListener) {
@@ -221,6 +317,7 @@ class PulseCallSessionOrchestratorTest {
             reason: String?,
         ): PulseSignalingResponse {
             operations += "command:${command.name}"
+            commandReasons += command to reason
             return commandResponses.removeFirst()
         }
 
@@ -229,26 +326,72 @@ class PulseCallSessionOrchestratorTest {
             return requireNotNull(snapshotResponse)
         }
 
-        override suspend fun fetchIceConfiguration(sessionId: String) =
-            PulseIceConfigurationResponse(
-                ok = false,
-                status = PulseSignalingStatus.SERVICE_UNAVAILABLE,
+        override suspend fun fetchIceConfiguration(sessionId: String): PulseIceConfigurationResponse {
+            operations += "ice"
+            return PulseIceConfigurationResponse(
+                ok = true,
+                status = PulseSignalingStatus.FOUND,
+                iceServers = listOf(
+                    PulseIceServer(
+                        urls = listOf("turns:turn.cloudflare.com:443?transport=tcp"),
+                        username = "temporary-user",
+                        credential = "temporary-secret",
+                    ),
+                ),
             )
+        }
 
         override suspend fun sendDescription(
             sessionId: String,
             messageId: String,
             description: PulseSessionDescription,
-        ) = PulseSignalingResponse(false, PulseSignalingStatus.SERVICE_UNAVAILABLE)
+        ) = PulseSignalingResponse(true, PulseSignalingStatus.RELAYED)
 
         override suspend fun sendIceCandidate(
             sessionId: String,
             messageId: String,
             candidate: PulseIceCandidate,
-        ) = PulseSignalingResponse(false, PulseSignalingStatus.SERVICE_UNAVAILABLE)
+        ) = PulseSignalingResponse(true, PulseSignalingStatus.RELAYED)
 
         override fun disconnect() {
             disconnected = true
+        }
+    }
+
+    private class FakeMediaEngine : PulseCallMediaEngine {
+        private val mutableState = MutableStateFlow(PulseMediaState.NEW)
+        override val state: StateFlow<PulseMediaState> = mutableState
+        var config: PulseAudioSessionConfig? = null
+        var listener: PulseCallMediaListener? = null
+        var startCount = 0
+        var closeCount = 0
+        val remoteDescriptions = mutableListOf<PulseSessionDescription>()
+        val remoteCandidates = mutableListOf<PulseIceCandidate>()
+
+        override suspend fun start(config: PulseAudioSessionConfig, listener: PulseCallMediaListener) {
+            this.config = config
+            this.listener = listener
+            startCount += 1
+            mutableState.value = PulseMediaState.NEGOTIATING
+        }
+
+        override suspend fun applyRemoteDescription(description: PulseSessionDescription) {
+            remoteDescriptions += description
+        }
+
+        override suspend fun addRemoteIceCandidate(candidate: PulseIceCandidate) {
+            remoteCandidates += candidate
+        }
+
+        override suspend fun restartIce() {
+            mutableState.value = PulseMediaState.RECONNECTING
+        }
+
+        override suspend fun setMuted(muted: Boolean) = Unit
+
+        override suspend fun close() {
+            closeCount += 1
+            mutableState.value = PulseMediaState.CLOSED
         }
     }
 

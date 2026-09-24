@@ -111,6 +111,106 @@ class RailwayCallSignalingClientTest {
         assertEquals(PulseSignalingStatus.SERVICE_UNAVAILABLE, response.status)
     }
 
+    @Test
+    fun `ICE configuration uses the session-bound Railway event`() = runBlocking {
+        val socket = FakeRailwayCallSocket().apply {
+            onEmission = { event, payload, acknowledgement ->
+                assertEquals(RailwayCallingV2Codec.EVENT_ICE_CONFIG, event)
+                assertEquals("session-123", payload.getString("sessionId"))
+                acknowledgement(
+                    arrayOf(
+                        JSONObject()
+                            .put("ok", true)
+                            .put("status", "FOUND")
+                            .put("expiresInSeconds", 7200)
+                            .put(
+                                "iceServers",
+                                JSONArray().put(
+                                    JSONObject()
+                                        .put("urls", JSONArray().put("turns:turn.cloudflare.com:443?transport=tcp"))
+                                        .put("username", "temporary-user")
+                                        .put("credential", "temporary-secret"),
+                                ),
+                            ),
+                    ),
+                )
+            }
+        }
+        val client = client(RecordingSocketFactory(socket))
+        client.connect("firebase-token", RecordingListener())
+
+        val response = client.fetchIceConfiguration("session-123")
+
+        assertTrue(response.ok)
+        assertEquals(7200, response.expiresInSeconds)
+        assertEquals("temporary-user", response.iceServers.single().username)
+    }
+
+    @Test
+    fun `local description and ICE candidate use acknowledged media messages`() = runBlocking {
+        val socket = FakeRailwayCallSocket().apply {
+            onEmission = { event, _, acknowledgement ->
+                assertEquals(RailwayCallingV2Codec.EVENT_MEDIA, event)
+                acknowledgement(arrayOf(JSONObject().put("ok", true).put("status", "RELAYED")))
+            }
+        }
+        val client = client(RecordingSocketFactory(socket))
+        client.connect("firebase-token", RecordingListener())
+
+        val offer = client.sendDescription(
+            "session-123",
+            "message-123",
+            PulseSessionDescription(PulseSessionDescriptionType.OFFER, "v=0"),
+        )
+        val candidate = client.sendIceCandidate(
+            "session-123",
+            "message-456",
+            PulseIceCandidate("audio", 0, "candidate:value"),
+        )
+
+        assertEquals(PulseSignalingStatus.RELAYED, offer.status)
+        assertEquals(PulseSignalingStatus.RELAYED, candidate.status)
+        assertEquals("offer", socket.emissions[0].second.getString("type"))
+        assertEquals("candidate", socket.emissions[1].second.getString("type"))
+    }
+
+    @Test
+    fun `incoming media is session-bound and duplicate message ids are ignored`() = runBlocking {
+        val listener = RecordingListener()
+        val socket = FakeRailwayCallSocket().apply {
+            onEmission = { event, _, acknowledgement ->
+                if (event == RailwayCallingV2Codec.EVENT_START) {
+                    acknowledgement(arrayOf(response(session(revision = 1))))
+                }
+            }
+        }
+        val client = client(RecordingSocketFactory(socket))
+        client.connect("firebase-token", listener)
+        client.startCall("request-123", "callee", PulseCallMediaType.AUDIO)
+        val signal = JSONObject()
+            .put("protocolVersion", 2)
+            .put("sessionId", "session-123")
+            .put("messageId", "message-123")
+            .put("senderUid", "callee")
+            .put("type", "answer")
+            .put("description", "v=0")
+
+        socket.trigger(RailwayCallingV2Codec.EVENT_MEDIA, signal)
+        socket.trigger(RailwayCallingV2Codec.EVENT_MEDIA, signal)
+        socket.trigger(
+            RailwayCallingV2Codec.EVENT_MEDIA,
+            JSONObject(signal.toString())
+                .put("sessionId", "different-session")
+                .put("messageId", "message-456"),
+        )
+
+        assertEquals(1, listener.mediaSignals.size)
+        assertEquals(
+            PulseSessionDescriptionType.ANSWER,
+            (listener.mediaSignals.single() as PulseRemoteDescriptionSignal).description.type,
+        )
+    }
+
     private fun client(factory: RailwayCallSocketFactory) = RailwayCallSignalingClient(
         socketFactory = factory,
         acknowledgementTimeoutMs = 25,
@@ -189,6 +289,7 @@ class RailwayCallSignalingClientTest {
     private class RecordingListener(expectedUpdates: Int = 0) : PulseCallSignalingListener {
         val connections = mutableListOf<Boolean>()
         val sessions = mutableListOf<PulseServerCallSession>()
+        val mediaSignals = mutableListOf<PulseRemoteMediaSignal>()
         private val updateLatch = CountDownLatch(expectedUpdates)
 
         override fun onSessionUpdated(session: PulseServerCallSession) {
@@ -198,6 +299,10 @@ class RailwayCallSignalingClientTest {
 
         override fun onConnectionChanged(connected: Boolean) {
             connections += connected
+        }
+
+        override fun onMediaSignal(signal: PulseRemoteMediaSignal) {
+            mediaSignals += signal
         }
 
         fun awaitUpdates(): Boolean = updateLatch.await(1, TimeUnit.SECONDS)

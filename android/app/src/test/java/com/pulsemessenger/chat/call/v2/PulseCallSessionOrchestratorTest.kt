@@ -229,6 +229,24 @@ class PulseCallSessionOrchestratorTest {
             return requireNotNull(snapshotResponse)
         }
 
+        override suspend fun fetchIceConfiguration(sessionId: String) =
+            PulseIceConfigurationResponse(
+                ok = false,
+                status = PulseSignalingStatus.SERVICE_UNAVAILABLE,
+            )
+
+        override suspend fun sendDescription(
+            sessionId: String,
+            messageId: String,
+            description: PulseSessionDescription,
+        ) = PulseSignalingResponse(false, PulseSignalingStatus.SERVICE_UNAVAILABLE)
+
+        override suspend fun sendIceCandidate(
+            sessionId: String,
+            messageId: String,
+            candidate: PulseIceCandidate,
+        ) = PulseSignalingResponse(false, PulseSignalingStatus.SERVICE_UNAVAILABLE)
+
         override fun disconnect() {
             disconnected = true
         }

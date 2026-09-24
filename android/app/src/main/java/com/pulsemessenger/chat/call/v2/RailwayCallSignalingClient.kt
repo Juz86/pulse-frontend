@@ -32,6 +32,8 @@ class RailwayCallSignalingClient internal constructor(
     private val generation = AtomicLong(0)
     private val activeSessionId = AtomicReference<String?>(null)
     private val socket = AtomicReference<RailwayCallSocket?>(null)
+    private val mediaDedupeLock = Any()
+    private val receivedMediaMessageIds = LinkedHashSet<String>()
 
     @Volatile
     private var listener: PulseCallSignalingListener? = null
@@ -70,6 +72,10 @@ class RailwayCallSignalingClient internal constructor(
                     newSocket.on(RailwayCallingV2Codec.EVENT_UPDATED) { args ->
                         if (!isCurrent(newSocket, currentGeneration)) return@on
                         decodeSession(args.firstOrNull())?.let(::dispatchSession)
+                    }
+                    newSocket.on(RailwayCallingV2Codec.EVENT_MEDIA) { args ->
+                        if (!isCurrent(newSocket, currentGeneration)) return@on
+                        dispatchMediaSignal(args.firstOrNull())
                     }
                     continuation.invokeOnCancellation {
                         if (isCurrent(newSocket, currentGeneration)) disconnectLocked(notify = true)
@@ -121,6 +127,59 @@ class RailwayCallSignalingClient internal constructor(
             RailwayCallingV2Codec.EVENT_SNAPSHOT,
             RailwayCallingV2Codec.encodeSnapshotRequest(sessionId),
         ).also(::rememberSession)
+    }
+
+    override suspend fun fetchIceConfiguration(sessionId: String): PulseIceConfigurationResponse {
+        require(sessionId.isNotBlank()) { "sessionId is required" }
+        val payload = RailwayCallingV2Codec.encodeSnapshotRequest(sessionId)
+        repeat(acknowledgementAttempts.coerceAtLeast(1)) {
+            val currentSocket = socket.get()
+            if (currentSocket == null || !currentSocket.connected()) {
+                return unavailableIceConfiguration()
+            }
+            val response = withTimeoutOrNull(acknowledgementTimeoutMs) {
+                suspendCancellableCoroutine { continuation ->
+                    currentSocket.emit(RailwayCallingV2Codec.EVENT_ICE_CONFIG, payload) { args ->
+                        if (!continuation.isActive) return@emit
+                        val decoded = runCatching {
+                            RailwayCallingV2Codec.decodeIceConfiguration(
+                                args.firstOrNull() as? JSONObject
+                                    ?: throw IllegalArgumentException("Missing ICE acknowledgement"),
+                            )
+                        }.getOrElse { unavailableIceConfiguration() }
+                        continuation.resume(decoded)
+                    }
+                }
+            }
+            if (response != null) return response
+        }
+        return unavailableIceConfiguration()
+    }
+
+    override suspend fun sendDescription(
+        sessionId: String,
+        messageId: String,
+        description: PulseSessionDescription,
+    ): PulseSignalingResponse {
+        require(sessionId.isNotBlank()) { "sessionId is required" }
+        require(messageId.isNotBlank()) { "messageId is required" }
+        return emitWithAcknowledgement(
+            RailwayCallingV2Codec.EVENT_MEDIA,
+            RailwayCallingV2Codec.encodeDescription(sessionId, messageId, description),
+        )
+    }
+
+    override suspend fun sendIceCandidate(
+        sessionId: String,
+        messageId: String,
+        candidate: PulseIceCandidate,
+    ): PulseSignalingResponse {
+        require(sessionId.isNotBlank()) { "sessionId is required" }
+        require(messageId.isNotBlank()) { "messageId is required" }
+        return emitWithAcknowledgement(
+            RailwayCallingV2Codec.EVENT_MEDIA,
+            RailwayCallingV2Codec.encodeIceCandidate(sessionId, messageId, candidate),
+        )
     }
 
     override fun disconnect() {
@@ -184,6 +243,29 @@ class RailwayCallSignalingClient internal constructor(
         RailwayCallingV2Codec.decodeSession(value as? JSONObject ?: return null)
     }.getOrNull()
 
+    private fun dispatchMediaSignal(value: Any?) {
+        val signal = runCatching {
+            RailwayCallingV2Codec.decodeMediaSignal(value as? JSONObject ?: return)
+        }.getOrNull() ?: return
+        if (activeSessionId.get() != signal.sessionId || !markMediaMessageReceived(signal.messageId)) {
+            return
+        }
+        listener?.onMediaSignal(signal)
+    }
+
+    private fun markMediaMessageReceived(messageId: String): Boolean =
+        synchronized(mediaDedupeLock) {
+            if (!receivedMediaMessageIds.add(messageId)) return@synchronized false
+            if (receivedMediaMessageIds.size > MEDIA_MESSAGE_CACHE_CAPACITY) {
+                val oldest = receivedMediaMessageIds.iterator()
+                if (oldest.hasNext()) {
+                    oldest.next()
+                    oldest.remove()
+                }
+            }
+            true
+        }
+
     private fun isCurrent(expectedSocket: RailwayCallSocket, expectedGeneration: Long): Boolean =
         socket.get() === expectedSocket && generation.get() == expectedGeneration
 
@@ -193,6 +275,9 @@ class RailwayCallSignalingClient internal constructor(
         oldSocket?.off()
         oldSocket?.disconnect()
         activeSessionId.set(null)
+        synchronized(mediaDedupeLock) {
+            receivedMediaMessageIds.clear()
+        }
         if (notify && oldSocket != null) listener?.onConnectionChanged(false)
         listener = null
     }
@@ -202,10 +287,16 @@ class RailwayCallSignalingClient internal constructor(
         status = PulseSignalingStatus.SERVICE_UNAVAILABLE,
     )
 
+    private fun unavailableIceConfiguration() = PulseIceConfigurationResponse(
+        ok = false,
+        status = PulseSignalingStatus.SERVICE_UNAVAILABLE,
+    )
+
     private companion object {
         const val CONNECTION_TIMEOUT_MS = 10_000L
         const val ACKNOWLEDGEMENT_TIMEOUT_MS = 5_000L
         const val ACKNOWLEDGEMENT_ATTEMPTS = 3
+        const val MEDIA_MESSAGE_CACHE_CAPACITY = 512
     }
 }
 

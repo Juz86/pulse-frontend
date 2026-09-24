@@ -26,6 +26,7 @@ enum class PulseSignalingStatus {
     APPLIED,
     DUPLICATE,
     FOUND,
+    RELAYED,
     CONFLICT,
     BUSY,
     NOT_AVAILABLE,
@@ -59,9 +60,37 @@ data class PulseSignalingResponse(
     val session: PulseServerCallSession? = null,
 )
 
+data class PulseIceConfigurationResponse(
+    val ok: Boolean,
+    val status: PulseSignalingStatus,
+    val iceServers: List<PulseIceServer> = emptyList(),
+    val expiresInSeconds: Int = 0,
+)
+
+sealed interface PulseRemoteMediaSignal {
+    val sessionId: String
+    val messageId: String
+    val senderUid: String
+}
+
+data class PulseRemoteDescriptionSignal(
+    override val sessionId: String,
+    override val messageId: String,
+    override val senderUid: String,
+    val description: PulseSessionDescription,
+) : PulseRemoteMediaSignal
+
+data class PulseRemoteIceCandidateSignal(
+    override val sessionId: String,
+    override val messageId: String,
+    override val senderUid: String,
+    val candidate: PulseIceCandidate,
+) : PulseRemoteMediaSignal
+
 interface PulseCallSignalingListener {
     fun onSessionUpdated(session: PulseServerCallSession)
     fun onConnectionChanged(connected: Boolean)
+    fun onMediaSignal(signal: PulseRemoteMediaSignal) = Unit
 }
 
 /**
@@ -86,5 +115,20 @@ interface PulseCallSignalingGateway {
     ): PulseSignalingResponse
 
     suspend fun fetchSnapshot(sessionId: String): PulseSignalingResponse
+
+    suspend fun fetchIceConfiguration(sessionId: String): PulseIceConfigurationResponse
+
+    suspend fun sendDescription(
+        sessionId: String,
+        messageId: String,
+        description: PulseSessionDescription,
+    ): PulseSignalingResponse
+
+    suspend fun sendIceCandidate(
+        sessionId: String,
+        messageId: String,
+        candidate: PulseIceCandidate,
+    ): PulseSignalingResponse
+
     fun disconnect()
 }

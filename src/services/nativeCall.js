@@ -1,5 +1,7 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
+import { auth } from '../firebase';
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
+import { BACKEND_URL } from './socket';
 
 const PulseCall = registerPlugin('PulseCall');
 
@@ -38,10 +40,35 @@ export async function startNativeAudioCall({ calleeUid, displayName }) {
     error.code = 'invalid_call_target';
     throw error;
   }
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    const error = new Error('native_auth_required');
+    error.code = 'native_auth_required';
+    throw error;
+  }
+
+  const idToken = await currentUser.getIdToken();
+  const response = await fetch(`${BACKEND_URL}/api/calling/v2/native-auth/bootstrap`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${idToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: '{}',
+  });
+  const bootstrap = await response.json().catch(() => ({}));
+  if (!response.ok || typeof bootstrap.code !== 'string') {
+    const error = new Error(bootstrap.error || 'native_auth_unavailable');
+    error.code = bootstrap.error || 'native_auth_unavailable';
+    throw error;
+  }
+
   return PulseCall.startAudioCall({
     requestId: window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    callerUid: currentUser.uid,
     calleeUid: String(calleeUid).trim(),
     displayName: String(displayName).trim(),
+    bootstrapCode: bootstrap.code,
   });
 }
 
@@ -58,6 +85,11 @@ export function nativeCallErrorMessage(error) {
       return 'Dit contact kan niet worden gebeld.';
     case 'android_version_unsupported':
       return 'Bellen wordt niet ondersteund op deze Android-versie.';
+    case 'native_auth_required':
+      return 'Meld je opnieuw aan om te kunnen bellen.';
+    case 'native_auth_code_invalid':
+    case 'native_auth_unavailable':
+      return 'De beveiligde oproepverbinding is tijdelijk niet beschikbaar.';
     default:
       return 'De oproep kon niet worden gestart.';
   }

@@ -13,11 +13,23 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.pulsemessenger.chat.call.v2.PulseCallCoordinator;
 import com.pulsemessenger.chat.call.v2.PulseCallMediaType;
 import com.pulsemessenger.chat.call.v2.PulseCallService;
 import com.pulsemessenger.chat.call.v2.PulseCallState;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.UUID;
+import org.json.JSONObject;
 
 @CapacitorPlugin(
     name = "PulseCall",
@@ -25,6 +37,9 @@ import java.util.UUID;
 )
 public class PulseCallPlugin extends Plugin {
     static final String MICROPHONE = "microphone";
+    private static final String NATIVE_AUTH_CLAIM_URL =
+        "https://api.pulse-messenger.com/api/calling/v2/native-auth/claim";
+    private final ExecutorService authExecutor = Executors.newSingleThreadExecutor();
 
     @PluginMethod
     public void getCapabilities(PluginCall call) {
@@ -46,7 +61,7 @@ public class PulseCallPlugin extends Plugin {
             requestPermissionForAlias(MICROPHONE, call, "microphonePermissionCallback");
             return;
         }
-        launchAudioCall(call);
+        authenticateAndLaunch(call);
     }
 
     @PermissionCallback
@@ -59,7 +74,98 @@ public class PulseCallPlugin extends Plugin {
             call.reject("Microphone permission denied", "microphone_permission_denied");
             return;
         }
-        launchAudioCall(call);
+        authenticateAndLaunch(call);
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private void authenticateAndLaunch(PluginCall call) {
+        String callerUid = normalized(call.getString("callerUid"), 128);
+        String bootstrapCode = normalized(call.getString("bootstrapCode"), 128);
+        if (callerUid == null || bootstrapCode == null) {
+            call.reject("Native authentication is required", "native_auth_required");
+            return;
+        }
+
+        authExecutor.execute(() -> {
+            try {
+                String customToken = claimCustomToken(bootstrapCode);
+                FirebaseAuth.getInstance()
+                    .signInWithCustomToken(customToken)
+                    .addOnSuccessListener(result -> {
+                        FirebaseUser user = result.getUser();
+                        if (user == null || !callerUid.equals(user.getUid())) {
+                            FirebaseAuth.getInstance().signOut();
+                            call.reject("Native identity did not match", "native_auth_required");
+                            return;
+                        }
+                        launchAudioCall(call);
+                    })
+                    .addOnFailureListener(error ->
+                        call.reject("Native authentication failed", "native_auth_required", error)
+                    );
+            } catch (NativeAuthException error) {
+                call.reject("Native authentication failed", error.code, error);
+            }
+        });
+    }
+
+    private String claimCustomToken(String bootstrapCode) throws NativeAuthException {
+        HttpURLConnection connection = null;
+        try {
+            byte[] requestBody = new JSONObject()
+                .put("code", bootstrapCode)
+                .toString()
+                .getBytes(StandardCharsets.UTF_8);
+            connection = (HttpURLConnection) new URL(NATIVE_AUTH_CLAIM_URL).openConnection();
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(10_000);
+            connection.setReadTimeout(10_000);
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setFixedLengthStreamingMode(requestBody.length);
+            try (OutputStream output = connection.getOutputStream()) {
+                output.write(requestBody);
+            }
+
+            int status = connection.getResponseCode();
+            InputStream stream = status >= 200 && status < 300
+                ? connection.getInputStream()
+                : connection.getErrorStream();
+            String responseBody = readLimited(stream, 16_384);
+            if (status < 200 || status >= 300) {
+                String code = status == 400 || status == 401
+                    ? "native_auth_code_invalid"
+                    : "native_auth_unavailable";
+                throw new NativeAuthException(code);
+            }
+            String customToken = new JSONObject(responseBody).optString("customToken", "").trim();
+            if (customToken.isEmpty()) throw new NativeAuthException("native_auth_unavailable");
+            return customToken;
+        } catch (NativeAuthException error) {
+            throw error;
+        } catch (Exception error) {
+            throw new NativeAuthException("native_auth_unavailable", error);
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+    }
+
+    private String readLimited(InputStream stream, int limit) throws Exception {
+        if (stream == null) return "";
+        StringBuilder value = new StringBuilder();
+        try (BufferedReader reader = new BufferedReader(
+            new InputStreamReader(stream, StandardCharsets.UTF_8)
+        )) {
+            char[] buffer = new char[1024];
+            int read;
+            while ((read = reader.read(buffer)) != -1) {
+                if (value.length() + read > limit) {
+                    throw new NativeAuthException("native_auth_unavailable");
+                }
+                value.append(buffer, 0, read);
+            }
+        }
+        return value.toString();
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -115,5 +221,25 @@ public class PulseCallPlugin extends Plugin {
         String normalized = value.trim();
         if (normalized.isEmpty() || normalized.length() > maxLength) return null;
         return normalized;
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        authExecutor.shutdownNow();
+        super.handleOnDestroy();
+    }
+
+    private static final class NativeAuthException extends Exception {
+        final String code;
+
+        NativeAuthException(String code) {
+            super(code);
+            this.code = code;
+        }
+
+        NativeAuthException(String code, Throwable cause) {
+            super(code, cause);
+            this.code = code;
+        }
     }
 }

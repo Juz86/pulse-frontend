@@ -58,6 +58,18 @@
             android:foregroundServiceType="phoneCall|microphone"
             android:stopWithTask="false"
             tools:targetApi="26" />
+
+        <service
+            android:name="com.capacitorjs.plugins.pushnotifications.MessagingService"
+            tools:node="remove" />
+
+        <service
+            android:name=".call.v2.PulseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
     <!-- Permissions -->

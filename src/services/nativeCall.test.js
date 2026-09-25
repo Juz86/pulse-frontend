@@ -1,12 +1,16 @@
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
 import {
+  clearNativeCallIdentity,
   getNativeCallCapabilities,
   nativeCallErrorMessage,
   startNativeAudioCall,
+  syncNativeCallIdentity,
 } from './nativeCall';
 
 const mockGetCapabilities = jest.fn();
 const mockStartAudioCall = jest.fn();
+const mockSyncIdentity = jest.fn();
+const mockClearIdentity = jest.fn();
 const mockGetPlatform = jest.fn(() => 'android');
 const mockGetIdToken = jest.fn();
 
@@ -30,6 +34,8 @@ jest.mock('@capacitor/core', () => ({
   registerPlugin: () => ({
     getCapabilities: (...args) => mockGetCapabilities(...args),
     startAudioCall: (...args) => mockStartAudioCall(...args),
+    syncIdentity: (...args) => mockSyncIdentity(...args),
+    clearIdentity: (...args) => mockClearIdentity(...args),
   }),
 }));
 
@@ -85,6 +91,27 @@ describe('nativeCall', () => {
     await expect(startNativeAudioCall({ calleeUid: 'callee', displayName: 'Contact' }))
       .rejects.toMatchObject({ code: 'native_auth_unavailable' });
     expect(mockStartAudioCall).not.toHaveBeenCalled();
+  });
+
+  test('synchronizes web identity without requesting media permission', async () => {
+    mockSyncIdentity.mockResolvedValueOnce({ ok: true, uid: 'caller-uid' });
+
+    await expect(syncNativeCallIdentity({
+      user: { uid: 'caller-uid', getIdToken: mockGetIdToken },
+      idToken: 'already-fetched-token',
+    })).resolves.toEqual({ ok: true, uid: 'caller-uid' });
+
+    expect(mockGetIdToken).not.toHaveBeenCalled();
+    expect(mockSyncIdentity).toHaveBeenCalledWith({
+      callerUid: 'caller-uid',
+      bootstrapCode: 'a'.repeat(43),
+    });
+  });
+
+  test('clears the native identity on logout', async () => {
+    mockClearIdentity.mockResolvedValueOnce({ ok: true });
+    await expect(clearNativeCallIdentity()).resolves.toEqual({ ok: true });
+    expect(mockClearIdentity).toHaveBeenCalledTimes(1);
   });
 
   test('maps permission errors to a useful message', () => {

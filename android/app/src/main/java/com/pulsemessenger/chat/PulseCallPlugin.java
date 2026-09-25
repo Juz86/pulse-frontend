@@ -52,6 +52,24 @@ public class PulseCallPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void syncIdentity(PluginCall call) {
+        authenticateNativeIdentity(call, user -> {
+            JSObject result = new JSObject();
+            result.put("ok", true);
+            result.put("uid", user.getUid());
+            call.resolve(result);
+        });
+    }
+
+    @PluginMethod
+    public void clearIdentity(PluginCall call) {
+        FirebaseAuth.getInstance().signOut();
+        JSObject result = new JSObject();
+        result.put("ok", true);
+        call.resolve(result);
+    }
+
+    @PluginMethod
     public void startAudioCall(PluginCall call) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             call.reject("Android version is not supported", "android_version_unsupported");
@@ -79,13 +97,19 @@ public class PulseCallPlugin extends Plugin {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private void authenticateAndLaunch(PluginCall call) {
+        authenticateNativeIdentity(call, user -> launchAudioCall(call));
+    }
+
+    private void authenticateNativeIdentity(
+        PluginCall call,
+        NativeIdentityCallback onAuthenticated
+    ) {
         String callerUid = normalized(call.getString("callerUid"), 128);
         String bootstrapCode = normalized(call.getString("bootstrapCode"), 128);
         if (callerUid == null || bootstrapCode == null) {
             call.reject("Native authentication is required", "native_auth_required");
             return;
         }
-
         authExecutor.execute(() -> {
             try {
                 String customToken = claimCustomToken(bootstrapCode);
@@ -98,7 +122,7 @@ public class PulseCallPlugin extends Plugin {
                             call.reject("Native identity did not match", "native_auth_required");
                             return;
                         }
-                        launchAudioCall(call);
+                        onAuthenticated.onAuthenticated(user);
                     })
                     .addOnFailureListener(error ->
                         call.reject("Native authentication failed", "native_auth_required", error)
@@ -227,6 +251,10 @@ public class PulseCallPlugin extends Plugin {
     protected void handleOnDestroy() {
         authExecutor.shutdownNow();
         super.handleOnDestroy();
+    }
+
+    private interface NativeIdentityCallback {
+        void onAuthenticated(FirebaseUser user);
     }
 
     private static final class NativeAuthException extends Exception {

@@ -29,25 +29,13 @@ export async function getNativeCallCapabilities() {
   }
 }
 
-export async function startNativeAudioCall({ calleeUid, displayName }) {
-  if (!isAndroidNative()) {
-    const error = new Error('native_call_unavailable');
-    error.code = 'native_call_unavailable';
-    throw error;
-  }
-  if (!calleeUid || !String(calleeUid).trim() || !displayName || !String(displayName).trim()) {
-    const error = new Error('invalid_call_target');
-    error.code = 'invalid_call_target';
-    throw error;
-  }
-  const currentUser = auth.currentUser;
-  if (!currentUser) {
+async function requestNativeAuthBootstrap(user, suppliedIdToken) {
+  if (!user?.uid) {
     const error = new Error('native_auth_required');
     error.code = 'native_auth_required';
     throw error;
   }
-
-  const idToken = await currentUser.getIdToken();
+  const idToken = suppliedIdToken || await user.getIdToken();
   const response = await fetch(`${BACKEND_URL}/api/calling/v2/native-auth/bootstrap`, {
     method: 'POST',
     headers: {
@@ -62,13 +50,43 @@ export async function startNativeAudioCall({ calleeUid, displayName }) {
     error.code = bootstrap.error || 'native_auth_unavailable';
     throw error;
   }
+  return bootstrap.code;
+}
+
+export async function syncNativeCallIdentity({ user = auth.currentUser, idToken } = {}) {
+  if (!isAndroidNative()) return { ok: false, skipped: true };
+  const bootstrapCode = await requestNativeAuthBootstrap(user, idToken);
+  return PulseCall.syncIdentity({
+    callerUid: user.uid,
+    bootstrapCode,
+  });
+}
+
+export async function clearNativeCallIdentity() {
+  if (!isAndroidNative()) return { ok: false, skipped: true };
+  return PulseCall.clearIdentity();
+}
+
+export async function startNativeAudioCall({ calleeUid, displayName }) {
+  if (!isAndroidNative()) {
+    const error = new Error('native_call_unavailable');
+    error.code = 'native_call_unavailable';
+    throw error;
+  }
+  if (!calleeUid || !String(calleeUid).trim() || !displayName || !String(displayName).trim()) {
+    const error = new Error('invalid_call_target');
+    error.code = 'invalid_call_target';
+    throw error;
+  }
+  const currentUser = auth.currentUser;
+  const bootstrapCode = await requestNativeAuthBootstrap(currentUser);
 
   return PulseCall.startAudioCall({
     requestId: window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     callerUid: currentUser.uid,
     calleeUid: String(calleeUid).trim(),
     displayName: String(displayName).trim(),
-    bootstrapCode: bootstrap.code,
+    bootstrapCode,
   });
 }
 

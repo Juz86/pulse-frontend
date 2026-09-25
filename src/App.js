@@ -39,6 +39,10 @@ import {
 import { subscribeToFeatureFlags } from './services/featureFlags';
 import { FeatureFlagsProvider } from './context/FeatureFlagsContext';
 import { markNativeWebBundleHealthy, stageNativeWebUpdate } from './services/nativeWebUpdate';
+import {
+  clearNativeCallIdentity,
+  syncNativeCallIdentity,
+} from './services/nativeCall';
 
 const ChatScreen         = lazy(() => import('./screens/ChatScreen'));
 const ResetPasswordScreen = lazy(() => import('./screens/ResetPasswordScreen'));
@@ -546,6 +550,11 @@ function MainApp() {
             }
           }
           const idToken = await firebaseUser.getIdToken();
+          try {
+            await syncNativeCallIdentity({ user: firebaseUser, idToken });
+          } catch (error) {
+            console.warn('[Pulse] Native oproepidentiteit synchroniseren mislukt:', error?.message || error);
+          }
           const socket = connectSocket(firebaseUser.uid, idToken);
           const authHeader = { 'Authorization': `Bearer ${idToken}` };
 
@@ -725,6 +734,9 @@ function MainApp() {
             pushCleanupRef.current = null;
           }
           disconnectSocket();
+          clearNativeCallIdentity().catch((error) => {
+            console.warn('[Pulse] Native oproepidentiteit wissen mislukt:', error?.message || error);
+          });
         }
       });
     });

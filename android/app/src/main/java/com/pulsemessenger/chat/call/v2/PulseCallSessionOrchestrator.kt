@@ -3,6 +3,7 @@ package com.pulsemessenger.chat.call.v2
 import android.telecom.DisconnectCause
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -32,6 +33,10 @@ class PulseCallSessionOrchestrator(
     private val identity = AtomicReference<PulseCallIdentity?>(null)
     private val serverSession = AtomicReference<PulseServerCallSession?>(null)
     private val terminating = AtomicBoolean(false)
+    private val handledIceRestartSequence = AtomicLong(0)
+    private val networkRecoveryPending = AtomicBoolean(false)
+    private val networkRecoveryAcknowledged = AtomicBoolean(false)
+    private val networkRecoveryInFlight = AtomicBoolean(false)
     private val mediaSessions = mediaEngineFactory?.let { factory ->
         PulseCallMediaSessionController(scope, signaling, factory, this)
     }
@@ -80,6 +85,7 @@ class PulseCallSessionOrchestrator(
         identity.set(localIdentity)
         serverSession.set(session)
         terminating.set(false)
+        resetNetworkRecovery(session.iceRestartSequence)
         coordinator.onSignalingSnapshot(session, localIdentity.uid)
         startTelecom(request)
         PulseCallLaunchResult.STARTED
@@ -125,6 +131,7 @@ class PulseCallSessionOrchestrator(
         identity.set(localIdentity)
         serverSession.set(session)
         terminating.set(false)
+        resetNetworkRecovery(session.iceRestartSequence)
         coordinator.onSignalingSnapshot(session, localIdentity.uid)
         startTelecom(request)
         PulseCallLaunchResult.STARTED
@@ -155,7 +162,12 @@ class PulseCallSessionOrchestrator(
         signaling.disconnect()
         identity.set(null)
         serverSession.set(null)
+        resetNetworkRecovery()
         terminating.set(false)
+    }
+
+    fun onNetworkChanged(sessionId: String) {
+        requestNetworkRecovery(sessionId, attemptImmediately = true)
     }
 
     override fun onSessionUpdated(session: PulseServerCallSession) {
@@ -166,6 +178,13 @@ class PulseCallSessionOrchestrator(
         val result = coordinator.onSignalingSnapshot(session, localIdentity.uid)
         if (result !in setOf(PulseCoordinatorResult.APPLIED, PulseCoordinatorResult.IDEMPOTENT)) return
 
+        val shouldRestartIce = localIdentity.uid == session.callerUid &&
+            claimIceRestartSequence(session.iceRestartSequence)
+        if (shouldRestartIce) {
+            networkRecoveryPending.set(true)
+            networkRecoveryAcknowledged.set(true)
+        }
+
         when (coordinator.state.value.state) {
             PulseCallState.CONNECTING, PulseCallState.ACTIVE -> scope.launch(
                 start = CoroutineStart.UNDISPATCHED,
@@ -175,6 +194,9 @@ class PulseCallSessionOrchestrator(
                     return@launch
                 }
                 startMedia(session, localIdentity.uid)
+                if (shouldRestartIce && mediaSessions?.restartIce(session.sessionId) != true) {
+                    onMediaFailure(session.sessionId, MEDIA_ERROR)
+                }
             }
             PulseCallState.ENDING -> scope.launch {
                 if (!terminating.get() &&
@@ -189,7 +211,15 @@ class PulseCallSessionOrchestrator(
         }
     }
 
-    override fun onConnectionChanged(connected: Boolean) = Unit
+    override fun onConnectionChanged(connected: Boolean) {
+        val session = serverSession.get() ?: return
+        if (session.state !in RECOVERABLE_SERVER_STATES || terminating.get()) return
+        if (!connected) {
+            requestNetworkRecovery(session.sessionId, attemptImmediately = false)
+        } else if (networkRecoveryPending.get() && !networkRecoveryAcknowledged.get()) {
+            scope.launch { flushNetworkRecovery(session.sessionId) }
+        }
+    }
 
     override fun onMediaSignal(signal: PulseRemoteMediaSignal) {
         val session = serverSession.get() ?: return
@@ -235,12 +265,13 @@ class PulseCallSessionOrchestrator(
                 PulseCoordinatorResult.IDEMPOTENT,
             )
         ) return
+        networkRecoveryPending.set(false)
+        networkRecoveryAcknowledged.set(false)
         scope.launch { sendCommand(PulseSignalingCommand.MEDIA_CONNECTED) }
     }
 
     override fun onMediaReconnecting(sessionId: String) {
-        if (serverSession.get()?.sessionId != sessionId || terminating.get()) return
-        scope.launch { sendCommand(PulseSignalingCommand.NETWORK_LOST) }
+        requestNetworkRecovery(sessionId, attemptImmediately = true)
     }
 
     override fun onMediaFailure(sessionId: String, reason: String) {
@@ -307,11 +338,15 @@ class PulseCallSessionOrchestrator(
         signaling.disconnect()
         identity.set(null)
         serverSession.set(null)
+        resetNetworkRecovery()
         terminating.set(false)
     }
 
-    private suspend fun sendCommand(command: PulseSignalingCommand, reason: String? = null) {
-        val session = serverSession.get() ?: return
+    private suspend fun sendCommand(
+        command: PulseSignalingCommand,
+        reason: String? = null,
+    ): PulseSignalingResponse? {
+        val session = serverSession.get() ?: return null
         val eventId = UUID.randomUUID().toString()
         var expectedRevision = session.revision
         repeat(2) {
@@ -323,9 +358,56 @@ class PulseCallSessionOrchestrator(
                 reason = reason,
             )
             response.session?.let(::onSessionUpdated)
-            if (response.status != PulseSignalingStatus.CONFLICT) return
-            expectedRevision = response.session?.revision ?: return
+            if (response.status != PulseSignalingStatus.CONFLICT) return response
+            expectedRevision = response.session?.revision ?: return response
         }
+        return null
+    }
+
+    private fun requestNetworkRecovery(sessionId: String, attemptImmediately: Boolean) {
+        val session = serverSession.get() ?: return
+        if (session.sessionId != sessionId ||
+            session.state !in RECOVERABLE_SERVER_STATES ||
+            terminating.get()
+        ) return
+        if (networkRecoveryPending.compareAndSet(false, true)) {
+            networkRecoveryAcknowledged.set(false)
+        }
+        if (attemptImmediately && !networkRecoveryAcknowledged.get()) {
+            scope.launch { flushNetworkRecovery(sessionId) }
+        }
+    }
+
+    private suspend fun flushNetworkRecovery(sessionId: String) {
+        if (!networkRecoveryPending.get() ||
+            networkRecoveryAcknowledged.get() ||
+            !networkRecoveryInFlight.compareAndSet(false, true)
+        ) return
+        try {
+            val current = serverSession.get()
+            if (current?.sessionId != sessionId || current.state !in RECOVERABLE_SERVER_STATES) return
+            val response = sendCommand(PulseSignalingCommand.NETWORK_LOST)
+            if (response?.status in setOf(PulseSignalingStatus.APPLIED, PulseSignalingStatus.DUPLICATE)) {
+                networkRecoveryAcknowledged.set(true)
+            }
+        } finally {
+            networkRecoveryInFlight.set(false)
+        }
+    }
+
+    private fun claimIceRestartSequence(sequence: Long): Boolean {
+        while (true) {
+            val handled = handledIceRestartSequence.get()
+            if (sequence <= handled) return false
+            if (handledIceRestartSequence.compareAndSet(handled, sequence)) return true
+        }
+    }
+
+    private fun resetNetworkRecovery(iceRestartSequence: Long = 0) {
+        handledIceRestartSequence.set(iceRestartSequence)
+        networkRecoveryPending.set(false)
+        networkRecoveryAcknowledged.set(false)
+        networkRecoveryInFlight.set(false)
     }
 
     private fun isBusy(): Boolean =
@@ -340,5 +422,9 @@ class PulseCallSessionOrchestrator(
 
     private companion object {
         const val MEDIA_ERROR = "media_error"
+        val RECOVERABLE_SERVER_STATES = setOf(
+            PulseServerCallState.CONNECTING,
+            PulseServerCallState.ACTIVE,
+        )
     }
 }

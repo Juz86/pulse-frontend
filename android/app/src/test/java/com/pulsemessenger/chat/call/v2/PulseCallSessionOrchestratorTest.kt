@@ -214,6 +214,54 @@ class PulseCallSessionOrchestratorTest {
     }
 
     @Test
+    fun `default-network change requests one server-coordinated ICE restart`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            startResponse = response(session(PulseServerCallState.PREPARING, revision = 1))
+            commandResponses += response(session(PulseServerCallState.RINGING, revision = 2))
+            commandResponses += response(session(PulseServerCallState.ACTIVE, revision = 4))
+            commandResponses += response(
+                session(
+                    state = PulseServerCallState.CONNECTING,
+                    revision = 5,
+                    iceRestartSequence = 1,
+                ),
+            )
+        }
+        val engine = FakeMediaEngine()
+        val subject = subject(
+            coordinator = coordinator,
+            signaling = signaling,
+            telecom = FakeTelecom(),
+            identityUid = "caller",
+            mediaEngine = engine,
+        )
+        subject.startOutgoing(
+            requestId = "request-123",
+            calleeUid = "callee",
+            displayName = "Test contact",
+            mediaType = PulseCallMediaType.AUDIO,
+        )
+        signaling.listener?.onSessionUpdated(
+            session(PulseServerCallState.CONNECTING, revision = 3),
+        )
+        engine.listener?.onMediaStateChanged(PulseMediaState.CONNECTED)
+
+        subject.onNetworkChanged("session-123")
+        subject.onNetworkChanged("session-123")
+        signaling.listener?.onSessionUpdated(
+            session(
+                state = PulseServerCallState.CONNECTING,
+                revision = 6,
+                iceRestartSequence = 1,
+            ),
+        )
+
+        assertEquals(1, engine.restartCount)
+        assertEquals(1, signaling.operations.count { it == "command:NETWORK_LOST" })
+    }
+
+    @Test
     fun `missing Firebase identity fails before contacting Railway`() = runBlocking {
         val coordinator = PulseCallCoordinator.createForTests()
         val signaling = FakeSignaling()
@@ -272,6 +320,7 @@ class PulseCallSessionOrchestratorTest {
         state: PulseServerCallState,
         revision: Long,
         terminalByUid: String? = null,
+        iceRestartSequence: Long = 0,
     ) = PulseServerCallSession(
         protocolVersion = PULSE_CALL_PROTOCOL_VERSION,
         sessionId = "session-123",
@@ -284,6 +333,7 @@ class PulseCallSessionOrchestratorTest {
         mediaReadyUids = emptySet(),
         terminalReason = if (state == PulseServerCallState.ENDED) "hangup" else null,
         terminalByUid = terminalByUid,
+        iceRestartSequence = iceRestartSequence,
     )
 
     private class FakeSignaling : PulseCallSignalingGateway {
@@ -365,6 +415,7 @@ class PulseCallSessionOrchestratorTest {
         var listener: PulseCallMediaListener? = null
         var startCount = 0
         var closeCount = 0
+        var restartCount = 0
         val remoteDescriptions = mutableListOf<PulseSessionDescription>()
         val remoteCandidates = mutableListOf<PulseIceCandidate>()
 
@@ -384,6 +435,7 @@ class PulseCallSessionOrchestratorTest {
         }
 
         override suspend fun restartIce() {
+            restartCount += 1
             mutableState.value = PulseMediaState.RECONNECTING
         }
 

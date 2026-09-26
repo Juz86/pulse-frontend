@@ -158,6 +158,7 @@ object RailwayCallingV2Codec {
             },
             terminalReason = payload.optionalString("terminalReason"),
             terminalByUid = payload.optionalString("terminalByUid"),
+            iceRestartSequence = payload.optLong("iceRestartSequence", 0).coerceAtLeast(0),
         )
     }
 

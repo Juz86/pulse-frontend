@@ -52,6 +52,7 @@ data class PulseServerCallSession(
     val mediaReadyUids: Set<String>,
     val terminalReason: String?,
     val terminalByUid: String?,
+    val iceRestartSequence: Long = 0,
 )
 
 data class PulseSignalingResponse(

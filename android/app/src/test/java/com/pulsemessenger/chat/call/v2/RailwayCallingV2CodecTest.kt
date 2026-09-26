@@ -53,6 +53,7 @@ class RailwayCallingV2CodecTest {
                         "state": "CONNECTING",
                         "revision": 3,
                         "mediaReadyUids": ["caller"],
+                        "iceRestartSequence": 2,
                         "terminalReason": null,
                         "terminalByUid": null
                     }
@@ -65,7 +66,27 @@ class RailwayCallingV2CodecTest {
         assertEquals(PulseServerCallState.CONNECTING, response.session?.state)
         assertEquals(PulseCallMediaType.AUDIO, response.session?.mediaType)
         assertEquals(setOf("caller"), response.session?.mediaReadyUids)
+        assertEquals(2L, response.session?.iceRestartSequence)
         assertNull(response.session?.terminalReason)
+    }
+
+    @Test
+    fun `older sessions without an ICE restart sequence remain compatible`() {
+        val payload = JSONObject(
+            """{
+                "protocolVersion": 2,
+                "sessionId": "session-123",
+                "requestId": "request-123",
+                "callerUid": "caller",
+                "calleeUid": "callee",
+                "mediaType": "audio",
+                "state": "CONNECTING",
+                "revision": 3,
+                "mediaReadyUids": []
+            }""".trimIndent(),
+        )
+
+        assertEquals(0L, RailwayCallingV2Codec.decodeSession(payload).iceRestartSequence)
     }
 
     @Test

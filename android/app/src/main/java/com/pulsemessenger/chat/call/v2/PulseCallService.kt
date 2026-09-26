@@ -37,6 +37,8 @@ class PulseCallService : Service() {
     private var stateJob: Job? = null
     private var foregroundCallId: String? = null
     private var foregroundDisplayName: String? = null
+    private lateinit var networkMonitor: PulseNetworkMonitor
+    private var networkMonitorStarted = false
 
     override fun onCreate() {
         super.onCreate()
@@ -52,6 +54,11 @@ class PulseCallService : Service() {
             mediaEngineFactory = PulseCallMediaEngineFactory { WebRtcAudioEngine(this) },
             beforeMediaStart = ::promoteToMicrophoneForeground,
         )
+        networkMonitor = AndroidPulseNetworkMonitor(this) {
+            serviceScope.launch {
+                coordinator.state.value.sessionId?.let(orchestrator::onNetworkChanged)
+            }
+        }
         stateJob = serviceScope.launch {
             coordinator.state.collectLatest(::onCallStateChanged)
         }
@@ -72,6 +79,7 @@ class PulseCallService : Service() {
     override fun onDestroy() {
         launchJob?.cancel()
         stateJob?.cancel()
+        stopNetworkMonitoring()
         if (::orchestrator.isInitialized) {
             serviceScope.launch {
                 orchestrator.shutdown()
@@ -190,6 +198,16 @@ class PulseCallService : Service() {
 
     private fun onCallStateChanged(snapshot: PulseCallSnapshot) {
         if (foregroundCallId == null) return
+        if (snapshot.state in setOf(PulseCallState.CONNECTING, PulseCallState.ACTIVE)) {
+            startNetworkMonitoring()
+        } else if (snapshot.state in setOf(
+                PulseCallState.IDLE,
+                PulseCallState.ENDING,
+                PulseCallState.ENDED,
+            )
+        ) {
+            stopNetworkMonitoring()
+        }
         if (snapshot.state == PulseCallState.ENDED) {
             stopCallForeground()
             return
@@ -228,6 +246,17 @@ class PulseCallService : Service() {
 
     private fun stopIfIdle() {
         if (foregroundCallId == null) stopSelf()
+    }
+
+    private fun startNetworkMonitoring() {
+        if (networkMonitorStarted || !::networkMonitor.isInitialized) return
+        networkMonitorStarted = networkMonitor.start()
+    }
+
+    private fun stopNetworkMonitoring() {
+        if (!networkMonitorStarted || !::networkMonitor.isInitialized) return
+        networkMonitor.stop()
+        networkMonitorStarted = false
     }
 
     private fun buildNotification(displayName: String, status: String): Notification {

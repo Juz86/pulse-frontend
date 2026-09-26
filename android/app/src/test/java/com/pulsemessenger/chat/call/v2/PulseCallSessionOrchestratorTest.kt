@@ -49,6 +49,50 @@ class PulseCallSessionOrchestratorTest {
     }
 
     @Test
+    fun `repeated outgoing launch creates only one Railway and Telecom session`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            startResponse = response(session(PulseServerCallState.PREPARING, revision = 1))
+            commandResponses += response(session(PulseServerCallState.RINGING, revision = 2))
+        }
+        val telecom = FakeTelecom()
+        val subject = subject(coordinator, signaling, telecom, identityUid = "caller")
+
+        val first = subject.startOutgoing(
+            requestId = "request-123",
+            calleeUid = "callee",
+            displayName = "Test contact",
+            mediaType = PulseCallMediaType.AUDIO,
+        )
+        val repeated = subject.startOutgoing(
+            requestId = "request-123",
+            calleeUid = "callee",
+            displayName = "Test contact",
+            mediaType = PulseCallMediaType.AUDIO,
+        )
+
+        assertEquals(PulseCallLaunchResult.STARTED, first)
+        assertEquals(PulseCallLaunchResult.BUSY, repeated)
+        assertEquals(1, signaling.operations.count { it == "start" })
+        assertEquals("session-123", telecom.addedRequest?.sessionId)
+    }
+
+    @Test
+    fun `replayed incoming wake creates only one snapshot and Telecom call`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+        }
+        val telecom = FakeTelecom()
+        val subject = subject(coordinator, signaling, telecom)
+
+        assertEquals(PulseCallLaunchResult.STARTED, subject.registerIncoming("session-123", "Test contact"))
+        assertEquals(PulseCallLaunchResult.BUSY, subject.registerIncoming("session-123", "Test contact"))
+        assertEquals(listOf("snapshot"), signaling.operations)
+        assertEquals("session-123", telecom.addedRequest?.sessionId)
+    }
+
+    @Test
     fun `incoming answer sends accept before activating Telecom`() = runBlocking {
         val coordinator = PulseCallCoordinator.createForTests()
         val signaling = FakeSignaling().apply {
@@ -259,6 +303,115 @@ class PulseCallSessionOrchestratorTest {
 
         assertEquals(1, engine.restartCount)
         assertEquals(1, signaling.operations.count { it == "command:NETWORK_LOST" })
+    }
+
+    @Test
+    fun `socket reconnect flushes one pending server-coordinated ICE restart`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            startResponse = response(session(PulseServerCallState.PREPARING, revision = 1))
+            commandResponses += response(session(PulseServerCallState.RINGING, revision = 2))
+            commandResponses += response(session(PulseServerCallState.ACTIVE, revision = 4))
+            commandResponses += response(
+                session(
+                    state = PulseServerCallState.CONNECTING,
+                    revision = 5,
+                    iceRestartSequence = 1,
+                ),
+            )
+        }
+        val engine = FakeMediaEngine()
+        val subject = subject(
+            coordinator = coordinator,
+            signaling = signaling,
+            telecom = FakeTelecom(),
+            identityUid = "caller",
+            mediaEngine = engine,
+        )
+        subject.startOutgoing(
+            requestId = "request-123",
+            calleeUid = "callee",
+            displayName = "Test contact",
+            mediaType = PulseCallMediaType.AUDIO,
+        )
+        signaling.listener?.onSessionUpdated(
+            session(PulseServerCallState.CONNECTING, revision = 3),
+        )
+        engine.listener?.onMediaStateChanged(PulseMediaState.CONNECTED)
+
+        signaling.listener?.onConnectionChanged(false)
+        signaling.listener?.onConnectionChanged(true)
+        signaling.listener?.onConnectionChanged(true)
+
+        assertEquals(1, engine.restartCount)
+        assertEquals(1, signaling.operations.count { it == "command:NETWORK_LOST" })
+    }
+
+    @Test
+    fun `callee accepts caller ICE restart without creating a competing restart`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+            commandResponses += response(session(PulseServerCallState.CONNECTING, revision = 3))
+        }
+        val engine = FakeMediaEngine()
+        val telecom = FakeTelecom()
+        val subject = subject(
+            coordinator = coordinator,
+            signaling = signaling,
+            telecom = telecom,
+            identityUid = "callee",
+            mediaEngine = engine,
+        )
+        subject.registerIncoming("session-123", "Test contact")
+        telecom.callbacks?.onAnswer("session-123", 0)
+
+        signaling.listener?.onSessionUpdated(
+            session(
+                state = PulseServerCallState.CONNECTING,
+                revision = 4,
+                iceRestartSequence = 1,
+            ),
+        )
+
+        assertEquals(0, engine.restartCount)
+        assertEquals(0, signaling.operations.count { it == "command:NETWORK_LOST" })
+        assertEquals(1, engine.startCount)
+    }
+
+    @Test
+    fun `media failure ends call and releases engine exactly once`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+            commandResponses += response(session(PulseServerCallState.CONNECTING, revision = 3))
+            commandResponses += response(
+                session(
+                    state = PulseServerCallState.ENDED,
+                    revision = 4,
+                    terminalByUid = "callee",
+                ),
+            )
+        }
+        val engine = FakeMediaEngine()
+        val telecom = FakeTelecom()
+        val subject = subject(
+            coordinator = coordinator,
+            signaling = signaling,
+            telecom = telecom,
+            identityUid = "callee",
+            mediaEngine = engine,
+        )
+        subject.registerIncoming("session-123", "Test contact")
+        telecom.callbacks?.onAnswer("session-123", 0)
+
+        engine.listener?.onMediaFailure("ice_failed")
+        engine.listener?.onMediaFailure("ice_failed_again")
+
+        assertEquals(PulseCallState.ENDED, coordinator.state.value.state)
+        assertEquals(1, engine.closeCount)
+        assertEquals(1, signaling.operations.count { it == "command:FAIL" })
+        assertEquals(listOf("session-123"), telecom.disconnectedSessions)
     }
 
     @Test

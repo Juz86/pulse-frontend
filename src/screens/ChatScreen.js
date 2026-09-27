@@ -803,7 +803,6 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               serviceTransportReady={serviceTransportReady}
               conversationMuted={mutedConversationIds.includes(activeConv?.id)}
               messageSelectionMode={messageSelectionMode}
-              nativeAudioCallingAvailable={nativeCallCapabilities.audio}
               callLaunchPending={callLaunchPending}
               onStartAudioCall={handleStartAudioCall}
             />

@@ -1,6 +1,6 @@
 // src/components/ChatHeader.js
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Logout, MoreHoriz, Phone, User, Users, XIcon } from '../components/Icons';
+import React, { useMemo } from 'react';
+import { Phone } from '../components/Icons';
 import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
@@ -27,15 +27,11 @@ const ChatHeader = React.memo(function ChatHeader({
   messageSelectionMode = false,
   onShowStarredMsgs,
   onLeaveGroup,
-  nativeAudioCallingAvailable = false,
   callLaunchPending = false,
   onStartAudioCall,
   onClearChat,
   onDeleteChat,
 }) {
-  const [moreActionsOpen, setMoreActionsOpen] = useState(false);
-  const moreActionsRef = useRef(null);
-  const moreActionsHistoryPushedRef = useRef(false);
   const otherUid  = getOtherUid(activeConv);
   const isOnline  = otherUid && onlineUsers.has(otherUid);
   const isActive  = isOnline && !inactiveUsers.has(otherUid);
@@ -51,33 +47,6 @@ const ChatHeader = React.memo(function ChatHeader({
     transport: E2EE_TRANSPORT,
     serviceTransportReady,
   });
-
-  useEffect(() => {
-    if (!moreActionsOpen) return;
-    const onKeyDown = (event) => {
-      if (event.key !== 'Escape') return;
-      if (moreActionsHistoryPushedRef.current) {
-        moreActionsHistoryPushedRef.current = false;
-        window.history.back();
-        return;
-      }
-      setMoreActionsOpen(false);
-    };
-    const onPopState = () => {
-      moreActionsHistoryPushedRef.current = false;
-      setMoreActionsOpen(false);
-    };
-    window.addEventListener('keydown', onKeyDown);
-    window.addEventListener('popstate', onPopState);
-    if (!moreActionsHistoryPushedRef.current) {
-      window.history.pushState({ pulseSheet: 'chat-header-actions' }, '');
-      moreActionsHistoryPushedRef.current = true;
-    }
-    return () => {
-      window.removeEventListener('keydown', onKeyDown);
-      window.removeEventListener('popstate', onPopState);
-    };
-  }, [moreActionsOpen]);
 
   function openContactProfile() {
     if (!activeConv.isGroup) {
@@ -99,15 +68,6 @@ const ChatHeader = React.memo(function ChatHeader({
       event.preventDefault();
       openHeaderDetails();
     }
-  }
-
-  function closeMoreActions() {
-    if (moreActionsHistoryPushedRef.current) {
-      moreActionsHistoryPushedRef.current = false;
-      window.history.back();
-      return;
-    }
-    setMoreActionsOpen(false);
   }
 
   return (
@@ -142,8 +102,8 @@ const ChatHeader = React.memo(function ChatHeader({
           </div>
         </div>
 
-        <div className="chat-header-actions" ref={moreActionsRef}>
-          {!activeConv.isGroup && nativeAudioCallingAvailable && (
+        <div className="chat-header-actions">
+          {!activeConv.isGroup && (
             <button
               type="button"
               className="chat-header-action-btn chat-header-menu-btn"
@@ -154,80 +114,6 @@ const ChatHeader = React.memo(function ChatHeader({
             >
               <Phone size={20} aria-hidden="true" />
             </button>
-          )}
-          <button
-            type="button"
-            className="chat-header-action-btn chat-header-menu-btn"
-            aria-label="Meer acties"
-            aria-haspopup="menu"
-            aria-expanded={moreActionsOpen}
-            title="Meer acties"
-            onClick={() => {
-              if (activeConv.isGroup) {
-                onShowGroupInfo?.();
-                return;
-              }
-              setMoreActionsOpen((prev) => !prev);
-            }}
-          >
-            <MoreHoriz size={18} aria-hidden="true" />
-          </button>
-          {moreActionsOpen && (
-            <div
-              className="pulse-sheet-backdrop pulse-sheet-backdrop--header-actions"
-              onClick={closeMoreActions}
-            >
-              <div
-                className="pulse-sheet pulse-sheet--header-actions"
-                role="menu"
-                aria-label="Meer acties in gesprek"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <div className="pulse-sheet-handle" aria-hidden="true" />
-                <div className="pulse-sheet-header pulse-sheet-header--header-actions">
-                  <div className="pulse-sheet-title pulse-sheet-title--header-actions">Gespreksopties</div>
-                  <button
-                    type="button"
-                    className="pulse-sheet-close pulse-sheet-close--header-actions"
-                    aria-label="Sluiten"
-                    onClick={closeMoreActions}
-                  >
-                    <XIcon size={18} aria-hidden="true" />
-                  </button>
-                </div>
-                <div className="pulse-sheet-list pulse-sheet-list--header-actions">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="chat-header-menu-item"
-                    onClick={() => {
-                      closeMoreActions();
-                      activeConv.isGroup ? onShowGroupInfo?.() : openContactProfile();
-                    }}
-                  >
-                    {activeConv.isGroup ? <Users size={16} aria-hidden="true" /> : <User size={16} aria-hidden="true" />}
-                    <span>{activeConv.isGroup ? 'Groepsinfo' : 'Profiel'}</span>
-                  </button>
-                  {activeConv.isGroup ? (
-                    <>
-                      <div className="chat-header-menu-divider" />
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="chat-header-menu-item danger"
-                        onClick={() => {
-                          closeMoreActions();
-                          onLeaveGroup?.();
-                        }}
-                      >
-                        <Logout size={16} aria-hidden="true" />
-                        <span>Groep verlaten</span>
-                      </button>
-                    </>
-                  ) : null}
-                </div>
-              </div>
-            </div>
           )}
         </div>
       </div>

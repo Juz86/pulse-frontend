@@ -3883,6 +3883,36 @@ font-family: 'Inter', sans-serif;
 .sidebar-contact-row--openable {
   cursor:pointer;
 }
+.calls-contact-list .sidebar-contact-row {
+  min-width: 0;
+}
+.calls-contact-call-btn {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.24);
+  transition: background .2s ease, transform .2s ease, opacity .2s ease;
+}
+.calls-contact-call-btn:hover:not(:disabled) {
+  background: #16a34a;
+  transform: translateY(-1px);
+}
+.calls-contact-call-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.calls-contact-call-btn:disabled {
+  cursor: not-allowed;
+  opacity: .42;
+  box-shadow: none;
+}
 
 .conv-delete-btn {
   flex-shrink:0; width:44px; height:44px; border-radius:11px;

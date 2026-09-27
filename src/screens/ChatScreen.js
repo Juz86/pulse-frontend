@@ -580,9 +580,11 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     return contactsByUid.get(getOtherUid(conv))?.photoURL || null;
   }, [contactsByUid, getOtherUid]);
 
-  async function handleStartAudioCall() {
-    if (!activeConv || activeConv.isGroup || callLaunchPending) return;
-    const calleeUid = getOtherUid(activeConv);
+  async function handleStartAudioCall(contact = null) {
+    if (callLaunchPending) return;
+    const selectedContact = contact?.uid ? contact : null;
+    if (!selectedContact && (!activeConv || activeConv.isGroup)) return;
+    const calleeUid = selectedContact?.uid || getOtherUid(activeConv);
     if (!calleeUid || blockedContacts.some((contact) => contact.uid === calleeUid) || parentBlockedUids.includes(calleeUid)) {
       showErrToast('Dit contact kan niet worden gebeld.');
       return;
@@ -592,7 +594,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     try {
       await startNativeAudioCall({
         calleeUid,
-        displayName: getConvName(activeConv),
+        displayName: selectedContact ? getContactDisplayName(selectedContact) : getConvName(activeConv),
       });
     } catch (error) {
       showErrToast(nativeCallErrorMessage(error));
@@ -632,6 +634,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         setShowParentDashboard={setShowParentDashboard}
         onParentActivitiesViewed={onParentActivitiesViewed}
         setLabelMenuConvId={() => {}}
+        nativeAudioCallingAvailable={nativeCallCapabilities.audio}
+        callLaunchPending={callLaunchPending}
+        onStartAudioCall={handleStartAudioCall}
         showNewChat={showNewChat}
         setShowNewChat={setShowNewChat}
         searchEmail={searchEmail}

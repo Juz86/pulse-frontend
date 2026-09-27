@@ -1,7 +1,7 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound } from '../components/Icons';
+import { Phone, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import UserAvatar from '../components/UserAvatar';
@@ -274,6 +274,9 @@ export default function ChatSidebar({
   getOtherUid,
   getConvPhoto,
   getContactDisplayName,
+  nativeAudioCallingAvailable = false,
+  callLaunchPending = false,
+  onStartAudioCall,
 }) {
   const sidebarRef = useRef(null);
   const sidebarHeaderRef = useRef(null);
@@ -2365,6 +2368,7 @@ export default function ChatSidebar({
   const requestsFooterActive = requestsSheetVisible;
   const moreFooterActive = moreActionsSheetVisible || addContactSheetVisible || newChatSheetVisible || newGroupSheetVisible;
   const chatsFooterActive = activeTab === 'chats' && !profileFooterActive && !parentFooterActive && !moreFooterActive;
+  const callsFooterActive = activeTab === 'calls' && !profileFooterActive && !parentFooterActive && !moreFooterActive;
   const chatUnreadCount = Object.values(unreadCounts || {}).reduce((total, count) => total + (Number(count) || 0), 0);
   const footerEmbeddedInCluster = !!footerClusterMode
     && footerClusterMode !== 'more'
@@ -2444,6 +2448,37 @@ export default function ChatSidebar({
           {chatUnreadCount > 0 && <span className="sidebar-footer-tab-count" aria-hidden="true">{chatUnreadCount > 99 ? '99+' : chatUnreadCount}</span>}
         </span>
         <span className="sidebar-footer-tab-label">Chats</span>
+      </button>
+
+      <button
+        type="button"
+        className={`sidebar-footer-tab${callsFooterActive ? ' active' : ''}`}
+        aria-label="Bellen"
+        aria-pressed={callsFooterActive}
+        onClick={() => {
+          closeMoreActionsSheet();
+          closeAddContactSheet();
+          closeNewChatSheet();
+          closeShareContactPage();
+          closeNewGroupSheet();
+          closeRequestsSheet();
+          closeContactActionsSheet();
+          closeConvActionsSheet();
+          setProfileSheetClosing(false);
+          setShowProfile?.(false);
+          setProfileTab?.('overview');
+          closeProfileOverviewSheet();
+          closeParentPortalSheet();
+          setSearchQuery('');
+          setActiveTab('calls');
+          if (contextPanelVisible) onShowChatsFromContextPanel?.();
+        }}
+        title="Bellen"
+      >
+        <span className="sidebar-footer-tab-icon" aria-hidden="true">
+          <Phone size={26} aria-hidden="true" />
+        </span>
+        <span className="sidebar-footer-tab-label">Bellen</span>
       </button>
 
       {!isParent && (
@@ -2995,6 +3030,53 @@ export default function ChatSidebar({
                 </div>
               )}
 
+            </div>
+          )}
+
+          {/* Bellen tab */}
+          {activeTab === 'calls' && (
+            <div className="conv-list contacts-conv-list calls-contact-list" aria-label="Contacten om te bellen">
+              {filteredContacts.map((contact) => {
+                const contactName = getContactDisplayName(contact);
+                const blocked = parentBlockedUids?.includes(contact.uid)
+                  || (blockedContacts || []).some((blockedContact) => blockedContact.uid === contact.uid);
+                const callDisabled = !nativeAudioCallingAvailable || callLaunchPending || blocked;
+                return (
+                  <div key={contact.uid} className="sidebar-contact-card sidebar-contact-card--call-log">
+                    <div className="sidebar-contact-row sidebar-contact-row--call-log">
+                      <div className="avatar-wrap" aria-hidden="true">
+                        <UserAvatar photoURL={contact.photoURL} displayName={contact.displayName} decorative />
+                        {onlineUsers.has(contact.uid) && <span className={`online-dot${inactiveUsers.has(contact.uid) ? ' inactive' : ''}`} aria-hidden="true" />}
+                      </div>
+                      <div className="conv-info call-log-picker-copy">
+                        <div className="conv-name">{contactName}</div>
+                        <div className="conv-preview">{contact.email}</div>
+                      </div>
+                      <button
+                        type="button"
+                        className="calls-contact-call-btn"
+                        aria-label={`Bel ${contactName}`}
+                        title={nativeAudioCallingAvailable ? `Bel ${contactName}` : 'Bellen is alleen beschikbaar in de Pulse-app'}
+                        disabled={callDisabled}
+                        onClick={() => onStartAudioCall?.(contact)}
+                      >
+                        <Phone size={18} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              {contacts.length === 0 && (
+                <div className="empty-convs">
+                  <p>Nog geen contacten.</p>
+                  <p>Voeg iemand toe om te kunnen bellen.</p>
+                </div>
+              )}
+              {contacts.length > 0 && normalizedSearch && filteredContacts.length === 0 && (
+                <div className="empty-convs" role="status" aria-live="polite">
+                  <p>Geen contacten gevonden.</p>
+                </div>
+              )}
             </div>
           )}
         </>

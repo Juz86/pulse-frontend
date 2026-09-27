@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useRef, useState } from 'react';
-import { Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, Message, Logout } from '../components/Icons';
+import { Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, Message, Phone, Logout } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
 import AvatarBuilder from '../components/AvatarBuilder';
@@ -98,6 +98,8 @@ export default function ChatModals({
   onOpenConversationStarred,
   conversationMuted = false,
   messageSelectionMode = false,
+  callLaunchPending = false,
+  onStartAudioCall,
   newChatSheetInSidebar = false,
 
   // group info
@@ -950,6 +952,17 @@ export default function ChatModals({
                 <button type="button" className="contact-profile-quick-card" onClick={() => openChatFromProfile(targetContact)}>
                   <span className="contact-profile-quick-icon"><Message size={24} aria-hidden="true" /></span>
                   <span>Chat</span>
+                </button>
+                <button
+                  type="button"
+                  className="contact-profile-quick-card"
+                  aria-label={`Bel ${name}`}
+                  title={`Bel ${name}`}
+                  disabled={callLaunchPending || isBlocked || parentBlockedUids?.includes(uid)}
+                  onClick={() => onStartAudioCall?.(targetContact)}
+                >
+                  <span className="contact-profile-quick-icon"><Phone size={24} aria-hidden="true" /></span>
+                  <span>Bel</span>
                 </button>
               </div>
 

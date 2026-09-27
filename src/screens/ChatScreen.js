@@ -984,6 +984,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         }}
         conversationMuted={mutedConversationIds.includes(activeConv?.id)}
         messageSelectionMode={messageSelectionMode}
+        callLaunchPending={callLaunchPending}
+        onStartAudioCall={handleStartAudioCall}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         newChatSheetInSidebar
         showGroupInfo={showGroupInfo} setShowGroupInfo={setShowGroupInfo}

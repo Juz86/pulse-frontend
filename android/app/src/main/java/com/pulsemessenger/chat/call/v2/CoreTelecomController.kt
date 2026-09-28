@@ -32,6 +32,11 @@ class CoreTelecomController(context: Context) : PulseTelecomController {
         request: PulseCallRequest,
         callbacks: PulseTelecomCallbacks,
     ) = setupMutex.withLock {
+        PulseCallDiagnostics.event(
+            "TELECOM_ADD_CALL",
+            request.sessionId,
+            direction = request.direction,
+        )
         check(activeCall.get() == null) { "A Telecom call is already active" }
         val attributes = CallAttributesCompat(
             displayName = request.displayName,
@@ -52,12 +57,33 @@ class CoreTelecomController(context: Context) : PulseTelecomController {
         try {
             callsManager.addCall(
                 attributes,
-                onAnswer = { callType -> callbacks.onAnswer(request.sessionId, callType) },
-                onDisconnect = { cause -> callbacks.onDisconnect(request.sessionId, cause) },
-                onSetActive = { callbacks.onSetActive(request.sessionId) },
-                onSetInactive = { callbacks.onSetInactive(request.sessionId) },
+                onAnswer = { callType ->
+                    PulseCallDiagnostics.event("TELECOM_ON_ANSWER", request.sessionId)
+                    callbacks.onAnswer(request.sessionId, callType)
+                },
+                onDisconnect = { cause ->
+                    PulseCallDiagnostics.event("TELECOM_ON_DISCONNECT", request.sessionId)
+                    callbacks.onDisconnect(request.sessionId, cause)
+                },
+                onSetActive = {
+                    PulseCallDiagnostics.event("TELECOM_ON_SET_ACTIVE", request.sessionId)
+                    callbacks.onSetActive(request.sessionId)
+                },
+                onSetInactive = {
+                    PulseCallDiagnostics.event("TELECOM_ON_SET_INACTIVE", request.sessionId)
+                    callbacks.onSetInactive(request.sessionId)
+                },
             ) {
                 activeCall.set(ActiveCall(request.sessionId, this))
+                PulseCallDiagnostics.event(
+                    if (request.direction == PulseCallDirection.INCOMING) {
+                        "TELECOM_INCOMING_REGISTERED"
+                    } else {
+                        "TELECOM_OUTGOING_REGISTERED"
+                    },
+                    request.sessionId,
+                    direction = request.direction,
+                )
                 callbacks.onRegistered(request.sessionId)
             }
         } finally {

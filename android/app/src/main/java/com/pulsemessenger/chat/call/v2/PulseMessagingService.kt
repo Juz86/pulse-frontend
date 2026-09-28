@@ -15,16 +15,28 @@ class PulseMessagingService : MessagingService() {
             super.onMessageReceived(remoteMessage)
             return
         }
+        PulseCallDiagnostics.event("FCM_RECEIVED", incomingCall.sessionId)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            PulseCallDiagnostics.event(
+                "FCM_REJECTED",
+                incomingCall.sessionId,
+                status = "UNSUPPORTED_ANDROID",
+            )
             Log.w(TAG, "Incoming native calls require Android 8 or newer")
             return
         }
         if (FirebaseAuth.getInstance().currentUser == null) {
+            PulseCallDiagnostics.event(
+                "AUTHENTICATION_FAILED",
+                incomingCall.sessionId,
+                status = "NATIVE_IDENTITY_MISSING",
+            )
             Log.w(TAG, "Incoming call wake-up ignored without a native identity")
             return
         }
 
         runCatching {
+            PulseCallDiagnostics.event("CALL_SERVICE_START_REQUESTED", incomingCall.sessionId)
             ContextCompat.startForegroundService(
                 this,
                 PulseCallService.incomingIntent(
@@ -33,7 +45,13 @@ class PulseMessagingService : MessagingService() {
                     displayName = getString(R.string.pulse_call_unknown_caller),
                 ),
             )
+            PulseCallDiagnostics.event("CALL_SERVICE_START_SUCCEEDED", incomingCall.sessionId)
         }.onFailure { error ->
+            PulseCallDiagnostics.event(
+                "CALL_SERVICE_START_FAILED",
+                incomingCall.sessionId,
+                status = error.javaClass.simpleName,
+            )
             Log.e(TAG, "Incoming call foreground service could not start", error)
         }
     }

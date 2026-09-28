@@ -65,6 +65,12 @@ class PulseCallService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_REGISTER_INCOMING) {
+            PulseCallDiagnostics.event(
+                "INCOMING_INTENT_RECEIVED",
+                intent.getStringExtra(EXTRA_SESSION_ID),
+            )
+        }
         when (intent?.action) {
             ACTION_START_OUTGOING -> startOutgoing(intent)
             ACTION_REGISTER_INCOMING -> registerIncoming(intent)
@@ -110,17 +116,38 @@ class PulseCallService : Service() {
     }
 
     private fun registerIncoming(intent: Intent) {
-        val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: return stopIfIdle()
-        val displayName = intent.requiredString(EXTRA_DISPLAY_NAME) ?: return stopIfIdle()
+        val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: run {
+            PulseCallDiagnostics.event("INCOMING_INTENT_REJECTED", status = "MISSING_SESSION_ID")
+            return stopIfIdle()
+        }
+        val displayName = intent.requiredString(EXTRA_DISPLAY_NAME) ?: run {
+            PulseCallDiagnostics.event(
+                "INCOMING_INTENT_REJECTED",
+                sessionId,
+                status = "MISSING_DISPLAY_NAME",
+            )
+            return stopIfIdle()
+        }
 
         if (!startPreparingForeground(sessionId, displayName)) return
+        PulseCallDiagnostics.event("INCOMING_REGISTRATION_STARTED", sessionId)
         launchJob = serviceScope.launch {
             val result = runCatching {
                 orchestrator.registerIncoming(sessionId, displayName)
             }.getOrElse { error ->
+                PulseCallDiagnostics.event(
+                    "INCOMING_REGISTRATION_FAILED",
+                    sessionId,
+                    status = error.javaClass.simpleName,
+                )
                 Log.e(TAG, "Incoming call registration failed", error)
                 PulseCallLaunchResult.SIGNALING_UNAVAILABLE
             }
+            PulseCallDiagnostics.event(
+                "INCOMING_REGISTRATION_RESULT",
+                sessionId,
+                status = result.name,
+            )
             handleLaunchResult(sessionId, result)
         }
     }
@@ -183,6 +210,7 @@ class PulseCallService : Service() {
             buildNotification(displayName, getString(R.string.pulse_call_notification_preparing)),
             serviceType,
         )
+        PulseCallDiagnostics.event("CALL_FOREGROUND_STARTED", callId)
         return true
     }
 

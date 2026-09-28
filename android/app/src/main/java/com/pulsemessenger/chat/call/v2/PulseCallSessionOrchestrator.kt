@@ -68,6 +68,12 @@ class PulseCallSessionOrchestrator(
             session.requestId != requestId ||
             session.mediaType != mediaType
         ) {
+            PulseCallDiagnostics.event(
+                "START_RESPONSE_REJECTED",
+                session.sessionId,
+                status = "SESSION_MISMATCH",
+                state = session.state.name,
+            )
             signaling.disconnect()
             return@withLock PulseCallLaunchResult.REJECTED
         }
@@ -79,6 +85,7 @@ class PulseCallSessionOrchestrator(
             mediaType = mediaType,
         )
         if (coordinator.begin(request) != PulseCoordinatorResult.APPLIED) {
+            PulseCallDiagnostics.event("COORDINATOR_REJECTED", session.sessionId, status = "BUSY")
             signaling.disconnect()
             return@withLock PulseCallLaunchResult.BUSY
         }
@@ -95,17 +102,36 @@ class PulseCallSessionOrchestrator(
         sessionId: String,
         displayName: String,
     ): PulseCallLaunchResult = launchMutex.withLock {
-        if (isBusy()) return@withLock PulseCallLaunchResult.BUSY
+        PulseCallDiagnostics.event("REGISTER_INCOMING_STARTED", sessionId)
+        if (isBusy()) {
+            PulseCallDiagnostics.event("REGISTER_INCOMING_REJECTED", sessionId, status = "BUSY")
+            return@withLock PulseCallLaunchResult.BUSY
+        }
         if (sessionId.isBlank() || displayName.isBlank()) {
+            PulseCallDiagnostics.event("REGISTER_INCOMING_REJECTED", sessionId, status = "INVALID_REQUEST")
             return@withLock PulseCallLaunchResult.REJECTED
         }
+        PulseCallDiagnostics.event("AUTHENTICATION_REQUESTED", sessionId)
         val localIdentity = identityProvider.getIdentity()
-            ?: return@withLock PulseCallLaunchResult.AUTH_REQUIRED
+        if (localIdentity == null) {
+            PulseCallDiagnostics.event("AUTHENTICATION_FAILED", sessionId, status = "AUTH_REQUIRED")
+            return@withLock PulseCallLaunchResult.AUTH_REQUIRED
+        }
+        PulseCallDiagnostics.event("AUTHENTICATION_SUCCEEDED", sessionId)
         if (!connectSignaling(localIdentity)) {
+            PulseCallDiagnostics.event("SIGNALING_CONNECTION_FAILED", sessionId)
             return@withLock PulseCallLaunchResult.SIGNALING_UNAVAILABLE
         }
+        PulseCallDiagnostics.event("SIGNALING_CONNECTED", sessionId)
+        PulseCallDiagnostics.event("SNAPSHOT_REQUESTED", sessionId)
         val response = signaling.fetchSnapshot(sessionId)
         val session = response.session
+        PulseCallDiagnostics.event(
+            "SNAPSHOT_RECEIVED",
+            sessionId,
+            status = response.status.name,
+            state = session?.state?.name,
+        )
         if (!response.ok || session == null) {
             signaling.disconnect()
             return@withLock response.toLaunchResult()
@@ -114,6 +140,12 @@ class PulseCallSessionOrchestrator(
             session.sessionId != sessionId ||
             session.state != PulseServerCallState.RINGING
         ) {
+            PulseCallDiagnostics.event(
+                "SNAPSHOT_REJECTED",
+                sessionId,
+                status = "SESSION_MISMATCH",
+                state = session.state.name,
+            )
             signaling.disconnect()
             return@withLock PulseCallLaunchResult.REJECTED
         }
@@ -125,6 +157,7 @@ class PulseCallSessionOrchestrator(
             mediaType = session.mediaType,
         )
         if (coordinator.begin(request) != PulseCoordinatorResult.APPLIED) {
+            PulseCallDiagnostics.event("COORDINATOR_REJECTED", sessionId, status = "BUSY")
             signaling.disconnect()
             return@withLock PulseCallLaunchResult.BUSY
         }
@@ -231,6 +264,11 @@ class PulseCallSessionOrchestrator(
     }
 
     override fun onRegistered(sessionId: String) {
+        PulseCallDiagnostics.event(
+            "TELECOM_REGISTERED",
+            sessionId,
+            direction = coordinator.state.value.direction,
+        )
         if (coordinator.onTelecomRegistered(sessionId) != PulseCoordinatorResult.APPLIED) return
         if (coordinator.state.value.direction == PulseCallDirection.OUTGOING) {
             scope.launch { sendCommand(PulseSignalingCommand.INVITE_READY) }
@@ -238,6 +276,7 @@ class PulseCallSessionOrchestrator(
     }
 
     override suspend fun onAnswer(sessionId: String, callType: Int) {
+        PulseCallDiagnostics.event("ANSWER", sessionId)
         if (coordinator.onLocalAnswer(sessionId) == PulseCoordinatorResult.APPLIED) {
             scope.launch { sendCommand(PulseSignalingCommand.ACCEPT) }
         }
@@ -252,6 +291,7 @@ class PulseCallSessionOrchestrator(
     }
 
     override suspend fun onSetActive(sessionId: String) {
+        PulseCallDiagnostics.event("TELECOM_ACTIVE", sessionId)
         coordinator.onTelecomSetActive(sessionId)
     }
 
@@ -282,9 +322,26 @@ class PulseCallSessionOrchestrator(
         runCatching { signaling.connect(localIdentity.authToken, this) }.isSuccess
 
     private fun startTelecom(request: PulseCallRequest) {
+        PulseCallDiagnostics.event(
+            if (request.direction == PulseCallDirection.INCOMING) {
+                "TELECOM_INCOMING_REGISTRATION_REQUESTED"
+            } else {
+                "TELECOM_OUTGOING_REGISTRATION_REQUESTED"
+            },
+            request.sessionId,
+            direction = request.direction,
+        )
         telecomJob = scope.launch {
             try {
                 telecom.addCall(request, this@PulseCallSessionOrchestrator)
+            } catch (error: Throwable) {
+                PulseCallDiagnostics.event(
+                    "TELECOM_REGISTRATION_FAILED",
+                    request.sessionId,
+                    status = error.javaClass.simpleName,
+                    direction = request.direction,
+                )
+                throw error
             } finally {
                 if (!terminating.get() &&
                     coordinator.state.value.sessionId == request.sessionId &&
@@ -347,6 +404,7 @@ class PulseCallSessionOrchestrator(
         reason: String? = null,
     ): PulseSignalingResponse? {
         val session = serverSession.get() ?: return null
+        PulseCallDiagnostics.event("${command.name}_REQUESTED", session.sessionId)
         val eventId = UUID.randomUUID().toString()
         var expectedRevision = session.revision
         repeat(2) {
@@ -358,7 +416,15 @@ class PulseCallSessionOrchestrator(
                 reason = reason,
             )
             response.session?.let(::onSessionUpdated)
-            if (response.status != PulseSignalingStatus.CONFLICT) return response
+            if (response.status != PulseSignalingStatus.CONFLICT) {
+                PulseCallDiagnostics.event(
+                    command.name,
+                    session.sessionId,
+                    status = response.status.name,
+                    state = response.session?.state?.name,
+                )
+                return response
+            }
             expectedRevision = response.session?.revision ?: return response
         }
         return null

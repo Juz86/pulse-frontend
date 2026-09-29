@@ -19,6 +19,7 @@ import com.pulsemessenger.chat.call.v2.PulseCallCoordinator;
 import com.pulsemessenger.chat.call.v2.PulseCallMediaType;
 import com.pulsemessenger.chat.call.v2.PulseCallService;
 import com.pulsemessenger.chat.call.v2.PulseCallState;
+import com.pulsemessenger.chat.call.v2.PulsePushTokenRegistrar;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -122,6 +123,7 @@ public class PulseCallPlugin extends Plugin {
                             call.reject("Native identity did not match", "native_auth_required");
                             return;
                         }
+                        PulsePushTokenRegistrar.INSTANCE.registerCurrentToken(getContext());
                         onAuthenticated.onAuthenticated(user);
                     })
                     .addOnFailureListener(error ->

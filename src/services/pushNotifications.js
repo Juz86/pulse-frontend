@@ -1,4 +1,5 @@
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
+import { getOrCreatePushInstallationId } from './pushInstallation';
 
 function logInfo(...args) {
   console.info('[Pulse][Push]', ...args);
@@ -21,6 +22,7 @@ async function postToken({ backendUrl, authHeader, uid, token, transport }) {
       body: JSON.stringify({
         uid,
         token,
+        installationId: getOrCreatePushInstallationId(),
         transport,
         platform: isNativePulseEnvironment() ? 'android' : 'web',
       }),
@@ -74,7 +76,7 @@ async function registerWebPush({ messaging, vapidKey, backendUrl, authHeader, ui
   return { token, transport: 'fcm_web' };
 }
 
-async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversation }) {
+async function registerNativePush({ onOpenConversation }) {
   const [{ Capacitor }, { PushNotifications }] = await Promise.all([
     import('@capacitor/core'),
     import('@capacitor/push-notifications'),
@@ -102,10 +104,9 @@ async function registerNativePush({ backendUrl, authHeader, uid, onOpenConversat
     listeners.push(handle);
   };
 
-  await addListener('registration', async ({ value }) => {
+  await addListener('registration', ({ value }) => {
     if (!value) return;
-    logInfo('Native push token ontvangen.');
-    await postToken({ backendUrl, authHeader, uid, token: value, transport: 'fcm_native' });
+    logInfo('Native push token ontvangen; native registrar synchroniseert het apparaat.');
   });
 
   await addListener('registrationError', (error) => {
@@ -185,12 +186,7 @@ export async function setupPulsePushNotifications({
 
   if (isNativePulseEnvironment()) {
     try {
-      const nativeSetup = await registerNativePush({
-        backendUrl,
-        authHeader,
-        uid,
-        onOpenConversation,
-      });
+      const nativeSetup = await registerNativePush({ onOpenConversation });
       return async () => {
         await nativeSetup?.cleanup?.();
       };

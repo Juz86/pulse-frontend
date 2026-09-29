@@ -3,6 +3,7 @@ import { auth, messaging, getToken } from '../firebase';
 import { VAPID_KEY } from '../config/runtimeConfig';
 import { BACKEND_URL } from '../services/socket';
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
+import { getOrCreatePushInstallationId } from '../services/pushInstallation';
 
 const cardStyle = {
   border: '1px solid rgba(255,255,255,.12)',
@@ -54,6 +55,7 @@ export default function PushDiagnosticsScreen() {
         body: JSON.stringify({
           uid,
           token,
+          installationId: getOrCreatePushInstallationId(),
           transport,
           platform: isNativePulseEnvironment() ? 'android' : 'web',
         }),

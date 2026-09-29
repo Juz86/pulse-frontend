@@ -9,6 +9,11 @@ import com.google.firebase.messaging.RemoteMessage
 import com.pulsemessenger.chat.R
 
 class PulseMessagingService : MessagingService() {
+    override fun onNewToken(token: String) {
+        super.onNewToken(token)
+        PulsePushTokenRegistrar.registerToken(applicationContext, token)
+    }
+
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val incomingCall = PulseIncomingCallPushParser.parse(remoteMessage.data)
         if (incomingCall == null) {

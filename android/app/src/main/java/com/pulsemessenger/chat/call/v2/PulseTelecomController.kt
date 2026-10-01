@@ -13,6 +13,7 @@ interface PulseTelecomCallbacks {
 interface PulseTelecomController {
     fun registerApp()
     suspend fun addCall(request: PulseCallRequest, callbacks: PulseTelecomCallbacks)
+    suspend fun answer(sessionId: String, callType: Int): Boolean
     suspend fun setActive(sessionId: String): Boolean
     suspend fun disconnect(sessionId: String, cause: DisconnectCause): Boolean
 }

@@ -1,6 +1,7 @@
 package com.pulsemessenger.chat.call.v2
 
 import android.telecom.DisconnectCause
+import androidx.core.telecom.CallAttributesCompat
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -170,6 +171,31 @@ class PulseCallSessionOrchestrator(
         PulseCallLaunchResult.STARTED
     }
 
+    fun requestAnswer(sessionId: String) {
+        scope.launch {
+            val snapshot = coordinator.state.value
+            if (snapshot.sessionId != sessionId ||
+                snapshot.direction != PulseCallDirection.INCOMING ||
+                snapshot.state != PulseCallState.RINGING ||
+                !snapshot.telecomRegistered
+            ) {
+                PulseCallDiagnostics.event("NOTIFICATION_ANSWER_REJECTED", sessionId, status = "INVALID_STATE")
+                return@launch
+            }
+            val callType = if (snapshot.mediaType == PulseCallMediaType.VIDEO) {
+                CallAttributesCompat.CALL_TYPE_VIDEO_CALL
+            } else {
+                CallAttributesCompat.CALL_TYPE_AUDIO_CALL
+            }
+            PulseCallDiagnostics.event("NOTIFICATION_ANSWER_REQUESTED", sessionId)
+            if (!telecom.answer(sessionId, callType)) {
+                PulseCallDiagnostics.event("NOTIFICATION_ANSWER_FAILED", sessionId, status = "TELECOM_REJECTED")
+                return@launch
+            }
+            acceptLocally(sessionId)
+        }
+    }
+
     fun requestDisconnect(sessionId: String) {
         scope.launch {
             if (!telecom.disconnect(sessionId, DisconnectCause(DisconnectCause.LOCAL))) {
@@ -276,6 +302,10 @@ class PulseCallSessionOrchestrator(
     }
 
     override suspend fun onAnswer(sessionId: String, callType: Int) {
+        acceptLocally(sessionId)
+    }
+
+    private fun acceptLocally(sessionId: String) {
         PulseCallDiagnostics.event("ANSWER", sessionId)
         if (coordinator.onLocalAnswer(sessionId) == PulseCoordinatorResult.APPLIED) {
             scope.launch { sendCommand(PulseSignalingCommand.ACCEPT) }

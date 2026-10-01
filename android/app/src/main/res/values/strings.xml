@@ -5,6 +5,8 @@
     <string name="package_name">com.pulsemessenger.chat</string>
     <string name="custom_url_scheme">com.pulsemessenger.chat</string>
     <string name="pulse_call_channel_name">Actieve oproepen</string>
+    <string name="pulse_incoming_call_channel_name">Inkomende oproepen</string>
+    <string name="pulse_incoming_call_channel_description">Meldingen voor inkomende Pulse-oproepen</string>
     <string name="pulse_call_notification_title">Pulse-oproep</string>
     <string name="pulse_call_unknown_caller">Pulse-gebruiker</string>
     <string name="pulse_call_notification_preparing">Oproep voorbereiden…</string>

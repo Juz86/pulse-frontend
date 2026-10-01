@@ -91,6 +91,11 @@ class CoreTelecomController(context: Context) : PulseTelecomController {
         }
     }
 
+    override suspend fun answer(sessionId: String, callType: Int): Boolean {
+        val call = activeCall.get()?.takeIf { it.sessionId == sessionId } ?: return false
+        return call.scope.answer(callType) is CallControlResult.Success
+    }
+
     override suspend fun setActive(sessionId: String): Boolean {
         val call = activeCall.get()?.takeIf { it.sessionId == sessionId } ?: return false
         return call.scope.setActive() is CallControlResult.Success

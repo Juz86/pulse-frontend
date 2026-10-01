@@ -114,6 +114,27 @@ class PulseCallSessionOrchestratorTest {
     }
 
     @Test
+    fun `notification answer asks Telecom to answer and sends accept once`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+            commandResponses += response(session(PulseServerCallState.CONNECTING, revision = 3))
+        }
+        val telecom = FakeTelecom()
+        val subject = subject(coordinator, signaling, telecom)
+
+        assertEquals(
+            PulseCallLaunchResult.STARTED,
+            subject.registerIncoming("session-123", "Test contact"),
+        )
+        subject.requestAnswer("session-123")
+
+        assertEquals(listOf("session-123"), telecom.answeredSessions)
+        assertEquals(listOf("snapshot", "command:ACCEPT"), signaling.operations)
+        assertEquals(PulseCallState.CONNECTING, coordinator.state.value.state)
+    }
+
+    @Test
     fun `remote end disconnects Telecom and completes local cleanup`() = runBlocking {
         val coordinator = PulseCallCoordinator.createForTests()
         val signaling = FakeSignaling().apply {
@@ -603,6 +624,7 @@ class PulseCallSessionOrchestratorTest {
     private class FakeTelecom : PulseTelecomController {
         var addedRequest: PulseCallRequest? = null
         var callbacks: PulseTelecomCallbacks? = null
+        val answeredSessions = mutableListOf<String>()
         val activatedSessions = mutableListOf<String>()
         val disconnectedSessions = mutableListOf<String>()
         private val lifetime = CompletableDeferred<Unit>()
@@ -617,6 +639,11 @@ class PulseCallSessionOrchestratorTest {
             this.callbacks = callbacks
             callbacks.onRegistered(request.sessionId)
             lifetime.await()
+        }
+
+        override suspend fun answer(sessionId: String, callType: Int): Boolean {
+            answeredSessions += sessionId
+            return true
         }
 
         override suspend fun setActive(sessionId: String): Boolean {

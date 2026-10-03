@@ -308,8 +308,32 @@ class PulseCallSessionOrchestrator(
     private fun acceptLocally(sessionId: String) {
         PulseCallDiagnostics.event("ANSWER", sessionId)
         if (coordinator.onLocalAnswer(sessionId) == PulseCoordinatorResult.APPLIED) {
-            scope.launch { sendCommand(PulseSignalingCommand.ACCEPT) }
+            scope.launch { confirmAccept(sessionId) }
         }
+    }
+
+    private suspend fun confirmAccept(sessionId: String) {
+        val response = sendCommand(PulseSignalingCommand.ACCEPT)
+        val confirmed = response?.status in setOf(
+            PulseSignalingStatus.APPLIED,
+            PulseSignalingStatus.DUPLICATE,
+        ) && response?.session?.state in setOf(
+            PulseServerCallState.CONNECTING,
+            PulseServerCallState.ACTIVE,
+        )
+        if (confirmed) return
+
+        val snapshot = coordinator.state.value
+        if (snapshot.sessionId != sessionId ||
+            snapshot.state in setOf(PulseCallState.ENDING, PulseCallState.ENDED)
+        ) return
+        PulseCallDiagnostics.event(
+            "ACCEPT_CONFIRMATION_FAILED",
+            sessionId,
+            status = response?.status?.name ?: "NO_RESPONSE",
+            state = response?.session?.state?.name,
+        )
+        failMedia(sessionId, SIGNALING_ERROR)
     }
 
     override suspend fun onDisconnect(sessionId: String, cause: DisconnectCause) {
@@ -518,6 +542,7 @@ class PulseCallSessionOrchestrator(
 
     private companion object {
         const val MEDIA_ERROR = "media_error"
+        const val SIGNALING_ERROR = "signaling_error"
         val RECOVERABLE_SERVER_STATES = setOf(
             PulseServerCallState.CONNECTING,
             PulseServerCallState.ACTIVE,

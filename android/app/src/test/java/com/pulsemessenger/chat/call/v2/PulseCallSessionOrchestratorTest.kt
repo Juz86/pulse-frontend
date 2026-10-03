@@ -135,6 +135,45 @@ class PulseCallSessionOrchestratorTest {
     }
 
     @Test
+    fun `failed accept ends Telecom and cleans up instead of remaining connecting`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+            commandResponses += PulseSignalingResponse(
+                ok = false,
+                status = PulseSignalingStatus.SERVICE_UNAVAILABLE,
+            )
+            commandResponses += response(
+                session(
+                    state = PulseServerCallState.ENDED,
+                    revision = 3,
+                    terminalByUid = "callee",
+                ),
+            )
+        }
+        val telecom = FakeTelecom()
+        val subject = subject(coordinator, signaling, telecom)
+
+        assertEquals(
+            PulseCallLaunchResult.STARTED,
+            subject.registerIncoming("session-123", "Test contact"),
+        )
+        telecom.callbacks?.onAnswer("session-123", 0)
+
+        assertEquals(
+            listOf("snapshot", "command:ACCEPT", "command:FAIL"),
+            signaling.operations,
+        )
+        assertEquals(
+            PulseSignalingCommand.FAIL to "signaling_error",
+            signaling.commandReasons.last(),
+        )
+        assertEquals(listOf("session-123"), telecom.disconnectedSessions)
+        assertEquals(PulseCallState.ENDED, coordinator.state.value.state)
+        assertTrue(signaling.disconnected)
+    }
+
+    @Test
     fun `remote end disconnects Telecom and completes local cleanup`() = runBlocking {
         val coordinator = PulseCallCoordinator.createForTests()
         val signaling = FakeSignaling().apply {

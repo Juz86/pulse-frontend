@@ -184,6 +184,35 @@ class PulseCallCoordinatorTest {
         assertEquals(PulseCallState.ACTIVE, coordinator.state.value.state)
     }
 
+    @Test
+    fun `authoritative reconnect moves active call back to connecting`() {
+        val coordinator = PulseCallCoordinator.createForTests()
+        coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.CONNECTING, revision = 3),
+            localUid = "caller",
+        )
+        coordinator.onMediaConnected("session-one")
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.ACTIVE, revision = 4),
+            localUid = "caller",
+        )
+
+        assertEquals(
+            PulseCoordinatorResult.APPLIED,
+            coordinator.onSignalingSnapshot(
+                serverSession(
+                    state = PulseServerCallState.CONNECTING,
+                    revision = 5,
+                    mediaReadyUids = setOf("callee"),
+                ),
+                localUid = "caller",
+            ),
+        )
+        assertEquals(PulseCallState.CONNECTING, coordinator.state.value.state)
+        assertEquals(false, coordinator.state.value.localMediaReady)
+    }
+
     private fun request(
         sessionId: String,
         direction: PulseCallDirection,
@@ -197,6 +226,7 @@ class PulseCallCoordinatorTest {
         state: PulseServerCallState,
         revision: Long,
         terminalByUid: String? = null,
+        mediaReadyUids: Set<String> = emptySet(),
     ) = PulseServerCallSession(
         protocolVersion = PULSE_CALL_PROTOCOL_VERSION,
         sessionId = "session-one",
@@ -206,7 +236,7 @@ class PulseCallCoordinatorTest {
         mediaType = PulseCallMediaType.AUDIO,
         state = state,
         revision = revision,
-        mediaReadyUids = emptySet(),
+        mediaReadyUids = mediaReadyUids,
         terminalReason = if (state == PulseServerCallState.ENDED) "hangup" else null,
         terminalByUid = terminalByUid,
     )

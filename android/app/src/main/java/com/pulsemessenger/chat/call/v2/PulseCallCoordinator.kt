@@ -232,6 +232,21 @@ class PulseCallCoordinator private constructor(
             if (accepted != PulseCoordinatorResult.APPLIED) return accepted
         }
 
+        if (snapshot.state == PulseServerCallState.CONNECTING &&
+            stateMachine.state == PulseCallState.ACTIVE
+        ) {
+            val reconnecting = applyLocked(
+                snapshot.sessionId,
+                PulseCallEvent.NETWORK_LOST,
+                publish = false,
+            )
+            if (reconnecting != PulseCoordinatorResult.APPLIED) return reconnecting
+        }
+
+        if (snapshot.state == PulseServerCallState.CONNECTING) {
+            localMediaReady = snapshot.mediaReadyUids.contains(localUid)
+        }
+
         if (snapshot.state == PulseServerCallState.ACTIVE && stateMachine.state == PulseCallState.CONNECTING) {
             val connected = applyLocked(snapshot.sessionId, PulseCallEvent.MEDIA_CONNECTED, publish = false)
             if (connected != PulseCoordinatorResult.APPLIED) return connected

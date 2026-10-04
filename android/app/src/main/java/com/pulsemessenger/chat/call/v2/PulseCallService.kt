@@ -42,6 +42,7 @@ class PulseCallService : Service() {
     private val coordinator = PulseCallCoordinator.instance
     private lateinit var orchestrator: PulseCallSessionOrchestrator
     private var launchJob: Job? = null
+    private var terminalJob: Job? = null
     private var stateJob: Job? = null
     private var foregroundCallId: String? = null
     private var foregroundDisplayName: String? = null
@@ -87,6 +88,7 @@ class PulseCallService : Service() {
             ACTION_REGISTER_INCOMING -> registerIncoming(intent)
             ACTION_ANSWER -> handleNotificationAction(intent, NotificationAction.ANSWER)
             ACTION_DISCONNECT -> handleNotificationAction(intent, NotificationAction.DISCONNECT)
+            ACTION_RECONCILE_TERMINAL -> reconcileTerminal(intent)
             else -> stopIfIdle()
         }
         return START_NOT_STICKY
@@ -96,6 +98,7 @@ class PulseCallService : Service() {
 
     override fun onDestroy() {
         launchJob?.cancel()
+        terminalJob?.cancel()
         stateJob?.cancel()
         stopNetworkMonitoring()
         if (::orchestrator.isInitialized) {
@@ -161,6 +164,42 @@ class PulseCallService : Service() {
                 status = result.name,
             )
             handleLaunchResult(sessionId, result)
+        }
+    }
+
+    private fun reconcileTerminal(intent: Intent) {
+        val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: return stopIfIdle()
+        val current = coordinator.state.value
+        if (current.sessionId != null && current.sessionId != sessionId &&
+            current.state !in setOf(PulseCallState.IDLE, PulseCallState.ENDED)
+        ) {
+            PulseCallDiagnostics.event(
+                "TERMINAL_RECONCILIATION_REJECTED",
+                sessionId,
+                status = "DIFFERENT_ACTIVE_SESSION",
+            )
+            return
+        }
+        val reconciliationOnly = foregroundCallId == null
+        if (reconciliationOnly && !startTerminalReconciliationForeground(sessionId)) return
+
+        terminalJob?.cancel()
+        terminalJob = serviceScope.launch {
+            val result = runCatching {
+                orchestrator.reconcileTerminal(sessionId)
+            }.getOrElse { error ->
+                Log.e(TAG, "Terminal call reconciliation failed", error)
+                PulseTerminalReconcileResult.SIGNALING_UNAVAILABLE
+            }
+            PulseCallDiagnostics.event(
+                "TERMINAL_RECONCILIATION_RESULT",
+                sessionId,
+                status = result.name,
+            )
+            terminalJob = null
+            if (reconciliationOnly) {
+                stopCallForeground(sessionId)
+            }
         }
     }
 
@@ -262,6 +301,27 @@ class PulseCallService : Service() {
             serviceType,
         )
         PulseCallDiagnostics.event("CALL_FOREGROUND_STARTED", callId)
+        return true
+    }
+
+    private fun startTerminalReconciliationForeground(sessionId: String): Boolean {
+        if (foregroundCallId != null) return false
+        foregroundCallId = sessionId
+        foregroundDisplayName = getString(R.string.pulse_call_notification_title)
+        val serviceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
+        } else {
+            0
+        }
+        ServiceCompat.startForeground(
+            this,
+            NOTIFICATION_ID,
+            buildNotification(
+                requireNotNull(foregroundDisplayName),
+                getString(R.string.pulse_call_notification_ending),
+            ),
+            serviceType,
+        )
         return true
     }
 
@@ -484,6 +544,7 @@ class PulseCallService : Service() {
         const val ACTION_REGISTER_INCOMING = "com.pulsemessenger.chat.call.v2.REGISTER_INCOMING"
         const val ACTION_ANSWER = "com.pulsemessenger.chat.call.v2.ANSWER"
         const val ACTION_DISCONNECT = "com.pulsemessenger.chat.call.v2.DISCONNECT"
+        const val ACTION_RECONCILE_TERMINAL = "com.pulsemessenger.chat.call.v2.RECONCILE_TERMINAL"
         const val EXTRA_REQUEST_ID = "request_id"
         const val EXTRA_SESSION_ID = "session_id"
         const val EXTRA_CALLEE_UID = "callee_uid"
@@ -517,6 +578,11 @@ class PulseCallService : Service() {
             .setAction(ACTION_REGISTER_INCOMING)
             .putExtra(EXTRA_SESSION_ID, sessionId)
             .putExtra(EXTRA_DISPLAY_NAME, displayName)
+
+        fun terminalIntent(context: Context, sessionId: String): Intent =
+            Intent(context, PulseCallService::class.java)
+                .setAction(ACTION_RECONCILE_TERMINAL)
+                .putExtra(EXTRA_SESSION_ID, sessionId)
 
         fun disconnectIntent(context: Context, sessionId: String): Intent =
             Intent(context, PulseCallService::class.java)

@@ -197,6 +197,71 @@ class PulseCallSessionOrchestratorTest {
     }
 
     @Test
+    fun `terminal wake reconciles an active local call through its server snapshot`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+        }
+        val telecom = FakeTelecom()
+        val subject = subject(coordinator, signaling, telecom)
+        subject.registerIncoming("session-123", "Test contact")
+        signaling.snapshotResponse = response(
+            session(
+                PulseServerCallState.ENDED,
+                revision = 3,
+                terminalByUid = "caller",
+            ),
+        )
+
+        val result = subject.reconcileTerminal("session-123")
+
+        assertEquals(PulseTerminalReconcileResult.RECONCILED, result)
+        assertEquals(listOf("session-123"), telecom.disconnectedSessions)
+        assertEquals(PulseCallState.ENDED, coordinator.state.value.state)
+        assertTrue(signaling.disconnected)
+    }
+
+    @Test
+    fun `terminal wake verifies an ended session without creating a Telecom call`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(
+                session(
+                    PulseServerCallState.ENDED,
+                    revision = 3,
+                    terminalByUid = "caller",
+                ),
+            )
+        }
+        val telecom = FakeTelecom()
+        val subject = subject(coordinator, signaling, telecom)
+
+        val result = subject.reconcileTerminal("session-123")
+
+        assertEquals(PulseTerminalReconcileResult.VERIFIED_ENDED, result)
+        assertEquals(null, telecom.addedRequest)
+        assertEquals(PulseCallState.IDLE, coordinator.state.value.state)
+        assertTrue(signaling.disconnected)
+    }
+
+    @Test
+    fun `stale terminal wake cannot stop a call the server still reports as ringing`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+        }
+        val telecom = FakeTelecom()
+        val subject = subject(coordinator, signaling, telecom)
+        subject.registerIncoming("session-123", "Test contact")
+
+        val result = subject.reconcileTerminal("session-123")
+
+        assertEquals(PulseTerminalReconcileResult.REJECTED, result)
+        assertTrue(telecom.disconnectedSessions.isEmpty())
+        assertEquals(PulseCallState.RINGING, coordinator.state.value.state)
+    }
+
+    @Test
     fun `local disconnect sends end once and completes cleanup`() = runBlocking {
         val coordinator = PulseCallCoordinator.createForTests()
         val signaling = FakeSignaling().apply {

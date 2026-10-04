@@ -15,6 +15,11 @@ class PulseMessagingService : MessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        val terminalCall = PulseTerminalCallPushParser.parse(remoteMessage.data)
+        if (terminalCall != null) {
+            handleTerminalCall(terminalCall)
+            return
+        }
         val incomingCall = PulseIncomingCallPushParser.parse(remoteMessage.data)
         if (incomingCall == null) {
             super.onMessageReceived(remoteMessage)
@@ -58,6 +63,40 @@ class PulseMessagingService : MessagingService() {
                 status = error.javaClass.simpleName,
             )
             Log.e(TAG, "Incoming call foreground service could not start", error)
+        }
+    }
+
+    private fun handleTerminalCall(terminalCall: PulseTerminalCallPush) {
+        PulseCallDiagnostics.event(
+            "FCM_TERMINAL_RECEIVED",
+            terminalCall.sessionId,
+            revision = terminalCall.revision,
+        )
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            PulseCallDiagnostics.event(
+                "TERMINAL_RECONCILIATION_REJECTED",
+                terminalCall.sessionId,
+                status = "NATIVE_IDENTITY_MISSING",
+            )
+            return
+        }
+        runCatching {
+            ContextCompat.startForegroundService(
+                this,
+                PulseCallService.terminalIntent(this, terminalCall.sessionId),
+            )
+            PulseCallDiagnostics.event(
+                "TERMINAL_RECONCILIATION_SERVICE_STARTED",
+                terminalCall.sessionId,
+            )
+        }.onFailure { error ->
+            PulseCallDiagnostics.event(
+                "TERMINAL_RECONCILIATION_SERVICE_FAILED",
+                terminalCall.sessionId,
+                status = error.javaClass.simpleName,
+            )
+            Log.e(TAG, "Terminal call reconciliation service could not start", error)
         }
     }
 

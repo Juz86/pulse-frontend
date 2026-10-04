@@ -40,4 +40,46 @@ class PulseIncomingCallPushParserTest {
             ),
         )
     }
+
+    @Test
+    fun `accepts a terminal calling v2 wake-up`() {
+        val parsed = PulseTerminalCallPushParser.parse(
+            mapOf(
+                "type" to "calling_v2_terminal",
+                "protocolVersion" to "2",
+                "sessionId" to "session-123",
+                "state" to "ENDED",
+                "revision" to "4",
+                "terminalReason" to "missed",
+            ),
+        )
+
+        assertEquals(PulseTerminalCallPush("session-123", 4), parsed)
+    }
+
+    @Test
+    fun `rejects malformed terminal wake-ups`() {
+        assertNull(
+            PulseTerminalCallPushParser.parse(
+                mapOf(
+                    "type" to "calling_v2_terminal",
+                    "protocolVersion" to "2",
+                    "sessionId" to "session-123",
+                    "state" to "ACTIVE",
+                    "revision" to "4",
+                ),
+            ),
+        )
+        assertNull(
+            PulseTerminalCallPushParser.parse(
+                mapOf(
+                    "type" to "calling_v2_terminal",
+                    "protocolVersion" to "2",
+                    "sessionId" to "session-123",
+                    "state" to "ENDED",
+                    "revision" to "0",
+                ),
+            ),
+        )
+    }
 }

@@ -21,6 +21,15 @@ enum class PulseCallLaunchResult {
     REJECTED,
 }
 
+enum class PulseTerminalReconcileResult {
+    RECONCILED,
+    VERIFIED_ENDED,
+    BUSY,
+    AUTH_REQUIRED,
+    SIGNALING_UNAVAILABLE,
+    REJECTED,
+}
+
 class PulseCallSessionOrchestrator(
     private val scope: CoroutineScope,
     private val identityProvider: PulseCallIdentityProvider,
@@ -170,6 +179,49 @@ class PulseCallSessionOrchestrator(
         startTelecom(request)
         PulseCallLaunchResult.STARTED
     }
+
+    suspend fun reconcileTerminal(sessionId: String): PulseTerminalReconcileResult =
+        launchMutex.withLock {
+            if (sessionId.isBlank()) return@withLock PulseTerminalReconcileResult.REJECTED
+            val current = serverSession.get()
+            if (current != null && current.sessionId != sessionId) {
+                return@withLock PulseTerminalReconcileResult.BUSY
+            }
+            if (current == null && isBusy()) return@withLock PulseTerminalReconcileResult.BUSY
+
+            val localIdentity = identity.get() ?: identityProvider.getIdentity()
+                ?: return@withLock PulseTerminalReconcileResult.AUTH_REQUIRED
+            val ownsSession = current?.sessionId == sessionId
+            if (!ownsSession && !connectSignaling(localIdentity)) {
+                return@withLock PulseTerminalReconcileResult.SIGNALING_UNAVAILABLE
+            }
+
+            var response = signaling.fetchSnapshot(sessionId)
+            if (response.status == PulseSignalingStatus.SERVICE_UNAVAILABLE) {
+                if (!connectSignaling(localIdentity)) {
+                    if (!ownsSession) signaling.disconnect()
+                    return@withLock PulseTerminalReconcileResult.SIGNALING_UNAVAILABLE
+                }
+                response = signaling.fetchSnapshot(sessionId)
+            }
+            val session = response.session
+            val verified = response.ok &&
+                session?.sessionId == sessionId &&
+                session.state == PulseServerCallState.ENDED &&
+                localIdentity.uid in setOf(session.callerUid, session.calleeUid)
+            if (!verified) {
+                if (!ownsSession) signaling.disconnect()
+                return@withLock PulseTerminalReconcileResult.REJECTED
+            }
+
+            if (!ownsSession) {
+                signaling.disconnect()
+                return@withLock PulseTerminalReconcileResult.VERIFIED_ENDED
+            }
+            identity.set(localIdentity)
+            onSessionUpdated(requireNotNull(session))
+            PulseTerminalReconcileResult.RECONCILED
+        }
 
     fun requestAnswer(sessionId: String) {
         scope.launch {

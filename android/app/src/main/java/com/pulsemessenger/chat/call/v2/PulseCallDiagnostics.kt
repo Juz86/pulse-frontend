@@ -11,6 +11,7 @@ internal object PulseCallDiagnostics {
         status: String? = null,
         state: String? = null,
         direction: PulseCallDirection? = null,
+        revision: Long? = null,
     ) {
         val message = buildString {
             append("event=").append(event)
@@ -18,6 +19,7 @@ internal object PulseCallDiagnostics {
             status?.let { append(" status=").append(it) }
             state?.let { append(" state=").append(it) }
             direction?.let { append(" direction=").append(it.name) }
+            revision?.let { append(" revision=").append(it) }
         }
         runCatching { Log.i(TAG, message) }
     }

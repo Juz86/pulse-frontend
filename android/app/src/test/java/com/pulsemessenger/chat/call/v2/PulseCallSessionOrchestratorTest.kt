@@ -314,6 +314,149 @@ class PulseCallSessionOrchestratorTest {
     }
 
     @Test
+    fun `active outgoing call recovers from Railway and starts fresh media negotiation`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.ACTIVE, revision = 4))
+            commandResponses += response(
+                session(
+                    state = PulseServerCallState.CONNECTING,
+                    revision = 5,
+                    iceRestartSequence = 1,
+                ),
+            )
+        }
+        val telecom = FakeTelecom()
+        val engine = FakeMediaEngine()
+        val records = mutableListOf<PulseCallRecoveryRecord?>()
+        val subject = subject(
+            coordinator = coordinator,
+            signaling = signaling,
+            telecom = telecom,
+            identityUid = "caller",
+            mediaEngine = engine,
+            onRecoveryRecordChanged = records::add,
+        )
+
+        val result = subject.recover(
+            PulseCallRecoveryRecord(
+                sessionId = "session-123",
+                ownerUid = "caller",
+                displayName = "Test contact",
+                direction = PulseCallDirection.OUTGOING,
+                mediaType = PulseCallMediaType.AUDIO,
+            ),
+        )
+
+        assertEquals(PulseCallRecoveryResult.RECOVERED, result)
+        assertEquals(listOf("snapshot", "command:NETWORK_LOST", "ice"), signaling.operations)
+        assertEquals(listOf("session-123"), telecom.activatedSessions)
+        assertEquals(1, engine.startCount)
+        assertEquals(1, engine.restartCount)
+        assertEquals("session-123", records.single()?.sessionId)
+        assertEquals(PulseCallState.CONNECTING, coordinator.state.value.state)
+    }
+
+    @Test
+    fun `winning incoming installation recovers as WebRTC answerer`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(
+                session(
+                    state = PulseServerCallState.ACTIVE,
+                    revision = 4,
+                    acceptedInstallationId = "test-installation",
+                ),
+            )
+            commandResponses += response(
+                session(
+                    state = PulseServerCallState.CONNECTING,
+                    revision = 5,
+                    iceRestartSequence = 1,
+                    acceptedInstallationId = "test-installation",
+                ),
+            )
+        }
+        val telecom = FakeTelecom()
+        val engine = FakeMediaEngine()
+        val subject = subject(coordinator, signaling, telecom, mediaEngine = engine)
+
+        val result = subject.recover(
+            PulseCallRecoveryRecord(
+                sessionId = "session-123",
+                ownerUid = "callee",
+                displayName = "Test contact",
+                direction = PulseCallDirection.INCOMING,
+                mediaType = PulseCallMediaType.AUDIO,
+            ),
+        )
+
+        assertEquals(PulseCallRecoveryResult.RECOVERED, result)
+        assertEquals(PulseMediaRole.ANSWERER, engine.config?.role)
+        assertEquals(1, engine.startCount)
+        assertEquals(0, engine.restartCount)
+        assertEquals(listOf("session-123"), telecom.activatedSessions)
+    }
+
+    @Test
+    fun `ended session is rejected during process recovery without recreating Telecom`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(
+                session(
+                    state = PulseServerCallState.ENDED,
+                    revision = 5,
+                    terminalByUid = "callee",
+                ),
+            )
+        }
+        val telecom = FakeTelecom()
+        val subject = subject(coordinator, signaling, telecom, identityUid = "caller")
+
+        val result = subject.recover(
+            PulseCallRecoveryRecord(
+                sessionId = "session-123",
+                ownerUid = "caller",
+                displayName = "Test contact",
+                direction = PulseCallDirection.OUTGOING,
+                mediaType = PulseCallMediaType.AUDIO,
+            ),
+        )
+
+        assertEquals(PulseCallRecoveryResult.STALE, result)
+        assertEquals(null, telecom.addedRequest)
+        assertEquals(PulseCallState.IDLE, coordinator.state.value.state)
+        assertTrue(signaling.disconnected)
+    }
+
+    @Test
+    fun `temporary snapshot outage remains retryable during process recovery`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = PulseSignalingResponse(
+                ok = false,
+                status = PulseSignalingStatus.SERVICE_UNAVAILABLE,
+            )
+        }
+        val telecom = FakeTelecom()
+        val subject = subject(coordinator, signaling, telecom, identityUid = "caller")
+
+        val result = subject.recover(
+            PulseCallRecoveryRecord(
+                sessionId = "session-123",
+                ownerUid = "caller",
+                displayName = "Test contact",
+                direction = PulseCallDirection.OUTGOING,
+                mediaType = PulseCallMediaType.AUDIO,
+            ),
+        )
+
+        assertEquals(PulseCallRecoveryResult.SIGNALING_UNAVAILABLE, result)
+        assertEquals(null, telecom.addedRequest)
+        assertEquals(PulseCallState.IDLE, coordinator.state.value.state)
+    }
+
+    @Test
     fun `local disconnect sends end once and completes cleanup`() = runBlocking {
         val coordinator = PulseCallCoordinator.createForTests()
         val signaling = FakeSignaling().apply {
@@ -624,6 +767,7 @@ class PulseCallSessionOrchestratorTest {
         installationId: String = "test-installation",
         mediaEngine: FakeMediaEngine? = null,
         beforeMediaStart: () -> Boolean = { true },
+        onRecoveryRecordChanged: (PulseCallRecoveryRecord?) -> Unit = {},
     ) = PulseCallSessionOrchestrator(
         scope = scope,
         identityProvider = PulseCallIdentityProvider {
@@ -640,6 +784,7 @@ class PulseCallSessionOrchestratorTest {
             PulseCallMediaEngineFactory { engine }
         },
         beforeMediaStart = beforeMediaStart,
+        onRecoveryRecordChanged = onRecoveryRecordChanged,
     ).also { orchestrator = it }
 
     private fun response(session: PulseServerCallSession) = PulseSignalingResponse(

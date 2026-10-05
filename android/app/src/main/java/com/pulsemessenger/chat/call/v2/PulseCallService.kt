@@ -33,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -47,6 +48,7 @@ class PulseCallService : Service() {
     private var foregroundCallId: String? = null
     private var foregroundDisplayName: String? = null
     private lateinit var networkMonitor: PulseNetworkMonitor
+    private lateinit var recoveryStore: PulseCallRecoveryStore
     private var networkMonitorStarted = false
     private var pendingNotificationAction: Pair<String, NotificationAction>? = null
 
@@ -55,6 +57,7 @@ class PulseCallService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        recoveryStore = PulseCallRecoveryStore(this)
 
         val telecom = CoreTelecomController(this).also(PulseTelecomController::registerApp)
         orchestrator = PulseCallSessionOrchestrator(
@@ -65,6 +68,9 @@ class PulseCallService : Service() {
             coordinator = coordinator,
             mediaEngineFactory = PulseCallMediaEngineFactory { WebRtcAudioEngine(this) },
             beforeMediaStart = ::promoteToMicrophoneForeground,
+            onRecoveryRecordChanged = { record ->
+                if (record == null) recoveryStore.clear() else recoveryStore.save(record)
+            },
         )
         networkMonitor = AndroidPulseNetworkMonitor(this) {
             serviceScope.launch {
@@ -90,9 +96,14 @@ class PulseCallService : Service() {
             ACTION_DISCONNECT -> handleNotificationAction(intent, NotificationAction.DISCONNECT)
             ACTION_RECONCILE_TERMINAL -> reconcileTerminal(intent)
             ACTION_RECONCILE_TAKEN_ELSEWHERE -> reconcileTakenElsewhere(intent)
+            null -> recoverPersistedCall()
             else -> stopIfIdle()
         }
-        return START_NOT_STICKY
+        return if (foregroundCallId != null || recoveryStore.hasRecord()) {
+            START_STICKY
+        } else {
+            START_NOT_STICKY
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -128,6 +139,45 @@ class PulseCallService : Service() {
                 PulseCallLaunchResult.SIGNALING_UNAVAILABLE
             }
             handleLaunchResult(requestId, result)
+        }
+    }
+
+    private fun recoverPersistedCall() {
+        if (launchJob?.isActive == true) return
+        val record = recoveryStore.load() ?: return stopIfIdle()
+        if (foregroundCallId == null && !startPreparingForeground(
+                callId = record.sessionId,
+                displayName = record.displayName,
+                incoming = record.direction == PulseCallDirection.INCOMING,
+            )
+        ) return
+        if (foregroundCallId != record.sessionId) return
+        PulseCallDiagnostics.event(
+            "CALL_RECOVERY_STARTED",
+            record.sessionId,
+            direction = record.direction,
+        )
+        launchJob = serviceScope.launch {
+            val result = runCatching { orchestrator.recover(record) }.getOrElse { error ->
+                Log.e(TAG, "Call recovery failed", error)
+                PulseCallRecoveryResult.SIGNALING_UNAVAILABLE
+            }
+            PulseCallDiagnostics.event(
+                "CALL_RECOVERY_RESULT",
+                record.sessionId,
+                status = result.name,
+            )
+            if (result == PulseCallRecoveryResult.SIGNALING_UNAVAILABLE) {
+                delay(RECOVERY_RETRY_DELAY_MS)
+                launchJob = null
+                recoverPersistedCall()
+            } else if (result != PulseCallRecoveryResult.RECOVERED) {
+                launchJob = null
+                recoveryStore.clear(record.sessionId)
+                stopCallForeground(record.sessionId)
+            } else {
+                launchJob = null
+            }
         }
     }
 
@@ -197,6 +247,13 @@ class PulseCallService : Service() {
                 sessionId,
                 status = result.name,
             )
+            if (result in setOf(
+                    PulseTerminalReconcileResult.RECONCILED,
+                    PulseTerminalReconcileResult.VERIFIED_ENDED,
+                )
+            ) {
+                recoveryStore.clear(sessionId)
+            }
             terminalJob = null
             if (reconciliationOnly) {
                 stopCallForeground(sessionId)
@@ -224,6 +281,13 @@ class PulseCallService : Service() {
                 sessionId,
                 status = result.name,
             )
+            if (result in setOf(
+                    PulseTakenElsewhereReconcileResult.RECONCILED,
+                    PulseTakenElsewhereReconcileResult.VERIFIED_NO_LOCAL_CALL,
+                )
+            ) {
+                recoveryStore.clear(sessionId)
+            }
             terminalJob = null
             if (reconciliationOnly) stopCallForeground(sessionId)
         }
@@ -585,6 +649,7 @@ class PulseCallService : Service() {
         private const val NOTIFICATION_CHANNEL_ID = "pulse_active_calls"
         private const val INCOMING_NOTIFICATION_CHANNEL_ID = "pulse_incoming_calls_v2"
         private const val NOTIFICATION_ID = 4102
+        private const val RECOVERY_RETRY_DELAY_MS = 5_000L
 
         fun outgoingIntent(
             context: Context,

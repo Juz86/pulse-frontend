@@ -32,8 +32,18 @@ enum class PulseTerminalReconcileResult {
 
 enum class PulseTakenElsewhereReconcileResult {
     RECONCILED,
+    VERIFIED_NO_LOCAL_CALL,
     WINNING_DEVICE,
     NOT_ACTIVE,
+    REJECTED,
+}
+
+enum class PulseCallRecoveryResult {
+    RECOVERED,
+    BUSY,
+    AUTH_REQUIRED,
+    SIGNALING_UNAVAILABLE,
+    STALE,
     REJECTED,
 }
 
@@ -45,6 +55,7 @@ class PulseCallSessionOrchestrator(
     private val coordinator: PulseCallCoordinator = PulseCallCoordinator.instance,
     mediaEngineFactory: PulseCallMediaEngineFactory? = null,
     private val beforeMediaStart: () -> Boolean = { true },
+    private val onRecoveryRecordChanged: (PulseCallRecoveryRecord?) -> Unit = {},
 ) : PulseCallSignalingListener, PulseTelecomCallbacks, PulseCallMediaSessionCallbacks {
     private val launchMutex = Mutex()
     private val identity = AtomicReference<PulseCallIdentity?>(null)
@@ -54,6 +65,7 @@ class PulseCallSessionOrchestrator(
     private val networkRecoveryPending = AtomicBoolean(false)
     private val networkRecoveryAcknowledged = AtomicBoolean(false)
     private val networkRecoveryInFlight = AtomicBoolean(false)
+    private val recovering = AtomicBoolean(false)
     private val mediaSessions = mediaEngineFactory?.let { factory ->
         PulseCallMediaSessionController(scope, signaling, factory, this)
     }
@@ -111,6 +123,7 @@ class PulseCallSessionOrchestrator(
         terminating.set(false)
         resetNetworkRecovery(session.iceRestartSequence)
         coordinator.onSignalingSnapshot(session, localIdentity.uid)
+        publishRecoveryRecord(request, localIdentity.uid)
         startTelecom(request)
         PulseCallLaunchResult.STARTED
     }
@@ -183,9 +196,95 @@ class PulseCallSessionOrchestrator(
         terminating.set(false)
         resetNetworkRecovery(session.iceRestartSequence)
         coordinator.onSignalingSnapshot(session, localIdentity.uid)
+        publishRecoveryRecord(request, localIdentity.uid)
         startTelecom(request)
         PulseCallLaunchResult.STARTED
     }
+
+    suspend fun recover(record: PulseCallRecoveryRecord): PulseCallRecoveryResult =
+        launchMutex.withLock {
+            if (isBusy()) return@withLock PulseCallRecoveryResult.BUSY
+            val localIdentity = identityProvider.getIdentity()
+                ?: return@withLock PulseCallRecoveryResult.AUTH_REQUIRED
+            if (record.ownerUid != localIdentity.uid) return@withLock PulseCallRecoveryResult.STALE
+            if (!connectSignaling(localIdentity)) {
+                return@withLock PulseCallRecoveryResult.SIGNALING_UNAVAILABLE
+            }
+            val response = signaling.fetchSnapshot(record.sessionId)
+            val session = response.session
+            if (!response.ok || session == null) {
+                signaling.disconnect()
+                return@withLock if (response.status == PulseSignalingStatus.SERVICE_UNAVAILABLE) {
+                    PulseCallRecoveryResult.SIGNALING_UNAVAILABLE
+                } else if (response.status in setOf(
+                        PulseSignalingStatus.NOT_FOUND,
+                        PulseSignalingStatus.ALREADY_ENDED,
+                    )
+                ) {
+                    PulseCallRecoveryResult.STALE
+                } else {
+                    PulseCallRecoveryResult.REJECTED
+                }
+            }
+            val expectedUid = if (record.direction == PulseCallDirection.OUTGOING) {
+                session.callerUid
+            } else {
+                session.calleeUid
+            }
+            val recoverableState = session.state in setOf(
+                PulseServerCallState.PREPARING,
+                PulseServerCallState.RINGING,
+                PulseServerCallState.CONNECTING,
+                PulseServerCallState.ACTIVE,
+            )
+            val acceptedElsewhere = record.direction == PulseCallDirection.INCOMING &&
+                session.acceptedInstallationId != null &&
+                session.acceptedInstallationId != localIdentity.installationId
+            if (session.sessionId != record.sessionId ||
+                expectedUid != localIdentity.uid ||
+                session.mediaType != record.mediaType ||
+                !recoverableState ||
+                acceptedElsewhere
+            ) {
+                signaling.disconnect()
+                return@withLock PulseCallRecoveryResult.STALE
+            }
+
+            val request = PulseCallRequest(
+                sessionId = session.sessionId,
+                displayName = record.displayName,
+                direction = record.direction,
+                mediaType = record.mediaType,
+            )
+            if (coordinator.begin(request) != PulseCoordinatorResult.APPLIED) {
+                signaling.disconnect()
+                return@withLock PulseCallRecoveryResult.BUSY
+            }
+            identity.set(localIdentity)
+            serverSession.set(session)
+            terminating.set(false)
+            recovering.set(true)
+            resetNetworkRecovery(session.iceRestartSequence)
+            val reconciled = coordinator.onSignalingSnapshot(session, localIdentity.uid)
+            if (reconciled !in setOf(PulseCoordinatorResult.APPLIED, PulseCoordinatorResult.IDEMPOTENT)) {
+                recovering.set(false)
+                coordinator.beginEnding(session.sessionId, remote = true)
+                coordinator.completeCleanup(session.sessionId)
+                signaling.disconnect()
+                identity.set(null)
+                serverSession.set(null)
+                return@withLock PulseCallRecoveryResult.REJECTED
+            }
+            publishRecoveryRecord(request, localIdentity.uid)
+            PulseCallDiagnostics.event(
+                "CALL_RECOVERY_CONFIRMED",
+                session.sessionId,
+                state = session.state.name,
+                direction = request.direction,
+            )
+            startTelecom(request)
+            PulseCallRecoveryResult.RECOVERED
+        }
 
     suspend fun reconcileTerminal(sessionId: String): PulseTerminalReconcileResult =
         launchMutex.withLock {
@@ -235,12 +334,17 @@ class PulseCallSessionOrchestrator(
         acceptedInstallationId: String,
     ): PulseTakenElsewhereReconcileResult = launchMutex.withLock {
         val current = serverSession.get()
-        val localIdentity = identity.get()
-        if (current?.sessionId != sessionId || localIdentity == null) {
+        if (current != null && current.sessionId != sessionId) {
             return@withLock PulseTakenElsewhereReconcileResult.NOT_ACTIVE
         }
+        val localIdentity = identity.get() ?: identityProvider.getIdentity()
+            ?: return@withLock PulseTakenElsewhereReconcileResult.REJECTED
         if (localIdentity.installationId == acceptedInstallationId) {
             return@withLock PulseTakenElsewhereReconcileResult.WINNING_DEVICE
+        }
+        val ownsSession = current?.sessionId == sessionId
+        if (!ownsSession && !connectSignaling(localIdentity)) {
+            return@withLock PulseTakenElsewhereReconcileResult.REJECTED
         }
         val response = signaling.fetchSnapshot(sessionId)
         val authoritative = response.session
@@ -250,7 +354,12 @@ class PulseCallSessionOrchestrator(
             authoritative.acceptedInstallationId != acceptedInstallationId ||
             authoritative.state !in setOf(PulseServerCallState.CONNECTING, PulseServerCallState.ACTIVE)
         ) {
+            if (!ownsSession) signaling.disconnect()
             return@withLock PulseTakenElsewhereReconcileResult.REJECTED
+        }
+        if (!ownsSession) {
+            signaling.disconnect()
+            return@withLock PulseTakenElsewhereReconcileResult.VERIFIED_NO_LOCAL_CALL
         }
         serverSession.set(authoritative)
         endTakenElsewhere(authoritative)
@@ -308,6 +417,7 @@ class PulseCallSessionOrchestrator(
         identity.set(null)
         serverSession.set(null)
         resetNetworkRecovery()
+        recovering.set(false)
         terminating.set(false)
     }
 
@@ -387,7 +497,21 @@ class PulseCallSessionOrchestrator(
             direction = coordinator.state.value.direction,
         )
         if (coordinator.onTelecomRegistered(sessionId) != PulseCoordinatorResult.APPLIED) return
-        if (coordinator.state.value.direction == PulseCallDirection.OUTGOING) {
+        val session = serverSession.get() ?: return
+        if (recovering.getAndSet(false) && session.state in RECOVERABLE_SERVER_STATES) {
+            scope.launch {
+                val response = sendCommand(PulseSignalingCommand.NETWORK_LOST)
+                if (response?.status !in setOf(
+                        PulseSignalingStatus.APPLIED,
+                        PulseSignalingStatus.DUPLICATE,
+                    )
+                ) {
+                    failMedia(sessionId, SIGNALING_ERROR)
+                }
+            }
+        } else if (coordinator.state.value.direction == PulseCallDirection.OUTGOING &&
+            session.state == PulseServerCallState.PREPARING
+        ) {
             scope.launch { sendCommand(PulseSignalingCommand.INVITE_READY) }
         }
     }
@@ -546,7 +670,9 @@ class PulseCallSessionOrchestrator(
         signaling.disconnect()
         identity.set(null)
         serverSession.set(null)
+        onRecoveryRecordChanged(null)
         resetNetworkRecovery()
+        recovering.set(false)
         terminating.set(false)
     }
 
@@ -642,6 +768,18 @@ class PulseCallSessionOrchestrator(
         networkRecoveryPending.set(false)
         networkRecoveryAcknowledged.set(false)
         networkRecoveryInFlight.set(false)
+    }
+
+    private fun publishRecoveryRecord(request: PulseCallRequest, ownerUid: String) {
+        onRecoveryRecordChanged(
+            PulseCallRecoveryRecord(
+                sessionId = request.sessionId,
+                ownerUid = ownerUid,
+                displayName = request.displayName,
+                direction = request.direction,
+                mediaType = request.mediaType,
+            ),
+        )
     }
 
     private fun isBusy(): Boolean =

@@ -14,8 +14,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.media.AudioAttributes
-import android.media.RingtoneManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -49,6 +47,7 @@ class PulseCallService : Service() {
     private var foregroundDisplayName: String? = null
     private lateinit var networkMonitor: PulseNetworkMonitor
     private lateinit var recoveryStore: PulseCallRecoveryStore
+    private lateinit var incomingCallRinger: PulseIncomingCallRinger
     private var networkMonitorStarted = false
     private var pendingNotificationAction: Pair<String, NotificationAction>? = null
 
@@ -58,6 +57,7 @@ class PulseCallService : Service() {
         super.onCreate()
         createNotificationChannel()
         recoveryStore = PulseCallRecoveryStore(this)
+        incomingCallRinger = PulseIncomingCallRinger(this)
 
         val telecom = CoreTelecomController(this).also(PulseTelecomController::registerApp)
         orchestrator = PulseCallSessionOrchestrator(
@@ -112,6 +112,7 @@ class PulseCallService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        stopIncomingAlert()
         launchJob?.cancel()
         terminalJob?.cancel()
         stateJob?.cancel()
@@ -223,6 +224,7 @@ class PulseCallService : Service() {
 
     private fun reconcileTerminal(intent: Intent) {
         val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: return stopIfIdle()
+        stopIncomingAlert(sessionId)
         val current = coordinator.state.value
         if (current.sessionId != null && current.sessionId != sessionId &&
             current.state !in setOf(PulseCallState.IDLE, PulseCallState.ENDED)
@@ -266,6 +268,7 @@ class PulseCallService : Service() {
 
     private fun reconcileTakenElsewhere(intent: Intent) {
         val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: return stopIfIdle()
+        stopIncomingAlert(sessionId)
         val acceptedInstallationId = intent.requiredString(EXTRA_ACCEPTED_INSTALLATION_ID)
             ?: return stopIfIdle()
         val reconciliationOnly = foregroundCallId == null
@@ -300,6 +303,7 @@ class PulseCallService : Service() {
         val sessionId = intent.requiredString(EXTRA_SESSION_ID)
             ?: coordinator.state.value.sessionId
             ?: return stopIfIdle()
+        stopIncomingAlert(sessionId)
         PulseCallDiagnostics.event("NOTIFICATION_ACTION_RECEIVED", sessionId, status = action.name)
         val snapshot = coordinator.state.value
         if (snapshot.sessionId == sessionId && snapshot.telecomRegistered) {
@@ -372,6 +376,7 @@ class PulseCallService : Service() {
 
         foregroundCallId = callId
         foregroundDisplayName = displayName
+        if (incoming) incomingCallRinger.start(callId) else stopIncomingAlert()
         val serviceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
         } else {
@@ -445,6 +450,11 @@ class PulseCallService : Service() {
 
     private fun onCallStateChanged(snapshot: PulseCallSnapshot) {
         if (foregroundCallId == null) return
+        if (snapshot.shouldPlayIncomingAlert()) {
+            snapshot.sessionId?.let(incomingCallRinger::start)
+        } else {
+            stopIncomingAlert()
+        }
         if (snapshot.state in setOf(PulseCallState.CONNECTING, PulseCallState.ACTIVE)) {
             startNetworkMonitoring()
         } else if (snapshot.state in setOf(
@@ -486,6 +496,7 @@ class PulseCallService : Service() {
 
     private fun stopCallForeground(expectedCallId: String? = null) {
         if (expectedCallId != null && foregroundCallId != expectedCallId) return
+        stopIncomingAlert(expectedCallId)
         foregroundCallId = null
         foregroundDisplayName = null
         pendingNotificationAction = null
@@ -495,6 +506,10 @@ class PulseCallService : Service() {
 
     private fun stopIfIdle() {
         if (foregroundCallId == null) stopSelf()
+    }
+
+    private fun stopIncomingAlert(expectedCallId: String? = null) {
+        if (::incomingCallRinger.isInitialized) incomingCallRinger.stop(expectedCallId)
     }
 
     private fun startNetworkMonitoring() {
@@ -628,14 +643,8 @@ class PulseCallService : Service() {
             description = getString(R.string.pulse_incoming_call_channel_description)
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             setShowBadge(false)
-            enableVibration(true)
-            vibrationPattern = longArrayOf(0L, 700L, 450L, 700L, 450L)
-            setSound(
-                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE),
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                    .build(),
-            )
+            enableVibration(false)
+            setSound(null, null)
         }
         manager.createNotificationChannels(listOf(activeChannel, incomingChannel))
     }
@@ -665,7 +674,7 @@ class PulseCallService : Service() {
         private const val TAG = "PulseCallService"
         private const val CALLING_API_URL = "https://api.pulse-messenger.com"
         private const val NOTIFICATION_CHANNEL_ID = "pulse_active_calls"
-        private const val INCOMING_NOTIFICATION_CHANNEL_ID = "pulse_incoming_calls_v2"
+        private const val INCOMING_NOTIFICATION_CHANNEL_ID = "pulse_incoming_calls_v3"
         private const val NOTIFICATION_ID = 4102
         private const val RECOVERY_RETRY_DELAY_MS = 5_000L
 

@@ -3,12 +3,21 @@ package com.pulsemessenger.chat.call.v2
 import android.content.Context
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.webrtc.AudioSource
 import org.webrtc.AudioTrack
 import org.webrtc.DataChannel
@@ -19,6 +28,7 @@ import org.webrtc.MediaStreamTrack
 import org.webrtc.PeerConnection
 import org.webrtc.PeerConnectionFactory
 import org.webrtc.RtpReceiver
+import org.webrtc.RTCStatsReport
 import org.webrtc.SdpObserver
 import org.webrtc.SessionDescription
 import org.webrtc.audio.AudioDeviceModule
@@ -34,8 +44,13 @@ class WebRtcAudioEngine(
         Thread(task, "pulse-webrtc-audio")
     }
     private val mediaDispatcher = mediaExecutor.asCoroutineDispatcher()
+    private val mediaScope = CoroutineScope(SupervisorJob() + mediaDispatcher)
     private val mutableState = MutableStateFlow(PulseMediaState.NEW)
     private val closed = AtomicBoolean(false)
+    private val remoteTrackReported = AtomicBoolean(false)
+    private val remoteAudioReported = AtomicBoolean(false)
+    private val statsMonitoringStarted = AtomicBoolean(false)
+    private val selectedPathSignature = AtomicReference<String?>(null)
 
     private var config: PulseAudioSessionConfig? = null
     private var listener: PulseCallMediaListener? = null
@@ -44,6 +59,7 @@ class WebRtcAudioEngine(
     private var peerConnection: PeerConnection? = null
     private var audioSource: AudioSource? = null
     private var audioTrack: AudioTrack? = null
+    private var statsJob: Job? = null
     private val iceCandidateBuffer = PulseIceCandidateBuffer()
 
     override val state: StateFlow<PulseMediaState> = mutableState.asStateFlow()
@@ -138,6 +154,7 @@ class WebRtcAudioEngine(
     override suspend fun restartIce() = onMediaThread {
         ensureNegotiating()
         iceCandidateBuffer.clear()
+        remoteAudioReported.set(false)
         updateState(PulseMediaState.RECONNECTING)
         peerConnectionOrThrow().restartIce()
         if (config?.role == PulseMediaRole.OFFERER) {
@@ -155,12 +172,14 @@ class WebRtcAudioEngine(
 
     override suspend fun close() {
         if (!closed.compareAndSet(false, true)) return
+        statsJob?.cancel()
         withContext(mediaDispatcher) {
             releaseResources()
             updateState(PulseMediaState.CLOSED)
             listener = null
             config = null
         }
+        mediaScope.cancel()
         mediaDispatcher.close()
         mediaExecutor.shutdown()
     }
@@ -194,7 +213,10 @@ class WebRtcAudioEngine(
         override fun onIceConnectionChange(newState: PeerConnection.IceConnectionState) {
             when (newState) {
                 PeerConnection.IceConnectionState.CONNECTED,
-                PeerConnection.IceConnectionState.COMPLETED -> updateState(PulseMediaState.CONNECTED)
+                PeerConnection.IceConnectionState.COMPLETED -> {
+                    updateState(PulseMediaState.CONNECTED)
+                    startStatsMonitoring()
+                }
                 PeerConnection.IceConnectionState.DISCONNECTED ->
                     updateState(PulseMediaState.RECONNECTING)
                 PeerConnection.IceConnectionState.FAILED -> fail("ice_connection_failed")
@@ -205,7 +227,10 @@ class WebRtcAudioEngine(
 
         override fun onConnectionChange(newState: PeerConnection.PeerConnectionState) {
             when (newState) {
-                PeerConnection.PeerConnectionState.CONNECTED -> updateState(PulseMediaState.CONNECTED)
+                PeerConnection.PeerConnectionState.CONNECTED -> {
+                    updateState(PulseMediaState.CONNECTED)
+                    startStatsMonitoring()
+                }
                 PeerConnection.PeerConnectionState.DISCONNECTED ->
                     updateState(PulseMediaState.RECONNECTING)
                 PeerConnection.PeerConnectionState.FAILED -> fail("peer_connection_failed")
@@ -232,8 +257,67 @@ class WebRtcAudioEngine(
         override fun onTrack(transceiver: org.webrtc.RtpTransceiver) {
             if (transceiver.receiver.track()?.kind() == MediaStreamTrack.AUDIO_TRACK_KIND) {
                 transceiver.receiver.track()?.setEnabled(true)
+                if (remoteTrackReported.compareAndSet(false, true)) {
+                    PulseCallDiagnostics.event(
+                        "REMOTE_AUDIO_TRACK_ENABLED",
+                        config?.sessionId,
+                        status = "ENABLED",
+                    )
+                }
             }
         }
+    }
+
+    private fun startStatsMonitoring() {
+        if (closed.get() || !statsMonitoringStarted.compareAndSet(false, true)) return
+        statsJob = mediaScope.launch {
+            while (isActive && !closed.get()) {
+                runCatching { collectAndReportStats() }
+                delay(STATS_INTERVAL_MS)
+            }
+        }
+    }
+
+    private suspend fun collectAndReportStats() {
+        val connection = peerConnection ?: return
+        val report = withTimeoutOrNull(STATS_TIMEOUT_MS) { connection.getStatsAwait() } ?: return
+        val snapshot = PulseWebRtcStatsAnalyzer.analyze(
+            report.statsMap.values.map { stat ->
+                PulseRtcStat(stat.id, stat.type, stat.members)
+            },
+        )
+        snapshot.selectedIcePath?.let(::reportSelectedPath)
+        snapshot.inboundAudio
+            ?.takeIf(PulseInboundAudioStats::confirmsAudioFlow)
+            ?.let(::reportRemoteAudio)
+    }
+
+    private fun reportSelectedPath(path: PulseSelectedIcePath) {
+        val signature = listOf(
+            path.transport.name,
+            path.localCandidateType,
+            path.remoteCandidateType,
+        ).joinToString(":")
+        if (selectedPathSignature.getAndSet(signature) == signature) return
+        PulseCallDiagnostics.event(
+            "ICE_SELECTED_PATH",
+            config?.sessionId,
+            status = "SELECTED",
+            transport = path.transport.name,
+            localCandidateType = path.localCandidateType,
+            remoteCandidateType = path.remoteCandidateType,
+        )
+    }
+
+    private fun reportRemoteAudio(stats: PulseInboundAudioStats) {
+        if (!remoteAudioReported.compareAndSet(false, true)) return
+        PulseCallDiagnostics.event(
+            "REMOTE_AUDIO_RTP_RECEIVED",
+            config?.sessionId,
+            status = "CONFIRMED",
+            packetsReceived = stats.packetsReceived,
+            bytesReceived = stats.bytesReceived,
+        )
     }
 
     private fun ensureNegotiating() {
@@ -304,6 +388,8 @@ class WebRtcAudioEngine(
     companion object {
         private const val AUDIO_TRACK_ID = "pulse-audio"
         private const val MEDIA_STREAM_ID = "pulse"
+        private const val STATS_INTERVAL_MS = 2_000L
+        private const val STATS_TIMEOUT_MS = 2_000L
         private val initialized = AtomicBoolean(false)
 
         private fun initializeWebRtc(context: Context) {
@@ -343,6 +429,13 @@ private suspend fun PeerConnection.setLocalDescriptionAwait(description: Session
 private suspend fun PeerConnection.setRemoteDescriptionAwait(description: SessionDescription) =
     suspendCancellableCoroutine { continuation ->
         setRemoteDescription(continuation.setDescriptionObserver(), description)
+    }
+
+private suspend fun PeerConnection.getStatsAwait(): RTCStatsReport =
+    suspendCancellableCoroutine { continuation ->
+        getStats { report ->
+            if (continuation.isActive) continuation.resume(report)
+        }
     }
 
 private fun kotlinx.coroutines.CancellableContinuation<SessionDescription>.sdpObserver() =

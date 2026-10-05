@@ -59,7 +59,7 @@ class PulseCallService : Service() {
         val telecom = CoreTelecomController(this).also(PulseTelecomController::registerApp)
         orchestrator = PulseCallSessionOrchestrator(
             scope = serviceScope,
-            identityProvider = FirebasePulseCallIdentityProvider(),
+            identityProvider = FirebasePulseCallIdentityProvider(this),
             signaling = RailwayCallSignalingClient(URI.create(CALLING_API_URL)),
             telecom = telecom,
             coordinator = coordinator,
@@ -89,6 +89,7 @@ class PulseCallService : Service() {
             ACTION_ANSWER -> handleNotificationAction(intent, NotificationAction.ANSWER)
             ACTION_DISCONNECT -> handleNotificationAction(intent, NotificationAction.DISCONNECT)
             ACTION_RECONCILE_TERMINAL -> reconcileTerminal(intent)
+            ACTION_RECONCILE_TAKEN_ELSEWHERE -> reconcileTakenElsewhere(intent)
             else -> stopIfIdle()
         }
         return START_NOT_STICKY
@@ -200,6 +201,31 @@ class PulseCallService : Service() {
             if (reconciliationOnly) {
                 stopCallForeground(sessionId)
             }
+        }
+    }
+
+    private fun reconcileTakenElsewhere(intent: Intent) {
+        val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: return stopIfIdle()
+        val acceptedInstallationId = intent.requiredString(EXTRA_ACCEPTED_INSTALLATION_ID)
+            ?: return stopIfIdle()
+        val reconciliationOnly = foregroundCallId == null
+        if (reconciliationOnly && !startTerminalReconciliationForeground(sessionId)) return
+
+        terminalJob?.cancel()
+        terminalJob = serviceScope.launch {
+            val result = runCatching {
+                orchestrator.reconcileTakenElsewhere(sessionId, acceptedInstallationId)
+            }.getOrElse { error ->
+                Log.e(TAG, "Taken-elsewhere reconciliation failed", error)
+                PulseTakenElsewhereReconcileResult.REJECTED
+            }
+            PulseCallDiagnostics.event(
+                "TAKEN_ELSEWHERE_RECONCILIATION_RESULT",
+                sessionId,
+                status = result.name,
+            )
+            terminalJob = null
+            if (reconciliationOnly) stopCallForeground(sessionId)
         }
     }
 
@@ -545,11 +571,14 @@ class PulseCallService : Service() {
         const val ACTION_ANSWER = "com.pulsemessenger.chat.call.v2.ANSWER"
         const val ACTION_DISCONNECT = "com.pulsemessenger.chat.call.v2.DISCONNECT"
         const val ACTION_RECONCILE_TERMINAL = "com.pulsemessenger.chat.call.v2.RECONCILE_TERMINAL"
+        const val ACTION_RECONCILE_TAKEN_ELSEWHERE =
+            "com.pulsemessenger.chat.call.v2.RECONCILE_TAKEN_ELSEWHERE"
         const val EXTRA_REQUEST_ID = "request_id"
         const val EXTRA_SESSION_ID = "session_id"
         const val EXTRA_CALLEE_UID = "callee_uid"
         const val EXTRA_DISPLAY_NAME = "display_name"
         const val EXTRA_MEDIA_TYPE = "media_type"
+        const val EXTRA_ACCEPTED_INSTALLATION_ID = "accepted_installation_id"
 
         private const val TAG = "PulseCallService"
         private const val CALLING_API_URL = "https://api.pulse-messenger.com"
@@ -583,6 +612,15 @@ class PulseCallService : Service() {
             Intent(context, PulseCallService::class.java)
                 .setAction(ACTION_RECONCILE_TERMINAL)
                 .putExtra(EXTRA_SESSION_ID, sessionId)
+
+        fun takenElsewhereIntent(
+            context: Context,
+            sessionId: String,
+            acceptedInstallationId: String,
+        ): Intent = Intent(context, PulseCallService::class.java)
+            .setAction(ACTION_RECONCILE_TAKEN_ELSEWHERE)
+            .putExtra(EXTRA_SESSION_ID, sessionId)
+            .putExtra(EXTRA_ACCEPTED_INSTALLATION_ID, acceptedInstallationId)
 
         fun disconnectIntent(context: Context, sessionId: String): Intent =
             Intent(context, PulseCallService::class.java)

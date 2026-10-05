@@ -105,6 +105,7 @@ class RailwayCallSignalingClient internal constructor(
         expectedRevision: Long,
         command: PulseSignalingCommand,
         reason: String?,
+        installationId: String?,
     ): PulseSignalingResponse {
         require(sessionId.isNotBlank()) { "sessionId is required" }
         require(eventId.isNotBlank()) { "eventId is required" }
@@ -117,6 +118,7 @@ class RailwayCallSignalingClient internal constructor(
                 expectedRevision,
                 command,
                 reason,
+                installationId,
             ),
         ).also(::rememberSession)
     }

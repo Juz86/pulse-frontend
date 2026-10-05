@@ -52,6 +52,7 @@ data class PulseServerCallSession(
     val mediaReadyUids: Set<String>,
     val terminalReason: String?,
     val terminalByUid: String?,
+    val acceptedInstallationId: String? = null,
     val iceRestartSequence: Long = 0,
 )
 
@@ -113,6 +114,7 @@ interface PulseCallSignalingGateway {
         expectedRevision: Long,
         command: PulseSignalingCommand,
         reason: String? = null,
+        installationId: String? = null,
     ): PulseSignalingResponse
 
     suspend fun fetchSnapshot(sessionId: String): PulseSignalingResponse

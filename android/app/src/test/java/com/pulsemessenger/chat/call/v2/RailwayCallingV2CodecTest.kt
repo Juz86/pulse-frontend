@@ -30,9 +30,11 @@ class RailwayCallingV2CodecTest {
             eventId = "event-123",
             expectedRevision = 2,
             command = PulseSignalingCommand.ACCEPT,
+            installationId = "installation-123",
         )
 
         assertEquals("ACCEPT", payload.getString("command"))
+        assertEquals("installation-123", payload.getString("installationId"))
         assertFalse(payload.has("reason"))
     }
 
@@ -55,7 +57,8 @@ class RailwayCallingV2CodecTest {
                         "mediaReadyUids": ["caller"],
                         "iceRestartSequence": 2,
                         "terminalReason": null,
-                        "terminalByUid": null
+                        "terminalByUid": null,
+                        "acceptedInstallationId": "installation-123"
                     }
                 }""".trimIndent(),
             ),
@@ -67,6 +70,7 @@ class RailwayCallingV2CodecTest {
         assertEquals(PulseCallMediaType.AUDIO, response.session?.mediaType)
         assertEquals(setOf("caller"), response.session?.mediaReadyUids)
         assertEquals(2L, response.session?.iceRestartSequence)
+        assertEquals("installation-123", response.session?.acceptedInstallationId)
         assertNull(response.session?.terminalReason)
     }
 

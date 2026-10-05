@@ -1,5 +1,6 @@
 package com.pulsemessenger.chat.call.v2
 
+import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -7,6 +8,7 @@ import kotlin.coroutines.resume
 data class PulseCallIdentity(
     val uid: String,
     val authToken: String,
+    val installationId: String,
 )
 
 fun interface PulseCallIdentityProvider {
@@ -14,8 +16,11 @@ fun interface PulseCallIdentityProvider {
 }
 
 class FirebasePulseCallIdentityProvider(
+    context: Context,
     private val auth: FirebaseAuth = FirebaseAuth.getInstance(),
 ) : PulseCallIdentityProvider {
+    private val applicationContext = context.applicationContext
+
     override suspend fun getIdentity(): PulseCallIdentity? {
         val user = auth.currentUser ?: return null
         val token = suspendCancellableCoroutine<String?> { continuation ->
@@ -27,6 +32,10 @@ class FirebasePulseCallIdentityProvider(
                     if (continuation.isActive) continuation.resume(null)
                 }
         }?.takeIf(String::isNotBlank) ?: return null
-        return PulseCallIdentity(uid = user.uid, authToken = token)
+        return PulseCallIdentity(
+            uid = user.uid,
+            authToken = token,
+            installationId = PulsePushTokenRegistrar.installationId(applicationContext),
+        )
     }
 }

@@ -26,12 +26,14 @@ object RailwayCallingV2Codec {
         expectedRevision: Long,
         command: PulseSignalingCommand,
         reason: String? = null,
+        installationId: String? = null,
     ): JSONObject = JSONObject()
         .put("sessionId", sessionId)
         .put("eventId", eventId)
         .put("expectedRevision", expectedRevision)
         .put("command", command.name)
         .apply { if (reason != null) put("reason", reason) }
+        .apply { if (installationId != null) put("installationId", installationId) }
 
     fun encodeSnapshotRequest(sessionId: String): JSONObject =
         JSONObject().put("sessionId", sessionId)
@@ -158,6 +160,7 @@ object RailwayCallingV2Codec {
             },
             terminalReason = payload.optionalString("terminalReason"),
             terminalByUid = payload.optionalString("terminalByUid"),
+            acceptedInstallationId = payload.optionalString("acceptedInstallationId"),
             iceRestartSequence = payload.optLong("iceRestartSequence", 0).coerceAtLeast(0),
         )
     }

@@ -30,6 +30,13 @@ enum class PulseTerminalReconcileResult {
     REJECTED,
 }
 
+enum class PulseTakenElsewhereReconcileResult {
+    RECONCILED,
+    WINNING_DEVICE,
+    NOT_ACTIVE,
+    REJECTED,
+}
+
 class PulseCallSessionOrchestrator(
     private val scope: CoroutineScope,
     private val identityProvider: PulseCallIdentityProvider,
@@ -223,6 +230,33 @@ class PulseCallSessionOrchestrator(
             PulseTerminalReconcileResult.RECONCILED
         }
 
+    suspend fun reconcileTakenElsewhere(
+        sessionId: String,
+        acceptedInstallationId: String,
+    ): PulseTakenElsewhereReconcileResult = launchMutex.withLock {
+        val current = serverSession.get()
+        val localIdentity = identity.get()
+        if (current?.sessionId != sessionId || localIdentity == null) {
+            return@withLock PulseTakenElsewhereReconcileResult.NOT_ACTIVE
+        }
+        if (localIdentity.installationId == acceptedInstallationId) {
+            return@withLock PulseTakenElsewhereReconcileResult.WINNING_DEVICE
+        }
+        val response = signaling.fetchSnapshot(sessionId)
+        val authoritative = response.session
+        if (!response.ok ||
+            authoritative?.sessionId != sessionId ||
+            authoritative.calleeUid != localIdentity.uid ||
+            authoritative.acceptedInstallationId != acceptedInstallationId ||
+            authoritative.state !in setOf(PulseServerCallState.CONNECTING, PulseServerCallState.ACTIVE)
+        ) {
+            return@withLock PulseTakenElsewhereReconcileResult.REJECTED
+        }
+        serverSession.set(authoritative)
+        endTakenElsewhere(authoritative)
+        PulseTakenElsewhereReconcileResult.RECONCILED
+    }
+
     fun requestAnswer(sessionId: String) {
         scope.launch {
             val snapshot = coordinator.state.value
@@ -285,6 +319,11 @@ class PulseCallSessionOrchestrator(
         val current = serverSession.get() ?: return
         val localIdentity = identity.get() ?: return
         if (session.sessionId != current.sessionId || session.revision < current.revision) return
+        if (session.isTakenElsewhere(localIdentity)) {
+            serverSession.set(session)
+            scope.launch(start = CoroutineStart.UNDISPATCHED) { endTakenElsewhere(session) }
+            return
+        }
         serverSession.set(session)
         val result = coordinator.onSignalingSnapshot(session, localIdentity.uid)
         if (result !in setOf(PulseCoordinatorResult.APPLIED, PulseCoordinatorResult.IDEMPOTENT)) return
@@ -366,6 +405,12 @@ class PulseCallSessionOrchestrator(
 
     private suspend fun confirmAccept(sessionId: String) {
         val response = sendCommand(PulseSignalingCommand.ACCEPT)
+        val localIdentity = identity.get()
+        val acceptedSession = response?.session
+        if (localIdentity != null && acceptedSession?.isTakenElsewhere(localIdentity) == true) {
+            endTakenElsewhere(acceptedSession)
+            return
+        }
         val confirmed = response?.status in setOf(
             PulseSignalingStatus.APPLIED,
             PulseSignalingStatus.DUPLICATE,
@@ -505,6 +550,22 @@ class PulseCallSessionOrchestrator(
         terminating.set(false)
     }
 
+    private suspend fun endTakenElsewhere(session: PulseServerCallSession) {
+        if (serverSession.get()?.sessionId != session.sessionId ||
+            !terminating.compareAndSet(false, true)
+        ) return
+        PulseCallDiagnostics.event(
+            "CALL_TAKEN_ELSEWHERE",
+            session.sessionId,
+            status = "LOCAL_DEVICE_LOST",
+            state = session.state.name,
+        )
+        coordinator.beginEnding(session.sessionId, remote = true)
+        if (!telecom.disconnect(session.sessionId, DisconnectCause(DisconnectCause.REMOTE))) {
+            completeCleanup(session.sessionId)
+        }
+    }
+
     private suspend fun sendCommand(
         command: PulseSignalingCommand,
         reason: String? = null,
@@ -520,6 +581,7 @@ class PulseCallSessionOrchestrator(
                 expectedRevision = expectedRevision,
                 command = command,
                 reason = reason,
+                installationId = identity.get()?.installationId,
             )
             response.session?.let(::onSessionUpdated)
             if (response.status != PulseSignalingStatus.CONFLICT) {
@@ -585,6 +647,11 @@ class PulseCallSessionOrchestrator(
     private fun isBusy(): Boolean =
         telecomJob?.isActive == true ||
             coordinator.state.value.state !in setOf(PulseCallState.IDLE, PulseCallState.ENDED)
+
+    private fun PulseServerCallSession.isTakenElsewhere(localIdentity: PulseCallIdentity): Boolean =
+        localIdentity.uid == calleeUid &&
+            acceptedInstallationId != null &&
+            acceptedInstallationId != localIdentity.installationId
 
     private fun PulseSignalingResponse.toLaunchResult(): PulseCallLaunchResult = when (status) {
         PulseSignalingStatus.BUSY -> PulseCallLaunchResult.BUSY

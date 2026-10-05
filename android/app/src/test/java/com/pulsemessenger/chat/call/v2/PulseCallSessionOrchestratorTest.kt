@@ -111,6 +111,58 @@ class PulseCallSessionOrchestratorTest {
         assertEquals(listOf("snapshot", "command:ACCEPT"), signaling.operations)
         assertEquals(listOf("session-123"), telecom.activatedSessions)
         assertEquals(PulseCallState.CONNECTING, coordinator.state.value.state)
+        assertEquals("test-installation", signaling.commandInstallationIds.single())
+    }
+
+    @Test
+    fun `callee device that loses accept race stops locally without ending server call`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+        }
+        val telecom = FakeTelecom()
+        val engine = FakeMediaEngine()
+        val subject = subject(coordinator, signaling, telecom, mediaEngine = engine)
+        subject.registerIncoming("session-123", "Test contact")
+
+        signaling.listener?.onSessionUpdated(
+            session(
+                state = PulseServerCallState.CONNECTING,
+                revision = 3,
+                acceptedInstallationId = "other-installation",
+            ),
+        )
+
+        assertEquals(listOf("session-123"), telecom.disconnectedSessions)
+        assertEquals(PulseCallState.ENDED, coordinator.state.value.state)
+        assertEquals(0, engine.startCount)
+        assertEquals(listOf("snapshot"), signaling.operations)
+    }
+
+    @Test
+    fun `taken elsewhere wake is verified against Railway before stopping Telecom`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+        }
+        val telecom = FakeTelecom()
+        val subject = subject(coordinator, signaling, telecom)
+        subject.registerIncoming("session-123", "Test contact")
+        signaling.snapshotResponse = response(
+            session(
+                state = PulseServerCallState.CONNECTING,
+                revision = 3,
+                acceptedInstallationId = "authoritative-winner",
+            ),
+        )
+
+        val stale = subject.reconcileTakenElsewhere("session-123", "different-winner")
+        val verified = subject.reconcileTakenElsewhere("session-123", "authoritative-winner")
+
+        assertEquals(PulseTakenElsewhereReconcileResult.REJECTED, stale)
+        assertEquals(PulseTakenElsewhereReconcileResult.RECONCILED, verified)
+        assertEquals(listOf("session-123"), telecom.disconnectedSessions)
+        assertEquals(PulseCallState.ENDED, coordinator.state.value.state)
     }
 
     @Test
@@ -569,12 +621,17 @@ class PulseCallSessionOrchestratorTest {
         signaling: FakeSignaling,
         telecom: FakeTelecom,
         identityUid: String = "callee",
+        installationId: String = "test-installation",
         mediaEngine: FakeMediaEngine? = null,
         beforeMediaStart: () -> Boolean = { true },
     ) = PulseCallSessionOrchestrator(
         scope = scope,
         identityProvider = PulseCallIdentityProvider {
-            PulseCallIdentity(uid = identityUid, authToken = "firebase-token")
+            PulseCallIdentity(
+                uid = identityUid,
+                authToken = "firebase-token",
+                installationId = installationId,
+            )
         },
         signaling = signaling,
         telecom = telecom,
@@ -599,6 +656,7 @@ class PulseCallSessionOrchestratorTest {
         revision: Long,
         terminalByUid: String? = null,
         iceRestartSequence: Long = 0,
+        acceptedInstallationId: String? = null,
     ) = PulseServerCallSession(
         protocolVersion = PULSE_CALL_PROTOCOL_VERSION,
         sessionId = "session-123",
@@ -611,6 +669,7 @@ class PulseCallSessionOrchestratorTest {
         mediaReadyUids = emptySet(),
         terminalReason = if (state == PulseServerCallState.ENDED) "hangup" else null,
         terminalByUid = terminalByUid,
+        acceptedInstallationId = acceptedInstallationId,
         iceRestartSequence = iceRestartSequence,
     )
 
@@ -621,6 +680,7 @@ class PulseCallSessionOrchestratorTest {
         val commandResponses = ArrayDeque<PulseSignalingResponse>()
         val operations = mutableListOf<String>()
         val commandReasons = mutableListOf<Pair<PulseSignalingCommand, String?>>()
+        val commandInstallationIds = mutableListOf<String?>()
         var disconnected = false
 
         override suspend fun connect(authToken: String, listener: PulseCallSignalingListener) {
@@ -643,9 +703,11 @@ class PulseCallSessionOrchestratorTest {
             expectedRevision: Long,
             command: PulseSignalingCommand,
             reason: String?,
+            installationId: String?,
         ): PulseSignalingResponse {
             operations += "command:${command.name}"
             commandReasons += command to reason
+            commandInstallationIds += installationId
             return commandResponses.removeFirst()
         }
 

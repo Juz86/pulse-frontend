@@ -15,6 +15,11 @@ class PulseMessagingService : MessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        val takenElsewhere = PulseCallTakenElsewherePushParser.parse(remoteMessage.data)
+        if (takenElsewhere != null) {
+            handleTakenElsewhere(takenElsewhere)
+            return
+        }
         val terminalCall = PulseTerminalCallPushParser.parse(remoteMessage.data)
         if (terminalCall != null) {
             handleTerminalCall(terminalCall)
@@ -63,6 +68,35 @@ class PulseMessagingService : MessagingService() {
                 status = error.javaClass.simpleName,
             )
             Log.e(TAG, "Incoming call foreground service could not start", error)
+        }
+    }
+
+    private fun handleTakenElsewhere(push: PulseCallTakenElsewherePush) {
+        PulseCallDiagnostics.event(
+            "FCM_TAKEN_ELSEWHERE_RECEIVED",
+            push.sessionId,
+            revision = push.revision,
+        )
+        if (PulsePushTokenRegistrar.installationId(this) == push.acceptedInstallationId) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+            FirebaseAuth.getInstance().currentUser == null
+        ) return
+        runCatching {
+            ContextCompat.startForegroundService(
+                this,
+                PulseCallService.takenElsewhereIntent(
+                    this,
+                    push.sessionId,
+                    push.acceptedInstallationId,
+                ),
+            )
+        }.onFailure { error ->
+            PulseCallDiagnostics.event(
+                "TAKEN_ELSEWHERE_SERVICE_FAILED",
+                push.sessionId,
+                status = error.javaClass.simpleName,
+            )
+            Log.e(TAG, "Taken-elsewhere reconciliation service could not start", error)
         }
     }
 

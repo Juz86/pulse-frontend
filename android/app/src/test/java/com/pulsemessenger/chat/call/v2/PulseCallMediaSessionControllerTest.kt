@@ -248,6 +248,7 @@ class PulseCallMediaSessionControllerTest {
             expectedRevision: Long,
             command: PulseSignalingCommand,
             reason: String?,
+            installationId: String?,
         ) = PulseSignalingResponse(false, PulseSignalingStatus.SERVICE_UNAVAILABLE)
 
         override suspend fun fetchSnapshot(sessionId: String) =

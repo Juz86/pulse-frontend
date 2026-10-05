@@ -82,4 +82,37 @@ class PulseIncomingCallPushParserTest {
             ),
         )
     }
+
+    @Test
+    fun `accepts a taken elsewhere wake-up`() {
+        val parsed = PulseCallTakenElsewherePushParser.parse(
+            mapOf(
+                "type" to "calling_v2_taken_elsewhere",
+                "protocolVersion" to "2",
+                "sessionId" to "session-123",
+                "acceptedInstallationId" to "installation-456",
+                "revision" to "3",
+            ),
+        )
+
+        assertEquals(
+            PulseCallTakenElsewherePush("session-123", "installation-456", 3),
+            parsed,
+        )
+    }
+
+    @Test
+    fun `rejects malformed taken elsewhere wake-ups`() {
+        assertNull(
+            PulseCallTakenElsewherePushParser.parse(
+                mapOf(
+                    "type" to "calling_v2_taken_elsewhere",
+                    "protocolVersion" to "2",
+                    "sessionId" to "session-123",
+                    "acceptedInstallationId" to "bad/id",
+                    "revision" to "3",
+                ),
+            ),
+        )
+    }
 }

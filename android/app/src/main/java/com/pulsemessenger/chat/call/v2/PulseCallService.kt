@@ -71,6 +71,9 @@ class PulseCallService : Service() {
             onRecoveryRecordChanged = { record ->
                 if (record == null) recoveryStore.clear() else recoveryStore.save(record)
             },
+            onCallFailure = { sessionId, reason ->
+                PulseCallUiEvents.reportFailure(this, sessionId, reason)
+            },
         )
         networkMonitor = AndroidPulseNetworkMonitor(this) {
             serviceScope.launch {
@@ -138,7 +141,7 @@ class PulseCallService : Service() {
                 Log.e(TAG, "Outgoing call launch failed", error)
                 PulseCallLaunchResult.SIGNALING_UNAVAILABLE
             }
-            handleLaunchResult(requestId, result)
+            handleLaunchResult(requestId, result, notifyUi = true)
         }
     }
 
@@ -214,7 +217,7 @@ class PulseCallService : Service() {
                 sessionId,
                 status = result.name,
             )
-            handleLaunchResult(sessionId, result)
+            handleLaunchResult(sessionId, result, notifyUi = false)
         }
     }
 
@@ -415,14 +418,29 @@ class PulseCallService : Service() {
         return true
     }
 
-    private fun handleLaunchResult(callId: String, result: PulseCallLaunchResult) {
+    private fun handleLaunchResult(
+        callId: String,
+        result: PulseCallLaunchResult,
+        notifyUi: Boolean,
+    ) {
         launchJob = null
         if (result == PulseCallLaunchResult.STARTED) {
             foregroundCallId = coordinator.state.value.sessionId ?: callId
             return
         }
         Log.w(TAG, "Call launch rejected: $result")
+        if (notifyUi) {
+            PulseCallUiEvents.reportFailure(this, callId, result.uiErrorCode())
+        }
         stopCallForeground(callId)
+    }
+
+    private fun PulseCallLaunchResult.uiErrorCode(): String = when (this) {
+        PulseCallLaunchResult.BUSY -> "call_already_active"
+        PulseCallLaunchResult.AUTH_REQUIRED -> "native_auth_required"
+        PulseCallLaunchResult.SIGNALING_UNAVAILABLE -> "call_signaling_unavailable"
+        PulseCallLaunchResult.REJECTED -> "call_rejected"
+        PulseCallLaunchResult.STARTED -> error("A started call has no UI error")
     }
 
     private fun onCallStateChanged(snapshot: PulseCallSnapshot) {

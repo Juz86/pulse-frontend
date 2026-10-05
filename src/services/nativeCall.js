@@ -67,6 +67,15 @@ export async function clearNativeCallIdentity() {
   return PulseCall.clearIdentity();
 }
 
+export async function addNativeCallStatusListener(callback) {
+  if (!isAndroidNative() || typeof callback !== 'function') return { remove: async () => {} };
+  try {
+    return await PulseCall.addListener('callStatusChanged', callback);
+  } catch {
+    return { remove: async () => {} };
+  }
+}
+
 export async function startNativeAudioCall({ calleeUid, displayName }) {
   if (!isAndroidNative()) {
     const error = new Error('native_call_unavailable');
@@ -108,6 +117,15 @@ export function nativeCallErrorMessage(error) {
     case 'native_auth_code_invalid':
     case 'native_auth_unavailable':
       return 'De beveiligde oproepverbinding is tijdelijk niet beschikbaar.';
+    case 'call_signaling_unavailable':
+    case 'signaling_error':
+      return 'De oproepverbinding met Pulse is verbroken.';
+    case 'media_error':
+      return 'De audioverbinding kon niet worden opgebouwd.';
+    case 'telecom_error':
+      return 'Android kon de oproep niet registreren.';
+    case 'call_rejected':
+      return 'De oproep is door de belservice geweigerd.';
     default:
       return 'De oproep kon niet worden gestart.';
   }

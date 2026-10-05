@@ -19,6 +19,7 @@ import useContacts from '../hooks/useContacts';
 import useRealtimeSync from '../hooks/useRealtimeSync';
 import { auth } from '../firebase';
 import {
+  addNativeCallStatusListener,
   getNativeCallCapabilities,
   nativeCallErrorMessage,
   startNativeAudioCall,
@@ -109,6 +110,12 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const chatSearchRef  = useRef(null);
   const mutedConversationIdsRef = useRef(mutedConversationIds);
 
+  const showErrToast = useCallback((msg) => {
+    setErrToast(msg);
+    clearTimeout(errToastTimer.current);
+    errToastTimer.current = setTimeout(() => setErrToast(''), 4000);
+  }, []);
+
   useEffect(() => {
     let active = true;
     getNativeCallCapabilities().then((capabilities) => {
@@ -119,11 +126,23 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     };
   }, []);
 
-  function showErrToast(msg) {
-    setErrToast(msg);
-    clearTimeout(errToastTimer.current);
-    errToastTimer.current = setTimeout(() => setErrToast(''), 4000);
-  }
+  useEffect(() => {
+    let listener = null;
+    let active = true;
+    addNativeCallStatusListener((event) => {
+      if (active && event?.status === 'failed') {
+        showErrToast(nativeCallErrorMessage({ code: event.code }));
+      }
+    }).then((handle) => {
+      if (active) listener = handle;
+      else handle?.remove?.();
+    });
+    return () => {
+      active = false;
+      listener?.remove?.();
+    };
+  }, [showErrToast]);
+
   function toggleDnd() {
     const next = !dndRef.current;
     dndRef.current = next; setDnd(next);

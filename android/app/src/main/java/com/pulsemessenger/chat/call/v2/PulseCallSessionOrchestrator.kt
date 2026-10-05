@@ -6,6 +6,7 @@ import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -56,6 +57,7 @@ class PulseCallSessionOrchestrator(
     mediaEngineFactory: PulseCallMediaEngineFactory? = null,
     private val beforeMediaStart: () -> Boolean = { true },
     private val onRecoveryRecordChanged: (PulseCallRecoveryRecord?) -> Unit = {},
+    private val onCallFailure: (sessionId: String, reason: String) -> Unit = { _, _ -> },
 ) : PulseCallSignalingListener, PulseTelecomCallbacks, PulseCallMediaSessionCallbacks {
     private val launchMutex = Mutex()
     private val identity = AtomicReference<PulseCallIdentity?>(null)
@@ -609,7 +611,10 @@ class PulseCallSessionOrchestrator(
         telecomJob = scope.launch {
             try {
                 telecom.addCall(request, this@PulseCallSessionOrchestrator)
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Throwable) {
+                onCallFailure(request.sessionId, TELECOM_ERROR)
                 PulseCallDiagnostics.event(
                     "TELECOM_REGISTRATION_FAILED",
                     request.sessionId,
@@ -641,6 +646,7 @@ class PulseCallSessionOrchestrator(
 
     private suspend fun failMedia(sessionId: String, reason: String) {
         if (serverSession.get()?.sessionId != sessionId || !terminating.compareAndSet(false, true)) return
+        onCallFailure(sessionId, reason)
         coordinator.beginEnding(sessionId, remote = false)
         sendCommand(PulseSignalingCommand.FAIL, reason)
         if (!telecom.disconnect(sessionId, DisconnectCause(DisconnectCause.ERROR))) {
@@ -800,6 +806,7 @@ class PulseCallSessionOrchestrator(
     private companion object {
         const val MEDIA_ERROR = "media_error"
         const val SIGNALING_ERROR = "signaling_error"
+        const val TELECOM_ERROR = "telecom_error"
         val RECOVERABLE_SERVER_STATES = setOf(
             PulseServerCallState.CONNECTING,
             PulseServerCallState.ACTIVE,

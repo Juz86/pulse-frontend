@@ -2,6 +2,10 @@ package com.pulsemessenger.chat;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
@@ -19,6 +23,7 @@ import com.pulsemessenger.chat.call.v2.PulseCallCoordinator;
 import com.pulsemessenger.chat.call.v2.PulseCallMediaType;
 import com.pulsemessenger.chat.call.v2.PulseCallService;
 import com.pulsemessenger.chat.call.v2.PulseCallState;
+import com.pulsemessenger.chat.call.v2.PulseCallUiEvents;
 import com.pulsemessenger.chat.call.v2.PulsePushTokenRegistrar;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -41,6 +46,35 @@ public class PulseCallPlugin extends Plugin {
     private static final String NATIVE_AUTH_CLAIM_URL =
         "https://api.pulse-messenger.com/api/calling/v2/native-auth/claim";
     private final ExecutorService authExecutor = Executors.newSingleThreadExecutor();
+    private BroadcastReceiver callStatusReceiver;
+
+    @Override
+    public void load() {
+        super.load();
+        callStatusReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (!PulseCallUiEvents.ACTION_CALL_STATUS_CHANGED.equals(intent.getAction())) return;
+                String status = intent.getStringExtra(PulseCallUiEvents.EXTRA_STATUS);
+                String code = intent.getStringExtra(PulseCallUiEvents.EXTRA_CODE);
+                String callId = intent.getStringExtra(PulseCallUiEvents.EXTRA_CALL_ID);
+                if (!PulseCallUiEvents.STATUS_FAILED.equals(status) || code == null || callId == null) {
+                    return;
+                }
+                JSObject payload = new JSObject();
+                payload.put("status", status);
+                payload.put("code", code);
+                payload.put("callId", callId);
+                notifyListeners("callStatusChanged", payload);
+            }
+        };
+        ContextCompat.registerReceiver(
+            getContext(),
+            callStatusReceiver,
+            new IntentFilter(PulseCallUiEvents.ACTION_CALL_STATUS_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        );
+    }
 
     @PluginMethod
     public void getCapabilities(PluginCall call) {
@@ -251,6 +285,14 @@ public class PulseCallPlugin extends Plugin {
 
     @Override
     protected void handleOnDestroy() {
+        if (callStatusReceiver != null) {
+            try {
+                getContext().unregisterReceiver(callStatusReceiver);
+            } catch (IllegalArgumentException ignored) {
+                // The host may already have released the receiver.
+            }
+            callStatusReceiver = null;
+        }
         authExecutor.shutdownNow();
         super.handleOnDestroy();
     }

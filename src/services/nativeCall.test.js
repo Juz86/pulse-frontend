@@ -1,5 +1,6 @@
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
 import {
+  addNativeCallStatusListener,
   clearNativeCallIdentity,
   getNativeCallCapabilities,
   nativeCallErrorMessage,
@@ -11,6 +12,7 @@ const mockGetCapabilities = jest.fn();
 const mockStartAudioCall = jest.fn();
 const mockSyncIdentity = jest.fn();
 const mockClearIdentity = jest.fn();
+const mockAddListener = jest.fn();
 const mockGetPlatform = jest.fn(() => 'android');
 const mockGetIdToken = jest.fn();
 
@@ -36,6 +38,7 @@ jest.mock('@capacitor/core', () => ({
     startAudioCall: (...args) => mockStartAudioCall(...args),
     syncIdentity: (...args) => mockSyncIdentity(...args),
     clearIdentity: (...args) => mockClearIdentity(...args),
+    addListener: (...args) => mockAddListener(...args),
   }),
 }));
 
@@ -117,5 +120,24 @@ describe('nativeCall', () => {
   test('maps permission errors to a useful message', () => {
     expect(nativeCallErrorMessage({ code: 'microphone_permission_denied' }))
       .toBe('Microfoontoegang is nodig om te bellen.');
+  });
+
+  test('subscribes to asynchronous native call status updates', async () => {
+    const callback = jest.fn();
+    const handle = { remove: jest.fn() };
+    mockAddListener.mockResolvedValueOnce(handle);
+
+    await expect(addNativeCallStatusListener(callback)).resolves.toBe(handle);
+    expect(mockAddListener).toHaveBeenCalledWith('callStatusChanged', callback);
+  });
+
+  test.each([
+    ['call_signaling_unavailable', 'De oproepverbinding met Pulse is verbroken.'],
+    ['signaling_error', 'De oproepverbinding met Pulse is verbroken.'],
+    ['media_error', 'De audioverbinding kon niet worden opgebouwd.'],
+    ['telecom_error', 'Android kon de oproep niet registreren.'],
+    ['call_rejected', 'De oproep is door de belservice geweigerd.'],
+  ])('maps asynchronous %s failures to a useful message', (code, message) => {
+    expect(nativeCallErrorMessage({ code })).toBe(message);
   });
 });

@@ -715,12 +715,14 @@ class PulseCallSessionOrchestratorTest {
         }
         val engine = FakeMediaEngine()
         val telecom = FakeTelecom()
+        val failures = mutableListOf<Pair<String, String>>()
         val subject = subject(
             coordinator = coordinator,
             signaling = signaling,
             telecom = telecom,
             identityUid = "callee",
             mediaEngine = engine,
+            onCallFailure = { sessionId, reason -> failures += sessionId to reason },
         )
         subject.registerIncoming("session-123", "Test contact")
         telecom.callbacks?.onAnswer("session-123", 0)
@@ -732,6 +734,7 @@ class PulseCallSessionOrchestratorTest {
         assertEquals(1, engine.closeCount)
         assertEquals(1, signaling.operations.count { it == "command:FAIL" })
         assertEquals(listOf("session-123"), telecom.disconnectedSessions)
+        assertEquals(listOf("session-123" to "media_error"), failures)
     }
 
     @Test
@@ -768,6 +771,7 @@ class PulseCallSessionOrchestratorTest {
         mediaEngine: FakeMediaEngine? = null,
         beforeMediaStart: () -> Boolean = { true },
         onRecoveryRecordChanged: (PulseCallRecoveryRecord?) -> Unit = {},
+        onCallFailure: (String, String) -> Unit = { _, _ -> },
     ) = PulseCallSessionOrchestrator(
         scope = scope,
         identityProvider = PulseCallIdentityProvider {
@@ -785,6 +789,7 @@ class PulseCallSessionOrchestratorTest {
         },
         beforeMediaStart = beforeMediaStart,
         onRecoveryRecordChanged = onRecoveryRecordChanged,
+        onCallFailure = onCallFailure,
     ).also { orchestrator = it }
 
     private fun response(session: PulseServerCallSession) = PulseSignalingResponse(

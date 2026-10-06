@@ -75,6 +75,17 @@ class RailwayCallingV2CodecTest {
     }
 
     @Test
+    fun `response preserves rate limit status`() {
+        val response = RailwayCallingV2Codec.decodeResponse(
+            JSONObject("""{"ok":false,"status":"RATE_LIMITED"}"""),
+        )
+
+        assertFalse(response.ok)
+        assertEquals(PulseSignalingStatus.RATE_LIMITED, response.status)
+        assertNull(response.session)
+    }
+
+    @Test
     fun `older sessions without an ICE restart sequence remain compatible`() {
         val payload = JSONObject(
             """{

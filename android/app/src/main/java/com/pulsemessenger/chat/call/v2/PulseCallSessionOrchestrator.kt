@@ -18,6 +18,7 @@ enum class PulseCallLaunchResult {
     STARTED,
     BUSY,
     AUTH_REQUIRED,
+    RATE_LIMITED,
     SIGNALING_UNAVAILABLE,
     REJECTED,
 }
@@ -799,6 +800,7 @@ class PulseCallSessionOrchestrator(
 
     private fun PulseSignalingResponse.toLaunchResult(): PulseCallLaunchResult = when (status) {
         PulseSignalingStatus.BUSY -> PulseCallLaunchResult.BUSY
+        PulseSignalingStatus.RATE_LIMITED -> PulseCallLaunchResult.RATE_LIMITED
         PulseSignalingStatus.SERVICE_UNAVAILABLE -> PulseCallLaunchResult.SIGNALING_UNAVAILABLE
         else -> PulseCallLaunchResult.REJECTED
     }

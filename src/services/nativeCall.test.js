@@ -136,6 +136,7 @@ describe('nativeCall', () => {
     ['signaling_error', 'De oproepverbinding met Pulse is verbroken.'],
     ['media_error', 'De audioverbinding kon niet worden opgebouwd.'],
     ['telecom_error', 'Android kon de oproep niet registreren.'],
+    ['call_rate_limited', 'Je hebt in korte tijd te vaak gebeld. Probeer het later opnieuw.'],
     ['call_rejected', 'De oproep is door de belservice geweigerd.'],
   ])('maps asynchronous %s failures to a useful message', (code, message) => {
     expect(nativeCallErrorMessage({ code })).toBe(message);

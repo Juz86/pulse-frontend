@@ -106,6 +106,8 @@ export function nativeCallErrorMessage(error) {
       return 'Microfoontoegang is nodig om te bellen.';
     case 'call_already_active':
       return 'Er is al een actief gesprek.';
+    case 'call_rate_limited':
+      return 'Je hebt in korte tijd te vaak gebeld. Probeer het later opnieuw.';
     case 'app_not_foreground':
       return 'Open Pulse om een gesprek te starten.';
     case 'invalid_call_target':

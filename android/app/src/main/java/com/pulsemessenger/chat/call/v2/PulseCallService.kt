@@ -443,6 +443,7 @@ class PulseCallService : Service() {
     private fun PulseCallLaunchResult.uiErrorCode(): String = when (this) {
         PulseCallLaunchResult.BUSY -> "call_already_active"
         PulseCallLaunchResult.AUTH_REQUIRED -> "native_auth_required"
+        PulseCallLaunchResult.RATE_LIMITED -> "call_rate_limited"
         PulseCallLaunchResult.SIGNALING_UNAVAILABLE -> "call_signaling_unavailable"
         PulseCallLaunchResult.REJECTED -> "call_rejected"
         PulseCallLaunchResult.STARTED -> error("A started call has no UI error")

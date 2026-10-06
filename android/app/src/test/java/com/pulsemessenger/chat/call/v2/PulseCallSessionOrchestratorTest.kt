@@ -762,6 +762,32 @@ class PulseCallSessionOrchestratorTest {
         assertEquals(null, telecom.addedRequest)
     }
 
+    @Test
+    fun `rate limited start is reported distinctly`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            startResponse = PulseSignalingResponse(false, PulseSignalingStatus.RATE_LIMITED)
+        }
+        val telecom = FakeTelecom()
+        val subject = subject(
+            coordinator = coordinator,
+            signaling = signaling,
+            telecom = telecom,
+            identityUid = "caller",
+        ).also { orchestrator = it }
+
+        val result = subject.startOutgoing(
+            requestId = "request-123",
+            calleeUid = "callee",
+            displayName = "Test contact",
+            mediaType = PulseCallMediaType.AUDIO,
+        )
+
+        assertEquals(PulseCallLaunchResult.RATE_LIMITED, result)
+        assertTrue(signaling.disconnected)
+        assertEquals(null, telecom.addedRequest)
+    }
+
     private fun subject(
         coordinator: PulseCallCoordinator,
         signaling: FakeSignaling,

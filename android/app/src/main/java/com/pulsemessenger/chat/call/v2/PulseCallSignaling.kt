@@ -36,6 +36,7 @@ enum class PulseSignalingStatus {
     INVALID_TRANSITION,
     INVALID_REASON,
     ALREADY_ENDED,
+    RATE_LIMITED,
     SERVICE_UNAVAILABLE,
     UNKNOWN,
 }

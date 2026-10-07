@@ -24,8 +24,8 @@ android {
         applicationId "com.pulsemessenger.chat"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 64
-        versionName "1.0.12"
+        versionCode 65
+        versionName "1.0.13"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Public half of the signing key only. The private key is a Cloudflare
         // Pages build secret and must never enter the Android project.
@@ -84,8 +84,23 @@ def copyReleaseWebAssets = tasks.register('copyReleaseWebAssets', Exec) {
     commandLine file("${pulseProjectDir}/node_modules/.bin/cap"), 'copy', 'android'
 }
 
-def verifyReleaseWebAssets = tasks.register('verifyReleaseWebAssets') {
+def androidReleasePublicDir = file('src/main/assets/public')
+
+def pruneReleaseAndroidAssets = tasks.register('pruneReleaseAndroidAssets', Delete) {
     dependsOn copyReleaseWebAssets
+
+    // Marketing media belongs to the public website, not the authenticated native app.
+    delete file("${androidReleasePublicDir}/screenshots"), file("${androidReleasePublicDir}/videos")
+
+    // Android loads the stable aliases; hashed and legacy aliases are duplicate payloads.
+    delete fileTree(dir: file("${androidReleasePublicDir}/static/js"), include: ['main.*.js'])
+        .matching { exclude 'main.latest.js' }
+    delete fileTree(dir: file("${androidReleasePublicDir}/static/css"), include: ['main.*.css'])
+        .matching { exclude 'main.latest.css' }
+}
+
+def verifyReleaseWebAssets = tasks.register('verifyReleaseWebAssets') {
+    dependsOn pruneReleaseAndroidAssets
     inputs.files(releaseMainBundles)
     doLast {
         def mainBundles = releaseMainBundles.files

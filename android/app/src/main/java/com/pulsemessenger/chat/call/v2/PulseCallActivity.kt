@@ -73,7 +73,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.pulsemessenger.chat.R
 import java.util.Locale
 import kotlinx.coroutines.delay
@@ -176,8 +175,7 @@ class PulseCallActivity : ComponentActivity() {
 
     private fun sendCallAction(action: String, callId: String) {
         if (callId.isBlank()) return
-        ContextCompat.startForegroundService(
-            this,
+        startService(
             Intent(this, PulseCallService::class.java)
                 .setAction(action)
                 .putExtra(PulseCallService.EXTRA_SESSION_ID, callId),
@@ -186,8 +184,7 @@ class PulseCallActivity : ComponentActivity() {
 
     private fun sendAudioRouteAction(callId: String, routeId: String) {
         if (callId.isBlank() || routeId.isBlank()) return
-        ContextCompat.startForegroundService(
-            this,
+        startService(
             Intent(this, PulseCallService::class.java)
                 .setAction(PulseCallService.ACTION_SELECT_AUDIO_ROUTE)
                 .putExtra(PulseCallService.EXTRA_SESSION_ID, callId)

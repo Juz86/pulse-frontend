@@ -81,7 +81,16 @@ class PulseCallSessionOrchestrator(
         displayName: String,
         mediaType: PulseCallMediaType,
     ): PulseCallLaunchResult = launchMutex.withLock {
-        if (isBusy()) return@withLock PulseCallLaunchResult.BUSY
+        if (isBusy()) {
+            val snapshot = coordinator.state.value
+            PulseCallDiagnostics.event(
+                "START_REJECTED",
+                requestId,
+                status = "LOCAL_BUSY",
+                state = snapshot.state.name,
+            )
+            return@withLock PulseCallLaunchResult.BUSY
+        }
         if (requestId.isBlank() || calleeUid.isBlank() || displayName.isBlank()) {
             return@withLock PulseCallLaunchResult.REJECTED
         }
@@ -92,6 +101,12 @@ class PulseCallSessionOrchestrator(
         }
         val response = signaling.startCall(requestId, calleeUid, mediaType)
         val session = response.session
+        PulseCallDiagnostics.event(
+            "START_RESPONSE",
+            session?.sessionId ?: requestId,
+            status = response.status.name,
+            state = session?.state?.name,
+        )
         if (!response.ok || session == null) {
             signaling.disconnect()
             return@withLock response.toLaunchResult()
@@ -118,7 +133,12 @@ class PulseCallSessionOrchestrator(
             mediaType = mediaType,
         )
         if (coordinator.begin(request) != PulseCoordinatorResult.APPLIED) {
-            PulseCallDiagnostics.event("COORDINATOR_REJECTED", session.sessionId, status = "BUSY")
+            PulseCallDiagnostics.event(
+                "COORDINATOR_REJECTED",
+                session.sessionId,
+                status = "COORDINATOR_BUSY",
+                state = coordinator.state.value.state.name,
+            )
             signaling.disconnect()
             return@withLock PulseCallLaunchResult.BUSY
         }

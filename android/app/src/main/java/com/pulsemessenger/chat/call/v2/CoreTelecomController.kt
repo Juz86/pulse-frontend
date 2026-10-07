@@ -8,8 +8,11 @@ import androidx.core.net.toUri
 import androidx.core.telecom.CallAttributesCompat
 import androidx.core.telecom.CallControlResult
 import androidx.core.telecom.CallControlScope
+import androidx.core.telecom.CallEndpointCompat
 import androidx.core.telecom.CallsManager
 import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -18,6 +21,7 @@ class CoreTelecomController(context: Context) : PulseTelecomController {
     private data class ActiveCall(
         val sessionId: String,
         val scope: CallControlScope,
+        val endpoints: AtomicReference<List<CallEndpointCompat>> = AtomicReference(emptyList()),
     )
 
     private val callsManager = CallsManager(context.applicationContext)
@@ -74,7 +78,26 @@ class CoreTelecomController(context: Context) : PulseTelecomController {
                     callbacks.onSetInactive(request.sessionId)
                 },
             ) {
-                activeCall.set(ActiveCall(request.sessionId, this))
+                val call = ActiveCall(request.sessionId, this)
+                activeCall.set(call)
+                PulseCallAudioRoutes.begin(request.sessionId)
+                launch {
+                    availableEndpoints.collectLatest { endpoints ->
+                        call.endpoints.set(endpoints)
+                        PulseCallAudioRoutes.updateAvailable(
+                            request.sessionId,
+                            endpoints.mapNotNull(::toPulseAudioRoute),
+                        )
+                    }
+                }
+                launch {
+                    currentCallEndpoint.collectLatest { endpoint ->
+                        PulseCallAudioRoutes.updateCurrent(
+                            request.sessionId,
+                            toPulseAudioRoute(endpoint),
+                        )
+                    }
+                }
                 PulseCallDiagnostics.event(
                     if (request.direction == PulseCallDirection.INCOMING) {
                         "TELECOM_INCOMING_REGISTERED"
@@ -88,6 +111,7 @@ class CoreTelecomController(context: Context) : PulseTelecomController {
             }
         } finally {
             activeCall.compareAndSet(activeCall.get()?.takeIf { it.sessionId == request.sessionId }, null)
+            PulseCallAudioRoutes.clear(request.sessionId)
         }
     }
 
@@ -101,8 +125,31 @@ class CoreTelecomController(context: Context) : PulseTelecomController {
         return call.scope.setActive() is CallControlResult.Success
     }
 
+    override suspend fun requestAudioRoute(sessionId: String, routeId: String): Boolean {
+        val call = activeCall.get()?.takeIf { it.sessionId == sessionId } ?: return false
+        val endpoint = call.endpoints.get().firstOrNull {
+            it.identifier.uuid.toString() == routeId
+        } ?: return false
+        return call.scope.requestEndpointChange(endpoint) is CallControlResult.Success
+    }
+
     override suspend fun disconnect(sessionId: String, cause: DisconnectCause): Boolean {
         val call = activeCall.get()?.takeIf { it.sessionId == sessionId } ?: return false
         return call.scope.disconnect(cause) is CallControlResult.Success
+    }
+
+    private fun toPulseAudioRoute(endpoint: CallEndpointCompat): PulseAudioRoute? {
+        val type = when (endpoint.type) {
+            CallEndpointCompat.TYPE_EARPIECE -> PulseAudioRouteType.EARPIECE
+            CallEndpointCompat.TYPE_SPEAKER -> PulseAudioRouteType.SPEAKER
+            CallEndpointCompat.TYPE_BLUETOOTH -> PulseAudioRouteType.BLUETOOTH
+            CallEndpointCompat.TYPE_WIRED_HEADSET -> PulseAudioRouteType.WIRED_HEADSET
+            else -> return null
+        }
+        return PulseAudioRoute(
+            id = endpoint.identifier.uuid.toString(),
+            name = endpoint.name.toString(),
+            type = type,
+        )
     }
 }

@@ -61,6 +61,7 @@ class PulseCallSessionOrchestrator(
     private val onCallFailure: (sessionId: String, reason: String) -> Unit = { _, _ -> },
 ) : PulseCallSignalingListener, PulseTelecomCallbacks, PulseCallMediaSessionCallbacks {
     private val launchMutex = Mutex()
+    private val muteMutex = Mutex()
     private val identity = AtomicReference<PulseCallIdentity?>(null)
     private val serverSession = AtomicReference<PulseServerCallSession?>(null)
     private val terminating = AtomicBoolean(false)
@@ -402,6 +403,35 @@ class PulseCallSessionOrchestrator(
         }
     }
 
+    fun requestAudioRoute(sessionId: String, routeId: String) {
+        scope.launch {
+            val snapshot = coordinator.state.value
+            if (snapshot.sessionId != sessionId || snapshot.state != PulseCallState.ACTIVE) {
+                return@launch
+            }
+            telecom.requestAudioRoute(sessionId, routeId)
+        }
+    }
+
+    fun requestToggleMute(sessionId: String) {
+        scope.launch {
+            muteMutex.withLock {
+                val snapshot = coordinator.state.value
+                if (snapshot.sessionId != sessionId || snapshot.state != PulseCallState.ACTIVE) {
+                    return@withLock
+                }
+                val muted = !snapshot.isMuted
+                PulseCallDiagnostics.event("MUTE_REQUESTED", sessionId, status = muted.toString())
+                if (mediaSessions?.setMuted(sessionId, muted) == true) {
+                    coordinator.onMutedChanged(sessionId, muted)
+                    PulseCallDiagnostics.event("MUTE_CHANGED", sessionId, status = muted.toString())
+                } else {
+                    PulseCallDiagnostics.event("MUTE_FAILED", sessionId)
+                }
+            }
+        }
+    }
+
     suspend fun shutdown() {
         terminating.set(true)
         telecomJob?.cancel()
@@ -648,7 +678,7 @@ class PulseCallSessionOrchestrator(
     private suspend fun failMedia(sessionId: String, reason: String) {
         if (serverSession.get()?.sessionId != sessionId || !terminating.compareAndSet(false, true)) return
         onCallFailure(sessionId, reason)
-        coordinator.beginEnding(sessionId, remote = false)
+        coordinator.beginEnding(sessionId, remote = false, terminalReason = reason)
         sendCommand(PulseSignalingCommand.FAIL, reason)
         if (!telecom.disconnect(sessionId, DisconnectCause(DisconnectCause.ERROR))) {
             completeCleanup(sessionId)
@@ -666,7 +696,11 @@ class PulseCallSessionOrchestrator(
         } else {
             PulseSignalingCommand.END
         }
-        coordinator.beginEnding(sessionId, remote = false)
+        coordinator.beginEnding(
+            sessionId,
+            remote = false,
+            terminalReason = if (command == PulseSignalingCommand.DECLINE) "declined" else "hangup",
+        )
         sendCommand(command)
         completeCleanup(sessionId)
     }
@@ -693,7 +727,11 @@ class PulseCallSessionOrchestrator(
             status = "LOCAL_DEVICE_LOST",
             state = session.state.name,
         )
-        coordinator.beginEnding(session.sessionId, remote = true)
+        coordinator.beginEnding(
+            session.sessionId,
+            remote = true,
+            terminalReason = "taken_elsewhere",
+        )
         if (!telecom.disconnect(session.sessionId, DisconnectCause(DisconnectCause.REMOTE))) {
             completeCleanup(session.sessionId)
         }

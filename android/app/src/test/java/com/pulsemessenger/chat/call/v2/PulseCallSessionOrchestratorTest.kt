@@ -994,6 +994,8 @@ class PulseCallSessionOrchestratorTest {
             return true
         }
 
+        override suspend fun requestAudioRoute(sessionId: String, routeId: String): Boolean = true
+
         override suspend fun disconnect(sessionId: String, cause: DisconnectCause): Boolean {
             disconnectedSessions += sessionId
             callbacks?.onDisconnect(sessionId, cause)

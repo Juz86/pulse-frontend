@@ -1,5 +1,6 @@
 package com.pulsemessenger.chat.call.v2
 
+import android.os.SystemClock
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -7,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class PulseCallCoordinator private constructor(
     private val stateMachine: PulseCallStateMachine,
+    private val elapsedRealtime: () -> Long,
 ) {
     private val lock = Any()
     private val mutableState = MutableStateFlow(PulseCallSnapshot())
@@ -15,6 +17,11 @@ class PulseCallCoordinator private constructor(
     private var localMediaReady = false
     private var telecomRegistered = false
     private var telecomActive = false
+    private var isMuted = false
+    private var activeSinceElapsedRealtimeMs: Long? = null
+    private var wasActive = false
+    private var terminalReason: String? = null
+    private var finalActiveDurationMs: Long? = null
 
     val state: StateFlow<PulseCallSnapshot> = mutableState.asStateFlow()
 
@@ -41,6 +48,11 @@ class PulseCallCoordinator private constructor(
         localMediaReady = false
         telecomRegistered = false
         telecomActive = false
+        isMuted = false
+        activeSinceElapsedRealtimeMs = null
+        wasActive = false
+        terminalReason = null
+        finalActiveDurationMs = null
         val result = applyLocked(request.sessionId, event)
         if (result != PulseCoordinatorResult.APPLIED) {
             this.request = null
@@ -100,6 +112,17 @@ class PulseCallCoordinator private constructor(
         PulseCoordinatorResult.APPLIED
     }
 
+    fun onMutedChanged(sessionId: String, muted: Boolean): PulseCoordinatorResult = synchronized(lock) {
+        if (!ownsLocked(sessionId)) return@synchronized PulseCoordinatorResult.REJECTED_SESSION
+        if (stateMachine.state != PulseCallState.ACTIVE) {
+            return@synchronized PulseCoordinatorResult.REJECTED_TRANSITION
+        }
+        if (isMuted == muted) return@synchronized PulseCoordinatorResult.IDEMPOTENT
+        isMuted = muted
+        publishLocked()
+        PulseCoordinatorResult.APPLIED
+    }
+
     fun onSignalingSnapshot(
         snapshot: PulseServerCallSession,
         localUid: String,
@@ -137,13 +160,21 @@ class PulseCallCoordinator private constructor(
         PulseCoordinatorResult.APPLIED
     }
 
-    fun beginEnding(sessionId: String, remote: Boolean): PulseCoordinatorResult = synchronized(lock) {
+    fun beginEnding(
+        sessionId: String,
+        remote: Boolean,
+        terminalReason: String? = null,
+    ): PulseCoordinatorResult = synchronized(lock) {
         if (!ownsLocked(sessionId)) return@synchronized PulseCoordinatorResult.REJECTED_SESSION
+        terminalReason?.takeIf(String::isNotBlank)?.let { this.terminalReason = it }
         if (stateMachine.state in setOf(PulseCallState.ENDING, PulseCallState.ENDED)) {
+            publishLocked()
             return@synchronized PulseCoordinatorResult.IDEMPOTENT
         }
         telecomActive = false
         localMediaReady = false
+        isMuted = false
+        freezeActiveDurationLocked()
         applyLocked(
             sessionId,
             if (remote) PulseCallEvent.REMOTE_ENDED else PulseCallEvent.END_REQUESTED,
@@ -180,6 +211,17 @@ class PulseCallCoordinator private constructor(
             PulseCallTransition.Outcome.REJECTED_STALE_SESSION -> PulseCoordinatorResult.REJECTED_SESSION
             else -> PulseCoordinatorResult.REJECTED_TRANSITION
         }
+        if (result == PulseCoordinatorResult.APPLIED) {
+            when (stateMachine.state) {
+                PulseCallState.ACTIVE -> if (activeSinceElapsedRealtimeMs == null) {
+                    activeSinceElapsedRealtimeMs = elapsedRealtime()
+                    wasActive = true
+                }
+                PulseCallState.ENDING, PulseCallState.ENDED -> freezeActiveDurationLocked()
+                PulseCallState.IDLE -> activeSinceElapsedRealtimeMs = null
+                else -> Unit
+            }
+        }
         if (result == PulseCoordinatorResult.APPLIED && publish) publishLocked()
         return result
     }
@@ -192,16 +234,17 @@ class PulseCallCoordinator private constructor(
         localUid: String,
     ): PulseCoordinatorResult {
         if (snapshot.state == PulseServerCallState.ENDED) {
+            terminalReason = snapshot.terminalReason
             if (stateMachine.state in setOf(PulseCallState.ENDING, PulseCallState.ENDED)) {
                 return PulseCoordinatorResult.IDEMPOTENT
             }
             telecomActive = false
             return applyLocked(
                 snapshot.sessionId,
-                if (snapshot.terminalByUid == localUid) {
-                    PulseCallEvent.END_REQUESTED
-                } else {
-                    PulseCallEvent.REMOTE_ENDED
+                when {
+                    snapshot.terminalReason == "declined" -> PulseCallEvent.REMOTE_DECLINED
+                    snapshot.terminalByUid == localUid -> PulseCallEvent.END_REQUESTED
+                    else -> PulseCallEvent.REMOTE_ENDED
                 },
                 publish = false,
             )
@@ -268,6 +311,11 @@ class PulseCallCoordinator private constructor(
             localMediaReady = localMediaReady,
             telecomRegistered = telecomRegistered,
             telecomActive = telecomActive,
+            isMuted = isMuted,
+            activeSinceElapsedRealtimeMs = activeSinceElapsedRealtimeMs,
+            wasActive = wasActive,
+            terminalReason = terminalReason,
+            finalActiveDurationMs = finalActiveDurationMs,
         )
     }
 
@@ -279,15 +327,29 @@ class PulseCallCoordinator private constructor(
         localMediaReady = false
         telecomRegistered = false
         telecomActive = false
+        isMuted = false
+        activeSinceElapsedRealtimeMs = null
+        wasActive = false
+        terminalReason = null
+        finalActiveDurationMs = null
         publishLocked()
+    }
+
+    private fun freezeActiveDurationLocked() {
+        val activeSince = activeSinceElapsedRealtimeMs ?: return
+        if (wasActive && finalActiveDurationMs == null) {
+            finalActiveDurationMs = (elapsedRealtime() - activeSince).coerceAtLeast(0L)
+        }
     }
 
     companion object {
         val instance: PulseCallCoordinator by lazy {
-            PulseCallCoordinator(PulseCallStateMachine())
+            PulseCallCoordinator(PulseCallStateMachine(), SystemClock::elapsedRealtime)
         }
 
-        internal fun createForTests(): PulseCallCoordinator =
-            PulseCallCoordinator(PulseCallStateMachine())
+        internal fun createForTests(
+            elapsedRealtime: () -> Long = { 1_000L },
+        ): PulseCallCoordinator =
+            PulseCallCoordinator(PulseCallStateMachine(), elapsedRealtime)
     }
 }

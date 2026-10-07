@@ -137,6 +137,11 @@ class PulseCallMediaSessionController(
             .isSuccess
     }
 
+    suspend fun setMuted(sessionId: String, muted: Boolean): Boolean {
+        val mediaSession = active.get()?.takeIf { it.sessionId == sessionId } ?: return false
+        return runCatching { mediaSession.engine.setMuted(muted) }.isSuccess
+    }
+
     suspend fun close(sessionId: String? = null) {
         val mediaSession = lifecycleMutex.withLock {
             val current = active.get() ?: return@withLock null

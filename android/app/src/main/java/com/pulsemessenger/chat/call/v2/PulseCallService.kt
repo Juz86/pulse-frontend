@@ -23,7 +23,6 @@ import androidx.core.app.Person
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.IconCompat
-import com.pulsemessenger.chat.MainActivity
 import com.pulsemessenger.chat.R
 import java.net.URI
 import kotlinx.coroutines.CancellationException
@@ -46,6 +45,7 @@ class PulseCallService : Service() {
     private var stateJob: Job? = null
     private var foregroundCallId: String? = null
     private var foregroundDisplayName: String? = null
+    private var callUiOpenedForId: String? = null
     private lateinit var networkMonitor: PulseNetworkMonitor
     private lateinit var recoveryStore: PulseCallRecoveryStore
     private lateinit var incomingCallRinger: PulseIncomingCallRinger
@@ -98,6 +98,8 @@ class PulseCallService : Service() {
             ACTION_REGISTER_INCOMING -> registerIncoming(intent)
             ACTION_ANSWER -> handleNotificationAction(intent, NotificationAction.ANSWER)
             ACTION_DISCONNECT -> handleNotificationAction(intent, NotificationAction.DISCONNECT)
+            ACTION_SELECT_AUDIO_ROUTE -> selectAudioRoute(intent)
+            ACTION_TOGGLE_MUTE -> toggleMute(intent)
             ACTION_RECONCILE_TERMINAL -> reconcileTerminal(intent)
             ACTION_RECONCILE_TAKEN_ELSEWHERE -> reconcileTakenElsewhere(intent)
             null -> recoverPersistedCall()
@@ -329,6 +331,17 @@ class PulseCallService : Service() {
         }
     }
 
+    private fun selectAudioRoute(intent: Intent) {
+        val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: return
+        val routeId = intent.requiredString(EXTRA_AUDIO_ROUTE_ID) ?: return
+        orchestrator.requestAudioRoute(sessionId, routeId)
+    }
+
+    private fun toggleMute(intent: Intent) {
+        val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: return
+        orchestrator.requestToggleMute(sessionId)
+    }
+
     private fun dispatchPendingNotificationAction(snapshot: PulseCallSnapshot) {
         val pending = pendingNotificationAction ?: return
         if (snapshot.sessionId != pending.first || !snapshot.telecomRegistered) return
@@ -481,6 +494,23 @@ class PulseCallService : Service() {
         foregroundCallId = snapshot.sessionId
         val displayName = snapshot.displayName ?: foregroundDisplayName ?: return
         foregroundDisplayName = displayName
+        val shouldOpenCallUi =
+            snapshot.direction == PulseCallDirection.OUTGOING &&
+                snapshot.state in setOf(PulseCallState.PREPARING, PulseCallState.RINGING) ||
+                snapshot.state == PulseCallState.ACTIVE
+        if (shouldOpenCallUi &&
+            callUiOpenedForId != snapshot.sessionId
+        ) {
+            callUiOpenedForId = snapshot.sessionId
+            startActivity(
+                PulseCallActivity.intent(
+                    context = this,
+                    callId = snapshot.sessionId,
+                    displayName = displayName,
+                    direction = requireNotNull(snapshot.direction),
+                ),
+            )
+        }
         val status = when (snapshot.state) {
             PulseCallState.IDLE, PulseCallState.PREPARING ->
                 getString(R.string.pulse_call_notification_preparing)
@@ -506,6 +536,7 @@ class PulseCallService : Service() {
         stopIncomingAlert(expectedCallId)
         foregroundCallId = null
         foregroundDisplayName = null
+        callUiOpenedForId = null
         pendingNotificationAction = null
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -538,15 +569,25 @@ class PulseCallService : Service() {
     ): Notification {
         val sessionId = snapshot?.sessionId ?: foregroundCallId
         val isIncoming = incomingPreparing || snapshot?.direction == PulseCallDirection.INCOMING
+        val direction = if (isIncoming) {
+            PulseCallDirection.INCOMING
+        } else {
+            PulseCallDirection.OUTGOING
+        }
         val person = Person.Builder()
             .setName(displayName)
             .setImportant(true)
             .setIcon(IconCompat.createWithBitmap(initialsAvatar(displayName)))
             .build()
-        val openApp = PendingIntent.getActivity(
+        val openCallUi = PendingIntent.getActivity(
             this,
-            0,
-            Intent(this, MainActivity::class.java),
+            sessionId?.hashCode() ?: 0,
+            PulseCallActivity.intent(
+                context = this,
+                callId = sessionId.orEmpty(),
+                displayName = displayName,
+                direction = direction,
+            ),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val builder = NotificationCompat.Builder(
@@ -563,7 +604,7 @@ class PulseCallService : Service() {
             .setAutoCancel(false)
             .setOnlyAlertOnce(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setContentIntent(openApp)
+            .setContentIntent(openCallUi)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .addPerson(person)
@@ -571,6 +612,7 @@ class PulseCallService : Service() {
         if (isIncoming && sessionId != null &&
             (incomingPreparing || snapshot?.state == PulseCallState.RINGING)
         ) {
+            builder.setFullScreenIntent(openCallUi, true)
             builder.setStyle(
                 NotificationCompat.CallStyle.forIncomingCall(
                     person,
@@ -668,6 +710,8 @@ class PulseCallService : Service() {
         const val ACTION_REGISTER_INCOMING = "com.pulsemessenger.chat.call.v2.REGISTER_INCOMING"
         const val ACTION_ANSWER = "com.pulsemessenger.chat.call.v2.ANSWER"
         const val ACTION_DISCONNECT = "com.pulsemessenger.chat.call.v2.DISCONNECT"
+        const val ACTION_SELECT_AUDIO_ROUTE = "com.pulsemessenger.chat.call.v2.SELECT_AUDIO_ROUTE"
+        const val ACTION_TOGGLE_MUTE = "com.pulsemessenger.chat.call.v2.TOGGLE_MUTE"
         const val ACTION_RECONCILE_TERMINAL = "com.pulsemessenger.chat.call.v2.RECONCILE_TERMINAL"
         const val ACTION_RECONCILE_TAKEN_ELSEWHERE =
             "com.pulsemessenger.chat.call.v2.RECONCILE_TAKEN_ELSEWHERE"
@@ -677,6 +721,7 @@ class PulseCallService : Service() {
         const val EXTRA_DISPLAY_NAME = "display_name"
         const val EXTRA_MEDIA_TYPE = "media_type"
         const val EXTRA_ACCEPTED_INSTALLATION_ID = "accepted_installation_id"
+        const val EXTRA_AUDIO_ROUTE_ID = "audio_route_id"
 
         private const val TAG = "PulseCallService"
         private const val CALLING_API_URL = "https://api.pulse-messenger.com"

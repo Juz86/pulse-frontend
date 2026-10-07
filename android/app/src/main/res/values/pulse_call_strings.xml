@@ -5,4 +5,23 @@
     <string name="pulse_call_notification_connecting">Verbinden…</string>
     <string name="pulse_call_notification_active">Verbonden</string>
     <string name="pulse_call_notification_ending">Oproep beëindigen…</string>
+    <string name="pulse_call_brand">Pulse Messenger</string>
+    <string name="pulse_call_encrypted">End-to-end versleuteld</string>
+    <string name="pulse_call_status_incoming">Inkomende spraakoproep</string>
+    <string name="pulse_call_status_calling">Bellen…</string>
+    <string name="pulse_call_status_ringing">Gaat over…</string>
+    <string name="pulse_call_action_decline">Weigeren</string>
+    <string name="pulse_call_action_accept">Accepteren</string>
+    <string name="pulse_call_action_hang_up">Ophangen</string>
+    <string name="pulse_call_action_mute">Dempen</string>
+    <string name="pulse_call_action_muted">Gedempt</string>
+    <string name="pulse_call_action_video">Video</string>
+    <string name="pulse_call_action_speaker">Speaker</string>
+    <string name="pulse_call_audio_output_title">Audio-uitvoer</string>
+    <string name="pulse_call_audio_earpiece">Telefoon (oorstuk)</string>
+    <string name="pulse_call_audio_bluetooth">Bluetooth</string>
+    <string name="pulse_call_audio_wired_headset">Bedrade headset</string>
+    <string name="pulse_call_status_rejected">Oproep geweigerd</string>
+    <string name="pulse_call_status_ended">Oproep beëindigd</string>
+    <string name="pulse_call_action_close">Sluiten</string>
 </resources>

@@ -28,7 +28,27 @@ data class PulseCallSnapshot(
     val localMediaReady: Boolean = false,
     val telecomRegistered: Boolean = false,
     val telecomActive: Boolean = false,
+    val isMuted: Boolean = false,
+    val activeSinceElapsedRealtimeMs: Long? = null,
+    val wasActive: Boolean = false,
+    val terminalReason: String? = null,
+    val finalActiveDurationMs: Long? = null,
 )
+
+enum class PulseCallTerminalPresentation {
+    REJECTED,
+    COMPLETED,
+}
+
+fun PulseCallSnapshot.terminalPresentation(): PulseCallTerminalPresentation? {
+    if (state !in setOf(PulseCallState.ENDING, PulseCallState.ENDED)) return null
+    return when {
+        direction == PulseCallDirection.OUTGOING && terminalReason == "declined" ->
+            PulseCallTerminalPresentation.REJECTED
+        wasActive && terminalReason == "hangup" -> PulseCallTerminalPresentation.COMPLETED
+        else -> null
+    }
+}
 
 enum class PulseCoordinatorResult {
     APPLIED,

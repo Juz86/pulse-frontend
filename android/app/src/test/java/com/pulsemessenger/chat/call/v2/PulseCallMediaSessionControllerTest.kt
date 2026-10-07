@@ -187,6 +187,19 @@ class PulseCallMediaSessionControllerTest {
         assertEquals(1, engine.closeCount)
     }
 
+    @Test
+    fun `mute controls the active WebRTC audio track and remains session bound`() = runBlocking {
+        val engine = FakeMediaEngine()
+        val subject = subject(FakeSignaling(), engine, RecordingCallbacks())
+        subject.start(session(PulseServerCallState.CONNECTING), "caller")
+
+        assertTrue(subject.setMuted("session-123", true))
+        assertFalse(subject.setMuted("other-session", false))
+        assertTrue(subject.setMuted("session-123", false))
+
+        assertEquals(listOf(true, false), engine.muteChanges)
+    }
+
     private fun subject(
         signaling: FakeSignaling,
         engine: FakeMediaEngine,
@@ -289,6 +302,7 @@ class PulseCallMediaSessionControllerTest {
         var listener: PulseCallMediaListener? = null
         var startCount = 0
         var closeCount = 0
+        val muteChanges = mutableListOf<Boolean>()
         var startGate: CompletableDeferred<Unit>? = null
         val remoteDescriptions = mutableListOf<PulseSessionDescription>()
         val remoteCandidates = mutableListOf<PulseIceCandidate>()
@@ -314,7 +328,9 @@ class PulseCallMediaSessionControllerTest {
             mutableState.value = PulseMediaState.RECONNECTING
         }
 
-        override suspend fun setMuted(muted: Boolean) = Unit
+        override suspend fun setMuted(muted: Boolean) {
+            muteChanges += muted
+        }
 
         override suspend fun close() {
             closeCount += 1

@@ -1,6 +1,8 @@
 package com.pulsemessenger.chat.call.v2
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PulseCallCoordinatorTest {
@@ -27,6 +29,32 @@ class PulseCallCoordinatorTest {
             coordinator.begin(request("session-two", PulseCallDirection.INCOMING)),
         )
         assertEquals("session-one", coordinator.state.value.sessionId)
+    }
+
+    @Test
+    fun `confirmed mute state is published only for the active call`() {
+        val coordinator = PulseCallCoordinator.createForTests()
+        coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.ACTIVE, revision = 2),
+            localUid = "caller",
+        )
+
+        assertEquals(
+            PulseCoordinatorResult.APPLIED,
+            coordinator.onMutedChanged("session-one", true),
+        )
+        assertTrue(coordinator.state.value.isMuted)
+        assertEquals(
+            PulseCoordinatorResult.REJECTED_SESSION,
+            coordinator.onMutedChanged("other-session", false),
+        )
+        assertTrue(coordinator.state.value.isMuted)
+        assertEquals(
+            PulseCoordinatorResult.APPLIED,
+            coordinator.onMutedChanged("session-one", false),
+        )
+        assertFalse(coordinator.state.value.isMuted)
     }
 
     @Test
@@ -185,6 +213,106 @@ class PulseCallCoordinatorTest {
     }
 
     @Test
+    fun `active timestamp starts on authoritative active transition`() {
+        var now = 42_000L
+        val coordinator = PulseCallCoordinator.createForTests { now }
+        coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.CONNECTING, revision = 3),
+            localUid = "caller",
+        )
+
+        assertEquals(null, coordinator.state.value.activeSinceElapsedRealtimeMs)
+
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.ACTIVE, revision = 4),
+            localUid = "caller",
+        )
+        assertEquals(42_000L, coordinator.state.value.activeSinceElapsedRealtimeMs)
+
+        now = 99_000L
+        coordinator.onTelecomSetActive("session-one")
+        assertEquals(42_000L, coordinator.state.value.activeSinceElapsedRealtimeMs)
+
+        coordinator.beginEnding("session-one", remote = false, terminalReason = "hangup")
+        assertEquals(42_000L, coordinator.state.value.activeSinceElapsedRealtimeMs)
+        assertEquals(57_000L, coordinator.state.value.finalActiveDurationMs)
+        assertTrue(coordinator.state.value.wasActive)
+    }
+
+    @Test
+    fun `declined server reason maps only the outgoing caller to rejected UI`() {
+        val coordinator = PulseCallCoordinator.createForTests()
+        coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.RINGING, revision = 2),
+            localUid = "caller",
+        )
+
+        coordinator.onSignalingSnapshot(
+            serverSession(
+                state = PulseServerCallState.ENDED,
+                revision = 3,
+                terminalReason = "declined",
+                terminalByUid = "callee",
+            ),
+            localUid = "caller",
+        )
+        coordinator.completeCleanup("session-one")
+
+        assertEquals("declined", coordinator.state.value.terminalReason)
+        assertEquals(
+            PulseCallTerminalPresentation.REJECTED,
+            coordinator.state.value.terminalPresentation(),
+        )
+        assertFalse(coordinator.state.value.wasActive)
+    }
+
+    @Test
+    fun `normal hangup freezes duration measured only from active`() {
+        var now = 10_000L
+        val coordinator = PulseCallCoordinator.createForTests { now }
+        coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.ACTIVE, revision = 2),
+            localUid = "caller",
+        )
+        now = 42_500L
+
+        coordinator.onSignalingSnapshot(
+            serverSession(
+                state = PulseServerCallState.ENDED,
+                revision = 3,
+                terminalReason = "hangup",
+                terminalByUid = "callee",
+            ),
+            localUid = "caller",
+        )
+        coordinator.completeCleanup("session-one")
+
+        assertEquals(32_500L, coordinator.state.value.finalActiveDurationMs)
+        assertEquals(
+            PulseCallTerminalPresentation.COMPLETED,
+            coordinator.state.value.terminalPresentation(),
+        )
+    }
+
+    @Test
+    fun `cancelled missed and failed calls do not use completed terminal UI`() {
+        listOf("cancelled", "missed", "connect_timeout", "signaling_error").forEach { reason ->
+            assertEquals(
+                null,
+                PulseCallSnapshot(
+                    direction = PulseCallDirection.OUTGOING,
+                    state = PulseCallState.ENDED,
+                    wasActive = false,
+                    terminalReason = reason,
+                ).terminalPresentation(),
+            )
+        }
+    }
+
+    @Test
     fun `authoritative reconnect moves active call back to connecting`() {
         val coordinator = PulseCallCoordinator.createForTests()
         coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
@@ -225,6 +353,7 @@ class PulseCallCoordinatorTest {
     private fun serverSession(
         state: PulseServerCallState,
         revision: Long,
+        terminalReason: String? = if (state == PulseServerCallState.ENDED) "hangup" else null,
         terminalByUid: String? = null,
         mediaReadyUids: Set<String> = emptySet(),
     ) = PulseServerCallSession(
@@ -237,7 +366,7 @@ class PulseCallCoordinatorTest {
         state = state,
         revision = revision,
         mediaReadyUids = mediaReadyUids,
-        terminalReason = if (state == PulseServerCallState.ENDED) "hangup" else null,
+        terminalReason = terminalReason,
         terminalByUid = terminalByUid,
     )
 }

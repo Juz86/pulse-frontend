@@ -26,6 +26,7 @@ import androidx.core.graphics.drawable.IconCompat
 import com.pulsemessenger.chat.MainActivity
 import com.pulsemessenger.chat.R
 import java.net.URI
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -237,13 +238,15 @@ class PulseCallService : Service() {
             return
         }
         val reconciliationOnly = foregroundCallId == null
-        if (reconciliationOnly && !startTerminalReconciliationForeground(sessionId)) return
+        if (!startTerminalReconciliationForeground(sessionId)) return
 
         terminalJob?.cancel()
         terminalJob = serviceScope.launch {
-            val result = runCatching {
+            val result = try {
                 orchestrator.reconcileTerminal(sessionId)
-            }.getOrElse { error ->
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
                 Log.e(TAG, "Terminal call reconciliation failed", error)
                 PulseTerminalReconcileResult.SIGNALING_UNAVAILABLE
             }
@@ -272,13 +275,15 @@ class PulseCallService : Service() {
         val acceptedInstallationId = intent.requiredString(EXTRA_ACCEPTED_INSTALLATION_ID)
             ?: return stopIfIdle()
         val reconciliationOnly = foregroundCallId == null
-        if (reconciliationOnly && !startTerminalReconciliationForeground(sessionId)) return
+        if (!startTerminalReconciliationForeground(sessionId)) return
 
         terminalJob?.cancel()
         terminalJob = serviceScope.launch {
-            val result = runCatching {
+            val result = try {
                 orchestrator.reconcileTakenElsewhere(sessionId, acceptedInstallationId)
-            }.getOrElse { error ->
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Throwable) {
                 Log.e(TAG, "Taken-elsewhere reconciliation failed", error)
                 PulseTakenElsewhereReconcileResult.REJECTED
             }
@@ -403,7 +408,7 @@ class PulseCallService : Service() {
     }
 
     private fun startTerminalReconciliationForeground(sessionId: String): Boolean {
-        if (foregroundCallId != null) return false
+        if (foregroundCallId != null && foregroundCallId != sessionId) return false
         foregroundCallId = sessionId
         foregroundDisplayName = getString(R.string.pulse_call_notification_title)
         val serviceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -420,6 +425,7 @@ class PulseCallService : Service() {
             ),
             serviceType,
         )
+        PulseCallDiagnostics.event("TERMINAL_RECONCILIATION_FOREGROUND_STARTED", sessionId)
         return true
     }
 

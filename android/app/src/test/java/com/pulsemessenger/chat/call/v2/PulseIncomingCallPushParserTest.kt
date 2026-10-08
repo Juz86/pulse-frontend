@@ -15,7 +15,21 @@ class PulseIncomingCallPushParserTest {
             ),
         )
 
-        assertEquals(PulseIncomingCallPush("session-123"), parsed)
+        assertEquals(PulseIncomingCallPush("session-123", null), parsed)
+    }
+
+    @Test
+    fun `keeps a valid caller display name`() {
+        val parsed = PulseIncomingCallPushParser.parse(
+            mapOf(
+                "type" to "calling_v2_incoming",
+                "protocolVersion" to "2",
+                "sessionId" to "session-123",
+                "callerDisplayName" to "  Yushua  ",
+            ),
+        )
+
+        assertEquals(PulseIncomingCallPush("session-123", "Yushua"), parsed)
     }
 
     @Test

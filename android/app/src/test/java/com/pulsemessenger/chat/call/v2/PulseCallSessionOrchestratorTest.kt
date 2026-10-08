@@ -342,6 +342,7 @@ class PulseCallSessionOrchestratorTest {
             PulseCallRecoveryRecord(
                 sessionId = "session-123",
                 ownerUid = "caller",
+                peerUid = "callee",
                 displayName = "Test contact",
                 direction = PulseCallDirection.OUTGOING,
                 mediaType = PulseCallMediaType.AUDIO,
@@ -385,6 +386,7 @@ class PulseCallSessionOrchestratorTest {
             PulseCallRecoveryRecord(
                 sessionId = "session-123",
                 ownerUid = "callee",
+                peerUid = "caller",
                 displayName = "Test contact",
                 direction = PulseCallDirection.INCOMING,
                 mediaType = PulseCallMediaType.AUDIO,
@@ -417,6 +419,7 @@ class PulseCallSessionOrchestratorTest {
             PulseCallRecoveryRecord(
                 sessionId = "session-123",
                 ownerUid = "caller",
+                peerUid = "callee",
                 displayName = "Test contact",
                 direction = PulseCallDirection.OUTGOING,
                 mediaType = PulseCallMediaType.AUDIO,
@@ -445,6 +448,7 @@ class PulseCallSessionOrchestratorTest {
             PulseCallRecoveryRecord(
                 sessionId = "session-123",
                 ownerUid = "caller",
+                peerUid = "callee",
                 displayName = "Test contact",
                 direction = PulseCallDirection.OUTGOING,
                 mediaType = PulseCallMediaType.AUDIO,

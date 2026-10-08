@@ -506,6 +506,7 @@ class PulseCallService : Service() {
                 PulseCallActivity.intent(
                     context = this,
                     callId = snapshot.sessionId,
+                    peerUid = snapshot.peerUid.orEmpty(),
                     displayName = displayName,
                     direction = requireNotNull(snapshot.direction),
                 ),
@@ -585,6 +586,7 @@ class PulseCallService : Service() {
             PulseCallActivity.intent(
                 context = this,
                 callId = sessionId.orEmpty(),
+                peerUid = snapshot?.peerUid.orEmpty(),
                 displayName = displayName,
                 direction = direction,
             ),

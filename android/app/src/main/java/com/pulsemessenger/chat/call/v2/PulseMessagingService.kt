@@ -57,7 +57,8 @@ class PulseMessagingService : MessagingService() {
                 PulseCallService.incomingIntent(
                     context = this,
                     sessionId = incomingCall.sessionId,
-                    displayName = getString(R.string.pulse_call_unknown_caller),
+                    displayName = incomingCall.callerDisplayName
+                        ?: getString(R.string.pulse_call_unknown_caller),
                 ),
             )
             PulseCallDiagnostics.event("CALL_SERVICE_START_SUCCEEDED", incomingCall.sessionId)

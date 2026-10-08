@@ -128,6 +128,7 @@ class PulseCallSessionOrchestrator(
 
         val request = PulseCallRequest(
             sessionId = session.sessionId,
+            peerUid = session.calleeUid,
             displayName = displayName,
             direction = PulseCallDirection.OUTGOING,
             mediaType = mediaType,
@@ -206,6 +207,7 @@ class PulseCallSessionOrchestrator(
 
         val request = PulseCallRequest(
             sessionId = session.sessionId,
+            peerUid = session.callerUid,
             displayName = displayName,
             direction = PulseCallDirection.INCOMING,
             mediaType = session.mediaType,
@@ -276,6 +278,7 @@ class PulseCallSessionOrchestrator(
 
             val request = PulseCallRequest(
                 sessionId = session.sessionId,
+                peerUid = record.peerUid,
                 displayName = record.displayName,
                 direction = record.direction,
                 mediaType = record.mediaType,
@@ -840,6 +843,7 @@ class PulseCallSessionOrchestrator(
             PulseCallRecoveryRecord(
                 sessionId = request.sessionId,
                 ownerUid = ownerUid,
+                peerUid = request.peerUid,
                 displayName = request.displayName,
                 direction = request.direction,
                 mediaType = request.mediaType,

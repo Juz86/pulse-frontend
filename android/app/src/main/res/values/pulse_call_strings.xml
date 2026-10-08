@@ -24,4 +24,6 @@
     <string name="pulse_call_status_rejected">Oproep geweigerd</string>
     <string name="pulse_call_status_ended">Oproep beëindigd</string>
     <string name="pulse_call_action_close">Sluiten</string>
+    <string name="pulse_call_action_message">Bericht sturen</string>
+    <string name="pulse_call_action_call_back">Bel terug</string>
 </resources>

@@ -26,7 +26,7 @@ class PulseCallCoordinator private constructor(
     val state: StateFlow<PulseCallSnapshot> = mutableState.asStateFlow()
 
     fun begin(request: PulseCallRequest): PulseCoordinatorResult = synchronized(lock) {
-        if (request.sessionId.isBlank() || request.displayName.isBlank()) {
+        if (request.sessionId.isBlank() || request.peerUid.isBlank() || request.displayName.isBlank()) {
             return@synchronized PulseCoordinatorResult.REJECTED_SESSION
         }
         val current = mutableState.value
@@ -302,6 +302,7 @@ class PulseCallCoordinator private constructor(
         val currentRequest = request
         mutableState.value = PulseCallSnapshot(
             sessionId = stateMachine.sessionId,
+            peerUid = currentRequest?.peerUid,
             displayName = currentRequest?.displayName,
             direction = currentRequest?.direction,
             mediaType = currentRequest?.mediaType,

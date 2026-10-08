@@ -20,6 +20,7 @@ import useRealtimeSync from '../hooks/useRealtimeSync';
 import { auth } from '../firebase';
 import {
   addNativeCallStatusListener,
+  consumeNativeCallFollowUpAction,
   getNativeCallCapabilities,
   nativeCallErrorMessage,
   startNativeAudioCall,
@@ -473,6 +474,29 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     const conv = conversations.find(c => c.id === initialConvId);
     if (conv) { openConversation(conv); onConvIdHandled?.(); }
   }, [conversations, initialConvId, onConvIdHandled, openConversation]);
+  useEffect(() => {
+    let active = true;
+    const openPendingCallConversation = async () => {
+      const action = await consumeNativeCallFollowUpAction();
+      if (!active || !action) return;
+      const contact = contacts.find((entry) => entry.uid === action.peerUid) || {
+        uid: action.peerUid,
+        displayName: action.displayName,
+      };
+      startChatWithContact(contact);
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') openPendingCallConversation();
+    };
+    openPendingCallConversation();
+    window.addEventListener('focus', openPendingCallConversation);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      active = false;
+      window.removeEventListener('focus', openPendingCallConversation);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [contacts, startChatWithContact]);
   // Intentionally run once on mount to avoid re-fetch loops from recreated callbacks.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadConversations(); loadContacts(); loadFriendRequests(); loadBlockedContacts(); }, []);

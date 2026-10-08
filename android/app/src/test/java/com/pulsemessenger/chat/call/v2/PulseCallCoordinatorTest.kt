@@ -346,6 +346,7 @@ class PulseCallCoordinatorTest {
         direction: PulseCallDirection,
     ) = PulseCallRequest(
         sessionId = sessionId,
+        peerUid = if (direction == PulseCallDirection.OUTGOING) "callee" else "caller",
         displayName = "Test contact",
         direction = direction,
     )

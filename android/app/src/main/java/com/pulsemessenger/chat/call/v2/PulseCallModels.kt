@@ -12,6 +12,7 @@ enum class PulseCallMediaType {
 
 data class PulseCallRequest(
     val sessionId: String,
+    val peerUid: String,
     val displayName: String,
     val direction: PulseCallDirection,
     val mediaType: PulseCallMediaType = PulseCallMediaType.AUDIO,
@@ -19,6 +20,7 @@ data class PulseCallRequest(
 
 data class PulseCallSnapshot(
     val sessionId: String? = null,
+    val peerUid: String? = null,
     val displayName: String? = null,
     val direction: PulseCallDirection? = null,
     val mediaType: PulseCallMediaType? = null,

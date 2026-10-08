@@ -20,6 +20,8 @@ import com.getcapacitor.annotation.PermissionCallback;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.pulsemessenger.chat.call.v2.PulseCallCoordinator;
+import com.pulsemessenger.chat.call.v2.PulseCallFollowUpAction;
+import com.pulsemessenger.chat.call.v2.PulseCallFollowUpStore;
 import com.pulsemessenger.chat.call.v2.PulseCallMediaType;
 import com.pulsemessenger.chat.call.v2.PulseCallService;
 import com.pulsemessenger.chat.call.v2.PulseCallState;
@@ -83,6 +85,18 @@ public class PulseCallPlugin extends Plugin {
         result.put("video", false);
         result.put("protocolVersion", 2);
         result.put("microphonePermission", getPermissionState(MICROPHONE).toString());
+        call.resolve(result);
+    }
+
+    @PluginMethod
+    public void consumeFollowUpAction(PluginCall call) {
+        PulseCallFollowUpAction action = PulseCallFollowUpStore.INSTANCE.consume(getContext());
+        JSObject result = new JSObject();
+        if (action != null) {
+            result.put("type", action.getType());
+            result.put("peerUid", action.getPeerUid());
+            result.put("displayName", action.getDisplayName());
+        }
         call.resolve(result);
     }
 

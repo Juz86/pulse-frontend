@@ -36,6 +36,7 @@ import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Bluetooth
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.CallEnd
+import androidx.compose.material.icons.rounded.ChatBubble
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.GraphicEq
@@ -73,8 +74,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import com.pulsemessenger.chat.MainActivity
 import com.pulsemessenger.chat.R
 import java.util.Locale
+import java.util.UUID
 import kotlinx.coroutines.delay
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -94,6 +98,7 @@ class PulseCallActivity : ComponentActivity() {
         }
 
         val initialCallId = intent.getStringExtra(EXTRA_CALL_ID).orEmpty()
+        val initialPeerUid = intent.getStringExtra(EXTRA_PEER_UID).orEmpty()
         val initialName = intent.getStringExtra(EXTRA_DISPLAY_NAME)
             ?.takeIf(String::isNotBlank)
             ?: getString(R.string.pulse_call_unknown_caller)
@@ -138,6 +143,7 @@ class PulseCallActivity : ComponentActivity() {
                 val direction = liveSnapshot?.direction ?: initialDirection
                 val uiState = PulseCallUiState(
                     callId = callId,
+                    peerUid = liveSnapshot?.peerUid ?: initialPeerUid,
                     displayName = liveSnapshot?.displayName ?: initialName,
                     direction = direction,
                     callState = liveSnapshot?.state ?: if (
@@ -163,6 +169,12 @@ class PulseCallActivity : ComponentActivity() {
                     onToggleMute = { sendCallAction(PulseCallService.ACTION_TOGGLE_MUTE, callId) },
                     onAudioRouteSelected = { routeId ->
                         sendAudioRouteAction(callId, routeId)
+                    },
+                    onMessage = {
+                        openConversation(uiState.peerUid, uiState.displayName)
+                    },
+                    onCallBack = {
+                        startCallBack(uiState.peerUid, uiState.displayName)
                     },
                     onClose = ::finishAndRemoveTask,
                 )
@@ -192,19 +204,48 @@ class PulseCallActivity : ComponentActivity() {
         )
     }
 
+    private fun openConversation(peerUid: String, displayName: String) {
+        if (peerUid.isBlank()) return
+        PulseCallFollowUpStore.saveMessage(this, peerUid, displayName)
+        startActivity(
+            Intent(this, MainActivity::class.java).addFlags(
+                Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP,
+            ),
+        )
+        finish()
+    }
+
+    private fun startCallBack(peerUid: String, displayName: String) {
+        if (peerUid.isBlank()) return
+        ContextCompat.startForegroundService(
+            this,
+            PulseCallService.outgoingIntent(
+                context = this,
+                requestId = UUID.randomUUID().toString(),
+                calleeUid = peerUid,
+                displayName = displayName,
+                mediaType = PulseCallMediaType.AUDIO,
+            ),
+        )
+        finish()
+    }
+
     companion object {
         private const val EXTRA_CALL_ID = "call_ui_call_id"
+        private const val EXTRA_PEER_UID = "call_ui_peer_uid"
         private const val EXTRA_DISPLAY_NAME = "call_ui_display_name"
         private const val EXTRA_DIRECTION = "call_ui_direction"
 
         fun intent(
             context: Context,
             callId: String,
+            peerUid: String,
             displayName: String,
             direction: PulseCallDirection,
         ): Intent = Intent(context, PulseCallActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             .putExtra(EXTRA_CALL_ID, callId)
+            .putExtra(EXTRA_PEER_UID, peerUid)
             .putExtra(EXTRA_DISPLAY_NAME, displayName)
             .putExtra(EXTRA_DIRECTION, direction.name)
     }
@@ -212,6 +253,7 @@ class PulseCallActivity : ComponentActivity() {
 
 internal data class PulseCallUiState(
     val callId: String,
+    val peerUid: String,
     val displayName: String,
     val direction: PulseCallDirection,
     val callState: PulseCallState,
@@ -230,6 +272,8 @@ internal fun PulseCallScreen(
     onHangUp: () -> Unit,
     onToggleMute: () -> Unit,
     onAudioRouteSelected: (String) -> Unit,
+    onMessage: () -> Unit,
+    onCallBack: () -> Unit,
     onClose: () -> Unit,
 ) {
     var showAudioOutput by remember(state.callId) { mutableStateOf(false) }
@@ -272,7 +316,12 @@ internal fun PulseCallScreen(
                 }
                 Spacer(Modifier.weight(1f))
                 if (state.terminalPresentation != null) {
-                    CloseCallButton(onClick = onClose)
+                    TerminalCallActions(
+                        actionsEnabled = state.peerUid.isNotBlank(),
+                        onMessage = onMessage,
+                        onClose = onClose,
+                        onCallBack = onCallBack,
+                    )
                 } else if (state.direction == PulseCallDirection.INCOMING &&
                     state.callState in setOf(PulseCallState.PREPARING, PulseCallState.RINGING)
                 ) {
@@ -354,15 +403,34 @@ private fun TerminalCallStatus(
 }
 
 @Composable
-private fun CloseCallButton(onClick: () -> Unit) {
-    RoundCallButton(
-        label = stringResource(R.string.pulse_call_action_close),
-        icon = Icons.Rounded.Close,
-        background = PulseControl,
-        diameter = 68.dp,
-        showLabel = true,
-        onClick = onClick,
-    )
+private fun TerminalCallActions(
+    actionsEnabled: Boolean,
+    onMessage: () -> Unit,
+    onClose: () -> Unit,
+    onCallBack: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.Top,
+    ) {
+        CallControlButton(
+            label = stringResource(R.string.pulse_call_action_message),
+            icon = Icons.Rounded.ChatBubble,
+            onClick = onMessage.takeIf { actionsEnabled },
+        )
+        CallControlButton(
+            label = stringResource(R.string.pulse_call_action_close),
+            icon = Icons.Rounded.Close,
+            onClick = onClose,
+        )
+        CallControlButton(
+            label = stringResource(R.string.pulse_call_action_call_back),
+            icon = Icons.Rounded.Call,
+            background = PulseGreen,
+            onClick = onCallBack.takeIf { actionsEnabled },
+        )
+    }
 }
 
 @Composable

@@ -76,6 +76,21 @@ export async function addNativeCallStatusListener(callback) {
   }
 }
 
+export async function consumeNativeCallFollowUpAction() {
+  if (!isAndroidNative()) return null;
+  try {
+    const action = await PulseCall.consumeFollowUpAction();
+    if (action?.type !== 'message' || !action?.peerUid) return null;
+    return {
+      type: action.type,
+      peerUid: String(action.peerUid),
+      displayName: String(action.displayName || 'Contactpersoon'),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function startNativeAudioCall({ calleeUid, displayName }) {
   if (!isAndroidNative()) {
     const error = new Error('native_call_unavailable');

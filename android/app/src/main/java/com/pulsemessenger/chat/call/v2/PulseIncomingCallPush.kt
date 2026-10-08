@@ -2,6 +2,7 @@ package com.pulsemessenger.chat.call.v2
 
 data class PulseIncomingCallPush(
     val sessionId: String,
+    val callerDisplayName: String?,
 )
 
 data class PulseTerminalCallPush(
@@ -23,7 +24,10 @@ object PulseIncomingCallPushParser {
         if (data["type"] != TYPE || data["protocolVersion"] != PROTOCOL_VERSION) return null
         val sessionId = data["sessionId"]?.trim().orEmpty()
         if (sessionId.length !in 8..128 || !sessionId.all(::isSafeIdentifierCharacter)) return null
-        return PulseIncomingCallPush(sessionId)
+        val callerDisplayName = data["callerDisplayName"]
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() && it.length <= 160 && it.none(Char::isISOControl) }
+        return PulseIncomingCallPush(sessionId, callerDisplayName)
     }
 
     private fun isSafeIdentifierCharacter(character: Char): Boolean =

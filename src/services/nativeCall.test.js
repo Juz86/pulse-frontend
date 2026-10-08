@@ -2,6 +2,7 @@ import { isNativePulseEnvironment } from '../lib/platform/runtime';
 import {
   addNativeCallStatusListener,
   clearNativeCallIdentity,
+  consumeNativeCallFollowUpAction,
   getNativeCallCapabilities,
   nativeCallErrorMessage,
   startNativeAudioCall,
@@ -12,6 +13,7 @@ const mockGetCapabilities = jest.fn();
 const mockStartAudioCall = jest.fn();
 const mockSyncIdentity = jest.fn();
 const mockClearIdentity = jest.fn();
+const mockConsumeFollowUpAction = jest.fn();
 const mockAddListener = jest.fn();
 const mockGetPlatform = jest.fn(() => 'android');
 const mockGetIdToken = jest.fn();
@@ -38,6 +40,7 @@ jest.mock('@capacitor/core', () => ({
     startAudioCall: (...args) => mockStartAudioCall(...args),
     syncIdentity: (...args) => mockSyncIdentity(...args),
     clearIdentity: (...args) => mockClearIdentity(...args),
+    consumeFollowUpAction: (...args) => mockConsumeFollowUpAction(...args),
     addListener: (...args) => mockAddListener(...args),
   }),
 }));
@@ -115,6 +118,20 @@ describe('nativeCall', () => {
     mockClearIdentity.mockResolvedValueOnce({ ok: true });
     await expect(clearNativeCallIdentity()).resolves.toEqual({ ok: true });
     expect(mockClearIdentity).toHaveBeenCalledTimes(1);
+  });
+
+  test('normalizes a pending message action from the ended call screen', async () => {
+    mockConsumeFollowUpAction.mockResolvedValueOnce({
+      type: 'message',
+      peerUid: 'caller-uid',
+      displayName: 'Yushua',
+    });
+
+    await expect(consumeNativeCallFollowUpAction()).resolves.toEqual({
+      type: 'message',
+      peerUid: 'caller-uid',
+      displayName: 'Yushua',
+    });
   });
 
   test('maps permission errors to a useful message', () => {

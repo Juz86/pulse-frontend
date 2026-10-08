@@ -91,7 +91,7 @@ export async function consumeNativeCallFollowUpAction() {
   }
 }
 
-export async function startNativeAudioCall({ calleeUid, displayName }) {
+export async function startNativeAudioCall({ calleeUid, displayName, photoURL = '' }) {
   if (!isAndroidNative()) {
     const error = new Error('native_call_unavailable');
     error.code = 'native_call_unavailable';
@@ -110,6 +110,7 @@ export async function startNativeAudioCall({ calleeUid, displayName }) {
     callerUid: currentUser.uid,
     calleeUid: String(calleeUid).trim(),
     displayName: String(displayName).trim(),
+    photoURL: typeof photoURL === 'string' ? photoURL.trim() : '',
     bootstrapCode,
   });
 }

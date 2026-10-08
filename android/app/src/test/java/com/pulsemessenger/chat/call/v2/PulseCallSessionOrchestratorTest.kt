@@ -38,6 +38,7 @@ class PulseCallSessionOrchestratorTest {
             requestId = "request-123",
             calleeUid = "callee",
             displayName = "Test contact",
+            photoUrl = "https://cdn.pulse.test/contact.jpg",
             mediaType = PulseCallMediaType.AUDIO,
         )
 
@@ -45,6 +46,7 @@ class PulseCallSessionOrchestratorTest {
         assertEquals(listOf("start", "command:INVITE_READY"), signaling.operations)
         assertEquals("session-123", telecom.addedRequest?.sessionId)
         assertEquals(PulseCallState.RINGING, coordinator.state.value.state)
+        assertEquals("https://cdn.pulse.test/contact.jpg", coordinator.state.value.photoUrl)
         assertEquals(2L, coordinator.state.value.signalingRevision)
     }
 

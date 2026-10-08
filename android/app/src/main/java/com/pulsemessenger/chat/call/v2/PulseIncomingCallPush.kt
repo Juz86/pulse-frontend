@@ -3,6 +3,7 @@ package com.pulsemessenger.chat.call.v2
 data class PulseIncomingCallPush(
     val sessionId: String,
     val callerDisplayName: String?,
+    val callerPhotoUrl: String?,
 )
 
 data class PulseTerminalCallPush(
@@ -27,11 +28,17 @@ object PulseIncomingCallPushParser {
         val callerDisplayName = data["callerDisplayName"]
             ?.trim()
             ?.takeIf { it.isNotEmpty() && it.length <= 160 && it.none(Char::isISOControl) }
-        return PulseIncomingCallPush(sessionId, callerDisplayName)
+        val callerPhotoUrl = data["callerPhotoURL"]
+            ?.trim()
+            ?.takeIf(::isSafeHttpsUrl)
+        return PulseIncomingCallPush(sessionId, callerDisplayName, callerPhotoUrl)
     }
 
     private fun isSafeIdentifierCharacter(character: Char): Boolean =
         character.isLetterOrDigit() || character == '-' || character == '_'
+
+    private fun isSafeHttpsUrl(value: String): Boolean = value.length <= 2_048 &&
+        runCatching { java.net.URI(value).scheme.equals("https", ignoreCase = true) }.getOrDefault(false)
 }
 
 object PulseTerminalCallPushParser {

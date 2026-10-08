@@ -15,7 +15,7 @@ class PulseIncomingCallPushParserTest {
             ),
         )
 
-        assertEquals(PulseIncomingCallPush("session-123", null), parsed)
+        assertEquals(PulseIncomingCallPush("session-123", null, null), parsed)
     }
 
     @Test
@@ -26,10 +26,32 @@ class PulseIncomingCallPushParserTest {
                 "protocolVersion" to "2",
                 "sessionId" to "session-123",
                 "callerDisplayName" to "  Yushua  ",
+                "callerPhotoURL" to "https://cdn.pulse.test/yushua.jpg",
             ),
         )
 
-        assertEquals(PulseIncomingCallPush("session-123", "Yushua"), parsed)
+        assertEquals(
+            PulseIncomingCallPush(
+                "session-123",
+                "Yushua",
+                "https://cdn.pulse.test/yushua.jpg",
+            ),
+            parsed,
+        )
+    }
+
+    @Test
+    fun `discards a non-https caller photo`() {
+        val parsed = PulseIncomingCallPushParser.parse(
+            mapOf(
+                "type" to "calling_v2_incoming",
+                "protocolVersion" to "2",
+                "sessionId" to "session-123",
+                "callerPhotoURL" to "http://cdn.pulse.test/yushua.jpg",
+            ),
+        )
+
+        assertEquals(PulseIncomingCallPush("session-123", null, null), parsed)
     }
 
     @Test

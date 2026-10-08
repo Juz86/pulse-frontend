@@ -7,6 +7,7 @@ data class PulseCallRecoveryRecord(
     val ownerUid: String,
     val peerUid: String,
     val displayName: String,
+    val photoUrl: String? = null,
     val direction: PulseCallDirection,
     val mediaType: PulseCallMediaType,
 )
@@ -23,6 +24,7 @@ class PulseCallRecoveryStore(context: Context) {
             .putString(OWNER_UID, record.ownerUid)
             .putString(PEER_UID, record.peerUid)
             .putString(DISPLAY_NAME, record.displayName)
+            .putString(PHOTO_URL, record.photoUrl)
             .putString(DIRECTION, record.direction.name)
             .putString(MEDIA_TYPE, record.mediaType.name)
             .apply()
@@ -33,6 +35,7 @@ class PulseCallRecoveryStore(context: Context) {
         val ownerUid = preferences.getString(OWNER_UID, null)?.takeIf(::isValidValue)
         val peerUid = preferences.getString(PEER_UID, null)?.takeIf(::isValidValue)
         val displayName = preferences.getString(DISPLAY_NAME, null)?.takeIf(::isValidValue)
+        val photoUrl = preferences.getString(PHOTO_URL, null)?.takeIf(::isValidPhotoUrl)
         val direction = preferences.getString(DIRECTION, null)?.let {
             runCatching { PulseCallDirection.valueOf(it) }.getOrNull()
         }
@@ -45,7 +48,15 @@ class PulseCallRecoveryStore(context: Context) {
             clear()
             return null
         }
-        return PulseCallRecoveryRecord(sessionId, ownerUid, peerUid, displayName, direction, mediaType)
+        return PulseCallRecoveryRecord(
+            sessionId,
+            ownerUid,
+            peerUid,
+            displayName,
+            photoUrl,
+            direction,
+            mediaType,
+        )
     }
 
     fun clear(expectedSessionId: String? = null) {
@@ -57,12 +68,16 @@ class PulseCallRecoveryStore(context: Context) {
 
     private fun isValidValue(value: String): Boolean = value.isNotBlank() && value.length <= 256
 
+    private fun isValidPhotoUrl(value: String): Boolean = value.length <= 2_048 &&
+        runCatching { java.net.URI(value).scheme.equals("https", ignoreCase = true) }.getOrDefault(false)
+
     private companion object {
         const val PREFERENCES_NAME = "pulse_call_recovery"
         const val SESSION_ID = "session_id"
         const val OWNER_UID = "owner_uid"
         const val PEER_UID = "peer_uid"
         const val DISPLAY_NAME = "display_name"
+        const val PHOTO_URL = "photo_url"
         const val DIRECTION = "direction"
         const val MEDIA_TYPE = "media_type"
     }

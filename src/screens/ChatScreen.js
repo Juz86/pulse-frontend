@@ -638,6 +638,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       await startNativeAudioCall({
         calleeUid,
         displayName: selectedContact ? getContactDisplayName(selectedContact) : getConvName(activeConv),
+        photoURL: selectedContact?.photoURL || getConvPhoto(activeConv),
       });
     } catch (error) {
       showErrToast(nativeCallErrorMessage(error));

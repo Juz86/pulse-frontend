@@ -79,6 +79,7 @@ class PulseCallSessionOrchestrator(
         requestId: String,
         calleeUid: String,
         displayName: String,
+        photoUrl: String? = null,
         mediaType: PulseCallMediaType,
     ): PulseCallLaunchResult = launchMutex.withLock {
         if (isBusy()) {
@@ -130,6 +131,7 @@ class PulseCallSessionOrchestrator(
             sessionId = session.sessionId,
             peerUid = session.calleeUid,
             displayName = displayName,
+            photoUrl = photoUrl,
             direction = PulseCallDirection.OUTGOING,
             mediaType = mediaType,
         )
@@ -156,6 +158,7 @@ class PulseCallSessionOrchestrator(
     suspend fun registerIncoming(
         sessionId: String,
         displayName: String,
+        photoUrl: String? = null,
     ): PulseCallLaunchResult = launchMutex.withLock {
         PulseCallDiagnostics.event("REGISTER_INCOMING_STARTED", sessionId)
         if (isBusy()) {
@@ -209,6 +212,7 @@ class PulseCallSessionOrchestrator(
             sessionId = session.sessionId,
             peerUid = session.callerUid,
             displayName = displayName,
+            photoUrl = photoUrl,
             direction = PulseCallDirection.INCOMING,
             mediaType = session.mediaType,
         )
@@ -280,6 +284,7 @@ class PulseCallSessionOrchestrator(
                 sessionId = session.sessionId,
                 peerUid = record.peerUid,
                 displayName = record.displayName,
+                photoUrl = record.photoUrl,
                 direction = record.direction,
                 mediaType = record.mediaType,
             )
@@ -845,6 +850,7 @@ class PulseCallSessionOrchestrator(
                 ownerUid = ownerUid,
                 peerUid = request.peerUid,
                 displayName = request.displayName,
+                photoUrl = request.photoUrl,
                 direction = request.direction,
                 mediaType = request.mediaType,
             ),

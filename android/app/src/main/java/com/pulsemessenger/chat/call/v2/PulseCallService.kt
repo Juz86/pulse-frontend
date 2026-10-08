@@ -135,12 +135,13 @@ class PulseCallService : Service() {
         val requestId = intent.requiredString(EXTRA_REQUEST_ID) ?: return stopIfIdle()
         val calleeUid = intent.requiredString(EXTRA_CALLEE_UID) ?: return stopIfIdle()
         val displayName = intent.requiredString(EXTRA_DISPLAY_NAME) ?: return stopIfIdle()
+        val photoUrl = intent.safePhotoUrl(EXTRA_PHOTO_URL)
         val mediaType = intent.mediaType()
 
         if (!startPreparingForeground(requestId, displayName)) return
         launchJob = serviceScope.launch {
             val result = runCatching {
-                orchestrator.startOutgoing(requestId, calleeUid, displayName, mediaType)
+                orchestrator.startOutgoing(requestId, calleeUid, displayName, photoUrl, mediaType)
             }.getOrElse { error ->
                 Log.e(TAG, "Outgoing call launch failed", error)
                 PulseCallLaunchResult.SIGNALING_UNAVAILABLE
@@ -201,12 +202,13 @@ class PulseCallService : Service() {
             )
             return stopIfIdle()
         }
+        val photoUrl = intent.safePhotoUrl(EXTRA_PHOTO_URL)
 
         if (!startPreparingForeground(sessionId, displayName, incoming = true)) return
         PulseCallDiagnostics.event("INCOMING_REGISTRATION_STARTED", sessionId)
         launchJob = serviceScope.launch {
             val result = runCatching {
-                orchestrator.registerIncoming(sessionId, displayName)
+                orchestrator.registerIncoming(sessionId, displayName, photoUrl)
             }.getOrElse { error ->
                 PulseCallDiagnostics.event(
                     "INCOMING_REGISTRATION_FAILED",
@@ -508,6 +510,7 @@ class PulseCallService : Service() {
                     callId = snapshot.sessionId,
                     peerUid = snapshot.peerUid.orEmpty(),
                     displayName = displayName,
+                    photoUrl = snapshot.photoUrl,
                     direction = requireNotNull(snapshot.direction),
                 ),
             )
@@ -588,6 +591,7 @@ class PulseCallService : Service() {
                 callId = sessionId.orEmpty(),
                 peerUid = snapshot?.peerUid.orEmpty(),
                 displayName = displayName,
+                photoUrl = snapshot?.photoUrl,
                 direction = direction,
             ),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
@@ -703,6 +707,14 @@ class PulseCallService : Service() {
     private fun Intent.requiredString(name: String): String? =
         getStringExtra(name)?.takeIf(String::isNotBlank)
 
+    private fun Intent.safePhotoUrl(name: String): String? = getStringExtra(name)
+        ?.trim()
+        ?.takeIf { value ->
+            value.length <= 2_048 && runCatching {
+                java.net.URI(value).scheme.equals("https", ignoreCase = true)
+            }.getOrDefault(false)
+        }
+
     private fun Intent.mediaType(): PulseCallMediaType = getStringExtra(EXTRA_MEDIA_TYPE)?.let {
         runCatching { PulseCallMediaType.valueOf(it) }.getOrNull()
     } ?: PulseCallMediaType.AUDIO
@@ -721,6 +733,7 @@ class PulseCallService : Service() {
         const val EXTRA_SESSION_ID = "session_id"
         const val EXTRA_CALLEE_UID = "callee_uid"
         const val EXTRA_DISPLAY_NAME = "display_name"
+        const val EXTRA_PHOTO_URL = "photo_url"
         const val EXTRA_MEDIA_TYPE = "media_type"
         const val EXTRA_ACCEPTED_INSTALLATION_ID = "accepted_installation_id"
         const val EXTRA_AUDIO_ROUTE_ID = "audio_route_id"
@@ -737,22 +750,26 @@ class PulseCallService : Service() {
             requestId: String,
             calleeUid: String,
             displayName: String,
+            photoUrl: String? = null,
             mediaType: PulseCallMediaType,
         ): Intent = Intent(context, PulseCallService::class.java)
             .setAction(ACTION_START_OUTGOING)
             .putExtra(EXTRA_REQUEST_ID, requestId)
             .putExtra(EXTRA_CALLEE_UID, calleeUid)
             .putExtra(EXTRA_DISPLAY_NAME, displayName)
+            .putExtra(EXTRA_PHOTO_URL, photoUrl)
             .putExtra(EXTRA_MEDIA_TYPE, mediaType.name)
 
         fun incomingIntent(
             context: Context,
             sessionId: String,
             displayName: String,
+            photoUrl: String? = null,
         ): Intent = Intent(context, PulseCallService::class.java)
             .setAction(ACTION_REGISTER_INCOMING)
             .putExtra(EXTRA_SESSION_ID, sessionId)
             .putExtra(EXTRA_DISPLAY_NAME, displayName)
+            .putExtra(EXTRA_PHOTO_URL, photoUrl)
 
         fun terminalIntent(context: Context, sessionId: String): Intent =
             Intent(context, PulseCallService::class.java)

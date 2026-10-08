@@ -304,6 +304,7 @@ class PulseCallCoordinator private constructor(
             sessionId = stateMachine.sessionId,
             peerUid = currentRequest?.peerUid,
             displayName = currentRequest?.displayName,
+            photoUrl = currentRequest?.photoUrl,
             direction = currentRequest?.direction,
             mediaType = currentRequest?.mediaType,
             state = stateMachine.state,

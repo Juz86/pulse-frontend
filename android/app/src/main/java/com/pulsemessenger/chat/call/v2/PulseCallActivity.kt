@@ -2,6 +2,7 @@ package com.pulsemessenger.chat.call.v2
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
@@ -58,6 +59,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -66,6 +68,7 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
@@ -79,7 +82,12 @@ import com.pulsemessenger.chat.MainActivity
 import com.pulsemessenger.chat.R
 import java.util.Locale
 import java.util.UUID
+import java.io.ByteArrayOutputStream
+import java.net.URL
+import javax.net.ssl.HttpsURLConnection
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 @RequiresApi(Build.VERSION_CODES.O)
 class PulseCallActivity : ComponentActivity() {
@@ -99,6 +107,7 @@ class PulseCallActivity : ComponentActivity() {
 
         val initialCallId = intent.getStringExtra(EXTRA_CALL_ID).orEmpty()
         val initialPeerUid = intent.getStringExtra(EXTRA_PEER_UID).orEmpty()
+        val initialPhotoUrl = intent.getStringExtra(EXTRA_PHOTO_URL)
         val initialName = intent.getStringExtra(EXTRA_DISPLAY_NAME)
             ?.takeIf(String::isNotBlank)
             ?: getString(R.string.pulse_call_unknown_caller)
@@ -145,6 +154,7 @@ class PulseCallActivity : ComponentActivity() {
                     callId = callId,
                     peerUid = liveSnapshot?.peerUid ?: initialPeerUid,
                     displayName = liveSnapshot?.displayName ?: initialName,
+                    photoUrl = liveSnapshot?.photoUrl ?: initialPhotoUrl,
                     direction = direction,
                     callState = liveSnapshot?.state ?: if (
                         direction == PulseCallDirection.INCOMING
@@ -174,7 +184,7 @@ class PulseCallActivity : ComponentActivity() {
                         openConversation(uiState.peerUid, uiState.displayName)
                     },
                     onCallBack = {
-                        startCallBack(uiState.peerUid, uiState.displayName)
+                        startCallBack(uiState.peerUid, uiState.displayName, uiState.photoUrl)
                     },
                     onClose = ::finishAndRemoveTask,
                 )
@@ -215,7 +225,7 @@ class PulseCallActivity : ComponentActivity() {
         finish()
     }
 
-    private fun startCallBack(peerUid: String, displayName: String) {
+    private fun startCallBack(peerUid: String, displayName: String, photoUrl: String?) {
         if (peerUid.isBlank()) return
         ContextCompat.startForegroundService(
             this,
@@ -224,6 +234,7 @@ class PulseCallActivity : ComponentActivity() {
                 requestId = UUID.randomUUID().toString(),
                 calleeUid = peerUid,
                 displayName = displayName,
+                photoUrl = photoUrl,
                 mediaType = PulseCallMediaType.AUDIO,
             ),
         )
@@ -234,6 +245,7 @@ class PulseCallActivity : ComponentActivity() {
         private const val EXTRA_CALL_ID = "call_ui_call_id"
         private const val EXTRA_PEER_UID = "call_ui_peer_uid"
         private const val EXTRA_DISPLAY_NAME = "call_ui_display_name"
+        private const val EXTRA_PHOTO_URL = "call_ui_photo_url"
         private const val EXTRA_DIRECTION = "call_ui_direction"
 
         fun intent(
@@ -241,12 +253,14 @@ class PulseCallActivity : ComponentActivity() {
             callId: String,
             peerUid: String,
             displayName: String,
+            photoUrl: String?,
             direction: PulseCallDirection,
         ): Intent = Intent(context, PulseCallActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             .putExtra(EXTRA_CALL_ID, callId)
             .putExtra(EXTRA_PEER_UID, peerUid)
             .putExtra(EXTRA_DISPLAY_NAME, displayName)
+            .putExtra(EXTRA_PHOTO_URL, photoUrl)
             .putExtra(EXTRA_DIRECTION, direction.name)
     }
 }
@@ -255,6 +269,7 @@ internal data class PulseCallUiState(
     val callId: String,
     val peerUid: String,
     val displayName: String,
+    val photoUrl: String?,
     val direction: PulseCallDirection,
     val callState: PulseCallState,
     val activeSinceElapsedRealtimeMs: Long?,
@@ -277,10 +292,11 @@ internal fun PulseCallScreen(
     onClose: () -> Unit,
 ) {
     var showAudioOutput by remember(state.callId) { mutableStateOf(false) }
+    val avatar by rememberContactAvatar(state.photoUrl)
     LaunchedEffect(state.callState) {
         if (state.callState != PulseCallState.ACTIVE) showAudioOutput = false
     }
-    CallBackground(avatar = null) {
+    CallBackground(avatar = avatar) {
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
@@ -300,7 +316,7 @@ internal fun PulseCallScreen(
                 Spacer(Modifier.height(if (compact) 12.dp else 24.dp))
                 CallBrand()
                 Spacer(Modifier.weight(if (compact) 0.45f else 0.75f))
-                ContactAvatar(state.displayName, avatarSize)
+                ContactAvatar(state.displayName, avatar, avatarSize)
                 Spacer(Modifier.height(if (compact) 16.dp else 22.dp))
                 ContactName(state.displayName)
                 Spacer(Modifier.height(6.dp))
@@ -502,7 +518,7 @@ private fun CallBrand() {
 }
 
 @Composable
-internal fun ContactAvatar(displayName: String, size: Dp) {
+internal fun ContactAvatar(displayName: String, avatar: ImageBitmap?, size: Dp) {
     Box(
         modifier = Modifier
             .size(size)
@@ -512,13 +528,79 @@ internal fun ContactAvatar(displayName: String, size: Dp) {
             .background(PulseAvatar),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = initials(displayName),
-            color = Color.White,
-            fontSize = 44.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-        )
+        if (avatar != null) {
+            Image(
+                bitmap = avatar,
+                contentDescription = displayName,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+        } else {
+            Text(
+                text = initials(displayName),
+                color = Color.White,
+                fontSize = 44.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@Composable
+private fun rememberContactAvatar(photoUrl: String?) = produceState<ImageBitmap?>(
+    initialValue = null,
+    key1 = photoUrl,
+) {
+    value = photoUrl?.let { loadRemoteAvatar(it) }
+}
+
+private suspend fun loadRemoteAvatar(photoUrl: String): ImageBitmap? = withContext(Dispatchers.IO) {
+    val url = runCatching { URL(photoUrl) }.getOrNull() ?: return@withContext null
+    if (!url.protocol.equals("https", ignoreCase = true)) return@withContext null
+    val connection = runCatching { url.openConnection() as HttpsURLConnection }.getOrNull()
+        ?: return@withContext null
+    try {
+        connection.connectTimeout = 5_000
+        connection.readTimeout = 7_000
+        connection.instanceFollowRedirects = true
+        connection.connect()
+        if (!connection.url.protocol.equals("https", ignoreCase = true) ||
+            connection.responseCode !in 200..299 ||
+            connection.contentLengthLong > MAX_AVATAR_DOWNLOAD_BYTES ||
+            connection.contentType?.startsWith("image/") != true
+        ) return@withContext null
+
+        val output = ByteArrayOutputStream()
+        connection.inputStream.use { input ->
+            val buffer = ByteArray(8_192)
+            var total = 0
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                total += read
+                if (total > MAX_AVATAR_DOWNLOAD_BYTES) return@withContext null
+                output.write(buffer, 0, read)
+            }
+        }
+        val bytes = output.toByteArray()
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@withContext null
+        var sampleSize = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / sampleSize > MAX_AVATAR_DIMENSION) {
+            sampleSize *= 2
+        }
+        BitmapFactory.decodeByteArray(
+            bytes,
+            0,
+            bytes.size,
+            BitmapFactory.Options().apply { inSampleSize = sampleSize },
+        )?.asImageBitmap()
+    } catch (_: Exception) {
+        null
+    } finally {
+        connection.disconnect()
     }
 }
 
@@ -823,6 +905,9 @@ private fun initials(displayName: String): String {
         else -> words.first().take(1) + words.last().take(1)
     }.uppercase()
 }
+
+private const val MAX_AVATAR_DOWNLOAD_BYTES = 5 * 1024 * 1024
+private const val MAX_AVATAR_DIMENSION = 1_024
 
 private val PulseBackground = Color(0xFF0B0912)
 private val PulseAccent = Color(0xFF8B5CF6)

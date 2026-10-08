@@ -246,6 +246,7 @@ public class PulseCallPlugin extends Plugin {
     private void launchAudioCall(PluginCall call) {
         String calleeUid = normalized(call.getString("calleeUid"), 128);
         String displayName = normalized(call.getString("displayName"), 160);
+        String photoUrl = normalizedHttpsUrl(call.getString("photoURL"));
         String requestId = normalized(call.getString("requestId"), 128);
         if (calleeUid == null || displayName == null) {
             call.reject("Call target is invalid", "invalid_call_target");
@@ -277,6 +278,7 @@ public class PulseCallPlugin extends Plugin {
                     requestId,
                     calleeUid,
                     displayName,
+                    photoUrl,
                     PulseCallMediaType.AUDIO
                 )
             );
@@ -295,6 +297,17 @@ public class PulseCallPlugin extends Plugin {
         String normalized = value.trim();
         if (normalized.isEmpty() || normalized.length() > maxLength) return null;
         return normalized;
+    }
+
+    private String normalizedHttpsUrl(String value) {
+        String normalized = normalized(value, 2_048);
+        if (normalized == null) return null;
+        try {
+            URL url = new URL(normalized);
+            return "https".equalsIgnoreCase(url.getProtocol()) ? normalized : null;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     @Override

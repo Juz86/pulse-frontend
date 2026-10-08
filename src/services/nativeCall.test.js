@@ -70,12 +70,17 @@ describe('nativeCall', () => {
   test('starts an audio call with a unique request and normalized target', async () => {
     mockStartAudioCall.mockResolvedValueOnce({ ok: true, status: 'starting' });
 
-    await startNativeAudioCall({ calleeUid: ' callee ', displayName: ' Contact ' });
+    await startNativeAudioCall({
+      calleeUid: ' callee ',
+      displayName: ' Contact ',
+      photoURL: ' https://cdn.pulse.test/contact.jpg ',
+    });
 
     expect(mockStartAudioCall).toHaveBeenCalledWith(expect.objectContaining({
       callerUid: 'caller-uid',
       calleeUid: 'callee',
       displayName: 'Contact',
+      photoURL: 'https://cdn.pulse.test/contact.jpg',
       bootstrapCode: 'a'.repeat(43),
       requestId: expect.any(String),
     }));

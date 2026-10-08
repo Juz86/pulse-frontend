@@ -27,6 +27,34 @@ class RailwayCallSignalingClientTest {
     }
 
     @Test
+    fun `profile updates are decoded for the active call listener`() = runBlocking {
+        val socket = FakeRailwayCallSocket()
+        val listener = RecordingListener()
+        val client = client(RecordingSocketFactory(socket))
+        client.connect("firebase-token", listener)
+
+        socket.trigger(
+            "user:updated",
+            JSONObject()
+                .put("uid", "callee")
+                .put("displayName", "Nieuwe naam")
+                .put("photoURL", "https://cdn.pulse.test/new.jpg"),
+        )
+
+        assertEquals(
+            listOf(
+                PulsePeerProfileUpdate(
+                    uid = "callee",
+                    displayName = "Nieuwe naam",
+                    photoUrl = "https://cdn.pulse.test/new.jpg",
+                    photoUrlChanged = true,
+                ),
+            ),
+            listener.profileUpdates,
+        )
+    }
+
+    @Test
     fun `start call uses exact Railway event and decodes acknowledgement`() = runBlocking {
         val socket = FakeRailwayCallSocket().apply {
             onEmission = { event, _, acknowledgement ->
@@ -290,6 +318,7 @@ class RailwayCallSignalingClientTest {
         val connections = mutableListOf<Boolean>()
         val sessions = mutableListOf<PulseServerCallSession>()
         val mediaSignals = mutableListOf<PulseRemoteMediaSignal>()
+        val profileUpdates = mutableListOf<PulsePeerProfileUpdate>()
         private val updateLatch = CountDownLatch(expectedUpdates)
 
         override fun onSessionUpdated(session: PulseServerCallSession) {
@@ -303,6 +332,10 @@ class RailwayCallSignalingClientTest {
 
         override fun onMediaSignal(signal: PulseRemoteMediaSignal) {
             mediaSignals += signal
+        }
+
+        override fun onPeerProfileUpdated(update: PulsePeerProfileUpdate) {
+            profileUpdates += update
         }
 
         fun awaitUpdates(): Boolean = updateLatch.await(1, TimeUnit.SECONDS)

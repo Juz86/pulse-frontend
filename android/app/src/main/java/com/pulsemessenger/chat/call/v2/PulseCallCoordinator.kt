@@ -123,6 +123,21 @@ class PulseCallCoordinator private constructor(
         PulseCoordinatorResult.APPLIED
     }
 
+    fun onPeerProfileUpdated(update: PulsePeerProfileUpdate): PulseCoordinatorResult = synchronized(lock) {
+        val currentRequest = request ?: return@synchronized PulseCoordinatorResult.REJECTED_SESSION
+        if (currentRequest.peerUid != update.uid || stateMachine.state == PulseCallState.IDLE) {
+            return@synchronized PulseCoordinatorResult.REJECTED_SESSION
+        }
+        val nextRequest = currentRequest.copy(
+            displayName = update.displayName ?: currentRequest.displayName,
+            photoUrl = if (update.photoUrlChanged) update.photoUrl else currentRequest.photoUrl,
+        )
+        if (nextRequest == currentRequest) return@synchronized PulseCoordinatorResult.IDEMPOTENT
+        request = nextRequest
+        publishLocked()
+        PulseCoordinatorResult.APPLIED
+    }
+
     fun onSignalingSnapshot(
         snapshot: PulseServerCallSession,
         localUid: String,

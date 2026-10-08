@@ -77,6 +77,12 @@ class RailwayCallSignalingClient internal constructor(
                         if (!isCurrent(newSocket, currentGeneration)) return@on
                         dispatchMediaSignal(args.firstOrNull())
                     }
+                    newSocket.on(EVENT_USER_UPDATED) { args ->
+                        if (!isCurrent(newSocket, currentGeneration)) return@on
+                        decodePeerProfileUpdate(args.firstOrNull())?.let { update ->
+                            listener.onPeerProfileUpdated(update)
+                        }
+                    }
                     continuation.invokeOnCancellation {
                         if (isCurrent(newSocket, currentGeneration)) disconnectLocked(notify = true)
                     }
@@ -255,6 +261,26 @@ class RailwayCallSignalingClient internal constructor(
         listener?.onMediaSignal(signal)
     }
 
+    private fun decodePeerProfileUpdate(value: Any?): PulsePeerProfileUpdate? {
+        val payload = value as? JSONObject ?: return null
+        val uid = payload.optString("uid").trim()
+        if (uid.length !in 1..128 || !uid.all(::isSafeIdentifierCharacter)) return null
+        val displayName = payload.optString("displayName")
+            .trim()
+            .takeIf { it.isNotEmpty() && it.length <= 160 && it.none(Char::isISOControl) }
+        val photoUrlChanged = payload.has("photoURL")
+        val photoUrl = payload.optString("photoURL")
+            .trim()
+            .takeIf(::isSafeHttpsUrl)
+        return PulsePeerProfileUpdate(uid, displayName, photoUrl, photoUrlChanged)
+    }
+
+    private fun isSafeIdentifierCharacter(character: Char): Boolean =
+        character.isLetterOrDigit() || character == '-' || character == '_'
+
+    private fun isSafeHttpsUrl(value: String): Boolean = value.length <= 2_048 &&
+        runCatching { URI(value).scheme.equals("https", ignoreCase = true) }.getOrDefault(false)
+
     private fun markMediaMessageReceived(messageId: String): Boolean =
         synchronized(mediaDedupeLock) {
             if (!receivedMediaMessageIds.add(messageId)) return@synchronized false
@@ -299,6 +325,7 @@ class RailwayCallSignalingClient internal constructor(
         const val ACKNOWLEDGEMENT_TIMEOUT_MS = 5_000L
         const val ACKNOWLEDGEMENT_ATTEMPTS = 3
         const val MEDIA_MESSAGE_CACHE_CAPACITY = 512
+        const val EVENT_USER_UPDATED = "user:updated"
     }
 }
 

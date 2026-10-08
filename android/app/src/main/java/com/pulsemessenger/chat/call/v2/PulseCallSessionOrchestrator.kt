@@ -532,6 +532,28 @@ class PulseCallSessionOrchestrator(
         }
     }
 
+    override fun onPeerProfileUpdated(update: PulsePeerProfileUpdate) {
+        if (coordinator.onPeerProfileUpdated(update) != PulseCoordinatorResult.APPLIED) return
+        val snapshot = coordinator.state.value
+        val ownerUid = identity.get()?.uid ?: return
+        val sessionId = snapshot.sessionId ?: return
+        val peerUid = snapshot.peerUid ?: return
+        val displayName = snapshot.displayName ?: return
+        val direction = snapshot.direction ?: return
+        val mediaType = snapshot.mediaType ?: return
+        onRecoveryRecordChanged(
+            PulseCallRecoveryRecord(
+                sessionId = sessionId,
+                ownerUid = ownerUid,
+                peerUid = peerUid,
+                displayName = displayName,
+                photoUrl = snapshot.photoUrl,
+                direction = direction,
+                mediaType = mediaType,
+            ),
+        )
+    }
+
     override fun onConnectionChanged(connected: Boolean) {
         val session = serverSession.get() ?: return
         if (session.state !in RECOVERABLE_SERVER_STATES || terminating.get()) return

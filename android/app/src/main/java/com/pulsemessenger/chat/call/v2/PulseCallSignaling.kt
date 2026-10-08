@@ -70,6 +70,13 @@ data class PulseIceConfigurationResponse(
     val expiresInSeconds: Int = 0,
 )
 
+data class PulsePeerProfileUpdate(
+    val uid: String,
+    val displayName: String?,
+    val photoUrl: String?,
+    val photoUrlChanged: Boolean,
+)
+
 sealed interface PulseRemoteMediaSignal {
     val sessionId: String
     val messageId: String
@@ -94,6 +101,7 @@ interface PulseCallSignalingListener {
     fun onSessionUpdated(session: PulseServerCallSession)
     fun onConnectionChanged(connected: Boolean)
     fun onMediaSignal(signal: PulseRemoteMediaSignal) = Unit
+    fun onPeerProfileUpdated(update: PulsePeerProfileUpdate) = Unit
 }
 
 /**

@@ -32,6 +32,36 @@ class PulseCallCoordinatorTest {
     }
 
     @Test
+    fun `only the current peer can update the live call profile`() {
+        val coordinator = PulseCallCoordinator.createForTests()
+        coordinator.begin(
+            request("session-one", PulseCallDirection.OUTGOING).copy(
+                photoUrl = "https://cdn.pulse.test/old.jpg",
+            ),
+        )
+
+        assertEquals(
+            PulseCoordinatorResult.REJECTED_SESSION,
+            coordinator.onPeerProfileUpdated(
+                PulsePeerProfileUpdate("other", "Anders", null, photoUrlChanged = true),
+            ),
+        )
+        assertEquals(
+            PulseCoordinatorResult.APPLIED,
+            coordinator.onPeerProfileUpdated(
+                PulsePeerProfileUpdate(
+                    "callee",
+                    "Nieuwe naam",
+                    "https://cdn.pulse.test/new.jpg",
+                    photoUrlChanged = true,
+                ),
+            ),
+        )
+        assertEquals("Nieuwe naam", coordinator.state.value.displayName)
+        assertEquals("https://cdn.pulse.test/new.jpg", coordinator.state.value.photoUrl)
+    }
+
+    @Test
     fun `confirmed mute state is published only for the active call`() {
         val coordinator = PulseCallCoordinator.createForTests()
         coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))

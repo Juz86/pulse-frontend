@@ -24,8 +24,8 @@ android {
         applicationId "com.pulsemessenger.chat"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 66
-        versionName "1.0.14"
+        versionCode 67
+        versionName "1.0.15"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Public half of the signing key only. The private key is a Cloudflare
         // Pages build secret and must never enter the Android project.

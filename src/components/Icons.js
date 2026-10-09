@@ -3,8 +3,8 @@
 export { MdAdd           as Plus }          from 'react-icons/md';
 export { MdCall          as Phone }         from 'react-icons/md';
 export { MdCallReceived  as PhoneCall }     from 'react-icons/md';
-export { MdCallMade      as PhoneOutgoing } from 'react-icons/md';
-export { MdCallMissed    as PhoneMissed }   from 'react-icons/md';
+export { MdPhoneForwarded as PhoneOutgoing } from 'react-icons/md';
+export { MdPhoneMissed    as PhoneMissed }   from 'react-icons/md';
 export { MdCallEnd       as PhoneEnd }      from 'react-icons/md';
 export { MdVideocam      as Video }         from 'react-icons/md';
 export { MdVideocamOff   as VideoOff }      from 'react-icons/md';

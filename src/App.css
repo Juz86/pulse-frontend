@@ -2827,6 +2827,126 @@ font-family: 'Inter', sans-serif;
   content:''; position:absolute; top:0; right:0; width:1px; height:100%;
   background:linear-gradient(180deg, rgba(108,99,255,.2), transparent 40%, transparent 60%, rgba(108,99,255,.1));
 }
+
+/* Het hoofdscherm gebruikt een lichte Pulse-variant. Profiel-, groeps- en
+   instellingenpagina's behouden hun eigen paneelkleuren en contrast. */
+.sidebar--light-home {
+  background:#fbfaff;
+  border-right-color:#e5e0ef;
+  box-shadow:4px 0 22px rgba(46,35,82,.08);
+}
+.sidebar--light-home::after {
+  background:linear-gradient(180deg, rgba(108,99,255,.16), rgba(108,99,255,.03) 42%, transparent 72%);
+}
+.sidebar--light-home > .sidebar-header,
+.sidebar--light-home > .chat-filters,
+.sidebar--light-home > .conv-list {
+  --surface:#ffffff;
+  --surface2:#f4f1f8;
+  --surface3:#e6e0ee;
+  --border:rgba(76,58,112,.14);
+  --text:#211936;
+  --text2:#5f5772;
+  --text3:#837b92;
+}
+.sidebar--light-home > .sidebar-header {
+  border-bottom-color:#ebe7f2;
+  background:#ffffff;
+  box-shadow:0 1px 0 rgba(54,40,91,.04);
+}
+.sidebar--light-home .sidebar-header-tab,
+.sidebar--light-home .sidebar-search-trigger {
+  border-color:#e8e3f0;
+  background:#f6f3f9;
+  color:#30264e;
+  box-shadow:none;
+}
+.sidebar--light-home .sidebar-header-tab:hover,
+.sidebar--light-home .sidebar-header-tab:focus-visible,
+.sidebar--light-home .sidebar-search-trigger:hover,
+.sidebar--light-home .sidebar-search-trigger:focus-visible {
+  border-color:#c9bdf1;
+  background:#eee9fb;
+  color:#5f45c5;
+}
+.sidebar--light-home .sidebar-header-tab.active {
+  border-color:#8c6cf0;
+  background:linear-gradient(135deg,#8b6df4,#a855f7);
+  color:#fff;
+  box-shadow:0 6px 16px rgba(108,83,201,.22);
+}
+.sidebar--light-home .sidebar-header-tab-badge {
+  border-color:#ffffff;
+}
+.sidebar--light-home .sidebar-search-window,
+.sidebar--light-home .sidebar-search-window .search-box--top {
+  border-color:#e3ddec;
+  background:#f4f1f7;
+}
+.sidebar--light-home .sidebar-search-window .search-box--top input {
+  color:#211936;
+}
+.sidebar--light-home .sidebar-search-window .search-box--top input::placeholder {
+  color:#898197;
+}
+.sidebar--light-home .sidebar-search-window-close {
+  background:#e7e1ef;
+  color:#30264e;
+}
+.sidebar--light-home > .chat-filters {
+  background:#ffffff;
+  border-bottom:1px solid #eeeaf4;
+}
+.sidebar--light-home > .chat-filters .chat-filter-chip {
+  border-color:#dcd5e7;
+  background:#ffffff;
+  color:#5e566d;
+}
+.sidebar--light-home > .chat-filters .chat-filter-chip:hover {
+  border-color:#9c85e7;
+  background:#f5f1ff;
+  color:#6045c8;
+}
+.sidebar--light-home > .chat-filters .chat-filter-chip.active {
+  border-color:#7b61df;
+  background:#ede8ff;
+  color:#4f36b1;
+  box-shadow:none;
+}
+.sidebar--light-home > .conv-list {
+  background:#fbfaff;
+}
+.sidebar--light-home > .conv-list .conv-item:hover,
+.sidebar--light-home > .conv-list .sidebar-contact-row--openable:hover {
+  background:#f4f1f8;
+}
+.sidebar--light-home > .conv-list .conv-item.active {
+  background:#eee9ff;
+}
+.sidebar--light-home > .conv-list .conv-item::after,
+.sidebar--light-home > .conv-list .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before {
+  background:rgba(76,58,112,.10);
+}
+.sidebar--light-home > .conv-list .conv-reaction-preview {
+  color:#66529e;
+}
+.sidebar--light-home > .conv-list .conv-draft-preview,
+.sidebar--light-home > .conv-list .conv-draft-label {
+  color:#7654cf;
+}
+.sidebar--light-home > .conv-list .conv-typing-pill {
+  border-color:rgba(108,99,255,.14);
+  background:rgba(108,99,255,.08);
+}
+.sidebar--light-home > .conv-list .conv-typing-dots span {
+  background:#705bd0;
+}
+.sidebar--light-home > .conv-list .online-dot {
+  border-color:#fbfaff;
+}
+.sidebar--light-home > .sidebar-footer {
+  background:linear-gradient(180deg, rgba(251,250,255,0) 0%, rgba(251,250,255,.96) 42%);
+}
 .sidebar-bottom-cluster-backdrop {
   position: absolute;
   left: 0;

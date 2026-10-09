@@ -1292,8 +1292,8 @@ export default function ChatModals({
                       : ((contact ? getContactDisplayName(contact) : null) || contact?.displayName || activeConv.memberNames?.[memberId] || memberId);
                     const email = isMe ? user.email : (contact?.email || activeConv.memberEmails?.[memberId] || '');
                     const isMemberAdmin = isGroupAdmin(activeConv, memberId);
-                    const canOpenMemberActions = isGroupInfoAdmin && !isMe;
-                    const canManageMember = canOpenMemberActions && !isMemberAdmin;
+                    const canOpenMemberActions = !isMe;
+                    const canManageMember = isGroupInfoAdmin && !isMemberAdmin;
                     const actionContact = contact || { uid: memberId, displayName: name, email, photoURL: contact?.photoURL || null };
                     return (
                       <div
@@ -1547,8 +1547,8 @@ export default function ChatModals({
                       const isMemberAdmin = isGroupAdmin(activeConv, memberId);
                       const photo     = memberContact?.photoURL || null;
                       const email     = isMe ? user.email : (memberContact?.email || activeConv.memberEmails?.[memberId] || '');
-                      const canOpenMemberActions = isAdmin && !isMe;
-                      const canManageMember = canOpenMemberActions && !isMemberAdmin;
+                      const canOpenMemberActions = !isMe;
+                      const canManageMember = isAdmin && !isMemberAdmin;
                       return (
                         <div
                           key={memberId}

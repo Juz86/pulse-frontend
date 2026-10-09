@@ -816,12 +816,13 @@ export default function ChatSidebar({
         headerAction={(
           <button
             type="button"
-            className="contact-profile-edit-btn contact-profile-close-btn"
-            aria-label="Contact delen sluiten"
-            title="Sluiten"
-            onClick={closeShareContactPage}
+            className="contact-profile-edit-btn new-group-create-header-btn share-contact-page-submit"
+            aria-label="Contact versturen"
+            title="Contact versturen"
+            disabled={shareRecipients.length === 0}
+            onClick={sendSharedContact}
           >
-            <XIcon size={20} aria-hidden="true" />
+            Versturen{shareRecipients.length > 1 ? ` (${shareRecipients.length})` : ''}
           </button>
         )}
       >
@@ -873,11 +874,6 @@ export default function ChatSidebar({
           </div>
         </section>
 
-        <div className="share-contact-page-footer">
-          <button type="button" className="btn-primary" disabled={shareRecipients.length === 0} onClick={sendSharedContact}>
-            Versturen{shareRecipients.length > 1 ? ` (${shareRecipients.length})` : ''}
-          </button>
-        </div>
       </ProfilePageShell>
     );
   };
@@ -2830,13 +2826,13 @@ export default function ChatSidebar({
             : dismissMoreActionsSheet;
 
   return (
-    <aside className={`sidebar${moreActionsMenuOpen ? ' sidebar--more-actions-open' : ''}${isSidebarPageMode ? ' sidebar--settings-open' : ''}`} ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
+    <aside className={`sidebar${!isSidebarPageMode ? ' sidebar--light-home' : ''}${moreActionsMenuOpen ? ' sidebar--more-actions-open' : ''}${isSidebarPageMode ? ' sidebar--settings-open' : ''}`} ref={sidebarRef} onClick={() => { setConvMenu(null); setContactMenu(null); }}>
       {!isSidebarPageMode && (
         <>
           {/* Header */}
           <div className={`sidebar-header${sidebarSearchOpen ? ' sidebar-header--search-open' : ''}`} ref={sidebarHeaderRef}>
             <div className="sidebar-top">
-              <PulseLogo size={50} textSize={26} color="#fff" />
+              <PulseLogo size={50} textSize={26} color="#241b45" />
               <div className="sidebar-header-actions">
                 <button
                   type="button"

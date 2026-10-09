@@ -93,6 +93,28 @@ describe('nativeCall', () => {
     );
   });
 
+  test('coalesces simultaneous taps into one native call launch', async () => {
+    let releaseBootstrap;
+    global.fetch.mockReturnValueOnce(new Promise((resolve) => {
+      releaseBootstrap = () => resolve({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ code: 'b'.repeat(43) }),
+      });
+    }));
+    mockStartAudioCall.mockResolvedValueOnce({ ok: true, status: 'starting' });
+
+    const first = startNativeAudioCall({ calleeUid: 'callee', displayName: 'Contact' });
+    const second = startNativeAudioCall({ calleeUid: 'callee', displayName: 'Contact' });
+    releaseBootstrap();
+
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      { ok: true, status: 'starting' },
+      { ok: true, status: 'starting' },
+    ]);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(mockStartAudioCall).toHaveBeenCalledTimes(1);
+  });
+
   test('does not start Android calling when bootstrap exchange fails', async () => {
     global.fetch.mockResolvedValueOnce({
       ok: false,

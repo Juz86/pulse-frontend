@@ -19,9 +19,19 @@ export function normalizeIncomingMessage(raw, currentUserId) {
   const normalizedAttachment = type === 'attachment'
     ? (normalizeAttachmentPayload(raw.attachment) || null)
     : null;
-  const normalizedCallDirection = type === 'call' ? (raw.direction || null) : null;
+  const normalizedCallPresentation = type === 'call'
+    ? (raw.presentations?.[currentUserId] || raw.callEvent?.presentations?.[currentUserId] || null)
+    : null;
+  const normalizedCallKind = normalizedCallPresentation?.kind || null;
+  const normalizedCallDirection = type === 'call'
+    ? (raw.direction || (
+        normalizedCallKind === 'missed_incoming' || normalizedCallKind?.startsWith('incoming_')
+          ? 'incoming'
+          : 'outgoing'
+      ))
+    : null;
   const normalizedCallDuration = type === 'call' ? (Number(raw.duration) || 0) : 0;
-  const normalizedCallIsVideo = type === 'call' ? !!raw.isVideo : false;
+  const normalizedCallIsVideo = type === 'call' ? (!!raw.isVideo || raw.mediaType === 'video') : false;
   const reactions = raw.reactions && typeof raw.reactions === 'object' && !Array.isArray(raw.reactions)
     ? normalizeSingleUserReaction(raw.reactions, currentUserId)
     : {};
@@ -30,7 +40,7 @@ export function normalizeIncomingMessage(raw, currentUserId) {
     id: raw.id,
     localId: raw.localId || null,
     conversationId: raw.conversationId || raw.convId || null,
-    text: raw.text || '',
+    text: normalizedCallPresentation?.label || raw.text || '',
     senderId,
     createdAt: raw.createdAt || new Date().toISOString(),
 
@@ -55,6 +65,9 @@ export function normalizeIncomingMessage(raw, currentUserId) {
     direction: normalizedCallDirection,
     duration: normalizedCallDuration,
     isVideo: normalizedCallIsVideo,
+    callKind: normalizedCallKind,
+    sessionId: type === 'call' ? (raw.sessionId || null) : null,
+    terminalReason: type === 'call' ? (raw.terminalReason || null) : null,
 
     pending: !!raw.pending,
     failed: !!raw.failed,

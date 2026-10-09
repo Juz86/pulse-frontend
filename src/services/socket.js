@@ -3,15 +3,32 @@
 import { io } from 'socket.io-client';
 import { WS_URL } from '../config/runtimeConfig';
 import { resolveBackendUrl } from '../lib/backendUrl';
+import { isNativePulseEnvironment } from '../lib/platform/runtime';
 
 export const BACKEND_URL = resolveBackendUrl();
 export const SOCKET_URL = WS_URL || BACKEND_URL;
 
 let socket = null;
 
+export function supportsBrowserAudioCalls(runtime = (typeof window === 'undefined' ? {} : window)) {
+  return !isNativePulseEnvironment()
+    && typeof runtime?.RTCPeerConnection === 'function'
+    && typeof runtime?.navigator?.mediaDevices?.getUserMedia === 'function'
+    && runtime?.isSecureContext !== false;
+}
+
+function socketAuth(token) {
+  const browserAudio = supportsBrowserAudioCalls();
+  return {
+    token,
+    callPlatform: browserAudio ? 'web' : undefined,
+    callCapabilities: browserAudio ? ['audio'] : [],
+  };
+}
+
 export function connectSocket(uid, token) {
   if (socket) {
-    if (token) socket.auth = { ...(socket.auth || {}), token };
+    if (token) socket.auth = socketAuth(token);
     if (socket.connected) {
       setTimeout(() => socket.emit('user:online'), 0);
       return socket;
@@ -21,7 +38,7 @@ export function connectSocket(uid, token) {
   }
 
   socket = io(SOCKET_URL, {
-    auth: { token },
+    auth: socketAuth(token),
     transports: ['websocket', 'polling'],
     upgrade: true,
     rememberUpgrade: true,

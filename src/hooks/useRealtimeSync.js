@@ -12,6 +12,7 @@ export const REALTIME_EVENT_DOMAINS = Object.freeze({
   'message:deleted': ['conversations'],
   'message:reaction': ['conversations'],
   'message:status': ['conversations'],
+  'call-history:updated': ['conversations'],
 
   'conversation:created': ['conversations'],
   'conversation:member_added': ['conversations'],

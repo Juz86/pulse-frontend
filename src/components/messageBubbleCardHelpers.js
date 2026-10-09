@@ -15,9 +15,18 @@ const MESSAGE_BUBBLE_CARD_BUILDERS = {
     }),
   }),
   call: (message) => ({
-    type: 'system',
+    type: 'call',
     presentation: {
-      text: message.msg.isVideo ? 'Videogesprek uit een eerdere versie' : 'Gesprek uit een eerdere versie',
+      title: message.msg.text || (message.msg.callKind === 'outgoing_unanswered'
+        ? 'Geen antwoord'
+        : message.msg.callKind?.endsWith('_declined')
+          ? 'Oproep geweigerd'
+          : 'Gemiste spraakoproep'),
+      subtitle: message.msg.callKind?.startsWith('outgoing_')
+        ? 'Tikken om opnieuw te bellen'
+        : 'Tikken om terug te bellen',
+      kind: message.msg.callKind || (message.msg.direction === 'outgoing' ? 'outgoing_unanswered' : 'missed_incoming'),
+      createdAt: message.msg.createdAt,
     },
   }),
   system: (message) => ({
@@ -99,6 +108,7 @@ export function buildMessageBubbleHandlers({
   onCloseReactionPicker,
   onRetry,
   onViewContact,
+  onStartAudioCall,
   interactions,
 }) {
   return {
@@ -109,6 +119,7 @@ export function buildMessageBubbleHandlers({
     onCloseReactionPicker,
     onRetry,
     onViewContact,
+    onStartAudioCall,
     onContextMenu: interactions.handleContextMenu,
     onTouchStart: interactions.handleTouchStart,
     onTouchEnd: interactions.handleTouchEnd,

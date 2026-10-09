@@ -28,6 +28,7 @@ const ChatHeader = React.memo(function ChatHeader({
   onShowStarredMsgs,
   onLeaveGroup,
   callLaunchPending = false,
+  audioCallingAvailable = false,
   onStartAudioCall,
   onClearChat,
   onDeleteChat,
@@ -109,7 +110,7 @@ const ChatHeader = React.memo(function ChatHeader({
               className="chat-header-action-btn chat-header-menu-btn"
               aria-label={`Bel ${getConvName(activeConv)}`}
               title="Bellen"
-              disabled={callLaunchPending}
+              disabled={callLaunchPending || !audioCallingAvailable}
               onClick={onStartAudioCall}
             >
               <Phone size={20} aria-hidden="true" />

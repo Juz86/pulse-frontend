@@ -3,8 +3,51 @@ import {
   getMessageReceiptSummaryLabel,
   getMessageStatusInfo,
 } from './messageBubbleHelpers';
+import { buildMessageBubbleCard } from './messageBubbleCardHelpers';
 
 describe('messageBubbleHelpers', () => {
+  test('missed call cards invite the recipient to call back', () => {
+    expect(buildMessageBubbleCard({
+      msg: {
+        type: 'call',
+        text: 'Gemiste spraakoproep',
+        callKind: 'missed_incoming',
+        createdAt: '2026-10-08T20:48:00.000Z',
+      },
+    })).toEqual({
+      type: 'call',
+      presentation: {
+        title: 'Gemiste spraakoproep',
+        subtitle: 'Tikken om terug te bellen',
+        kind: 'missed_incoming',
+        createdAt: '2026-10-08T20:48:00.000Z',
+      },
+    });
+  });
+
+  test('declined call cards distinguish calling back from calling again', () => {
+    const baseMessage = {
+      type: 'call',
+      text: 'Oproep geweigerd',
+      createdAt: '2026-10-08T20:49:00.000Z',
+    };
+
+    expect(buildMessageBubbleCard({
+      msg: { ...baseMessage, callKind: 'incoming_declined' },
+    }).presentation).toMatchObject({
+      title: 'Oproep geweigerd',
+      subtitle: 'Tikken om terug te bellen',
+      kind: 'incoming_declined',
+    });
+    expect(buildMessageBubbleCard({
+      msg: { ...baseMessage, callKind: 'outgoing_declined' },
+    }).presentation).toMatchObject({
+      title: 'Oproep geweigerd',
+      subtitle: 'Tikken om opnieuw te bellen',
+      kind: 'outgoing_declined',
+    });
+  });
+
   test('pending and sending messages are labelled as in progress', () => {
     expect(getMessageStatusInfo({ pending: true })).toMatchObject({
       icon: 'clock',

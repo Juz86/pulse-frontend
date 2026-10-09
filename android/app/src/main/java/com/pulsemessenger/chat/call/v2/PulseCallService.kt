@@ -573,6 +573,8 @@ class PulseCallService : Service() {
     ): Notification {
         val sessionId = snapshot?.sessionId ?: foregroundCallId
         val isIncoming = incomingPreparing || snapshot?.direction == PulseCallDirection.INCOMING
+        val isIncomingAlert = isIncoming &&
+            (incomingPreparing || snapshot?.state == PulseCallState.RINGING)
         val direction = if (isIncoming) {
             PulseCallDirection.INCOMING
         } else {
@@ -598,7 +600,7 @@ class PulseCallService : Service() {
         )
         val builder = NotificationCompat.Builder(
             this,
-            if (isIncoming) INCOMING_NOTIFICATION_CHANNEL_ID else NOTIFICATION_CHANNEL_ID,
+            if (isIncomingAlert) INCOMING_NOTIFICATION_CHANNEL_ID else NOTIFICATION_CHANNEL_ID,
         )
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(
@@ -611,13 +613,15 @@ class PulseCallService : Service() {
             .setOnlyAlertOnce(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setContentIntent(openCallUi)
-            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setPriority(
+                if (isIncomingAlert) NotificationCompat.PRIORITY_MAX
+                else NotificationCompat.PRIORITY_LOW,
+            )
+            .setSilent(!isIncomingAlert)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .addPerson(person)
 
-        if (isIncoming && sessionId != null &&
-            (incomingPreparing || snapshot?.state == PulseCallState.RINGING)
-        ) {
+        if (isIncomingAlert && sessionId != null) {
             builder.setFullScreenIntent(openCallUi, true)
             builder.setStyle(
                 NotificationCompat.CallStyle.forIncomingCall(
@@ -685,10 +689,12 @@ class PulseCallService : Service() {
         val activeChannel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
             getString(R.string.pulse_call_channel_name),
-            NotificationManager.IMPORTANCE_HIGH,
+            NotificationManager.IMPORTANCE_LOW,
         ).apply {
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             setShowBadge(false)
+            enableVibration(false)
+            setSound(null, null)
         }
         val incomingChannel = NotificationChannel(
             INCOMING_NOTIFICATION_CHANNEL_ID,
@@ -702,6 +708,7 @@ class PulseCallService : Service() {
             setSound(null, null)
         }
         manager.createNotificationChannels(listOf(activeChannel, incomingChannel))
+        manager.deleteNotificationChannel(LEGACY_ACTIVE_NOTIFICATION_CHANNEL_ID)
     }
 
     private fun Intent.requiredString(name: String): String? =
@@ -740,7 +747,8 @@ class PulseCallService : Service() {
 
         private const val TAG = "PulseCallService"
         private const val CALLING_API_URL = "https://api.pulse-messenger.com"
-        private const val NOTIFICATION_CHANNEL_ID = "pulse_active_calls"
+        private const val NOTIFICATION_CHANNEL_ID = "pulse_active_calls_v2"
+        private const val LEGACY_ACTIVE_NOTIFICATION_CHANNEL_ID = "pulse_active_calls"
         private const val INCOMING_NOTIFICATION_CHANNEL_ID = "pulse_incoming_calls_v3"
         private const val NOTIFICATION_ID = 4102
         private const val RECOVERY_RETRY_DELAY_MS = 5_000L

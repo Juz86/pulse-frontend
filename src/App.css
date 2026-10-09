@@ -3809,6 +3809,84 @@ font-family: 'Inter', sans-serif;
   flex:1 1 auto;
 }
 
+.conv-call-preview-icon {
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  color: #48b979;
+}
+
+.conv-call-preview-icon--negative {
+  color: #ff4967;
+}
+
+.msg-call-card {
+  width: min(100%, 330px);
+  min-height: 76px;
+  margin: 5px auto;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(24, 21, 34, 0.92);
+  color: var(--text, #fff);
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+}
+
+.msg-call-card:disabled {
+  cursor: default;
+}
+
+.msg-call-card-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #48b979;
+  background: rgba(72, 185, 121, 0.13);
+}
+
+.msg-call-card--negative .msg-call-card-icon {
+  color: #ff4967;
+  background: rgba(255, 73, 103, 0.13);
+}
+
+.msg-call-card-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.msg-call-card-copy strong,
+.msg-call-card-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msg-call-card-copy strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.msg-call-card-copy span,
+.msg-call-card-time {
+  color: var(--text3);
+  font-size: 12px;
+}
+
+.msg-call-card-time {
+  align-self: end;
+  white-space: nowrap;
+}
+
 .conv-reaction-preview {
   color: #cdbdff;
 }
@@ -17874,4 +17952,180 @@ font-family: 'Inter', sans-serif;
 }
 *::-webkit-scrollbar-thumb:hover {
   background:rgba(210,199,255,.64);
+}
+
+/* Browser/PWA audio calls share the native call screen's visual language while
+   remaining a full viewport tool surface instead of a modal card. */
+.browser-call-overlay {
+  position:fixed;
+  inset:0;
+  z-index:3000;
+  min-width:280px;
+  min-height:420px;
+  overflow:hidden;
+  background:#09090f;
+  color:#fff;
+  isolation:isolate;
+}
+.browser-call-background {
+  position:absolute;
+  inset:-40px;
+  width:calc(100% + 80px);
+  height:calc(100% + 80px);
+  object-fit:cover;
+  filter:blur(34px) brightness(.3) saturate(.8);
+  transform:scale(1.08);
+  opacity:.58;
+  z-index:-3;
+}
+.browser-call-shade {
+  position:absolute;
+  inset:0;
+  z-index:-2;
+  background:linear-gradient(180deg, rgba(7,7,13,.78), rgba(12,10,20,.55) 42%, rgba(4,4,9,.9));
+}
+.browser-call-content {
+  box-sizing:border-box;
+  width:min(100%, 720px);
+  height:100dvh;
+  min-height:420px;
+  margin:0 auto;
+  padding:max(22px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
+  display:grid;
+  grid-template-rows:auto minmax(0, 1fr) auto;
+}
+.browser-call-brand {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+.browser-call-brand > span {
+  color:rgba(240,238,248,.72);
+  font-size:13px;
+}
+.browser-call-brand > span::before {
+  content:'🔒';
+  margin-right:7px;
+  font-size:11px;
+}
+.browser-call-contact {
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:20px 0;
+}
+.browser-call-contact .browser-call-avatar {
+  width:clamp(126px, 24vh, 190px);
+  height:clamp(126px, 24vh, 190px);
+  flex:0 0 auto;
+  border:2px solid #8c52ff;
+  box-shadow:0 0 0 3px rgba(140,82,255,.17), 0 18px 48px rgba(0,0,0,.36);
+  font-size:44px;
+}
+.browser-call-contact h2 {
+  max-width:min(92vw, 620px);
+  margin:20px 0 6px;
+  overflow-wrap:anywhere;
+  text-align:center;
+  font-size:clamp(28px, 5vh, 42px);
+  line-height:1.1;
+  letter-spacing:0;
+}
+.browser-call-contact p {
+  margin:0;
+  color:rgba(255,255,255,.86);
+  font-size:clamp(16px, 2.4vh, 20px);
+  letter-spacing:0;
+}
+.browser-call-actions {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:24px;
+  min-height:128px;
+}
+.browser-call-controls,
+.browser-call-incoming-actions {
+  width:min(100%, 430px);
+  display:grid;
+  grid-template-columns:repeat(3, minmax(74px, 1fr));
+  gap:clamp(12px, 4vw, 34px);
+  justify-content:center;
+}
+.browser-call-incoming-actions {
+  grid-template-columns:repeat(2, minmax(90px, 140px));
+  gap:clamp(42px, 12vw, 94px);
+}
+.browser-call-control,
+.browser-call-action {
+  border:0;
+  padding:0;
+  background:none;
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:9px;
+  cursor:pointer;
+}
+.browser-call-control > span,
+.browser-call-action > span {
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:rgba(42,40,53,.94);
+  border:1px solid rgba(255,255,255,.08);
+}
+.browser-call-control small,
+.browser-call-action small {
+  min-height:18px;
+  color:rgba(255,255,255,.92);
+  font-size:13px;
+  line-height:1.35;
+  letter-spacing:0;
+}
+.browser-call-control--active > span,
+.browser-call-action--reject > span {
+  background:#ff3d4f;
+  box-shadow:0 8px 28px rgba(255,61,79,.34);
+}
+.browser-call-action--accept > span {
+  background:#35c768;
+  box-shadow:0 8px 28px rgba(53,199,104,.3);
+}
+.browser-call-action--close > span {
+  background:#2b2936;
+}
+.browser-call-action--reject > span,
+.browser-call-action--accept > span,
+.browser-call-action--close > span {
+  width:76px;
+  height:76px;
+}
+.browser-call-control:disabled {
+  cursor:not-allowed;
+  opacity:.42;
+}
+.browser-call-control:focus-visible,
+.browser-call-action:focus-visible {
+  outline:3px solid #b69aff;
+  outline-offset:5px;
+  border-radius:4px;
+}
+@media (max-height:620px) {
+  .browser-call-content { padding-top:max(12px, env(safe-area-inset-top)); }
+  .browser-call-brand { gap:4px; }
+  .browser-call-contact { padding:10px 0; }
+  .browser-call-contact .browser-call-avatar { width:104px; height:104px; }
+  .browser-call-contact h2 { margin-top:10px; font-size:25px; }
+  .browser-call-actions { gap:12px; }
+  .browser-call-control > span { width:52px; height:52px; }
+  .browser-call-action--reject > span,
+  .browser-call-action--accept > span,
+  .browser-call-action--close > span { width:60px; height:60px; }
 }

@@ -189,6 +189,30 @@ class PulseCallSessionOrchestratorTest {
     }
 
     @Test
+    fun `disconnect completes on first request when Telecom omits its callback`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+            commandResponses += response(
+                session(
+                    state = PulseServerCallState.ENDED,
+                    revision = 3,
+                    terminalByUid = "callee",
+                ),
+            )
+        }
+        val telecom = FakeTelecom().apply { dispatchDisconnectCallback = false }
+        val subject = subject(coordinator, signaling, telecom)
+        subject.registerIncoming("session-123", "Test contact")
+
+        subject.requestDisconnect("session-123")
+
+        assertEquals(listOf("session-123"), telecom.disconnectedSessions)
+        assertEquals(listOf("snapshot", "command:DECLINE"), signaling.operations)
+        assertEquals(PulseCallState.ENDED, coordinator.state.value.state)
+    }
+
+    @Test
     fun `failed accept ends Telecom and cleans up instead of remaining connecting`() = runBlocking {
         val coordinator = PulseCallCoordinator.createForTests()
         val signaling = FakeSignaling().apply {
@@ -975,6 +999,7 @@ class PulseCallSessionOrchestratorTest {
         val answeredSessions = mutableListOf<String>()
         val activatedSessions = mutableListOf<String>()
         val disconnectedSessions = mutableListOf<String>()
+        var dispatchDisconnectCallback = true
         private val lifetime = CompletableDeferred<Unit>()
 
         override fun registerApp() = Unit
@@ -1004,7 +1029,7 @@ class PulseCallSessionOrchestratorTest {
 
         override suspend fun disconnect(sessionId: String, cause: DisconnectCause): Boolean {
             disconnectedSessions += sessionId
-            callbacks?.onDisconnect(sessionId, cause)
+            if (dispatchDisconnectCallback) callbacks?.onDisconnect(sessionId, cause)
             lifetime.complete(Unit)
             return true
         }

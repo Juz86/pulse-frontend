@@ -425,7 +425,20 @@ class PulseCallSessionOrchestrator(
 
     fun requestDisconnect(sessionId: String) {
         scope.launch {
-            if (!telecom.disconnect(sessionId, DisconnectCause(DisconnectCause.LOCAL))) {
+            val snapshot = coordinator.state.value
+            if (snapshot.sessionId != sessionId ||
+                snapshot.state in setOf(PulseCallState.ENDING, PulseCallState.ENDED)
+            ) return@launch
+            PulseCallDiagnostics.event("DISCONNECT_REQUESTED", sessionId)
+            val telecomDisconnected = telecom.disconnect(
+                sessionId,
+                DisconnectCause(DisconnectCause.LOCAL),
+            )
+            val current = coordinator.state.value
+            if (!telecomDisconnected ||
+                (current.sessionId == sessionId &&
+                    current.state !in setOf(PulseCallState.ENDING, PulseCallState.ENDED))
+            ) {
                 endLocally(sessionId)
             }
         }

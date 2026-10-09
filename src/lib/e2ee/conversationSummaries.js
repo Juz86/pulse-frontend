@@ -335,6 +335,25 @@ function resolveConversationPreviewSpecialCaseText(message = {}) {
   return null;
 }
 
+function resolveConversationCallPresentation(message = {}, currentUid = null) {
+  if (message?.lastMessageType !== 'call' || !message?.lastCallEvent) return null;
+
+  const presentation = currentUid
+    ? message.lastCallEvent.presentations?.[currentUid]
+    : null;
+  const kind = presentation?.kind || 'missed_incoming';
+  const fallbackLabel = kind === 'outgoing_unanswered'
+    ? 'Geen antwoord'
+    : kind.endsWith('_declined')
+      ? 'Oproep geweigerd'
+      : 'Gemiste spraakoproep';
+
+  return {
+    kind,
+    previewText: presentation?.label || fallbackLabel,
+  };
+}
+
 export function normalizeConversationSummaryRecord(conversation = {}) {
   return normalizeConversationAttachmentSummary({
     ...conversation,
@@ -344,9 +363,17 @@ export function normalizeConversationSummaryRecord(conversation = {}) {
 
 export function buildConversationPreviewPresentation(
   message = {},
-  { includeStorageSignal = true } = {}
+  { includeStorageSignal = true, currentUid = null } = {}
 ) {
   if (!message) return buildConversationBasePreview();
+  const callPresentation = resolveConversationCallPresentation(message, currentUid);
+  if (callPresentation) {
+    return {
+      ...buildConversationBasePreview(callPresentation.previewText),
+      isCallSummary: true,
+      callKind: callPresentation.kind,
+    };
+  }
   const specialCasePreviewText = resolveConversationPreviewSpecialCaseText(message);
   if (specialCasePreviewText) {
     return buildConversationBasePreview(specialCasePreviewText);

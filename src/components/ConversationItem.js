@@ -1,6 +1,6 @@
 // src/components/ConversationItem.js
 import React from 'react';
-import { Pin, MoreHoriz } from '../components/Icons';
+import { Pin, MoreHoriz, PhoneEnd, PhoneMissed, PhoneOutgoing } from '../components/Icons';
 import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
 import UserAvatar from '../components/UserAvatar';
 import { formatConversationListTime } from '../utils';
@@ -40,7 +40,7 @@ function ConversationItemBase({
     lockAxis: null,
     moved: false,
   });
-  const conversationPreview = buildConversationPreviewPresentation(conv);
+  const conversationPreview = buildConversationPreviewPresentation(conv, { currentUid });
   const reactionPreviewText = React.useMemo(() => {
     if (!conv.lastReactionEmoji || !conv.lastReactionReactorId) return '';
     const reactorName = conv.lastReactionReactorId === currentUid
@@ -220,6 +220,13 @@ function ConversationItemBase({
             </span>
           ) : (
             <>
+              {conversationPreview.isCallSummary && (
+                conversationPreview.callKind === 'missed_incoming'
+                  ? <PhoneMissed className="conv-call-preview-icon conv-call-preview-icon--negative" aria-hidden="true" />
+                  : conversationPreview.callKind?.endsWith('_declined')
+                    ? <PhoneEnd className="conv-call-preview-icon conv-call-preview-icon--negative" aria-hidden="true" />
+                    : <PhoneOutgoing className="conv-call-preview-icon" aria-hidden="true" />
+              )}
               <span className={`conv-preview-text${reactionPreviewText ? ' conv-reaction-preview' : ''}`}>
                 {reactionPreviewText || conversationPreview.previewText || conv.lastMessage || 'Start een gesprek…'}
               </span>
@@ -305,6 +312,7 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.conv.id          === next.conv.id          &&
   prev.conv.lastMessage === next.conv.lastMessage  &&
   prev.conv.lastMessageType === next.conv.lastMessageType &&
+  prev.conv.lastCallEvent?.sessionId === next.conv.lastCallEvent?.sessionId &&
   prev.conv.lastAttachmentTransfer === next.conv.lastAttachmentTransfer &&
   prev.conv.lastAttachmentStrategyKey === next.conv.lastAttachmentStrategyKey &&
   prev.conv.lastAttachmentEncoding === next.conv.lastAttachmentEncoding &&
@@ -329,6 +337,7 @@ const ConversationItem = React.memo(ConversationItemBase, (prev, next) =>
   prev.typingName       === next.typingName        &&
   prev.draftPreview     === next.draftPreview      &&
   prev.isPinned         === next.isPinned          &&
+  prev.currentUid       === next.currentUid        &&
   prev.isSwipedOpen     === next.isSwipedOpen      &&
   prev.selectionMode    === next.selectionMode     &&
   prev.isSelected       === next.isSelected

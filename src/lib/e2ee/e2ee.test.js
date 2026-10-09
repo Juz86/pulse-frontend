@@ -114,6 +114,61 @@ describe('e2ee message model helpers', () => {
     expect(normalized.ciphertextAvailable).toBe(true);
   });
 
+  test('normalizeIncomingMessage resolves missed call copy for each participant', () => {
+    const raw = {
+      id: 'call-1',
+      conversationId: 'conv-1',
+      senderId: 'caller',
+      type: 'call',
+      sessionId: 'session-1',
+      terminalReason: 'missed',
+      presentations: {
+        caller: { kind: 'outgoing_unanswered', label: 'Geen antwoord' },
+        callee: { kind: 'missed_incoming', label: 'Gemiste spraakoproep' },
+      },
+    };
+
+    expect(normalizeIncomingMessage(raw, 'callee')).toMatchObject({
+      type: 'call',
+      text: 'Gemiste spraakoproep',
+      callKind: 'missed_incoming',
+      direction: 'incoming',
+      sessionId: 'session-1',
+    });
+    expect(normalizeIncomingMessage(raw, 'caller')).toMatchObject({
+      text: 'Geen antwoord',
+      callKind: 'outgoing_unanswered',
+      direction: 'outgoing',
+    });
+  });
+
+  test('normalizeIncomingMessage resolves declined call direction for each participant', () => {
+    const raw = {
+      id: 'call-declined-1',
+      conversationId: 'conv-1',
+      senderId: 'caller',
+      type: 'call',
+      sessionId: 'session-declined-1',
+      terminalReason: 'declined',
+      presentations: {
+        caller: { kind: 'outgoing_declined', label: 'Oproep geweigerd' },
+        callee: { kind: 'incoming_declined', label: 'Oproep geweigerd' },
+      },
+    };
+
+    expect(normalizeIncomingMessage(raw, 'callee')).toMatchObject({
+      text: 'Oproep geweigerd',
+      callKind: 'incoming_declined',
+      direction: 'incoming',
+      terminalReason: 'declined',
+    });
+    expect(normalizeIncomingMessage(raw, 'caller')).toMatchObject({
+      text: 'Oproep geweigerd',
+      callKind: 'outgoing_declined',
+      direction: 'outgoing',
+    });
+  });
+
   test('buildPendingMessage creates a sending signal_v1 message', () => {
     const pending = buildPendingMessage({
       text: 'Hallo',
@@ -195,6 +250,56 @@ describe('e2ee message model helpers', () => {
     expect(buildConversationPreviewPresentation({ deleted: true })).toMatchObject({
       previewText: getDeletedMessageDisplayText(),
       attachmentSummary: null,
+    });
+  });
+
+  test('buildConversationPreviewPresentation shows a missed incoming audio call per recipient', () => {
+    const conversation = {
+      lastMessage: 'Gemiste spraakoproep',
+      lastMessageType: 'call',
+      lastCallEvent: {
+        sessionId: 'session-123',
+        presentations: {
+          caller: { kind: 'outgoing_unanswered', label: 'Geen antwoord' },
+          callee: { kind: 'missed_incoming', label: 'Gemiste spraakoproep' },
+        },
+      },
+    };
+
+    expect(buildConversationPreviewPresentation(conversation, { currentUid: 'callee' })).toMatchObject({
+      previewText: 'Gemiste spraakoproep',
+      isCallSummary: true,
+      callKind: 'missed_incoming',
+    });
+    expect(buildConversationPreviewPresentation(conversation, { currentUid: 'caller' })).toMatchObject({
+      previewText: 'Geen antwoord',
+      isCallSummary: true,
+      callKind: 'outgoing_unanswered',
+    });
+  });
+
+  test('buildConversationPreviewPresentation shows a declined call for both participants', () => {
+    const conversation = {
+      lastMessage: 'Oproep geweigerd',
+      lastMessageType: 'call',
+      lastCallEvent: {
+        sessionId: 'session-declined-1',
+        presentations: {
+          caller: { kind: 'outgoing_declined', label: 'Oproep geweigerd' },
+          callee: { kind: 'incoming_declined', label: 'Oproep geweigerd' },
+        },
+      },
+    };
+
+    expect(buildConversationPreviewPresentation(conversation, { currentUid: 'callee' })).toMatchObject({
+      previewText: 'Oproep geweigerd',
+      isCallSummary: true,
+      callKind: 'incoming_declined',
+    });
+    expect(buildConversationPreviewPresentation(conversation, { currentUid: 'caller' })).toMatchObject({
+      previewText: 'Oproep geweigerd',
+      isCallSummary: true,
+      callKind: 'outgoing_declined',
     });
   });
 

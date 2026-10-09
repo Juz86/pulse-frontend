@@ -11,12 +11,14 @@ import ChatSidebar from '../components/ChatSidebar';
 import MessageList from '../components/MessageList';
 import MsgContextMenu from '../components/MsgContextMenu';
 import BlockConfirmModal from '../components/BlockConfirmModal';
+import BrowserCallOverlay from '../components/BrowserCallOverlay';
 import PulseConfirmSheet from '../components/PulseConfirmSheet';
 import useConversations from '../hooks/useConversations';
 import useChat from '../hooks/useChat';
 import useProfile from '../hooks/useProfile';
 import useContacts from '../hooks/useContacts';
 import useRealtimeSync from '../hooks/useRealtimeSync';
+import useBrowserCall from '../hooks/useBrowserCall';
 import { auth } from '../firebase';
 import {
   addNativeCallStatusListener,
@@ -25,6 +27,7 @@ import {
   nativeCallErrorMessage,
   startNativeAudioCall,
 } from '../services/nativeCall';
+import { browserCallErrorMessage } from '../services/browserCall';
 import { clearPulseUserStorage, copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
@@ -622,6 +625,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     if (conv.isGroup) return null;
     return contactsByUid.get(getOtherUid(conv))?.photoURL || null;
   }, [contactsByUid, getOtherUid]);
+  const resolveCallPeer = useCallback((uid) => {
+    const contact = contactsByUid.get(uid);
+    return {
+      displayName: getContactDisplayName(contact || { uid, displayName: '' }) || 'Pulse-gebruiker',
+      photoURL: contact?.photoURL || '',
+    };
+  }, [contactsByUid, getContactDisplayName]);
+  const browserCall = useBrowserCall({ user, resolvePeer: resolveCallPeer });
+  const audioCallingAvailable = nativeCallCapabilities.audio || browserCall.supported;
 
   async function handleStartAudioCall(contact = null) {
     if (callLaunchPending) return;
@@ -635,15 +647,24 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
     setCallLaunchPending(true);
     try {
-      await startNativeAudioCall({
+      const callTarget = {
         calleeUid,
         displayName: selectedContact ? getContactDisplayName(selectedContact) : getConvName(activeConv),
         photoURL: selectedContact?.photoURL || getConvPhoto(activeConv),
-      });
+      };
+      if (nativeCallCapabilities.audio) {
+        await startNativeAudioCall(callTarget);
+      } else {
+        await browserCall.startCall(callTarget);
+      }
     } catch (error) {
-      showErrToast(nativeCallErrorMessage(error));
-      const capabilities = await getNativeCallCapabilities();
-      setNativeCallCapabilities(capabilities);
+      showErrToast(nativeCallCapabilities.audio
+        ? nativeCallErrorMessage(error)
+        : browserCallErrorMessage(error));
+      if (nativeCallCapabilities.audio) {
+        const capabilities = await getNativeCallCapabilities();
+        setNativeCallCapabilities(capabilities);
+      }
     } finally {
       setCallLaunchPending(false);
     }
@@ -678,7 +699,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         setShowParentDashboard={setShowParentDashboard}
         onParentActivitiesViewed={onParentActivitiesViewed}
         setLabelMenuConvId={() => {}}
-        nativeAudioCallingAvailable={nativeCallCapabilities.audio}
+        nativeAudioCallingAvailable={audioCallingAvailable}
         callLaunchPending={callLaunchPending}
         onStartAudioCall={handleStartAudioCall}
         showNewChat={showNewChat}
@@ -848,6 +869,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               conversationMuted={mutedConversationIds.includes(activeConv?.id)}
               messageSelectionMode={messageSelectionMode}
               callLaunchPending={callLaunchPending}
+              audioCallingAvailable={audioCallingAvailable}
               onStartAudioCall={handleStartAudioCall}
             />
             {pinnedMsgs[activeConv?.id] && (
@@ -879,6 +901,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               jumpToMsgId={jumpToMsgId}
               onRetry={handleMessageRetry}
               onViewContact={handleViewSharedContact}
+              onStartAudioCall={handleStartAudioCall}
               selectionMode={messageSelectionMode}
               selectedMessageIds={selectedMessageIds}
               onToggleMessageSelection={toggleMessageSelection}
@@ -1140,6 +1163,15 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           onRetry={() => retryMessage(contextMenu.msg)}
         />
       )}
+      <BrowserCallOverlay
+        call={browserCall.call}
+        remoteStream={browserCall.remoteStream}
+        onAnswer={() => browserCall.answer().catch((error) => showErrToast(browserCallErrorMessage(error)))}
+        onDecline={browserCall.decline}
+        onHangup={browserCall.hangup}
+        onToggleMute={browserCall.toggleMute}
+        onDismiss={browserCall.dismiss}
+      />
     </div>
   );
 }

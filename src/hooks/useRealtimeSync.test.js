@@ -8,6 +8,7 @@ import {
 describe('realtime sync event policy', () => {
   test('maps each emitted server domain event to an API list', () => {
     expect(REALTIME_EVENT_DOMAINS['message:received']).toEqual(['conversations']);
+    expect(REALTIME_EVENT_DOMAINS['call-history:updated']).toEqual(['conversations']);
     expect(REALTIME_EVENT_DOMAINS['friend:accepted']).toEqual(['contacts', 'friendRequests']);
     expect(REALTIME_EVENT_DOMAINS['friend:declined']).toEqual(['friendRequests']);
     expect(REALTIME_EVENT_DOMAINS['friend:request:reminder']).toEqual(['friendRequests']);

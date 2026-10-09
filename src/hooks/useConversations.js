@@ -124,6 +124,8 @@ export default function useConversations({
       isGroup: !!conversation.isGroup,
       groupName: conversation.groupName || null,
       lastMessage: conversation.lastMessage || '',
+      lastMessageType: conversation.lastMessageType || null,
+      lastCallEvent: conversation.lastCallEvent || null,
       updatedAt: conversation.updatedAt || conversation.lastMessageAt || null,
       lastMessageAt: conversation.lastMessageAt || conversation.updatedAt || null,
       lastReactionMessageId: conversation.lastReactionMessageId || null,

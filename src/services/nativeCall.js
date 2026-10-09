@@ -4,6 +4,7 @@ import { isNativePulseEnvironment } from '../lib/platform/runtime';
 import { BACKEND_URL } from './socket';
 
 const PulseCall = registerPlugin('PulseCall');
+let pendingAudioCallStart = null;
 
 function isAndroidNative() {
   if (!isNativePulseEnvironment()) return false;
@@ -91,7 +92,7 @@ export async function consumeNativeCallFollowUpAction() {
   }
 }
 
-export async function startNativeAudioCall({ calleeUid, displayName, photoURL = '' }) {
+async function launchNativeAudioCall({ calleeUid, displayName, photoURL = '' }) {
   if (!isAndroidNative()) {
     const error = new Error('native_call_unavailable');
     error.code = 'native_call_unavailable';
@@ -113,6 +114,14 @@ export async function startNativeAudioCall({ calleeUid, displayName, photoURL = 
     photoURL: typeof photoURL === 'string' ? photoURL.trim() : '',
     bootstrapCode,
   });
+}
+
+export function startNativeAudioCall(call) {
+  if (pendingAudioCallStart) return pendingAudioCallStart;
+  pendingAudioCallStart = launchNativeAudioCall(call).finally(() => {
+    pendingAudioCallStart = null;
+  });
+  return pendingAudioCallStart;
 }
 
 export function nativeCallErrorMessage(error) {

@@ -3839,18 +3839,19 @@ font-family: 'Inter', sans-serif;
 }
 
 .msg-group.in .msg-call-card {
-  color: #3f3560;
-  background: rgba(247, 242, 255, .96);
-  border: 1px solid rgba(230, 220, 251, .94);
+  color: #3d315f;
+  background: linear-gradient(135deg, rgba(255, 253, 255, .98), rgba(241, 236, 255, .98));
+  border: 1px solid rgba(215, 204, 248, .96);
   border-bottom-left-radius: 5px;
-  box-shadow: 0 4px 10px rgba(92, 71, 146, .09);
+  box-shadow: 0 5px 14px rgba(101, 77, 168, .12);
 }
 
 .msg-group.out .msg-call-card {
-  color: #fff;
-  background: linear-gradient(135deg, #8c7bff 0%, #7160f5 100%);
+  color: #3d315f;
+  background: linear-gradient(135deg, rgba(232, 225, 255, .98), rgba(250, 230, 246, .98));
+  border: 1px solid rgba(196, 177, 246, .96);
   border-bottom-right-radius: 5px;
-  box-shadow: 0 6px 16px rgba(113, 96, 245, .34);
+  box-shadow: 0 6px 16px rgba(111, 87, 187, .16);
 }
 
 .msg-call-card:not(:disabled):hover {
@@ -3901,13 +3902,10 @@ font-family: 'Inter', sans-serif;
 }
 
 .msg-group.in .msg-call-card-copy span,
-.msg-group.in .msg-call-card-time {
-  color: #988abf;
-}
-
+.msg-group.in .msg-call-card-time,
 .msg-group.out .msg-call-card-copy span,
 .msg-group.out .msg-call-card-time {
-  color: rgba(255, 255, 255, .78);
+  color: #75659d;
 }
 
 .msg-call-card-time {

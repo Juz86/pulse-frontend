@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Cancel, Mic, MicOff, Phone, PhoneEnd, Speaker, Video } from './Icons';
 import PulseLogo from './PulseLogo';
 import UserAvatar from './UserAvatar';
@@ -60,7 +59,19 @@ export default function BrowserCallOverlay({
   onDismiss,
 }) {
   const [elapsed, setElapsed] = useState(0);
+  const [panelMode, setPanelMode] = useState(() => (
+    typeof window !== 'undefined' && window.matchMedia?.('(min-width: 900px)').matches
+  ));
   const visible = call?.status === 'call';
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return undefined;
+    const mediaQuery = window.matchMedia('(min-width: 900px)');
+    const updatePanelMode = () => setPanelMode(mediaQuery.matches);
+    updatePanelMode();
+    mediaQuery.addEventListener?.('change', updatePanelMode);
+    return () => mediaQuery.removeEventListener?.('change', updatePanelMode);
+  }, []);
 
   useEffect(() => {
     if (!visible || call.serverState !== 'ACTIVE' || !call.activeSince) {
@@ -73,13 +84,18 @@ export default function BrowserCallOverlay({
     return () => clearInterval(timer);
   }, [call.activeSince, call.serverState, visible]);
 
-  if (!visible || typeof document === 'undefined') return null;
+  if (!visible) return null;
   const incoming = call.direction === 'incoming' && call.serverState === 'RINGING';
   const ended = call.serverState === 'ENDED';
   const activeControls = ['CONNECTING', 'ACTIVE'].includes(call.serverState);
 
-  return createPortal(
-    <div className="browser-call-overlay" role="dialog" aria-modal="true" aria-label="Pulse-oproep">
+  return (
+    <section
+      className={`browser-call-overlay${panelMode ? ' browser-call-overlay--panel' : ''}`}
+      role={panelMode ? 'complementary' : 'dialog'}
+      aria-modal={panelMode ? undefined : true}
+      aria-label="Pulse-oproep"
+    >
       {call.photoURL && (
         <img
           className="browser-call-background"
@@ -145,7 +161,6 @@ export default function BrowserCallOverlay({
         </footer>
       </div>
       <AudioElement stream={remoteStream} />
-    </div>,
-    document.body
+    </section>
   );
 }

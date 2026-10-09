@@ -676,8 +676,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
+  const browserCallVisible = browserCall.call?.status === 'call';
+
   return (
-    <div className="app-screen">
+    <div className={`app-screen${browserCallVisible ? ' browser-call-layout-active' : ''}`}>
 
       <ChatSidebar
         user={user}

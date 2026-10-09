@@ -18157,3 +18157,86 @@ font-family: 'Inter', sans-serif;
   .browser-call-action--accept > span,
   .browser-call-action--close > span { width:60px; height:60px; }
 }
+
+/* Browser en brede tablets houden de chat bruikbaar tijdens een oproep. De
+   bestaande call-state blijft dezelfde UI voeden; alleen de plaatsing wordt
+   een vaste derde kolom naast de chat. */
+@media (min-width:900px) {
+  .app-screen.browser-call-layout-active {
+    --pulse-call-panel-width:clamp(300px, 27vw, 420px);
+  }
+  .app-screen.browser-call-layout-active .chat-main {
+    flex:1 1 auto;
+    width:auto;
+  }
+  .browser-call-overlay--panel {
+    position:relative;
+    inset:auto;
+    z-index:40;
+    flex:0 0 var(--pulse-call-panel-width);
+    width:var(--pulse-call-panel-width);
+    min-width:300px;
+    min-height:0;
+    height:100%;
+    border-left:1px solid rgba(151,123,255,.3);
+    box-shadow:-10px 0 30px rgba(25,18,52,.18);
+  }
+  .browser-call-overlay--panel .browser-call-content {
+    width:100%;
+    height:100%;
+    min-height:0;
+    padding:max(22px, env(safe-area-inset-top)) 20px max(22px, env(safe-area-inset-bottom));
+  }
+  .browser-call-overlay--panel .browser-call-brand {
+    gap:7px;
+  }
+  .browser-call-overlay--panel .browser-call-contact {
+    padding:16px 0;
+  }
+  .browser-call-overlay--panel .browser-call-contact .browser-call-avatar {
+    width:clamp(112px, 15vw, 156px);
+    height:clamp(112px, 15vw, 156px);
+  }
+  .browser-call-overlay--panel .browser-call-contact h2 {
+    max-width:100%;
+    margin-top:16px;
+    font-size:clamp(25px, 3vw, 34px);
+  }
+  .browser-call-overlay--panel .browser-call-contact p {
+    font-size:16px;
+  }
+  .browser-call-overlay--panel .browser-call-actions {
+    gap:18px;
+  }
+  .browser-call-overlay--panel .browser-call-controls,
+  .browser-call-overlay--panel .browser-call-incoming-actions {
+    width:100%;
+    gap:10px;
+  }
+  .browser-call-overlay--panel .browser-call-controls {
+    grid-template-columns:repeat(3, minmax(0, 1fr));
+  }
+  .browser-call-overlay--panel .browser-call-incoming-actions {
+    grid-template-columns:repeat(2, minmax(90px, 1fr));
+  }
+  .browser-call-overlay--panel .browser-call-control > span {
+    width:56px;
+    height:56px;
+  }
+  .browser-call-overlay--panel .browser-call-action--reject > span,
+  .browser-call-overlay--panel .browser-call-action--accept > span,
+  .browser-call-overlay--panel .browser-call-action--close > span {
+    width:68px;
+    height:68px;
+  }
+}
+
+@media (min-width:900px) and (max-width:1100px) {
+  .app-screen.browser-call-layout-active {
+    --pulse-sidebar-width:clamp(260px, 29vw, 310px);
+    --pulse-call-panel-width:clamp(280px, 29vw, 310px);
+  }
+  .browser-call-overlay--panel {
+    min-width:280px;
+  }
+}

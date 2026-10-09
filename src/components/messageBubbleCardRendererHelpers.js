@@ -72,7 +72,7 @@ function buildContactMessageCardRenderConfig(presentation, handlers) {
 }
 
 function buildCallMessageCardRenderConfig(presentation, handlers) {
-  return buildPresentationCardRenderConfig(
+  return buildGroupedPresentationCardRenderConfig(
     CallMessageCard,
     presentation,
     { onCallBack: handlers.onStartAudioCall },

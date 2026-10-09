@@ -3821,21 +3821,40 @@ font-family: 'Inter', sans-serif;
 }
 
 .msg-call-card {
-  width: min(100%, 330px);
-  min-height: 76px;
-  margin: 5px auto;
+  width: min(78%, 330px);
+  min-width: min(250px, 78%);
+  min-height: 68px;
+  margin: 0;
   padding: 10px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  background: rgba(24, 21, 34, 0.92);
-  color: var(--text, #fff);
+  border: 0;
+  border-radius: 18px;
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr) auto;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   text-align: left;
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+  font: inherit;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.msg-group.in .msg-call-card {
+  color: #3f3560;
+  background: rgba(247, 242, 255, .96);
+  border: 1px solid rgba(230, 220, 251, .94);
+  border-bottom-left-radius: 5px;
+  box-shadow: 0 4px 10px rgba(92, 71, 146, .09);
+}
+
+.msg-group.out .msg-call-card {
+  color: #fff;
+  background: linear-gradient(135deg, #8c7bff 0%, #7160f5 100%);
+  border-bottom-right-radius: 5px;
+  box-shadow: 0 6px 16px rgba(113, 96, 245, .34);
+}
+
+.msg-call-card:not(:disabled):hover {
+  transform: translateY(-1px);
 }
 
 .msg-call-card:disabled {
@@ -3843,8 +3862,8 @@ font-family: 'Inter', sans-serif;
 }
 
 .msg-call-card-icon {
-  width: 46px;
-  height: 46px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -3878,8 +3897,17 @@ font-family: 'Inter', sans-serif;
 
 .msg-call-card-copy span,
 .msg-call-card-time {
-  color: var(--text3);
   font-size: 12px;
+}
+
+.msg-group.in .msg-call-card-copy span,
+.msg-group.in .msg-call-card-time {
+  color: #988abf;
+}
+
+.msg-group.out .msg-call-card-copy span,
+.msg-group.out .msg-call-card-time {
+  color: rgba(255, 255, 255, .78);
 }
 
 .msg-call-card-time {

@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getSocket } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
-import { normalizeIncomingMessage } from '../lib/e2ee/messageModel';
+import { getMessageDisplayText, normalizeIncomingMessage } from '../lib/e2ee/messageModel';
 import { ENCRYPTED_MESSAGE_PROTOCOL } from '../lib/e2ee/messageProtocolConstants';
 import {
   applyConversationSummaryToList,
@@ -19,6 +19,8 @@ export default function useChat({
   user,
   activeConvRef,
   conversationsRef,
+  messagesRef,
+  msgCache,
   msgsAreaRef,
   dndRef,
   mutedConversationIdsRef,
@@ -528,6 +530,12 @@ export default function useChat({
         m.id === msgId ? { ...m, reactions: normalizedReactions } : m
       )));
       if (!convId || !emoji || !reactorId) return;
+      const localMessages = activeConvRef.current?.id === convId
+        ? messagesRef.current
+        : msgCache.current?.[convId];
+      const targetText = getMessageDisplayText(
+        localMessages?.find((message) => message.id === msgId),
+      );
       setConversations(prev => applyConversationReactionSummaryToList(prev, convId, {
         messageId: msgId,
         emoji,
@@ -538,6 +546,7 @@ export default function useChat({
         // their chat-list preview from updating in real time.
         reactions: reactions || {},
         updatedAt: reactionAt || new Date().toISOString(),
+        targetText,
       }));
     };
     const onAccountPaused   = ({ features } = {})      => setPausedFeatures({ chat: features?.chat !== false });

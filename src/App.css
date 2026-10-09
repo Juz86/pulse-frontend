@@ -4438,6 +4438,7 @@ font-family: 'Inter', sans-serif;
   position:relative;
   z-index:35;
   overflow:visible;
+  flex:0 0 auto;
 }
 @media (min-width:768px) {
   .sidebar-header,
@@ -4564,7 +4565,7 @@ font-family: 'Inter', sans-serif;
 .chat-header-menu-btn {
   background:rgba(255,255,255,.72);
   border:1px solid rgba(115,94,204,.10);
-  box-shadow:0 12px 28px rgba(22,16,46,.10);
+  box-shadow:none;
 }
 .sidebar-item-actions-btn {
   width: 42px;
@@ -4619,7 +4620,7 @@ font-family: 'Inter', sans-serif;
 }
 
 .messages-area-wrap {
-  flex:1; position:relative; overflow:hidden;
+  flex:1 1 auto; min-height:0; position:relative; overflow:hidden;
   display:flex; flex-direction:column;
   background:transparent;
 }
@@ -5777,6 +5778,7 @@ font-family: 'Inter', sans-serif;
   border:0;
   box-shadow:none;
   position:relative;
+  flex:0 0 auto;
 }
 .chat-input-area::before {
   display:none;

@@ -1175,6 +1175,7 @@ describe('e2ee attachment helpers', () => {
         lastReactionEmoji: null,
         lastReactionReactorId: null,
         lastReactionAt: null,
+        lastReactionTargetText: null,
       },
       {
         id: 'conv-1',
@@ -1234,6 +1235,7 @@ describe('e2ee attachment helpers', () => {
       reactorId: 'user-1',
       reactions: { '❤️': ['user-1'] },
       updatedAt: '2026-01-01T11:00:00.000Z',
+      targetText: 'Hallo',
     })).toEqual([
       {
         id: 'conv-2',
@@ -1243,9 +1245,53 @@ describe('e2ee attachment helpers', () => {
         lastReactionEmoji: '❤️',
         lastReactionReactorId: 'user-1',
         lastReactionAt: '2026-01-01T11:00:00.000Z',
+        lastReactionTargetText: 'Hallo',
       },
       { id: 'conv-1', updatedAt: '2026-01-01T10:00:00.000Z', lastMessage: 'Hallo' },
     ]);
+  });
+
+  test('reaction previews retain only the matching locally decrypted target text', () => {
+    const serverConversation = {
+      id: 'conv-1',
+      lastMessage: 'ik ben er',
+      lastReactionMessageId: 'message-hallo',
+      lastReactionEmoji: '❤️',
+      lastReactionReactorId: 'user-1',
+    };
+    const matchingLocalConversation = {
+      ...serverConversation,
+      lastReactionTargetText: 'Hallo',
+    };
+
+    expect(mergeLocalDecryptedConversationPreviews(
+      [serverConversation],
+      [matchingLocalConversation],
+    )[0].lastReactionTargetText).toBe('Hallo');
+
+    expect(mergeLocalDecryptedConversationPreviews(
+      [serverConversation],
+      [{ ...matchingLocalConversation, lastReactionMessageId: 'ander-bericht' }],
+    )[0].lastReactionTargetText).toBeUndefined();
+  });
+
+  test('reaction preview never replaces its target with the latest message', () => {
+    expect(applyConversationReactionSummaryToList([{
+      id: 'conv-1',
+      lastMessage: 'ik ben er',
+      lastReactionMessageId: 'message-hallo',
+      lastReactionEmoji: '❤️',
+      lastReactionReactorId: 'user-1',
+      lastReactionTargetText: 'Hallo',
+    }], 'conv-1', {
+      messageId: 'message-hallo',
+      emoji: '❤️',
+      reactorId: 'user-1',
+      reactions: { '❤️': ['user-1'] },
+    })[0]).toMatchObject({
+      lastMessage: 'ik ben er',
+      lastReactionTargetText: 'Hallo',
+    });
   });
 
   test('createMockEncryptedAttachmentEnvelope wraps a data url in a mock envelope', async () => {

@@ -46,12 +46,12 @@ function ConversationItemBase({
     const reactorName = conv.lastReactionReactorId === currentUid
       ? 'Je'
       : (conv.memberNames?.[conv.lastReactionReactorId] || 'Iemand');
-    const targetText = String(conv.lastMessage || 'een bericht')
+    const targetText = String(conv.lastReactionTargetText || 'een bericht')
       .replace(/\s+/g, ' ')
       .trim()
       .slice(0, 72);
     return `${reactorName} reageerde met ${conv.lastReactionEmoji} op: “${targetText || 'een bericht'}”`;
-  }, [conv.lastMessage, conv.lastReactionEmoji, conv.lastReactionReactorId, conv.memberNames, currentUid]);
+  }, [conv.lastReactionEmoji, conv.lastReactionReactorId, conv.lastReactionTargetText, conv.memberNames, currentUid]);
   const handleKeyDown = (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();

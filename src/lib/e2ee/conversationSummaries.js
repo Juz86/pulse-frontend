@@ -29,6 +29,7 @@ function buildEmptyConversationReactionSummaryFields() {
     lastReactionEmoji: null,
     lastReactionReactorId: null,
     lastReactionAt: null,
+    lastReactionTargetText: null,
   };
 }
 
@@ -202,6 +203,7 @@ function buildNormalizedConversationReactionSummaryFields(summaryLike = {}) {
         lastReactionEmoji: summaryLike.lastReactionEmoji,
         lastReactionReactorId: summaryLike.lastReactionReactorId,
         lastReactionAt: summaryLike.lastReactionAt || summaryLike.updatedAt || null,
+        lastReactionTargetText: String(summaryLike.lastReactionTargetText || '').trim() || null,
       }
     : buildEmptyConversationReactionSummaryFields();
 }
@@ -394,13 +396,29 @@ export function mergeLocalDecryptedConversationPreviews(
 
   return serverConversations.map((serverConversation) => {
     const localConversation = localById.get(serverConversation.id);
-    if (!localConversation || !canReuseLocalDecryptedPreview(serverConversation, localConversation)) {
+    if (!localConversation) {
       return serverConversation;
     }
 
+    const canReuseReactionTarget = Boolean(
+      localConversation.lastReactionTargetText
+      && serverConversation.lastReactionMessageId === localConversation.lastReactionMessageId
+      && serverConversation.lastReactionEmoji === localConversation.lastReactionEmoji
+      && serverConversation.lastReactionReactorId === localConversation.lastReactionReactorId
+    );
+    const canReuseMessagePreview = canReuseLocalDecryptedPreview(
+      serverConversation,
+      localConversation,
+    );
+
+    if (!canReuseMessagePreview && !canReuseReactionTarget) return serverConversation;
+
     return {
       ...serverConversation,
-      lastMessage: localConversation.lastMessage,
+      ...(canReuseMessagePreview ? { lastMessage: localConversation.lastMessage } : {}),
+      ...(canReuseReactionTarget
+        ? { lastReactionTargetText: localConversation.lastReactionTargetText }
+        : {}),
     };
   });
 }
@@ -468,6 +486,7 @@ export function applyConversationReactionSummaryToList(
     reactorId,
     reactions = {},
     updatedAt = null,
+    targetText = '',
   } = {}
 ) {
   return sortConversationSummaryList(conversations.map((conversation) => {
@@ -484,6 +503,12 @@ export function applyConversationReactionSummaryToList(
       && conversation.lastReactionEmoji === emoji
       && conversation.lastReactionReactorId === reactorId
       && !reactionStillPresent;
+    const resolvedTargetText = String(targetText || '').trim()
+      || (
+        conversation.lastReactionMessageId === messageId
+          ? conversation.lastReactionTargetText
+          : null
+      );
 
     if (!reactionStillPresent && !isRemovingCurrentPreview) return conversation;
 
@@ -495,6 +520,7 @@ export function applyConversationReactionSummaryToList(
             lastReactionEmoji: emoji,
             lastReactionReactorId: reactorId,
             lastReactionAt: updatedAt || new Date().toISOString(),
+            lastReactionTargetText: resolvedTargetText || null,
             updatedAt: updatedAt || new Date().toISOString(),
           }
         : buildEmptyConversationReactionSummaryFields()),

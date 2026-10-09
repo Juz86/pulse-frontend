@@ -104,6 +104,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
 
   const errToastTimer  = useRef(null);
   const msgCache       = useRef({});
+  const messagesRef    = useRef([]);
   const msgEndRef      = useRef(null);
   const msgsAreaRef    = useRef(null);
   const textareaRef    = useRef(null);
@@ -330,6 +331,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     messageEditingEnabled,
   });
 
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
   const markConversationUnread = useCallback((conv) => {
     if (!markConversationUnreadEnabled || !conv?.id) return;
     setManuallyUnreadConversationIds((previous) => {
@@ -426,7 +431,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   });
 
   const { typing, typingName, typingByConv, pausedFeatures, mentionToast, clearMentionToast } = useChat({
-    user, activeConvRef, conversationsRef, msgsAreaRef, dndRef, audioCtxRef,
+    user, activeConvRef, conversationsRef, messagesRef, msgCache, msgsAreaRef, dndRef, audioCtxRef,
     mutedConversationIdsRef,
     loadConversations, loadContacts, loadFriendRequests, markFriendRequestSeen, setMessages, setConversations, setUnreadCounts,
     setFriendRequests, setContacts, setActiveConv,
@@ -1052,6 +1057,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         conversationMuted={mutedConversationIds.includes(activeConv?.id)}
         messageSelectionMode={messageSelectionMode}
         callLaunchPending={callLaunchPending}
+        audioCallingAvailable={audioCallingAvailable}
         onStartAudioCall={handleStartAudioCall}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         newChatSheetInSidebar

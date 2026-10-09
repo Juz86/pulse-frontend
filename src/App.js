@@ -453,7 +453,9 @@ function MainApp() {
     }
   }, [user]);
 
-  // Fix iOS Safari keyboard: sync visual viewport height to CSS variable
+  // Keep the chat shell inside the visible viewport while the software
+  // keyboard is open. Only the messages pane should shrink; freezing the
+  // pre-keyboard height makes Android pan the entire chat and hide its header.
   // Service worker → deep-link naar gesprek via notificatie-tik (één keer registreren)
   useEffect(() => {
     if (!navigator.serviceWorker) return;
@@ -481,26 +483,31 @@ function MainApp() {
       }
       return Boolean(element.isContentEditable);
     };
-    let stableHeight = vv.height;
-    let stableWidth = vv.width;
+    let resetScrollFrame = null;
     const update = () => {
       const activeElement = document.activeElement;
       const isEditing = isTextEditingElement(activeElement);
-      if (Math.abs(vv.width - stableWidth) > 1) {
-        stableWidth = vv.width;
-        stableHeight = vv.height;
+      const viewportHeight = Math.max(1, Math.round(vv.height));
+      document.documentElement.style.setProperty('--vvh', `${viewportHeight}px`);
+
+      if (isEditing) {
+        window.cancelAnimationFrame(resetScrollFrame);
+        resetScrollFrame = window.requestAnimationFrame(() => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+        });
       }
-      if (!isEditing) {
-        stableHeight = vv.height;
-      }
-      document.documentElement.style.setProperty('--vvh', `${isEditing ? stableHeight : vv.height}px`);
     };
     update();
     vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
     window.addEventListener('focusin', update);
     window.addEventListener('focusout', update);
     return () => {
+      window.cancelAnimationFrame(resetScrollFrame);
       vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
       window.removeEventListener('focusin', update);
       window.removeEventListener('focusout', update);
     };

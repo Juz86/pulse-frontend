@@ -13,6 +13,7 @@ import {
 import { ENCRYPTED_MESSAGE_PROTOCOL } from '../lib/e2ee/messageProtocolConstants';
 import {
   buildPendingMessage,
+  getMessageDisplayText,
   normalizeIncomingMessage,
 } from '../lib/e2ee/messageModel';
 import {
@@ -133,6 +134,7 @@ export default function useConversations({
       lastReactionEmoji: conversation.lastReactionEmoji || null,
       lastReactionReactorId: conversation.lastReactionReactorId || null,
       lastReactionAt: conversation.lastReactionAt || null,
+      lastReactionTargetText: conversation.lastReactionTargetText || null,
     }));
     writeCachedConversations(user.uid, cached);
   }, [conversations, user.uid]);
@@ -546,6 +548,24 @@ export default function useConversations({
           convId,
           latestHydratedMessage,
           latestHydratedMessage.createdAt || new Date().toISOString(),
+        ));
+      }
+      const reactionTargetMessage = mergedFetchedMessages.find(
+        (message) => message.id === conv.lastReactionMessageId,
+      );
+      const reactionTargetText = getMessageDisplayText(reactionTargetMessage);
+      if (conv.lastReactionEmoji && conv.lastReactionReactorId && reactionTargetText) {
+        setConversations((previous) => applyConversationReactionSummaryToList(
+          previous,
+          convId,
+          {
+            messageId: conv.lastReactionMessageId,
+            emoji: conv.lastReactionEmoji,
+            reactorId: conv.lastReactionReactorId,
+            reactions: reactionTargetMessage?.reactions || {},
+            updatedAt: conv.lastReactionAt || conv.updatedAt || null,
+            targetText: reactionTargetText,
+          },
         ));
       }
       markConversationMessagesAsRead(hydrated).catch(() => {});
@@ -1080,6 +1100,7 @@ export default function useConversations({
   function toggleReaction(msgId, emoji) {
     const socket = getSocket();
     if (!activeConv) return;
+    const targetText = getMessageDisplayText(messages.find((message) => message.id === msgId));
     const applyReactionPreview = (reactions, reactionAt = null) => {
       setConversations((previous) => applyConversationReactionSummaryToList(
         previous,
@@ -1090,6 +1111,7 @@ export default function useConversations({
           reactorId: user.uid,
           reactions: normalizeSingleUserReaction(reactions || {}, user.uid),
           updatedAt: reactionAt || new Date().toISOString(),
+          targetText,
         },
       ));
     };

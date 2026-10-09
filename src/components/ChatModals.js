@@ -99,6 +99,7 @@ export default function ChatModals({
   conversationMuted = false,
   messageSelectionMode = false,
   callLaunchPending = false,
+  audioCallingAvailable = false,
   onStartAudioCall,
   newChatSheetInSidebar = false,
 
@@ -1687,6 +1688,24 @@ export default function ChatModals({
               <button type="button" onClick={() => { closeGroupInfo(); startConversationWith?.(groupMemberAction.contact); }}>
                 <Message size={27} aria-hidden="true" />
                 <span>Bericht</span>
+              </button>
+              <button
+                type="button"
+                aria-label={`Bel ${groupMemberAction.name}`}
+                disabled={
+                  callLaunchPending
+                  || !audioCallingAvailable
+                  || blockedContacts?.some((contact) => contact.uid === groupMemberAction.memberId)
+                  || parentBlockedUids?.includes(groupMemberAction.memberId)
+                }
+                onClick={() => {
+                  const contact = groupMemberAction.contact;
+                  closeGroupInfo();
+                  onStartAudioCall?.(contact);
+                }}
+              >
+                <Phone size={27} aria-hidden="true" />
+                <span>Bel</span>
               </button>
             </div>
             <div className="group-member-action-list">

@@ -602,7 +602,8 @@ class PulseCallService : Service() {
             this,
             if (isIncomingAlert) INCOMING_NOTIFICATION_CHANNEL_ID else NOTIFICATION_CHANNEL_ID,
         )
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_pulse_notification)
+            .setColor(ContextCompat.getColor(this, R.color.pulse_notification_color))
             .setContentTitle(
                 if (isIncoming) displayName else getString(R.string.pulse_call_notification_title),
             )

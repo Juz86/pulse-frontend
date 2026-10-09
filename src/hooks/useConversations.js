@@ -18,6 +18,7 @@ import {
 import {
   applyConversationSummaryToList,
   applyConversationReactionSummaryToList,
+  mergeLocalDecryptedConversationPreviews,
   normalizeConversationSummaryRecord,
 } from '../lib/e2ee/conversationSummaries';
 import {
@@ -445,7 +446,14 @@ export default function useConversations({
         if (updated) { localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(stored)); setConvLabels(stored); }
       }
       const normalizedConversations = Array.isArray(data) ? data.map(normalizeConversationSummaryRecord) : [];
-      setConversations(applySessionConversationSummaries(normalizedConversations));
+      const localConversations = conversationsRef.current?.length
+        ? conversationsRef.current
+        : readCachedConversations(user.uid);
+      const conversationsWithLocalPreviews = mergeLocalDecryptedConversationPreviews(
+        normalizedConversations,
+        localConversations,
+      );
+      setConversations(applySessionConversationSummaries(conversationsWithLocalPreviews));
       const sock = getSocket();
       if (sock && Array.isArray(data)) {
         data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
@@ -531,6 +539,15 @@ export default function useConversations({
       const mergedFetchedMessages = mergeConversationMessages(hydrated, getSessionMessagesForConversation(convId));
       msgCache.current[convId] = mergedFetchedMessages;
       writeCachedMessages(user.uid, convId, mergedFetchedMessages);
+      const latestHydratedMessage = mergedFetchedMessages.at(-1);
+      if (latestHydratedMessage && latestHydratedMessage.decryptedLocally !== false) {
+        setConversations((previous) => applyConversationSummaryToList(
+          previous,
+          convId,
+          latestHydratedMessage,
+          latestHydratedMessage.createdAt || new Date().toISOString(),
+        ));
+      }
       markConversationMessagesAsRead(hydrated).catch(() => {});
       setMessages(prev => {
         const fetchedIds = new Set(mergedFetchedMessages.map(m => m.id).filter(Boolean));

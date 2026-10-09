@@ -14,6 +14,7 @@ import {
 import {
   applyConversationReactionSummaryToList,
   applyConversationSummaryToList,
+  mergeLocalDecryptedConversationPreviews,
   buildConversationPreviewPresentation,
   normalizeConversationSummaryRecord,
 } from './conversationSummaries';
@@ -1157,6 +1158,7 @@ describe('e2ee attachment helpers', () => {
       {
         id: 'conv-2',
         updatedAt: '2026-01-01T11:00:00.000Z',
+        lastMessageAt: '2026-01-01T11:00:00.000Z',
         lastMessage: 'Bijlage: rapport.pdf · versleuteld',
         lastMessageType: 'attachment',
         lastAttachmentName: 'rapport.pdf',
@@ -1180,6 +1182,46 @@ describe('e2ee attachment helpers', () => {
         lastMessage: 'Oud',
       },
     ]);
+  });
+
+  test('mergeLocalDecryptedConversationPreviews keeps a matching local plaintext preview', () => {
+    const serverConversations = [{
+      id: 'conv-1',
+      lastMessage: 'Versleuteld bericht',
+      lastMessageType: 'text',
+      lastMessageAt: { _seconds: 1790877600 },
+    }];
+    const localConversations = [{
+      id: 'conv-1',
+      lastMessage: 'Hallo Tahira',
+      lastMessageType: 'text',
+      lastMessageAt: '2026-10-01T18:00:02.000Z',
+    }];
+
+    expect(mergeLocalDecryptedConversationPreviews(
+      serverConversations,
+      localConversations,
+    )[0].lastMessage).toBe('Hallo Tahira');
+  });
+
+  test('mergeLocalDecryptedConversationPreviews rejects a stale local preview', () => {
+    const serverConversations = [{
+      id: 'conv-1',
+      lastMessage: 'Versleuteld bericht',
+      lastMessageType: 'text',
+      lastMessageAt: '2026-10-01T18:05:00.000Z',
+    }];
+    const localConversations = [{
+      id: 'conv-1',
+      lastMessage: 'Ouder bericht',
+      lastMessageType: 'text',
+      lastMessageAt: '2026-10-01T18:00:00.000Z',
+    }];
+
+    expect(mergeLocalDecryptedConversationPreviews(
+      serverConversations,
+      localConversations,
+    )[0].lastMessage).toBe('Versleuteld bericht');
   });
 
   test('applyConversationReactionSummaryToList stores the most recent reaction preview', () => {

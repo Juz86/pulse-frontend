@@ -214,6 +214,31 @@ function sortConversationSummaryList(conversations = []) {
   });
 }
 
+function conversationSummaryTimestampMs(value) {
+  if (!value) return null;
+  if (typeof value?.toMillis === 'function') return value.toMillis();
+  if (typeof value?.toDate === 'function') return value.toDate().getTime();
+  if (Number.isFinite(value?._seconds)) return value._seconds * 1000;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function canReuseLocalDecryptedPreview(serverConversation = {}, localConversation = {}) {
+  if (serverConversation.lastMessage !== getEncryptedMessageDisplayText()) return false;
+  if (!localConversation.lastMessage || localConversation.lastMessage === getEncryptedMessageDisplayText()) return false;
+  if ((serverConversation.lastMessageType || 'text') !== (localConversation.lastMessageType || 'text')) return false;
+
+  const serverTime = conversationSummaryTimestampMs(
+    serverConversation.lastMessageAt || serverConversation.updatedAt
+  );
+  const localTime = conversationSummaryTimestampMs(
+    localConversation.lastMessageAt || localConversation.updatedAt
+  );
+  if (serverTime === null || localTime === null) return false;
+
+  return Math.abs(serverTime - localTime) <= 5000;
+}
+
 function resolveConversationSummaryUpdatedAt(conversation = {}, message = {}, updatedAt = null) {
   return updatedAt || message?.createdAt || conversation.updatedAt;
 }
@@ -361,6 +386,25 @@ export function normalizeConversationSummaryRecord(conversation = {}) {
   });
 }
 
+export function mergeLocalDecryptedConversationPreviews(
+  serverConversations = [],
+  localConversations = []
+) {
+  const localById = new Map(localConversations.map((conversation) => [conversation.id, conversation]));
+
+  return serverConversations.map((serverConversation) => {
+    const localConversation = localById.get(serverConversation.id);
+    if (!localConversation || !canReuseLocalDecryptedPreview(serverConversation, localConversation)) {
+      return serverConversation;
+    }
+
+    return {
+      ...serverConversation,
+      lastMessage: localConversation.lastMessage,
+    };
+  });
+}
+
 export function buildConversationPreviewPresentation(
   message = {},
   { includeStorageSignal = true, currentUid = null } = {}
@@ -396,13 +440,19 @@ export function buildConversationPreviewPresentation(
 
 export function applyConversationSummaryToList(conversations = [], conversationId, message = {}, updatedAt = null) {
   const summary = normalizeConversationAttachmentSummary(buildConversationSummaryUpdate(message));
+  const resolvedUpdatedAt = resolveConversationSummaryUpdatedAt(
+    conversations.find((conversation) => conversation.id === conversationId),
+    message,
+    updatedAt,
+  );
 
   return sortConversationSummaryList(conversations.map((conversation) => (
     conversation.id === conversationId
       ? {
           ...conversation,
           ...summary,
-          updatedAt: resolveConversationSummaryUpdatedAt(conversation, message, updatedAt),
+          updatedAt: resolvedUpdatedAt,
+          lastMessageAt: resolvedUpdatedAt,
           ...buildEmptyConversationReactionSummaryFields(),
         }
       : conversation

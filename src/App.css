@@ -4110,6 +4110,164 @@ font-family: 'Inter', sans-serif;
 .calls-contact-list .sidebar-contact-row {
   min-width: 0;
 }
+.calls-history-list,
+.calls-contact-list {
+  padding-top:0;
+}
+.calls-history-heading {
+  position:sticky;
+  top:0;
+  z-index:4;
+  min-height:76px;
+  padding:16px 18px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background:#fbfaff;
+}
+.calls-history-heading > div {
+  min-width:0;
+}
+.calls-history-heading h2 {
+  margin:0;
+  color:#211936;
+  font-size:24px;
+  font-weight:800;
+  line-height:1.1;
+}
+.calls-history-heading span {
+  color:#837b92;
+  font-size:12px;
+  font-weight:600;
+}
+.calls-new-call-btn {
+  min-height:42px;
+  padding:0 14px;
+  border:0;
+  border-radius:14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  background:#6f56dd;
+  color:#fff;
+  font-weight:750;
+  cursor:pointer;
+  box-shadow:0 6px 16px rgba(94,68,194,.20);
+}
+.calls-new-call-btn span {
+  color:inherit;
+  font-size:12px;
+}
+.calls-history-rows {
+  padding:0 12px 12px;
+}
+.calls-history-row {
+  min-height:74px;
+  padding:10px 6px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  border-bottom:1px solid rgba(76,58,112,.10);
+}
+.calls-history-row:last-child {
+  border-bottom:0;
+}
+.calls-history-row .avatar-circle {
+  width:48px;
+  height:48px;
+}
+.calls-history-row-copy {
+  flex:1 1 auto;
+  min-width:0;
+}
+.calls-history-row-title {
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+}
+.calls-history-row-title > span {
+  flex:1 1 auto;
+  min-width:0;
+  overflow:hidden;
+  color:#211936;
+  font-size:14px;
+  font-weight:750;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.calls-history-row-title time {
+  flex:0 0 auto;
+  color:#837b92;
+  font-size:11px;
+}
+.calls-history-row-meta {
+  margin-top:3px;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  color:#568b72;
+  font-size:12px;
+}
+.calls-history-row-meta--negative {
+  color:#e44762;
+}
+.calls-history-call-btn,
+.calls-contact-picker-back {
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+  border:0;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#eee9ff;
+  color:#5d43c3;
+  cursor:pointer;
+}
+.calls-history-call-btn:disabled {
+  color:#aaa3b5;
+  background:#f1eff4;
+  cursor:not-allowed;
+}
+.calls-history-state {
+  margin:24px 18px;
+  padding:22px 18px;
+  border:1px solid rgba(76,58,112,.10);
+  border-radius:16px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  background:#fff;
+  color:#71697f;
+  text-align:center;
+  font-size:13px;
+}
+.calls-history-state strong {
+  color:#2d2541;
+  font-size:15px;
+}
+.calls-history-state button {
+  margin-top:6px;
+  padding:8px 12px;
+  border:0;
+  border-radius:10px;
+  background:#eee9ff;
+  color:#5d43c3;
+  font-weight:700;
+  cursor:pointer;
+}
+.calls-history-state--error {
+  color:#c83a54;
+}
+.calls-contact-picker-heading {
+  justify-content:flex-start;
+}
+.calls-contact-picker-heading > div {
+  flex:1 1 auto;
+}
 .calls-contact-call-btn {
   width: 44px;
   height: 44px;

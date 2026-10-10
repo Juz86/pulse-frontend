@@ -1,13 +1,13 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Phone, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound } from '../components/Icons';
+import { Phone, PhoneCall, PhoneOutgoing, PhoneMissed, PhoneEnd, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound, ArrowLeft } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import UserAvatar from '../components/UserAvatar';
 import ConversationList from './ConversationList';
 import ParentDashboard from '../screens/ParentDashboard';
-import { getInitials, HISTORY_RETENTION_OPTIONS, normalizeHistoryRules } from '../utils';
+import { formatConversationListTime, getInitials, HISTORY_RETENTION_OPTIONS, normalizeHistoryRules } from '../utils';
 import chatDefaultPattern from '../assets/chatachtergrond.jpeg';
 
 function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = false, style }) {
@@ -112,6 +112,22 @@ function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = 
       )}
     </div>
   );
+}
+
+function getCallHistoryAppearance(call = {}) {
+  const kind = call.callKind || '';
+  if (kind === 'missed_incoming') return { label: 'Gemiste oproep', Icon: PhoneMissed, negative: true };
+  if (kind.endsWith('_declined')) return { label: 'Oproep geweigerd', Icon: PhoneEnd, negative: true };
+  if (kind === 'outgoing_unanswered') return { label: 'Geen antwoord', Icon: PhoneOutgoing, negative: true };
+  if (call.direction === 'incoming' || kind.startsWith('incoming_')) return { label: 'Inkomend', Icon: PhoneCall, negative: false };
+  return { label: 'Uitgaand', Icon: PhoneOutgoing, negative: false };
+}
+
+function formatCallDuration(duration) {
+  const seconds = Math.max(0, Number(duration) || 0);
+  if (!seconds) return '';
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
 export default function ChatSidebar({
@@ -276,6 +292,10 @@ export default function ChatSidebar({
   getContactDisplayName,
   nativeAudioCallingAvailable = false,
   callLaunchPending = false,
+  callHistory = [],
+  callHistoryLoading = false,
+  callHistoryError = '',
+  onRefreshCallHistory,
   onStartAudioCall,
 }) {
   const sidebarRef = useRef(null);
@@ -297,6 +317,7 @@ export default function ChatSidebar({
   const [shareContactSearch, setShareContactSearch] = useState('');
   const [newGroupContactSearch, setNewGroupContactSearch] = useState('');
   const [sidebarSearchOpen, setSidebarSearchOpen] = useState(false);
+  const [showCallContacts, setShowCallContacts] = useState(false);
   const [requestsTab, setRequestsTab] = useState('ontvangen');
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
   const [pendingColor, setPendingColor] = useState(null);
@@ -316,6 +337,10 @@ export default function ChatSidebar({
   const moreActionsSheetHistoryPushedRef = useRef(false);
   const contactSheetHistoryPushedRef = useRef(false);
   const normalizedSearch = searchQuery.trim().toLowerCase();
+
+  useEffect(() => {
+    if (activeTab !== 'calls') setShowCallContacts(false);
+  }, [activeTab]);
   const normalizedNewGroupContactSearch = newGroupContactSearch.trim().toLowerCase();
   const filteredNewGroupContacts = contacts.filter((contact) => {
     if (!normalizedNewGroupContactSearch) return true;
@@ -1699,6 +1724,35 @@ export default function ChatSidebar({
       || contact.displayName?.toLowerCase().includes(normalizedSearch)
       || contact.email?.toLowerCase().includes(normalizedSearch)
   )), [contacts, normalizedSearch]);
+  const callHistoryRows = useMemo(() => callHistory.map((call) => {
+    const conversation = conversations.find((item) => item.id === call.conversationId) || null;
+    const peerUid = conversation ? getOtherUid(conversation) : (call.senderId !== user.uid ? call.senderId : null);
+    const contact = contacts.find((item) => item.uid === peerUid) || null;
+    const name = contact
+      ? getContactDisplayName(contact)
+      : conversation
+        ? getConvName(conversation)
+        : 'Contactpersoon';
+    const photoURL = contact?.photoURL || (conversation ? getConvPhoto(conversation) : null);
+    const target = peerUid ? (contact || { uid: peerUid, displayName: name, photoURL }) : null;
+    return {
+      call,
+      conversation,
+      peerUid,
+      contact,
+      name,
+      photoURL,
+      target,
+      appearance: getCallHistoryAppearance(call),
+      duration: formatCallDuration(call.duration),
+      time: formatConversationListTime(call.createdAt),
+    };
+  }).filter((row) => (
+    !normalizedSearch
+      || row.name.toLowerCase().includes(normalizedSearch)
+      || row.contact?.email?.toLowerCase().includes(normalizedSearch)
+      || row.appearance.label.toLowerCase().includes(normalizedSearch)
+  )), [callHistory, contacts, conversations, getContactDisplayName, getConvName, getConvPhoto, getOtherUid, normalizedSearch, user.uid]);
   const groupConversationCount = useMemo(
     () => conversations.filter((conversation) => conversation?.isGroup).length,
     [conversations],
@@ -2857,7 +2911,11 @@ export default function ChatSidebar({
                 <button
                   type="button"
                   className="sidebar-search-trigger"
-                  aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken openen' : 'Zoeken in contacten openen'}
+                  aria-label={activeTab === 'chats'
+                    ? 'Zoeken in gesprekken openen'
+                    : activeTab === 'calls' && !showCallContacts
+                      ? 'Zoeken in oproepen openen'
+                      : 'Zoeken in contacten openen'}
                   aria-expanded={sidebarSearchOpen}
                   onClick={() => setSidebarSearchOpen(true)}
                 >
@@ -2870,7 +2928,11 @@ export default function ChatSidebar({
                     <Search size={18} aria-hidden="true" />
                     <input
                       autoFocus
-                      aria-label={activeTab === 'chats' ? 'Zoeken in gesprekken' : 'Zoeken in contacten'}
+                      aria-label={activeTab === 'chats'
+                        ? 'Zoeken in gesprekken'
+                        : activeTab === 'calls' && !showCallContacts
+                          ? 'Zoeken in oproepen'
+                          : 'Zoeken in contacten'}
                       placeholder="Zoeken…"
                       value={searchQuery}
                       onChange={(event) => setSearchQuery(event.target.value)}
@@ -3030,8 +3092,96 @@ export default function ChatSidebar({
           )}
 
           {/* Bellen tab */}
-          {activeTab === 'calls' && (
+          {activeTab === 'calls' && !showCallContacts && (
+            <div className="conv-list calls-history-list" aria-label="Recente oproepen">
+              <div className="calls-history-heading">
+                <div>
+                  <h2>Oproepen</h2>
+                  <span>Recent</span>
+                </div>
+                <button
+                  type="button"
+                  className="calls-new-call-btn"
+                  onClick={() => { setSearchQuery(''); setShowCallContacts(true); }}
+                >
+                  <Plus size={20} aria-hidden="true" />
+                  <span>Nieuwe oproep</span>
+                </button>
+              </div>
+
+              {callHistoryLoading && callHistoryRows.length === 0 && (
+                <div className="calls-history-state" role="status">Oproepen laden...</div>
+              )}
+              {callHistoryError && callHistoryRows.length === 0 && (
+                <div className="calls-history-state calls-history-state--error" role="alert">
+                  <span>{callHistoryError}</span>
+                  <button type="button" onClick={() => onRefreshCallHistory?.()}>Opnieuw proberen</button>
+                </div>
+              )}
+              {!callHistoryLoading && !callHistoryError && callHistoryRows.length === 0 && (
+                <div className="calls-history-state">
+                  <strong>{normalizedSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</strong>
+                  <span>{normalizedSearch ? 'Probeer een andere zoekopdracht.' : 'Je recente Pulse-oproepen verschijnen hier.'}</span>
+                </div>
+              )}
+
+              <div className="calls-history-rows" role="list">
+                {callHistoryRows.map((row, index) => {
+                  const { Icon } = row.appearance;
+                  const blocked = !row.peerUid
+                    || parentBlockedUids?.includes(row.peerUid)
+                    || (blockedContacts || []).some((blockedContact) => blockedContact.uid === row.peerUid);
+                  const callDisabled = !nativeAudioCallingAvailable || callLaunchPending || blocked;
+                  return (
+                    <div
+                      key={row.call.id || `${row.call.sessionId || row.call.conversationId}-${row.call.callKind}-${row.call.createdAt}-${index}`}
+                      className="calls-history-row"
+                      role="listitem"
+                    >
+                      <UserAvatar photoURL={row.photoURL} displayName={row.name} decorative />
+                      <div className="calls-history-row-copy">
+                        <div className="calls-history-row-title">
+                          <span>{row.name}</span>
+                          <time dateTime={row.call.createdAt || undefined}>{row.time}</time>
+                        </div>
+                        <div className={`calls-history-row-meta${row.appearance.negative ? ' calls-history-row-meta--negative' : ''}`}>
+                          <Icon size={17} aria-hidden="true" />
+                          <span>{row.appearance.label}{row.duration ? ` · ${row.duration}` : ''}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="calls-history-call-btn"
+                        aria-label={`Bel ${row.name}`}
+                        title={nativeAudioCallingAvailable ? `Bel ${row.name}` : 'Bellen is alleen beschikbaar in de Pulse-app'}
+                        disabled={callDisabled}
+                        onClick={() => row.target && onStartAudioCall?.(row.target)}
+                      >
+                        <Phone size={19} aria-hidden="true" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'calls' && showCallContacts && (
             <div className="conv-list contacts-conv-list calls-contact-list" aria-label="Contacten om te bellen">
+              <div className="calls-history-heading calls-contact-picker-heading">
+                <button
+                  type="button"
+                  className="calls-contact-picker-back"
+                  aria-label="Terug naar recente oproepen"
+                  onClick={() => { setSearchQuery(''); setShowCallContacts(false); }}
+                >
+                  <ArrowLeft size={22} aria-hidden="true" />
+                </button>
+                <div>
+                  <h2>Nieuwe oproep</h2>
+                  <span>Kies een contact</span>
+                </div>
+              </div>
               {filteredContacts.map((contact) => {
                 const contactName = getContactDisplayName(contact);
                 const blocked = parentBlockedUids?.includes(contact.uid)

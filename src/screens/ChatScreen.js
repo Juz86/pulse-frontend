@@ -28,6 +28,7 @@ import {
   startNativeAudioCall,
 } from '../services/nativeCall';
 import { browserCallErrorMessage } from '../services/browserCall';
+import { loadPulseCallHistory } from '../services/callHistory';
 import { clearPulseUserStorage, copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
@@ -61,6 +62,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   const [confirmDialog,  setConfirmDialog]  = useState(null);
   const [nativeCallCapabilities, setNativeCallCapabilities] = useState({ audio: false, video: false });
   const [callLaunchPending, setCallLaunchPending] = useState(false);
+  const [callHistory, setCallHistory] = useState([]);
+  const [callHistoryLoading, setCallHistoryLoading] = useState(false);
+  const [callHistoryError, setCallHistoryError] = useState('');
+  const [callHistoryRefreshVersion, setCallHistoryRefreshVersion] = useState(0);
   const [replyTo,        setReplyTo]        = useState(null);
   const [showChatSearch, setShowChatSearch] = useState(false);
   const [conversationPanelMode, setConversationPanelMode] = useState('search');
@@ -310,7 +315,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // ── Hooks ─────────────────────────────────────────────────────────────────
   const {
     conversations, setConversations, activeConv, setActiveConv,
-    messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore,
+    messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore, currentDeviceId,
     loadConversations, openConversation, deleteConversation, clearConversationHistoryHard, loadMoreMessages,
     sendMessage, stopTyping, retryMessage, retryAllFailed, toggleReaction,
     sendContactCardToConversation,
@@ -330,6 +335,33 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     serviceTransportReady,
     messageEditingEnabled,
   });
+
+  const callHistoryRefreshKey = useMemo(() => conversations.map((conversation) => (
+    [
+      conversation.id,
+      conversation.lastMessageType,
+      conversation.lastCallEvent?.sessionId,
+      conversation.lastMessageAt || conversation.updatedAt,
+    ].filter(Boolean).join(':')
+  )).join('|'), [conversations]);
+
+  useEffect(() => {
+    if (activeTab !== 'calls') return undefined;
+    let cancelled = false;
+    setCallHistoryLoading(true);
+    setCallHistoryError('');
+    loadPulseCallHistory({ user, conversations, currentDeviceId })
+      .then((history) => {
+        if (!cancelled) setCallHistory(history);
+      })
+      .catch(() => {
+        if (!cancelled) setCallHistoryError('Oproepen konden niet worden geladen.');
+      })
+      .finally(() => {
+        if (!cancelled) setCallHistoryLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [activeTab, callHistoryRefreshKey, callHistoryRefreshVersion, conversations, currentDeviceId, user]);
 
   useEffect(() => {
     messagesRef.current = messages;
@@ -708,6 +740,10 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         setLabelMenuConvId={() => {}}
         nativeAudioCallingAvailable={audioCallingAvailable}
         callLaunchPending={callLaunchPending}
+        callHistory={callHistory}
+        callHistoryLoading={callHistoryLoading}
+        callHistoryError={callHistoryError}
+        onRefreshCallHistory={() => setCallHistoryRefreshVersion((version) => version + 1)}
         onStartAudioCall={handleStartAudioCall}
         showNewChat={showNewChat}
         setShowNewChat={setShowNewChat}

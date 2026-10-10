@@ -241,12 +241,11 @@ export default function ChatModals({
   }
 
   function clearChatFromProfile() {
-    setShowContactProfile(false);
     onClearChat?.();
   }
 
-  function deleteChatFromProfile() {
-    setShowContactProfile(false);
+  function deleteChatFromProfile(contact) {
+    setContactProfileContact?.(contact);
     onDeleteChat?.();
   }
 
@@ -1034,7 +1033,7 @@ export default function ChatModals({
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>
-                <button type="button" className="contact-profile-row-button danger" onClick={deleteChatFromProfile}>
+                <button type="button" className="contact-profile-row-button danger" onClick={() => deleteChatFromProfile(targetContact)}>
                   <span className="contact-profile-row-icon"><Trash2 size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
                     <span className="contact-profile-row-title">Chat verwijderen</span>
@@ -1047,14 +1046,14 @@ export default function ChatModals({
                 <button type="button" className={`contact-profile-row-button${isBlocked ? '' : ' danger'}`} onClick={() => (isBlocked ? unblockContact?.(uid) : onBlockContact?.(targetContact))}>
                   <span className="contact-profile-row-icon"><Block size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
-                    <span className="contact-profile-row-title">{isBlocked ? 'Deblokkeren' : 'Blokkeren'}</span>
+                    <span className="contact-profile-row-title">{isBlocked ? 'Deblokkeren' : 'Contact blokkeren'}</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>
                 <button type="button" className="contact-profile-row-button danger" onClick={() => onRemoveContact?.(uid)}>
                   <span className="contact-profile-row-icon"><Trash2 size={20} aria-hidden="true" /></span>
                   <span className="contact-profile-row-copy">
-                    <span className="contact-profile-row-title">Verwijderen</span>
+                    <span className="contact-profile-row-title">Contact verwijderen</span>
                   </span>
                   <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
                 </button>

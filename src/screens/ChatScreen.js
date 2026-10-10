@@ -222,6 +222,20 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
     setMessageSelectionMode(true);
     setSelectedMessageIds([]);
   }
+  function openStarredMessages() {
+    setChatSearch('');
+    setChatSearchIdx(0);
+    setConversationPanelMode('starred');
+    setShowChatSearch(false);
+    setShowStarredMsgs(true);
+  }
+  function openConversationSearch() {
+    setChatSearch('');
+    setChatSearchIdx(0);
+    setShowStarredMsgs(false);
+    setConversationPanelMode('search');
+    setShowChatSearch(true);
+  }
   async function openConversationAndRun(conv, action) {
     await openConversation(conv);
     action?.();
@@ -297,6 +311,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       message: `${selectedConversationIds.length} gesprek${selectedConversationIds.length === 1 ? '' : 'ken'} verwijderen?`,
       confirmLabel: 'Chats verwijderen',
       confirmIcon: 'trash',
+      hideCancel: true,
       onConfirm: async () => {
         for (const convId of selectedConversationIds) {
           // eslint-disable-next-line no-await-in-loop
@@ -858,7 +873,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onMarkConversationUnread={markConversationUnread}
         onShowGroupInfo={(conv) => openConversationAndRun(conv, () => setShowGroupInfo(true))}
         onEnterMessageSelectionForConversation={(conv) => openConversationAndRun(conv, enterMessageSelection)}
-        onShowStarredForConversation={(conv) => openConversationAndRun(conv, () => setShowStarredMsgs(true))}
+        onShowStarredForConversation={(conv) => openConversationAndRun(conv, openStarredMessages)}
         onLeaveGroup={(conv) => openConversationAndRun(conv, leaveGroup)}
         conversationActionsRequest={headerConversationActions}
         onConversationActionsRequestHandled={() => setHeaderConversationActions(null)}
@@ -897,7 +912,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               onShowContactProfile={() => { setContactProfileContact(null); setShowContactProfile(true); }}
               onToggleConversationMute={() => toggleConversationMute(activeConv?.id)}
               onEnterMessageSelection={() => messageSelectionMode ? cancelMessageSelection() : enterMessageSelection()}
-              onShowStarredMsgs={() => setShowStarredMsgs(true)}
+              onShowStarredMsgs={openStarredMessages}
               onLeaveGroup={leaveGroup}
               onClearChat={() => {
                 openClearConversationConfirm(activeConv);
@@ -997,7 +1012,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         )}
       </main>
 
-      {activeConv && showChatSearch && (
+      {activeConv && (showChatSearch || showStarredMsgs) && (
         <ConversationSearchPanel
           activeConv={activeConv}
           messages={messages}
@@ -1007,9 +1022,14 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
           setChatSearchIdx={setChatSearchIdx}
           chatSearchRef={chatSearchRef}
           getConvName={getConvName}
-          mode={conversationPanelMode}
+          onJumpToMsg={handleJumpToMsg}
+          mode={showStarredMsgs ? 'starred' : conversationPanelMode}
           starredMsgs={starredMsgs}
-          onClose={() => { setShowChatSearch(false); setConversationPanelMode('search'); }}
+          onClose={() => {
+            setShowChatSearch(false);
+            setShowStarredMsgs(false);
+            setConversationPanelMode('search');
+          }}
         />
       )}
 
@@ -1082,16 +1102,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         onRemoveContact={removeContact}
         showChatSearch={showChatSearch}
         setShowChatSearch={setShowChatSearch}
-        onOpenConversationSearch={(conversation) => {
-          openConversation(conversation);
-          setConversationPanelMode('search');
-          setShowChatSearch(true);
-        }}
-        onOpenConversationStarred={(conversation) => {
-          openConversation(conversation);
-          setConversationPanelMode('starred');
-          setShowChatSearch(true);
-        }}
+        onOpenConversationSearch={(conversation) => openConversationAndRun(conversation, openConversationSearch)}
+        onOpenConversationStarred={(conversation) => openConversationAndRun(conversation, openStarredMessages)}
         conversationMuted={mutedConversationIds.includes(activeConv?.id)}
         messageSelectionMode={messageSelectionMode}
         callLaunchPending={callLaunchPending}

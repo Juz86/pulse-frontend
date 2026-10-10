@@ -302,6 +302,7 @@ export default function ChatSidebar({
   const sidebarHeaderRef = useRef(null);
   const sidebarFooterRef = useRef(null);
   const sidebarFooterTabbarRef = useRef(null);
+  const sidebarSearchWindowRef = useRef(null);
   const [contactMenu, setContactMenu] = useState(null);
   const [convMenu, setConvMenu]       = useState(null); // { conv, otherUid, direction, top, left }
   const [convActionsSheet, setConvActionsSheet] = useState(null); // { conv, otherUid }
@@ -341,6 +342,20 @@ export default function ChatSidebar({
   useEffect(() => {
     if (activeTab !== 'calls') setShowCallContacts(false);
   }, [activeTab]);
+
+  useEffect(() => {
+    if (!sidebarSearchOpen) return undefined;
+
+    const closeSearchOnOutsidePress = (event) => {
+      if (sidebarSearchWindowRef.current?.contains(event.target)) return;
+      setSearchQuery('');
+      setSidebarSearchOpen(false);
+    };
+
+    document.addEventListener('pointerdown', closeSearchOnOutsidePress, true);
+    return () => document.removeEventListener('pointerdown', closeSearchOnOutsidePress, true);
+  }, [setSearchQuery, sidebarSearchOpen]);
+
   const normalizedNewGroupContactSearch = newGroupContactSearch.trim().toLowerCase();
   const filteredNewGroupContacts = contacts.filter((contact) => {
     if (!normalizedNewGroupContactSearch) return true;
@@ -2503,7 +2518,7 @@ export default function ChatSidebar({
       <button
         type="button"
         className={`sidebar-footer-tab${callsFooterActive ? ' active' : ''}`}
-        aria-label="Bellen"
+        aria-label="Oproepen"
         aria-pressed={callsFooterActive}
         onClick={() => {
           closeMoreActionsSheet();
@@ -2523,12 +2538,12 @@ export default function ChatSidebar({
           setActiveTab('calls');
           if (contextPanelVisible) onShowChatsFromContextPanel?.();
         }}
-        title="Bellen"
+        title="Oproepen"
       >
         <span className="sidebar-footer-tab-icon" aria-hidden="true">
           <Phone size={26} aria-hidden="true" />
         </span>
-        <span className="sidebar-footer-tab-label">Bellen</span>
+        <span className="sidebar-footer-tab-label">Oproepen</span>
       </button>
 
       {!isParent && (
@@ -2923,7 +2938,7 @@ export default function ChatSidebar({
                 </button>
               </div>
               {sidebarSearchOpen && (
-                <div className="sidebar-search-window" role="search">
+                <div className="sidebar-search-window" role="search" ref={sidebarSearchWindowRef}>
                   <div className="search-box search-box--top">
                     <Search size={18} aria-hidden="true" />
                     <input
@@ -3121,7 +3136,7 @@ export default function ChatSidebar({
               {!callHistoryLoading && !callHistoryError && callHistoryRows.length === 0 && (
                 <div className="calls-history-state">
                   <strong>{normalizedSearch ? 'Geen oproepen gevonden' : 'Nog geen oproepen'}</strong>
-                  <span>{normalizedSearch ? 'Probeer een andere zoekopdracht.' : 'Je recente Pulse-oproepen verschijnen hier.'}</span>
+                  {normalizedSearch && <span>Probeer een andere zoekopdracht.</span>}
                 </div>
               )}
 

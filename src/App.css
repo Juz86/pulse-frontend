@@ -10218,17 +10218,6 @@ font-family: 'Inter', sans-serif;
 }
 .chat-search-input:focus { border-color: var(--accent); }
 
-@media (min-width: 768px) {
-  :root { --desktop-search-panel-width: min(420px, 34vw); }
-  .conversation-search-panel {
-    grid-column:3;
-    grid-row:1;
-  }
-
-  /* Op desktop blijft een oproep naast het gesprek staan, in dezelfde
-     derde kolom als Berichten doorzoeken. */
-}
-
 /* ── Berichten doorzoeken: zelfstandige WhatsApp-achtige zijbalk ── */
 .conversation-search-panel {
   position:relative;
@@ -10242,6 +10231,53 @@ font-family: 'Inter', sans-serif;
   box-shadow:-14px 0 34px rgba(37,22,83,.11);
   animation:conversation-search-panel-in .26s cubic-bezier(.22,.85,.25,1) both;
 }
+.conversation-search-panel__header {
+  min-height:76px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 18px;
+  border-bottom:1px solid rgba(112,92,191,.11);
+  background:rgba(255,255,255,.72);
+}
+.conversation-search-panel__header-icon {
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  border-radius:50%;
+  color:#6c5ce7;
+  background:#eee9ff;
+}
+.conversation-search-panel__heading {
+  min-width:0;
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  gap:2px;
+}
+.conversation-search-panel__heading strong,
+.conversation-search-panel__heading span {
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.conversation-search-panel__heading strong { font-size:17px; }
+.conversation-search-panel__heading span { color:#81799a; font-size:13px; }
+.conversation-search-panel__close {
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  color:#34285c;
+  background:#f1edfa;
+}
+.conversation-search-panel__close:hover { color:#5e4adb; background:#e6dfff; }
 .conversation-search-panel__clear {
   display:grid;
   place-items:center;
@@ -10327,7 +10363,24 @@ font-family: 'Inter', sans-serif;
   to { opacity:1; transform:translateX(0); }
 }
 
-@media (max-width: 767px) {
+@media (min-width: 900px) {
+  :root { --desktop-search-panel-width: clamp(300px, 27vw, 420px); }
+  .conversation-search-panel {
+    flex:0 0 var(--desktop-search-panel-width);
+    width:var(--desktop-search-panel-width);
+    min-width:300px;
+    height:100%;
+  }
+  .app-screen:has(.conversation-search-panel) .chat-main {
+    flex:1 1 auto;
+    width:auto;
+  }
+  .pulse-sheet-backdrop--starred {
+    display:none;
+  }
+}
+
+@media (max-width: 899px) {
   .conversation-search-panel {
     position:fixed;
     z-index:3800;
@@ -10341,6 +10394,8 @@ font-family: 'Inter', sans-serif;
     background:transparent;
     animation:none;
   }
+  .conversation-search-panel--starred { display:none; }
+  .conversation-search-panel__header { display:none; }
   .conversation-search-panel__search {
     position:absolute;
     z-index:1;
@@ -18025,16 +18080,55 @@ font-family: 'Inter', sans-serif;
       10px
       max(18px, env(safe-area-inset-bottom));
     gap: 12px;
+    min-width: 0;
+    overflow-x: hidden;
   }
 
   .web-auth-card {
     width: 100%;
+    min-width: 0;
     gap: 18px;
     padding: 18px 14px 16px;
+    overflow: hidden;
+  }
+
+  .web-auth-info {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .web-auth-info-logo {
+    margin: 0;
+  }
+
+  .web-auth-info > :not(.web-auth-info-logo) {
+    display: none;
   }
 
   .web-auth-form-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     padding: 16px 14px;
+    overflow: hidden;
+  }
+
+  .web-auth-tabs,
+  .web-auth-parent-panel,
+  .web-auth-parent-panel form,
+  .parent-auth-tabs,
+  .parent-auth-field,
+  .parent-verify-boxes {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .web-auth-parent-panel .parent-auth-title,
+  .web-auth-parent-panel .parent-auth-sub {
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 }
 

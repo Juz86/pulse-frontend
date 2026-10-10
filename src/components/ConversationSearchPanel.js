@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { Search, XIcon } from './Icons';
+import { Search, StarFilled, XIcon } from './Icons';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 
 function messageDate(value) {
@@ -29,6 +29,7 @@ export default function ConversationSearchPanel({
   chatSearchRef,
   getConvName,
   onClose,
+  onJumpToMsg,
   mode = 'search',
   starredMsgs = [],
 }) {
@@ -54,8 +55,31 @@ export default function ConversationSearchPanel({
     onClose();
   }
 
+  function clearSearch() {
+    setChatSearch('');
+    setChatSearchIdx(0);
+  }
+
   return (
-    <aside className="conversation-search-panel" aria-label={`${isStarredMode ? 'Berichten met ster' : 'Berichten doorzoeken'} in ${getConvName(activeConv)}`}>
+    <aside className={`conversation-search-panel${isStarredMode ? ' conversation-search-panel--starred' : ''}`} aria-label={`${isStarredMode ? 'Berichten met ster' : 'Berichten doorzoeken'} in ${getConvName(activeConv)}`}>
+      <header className="conversation-search-panel__header">
+        {isStarredMode ? (
+          <span className="conversation-search-panel__header-icon" aria-hidden="true">
+            <StarFilled size={20} />
+          </span>
+        ) : (
+          <span className="conversation-search-panel__header-icon" aria-hidden="true">
+            <Search size={20} />
+          </span>
+        )}
+        <div className="conversation-search-panel__heading">
+          <strong>{isStarredMode ? 'Berichten met ster' : 'Zoeken'}</strong>
+          <span>{getConvName(activeConv)}</span>
+        </div>
+        <button type="button" className="conversation-search-panel__close" aria-label={`${isStarredMode ? 'Berichten met ster' : 'Zoeken'} sluiten`} onClick={close}>
+          <XIcon size={22} aria-hidden="true" />
+        </button>
+      </header>
       <div className="conversation-search-panel__search" role="search">
         <Search size={22} aria-hidden="true" />
         <input
@@ -70,8 +94,13 @@ export default function ConversationSearchPanel({
           aria-label={`${isStarredMode ? 'Zoeken in berichten met ster' : 'Zoeken in gesprek'} met ${getConvName(activeConv)}`}
           aria-controls="chat-messages-log"
         />
-        {chatSearch && (
-          <button type="button" className="conversation-search-panel__clear" aria-label="Zoekterm wissen" onClick={() => { setChatSearch(''); setChatSearchIdx(0); }}>
+        {(chatSearch || !isStarredMode) && (
+          <button
+            type="button"
+            className="conversation-search-panel__clear"
+            aria-label={chatSearch ? 'Zoekterm wissen' : 'Zoeken sluiten'}
+            onClick={chatSearch ? clearSearch : close}
+          >
             <XIcon size={19} aria-hidden="true" />
           </button>
         )}
@@ -87,8 +116,8 @@ export default function ConversationSearchPanel({
             <button
               type="button"
               key={message.id || `${message.createdAt}-${originalIndex}`}
-              className={`conversation-search-result${originalIndex === currentIndex ? ' is-active' : ''}`}
-              onClick={() => setChatSearchIdx(originalIndex)}
+              className={`conversation-search-result${query && originalIndex === currentIndex ? ' is-active' : ''}`}
+              onClick={() => isStarredMode ? onJumpToMsg?.(message.id) : setChatSearchIdx(originalIndex)}
             >
               <span className="conversation-search-result__date">{messageDate(message.createdAt)}</span>
               <span className="conversation-search-result__text">{highlightMatch(getMessageDisplayText(message), chatSearch)}</span>

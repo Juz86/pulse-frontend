@@ -78,6 +78,12 @@ async function postJson(path, body, options = {}) {
   }
 }
 
+function assertVerificationEmailSent(result) {
+  if (result?.warning === 'mail_delivery_failed') {
+    throw new Error('De verificatiecode kon niet per e-mail worden bezorgd. Controleer het e-mailadres en probeer het opnieuw.');
+  }
+}
+
 export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal = false }) {
   const [tab,          setTab]          = useState(defaultTab);
   const [name,         setName]         = useState('');
@@ -139,7 +145,8 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
       if (tab === 'register') {
         if (cleanName.length < 2) throw new Error('Vul uw naam in.');
         // Stuur verificatiecode, maak account nog NIET aan
-        await postJson('/api/send-code', { email: cleanEmail });
+        const sendResult = await postJson('/api/send-code', { email: cleanEmail });
+        assertVerificationEmailSent(sendResult);
         setName(cleanName);
         setEmail(cleanEmail);
         setStep('verify');
@@ -226,7 +233,8 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
     setResendLoading(true);
     setResendMsg('');
     try {
-      await postJson('/api/send-code', { email: normalizeEmail(email) });
+      const sendResult = await postJson('/api/send-code', { email: normalizeEmail(email) });
+      assertVerificationEmailSent(sendResult);
       setResendCount(c => c + 1);
       setVerifyCode(['', '', '', '', '', '']);
       setResendMsg('Nieuwe code verstuurd.');

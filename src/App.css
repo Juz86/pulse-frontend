@@ -2790,13 +2790,13 @@ font-family: 'Inter', sans-serif;
   }
 
   .parent-verify-boxes {
-    gap: 8px;
+    gap: clamp(5px, 1.8vw, 8px);
     margin: 20px 0 14px;
   }
 
   .parent-verify-box {
-    width: min(13vw, 44px);
-    height: min(16vw, 52px);
+    width: 100%;
+    height: clamp(46px, 13vw, 52px);
     font-size: clamp(20px, 6vw, 24px);
   }
 }
@@ -4164,15 +4164,20 @@ font-family: 'Inter', sans-serif;
   padding:0 12px 12px;
 }
 .calls-history-row {
+  position:relative;
   min-height:74px;
   padding:10px 6px;
   display:flex;
   align-items:center;
   gap:12px;
-  border-bottom:1px solid rgba(76,58,112,.10);
 }
-.calls-history-row:last-child {
-  border-bottom:0;
+.calls-history-row:not(:last-child)::after {
+  content:"";
+  position:absolute;
+  right:60px;
+  bottom:0;
+  left:66px;
+  border-bottom:1px solid rgba(76,58,112,.10);
 }
 .calls-history-row .avatar-circle {
   width:48px;
@@ -11175,10 +11180,15 @@ font-family: 'Inter', sans-serif;
 
 /* ── VERIFICATIESCHERM ── */
 .parent-verify-boxes {
-  display:flex; gap:10px; justify-content:center; margin:24px 0 16px;
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(6, minmax(0, 1fr));
+  gap:clamp(5px, 2vw, 10px);
+  margin:24px 0 16px;
 }
 .parent-verify-box {
-  width:48px; height:56px; border:2px solid #e5e7eb; border-radius:12px;
+  width:100%; min-width:0; height:56px; padding:0; box-sizing:border-box;
+  border:2px solid #e5e7eb; border-radius:12px;
   font-size:24px; font-weight:700; text-align:center; color:#111827;
   background:#f9fafb; outline:none; transition:border-color .15s;
 }

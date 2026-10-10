@@ -2894,8 +2894,8 @@ font-family: 'Inter', sans-serif;
   color:#30264e;
 }
 .sidebar--light-home > .chat-filters {
-  background:#ffffff;
-  border-bottom:1px solid #eeeaf4;
+  background:#fbfaff;
+  border-bottom:0;
 }
 .sidebar--light-home > .chat-filters .chat-filter-chip {
   border-color:#dcd5e7;

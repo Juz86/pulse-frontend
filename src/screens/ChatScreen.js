@@ -686,8 +686,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }, [contactsByUid, getContactDisplayName]);
   const browserCall = useBrowserCall({ user, resolvePeer: resolveCallPeer });
   const audioCallingAvailable = nativeCallCapabilities.audio || browserCall.supported;
+  const videoCallingAvailable = browserCall.supported;
 
-  async function handleStartAudioCall(contact = null) {
+  async function handleStartCall(contact = null, mediaType = 'audio') {
     if (callLaunchPending) return;
     const selectedContact = contact?.uid ? contact : null;
     if (!selectedContact && (!activeConv || activeConv.isGroup)) return;
@@ -704,16 +705,16 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         displayName: selectedContact ? getContactDisplayName(selectedContact) : getConvName(activeConv),
         photoURL: selectedContact?.photoURL || getConvPhoto(activeConv),
       };
-      if (nativeCallCapabilities.audio) {
+      if (mediaType === 'audio' && nativeCallCapabilities.audio) {
         await startNativeAudioCall(callTarget);
       } else {
-        await browserCall.startCall(callTarget);
+        await browserCall.startCall({ ...callTarget, mediaType });
       }
     } catch (error) {
-      showErrToast(nativeCallCapabilities.audio
+      showErrToast(mediaType === 'audio' && nativeCallCapabilities.audio
         ? nativeCallErrorMessage(error)
-        : browserCallErrorMessage(error));
-      if (nativeCallCapabilities.audio) {
+        : browserCallErrorMessage(error, mediaType));
+      if (mediaType === 'audio' && nativeCallCapabilities.audio) {
         const capabilities = await getNativeCallCapabilities();
         setNativeCallCapabilities(capabilities);
       }
@@ -721,6 +722,8 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       setCallLaunchPending(false);
     }
   }
+  const handleStartAudioCall = (contact = null) => handleStartCall(contact, 'audio');
+  const handleStartVideoCall = (contact = null) => handleStartCall(contact, 'video');
 
   // ── Render ────────────────────────────────────────────────────────────────
   const browserCallVisible = browserCall.call?.status === 'call';
@@ -928,7 +931,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
               messageSelectionMode={messageSelectionMode}
               callLaunchPending={callLaunchPending}
               audioCallingAvailable={audioCallingAvailable}
+              videoCallingAvailable={videoCallingAvailable}
               onStartAudioCall={handleStartAudioCall}
+              onStartVideoCall={handleStartVideoCall}
             />
             {pinnedMsgs[activeConv?.id] && (
               <div className="pinned-msg-bar" role="status" aria-live="polite">
@@ -1108,7 +1113,9 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         messageSelectionMode={messageSelectionMode}
         callLaunchPending={callLaunchPending}
         audioCallingAvailable={audioCallingAvailable}
+        videoCallingAvailable={videoCallingAvailable}
         onStartAudioCall={handleStartAudioCall}
+        onStartVideoCall={handleStartVideoCall}
         activeConv={activeConv} getConvName={getConvName} getOtherUid={getOtherUid} getConvPhoto={getConvPhoto}
         newChatSheetInSidebar
         showGroupInfo={showGroupInfo} setShowGroupInfo={setShowGroupInfo}
@@ -1221,11 +1228,13 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
       )}
       <BrowserCallOverlay
         call={browserCall.call}
+        localStream={browserCall.localStream}
         remoteStream={browserCall.remoteStream}
-        onAnswer={() => browserCall.answer().catch((error) => showErrToast(browserCallErrorMessage(error)))}
+        onAnswer={() => browserCall.answer().catch((error) => showErrToast(browserCallErrorMessage(error, browserCall.call?.mediaType)))}
         onDecline={browserCall.decline}
         onHangup={browserCall.hangup}
         onToggleMute={browserCall.toggleMute}
+        onToggleVideo={browserCall.toggleVideo}
         onDismiss={browserCall.dismiss}
       />
     </div>

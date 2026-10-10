@@ -2,6 +2,7 @@ import {
   BrowserCallMediaSession,
   browserCallErrorMessage,
   emitCallEvent,
+  requestBrowserCallMedia,
   requestBrowserMicrophone,
 } from './browserCall';
 
@@ -9,6 +10,7 @@ function mediaStream() {
   return {
     getTracks: jest.fn(() => [{ stop: jest.fn(), enabled: true }]),
     getAudioTracks: jest.fn(() => [{ enabled: true }]),
+    getVideoTracks: jest.fn(() => [{ enabled: true }]),
   };
 }
 
@@ -70,6 +72,17 @@ describe('browserCall', () => {
     });
   });
 
+  test('requests camera and microphone for a video call', async () => {
+    const stream = mediaStream();
+    const getUserMedia = jest.fn().mockResolvedValue(stream);
+    await expect(requestBrowserCallMedia('video', { navigator: { mediaDevices: { getUserMedia } } }))
+      .resolves.toBe(stream);
+    expect(getUserMedia).toHaveBeenCalledWith({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+    });
+  });
+
   test('caller publishes an offer through the existing media event', async () => {
     const socket = relayingSocket();
     const session = {
@@ -122,8 +135,10 @@ describe('browserCall', () => {
     );
   });
 
-  test('maps microphone denial to actionable copy', () => {
+  test('maps media permission denial to actionable copy', () => {
     expect(browserCallErrorMessage({ name: 'NotAllowedError' }))
       .toBe('Geef Pulse toegang tot je microfoon om te bellen.');
+    expect(browserCallErrorMessage({ name: 'NotAllowedError' }, 'video'))
+      .toBe('Geef Pulse toegang tot je camera en microfoon om te videobellen.');
   });
 });

@@ -7659,8 +7659,8 @@ font-family: 'Inter', sans-serif;
 .contact-profile-quick-icon {
   width:40px;
   height:40px;
-  border-radius:13px;
-  background:rgba(108,99,255,.18);
+  border-radius:0;
+  background:transparent;
   color:#fff;
   display:flex;
   align-items:center;
@@ -18405,6 +18405,29 @@ font-family: 'Inter', sans-serif;
   z-index:-2;
   background:linear-gradient(180deg, rgba(7,7,13,.78), rgba(12,10,20,.55) 42%, rgba(4,4,9,.9));
 }
+.browser-call-video-stage {
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  background:#09090f;
+}
+.browser-call-remote-video {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.browser-call-local-video {
+  position:absolute;
+  top:max(82px, calc(env(safe-area-inset-top) + 58px));
+  right:max(18px, env(safe-area-inset-right));
+  width:clamp(104px, 24vw, 168px);
+  aspect-ratio:3 / 4;
+  object-fit:cover;
+  border:2px solid rgba(255,255,255,.85);
+  border-radius:8px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+  transform:scaleX(-1);
+}
 .browser-call-content {
   box-sizing:border-box;
   width:min(100%, 720px);
@@ -18437,6 +18460,25 @@ font-family: 'Inter', sans-serif;
   align-items:center;
   justify-content:center;
   padding:20px 0;
+}
+.browser-call-contact--video .browser-call-avatar {
+  width:96px;
+  height:96px;
+}
+.browser-call-contact--video h2,
+.browser-call-contact--video p {
+  text-shadow:0 2px 12px rgba(0,0,0,.9);
+}
+.browser-call-contact--connected-video {
+  justify-content:flex-start;
+  padding-top:22px;
+  pointer-events:none;
+}
+.browser-call-contact--connected-video p {
+  padding:7px 12px;
+  border-radius:999px;
+  background:rgba(9,9,15,.56);
+  backdrop-filter:blur(8px);
 }
 .browser-call-contact .browser-call-avatar {
   width:clamp(126px, 24vh, 190px);
@@ -18589,6 +18631,11 @@ font-family: 'Inter', sans-serif;
   .browser-call-overlay--panel .browser-call-contact .browser-call-avatar {
     width:clamp(112px, 15vw, 156px);
     height:clamp(112px, 15vw, 156px);
+  }
+  .browser-call-overlay--panel .browser-call-local-video {
+    top:72px;
+    right:12px;
+    width:96px;
   }
   .browser-call-overlay--panel .browser-call-contact h2 {
     max-width:100%;

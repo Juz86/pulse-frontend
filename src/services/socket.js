@@ -10,19 +10,22 @@ export const SOCKET_URL = WS_URL || BACKEND_URL;
 
 let socket = null;
 
-export function supportsBrowserAudioCalls(runtime = (typeof window === 'undefined' ? {} : window)) {
+export function supportsBrowserCalls(runtime = (typeof window === 'undefined' ? {} : window)) {
   return !isNativePulseEnvironment()
     && typeof runtime?.RTCPeerConnection === 'function'
     && typeof runtime?.navigator?.mediaDevices?.getUserMedia === 'function'
     && runtime?.isSecureContext !== false;
 }
 
+export const supportsBrowserAudioCalls = supportsBrowserCalls;
+export const supportsBrowserVideoCalls = supportsBrowserCalls;
+
 function socketAuth(token) {
-  const browserAudio = supportsBrowserAudioCalls();
+  const browserCalls = supportsBrowserCalls();
   return {
     token,
-    callPlatform: browserAudio ? 'web' : undefined,
-    callCapabilities: browserAudio ? ['audio'] : [],
+    callPlatform: browserCalls ? 'web' : undefined,
+    callCapabilities: browserCalls ? ['audio', 'video'] : [],
   };
 }
 

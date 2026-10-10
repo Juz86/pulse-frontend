@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Cancel, Mic, MicOff, Phone, PhoneEnd, Speaker, Video } from './Icons';
+import React, { useEffect, useRef, useState } from 'react';
+import { Cancel, Mic, MicOff, Phone, PhoneEnd, Speaker, Video, VideoOff } from './Icons';
 import PulseLogo from './PulseLogo';
 import UserAvatar from './UserAvatar';
 
@@ -12,7 +12,9 @@ function callStatus(call, elapsed) {
   if (call.serverState === 'ACTIVE') return formatDuration(elapsed);
   if (call.serverState === 'CONNECTING') return 'Verbinden...';
   if (call.serverState === 'RINGING') {
-    return call.direction === 'incoming' ? 'Inkomende spraakoproep' : 'Gaat over...';
+    return call.direction === 'incoming'
+      ? `Inkomende ${call.mediaType === 'video' ? 'video-oproep' : 'spraakoproep'}`
+      : 'Gaat over...';
   }
   if (call.serverState === 'ENDED') {
     if (call.terminalReason === 'declined') return 'Oproep geweigerd';
@@ -33,6 +35,20 @@ function AudioElement({ stream }) {
   return <audio ref={setElement} autoPlay playsInline aria-hidden="true" />;
 }
 
+function VideoElement({ stream, className, muted = false, label }) {
+  const videoRef = useRef(null);
+  useEffect(() => {
+    const element = videoRef.current;
+    if (!element) return undefined;
+    element.srcObject = stream || null;
+    if (stream) element.play().catch(() => {});
+    return () => {
+      if (element.srcObject === stream) element.srcObject = null;
+    };
+  }, [stream]);
+  return <video ref={videoRef} className={className} autoPlay playsInline muted={muted} aria-label={label} />;
+}
+
 function ControlButton({ icon: Icon, label, active = false, disabled = false, onClick }) {
   return (
     <button
@@ -51,11 +67,13 @@ function ControlButton({ icon: Icon, label, active = false, disabled = false, on
 
 export default function BrowserCallOverlay({
   call,
+  localStream,
   remoteStream,
   onAnswer,
   onDecline,
   onHangup,
   onToggleMute,
+  onToggleVideo,
   onDismiss,
 }) {
   const [elapsed, setElapsed] = useState(0);
@@ -88,6 +106,7 @@ export default function BrowserCallOverlay({
   const incoming = call.direction === 'incoming' && call.serverState === 'RINGING';
   const ended = call.serverState === 'ENDED';
   const activeControls = ['CONNECTING', 'ACTIVE'].includes(call.serverState);
+  const isVideoCall = call.mediaType === 'video';
 
   return (
     <section
@@ -105,20 +124,41 @@ export default function BrowserCallOverlay({
         />
       )}
       <div className="browser-call-shade" aria-hidden="true" />
+      {isVideoCall && (
+        <div className="browser-call-video-stage">
+          <VideoElement
+            stream={remoteStream}
+            className="browser-call-remote-video"
+            label={`Videobeeld van ${call.displayName}`}
+          />
+          {localStream && call.isVideoEnabled && (
+            <VideoElement
+              stream={localStream}
+              className="browser-call-local-video"
+              muted
+              label="Je eigen videobeeld"
+            />
+          )}
+        </div>
+      )}
       <div className="browser-call-content">
         <header className="browser-call-brand">
           <PulseLogo size={28} textSize={18} color="#ffffff" gap={8} />
           <span>End-to-end versleuteld</span>
         </header>
 
-        <main className="browser-call-contact">
-          <UserAvatar
-            photoURL={call.photoURL}
-            displayName={call.displayName}
-            className="browser-call-avatar"
-            decorative
-          />
-          <h2>{call.displayName}</h2>
+        <main className={`browser-call-contact${isVideoCall ? ' browser-call-contact--video' : ''}${isVideoCall && remoteStream ? ' browser-call-contact--connected-video' : ''}`}>
+          {(!isVideoCall || !remoteStream) && (
+            <>
+              <UserAvatar
+                photoURL={call.photoURL}
+                displayName={call.displayName}
+                className="browser-call-avatar"
+                decorative
+              />
+              <h2>{call.displayName}</h2>
+            </>
+          )}
           <p>{callStatus(call, elapsed)}</p>
         </main>
 
@@ -149,7 +189,13 @@ export default function BrowserCallOverlay({
                   disabled={!activeControls}
                   onClick={onToggleMute}
                 />
-                <ControlButton icon={Video} label="Video" disabled />
+                <ControlButton
+                  icon={call.isVideoEnabled ? Video : VideoOff}
+                  label={call.isVideoEnabled ? 'Camera uit' : 'Camera aan'}
+                  active={isVideoCall && !call.isVideoEnabled}
+                  disabled={!isVideoCall || !activeControls}
+                  onClick={onToggleVideo}
+                />
                 <ControlButton icon={Speaker} label="Systeemaudio" disabled />
               </div>
               <button type="button" className="browser-call-action browser-call-action--reject" onClick={onHangup}>
@@ -160,7 +206,7 @@ export default function BrowserCallOverlay({
           )}
         </footer>
       </div>
-      <AudioElement stream={remoteStream} />
+      {!isVideoCall && <AudioElement stream={remoteStream} />}
     </section>
   );
 }

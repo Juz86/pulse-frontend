@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useRef, useState } from 'react';
-import { Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, Message, Phone, Logout } from '../components/Icons';
+import { Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, Message, Phone, Video, Logout } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
 import AvatarBuilder from '../components/AvatarBuilder';
@@ -100,7 +100,9 @@ export default function ChatModals({
   messageSelectionMode = false,
   callLaunchPending = false,
   audioCallingAvailable = false,
+  videoCallingAvailable = false,
   onStartAudioCall,
+  onStartVideoCall,
   newChatSheetInSidebar = false,
 
   // group info
@@ -963,6 +965,17 @@ export default function ChatModals({
                 >
                   <span className="contact-profile-quick-icon"><Phone size={24} aria-hidden="true" /></span>
                   <span>Bel</span>
+                </button>
+                <button
+                  type="button"
+                  className="contact-profile-quick-card"
+                  aria-label={`Videobel ${name}`}
+                  title={`Videobel ${name}`}
+                  disabled={!videoCallingAvailable || callLaunchPending || isBlocked || parentBlockedUids?.includes(uid)}
+                  onClick={() => onStartVideoCall?.(targetContact)}
+                >
+                  <span className="contact-profile-quick-icon"><Video size={25} aria-hidden="true" /></span>
+                  <span>Video</span>
                 </button>
               </div>
 

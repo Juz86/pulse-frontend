@@ -31,7 +31,7 @@ export function emitCallEvent(socket, eventName, payload, timeoutMs = ACK_TIMEOU
   });
 }
 
-export async function requestBrowserMicrophone(runtime = browserRuntime()) {
+export async function requestBrowserCallMedia(mediaType = 'audio', runtime = browserRuntime()) {
   if (typeof runtime?.navigator?.mediaDevices?.getUserMedia !== 'function') {
     throw new Error('browser_call_unsupported');
   }
@@ -41,24 +41,36 @@ export async function requestBrowserMicrophone(runtime = browserRuntime()) {
       noiseSuppression: true,
       autoGainControl: true,
     },
-    video: false,
+    video: mediaType === 'video' ? {
+      facingMode: 'user',
+      width: { ideal: 1280 },
+      height: { ideal: 720 },
+    } : false,
   });
 }
 
-export function browserCallErrorMessage(error) {
+export function requestBrowserMicrophone(runtime = browserRuntime()) {
+  return requestBrowserCallMedia('audio', runtime);
+}
+
+export function browserCallErrorMessage(error, mediaType = 'audio') {
   const code = error?.code || error?.message || error?.name;
   if (error?.name === 'NotAllowedError' || code === 'NotAllowedError') {
-    return 'Geef Pulse toegang tot je microfoon om te bellen.';
+    return mediaType === 'video'
+      ? 'Geef Pulse toegang tot je camera en microfoon om te videobellen.'
+      : 'Geef Pulse toegang tot je microfoon om te bellen.';
   }
   if (error?.name === 'NotFoundError' || code === 'NotFoundError') {
-    return 'Er is geen microfoon gevonden.';
+    return mediaType === 'video'
+      ? 'Er is geen camera of microfoon gevonden.'
+      : 'Er is geen microfoon gevonden.';
   }
   if (code === 'BUSY' || code === 'call_already_active') return 'Er is al een actief gesprek.';
   if (code === 'RATE_LIMITED') return 'Je hebt in korte tijd te vaak gebeld. Probeer het later opnieuw.';
   if (code === 'NOT_AVAILABLE') return 'Dit contact kan niet worden gebeld.';
-  if (code === 'browser_call_unsupported') return 'Deze browser ondersteunt Pulse-audiobellen niet.';
+  if (code === 'browser_call_unsupported') return 'Deze browser ondersteunt Pulse-oproepen niet.';
   if (code === 'call_ice_unavailable' || code === 'media_error') {
-    return 'De audioverbinding kon niet worden opgebouwd.';
+    return 'De audio- en videoverbinding kon niet worden opgebouwd.';
   }
   return 'De oproepverbinding met Pulse is verbroken.';
 }
@@ -115,7 +127,10 @@ export class BrowserCallMediaSession {
     };
 
     if (this.session.callerUid === this.localUid) {
-      const offer = await connection.createOffer({ offerToReceiveAudio: true });
+      const offer = await connection.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: this.session.mediaType === 'video',
+      });
       await connection.setLocalDescription(offer);
       await this.sendMedia({ type: 'offer', description: offer.sdp });
     }
@@ -155,12 +170,22 @@ export class BrowserCallMediaSession {
     });
   }
 
+  setVideoEnabled(enabled) {
+    this.localStream?.getVideoTracks?.().forEach((track) => {
+      track.enabled = enabled;
+    });
+  }
+
   async restartIce() {
     if (!this.connection || this.closed) return;
     this.connectedReported = false;
     this.connection.restartIce?.();
     if (this.session.callerUid === this.localUid) {
-      const offer = await this.connection.createOffer({ iceRestart: true, offerToReceiveAudio: true });
+      const offer = await this.connection.createOffer({
+        iceRestart: true,
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: this.session.mediaType === 'video',
+      });
       await this.connection.setLocalDescription(offer);
       await this.sendMedia({ type: 'offer', description: offer.sdp });
     }

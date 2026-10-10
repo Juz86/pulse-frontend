@@ -1,6 +1,6 @@
 // src/components/ChatHeader.js
 import React, { useMemo } from 'react';
-import { Phone } from '../components/Icons';
+import { Phone, Video } from '../components/Icons';
 import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
@@ -29,7 +29,9 @@ const ChatHeader = React.memo(function ChatHeader({
   onLeaveGroup,
   callLaunchPending = false,
   audioCallingAvailable = false,
+  videoCallingAvailable = false,
   onStartAudioCall,
+  onStartVideoCall,
   onClearChat,
   onDeleteChat,
 }) {
@@ -105,16 +107,28 @@ const ChatHeader = React.memo(function ChatHeader({
 
         <div className="chat-header-actions">
           {!activeConv.isGroup && (
-            <button
-              type="button"
-              className="chat-header-action-btn chat-header-menu-btn"
-              aria-label={`Bel ${getConvName(activeConv)}`}
-              title="Bellen"
-              disabled={callLaunchPending || !audioCallingAvailable}
-              onClick={onStartAudioCall}
-            >
-              <Phone size={20} aria-hidden="true" />
-            </button>
+            <>
+              <button
+                type="button"
+                className="chat-header-action-btn chat-header-menu-btn"
+                aria-label={`Videobel ${getConvName(activeConv)}`}
+                title="Videobellen"
+                disabled={callLaunchPending || !videoCallingAvailable}
+                onClick={onStartVideoCall}
+              >
+                <Video size={22} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="chat-header-action-btn chat-header-menu-btn"
+                aria-label={`Bel ${getConvName(activeConv)}`}
+                title="Bellen"
+                disabled={callLaunchPending || !audioCallingAvailable}
+                onClick={onStartAudioCall}
+              >
+                <Phone size={20} aria-hidden="true" />
+              </button>
+            </>
           )}
         </div>
       </div>

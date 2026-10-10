@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getSocket, supportsBrowserAudioCalls } from '../services/socket';
+import { getSocket, supportsBrowserCalls } from '../services/socket';
 import { getOrCreatePushInstallationId } from '../services/pushInstallation';
 import {
   BROWSER_CALL_STATES,
   BrowserCallMediaSession,
   createCallEventId,
   emitCallEvent,
-  requestBrowserMicrophone,
+  requestBrowserCallMedia,
 } from '../services/browserCall';
 
 const EMPTY_CALL = Object.freeze({ status: 'idle' });
@@ -18,13 +18,14 @@ function callError(code) {
 }
 
 export default function useBrowserCall({ user, resolvePeer }) {
-  const supported = useMemo(() => supportsBrowserAudioCalls(), []);
+  const supported = useMemo(() => supportsBrowserCalls(), []);
   const installationId = useMemo(
     () => (supported ? getOrCreatePushInstallationId() : null),
     [supported]
   );
   const [call, setCall] = useState(EMPTY_CALL);
   const [remoteStream, setRemoteStream] = useState(null);
+  const [localStream, setLocalStream] = useState(null);
   const sessionRef = useRef(null);
   const callRef = useRef(EMPTY_CALL);
   const localStreamRef = useRef(null);
@@ -65,6 +66,7 @@ export default function useBrowserCall({ user, resolvePeer }) {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
     }
     localStreamRef.current = null;
+    setLocalStream(null);
     pendingSignalsRef.current = [];
     setRemoteStream(null);
   }, []);
@@ -141,7 +143,7 @@ export default function useBrowserCall({ user, resolvePeer }) {
   }, [sendCommand, user.uid]);
 
   const applyServerSession = useCallback((session) => {
-    if (!session || session.protocolVersion !== 2 || session.mediaType !== 'audio') return;
+    if (!session || session.protocolVersion !== 2 || !['audio', 'video'].includes(session.mediaType)) return;
     const current = sessionRef.current;
     if (!current) {
       if (session.calleeUid !== user.uid || session.state !== BROWSER_CALL_STATES.RINGING) return;
@@ -159,15 +161,19 @@ export default function useBrowserCall({ user, resolvePeer }) {
         terminalReason: null,
         activeSince: null,
         isMuted: false,
+        mediaType: session.mediaType,
+        isVideoEnabled: session.mediaType === 'video',
       });
       if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         notificationRef.current?.close?.();
-        notificationRef.current = new Notification('Inkomende Pulse-oproep', {
+        notificationRef.current = new Notification(
+          session.mediaType === 'video' ? 'Inkomende Pulse-video-oproep' : 'Inkomende Pulse-oproep', {
           body: peer.displayName || peer.name || 'Pulse-gebruiker',
           icon: peer.photoURL || '/logo192.png',
           tag: `pulse-call-${session.sessionId}`,
           requireInteraction: true,
-        });
+          }
+        );
         notificationRef.current.onclick = () => {
           window.focus();
           notificationRef.current?.close?.();
@@ -259,18 +265,19 @@ export default function useBrowserCall({ user, resolvePeer }) {
     };
   }, [closeMedia, installationId, sendCommand, supported, user?.uid]);
 
-  const startCall = useCallback(async ({ calleeUid, displayName, photoURL = '' }) => {
+  const startCall = useCallback(async ({ calleeUid, displayName, photoURL = '', mediaType = 'audio' }) => {
     if (!supported) throw callError('browser_call_unsupported');
     if (sessionRef.current) throw callError('call_already_active');
     const socket = getSocket();
     if (!socket?.connected) throw callError('call_signaling_unavailable');
-    const localStream = await requestBrowserMicrophone();
-    localStreamRef.current = localStream;
+    const stream = await requestBrowserCallMedia(mediaType);
+    localStreamRef.current = stream;
+    setLocalStream(stream);
     try {
       const response = await emitCallEvent(socket, 'call:v2:start', {
         requestId: createCallEventId(),
         calleeUid,
-        mediaType: 'audio',
+        mediaType,
       });
       if (!response.ok || !response.session) throw callError(response.status || 'call_rejected');
       sessionRef.current = response.session;
@@ -286,6 +293,8 @@ export default function useBrowserCall({ user, resolvePeer }) {
         terminalReason: null,
         activeSince: null,
         isMuted: false,
+        mediaType,
+        isVideoEnabled: mediaType === 'video',
       });
       const ready = await sendCommand('INVITE_READY');
       if (!ready.ok && ready.status !== 'DUPLICATE') throw callError(ready.status || 'call_rejected');
@@ -300,7 +309,9 @@ export default function useBrowserCall({ user, resolvePeer }) {
 
   const answer = useCallback(async () => {
     if (callRef.current.direction !== 'incoming' || sessionRef.current?.state !== BROWSER_CALL_STATES.RINGING) return;
-    localStreamRef.current = await requestBrowserMicrophone();
+    const stream = await requestBrowserCallMedia(sessionRef.current?.mediaType || 'audio');
+    localStreamRef.current = stream;
+    setLocalStream(stream);
     const response = await sendCommand('ACCEPT');
     if (!response.ok && response.status !== 'DUPLICATE') {
       closeMedia();
@@ -333,6 +344,13 @@ export default function useBrowserCall({ user, resolvePeer }) {
     updateCall((previous) => ({ ...previous, isMuted: muted }));
   }, [updateCall]);
 
+  const toggleVideo = useCallback(() => {
+    if (callRef.current.mediaType !== 'video' || !mediaRef.current) return;
+    const enabled = !callRef.current.isVideoEnabled;
+    mediaRef.current.setVideoEnabled(enabled);
+    updateCall((previous) => ({ ...previous, isVideoEnabled: enabled }));
+  }, [updateCall]);
+
   const dismiss = useCallback(() => {
     if (callRef.current.serverState !== BROWSER_CALL_STATES.ENDED) return;
     closeMedia();
@@ -343,12 +361,14 @@ export default function useBrowserCall({ user, resolvePeer }) {
   return {
     supported,
     call,
+    localStream,
     remoteStream,
     startCall,
     answer,
     decline: () => end(true),
     hangup: () => end(false),
     toggleMute,
+    toggleVideo,
     dismiss,
   };
 }

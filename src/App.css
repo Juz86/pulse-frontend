@@ -18633,3 +18633,304 @@ font-family: 'Inter', sans-serif;
     min-width:280px;
   }
 }
+
+/* Volg de licht/donker-planning van het apparaat. Wanneer een gebruiker
+   automatische dark mode op iOS, Android of de desktop heeft ingeschakeld,
+   verandert Pulse direct mee zonder een pagina opnieuw te laden. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme:dark;
+    --pulse-home-logo-color:#f7f3ff;
+  }
+
+  body { background:#17151f; }
+
+  .sidebar--light-home {
+    background:#191620;
+    border-right-color:#332d3d;
+    box-shadow:4px 0 22px rgba(0,0,0,.3);
+  }
+  .sidebar--light-home::after {
+    background:linear-gradient(180deg, rgba(151,123,255,.28), rgba(151,123,255,.04) 46%, transparent 74%);
+  }
+  .sidebar--light-home > .sidebar-header,
+  .sidebar--light-home > .chat-filters,
+  .sidebar--light-home > .conv-list {
+    --surface:#211d28;
+    --surface2:#2a2532;
+    --surface3:#393142;
+    --border:rgba(255,255,255,.1);
+    --text:#f7f3ff;
+    --text2:#c0b8cb;
+    --text3:#938a9f;
+  }
+  .sidebar--light-home > .sidebar-header {
+    border-bottom-color:#332d3d;
+    background:#1d1924;
+    box-shadow:0 1px 0 rgba(255,255,255,.03);
+  }
+  .sidebar--light-home .sidebar-header-tab,
+  .sidebar--light-home .sidebar-search-trigger {
+    border-color:#3d3648;
+    background:#292431;
+    color:#e5ddf0;
+  }
+  .sidebar--light-home .sidebar-header-tab:hover,
+  .sidebar--light-home .sidebar-header-tab:focus-visible,
+  .sidebar--light-home .sidebar-search-trigger:hover,
+  .sidebar--light-home .sidebar-search-trigger:focus-visible {
+    border-color:#806bd0;
+    background:#393047;
+    color:#fff;
+  }
+  .sidebar--light-home .sidebar-header-tab.active {
+    border-color:#a687ff;
+    background:linear-gradient(135deg,#8068df,#a855f7);
+    color:#fff;
+    box-shadow:0 6px 18px rgba(91,67,180,.34);
+  }
+  .sidebar--light-home .sidebar-header-tab-badge { border-color:#1d1924; }
+  .sidebar--light-home .sidebar-search-window,
+  .sidebar--light-home .sidebar-search-window .search-box--top {
+    border-color:#433b4d;
+    background:#292431;
+  }
+  .sidebar--light-home .sidebar-search-window .search-box--top input { color:#f7f3ff; }
+  .sidebar--light-home .sidebar-search-window .search-box--top input::placeholder { color:#9e95aa; }
+  .sidebar--light-home .sidebar-search-window-close {
+    background:#3a3344;
+    color:#f7f3ff;
+  }
+  .sidebar--light-home > .chat-filters {
+    background:#191620;
+  }
+  .sidebar--light-home > .chat-filters .chat-filter-chip {
+    border-color:#443c4f;
+    background:#211d28;
+    color:#c8c0d2;
+  }
+  .sidebar--light-home > .chat-filters .chat-filter-chip:hover {
+    border-color:#8e78e0;
+    background:#30283d;
+    color:#d9ceff;
+  }
+  .sidebar--light-home > .chat-filters .chat-filter-chip.active {
+    border-color:#8e78e0;
+    background:#403554;
+    color:#f5f0ff;
+  }
+  .sidebar--light-home > .conv-list { background:#191620; }
+  .sidebar--light-home > .conv-list .conv-item:hover,
+  .sidebar--light-home > .conv-list .sidebar-contact-row--openable:hover { background:#25202c; }
+  .sidebar--light-home > .conv-list .conv-item.active { background:#30283d; }
+  .sidebar--light-home > .conv-list .conv-item::after,
+  .sidebar--light-home > .conv-list .sidebar-contact-card + .sidebar-contact-card .sidebar-contact-row::before,
+  .sidebar--light-home .calls-history-row:not(:last-child)::after {
+    background:rgba(255,255,255,.08);
+    border-color:rgba(255,255,255,.08);
+  }
+  .sidebar--light-home > .conv-list .online-dot { border-color:#191620; }
+  .sidebar--light-home > .sidebar-footer {
+    background:linear-gradient(180deg, rgba(25,22,32,0) 0%, rgba(25,22,32,.98) 42%);
+  }
+
+  .sidebar--light-home .calls-history-heading { background:#191620; }
+  .sidebar--light-home .calls-history-heading h2,
+  .sidebar--light-home .calls-history-row-title > span { color:#f7f3ff; }
+  .sidebar--light-home .calls-history-heading span,
+  .sidebar--light-home .calls-history-row-title time { color:#938a9f; }
+  .sidebar--light-home .calls-history-call-btn,
+  .sidebar--light-home .calls-contact-picker-back {
+    background:#342c45;
+    color:#b9a5ff;
+  }
+  .sidebar--light-home .calls-history-call-btn:disabled {
+    background:#2a2630;
+    color:#6f6878;
+  }
+  .sidebar--light-home .calls-history-state {
+    border-color:#3a3344;
+    background:#211d28;
+    color:#aaa1b5;
+  }
+  .sidebar--light-home .calls-history-state strong { color:#f2edf8; }
+
+  .sidebar-footer-tabbar {
+    border-color:rgba(255,255,255,.09);
+    background:linear-gradient(180deg, rgba(45,40,54,.98), rgba(31,27,38,.98));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 18px 44px rgba(0,0,0,.34);
+  }
+  .sidebar-footer-tabbar--cluster {
+    border-top-color:rgba(255,255,255,.08);
+    background:rgba(34,30,42,.96);
+  }
+  .sidebar-footer-tab { color:#e9e2f2; }
+  .sidebar-footer-tab:hover { background:rgba(151,123,255,.12); }
+  .sidebar-footer-tab.active { background:rgba(151,123,255,.2); }
+  .sidebar-footer-tab-badge,
+  .sidebar-footer-tab-count { border-color:#2b2633; }
+
+  .chat-main {
+    --surface:#211d28;
+    --surface2:#2a2532;
+    --surface3:#393142;
+    --border:rgba(255,255,255,.1);
+    --text:#f7f3ff;
+    --text2:#c0b8cb;
+    --text3:#938a9f;
+    background-color:#16131a;
+    background-image:linear-gradient(rgba(19,17,23,.86), rgba(19,17,23,.86)), url('./assets/chatachtergrond.jpeg');
+  }
+  .empty-state {
+    color:#c5bccf;
+    background:radial-gradient(ellipse 60% 40% at 50% 50%, rgba(108,99,255,.08), transparent 70%);
+  }
+  .empty-title {
+    color:#f4effa;
+    text-shadow:none;
+  }
+  .empty-state p {
+    color:#aaa1b5;
+    text-shadow:none;
+  }
+  .chat-header {
+    border-bottom-color:rgba(255,255,255,.09);
+    background:rgba(29,25,36,.96);
+    box-shadow:0 2px 12px rgba(0,0,0,.2);
+  }
+  .chat-header::after {
+    background:linear-gradient(90deg, transparent, rgba(151,123,255,.25), transparent);
+  }
+  .chat-header-name { color:#f7f3ff; }
+  .chat-header-back-btn,
+  .chat-header-menu-btn {
+    border-color:#403847;
+    background:#29242f;
+    color:#f1eaf8;
+  }
+  .pinned-msg-bar {
+    border-bottom-color:rgba(255,255,255,.09);
+    background:#28222f;
+    color:#c7bdcf;
+  }
+
+  .msg-group.in .msg-bubble,
+  .messages-area-wrap.has-chat-bg .msg-group.in .msg-bubble {
+    border-color:#403947;
+    background:rgba(43,38,49,.97);
+    color:#f5f0f8;
+    box-shadow:0 3px 10px rgba(0,0,0,.22);
+  }
+  .msg-group.out .msg-bubble,
+  .messages-area-wrap.has-chat-bg .msg-group.out .msg-bubble {
+    border-color:#665493;
+    background:rgba(76,63,105,.98);
+    color:#fff;
+    box-shadow:0 4px 12px rgba(0,0,0,.22);
+  }
+  .msg-group.in .msg-time { color:#aaa1b2; }
+  .msg-group.out .msg-time,
+  .msg-group.out .msg-ticks { color:#c8bddb; }
+  .msg-group.out .msg-ticks.read { color:#9fd8ff; }
+  .msg-typing-bubble,
+  .messages-area-wrap.has-chat-bg .msg-typing-bubble {
+    border-color:#443b50;
+    background:#2b2631;
+    box-shadow:0 7px 18px rgba(0,0,0,.2);
+  }
+  .msg-group.in .msg-reply-quote {
+    border-color:rgba(255,255,255,.09);
+    border-left-color:#a88df5;
+    background:#211d28;
+  }
+  .msg-group.in .msg-reply-name { color:#c2afff; }
+  .msg-group.in .msg-reply-text { color:#b9b0c3; }
+  .msg-group.in .msg-call-card,
+  .msg-group.out .msg-call-card {
+    border-color:#4a4055;
+    background:linear-gradient(135deg, #2d2734, #352b42);
+    color:#f4eff8;
+    box-shadow:0 5px 14px rgba(0,0,0,.2);
+  }
+  .msg-group.in .msg-call-card-copy span,
+  .msg-group.in .msg-call-card-time,
+  .msg-group.out .msg-call-card-copy span,
+  .msg-group.out .msg-call-card-time { color:#b7adc2; }
+
+  .input-row {
+    border-color:#403847;
+    background:rgba(39,34,45,.97);
+    box-shadow:0 5px 18px rgba(0,0,0,.24);
+  }
+  .input-row:focus-within {
+    border-color:rgba(151,123,255,.52);
+    box-shadow:0 0 0 3px rgba(151,123,255,.12), 0 6px 18px rgba(0,0,0,.26);
+  }
+  .chat-message-selection-bar {
+    border-color:#453c50;
+    background:rgba(42,37,50,.97);
+    color:#f5effa;
+    box-shadow:0 10px 26px rgba(0,0,0,.28);
+  }
+  .chat-message-selection-count { color:#f5effa; }
+  .message-select-indicator {
+    border-color:#776b82;
+    background:#2b2631;
+  }
+
+  .conversation-search-panel {
+    color:#f5effa;
+    border-left-color:#403847;
+    background:linear-gradient(180deg, #211d28, #191620);
+    box-shadow:-14px 0 34px rgba(0,0,0,.3);
+  }
+  .conversation-search-panel__header {
+    border-bottom-color:rgba(255,255,255,.08);
+    background:rgba(39,34,45,.92);
+  }
+  .conversation-search-panel__header-icon {
+    color:#c0acff;
+    background:#3c3250;
+  }
+  .conversation-search-panel__heading span,
+  .conversation-search-panel__hint,
+  .conversation-search-result__date { color:#9f96aa; }
+  .conversation-search-panel__close {
+    color:#eee7f6;
+    background:#393240;
+  }
+  .conversation-search-panel__close:hover { color:#fff; background:#4a4056; }
+  .conversation-search-panel__search {
+    border-color:#8068df;
+    color:#bcb2c7;
+    background:#2a2532;
+  }
+  .conversation-search-panel__search input { color:#f7f3ff; }
+  .conversation-search-panel__search input::placeholder { color:#9d94a8; }
+  .conversation-search-panel__results {
+    border-top-color:rgba(255,255,255,.08);
+    background:rgba(20,18,24,.24);
+  }
+  .conversation-search-result {
+    border-bottom-color:rgba(255,255,255,.08);
+    color:#d0c8d9;
+  }
+  .conversation-search-result__text { color:#e9e2f0; }
+  .conversation-search-result:hover,
+  .conversation-search-result.is-active { background:rgba(151,123,255,.12); }
+
+  @media (max-width:899px) {
+    .conversation-search-panel { background:transparent; box-shadow:none; }
+    .conversation-search-panel__search,
+    .conversation-search-panel__mobile-nav {
+      border-color:#403847;
+      background:rgba(39,34,45,.98);
+      color:#e9e2f0;
+    }
+    .conversation-search-panel__clear { background:#4a4056; color:#fff; }
+    .conversation-search-panel__mobile-nav-buttons {
+      border-color:#403847;
+      background:#2f2937;
+    }
+  }
+}

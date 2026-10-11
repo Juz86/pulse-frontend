@@ -7,7 +7,8 @@ Status: design contract, no production calling is enabled.
 - `PulseCallCoordinator` will be the single owner of the local call lifecycle.
 - The native media service will own microphone, camera, audio routing and WebRTC resources.
 - Railway will be authoritative for session membership and ordered signaling events.
-- FCM will only wake the recipient and identify a pending session.
+- FCM will only wake the recipient and identify a pending session. Its media type is an early UI
+  hint; the authenticated Railway snapshot remains authoritative.
 - TURN will only relay media when direct ICE connectivity fails.
 - Android Core-Telecom is the system call-control adapter from the first native phase. It must
   not create or own a signaling or media session.

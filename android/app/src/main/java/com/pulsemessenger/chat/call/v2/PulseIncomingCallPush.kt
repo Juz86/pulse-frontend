@@ -4,6 +4,7 @@ data class PulseIncomingCallPush(
     val sessionId: String,
     val callerDisplayName: String?,
     val callerPhotoUrl: String?,
+    val mediaType: PulseCallMediaType,
 )
 
 data class PulseTerminalCallPush(
@@ -31,7 +32,12 @@ object PulseIncomingCallPushParser {
         val callerPhotoUrl = data["callerPhotoURL"]
             ?.trim()
             ?.takeIf(::isSafeHttpsUrl)
-        return PulseIncomingCallPush(sessionId, callerDisplayName, callerPhotoUrl)
+        val mediaType = when (data["mediaType"]?.trim()?.lowercase()) {
+            null, "", "audio" -> PulseCallMediaType.AUDIO
+            "video" -> PulseCallMediaType.VIDEO
+            else -> return null
+        }
+        return PulseIncomingCallPush(sessionId, callerDisplayName, callerPhotoUrl, mediaType)
     }
 
     private fun isSafeIdentifierCharacter(character: Char): Boolean =

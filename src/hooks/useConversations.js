@@ -28,6 +28,7 @@ import {
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { normalizeSingleUserReaction, toggleSingleUserReaction } from '../lib/e2ee/messageReactions';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
+import { recordLegacyMessagesFallback } from '../services/legacyApiTelemetry';
 import {
   readCachedConversations,
   readCachedMessages,
@@ -314,6 +315,7 @@ export default function useConversations({
     const e2eeFeedRes = await authFetch(`${BACKEND_URL}/messages/feed/${convId}?${query.toString()}`);
     if (e2eeFeedRes.ok) return e2eeFeedRes.json();
     const e2eeError = await readJsonResponse(e2eeFeedRes, 'e2ee_feed_failed').catch((error) => error);
+    recordLegacyMessagesFallback('conversation_messages', e2eeFeedRes.status);
 
     const legacyRes = await authFetch(`${BACKEND_URL}/api/messages/${convId}?${query.toString()}`);
     if (!legacyRes.ok) {

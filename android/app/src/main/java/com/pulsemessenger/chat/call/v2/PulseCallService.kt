@@ -61,7 +61,9 @@ class PulseCallService : Service() {
         recoveryStore = PulseCallRecoveryStore(this)
         incomingCallRinger = PulseIncomingCallRinger(this)
 
-        val telecom = CoreTelecomController(this).also(PulseTelecomController::registerApp)
+        val telecom = ResilientTelecomController(CoreTelecomController(this)).also(
+            PulseTelecomController::registerApp,
+        )
         orchestrator = PulseCallSessionOrchestrator(
             scope = serviceScope,
             identityProvider = FirebasePulseCallIdentityProvider(this),

@@ -72,6 +72,7 @@ data class PulseAudioSessionConfig(
     val sessionId: String,
     val role: PulseMediaRole,
     val iceServers: List<PulseIceServer>,
+    val mediaType: PulseCallMediaType = PulseCallMediaType.AUDIO,
 ) {
     init {
         require(sessionId.isNotBlank()) { "Media sessionId must not be blank" }
@@ -94,6 +95,8 @@ interface PulseCallMediaEngine {
     suspend fun addRemoteIceCandidate(candidate: PulseIceCandidate)
     suspend fun restartIce()
     suspend fun setMuted(muted: Boolean)
+    suspend fun setVideoEnabled(enabled: Boolean): Boolean = false
+    suspend fun switchCamera(): Boolean = false
     suspend fun close()
 }
 

@@ -68,7 +68,7 @@ class PulseCallService : Service() {
             telecom = telecom,
             coordinator = coordinator,
             mediaEngineFactory = PulseCallMediaEngineFactory { WebRtcAudioEngine(this) },
-            beforeMediaStart = ::promoteToMicrophoneForeground,
+            beforeMediaStart = ::promoteToMediaForeground,
             onRecoveryRecordChanged = { record ->
                 if (record == null) recoveryStore.clear() else recoveryStore.save(record)
             },
@@ -100,6 +100,8 @@ class PulseCallService : Service() {
             ACTION_DISCONNECT -> handleNotificationAction(intent, NotificationAction.DISCONNECT)
             ACTION_SELECT_AUDIO_ROUTE -> selectAudioRoute(intent)
             ACTION_TOGGLE_MUTE -> toggleMute(intent)
+            ACTION_TOGGLE_VIDEO -> toggleVideo(intent)
+            ACTION_SWITCH_CAMERA -> switchCamera(intent)
             ACTION_RECONCILE_TERMINAL -> reconcileTerminal(intent)
             ACTION_RECONCILE_TAKEN_ELSEWHERE -> reconcileTakenElsewhere(intent)
             null -> recoverPersistedCall()
@@ -344,6 +346,16 @@ class PulseCallService : Service() {
         orchestrator.requestToggleMute(sessionId)
     }
 
+    private fun toggleVideo(intent: Intent) {
+        val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: return
+        orchestrator.requestToggleVideo(sessionId)
+    }
+
+    private fun switchCamera(intent: Intent) {
+        val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: return
+        orchestrator.requestSwitchCamera(sessionId)
+    }
+
     private fun dispatchPendingNotificationAction(snapshot: PulseCallSnapshot) {
         val pending = pendingNotificationAction ?: return
         if (snapshot.sessionId != pending.first || !snapshot.telecomRegistered) return
@@ -351,9 +363,14 @@ class PulseCallService : Service() {
         dispatchNotificationAction(pending.first, pending.second)
     }
 
-    private fun promoteToMicrophoneForeground(): Boolean {
+    private fun promoteToMediaForeground(): Boolean {
         if (!hasRecordAudioPermission()) {
             Log.w(TAG, "Microphone foreground promotion rejected: permission missing")
+            return false
+        }
+        val videoCall = coordinator.state.value.mediaType == PulseCallMediaType.VIDEO
+        if (videoCall && !hasCameraPermission()) {
+            Log.w(TAG, "Camera foreground promotion rejected: permission missing")
             return false
         }
         val displayName = foregroundDisplayName ?: return false
@@ -369,7 +386,8 @@ class PulseCallService : Service() {
                     coordinator.state.value,
                 ),
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL or
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE or
+                    if (videoCall) ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA else 0,
             )
             true
         }.getOrElse { error ->
@@ -382,6 +400,12 @@ class PulseCallService : Service() {
         ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.RECORD_AUDIO,
+        ) == PackageManager.PERMISSION_GRANTED
+
+    private fun hasCameraPermission(): Boolean =
+        ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.CAMERA,
         ) == PackageManager.PERMISSION_GRANTED
 
     private fun startPreparingForeground(
@@ -512,6 +536,7 @@ class PulseCallService : Service() {
                     displayName = displayName,
                     photoUrl = snapshot.photoUrl,
                     direction = requireNotNull(snapshot.direction),
+                    mediaType = snapshot.mediaType ?: PulseCallMediaType.AUDIO,
                 ),
             )
         }
@@ -595,6 +620,7 @@ class PulseCallService : Service() {
                 displayName = displayName,
                 photoUrl = snapshot?.photoUrl,
                 direction = direction,
+                mediaType = snapshot?.mediaType ?: PulseCallMediaType.AUDIO,
             ),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -734,6 +760,8 @@ class PulseCallService : Service() {
         const val ACTION_DISCONNECT = "com.pulsemessenger.chat.call.v2.DISCONNECT"
         const val ACTION_SELECT_AUDIO_ROUTE = "com.pulsemessenger.chat.call.v2.SELECT_AUDIO_ROUTE"
         const val ACTION_TOGGLE_MUTE = "com.pulsemessenger.chat.call.v2.TOGGLE_MUTE"
+        const val ACTION_TOGGLE_VIDEO = "com.pulsemessenger.chat.call.v2.TOGGLE_VIDEO"
+        const val ACTION_SWITCH_CAMERA = "com.pulsemessenger.chat.call.v2.SWITCH_CAMERA"
         const val ACTION_RECONCILE_TERMINAL = "com.pulsemessenger.chat.call.v2.RECONCILE_TERMINAL"
         const val ACTION_RECONCILE_TAKEN_ELSEWHERE =
             "com.pulsemessenger.chat.call.v2.RECONCILE_TAKEN_ELSEWHERE"

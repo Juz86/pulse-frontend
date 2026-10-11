@@ -41,10 +41,14 @@ import org.json.JSONObject;
 
 @CapacitorPlugin(
     name = "PulseCall",
-    permissions = @Permission(strings = { Manifest.permission.RECORD_AUDIO }, alias = PulseCallPlugin.MICROPHONE)
+    permissions = {
+        @Permission(strings = { Manifest.permission.RECORD_AUDIO }, alias = PulseCallPlugin.MICROPHONE),
+        @Permission(strings = { Manifest.permission.CAMERA }, alias = PulseCallPlugin.CAMERA)
+    }
 )
 public class PulseCallPlugin extends Plugin {
     static final String MICROPHONE = "microphone";
+    static final String CAMERA = "camera";
     private static final String NATIVE_AUTH_CLAIM_URL =
         "https://api.pulse-messenger.com/api/calling/v2/native-auth/claim";
     private final ExecutorService authExecutor = Executors.newSingleThreadExecutor();
@@ -82,9 +86,14 @@ public class PulseCallPlugin extends Plugin {
     public void getCapabilities(PluginCall call) {
         JSObject result = new JSObject();
         result.put("audio", Build.VERSION.SDK_INT >= Build.VERSION_CODES.O);
-        result.put("video", false);
+        result.put(
+            "video",
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                getContext().getPackageManager().hasSystemFeature("android.hardware.camera.any")
+        );
         result.put("protocolVersion", 2);
         result.put("microphonePermission", getPermissionState(MICROPHONE).toString());
+        result.put("cameraPermission", getPermissionState(CAMERA).toString());
         call.resolve(result);
     }
 
@@ -128,7 +137,7 @@ public class PulseCallPlugin extends Plugin {
             requestPermissionForAlias(MICROPHONE, call, "microphonePermissionCallback");
             return;
         }
-        authenticateAndLaunch(call);
+        authenticateAndLaunch(call, PulseCallMediaType.AUDIO);
     }
 
     @PermissionCallback
@@ -141,12 +150,49 @@ public class PulseCallPlugin extends Plugin {
             call.reject("Microphone permission denied", "microphone_permission_denied");
             return;
         }
-        authenticateAndLaunch(call);
+        authenticateAndLaunch(call, PulseCallMediaType.AUDIO);
+    }
+
+    @PluginMethod
+    public void startVideoCall(PluginCall call) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            call.reject("Android version is not supported", "android_version_unsupported");
+            return;
+        }
+        if (!getContext().getPackageManager().hasSystemFeature("android.hardware.camera.any")) {
+            call.reject("No camera is available", "camera_unavailable");
+            return;
+        }
+        if (getPermissionState(MICROPHONE) != PermissionState.GRANTED ||
+            getPermissionState(CAMERA) != PermissionState.GRANTED
+        ) {
+            requestPermissionForAliases(
+                new String[] { MICROPHONE, CAMERA },
+                call,
+                "videoPermissionCallback"
+            );
+            return;
+        }
+        authenticateAndLaunch(call, PulseCallMediaType.VIDEO);
+    }
+
+    @PermissionCallback
+    @RequiresApi(Build.VERSION_CODES.O)
+    private void videoPermissionCallback(PluginCall call) {
+        if (getPermissionState(MICROPHONE) != PermissionState.GRANTED) {
+            call.reject("Microphone permission denied", "microphone_permission_denied");
+            return;
+        }
+        if (getPermissionState(CAMERA) != PermissionState.GRANTED) {
+            call.reject("Camera permission denied", "camera_permission_denied");
+            return;
+        }
+        authenticateAndLaunch(call, PulseCallMediaType.VIDEO);
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private void authenticateAndLaunch(PluginCall call) {
-        authenticateNativeIdentity(call, user -> launchAudioCall(call));
+    private void authenticateAndLaunch(PluginCall call, PulseCallMediaType mediaType) {
+        authenticateNativeIdentity(call, user -> launchCall(call, mediaType));
     }
 
     private void authenticateNativeIdentity(
@@ -243,7 +289,7 @@ public class PulseCallPlugin extends Plugin {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private void launchAudioCall(PluginCall call) {
+    private void launchCall(PluginCall call, PulseCallMediaType mediaType) {
         String calleeUid = normalized(call.getString("calleeUid"), 128);
         String displayName = normalized(call.getString("displayName"), 160);
         String photoUrl = normalizedHttpsUrl(call.getString("photoURL"));
@@ -279,7 +325,7 @@ public class PulseCallPlugin extends Plugin {
                     calleeUid,
                     displayName,
                     photoUrl,
-                    PulseCallMediaType.AUDIO
+                    mediaType
                 )
             );
             JSObject result = new JSObject();

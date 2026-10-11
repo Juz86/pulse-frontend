@@ -72,6 +72,7 @@ class PulseCallMediaSessionController(
                             PulseMediaRole.ANSWERER
                         },
                         iceServers = iceConfiguration.iceServers,
+                        mediaType = session.mediaType,
                     ),
                     this,
                 )
@@ -140,6 +141,16 @@ class PulseCallMediaSessionController(
     suspend fun setMuted(sessionId: String, muted: Boolean): Boolean {
         val mediaSession = active.get()?.takeIf { it.sessionId == sessionId } ?: return false
         return runCatching { mediaSession.engine.setMuted(muted) }.isSuccess
+    }
+
+    suspend fun setVideoEnabled(sessionId: String, enabled: Boolean): Boolean {
+        val mediaSession = active.get()?.takeIf { it.sessionId == sessionId } ?: return false
+        return runCatching { mediaSession.engine.setVideoEnabled(enabled) }.getOrDefault(false)
+    }
+
+    suspend fun switchCamera(sessionId: String): Boolean {
+        val mediaSession = active.get()?.takeIf { it.sessionId == sessionId } ?: return false
+        return runCatching { mediaSession.engine.switchCamera() }.getOrDefault(false)
     }
 
     suspend fun close(sessionId: String? = null) {

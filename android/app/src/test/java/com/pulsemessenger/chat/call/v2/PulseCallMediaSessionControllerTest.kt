@@ -200,6 +200,24 @@ class PulseCallMediaSessionControllerTest {
         assertEquals(listOf(true, false), engine.muteChanges)
     }
 
+    @Test
+    fun `video sessions configure video media and expose camera controls`() = runBlocking {
+        val engine = FakeMediaEngine()
+        val subject = subject(FakeSignaling(), engine, RecordingCallbacks())
+
+        assertTrue(subject.start(
+            session(PulseServerCallState.CONNECTING, PulseCallMediaType.VIDEO),
+            "caller",
+        ))
+        assertEquals(PulseCallMediaType.VIDEO, engine.config?.mediaType)
+        assertTrue(subject.setVideoEnabled("session-123", false))
+        assertFalse(subject.setVideoEnabled("other-session", true))
+        assertTrue(subject.switchCamera("session-123"))
+        assertFalse(subject.switchCamera("other-session"))
+        assertEquals(listOf(false), engine.videoChanges)
+        assertEquals(1, engine.cameraSwitchCount)
+    }
+
     private fun subject(
         signaling: FakeSignaling,
         engine: FakeMediaEngine,
@@ -213,13 +231,16 @@ class PulseCallMediaSessionControllerTest {
         createMessageId = { messageIds.removeFirst() },
     )
 
-    private fun session(state: PulseServerCallState) = PulseServerCallSession(
+    private fun session(
+        state: PulseServerCallState,
+        mediaType: PulseCallMediaType = PulseCallMediaType.AUDIO,
+    ) = PulseServerCallSession(
         protocolVersion = PULSE_CALL_PROTOCOL_VERSION,
         sessionId = "session-123",
         requestId = "request-123",
         callerUid = "caller",
         calleeUid = "callee",
-        mediaType = PulseCallMediaType.AUDIO,
+        mediaType = mediaType,
         state = state,
         revision = 3,
         mediaReadyUids = emptySet(),
@@ -303,6 +324,8 @@ class PulseCallMediaSessionControllerTest {
         var startCount = 0
         var closeCount = 0
         val muteChanges = mutableListOf<Boolean>()
+        val videoChanges = mutableListOf<Boolean>()
+        var cameraSwitchCount = 0
         var startGate: CompletableDeferred<Unit>? = null
         val remoteDescriptions = mutableListOf<PulseSessionDescription>()
         val remoteCandidates = mutableListOf<PulseIceCandidate>()
@@ -330,6 +353,16 @@ class PulseCallMediaSessionControllerTest {
 
         override suspend fun setMuted(muted: Boolean) {
             muteChanges += muted
+        }
+
+        override suspend fun setVideoEnabled(enabled: Boolean): Boolean {
+            videoChanges += enabled
+            return true
+        }
+
+        override suspend fun switchCamera(): Boolean {
+            cameraSwitchCount += 1
+            return true
         }
 
         override suspend fun close() {

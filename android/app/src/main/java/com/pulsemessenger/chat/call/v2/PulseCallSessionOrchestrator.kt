@@ -62,6 +62,7 @@ class PulseCallSessionOrchestrator(
 ) : PulseCallSignalingListener, PulseTelecomCallbacks, PulseCallMediaSessionCallbacks {
     private val launchMutex = Mutex()
     private val muteMutex = Mutex()
+    private val cameraMutex = Mutex()
     private val identity = AtomicReference<PulseCallIdentity?>(null)
     private val serverSession = AtomicReference<PulseServerCallSession?>(null)
     private val terminating = AtomicBoolean(false)
@@ -473,6 +474,40 @@ class PulseCallSessionOrchestrator(
         }
     }
 
+    fun requestToggleVideo(sessionId: String) {
+        scope.launch {
+            cameraMutex.withLock {
+                val snapshot = coordinator.state.value
+                val videoState = PulseCallVideoState.state.value
+                if (snapshot.sessionId != sessionId ||
+                    snapshot.mediaType != PulseCallMediaType.VIDEO ||
+                    snapshot.state !in setOf(PulseCallState.CONNECTING, PulseCallState.ACTIVE)
+                ) return@withLock
+                val enabled = !videoState.cameraEnabled
+                if (mediaSessions?.setVideoEnabled(sessionId, enabled) == true) {
+                    PulseCallDiagnostics.event(
+                        "CAMERA_ENABLED_CHANGED",
+                        sessionId,
+                        status = enabled.toString(),
+                    )
+                }
+            }
+        }
+    }
+
+    fun requestSwitchCamera(sessionId: String) {
+        scope.launch {
+            cameraMutex.withLock {
+                val snapshot = coordinator.state.value
+                if (snapshot.sessionId != sessionId ||
+                    snapshot.mediaType != PulseCallMediaType.VIDEO ||
+                    snapshot.state !in setOf(PulseCallState.CONNECTING, PulseCallState.ACTIVE)
+                ) return@withLock
+                mediaSessions?.switchCamera(sessionId)
+            }
+        }
+    }
+
     suspend fun shutdown() {
         terminating.set(true)
         telecomJob?.cancel()
@@ -729,7 +764,7 @@ class PulseCallSessionOrchestrator(
 
     private suspend fun startMedia(session: PulseServerCallSession, localUid: String) {
         val controller = mediaSessions ?: return
-        if (session.mediaType != PulseCallMediaType.AUDIO || !beforeMediaStart()) {
+        if (!beforeMediaStart()) {
             onMediaFailure(session.sessionId, MEDIA_ERROR)
             return
         }

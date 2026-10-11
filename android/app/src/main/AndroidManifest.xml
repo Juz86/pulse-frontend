@@ -5,6 +5,7 @@
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
 
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
@@ -73,7 +74,7 @@
             android:name=".call.v2.PulseCallService"
             android:enabled="@bool/pulse_core_telecom_enabled"
             android:exported="false"
-            android:foregroundServiceType="phoneCall|microphone"
+            android:foregroundServiceType="phoneCall|microphone|camera"
             android:stopWithTask="false"
             tools:targetApi="26" />
 
@@ -98,7 +99,9 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
 </manifest>

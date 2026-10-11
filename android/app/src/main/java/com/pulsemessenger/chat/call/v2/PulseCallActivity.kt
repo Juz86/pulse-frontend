@@ -1,5 +1,6 @@
 package com.pulsemessenger.chat.call.v2
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -11,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,6 +39,7 @@ import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Bluetooth
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.CallEnd
+import androidx.compose.material.icons.rounded.Cameraswitch
 import androidx.compose.material.icons.rounded.ChatBubble
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
@@ -47,6 +50,7 @@ import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.MicOff
 import androidx.compose.material.icons.rounded.Smartphone
 import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.rounded.VideocamOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +58,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -71,12 +76,14 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.pulsemessenger.chat.MainActivity
 import com.pulsemessenger.chat.R
@@ -88,9 +95,22 @@ import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import org.webrtc.SurfaceViewRenderer
+import org.webrtc.VideoTrack
 
 @RequiresApi(Build.VERSION_CODES.O)
 class PulseCallActivity : ComponentActivity() {
+    private var pendingVideoPermissionAction: (() -> Unit)? = null
+    private val videoPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { permissions ->
+        val granted = permissions[Manifest.permission.CAMERA] == true &&
+            permissions[Manifest.permission.RECORD_AUDIO] == true
+        val action = pendingVideoPermissionAction
+        pendingVideoPermissionAction = null
+        if (granted) action?.invoke()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -114,11 +134,15 @@ class PulseCallActivity : ComponentActivity() {
         val initialDirection = intent.getStringExtra(EXTRA_DIRECTION)
             ?.let { runCatching { PulseCallDirection.valueOf(it) }.getOrNull() }
             ?: PulseCallDirection.OUTGOING
+        val initialMediaType = intent.getStringExtra(EXTRA_MEDIA_TYPE)
+            ?.let { runCatching { PulseCallMediaType.valueOf(it) }.getOrNull() }
+            ?: PulseCallMediaType.AUDIO
 
         setContent {
             MaterialTheme {
                 val snapshot by PulseCallCoordinator.instance.state.collectAsState()
                 val audioRoutes by PulseCallAudioRoutes.state.collectAsState()
+                val videoSnapshot by PulseCallVideoState.state.collectAsState()
                 var observedNativeCall by remember { mutableStateOf(false) }
                 val terminalPresentation = snapshot.terminalPresentation()
                 val matchesActiveCall = snapshot.sessionId != null &&
@@ -156,6 +180,7 @@ class PulseCallActivity : ComponentActivity() {
                     displayName = liveSnapshot?.displayName ?: initialName,
                     photoUrl = liveSnapshot?.photoUrl ?: initialPhotoUrl,
                     direction = direction,
+                    mediaType = liveSnapshot?.mediaType ?: initialMediaType,
                     callState = liveSnapshot?.state ?: if (
                         direction == PulseCallDirection.INCOMING
                     ) {
@@ -173,10 +198,14 @@ class PulseCallActivity : ComponentActivity() {
                     state = uiState,
                     audioRoutes = audioRoutes.takeIf { it.sessionId == callId }
                         ?: PulseAudioRouteSnapshot(),
-                    onAccept = { sendCallAction(PulseCallService.ACTION_ANSWER, callId) },
+                    videoSnapshot = videoSnapshot.takeIf { it.sessionId == callId }
+                        ?: PulseVideoTrackSnapshot(),
+                    onAccept = { acceptCall(callId, uiState.mediaType) },
                     onDecline = { sendCallAction(PulseCallService.ACTION_DISCONNECT, callId) },
                     onHangUp = { sendCallAction(PulseCallService.ACTION_DISCONNECT, callId) },
                     onToggleMute = { sendCallAction(PulseCallService.ACTION_TOGGLE_MUTE, callId) },
+                    onToggleVideo = { sendCallAction(PulseCallService.ACTION_TOGGLE_VIDEO, callId) },
+                    onSwitchCamera = { sendCallAction(PulseCallService.ACTION_SWITCH_CAMERA, callId) },
                     onAudioRouteSelected = { routeId ->
                         sendAudioRouteAction(callId, routeId)
                     },
@@ -184,7 +213,12 @@ class PulseCallActivity : ComponentActivity() {
                         openConversation(uiState.peerUid, uiState.displayName)
                     },
                     onCallBack = {
-                        startCallBack(uiState.peerUid, uiState.displayName, uiState.photoUrl)
+                        startCallBack(
+                            uiState.peerUid,
+                            uiState.displayName,
+                            uiState.photoUrl,
+                            uiState.mediaType,
+                        )
                     },
                     onClose = ::finishAndRemoveTask,
                 )
@@ -203,6 +237,26 @@ class PulseCallActivity : ComponentActivity() {
                 .putExtra(PulseCallService.EXTRA_SESSION_ID, callId),
         )
     }
+
+    private fun acceptCall(callId: String, mediaType: PulseCallMediaType) {
+        if (mediaType != PulseCallMediaType.VIDEO || hasVideoPermissions()) {
+            sendCallAction(PulseCallService.ACTION_ANSWER, callId)
+            return
+        }
+        pendingVideoPermissionAction = {
+            sendCallAction(PulseCallService.ACTION_ANSWER, callId)
+        }
+        videoPermissionLauncher.launch(arrayOf(
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.CAMERA,
+        ))
+    }
+
+    private fun hasVideoPermissions(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED
 
     private fun sendAudioRouteAction(callId: String, routeId: String) {
         if (callId.isBlank() || routeId.isBlank()) return
@@ -225,7 +279,12 @@ class PulseCallActivity : ComponentActivity() {
         finish()
     }
 
-    private fun startCallBack(peerUid: String, displayName: String, photoUrl: String?) {
+    private fun startCallBack(
+        peerUid: String,
+        displayName: String,
+        photoUrl: String?,
+        mediaType: PulseCallMediaType,
+    ) {
         if (peerUid.isBlank()) return
         ContextCompat.startForegroundService(
             this,
@@ -235,7 +294,7 @@ class PulseCallActivity : ComponentActivity() {
                 calleeUid = peerUid,
                 displayName = displayName,
                 photoUrl = photoUrl,
-                mediaType = PulseCallMediaType.AUDIO,
+                mediaType = mediaType,
             ),
         )
         finish()
@@ -247,6 +306,7 @@ class PulseCallActivity : ComponentActivity() {
         private const val EXTRA_DISPLAY_NAME = "call_ui_display_name"
         private const val EXTRA_PHOTO_URL = "call_ui_photo_url"
         private const val EXTRA_DIRECTION = "call_ui_direction"
+        private const val EXTRA_MEDIA_TYPE = "call_ui_media_type"
 
         fun intent(
             context: Context,
@@ -255,6 +315,7 @@ class PulseCallActivity : ComponentActivity() {
             displayName: String,
             photoUrl: String?,
             direction: PulseCallDirection,
+            mediaType: PulseCallMediaType = PulseCallMediaType.AUDIO,
         ): Intent = Intent(context, PulseCallActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             .putExtra(EXTRA_CALL_ID, callId)
@@ -262,6 +323,7 @@ class PulseCallActivity : ComponentActivity() {
             .putExtra(EXTRA_DISPLAY_NAME, displayName)
             .putExtra(EXTRA_PHOTO_URL, photoUrl)
             .putExtra(EXTRA_DIRECTION, direction.name)
+            .putExtra(EXTRA_MEDIA_TYPE, mediaType.name)
     }
 }
 
@@ -271,6 +333,7 @@ internal data class PulseCallUiState(
     val displayName: String,
     val photoUrl: String?,
     val direction: PulseCallDirection,
+    val mediaType: PulseCallMediaType,
     val callState: PulseCallState,
     val activeSinceElapsedRealtimeMs: Long?,
     val isMuted: Boolean,
@@ -282,10 +345,13 @@ internal data class PulseCallUiState(
 internal fun PulseCallScreen(
     state: PulseCallUiState,
     audioRoutes: PulseAudioRouteSnapshot,
+    videoSnapshot: PulseVideoTrackSnapshot,
     onAccept: () -> Unit,
     onDecline: () -> Unit,
     onHangUp: () -> Unit,
     onToggleMute: () -> Unit,
+    onToggleVideo: () -> Unit,
+    onSwitchCamera: () -> Unit,
     onAudioRouteSelected: (String) -> Unit,
     onMessage: () -> Unit,
     onCallBack: () -> Unit,
@@ -297,6 +363,16 @@ internal fun PulseCallScreen(
         if (state.callState != PulseCallState.ACTIVE) showAudioOutput = false
     }
     CallBackground(avatar = avatar) {
+      Box(modifier = Modifier.fillMaxSize()) {
+        if (state.mediaType == PulseCallMediaType.VIDEO && videoSnapshot.remoteTrack != null) {
+            PulseVideoRenderer(
+                track = videoSnapshot.remoteTrack,
+                mirror = false,
+                mediaOverlay = false,
+                modifier = Modifier.fillMaxSize(),
+            )
+            Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.16f)))
+        }
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
@@ -316,9 +392,13 @@ internal fun PulseCallScreen(
                 Spacer(Modifier.height(if (compact) 12.dp else 24.dp))
                 CallBrand()
                 Spacer(Modifier.weight(if (compact) 0.45f else 0.75f))
-                ContactAvatar(state.displayName, avatar, avatarSize)
-                Spacer(Modifier.height(if (compact) 16.dp else 22.dp))
-                ContactName(state.displayName)
+                if (state.mediaType != PulseCallMediaType.VIDEO ||
+                    videoSnapshot.remoteTrack == null
+                ) {
+                    ContactAvatar(state.displayName, avatar, avatarSize)
+                    Spacer(Modifier.height(if (compact) 16.dp else 22.dp))
+                    ContactName(state.displayName)
+                }
                 Spacer(Modifier.height(6.dp))
                 if (state.terminalPresentation != null) {
                     TerminalCallStatus(
@@ -345,6 +425,8 @@ internal fun PulseCallScreen(
                 } else {
                     OutgoingActions(
                         isMuted = state.isMuted,
+                        isVideoCall = state.mediaType == PulseCallMediaType.VIDEO,
+                        isVideoEnabled = videoSnapshot.cameraEnabled,
                         isSpeakerActive = audioRoutes.currentRoute?.type ==
                             PulseAudioRouteType.SPEAKER,
                         onToggleMute = if (state.callState == PulseCallState.ACTIVE) {
@@ -353,6 +435,12 @@ internal fun PulseCallScreen(
                             null
                         },
                         onHangUp = onHangUp,
+                        onToggleVideo = if (state.mediaType == PulseCallMediaType.VIDEO &&
+                            state.callState in setOf(PulseCallState.CONNECTING, PulseCallState.ACTIVE)
+                        ) onToggleVideo else null,
+                        onSwitchCamera = if (state.mediaType == PulseCallMediaType.VIDEO &&
+                            state.callState in setOf(PulseCallState.CONNECTING, PulseCallState.ACTIVE)
+                        ) onSwitchCamera else null,
                         onAudioOutput = if (state.callState == PulseCallState.ACTIVE) {
                             {
                                 showAudioOutput = true
@@ -365,6 +453,25 @@ internal fun PulseCallScreen(
                 Spacer(Modifier.height(if (compact) 14.dp else 24.dp))
             }
         }
+        if (state.mediaType == PulseCallMediaType.VIDEO &&
+            videoSnapshot.localTrack != null &&
+            videoSnapshot.cameraEnabled
+        ) {
+            PulseVideoRenderer(
+                track = videoSnapshot.localTrack,
+                mirror = videoSnapshot.usingFrontCamera,
+                mediaOverlay = true,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .padding(top = 78.dp, end = 14.dp)
+                    .size(width = 112.dp, height = 154.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(2.dp, Color.White.copy(alpha = 0.82f), RoundedCornerShape(8.dp))
+                    .clickable(onClick = onSwitchCamera),
+            )
+        }
+      }
     }
     if (showAudioOutput && state.callState == PulseCallState.ACTIVE) {
         AudioOutputSheet(
@@ -377,6 +484,35 @@ internal fun PulseCallScreen(
             },
         )
     }
+}
+
+@Composable
+private fun PulseVideoRenderer(
+    track: VideoTrack?,
+    mirror: Boolean,
+    mediaOverlay: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val renderer = remember {
+        SurfaceViewRenderer(context).apply {
+            init(PulseCallVideoState.eglContext, null)
+            setEnableHardwareScaler(true)
+            setZOrderMediaOverlay(mediaOverlay)
+        }
+    }
+    DisposableEffect(track) {
+        track?.addSink(renderer)
+        onDispose { track?.removeSink(renderer) }
+    }
+    DisposableEffect(Unit) {
+        onDispose { renderer.release() }
+    }
+    AndroidView(
+        factory = { renderer },
+        modifier = modifier,
+        update = { it.setMirror(mirror) },
+    )
 }
 
 @Composable
@@ -619,8 +755,13 @@ internal fun ContactName(displayName: String) {
 @Composable
 internal fun CallStatus(state: PulseCallUiState) {
     val status = when {
-        state.direction == PulseCallDirection.INCOMING ->
-            stringResource(R.string.pulse_call_status_incoming)
+        state.direction == PulseCallDirection.INCOMING -> stringResource(
+            if (state.mediaType == PulseCallMediaType.VIDEO) {
+                R.string.pulse_call_status_incoming_video
+            } else {
+                R.string.pulse_call_status_incoming
+            },
+        )
         state.callState == PulseCallState.RINGING ->
             stringResource(R.string.pulse_call_status_ringing)
         else -> stringResource(R.string.pulse_call_status_calling)
@@ -695,13 +836,17 @@ private fun IncomingActions(onDecline: () -> Unit, onAccept: () -> Unit) {
 @Composable
 private fun OutgoingActions(
     isMuted: Boolean,
+    isVideoCall: Boolean,
+    isVideoEnabled: Boolean,
     isSpeakerActive: Boolean,
     onToggleMute: (() -> Unit)?,
     onHangUp: () -> Unit,
+    onToggleVideo: (() -> Unit)?,
+    onSwitchCamera: (() -> Unit)?,
     onAudioOutput: (() -> Unit)?,
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(30.dp),
+        horizontalArrangement = Arrangement.spacedBy(if (isVideoCall) 16.dp else 30.dp),
         verticalAlignment = Alignment.Top,
     ) {
         CallControlButton(
@@ -712,7 +857,22 @@ private fun OutgoingActions(
             background = if (isMuted) PulseRed else PulseControl,
             onClick = onToggleMute,
         )
-        CallControlButton(stringResource(R.string.pulse_call_action_video), Icons.Rounded.Videocam)
+        CallControlButton(
+            label = stringResource(
+                if (isVideoEnabled) R.string.pulse_call_action_video_off
+                else R.string.pulse_call_action_video_on,
+            ),
+            icon = if (isVideoEnabled) Icons.Rounded.Videocam else Icons.Rounded.VideocamOff,
+            background = if (isVideoCall && !isVideoEnabled) PulseRed else PulseControl,
+            onClick = onToggleVideo,
+        )
+        if (isVideoCall) {
+            CallControlButton(
+                label = stringResource(R.string.pulse_call_action_switch_camera),
+                icon = Icons.Rounded.Cameraswitch,
+                onClick = onSwitchCamera,
+            )
+        }
         CallControlButton(
             stringResource(R.string.pulse_call_action_speaker),
             Icons.AutoMirrored.Rounded.VolumeUp,

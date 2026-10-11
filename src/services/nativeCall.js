@@ -4,7 +4,7 @@ import { isNativePulseEnvironment } from '../lib/platform/runtime';
 import { BACKEND_URL } from './socket';
 
 const PulseCall = registerPlugin('PulseCall');
-let pendingAudioCallStart = null;
+let pendingCallStart = null;
 
 function isAndroidNative() {
   if (!isNativePulseEnvironment()) return false;
@@ -24,6 +24,7 @@ export async function getNativeCallCapabilities() {
       video: capabilities?.video === true,
       protocolVersion: Number(capabilities?.protocolVersion || 0),
       microphonePermission: capabilities?.microphonePermission || 'prompt',
+      cameraPermission: capabilities?.cameraPermission || 'prompt',
     };
   } catch {
     return { audio: false, video: false };
@@ -92,7 +93,7 @@ export async function consumeNativeCallFollowUpAction() {
   }
 }
 
-async function launchNativeAudioCall({ calleeUid, displayName, photoURL = '' }) {
+async function launchNativeCall({ calleeUid, displayName, photoURL = '' }, mediaType) {
   if (!isAndroidNative()) {
     const error = new Error('native_call_unavailable');
     error.code = 'native_call_unavailable';
@@ -106,7 +107,7 @@ async function launchNativeAudioCall({ calleeUid, displayName, photoURL = '' }) 
   const currentUser = auth.currentUser;
   const bootstrapCode = await requestNativeAuthBootstrap(currentUser);
 
-  return PulseCall.startAudioCall({
+  return PulseCall[mediaType === 'video' ? 'startVideoCall' : 'startAudioCall']({
     requestId: window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     callerUid: currentUser.uid,
     calleeUid: String(calleeUid).trim(),
@@ -117,11 +118,19 @@ async function launchNativeAudioCall({ calleeUid, displayName, photoURL = '' }) 
 }
 
 export function startNativeAudioCall(call) {
-  if (pendingAudioCallStart) return pendingAudioCallStart;
-  pendingAudioCallStart = launchNativeAudioCall(call).finally(() => {
-    pendingAudioCallStart = null;
+  if (pendingCallStart) return pendingCallStart;
+  pendingCallStart = launchNativeCall(call, 'audio').finally(() => {
+    pendingCallStart = null;
   });
-  return pendingAudioCallStart;
+  return pendingCallStart;
+}
+
+export function startNativeVideoCall(call) {
+  if (pendingCallStart) return pendingCallStart;
+  pendingCallStart = launchNativeCall(call, 'video').finally(() => {
+    pendingCallStart = null;
+  });
+  return pendingCallStart;
 }
 
 export function nativeCallErrorMessage(error) {
@@ -129,6 +138,10 @@ export function nativeCallErrorMessage(error) {
   switch (code) {
     case 'microphone_permission_denied':
       return 'Microfoontoegang is nodig om te bellen.';
+    case 'camera_permission_denied':
+      return 'Cameratoegang is nodig om te videobellen.';
+    case 'camera_unavailable':
+      return 'Op dit apparaat is geen camera beschikbaar.';
     case 'call_already_active':
       return 'Er is al een actief gesprek.';
     case 'call_rate_limited':

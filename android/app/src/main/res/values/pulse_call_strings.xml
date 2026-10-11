@@ -8,6 +8,7 @@
     <string name="pulse_call_brand">Pulse Messenger</string>
     <string name="pulse_call_encrypted">End-to-end versleuteld</string>
     <string name="pulse_call_status_incoming">Inkomende spraakoproep</string>
+    <string name="pulse_call_status_incoming_video">Inkomende video-oproep</string>
     <string name="pulse_call_status_calling">Bellen…</string>
     <string name="pulse_call_status_ringing">Gaat over…</string>
     <string name="pulse_call_action_decline">Weigeren</string>
@@ -16,6 +17,9 @@
     <string name="pulse_call_action_mute">Dempen</string>
     <string name="pulse_call_action_muted">Gedempt</string>
     <string name="pulse_call_action_video">Video</string>
+    <string name="pulse_call_action_video_on">Camera aan</string>
+    <string name="pulse_call_action_video_off">Camera uit</string>
+    <string name="pulse_call_action_switch_camera">Draaien</string>
     <string name="pulse_call_action_speaker">Speaker</string>
     <string name="pulse_call_audio_output_title">Audio-uitvoer</string>
     <string name="pulse_call_audio_earpiece">Telefoon (oorstuk)</string>

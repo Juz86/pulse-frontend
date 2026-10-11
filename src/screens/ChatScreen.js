@@ -26,6 +26,7 @@ import {
   getNativeCallCapabilities,
   nativeCallErrorMessage,
   startNativeAudioCall,
+  startNativeVideoCall,
 } from '../services/nativeCall';
 import { browserCallErrorMessage } from '../services/browserCall';
 import { loadPulseCallHistory } from '../services/callHistory';
@@ -686,7 +687,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   }, [contactsByUid, getContactDisplayName]);
   const browserCall = useBrowserCall({ user, resolvePeer: resolveCallPeer });
   const audioCallingAvailable = nativeCallCapabilities.audio || browserCall.supported;
-  const videoCallingAvailable = browserCall.supported;
+  const videoCallingAvailable = nativeCallCapabilities.video || browserCall.supported;
 
   async function handleStartCall(contact = null, mediaType = 'audio') {
     if (callLaunchPending) return;
@@ -705,16 +706,24 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
         displayName: selectedContact ? getContactDisplayName(selectedContact) : getConvName(activeConv),
         photoURL: selectedContact?.photoURL || getConvPhoto(activeConv),
       };
-      if (mediaType === 'audio' && nativeCallCapabilities.audio) {
-        await startNativeAudioCall(callTarget);
+      const nativeCallingAvailable = mediaType === 'video'
+        ? nativeCallCapabilities.video
+        : nativeCallCapabilities.audio;
+      if (nativeCallingAvailable) {
+        await (mediaType === 'video'
+          ? startNativeVideoCall(callTarget)
+          : startNativeAudioCall(callTarget));
       } else {
         await browserCall.startCall({ ...callTarget, mediaType });
       }
     } catch (error) {
-      showErrToast(mediaType === 'audio' && nativeCallCapabilities.audio
+      const nativeCallingAvailable = mediaType === 'video'
+        ? nativeCallCapabilities.video
+        : nativeCallCapabilities.audio;
+      showErrToast(nativeCallingAvailable
         ? nativeCallErrorMessage(error)
         : browserCallErrorMessage(error, mediaType));
-      if (mediaType === 'audio' && nativeCallCapabilities.audio) {
+      if (nativeCallingAvailable) {
         const capabilities = await getNativeCallCapabilities();
         setNativeCallCapabilities(capabilities);
       }

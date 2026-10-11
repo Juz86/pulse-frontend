@@ -20,6 +20,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.webrtc.AudioSource
 import org.webrtc.AudioTrack
+import org.webrtc.Camera2Enumerator
+import org.webrtc.CameraVideoCapturer
 import org.webrtc.DataChannel
 import org.webrtc.IceCandidate
 import org.webrtc.MediaConstraints
@@ -31,6 +33,9 @@ import org.webrtc.RtpReceiver
 import org.webrtc.RTCStatsReport
 import org.webrtc.SdpObserver
 import org.webrtc.SessionDescription
+import org.webrtc.SurfaceTextureHelper
+import org.webrtc.VideoSource
+import org.webrtc.VideoTrack
 import org.webrtc.audio.AudioDeviceModule
 import org.webrtc.audio.JavaAudioDeviceModule
 import kotlin.coroutines.resume
@@ -59,6 +64,11 @@ class WebRtcAudioEngine(
     private var peerConnection: PeerConnection? = null
     private var audioSource: AudioSource? = null
     private var audioTrack: AudioTrack? = null
+    private var videoSource: VideoSource? = null
+    private var videoTrack: VideoTrack? = null
+    private var videoCapturer: CameraVideoCapturer? = null
+    private var surfaceTextureHelper: SurfaceTextureHelper? = null
+    private var usingFrontCamera = true
     private var statsJob: Job? = null
     private val iceCandidateBuffer = PulseIceCandidateBuffer()
 
@@ -93,6 +103,32 @@ class WebRtcAudioEngine(
             }
             audioTrack = track
 
+            if (config.mediaType == PulseCallMediaType.VIDEO) {
+                val enumerator = Camera2Enumerator(applicationContext)
+                val cameraName = enumerator.deviceNames.firstOrNull(enumerator::isFrontFacing)
+                    ?: enumerator.deviceNames.firstOrNull()
+                    ?: error("No camera is available")
+                usingFrontCamera = enumerator.isFrontFacing(cameraName)
+                val capturer = checkNotNull(enumerator.createCapturer(cameraName, null)) {
+                    "WebRTC could not create a camera capturer"
+                }
+                val helper = SurfaceTextureHelper.create(
+                    "pulse-webrtc-camera",
+                    PulseCallVideoState.eglContext,
+                )
+                val source = factory.createVideoSource(false)
+                capturer.initialize(helper, applicationContext, source.capturerObserver)
+                capturer.startCapture(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_FPS)
+                val localVideoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, source).apply {
+                    setEnabled(true)
+                }
+                videoCapturer = capturer
+                surfaceTextureHelper = helper
+                videoSource = source
+                videoTrack = localVideoTrack
+                PulseCallVideoState.begin(config.sessionId, localVideoTrack, usingFrontCamera)
+            }
+
             val rtcConfiguration = PeerConnection.RTCConfiguration(
                 config.iceServers.map { it.toWebRtc() },
             ).apply {
@@ -108,6 +144,11 @@ class WebRtcAudioEngine(
             peerConnection = connection
             checkNotNull(connection.addTrack(track, listOf(MEDIA_STREAM_ID))) {
                 "WebRTC could not add the local audio track"
+            }
+            videoTrack?.let { localVideoTrack ->
+                checkNotNull(connection.addTrack(localVideoTrack, listOf(MEDIA_STREAM_ID))) {
+                    "WebRTC could not add the local video track"
+                }
             }
 
             updateState(PulseMediaState.NEGOTIATING)
@@ -170,6 +211,34 @@ class WebRtcAudioEngine(
         Unit
     }
 
+    override suspend fun setVideoEnabled(enabled: Boolean): Boolean = onMediaThread {
+        val sessionId = config?.sessionId ?: return@onMediaThread false
+        val track = videoTrack ?: return@onMediaThread false
+        track.setEnabled(enabled)
+        PulseCallVideoState.setCameraEnabled(sessionId, enabled)
+        true
+    }
+
+    override suspend fun switchCamera(): Boolean = onMediaThread {
+        val sessionId = config?.sessionId ?: return@onMediaThread false
+        val capturer = videoCapturer ?: return@onMediaThread false
+        capturer.switchCamera(object : CameraVideoCapturer.CameraSwitchHandler {
+            override fun onCameraSwitchDone(isFrontCamera: Boolean) {
+                usingFrontCamera = isFrontCamera
+                PulseCallVideoState.setUsingFrontCamera(sessionId, isFrontCamera)
+            }
+
+            override fun onCameraSwitchError(errorDescription: String?) {
+                PulseCallDiagnostics.event(
+                    "CAMERA_SWITCH_FAILED",
+                    sessionId,
+                    status = errorDescription ?: "UNKNOWN",
+                )
+            }
+        })
+        true
+    }
+
     override suspend fun close() {
         if (!closed.compareAndSet(false, true)) return
         statsJob?.cancel()
@@ -188,7 +257,10 @@ class WebRtcAudioEngine(
         val connection = peerConnectionOrThrow()
         val constraints = MediaConstraints().apply {
             mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveVideo", "false"))
+            mandatory.add(MediaConstraints.KeyValuePair(
+                "OfferToReceiveVideo",
+                (config?.mediaType == PulseCallMediaType.VIDEO).toString(),
+            ))
         }
         val description = if (type == SessionDescription.Type.OFFER) {
             connection.createOfferAwait(constraints)
@@ -255,8 +327,9 @@ class WebRtcAudioEngine(
         override fun onRenegotiationNeeded() = Unit
         override fun onAddTrack(receiver: RtpReceiver, mediaStreams: Array<out MediaStream>) = Unit
         override fun onTrack(transceiver: org.webrtc.RtpTransceiver) {
-            if (transceiver.receiver.track()?.kind() == MediaStreamTrack.AUDIO_TRACK_KIND) {
-                transceiver.receiver.track()?.setEnabled(true)
+            val remoteTrack = transceiver.receiver.track()
+            if (remoteTrack?.kind() == MediaStreamTrack.AUDIO_TRACK_KIND) {
+                remoteTrack.setEnabled(true)
                 if (remoteTrackReported.compareAndSet(false, true)) {
                     PulseCallDiagnostics.event(
                         "REMOTE_AUDIO_TRACK_ENABLED",
@@ -264,6 +337,14 @@ class WebRtcAudioEngine(
                         status = "ENABLED",
                     )
                 }
+            } else if (remoteTrack is VideoTrack) {
+                remoteTrack.setEnabled(true)
+                config?.sessionId?.let { PulseCallVideoState.setRemoteTrack(it, remoteTrack) }
+                PulseCallDiagnostics.event(
+                    "REMOTE_VIDEO_TRACK_ENABLED",
+                    config?.sessionId,
+                    status = "ENABLED",
+                )
             }
         }
     }
@@ -343,9 +424,16 @@ class WebRtcAudioEngine(
     }
 
     private fun releaseResources() {
+        val sessionId = config?.sessionId
         audioTrack?.setEnabled(false)
+        videoTrack?.setEnabled(false)
+        runCatching { videoCapturer?.stopCapture() }
         peerConnection?.close()
         peerConnection?.dispose()
+        videoCapturer?.dispose()
+        surfaceTextureHelper?.dispose()
+        videoTrack?.dispose()
+        videoSource?.dispose()
         audioTrack?.dispose()
         audioSource?.dispose()
         peerConnectionFactory?.dispose()
@@ -354,8 +442,13 @@ class WebRtcAudioEngine(
         peerConnection = null
         audioTrack = null
         audioSource = null
+        videoTrack = null
+        videoSource = null
+        videoCapturer = null
+        surfaceTextureHelper = null
         peerConnectionFactory = null
         audioDeviceModule = null
+        PulseCallVideoState.clear(sessionId)
     }
 
     private suspend fun <T> onMediaThread(block: suspend () -> T): T {
@@ -387,7 +480,11 @@ class WebRtcAudioEngine(
 
     companion object {
         private const val AUDIO_TRACK_ID = "pulse-audio"
+        private const val VIDEO_TRACK_ID = "pulse-video"
         private const val MEDIA_STREAM_ID = "pulse"
+        private const val VIDEO_WIDTH = 720
+        private const val VIDEO_HEIGHT = 1280
+        private const val VIDEO_FPS = 30
         private const val STATS_INTERVAL_MS = 2_000L
         private const val STATS_TIMEOUT_MS = 2_000L
         private val initialized = AtomicBoolean(false)

@@ -6,11 +6,13 @@ import {
   getNativeCallCapabilities,
   nativeCallErrorMessage,
   startNativeAudioCall,
+  startNativeVideoCall,
   syncNativeCallIdentity,
 } from './nativeCall';
 
 const mockGetCapabilities = jest.fn();
 const mockStartAudioCall = jest.fn();
+const mockStartVideoCall = jest.fn();
 const mockSyncIdentity = jest.fn();
 const mockClearIdentity = jest.fn();
 const mockConsumeFollowUpAction = jest.fn();
@@ -38,6 +40,7 @@ jest.mock('@capacitor/core', () => ({
   registerPlugin: () => ({
     getCapabilities: (...args) => mockGetCapabilities(...args),
     startAudioCall: (...args) => mockStartAudioCall(...args),
+    startVideoCall: (...args) => mockStartVideoCall(...args),
     syncIdentity: (...args) => mockSyncIdentity(...args),
     clearIdentity: (...args) => mockClearIdentity(...args),
     consumeFollowUpAction: (...args) => mockConsumeFollowUpAction(...args),
@@ -115,6 +118,23 @@ describe('nativeCall', () => {
     expect(mockStartAudioCall).toHaveBeenCalledTimes(1);
   });
 
+  test('starts a video call through the native Android bridge', async () => {
+    mockStartVideoCall.mockResolvedValueOnce({ ok: true, status: 'starting' });
+
+    await startNativeVideoCall({
+      calleeUid: 'callee',
+      displayName: 'Contact',
+    });
+
+    expect(mockStartVideoCall).toHaveBeenCalledWith(expect.objectContaining({
+      callerUid: 'caller-uid',
+      calleeUid: 'callee',
+      bootstrapCode: 'a'.repeat(43),
+      requestId: expect.any(String),
+    }));
+    expect(mockStartAudioCall).not.toHaveBeenCalled();
+  });
+
   test('does not start Android calling when bootstrap exchange fails', async () => {
     global.fetch.mockResolvedValueOnce({
       ok: false,
@@ -164,6 +184,8 @@ describe('nativeCall', () => {
   test('maps permission errors to a useful message', () => {
     expect(nativeCallErrorMessage({ code: 'microphone_permission_denied' }))
       .toBe('Microfoontoegang is nodig om te bellen.');
+    expect(nativeCallErrorMessage({ code: 'camera_permission_denied' }))
+      .toBe('Cameratoegang is nodig om te videobellen.');
   });
 
   test('subscribes to asynchronous native call status updates', async () => {

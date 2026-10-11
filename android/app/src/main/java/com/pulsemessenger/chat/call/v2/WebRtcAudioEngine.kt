@@ -1,6 +1,7 @@
 package com.pulsemessenger.chat.call.v2
 
 import android.content.Context
+import android.util.Log
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -20,9 +21,13 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.webrtc.AudioSource
 import org.webrtc.AudioTrack
+import org.webrtc.Camera1Enumerator
 import org.webrtc.Camera2Enumerator
+import org.webrtc.CameraEnumerator
 import org.webrtc.CameraVideoCapturer
 import org.webrtc.DataChannel
+import org.webrtc.DefaultVideoDecoderFactory
+import org.webrtc.DefaultVideoEncoderFactory
 import org.webrtc.IceCandidate
 import org.webrtc.MediaConstraints
 import org.webrtc.MediaStream
@@ -91,9 +96,22 @@ class WebRtcAudioEngine(
                 .createAudioDeviceModule()
             audioDeviceModule = audioModule
 
-            val factory = PeerConnectionFactory.builder()
+            val factoryBuilder = PeerConnectionFactory.builder()
                 .setAudioDeviceModule(audioModule)
-                .createPeerConnectionFactory()
+            if (config.mediaType == PulseCallMediaType.VIDEO) {
+                factoryBuilder
+                    .setVideoEncoderFactory(
+                        DefaultVideoEncoderFactory(
+                            PulseCallVideoState.eglContext,
+                            true,
+                            true,
+                        ),
+                    )
+                    .setVideoDecoderFactory(
+                        DefaultVideoDecoderFactory(PulseCallVideoState.eglContext),
+                    )
+            }
+            val factory = factoryBuilder.createPeerConnectionFactory()
             peerConnectionFactory = factory
 
             val source = factory.createAudioSource(MediaConstraints())
@@ -104,14 +122,9 @@ class WebRtcAudioEngine(
             audioTrack = track
 
             if (config.mediaType == PulseCallMediaType.VIDEO) {
-                val enumerator = Camera2Enumerator(applicationContext)
-                val cameraName = enumerator.deviceNames.firstOrNull(enumerator::isFrontFacing)
-                    ?: enumerator.deviceNames.firstOrNull()
-                    ?: error("No camera is available")
-                usingFrontCamera = enumerator.isFrontFacing(cameraName)
-                val capturer = checkNotNull(enumerator.createCapturer(cameraName, null)) {
-                    "WebRTC could not create a camera capturer"
-                }
+                val camera = createCameraCapturer()
+                usingFrontCamera = camera.usingFrontCamera
+                val capturer = camera.capturer
                 val helper = SurfaceTextureHelper.create(
                     "pulse-webrtc-camera",
                     PulseCallVideoState.eglContext,
@@ -156,6 +169,12 @@ class WebRtcAudioEngine(
                 createAndPublishLocalDescription(SessionDescription.Type.OFFER)
             }
         } catch (error: Throwable) {
+            Log.e(TAG, "WebRTC media startup failed", error)
+            PulseCallDiagnostics.event(
+                "MEDIA_START_FAILED",
+                config.sessionId,
+                status = error.javaClass.simpleName,
+            )
             fail("media_start_failed")
             releaseResources()
             throw error
@@ -412,6 +431,76 @@ class WebRtcAudioEngine(
     private fun peerConnectionOrThrow(): PeerConnection =
         checkNotNull(peerConnection) { "Media engine has no PeerConnection" }
 
+    private fun createCameraCapturer(): CameraCapture {
+        val enumerators = buildList<CameraEnumerator> {
+            if (Camera2Enumerator.isSupported(applicationContext)) {
+                add(Camera2Enumerator(applicationContext))
+            }
+            add(Camera1Enumerator(true))
+        }
+        enumerators.forEach { enumerator ->
+            val cameraNames = enumerator.deviceNames
+            val preferredNames = cameraNames.filter(enumerator::isFrontFacing) +
+                cameraNames.filterNot(enumerator::isFrontFacing)
+            preferredNames.forEach { cameraName ->
+                val capturer = runCatching {
+                    enumerator.createCapturer(cameraName, cameraEventsHandler)
+                }.onFailure { error ->
+                    Log.w(TAG, "Camera capturer creation failed for $cameraName", error)
+                }.getOrNull()
+                if (capturer != null) {
+                    PulseCallDiagnostics.event(
+                        "CAMERA_CAPTURER_SELECTED",
+                        config?.sessionId,
+                        status = enumerator.javaClass.simpleName,
+                    )
+                    return CameraCapture(
+                        capturer = capturer,
+                        usingFrontCamera = enumerator.isFrontFacing(cameraName),
+                    )
+                }
+            }
+        }
+        error("WebRTC could not create a camera capturer")
+    }
+
+    private val cameraEventsHandler = object : CameraVideoCapturer.CameraEventsHandler {
+        override fun onCameraError(errorDescription: String?) {
+            Log.e(TAG, "Camera error: ${errorDescription.orEmpty()}")
+            fail("camera_error")
+        }
+
+        override fun onCameraDisconnected() {
+            Log.w(TAG, "Camera disconnected")
+            fail("camera_disconnected")
+        }
+
+        override fun onCameraFreezed(errorDescription: String?) {
+            Log.e(TAG, "Camera frozen: ${errorDescription.orEmpty()}")
+            fail("camera_frozen")
+        }
+
+        override fun onCameraOpening(cameraName: String?) {
+            PulseCallDiagnostics.event(
+                "CAMERA_OPENING",
+                config?.sessionId,
+                status = cameraName.orEmpty(),
+            )
+        }
+
+        override fun onFirstFrameAvailable() {
+            PulseCallDiagnostics.event(
+                "CAMERA_FIRST_FRAME",
+                config?.sessionId,
+                status = "AVAILABLE",
+            )
+        }
+
+        override fun onCameraClosed() {
+            PulseCallDiagnostics.event("CAMERA_CLOSED", config?.sessionId)
+        }
+    }
+
     private fun updateState(state: PulseMediaState) {
         if (mutableState.value == state) return
         mutableState.value = state
@@ -479,6 +568,7 @@ class WebRtcAudioEngine(
     )
 
     companion object {
+        private const val TAG = "PulseWebRtc"
         private const val AUDIO_TRACK_ID = "pulse-audio"
         private const val VIDEO_TRACK_ID = "pulse-video"
         private const val MEDIA_STREAM_ID = "pulse"
@@ -504,6 +594,11 @@ class WebRtcAudioEngine(
             }
         }
     }
+
+    private data class CameraCapture(
+        val capturer: CameraVideoCapturer,
+        val usingFrontCamera: Boolean,
+    )
 }
 
 private suspend fun PeerConnection.createOfferAwait(

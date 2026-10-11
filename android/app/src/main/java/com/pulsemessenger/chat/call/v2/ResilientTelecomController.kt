@@ -6,6 +6,20 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 
+fun createPulseTelecomController(
+    primaryFactory: () -> PulseTelecomController,
+    fallback: PulseTelecomController = StandaloneTelecomController(),
+): PulseTelecomController {
+    val primary = try {
+        primaryFactory()
+    } catch (error: Throwable) {
+        if (error is VirtualMachineError || error is ThreadDeath) throw error
+        fallback.registerApp()
+        return fallback
+    }
+    return ResilientTelecomController(primary, fallback).also(PulseTelecomController::registerApp)
+}
+
 /**
  * Keeps Core Telecom as the preferred integration, while allowing calls to work on
  * Android tablets that expose an incomplete or unavailable Telecom implementation.

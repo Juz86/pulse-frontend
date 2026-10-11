@@ -61,8 +61,8 @@ class PulseCallService : Service() {
         recoveryStore = PulseCallRecoveryStore(this)
         incomingCallRinger = PulseIncomingCallRinger(this)
 
-        val telecom = ResilientTelecomController(CoreTelecomController(this)).also(
-            PulseTelecomController::registerApp,
+        val telecom = createPulseTelecomController(
+            primaryFactory = { CoreTelecomController(this) },
         )
         orchestrator = PulseCallSessionOrchestrator(
             scope = serviceScope,

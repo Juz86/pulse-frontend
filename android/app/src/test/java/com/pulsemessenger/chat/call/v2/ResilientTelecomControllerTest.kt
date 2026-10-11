@@ -12,6 +12,22 @@ import org.junit.Test
 
 class ResilientTelecomControllerTest {
     @Test
+    fun `construction failure selects standalone controller`() = runBlocking {
+        val fallback = FakeTelecom()
+        val subject = createPulseTelecomController(
+            primaryFactory = { throw IllegalStateException("Telecom service missing") },
+            fallback = fallback,
+        )
+
+        val call = async { subject.addCall(request(), RecordingCallbacks()) }
+        withTimeout(1_000) { fallback.registered.await() }
+
+        assertEquals(1, fallback.addCount)
+        assertTrue(subject.disconnect("session-123", DisconnectCause(DisconnectCause.LOCAL)))
+        call.await()
+    }
+
+    @Test
     fun `registration failure routes call through standalone controller`() = runBlocking {
         val primary = FakeTelecom(registerFailure = IllegalStateException("Telecom unavailable"))
         val fallback = FakeTelecom()

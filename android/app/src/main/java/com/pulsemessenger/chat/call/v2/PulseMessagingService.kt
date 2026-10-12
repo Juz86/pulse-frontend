@@ -60,7 +60,6 @@ class PulseMessagingService : MessagingService() {
                     displayName = incomingCall.callerDisplayName
                         ?: getString(R.string.pulse_call_unknown_caller),
                     photoUrl = incomingCall.callerPhotoUrl,
-                    mediaType = incomingCall.mediaType,
                 ),
             )
             PulseCallDiagnostics.event("CALL_SERVICE_START_SUCCEEDED", incomingCall.sessionId)

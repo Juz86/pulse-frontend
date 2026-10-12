@@ -45,7 +45,6 @@ class PulseCallService : Service() {
     private var stateJob: Job? = null
     private var foregroundCallId: String? = null
     private var foregroundDisplayName: String? = null
-    private var foregroundMediaType = PulseCallMediaType.AUDIO
     private var callUiOpenedForId: String? = null
     private lateinit var networkMonitor: PulseNetworkMonitor
     private lateinit var recoveryStore: PulseCallRecoveryStore
@@ -61,9 +60,7 @@ class PulseCallService : Service() {
         recoveryStore = PulseCallRecoveryStore(this)
         incomingCallRinger = PulseIncomingCallRinger(this)
 
-        val telecom = createPulseTelecomController(
-            primaryFactory = { CoreTelecomController(this) },
-        )
+        val telecom = CoreTelecomController(this).also(PulseTelecomController::registerApp)
         orchestrator = PulseCallSessionOrchestrator(
             scope = serviceScope,
             identityProvider = FirebasePulseCallIdentityProvider(this),
@@ -143,7 +140,7 @@ class PulseCallService : Service() {
         val photoUrl = intent.safePhotoUrl(EXTRA_PHOTO_URL)
         val mediaType = intent.mediaType()
 
-        if (!startPreparingForeground(requestId, displayName, mediaType = mediaType)) return
+        if (!startPreparingForeground(requestId, displayName)) return
         launchJob = serviceScope.launch {
             val result = runCatching {
                 orchestrator.startOutgoing(requestId, calleeUid, displayName, photoUrl, mediaType)
@@ -162,7 +159,6 @@ class PulseCallService : Service() {
                 callId = record.sessionId,
                 displayName = record.displayName,
                 incoming = record.direction == PulseCallDirection.INCOMING,
-                mediaType = record.mediaType,
             )
         ) return
         if (foregroundCallId != record.sessionId) return
@@ -209,15 +205,8 @@ class PulseCallService : Service() {
             return stopIfIdle()
         }
         val photoUrl = intent.safePhotoUrl(EXTRA_PHOTO_URL)
-        val mediaType = intent.mediaType()
 
-        if (!startPreparingForeground(
-                sessionId,
-                displayName,
-                incoming = true,
-                mediaType = mediaType,
-            )
-        ) return
+        if (!startPreparingForeground(sessionId, displayName, incoming = true)) return
         PulseCallDiagnostics.event("INCOMING_REGISTRATION_STARTED", sessionId)
         launchJob = serviceScope.launch {
             val result = runCatching {
@@ -423,7 +412,6 @@ class PulseCallService : Service() {
         callId: String,
         displayName: String,
         incoming: Boolean = false,
-        mediaType: PulseCallMediaType = PulseCallMediaType.AUDIO,
     ): Boolean {
         if (foregroundCallId != null) {
             Log.i(TAG, "Ignoring duplicate call launch while another call is being handled")
@@ -432,7 +420,6 @@ class PulseCallService : Service() {
 
         foregroundCallId = callId
         foregroundDisplayName = displayName
-        foregroundMediaType = mediaType
         if (incoming) incomingCallRinger.start(callId) else stopIncomingAlert()
         val serviceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
@@ -578,7 +565,6 @@ class PulseCallService : Service() {
         stopIncomingAlert(expectedCallId)
         foregroundCallId = null
         foregroundDisplayName = null
-        foregroundMediaType = PulseCallMediaType.AUDIO
         callUiOpenedForId = null
         pendingNotificationAction = null
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
@@ -634,7 +620,7 @@ class PulseCallService : Service() {
                 displayName = displayName,
                 photoUrl = snapshot?.photoUrl,
                 direction = direction,
-                mediaType = snapshot?.mediaType ?: foregroundMediaType,
+                mediaType = snapshot?.mediaType ?: PulseCallMediaType.AUDIO,
             ),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -816,13 +802,11 @@ class PulseCallService : Service() {
             sessionId: String,
             displayName: String,
             photoUrl: String? = null,
-            mediaType: PulseCallMediaType = PulseCallMediaType.AUDIO,
         ): Intent = Intent(context, PulseCallService::class.java)
             .setAction(ACTION_REGISTER_INCOMING)
             .putExtra(EXTRA_SESSION_ID, sessionId)
             .putExtra(EXTRA_DISPLAY_NAME, displayName)
             .putExtra(EXTRA_PHOTO_URL, photoUrl)
-            .putExtra(EXTRA_MEDIA_TYPE, mediaType.name)
 
         fun terminalIntent(context: Context, sessionId: String): Intent =
             Intent(context, PulseCallService::class.java)

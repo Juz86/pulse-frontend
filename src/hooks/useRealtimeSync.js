@@ -90,13 +90,6 @@ export function normalizeSyncRequiredPayload(payload = {}) {
 function recordSyncSuccess({ domain, reason, durationMs }) {
   const details = { domain, reason, durationMs: Math.round(durationMs) };
   console.info('[Pulse][RealtimeSync] refreshed', details);
-  Sentry.metrics.count('pulse.realtime_sync.refresh', 1, {
-    attributes: { domain, reason, outcome: 'success' },
-  });
-  Sentry.metrics.distribution('pulse.realtime_sync.duration', details.durationMs, {
-    unit: 'millisecond',
-    attributes: { domain, reason },
-  });
   Sentry.addBreadcrumb({
     category: 'realtime.sync',
     level: 'info',
@@ -108,9 +101,6 @@ function recordSyncSuccess({ domain, reason, durationMs }) {
 function recordSyncFailure({ domain, reason, durationMs, error }) {
   const details = { domain, reason, durationMs: Math.round(durationMs) };
   console.warn('[Pulse][RealtimeSync] refresh failed', details, error);
-  Sentry.metrics.count('pulse.realtime_sync.refresh', 1, {
-    attributes: { domain, reason, outcome: 'failure' },
-  });
   Sentry.captureException(error, {
     tags: { subsystem: 'realtime_sync', domain },
     extra: details,

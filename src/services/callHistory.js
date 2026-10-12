@@ -1,7 +1,6 @@
 import { BACKEND_URL } from './socket';
 import { normalizeIncomingMessage } from '../lib/e2ee/messageModel';
 import { readCachedMessages } from '../utils';
-import { recordLegacyMessagesFallback } from './legacyApiTelemetry';
 
 const CALL_HISTORY_LIMIT_PER_CONVERSATION = 120;
 
@@ -38,7 +37,6 @@ async function fetchConversationCallMessages({ user, conversation, currentDevice
   const feedUrl = `${BACKEND_URL}/messages/feed/${conversation.id}?${query.toString()}`;
   let response = await fetchWithAuth(user, feedUrl, fetchImpl);
   if (!response.ok) {
-    recordLegacyMessagesFallback('call_history', response.status);
     const legacyUrl = `${BACKEND_URL}/api/messages/${conversation.id}?${query.toString()}`;
     response = await fetchWithAuth(user, legacyUrl, fetchImpl);
   }

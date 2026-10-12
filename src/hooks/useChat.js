@@ -25,6 +25,9 @@ export default function useChat({
   dndRef,
   mutedConversationIdsRef,
   audioCtxRef,
+  loadConversations,
+  loadContacts,
+  loadFriendRequests,
   markFriendRequestSeen,
   setMessages,
   setConversations,
@@ -44,6 +47,8 @@ export default function useChat({
   const reconnectIntervalRef = useRef(null);
   const processedIncomingRef = useRef(new Map());
   const onReconnectRef       = useRef(onReconnect);
+  const loadConversationsRef = useRef(loadConversations);
+  const missingConvRefreshRef = useRef(new Map());
   const socket = getSocket();
 
   const [connected,      setConnected]      = useState(true);
@@ -58,6 +63,10 @@ export default function useChat({
   useEffect(() => {
     onReconnectRef.current = onReconnect;
   }, [onReconnect]);
+
+  useEffect(() => {
+    loadConversationsRef.current = loadConversations;
+  }, [loadConversations]);
 
   function playMessageSound() {
     if (dndRef.current) return;
@@ -120,6 +129,8 @@ export default function useChat({
       setReconnectIn(null);
       conversationsRef.current.forEach(conv => socket.emit('conversation:join', { convId: conv.id }));
       socket.emit('users:online:request');
+      // Haal vriendschapsverzoeken op bij reconnect — gemiste verzoeken tijdens offline periode ophalen
+      loadFriendRequests?.({ force: true });
       // Herverstuurd mislukte berichten zodra socket daadwerkelijk connected is
       onReconnectRef.current?.();
     };
@@ -154,6 +165,17 @@ export default function useChat({
       const convId = hydratedMsg.convId || hydratedMsg.conversationId || msg.convId;
       if (!convId) return;
       const isIncomingFromOtherUser = hydratedMsg.senderId !== user.uid;
+      const knownConversation = conversationsRef.current.some((conversation) => conversation.id === convId);
+
+      if (!knownConversation) {
+        const now = Date.now();
+        const lastRefreshAt = missingConvRefreshRef.current.get(convId) || 0;
+        if (now - lastRefreshAt > 1200) {
+          missingConvRefreshRef.current.set(convId, now);
+          loadConversationsRef.current?.({ force: true });
+        }
+      }
+
       if (hydratedMsg.transient) {
         onTransientMessage?.(convId, hydratedMsg);
       }
@@ -290,6 +312,7 @@ export default function useChat({
     const onFriendRequest = (req) => {
       setFriendRequests(prev => [req, ...prev.filter(r => r.id !== req.id)]);
       markFriendRequestSeen?.(req);
+      loadFriendRequests?.();
       if (isRealtimePopupRelevant('friend:request', req, user.uid)) {
         showErrToast?.({
           title: 'Nieuw vriendschapsverzoek',
@@ -324,6 +347,8 @@ export default function useChat({
     };
 
     const onFriendAccepted = ({ byName }) => {
+      loadContacts();
+      loadFriendRequests?.();
       if (isRealtimePopupRelevant('friend:accepted', { byName }, user.uid)) {
         showErrToast?.({
           title: 'Vriendschapsverzoek geaccepteerd',
@@ -372,6 +397,7 @@ export default function useChat({
         const withoutCurrent = prev.filter((conv) => conv.id !== conversation.id);
         return [conversation, ...withoutCurrent];
       });
+      loadConversations?.();
     };
 
     const onConversationMemberAdded = ({ conversation }) => {
@@ -382,6 +408,7 @@ export default function useChat({
       if (activeConvRef.current?.id === conversation.id) {
         setActiveConv((prev) => (prev?.id === conversation.id ? { ...prev, ...conversation } : prev));
       }
+      loadConversations?.();
     };
 
     const onConversationMemberRemoved = ({ convId, uid: removedUid, removedSelf, conversation }) => {
@@ -391,6 +418,7 @@ export default function useChat({
         setActiveConv((prev) => (prev?.id === convId ? null : prev));
         setMessages((prev) => (activeConvRef.current?.id === convId ? [] : prev));
         setConversations(prev => prev.filter((conv) => conv.id !== convId));
+        loadConversations?.();
         return;
       }
 
@@ -402,6 +430,8 @@ export default function useChat({
           setActiveConv((prev) => (prev?.id === conversation.id ? { ...prev, ...conversation } : prev));
         }
       }
+
+      loadConversations?.();
     };
 
     const onConversationRenamed = ({ conversation }) => {
@@ -485,6 +515,7 @@ export default function useChat({
         delete next[convId];
         return next;
       });
+      loadConversations?.();
     };
 
     const onMessageDeleted  = ({ msgId })              => setMessages(prev => prev.filter(m => m.id !== msgId));

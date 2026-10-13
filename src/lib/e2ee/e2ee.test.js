@@ -304,6 +304,57 @@ describe('e2ee message model helpers', () => {
     });
   });
 
+  test('applyConversationSummaryToList stores and sorts a realtime call event', () => {
+    const conversations = applyConversationSummaryToList([{
+      id: 'conv-call',
+      updatedAt: '2026-10-01T18:00:00.000Z',
+      lastMessage: 'Hallo',
+    }, {
+      id: 'conv-newer',
+      updatedAt: '2026-10-01T18:01:00.000Z',
+      lastMessage: 'Nog nieuw',
+    }], 'conv-call', normalizeIncomingMessage({
+      id: 'call-message-1',
+      convId: 'conv-call',
+      type: 'call',
+      sessionId: 'session-1',
+      mediaType: 'video',
+      terminalReason: 'missed',
+      callerUid: 'caller',
+      calleeUid: 'callee',
+      createdAt: '2026-10-01T18:02:00.000Z',
+      presentations: {
+        caller: { kind: 'outgoing_unanswered', label: 'Geen antwoord' },
+        callee: { kind: 'missed_incoming', label: 'Gemiste video-oproep' },
+      },
+    }, 'callee'));
+
+    expect(conversations[0]).toMatchObject({
+      id: 'conv-call',
+      updatedAt: '2026-10-01T18:02:00.000Z',
+      lastMessageType: 'call',
+      lastMessage: 'Gemiste video-oproep',
+      lastCallEvent: {
+        sessionId: 'session-1',
+        mediaType: 'video',
+        terminalReason: 'missed',
+        callerUid: 'caller',
+        calleeUid: 'callee',
+        presentations: {
+          callee: { kind: 'missed_incoming', label: 'Gemiste video-oproep' },
+        },
+      },
+    });
+    expect(buildConversationPreviewPresentation(
+      conversations[0],
+      { currentUid: 'callee' },
+    )).toMatchObject({
+      previewText: 'Gemiste video-oproep',
+      isCallSummary: true,
+      callKind: 'missed_incoming',
+    });
+  });
+
   test('buildConversationPreviewPresentation includes encrypted storage signal for attachment messages', () => {
     expect(buildConversationPreviewPresentation({
       type: 'attachment',

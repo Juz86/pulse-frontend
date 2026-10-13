@@ -68,6 +68,12 @@ export function normalizeIncomingMessage(raw, currentUserId) {
     callKind: normalizedCallKind,
     sessionId: type === 'call' ? (raw.sessionId || null) : null,
     terminalReason: type === 'call' ? (raw.terminalReason || null) : null,
+    callerUid: type === 'call' ? (raw.callerUid || raw.callEvent?.callerUid || null) : null,
+    calleeUid: type === 'call' ? (raw.calleeUid || raw.callEvent?.calleeUid || null) : null,
+    mediaType: type === 'call' ? (raw.mediaType || (normalizedCallIsVideo ? 'video' : 'audio')) : null,
+    presentations: type === 'call'
+      ? (raw.presentations || raw.callEvent?.presentations || null)
+      : null,
 
     pending: !!raw.pending,
     failed: !!raw.failed,

@@ -59,6 +59,7 @@ export function isRealtimePopupRelevant(eventName, payload = {}, userId = null) 
 }
 
 const RELOAD_DEBOUNCE_MS = 80;
+const RESUME_REFRESH_THROTTLE_MS = 2000;
 export const REALTIME_SYNC_PROTOCOL_VERSION = 1;
 export const SYNCABLE_REALTIME_DOMAINS = Object.freeze([
   'conversations',
@@ -66,6 +67,11 @@ export const SYNCABLE_REALTIME_DOMAINS = Object.freeze([
   'friendRequests',
   'blockedContacts',
 ]);
+export const REALTIME_RESUME_DOMAINS = Object.freeze(['conversations']);
+
+export function shouldRefreshRealtimeOnVisibility(visibilityState) {
+  return visibilityState === 'visible';
+}
 
 export function normalizeSyncRequiredDomains(domains) {
   if (!Array.isArray(domains)) return [...SYNCABLE_REALTIME_DOMAINS];
@@ -139,6 +145,7 @@ export default function useRealtimeSync({
     const socket = getSocket();
     if (!socket || !user?.uid) return undefined;
     const timers = new Map();
+    let lastResumeRefreshAt = 0;
 
     const refresh = (domains, { immediately = false, reason = 'domain_event' } = {}) => {
       domains.forEach((domain) => {
@@ -197,10 +204,43 @@ export default function useRealtimeSync({
     );
     socket.on('connect', onConnect);
 
+    const refreshAfterResume = (reason) => {
+      const now = Date.now();
+      if (now - lastResumeRefreshAt < RESUME_REFRESH_THROTTLE_MS) return;
+      lastResumeRefreshAt = now;
+      refresh(REALTIME_RESUME_DOMAINS, { immediately: true, reason });
+    };
+    const onVisibilityChange = () => {
+      if (shouldRefreshRealtimeOnVisibility(document.visibilityState)) {
+        refreshAfterResume('document:visible');
+      }
+    };
+    const onWindowFocus = () => refreshAfterResume('window:focus');
+    const onPageShow = () => refreshAfterResume('window:pageshow');
+    const onOnline = () => refreshAfterResume('window:online');
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('focus', onWindowFocus);
+    window.addEventListener('pageshow', onPageShow);
+    window.addEventListener('online', onOnline);
+
+    // The socket may already be connected before ChatScreen mounts. In that
+    // case its connect event was missed by this hook, so reconcile once now.
+    if (socket.connected) {
+      refresh(SYNCABLE_REALTIME_DOMAINS, {
+        immediately: true,
+        reason: 'hook:attached_to_connected_socket',
+      });
+    }
+
     return () => {
       handlers.forEach(([eventName, handler]) => socket.off(eventName, handler));
       socket.off('sync:required', onSyncRequired);
       socket.off('connect', onConnect);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('focus', onWindowFocus);
+      window.removeEventListener('pageshow', onPageShow);
+      window.removeEventListener('online', onOnline);
       timers.forEach((timer) => clearTimeout(timer));
       timers.clear();
     };

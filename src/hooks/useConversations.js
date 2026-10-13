@@ -104,7 +104,7 @@ export default function useConversations({
 
   const pendingTempIds = useRef(new Set());
   const sessionConversationStateRef = useRef(readSessionConversations(user.uid));
-  const loadConversationsStateRef = useRef({ promise: null, lastAt: 0 });
+  const loadConversationsStateRef = useRef({ promise: null, lastAt: 0, pendingForce: false });
   const LOAD_CONVERSATIONS_THROTTLE_MS = 900;
 
   const [conversations,  setConversations]  = useState(() => readCachedConversations(user.uid));
@@ -427,45 +427,52 @@ export default function useConversations({
   const loadConversations = useCallback(async ({ force = false } = {}) => {
     const now = Date.now();
     const state = loadConversationsStateRef.current;
-    if (state.promise) return state.promise;
+    if (state.promise) {
+      if (force) state.pendingForce = true;
+      return state.promise;
+    }
     if (!force && now - state.lastAt < LOAD_CONVERSATIONS_THROTTLE_MS) return;
     state.lastAt = now;
 
     const run = (async () => {
-    try {
-      const res  = await authFetch(`${BACKEND_URL}/api/conversations/${user.uid}`);
-      const data = await readJsonResponse(res, 'conversations_load_failed');
-      if (Array.isArray(data)) {
-        const stored = (() => { try { return JSON.parse(localStorage.getItem(`pulse_labels_${user.uid}`) || '{}'); } catch { return {}; } })();
-        let updated = false;
-        data.forEach(conv => {
-          if (!conv.isGroup && !stored[conv.id]) {
-            const otherUid = (conv.members || []).find(m => m !== user.uid);
-            const otherEmail = conv.memberEmails?.[otherUid] || '';
-            if (otherEmail.endsWith('@pulse.internal')) { stored[conv.id] = 'familie'; updated = true; }
+      do {
+        state.pendingForce = false;
+        try {
+          const res  = await authFetch(`${BACKEND_URL}/api/conversations/${user.uid}`);
+          const data = await readJsonResponse(res, 'conversations_load_failed');
+          if (Array.isArray(data)) {
+            const stored = (() => { try { return JSON.parse(localStorage.getItem(`pulse_labels_${user.uid}`) || '{}'); } catch { return {}; } })();
+            let updated = false;
+            data.forEach(conv => {
+              if (!conv.isGroup && !stored[conv.id]) {
+                const otherUid = (conv.members || []).find(m => m !== user.uid);
+                const otherEmail = conv.memberEmails?.[otherUid] || '';
+                if (otherEmail.endsWith('@pulse.internal')) { stored[conv.id] = 'familie'; updated = true; }
+              }
+            });
+            if (updated) { localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(stored)); setConvLabels(stored); }
           }
-        });
-        if (updated) { localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(stored)); setConvLabels(stored); }
-      }
-      const normalizedConversations = Array.isArray(data) ? data.map(normalizeConversationSummaryRecord) : [];
-      const localConversations = conversationsRef.current?.length
-        ? conversationsRef.current
-        : readCachedConversations(user.uid);
-      const conversationsWithLocalPreviews = mergeLocalDecryptedConversationPreviews(
-        normalizedConversations,
-        localConversations,
-      );
-      setConversations(applySessionConversationSummaries(conversationsWithLocalPreviews));
-      const sock = getSocket();
-      if (sock && Array.isArray(data)) {
-        data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
-        sock.emit('users:online:request');
-      }
-    } catch (error) {
-      console.warn('[Pulse] Gesprekken laden mislukt:', error?.status || 'unknown_status', error?.message || error);
-      if (!conversationsRef.current?.length) showErrToast('Gesprekken laden mislukt');
-    }
-    finally { setLoadingConvs(false); }
+          const normalizedConversations = Array.isArray(data) ? data.map(normalizeConversationSummaryRecord) : [];
+          const localConversations = conversationsRef.current?.length
+            ? conversationsRef.current
+            : readCachedConversations(user.uid);
+          const conversationsWithLocalPreviews = mergeLocalDecryptedConversationPreviews(
+            normalizedConversations,
+            localConversations,
+          );
+          setConversations(applySessionConversationSummaries(conversationsWithLocalPreviews));
+          const sock = getSocket();
+          if (sock && Array.isArray(data)) {
+            data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
+            sock.emit('users:online:request');
+          }
+        } catch (error) {
+          console.warn('[Pulse] Gesprekken laden mislukt:', error?.status || 'unknown_status', error?.message || error);
+          if (!conversationsRef.current?.length) showErrToast('Gesprekken laden mislukt');
+        } finally {
+          setLoadingConvs(false);
+        }
+      } while (state.pendingForce);
     })();
 
     state.promise = run;

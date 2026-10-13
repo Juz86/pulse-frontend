@@ -3,6 +3,8 @@ import {
   normalizeSyncRequiredPayload,
   normalizeSyncRequiredDomains,
   REALTIME_EVENT_DOMAINS,
+  REALTIME_RESUME_DOMAINS,
+  shouldRefreshRealtimeOnVisibility,
 } from './useRealtimeSync';
 
 describe('realtime sync event policy', () => {
@@ -49,5 +51,11 @@ describe('realtime sync event policy', () => {
       protocolVersion: 1,
       requiresFullSync: false,
     });
+  });
+
+  test('refreshes conversations when the app becomes visible again', () => {
+    expect(REALTIME_RESUME_DOMAINS).toEqual(['conversations']);
+    expect(shouldRefreshRealtimeOnVisibility('visible')).toBe(true);
+    expect(shouldRefreshRealtimeOnVisibility('hidden')).toBe(false);
   });
 });

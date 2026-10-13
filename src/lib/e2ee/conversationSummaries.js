@@ -173,6 +173,22 @@ function buildConversationSummaryUpdate(message = {}) {
   const type = message?.type || message?.messageType || 'text';
   const attachment = normalizeAttachmentPayload(message?.attachment) || null;
 
+  if (type === 'call') {
+    return {
+      ...buildConversationSummaryMessageState(message, 'call'),
+      lastCallEvent: {
+        sessionId: message.sessionId || message.callEvent?.sessionId || null,
+        mediaType: message.mediaType || message.callEvent?.mediaType || (message.isVideo ? 'video' : 'audio'),
+        terminalReason: message.terminalReason || message.callEvent?.terminalReason || null,
+        callerUid: message.callerUid || message.callEvent?.callerUid || null,
+        calleeUid: message.calleeUid || message.callEvent?.calleeUid || null,
+        occurredAt: message.occurredAt || message.callEvent?.occurredAt || message.createdAt || null,
+        createdAt: message.createdAt || message.callEvent?.createdAt || message.occurredAt || null,
+        presentations: message.presentations || message.callEvent?.presentations || {},
+      },
+    };
+  }
+
   if (type === 'contact') {
     return buildConversationSummaryMessageState(message, 'contact');
   }

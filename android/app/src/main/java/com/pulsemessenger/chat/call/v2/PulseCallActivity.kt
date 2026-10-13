@@ -169,6 +169,23 @@ class PulseCallActivity : ComponentActivity() {
                     }
                 }
 
+                LaunchedEffect(snapshot.sessionId, snapshot.state) {
+                    if (snapshot.sessionId != null &&
+                        PulseTabletCallPanelPolicy.shouldUsePanel(resources.configuration) &&
+                        (snapshot.state in setOf(
+                            PulseCallState.CONNECTING,
+                            PulseCallState.ACTIVE,
+                        ) || snapshot.direction == PulseCallDirection.OUTGOING &&
+                            snapshot.state in setOf(
+                                PulseCallState.PREPARING,
+                                PulseCallState.RINGING,
+                            ))
+                    ) {
+                        startActivity(PulseTabletCallPanelPolicy.mainActivityIntent(this@PulseCallActivity))
+                        finish()
+                    }
+                }
+
                 val liveSnapshot = snapshot.takeIf {
                     it.sessionId != null && it.state != PulseCallState.IDLE
                 }
@@ -356,6 +373,7 @@ internal fun PulseCallScreen(
     onMessage: () -> Unit,
     onCallBack: () -> Unit,
     onClose: () -> Unit,
+    panelMode: Boolean = false,
 ) {
     var showAudioOutput by remember(state.callId) { mutableStateOf(false) }
     val avatar by rememberContactAvatar(state.photoUrl)
@@ -377,11 +395,12 @@ internal fun PulseCallScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = if (panelMode) 16.dp else 24.dp),
         ) {
             val compact = maxHeight < 620.dp
             val avatarSize = when {
                 state.terminalPresentation != null -> if (compact) 104.dp else 126.dp
+                panelMode -> if (compact) 104.dp else 132.dp
                 compact -> 120.dp
                 else -> 156.dp
             }
@@ -448,6 +467,7 @@ internal fun PulseCallScreen(
                         } else {
                             null
                         },
+                        panelMode = panelMode,
                     )
                 }
                 Spacer(Modifier.height(if (compact) 14.dp else 24.dp))
@@ -464,8 +484,11 @@ internal fun PulseCallScreen(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .windowInsetsPadding(WindowInsets.safeDrawing)
-                    .padding(top = 78.dp, end = 14.dp)
-                    .size(width = 112.dp, height = 154.dp)
+                    .padding(top = 78.dp, end = if (panelMode) 8.dp else 14.dp)
+                    .size(
+                        width = if (panelMode) 94.dp else 112.dp,
+                        height = if (panelMode) 130.dp else 154.dp,
+                    )
                     .clip(RoundedCornerShape(8.dp))
                     .border(2.dp, Color.White.copy(alpha = 0.82f), RoundedCornerShape(8.dp))
                     .clickable(onClick = onSwitchCamera),
@@ -844,9 +867,12 @@ private fun OutgoingActions(
     onToggleVideo: (() -> Unit)?,
     onSwitchCamera: (() -> Unit)?,
     onAudioOutput: (() -> Unit)?,
+    panelMode: Boolean = false,
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(if (isVideoCall) 16.dp else 30.dp),
+        horizontalArrangement = Arrangement.spacedBy(
+            if (panelMode && isVideoCall) 8.dp else if (isVideoCall) 16.dp else 30.dp,
+        ),
         verticalAlignment = Alignment.Top,
     ) {
         CallControlButton(

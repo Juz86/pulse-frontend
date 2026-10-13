@@ -15,7 +15,10 @@ class PulseIncomingCallPushParserTest {
             ),
         )
 
-        assertEquals(PulseIncomingCallPush("session-123", null, null), parsed)
+        assertEquals(
+            PulseIncomingCallPush("session-123", null, null, PulseCallMediaType.AUDIO),
+            parsed,
+        )
     }
 
     @Test
@@ -35,7 +38,25 @@ class PulseIncomingCallPushParserTest {
                 "session-123",
                 "Yushua",
                 "https://cdn.pulse.test/yushua.jpg",
+                PulseCallMediaType.AUDIO,
             ),
+            parsed,
+        )
+    }
+
+    @Test
+    fun `keeps video media type for a native wake-up`() {
+        val parsed = PulseIncomingCallPushParser.parse(
+            mapOf(
+                "type" to "calling_v2_incoming",
+                "protocolVersion" to "2",
+                "sessionId" to "session-123",
+                "mediaType" to "video",
+            ),
+        )
+
+        assertEquals(
+            PulseIncomingCallPush("session-123", null, null, PulseCallMediaType.VIDEO),
             parsed,
         )
     }
@@ -51,7 +72,10 @@ class PulseIncomingCallPushParserTest {
             ),
         )
 
-        assertEquals(PulseIncomingCallPush("session-123", null, null), parsed)
+        assertEquals(
+            PulseIncomingCallPush("session-123", null, null, PulseCallMediaType.AUDIO),
+            parsed,
+        )
     }
 
     @Test
@@ -63,6 +87,16 @@ class PulseIncomingCallPushParserTest {
                     "type" to "calling_v2_incoming",
                     "protocolVersion" to "1",
                     "sessionId" to "session-123",
+                ),
+            ),
+        )
+        assertNull(
+            PulseIncomingCallPushParser.parse(
+                mapOf(
+                    "type" to "calling_v2_incoming",
+                    "protocolVersion" to "2",
+                    "sessionId" to "session-123",
+                    "mediaType" to "screen",
                 ),
             ),
         )

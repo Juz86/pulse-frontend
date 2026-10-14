@@ -202,6 +202,9 @@ function ConversationItemBase({
             {manuallyUnread && (
               <span className="unread-badge unread-badge--marked" aria-label="Gemarkeerd als ongelezen" />
             )}
+            {!manuallyUnread && unread > 0 && (
+              <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>
+            )}
           </div>
         </div>
         <div className="conv-preview">
@@ -300,9 +303,6 @@ function ConversationItemBase({
           )}
         </div>
       </div>
-      {!manuallyUnread && unread > 0 && (
-        <span className="unread-badge" aria-label={`${unread} ongelezen ${unread === 1 ? 'bericht' : 'berichten'}`}>{unread}</span>
-      )}
       </div>
     </div>
   );

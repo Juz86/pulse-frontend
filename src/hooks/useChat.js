@@ -1,6 +1,5 @@
 // src/hooks/useChat.js
 import { useState, useEffect, useRef } from 'react';
-import { getSocket } from '../services/socket';
 import { messagingService } from '../lib/e2ee/messagingService';
 import { getMessageDisplayText, normalizeIncomingMessage } from '../lib/e2ee/messageModel';
 import { ENCRYPTED_MESSAGE_PROTOCOL } from '../lib/e2ee/messageProtocolConstants';
@@ -17,6 +16,7 @@ const PRIVATE_REQUEST_NOTIFICATION_BODY = 'Open Pulse om de uitnodiging te bekij
 
 export default function useChat({
   user,
+  socket,
   activeConvRef,
   conversationsRef,
   messagesRef,
@@ -49,8 +49,6 @@ export default function useChat({
   const onReconnectRef       = useRef(onReconnect);
   const loadConversationsRef = useRef(loadConversations);
   const missingConvRefreshRef = useRef(new Map());
-  const socket = getSocket();
-
   const [connected,      setConnected]      = useState(true);
   const [reconnectIn,    setReconnectIn]    = useState(null);
   const [typing,         setTyping]         = useState(false);
@@ -608,6 +606,8 @@ export default function useChat({
     socket.on('contact:blocked-by-parent',   onContactBlockedByParent);
     socket.on('contact:unblocked-by-parent', onContactUnblockedByParent);
     socket.on('contact:removed-by-parent',   onContactRemovedByParent);
+
+    if (socket.connected) onConnect();
 
     return () => {
       socket.off('connect',          onConnect);

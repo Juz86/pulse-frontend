@@ -34,7 +34,7 @@ import { clearPulseUserStorage, copyTextToClipboard } from '../utils';
 
 const ChatModals = lazy(() => import('../components/ChatModals'));
 
-export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUsers = new Set(), isParent, parentActivityBadge = 0, parentToast = null, onDismissParentToast, onOpenDashboard, showParentDashboard = false, setShowParentDashboard, onParentActivitiesViewed, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
+export default function ChatScreen({ user, socket = null, onlineUsers = new Set(), inactiveUsers = new Set(), isParent, parentActivityBadge = 0, parentToast = null, onDismissParentToast, onOpenDashboard, showParentDashboard = false, setShowParentDashboard, onParentActivitiesViewed, initialConvId = null, onConvIdHandled, serviceTransportReady = false }) {
   const messageEditingEnabled = useFeatureFlag('message_editing');
   const draftIndicatorsEnabled = useFeatureFlag('draft_indicators');
   const markConversationUnreadEnabled = useFeatureFlag('mark_conversation_unread');
@@ -479,7 +479,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   });
 
   const { typing, typingName, typingByConv, pausedFeatures, mentionToast, clearMentionToast } = useChat({
-    user, activeConvRef, conversationsRef, messagesRef, msgCache, msgsAreaRef, dndRef, audioCtxRef,
+    user, socket, activeConvRef, conversationsRef, messagesRef, msgCache, msgsAreaRef, dndRef, audioCtxRef,
     mutedConversationIdsRef,
     loadConversations, loadContacts, loadFriendRequests, markFriendRequestSeen, setMessages, setConversations, setUnreadCounts,
     setFriendRequests, setContacts, setActiveConv,
@@ -494,6 +494,7 @@ export default function ChatScreen({ user, onlineUsers = new Set(), inactiveUser
   // fully reconciles them when the device comes back online.
   useRealtimeSync({
     user,
+    socket,
     loadConversations,
     loadContacts,
     loadFriendRequests,

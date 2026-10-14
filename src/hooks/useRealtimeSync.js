@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import * as Sentry from '@sentry/react';
-import { getSocket } from '../services/socket';
 
 // One authoritative mapping from a domain event to the cached API collections
 // it invalidates.  UI-specific handlers may still apply an optimistic update,
@@ -120,6 +119,7 @@ function recordSyncFailure({ domain, reason, durationMs, error }) {
  */
 export default function useRealtimeSync({
   user,
+  socket,
   loadConversations,
   loadContacts,
   loadFriendRequests,
@@ -131,6 +131,7 @@ export default function useRealtimeSync({
     friendRequests: loadFriendRequests,
     blockedContacts: loadBlockedContacts,
   });
+  const timersRef = useRef(new Map());
 
   useEffect(() => {
     loadersRef.current = {
@@ -141,33 +142,31 @@ export default function useRealtimeSync({
     };
   }, [loadBlockedContacts, loadContacts, loadConversations, loadFriendRequests]);
 
+  const refresh = useCallback((domains, { immediately = false, reason = 'domain_event' } = {}) => {
+    const timers = timersRef.current;
+    domains.forEach((domain) => {
+      const existingTimer = timers.get(domain);
+      if (existingTimer) clearTimeout(existingTimer);
+
+      const run = async () => {
+        timers.delete(domain);
+        const startedAt = performance.now();
+        try {
+          // A forced refresh ignores normal UI throttling. Its outcome is
+          // observable without storing user or message data in telemetry.
+          await loadersRef.current[domain]?.({ force: true });
+          recordSyncSuccess({ domain, reason, durationMs: performance.now() - startedAt });
+        } catch (error) {
+          recordSyncFailure({ domain, reason, durationMs: performance.now() - startedAt, error });
+        }
+      };
+      if (immediately) void run();
+      else timers.set(domain, setTimeout(run, RELOAD_DEBOUNCE_MS));
+    });
+  }, []);
+
   useEffect(() => {
-    const socket = getSocket();
     if (!socket || !user?.uid) return undefined;
-    const timers = new Map();
-    let lastResumeRefreshAt = 0;
-
-    const refresh = (domains, { immediately = false, reason = 'domain_event' } = {}) => {
-      domains.forEach((domain) => {
-        const existingTimer = timers.get(domain);
-        if (existingTimer) clearTimeout(existingTimer);
-
-        const run = async () => {
-          timers.delete(domain);
-          const startedAt = performance.now();
-          try {
-            // A forced refresh ignores normal UI throttling. Its outcome is
-            // observable without storing user or message data in telemetry.
-            await loadersRef.current[domain]?.({ force: true });
-            recordSyncSuccess({ domain, reason, durationMs: performance.now() - startedAt });
-          } catch (error) {
-            recordSyncFailure({ domain, reason, durationMs: performance.now() - startedAt, error });
-          }
-        };
-        if (immediately) run();
-        else timers.set(domain, setTimeout(run, RELOAD_DEBOUNCE_MS));
-      });
-    };
 
     const handlers = Object.entries(REALTIME_EVENT_DOMAINS).map(([eventName, domains]) => {
       const handler = () => refresh(domains, { reason: eventName });
@@ -204,6 +203,26 @@ export default function useRealtimeSync({
     );
     socket.on('connect', onConnect);
 
+    // The socket may already be connected before ChatScreen mounts. In that
+    // case its connect event was missed by this hook, so reconcile once now.
+    if (socket.connected) {
+      refresh(SYNCABLE_REALTIME_DOMAINS, {
+        immediately: true,
+        reason: 'hook:attached_to_connected_socket',
+      });
+    }
+
+    return () => {
+      handlers.forEach(([eventName, handler]) => socket.off(eventName, handler));
+      socket.off('sync:required', onSyncRequired);
+      socket.off('connect', onConnect);
+    };
+  }, [refresh, socket, user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid) return undefined;
+    let lastResumeRefreshAt = 0;
+
     const refreshAfterResume = (reason) => {
       const now = Date.now();
       if (now - lastResumeRefreshAt < RESUME_REFRESH_THROTTLE_MS) return;
@@ -224,25 +243,16 @@ export default function useRealtimeSync({
     window.addEventListener('pageshow', onPageShow);
     window.addEventListener('online', onOnline);
 
-    // The socket may already be connected before ChatScreen mounts. In that
-    // case its connect event was missed by this hook, so reconcile once now.
-    if (socket.connected) {
-      refresh(SYNCABLE_REALTIME_DOMAINS, {
-        immediately: true,
-        reason: 'hook:attached_to_connected_socket',
-      });
-    }
-
     return () => {
-      handlers.forEach(([eventName, handler]) => socket.off(eventName, handler));
-      socket.off('sync:required', onSyncRequired);
-      socket.off('connect', onConnect);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       window.removeEventListener('focus', onWindowFocus);
       window.removeEventListener('pageshow', onPageShow);
       window.removeEventListener('online', onOnline);
-      timers.forEach((timer) => clearTimeout(timer));
-      timers.clear();
     };
+  }, [refresh, user?.uid]);
+
+  useEffect(() => () => {
+    timersRef.current.forEach((timer) => clearTimeout(timer));
+    timersRef.current.clear();
   }, [user?.uid]);
 }

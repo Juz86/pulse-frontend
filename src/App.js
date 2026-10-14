@@ -300,6 +300,7 @@ function MainApp() {
   const [parentToast,         setParentToast]         = useState(null);
   const [pendingConvId,       setPendingConvId]       = useState(urlParams.get('convId') || null);
   const [serviceTransportReady, setServiceTransportReady] = useState(false);
+  const [realtimeSocket, setRealtimeSocket] = useState(null);
   const [appUpdate, setAppUpdate] = useState({
     ready: false,
     available: false,
@@ -637,7 +638,6 @@ function MainApp() {
           });
 
           // Herverbinding via connect event (reconnect event werkt niet in Socket.IO v4)
-          socket.off('connect');
           socket.on('connect', () => {
             markCurrentUserOnline();
             socket.emit('user:online');
@@ -704,6 +704,10 @@ function MainApp() {
             } catch (e) { console.warn('[Pulse] Fout:', e.message); }
           });
 
+          // Expose the socket to chat hooks only after App-level listeners are
+          // configured, so broad legacy cleanup above cannot remove them.
+          setRealtimeSocket(socket);
+
           // Tab-focus: haal actuele online lijst opnieuw op
           // Verwijder eventuele vorige listener via een stabiele referentie
           if (onlineVisibilityRef.current) document.removeEventListener('visibilitychange', onlineVisibilityRef.current);
@@ -723,6 +727,7 @@ function MainApp() {
           setInactiveUsers(new Set());
           setUserRole(null);
           setServiceTransportReady(false);
+          setRealtimeSocket(null);
           setShowParentDashboard(false);
           // Oude builds konden ouder-auth na een redirect openen. Toon dit nu als modal.
           const pendingParentTab = localStorage.getItem('pulse_parent_default_tab');
@@ -954,7 +959,7 @@ function MainApp() {
           </>
         )
         : <>
-            <ChatScreen user={user} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onDismissParentToast={() => setParentToast(null)} onOpenDashboard={() => setShowParentDashboard(true)} showParentDashboard={showParentDashboard} setShowParentDashboard={setShowParentDashboard} onParentActivitiesViewed={() => setParentActivityBadge(0)} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} />
+            <ChatScreen user={user} socket={realtimeSocket} onlineUsers={onlineUsers} inactiveUsers={inactiveUsers} isParent={userRole === 'parent'} parentActivityBadge={parentActivityBadge} parentToast={parentToast} onDismissParentToast={() => setParentToast(null)} onOpenDashboard={() => setShowParentDashboard(true)} showParentDashboard={showParentDashboard} setShowParentDashboard={setShowParentDashboard} onParentActivitiesViewed={() => setParentActivityBadge(0)} initialConvId={pendingConvId} onConvIdHandled={() => setPendingConvId(null)} serviceTransportReady={serviceTransportReady} />
           </>
       }
     </div>

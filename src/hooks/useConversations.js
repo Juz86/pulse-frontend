@@ -16,6 +16,7 @@ import {
   getMessageDisplayText,
   normalizeIncomingMessage,
 } from '../lib/e2ee/messageModel';
+import { getEncryptedMessageDisplayText } from '../lib/e2ee/messageCopy';
 import {
   applyConversationSummaryToList,
   applyConversationReactionSummaryToList,
@@ -105,6 +106,7 @@ export default function useConversations({
   const pendingTempIds = useRef(new Set());
   const sessionConversationStateRef = useRef(readSessionConversations(user.uid));
   const loadConversationsStateRef = useRef({ promise: null, lastAt: 0, pendingForce: false });
+  const previewHydrationRef = useRef(new Map());
   const LOAD_CONVERSATIONS_THROTTLE_MS = 900;
 
   const [conversations,  setConversations]  = useState(() => readCachedConversations(user.uid));
@@ -304,7 +306,7 @@ export default function useConversations({
     );
   }
 
-  async function fetchConversationMessages(convId, { limit = MSG_LIMIT, offset = 0 } = {}) {
+  const fetchConversationMessages = useCallback(async (convId, { limit = MSG_LIMIT, offset = 0 } = {}) => {
     const query = new URLSearchParams({
       limit: String(limit),
       offset: String(offset),
@@ -333,7 +335,55 @@ export default function useConversations({
       throw error;
     }
     return legacyRes.json();
-  }
+  }, [authFetch, currentDeviceId, readJsonResponse]);
+
+  const hydrateMissingConversationPreviews = useCallback(async (serverConversations, localConversations) => {
+    const encryptedPreview = getEncryptedMessageDisplayText();
+    const unresolvedConversations = mergeLocalDecryptedConversationPreviews(
+      serverConversations,
+      localConversations,
+    ).filter((conversation) => conversation.lastMessage === encryptedPreview);
+
+    await Promise.all(unresolvedConversations.map(async (conversation) => {
+      const serverTimestamp = toMessageTimestamp({
+        createdAt: conversation.lastMessageAt || conversation.updatedAt,
+      });
+      const hydrationKey = `${conversation.id}:${serverTimestamp}`;
+      if (previewHydrationRef.current.get(conversation.id) === hydrationKey) return;
+      previewHydrationRef.current.set(conversation.id, hydrationKey);
+
+      try {
+        const rawMessages = await fetchConversationMessages(conversation.id, { limit: 1, offset: 0 });
+        const latestRawMessage = Array.isArray(rawMessages) ? rawMessages.at(-1) : null;
+        if (!latestRawMessage) return;
+        const hydratedMessage = await messagingService.hydrateIncomingMessage(latestRawMessage, user.uid);
+        if (hydratedMessage.decryptedLocally === false) return;
+
+        setConversations((previousConversations) => {
+          const currentConversation = previousConversations.find(({ id }) => id === conversation.id);
+          if (!currentConversation || currentConversation.lastMessage !== encryptedPreview) {
+            return previousConversations;
+          }
+          const currentTimestamp = toMessageTimestamp({
+            createdAt: currentConversation.lastMessageAt || currentConversation.updatedAt,
+          });
+          const messageTimestamp = toMessageTimestamp(hydratedMessage);
+          if (currentTimestamp && messageTimestamp && messageTimestamp < currentTimestamp - 5000) {
+            return previousConversations;
+          }
+          return applyConversationSummaryToList(
+            previousConversations,
+            conversation.id,
+            hydratedMessage,
+            hydratedMessage.createdAt,
+          );
+        });
+      } catch (error) {
+        previewHydrationRef.current.delete(conversation.id);
+        console.warn('[Pulse] Gesprekspreview ontsleutelen mislukt:', conversation.id, error?.message || error);
+      }
+    }));
+  }, [fetchConversationMessages, toMessageTimestamp, user.uid]);
 
   async function markConversationMessagesAsRead(items) {
     const targets = items.filter((message) =>
@@ -453,14 +503,22 @@ export default function useConversations({
             if (updated) { localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(stored)); setConvLabels(stored); }
           }
           const normalizedConversations = Array.isArray(data) ? data.map(normalizeConversationSummaryRecord) : [];
-          const localConversations = conversationsRef.current?.length
+          const cachedConversations = readCachedConversations(user.uid);
+          const localConversationsForPreviewHydration = conversationsRef.current?.length
             ? conversationsRef.current
-            : readCachedConversations(user.uid);
-          const conversationsWithLocalPreviews = mergeLocalDecryptedConversationPreviews(
-            normalizedConversations,
-            localConversations,
-          );
-          setConversations(applySessionConversationSummaries(conversationsWithLocalPreviews));
+            : cachedConversations;
+          setConversations((previousConversations) => {
+            const localConversations = previousConversations.length
+              ? previousConversations
+              : cachedConversations;
+            const conversationsWithLocalPreviews = mergeLocalDecryptedConversationPreviews(
+              normalizedConversations,
+              localConversations,
+            );
+            return applySessionConversationSummaries(conversationsWithLocalPreviews);
+          });
+          hydrateMissingConversationPreviews(normalizedConversations, localConversationsForPreviewHydration)
+            .catch(() => {});
           const sock = getSocket();
           if (sock && Array.isArray(data)) {
             data.forEach(conv => sock.emit('conversation:join', { convId: conv.id }));
@@ -483,7 +541,7 @@ export default function useConversations({
         loadConversationsStateRef.current.promise = null;
       }
     }
-  }, [applySessionConversationSummaries, authFetch, conversationsRef, readJsonResponse, setConvLabels, showErrToast, user.uid]);
+  }, [applySessionConversationSummaries, authFetch, conversationsRef, hydrateMissingConversationPreviews, readJsonResponse, setConvLabels, showErrToast, user.uid]);
 
   // ── Gesprek openen ────────────────────────────────────────────────────────
   async function openConversation(conv) {
@@ -862,6 +920,12 @@ export default function useConversations({
           pendingTempIds.current.delete(optimisticMsg.id);
           patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
           const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
+          setConversations((previous) => applyConversationSummaryToList(
+            previous,
+            conv.id,
+            normalizedSavedMessage,
+            normalizedSavedMessage.createdAt,
+          ));
           storeTransientConversationMessage(conv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
           removePending(optimisticMsg.id);
         }).catch((error) => {
@@ -988,10 +1052,16 @@ export default function useConversations({
         sharedContact: normalizedSharedContact,
       }).then((savedMsg) => {
         clearTimeout(failTimer);
+        const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
+        setConversations((previous) => applyConversationSummaryToList(
+          previous,
+          conv.id,
+          normalizedSavedMessage,
+          normalizedSavedMessage.createdAt,
+        ));
         if (!isActiveConversation) return;
         pendingTempIds.current.delete(optimisticMsg.id);
         patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
-        const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
         storeTransientConversationMessage(conv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
       }).catch((error) => {
         clearTimeout(failTimer);

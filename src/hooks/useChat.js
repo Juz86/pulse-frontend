@@ -6,6 +6,7 @@ import { ENCRYPTED_MESSAGE_PROTOCOL } from '../lib/e2ee/messageProtocolConstants
 import {
   applyConversationSummaryToList,
   applyConversationReactionSummaryToList,
+  mergeLocalDecryptedConversationPreviews,
 } from '../lib/e2ee/conversationSummaries';
 import { canApplyPlaintextEditUpdate } from '../lib/e2ee/policy';
 import { normalizeSingleUserReaction } from '../lib/e2ee/messageReactions';
@@ -221,12 +222,20 @@ export default function useChat({
       setConversations(prev => {
         const exists = prev.some(c => c.id === convId);
         if (!exists) return prev;
-        return applyConversationSummaryToList(
+        const updatedConversations = applyConversationSummaryToList(
           prev,
           convId,
           hydratedMsg,
           hydratedMsg.createdAt || new Date().toISOString()
         );
+        if (
+          hydratedMsg.senderId === user.uid
+          && hydratedMsg.protocol === ENCRYPTED_MESSAGE_PROTOCOL
+          && hydratedMsg.decryptedLocally === false
+        ) {
+          return mergeLocalDecryptedConversationPreviews(updatedConversations, prev);
+        }
+        return updatedConversations;
       });
     };
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="pulse_call_notification_incoming">Inkomende oproep</string>
+    <string name="pulse_call_notification_incoming_video">Inkomend videogesprek</string>
     <string name="pulse_call_notification_ringing">Overgaan…</string>
     <string name="pulse_call_notification_connecting">Verbinden…</string>
     <string name="pulse_call_notification_active">Verbonden</string>
@@ -8,7 +9,7 @@
     <string name="pulse_call_brand">Pulse Messenger</string>
     <string name="pulse_call_encrypted">End-to-end versleuteld</string>
     <string name="pulse_call_status_incoming">Inkomende spraakoproep</string>
-    <string name="pulse_call_status_incoming_video">Inkomende video-oproep</string>
+    <string name="pulse_call_status_incoming_video">Inkomend videogesprek</string>
     <string name="pulse_call_status_calling">Bellen…</string>
     <string name="pulse_call_status_ringing">Gaat over…</string>
     <string name="pulse_call_action_decline">Weigeren</string>

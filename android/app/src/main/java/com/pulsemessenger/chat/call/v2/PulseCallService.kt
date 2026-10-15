@@ -11,6 +11,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -24,7 +25,10 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.IconCompat
 import com.pulsemessenger.chat.R
+import java.io.ByteArrayOutputStream
 import java.net.URI
+import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +38,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @RequiresApi(Build.VERSION_CODES.O)
 class PulseCallService : Service() {
@@ -45,7 +50,10 @@ class PulseCallService : Service() {
     private var stateJob: Job? = null
     private var foregroundCallId: String? = null
     private var foregroundDisplayName: String? = null
+    private var foregroundPhotoUrl: String? = null
+    private var foregroundAvatar: Bitmap? = null
     private var foregroundMediaType = PulseCallMediaType.AUDIO
+    private var avatarJob: Job? = null
     private var callUiOpenedForId: String? = null
     private lateinit var networkMonitor: PulseNetworkMonitor
     private lateinit var recoveryStore: PulseCallRecoveryStore
@@ -119,6 +127,7 @@ class PulseCallService : Service() {
 
     override fun onDestroy() {
         stopIncomingAlert()
+        avatarJob?.cancel()
         launchJob?.cancel()
         terminalJob?.cancel()
         stateJob?.cancel()
@@ -141,7 +150,13 @@ class PulseCallService : Service() {
         val photoUrl = intent.safePhotoUrl(EXTRA_PHOTO_URL)
         val mediaType = intent.mediaType()
 
-        if (!startPreparingForeground(requestId, displayName, mediaType = mediaType)) return
+        if (!startPreparingForeground(
+                requestId,
+                displayName,
+                mediaType = mediaType,
+                photoUrl = photoUrl,
+            )
+        ) return
         launchJob = serviceScope.launch {
             val result = runCatching {
                 orchestrator.startOutgoing(requestId, calleeUid, displayName, photoUrl, mediaType)
@@ -161,6 +176,7 @@ class PulseCallService : Service() {
                 displayName = record.displayName,
                 incoming = record.direction == PulseCallDirection.INCOMING,
                 mediaType = record.mediaType,
+                photoUrl = record.photoUrl,
             )
         ) return
         if (foregroundCallId != record.sessionId) return
@@ -214,6 +230,7 @@ class PulseCallService : Service() {
                 displayName,
                 incoming = true,
                 mediaType = mediaType,
+                photoUrl = photoUrl,
             )
         ) return
         PulseCallDiagnostics.event("INCOMING_REGISTRATION_STARTED", sessionId)
@@ -422,6 +439,7 @@ class PulseCallService : Service() {
         displayName: String,
         incoming: Boolean = false,
         mediaType: PulseCallMediaType = PulseCallMediaType.AUDIO,
+        photoUrl: String? = null,
     ): Boolean {
         if (foregroundCallId != null) {
             Log.i(TAG, "Ignoring duplicate call launch while another call is being handled")
@@ -430,6 +448,8 @@ class PulseCallService : Service() {
 
         foregroundCallId = callId
         foregroundDisplayName = displayName
+        foregroundPhotoUrl = photoUrl
+        foregroundAvatar = null
         foregroundMediaType = mediaType
         if (incoming) incomingCallRinger.start(callId) else stopIncomingAlert()
         val serviceType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -444,7 +464,7 @@ class PulseCallService : Service() {
                 displayName,
                 getString(
                     if (incoming) {
-                        R.string.pulse_call_notification_incoming
+                        incomingNotificationTextResource(mediaType)
                     } else {
                         R.string.pulse_call_notification_preparing
                     },
@@ -453,6 +473,7 @@ class PulseCallService : Service() {
             ),
             serviceType,
         )
+        if (photoUrl != null) loadForegroundAvatar(callId, displayName, photoUrl, incoming)
         PulseCallDiagnostics.event("CALL_FOREGROUND_STARTED", callId)
         return true
     }
@@ -531,6 +552,15 @@ class PulseCallService : Service() {
         foregroundCallId = snapshot.sessionId
         val displayName = snapshot.displayName ?: foregroundDisplayName ?: return
         foregroundDisplayName = displayName
+        foregroundMediaType = snapshot.mediaType ?: foregroundMediaType
+        val photoUrl = snapshot.photoUrl ?: foregroundPhotoUrl
+        if (photoUrl != foregroundPhotoUrl) {
+            foregroundPhotoUrl = photoUrl
+            foregroundAvatar = null
+            if (photoUrl != null) {
+                loadForegroundAvatar(snapshot.sessionId, displayName, photoUrl, isIncoming = false)
+            }
+        }
         val shouldOpenCallUi =
             snapshot.direction == PulseCallDirection.OUTGOING &&
                 snapshot.state in setOf(PulseCallState.PREPARING, PulseCallState.RINGING) ||
@@ -554,11 +584,20 @@ class PulseCallService : Service() {
                 ),
             )
         }
-        val status = when (snapshot.state) {
+        val status = notificationStatus(snapshot)
+        getSystemService(NotificationManager::class.java).notify(
+            NOTIFICATION_ID,
+            buildNotification(displayName, status, snapshot),
+        )
+        dispatchPendingNotificationAction(snapshot)
+    }
+
+    private fun notificationStatus(snapshot: PulseCallSnapshot): String =
+        when (snapshot.state) {
             PulseCallState.IDLE, PulseCallState.PREPARING ->
                 getString(R.string.pulse_call_notification_preparing)
             PulseCallState.RINGING -> if (snapshot.direction == PulseCallDirection.INCOMING) {
-                getString(R.string.pulse_call_notification_incoming)
+                getString(incomingNotificationTextResource(snapshot.mediaType ?: foregroundMediaType))
             } else {
                 getString(R.string.pulse_call_notification_ringing)
             }
@@ -567,19 +606,103 @@ class PulseCallService : Service() {
             PulseCallState.ENDING, PulseCallState.ENDED ->
                 getString(R.string.pulse_call_notification_ending)
         }
-        getSystemService(NotificationManager::class.java).notify(
-            NOTIFICATION_ID,
-            buildNotification(displayName, status, snapshot),
-        )
-        dispatchPendingNotificationAction(snapshot)
+
+    private fun incomingNotificationTextResource(mediaType: PulseCallMediaType): Int =
+        if (mediaType == PulseCallMediaType.VIDEO) {
+            R.string.pulse_call_notification_incoming_video
+        } else {
+            R.string.pulse_call_notification_incoming
+        }
+
+    private fun loadForegroundAvatar(
+        callId: String,
+        displayName: String,
+        photoUrl: String,
+        isIncoming: Boolean,
+    ) {
+        avatarJob?.cancel()
+        avatarJob = serviceScope.launch {
+            val avatar = downloadNotificationAvatar(photoUrl) ?: return@launch
+            if (foregroundCallId != callId || foregroundPhotoUrl != photoUrl) return@launch
+            foregroundAvatar = avatar
+
+            val snapshot = coordinator.state.value.takeIf { it.sessionId == callId }
+            val status = snapshot?.let(::notificationStatus) ?: getString(
+                if (isIncoming) incomingNotificationTextResource(foregroundMediaType)
+                else R.string.pulse_call_notification_preparing,
+            )
+            getSystemService(NotificationManager::class.java).notify(
+                NOTIFICATION_ID,
+                buildNotification(
+                    displayName = snapshot?.displayName ?: displayName,
+                    status = status,
+                    snapshot = snapshot,
+                    incomingPreparing = isIncoming && snapshot == null,
+                ),
+            )
+        }
     }
+
+    private suspend fun downloadNotificationAvatar(photoUrl: String): Bitmap? =
+        withContext(Dispatchers.IO) {
+            val url = runCatching { URL(photoUrl) }.getOrNull() ?: return@withContext null
+            if (!url.protocol.equals("https", ignoreCase = true)) return@withContext null
+            val connection = runCatching { url.openConnection() as HttpsURLConnection }.getOrNull()
+                ?: return@withContext null
+            try {
+                connection.connectTimeout = 5_000
+                connection.readTimeout = 7_000
+                connection.instanceFollowRedirects = true
+                connection.connect()
+                if (!connection.url.protocol.equals("https", ignoreCase = true) ||
+                    connection.responseCode !in 200..299 ||
+                    connection.contentLengthLong > MAX_AVATAR_DOWNLOAD_BYTES ||
+                    connection.contentType?.startsWith("image/") != true
+                ) return@withContext null
+
+                val output = ByteArrayOutputStream()
+                connection.inputStream.use { input ->
+                    val buffer = ByteArray(8_192)
+                    var total = 0
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        total += read
+                        if (total > MAX_AVATAR_DOWNLOAD_BYTES) return@withContext null
+                        output.write(buffer, 0, read)
+                    }
+                }
+                val bytes = output.toByteArray()
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@withContext null
+                var sampleSize = 1
+                while (maxOf(bounds.outWidth, bounds.outHeight) / sampleSize > MAX_AVATAR_DIMENSION) {
+                    sampleSize *= 2
+                }
+                BitmapFactory.decodeByteArray(
+                    bytes,
+                    0,
+                    bytes.size,
+                    BitmapFactory.Options().apply { inSampleSize = sampleSize },
+                )
+            } catch (_: Exception) {
+                null
+            } finally {
+                connection.disconnect()
+            }
+        }
 
     private fun stopCallForeground(expectedCallId: String? = null) {
         if (expectedCallId != null && foregroundCallId != expectedCallId) return
         stopIncomingAlert(expectedCallId)
         foregroundCallId = null
         foregroundDisplayName = null
+        foregroundPhotoUrl = null
+        foregroundAvatar = null
         foregroundMediaType = PulseCallMediaType.AUDIO
+        avatarJob?.cancel()
+        avatarJob = null
         callUiOpenedForId = null
         pendingNotificationAction = null
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
@@ -623,7 +746,7 @@ class PulseCallService : Service() {
         val person = Person.Builder()
             .setName(displayName)
             .setImportant(true)
-            .setIcon(IconCompat.createWithBitmap(initialsAvatar(displayName)))
+            .setIcon(IconCompat.createWithBitmap(foregroundAvatar ?: initialsAvatar(displayName)))
             .build()
         val useTabletPanel = !isIncomingAlert &&
             PulseTabletCallPanelPolicy.shouldUsePanel(resources.configuration)
@@ -637,7 +760,7 @@ class PulseCallService : Service() {
                 callId = sessionId.orEmpty(),
                 peerUid = snapshot?.peerUid.orEmpty(),
                 displayName = displayName,
-                photoUrl = snapshot?.photoUrl,
+                photoUrl = snapshot?.photoUrl ?: foregroundPhotoUrl,
                 direction = direction,
                 mediaType = snapshot?.mediaType ?: foregroundMediaType,
             ),
@@ -666,6 +789,8 @@ class PulseCallService : Service() {
             .setSilent(!isIncomingAlert)
             .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .addPerson(person)
+
+        foregroundAvatar?.let(builder::setLargeIcon)
 
         if (isIncomingAlert && sessionId != null) {
             builder.setFullScreenIntent(openCallUi, true)
@@ -800,6 +925,8 @@ class PulseCallService : Service() {
         private const val INCOMING_NOTIFICATION_CHANNEL_ID = "pulse_incoming_calls_v3"
         private const val NOTIFICATION_ID = 4102
         private const val RECOVERY_RETRY_DELAY_MS = 5_000L
+        private const val MAX_AVATAR_DOWNLOAD_BYTES = 2 * 1024 * 1024
+        private const val MAX_AVATAR_DIMENSION = 512
 
         fun outgoingIntent(
             context: Context,

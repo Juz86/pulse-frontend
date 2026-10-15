@@ -15,6 +15,11 @@ class PulseMessagingService : MessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        val incomingMessage = PulseIncomingMessagePushParser.parse(remoteMessage.data)
+        if (incomingMessage != null) {
+            PulseMessageNotifications.show(applicationContext, incomingMessage)
+            return
+        }
         val takenElsewhere = PulseCallTakenElsewherePushParser.parse(remoteMessage.data)
         if (takenElsewhere != null) {
             handleTakenElsewhere(takenElsewhere)

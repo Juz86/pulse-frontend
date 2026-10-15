@@ -10,4 +10,7 @@
     <string name="pulse_call_notification_title">Pulse-oproep</string>
     <string name="pulse_call_unknown_caller">Pulse-gebruiker</string>
     <string name="pulse_call_notification_preparing">Oproep voorbereiden…</string>
+    <string name="pulse_message_channel_name">Pulse berichten</string>
+    <string name="pulse_message_channel_description">Meldingen voor nieuwe chatberichten</string>
+    <string name="pulse_message_you">Jij</string>
 </resources>

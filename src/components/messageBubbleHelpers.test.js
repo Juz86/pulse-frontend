@@ -20,7 +20,28 @@ describe('messageBubbleHelpers', () => {
         title: 'Gemiste spraakoproep',
         subtitle: 'Tikken om terug te bellen',
         kind: 'missed_incoming',
+        isVideo: false,
         createdAt: '2026-10-08T20:48:00.000Z',
+      },
+    });
+  });
+
+  test('video call cards preserve their media type and use video-specific fallback copy', () => {
+    expect(buildMessageBubbleCard({
+      msg: {
+        type: 'call',
+        callKind: 'missed_incoming',
+        mediaType: 'video',
+        createdAt: '2026-10-08T20:50:00.000Z',
+      },
+    })).toEqual({
+      type: 'call',
+      presentation: {
+        title: 'Gemiste video-oproep',
+        subtitle: 'Tikken om terug te bellen',
+        kind: 'missed_incoming',
+        isVideo: true,
+        createdAt: '2026-10-08T20:50:00.000Z',
       },
     });
   });

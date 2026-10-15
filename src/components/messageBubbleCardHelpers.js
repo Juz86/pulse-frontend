@@ -20,12 +20,13 @@ const MESSAGE_BUBBLE_CARD_BUILDERS = {
       title: message.msg.text || (message.msg.callKind === 'outgoing_unanswered'
         ? 'Geen antwoord'
         : message.msg.callKind?.endsWith('_declined')
-          ? 'Oproep geweigerd'
-          : 'Gemiste spraakoproep'),
+          ? (message.msg.isVideo || message.msg.mediaType === 'video' ? 'Video-oproep geweigerd' : 'Oproep geweigerd')
+          : (message.msg.isVideo || message.msg.mediaType === 'video' ? 'Gemiste video-oproep' : 'Gemiste spraakoproep')),
       subtitle: message.msg.callKind?.startsWith('outgoing_')
         ? 'Tikken om opnieuw te bellen'
         : 'Tikken om terug te bellen',
       kind: message.msg.callKind || (message.msg.direction === 'outgoing' ? 'outgoing_unanswered' : 'missed_incoming'),
+      isVideo: !!message.msg.isVideo || message.msg.mediaType === 'video',
       createdAt: message.msg.createdAt,
     },
   }),
@@ -109,6 +110,7 @@ export function buildMessageBubbleHandlers({
   onRetry,
   onViewContact,
   onStartAudioCall,
+  onStartVideoCall,
   interactions,
 }) {
   return {
@@ -120,6 +122,7 @@ export function buildMessageBubbleHandlers({
     onRetry,
     onViewContact,
     onStartAudioCall,
+    onStartVideoCall,
     onContextMenu: interactions.handleContextMenu,
     onTouchStart: interactions.handleTouchStart,
     onTouchEnd: interactions.handleTouchEnd,

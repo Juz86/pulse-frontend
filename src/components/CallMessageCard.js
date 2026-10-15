@@ -1,12 +1,18 @@
 import React from 'react';
-import { PhoneEnd, PhoneMissed, PhoneOutgoing } from './Icons';
+import { PhoneEnd, PhoneMissed, PhoneOutgoing, Video } from './Icons';
 import { formatTime } from '../utils';
 
 export default function CallMessageCard({ presentation, onCallBack }) {
   const missed = presentation.kind === 'missed_incoming';
   const declined = presentation.kind?.endsWith('_declined');
   const negative = missed || declined;
-  const CallIcon = missed ? PhoneMissed : declined ? PhoneEnd : PhoneOutgoing;
+  const CallIcon = presentation.isVideo
+    ? Video
+    : missed
+      ? PhoneMissed
+      : declined
+        ? PhoneEnd
+        : PhoneOutgoing;
 
   return (
     <button

@@ -91,6 +91,32 @@ describe('loadPulseCallHistory', () => {
     expect(history[0]).toMatchObject({ id: 'cached-call', callKind: 'incoming_declined' });
   });
 
+  test('preserves video media type in the conversation-summary fallback', async () => {
+    const history = await loadPulseCallHistory({
+      user,
+      conversations: [{
+        id: 'conv-video',
+        members: ['current-user', 'a'],
+        lastMessageType: 'call',
+        lastMessageAt: '2026-10-09T13:00:00.000Z',
+        lastCallEvent: {
+          sessionId: 'video-session',
+          mediaType: 'video',
+          presentations: {
+            'current-user': { kind: 'missed_incoming', label: 'Gemiste video-oproep' },
+          },
+        },
+      }],
+      fetchImpl: jest.fn().mockRejectedValue(new Error('offline')),
+    });
+
+    expect(history[0]).toMatchObject({
+      sessionId: 'video-session',
+      isVideo: true,
+      mediaType: 'video',
+    });
+  });
+
   test('reports a load failure when neither network nor cache is available', async () => {
     await expect(loadPulseCallHistory({
       user,

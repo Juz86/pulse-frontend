@@ -385,14 +385,16 @@ function resolveConversationCallPresentation(message = {}, currentUid = null) {
     ? message.lastCallEvent.presentations?.[currentUid]
     : null;
   const kind = presentation?.kind || 'missed_incoming';
+  const isVideo = message.lastCallEvent.mediaType === 'video' || !!message.lastCallEvent.isVideo;
   const fallbackLabel = kind === 'outgoing_unanswered'
     ? 'Geen antwoord'
     : kind.endsWith('_declined')
-      ? 'Oproep geweigerd'
-      : 'Gemiste spraakoproep';
+      ? (isVideo ? 'Video-oproep geweigerd' : 'Oproep geweigerd')
+      : (isVideo ? 'Gemiste video-oproep' : 'Gemiste spraakoproep');
 
   return {
     kind,
+    isVideo,
     previewText: presentation?.label || fallbackLabel,
   };
 }
@@ -450,6 +452,7 @@ export function buildConversationPreviewPresentation(
       ...buildConversationBasePreview(callPresentation.previewText),
       isCallSummary: true,
       callKind: callPresentation.kind,
+      isVideoCall: callPresentation.isVideo,
     };
   }
   const specialCasePreviewText = resolveConversationPreviewSpecialCaseText(message);

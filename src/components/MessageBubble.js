@@ -32,6 +32,7 @@ const MessageBubble = React.memo(function MessageBubble({
   onRetry,
   onViewContact,
   onStartAudioCall,
+  onStartVideoCall,
 }) {
   const interactions = useMessageBubbleInteractions(onShowContextMenu, onOpenReactionPicker);
   const message = buildMessageBubbleContext({
@@ -59,6 +60,7 @@ const MessageBubble = React.memo(function MessageBubble({
     onRetry,
     onViewContact,
     onStartAudioCall,
+    onStartVideoCall,
     interactions,
   });
 

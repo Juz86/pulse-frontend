@@ -352,6 +352,7 @@ describe('e2ee message model helpers', () => {
       previewText: 'Gemiste video-oproep',
       isCallSummary: true,
       callKind: 'missed_incoming',
+      isVideoCall: true,
     });
   });
 

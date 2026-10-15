@@ -18471,14 +18471,16 @@ font-family: 'Inter', sans-serif;
   align-items:center;
   gap:10px;
 }
-.browser-call-brand > span {
+.browser-call-encryption {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
   color:rgba(240,238,248,.72);
   font-size:13px;
 }
-.browser-call-brand > span::before {
-  content:'🔒';
-  margin-right:7px;
-  font-size:11px;
+.browser-call-encryption > svg {
+  flex:0 0 auto;
+  color:rgba(221,212,255,.9);
 }
 .browser-call-contact {
   min-height:0;

@@ -1,7 +1,7 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Phone, PhoneCall, PhoneOutgoing, PhoneMissed, PhoneEnd, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound, ArrowLeft } from '../components/Icons';
+import { Phone, PhoneCall, PhoneOutgoing, PhoneMissed, PhoneEnd, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound, ArrowLeft } from '../components/Icons';
 import PulseLogo from '../components/PulseLogo';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import UserAvatar from '../components/UserAvatar';
@@ -116,11 +116,12 @@ function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = 
 
 function getCallHistoryAppearance(call = {}) {
   const kind = call.callKind || '';
-  if (kind === 'missed_incoming') return { label: 'Gemiste oproep', Icon: PhoneMissed, negative: true };
-  if (kind.endsWith('_declined')) return { label: 'Oproep geweigerd', Icon: PhoneEnd, negative: true };
-  if (kind === 'outgoing_unanswered') return { label: 'Geen antwoord', Icon: PhoneOutgoing, negative: true };
-  if (call.direction === 'incoming' || kind.startsWith('incoming_')) return { label: 'Inkomend', Icon: PhoneCall, negative: false };
-  return { label: 'Uitgaand', Icon: PhoneOutgoing, negative: false };
+  const isVideo = !!call.isVideo || call.mediaType === 'video';
+  if (kind === 'missed_incoming') return { label: isVideo ? 'Gemiste video-oproep' : 'Gemiste oproep', Icon: isVideo ? Video : PhoneMissed, negative: true };
+  if (kind.endsWith('_declined')) return { label: isVideo ? 'Video-oproep geweigerd' : 'Oproep geweigerd', Icon: isVideo ? Video : PhoneEnd, negative: true };
+  if (kind === 'outgoing_unanswered') return { label: 'Geen antwoord', Icon: isVideo ? Video : PhoneOutgoing, negative: true };
+  if (call.direction === 'incoming' || kind.startsWith('incoming_')) return { label: isVideo ? 'Inkomend videogesprek' : 'Inkomend', Icon: isVideo ? Video : PhoneCall, negative: false };
+  return { label: isVideo ? 'Uitgaand videogesprek' : 'Uitgaand', Icon: isVideo ? Video : PhoneOutgoing, negative: false };
 }
 
 function formatCallDuration(duration) {
@@ -291,12 +292,14 @@ export default function ChatSidebar({
   getConvPhoto,
   getContactDisplayName,
   nativeAudioCallingAvailable = false,
+  videoCallingAvailable = false,
   callLaunchPending = false,
   callHistory = [],
   callHistoryLoading = false,
   callHistoryError = '',
   onRefreshCallHistory,
   onStartAudioCall,
+  onStartVideoCall,
 }) {
   const sidebarRef = useRef(null);
   const sidebarHeaderRef = useRef(null);
@@ -2171,7 +2174,10 @@ export default function ChatSidebar({
   }, [onViewContact]);
   const openConversationProfile = useCallback((conv, otherUid) => {
     if (conv.isGroup) {
-      openConvActionsSheet(conv, otherUid);
+      setConvMenu(null);
+      setContactMenu(null);
+      setConvActionsSheet(null);
+      onShowGroupInfo?.(conv);
       return;
     }
     if (!otherUid) return;
@@ -2182,7 +2188,7 @@ export default function ChatSidebar({
       photoURL: getConvPhoto?.(conv),
     };
     openContactProfile(contact);
-  }, [contacts, getConvName, getConvPhoto, openContactProfile, openConvActionsSheet]);
+  }, [contacts, getConvName, getConvPhoto, onShowGroupInfo, openContactProfile]);
   useEffect(() => {
     if (!conversationActionsRequest?.id) return;
     openConvActionsSheet(conversationActionsRequest, getOtherUid?.(conversationActionsRequest));
@@ -3143,10 +3149,12 @@ export default function ChatSidebar({
               <div className="calls-history-rows" role="list">
                 {callHistoryRows.map((row, index) => {
                   const { Icon } = row.appearance;
+                  const isVideo = !!row.call.isVideo || row.call.mediaType === 'video';
                   const blocked = !row.peerUid
                     || parentBlockedUids?.includes(row.peerUid)
                     || (blockedContacts || []).some((blockedContact) => blockedContact.uid === row.peerUid);
-                  const callDisabled = !nativeAudioCallingAvailable || callLaunchPending || blocked;
+                  const callingAvailable = isVideo ? videoCallingAvailable : nativeAudioCallingAvailable;
+                  const callDisabled = !callingAvailable || callLaunchPending || blocked;
                   return (
                     <div
                       key={row.call.id || `${row.call.sessionId || row.call.conversationId}-${row.call.callKind}-${row.call.createdAt}-${index}`}
@@ -3167,12 +3175,14 @@ export default function ChatSidebar({
                       <button
                         type="button"
                         className="calls-history-call-btn"
-                        aria-label={`Bel ${row.name}`}
-                        title={nativeAudioCallingAvailable ? `Bel ${row.name}` : 'Bellen is alleen beschikbaar in de Pulse-app'}
+                        aria-label={`${isVideo ? 'Videobel' : 'Bel'} ${row.name}`}
+                        title={callingAvailable ? `${isVideo ? 'Videobel' : 'Bel'} ${row.name}` : `${isVideo ? 'Videobellen' : 'Bellen'} is niet beschikbaar op dit apparaat`}
                         disabled={callDisabled}
-                        onClick={() => row.target && onStartAudioCall?.(row.target)}
+                        onClick={() => row.target && (isVideo ? onStartVideoCall?.(row.target) : onStartAudioCall?.(row.target))}
                       >
-                        <Phone size={19} aria-hidden="true" />
+                        {isVideo
+                          ? <Video size={19} aria-hidden="true" />
+                          : <Phone size={19} aria-hidden="true" />}
                       </button>
                     </div>
                   );

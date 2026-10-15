@@ -65,7 +65,8 @@ function buildConversationCallFallback(conversation, currentUid) {
     direction: kind.startsWith('incoming_') || kind === 'missed_incoming' ? 'incoming' : 'outgoing',
     text: presentation?.label || conversation.lastMessage || '',
     duration: Number(conversation.lastCallEvent.duration) || 0,
-    isVideo: !!conversation.lastCallEvent.isVideo,
+    isVideo: !!conversation.lastCallEvent.isVideo || conversation.lastCallEvent.mediaType === 'video',
+    mediaType: conversation.lastCallEvent.mediaType || (conversation.lastCallEvent.isVideo ? 'video' : 'audio'),
     createdAt: conversation.lastCallEvent.createdAt || conversation.lastMessageAt || conversation.updatedAt || null,
   };
 }

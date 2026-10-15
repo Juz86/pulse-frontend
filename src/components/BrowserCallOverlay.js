@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Cancel, Mic, MicOff, Phone, PhoneEnd, Speaker, Video, VideoOff } from './Icons';
+import { Cancel, Lock, Mic, MicOff, Phone, PhoneEnd, Speaker, Video, VideoOff } from './Icons';
 import PulseLogo from './PulseLogo';
 import UserAvatar from './UserAvatar';
 
@@ -144,7 +144,10 @@ export default function BrowserCallOverlay({
       <div className="browser-call-content">
         <header className="browser-call-brand">
           <PulseLogo size={28} textSize={18} color="#ffffff" gap={8} />
-          <span>End-to-end versleuteld</span>
+          <span className="browser-call-encryption">
+            <Lock size={14} aria-hidden="true" />
+            <span>End-to-end versleuteld</span>
+          </span>
         </header>
 
         <main className={`browser-call-contact${isVideoCall ? ' browser-call-contact--video' : ''}${isVideoCall && remoteStream ? ' browser-call-contact--connected-video' : ''}`}>

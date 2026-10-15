@@ -26,6 +26,7 @@ const MessageListRow = React.memo(function MessageListRow({
   onRetry,
   onViewContact,
   onStartAudioCall,
+  onStartVideoCall,
 }) {
   const isOwn = msg.senderId === currentUid;
 
@@ -93,6 +94,7 @@ const MessageListRow = React.memo(function MessageListRow({
         onRetry={handleRetry}
         onViewContact={onViewContact}
         onStartAudioCall={onStartAudioCall}
+        onStartVideoCall={onStartVideoCall}
       />
     </div>
   );
@@ -124,6 +126,7 @@ const MessageList = React.memo(function MessageList({
   onRetry,
   onViewContact,
   onStartAudioCall,
+  onStartVideoCall,
   jumpToMsgId,
   typing = false,
   typingName = '',
@@ -187,6 +190,7 @@ const MessageList = React.memo(function MessageList({
           onRetry={onRetry}
           onViewContact={onViewContact}
           onStartAudioCall={selectionMode ? undefined : onStartAudioCall}
+          onStartVideoCall={selectionMode ? undefined : onStartVideoCall}
         />
       );
     });
@@ -194,7 +198,7 @@ const MessageList = React.memo(function MessageList({
     return result;
   }, [messages, activeConv, currentUid, currentUser, user, contacts, chatSearch, focusedMsgId, selectedMessageIdSet,
       onReact, onShowContextMenu, onOpenReactionPicker, reactionPickerMsgId, onCloseReactionPicker,
-      onRetry, onViewContact, onStartAudioCall, selectionMode, onToggleMessageSelection]);
+      onRetry, onViewContact, onStartAudioCall, onStartVideoCall, selectionMode, onToggleMessageSelection]);
 
   const bgStyle = useMemo(() => {
     if (chatBg?.type === 'photo') return {

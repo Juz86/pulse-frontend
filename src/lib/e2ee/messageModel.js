@@ -31,7 +31,9 @@ export function normalizeIncomingMessage(raw, currentUserId) {
       ))
     : null;
   const normalizedCallDuration = type === 'call' ? (Number(raw.duration) || 0) : 0;
-  const normalizedCallIsVideo = type === 'call' ? (!!raw.isVideo || raw.mediaType === 'video') : false;
+  const normalizedCallIsVideo = type === 'call'
+    ? (!!raw.isVideo || raw.mediaType === 'video' || !!raw.callEvent?.isVideo || raw.callEvent?.mediaType === 'video')
+    : false;
   const reactions = raw.reactions && typeof raw.reactions === 'object' && !Array.isArray(raw.reactions)
     ? normalizeSingleUserReaction(raw.reactions, currentUserId)
     : {};
@@ -70,7 +72,7 @@ export function normalizeIncomingMessage(raw, currentUserId) {
     terminalReason: type === 'call' ? (raw.terminalReason || null) : null,
     callerUid: type === 'call' ? (raw.callerUid || raw.callEvent?.callerUid || null) : null,
     calleeUid: type === 'call' ? (raw.calleeUid || raw.callEvent?.calleeUid || null) : null,
-    mediaType: type === 'call' ? (raw.mediaType || (normalizedCallIsVideo ? 'video' : 'audio')) : null,
+    mediaType: type === 'call' ? (raw.mediaType || raw.callEvent?.mediaType || (normalizedCallIsVideo ? 'video' : 'audio')) : null,
     presentations: type === 'call'
       ? (raw.presentations || raw.callEvent?.presentations || null)
       : null,

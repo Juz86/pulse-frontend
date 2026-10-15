@@ -370,13 +370,14 @@ function MainApp() {
       const policy = await fetchUpdatePolicy(BACKEND, clientVersionCode);
       if (!active) return;
 
-      const availableViaPlay = !!nativeStatus.isUpdateAvailable || !!nativeStatus.isUpdateInProgress;
+      const downloaded = !!nativeStatus.isDownloaded;
+      const availableViaPlay = !!nativeStatus.isUpdateAvailable || !!nativeStatus.isUpdateInProgress || downloaded;
       const canImmediate = !!nativeStatus.isImmediateAllowed;
       const canFlexible = !!nativeStatus.isFlexibleAllowed;
       // Het backendbeleid bepaalt de urgentie, maar Google Play blijft de enige
       // installatiebron. Toon daarom geen updateknop voordat Play de update
       // daadwerkelijk heeft vrijgegeven voor dit apparaat.
-      const updateCanStart = canFlexible || canImmediate;
+      const updateCanStart = canFlexible || canImmediate || downloaded;
       const shouldShow = availableViaPlay && updateCanStart;
       const required = !!policy?.updateRequired && shouldShow;
 
@@ -386,7 +387,7 @@ function MainApp() {
         checking: false,
         available: shouldShow,
         required,
-        downloaded: prev.downloaded,
+        downloaded: downloaded || prev.downloaded,
         canImmediate,
         canFlexible,
       }));
@@ -403,6 +404,17 @@ function MainApp() {
     const attachUpdateListener = async () => {
       updateListenerRef.current = await addUpdateStatusListener((event = {}) => {
         if (event?.type === 'installState' && event?.isDownloaded) {
+          setAppUpdate((prev) => ({
+            ...prev,
+            available: true,
+            downloaded: true,
+          }));
+        }
+        if (event?.type === 'flowResult' && event?.flowType === 'flexible' && event?.accepted === false) {
+          setHideOptionalUpdate(false);
+        }
+        if (event?.type === 'autoCompleteFailed') {
+          setHideOptionalUpdate(false);
           setAppUpdate((prev) => ({
             ...prev,
             available: true,
@@ -891,7 +903,7 @@ function MainApp() {
                   ? 'Update is gedownload. Herstart Pulse om te installeren.'
                   : appUpdate.required
                     ? 'Deze update is nodig om Pulse veilig te blijven gebruiken.'
-                    : 'Download op de achtergrond en update wanneer het jou uitkomt.'}
+                    : 'De update wordt op de achtergrond gedownload. Zodra de update klaar is, wordt Pulse automatisch opnieuw gestart.'}
               </span>
             </div>
             <div className={`pulse-update-banner-actions${appUpdate.downloaded ? ' is-downloaded' : ''}`}>
@@ -907,13 +919,18 @@ function MainApp() {
                   onClick={async () => {
                     try {
                       if (appUpdate.required) await startImmediateUpdate();
-                      else if (appUpdate.canFlexible) await startFlexibleUpdate();
+                      else if (appUpdate.canFlexible) {
+                        setHideOptionalUpdate(true);
+                        const result = await startFlexibleUpdate();
+                        if (!result?.ok) throw new Error('flexible_update_not_started');
+                      }
                     } catch (error) {
+                      if (!appUpdate.required) setHideOptionalUpdate(false);
                       console.warn('[Pulse][Update] Update-flow starten mislukt:', error?.message || error);
                     }
                   }}
                 >
-                  {appUpdate.required ? 'Nu updaten' : 'Update downloaden'}
+                  {appUpdate.required ? 'Nu updaten' : 'Bijwerken'}
                 </button>
               )}
               {appUpdate.downloaded && (

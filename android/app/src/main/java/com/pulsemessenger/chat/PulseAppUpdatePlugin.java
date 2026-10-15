@@ -1,5 +1,6 @@
 package com.pulsemessenger.chat;
 
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
@@ -28,6 +29,7 @@ public class PulseAppUpdatePlugin extends Plugin {
     private InstallStateUpdatedListener installStateListener;
     private ActivityResultLauncher<IntentSenderRequest> activityLauncher;
     private int currentFlowType = AppUpdateType.FLEXIBLE;
+    private boolean completingFlexibleUpdate = false;
 
     @Override
     public void load() {
@@ -43,6 +45,7 @@ public class PulseAppUpdatePlugin extends Plugin {
                 JSObject payload = new JSObject();
                 payload.put("type", "flowResult");
                 payload.put("resultCode", result.getResultCode());
+                payload.put("accepted", result.getResultCode() == Activity.RESULT_OK);
                 payload.put("flowType", currentFlowType == AppUpdateType.IMMEDIATE ? "immediate" : "flexible");
                 notifyListeners("updateStatusChanged", payload);
             }
@@ -61,7 +64,12 @@ public class PulseAppUpdatePlugin extends Plugin {
     public void getUpdateStatus(PluginCall call) {
         try {
             appUpdateManager.getAppUpdateInfo()
-                .addOnSuccessListener(info -> call.resolve(toUpdateStatus(info)))
+                .addOnSuccessListener(info -> {
+                    call.resolve(toUpdateStatus(info));
+                    if (info.installStatus() == InstallStatus.DOWNLOADED) {
+                        completeFlexibleUpdateAutomatically();
+                    }
+                })
                 .addOnFailureListener(error -> {
                     JSObject payload = new JSObject();
                     payload.put("ok", false);
@@ -94,17 +102,7 @@ public class PulseAppUpdatePlugin extends Plugin {
 
     @PluginMethod
     public void completeFlexibleUpdate(PluginCall call) {
-        try {
-            appUpdateManager.completeUpdate()
-                .addOnSuccessListener(unused -> {
-                    JSObject payload = new JSObject();
-                    payload.put("ok", true);
-                    call.resolve(payload);
-                })
-                .addOnFailureListener(error -> call.reject("complete_update_failed", safeMessage(error)));
-        } catch (Exception error) {
-            call.reject("complete_update_exception", safeMessage(error));
-        }
+        completeFlexibleUpdate(call, false);
     }
 
     private void startUpdateFlow(PluginCall call, int flowType) {
@@ -150,6 +148,7 @@ public class PulseAppUpdatePlugin extends Plugin {
         payload.put("installStatus", info.installStatus());
         payload.put("isUpdateAvailable", info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE);
         payload.put("isUpdateInProgress", info.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS);
+        payload.put("isDownloaded", info.installStatus() == InstallStatus.DOWNLOADED);
         payload.put("isFlexibleAllowed", info.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE));
         payload.put("isImmediateAllowed", info.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE));
         return payload;
@@ -162,6 +161,59 @@ public class PulseAppUpdatePlugin extends Plugin {
         payload.put("bytesDownloaded", state.bytesDownloaded());
         payload.put("totalBytesToDownload", state.totalBytesToDownload());
         payload.put("isDownloaded", state.installStatus() == InstallStatus.DOWNLOADED);
+        notifyListeners("updateStatusChanged", payload);
+        if (state.installStatus() == InstallStatus.DOWNLOADED && currentFlowType == AppUpdateType.FLEXIBLE) {
+            completeFlexibleUpdateAutomatically();
+        }
+    }
+
+    private void completeFlexibleUpdateAutomatically() {
+        completeFlexibleUpdate(null, true);
+    }
+
+    private void completeFlexibleUpdate(PluginCall call, boolean automatic) {
+        if (completingFlexibleUpdate) {
+            if (call != null) {
+                JSObject payload = new JSObject();
+                payload.put("ok", true);
+                payload.put("alreadyCompleting", true);
+                call.resolve(payload);
+            }
+            return;
+        }
+
+        completingFlexibleUpdate = true;
+        try {
+            appUpdateManager.completeUpdate()
+                .addOnSuccessListener(unused -> {
+                    if (call != null) {
+                        JSObject payload = new JSObject();
+                        payload.put("ok", true);
+                        call.resolve(payload);
+                    }
+                })
+                .addOnFailureListener(error -> {
+                    completingFlexibleUpdate = false;
+                    if (call != null) {
+                        call.reject("complete_update_failed", safeMessage(error));
+                    } else if (automatic) {
+                        emitAutoCompleteFailure(error);
+                    }
+                });
+        } catch (Exception error) {
+            completingFlexibleUpdate = false;
+            if (call != null) {
+                call.reject("complete_update_exception", safeMessage(error));
+            } else if (automatic) {
+                emitAutoCompleteFailure(error);
+            }
+        }
+    }
+
+    private void emitAutoCompleteFailure(Throwable error) {
+        JSObject payload = new JSObject();
+        payload.put("type", "autoCompleteFailed");
+        payload.put("message", safeMessage(error));
         notifyListeners("updateStatusChanged", payload);
     }
 

@@ -767,12 +767,14 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
         onParentActivitiesViewed={onParentActivitiesViewed}
         setLabelMenuConvId={() => {}}
         nativeAudioCallingAvailable={audioCallingAvailable}
+        videoCallingAvailable={videoCallingAvailable}
         callLaunchPending={callLaunchPending}
         callHistory={callHistory}
         callHistoryLoading={callHistoryLoading}
         callHistoryError={callHistoryError}
         onRefreshCallHistory={() => setCallHistoryRefreshVersion((version) => version + 1)}
         onStartAudioCall={handleStartAudioCall}
+        onStartVideoCall={handleStartVideoCall}
         showNewChat={showNewChat}
         setShowNewChat={setShowNewChat}
         searchEmail={searchEmail}
@@ -975,6 +977,7 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
               onRetry={handleMessageRetry}
               onViewContact={handleViewSharedContact}
               onStartAudioCall={handleStartAudioCall}
+              onStartVideoCall={handleStartVideoCall}
               selectionMode={messageSelectionMode}
               selectedMessageIds={selectedMessageIds}
               onToggleMessageSelection={toggleMessageSelection}

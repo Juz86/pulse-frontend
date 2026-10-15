@@ -1,6 +1,6 @@
 // src/components/ConversationItem.js
 import React from 'react';
-import { Pin, MoreHoriz, PhoneEnd, PhoneMissed, PhoneOutgoing } from '../components/Icons';
+import { Pin, MoreHoriz, PhoneEnd, PhoneMissed, PhoneOutgoing, Video } from '../components/Icons';
 import { buildConversationPreviewPresentation } from '../lib/e2ee/conversationSummaries';
 import UserAvatar from '../components/UserAvatar';
 import { formatConversationListTime } from '../utils';
@@ -224,7 +224,9 @@ function ConversationItemBase({
           ) : (
             <>
               {conversationPreview.isCallSummary && (
-                conversationPreview.callKind === 'missed_incoming'
+                conversationPreview.isVideoCall
+                  ? <Video className={`conv-call-preview-icon${conversationPreview.callKind === 'missed_incoming' || conversationPreview.callKind?.endsWith('_declined') ? ' conv-call-preview-icon--negative' : ''}`} aria-hidden="true" />
+                  : conversationPreview.callKind === 'missed_incoming'
                   ? <PhoneMissed className="conv-call-preview-icon conv-call-preview-icon--negative" aria-hidden="true" />
                   : conversationPreview.callKind?.endsWith('_declined')
                     ? <PhoneEnd className="conv-call-preview-icon conv-call-preview-icon--negative" aria-hidden="true" />

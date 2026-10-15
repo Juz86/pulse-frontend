@@ -75,7 +75,7 @@ function buildCallMessageCardRenderConfig(presentation, handlers) {
   return buildGroupedPresentationCardRenderConfig(
     CallMessageCard,
     presentation,
-    { onCallBack: handlers.onStartAudioCall },
+    { onCallBack: presentation.isVideo ? handlers.onStartVideoCall : handlers.onStartAudioCall },
   );
 }
 

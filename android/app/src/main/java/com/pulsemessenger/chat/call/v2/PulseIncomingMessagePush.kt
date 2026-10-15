@@ -3,6 +3,7 @@ package com.pulsemessenger.chat.call.v2
 data class PulseIncomingMessagePush(
     val conversationId: String,
     val messageId: String,
+    val senderUid: String,
     val senderDisplayName: String,
     val senderPhotoUrl: String?,
     val body: String,
@@ -16,11 +17,15 @@ object PulseIncomingMessagePushParser {
         if (data["type"] != TYPE) return null
         val conversationId = data["convId"]?.trim().orEmpty()
         val messageId = data["messageId"]?.trim().orEmpty()
+        val senderUid = data["senderUid"]?.trim().orEmpty()
         val senderDisplayName = normalizeText(data["senderDisplayName"], 160)
             ?: return null
         val body = normalizeText(data["body"], 500)
             ?: return null
-        if (!conversationId.isSafeIdentifier() || !messageId.isSafeIdentifier()) return null
+        if (!conversationId.isSafeIdentifier() ||
+            !messageId.isSafeIdentifier() ||
+            !senderUid.isSafeIdentifier()
+        ) return null
 
         val senderPhotoUrl = data["senderPhotoURL"]
             ?.trim()
@@ -29,6 +34,7 @@ object PulseIncomingMessagePushParser {
         return PulseIncomingMessagePush(
             conversationId = conversationId,
             messageId = messageId,
+            senderUid = senderUid,
             senderDisplayName = senderDisplayName,
             senderPhotoUrl = senderPhotoUrl,
             body = body,

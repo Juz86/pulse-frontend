@@ -10,6 +10,12 @@ data class PulseIncomingCallPush(
 data class PulseTerminalCallPush(
     val sessionId: String,
     val revision: Long,
+    val terminalReason: String,
+    val peerUid: String?,
+    val peerDisplayName: String?,
+    val peerPhotoUrl: String?,
+    val mediaType: PulseCallMediaType,
+    val showMissedNotification: Boolean,
 )
 
 data class PulseCallTakenElsewherePush(
@@ -59,11 +65,37 @@ object PulseTerminalCallPushParser {
         val sessionId = data["sessionId"]?.trim().orEmpty()
         if (sessionId.length !in 8..128 || !sessionId.all(::isSafeIdentifierCharacter)) return null
         val revision = data["revision"]?.toLongOrNull()?.takeIf { it > 0 } ?: return null
-        return PulseTerminalCallPush(sessionId, revision)
+        val terminalReason = data["terminalReason"]?.trim()?.lowercase().orEmpty()
+        if (terminalReason.isEmpty() || terminalReason.length > 64) return null
+        val peerUid = data["peerUid"]?.trim()?.takeIf {
+            it.length in 1..128 && it.all(::isSafeIdentifierCharacter)
+        }
+        val peerDisplayName = data["peerDisplayName"]
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() && it.length <= 160 && it.none(Char::isISOControl) }
+        val peerPhotoUrl = data["peerPhotoURL"]?.trim()?.takeIf(::isSafeHttpsUrl)
+        val mediaType = when (data["mediaType"]?.trim()?.lowercase()) {
+            null, "", "audio" -> PulseCallMediaType.AUDIO
+            "video" -> PulseCallMediaType.VIDEO
+            else -> return null
+        }
+        return PulseTerminalCallPush(
+            sessionId,
+            revision,
+            terminalReason,
+            peerUid,
+            peerDisplayName,
+            peerPhotoUrl,
+            mediaType,
+            data["showMissedNotification"] == "true",
+        )
     }
 
     private fun isSafeIdentifierCharacter(character: Char): Boolean =
         character.isLetterOrDigit() || character == '-' || character == '_'
+
+    private fun isSafeHttpsUrl(value: String): Boolean = value.length <= 2_048 &&
+        runCatching { java.net.URI(value).scheme.equals("https", ignoreCase = true) }.getOrDefault(false)
 }
 
 object PulseCallTakenElsewherePushParser {

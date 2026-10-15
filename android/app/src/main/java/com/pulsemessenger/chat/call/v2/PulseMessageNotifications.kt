@@ -25,11 +25,13 @@ import androidx.core.graphics.drawable.IconCompat
 import com.pulsemessenger.chat.MainActivity
 import com.pulsemessenger.chat.R
 import java.net.URL
+import java.util.UUID
 import javax.net.ssl.HttpsURLConnection
 import kotlin.math.min
 
 object PulseMessageNotifications {
     private const val CHANNEL_ID = "pulse_messages"
+    private const val MISSED_CALL_CHANNEL_ID = "pulse_missed_calls"
     private const val AVATAR_SIZE = 192
     private const val MAX_IMAGE_BYTES = 2 * 1024 * 1024
 
@@ -41,6 +43,19 @@ object PulseMessageNotifications {
         val photoUrl = push.senderPhotoUrl ?: return
         val photo = downloadAvatar(photoUrl) ?: return
         notify(context, push, addPulseBadge(context, circleCrop(photo)))
+    }
+
+    fun showMissedCall(context: Context, push: PulseTerminalCallPush) {
+        val peerUid = push.peerUid ?: return
+        val displayName = push.peerDisplayName ?: return
+        ensureMissedCallChannel(context)
+        val fallbackAvatar = addPulseBadge(context, createInitialsAvatar(displayName))
+        notifyMissedCall(context, push, peerUid, displayName, fallbackAvatar)
+
+        val photoUrl = push.peerPhotoUrl ?: return
+        val photo = downloadAvatar(photoUrl) ?: return
+        val avatar = addPulseBadge(context, circleCrop(photo))
+        notifyMissedCall(context, push, peerUid, displayName, avatar)
     }
 
     private fun notify(context: Context, push: PulseIncomingMessagePush, avatar: Bitmap) {
@@ -67,7 +82,34 @@ object PulseMessageNotifications {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val messageActionIntent = PendingIntent.getActivity(
+            context,
+            push.conversationId.hashCode() xor MESSAGE_ACTION_OFFSET,
+            Intent(context, MainActivity::class.java).apply {
+                action = "FCM_PLUGIN_ACTIVITY"
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                putExtra("google.message_id", push.messageId)
+                putExtra("type", "pulse_message")
+                putExtra("convId", push.conversationId)
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val callBackIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            PendingIntent.getForegroundService(
+                context,
+                push.conversationId.hashCode() xor CALL_ACTION_OFFSET,
+                PulseCallService.outgoingIntent(
+                    context = context,
+                    requestId = UUID.randomUUID().toString(),
+                    calleeUid = push.senderUid,
+                    displayName = push.senderDisplayName,
+                    photoUrl = push.senderPhotoUrl,
+                    mediaType = PulseCallMediaType.AUDIO,
+                ),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+        } else null
+        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_pulse_notification)
             .setColor(context.getColor(R.color.pulse_notification_color))
             .setContentTitle(push.senderDisplayName)
@@ -81,7 +123,19 @@ object PulseMessageNotifications {
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setGroup("pulse_message_${push.conversationId}")
-            .build()
+        callBackIntent?.let {
+            builder.addAction(
+                android.R.drawable.sym_action_call,
+                context.getString(R.string.pulse_notification_call_back),
+                it,
+            )
+        }
+        builder.addAction(
+            android.R.drawable.sym_action_email,
+            context.getString(R.string.pulse_notification_message),
+            messageActionIntent,
+        )
+        val notification = builder.build()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
@@ -109,6 +163,96 @@ object PulseMessageNotifications {
                 lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
             },
         )
+    }
+
+    private fun ensureMissedCallChannel(context: Context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val manager = context.getSystemService(NotificationManager::class.java)
+        if (manager.getNotificationChannel(MISSED_CALL_CHANNEL_ID) != null) return
+        manager.createNotificationChannel(
+            NotificationChannel(
+                MISSED_CALL_CHANNEL_ID,
+                context.getString(R.string.pulse_missed_call_channel_name),
+                NotificationManager.IMPORTANCE_HIGH,
+            ).apply {
+                description = context.getString(R.string.pulse_missed_call_channel_description)
+                enableVibration(true)
+                lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
+            },
+        )
+    }
+
+    private fun notifyMissedCall(
+        context: Context,
+        push: PulseTerminalCallPush,
+        peerUid: String,
+        displayName: String,
+        avatar: Bitmap,
+    ) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val notificationText = context.getString(
+            if (push.mediaType == PulseCallMediaType.VIDEO) {
+                R.string.pulse_missed_video_call
+            } else {
+                R.string.pulse_missed_audio_call
+            },
+        )
+        val openMessageIntent = PendingIntent.getActivity(
+            context,
+            push.sessionId.hashCode() xor MESSAGE_ACTION_OFFSET,
+            Intent(context, MainActivity::class.java).apply {
+                action = MainActivity.ACTION_OPEN_CALL_CONTACT
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                putExtra(MainActivity.EXTRA_CALL_CONTACT_UID, peerUid)
+                putExtra(MainActivity.EXTRA_CALL_CONTACT_NAME, displayName)
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val callBackIntent = PendingIntent.getForegroundService(
+            context,
+            push.sessionId.hashCode() xor CALL_ACTION_OFFSET,
+            PulseCallService.outgoingIntent(
+                context = context,
+                requestId = UUID.randomUUID().toString(),
+                calleeUid = peerUid,
+                displayName = displayName,
+                photoUrl = push.peerPhotoUrl,
+                mediaType = push.mediaType,
+            ),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val notification = NotificationCompat.Builder(context, MISSED_CALL_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_pulse_notification)
+            .setColor(context.getColor(R.color.pulse_notification_color))
+            .setContentTitle(displayName)
+            .setContentText(notificationText)
+            .setLargeIcon(avatar)
+            .setCategory(NotificationCompat.CATEGORY_CALL)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(openMessageIntent)
+            .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
+            .addAction(
+                android.R.drawable.sym_action_call,
+                context.getString(R.string.pulse_notification_call_back),
+                callBackIntent,
+            )
+            .addAction(
+                android.R.drawable.sym_action_email,
+                context.getString(R.string.pulse_notification_message),
+                openMessageIntent,
+            )
+            .build()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) return
+        try {
+            NotificationManagerCompat.from(context).notify(missedCallNotificationId(peerUid), notification)
+        } catch (_: SecurityException) {
+            return
+        }
     }
 
     private fun createInitialsAvatar(displayName: String): Bitmap {
@@ -212,4 +356,10 @@ object PulseMessageNotifications {
 
     private fun notificationId(conversationId: String): Int =
         0x40000000 or (conversationId.hashCode() and 0x3fffffff)
+
+    private fun missedCallNotificationId(peerUid: String): Int =
+        0x50000000 or (peerUid.hashCode() and 0x0fffffff)
+
+    private const val CALL_ACTION_OFFSET = 0x1357
+    private const val MESSAGE_ACTION_OFFSET = 0x2468
 }

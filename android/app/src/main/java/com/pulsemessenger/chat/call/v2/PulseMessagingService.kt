@@ -123,6 +123,13 @@ class PulseMessagingService : MessagingService() {
             )
             return
         }
+        if (terminalCall.showMissedNotification &&
+            terminalCall.terminalReason == "missed" &&
+            terminalCall.peerUid != null &&
+            terminalCall.peerDisplayName != null
+        ) {
+            PulseMessageNotifications.showMissedCall(applicationContext, terminalCall)
+        }
         runCatching {
             ContextCompat.startForegroundService(
                 this,

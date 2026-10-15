@@ -121,10 +121,27 @@ class PulseIncomingCallPushParserTest {
                 "state" to "ENDED",
                 "revision" to "4",
                 "terminalReason" to "missed",
+                "peerUid" to "caller-456",
+                "peerDisplayName" to "Yousef",
+                "peerPhotoURL" to "https://cdn.pulse.test/yousef.jpg",
+                "mediaType" to "video",
+                "showMissedNotification" to "true",
             ),
         )
 
-        assertEquals(PulseTerminalCallPush("session-123", 4), parsed)
+        assertEquals(
+            PulseTerminalCallPush(
+                sessionId = "session-123",
+                revision = 4,
+                terminalReason = "missed",
+                peerUid = "caller-456",
+                peerDisplayName = "Yousef",
+                peerPhotoUrl = "https://cdn.pulse.test/yousef.jpg",
+                mediaType = PulseCallMediaType.VIDEO,
+                showMissedNotification = true,
+            ),
+            parsed,
+        )
     }
 
     @Test

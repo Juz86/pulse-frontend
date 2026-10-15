@@ -61,7 +61,7 @@ object PulseMessageNotifications {
     private fun notify(context: Context, push: PulseIncomingMessagePush, avatar: Bitmap) {
         val sender = Person.Builder()
             .setName(push.senderDisplayName)
-            .setIcon(IconCompat.createWithBitmap(avatar))
+            .setIcon(IconCompat.createWithAdaptiveBitmap(avatar))
             .build()
         val user = Person.Builder().setName(context.getString(R.string.pulse_message_you)).build()
         val timestamp = push.sentAtMs ?: System.currentTimeMillis()
@@ -114,7 +114,6 @@ object PulseMessageNotifications {
             .setColor(context.getColor(R.color.pulse_notification_color))
             .setContentTitle(push.senderDisplayName)
             .setContentText(push.body)
-            .setLargeIcon(avatar)
             .setStyle(style)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -123,6 +122,9 @@ object PulseMessageNotifications {
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setGroup("pulse_message_${push.conversationId}")
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            builder.setLargeIcon(avatar)
+        }
         callBackIntent?.let {
             builder.addAction(
                 android.R.drawable.sym_action_call,
@@ -302,11 +304,12 @@ object PulseMessageNotifications {
         val output = avatar.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(output)
         val badgeSize = 62f
-        val centerX = AVATAR_SIZE - badgeSize / 2f - 2f
-        val centerY = AVATAR_SIZE - badgeSize / 2f - 2f
+        val badgeOuterRadius = badgeSize / 2f + 5f
+        val centerX = AVATAR_SIZE - badgeOuterRadius - 16f
+        val centerY = AVATAR_SIZE - badgeOuterRadius - 16f
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         paint.color = Color.WHITE
-        canvas.drawCircle(centerX, centerY, badgeSize / 2f + 5f, paint)
+        canvas.drawCircle(centerX, centerY, badgeOuterRadius, paint)
         paint.color = context.getColor(R.color.pulse_notification_color)
         canvas.drawCircle(centerX, centerY, badgeSize / 2f, paint)
         AppCompatResources.getDrawable(context, R.drawable.ic_pulse_notification)?.let { icon ->

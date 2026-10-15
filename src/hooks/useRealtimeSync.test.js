@@ -145,4 +145,24 @@ describe('realtime sync lifecycle', () => {
 
     expect(props.loadConversations).toHaveBeenCalledWith({ force: true });
   });
+
+  test.each(['message:received', 'call-history:updated'])(
+    'refreshes conversations after %s',
+    async (eventName) => {
+      jest.useFakeTimers();
+      const socket = createSocket();
+      const props = createHookProps({ socket });
+      jest.spyOn(console, 'info').mockImplementation(() => {});
+
+      act(() => root.render(<RealtimeSyncHarness {...props} />));
+      act(() => socket.dispatch(eventName, { conversationId: 'conv-1' }));
+      await act(async () => {
+        jest.advanceTimersByTime(100);
+        await Promise.resolve();
+      });
+
+      expect(props.loadConversations).toHaveBeenCalledWith({ force: true });
+      jest.useRealTimers();
+    }
+  );
 });

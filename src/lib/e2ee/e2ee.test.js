@@ -1676,6 +1676,7 @@ describe('e2ee transport payload helpers', () => {
       text: 'Hallo',
       protocol: ENCRYPTED_MESSAGE_PROTOCOL,
       deliveryState: 'sent',
+      transient: true,
       replyToMessageId: 'msg-parent-1',
       type: 'text',
       messageType: 'text',
@@ -1704,6 +1705,27 @@ describe('e2ee transport payload helpers', () => {
       type: 'text',
       messageType: 'text',
       text: 'Bijlage: foto.png',
+    });
+  });
+
+  test('hydrateIncomingMessage keeps locally decrypted text available as a session preview', async () => {
+    const plaintext = 'Wat doe je?';
+    const ciphertext = btoa(unescape(encodeURIComponent(plaintext)));
+    const hydrated = await messagingService.hydrateIncomingMessage({
+      id: 'msg-preview-1',
+      conversationId: 'conv-1',
+      senderUserId: 'user-2',
+      senderDeviceId: 'device-2',
+      protocol: ENCRYPTED_MESSAGE_PROTOCOL,
+      messageType: 'text',
+      ciphertext,
+      createdAt: '2026-10-15T17:54:00.000Z',
+    }, 'user-1');
+
+    expect(hydrated).toMatchObject({
+      text: plaintext,
+      decryptedLocally: true,
+      transient: true,
     });
   });
 });

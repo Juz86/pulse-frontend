@@ -176,6 +176,7 @@ async function hydrateMockCiphertext(raw, currentUserId) {
       attachment: structured.attachment,
       decryptedLocally: true,
       ciphertextAvailable: true,
+      transient: true,
     }, currentUserId);
   } catch {
     return null;
@@ -337,6 +338,7 @@ export const messagingService = {
       attachment: structured.attachment,
       decryptedLocally: true,
       ciphertextAvailable: true,
+      transient: true,
     }, currentUserId);
   },
 

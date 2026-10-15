@@ -135,6 +135,7 @@ export function buildServiceMessageResult({
     createdAt,
     protocol: ENCRYPTED_MESSAGE_PROTOCOL,
     deliveryState: 'sent',
+    transient: true,
     replyToMessageId,
     type: resolvedMessageType,
     messageType: resolvedMessageType,

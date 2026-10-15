@@ -58,6 +58,7 @@
    env(safe-area-inset-top). Keep only the minimized call bar below it. */
 html.pulse-platform-android {
   --pulse-android-status-inset: 28px;
+  --pulse-android-navigation-gap: 16px;
 }
 
 /* ── Responsive hardening: telefoon + tablet + WebView ───────────────────── */
@@ -4763,9 +4764,9 @@ font-family: 'Inter', sans-serif;
   background:linear-gradient(90deg, rgba(115,94,204,0), rgba(115,94,204,.16), rgba(115,94,204,0));
 }
 .chat-header-back-btn {
-  width:64px;
-  height:64px;
-  border-radius:24px;
+  width:50px;
+  height:50px;
+  border-radius:50%;
   border:1px solid rgba(67,52,96,.10);
   background:#f7f5f9;
   color:#251f49;
@@ -4857,9 +4858,9 @@ font-family: 'Inter', sans-serif;
   align-items:center;
 }
 .chat-header-action-btn {
-  width:54px;
-  height:54px;
-  border-radius:20px;
+  width:50px;
+  height:50px;
+  border-radius:50%;
   border:0;
   background:transparent;
   color:#251f49;
@@ -4869,9 +4870,22 @@ font-family: 'Inter', sans-serif;
   cursor:pointer;
 }
 .chat-header-menu-btn {
-  background:#f7f5f9;
-  border:1px solid rgba(67,52,96,.10);
-  box-shadow:none;
+  border:1.5px solid #b66cff;
+  background:linear-gradient(135deg,#be67ff,#8b5cf6);
+  color:#fff;
+  box-shadow:0 4px 12px rgba(174,83,255,.42);
+  transition:background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.chat-header-menu-btn:hover:not(:disabled),
+.chat-header-menu-btn:focus-visible:not(:disabled) {
+  border-color:#d3a5ff;
+  background:linear-gradient(135deg,#cc7cff,#9867ff);
+  box-shadow:0 6px 16px rgba(174,83,255,.54);
+  transform:translateY(-1px);
+}
+.chat-header-menu-btn:disabled {
+  cursor:not-allowed;
+  opacity:.5;
 }
 .sidebar-item-actions-btn {
   width: 42px;
@@ -10046,7 +10060,7 @@ font-family: 'Inter', sans-serif;
   .chat-header-back-btn {
     width:50px;
     height:50px;
-    border-radius:19px;
+    border-radius:50%;
     font-size:24px;
   }
   .chat-header-avatar.avatar-circle.sm,
@@ -10060,9 +10074,9 @@ font-family: 'Inter', sans-serif;
     gap:12px;
   }
   .chat-header-action-btn {
-    width:44px;
-    height:44px;
-    border-radius:16px;
+    width:50px;
+    height:50px;
+    border-radius:50%;
   }
 
   /* Input */
@@ -10163,9 +10177,9 @@ font-family: 'Inter', sans-serif;
     gap: 4px;
   }
   .chat-header-back-btn {
-    width:44px;
-    height:44px;
-    border-radius:17px;
+    width:50px;
+    height:50px;
+    border-radius:50%;
     font-size:22px;
   }
   .chat-header-avatar.avatar-circle.sm,
@@ -10179,12 +10193,20 @@ font-family: 'Inter', sans-serif;
     gap:10px;
   }
   .chat-header-action-btn {
-    width:40px;
-    height:40px;
-    border-radius:14px;
+    width:50px;
+    height:50px;
+    border-radius:50%;
   }
   .chat-input-area {
     padding-bottom: max(16px, calc(env(safe-area-inset-bottom) + 14px));
+  }
+}
+
+@media (max-width: 380px) {
+  .chat-header-back-btn,
+  .chat-header-action-btn {
+    width:42px;
+    height:42px;
   }
 }
 
@@ -18350,6 +18372,22 @@ font-family: 'Inter', sans-serif;
   html.pulse-platform-android .chat-header {
     padding-top:calc(10px + var(--pulse-android-status-inset));
   }
+
+  /* Lenovo en enkele andere Android-tablets geven in WebView geen onderste
+     safe-area door. Houd de vaste navigatie en berichtinvoer daarom los van
+     de systeemknoppen, zonder de browser- of telefoonlayout te verschuiven. */
+  html.pulse-platform-android .sidebar > .sidebar-footer:not(.sidebar-footer--cluster) {
+    padding-bottom:calc(max(16px, env(safe-area-inset-bottom)) + var(--pulse-android-navigation-gap));
+  }
+
+  html.pulse-platform-android .sidebar > .conv-list {
+    padding-bottom:calc(var(--sidebar-footer-clearance) + max(6px, env(safe-area-inset-bottom)) + var(--pulse-android-navigation-gap));
+    scroll-padding-bottom:calc(var(--sidebar-footer-clearance) + max(6px, env(safe-area-inset-bottom)) + var(--pulse-android-navigation-gap));
+  }
+
+  html.pulse-platform-android .chat-input-area {
+    padding-bottom:calc(max(7px, env(safe-area-inset-bottom)) + var(--pulse-android-navigation-gap));
+  }
 }
 
 /* Op tablets is de login geen zijpaneel maar het primaire scherm. Centreer
@@ -18878,8 +18916,7 @@ font-family: 'Inter', sans-serif;
     background:linear-gradient(90deg, transparent, rgba(151,123,255,.25), transparent);
   }
   .chat-header-name { color:#f7f3ff; }
-  .chat-header-back-btn,
-  .chat-header-menu-btn {
+  .chat-header-back-btn {
     border-color:#403847;
     background:#29242f;
     color:#f1eaf8;

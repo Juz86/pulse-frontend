@@ -2687,15 +2687,11 @@ font-family: 'Inter', sans-serif;
   }
 
   .web-auth-form-card .auth-features--desktop {
-    display: none;
+    display: grid;
   }
 
   .web-auth-form-card .auth-features-mobile {
-    display: block;
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid var(--border);
-    overflow: hidden;
+    display: none;
   }
 
   .web-auth-form-card .auth-feature-mobile-slide {
@@ -4873,14 +4869,14 @@ font-family: 'Inter', sans-serif;
   border:1.5px solid #b66cff;
   background:linear-gradient(135deg,#be67ff,#8b5cf6);
   color:#fff;
-  box-shadow:0 4px 12px rgba(174,83,255,.42);
-  transition:background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+  box-shadow:none;
+  transition:background .15s ease, border-color .15s ease, transform .15s ease;
 }
 .chat-header-menu-btn:hover:not(:disabled),
 .chat-header-menu-btn:focus-visible:not(:disabled) {
   border-color:#d3a5ff;
   background:linear-gradient(135deg,#cc7cff,#9867ff);
-  box-shadow:0 6px 16px rgba(174,83,255,.54);
+  box-shadow:none;
   transform:translateY(-1px);
 }
 .chat-header-menu-btn:disabled {

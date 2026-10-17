@@ -1,5 +1,11 @@
 # Pulse E2EE Rollout
 
+> **Status: mock/legacy rolloutdocument.** De beschreven `signal_v1`-servicefase
+> bewijst alleen integratie en mag niet als echte E2EE worden geactiveerd. Voor
+> de beveiligde opvolger en actuele rolloutgates is
+> [E2EE_PROTOCOL_V2_DECISION.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_PROTOCOL_V2_DECISION.md)
+> leidend.
+
 Deze codebase bevat nu een gefaseerde frontend-basis voor end-to-end encryptie.
 
 Volledig documentatie-overzicht:
@@ -34,12 +40,13 @@ Belangrijk:
 - device bootstrap draait alleen als `REACT_APP_E2EE_TRANSPORT=service` of `REACT_APP_E2EE_MODE=signal`
 - zolang beide flags op de veilige standaard staan, blijft de bestaande chatflow actief zonder verplichte backend-E2EE-endpoints
 
-Voor de eerste backend-integratie:
+Voor uitsluitend lokale integratietests:
 
 - laat `REACT_APP_E2EE_MODE=mock`
 - zet `REACT_APP_E2EE_TRANSPORT=service`
 
-Dan gebruikt de frontend al de nieuwe REST/service-flow, maar nog met mock-crypto.
+Dan gebruikt de frontend de REST/service-flow met mock-crypto. Deze configuratie
+is niet geschikt voor productie, een pilot of een E2EE-productclaim.
 
 ## Huidige lokale servicefase
 
@@ -52,19 +59,20 @@ Lokaal zijn inmiddels werkend en getest:
 - `GET /api/messages/:convId`
 - realtime `message:new` / `message:status`
 
-De volgende backend-/rolloutstap is daardoor niet meer “basisroutes bouwen”, maar:
+De volgende echte E2EE-stap is niet het activeren van deze routes, maar:
 
-1. `/readyz` en rollout-monitoring verder harden
-2. handmatige acceptatie over de volledige flow afronden
-3. de chat/bel/video-scope veilig activeren zonder scopegroei
+1. `pulse_e2ee_v2`-schema's en negatieve contracttests toevoegen
+2. atomische prekey-claims en per-device envelopes implementeren
+3. de native Android-provider bewijzen zonder plaintext over de JS-bridge
+4. een browserprovider selecteren en met dezelfde vectors valideren
 
 ## Volgende frontendstap na de huidige lokale fase
 
-Nu de lokale servicefase staat:
+Voor de volgende implementatiefase:
 
-1. doorloop de handmatige acceptatieronde
-2. valideer chat, bel en video op regressies
-3. bevestig dat chatmedia buiten scope blijft
+1. houd productie op `mock + socket`, zonder E2EE-claim
+2. bouw v2 naast legacy en voorkom iedere automatische downgrade
+3. start pas een interne pilot nadat alle gates uit het v2-besluit slagen
 
 ## Belangrijke productnuance
 

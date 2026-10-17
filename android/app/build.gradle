@@ -8,6 +8,9 @@ if (keystorePropertiesFile.exists()) {
 }
 
 def pulseNativeUpdatePublicKey = System.getenv('PULSE_NATIVE_UPDATE_PUBLIC_KEY') ?: ''
+def pulseE2eeInstrumentedTest = providers.gradleProperty('pulseE2eeInstrumentedTest')
+    .map { it.toBoolean() }
+    .getOrElse(false)
 android {
     namespace "com.pulsemessenger.chat"
     compileSdk rootProject.ext.compileSdkVersion
@@ -19,6 +22,14 @@ android {
     buildFeatures {
         buildConfig true
         compose true
+    }
+    packaging {
+        resources {
+            excludes += ["libsignal_jni*.dylib", "signal_jni*.dll"]
+        }
+        jniLibs {
+            excludes += ["**/libsignal_jni_testing.so"]
+        }
     }
     defaultConfig {
         applicationId "com.pulsemessenger.chat"
@@ -48,7 +59,13 @@ android {
         }
     }
     buildTypes {
-        debug {}
+        debug {
+            if (pulseE2eeInstrumentedTest) {
+                // Keep the E2EE test APK isolated from the Play Store app.
+                applicationIdSuffix ".e2eetest"
+                versionNameSuffix "-e2ee-test"
+            }
+        }
         release {
             if (keystorePropertiesFile.exists()) {
                 signingConfig signingConfigs.release
@@ -59,6 +76,25 @@ android {
             }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+if (pulseE2eeInstrumentedTest) {
+    // Secure-store tests do not start Firebase and use an isolated package ID
+    // that intentionally has no production Firebase client registration.
+    tasks.matching { it.name == 'processDebugGoogleServices' }.configureEach {
+        enabled = false
+    }
+}
+
+tasks.matching { it.name == 'connectedDebugAndroidTest' }.configureEach {
+    doFirst {
+        if (!pulseE2eeInstrumentedTest) {
+            throw new GradleException(
+                'Gebruik -PpulseE2eeInstrumentedTest=true zodat instrumentatietests '
+                    + 'de geinstalleerde Play Store-app niet vervangen.'
+            )
         }
     }
 }
@@ -156,6 +192,8 @@ dependencies {
     debugImplementation "androidx.compose.ui:ui-tooling"
     implementation "io.github.webrtc-sdk:android:144.7559.15"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
+    implementation "org.signal:libsignal-client:$libsignalVersion"
+    implementation "org.signal:libsignal-android:$libsignalVersion"
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"
     testImplementation "org.json:json:20250517"

@@ -19,21 +19,23 @@ Gevolg:
 
 - `REACT_APP_E2EE_TRANSPORT=socket` blijft de veilige standaard
 
-## 2. Mock crypto eerst, echte crypto later
+## 2. Mock crypto is uitsluitend een testharnas
 
 Besluit:
 
-- eerst architectuur, berichtmodel en backendcontract stabiliseren
-- pas daarna een echte crypto-adapter inpluggen
+- gebruik de bestaande mock alleen om UI- en transportintegratie te testen
+- activeer `signal_v1` nooit als productie-E2EE
+- bouw echte E2EE onder een nieuw, incompatibel `pulse_e2ee_v2`-protocol
 
 Waarom:
 
-- maakt integratiefouten eerder zichtbaar
-- voorkomt dat librarydetails de hele appstructuur bepalen
+- voorkomt dat Base64-data of gedeelde mock keys als encryptie worden aangemerkt
+- maakt een harde scheiding tussen het prototype en het beveiligde wiremodel
 
 Gevolg:
 
-- `REACT_APP_E2EE_MODE=mock` blijft voorlopig de veilige standaard
+- `REACT_APP_E2EE_MODE=mock` blijft alleen de veilige legacystandaard
+- een storing in v2 mag nooit terugvallen naar mock of plaintext
 
 ## 3. Adapterlaag tussen app en crypto
 
@@ -149,17 +151,77 @@ Gevolg:
 - chatmedia blijft uit composer- en serviceflows
 - acceptatie en rollout toetsen expliciet dat dit zo blijft
 
+## 10. Echte E2EE gebruikt per-device envelopes
+
+Besluit:
+
+- ieder doelapparaat krijgt een eigen protocol-envelope
+- ook de andere apparaten van de afzender krijgen een eigen envelope
+- de backend bewaart en distribueert geen gedeelde message key
+
+Waarom:
+
+- sessies, prekeys en delivery-status horen bij een apparaat
+- dit voorkomt dat een server-side sleutelconstructie de E2EE-claim ondermijnt
+
+Gevolg:
+
+- het v2-contract is device-aware van key claim tot receipt
+- one-time prekeys worden atomair geclaimd en verbruikt
+
+## 11. Android is de eerste proof client; browser heeft een harde gate
+
+Besluit:
+
+- de eerste echte provider wordt als native Android-provider bewezen
+- private keys en sessierecords gaan niet over de JavaScript-bridge
+- browserondersteuning komt pas vrij na selectie van een onderhouden provider die
+  dezelfde protocolvectors verwerkt
+
+Waarom:
+
+- de officiele libsignal-TypeScriptbinding is voor Node en geen browserbundle
+- Web Crypto levert cryptografische bouwstenen, geen Signal-ratchet
+
+Gevolg:
+
+- `v2_required` gesprekken zijn niet beschikbaar op een browser zonder
+  goedgekeurde provider
+- de backend ontsleutelt nooit als browserfallback
+
+## 12. Productclaims volgen bewijs, niet feature flags
+
+Besluit:
+
+- Pulse toont pas `End-to-end versleuteld` nadat de relevante client, backend en
+  protocoltests alle acceptatiegates halen
+- WebRTC krijgt pas dezelfde claim na identity-bound verificatie van de
+  verbinding
+
+Waarom:
+
+- transportencryptie en mock encoding zijn geen end-to-end encryptie
+- een gedeeltelijke rollout mag gebruikers niet misleiden
+
+Gevolg:
+
+- legacygesprekken krijgen geen E2EE-label
+- ontbrekende ondersteuning leidt tot blokkeren of duidelijke incompatibiliteit,
+  nooit tot stille downgrade
+
 ## Open Beslissingen
 
 Deze punten zijn bewust nog niet definitief gemaakt:
 
-- keuze voor echte crypto-library
+- definitieve Android-provider na juridische en technische review
+- onderhouden browserprovider
 - group encryption model
 - encrypted edit-model
-- web-specifieke hardening van key storage
+- concrete key-storage-implementatie per platform
 
 ## Lees Verder
 
 - [E2EE_ARCHITECTURE_OVERVIEW.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ARCHITECTURE_OVERVIEW.md)
+- [E2EE_PROTOCOL_V2_DECISION.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_PROTOCOL_V2_DECISION.md)
 - [E2EE_IMPLEMENTATION_STATUS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_IMPLEMENTATION_STATUS.md)
 - [E2EE_ROLLOUT.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ROLLOUT.md)

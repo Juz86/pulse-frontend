@@ -113,3 +113,17 @@ Belangrijkste documenten:
 - build, tests en lint zijn eerder succesvol gedraaid
 - de actieve scope is chat
 - de volgende grote stap ligt aan backendkant
+
+## Licentie En Broncode
+
+De oorspronkelijke Pulse-code in deze repository is beschikbaar onder de
+[GNU Affero General Public License v3.0](LICENSE), uitsluitend versie 3
+(`AGPL-3.0-only`). Externe libraries, afbeeldingen, lettertypen en andere
+third-party onderdelen behouden hun eigen licenties.
+
+- third-party attributies: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+- release en Corresponding Source: [SOURCE_DISTRIBUTION.md](SOURCE_DISTRIBUTION.md)
+
+De aanwezigheid van een open-sourcelicentie verandert de actieve beveiliging
+niet: de echte E2EE-provider blijft uitgeschakeld totdat alle technische en
+dependencygates zijn geslaagd.

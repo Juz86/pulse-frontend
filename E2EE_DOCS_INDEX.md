@@ -16,6 +16,11 @@ Als je wilt begrijpen hoe de frontend-E2EE-laag intern is opgesplitst:
 Als je wilt zien welke ontwerpkeuzes al bewust vastliggen:
 
 - [E2EE_DECISIONS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_DECISIONS.md)
+- [E2EE_PROTOCOL_V2_DECISION.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_PROTOCOL_V2_DECISION.md)
+- [E2EE_ANDROID_PROVIDER_GATE.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ANDROID_PROVIDER_GATE.md)
+- [E2EE_LIBSIGNAL_LICENSE_DECISION.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_LIBSIGNAL_LICENSE_DECISION.md)
+- [E2EE_OPEN_SOURCE_READINESS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_OPEN_SOURCE_READINESS.md)
+- [E2EE_V2_BACKEND_API.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_V2_BACKEND_API.md)
 
 Als je snel de gebruikte termen wilt kunnen plaatsen:
 
@@ -81,13 +86,17 @@ Voor veilige voorbeeldconfiguratie zonder productiegeheimen:
 ## Aanbevolen Leesvolgorde
 
 1. [E2EE_IMPLEMENTATION_STATUS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_IMPLEMENTATION_STATUS.md)
-2. [E2EE_ROLLOUT.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ROLLOUT.md)
-3. [BACKEND_E2EE_API_SPEC.md](/home/yushuaabdulkadir/pulse-frontend/BACKEND_E2EE_API_SPEC.md)
-4. [BACKEND_E2EE_FIRESTORE_PLAN.md](/home/yushuaabdulkadir/pulse-frontend/BACKEND_E2EE_FIRESTORE_PLAN.md)
-5. [E2EE_BACKEND_HANDOFF_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BACKEND_HANDOFF_CHECKLIST.md)
+2. [E2EE_PROTOCOL_V2_DECISION.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_PROTOCOL_V2_DECISION.md)
+3. [E2EE_V2_BACKEND_API.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_V2_BACKEND_API.md)
+4. [E2EE_ROLLOUT.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ROLLOUT.md)
+5. [BACKEND_E2EE_API_SPEC.md](/home/yushuaabdulkadir/pulse-frontend/BACKEND_E2EE_API_SPEC.md)
+6. [BACKEND_E2EE_FIRESTORE_PLAN.md](/home/yushuaabdulkadir/pulse-frontend/BACKEND_E2EE_FIRESTORE_PLAN.md)
+7. [E2EE_BACKEND_HANDOFF_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BACKEND_HANDOFF_CHECKLIST.md)
 
 ## Praktisch
 
-De frontend is voorbereid, geverifieerd en gedocumenteerd voor chatten, bellen en videobellen. De volgende grote stap is nu acceptatie en gecontroleerde activatie van die scope, zonder chatmedia toe te voegen.
+De bestaande frontend is voorbereid op een mock-servicefase, maar niet op echte
+cryptografische E2EE. Voor nieuwe implementatie en productieclaims is
+`E2EE_PROTOCOL_V2_DECISION.md` leidend.
 
 Oudere attachment- of media-runbooks kunnen nog in de repo staan als historisch of intern referentiemateriaal, maar horen niet bij de actieve productscope.

@@ -6,30 +6,52 @@ Dit document verzamelt de belangrijkste punten die bewust nog niet definitief zi
 
 Huidige status:
 
-- frontend draait nog op mock crypto
+- frontend draait nog op mock crypto; dit is geen productie-E2EE
+- de officiele Android-libsignalbinding is kandidaat voor de eerste proof client
+- de officiele TypeScriptbinding is Node-native en geen browserprovider
 
 Open vraag:
 
-- welke library of combinatie wordt de echte implementatie voor device keys, sessies en message encryption?
+- doorstaat de Android-kandidaat de licentie-, lifecycle- en technische review?
+- welke onderhouden browserprovider verwerkt exact dezelfde vastgelegde vectors?
 
 Waarom nog open:
 
-- eerst moet de serviceflow stabiel zijn met mock crypto
+- externe libsignal-API's worden niet als stabiele publieke API ondersteund
+- providerkeuze moet aantoonbaar interoperabel, onderhoudbaar en auditbaar zijn
+- de huidige officiele artifacts zijn AGPL-3.0-only; juridische goedkeuring voor
+  Pulse en Google Play is nog niet vastgelegd
+
+Gebouwde voorbereiding:
+
+- de native Keystore-opslag, libsignal-sessieprovider en niet-exporterende
+  Capacitor-bridge zijn gereed
+- de plugin blijft tot de echte-devicevalidatie fail-closed
+  `providerAvailable: false` rapporteren
+- zie `E2EE_ANDROID_PROVIDER_GATE.md` voor de resterende acceptatiepunten
+
+Besluit op 17 oktober 2026:
+
+- libsignal bundelen staat op `NO-GO` zolang Pulse geen expliciet goedgekeurd
+  licentie- en distributiepad heeft
+- zie `E2EE_LIBSIGNAL_LICENSE_DECISION.md` voor de drie toegestane vervolgroutes
 
 ## 2. Hoe hard willen we web ondersteunen voor echte E2EE?
 
 Huidige status:
 
-- web kan de architectuur al volgen
-- lokale opslag is nog niet hard genoeg voor sterke productclaims
+- web heeft nog geen goedgekeurde protocolprovider
+- Web Crypto en IndexedDB kunnen opslag beschermen, maar implementeren geen
+  Double Ratchet of sessiebeheer
 
 Open vraag:
 
-- is web een volwaardige E2EE-client, of vooral een lichtere/administratieve client?
+- welke provider en key-storageconstructie maken web een volwaardige E2EE-client?
 
 Waarom belangrijk:
 
-- dit beïnvloedt productcopy, security claims en storagekeuzes
+- zonder goedgekeurde provider kan web geen `v2_required` gesprek openen
+- er komt geen server-side decryptie of plaintextfallback
 
 ## 3. Wat wordt het encrypted edit-model?
 
@@ -122,5 +144,6 @@ Open vraag:
 Gebruik dit document samen met:
 
 - [E2EE_DECISIONS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_DECISIONS.md)
+- [E2EE_PROTOCOL_V2_DECISION.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_PROTOCOL_V2_DECISION.md)
 - [E2EE_ARCHITECTURE_OVERVIEW.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ARCHITECTURE_OVERVIEW.md)
 - [E2EE_BACKEND_HANDOFF_CHECKLIST.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BACKEND_HANDOFF_CHECKLIST.md)

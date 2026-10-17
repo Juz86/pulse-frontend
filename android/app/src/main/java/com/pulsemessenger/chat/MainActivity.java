@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import com.pulsemessenger.chat.call.v2.PulseCallFollowUpStore;
 import com.pulsemessenger.chat.call.v2.PulseTabletCallPanelHost;
+import com.pulsemessenger.chat.e2ee.v2.PulseE2eeV2Plugin;
 
 public class MainActivity extends BridgeActivity {
     public static final String ACTION_OPEN_CALL_CONTACT =
@@ -22,6 +23,7 @@ public class MainActivity extends BridgeActivity {
         PulseWebUpdateManager.prepareForAppStart(this);
         registerPlugin(PulseAppUpdatePlugin.class);
         registerPlugin(PulseCallPlugin.class);
+        registerPlugin(PulseE2eeV2Plugin.class);
         registerPlugin(PulseWebUpdatePlugin.class);
         super.onCreate(savedInstanceState);
         tabletCallPanelHost = new PulseTabletCallPanelHost(this);

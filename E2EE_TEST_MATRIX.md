@@ -2,7 +2,114 @@
 
 Deze matrix helpt om E2EE-gerelateerd gedrag gericht te testen zonder steeds opnieuw te bedenken welke paden geraakt worden.
 
-## 1. Login En Device Bootstrap
+## 1. V2 Contractgrenzen
+
+Scenario:
+
+- een device registreert publieke keymaterialen
+- een client ontvangt een geclaimde key bundle
+- een afzender verstuurt exact een envelope per doelapparaat
+- een ontvanger accepteert alleen de eigen delivery-envelope
+
+Belangrijke bestanden:
+
+- [src/lib/e2ee/v2/protocolV2Contract.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/protocolV2Contract.js)
+- [src/lib/e2ee/v2/protocolV2Contract.test.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/protocolV2Contract.test.js)
+
+Verwachte uitkomst:
+
+- alleen `pulse_e2ee_v2` versie 2 wordt geaccepteerd
+- plaintext-, preview-, private-key- en message-keyvelden worden geweigerd
+- ontbrekende, dubbele en onverwachte devices worden geweigerd
+- recipient user en device moeten met de geauthenticeerde ontvanger overeenkomen
+
+Backenddekking:
+
+- berichtmetadata bevat geen ciphertext of volledige envelopelijst
+- ieder actief doeldevice krijgt exact één eigen envelope-document
+- afzenders andere actieve devices worden meegenomen in de fan-out
+- ontbrekende, extra, dubbele en legacy doeldevices worden geweigerd
+- dezelfde UUID met dezelfde payload is idempotent
+- dezelfde UUID met gewijzigde ciphertext wordt geweigerd
+- Socket.IO ontvangt alleen een inhoudsloos event in de geverifieerde device-room
+- een device kan via HTTPS alleen de eigen envelope ophalen
+- 256 KiB wordt na base64-decoding server-side afgedwongen
+- legacy service- en socket-send worden bij `v2_required` geweigerd
+
+Android-opslagdekking:
+
+- recordnamen lekken geen ruwe user- of device-id
+- recordtype en ids zijn fail-closed gevalideerd
+- user, recordtype en record-id zijn aan AES-GCM AAD gebonden
+- private records zijn uitgesloten van backup en device-transfer
+- de bridge exporteert geen key- of sessierecords
+- encrypted write/read/remove, private-recordscheiding, secure-storage-
+  capability en identityherstel zijn geslaagd op een fysieke Android 16-Samsung
+- hardware-backed Keystore is bevestigd; StrongBox is op dit toestel niet
+  beschikbaar
+- dezelfde identity en registration-ID zijn na een volledige toestelreboot
+  hersteld
+- lockscreen, een tweede hardwareprofiel en backup/restore blijven afzonderlijke
+  fysieke gates
+
+Android-providerdekking:
+
+- bootstrap retourneert alleen publieke registratie- en capabilityvelden
+- het Signal-device-ID blijft aan dezelfde lokale identity gebonden
+- een eerste tekstbericht gebruikt een prekey-envelope
+- het ratchet-antwoord gebruikt een reguliere message-envelope
+- identity, prekeys en sessies blijven na een gesimuleerde appherstart bruikbaar
+- opaque backend-device-ID's blijven na herstart aan hetzelfde Signal-device-ID
+  gekoppeld en conflicterende koppelingen worden geweigerd
+- een hogere remote identity-versie verwijdert de oude sessie en trusted
+  identity en start opnieuw met een prekey-envelope
+- stale identity-versies en ingetrokken remote devices worden geweigerd
+- de JavaScript-adapter weigert buiten native Android fail-closed
+
+Belangrijke bestanden:
+
+- `android/app/src/main/java/com/pulsemessenger/chat/e2ee/v2/PulseE2eeV2Provider.java`
+- `android/app/src/main/java/com/pulsemessenger/chat/e2ee/v2/PulseE2eeV2Plugin.java`
+- `android/app/src/test/java/com/pulsemessenger/chat/e2ee/v2/PulseE2eeV2ProviderTest.java`
+- [src/lib/e2ee/v2/nativeAndroidProvider.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/nativeAndroidProvider.js)
+- [src/lib/e2ee/v2/nativeAndroidProvider.test.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/nativeAndroidProvider.test.js)
+
+V2-clientnetwerkdekking:
+
+- ongeldige publieke registratie wordt vóór de netwerkaanroep geweigerd
+- backendfoutcodes zoals `v2_not_enabled` blijven stabiel beschikbaar
+- recipient- en own-deviceclaims worden vóór cryptografisch gebruik gevalideerd
+- een envelope wordt alleen geaccepteerd voor de ingelogde user en het eigen device
+- registratiebootstrap stopt zolang de native providergate gesloten is
+- bestaande sessies versturen zonder opnieuw prekeys te claimen
+- een gewijzigde backend-recipientset veroorzaakt maximaal een claimrefresh en
+  hergebruikt ciphertext voor ongewijzigde devices
+- een nieuw recipient- of sibling-device krijgt een eigen prekey-envelope
+- decryptie gebruikt het servergeverifieerde `senderSignalDeviceId`
+- decryptie gebruikt ook de servergeverifieerde `senderIdentityVersion`, zodat
+  gemiste realtime lifecycle-events bij delivery worden hersteld
+- intrekking van het huidige device wist alle lokale native E2EE-records
+- lifecycle- en message-available-socketevents worden serieel verwerkt
+- gespiegeld of herhaald aangeboden events worden gededupliceerd
+- mislukte messageverwerking kan bij een volgend event opnieuw worden gestart
+- afmelden verwijdert alleen de E2EE v2-listeners van deze coordinator
+- een geldige opaque devicebinding wordt in Socket.IO-auth geplaatst en een
+  actieve socket herverbindt precies eenmaal
+
+Belangrijke bestanden:
+
+- [src/lib/e2ee/v2/v2ApiClient.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/v2ApiClient.js)
+- [src/lib/e2ee/v2/v2ApiClient.test.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/v2ApiClient.test.js)
+- [src/lib/e2ee/v2/androidDeviceRegistration.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/androidDeviceRegistration.js)
+- [src/lib/e2ee/v2/androidMessageOrchestrator.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/androidMessageOrchestrator.js)
+- [src/lib/e2ee/v2/androidMessageOrchestrator.test.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/androidMessageOrchestrator.test.js)
+- [src/lib/e2ee/v2/androidSessionLifecycle.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/androidSessionLifecycle.js)
+- [src/lib/e2ee/v2/androidSessionLifecycle.test.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/androidSessionLifecycle.test.js)
+- [src/lib/e2ee/v2/androidSocketLifecycle.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/androidSocketLifecycle.js)
+- [src/lib/e2ee/v2/androidSocketLifecycle.test.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/androidSocketLifecycle.test.js)
+- [src/services/socketE2ee.test.js](/home/yushuaabdulkadir/pulse-frontend/src/services/socketE2ee.test.js)
+
+## 2. Login En Device Bootstrap
 
 Scenario:
 
@@ -20,7 +127,7 @@ Verwachte uitkomst:
 - in `mock + socket` geen onnodige bootstrapflow
 - in `mock + service` wel bootstrappoging
 
-## 2. Legacy Bericht Laden
+## 3. Legacy Bericht Laden
 
 Scenario:
 
@@ -38,11 +145,11 @@ Verwachte uitkomst:
 - `protocol` valt terug op `legacy_plaintext`
 - UI toont gewone tekst
 
-## 3. Encrypted Wire Bericht Laden
+## 4. Mock Wire Bericht Laden
 
 Scenario:
 
-- `signal_v1` bericht wordt opgehaald
+- legacy/mock `signal_v1` bericht wordt opgehaald
 
 Belangrijke bestanden:
 
@@ -55,7 +162,7 @@ Verwachte uitkomst:
 - hydrateert naar plaintext als mogelijk
 - of toont `Versleuteld bericht`
 
-## 4. Direct Chat Versturen Via Socket
+## 5. Direct Chat Versturen Via Socket
 
 Scenario:
 
@@ -70,7 +177,7 @@ Verwachte uitkomst:
 - bestaande socketflow blijft werken
 - optimistic message verschijnt
 
-## 5. Direct Chat Versturen Via Service
+## 6. Mock Direct Chat Versturen Via Service
 
 Scenario:
 
@@ -87,7 +194,7 @@ Verwachte uitkomst:
 - optimistic message gaat van `sending` naar `sent`
 - backend response levert `messageId`
 
-## 6. Retry Flow
+## 7. Retry Flow
 
 Scenario:
 
@@ -104,7 +211,7 @@ Verwachte uitkomst:
 - bericht krijgt `failed`
 - retry zet bericht weer naar `sending`
 
-## 7. Live Ontvangst
+## 8. Live Ontvangst
 
 Scenario:
 
@@ -120,7 +227,7 @@ Verwachte uitkomst:
 - frontend accepteert `message:received` en `message:new`
 - bericht wordt eerst gehydrateerd
 
-## 8. Conversation Preview
+## 9. Conversation Preview
 
 Scenario:
 
@@ -137,7 +244,7 @@ Verwachte uitkomst:
 - of `Versleuteld bericht`
 - maar geen lege string bij relevante input
 
-## 9. Bel En Videobel Kaarten
+## 10. Bel En Videobel Kaarten
 
 Scenario:
 
@@ -155,7 +262,7 @@ Verwachte uitkomst:
 - gemiste oproepen blijven klikbaar waar bedoeld
 - spraak en video gebruiken dezelfde stabiele renderflow
 
-## 10. Geen Chatmedia Of Attachments
+## 11. Geen Chatmedia Of Attachments
 
 Scenario:
 
@@ -173,7 +280,7 @@ Verwachte uitkomst:
 - de composer blijft tekstgericht
 - E2EE-scope blijft beperkt tot chat, bel en video
 
-## 11. Edit Policy
+## 12. Edit Policy
 
 Scenario:
 
@@ -191,7 +298,7 @@ Verwachte uitkomst:
 - editoptie ontbreekt voor `signal_v1`
 - plaintext edit-event overschrijft encrypted bericht niet
 
-## 12. Parent Policy Deny
+## 13. Parent Policy Deny
 
 Scenario:
 

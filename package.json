@@ -1,6 +1,7 @@
 {
   "name": "pulse-frontend",
   "version": "1.0.0",
+  "license": "AGPL-3.0-only",
   "private": true,
   "dependencies": {
     "@capacitor/android": "^8.3.1",
@@ -33,6 +34,7 @@
     "deploy:landing": "node scripts/deploy-pages.js landing",
     "deploy:webapp": "node scripts/deploy-pages.js webapp",
     "verify:deployed-targets": "node scripts/verify-deployed-targets.js",
+    "verify:open-source": "node scripts/check-open-source-release.js",
     "verify:public-headers": "node scripts/verify-public-headers.js",
     "test:deployed-targets": "node --test scripts/verify-deployed-targets.test.js",
     "lint": "eslint src --ext .js,.jsx",

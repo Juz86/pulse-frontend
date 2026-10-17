@@ -1,5 +1,11 @@
 # Pulse Backend E2EE API Spec
 
+> **Status: mock/legacy contract.** Dit document beschrijft het bestaande
+> `signal_v1`-prototype en is niet geschikt voor echte cryptografische E2EE.
+> Voor nieuw werk is
+> [E2EE_PROTOCOL_V2_DECISION.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_PROTOCOL_V2_DECISION.md)
+> leidend. Activeer dit contract niet als productie-E2EE.
+
 > Overlap-notitie:
 > Voor het normatieve backendcontract tussen Android en de Pulse backend is
 > `docs/BACKEND_CONTRACT_CHAT_CALL_VIDEO.md` leidend.
@@ -324,9 +330,13 @@ Aanbevolen backendvolgorde:
 4. `GET /api/messages/:convId` met mixed protocol support
 5. `message:new` realtime event
 
-Aanbevolen frontendactivatie daarna:
+Alleen voor lokale mock-integratietests:
 
 1. houd `REACT_APP_E2EE_MODE=mock`
 2. zet `REACT_APP_E2EE_TRANSPORT=service`
 3. test 1-op-1 direct chats
-4. vervang daarna pas mock-crypto door echte crypto
+4. activeer dit nooit als productie-E2EE
+
+De echte opvolger gebruikt het afzonderlijke `pulse_e2ee_v2`-contract uit
+[E2EE_PROTOCOL_V2_DECISION.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_PROTOCOL_V2_DECISION.md),
+met per-device envelopes en zonder downgrade naar dit mockpad.

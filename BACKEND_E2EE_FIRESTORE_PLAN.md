@@ -1,5 +1,10 @@
 # Pulse Backend E2EE Firestore Plan
 
+> **Status: mock/legacy datamodel.** De voorbeelden met `signal_v1` beschrijven
+> het bestaande prototype en zijn niet voldoende voor echte E2EE. Gebruik voor
+> nieuwe implementatie het per-device wiremodel en de lifecycle-eisen uit
+> [E2EE_PROTOCOL_V2_DECISION.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_PROTOCOL_V2_DECISION.md).
+
 Dit document beschrijft een praktisch Firestore-plan voor de backendroutes en services die de frontend inmiddels verwacht voor chatten, bellen en videobellen.
 
 Het doel is:
@@ -20,6 +25,27 @@ Belangrijk:
 - ParentDashboard gebruikt metadata, niet berichtinhoud
 
 ## Collecties
+
+### `pulse_e2ee_v2` message-opslag
+
+Voor gesprekken met `e2eeState: v2_pending|v2_required` gebruikt de backend:
+
+`conversations/{conversationId}/messages/{clientMessageId}`
+
+Dit document bevat alleen protocol- en routeringsmetadata, waaronder sender,
+message type, recipient-device-count en timestamps. Het bevat geen ciphertext,
+plaintext of volledige envelopes.
+
+`conversations/{conversationId}/messages/{clientMessageId}/deviceEnvelopes/{opaqueAudienceId}`
+
+Ieder document bevat precies één protocol-envelope voor één combinatie van
+recipient user en device. `opaqueAudienceId` is een base64url-gecodeerde
+audience-sleutel en voorkomt dat ruwe ids in Socket.IO-roomnamen staan. Toegang
+loopt uitsluitend via de geauthenticeerde v2-envelope-route; clients lezen deze
+subcollectie niet rechtstreeks.
+
+De send-transactie valideert de volledige actieve-device-set voordat metadata,
+envelopes en de generieke conversation preview samen worden geschreven.
 
 ### `users`
 
@@ -377,7 +403,8 @@ Bij voorkeur:
 1. maak collecties `devices`, `child_policies`, `approved_contacts`, `message_recipients`, `policy_events`
 2. laat bestaande routes backendmatig lezen/schrijven uit deze nieuwe bronnen
 3. voeg E2EE-routes toe uit `BACKEND_E2EE_API_SPEC.md`
-4. activeer frontend `service` transport
+4. gebruik frontend `service` transport alleen voor lokale mock-integratietests
+5. activeer productie pas via het afzonderlijke `pulse_e2ee_v2`-rolloutpad
 
 ## Praktische aanbeveling
 

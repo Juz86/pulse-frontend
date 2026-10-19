@@ -11,6 +11,8 @@ import {
 import { canApplyPlaintextEditUpdate } from '../lib/e2ee/policy';
 import { normalizeSingleUserReaction } from '../lib/e2ee/messageReactions';
 import { isRealtimePopupRelevant } from './useRealtimeSync';
+import { attachAndroidE2eeV2SocketLifecycle } from '../lib/e2ee/v2/androidSocketLifecycle';
+import { PULSE_E2EE_V2_PROTOCOL } from '../lib/e2ee/v2/protocolV2Contract';
 
 const PRIVATE_NOTIFICATION_BODY = 'Open Pulse om het bericht veilig te bekijken.';
 const PRIVATE_REQUEST_NOTIFICATION_BODY = 'Open Pulse om de uitnodiging te bekijken.';
@@ -43,6 +45,7 @@ export default function useChat({
   onReconnect,
   onOpenMentionConversation,
   onTransientMessage,
+  e2eeV2QaRuntime = null,
 }) {
   const disconnectTimerRef   = useRef(null);
   const reconnectIntervalRef = useRef(null);
@@ -150,7 +153,9 @@ export default function useChat({
 
     const onMessageReceived = async (msg) => {
       let hydratedMsg;
-      try {
+      if (msg?.protocol === PULSE_E2EE_V2_PROTOCOL) {
+        hydratedMsg = normalizeIncomingMessage(msg, user.uid);
+      } else try {
         hydratedMsg = await messagingService.hydrateIncomingMessage(msg, user.uid);
       } catch {
         hydratedMsg = normalizeIncomingMessage(msg, user.uid);
@@ -587,8 +592,10 @@ export default function useChat({
 
     socket.on('connect',          onConnect);
     socket.on('disconnect',       onDisconnect);
-    socket.on('message:received', onMessageReceived);
-    socket.on('message:new',      onMessageReceived);
+    if (!e2eeV2QaRuntime?.enabled) {
+      socket.on('message:received', onMessageReceived);
+      socket.on('message:new',      onMessageReceived);
+    }
     socket.on('typing:update',    onTypingUpdate);
     socket.on('typing:start',     onTypingUpdate);
     socket.on('typing:stop',      onTypingUpdate);
@@ -616,13 +623,45 @@ export default function useChat({
     socket.on('contact:unblocked-by-parent', onContactUnblockedByParent);
     socket.on('contact:removed-by-parent',   onContactRemovedByParent);
 
+    let detachE2eeV2QaLifecycle = null;
+    if (e2eeV2QaRuntime?.ready) {
+      detachE2eeV2QaLifecycle = attachAndroidE2eeV2SocketLifecycle({
+        socket,
+        user,
+        localDeviceId: e2eeV2QaRuntime.localDeviceId,
+        localSignalDeviceId: e2eeV2QaRuntime.localSignalDeviceId,
+        onMessage: (message) => onMessageReceived({
+          ...message,
+          id: message.messageId,
+          localId: message.clientMessageId,
+          convId: message.conversationId,
+          senderId: message.senderUserId,
+          text: message.plaintext,
+          type: message.messageType,
+          protocol: PULSE_E2EE_V2_PROTOCOL,
+          decryptedLocally: true,
+          ciphertextAvailable: true,
+          transient: true,
+        }),
+        onLocalDeviceInvalidated: () => {
+          showErrToast('Dit E2EE QA-apparaat is ingetrokken. Registreer de testapp opnieuw.');
+        },
+        onError: (error) => {
+          showErrToast(error?.message || 'Versleuteld bericht verwerken mislukt');
+        },
+      });
+    }
+
     if (socket.connected) onConnect();
 
     return () => {
       socket.off('connect',          onConnect);
       socket.off('disconnect',       onDisconnect);
-      socket.off('message:received', onMessageReceived);
-      socket.off('message:new',      onMessageReceived);
+      if (!e2eeV2QaRuntime?.enabled) {
+        socket.off('message:received', onMessageReceived);
+        socket.off('message:new',      onMessageReceived);
+      }
+      detachE2eeV2QaLifecycle?.();
       socket.off('typing:update',    onTypingUpdate);
       socket.off('typing:start',     onTypingUpdate);
       socket.off('typing:stop',      onTypingUpdate);
@@ -654,7 +693,13 @@ export default function useChat({
       typingTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));
       typingTimeoutsRef.current.clear();
     };
-  }, [socket]);
+  }, [
+    socket,
+    e2eeV2QaRuntime?.enabled,
+    e2eeV2QaRuntime?.ready,
+    e2eeV2QaRuntime?.localDeviceId,
+    e2eeV2QaRuntime?.localSignalDeviceId,
+  ]);
   /* eslint-enable react-hooks/exhaustive-deps */
 
   // ── Inactiviteitsdetectie ─────────────────────────────────────────────────

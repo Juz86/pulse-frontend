@@ -1,8 +1,42 @@
 export const E2EE_MODE = process.env.REACT_APP_E2EE_MODE || 'mock';
 export const E2EE_TRANSPORT = process.env.REACT_APP_E2EE_TRANSPORT || 'socket';
+export const E2EE_V2_QA_ENABLED = process.env.REACT_APP_E2EE_V2_QA_ENABLED === 'true';
+export const E2EE_V2_QA_BACKEND_URL = String(
+  process.env.REACT_APP_E2EE_V2_QA_BACKEND_URL || ''
+).replace(/\/+$/, '');
+
+const PRODUCTION_BACKEND_HOST = 'api.pulse-messenger.com';
 
 export const isE2EEServiceTransportEnabled = E2EE_TRANSPORT === 'service';
-export const shouldBootstrapE2EEDevice = isE2EEServiceTransportEnabled || E2EE_MODE === 'signal';
+export const shouldBootstrapE2EEDevice = !E2EE_V2_QA_ENABLED
+  && (isE2EEServiceTransportEnabled || E2EE_MODE === 'signal');
+
+export function assertE2eeV2QaConfiguration({
+  enabled = E2EE_V2_QA_ENABLED,
+  mode = E2EE_MODE,
+  transport = E2EE_TRANSPORT,
+  backendUrl = E2EE_V2_QA_BACKEND_URL,
+  runtimeBackendUrl = backendUrl,
+} = {}) {
+  if (!enabled) return false;
+  if (mode !== 'signal' || transport !== 'v2') {
+    throw new Error('v2_qa_transport_config_invalid');
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(backendUrl);
+  } catch {
+    throw new Error('v2_qa_backend_url_invalid');
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol) || parsed.hostname === PRODUCTION_BACKEND_HOST) {
+    throw new Error('v2_qa_backend_not_isolated');
+  }
+  if (String(runtimeBackendUrl || '').replace(/\/+$/, '') !== parsed.toString().replace(/\/+$/, '')) {
+    throw new Error('v2_qa_backend_mismatch');
+  }
+  return true;
+}
 
 export function getServiceTransportFallbackBannerState({
   transport = E2EE_TRANSPORT,

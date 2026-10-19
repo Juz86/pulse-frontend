@@ -155,9 +155,26 @@ Backend gereed in deze fase:
 - exact-device fan-out, eigen-device synchronisatie en UUID-idempotentie;
 - geverifieerde socket-device binding en inhoudsloze realtime notificaties;
 - eigen-envelope-fetch via een geauthenticeerde HTTPS-route;
-- 48 gerichte v2-backendtests en 185 backendtests in totaal geslaagd;
+- 49 gerichte v2-backendtests en 185 backendtests in totaal geslaagd;
 - legacy service- en socket-send worden geblokkeerd zodra een gesprek
   `v2_required` is.
+- Firestore TTL is actief op `e2eePreKeyClaims.expiresAt` in de standaarddatabase
+  van `pulse-messenger-3cb9d`;
+- de TTL-policy en de twee bestaande samengestelde indexen zijn declaratief
+  vastgelegd in
+  [firestore.indexes.json](/home/yushuaabdulkadir/pulse-frontend/firestore.indexes.json);
+- na de TTL-deploy zijn 49 gerichte v2-backendtests en alle 185 backendtests
+  opnieuw geslaagd, zonder productieactivatie van E2EE.
+
+TTL-verwijderprobe voor operationele controle:
+
+- document:
+  `conversations/pulse-e2ee-ttl-verification/e2eePreKeyClaims/ttl_probe_20261018080100135`;
+- aangemaakt op `2026-10-18T08:01:00.135Z`;
+- `expiresAt` staat op `2026-10-18T07:01:00.135Z`;
+- de probe bevat uitsluitend testmetadata en geen gebruiker- of berichtgegevens;
+- na de door Firestore gedocumenteerde verwerkingstijd moet een `NOT_FOUND`-
+  controle bevestigen dat het document automatisch is verwijderd.
 
 Android-providerbasis gereed:
 
@@ -219,12 +236,51 @@ Android-providerbasis gereed:
   reconnect wanneer het lokale v2-device wordt gekoppeld;
 - automatische sessievernieuwing met een nieuwe prekey-envelope na een hogere
   remote identity-versie, inclusief weigering van stale versies;
-- 216 frontendtests en 185 backendtests in totaal geslaagd.
+- interne Android QA-runtime die alleen met `REACT_APP_E2EE_TRANSPORT=v2`,
+  `REACT_APP_E2EE_V2_QA_ENABLED=true` en een expliciet niet-productiebackendadres
+  start;
+- aparte debug-app-ID `com.pulsemessenger.chat.e2eeqa`; releasebuilds blokkeren
+  de QA-provider en de normale debugvariant houdt `providerAvailable: false`;
+- live een-op-een-tekstberichten via de native send/receive-orchestrator aan de
+  chatruntime gekoppeld, zonder fallback naar legacy socket- of plaintextfeeds;
+- nog niet door v2 ondersteunde groepen, reacties, antwoorden, vermeldingen,
+  bewerken, doorsturen en contactkaarten worden in QA fail-closed geweigerd;
+- 221 frontendtests en 185 backendtests in totaal geslaagd.
+- de afgescheiden QA-backend draait op Railway met Firebase-project
+  `pulse-messenger-e2ee-qa`, `E2EE_V2_ENABLED=true` en een EUR 5-budget; buiten
+  actieve tests heeft de Railway-service geen actieve deployment;
+- een live QA-contractsmoketest voor Auth, twee devices, prekeyclaim,
+  ciphertextdelivery, recipient-envelope en idempotentie is geslaagd; alle
+  tijdelijke gebruikers- en berichtdata is daarna verwijderd;
+- Firestore TTL voor `e2eePreKeyClaims.expiresAt` is actief en alle bijbehorende
+  indexen zijn gereed; een bewust verlopen record wacht op de asynchrone
+  verwijdercontrole;
+- een aparte QA-APK `com.pulsemessenger.chat.e2eeqa` versie
+  `1.0.24-e2ee-qa` is gebouwd met SHA-256
+  `730c4518ab81ffc39baa3a2959e30fbf90262cf4d4d247705a0b36435d465d2b`.
 
-De echte Android-protocolprovider is lokaal gebouwd, maar rapporteert nog
-fail-closed `providerAvailable: false` en blijft buiten de productiechatflow.
-E2EE-flags blijven uit totdat registratie, delivery, multi-devicegedrag en
-lifecycle op echte Android-apparaten zijn bewezen.
+Releasegrootte met de native provider, lokaal gemeten op versiecode `80`:
+
+- gesigneerde release-AAB: `136083980` bytes (`136.08 MB`, `129.78 MiB`);
+- SHA-256:
+  `643c047c4b1ac655cee51b12249103fbd44426951729619ac2baac746ba07d37`;
+- door Bundletool `1.18.3` geschatte downloadgrootte: `43.26-46.91 MB`;
+- `arm64-v8a`: `45.33-45.51 MB`;
+- `armeabi-v7a`: `43.26-43.44 MB`;
+- `x86`: `45.29-45.47 MB`;
+- `x86_64`: `46.73-46.91 MB`;
+- de grootste bijdrage is de niet-gestripte `libsignal_jni.so`, die voor vier
+  ABI's in de uploadbundle zit; Play levert per apparaat alleen de passende ABI;
+- de maximale geschatte download van `46.91 MB` blijft ruim onder de huidige
+  Google Play-limieten en onder de `200 MB`-drempel voor de melding over een
+  grote mobiele download.
+
+De echte Android-protocolprovider blijft in normale debug- en releasebuilds
+fail-closed `providerAvailable: false` en buiten de productiechatflow. Alleen de
+expliciete, naast Pulse installeerbare interne QA-debugbuild rapporteert de
+provider tijdelijk als beschikbaar. Productie-E2EE blijft uit totdat
+registratie, delivery, offline herstel, multi-devicegedrag en lifecycle op echte
+Android-apparaten zijn bewezen.
 
 Deze frontendrepository is als `AGPL-3.0-only` gelicentieerd. Lokale
 libsignal-builds zijn mogelijk; een publieke release blijft `NO-GO` totdat
@@ -235,13 +291,13 @@ en
 
 De eerstvolgende implementatiefase is:
 
-1. Android-naar-Android encryptie, decryptie, restart en multi-device sync op
-   twee echte apparaten bewijzen;
-2. de geteste, nog niet geactiveerde socketcoordinator tijdens de
-   echte-deviceproef aan de interne v2-runtime koppelen en
-   herstel-/registratie-UX valideren;
-3. release-AAB- en per-device downloadgrootte meten;
-4. Firestore TTL voor tijdelijke claimrecords configureren en verifiëren;
+1. Android-naar-Android live encryptie/decryptie en herregistratie met twee
+   echte apparaten bewijzen;
+2. een device-specifieke gemiste-berichtenfeed bouwen voordat restart,
+   achtergrondontvangst en offline herstel als geslaagd mogen gelden;
+3. multi-device sync, revoke en identity change op echte apparaten valideren;
+4. bevestigen dat Firestore het bewust verlopen QA-testrecord binnen de gedocumenteerde
+   verwerkingstijd verwijdert;
 5. pas daarna een interne `v2_pending` pilot starten;
 6. later een browserprovider selecteren en valideren.
 
@@ -249,8 +305,9 @@ De eerstvolgende implementatiefase is:
 
 De frontend is nu niet "af" qua echte E2EE, maar wel functioneel gekoppeld aan een lokale servicefase voor chatten, bellen en videobellen.
 
-De grootste open stap is nu de native provider en orchestrator op twee echte
-Android-apparaten bewijzen, inclusief restart, revoke, identity change en
-multi-device sync. Pas daarna mag de geisoleerde v2-flow gecontroleerd aan de
-chatruntime worden gekoppeld; de huidige mock-serviceflow mag nog steeds niet
-als E2EE worden geactiveerd.
+De grootste open stap is nu de interne QA-flow tegen een aparte v2-backend op
+twee echte Android-apparaten bewijzen. Live tekst is gekoppeld, maar de backend
+mist nog een device-specifieke feed voor events die een apparaat offline heeft
+gemist. Restart, achtergrondontvangst en offline herstel zijn daarom nog niet
+bewezen. De huidige mock-serviceflow mag nog steeds niet als E2EE worden
+geactiveerd.

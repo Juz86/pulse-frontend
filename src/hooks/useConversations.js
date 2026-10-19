@@ -29,6 +29,7 @@ import {
 import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/policy';
 import { normalizeSingleUserReaction, toggleSingleUserReaction } from '../lib/e2ee/messageReactions';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
+import { PULSE_E2EE_V2_PROTOCOL } from '../lib/e2ee/v2/protocolV2Contract';
 import {
   readCachedConversations,
   readCachedMessages,
@@ -60,6 +61,7 @@ export default function useConversations({
   msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
   serviceTransportReady = false,
   messageEditingEnabled = false,
+  e2eeV2QaRuntime = null,
 }) {
   const authFetch = useCallback(async (url, options = {}, { forceRefresh = false } = {}) => {
     const token = await user.getIdToken(forceRefresh);
@@ -118,6 +120,7 @@ export default function useConversations({
   const [loadingMore,    setLoadingMore]    = useState(false);
   const [msgOffset,      setMsgOffset]      = useState(0);
   const [currentDeviceId, setCurrentDeviceId] = useState(null);
+  const isV2QaEnabled = e2eeV2QaRuntime?.enabled === true;
 
   useEffect(() => {
     const cached = conversations.map((conversation) => ({
@@ -307,6 +310,9 @@ export default function useConversations({
   }
 
   const fetchConversationMessages = useCallback(async (convId, { limit = MSG_LIMIT, offset = 0 } = {}) => {
+    // The v2 QA backend currently exposes per-device envelope retrieval only.
+    // Never fall back to the legacy plaintext history endpoint in this build.
+    if (isV2QaEnabled) return [];
     const query = new URLSearchParams({
       limit: String(limit),
       offset: String(offset),
@@ -335,7 +341,7 @@ export default function useConversations({
       throw error;
     }
     return legacyRes.json();
-  }, [authFetch, currentDeviceId, readJsonResponse]);
+  }, [authFetch, currentDeviceId, isV2QaEnabled, readJsonResponse]);
 
   const hydrateMissingConversationPreviews = useCallback(async (serverConversations, localConversations) => {
     const encryptedPreview = getEncryptedMessageDisplayText();
@@ -402,7 +408,40 @@ export default function useConversations({
   }
 
   function resolvePendingMessageProtocol(conv) {
+    if (isV2QaEnabled) return PULSE_E2EE_V2_PROTOCOL;
     return shouldUseServiceTransport(conv) ? ENCRYPTED_MESSAGE_PROTOCOL : SOCKET_FALLBACK_PROTOCOL;
+  }
+
+  async function sendViaV2Qa({ conv, plaintext }) {
+    const recipients = getConversationRecipients(conv);
+    if (!e2eeV2QaRuntime?.ready) throw new Error('E2EE QA is nog niet gereed.');
+    if (!['v2_pending', 'v2_required'].includes(conv?.e2eeState)) {
+      throw new Error('Dit testgesprek is nog niet voor E2EE v2 geactiveerd.');
+    }
+    if (conv?.isGroup || recipients.length !== 1) {
+      throw new Error('E2EE QA ondersteunt nu alleen een-op-een-gesprekken.');
+    }
+    const result = await e2eeV2QaRuntime.sendText({
+      conversationId: conv.id,
+      recipientUserId: recipients[0],
+      plaintext,
+    });
+    return {
+      id: result.messageId,
+      localId: result.clientMessageId || null,
+      convId: conv.id,
+      conversationId: conv.id,
+      senderId: user.uid,
+      senderDeviceId: e2eeV2QaRuntime.localDeviceId,
+      text: plaintext,
+      type: 'text',
+      messageType: 'text',
+      createdAt: result.acceptedAt || new Date().toISOString(),
+      protocol: PULSE_E2EE_V2_PROTOCOL,
+      decryptedLocally: true,
+      ciphertextAvailable: true,
+      transient: true,
+    };
   }
 
   function patchMessageAsSending(messageId, retryCount = 0) {
@@ -807,6 +846,10 @@ export default function useConversations({
   function sendEditedMessage() {
     const socket = getSocket();
     if (editSubmitting || !editingMsg || !text.trim()) return;
+    if (isV2QaEnabled) {
+      showErrToast('Berichten bewerken is nog niet beschikbaar in E2EE QA.');
+      return;
+    }
     if (!socket?.connected) {
       showErrToast('Geen verbinding. Probeer opnieuw zodra Pulse weer online is.');
       return;
@@ -863,13 +906,29 @@ export default function useConversations({
     };
 
     const sendPreparedMessage = (conv) => {
-      if (!socket?.connected && !shouldUseServiceTransport(conv)) {
+      const recipientUserIds = getConversationRecipients(conv);
+      if (isV2QaEnabled && !e2eeV2QaRuntime?.ready) {
+        showErrToast(e2eeV2QaRuntime?.error?.message || 'E2EE QA is nog niet gereed.');
+        return false;
+      }
+      if (isV2QaEnabled && (conv.isGroup || recipientUserIds.length !== 1)) {
+        showErrToast('E2EE QA ondersteunt nu alleen een-op-een-gesprekken.');
+        return false;
+      }
+      if (isV2QaEnabled && !['v2_pending', 'v2_required'].includes(conv.e2eeState)) {
+        showErrToast('Dit testgesprek is nog niet voor E2EE v2 geactiveerd.');
+        return false;
+      }
+      if (isV2QaEnabled && (replyContext || mentions.length > 0)) {
+        showErrToast('Antwoorden en vermeldingen zijn nog niet beschikbaar in E2EE QA.');
+        return false;
+      }
+      if (!isV2QaEnabled && !socket?.connected && !shouldUseServiceTransport(conv)) {
         showErrToast('Geen verbinding. Controleer je internet en probeer opnieuw.');
         return false;
       }
 
       const tempId = `temp-${Date.now()}`;
-      const recipientUserIds = getConversationRecipients(conv);
       const optimisticMsg = {
         ...buildPendingMessage({
           text: trimmedText,
@@ -901,14 +960,32 @@ export default function useConversations({
       setReplyTo(null);
       pendingTempIds.current.add(optimisticMsg.id);
       setMessages(prev => [...prev, optimisticMsg]);
-      savePending(optimisticMsg.id, conv.id, msg);
+      if (!isV2QaEnabled) savePending(optimisticMsg.id, conv.id, msg);
       setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
       setConversations(prev => applyConversationSummaryToList(prev, conv.id, optimisticMsg, msg.createdAt));
       const failTimer = setTimeout(() => {
         patchMessageAsFailed(optimisticMsg.id);
       }, 20000);
 
-      if (shouldUseServiceTransport(conv)) {
+      if (isV2QaEnabled) {
+        sendViaV2Qa({ conv, plaintext: trimmedText }).then((savedMsg) => {
+          clearTimeout(failTimer);
+          pendingTempIds.current.delete(optimisticMsg.id);
+          patchMessageAsSent(optimisticMsg.id, savedMsg, optimisticMsg.id);
+          const normalizedSavedMessage = normalizeIncomingMessage(savedMsg, user.uid);
+          setConversations((previous) => applyConversationSummaryToList(
+            previous,
+            conv.id,
+            normalizedSavedMessage,
+            normalizedSavedMessage.createdAt,
+          ));
+          storeTransientConversationMessage(conv.id, normalizedSavedMessage, { replaceMessageId: optimisticMsg.id });
+        }).catch((error) => {
+          clearTimeout(failTimer);
+          patchMessageAsFailed(optimisticMsg.id);
+          showErrToast(error?.message || 'Versleuteld bericht verzenden mislukt');
+        });
+      } else if (shouldUseServiceTransport(conv)) {
         sendViaService({
           conv,
           plaintext: trimmedText,
@@ -955,6 +1032,10 @@ export default function useConversations({
     };
 
     if (activeConv.isDraft) {
+      if (isV2QaEnabled) {
+        showErrToast('Maak en activeer dit testgesprek eerst op de E2EE QA-backend.');
+        return;
+      }
       if (!socket?.connected) {
         showErrToast('Geen verbinding. Controleer je internet en probeer opnieuw.');
         return;
@@ -997,6 +1078,10 @@ export default function useConversations({
 
   function sendContactCardToConversation(conv, sharedContact) {
     const socket = getSocket();
+    if (isV2QaEnabled) {
+      showErrToast('Contacten delen is nog niet beschikbaar in E2EE QA.');
+      return;
+    }
     if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !conv || !sharedContact) return;
 
     const normalizedSharedContact = {
@@ -1105,7 +1190,8 @@ export default function useConversations({
 
   function retryMessage(failedMsg) {
     const socket = getSocket();
-    if ((!socket?.connected && !shouldUseServiceTransport(activeConv)) || !activeConv) return;
+    if (!activeConv) return;
+    if (!isV2QaEnabled && !socket?.connected && !shouldUseServiceTransport(activeConv)) return;
     const retryCount = (failedMsg._retryCount || 0) + 1;
     const recipientUserIds = getConversationRecipients(activeConv);
     const retryPayload = buildRetryServicePayload(failedMsg);
@@ -1118,7 +1204,22 @@ export default function useConversations({
     const failTimer = setTimeout(() => {
       patchMessageAsFailed(failedMsg.id);
     }, 20000);
-    if (shouldUseServiceTransport(activeConv)) {
+    if (isV2QaEnabled) {
+      sendViaV2Qa({ conv: activeConv, plaintext: retryPayload.plaintext }).then((savedMsg) => {
+        clearTimeout(failTimer);
+        pendingTempIds.current.delete(failedMsg.id);
+        patchMessageAsSent(failedMsg.id, savedMsg, failedMsg.id);
+        storeTransientConversationMessage(
+          activeConv.id,
+          normalizeIncomingMessage(savedMsg, user.uid),
+          { replaceMessageId: failedMsg.id },
+        );
+      }).catch((error) => {
+        clearTimeout(failTimer);
+        patchMessageAsFailed(failedMsg.id);
+        showErrToast(error?.message || 'Opnieuw versleuteld versturen mislukt');
+      });
+    } else if (shouldUseServiceTransport(activeConv)) {
       sendViaService({
         conv: activeConv,
         plaintext: retryPayload.plaintext,
@@ -1177,6 +1278,10 @@ export default function useConversations({
   function toggleReaction(msgId, emoji) {
     const socket = getSocket();
     if (!activeConv) return;
+    if (isV2QaEnabled) {
+      showErrToast('Reacties zijn nog niet beschikbaar in E2EE QA.');
+      return;
+    }
     const targetText = getMessageDisplayText(messages.find((message) => message.id === msgId));
     const applyReactionPreview = (reactions, reactionAt = null) => {
       setConversations((previous) => applyConversationReactionSummaryToList(
@@ -1236,6 +1341,10 @@ export default function useConversations({
 
   async function forwardToConv(conv) {
     const socket = getSocket();
+    if (isV2QaEnabled) {
+      showErrToast('Doorsturen is nog niet beschikbaar in E2EE QA.');
+      return;
+    }
     if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !forwardMsg) return;
     const recipientUserIds = getConversationRecipients(conv);
     const forwardPayload = buildForwardServicePayload(forwardMsg);

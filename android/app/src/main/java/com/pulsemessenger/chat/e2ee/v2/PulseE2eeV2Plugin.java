@@ -8,6 +8,7 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.pulsemessenger.chat.BuildConfig;
 
 @CapacitorPlugin(name = "PulseE2eeV2")
 public final class PulseE2eeV2Plugin extends Plugin {
@@ -29,8 +30,14 @@ public final class PulseE2eeV2Plugin extends Plugin {
             response.put("ok", true);
             response.put("protocol", "pulse_e2ee_v2");
             response.put("protocolVersion", 2);
-            response.put("providerAvailable", false);
-            response.put("provider", "libsignal_android_pending_device_validation");
+            boolean qaProviderAvailable = BuildConfig.DEBUG && BuildConfig.PULSE_E2EE_QA_ENABLED;
+            response.put("providerAvailable", qaProviderAvailable);
+            response.put(
+                "provider",
+                qaProviderAvailable
+                    ? "libsignal_android_internal_qa"
+                    : "libsignal_android_pending_device_validation"
+            );
             response.put("secureStorage", capabilities.secureStorage);
             response.put("hardwareBackedKeystore", capabilities.hardwareBacked);
             response.put("strongBoxBacked", capabilities.strongBoxBacked);

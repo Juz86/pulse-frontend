@@ -11,6 +11,9 @@ def pulseNativeUpdatePublicKey = System.getenv('PULSE_NATIVE_UPDATE_PUBLIC_KEY')
 def pulseE2eeInstrumentedTest = providers.gradleProperty('pulseE2eeInstrumentedTest')
     .map { it.toBoolean() }
     .getOrElse(false)
+def pulseE2eeQa = providers.gradleProperty('pulseE2eeQa')
+    .map { it.toBoolean() }
+    .getOrElse(false)
 android {
     namespace "com.pulsemessenger.chat"
     compileSdk rootProject.ext.compileSdkVersion
@@ -42,6 +45,7 @@ android {
         // Pages build secret and must never enter the Android project.
         buildConfigField "String", "PULSE_NATIVE_UPDATE_PUBLIC_KEY", "\"${pulseNativeUpdatePublicKey.replace('\\', '\\\\').replace('"', '\\"')}\""
         buildConfigField "String", "PULSE_NATIVE_UPDATE_MANIFEST_URL", "\"https://web.pulse-messenger.com/native-updates/latest.json\""
+        buildConfigField "boolean", "PULSE_E2EE_QA_ENABLED", pulseE2eeQa.toString()
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
@@ -60,7 +64,11 @@ android {
     }
     buildTypes {
         debug {
-            if (pulseE2eeInstrumentedTest) {
+            if (pulseE2eeQa) {
+                // QA uses its own app identity and can coexist with Pulse from Google Play.
+                applicationIdSuffix ".e2eeqa"
+                versionNameSuffix "-e2ee-qa"
+            } else if (pulseE2eeInstrumentedTest) {
                 // Keep the E2EE test APK isolated from the Play Store app.
                 applicationIdSuffix ".e2eetest"
                 versionNameSuffix "-e2ee-test"
@@ -80,11 +88,19 @@ android {
     }
 }
 
-if (pulseE2eeInstrumentedTest) {
+if (pulseE2eeInstrumentedTest || pulseE2eeQa) {
     // Secure-store tests do not start Firebase and use an isolated package ID
     // that intentionally has no production Firebase client registration.
     tasks.matching { it.name == 'processDebugGoogleServices' }.configureEach {
         enabled = false
+    }
+}
+
+tasks.matching { it.name.toLowerCase().contains('release') }.configureEach {
+    doFirst {
+        if (pulseE2eeQa) {
+            throw new GradleException('E2EE QA mag uitsluitend als debug-APK worden gebouwd.')
+        }
     }
 }
 

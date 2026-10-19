@@ -19,6 +19,7 @@ import useProfile from '../hooks/useProfile';
 import useContacts from '../hooks/useContacts';
 import useRealtimeSync from '../hooks/useRealtimeSync';
 import useBrowserCall from '../hooks/useBrowserCall';
+import useAndroidE2eeV2QaRuntime from '../hooks/useAndroidE2eeV2QaRuntime';
 import { auth } from '../firebase';
 import {
   addNativeCallStatusListener,
@@ -329,6 +330,12 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
   };
 
   // ── Hooks ─────────────────────────────────────────────────────────────────
+  const e2eeV2QaRuntime = useAndroidE2eeV2QaRuntime({ user });
+  useEffect(() => {
+    if (e2eeV2QaRuntime.status === 'failed') {
+      showErrToast(e2eeV2QaRuntime.error?.message || 'E2EE QA kon niet worden gestart.');
+    }
+  }, [e2eeV2QaRuntime.error, e2eeV2QaRuntime.status, showErrToast]);
   const {
     conversations, setConversations, activeConv, setActiveConv,
     messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore, currentDeviceId,
@@ -350,6 +357,7 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
     msgCache, msgsAreaRef, activeConvRef, conversationsRef, textareaRef, typingTimer,
     serviceTransportReady,
     messageEditingEnabled,
+    e2eeV2QaRuntime,
   });
 
   const callHistoryRefreshKey = useMemo(() => conversations.map((conversation) => (
@@ -487,6 +495,7 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
     onReconnect: retryAllFailed,
     onOpenMentionConversation: openConversation,
     onTransientMessage: storeTransientConversationMessage,
+    e2eeV2QaRuntime,
   });
 
   // Central invalidation layer: local socket handlers keep the UI responsive,

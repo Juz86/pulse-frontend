@@ -1,4 +1,5 @@
 import {
+  clearE2eeV2PlaintextWebStorage,
   clearPulseUserStorage,
   DEFAULT_HISTORY_RETENTION_DAYS,
   formatConversationListTime,
@@ -7,6 +8,7 @@ import {
   normalizeEmail,
   normalizeUsername,
   parseDate,
+  readE2eeV2SafeCachedConversations,
   readSessionConversations,
   readStoredHistoryRules,
   safeJsonParse,
@@ -71,6 +73,27 @@ describe('utils safety helpers', () => {
     expect(localStorage.getItem('pulse_e2ee_session_user-1_friend-1_device-1')).toBe('{"sessionData":"abc"}');
     expect(localStorage.getItem('pulse_theme')).toBe('light');
     expect(sessionStorage.getItem('pulse_session_conversations_user-1')).toBeNull();
+  });
+
+  test('clearE2eeV2PlaintextWebStorage removes chat plaintext but keeps unrelated settings', () => {
+    localStorage.setItem('pulse_cached_conversations_user-1', '[{"lastMessage":"Geheim"}]');
+    localStorage.setItem('pulse_cached_messages_user-1_conv-1', '[{"text":"Geheim"}]');
+    localStorage.setItem('pulse_draft_user-1_conv-1', 'Geheim concept');
+    localStorage.setItem('pulse_pending_user-1', '[{"msg":{"text":"Geheim"}}]');
+    localStorage.setItem('pulse_theme', 'dark');
+    sessionStorage.setItem('pulse_session_conversations_user-1', '{"conv-1":[]}');
+
+    clearE2eeV2PlaintextWebStorage('user-1');
+
+    expect(readE2eeV2SafeCachedConversations('user-1')).toEqual([expect.objectContaining({
+      lastMessage: 'Versleuteld bericht',
+      lastReactionTargetText: null,
+    })]);
+    expect(localStorage.getItem('pulse_cached_messages_user-1_conv-1')).toBeNull();
+    expect(localStorage.getItem('pulse_draft_user-1_conv-1')).toBeNull();
+    expect(localStorage.getItem('pulse_pending_user-1')).toBeNull();
+    expect(sessionStorage.getItem('pulse_session_conversations_user-1')).toBeNull();
+    expect(localStorage.getItem('pulse_theme')).toBe('dark');
   });
 
   test('normalizeHistoryRules keeps defaults when values are absent', () => {

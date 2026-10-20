@@ -4,7 +4,15 @@ import {
 } from '../config';
 import { BACKEND_URL, setSocketE2EEDeviceId } from '../../../services/socket';
 import { registerAndroidE2eeV2Device } from './androidDeviceRegistration';
-import { sendAndroidE2eeV2Text } from './androidMessageOrchestrator';
+import {
+  receiveAndroidE2eeV2Text,
+  sendAndroidE2eeV2Text,
+} from './androidMessageOrchestrator';
+import {
+  clearNativeE2eeV2TextMessageHistory,
+  listNativeE2eeV2TextMessages,
+  storeNativeE2eeV2TextMessage,
+} from './nativeAndroidProvider';
 import { createV2ApiClient } from './v2ApiClient';
 
 const BINDING_PREFIX = 'pulse_e2ee_v2_qa_binding_';
@@ -30,6 +38,10 @@ function isValidBinding(value) {
   );
 }
 
+function isTemporaryBackendFailure(error) {
+  return !Number.isInteger(error?.status) || error.status === 0 || error.status >= 500;
+}
+
 export function readAndroidE2eeV2QaBinding(userId, storage = window.localStorage) {
   try {
     const value = JSON.parse(storage.getItem(bindingKey(userId)) || 'null');
@@ -37,6 +49,10 @@ export function readAndroidE2eeV2QaBinding(userId, storage = window.localStorage
   } catch {
     return null;
   }
+}
+
+export function clearAndroidE2eeV2QaBinding(userId, storage = window.localStorage) {
+  storage.removeItem(bindingKey(userId));
 }
 
 export function createAndroidE2eeV2QaBinding({
@@ -78,39 +94,181 @@ export async function startAndroidE2eeV2QaRuntime({
   randomUuid = () => window.crypto?.randomUUID?.(),
   bindSocketDevice = setSocketE2EEDeviceId,
   assertConfiguration = assertE2eeV2QaConfiguration,
+  receiveMessage = receiveAndroidE2eeV2Text,
+  sendMessage = sendAndroidE2eeV2Text,
+  clearStoredMessages = clearNativeE2eeV2TextMessageHistory,
+  listStoredMessages = listNativeE2eeV2TextMessages,
+  storeMessage = storeNativeE2eeV2TextMessage,
 } = {}) {
   assertConfiguration({ enabled: true, backendUrl, runtimeBackendUrl });
   if (!user?.uid) throw new Error('v2_auth_required');
 
-  const devices = await api.listDevices(user);
+  const existingBinding = readAndroidE2eeV2QaBinding(user.uid, storage);
+  const devices = existingBinding ? [] : await api.listDevices(user);
   const binding = createAndroidE2eeV2QaBinding({
     userId: user.uid,
     registeredDevices: devices,
     storage,
     randomUuid,
   });
-  const registration = await registerDevice({
-    user,
-    ...binding,
-    deviceLabel: 'Pulse Android E2EE QA',
-    api,
-  });
+  let registration;
+  if (existingBinding) {
+    registration = {
+      ...existingBinding,
+      identityVersion: existingBinding.identityVersion || 1,
+      status: 'REGISTERED_CACHED',
+    };
+  } else {
+    try {
+      registration = await registerDevice({
+        user,
+        ...binding,
+        deviceLabel: 'Pulse Android E2EE QA',
+        api,
+      });
+      storage.setItem(bindingKey(user.uid), JSON.stringify({
+        ...binding,
+        identityVersion: registration.identityVersion,
+        registered: true,
+      }));
+    } catch (error) {
+      if (!existingBinding || !isTemporaryBackendFailure(error)) throw error;
+      registration = {
+        ...existingBinding,
+        identityVersion: existingBinding.identityVersion || 1,
+        status: 'OFFLINE_REGISTERED',
+      };
+    }
+  }
   bindSocketDevice(registration.deviceId);
+
+  const receivedMessages = new Map();
+  let receiveQueue = Promise.resolve();
+  const messageKey = (conversationId, messageId) => `${conversationId}\u0000${messageId}`;
+  const receiveTextMessage = ({ conversationId, messageId }) => {
+    const operation = receiveQueue.then(async () => {
+      const key = messageKey(conversationId, messageId);
+      let cached = receivedMessages.get(key);
+      if (!cached) {
+        const message = await receiveMessage({
+          user,
+          localDeviceId: registration.deviceId,
+          localSignalDeviceId: registration.signalDeviceId,
+          conversationId,
+          messageId,
+          api,
+        });
+        await storeMessage({ userId: user.uid, ...message });
+        cached = { message, acknowledged: false };
+        receivedMessages.set(key, cached);
+      }
+      if (!cached.acknowledged) {
+        await api.acknowledgeMessage(user, {
+          conversationId,
+          messageId,
+          deviceId: registration.deviceId,
+        });
+        cached.acknowledged = true;
+      }
+      return cached.message;
+    });
+    receiveQueue = operation.catch(() => {});
+    return operation;
+  };
 
   return Object.freeze({
     ...registration,
     api,
+    invalidateLocalDevice({ reason = 'security_event' } = {}) {
+      clearAndroidE2eeV2QaBinding(user.uid, storage);
+      bindSocketDevice(null);
+      receivedMessages.clear();
+      return { invalidated: true, reason };
+    },
+    async clearTextMessages({ conversationId }) {
+      const result = await clearStoredMessages({
+        userId: user.uid,
+        conversationId,
+      });
+      for (const key of receivedMessages.keys()) {
+        if (key.startsWith(`${conversationId}\u0000`)) receivedMessages.delete(key);
+      }
+      return result;
+    },
     async sendText({ conversationId, recipientUserId, plaintext, clientMessageId }) {
-      return sendAndroidE2eeV2Text({
+      const stableClientMessageId = clientMessageId || requireUuid(randomUuid);
+      const result = await sendMessage({
         user,
         localDeviceId: registration.deviceId,
         localSignalDeviceId: registration.signalDeviceId,
         conversationId,
         recipientUserId,
         plaintext,
-        clientMessageId,
+        clientMessageId: stableClientMessageId,
         api,
       });
+      await storeMessage({
+        userId: user.uid,
+        conversationId,
+        messageId: result.messageId,
+        clientMessageId: result.clientMessageId || stableClientMessageId,
+        senderUserId: user.uid,
+        senderDeviceId: registration.deviceId,
+        messageType: 'text',
+        plaintext,
+        createdAt: result.acceptedAt || new Date().toISOString(),
+      });
+      return result;
     },
+    async fetchTextMessages({ conversationId, limit = 50, offset = 0 }) {
+      const resultKeys = new Set();
+      const stored = await listStoredMessages({
+        userId: user.uid,
+        conversationId,
+        limit,
+        offset,
+      });
+      stored.forEach((message) => {
+        const key = messageKey(conversationId, message.messageId);
+        receivedMessages.set(key, {
+          message,
+          acknowledged: false,
+        });
+        resultKeys.add(key);
+      });
+      let messages;
+      try {
+        messages = await api.listMessageFeed(user, {
+          conversationId,
+          deviceId: registration.deviceId,
+          limit,
+          offset,
+        });
+      } catch (error) {
+        const canUseOfflineHistory = stored.length > 0 && isTemporaryBackendFailure(error);
+        if (!canUseOfflineHistory) throw error;
+        messages = [];
+      }
+      const ordered = [...messages].sort((left, right) => (
+        Date.parse(left.createdAt || '') - Date.parse(right.createdAt || '')
+        || left.messageId.localeCompare(right.messageId)
+      ));
+      for (const message of ordered) {
+        const received = await receiveTextMessage({
+          conversationId: message.conversationId,
+          messageId: message.messageId,
+        });
+        resultKeys.add(messageKey(received.conversationId, received.messageId));
+      }
+      return [...resultKeys]
+        .map((key) => receivedMessages.get(key)?.message)
+        .filter(Boolean)
+        .filter((message) => message.conversationId === conversationId)
+        .sort((left, right) => (
+          Date.parse(left.createdAt || '') - Date.parse(right.createdAt || '')
+          || left.messageId.localeCompare(right.messageId)
+        ));
+    },
+    receiveTextMessage,
   });
 }

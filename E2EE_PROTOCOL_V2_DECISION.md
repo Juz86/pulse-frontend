@@ -144,6 +144,30 @@ Tot deze gate slaagt:
 - mag de backend nooit voor de browser ontsleutelen;
 - mag ontbrekende browserondersteuning geen plaintextdowngrade veroorzaken.
 
+Providerselectie op 20 oktober 2026:
+
+- de officiele Node-binding en oude JavaScript-forks zijn afgewezen als
+  browserprovider;
+- `@getmaapp/signal-wasm@0.6.6` is alleen een mogelijke geisoleerde
+  QA-kandidaat en geen goedgekeurde dependency;
+- de kandidaat is gebaseerd op libsignal `0.101.0`, terwijl Android op
+  `0.105.1` staat, en heeft nog geen onafhankelijke review van de actuele
+  wrapper;
+- een tijdelijke bronprobe tegen `0.105.1` bouwde succesvol, doorstond 51
+  headless Chromium-tests en leverde na een schone rebuild dezelfde WASM-hash;
+- integratie blijft desondanks `NO-GO` tot de paritybron onafhankelijk is
+  beoordeeld en veilige browseropslag, CSP-impact en de volledige
+  Android-browser-testmatrix zijn gevalideerd.
+
+De bindende acceptatievoorwaarden staan in
+[E2EE_BROWSER_PROVIDER_GATE.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_PROVIDER_GATE.md).
+Het technische paritybewijs staat in
+[E2EE_BROWSER_PROVIDER_PARITY_PROBE.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_PROVIDER_PARITY_PROBE.md).
+De formele reconstructie-inputs staan in
+[security/e2ee/browser-provider-review](/home/yushuaabdulkadir/pulse-frontend/security/e2ee/browser-provider-review/README.md)
+en het bindende opslag-, CSP- en panic-herstelontwerp in
+[E2EE_BROWSER_SECURITY_DESIGN.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_SECURITY_DESIGN.md).
+
 ## Backend en realtime
 
 De backend bewaart uitsluitend protocol-enveloppen en noodzakelijke metadata.
@@ -211,6 +235,21 @@ controleert. TURN mag alleen versleutelde media relayeren.
 8. Zet geselecteerde gesprekken om naar `v2_required`.
 9. Toon pas daarna een E2EE-indicator voor die specifieke gesprekken.
 
+Uitvoeringsstatus op 20 oktober 2026:
+
+- stappen 1 tot en met 4 zijn gebouwd en op twee fysieke Android-apparaten
+  gevalideerd, inclusief offline herstel, multi-device, revoke en
+  identity-change;
+- voor stap 5 zijn providerselectie, technische libsignal-versiepariteit, een
+  reproduceerbare reviewbundle en het browserbeveiligingsontwerp gereed, maar
+  Pulse-integratie en interoperabiliteitsvalidatie blijven geblokkeerd door de
+  onafhankelijke review;
+- voor stap 6 is een strikt afgescheiden Android-only QA-pilot met een
+  `v2_pending`-gesprek geslaagd. Dit is geen productiepilot en verandert de
+  browsergate of productievoorwaarden niet;
+- stappen 7 tot en met 9 blijven geblokkeerd totdat de browserprovider en
+  onafhankelijke securityreview zijn afgerond.
+
 Stap 1 is uitgevoerd in:
 
 - [src/lib/e2ee/v2/protocolV2Contract.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/protocolV2Contract.js)
@@ -234,8 +273,8 @@ Signal-adressen gekoppeld en een geisoleerde send/receive-orchestrator
 hergebruikt sessies zonder per bericht nieuwe prekeys te claimen. Identity-
 versies zijn aan mappings en delivery-envelopes gebonden; hogere versies en
 device-revokes verwijderen oude sessies fail-closed, ook wanneer het realtime
-security-event werd gemist.
-Productiekoppeling en echte-devicevalidatie staan nog open. Zie
+security-event werd gemist. De Android-provider en lifecycle zijn op twee echte
+devices gevalideerd; productiekoppeling blijft bewust gesloten. Zie
 [E2EE_ANDROID_PROVIDER_GATE.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_ANDROID_PROVIDER_GATE.md).
 - `/home/yushuaabdulkadir/pulse-backend/src/e2ee/v2/routes.js`
 

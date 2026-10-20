@@ -196,6 +196,46 @@ describe('E2EE v2 API client', () => {
       deviceId: 'device-a1',
     })).resolves.toMatchObject({ recipientDeviceId: 'device-a1' });
   });
+
+  test('lists only message descriptors for the requested device feed', async () => {
+    fetchImpl.mockResolvedValue(response({
+      messages: [{
+        protocol: 'pulse_e2ee_v2',
+        protocolVersion: 2,
+        conversationId: 'conversation-1',
+        messageId: 'message-1',
+        createdAt: '2026-10-17T12:00:00.000Z',
+      }],
+    }));
+
+    await expect(client.listMessageFeed(USER, {
+      conversationId: 'conversation-1',
+      deviceId: 'device-a1',
+      limit: 30,
+      offset: 0,
+    })).resolves.toHaveLength(1);
+    expect(fetchImpl.mock.calls[0][0]).toBe(
+      'https://api.pulse.test/v2/conversations/conversation-1/messages?deviceId=device-a1&limit=30&offset=0',
+    );
+  });
+
+  test('acknowledges a decrypted device envelope without plaintext', async () => {
+    fetchImpl.mockResolvedValue(response({ ok: true, idempotent: false }));
+
+    await client.acknowledgeMessage(USER, {
+      conversationId: 'conversation-1',
+      messageId: 'message-1',
+      deviceId: 'device-a1',
+    });
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      'https://api.pulse.test/v2/conversations/conversation-1/messages/message-1/ack',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ deviceId: 'device-a1' }),
+      }),
+    );
+  });
 });
 
 test('V2ApiError has a stable fallback code', () => {

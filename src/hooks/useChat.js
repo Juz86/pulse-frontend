@@ -624,12 +624,14 @@ export default function useChat({
     socket.on('contact:removed-by-parent',   onContactRemovedByParent);
 
     let detachE2eeV2QaLifecycle = null;
+    let detachE2eeV2QaResumeSync = null;
     if (e2eeV2QaRuntime?.ready) {
       detachE2eeV2QaLifecycle = attachAndroidE2eeV2SocketLifecycle({
         socket,
         user,
         localDeviceId: e2eeV2QaRuntime.localDeviceId,
         localSignalDeviceId: e2eeV2QaRuntime.localSignalDeviceId,
+        receiveMessage: e2eeV2QaRuntime.receiveTextMessage,
         onMessage: (message) => onMessageReceived({
           ...message,
           id: message.messageId,
@@ -643,13 +645,72 @@ export default function useChat({
           ciphertextAvailable: true,
           transient: true,
         }),
-        onLocalDeviceInvalidated: () => {
-          showErrToast('Dit E2EE QA-apparaat is ingetrokken. Registreer de testapp opnieuw.');
+        onLocalDeviceInvalidated: (result) => {
+          e2eeV2QaRuntime.invalidateLocalDevice(result);
+          msgCache.current = {};
+          activeConvRef.current = null;
+          setMessages([]);
+          setActiveConv(null);
+          setConversations((previous) => previous.map((conversation) => ({
+            ...conversation,
+            lastMessage: conversation.lastMessage ? 'Versleuteld bericht' : '',
+            lastReactionTargetText: null,
+          })));
+          showErrToast(
+            result?.revoked
+              ? 'Dit E2EE QA-apparaat is ingetrokken. Herstart de testapp om opnieuw te registreren.'
+              : 'De E2EE-identiteit is gewijzigd. Herstart de testapp om veilig opnieuw te registreren.'
+          );
         },
         onError: (error) => {
           showErrToast(error?.message || 'Versleuteld bericht verwerken mislukt');
         },
       });
+
+      let lastResumeSyncAt = 0;
+      const syncActiveE2eeConversation = () => {
+        if (document.visibilityState !== 'visible') return;
+        const conversationId = activeConvRef.current?.id;
+        if (!conversationId) return;
+        const now = Date.now();
+        if (now - lastResumeSyncAt < 1000) return;
+        lastResumeSyncAt = now;
+
+        e2eeV2QaRuntime.fetchTextMessages({ conversationId })
+          .then((receivedMessages) => {
+            const visibleMessageIds = new Set(
+              (messagesRef.current || []).map((message) => message?.id).filter(Boolean)
+            );
+            receivedMessages
+              .filter((message) => !visibleMessageIds.has(message.messageId))
+              .forEach((message) => onMessageReceived({
+                ...message,
+                id: message.messageId,
+                localId: message.clientMessageId,
+                convId: message.conversationId,
+                senderId: message.senderUserId,
+                text: message.plaintext,
+                type: message.messageType,
+                protocol: PULSE_E2EE_V2_PROTOCOL,
+                decryptedLocally: true,
+                ciphertextAvailable: true,
+                transient: true,
+              }));
+          })
+          .catch((error) => {
+            console.warn('[Pulse] E2EE QA hervattingssynchronisatie mislukt:', error?.message || error);
+          });
+      };
+      const onVisibilityChange = () => syncActiveE2eeConversation();
+
+      document.addEventListener('visibilitychange', onVisibilityChange);
+      window.addEventListener('focus', syncActiveE2eeConversation);
+      window.addEventListener('pageshow', syncActiveE2eeConversation);
+      detachE2eeV2QaResumeSync = () => {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        window.removeEventListener('focus', syncActiveE2eeConversation);
+        window.removeEventListener('pageshow', syncActiveE2eeConversation);
+      };
     }
 
     if (socket.connected) onConnect();
@@ -662,6 +723,7 @@ export default function useChat({
         socket.off('message:new',      onMessageReceived);
       }
       detachE2eeV2QaLifecycle?.();
+      detachE2eeV2QaResumeSync?.();
       socket.off('typing:update',    onTypingUpdate);
       socket.off('typing:start',     onTypingUpdate);
       socket.off('typing:stop',      onTypingUpdate);

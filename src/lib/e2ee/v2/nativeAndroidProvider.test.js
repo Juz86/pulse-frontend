@@ -1,12 +1,15 @@
 import { isNativePulseEnvironment } from '../../platform/runtime';
 import {
   bootstrapNativeE2eeV2Device,
+  clearNativeE2eeV2TextMessageHistory,
   clearNativeE2eeV2UserState,
   decryptNativeE2eeV2Text,
   encryptNativeE2eeV2Text,
   getNativeE2eeV2Status,
   invalidateNativeE2eeV2RemoteDevice,
+  listNativeE2eeV2TextMessages,
   listNativeE2eeV2SessionDevices,
+  storeNativeE2eeV2TextMessage,
 } from './nativeAndroidProvider';
 
 const mockGetPlatform = jest.fn(() => 'android');
@@ -16,6 +19,9 @@ const mockEncryptText = jest.fn();
 const mockDecryptText = jest.fn();
 const mockListSessionDevices = jest.fn();
 const mockInvalidateRemoteDevice = jest.fn();
+const mockStoreTextMessage = jest.fn();
+const mockListTextMessages = jest.fn();
+const mockClearTextMessageHistory = jest.fn();
 const mockClearUserState = jest.fn();
 
 jest.mock('@capacitor/core', () => ({
@@ -27,6 +33,9 @@ jest.mock('@capacitor/core', () => ({
     decryptText: (...args) => mockDecryptText(...args),
     listSessionDevices: (...args) => mockListSessionDevices(...args),
     invalidateRemoteDevice: (...args) => mockInvalidateRemoteDevice(...args),
+    storeTextMessage: (...args) => mockStoreTextMessage(...args),
+    listTextMessages: (...args) => mockListTextMessages(...args),
+    clearTextMessageHistory: (...args) => mockClearTextMessageHistory(...args),
     clearUserState: (...args) => mockClearUserState(...args),
   }),
 }));
@@ -50,6 +59,9 @@ describe('native Android E2EE v2 provider', () => {
       devices: [{ deviceId: 'device-b1', signalDeviceId: 2, identityVersion: 1 }],
     });
     mockInvalidateRemoteDevice.mockResolvedValue({ invalidated: true });
+    mockStoreTextMessage.mockResolvedValue({ stored: true, messageCount: 1 });
+    mockListTextMessages.mockResolvedValue({ messages: [{ messageId: 'message-1' }] });
+    mockClearTextMessageHistory.mockResolvedValue({ cleared: true, removedMessages: 1 });
     mockClearUserState.mockResolvedValue({ ok: true });
 
     await expect(bootstrapNativeE2eeV2Device({ userId: 'alice' }))
@@ -64,6 +76,12 @@ describe('native Android E2EE v2 provider', () => {
       });
     await expect(invalidateNativeE2eeV2RemoteDevice({ remoteDeviceId: 'device-b1' }))
       .resolves.toEqual({ invalidated: true });
+    await expect(storeNativeE2eeV2TextMessage({ messageId: 'message-1' }))
+      .resolves.toEqual({ stored: true, messageCount: 1 });
+    await expect(listNativeE2eeV2TextMessages({ conversationId: 'conversation-1' }))
+      .resolves.toEqual([{ messageId: 'message-1' }]);
+    await expect(clearNativeE2eeV2TextMessageHistory({ conversationId: 'conversation-1' }))
+      .resolves.toEqual({ cleared: true, removedMessages: 1 });
     await expect(clearNativeE2eeV2UserState('alice')).resolves.toEqual({ ok: true });
     expect(mockClearUserState).toHaveBeenCalledWith({ userId: 'alice' });
   });

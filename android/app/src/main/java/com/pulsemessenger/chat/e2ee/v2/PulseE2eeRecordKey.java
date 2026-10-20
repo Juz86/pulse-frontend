@@ -25,7 +25,9 @@ final class PulseE2eeRecordKey {
         "signal_session",
         "signal_sender_key",
         "signal_index",
-        "signal_metadata"
+        "signal_metadata",
+        "message_history",
+        "message_history_index"
     );
 
     private PulseE2eeRecordKey() {}

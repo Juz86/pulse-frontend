@@ -12,8 +12,9 @@ Huidige status:
 
 Open vraag:
 
-- doorstaat de Android-kandidaat de licentie-, lifecycle- en technische review?
-- welke onderhouden browserprovider verwerkt exact dezelfde vastgelegde vectors?
+- doorstaat de Android-provider de onafhankelijke securityreview?
+- doorstaat de bewezen browser-WASM-paritypatch een onafhankelijke rebuild en
+  securityreview, gevolgd door de volledige Android-browser-testmatrix?
 
 Waarom nog open:
 
@@ -29,6 +30,8 @@ Gebouwde voorbereiding:
 - de plugin blijft tot de echte-devicevalidatie fail-closed
   `providerAvailable: false` rapporteren
 - zie `E2EE_ANDROID_PROVIDER_GATE.md` voor de resterende acceptatiepunten
+- zie `E2EE_BROWSER_PROVIDER_GATE.md` voor de browserselectie en blokkades
+- zie `E2EE_BROWSER_SECURITY_DESIGN.md` voor opslag, CSP en panic-herstel
 
 Besluit op 17 oktober 2026:
 
@@ -43,10 +46,19 @@ Huidige status:
 - web heeft nog geen goedgekeurde protocolprovider
 - Web Crypto en IndexedDB kunnen opslag beschermen, maar implementeren geen
   Double Ratchet of sessiebeheer
+- de officiele Node-binding en oude JavaScript-forks zijn afgewezen
+- de gepubliceerde `@getmaapp/signal-wasm@0.6.6` is uitsluitend een mogelijke
+  QA-kandidaat; de libsignal-basis wijkt af van Android en een onafhankelijke
+  review ontbreekt
+- een tijdelijke bronprobe op Androids libsignal `0.105.1` bouwde succesvol,
+  doorstond 51 browsertests en was binnen dezelfde omgeving byte-reproduceerbaar
 
 Open vraag:
 
-- welke provider en key-storageconstructie maken web een volwaardige E2EE-client?
+- bevestigt een onafhankelijke review de vastgelegde paritybuild en het
+  browserbeveiligingsontwerp?
+- kan de reviewkandidaat daarna achter de bestaande fail-closed providergrens
+  worden geintegreerd zonder de strikte QA-CSP te verruimen?
 
 Waarom belangrijk:
 

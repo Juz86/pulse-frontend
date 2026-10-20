@@ -1,0 +1,13 @@
+diff --git a/Cargo.toml b/Cargo.toml
+index 9689237..07d574b 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -26,3 +26,3 @@ console_error_panic_hook = "=0.1.7"
+-# Pinned to libsignal v0.101.0 @ b056faa6d (2026-08-19), workspace version 0.101.0.
+-libsignal-protocol = { git = "https://github.com/signalapp/libsignal", rev = "b056faa6dd02961cff24064c54c089c52e1a0753" }
+-zkgroup = { git = "https://github.com/signalapp/libsignal", rev = "b056faa6dd02961cff24064c54c089c52e1a0753" }
++# Pulse parity probe: libsignal v0.105.1 @ 1738ead8a.
++libsignal-protocol = { git = "https://github.com/signalapp/libsignal", rev = "1738ead8a12ffe539f6309958123dadb16dc3b95" }
++zkgroup = { git = "https://github.com/signalapp/libsignal", rev = "1738ead8a12ffe539f6309958123dadb16dc3b95" }
+@@ -39,0 +40 @@ getrandom = { version = "=0.3.4", features = ["wasm_js"] }
++getrandom_v04 = { package = "getrandom", version = "=0.4.3", features = ["wasm_js"] }

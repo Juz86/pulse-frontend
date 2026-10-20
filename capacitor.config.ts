@@ -4,8 +4,12 @@ const config: CapacitorConfig = {
   appId: 'com.pulsemessenger.chat',
   appName: 'Pulse',
   webDir: 'build',
+  loggingBehavior: 'none',
   server: {
     cleartext: false,
+  },
+  android: {
+    webContentsDebuggingEnabled: false,
   },
 };
 

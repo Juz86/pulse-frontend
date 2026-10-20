@@ -95,6 +95,30 @@ export function writeCachedConversations(uid, conversations) {
   localStorage.setItem(getPulseCachedConversationsStorageKey(uid), JSON.stringify(value));
 }
 
+export function readE2eeV2SafeCachedConversations(uid) {
+  const safe = readCachedConversations(uid).map((conversation) => ({
+    id: conversation.id,
+    members: Array.isArray(conversation.members) ? conversation.members : [],
+    memberNames: conversation.memberNames || {},
+    memberEmails: conversation.memberEmails || {},
+    isGroup: !!conversation.isGroup,
+    groupName: conversation.groupName || null,
+    e2eeState: conversation.e2eeState || null,
+    lastMessage: conversation.lastMessage ? 'Versleuteld bericht' : '',
+    lastMessageType: conversation.lastMessageType || null,
+    lastCallEvent: conversation.lastCallEvent || null,
+    updatedAt: conversation.updatedAt || conversation.lastMessageAt || null,
+    lastMessageAt: conversation.lastMessageAt || conversation.updatedAt || null,
+    lastReactionMessageId: conversation.lastReactionMessageId || null,
+    lastReactionEmoji: conversation.lastReactionEmoji || null,
+    lastReactionReactorId: conversation.lastReactionReactorId || null,
+    lastReactionAt: conversation.lastReactionAt || null,
+    lastReactionTargetText: null,
+  }));
+  writeCachedConversations(uid, safe);
+  return safe;
+}
+
 export function readCachedContacts(uid) {
   if (typeof window === 'undefined' || !window.localStorage || !uid) return [];
   const value = safeJsonParse(localStorage.getItem(getPulseCachedContactsStorageKey(uid)), []);
@@ -162,6 +186,24 @@ export function writeCachedMessages(uid, convId, messages, limit = 120) {
   const normalized = Array.isArray(messages) ? messages : [];
   const value = normalized.slice(Math.max(0, normalized.length - limit));
   localStorage.setItem(getPulseCachedMessagesStorageKey(uid, convId), JSON.stringify(value));
+}
+
+export function clearE2eeV2PlaintextWebStorage(uid) {
+  if (typeof window === 'undefined' || !uid) return;
+  window.sessionStorage?.removeItem(getPulseSessionConversationsStorageKey(uid));
+  window.localStorage?.removeItem(`pulse_pending_${uid}`);
+  readE2eeV2SafeCachedConversations(uid);
+  if (!window.localStorage) return;
+  const prefixes = [
+    `pulse_cached_messages_${uid}_`,
+    `pulse_draft_${uid}_`,
+  ];
+  const matches = [];
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const key = window.localStorage.key(index);
+    if (prefixes.some((prefix) => key?.startsWith(prefix))) matches.push(key);
+  }
+  matches.forEach((key) => window.localStorage.removeItem(key));
 }
 
 export function createSvgDataUrl(svg) {

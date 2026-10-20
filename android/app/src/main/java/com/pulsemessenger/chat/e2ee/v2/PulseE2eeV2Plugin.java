@@ -14,12 +14,14 @@ import com.pulsemessenger.chat.BuildConfig;
 public final class PulseE2eeV2Plugin extends Plugin {
     private PulseE2eeSecureStore secureStore;
     private PulseE2eeV2Provider provider;
+    private PulseE2eeMessageHistory messageHistory;
 
     @Override
     public void load() {
         super.load();
         secureStore = new PulseE2eeSecureStore(getContext());
         provider = new PulseE2eeV2Provider(secureStore);
+        messageHistory = new PulseE2eeMessageHistory(secureStore);
     }
 
     @PluginMethod
@@ -224,6 +226,83 @@ public final class PulseE2eeV2Plugin extends Plugin {
     }
 
     @PluginMethod
+    public void storeTextMessage(PluginCall call) {
+        try {
+            String userId = requiredString(call, "userId", "e2ee_user_id_required");
+            PulseE2eeMessageHistory.TextMessage message = new PulseE2eeMessageHistory.TextMessage(
+                requiredString(call, "conversationId", "e2ee_conversation_id_required"),
+                requiredString(call, "messageId", "e2ee_message_id_required"),
+                optionalString(call, "clientMessageId"),
+                requiredString(call, "senderUserId", "e2ee_sender_user_id_required"),
+                requiredString(call, "senderDeviceId", "e2ee_sender_device_id_required"),
+                requiredString(call, "messageType", "e2ee_message_type_required"),
+                call.getString("plaintext"),
+                requiredString(call, "createdAt", "e2ee_created_at_required")
+            );
+            int messageCount = messageHistory.store(userId, message);
+            JSObject response = protocolResponse();
+            response.put("stored", true);
+            response.put("messageCount", messageCount);
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("e2ee_history_store_failed", safeMessage(error), error);
+        }
+    }
+
+    @PluginMethod
+    public void listTextMessages(PluginCall call) {
+        try {
+            String userId = requiredString(call, "userId", "e2ee_user_id_required");
+            String conversationId = requiredString(
+                call,
+                "conversationId",
+                "e2ee_conversation_id_required"
+            );
+            int limit = call.getInt("limit", 50);
+            int offset = call.getInt("offset", 0);
+            JSArray messages = new JSArray();
+            for (
+                PulseE2eeMessageHistory.TextMessage message
+                : messageHistory.list(userId, conversationId, limit, offset)
+            ) {
+                JSObject value = new JSObject();
+                value.put("conversationId", message.conversationId);
+                value.put("messageId", message.messageId);
+                if (message.clientMessageId != null) {
+                    value.put("clientMessageId", message.clientMessageId);
+                }
+                value.put("senderUserId", message.senderUserId);
+                value.put("senderDeviceId", message.senderDeviceId);
+                value.put("messageType", message.messageType);
+                value.put("plaintext", message.plaintext);
+                value.put("createdAt", message.createdAt);
+                messages.put(value);
+            }
+            JSObject response = protocolResponse();
+            response.put("messages", messages);
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("e2ee_history_list_failed", safeMessage(error), error);
+        }
+    }
+
+    @PluginMethod
+    public void clearTextMessageHistory(PluginCall call) {
+        try {
+            int removedMessages = messageHistory.clear(
+                requiredString(call, "userId", "e2ee_user_id_required"),
+                requiredString(call, "conversationId", "e2ee_conversation_id_required")
+            );
+            JSObject response = protocolResponse();
+            response.put("cleared", true);
+            response.put("removedMessages", removedMessages);
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("e2ee_history_clear_failed", safeMessage(error), error);
+        }
+    }
+
+    @PluginMethod
     public void clearUserState(PluginCall call) {
         String userId = call.getString("userId");
         if (userId == null) {
@@ -332,6 +411,11 @@ public final class PulseE2eeV2Plugin extends Plugin {
         String value = call.getString(key);
         if (value == null || value.isBlank()) throw new IllegalArgumentException(code);
         return value;
+    }
+
+    private static String optionalString(PluginCall call, String key) {
+        String value = call.getString(key);
+        return value == null || value.isBlank() ? null : value;
     }
 
     private static String requiredString(JSObject object, String key, String code) {

@@ -35,6 +35,7 @@
     "deploy:webapp": "node scripts/deploy-pages.js webapp",
     "verify:deployed-targets": "node scripts/verify-deployed-targets.js",
     "verify:open-source": "node scripts/check-open-source-release.js",
+    "verify:e2ee:browser-review": "node scripts/verify-e2ee-browser-review-candidate.js",
     "verify:public-headers": "node scripts/verify-public-headers.js",
     "test:deployed-targets": "node --test scripts/verify-deployed-targets.test.js",
     "lint": "eslint src --ext .js,.jsx",

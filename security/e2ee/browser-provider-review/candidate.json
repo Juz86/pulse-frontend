@@ -1,0 +1,36 @@
+{
+  "status": "review_only_not_runtime_approved",
+  "createdAt": "2026-10-20",
+  "upstream": {
+    "repository": "https://github.com/getmaapp/signal-wasm.git",
+    "commit": "0a5e3cb8bf282efb3521d7cdac5476caf3fb1acd",
+    "declaredVersion": "0.6.6",
+    "license": "AGPL-3.0-only"
+  },
+  "libsignal": {
+    "tag": "v0.105.1",
+    "commit": "1738ead8a12ffe539f6309958123dadb16dc3b95"
+  },
+  "toolchain": {
+    "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+    "wasmPack": "0.15.0",
+    "target": "wasm32-unknown-unknown",
+    "chromium": "155.0.8059.79",
+    "chromeDriver": "155.0.8059.79"
+  },
+  "inputs": {
+    "cargoLockSha256": "b284c73b1d2f4486b70aa158cbdc0df67d3a98f437bae1441392f5d8de42caa9",
+    "parityPatchSha256": "f58f4b8438e76f3e3e3c748685eda6d35f95e10f7c432399b5f79632ef3d6454"
+  },
+  "outputs": {
+    "wasmBytes": 759105,
+    "wasmSha256": "ce473ceb9422a801d1bd48e3764f9e52b06f13191523ba1a944e9fa0985160bc",
+    "javascriptSha256": "42910a893b4a6b585622f38dbe901a307a4db954fc7eda36372153eacbc1e623"
+  },
+  "tests": {
+    "runner": "headless_chromium",
+    "passed": 51,
+    "failed": 0,
+    "ignored": 0
+  }
+}

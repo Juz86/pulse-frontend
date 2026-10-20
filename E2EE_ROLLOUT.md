@@ -64,7 +64,11 @@ De volgende echte E2EE-stap is niet het activeren van deze routes, maar:
 1. `pulse_e2ee_v2`-schema's en negatieve contracttests toevoegen
 2. atomische prekey-claims en per-device envelopes implementeren
 3. de native Android-provider bewijzen zonder plaintext over de JS-bridge
-4. een browserprovider selecteren en met dezelfde vectors valideren
+4. de geselecteerde browser-QA-kandidaat eerst met Android in versiepariteit
+   brengen, onafhankelijk beoordelen en met dezelfde vectors valideren
+
+De selectievoorwaarden en huidige `NO-GO` staan in
+[E2EE_BROWSER_PROVIDER_GATE.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_PROVIDER_GATE.md).
 
 ## Volgende frontendstap na de huidige lokale fase
 

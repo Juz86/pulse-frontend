@@ -55,7 +55,7 @@ export function normalizeIncomingMessage(raw, currentUserId) {
     deliveryState: raw.deliveryState || 'sent',
     receiptSummary: raw.receiptSummary || null,
     decryptedLocally: raw.decryptedLocally ?? true,
-    ciphertextAvailable: !!raw.ciphertext,
+    ciphertextAvailable: raw.ciphertextAvailable ?? !!raw.ciphertext,
     isLocalOnly: !!raw.isLocalOnly,
     transient: !!raw.transient,
     isOwn: senderId === currentUserId,

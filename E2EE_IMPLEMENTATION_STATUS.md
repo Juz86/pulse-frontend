@@ -211,8 +211,8 @@ Android-providerbasis gereed:
 - provider-roundtriptest voor prekeybericht en ratchet-antwoord na herstart;
 - fail-closed JavaScript-adapter die buiten native Android niet beschikbaar is.
 - strikt v2-API-clientcontract voor device-overzicht en registratie,
-  recipient/own-device bundleclaims, exacte envelopeverzending en het ophalen
-  van uitsluitend de eigen envelope;
+  recipient/own-device bundleclaims, exacte envelopeverzending, een
+  inhoudsloze devicefeed en het ophalen van uitsluitend de eigen envelope;
 - Android-registratie-orchestrator die native bootstrap pas uitvoert wanneer de
   providergate expliciet beschikbaar is en alleen publieke registratievelden
   naar de backend stuurt.
@@ -245,7 +245,7 @@ Android-providerbasis gereed:
   chatruntime gekoppeld, zonder fallback naar legacy socket- of plaintextfeeds;
 - nog niet door v2 ondersteunde groepen, reacties, antwoorden, vermeldingen,
   bewerken, doorsturen en contactkaarten worden in QA fail-closed geweigerd;
-- 221 frontendtests en 185 backendtests in totaal geslaagd.
+- 229 frontendtests en 191 backendtests in totaal geslaagd.
 - de afgescheiden QA-backend draait op Railway met Firebase-project
   `pulse-messenger-e2ee-qa`, `E2EE_V2_ENABLED=true` en een EUR 5-budget; buiten
   actieve tests heeft de Railway-service geen actieve deployment;
@@ -253,11 +253,134 @@ Android-providerbasis gereed:
   ciphertextdelivery, recipient-envelope en idempotentie is geslaagd; alle
   tijdelijke gebruikers- en berichtdata is daarna verwijderd;
 - Firestore TTL voor `e2eePreKeyClaims.expiresAt` is actief en alle bijbehorende
-  indexen zijn gereed; een bewust verlopen record wacht op de asynchrone
-  verwijdercontrole;
+  indexen zijn gereed; op 19 oktober 2026 is met `404 NOT_FOUND` bevestigd dat
+  de policy het bewust verlopen QA-testrecord automatisch heeft verwijderd;
 - een aparte QA-APK `com.pulsemessenger.chat.e2eeqa` versie
   `1.0.24-e2ee-qa` is gebouwd met SHA-256
-  `730c4518ab81ffc39baa3a2959e30fbf90262cf4d4d247705a0b36435d465d2b`.
+  `730c4518ab81ffc39baa3a2959e30fbf90262cf4d4d247705a0b36435d465d2b`;
+- op een fysieke Samsung SM-A266B met Android 16 zijn native providerbootstrap,
+  hardware-backed Keystore-opslag en behoud van dezelfde opaque device-ID,
+  `signalDeviceId: 1` en `identityVersion: 1` na een volledige processherstart
+  bevestigd.
+- op hetzelfde fysieke toestel hebben twee volledig gescheiden Android-
+  appinstanties in beide richtingen een live `v2_pending`-tekstbericht
+  uitgewisseld, na appupdate en processherstart uit de devicefeed opgehaald en
+  native ontsleuteld;
+- een rechtstreekse controle van beide QA-Firestore-berichten bevestigde dat de
+  herkenbare plaintextmarkeringen nergens in metadata of envelopes stonden;
+  server-side stond uitsluitend `Versleuteld bericht` plus een ciphertext-
+  envelope voor het geadresseerde device.
+- Capacitor-bridge-logging en Android WebView-debugging zijn expliciet
+  uitgeschakeld, zodat plaintext en pluginargumenten ook in debug-/QA-builds
+  niet via Logcat of remote WebView-inspectie beschikbaar komen.
+- device-enveloppen hebben nu een server-side `pending`-status, worden per
+  Android-runtime oudste-eerst en serieel ontsleuteld en pas na succesvolle
+  decryptie idempotent bevestigd; interne aflevervelden verlaten de backend
+  niet via het cryptografische envelopecontract;
+- een herkenbare offline markering is na een volledige stop en herstart van
+  QA-B exact eenmaal native ontsleuteld; daarna was de devicefeed leeg, bleef
+  het bericht bij opnieuw openen eenmaal zichtbaar en kwamen plaintext en
+  decryptieargumenten beide nul keer voor in Logcat.
+- een herkenbare achtergrondmarkering is verzonden terwijl QA-B nog als levend
+  proces op de achtergrond stond; de feed bevatte vooraf precies een pending
+  envelope, bij hervatten verscheen het bericht exact eenmaal en daarna was de
+  feed leeg; een tweede hervatting leverde geen duplicaat op en het QA-B-proces
+  logde de plaintext nul keer.
+- bevestigde inkomende en uitgaande v2-tekstberichten worden per gesprek in de
+  bestaande Keystore-backed secure store bewaard, inclusief een versleutelde
+  index en een begrenzing van 200 berichten; berichtplaintext wordt in QA niet
+  naar `localStorage` of `sessionStorage` geschreven;
+- na een koude start met uitgeschakelde QA-backend toonde QA-B de eerder
+  ontvangen herkenbare markering direct vanuit de native geschiedenis. De
+  marker kwam nul keer als plaintext voor in de secure preferences en nul keer
+  in een schone, tot het QA-B-proces beperkte Logcat-meting;
+- een geldige bestaande QA-devicebinding, inclusief bindings van voor de
+  `registered`-metadata, start direct offline. Een chatopvraag tijdens native
+  startup wacht op dezelfde runtimebelofte en valt niet terug naar de gewone
+  backendroute.
+- op 20 oktober 2026 is de actieve QA-B-devicebinding server-side ingetrokken;
+  het realtime revoke-event sloot het gesprek fail-closed, wiste de lokale
+  native Signal-records en verwijderde de persistente publieke devicebinding;
+- na processherstart registreerde QA-B precies een nieuwe actieve binding met
+  `signalDeviceId: 2`, terwijl de oude binding met `signalDeviceId: 1`
+  ingetrokken bleef. Daarna zijn nieuwe versleutelde berichten in beide
+  richtingen native ontsleuteld;
+- een gemist bericht voor een reeds geopende chat wordt bij terugkeer uit de
+  achtergrond via de devicefeed opgehaald. De live proef met
+  `ACTIVECHATRESUME202610200028` verscheen direct ontsleuteld in QA-B zonder
+  appherstart of duplicaat.
+- op 20 oktober 2026 is de volledige live proef herhaald op twee afzonderlijke
+  fysieke Samsung-toestellen: een SM-A166B en een SM-A266B, beide met een eigen
+  geisoleerde QA-app, account en opaque backend-device-ID;
+- QA-A verstuurde `PHYSICALATOB202610201336` en QA-B antwoordde met
+  `PHYSICALBTOA202610201337`; beide teksten verschenen direct en native
+  ontsleuteld op het andere fysieke toestel;
+- na een gelijktijdige force-stop en processherstart herstelden beide toestellen
+  hun bestaande Signal-sessie en de volledige Keystore-versleutelde lokale
+  berichtgeschiedenis zonder opnieuw registreren;
+- terwijl QA-B volledig gestopt was, bleef
+  `PHYSICALOFFLINE202610201345` als precies een pending device-envelope staan.
+  Na starten haalde QA-B het bericht op, ontsleutelde het exact eenmaal en
+  bevestigde het, waarna beide devicefeeds weer leeg waren;
+- alle drie serverrecords bevatten uitsluitend `Versleuteld bericht`, alle
+  drie device-enveloppen bevatten ciphertext en geen van de herkenbare markers
+  kwam plaintext voor in Firestore. De procesgebonden Logcat-controle op het
+  ontvangende toestel bevatte eveneens nul plaintexttreffers.
+- op dezelfde twee fysieke toestellen is daarna echte multi-devicefan-out
+  getest met drie geisoleerde appinstanties: account A had twee actieve
+  bindings met `signalDeviceId` 1 en 2 en account B een eigen binding;
+- `MULTIDEVICEBTOA202610201417` is vanaf account B met exact twee afzonderlijke
+  ciphertext-enveloppen naar beide account-A-devices gestuurd. Device 1
+  verwerkte de live delivery, device 2 haalde zijn pending envelope bij
+  hervatten op en beide toonden dezelfde native ontsleutelde tekst;
+- `MULTIDEVICEAOWN202610201423` is vanaf account A device 1 met exact een
+  recipient-envelope voor account B en een own-device-envelope voor account A
+  device 2 verzonden. Device 2 toonde het bericht als eigen uitgaand bericht en
+  account B als inkomend bericht;
+- na beide multi-deviceproeven waren alle betrokken devicefeeds leeg en alle
+  vier envelopes `decrypted`. Firestore bevatte uitsluitend
+  `Versleuteld bericht` plus ciphertext en de twee ontvangende app-processen
+  bevatten nul plaintexttreffers in Logcat.
+- account A device 2 is vervolgens op de QA-backend ingetrokken terwijl beide
+  echte accountdevices online waren. Het getroffen toestel sloot de actieve
+  chat fail-closed en keerde terug naar de chatlijst; account A device 1 bleef
+  zonder onderbreking in het gesprek werken;
+- server-side bleef `signalDeviceId: 1` actief en werd `signalDeviceId: 2`
+  blijvend `revoked`. Na een processherstart maakte het getroffen toestel een
+  nieuwe opaque binding met `signalDeviceId: 3`, zodat de oude route niet kon
+  worden hergebruikt;
+- `POSTREVOKEBTOA202610201441` is daarna vanaf account B uitsluitend naar de
+  actieve devices 1 en 3 gefan-out en op beide fysiek ontsleuteld. Beide
+  envelopes eindigden als `decrypted` en de oude revoked binding ontving geen
+  audience of envelope;
+- `POSTREVOKEA2TOB202610201446` is vanaf het nieuwe device 3 naar account B en
+  own-device 1 verzonden. Beide ontvangers ontsleutelden hun eigen envelope,
+  alle feeds eindigden op nul, Firestore bevatte geen plaintextmarker en beide
+  ontvangende app-processen hadden nul plaintexttreffers in Logcat.
+- op 20 oktober 2026 is vervolgens de identity van account A device 3
+  gecontroleerd vervangen, met behoud van het opaque device-ID en
+  `signalDeviceId: 3`. De backend bevestigde `identityChanged: true`, verhoogde
+  `identityVersion` van 1 naar 2 en publiceerde een `identity_changed`-event;
+- account A device 1 verwijderde daarop onmiddellijk zijn bestaande sessie naar
+  device 3. Een native sessie-inventarisatie rapporteerde nul resterende
+  sessies voor dat remote device voordat nieuw verkeer werd toegestaan;
+- `IDENTITYCHANGEBTOA202610201806` bouwde daarna vanaf account B afzonderlijk
+  nieuwe sessies naar account A devices 1 en 3 op. Beide fysieke devices
+  ontsleutelden het bericht zonder laadfout;
+- device 3 antwoordde met `IDENTITYCHANGEA3TOB202610201822`. Account B
+  ontsleutelde de recipient-envelope en account A device 1 de own-device-
+  envelope. Beide envelopes eindigden als `decrypted`, alle feeds stonden op
+  nul en Firestore bevatte uitsluitend ciphertext plus de serverpreview
+  `Versleuteld bericht`.
+- aansluitend is een begrensde interne Android-only `v2_pending`-pilot
+  uitgevoerd met vijf normale tekstberichten in beide richtingen, een
+  achtergrondhervatting en een volledige QA-B-processherstart;
+- alle vijf pilotberichten stonden exact eenmaal in de chat, alle drie feeds
+  eindigden op nul en de backend bevatte exact tien ciphertext-enveloppen met
+  status `decrypted`;
+- Firestore bevatte uitsluitend `Versleuteld bericht` als preview en geen
+  plaintext pilotmarker; ook beide procesgebonden Logcat-controles hadden nul
+  markerhits. De Railway QA-deployment is na de sessie weer verwijderd.
 
 Releasegrootte met de native provider, lokaal gemeten op versiecode `80`:
 
@@ -289,25 +412,49 @@ dependencycompatibiliteit en de openbare releaseprocedure zijn bevestigd. Zie
 en
 [E2EE_OPEN_SOURCE_READINESS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_OPEN_SOURCE_READINESS.md).
 
+De browserprovider-selectie is gedocumenteerd in
+[E2EE_BROWSER_PROVIDER_GATE.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_PROVIDER_GATE.md).
+De officiele Node-binding en oude JavaScript-forks vallen af. Een actuele
+third-party WASM-wrapper is alleen als mogelijke QA-kandidaat vastgelegd en
+blijft `NO-GO` voor integratie zolang de paritybron niet onafhankelijk is
+beoordeeld. Een tijdelijke bronprobe tegen dezelfde libsignal `0.105.1` als
+Android bouwde reproduceerbaar in dezelfde omgeving en alle 51 headless
+Chromium-tests slaagden. Er is geen browserdependency geinstalleerd en de
+browser blijft fail-closed voor `v2_required`. Zie
+[E2EE_BROWSER_PROVIDER_PARITY_PROBE.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_PROVIDER_PARITY_PROBE.md).
+De exacte paritypatch, volledige lockfile, provenance en reconstructiestappen
+zijn als review-only bundle vastgelegd in
+[security/e2ee/browser-provider-review](/home/yushuaabdulkadir/pulse-frontend/security/e2ee/browser-provider-review/README.md).
+Een verse `--locked`-reconstructie slaagt. Het browseropslag-, CSP- en
+panic-herstelontwerp staat in
+[E2EE_BROWSER_SECURITY_DESIGN.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_SECURITY_DESIGN.md).
+`npm run verify:e2ee:browser-review` bewaakt de reviewhashes, exacte
+libsignal-pin en afwezigheid van een browserprovider in de runtime.
+
 De eerstvolgende implementatiefase is:
 
-1. Android-naar-Android live encryptie/decryptie en herregistratie met twee
-   echte apparaten bewijzen;
-2. een device-specifieke gemiste-berichtenfeed bouwen voordat restart,
-   achtergrondontvangst en offline herstel als geslaagd mogen gelden;
-3. multi-device sync, revoke en identity change op echte apparaten valideren;
-4. bevestigen dat Firestore het bewust verlopen QA-testrecord binnen de gedocumenteerde
-   verwerkingstijd verwijdert;
-5. pas daarna een interne `v2_pending` pilot starten;
-6. later een browserprovider selecteren en valideren.
+1. de Android-implementatie onafhankelijk laten beoordelen;
+2. de browser-reviewkandidaat onafhankelijk herbouwen en beoordelen;
+3. het vastgelegde opslag-, CSP- en panic-herstelontwerp in een geisoleerde
+   browser-QA-build implementeren;
+4. die provider met dezelfde Android-browser-vectors valideren;
+5. pas na beide gates een productiepilot overwegen.
 
 ## Praktisch oordeel
 
 De frontend is nu niet "af" qua echte E2EE, maar wel functioneel gekoppeld aan een lokale servicefase voor chatten, bellen en videobellen.
 
-De grootste open stap is nu de interne QA-flow tegen een aparte v2-backend op
-twee echte Android-apparaten bewijzen. Live tekst is gekoppeld, maar de backend
-mist nog een device-specifieke feed voor events die een apparaat offline heeft
-gemist. Restart, achtergrondontvangst en offline herstel zijn daarom nog niet
-bewezen. De huidige mock-serviceflow mag nog steeds niet als E2EE worden
-geactiveerd.
+De kernproef tegen de aparte v2-backend is nu op twee echte Android-apparaten
+bewezen: live verkeer in beide richtingen, sessie- en geschiedenisherstel na
+processherstart, pending delivery terwijl de ontvanger volledig gestopt is,
+idempotente bevestiging en afwezigheid van plaintext in Firestore en app-logs.
+Echte multi-devicefan-out naar twee devices van hetzelfde account en
+own-device synchronisatie zijn eveneens bewezen. Het intrekken en met een
+nieuwe Signal-device-ID herregistreren van een van deze twee echte
+accountdevices is nu ook in beide berichtrichtingen gevalideerd. Een echte
+identity-change op een bestaand device is eveneens fail-closed verwerkt en na
+sessievernieuwing in beide richtingen gevalideerd. De eerste begrensde interne
+Android-only `v2_pending`-pilot is eveneens geslaagd. De onafhankelijke
+securityreview en een versiegelijkwaardige browserprovider zijn nog niet afgerond; een
+productiepilot blijft daarom geblokkeerd. De huidige mock-serviceflow mag nog
+steeds niet als E2EE worden geactiveerd.

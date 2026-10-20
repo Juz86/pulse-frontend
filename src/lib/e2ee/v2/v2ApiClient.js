@@ -140,6 +140,26 @@ export function createV2ApiClient({
       return request(user, '/v2/messages/send', { method: 'POST', body });
     },
 
+    async listMessageFeed(user, { conversationId, deviceId, limit = 50, offset = 0 }) {
+      const validatedDeviceId = requireId(deviceId);
+      if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+        throw new V2ApiError('v2_limit_invalid');
+      }
+      if (!Number.isInteger(offset) || offset < 0 || offset > 1000) {
+        throw new V2ApiError('v2_offset_invalid');
+      }
+      const query = new URLSearchParams({
+        deviceId: validatedDeviceId,
+        limit: String(limit),
+        offset: String(offset),
+      });
+      const payload = await request(
+        user,
+        `/v2/conversations/${pathSegment(conversationId)}/messages?${query}`,
+      );
+      return Array.isArray(payload?.messages) ? payload.messages : [];
+    },
+
     async fetchEnvelope(user, { conversationId, messageId, deviceId }) {
       const validatedDeviceId = requireId(deviceId);
       const query = new URLSearchParams({ deviceId: validatedDeviceId });
@@ -152,6 +172,15 @@ export function createV2ApiClient({
         authenticatedDeviceId: validatedDeviceId,
       }));
       return payload;
+    },
+
+    async acknowledgeMessage(user, { conversationId, messageId, deviceId }) {
+      const body = { deviceId: requireId(deviceId) };
+      return request(
+        user,
+        `/v2/conversations/${pathSegment(conversationId)}/messages/${pathSegment(messageId)}/ack`,
+        { method: 'POST', body },
+      );
     },
   });
 }

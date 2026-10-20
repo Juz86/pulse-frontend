@@ -47,6 +47,22 @@ export async function invalidateNativeE2eeV2RemoteDevice(options) {
   return PulseE2eeV2.invalidateRemoteDevice(options);
 }
 
+export async function storeNativeE2eeV2TextMessage(options) {
+  requireAndroidProvider();
+  return PulseE2eeV2.storeTextMessage(options);
+}
+
+export async function listNativeE2eeV2TextMessages(options) {
+  requireAndroidProvider();
+  const result = await PulseE2eeV2.listTextMessages(options);
+  return Array.isArray(result?.messages) ? result.messages : [];
+}
+
+export async function clearNativeE2eeV2TextMessageHistory(options) {
+  requireAndroidProvider();
+  return PulseE2eeV2.clearTextMessageHistory(options);
+}
+
 export async function clearNativeE2eeV2UserState(userId) {
   requireAndroidProvider();
   return PulseE2eeV2.clearUserState({ userId });

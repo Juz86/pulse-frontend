@@ -31,8 +31,10 @@ import { normalizeSingleUserReaction, toggleSingleUserReaction } from '../lib/e2
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
 import { PULSE_E2EE_V2_PROTOCOL } from '../lib/e2ee/v2/protocolV2Contract';
 import {
+  clearE2eeV2PlaintextWebStorage,
   readCachedConversations,
   readCachedMessages,
+  readE2eeV2SafeCachedConversations,
   readSessionConversations,
   writeCachedMessages,
   writeCachedConversations,
@@ -63,6 +65,7 @@ export default function useConversations({
   messageEditingEnabled = false,
   e2eeV2QaRuntime = null,
 }) {
+  const isV2QaEnabled = e2eeV2QaRuntime?.enabled === true;
   const authFetch = useCallback(async (url, options = {}, { forceRefresh = false } = {}) => {
     const token = await user.getIdToken(forceRefresh);
     const response = await fetch(url, {
@@ -106,21 +109,34 @@ export default function useConversations({
   }, []);
 
   const pendingTempIds = useRef(new Set());
-  const sessionConversationStateRef = useRef(readSessionConversations(user.uid));
+  const sessionConversationStateRef = useRef(
+    isV2QaEnabled ? {} : readSessionConversations(user.uid)
+  );
   const loadConversationsStateRef = useRef({ promise: null, lastAt: 0, pendingForce: false });
   const previewHydrationRef = useRef(new Map());
   const LOAD_CONVERSATIONS_THROTTLE_MS = 900;
 
-  const [conversations,  setConversations]  = useState(() => readCachedConversations(user.uid));
+  const [conversations,  setConversations]  = useState(() => (
+    isV2QaEnabled
+      ? readE2eeV2SafeCachedConversations(user.uid)
+      : readCachedConversations(user.uid)
+  ));
   const [activeConv,     setActiveConv]     = useState(null);
   const [messages,       setMessages]       = useState([]);
-  const [loadingConvs,   setLoadingConvs]   = useState(() => readCachedConversations(user.uid).length === 0);
+  const [loadingConvs,   setLoadingConvs]   = useState(() => (
+    isV2QaEnabled || readCachedConversations(user.uid).length === 0
+  ));
   const [loadingMsgs,    setLoadingMsgs]    = useState(false);
   const [hasMore,        setHasMore]        = useState(false);
   const [loadingMore,    setLoadingMore]    = useState(false);
   const [msgOffset,      setMsgOffset]      = useState(0);
   const [currentDeviceId, setCurrentDeviceId] = useState(null);
-  const isV2QaEnabled = e2eeV2QaRuntime?.enabled === true;
+
+  useEffect(() => {
+    if (!isV2QaEnabled) return;
+    sessionConversationStateRef.current = {};
+    clearE2eeV2PlaintextWebStorage(user.uid);
+  }, [isV2QaEnabled, user.uid]);
 
   useEffect(() => {
     const cached = conversations.map((conversation) => ({
@@ -130,7 +146,10 @@ export default function useConversations({
       memberEmails: conversation.memberEmails || {},
       isGroup: !!conversation.isGroup,
       groupName: conversation.groupName || null,
-      lastMessage: conversation.lastMessage || '',
+      e2eeState: conversation.e2eeState || null,
+      lastMessage: isV2QaEnabled && conversation.lastMessage
+        ? 'Versleuteld bericht'
+        : conversation.lastMessage || '',
       lastMessageType: conversation.lastMessageType || null,
       lastCallEvent: conversation.lastCallEvent || null,
       updatedAt: conversation.updatedAt || conversation.lastMessageAt || null,
@@ -139,27 +158,31 @@ export default function useConversations({
       lastReactionEmoji: conversation.lastReactionEmoji || null,
       lastReactionReactorId: conversation.lastReactionReactorId || null,
       lastReactionAt: conversation.lastReactionAt || null,
-      lastReactionTargetText: conversation.lastReactionTargetText || null,
+      lastReactionTargetText: isV2QaEnabled
+        ? null
+        : conversation.lastReactionTargetText || null,
     }));
     writeCachedConversations(user.uid, cached);
-  }, [conversations, user.uid]);
+  }, [conversations, isV2QaEnabled, user.uid]);
 
   useEffect(() => {
+    if (isV2QaEnabled) return;
     const convId = activeConvRef.current?.id;
     if (!convId || !Array.isArray(messages) || messages.length === 0) return;
     writeCachedMessages(user.uid, convId, messages);
-  }, [messages, user.uid, activeConvRef]);
+  }, [messages, user.uid, activeConvRef, isV2QaEnabled]);
   // Sync refs owned by ChatScreen
   useEffect(() => { activeConvRef.current = activeConv; }, [activeConv, activeConvRef]);
   useEffect(() => { conversationsRef.current = conversations; }, [conversations, conversationsRef]);
 
   const persistActiveDraft = useCallback(() => {
+    if (isV2QaEnabled) return;
     const convId = activeConvRef.current?.id;
     if (!convId || editingMsg) return;
     const draftKey = `pulse_draft_${user.uid}_${convId}`;
     if (text.trim()) localStorage.setItem(draftKey, text);
     else localStorage.removeItem(draftKey);
-  }, [activeConvRef, editingMsg, text, user.uid]);
+  }, [activeConvRef, editingMsg, isV2QaEnabled, text, user.uid]);
 
   // Bewaar concepten tijdens het typen. Een korte debounce beperkt lokale
   // schrijfacties; pagehide/visibilitychange voorkomt verlies bij afsluiten.
@@ -224,7 +247,7 @@ export default function useConversations({
 
   function persistSessionConversationState(nextState) {
     sessionConversationStateRef.current = nextState;
-    writeSessionConversations(user.uid, nextState);
+    if (!isV2QaEnabled) writeSessionConversations(user.uid, nextState);
   }
 
   function getSessionMessagesForConversation(convId) {
@@ -310,9 +333,26 @@ export default function useConversations({
   }
 
   const fetchConversationMessages = useCallback(async (convId, { limit = MSG_LIMIT, offset = 0 } = {}) => {
-    // The v2 QA backend currently exposes per-device envelope retrieval only.
-    // Never fall back to the legacy plaintext history endpoint in this build.
-    if (isV2QaEnabled) return [];
+    if (isV2QaEnabled) {
+      const received = await e2eeV2QaRuntime.fetchTextMessages({
+        conversationId: convId,
+        limit,
+        offset,
+      });
+      return received.map((message) => ({
+        ...message,
+        id: message.messageId,
+        localId: message.clientMessageId || null,
+        convId: message.conversationId,
+        senderId: message.senderUserId,
+        text: message.plaintext,
+        type: message.messageType,
+        protocol: PULSE_E2EE_V2_PROTOCOL,
+        decryptedLocally: true,
+        ciphertextAvailable: true,
+        transient: true,
+      }));
+    }
     const query = new URLSearchParams({
       limit: String(limit),
       offset: String(offset),
@@ -341,7 +381,7 @@ export default function useConversations({
       throw error;
     }
     return legacyRes.json();
-  }, [authFetch, currentDeviceId, isV2QaEnabled, readJsonResponse]);
+  }, [authFetch, currentDeviceId, e2eeV2QaRuntime, isV2QaEnabled, readJsonResponse]);
 
   const hydrateMissingConversationPreviews = useCallback(async (serverConversations, localConversations) => {
     const encryptedPreview = getEncryptedMessageDisplayText();
@@ -542,7 +582,9 @@ export default function useConversations({
             if (updated) { localStorage.setItem(`pulse_labels_${user.uid}`, JSON.stringify(stored)); setConvLabels(stored); }
           }
           const normalizedConversations = Array.isArray(data) ? data.map(normalizeConversationSummaryRecord) : [];
-          const cachedConversations = readCachedConversations(user.uid);
+          const cachedConversations = isV2QaEnabled
+            ? readE2eeV2SafeCachedConversations(user.uid)
+            : readCachedConversations(user.uid);
           const localConversationsForPreviewHydration = conversationsRef.current?.length
             ? conversationsRef.current
             : cachedConversations;
@@ -580,13 +622,13 @@ export default function useConversations({
         loadConversationsStateRef.current.promise = null;
       }
     }
-  }, [applySessionConversationSummaries, authFetch, conversationsRef, hydrateMissingConversationPreviews, readJsonResponse, setConvLabels, showErrToast, user.uid]);
+  }, [applySessionConversationSummaries, authFetch, conversationsRef, hydrateMissingConversationPreviews, isV2QaEnabled, readJsonResponse, setConvLabels, showErrToast, user.uid]);
 
   // ── Gesprek openen ────────────────────────────────────────────────────────
   async function openConversation(conv) {
     const convId = conv.id;
     const previousConvId = activeConvRef.current?.id;
-    if (previousConvId) {
+    if (previousConvId && !isV2QaEnabled) {
       stopTyping();
       const draftKey = `pulse_draft_${user.uid}_${previousConvId}`;
       if (!editingMsg && text.trim()) {
@@ -597,7 +639,9 @@ export default function useConversations({
     }
     setActiveConv(conv);
     activeConvRef.current = conv;
-    const draft = localStorage.getItem(`pulse_draft_${user.uid}_${convId}`) || '';
+    const draft = isV2QaEnabled
+      ? ''
+      : localStorage.getItem(`pulse_draft_${user.uid}_${convId}`) || '';
     setText(draft);
     setReplyTo(null);
     setEditingMsg(null);
@@ -617,7 +661,7 @@ export default function useConversations({
     }, 0);
     setUnreadCounts(prev => { const n = { ...prev }; delete n[conv.id]; return n; });
     const sessionMessages = getSessionMessagesForConversation(convId);
-    const localCachedMessages = readCachedMessages(user.uid, convId);
+    const localCachedMessages = isV2QaEnabled ? [] : readCachedMessages(user.uid, convId);
     const cached = msgCache.current[convId] || (localCachedMessages.length > 0 ? localCachedMessages : null);
     if (cached) {
       setMessages(mergeConversationMessages(cached, sessionMessages));
@@ -644,7 +688,7 @@ export default function useConversations({
       if (activeConvRef.current?.id !== convId) return;
       const mergedFetchedMessages = mergeConversationMessages(hydrated, getSessionMessagesForConversation(convId));
       msgCache.current[convId] = mergedFetchedMessages;
-      writeCachedMessages(user.uid, convId, mergedFetchedMessages);
+      if (!isV2QaEnabled) writeCachedMessages(user.uid, convId, mergedFetchedMessages);
       const latestHydratedMessage = mergedFetchedMessages.at(-1);
       if (latestHydratedMessage && latestHydratedMessage.decryptedLocally !== false) {
         setConversations((previous) => applyConversationSummaryToList(
@@ -699,7 +743,14 @@ export default function useConversations({
           payloadError: e?.payload?.error || null,
         }
       );
-      if (activeConvRef.current?.id === convId) showErrToast('Berichten laden mislukt');
+      if (activeConvRef.current?.id === convId) {
+        const qaError = e?.code || e?.message;
+        showErrToast(
+          isV2QaEnabled && qaError
+            ? `Berichten laden mislukt (${qaError})`
+            : 'Berichten laden mislukt',
+        );
+      }
     }
     finally {
       if (activeConvRef.current?.id === convId) setLoadingMsgs(false);
@@ -714,6 +765,7 @@ export default function useConversations({
     const performDelete = async () => {
       try {
         await authFetch(`${BACKEND_URL}/api/conversations/${convId}`, { method: 'DELETE' });
+        if (isV2QaEnabled) await e2eeV2QaRuntime.clearTextMessages({ conversationId: convId });
       } catch {
         showErrToast('Verwijderen mislukt');
         return;
@@ -746,6 +798,7 @@ export default function useConversations({
   async function clearConversationHistoryHard(convId) {
     try {
       await authFetch(`${BACKEND_URL}/api/conversations/${convId}/clear`, { method: 'DELETE' });
+      if (isV2QaEnabled) await e2eeV2QaRuntime.clearTextMessages({ conversationId: convId });
       setSessionMessagesForConversation(convId, []);
       msgCache.current[convId] = [];
       setMessages((prev) => (activeConvRef.current?.id === convId ? [] : prev));
@@ -766,6 +819,7 @@ export default function useConversations({
   async function hardDeleteConversation(convId) {
     try {
       await authFetch(`${BACKEND_URL}/api/conversations/${convId}/hard?mode=delete`, { method: 'DELETE' });
+      if (isV2QaEnabled) await e2eeV2QaRuntime.clearTextMessages({ conversationId: convId });
       setSessionMessagesForConversation(convId, []);
       delete msgCache.current[convId];
       setConversations((prev) => prev.filter((conversation) => conversation.id !== convId));

@@ -1,8 +1,10 @@
+const { copyFileSync } = require('fs');
 const { spawnSync } = require('child_process');
 const path = require('path');
 
 const projectRoot = path.resolve(__dirname, '..');
 const backendUrl = String(process.env.PULSE_E2EE_QA_BACKEND_URL || '').replace(/\/+$/, '');
+const qaInstance = String(process.env.PULSE_E2EE_QA_INSTANCE || 'a').toLowerCase();
 const QA_FIREBASE_CONFIG = Object.freeze({
   apiKey: 'AIzaSyD832WLALBNkGglRGtA_NpmqEofsuyeoJo',
   authDomain: 'pulse-messenger-e2ee-qa.firebaseapp.com',
@@ -34,6 +36,9 @@ function run(command, args, options = {}) {
 }
 
 requireIsolatedBackend(backendUrl);
+if (!/^[a-z0-9]+$/.test(qaInstance)) {
+  throw new Error('PULSE_E2EE_QA_INSTANCE mag alleen kleine letters en cijfers bevatten.');
+}
 
 const qaEnvironment = {
   ...process.env,
@@ -58,7 +63,12 @@ run('npm', ['run', 'build:webapp'], { env: qaEnvironment });
 run(path.join(projectRoot, 'node_modules', '.bin', 'cap'), ['copy', 'android'], {
   env: qaEnvironment,
 });
-run('./gradlew', [':app:assembleDebug', '-PpulseE2eeQa=true', '--console=plain'], {
+run('./gradlew', [
+  ':app:assembleDebug',
+  '-PpulseE2eeQa=true',
+  `-PpulseE2eeQaInstance=${qaInstance}`,
+  '--console=plain',
+], {
   cwd: path.join(projectRoot, 'android'),
   env: {
     ...qaEnvironment,
@@ -66,4 +76,10 @@ run('./gradlew', [':app:assembleDebug', '-PpulseE2eeQa=true', '--console=plain']
   },
 });
 
-console.log('E2EE QA-APK: android/app/build/outputs/apk/debug/app-debug.apk');
+const defaultApk = path.join(projectRoot, 'android/app/build/outputs/apk/debug/app-debug.apk');
+const namedApk = path.join(
+  projectRoot,
+  `android/app/build/outputs/apk/debug/app-e2ee-qa-${qaInstance}-debug.apk`,
+);
+copyFileSync(defaultApk, namedApk);
+console.log(`E2EE QA-APK: ${path.relative(projectRoot, namedApk)}`);

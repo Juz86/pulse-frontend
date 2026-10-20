@@ -14,6 +14,11 @@ def pulseE2eeInstrumentedTest = providers.gradleProperty('pulseE2eeInstrumentedT
 def pulseE2eeQa = providers.gradleProperty('pulseE2eeQa')
     .map { it.toBoolean() }
     .getOrElse(false)
+def pulseE2eeQaInstance = providers.gradleProperty('pulseE2eeQaInstance')
+    .getOrElse('a')
+if (!(pulseE2eeQaInstance ==~ /[a-z0-9]+/)) {
+    throw new GradleException('pulseE2eeQaInstance mag alleen kleine letters en cijfers bevatten.')
+}
 android {
     namespace "com.pulsemessenger.chat"
     compileSdk rootProject.ext.compileSdkVersion
@@ -65,9 +70,12 @@ android {
     buildTypes {
         debug {
             if (pulseE2eeQa) {
-                // QA uses its own app identity and can coexist with Pulse from Google Play.
-                applicationIdSuffix ".e2eeqa"
-                versionNameSuffix "-e2ee-qa"
+                // QA instances use isolated app identities and Android Keystores.
+                def qaSuffix = pulseE2eeQaInstance == 'a' ? '' : pulseE2eeQaInstance
+                applicationIdSuffix ".e2eeqa${qaSuffix}"
+                versionNameSuffix pulseE2eeQaInstance == 'a'
+                    ? '-e2ee-qa'
+                    : "-e2ee-qa-${pulseE2eeQaInstance}"
             } else if (pulseE2eeInstrumentedTest) {
                 // Keep the E2EE test APK isolated from the Play Store app.
                 applicationIdSuffix ".e2eetest"

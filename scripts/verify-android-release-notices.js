@@ -139,6 +139,54 @@ for (const expectedSection of [
 ]) {
   requireText(dataSafetyDraft, expectedSection, 'Android Data Safety-concept');
 }
+const dataSafetyResponsePlanPath = manifest.release.dataSafetyResponsePlanPath;
+requireValue(
+  typeof dataSafetyResponsePlanPath === 'string' &&
+    fs.existsSync(path.join(root, dataSafetyResponsePlanPath)),
+  'Android Data Safety-antwoordplan ontbreekt.',
+);
+requireValue(
+  sha256(dataSafetyResponsePlanPath) === manifest.release.dataSafetyResponsePlanSha256,
+  'Android Data Safety-antwoordplanhash wijkt af.',
+);
+const dataSafetyResponsePlan = JSON.parse(read(dataSafetyResponsePlanPath));
+requireValue(dataSafetyResponsePlan.schemaVersion === 1, 'Onbekend Data Safety-planschema.');
+requireValue(
+  dataSafetyResponsePlan.status === 'blocked_pending_owner_confirmation',
+  'Data Safety-plan mag zonder Console- en eigenaarbewijs niet worden vrijgegeven.',
+);
+requireValue(
+  dataSafetyResponsePlan.release?.versionName === manifest.release.versionName &&
+    dataSafetyResponsePlan.release?.versionCode === manifest.release.versionCode &&
+    dataSafetyResponsePlan.release?.applicationId === manifest.release.applicationId,
+  'Data Safety-plan hoort bij een andere release.',
+);
+requireValue(
+  dataSafetyResponsePlan.topLevelCandidate?.PSL_DATA_COLLECTION_COLLECTS_PERSONAL_DATA === true,
+  'Data Safety-plan moet gegevensverzameling declareren.',
+);
+requireValue(
+  dataSafetyResponsePlan.dataTypes?.length === manifest.release.dataSafetyResponsePlanTypeCount,
+  'Aantal Data Safety-gegevenstypen wijkt af.',
+);
+const dataSafetyTypeIds = new Set();
+for (const dataType of dataSafetyResponsePlan.dataTypes) {
+  requireValue(/^PSL_[A-Z_]+$/.test(dataType.id), `Ongeldig Data Safety-type: ${dataType.id}`);
+  requireValue(!dataSafetyTypeIds.has(dataType.id), `Dubbel Data Safety-type: ${dataType.id}`);
+  dataSafetyTypeIds.add(dataType.id);
+  requireValue(dataType.collected === true, `Data Safety-type is niet verzameld: ${dataType.id}`);
+  requireValue(typeof dataType.shared === 'boolean', `Data Safety-deelstatus ontbreekt: ${dataType.id}`);
+  requireValue(typeof dataType.ephemeral === 'boolean', `Data Safety-efemeerstatus ontbreekt: ${dataType.id}`);
+  requireValue(
+    ['required', 'optional'].includes(dataType.control),
+    `Data Safety-gebruikerscontrole ontbreekt: ${dataType.id}`,
+  );
+  requireValue(dataType.purposes?.length > 0, `Data Safety-doel ontbreekt: ${dataType.id}`);
+}
+requireValue(
+  dataSafetyResponsePlan.ownerDecisions?.length > 0,
+  'Data Safety-plan mist de nog openstaande eigenaarbesluiten.',
+);
 const resolvedInventory = JSON.parse(read(resolvedInventoryPath));
 requireValue(resolvedInventory.schemaVersion === 1, 'Onbekende componentinventaris-schemaVersion.');
 requireValue(
@@ -299,6 +347,7 @@ if (releaseMode) {
     ...androidLicenseBundle.files.map((file) =>
       path.join(androidLicenseBundleDirectory, file.path)),
     dataSafetyDraftPath,
+    dataSafetyResponsePlanPath,
   ]) {
     try {
       execFileSync('git', ['cat-file', '-e', `HEAD:${releaseFile}`], {

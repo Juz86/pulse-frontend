@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "status": "blocked_pending_owner_confirmation",
+  "release": {
+    "versionName": "1.0.24",
+    "versionCode": 80,
+    "applicationId": "com.pulsemessenger.chat"
+  },
+  "googleSampleTemplate": {
+    "downloadedAt": "2026-10-22",
+    "sha256": "5eea7d426509e97523de02d31d2e94d574f096c111a6857f78929e735cf99e13",
+    "source": "https://support.google.com/googleplay/android-developer/answer/10787469"
+  },
+  "topLevelCandidate": {
+    "PSL_DATA_COLLECTION_COLLECTS_PERSONAL_DATA": true,
+    "PSL_DATA_COLLECTION_ENCRYPTED_IN_TRANSIT": true,
+    "PSL_DATA_COLLECTION_USER_REQUEST_DELETE": true
+  },
+  "dataTypes": [
+    {
+      "id": "PSL_NAME",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "required",
+      "purposes": ["PSL_APP_FUNCTIONALITY", "PSL_ACCOUNT_MANAGEMENT"]
+    },
+    {
+      "id": "PSL_EMAIL",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "required",
+      "purposes": ["PSL_ACCOUNT_MANAGEMENT", "PSL_FRAUD_PREVENTION_SECURITY"]
+    },
+    {
+      "id": "PSL_USER_ACCOUNT",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "required",
+      "purposes": ["PSL_APP_FUNCTIONALITY", "PSL_ACCOUNT_MANAGEMENT", "PSL_FRAUD_PREVENTION_SECURITY"]
+    },
+    {
+      "id": "PSL_OTHER_PERSONAL",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "required",
+      "purposes": ["PSL_APP_FUNCTIONALITY", "PSL_ACCOUNT_MANAGEMENT", "PSL_FRAUD_PREVENTION_SECURITY"]
+    },
+    {
+      "id": "PSL_PRECISE_LOCATION",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "optional",
+      "purposes": ["PSL_APP_FUNCTIONALITY"],
+      "ownerDecisionRequired": "Confirm whether any active Play artifact can execute the child-location flow."
+    },
+    {
+      "id": "PSL_OTHER_MESSAGES",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "required",
+      "purposes": ["PSL_APP_FUNCTIONALITY"]
+    },
+    {
+      "id": "PSL_PHOTOS",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "optional",
+      "purposes": ["PSL_APP_FUNCTIONALITY", "PSL_ACCOUNT_MANAGEMENT"]
+    },
+    {
+      "id": "PSL_VIDEOS",
+      "collected": true,
+      "shared": false,
+      "ephemeral": true,
+      "control": "optional",
+      "purposes": ["PSL_APP_FUNCTIONALITY"],
+      "ownerDecisionRequired": "Confirm live WebRTC video meets Google Play's ephemeral-processing definition."
+    },
+    {
+      "id": "PSL_AUDIO",
+      "collected": true,
+      "shared": false,
+      "ephemeral": true,
+      "control": "optional",
+      "purposes": ["PSL_APP_FUNCTIONALITY"],
+      "ownerDecisionRequired": "Confirm live WebRTC audio meets Google Play's ephemeral-processing definition."
+    },
+    {
+      "id": "PSL_CONTACTS",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "required",
+      "purposes": ["PSL_APP_FUNCTIONALITY", "PSL_FRAUD_PREVENTION_SECURITY"]
+    },
+    {
+      "id": "PSL_CRASH_LOGS",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "required",
+      "purposes": ["PSL_APP_FUNCTIONALITY", "PSL_ANALYTICS"]
+    },
+    {
+      "id": "PSL_PERFORMANCE_DIAGNOSTICS",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "required",
+      "purposes": ["PSL_APP_FUNCTIONALITY", "PSL_ANALYTICS"]
+    },
+    {
+      "id": "PSL_USER_INTERACTION",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "required",
+      "purposes": ["PSL_APP_FUNCTIONALITY", "PSL_FRAUD_PREVENTION_SECURITY"]
+    },
+    {
+      "id": "PSL_OTHER_APP_ACTIVITY",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "required",
+      "purposes": ["PSL_APP_FUNCTIONALITY", "PSL_FRAUD_PREVENTION_SECURITY"]
+    },
+    {
+      "id": "PSL_DEVICE_ID",
+      "collected": true,
+      "shared": false,
+      "ephemeral": false,
+      "control": "required",
+      "purposes": ["PSL_APP_FUNCTIONALITY", "PSL_FRAUD_PREVENTION_SECURITY"]
+    }
+  ],
+  "ownerDecisions": [
+    "Export the current Play Console Data Safety CSV and compare every row.",
+    "Confirm the declaration covers every artifact still active on Google Play.",
+    "Confirm all collected data is encrypted in transit in every active artifact.",
+    "Test the public and in-app account-deletion mechanisms end to end.",
+    "Confirm Firebase, Sentry, Railway and Cloudflare qualify as service providers for the selected no-sharing answers.",
+    "Resolve the precise-location discrepancy between the WebView code and the v80 Android manifest.",
+    "Confirm the ephemeral classification for live microphone and camera media."
+  ]
+}

@@ -118,6 +118,14 @@ Bevestig vóór `Delen: nee` minimaal:
 7. Sla de definitieve geëxporteerde CSV, datum, Play-account en verantwoordelijke
    op in het private releasearchief.
 
+Het machineleesbare conceptantwoord staat in
+`security/android-data-safety/release-1.0.24-v80-response-plan.json`. Het is
+gebaseerd op het officiële Google-sjabloon dat op 22 oktober 2026 is gedownload
+met SHA-256
+`5eea7d426509e97523de02d31d2e94d574f096c111a6857f78929e735cf99e13`.
+Het plan blijft geblokkeerd zolang `ownerDecisions` niet met Console- en
+contractbewijs zijn afgehandeld; het is dus bewust nog geen importbestand.
+
 ## Openbare primaire bronnen
 
 - https://support.google.com/googleplay/android-developer/answer/10787469

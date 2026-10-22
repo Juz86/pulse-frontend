@@ -71,11 +71,13 @@ Pulse verstuurt microfoon- en cameramedia tijdens door de gebruiker gestarte
 WebRTC-oproepen. De browser- en Android-client verbinden live tracks direct met
 WebRTC, stoppen deze bij het sluiten en bevatten geen opname- of uploadpad. De
 backend bewaart alleen oproepstatus en stuurt SDP/ICE-signaling door; media loopt
-peer-to-peer of via Cloudflare TURN. Beide typen zijn daarom als optioneel
-verzameld en voorlopig efemeer opgenomen. Nog open is de externe bevestiging dat
-de actieve TURN-configuratie en verwerkersvoorwaarden geen opname of retentie
-buiten real-time relayverwerking toevoegen. Dit staat los van een E2EE-claim
-voor bellen; die claim is nog niet toegestaan.
+peer-to-peer of via Cloudflare TURN. Cloudflare documenteert voor Realtime TURN
+dat het uitsluitend versleutelde WebRTC-pakketten relayeert, geen toegang tot de
+media-inhoud heeft en alleen noodzakelijke verbindingsmetadata verwerkt. Beide
+typen zijn daarom als optioneel verzameld en efemeer opgenomen. Nog open is de
+accountbevestiging dat Pulse onder de actuele Cloudflare-DPA valt en in productie
+de hier beoordeelde directe TURN-integratie gebruikt. Dit staat los van een
+E2EE-claim voor bellen; die claim is nog niet toegestaan.
 
 ### E2EE-uitzondering
 
@@ -158,6 +160,8 @@ komt exact overeen.
 - https://support.google.com/googleplay/android-developer/answer/10787469
 - https://firebase.google.com/docs/android/play-data-disclosure
 - https://firebase.google.com/support/privacy/
+- https://developers.cloudflare.com/realtime/turn/faq/
+- https://www.cloudflare.com/cloudflare-customer-dpa/
 
 Google Play houdt de ontwikkelaar verantwoordelijk voor een volledige en
 actuele verklaring. Deze conceptmatrix mag daarom niet automatisch naar

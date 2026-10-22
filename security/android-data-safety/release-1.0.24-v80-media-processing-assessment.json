@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "status": "technical_assessment_complete_infrastructure_confirmation_pending",
+  "status": "technical_and_public_provider_assessment_complete_account_terms_confirmation_pending",
   "assessedAt": "2026-10-22",
   "release": {
     "versionName": "1.0.24",
@@ -53,14 +53,27 @@
     "PSL_AUDIO": {
       "collected": true,
       "optional": true,
-      "ephemeralCandidate": true
+      "ephemeralSupported": true
     },
     "PSL_VIDEOS": {
       "collected": true,
       "optional": true,
-      "ephemeralCandidate": true
+      "ephemeralSupported": true
     }
   },
-  "remainingConfirmation": "Confirm the active production Cloudflare TURN service configuration and applicable processor terms do not add recording or retention beyond real-time relay processing.",
+  "providerAssessment": {
+    "result": "turn_relays_encrypted_packets_and_processes_connection_metadata_only",
+    "mediaContentAccessibleToProvider": false,
+    "serverSideMediaProcessing": false,
+    "connectionMetadataProcessed": ["client_ip_addresses", "ports", "session_timing", "usage_analytics"],
+    "sourcesCheckedAt": "2026-10-22",
+    "officialSources": [
+      "https://developers.cloudflare.com/realtime/turn/faq/",
+      "https://developers.cloudflare.com/realtime/turn/",
+      "https://www.cloudflare.com/cloudflare-customer-dpa/",
+      "https://www.cloudflare.com/trust-hub/us-privacy-compliance/"
+    ]
+  },
+  "remainingConfirmation": "Confirm the Pulse Cloudflare account is governed by the current DPA and that its active production service is the direct Realtime TURN integration assessed here.",
   "primaryPolicySource": "https://support.google.com/googleplay/android-developer/answer/10787469"
 }

@@ -243,7 +243,7 @@ const dataSafetyMediaAssessment = JSON.parse(read(dataSafetyMediaAssessmentPath)
 requireValue(
   dataSafetyMediaAssessment.schemaVersion === 1 &&
     dataSafetyMediaAssessment.status ===
-      'technical_assessment_complete_infrastructure_confirmation_pending',
+      'technical_and_public_provider_assessment_complete_account_terms_confirmation_pending',
   'Android Data Safety-mediabeoordeling heeft een ongeldige status.',
 );
 requireValue(
@@ -257,10 +257,20 @@ for (const dataTypeId of ['PSL_AUDIO', 'PSL_VIDEOS']) {
   const mediaVerdict = dataSafetyMediaAssessment.technicalVerdict?.[dataTypeId];
   requireValue(
     planEntry?.collected === true && planEntry?.ephemeral === true &&
-      mediaVerdict?.collected === true && mediaVerdict?.ephemeralCandidate === true,
+      mediaVerdict?.collected === true && mediaVerdict?.ephemeralSupported === true,
     `Data Safety-mediabeoordeling en antwoordplan wijken af: ${dataTypeId}`,
   );
 }
+requireValue(
+  dataSafetyMediaAssessment.providerAssessment?.result ===
+    'turn_relays_encrypted_packets_and_processes_connection_metadata_only' &&
+    dataSafetyMediaAssessment.providerAssessment?.mediaContentAccessibleToProvider === false &&
+    dataSafetyMediaAssessment.providerAssessment?.serverSideMediaProcessing === false &&
+    dataSafetyMediaAssessment.providerAssessment?.officialSources?.includes(
+      'https://developers.cloudflare.com/realtime/turn/faq/',
+    ),
+  'Cloudflare TURN-providerbeoordeling ontbreekt of is onvolledig.',
+);
 for (const finding of dataSafetyMediaAssessment.findings || []) {
   if (!finding.evidencePath.startsWith('pulse-backend/')) {
     requireValue(

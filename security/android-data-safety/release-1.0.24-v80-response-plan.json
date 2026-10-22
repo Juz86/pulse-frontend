@@ -78,7 +78,7 @@
       "ephemeral": true,
       "control": "optional",
       "purposes": ["PSL_APP_FUNCTIONALITY"],
-      "ownerDecisionRequired": "Confirm the active Cloudflare TURN configuration and processor terms add no recording or retention beyond real-time relay processing."
+      "ownerDecisionRequired": "Confirm the Pulse Cloudflare account is governed by the current DPA and uses the assessed direct Realtime TURN integration."
     },
     {
       "id": "PSL_AUDIO",
@@ -87,7 +87,7 @@
       "ephemeral": true,
       "control": "optional",
       "purposes": ["PSL_APP_FUNCTIONALITY"],
-      "ownerDecisionRequired": "Confirm the active Cloudflare TURN configuration and processor terms add no recording or retention beyond real-time relay processing."
+      "ownerDecisionRequired": "Confirm the Pulse Cloudflare account is governed by the current DPA and uses the assessed direct Realtime TURN integration."
     },
     {
       "id": "PSL_CONTACTS",
@@ -144,6 +144,6 @@
     "Confirm all collected data is encrypted in transit in every active artifact.",
     "Test the public and in-app account-deletion mechanisms end to end.",
     "Confirm Firebase, Sentry, Railway and Cloudflare qualify as service providers for the selected no-sharing answers.",
-    "Confirm the active Cloudflare TURN configuration and processor terms support the ephemeral classification for live microphone and camera media."
+    "Confirm the Pulse Cloudflare account is governed by the current DPA and uses the assessed direct Realtime TURN integration."
   ]
 }

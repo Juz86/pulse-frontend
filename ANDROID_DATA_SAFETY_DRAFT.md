@@ -135,7 +135,10 @@ npm run verify:play-console-release-evidence -- \
 ```
 
 Met `--validate-template` kan eerst alleen de CSV-structuur tegen het
-versiegebonden antwoordplan worden gecontroleerd.
+versiegebonden antwoordplan worden gecontroleerd. De volledige controle
+verifieert daarnaast de AAB-hash en leest met `keytool` het certificaat uit het
+ondertekende release-AAB voordat dit met de Play Console-fingerprint wordt
+vergeleken.
 
 ## Openbare primaire bronnen
 

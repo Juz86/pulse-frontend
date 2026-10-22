@@ -271,7 +271,8 @@ requireValue(
   'android/variables.gradle hash wijkt af.',
 );
 
-const aabPath = 'android/app/build/outputs/bundle/release/app-release.aab';
+const aabPath = manifest.release.aabPath;
+requireValue(typeof aabPath === 'string' && aabPath.length > 0, 'AAB-pad ontbreekt.');
 const aabExists = fs.existsSync(path.join(root, aabPath));
 if (aabExists) {
   requireValue(sha256(aabPath) === manifest.release.aabSha256, 'AAB-hash wijkt af.');

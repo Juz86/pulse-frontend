@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -209,6 +210,34 @@ function normalizeFingerprint(value) {
   return normalized.match(/.{2}/g).join(':');
 }
 
+function sha256File(filePath) {
+  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
+function readAabFingerprint(aabPath, runKeytool = execFileSync) {
+  const output = runKeytool(
+    'keytool',
+    ['-printcert', '-jarfile', aabPath],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  );
+  const match = output.match(/^\s*SHA256:\s*(.+)$/m);
+  if (!match) fail('SHA-256-fingerprint ontbreekt in het ondertekende AAB.');
+  return normalizeFingerprint(match[1]);
+}
+
+function verifyLocalAab() {
+  const aabPath = path.join(root, manifest.release.aabPath);
+  if (!fs.existsSync(aabPath)) fail(`Release-AAB ontbreekt: ${manifest.release.aabPath}`);
+  if (sha256File(aabPath) !== manifest.release.aabSha256) {
+    fail('Release-AAB-hash wijkt af van het releasebewijs.');
+  }
+  const fingerprint = readAabFingerprint(aabPath);
+  if (fingerprint !== manifest.release.localUploadCertificateSha256) {
+    fail('Ondertekeningscertificaat van het release-AAB wijkt af van het releasebewijs.');
+  }
+  return fingerprint;
+}
+
 function readArgument(name) {
   const index = process.argv.indexOf(name);
   return index >= 0 ? process.argv[index + 1] : null;
@@ -229,10 +258,11 @@ function main() {
   }
 
   verifyAnswers(evidence);
+  const localFingerprint = verifyLocalAab();
   const suppliedFingerprint = normalizeFingerprint(
     readArgument('--upload-cert-sha256') || process.env.PULSE_PLAY_UPLOAD_CERT_SHA256,
   );
-  if (suppliedFingerprint !== manifest.release.localUploadCertificateSha256) {
+  if (suppliedFingerprint !== localFingerprint) {
     fail('Play Console-uploadcertificaat wijkt af van de lokale release-uploadkey.');
   }
   console.log(
@@ -249,4 +279,12 @@ if (require.main === module) {
   }
 }
 
-module.exports = { loadAnswers, normalizeFingerprint, parseCsv, validateTemplate, verifyAnswers };
+module.exports = {
+  loadAnswers,
+  normalizeFingerprint,
+  parseCsv,
+  readAabFingerprint,
+  validateTemplate,
+  verifyAnswers,
+  verifyLocalAab,
+};

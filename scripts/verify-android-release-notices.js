@@ -122,6 +122,58 @@ for (const file of androidLicenseBundle.files) {
   requireValue(fs.existsSync(path.join(root, bundledPath)), `Licentiebestand ontbreekt: ${file.path}`);
   requireValue(sha256(bundledPath) === file.sha256, `Licentiebestand-hash wijkt af: ${file.path}`);
 }
+const googleSdkTermsAssessmentPath = manifest.release.googleSdkTermsAssessmentPath;
+requireValue(
+  typeof googleSdkTermsAssessmentPath === 'string' &&
+    fs.existsSync(path.join(root, googleSdkTermsAssessmentPath)),
+  'Google SDK-voorwaardenbeoordeling ontbreekt.',
+);
+requireValue(
+  sha256(googleSdkTermsAssessmentPath) === manifest.release.googleSdkTermsAssessmentSha256,
+  'Google SDK-voorwaardenbeoordelingshash wijkt af.',
+);
+const googleSdkTermsAssessment = JSON.parse(read(googleSdkTermsAssessmentPath));
+requireValue(
+  googleSdkTermsAssessment.schemaVersion === 1 &&
+    googleSdkTermsAssessment.status ===
+      'technical_scope_verified_authorized_acceptance_pending',
+  'Google SDK-voorwaardenbeoordeling heeft een ongeldige status.',
+);
+requireValue(
+  googleSdkTermsAssessment.release?.versionName === manifest.release.versionName &&
+    googleSdkTermsAssessment.release?.versionCode === manifest.release.versionCode &&
+    googleSdkTermsAssessment.release?.applicationId === manifest.release.applicationId,
+  'Google SDK-voorwaardenbeoordeling hoort bij een andere release.',
+);
+const googleTermGroups = new Set(
+  googleSdkTermsAssessment.termGroups?.map((termGroup) => termGroup.id),
+);
+for (const termGroupId of [
+  'android_sdk',
+  'play_core',
+  'play_integrity',
+  'google_apis',
+  'firebase_services',
+]) {
+  requireValue(googleTermGroups.has(termGroupId), `Google voorwaardengroep ontbreekt: ${termGroupId}`);
+}
+requireValue(
+  googleSdkTermsAssessment.termGroups.every((termGroup) =>
+    termGroup.termsUrl?.startsWith('https://') &&
+    termGroup.acceptanceStatus?.endsWith('_pending')),
+  'Google voorwaarden zijn zonder bevoegd bewijs als aanvaard gemarkeerd.',
+);
+requireValue(
+  googleSdkTermsAssessment.authorizedAcceptance?.acceptedBy === null &&
+    googleSdkTermsAssessment.authorizedAcceptance?.authorityBasis === null &&
+    googleSdkTermsAssessment.authorizedAcceptance?.acceptedAt === null &&
+    googleSdkTermsAssessment.authorizedAcceptance?.privateEvidenceReference === null &&
+    googleSdkTermsAssessment.releaseDecision?.termsAcceptedForRelease === false &&
+    googleSdkTermsAssessment.releaseDecision?.blocker ===
+      'google_sdk_terms_owner_acceptance_missing' &&
+    manifest.blockers.includes('google_sdk_terms_owner_acceptance_missing'),
+  'Google voorwaardenblocker moet zonder bevoegd aanvaardingsbewijs actief blijven.',
+);
 const dataSafetyDraftPath = manifest.release.dataSafetyDraftPath;
 requireValue(
   typeof dataSafetyDraftPath === 'string' && fs.existsSync(path.join(root, dataSafetyDraftPath)),

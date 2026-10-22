@@ -28,6 +28,8 @@
     "androidLicenseBundleManifestPath": "public/legal/third-party/android-runtime-1.0.24-v80/BUNDLE-MANIFEST.json",
     "androidLicenseBundleManifestSha256": "133b6a23f300bcc06453e30b904bebb5cec541a99bcbd0257a0b09621c729f01",
     "androidLicenseBundleFileCount": 10,
+    "googleSdkTermsAssessmentPath": "security/android-release-notices/release-1.0.24-v80-google-sdk-terms.json",
+    "googleSdkTermsAssessmentSha256": "2804c752d41641be9b64ad0efc153110b32ba4c966842347e06147a9e0f16db1",
     "dataSafetyDraftPath": "ANDROID_DATA_SAFETY_DRAFT.md",
     "dataSafetyDraftSha256": "9562e46d163faa64c92427366f03ff5eb1747a3948f84a8d54a924a8718a22c0",
     "dataSafetyTypeAssessmentPath": "security/android-data-safety/release-1.0.24-v80-data-type-assessment.json",

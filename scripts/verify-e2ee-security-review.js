@@ -7,6 +7,7 @@ const projectRoot = path.resolve(__dirname, '..');
 const reviewRoot = path.join(projectRoot, 'security/e2ee/browser-provider-review');
 const attestationPath = path.join(reviewRoot, 'review-attestation.json');
 const candidate = JSON.parse(readFileSync(path.join(reviewRoot, 'candidate.json'), 'utf8'));
+const reviewSubject = JSON.parse(readFileSync(path.join(reviewRoot, 'review-subject.json'), 'utf8'));
 const runtime = JSON.parse(readFileSync(
   path.join(projectRoot, 'security/e2ee/browser-provider-runtime.json'),
   'utf8',
@@ -62,12 +63,28 @@ requireValue(
   'De beoordeelde frontendcommit bestaat niet of is geen voorouder van HEAD.',
 );
 requireValue(
+  attestation.scope.frontendCommit === reviewSubject.scope.frontendCommit,
+  'De beoordeelde frontendcommit wijkt af van de bevroren reviewbasis.',
+);
+requireValue(
+  attestation.scope.backendCommit === reviewSubject.scope.backendCommit,
+  'De beoordeelde backendcommit wijkt af van de bevroren reviewbasis.',
+);
+requireValue(
   attestation.scope.upstreamCommit === candidate.upstream.commit,
   'De beoordeelde upstreamcommit wijkt af van de kandidaat.',
 );
 requireValue(
   attestation.scope.libsignalCommit === candidate.libsignal.commit,
   'De beoordeelde libsignalcommit wijkt af van de kandidaat.',
+);
+requireValue(
+  attestation.scope.upstreamCommit === reviewSubject.scope.upstreamCommit,
+  'De beoordeelde upstreamcommit wijkt af van de bevroren reviewbasis.',
+);
+requireValue(
+  attestation.scope.libsignalCommit === reviewSubject.scope.libsignalCommit,
+  'De beoordeelde libsignalcommit wijkt af van de bevroren reviewbasis.',
 );
 requireValue(attestation.rebuild?.performed === true, 'Een onafhankelijke rebuild is niet bevestigd.');
 const wasmPath = path.resolve(projectRoot, runtime.artifacts.wasm.path);
@@ -84,6 +101,14 @@ requireValue(
 requireValue(
   runtime.artifacts.javascript.sha256 === candidate.outputs.javascriptSha256,
   'Runtime- en kandidaathash voor JavaScript verschillen.',
+);
+requireValue(
+  runtime.artifacts.wasm.sha256 === reviewSubject.artifacts.wasmSha256,
+  'De WASM-hash wijkt af van de bevroren reviewbasis.',
+);
+requireValue(
+  runtime.artifacts.javascript.sha256 === reviewSubject.artifacts.javascriptSha256,
+  'De JavaScript-hash wijkt af van de bevroren reviewbasis.',
 );
 requireValue(
   attestation.rebuild.wasmSha256 === runtime.artifacts.wasm.sha256,

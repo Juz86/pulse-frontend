@@ -8,6 +8,8 @@ de browsergate formeel is goedgekeurd.
 ## Inhoud
 
 - `candidate.json`: bron-, toolchain-, test- en artifactprovenance;
+- `review-subject.json`: exact vastgepinde frontend-, backend-, upstream- en
+  libsignalcommits plus de te beoordelen artifacthashes;
 - `libsignal-0.105.1-parity.patch`: minimale wijziging boven op de vastgepinde
   upstreamwrapper;
 - `Cargo.lock`: volledige dependencyresolutie van de geslaagde paritybuild.

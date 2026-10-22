@@ -8,8 +8,8 @@
     "independent": true
   },
   "scope": {
-    "frontendCommit": "0000000000000000000000000000000000000000",
-    "backendCommit": "0000000000000000000000000000000000000000",
+    "frontendCommit": "b686b7559800c44b736888f6bac9ef88a5411f6b",
+    "backendCommit": "38c19aad1160492a6a639b14f720a5f95903f48c",
     "upstreamCommit": "0a5e3cb8bf282efb3521d7cdac5476caf3fb1acd",
     "libsignalCommit": "1738ead8a12ffe539f6309958123dadb16dc3b95"
   },

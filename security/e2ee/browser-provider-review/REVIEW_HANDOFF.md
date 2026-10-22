@@ -6,7 +6,9 @@ partij mag het onafhankelijke oordeel niet zelf aftekenen.
 
 ## Bevroren Reviewbasis
 
-De reviewer noteert in `review-attestation.json`:
+De definitieve scope staat in `review-subject.json`. De reviewer neemt die
+commit- en artifactwaarden ongewijzigd over in `review-attestation.json` en
+noteert daarnaast:
 
 - de exacte frontendcommit;
 - de exacte backendcommit;
@@ -14,6 +16,9 @@ De reviewer noteert in `review-attestation.json`:
 - de hashes van de gereconstrueerde JavaScript- en WASM-artifacts;
 - de hash van het inhoudelijke reviewrapport;
 - alle open bevindingen per ernstniveau.
+
+De verificatie faalt wanneer een geattesteerde commit of artifacthash afwijkt
+van `review-subject.json`.
 
 Beide repositories moeten vóór overdracht schoon en gepusht zijn. Een dirty
 worktree, een niet-herleidbaar artifact of een hashafwijking blokkeert de

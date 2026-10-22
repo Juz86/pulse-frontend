@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Pulse E2EE independent security review attestation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "reviewedAt",
+    "reviewer",
+    "scope",
+    "rebuild",
+    "tests",
+    "findings",
+    "report"
+  ],
+  "properties": {
+    "status": { "const": "approved" },
+    "reviewedAt": { "type": "string", "format": "date" },
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "organization", "contact", "independent"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "organization": { "type": "string", "minLength": 1 },
+        "contact": { "type": "string", "minLength": 1 },
+        "independent": { "const": true }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frontendCommit", "backendCommit", "upstreamCommit", "libsignalCommit"],
+      "properties": {
+        "frontendCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "backendCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "upstreamCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "libsignalCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "rebuild": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["performed", "wasmSha256", "javascriptSha256"],
+      "properties": {
+        "performed": { "const": true },
+        "wasmSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "javascriptSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit", "browserWorker", "tamper", "replay", "androidBrowserInterop"],
+      "properties": {
+        "unit": { "const": true },
+        "browserWorker": { "const": true },
+        "tamper": { "const": true },
+        "replay": { "const": true },
+        "androidBrowserInterop": { "const": true }
+      }
+    },
+    "findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["openCritical", "openHigh", "openMedium", "openLow"],
+      "properties": {
+        "openCritical": { "const": 0 },
+        "openHigh": { "const": 0 },
+        "openMedium": { "type": "integer", "minimum": 0 },
+        "openLow": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "report": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "pattern": "^security/e2ee/browser-provider-review/evidence/" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    }
+  }
+}

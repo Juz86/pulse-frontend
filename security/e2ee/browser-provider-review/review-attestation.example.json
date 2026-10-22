@@ -1,0 +1,38 @@
+{
+  "status": "approved",
+  "reviewedAt": "YYYY-MM-DD",
+  "reviewer": {
+    "name": "REVIEWER_NAME",
+    "organization": "REVIEWER_ORGANIZATION",
+    "contact": "REVIEWER_CONTACT",
+    "independent": true
+  },
+  "scope": {
+    "frontendCommit": "0000000000000000000000000000000000000000",
+    "backendCommit": "0000000000000000000000000000000000000000",
+    "upstreamCommit": "0a5e3cb8bf282efb3521d7cdac5476caf3fb1acd",
+    "libsignalCommit": "1738ead8a12ffe539f6309958123dadb16dc3b95"
+  },
+  "rebuild": {
+    "performed": true,
+    "wasmSha256": "ce473ceb9422a801d1bd48e3764f9e52b06f13191523ba1a944e9fa0985160bc",
+    "javascriptSha256": "42910a893b4a6b585622f38dbe901a307a4db954fc7eda36372153eacbc1e623"
+  },
+  "tests": {
+    "unit": true,
+    "browserWorker": true,
+    "tamper": true,
+    "replay": true,
+    "androidBrowserInterop": true
+  },
+  "findings": {
+    "openCritical": 0,
+    "openHigh": 0,
+    "openMedium": 0,
+    "openLow": 0
+  },
+  "report": {
+    "path": "security/e2ee/browser-provider-review/evidence/independent-review.pdf",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
+}

@@ -248,9 +248,13 @@ Uitvoeringsstatus op 21 oktober 2026:
   browserworkerstop, pending delivery en sessiehydratie zijn daarna eveneens
   in beide richtingen geslaagd. Cross-platform identity-change van een
   browserbinding van identityversie `1` naar `2` is ook in beide richtingen met
-  een fysiek Androidtoestel gevalideerd. De resterende cross-platform revoke-
-  en manipulatievectors en het controleerbare onafhankelijke
-  reviewbewijs blijven open;
+  een fysiek Androidtoestel gevalideerd. De browserprovider weigert in echt
+  Chromium ook gemanipuleerde ciphertext zonder ratchetcommit en replay van
+  reeds verwerkte ciphertext. Cross-platform device-revoke blokkeerde daarna
+  de oude devicefeed met `403`; een vervangende binding met een nieuw
+  Signal-device-ID werkte opnieuw in beide richtingen met het fysieke
+  Androidtoestel. Alleen het controleerbare onafhankelijke reviewbewijs blijft
+  open;
 - voor stap 6 is een strikt afgescheiden Android-only QA-pilot met een
   `v2_pending`-gesprek geslaagd. Dit is geen productiepilot en verandert de
   browsergate of productievoorwaarden niet;

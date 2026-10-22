@@ -36,6 +36,7 @@
     "verify:deployed-targets": "node scripts/verify-deployed-targets.js",
     "verify:open-source": "node scripts/check-open-source-release.js",
     "verify:e2ee:browser-review": "node scripts/verify-e2ee-browser-review-candidate.js",
+    "verify:e2ee:security-review": "node scripts/verify-e2ee-security-review.js",
     "verify:e2ee:browser-runtime": "node scripts/verify-e2ee-browser-runtime.js",
     "test:e2ee:browser-worker": "node scripts/test-e2ee-browser-worker-runtime.js",
     "verify:public-headers": "node scripts/verify-public-headers.js",

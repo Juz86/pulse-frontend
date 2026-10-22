@@ -556,11 +556,38 @@ ontsleuteld en bevestigd. De proef eindigde met intrekking van het tijdelijke
 browserdevice; account en gesprek zijn via de echte verwijderingsroute
 verwijderd en beide Firestore-controles gaven `404`.
 
+Op 22 oktober 2026 zijn de negatieve browserprovidervectors met dezelfde
+release-WASM in echt Chromium geslaagd. Een bitgewijzigde prekey-ciphertext
+werd fail-closed geweigerd zonder de ontvangende ratchetsessie te committen;
+het ongewijzigde origineel kon onmiddellijk daarna nog correct worden
+ontsleuteld. Een tweede decryptiepoging van die geldige ciphertext met een
+nieuwe operation-ID werd vervolgens als replay geweigerd. Daarmee zijn zowel
+authenticatiefalen met transactionele rollback als Signal-replaybescherming
+voor de browserprovider uitvoerbaar vastgelegd.
+
+De cross-platform device-revoke-proef is op 22 oktober 2026 eveneens
+geslaagd. Een tijdelijk browserdevice wisselde eerst in beide richtingen
+versleutelde berichten uit met het fysieke Androidtoestel. Na intrekking
+rapporteerde de backend status `REVOKED` en werd toegang tot de oude devicefeed
+met `403 v2_recipient_device_not_capable` geweigerd. Herregistratie leverde een
+nieuwe opaque devicebinding en een nieuw Signal-device-ID (`1` naar `2`) op.
+Android ontsleutelde daarna het bericht van de vervangende binding en het
+Androidantwoord werd door die nieuwe browsersessie ontsleuteld en bevestigd.
+Het tijdelijke account en gesprek zijn aansluitend verwijderd; beide
+Firestore-controles gaven `404` en de kortlevende servicesleutel is verwijderd.
+
 De eerstvolgende implementatiefase is:
 
-1. de resterende cross-platform revoke- en manipulatievectors uitvoeren;
-2. het onafhankelijke reviewbewijs vastleggen en pas daarna een productiepilot
+1. het onafhankelijke reviewbewijs vastleggen en pas daarna een productiepilot
    overwegen.
+
+De reviewoverdracht is inmiddels machineleesbaar voorbereid in
+`security/e2ee/browser-provider-review`: het handoffdocument, attestation-
+schema, invultemplate en `npm run verify:e2ee:security-review` binden het
+reviewoordeel aan exacte frontend-, backend-, upstream- en libsignalcommits,
+een onafhankelijke rebuild, artifacthashes, verplichte tests, open bevindingen
+en de SHA-256 van het inhoudelijke rapport. De check faalt bewust zolang het
+echte externe attestation en rapport ontbreken.
 
 ## Praktisch oordeel
 
@@ -576,9 +603,9 @@ nieuwe Signal-device-ID herregistreren van een van deze twee echte
 accountdevices is nu ook in beide berichtrichtingen gevalideerd. Een echte
 identity-change op een bestaand device is eveneens fail-closed verwerkt en na
 sessievernieuwing in beide richtingen gevalideerd. De eerste begrensde interne
-Android-only `v2_pending`-pilot is eveneens geslaagd. De onafhankelijke
-securityreview en de resterende cross-platform revoke- en
-manipulatietestmatrix zijn nog niet afgerond; de live browser-Android-baseline,
-identity-change en stop/herstartherstel in beide richtingen zijn wel bewezen.
-Een productiepilot blijft daarom geblokkeerd. De huidige mock-serviceflow mag
-nog steeds niet als E2EE worden geactiveerd.
+Android-only `v2_pending`-pilot is eveneens geslaagd. De live
+browser-Android-baseline, identity-change, device-revoke, stop/herstartherstel
+en negatieve browserprovidervectors zijn nu bewezen. Alleen het onafhankelijke
+securityreviewbewijs ontbreekt nog; een productiepilot blijft daarom
+geblokkeerd. De huidige mock-serviceflow mag nog steeds niet als E2EE worden
+geactiveerd.

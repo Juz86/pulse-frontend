@@ -59,3 +59,13 @@ Een onafhankelijke review moet minimaal beoordelen:
 
 Een geslaagde review maakt dit nog niet automatisch productiegeschikt. Daarna
 blijven de geisoleerde Pulse-QA-integratie en Android-browser-testmatrix vereist.
+
+De formele overdracht, aftekencriteria en het machineleesbare bewijscontract
+staan in `REVIEW_HANDOFF.md` en `review-attestation.schema.json`. Gebruik
+`review-attestation.example.json` uitsluitend als invultemplate. De
+productiepoort controleert alleen een echt `review-attestation.json` met een
+aanwezig rapport waarvan de SHA-256 overeenkomt:
+
+```bash
+npm run verify:e2ee:security-review
+```

@@ -58,6 +58,12 @@ function claimedBundle(bundle) {
   return { ...bundle, oneTimePreKey: bundle.oneTimePreKeys[0] };
 }
 
+function tamperCiphertext(ciphertext) {
+  const index = Math.floor(ciphertext.length / 2);
+  const replacement = ciphertext[index] === 'A' ? 'B' : 'A';
+  return ciphertext.slice(0, index) + replacement + ciphertext.slice(index + 1);
+}
+
 async function run() {
   let deviceA = spawn('a1', bindingA, 'generation-a1');
   let deviceB = spawn('b1', bindingB, 'generation-b1');
@@ -88,6 +94,23 @@ async function run() {
     || JSON.stringify(envelopeA) !== JSON.stringify(retriedEnvelopeA)) {
     throw new Error('encrypt-idempotency-failed');
   }
+
+  let tamperedRejected = false;
+  try {
+    await deviceB.request('decrypt', { payload: {
+      operationId: 'receive-b-tampered',
+      remoteUserId: bindingA.uid,
+      remoteDeviceId: bindingA.deviceId,
+      remoteSignalDeviceId: bindingA.signalDeviceId,
+      remoteIdentityVersion: 1,
+      envelopeType: envelopeA.envelopeType,
+      ciphertext: tamperCiphertext(envelopeA.ciphertext),
+    } });
+  } catch {
+    tamperedRejected = true;
+  }
+  if (!tamperedRejected) throw new Error('tampered-ciphertext-accepted');
+
   const receiveB = await deviceB.request('decrypt', { payload: {
     operationId: 'receive-b-1',
     remoteUserId: bindingA.uid,
@@ -98,6 +121,23 @@ async function run() {
     ciphertext: envelopeA.ciphertext,
   } });
   if (receiveB.plaintext !== sendA.plaintext) throw new Error('first-decrypt-failed');
+
+  let replayRejected = false;
+  try {
+    await deviceB.request('decrypt', { payload: {
+      operationId: 'receive-b-replay',
+      remoteUserId: bindingA.uid,
+      remoteDeviceId: bindingA.deviceId,
+      remoteSignalDeviceId: bindingA.signalDeviceId,
+      remoteIdentityVersion: 1,
+      envelopeType: envelopeA.envelopeType,
+      ciphertext: envelopeA.ciphertext,
+    } });
+  } catch {
+    replayRejected = true;
+  }
+  if (!replayRejected) throw new Error('replayed-ciphertext-accepted');
+
   await deviceA.request('saveOutbox', { payload: {
     clientMessageId: 'browser-outbox-1',
     message: {

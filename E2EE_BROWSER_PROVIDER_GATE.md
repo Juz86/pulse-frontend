@@ -132,8 +132,13 @@ versleutelde IndexedDB-binding en ratchetsessie voordat hij het Androidantwoord
 ontsleutelde en bevestigde. Een daaropvolgende cross-platform identity-change
 verhoogde de browserbinding van identityversie `1` naar `2`; Android
 ontsleutelde daarna met een vernieuwde sessie en het Androidantwoord werd door
-de browser ontsleuteld en bevestigd. Voer vóór een productiepilot nog de
-cross-platform revoke- en manipulatievectors uit.
+de browser ontsleuteld en bevestigd. De aansluitende cross-platform revoke-
+proef blokkeerde de oude browserfeed met `403`, registreerde een nieuwe binding
+met een nieuw Signal-device-ID en slaagde daarna opnieuw in beide
+berichtrichtingen. De release-WASM-proef in echt Chromium weigert bovendien
+zowel bitgemanipuleerde ciphertext met transactionele sessierollback als replay
+van een al verwerkte ciphertext met een nieuwe operation-ID. Alleen het
+onafhankelijke reviewbewijs blijft vóór een productiepilot open.
 Het opslag-, CSP- en panic-herstelontwerp staat in
 [E2EE_BROWSER_SECURITY_DESIGN.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_SECURITY_DESIGN.md).
 

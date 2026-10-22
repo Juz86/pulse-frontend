@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "status": "blocked_console_declaration_mismatch",
+  "checkedAt": "2026-10-22",
+  "release": {
+    "versionName": "1.0.24",
+    "versionCode": 80,
+    "applicationId": "com.pulsemessenger.chat"
+  },
+  "consoleExport": {
+    "sha256": "89a9d26d7261cb66492b3e9a58f561a7f123ca0e9b2c6d4681dea38863f57b58",
+    "rawExportCommitted": false,
+    "rowCount": 782,
+    "questionCount": 217,
+    "encryptedInTransit": true,
+    "accountDeletionEvidencePresent": true,
+    "selectedDataTypes": [
+      "PSL_EMAIL",
+      "PSL_NAME"
+    ]
+  },
+  "candidateComparison": {
+    "expectedDataTypeCount": 15,
+    "missingDataTypes": [
+      "PSL_AUDIO",
+      "PSL_CONTACTS",
+      "PSL_CRASH_LOGS",
+      "PSL_DEVICE_ID",
+      "PSL_OTHER_APP_ACTIVITY",
+      "PSL_OTHER_MESSAGES",
+      "PSL_OTHER_PERSONAL",
+      "PSL_PERFORMANCE_DIAGNOSTICS",
+      "PSL_PHOTOS",
+      "PSL_PRECISE_LOCATION",
+      "PSL_USER_ACCOUNT",
+      "PSL_USER_INTERACTION",
+      "PSL_VIDEOS"
+    ],
+    "unexpectedDataTypes": []
+  },
+  "uploadCertificate": {
+    "localAabSha256Verified": true,
+    "localSha256": "70:24:15:2E:B1:99:D7:B3:59:F3:8F:A3:85:07:84:14:32:C2:74:7D:AD:88:DC:F0:35:B3:12:44:43:A8:88:52",
+    "playConsoleSha256": null,
+    "matches": null
+  },
+  "nextAction": "Resolve the candidate data-type decisions in Play Console, export again, and provide the Play Console upload-key SHA-256 fingerprint."
+}

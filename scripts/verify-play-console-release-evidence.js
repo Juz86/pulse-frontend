@@ -117,10 +117,51 @@ function assertSelectedResponses(evidence, questionId, expectedResponseIds) {
   }
 }
 
+function hasAnswer(evidence, questionId, responseId = '') {
+  return evidence.byKey.has(`${questionId}\u0000${responseId}`);
+}
+
+function assertPresentValue(evidence, questionId) {
+  const answer = requireAnswer(evidence, questionId);
+  if (!answer.value) fail(`Console-antwoordwaarde ontbreekt: ${questionId}`);
+}
+
+function validateDeletionTemplate(evidence) {
+  const candidate = plan.accountDeletionCandidate;
+  if (hasAnswer(evidence, candidate.legacyQuestionId)) return 'legacy';
+
+  requireAnswer(evidence, candidate.accountDeletionUrlQuestionId);
+  requireAnswer(
+    evidence,
+    candidate.dataDeletionQuestionId,
+    candidate.dataDeletionResponseId,
+  );
+  requireAnswer(evidence, candidate.dataDeletionUrlQuestionId);
+  return 'current';
+}
+
+function verifyDeletionAnswers(evidence) {
+  const format = validateDeletionTemplate(evidence);
+  const candidate = plan.accountDeletionCandidate;
+  if (format === 'legacy') {
+    assertBoolean(evidence, candidate.legacyQuestionId, '', true);
+    return;
+  }
+
+  assertPresentValue(evidence, candidate.accountDeletionUrlQuestionId);
+  assertSelectedResponses(
+    evidence,
+    candidate.dataDeletionQuestionId,
+    [candidate.dataDeletionResponseId],
+  );
+  assertPresentValue(evidence, candidate.dataDeletionUrlQuestionId);
+}
+
 function validateTemplate(evidence) {
   for (const questionId of Object.keys(plan.topLevelCandidate)) {
     requireAnswer(evidence, questionId);
   }
+  validateDeletionTemplate(evidence);
   for (const dataType of plan.dataTypes) {
     const typeSelection = evidence.answers.find(
       (answer) => answer.questionId.startsWith('PSL_DATA_TYPES_') &&
@@ -163,14 +204,22 @@ function verifyAnswers(evidence) {
   for (const [questionId, expected] of Object.entries(plan.topLevelCandidate)) {
     assertBoolean(evidence, questionId, '', expected);
   }
+  verifyDeletionAnswers(evidence);
 
   const selectedTypes = plan.dataTypes.map((dataType) => dataType.id);
   const actualTypes = evidence.answers
     .filter((answer) => answer.questionId.startsWith('PSL_DATA_TYPES_') && isTrue(answer))
     .map((answer) => answer.responseId)
     .sort();
-  if (JSON.stringify(actualTypes) !== JSON.stringify([...selectedTypes].sort())) {
-    fail('De geselecteerde Data Safety-gegevenstypen wijken af van het antwoordplan.');
+  const expectedTypes = [...selectedTypes].sort();
+  if (JSON.stringify(actualTypes) !== JSON.stringify(expectedTypes)) {
+    const missing = expectedTypes.filter((id) => !actualTypes.includes(id));
+    const unexpected = actualTypes.filter((id) => !expectedTypes.includes(id));
+    fail([
+      'De geselecteerde Data Safety-gegevenstypen wijken af van het antwoordplan.',
+      `Ontbrekend: ${missing.length > 0 ? missing.join(', ') : 'geen'}.`,
+      `Onverwacht: ${unexpected.length > 0 ? unexpected.join(', ') : 'geen'}.`,
+    ].join(' '));
   }
 
   for (const dataType of plan.dataTypes) {
@@ -285,6 +334,7 @@ module.exports = {
   parseCsv,
   readAabFingerprint,
   validateTemplate,
+  verifyDeletionAnswers,
   verifyAnswers,
   verifyLocalAab,
 };

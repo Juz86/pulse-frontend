@@ -140,6 +140,13 @@ verifieert daarnaast de AAB-hash en leest met `keytool` het certificaat uit het
 ondertekende release-AAB voordat dit met de Play Console-fingerprint wordt
 vergeleken.
 
+De export van 22 oktober 2026 is privacyveilig samengevat in
+`security/android-data-safety/release-1.0.24-v80-console-comparison.json`. De
+Console selecteert momenteel alleen naam en e-mailadres; dertien typen uit dit
+conceptplan ontbreken. De ruwe Console-export blijft buiten Git. Deze afwijking
+moet inhoudelijk worden opgelost en opnieuw worden geëxporteerd voordat de
+releasepoort kan slagen.
+
 ## Openbare primaire bronnen
 
 - https://support.google.com/googleplay/android-developer/answer/10787469

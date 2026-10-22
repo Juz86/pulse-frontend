@@ -5,6 +5,7 @@ const {
   normalizeFingerprint,
   parseCsv,
   readAabFingerprint,
+  verifyDeletionAnswers,
 } = require('./verify-play-console-release-evidence');
 
 test('parseCsv preserves quoted commas, newlines and escaped quotes', () => {
@@ -53,4 +54,18 @@ test('readAabFingerprint extracts the SHA-256 value from keytool output', () => 
     readAabFingerprint('/tmp/release.aab', runKeytool),
     '70:24:15:2E:B1:99:D7:B3:59:F3:8F:A3:85:07:84:14:32:C2:74:7D:AD:88:DC:F0:35:B3:12:44:43:A8:88:52',
   );
+});
+
+test('verifyDeletionAnswers accepts the current Play Console deletion fields', () => {
+  const answers = [
+    { questionId: 'PSL_ACCOUNT_DELETION_URL', responseId: '', value: 'HTTPS://EXAMPLE.COM/DELETE' },
+    { questionId: 'PSL_SUPPORT_DATA_DELETION_BY_USER', responseId: 'DATA_DELETION_YES', value: 'TRUE' },
+    { questionId: 'PSL_SUPPORT_DATA_DELETION_BY_USER', responseId: 'DATA_DELETION_NO', value: '' },
+    { questionId: 'PSL_DATA_DELETION_URL', responseId: '', value: 'HTTPS://EXAMPLE.COM/DATA' },
+  ];
+  const byKey = new Map(
+    answers.map((answer) => [`${answer.questionId}\u0000${answer.responseId}`, answer]),
+  );
+
+  assert.doesNotThrow(() => verifyDeletionAnswers({ answers, byKey }));
 });

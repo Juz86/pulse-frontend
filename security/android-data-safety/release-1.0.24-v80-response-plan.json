@@ -13,8 +13,14 @@
   },
   "topLevelCandidate": {
     "PSL_DATA_COLLECTION_COLLECTS_PERSONAL_DATA": true,
-    "PSL_DATA_COLLECTION_ENCRYPTED_IN_TRANSIT": true,
-    "PSL_DATA_COLLECTION_USER_REQUEST_DELETE": true
+    "PSL_DATA_COLLECTION_ENCRYPTED_IN_TRANSIT": true
+  },
+  "accountDeletionCandidate": {
+    "legacyQuestionId": "PSL_DATA_COLLECTION_USER_REQUEST_DELETE",
+    "accountDeletionUrlQuestionId": "PSL_ACCOUNT_DELETION_URL",
+    "dataDeletionQuestionId": "PSL_SUPPORT_DATA_DELETION_BY_USER",
+    "dataDeletionResponseId": "DATA_DELETION_YES",
+    "dataDeletionUrlQuestionId": "PSL_DATA_DELETION_URL"
   },
   "dataTypes": [
     {

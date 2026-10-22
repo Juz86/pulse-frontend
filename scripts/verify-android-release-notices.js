@@ -187,6 +187,37 @@ requireValue(
   dataSafetyResponsePlan.ownerDecisions?.length > 0,
   'Data Safety-plan mist de nog openstaande eigenaarbesluiten.',
 );
+const dataSafetyConsoleComparisonPath = manifest.release.dataSafetyConsoleComparisonPath;
+requireValue(
+  typeof dataSafetyConsoleComparisonPath === 'string' &&
+    fs.existsSync(path.join(root, dataSafetyConsoleComparisonPath)),
+  'Play Console Data Safety-vergelijking ontbreekt.',
+);
+requireValue(
+  sha256(dataSafetyConsoleComparisonPath) ===
+    manifest.release.dataSafetyConsoleComparisonSha256,
+  'Play Console Data Safety-vergelijkingshash wijkt af.',
+);
+const dataSafetyConsoleComparison = JSON.parse(read(dataSafetyConsoleComparisonPath));
+requireValue(
+  dataSafetyConsoleComparison.schemaVersion === 1 &&
+    dataSafetyConsoleComparison.status === 'blocked_console_declaration_mismatch',
+  'Play Console Data Safety-vergelijking mag nog niet als geslaagd worden gepresenteerd.',
+);
+requireValue(
+  dataSafetyConsoleComparison.release?.versionName === manifest.release.versionName &&
+    dataSafetyConsoleComparison.release?.versionCode === manifest.release.versionCode &&
+    dataSafetyConsoleComparison.release?.applicationId === manifest.release.applicationId,
+  'Play Console Data Safety-vergelijking hoort bij een andere release.',
+);
+requireValue(
+  dataSafetyConsoleComparison.consoleExport?.rawExportCommitted === false,
+  'De ruwe Play Console-export mag niet als releasebewijs worden gecommit.',
+);
+requireValue(
+  dataSafetyConsoleComparison.candidateComparison?.missingDataTypes?.length > 0,
+  'De vastgelegde Console-mismatch mist de openstaande gegevenstypen.',
+);
 const resolvedInventory = JSON.parse(read(resolvedInventoryPath));
 requireValue(resolvedInventory.schemaVersion === 1, 'Onbekende componentinventaris-schemaVersion.');
 requireValue(

@@ -68,10 +68,14 @@ Play-tracks uitsluitend artifacts uit deze beoordeelde historie gebruiken.
 ### Audio en video
 
 Pulse verstuurt microfoon- en cameramedia tijdens door de gebruiker gestarte
-WebRTC-oproepen. Er is geen opname- of media-uploadpad vastgesteld. Beide typen
-zijn daarom als optioneel verzameld en efemeer opgenomen. De eigenaar moet nog
-bevestigen dat de productie-infrastructuur geen media opneemt of bewaart. Dit
-staat los van een E2EE-claim voor bellen; die claim is nog niet toegestaan.
+WebRTC-oproepen. De browser- en Android-client verbinden live tracks direct met
+WebRTC, stoppen deze bij het sluiten en bevatten geen opname- of uploadpad. De
+backend bewaart alleen oproepstatus en stuurt SDP/ICE-signaling door; media loopt
+peer-to-peer of via Cloudflare TURN. Beide typen zijn daarom als optioneel
+verzameld en voorlopig efemeer opgenomen. Nog open is de externe bevestiging dat
+de actieve TURN-configuratie en verwerkersvoorwaarden geen opname of retentie
+buiten real-time relayverwerking toevoegen. Dit staat los van een E2EE-claim
+voor bellen; die claim is nog niet toegestaan.
 
 ### E2EE-uitzondering
 
@@ -135,6 +139,9 @@ vergeleken.
 
 De technische typebeoordeling staat in
 `security/android-data-safety/release-1.0.24-v80-data-type-assessment.json`.
+De versiegebonden beoordeling van browser-, Android-, signaling- en TURN-paden
+staat in
+`security/android-data-safety/release-1.0.24-v80-media-processing-assessment.json`.
 De export van 22 oktober 2026 is privacyveilig samengevat in
 `security/android-data-safety/release-1.0.24-v80-console-comparison.json`. De
 Console selecteert momenteel alleen naam en e-mailadres; twaalf typen uit dit

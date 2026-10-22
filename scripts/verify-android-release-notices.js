@@ -229,6 +229,50 @@ requireValue(
     !dataSafetyResponsePlan.dataTypes.some((dataType) => dataType.id === 'PSL_PRECISE_LOCATION'),
   'Precieze locatie is niet consistent beoordeeld voor release v80.',
 );
+const dataSafetyMediaAssessmentPath = manifest.release.dataSafetyMediaAssessmentPath;
+requireValue(
+  typeof dataSafetyMediaAssessmentPath === 'string' &&
+    fs.existsSync(path.join(root, dataSafetyMediaAssessmentPath)),
+  'Android Data Safety-mediabeoordeling ontbreekt.',
+);
+requireValue(
+  sha256(dataSafetyMediaAssessmentPath) === manifest.release.dataSafetyMediaAssessmentSha256,
+  'Android Data Safety-mediabeoordelingshash wijkt af.',
+);
+const dataSafetyMediaAssessment = JSON.parse(read(dataSafetyMediaAssessmentPath));
+requireValue(
+  dataSafetyMediaAssessment.schemaVersion === 1 &&
+    dataSafetyMediaAssessment.status ===
+      'technical_assessment_complete_infrastructure_confirmation_pending',
+  'Android Data Safety-mediabeoordeling heeft een ongeldige status.',
+);
+requireValue(
+  dataSafetyMediaAssessment.release?.versionName === manifest.release.versionName &&
+    dataSafetyMediaAssessment.release?.versionCode === manifest.release.versionCode &&
+    dataSafetyMediaAssessment.release?.applicationId === manifest.release.applicationId,
+  'Android Data Safety-mediabeoordeling hoort bij een andere release.',
+);
+for (const dataTypeId of ['PSL_AUDIO', 'PSL_VIDEOS']) {
+  const planEntry = dataSafetyResponsePlan.dataTypes.find((entry) => entry.id === dataTypeId);
+  const mediaVerdict = dataSafetyMediaAssessment.technicalVerdict?.[dataTypeId];
+  requireValue(
+    planEntry?.collected === true && planEntry?.ephemeral === true &&
+      mediaVerdict?.collected === true && mediaVerdict?.ephemeralCandidate === true,
+    `Data Safety-mediabeoordeling en antwoordplan wijken af: ${dataTypeId}`,
+  );
+}
+for (const finding of dataSafetyMediaAssessment.findings || []) {
+  if (!finding.evidencePath.startsWith('pulse-backend/')) {
+    requireValue(
+      fs.existsSync(path.join(root, finding.evidencePath)),
+      `Mediabewijs ontbreekt: ${finding.evidencePath}`,
+    );
+    requireValue(
+      sha256(finding.evidencePath) === finding.evidenceSha256,
+      `Mediabewijshash wijkt af: ${finding.evidencePath}`,
+    );
+  }
+}
 const dataSafetyConsoleComparisonPath = manifest.release.dataSafetyConsoleComparisonPath;
 requireValue(
   typeof dataSafetyConsoleComparisonPath === 'string' &&

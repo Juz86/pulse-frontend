@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "status": "technical_assessment_complete_infrastructure_confirmation_pending",
+  "assessedAt": "2026-10-22",
+  "release": {
+    "versionName": "1.0.24",
+    "versionCode": 80,
+    "applicationId": "com.pulsemessenger.chat"
+  },
+  "sourceRevisions": {
+    "frontendCommit": "f9a2a7b91775c20d198b5518adbad3076544c4eb",
+    "backendCommit": "38665cb986de58717c0d7364bf666e9c29bd5413"
+  },
+  "findings": [
+    {
+      "surface": "browser_client",
+      "result": "live_webrtc_tracks_only",
+      "evidencePath": "src/services/browserCall.js",
+      "evidenceSha256": "58c916e7f9f4fbfb05c625fffc17a21f658a14a691b2fedc083ed36598bce785",
+      "details": "getUserMedia tracks are attached directly to RTCPeerConnection and stopped when the call closes; no recording or media upload path was found."
+    },
+    {
+      "surface": "android_client",
+      "result": "live_webrtc_tracks_only",
+      "evidencePath": "android/app/src/main/java/com/pulsemessenger/chat/call/v2/WebRtcAudioEngine.kt",
+      "evidenceSha256": "52a56c59a0e0ffb78cd3528ee01c78b5f85011e0c6f846cd8753ae9fb31d4ffe",
+      "details": "Microphone and camera tracks are attached directly to the native PeerConnection; capture stops and media resources are disposed when the call closes."
+    },
+    {
+      "surface": "backend_signaling",
+      "result": "sdp_and_ice_relay_only",
+      "evidencePath": "pulse-backend/src/socket/calling.v2.js",
+      "evidenceSha256": "6fcc8e3c7d323b9ad1fba26543cad71135a471558668aaf3f8487d98fe530f60",
+      "details": "The authenticated socket route validates and relays SDP offers, answers and ICE candidates without storing media payloads."
+    },
+    {
+      "surface": "turn_credentials",
+      "result": "short_lived_cloudflare_turn_credentials",
+      "evidencePath": "pulse-backend/src/calling/v2/turnCredentials.js",
+      "evidenceSha256": "d6d2844abc7f2c5afb2595a84d70c3ccb1565aa0ef34b313426b48f35c0c5fce",
+      "details": "The backend exchanges a Cloudflare TURN key for short-lived ICE credentials; the default credential lifetime is two hours."
+    }
+  ],
+  "codeSearch": {
+    "scopes": [
+      "pulse-frontend/src",
+      "pulse-frontend/android/app/src/main/java",
+      "pulse-backend/src"
+    ],
+    "recordingOrMediaUploadImplementationsFound": 0
+  },
+  "technicalVerdict": {
+    "PSL_AUDIO": {
+      "collected": true,
+      "optional": true,
+      "ephemeralCandidate": true
+    },
+    "PSL_VIDEOS": {
+      "collected": true,
+      "optional": true,
+      "ephemeralCandidate": true
+    }
+  },
+  "remainingConfirmation": "Confirm the active production Cloudflare TURN service configuration and applicable processor terms do not add recording or retention beyond real-time relay processing.",
+  "primaryPolicySource": "https://support.google.com/googleplay/android-developer/answer/10787469"
+}

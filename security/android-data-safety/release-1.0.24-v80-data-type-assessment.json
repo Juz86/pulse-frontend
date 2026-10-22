@@ -120,7 +120,7 @@
   ],
   "remainingConfirmations": [
     "Confirm all active Play tracks use artifacts built from the reviewed permission history.",
-    "Confirm WebRTC media is not recorded by production infrastructure and qualifies as ephemeral processing.",
+    "Confirm the active production Cloudflare TURN configuration and processor terms add no recording or retention beyond real-time relay processing.",
     "Confirm processor/service-provider status and no-sharing answers for Firebase, Sentry, Railway and Cloudflare."
   ],
   "primaryPolicySource": "https://support.google.com/googleplay/android-developer/answer/10787469"

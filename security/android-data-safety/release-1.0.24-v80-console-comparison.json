@@ -20,7 +20,7 @@
     ]
   },
   "candidateComparison": {
-    "expectedDataTypeCount": 15,
+    "expectedDataTypeCount": 14,
     "missingDataTypes": [
       "PSL_AUDIO",
       "PSL_CONTACTS",
@@ -31,7 +31,6 @@
       "PSL_OTHER_PERSONAL",
       "PSL_PERFORMANCE_DIAGNOSTICS",
       "PSL_PHOTOS",
-      "PSL_PRECISE_LOCATION",
       "PSL_USER_ACCOUNT",
       "PSL_USER_INTERACTION",
       "PSL_VIDEOS"

@@ -56,15 +56,6 @@
       "purposes": ["PSL_APP_FUNCTIONALITY", "PSL_ACCOUNT_MANAGEMENT", "PSL_FRAUD_PREVENTION_SECURITY"]
     },
     {
-      "id": "PSL_PRECISE_LOCATION",
-      "collected": true,
-      "shared": false,
-      "ephemeral": false,
-      "control": "optional",
-      "purposes": ["PSL_APP_FUNCTIONALITY"],
-      "ownerDecisionRequired": "Confirm whether any active Play artifact can execute the child-location flow."
-    },
-    {
       "id": "PSL_OTHER_MESSAGES",
       "collected": true,
       "shared": false,
@@ -153,7 +144,6 @@
     "Confirm all collected data is encrypted in transit in every active artifact.",
     "Test the public and in-app account-deletion mechanisms end to end.",
     "Confirm Firebase, Sentry, Railway and Cloudflare qualify as service providers for the selected no-sharing answers.",
-    "Resolve the precise-location discrepancy between the WebView code and the v80 Android manifest.",
     "Confirm the ephemeral classification for live microphone and camera media."
   ]
 }

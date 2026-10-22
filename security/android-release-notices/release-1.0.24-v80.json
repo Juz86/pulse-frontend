@@ -29,12 +29,14 @@
     "androidLicenseBundleManifestSha256": "133b6a23f300bcc06453e30b904bebb5cec541a99bcbd0257a0b09621c729f01",
     "androidLicenseBundleFileCount": 10,
     "dataSafetyDraftPath": "ANDROID_DATA_SAFETY_DRAFT.md",
-    "dataSafetyDraftSha256": "9b6599c0b1f01e7855da0205b2b096a13eb2cd3b9b4a6dd25a8e6fab5afa37ab",
+    "dataSafetyDraftSha256": "f63911ce918e5dcf0ad3f6a143bb81070ba6dcb099b310a3e13120c212f53300",
+    "dataSafetyTypeAssessmentPath": "security/android-data-safety/release-1.0.24-v80-data-type-assessment.json",
+    "dataSafetyTypeAssessmentSha256": "a0099b6df02e851c7db7bbd46a2d7c2d1d8891efae3a1fdecbaf761abcb7e05e",
     "dataSafetyResponsePlanPath": "security/android-data-safety/release-1.0.24-v80-response-plan.json",
-    "dataSafetyResponsePlanSha256": "9938a4d5ad081bc36c733b2182b434df5bb1e8bfab6f31c57a45bed7a2e20935",
-    "dataSafetyResponsePlanTypeCount": 15,
+    "dataSafetyResponsePlanSha256": "c69db28a12ef94b6c187dbc97749c90ea4cefc73e3a7b1de9a51b7fd0d4425eb",
+    "dataSafetyResponsePlanTypeCount": 14,
     "dataSafetyConsoleComparisonPath": "security/android-data-safety/release-1.0.24-v80-console-comparison.json",
-    "dataSafetyConsoleComparisonSha256": "dc4d892cc37f3d6f1f326e5285f37742e982410776771ee9b245475dcb277e13"
+    "dataSafetyConsoleComparisonSha256": "b11c7ded8d1015d96beaaf531f72033ffd7b3fa68cc8b502530d5d05cedcd80e"
   },
   "webRuntime": [
     { "id": "@capacitor/android", "version": "8.3.1", "license": "MIT", "review": "documented" },

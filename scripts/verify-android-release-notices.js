@@ -139,6 +139,29 @@ for (const expectedSection of [
 ]) {
   requireText(dataSafetyDraft, expectedSection, 'Android Data Safety-concept');
 }
+const dataSafetyTypeAssessmentPath = manifest.release.dataSafetyTypeAssessmentPath;
+requireValue(
+  typeof dataSafetyTypeAssessmentPath === 'string' &&
+    fs.existsSync(path.join(root, dataSafetyTypeAssessmentPath)),
+  'Android Data Safety-typebeoordeling ontbreekt.',
+);
+requireValue(
+  sha256(dataSafetyTypeAssessmentPath) === manifest.release.dataSafetyTypeAssessmentSha256,
+  'Android Data Safety-typebeoordelingshash wijkt af.',
+);
+const dataSafetyTypeAssessment = JSON.parse(read(dataSafetyTypeAssessmentPath));
+requireValue(
+  dataSafetyTypeAssessment.schemaVersion === 1 &&
+    dataSafetyTypeAssessment.status ===
+      'technical_assessment_complete_owner_and_legal_confirmation_pending',
+  'Android Data Safety-typebeoordeling heeft een ongeldige status.',
+);
+requireValue(
+  dataSafetyTypeAssessment.release?.versionName === manifest.release.versionName &&
+    dataSafetyTypeAssessment.release?.versionCode === manifest.release.versionCode &&
+    dataSafetyTypeAssessment.release?.applicationId === manifest.release.applicationId,
+  'Android Data Safety-typebeoordeling hoort bij een andere release.',
+);
 const dataSafetyResponsePlanPath = manifest.release.dataSafetyResponsePlanPath;
 requireValue(
   typeof dataSafetyResponsePlanPath === 'string' &&
@@ -187,6 +210,25 @@ requireValue(
   dataSafetyResponsePlan.ownerDecisions?.length > 0,
   'Data Safety-plan mist de nog openstaande eigenaarbesluiten.',
 );
+const includedAssessmentIds = dataSafetyTypeAssessment.assessments
+  ?.filter((assessment) => assessment.verdict === 'include')
+  .map((assessment) => assessment.id)
+  .sort();
+const plannedAssessmentIds = dataSafetyResponsePlan.dataTypes
+  .filter((dataType) => !['PSL_NAME', 'PSL_EMAIL'].includes(dataType.id))
+  .map((dataType) => dataType.id)
+  .sort();
+requireValue(
+  JSON.stringify(includedAssessmentIds) === JSON.stringify(plannedAssessmentIds),
+  'Data Safety-typebeoordeling en antwoordplan wijken af.',
+);
+const preciseLocationAssessment = dataSafetyTypeAssessment.assessments
+  ?.find((assessment) => assessment.id === 'PSL_PRECISE_LOCATION');
+requireValue(
+  preciseLocationAssessment?.verdict === 'exclude_release_v80' &&
+    !dataSafetyResponsePlan.dataTypes.some((dataType) => dataType.id === 'PSL_PRECISE_LOCATION'),
+  'Precieze locatie is niet consistent beoordeeld voor release v80.',
+);
 const dataSafetyConsoleComparisonPath = manifest.release.dataSafetyConsoleComparisonPath;
 requireValue(
   typeof dataSafetyConsoleComparisonPath === 'string' &&
@@ -217,6 +259,13 @@ requireValue(
 requireValue(
   dataSafetyConsoleComparison.candidateComparison?.missingDataTypes?.length > 0,
   'De vastgelegde Console-mismatch mist de openstaande gegevenstypen.',
+);
+requireValue(
+  dataSafetyConsoleComparison.candidateComparison?.expectedDataTypeCount ===
+    manifest.release.dataSafetyResponsePlanTypeCount &&
+    JSON.stringify([...dataSafetyConsoleComparison.candidateComparison.missingDataTypes].sort()) ===
+      JSON.stringify(includedAssessmentIds),
+  'Play Console-mismatch en technische typebeoordeling wijken af.',
 );
 requireValue(
   dataSafetyConsoleComparison.uploadCertificate?.matches === true &&

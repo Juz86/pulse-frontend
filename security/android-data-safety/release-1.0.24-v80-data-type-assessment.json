@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "status": "technical_assessment_complete_owner_and_legal_confirmation_pending",
+  "assessedAt": "2026-10-22",
+  "release": {
+    "versionName": "1.0.24",
+    "versionCode": 80,
+    "applicationId": "com.pulsemessenger.chat"
+  },
+  "scope": {
+    "aabSha256": "650b2b86eee05faf691d2bdf80dcbff489900e87be97d538ba20423e17dba676",
+    "activeSdkCount": 174,
+    "repositoryLocationPermissionHistoryMatches": 0
+  },
+  "assessments": [
+    {
+      "id": "PSL_AUDIO",
+      "verdict": "include",
+      "control": "optional",
+      "ephemeral": true,
+      "reason": "User-initiated WebRTC calls transmit microphone media off-device without a recording or upload path.",
+      "evidence": ["src/services/browserCall.js", "android/app/src/main/java/com/pulsemessenger/chat/call/v2/WebRtcAudioEngine.kt"]
+    },
+    {
+      "id": "PSL_VIDEOS",
+      "verdict": "include",
+      "control": "optional",
+      "ephemeral": true,
+      "reason": "User-initiated WebRTC video calls transmit camera media off-device without a recording or upload path.",
+      "evidence": ["src/services/browserCall.js", "android/app/src/main/java/com/pulsemessenger/chat/call/v2/WebRtcAudioEngine.kt"]
+    },
+    {
+      "id": "PSL_CONTACTS",
+      "verdict": "include",
+      "control": "required",
+      "ephemeral": false,
+      "reason": "Pulse stores its contact graph, contact requests, blocks and call relationship history.",
+      "evidence": ["src/hooks/useContacts.js", "src/screens/ChatScreen.js"]
+    },
+    {
+      "id": "PSL_CRASH_LOGS",
+      "verdict": "include",
+      "control": "required",
+      "ephemeral": false,
+      "reason": "Production Sentry captures exceptions and stack information.",
+      "evidence": ["src/index.js", "src/components/ErrorBoundary.js"]
+    },
+    {
+      "id": "PSL_PERFORMANCE_DIAGNOSTICS",
+      "verdict": "include",
+      "control": "required",
+      "ephemeral": false,
+      "reason": "Production Sentry performance tracing is enabled at a 0.1 sample rate.",
+      "evidence": ["src/index.js"]
+    },
+    {
+      "id": "PSL_DEVICE_ID",
+      "verdict": "include",
+      "control": "required",
+      "ephemeral": false,
+      "reason": "Push delivery and device-scoped security use FCM, Firebase Installation and Pulse device identifiers.",
+      "evidence": ["android/app/build.gradle", "src/lib/e2ee/v2"]
+    },
+    {
+      "id": "PSL_OTHER_MESSAGES",
+      "verdict": "include",
+      "control": "required",
+      "ephemeral": false,
+      "reason": "Legacy chat content remains server-readable; the E2EE exemption is limited to validated pulse_e2ee_v2 messages.",
+      "evidence": ["src/hooks/useChat.js", "E2EE_PROTOCOL_V2_DECISION.md"]
+    },
+    {
+      "id": "PSL_OTHER_PERSONAL",
+      "verdict": "include",
+      "control": "required",
+      "ephemeral": false,
+      "reason": "User role, username, parental relationships and account settings are stored off-device.",
+      "evidence": ["src/App.js", "src/screens/ParentDashboard.js"]
+    },
+    {
+      "id": "PSL_PHOTOS",
+      "verdict": "include",
+      "control": "optional",
+      "ephemeral": false,
+      "reason": "Users can upload a profile photo to Firebase Storage.",
+      "evidence": ["src/components/AvatarBuilder.js"]
+    },
+    {
+      "id": "PSL_USER_ACCOUNT",
+      "verdict": "include",
+      "control": "required",
+      "ephemeral": false,
+      "reason": "Firebase UID and Pulse account identifiers are used for authentication and account management.",
+      "evidence": ["src/App.js", "src/screens/AuthScreen.js"]
+    },
+    {
+      "id": "PSL_USER_INTERACTION",
+      "verdict": "include",
+      "control": "required",
+      "ephemeral": false,
+      "reason": "Presence, read state, typing and synchronization interactions are transmitted off-device.",
+      "evidence": ["src/components/ChatInput.js", "src/hooks/useChat.js", "src/services/socket.js"]
+    },
+    {
+      "id": "PSL_OTHER_APP_ACTIVITY",
+      "verdict": "include",
+      "control": "required",
+      "ephemeral": false,
+      "reason": "Contact requests, blocking and parental activity events are stored as in-app actions.",
+      "evidence": ["src/hooks/useContacts.js", "src/screens/ParentDashboard.js"]
+    },
+    {
+      "id": "PSL_PRECISE_LOCATION",
+      "verdict": "exclude_release_v80",
+      "control": "optional",
+      "ephemeral": false,
+      "reason": "The v80 merged manifest has no coarse or fine location permission, packaged policy blocks geolocation, and repository history contains no Android location permission.",
+      "evidence": ["android/app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml", "android/app/src/main/assets/public/_headers", "src/App.js"]
+    }
+  ],
+  "remainingConfirmations": [
+    "Confirm all active Play tracks use artifacts built from the reviewed permission history.",
+    "Confirm WebRTC media is not recorded by production infrastructure and qualifies as ephemeral processing.",
+    "Confirm processor/service-provider status and no-sharing answers for Firebase, Sentry, Railway and Cloudflare."
+  ],
+  "primaryPolicySource": "https://support.google.com/googleplay/android-developer/answer/10787469"
+}

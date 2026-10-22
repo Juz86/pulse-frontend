@@ -1,7 +1,7 @@
 # Android Data Safety Draft
 
-Status op 22 oktober 2026: technische broncode-inventaris voltooid; nog niet
-vergeleken met of ingediend in Google Play Console.
+Status op 22 oktober 2026: technische broncode-inventaris en vergelijking met
+de Play Console-export voltooid; de Console-verklaring wijkt nog af.
 
 Dit document is een conservatieve invulbasis voor Pulse `1.0.24`
 (`versionCode 80`). Het is geen juridisch advies en geen bewijs dat de huidige
@@ -46,6 +46,8 @@ indiening tegen de actuele overeenkomsten en configuratie bevestigen.
 | Crashlogs | ja | vereist zolang Sentry standaard actief is | analyse, appfunctionaliteit | productie-Sentry vangt exceptions en gekoppelde Firebase UID op |
 | Diagnostische gegevens | ja | vereist zolang Sentry standaard actief is | analyse, appfunctionaliteit | foutdetails, componentstack, domein en timing |
 | Apparaat- of andere ID's | ja | vereist voor push en beveiligde sessies | appfunctionaliteit, beveiliging | FCM-token, Firebase Installation ID en Pulse installation-ID |
+| Audio | ja, efemeer | optioneel | appfunctionaliteit | door gebruiker gestarte WebRTC-oproepen; geen opname- of uploadpad gevonden |
+| Video's | ja, efemeer | optioneel | appfunctionaliteit | door gebruiker gestarte WebRTC-videogesprekken; geen opname- of uploadpad gevonden |
 
 Er is geen codebewijs gevonden voor financiële gegevens, gezondheid en
 fitness, agenda, geïnstalleerde apps, sms/mms, webbrowsegeschiedenis,
@@ -55,30 +57,21 @@ advertentie-ID's of advertentieprofilering.
 
 ### Locatie
 
-`src/App.js` start voor niet-ouderaccounts `navigator.geolocation.watchPosition`
-en schrijft latitude, longitude, nauwkeurigheid, richting en snelheid naar
-Firestore. Dat is inhoudelijk `Precieze locatie`. Het gemergde manifest van de
-gemeten v80-AAB bevat echter geen `ACCESS_FINE_LOCATION` of
-`ACCESS_COARSE_LOCATION`, waardoor de huidige Android-app daarvoor geen
-Android-runtimepermissie kan krijgen.
-
-Voor de Play-verklaring geldt daarom:
-
-- declareer `Precieze locatie` als verzameld wanneer een nog actieve Play-build
-  deze stroom kan uitvoeren;
-- anders eerst aantoonbaar bevestigen dat geen actieve Android-build locatie
-  verstuurt en beslissen of de onbereikbare Android-code wordt verwijderd of
-  als echte, optionele functie met passende toestemming wordt voltooid;
-- niet indienen met een onbewezen `nee`.
+`src/App.js` bevat een `navigator.geolocation.watchPosition`-pad, maar het
+gemergde manifest van v80 bevat geen `ACCESS_FINE_LOCATION` of
+`ACCESS_COARSE_LOCATION`, de pakketpolicy blokkeert geolocatie en de volledige
+repositorygeschiedenis bevat geen Android-locatiepermissie. Release v80 kan
+daarom geen precieze Android-locatie verkrijgen en de kandidaat is voor deze
+release op `niet verzameld` gezet. Bevestig vóór indiening nog dat alle actieve
+Play-tracks uitsluitend artifacts uit deze beoordeelde historie gebruiken.
 
 ### Audio en video
 
 Pulse verstuurt microfoon- en cameramedia tijdens door de gebruiker gestarte
-WebRTC-oproepen. Er is geen opname- of media-uploadpad vastgesteld. De eigenaar
-moet in het formulier bevestigen dat deze realtime media uitsluitend tijdelijk
-in geheugen wordt verwerkt en de optie voor efemere verwerking correct
-beantwoorden. Dit staat los van een E2EE-claim voor bellen; die claim is nog
-niet toegestaan.
+WebRTC-oproepen. Er is geen opname- of media-uploadpad vastgesteld. Beide typen
+zijn daarom als optioneel verzameld en efemeer opgenomen. De eigenaar moet nog
+bevestigen dat de productie-infrastructuur geen media opneemt of bewaart. Dit
+staat los van een E2EE-claim voor bellen; die claim is nog niet toegestaan.
 
 ### E2EE-uitzondering
 
@@ -140,9 +133,11 @@ verifieert daarnaast de AAB-hash en leest met `keytool` het certificaat uit het
 ondertekende release-AAB voordat dit met de Play Console-fingerprint wordt
 vergeleken.
 
+De technische typebeoordeling staat in
+`security/android-data-safety/release-1.0.24-v80-data-type-assessment.json`.
 De export van 22 oktober 2026 is privacyveilig samengevat in
 `security/android-data-safety/release-1.0.24-v80-console-comparison.json`. De
-Console selecteert momenteel alleen naam en e-mailadres; dertien typen uit dit
+Console selecteert momenteel alleen naam en e-mailadres; twaalf typen uit dit
 conceptplan ontbreken. De ruwe Console-export blijft buiten Git. Deze afwijking
 moet inhoudelijk worden opgelost en opnieuw worden geëxporteerd voordat de
 releasepoort kan slagen.

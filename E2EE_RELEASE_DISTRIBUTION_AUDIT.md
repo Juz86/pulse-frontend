@@ -119,11 +119,10 @@ Geslaagd:
 
 Anonieme `git ls-remote`-controles bevestigden op de auditdatum publieke toegang
 tot `https://github.com/Juz86/pulse-frontend` op commit
-`d21cbb9922f647b9a491f66034658df2252077bb` en tot
+`36bf715205dbcc4cddaa7ed44a1126d4e5e72a87` en tot
 `https://github.com/Juz86/pulse-backend` op commit
-`b930e2b165e7784778efd333ae1d07d23e1b4d58`. De huidige lokale noticewijzigingen
-staan nog niet in de publieke frontendcommit. De backendrepository heeft nog
-geen eigen `LICENSE` of `package.json`-licentieveld.
+`38665cb986de58717c0d7364bf666e9c29bd5413`. Beide repositories bevatten de
+officiële AGPLv3-tekst en gebruiken `AGPL-3.0-only` als package-licentie.
 
 ### Voorlopige licentieclassificatie
 

@@ -43,7 +43,6 @@
   ],
   "blockers": [
     "independent_security_review_attestation_missing",
-    "release_candidate_commit_not_published",
     "google_sdk_terms_review_missing",
     "webrtc_pom_source_license_conflict",
     "webrtc_binary_notices_missing",

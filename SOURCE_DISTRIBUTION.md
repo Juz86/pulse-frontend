@@ -9,15 +9,15 @@ De publieke bronlocatie is:
 `https://github.com/Juz86/pulse-frontend`
 
 Op 22 oktober 2026 is anonieme HTTPS-leestoegang geverifieerd. De publieke
-`HEAD` was toen commit `d21cbb9922f647b9a491f66034658df2252077bb`. De
+`HEAD` was toen commit `36bf715205dbcc4cddaa7ed44a1126d4e5e72a87`. De
 backend is eveneens publiek bereikbaar op
 `https://github.com/Juz86/pulse-backend`, met publieke `HEAD`
-`b930e2b165e7784778efd333ae1d07d23e1b4d58`.
+`38665cb986de58717c0d7364bf666e9c29bd5413`.
 
 Publieke zichtbaarheid alleen is niet voldoende: iedere uitgegeven binary moet
-blijven verwijzen naar zijn exacte, openbare releasecommit of tag. De backend
-heeft daarnaast nog geen eigen `LICENSE` of `package.json`-licentieveld en mag
-daarom nog niet als open-source gelicentieerd worden beschreven.
+blijven verwijzen naar zijn exacte, openbare releasecommit of tag. Frontend en
+backend bevatten beide de officiële AGPLv3-tekst en gebruiken
+`AGPL-3.0-only` als package-licentie.
 
 ## Per Release
 
@@ -71,5 +71,4 @@ cd android
 
 De release is niet compliance-gereed zolang de exacte releasecommit en -tag
 niet publiek zijn, de broncodelocatie niet vanuit product/distributie wordt
-aangeboden, de backendlicentie ontbreekt of de third-party controle niet is
-afgerond.
+aangeboden of de third-party controle niet is afgerond.

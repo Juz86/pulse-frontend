@@ -638,8 +638,9 @@ juridische goedkeuring van Google SDK-voorwaarden, WebRTC-binarynotices en de
 uiteindelijke gecombineerde distributie blijft open.
 
 Frontend en backend zijn inmiddels zonder GitHub-authenticatie publiek
-leesbaar. De huidige lokale noticekandidaat moet nog worden gecommit en
-gepusht; de backend mist bovendien nog een eigen expliciete licentie.
+leesbaar en beide zijn expliciet als `AGPL-3.0-only` gelicentieerd. De
+release-audit en 174-componenten-noticecatalogus staan in de publieke
+frontendrepository.
 
 ## Praktisch oordeel
 

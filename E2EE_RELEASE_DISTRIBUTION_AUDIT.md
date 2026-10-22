@@ -141,9 +141,9 @@ projectlicenties en geen juridisch oordeel over de gecombineerde app:
 | Firebase Android SDK | BoM `34.17.0` | Apache-2.0 repositorylicentie | meegeleverde artifacts en Google-servicevoorwaarden nog afzonderlijk controleren |
 | Socket.IO Java | `2.1.2` | MIT | licentietekst opnemen |
 | Apache Cordova Android | `10.1.1` | Apache-2.0 | LICENSE/NOTICE opnemen |
-| WebRTC SDK Android | `144.7559.15` | POM: BSD-3-Clause; getagde bron: MIT | AAR bevat geen LICENSE/NOTICE; licentieverschil en ingebedde libwebrtc-notices blokkeren vrijgave |
+| WebRTC SDK Android | `144.7559.15` | MIT-wrapper; BSD-3-Clause libwebrtc plus third-party notices | exacte release-AAR en licentielagen geverifieerd; notices als gehashte app-assets opgenomen |
 | AndroidX en Kotlin | meerdere vastgepinde versies | POM-inventaris: Apache-2.0 | alle opgeloste versies en licentiebronnen vastgelegd; tekst-/NOTICE-verpakking nog controleren |
-| Google Play, Integrity en reCAPTCHA | meerdere versies | aanvullende Google SDK/servicevoorwaarden | expliciete distributiecontrole vereist |
+| Google Play, Integrity en reCAPTCHA | meerdere versies | aanvullende Google SDK/servicevoorwaarden | technische controle voltooid; formele aanvaarding en Data Safety-controle vereist |
 
 Geraadpleegde primaire bronnen:
 
@@ -153,18 +153,38 @@ Geraadpleegde primaire bronnen:
 - `https://github.com/socketio/socket.io-client-java`;
 - `https://github.com/apache/cordova-android/blob/master/LICENSE`;
 - `https://github.com/webrtc-sdk/android/blob/main/LICENSE`;
+- `https://github.com/webrtc-sdk/android/releases/tag/v144.7559.15`;
+- `https://github.com/webrtc-sdk/android/blob/v144.7559.15/Licenses/WEBRTC.md`;
+- `https://developer.android.com/guide/playcore/license`;
+- `https://developer.android.com/google/play/integrity/terms`;
+- `https://developers.google.com/terms`;
+- `https://firebase.google.com/terms`;
 - `https://developer.android.com/studio/terms`.
 
-De Android SDK-voorwaarden geven gebruiksrechten voor het ontwikkelen van
-compatibele Android-apps, maar bewijzen op zichzelf niet dat iedere gebundelde
-Google-binary zonder aanvullende verplichtingen onder de Pulse-AGPL-release kan
-worden verspreid. Daarom blijft deze rij een releaseblokkade tot een bevoegde
-reviewer de combinatie schriftelijk heeft beoordeeld.
+De exacte WebRTC-AAR in de Gradle-cache is bytegelijk aan het officiële
+releaseartifact: beide hebben SHA-256
+`fc7c8d027eb33860ccbb7847988f7f942d44a92d1f575348bba6c0250cde4071`.
+De getagde wrapper is MIT-gelicentieerd; de POM beschrijft de gebundelde
+libwebrtc-laag terecht als BSD-3-Clause. De tag bevat daarnaast een samengestelde
+notice met 30 componentsecties. Het eerdere vermoeden van een licentieconflict
+is daarmee vervallen. Omdat de AAR die teksten niet zelf bevat, zijn de exacte
+MIT-wrappertekst en volledige samengestelde notice als versiegebonden publieke
+app-assets opgenomen. De releaseverificatie bewaakt hun hashes en de 30
+componentsecties. De definitieve rebuild moet nog aantonen dat ze in de nieuwe
+AAB aanwezig zijn.
+
+De Google-controle stelde vast dat Play Core ongewijzigde Redistributable Code
+als onderdeel van de API-client laat distribueren. De overige gesloten SDK's
+blijven onder de Android SDK- en toepasselijke servicevoorwaarden. Play
+Integrity verbiedt fingerprinting/tracking en vereist een juiste Data
+Safety-beoordeling. Een bevoegde eigenaar of reviewer moet de voorwaarden nog
+formeel aanvaarden; dit technische onderzoek doet dat niet namens die partij.
+De volledige onderbouwing staat in `ANDROID_THIRD_PARTY_TERMS_REVIEW.md`.
 
 Nog vereist voor publicatie:
 
-1. beoordeel de vastgelegde Android runtime-inventaris op verenigbaarheid met
-   de gekozen `AGPL-3.0-only` distributie;
+1. laat een bevoegde reviewer de vastgelegde Android runtime-inventaris en
+   Google-voorwaarden formeel accepteren voor de gekozen distributie;
 2. controleer en verpak de vereiste volledige licentieteksten en eventuele
    NOTICE-bestanden op basis van de versiegebonden componentensnapshot;
 3. commit en publiceer de huidige releasekandidaat en maak daarvan een exacte

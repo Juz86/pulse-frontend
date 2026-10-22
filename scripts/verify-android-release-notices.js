@@ -61,6 +61,32 @@ requireValue(
   sha256(resolvedNoticesPath) === manifest.release.resolvedNoticesSha256,
   'Leesbare Android noticecatalogus-hash wijkt af.',
 );
+const webrtcWrapperLicensePath = manifest.release.webrtcWrapperLicensePath;
+const webrtcNoticesPath = manifest.release.webrtcNoticesPath;
+requireValue(
+  typeof webrtcWrapperLicensePath === 'string' &&
+    fs.existsSync(path.join(root, webrtcWrapperLicensePath)),
+  'WebRTC-wrapperlicentie ontbreekt.',
+);
+requireValue(
+  sha256(webrtcWrapperLicensePath) === manifest.release.webrtcWrapperLicenseSha256,
+  'WebRTC-wrapperlicentie-hash wijkt af.',
+);
+requireValue(
+  typeof webrtcNoticesPath === 'string' && fs.existsSync(path.join(root, webrtcNoticesPath)),
+  'WebRTC-noticebestand ontbreekt.',
+);
+requireValue(
+  sha256(webrtcNoticesPath) === manifest.release.webrtcNoticesSha256,
+  'WebRTC-noticehash wijkt af.',
+);
+const webrtcNoticeComponentCount = read(webrtcNoticesPath)
+  .split('\n')
+  .filter((line) => line.startsWith('# ')).length;
+requireValue(
+  webrtcNoticeComponentCount === manifest.release.webrtcNoticesComponentCount,
+  'Aantal WebRTC-noticesecties wijkt af.',
+);
 const resolvedInventory = JSON.parse(read(resolvedInventoryPath));
 requireValue(resolvedInventory.schemaVersion === 1, 'Onbekende componentinventaris-schemaVersion.');
 requireValue(
@@ -169,6 +195,8 @@ if (releaseMode) {
     path.relative(root, manifestPath),
     resolvedInventoryPath,
     resolvedNoticesPath,
+    webrtcWrapperLicensePath,
+    webrtcNoticesPath,
   ]) {
     try {
       execFileSync('git', ['cat-file', '-e', `HEAD:${releaseFile}`], {

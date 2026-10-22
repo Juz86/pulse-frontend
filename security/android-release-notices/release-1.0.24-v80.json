@@ -14,7 +14,12 @@
     "resolvedComponentsSha256": "67aa84e3dafa99dba18dc012a00ad5cc5a0ad39e21a9b39d3d74638a4c092040",
     "resolvedComponentCount": 174,
     "resolvedNoticesPath": "security/android-release-notices/release-1.0.24-v80-resolved-components.md",
-    "resolvedNoticesSha256": "2737ac416f91d4ab873c3703da64e7320692b294df6dbde07adfe05271bf6cff"
+    "resolvedNoticesSha256": "2737ac416f91d4ab873c3703da64e7320692b294df6dbde07adfe05271bf6cff",
+    "webrtcWrapperLicensePath": "public/legal/third-party/webrtc-sdk-android-144.7559.15/LICENSE-MIT.txt",
+    "webrtcWrapperLicenseSha256": "e6b282fe6c0fb353928923470457f31b44cbab203effd60c0cde4a5bb96c8aec",
+    "webrtcNoticesPath": "public/legal/third-party/webrtc-sdk-android-144.7559.15/WEBRTC-NOTICES.md",
+    "webrtcNoticesSha256": "d1f9382c6878ac024155fd6d44a5977329108bb8b0a01cea40e4a2f1d7de252e",
+    "webrtcNoticesComponentCount": 30
   },
   "webRuntime": [
     { "id": "@capacitor/android", "version": "8.3.1", "license": "MIT", "review": "documented" },
@@ -30,11 +35,11 @@
   "androidRuntime": [
     { "id": "androidx.core:core-telecom", "version": "1.0.0", "license": "Apache-2.0", "review": "inventory_documented" },
     { "id": "androidx.compose:compose-bom", "version": "2024.09.03", "license": "Apache-2.0", "review": "inventory_documented" },
-    { "id": "com.google.android.play:app-update", "version": "2.1.0", "license": "Google SDK terms", "review": "legal_review_required" },
-    { "id": "com.google.android.play:integrity", "version": "1.3.0", "license": "Google SDK terms", "review": "legal_review_required" },
-    { "id": "com.google.android.recaptcha:recaptcha", "version": "18.6.1", "license": "Google SDK terms", "review": "legal_review_required" },
-    { "id": "com.google.firebase:firebase-bom", "version": "34.17.0", "license": "Apache-2.0 plus service terms", "review": "legal_review_required" },
-    { "id": "io.github.webrtc-sdk:android", "version": "144.7559.15", "license": "POM BSD-3-Clause; source tag MIT", "review": "license_conflict" },
+    { "id": "com.google.android.play:app-update", "version": "2.1.0", "license": "Play Core SDK terms", "review": "technical_review_complete_owner_acceptance_required" },
+    { "id": "com.google.android.play:integrity", "version": "1.3.0", "license": "Play Integrity API terms", "review": "technical_review_complete_owner_acceptance_required" },
+    { "id": "com.google.android.recaptcha:recaptcha", "version": "18.6.1", "license": "Android SDK and Google service terms", "review": "technical_review_complete_owner_acceptance_required" },
+    { "id": "com.google.firebase:firebase-bom", "version": "34.17.0", "license": "Apache-2.0 plus Firebase service terms", "review": "technical_review_complete_owner_acceptance_required" },
+    { "id": "io.github.webrtc-sdk:android", "version": "144.7559.15", "license": "MIT wrapper; BSD-3-Clause libwebrtc plus third-party notices", "review": "notice_packaged_technical_review_complete" },
     { "id": "io.socket:socket.io-client", "version": "2.1.2", "license": "MIT", "review": "documented" },
     { "id": "org.apache.cordova:framework", "version": "10.1.1", "license": "Apache-2.0", "review": "inventory_documented" },
     { "id": "org.jetbrains.kotlinx:kotlinx-coroutines-android", "version": "1.10.2", "license": "Apache-2.0", "review": "inventory_documented" },
@@ -43,9 +48,7 @@
   ],
   "blockers": [
     "independent_security_review_attestation_missing",
-    "google_sdk_terms_review_missing",
-    "webrtc_pom_source_license_conflict",
-    "webrtc_binary_notices_missing",
+    "google_sdk_terms_owner_acceptance_missing",
     "android_notice_text_and_legal_review_missing",
     "play_console_upload_certificate_comparison_missing"
   ]

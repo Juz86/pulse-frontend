@@ -24,6 +24,7 @@ Als je wilt zien welke ontwerpkeuzes al bewust vastliggen:
 - [E2EE_LIBSIGNAL_LICENSE_DECISION.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_LIBSIGNAL_LICENSE_DECISION.md)
 - [E2EE_OPEN_SOURCE_READINESS.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_OPEN_SOURCE_READINESS.md)
 - [E2EE_RELEASE_DISTRIBUTION_AUDIT.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_RELEASE_DISTRIBUTION_AUDIT.md)
+- [ANDROID_THIRD_PARTY_TERMS_REVIEW.md](/home/yushuaabdulkadir/pulse-frontend/ANDROID_THIRD_PARTY_TERMS_REVIEW.md)
 - [E2EE_V2_BACKEND_API.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_V2_BACKEND_API.md)
 
 Als je snel de gebruikte termen wilt kunnen plaatsen:

@@ -33,8 +33,10 @@ gelden voor libwebrtc en de erin opgenomen componenten.
 Pulse levert daarom zowel de MIT-wrappertekst als de volledige, ongewijzigde
 `Licenses/WEBRTC.md` van deze tag als versiegebonden publieke app-assets. De
 releaseverificatie bewaakt beide hashes en het aantal componentsecties. Een
-nieuwe AAB vanaf commit `63f4c45a313468c99eab91572d547e8563d0b924`
-bevat beide assets met exact de vastgelegde hashes.
+nieuwe AAB vanaf commit `a8ec4956e28c464ce5b0058cd0bbbe4848e494c9`
+bevat beide assets met exact de vastgelegde hashes. Dezelfde AAB bevat de
+volledige Android-licentiebundel; de releaseverificatie heeft ieder bestand
+daaruit opnieuw gehasht.
 
 Primaire bronnen:
 

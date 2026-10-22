@@ -7,7 +7,7 @@ resterende licentiecontrole.
 
 ## Buildsubject
 
-- frontendcommit: `63f4c45a313468c99eab91572d547e8563d0b924`;
+- frontendcommit: `a8ec4956e28c464ce5b0058cd0bbbe4848e494c9`;
 - package: `com.pulsemessenger.chat`;
 - versie: `1.0.24`;
 - versionCode: `80`;
@@ -31,24 +31,24 @@ draaide Android Lint Vital, valideerde signing en eindigde met
 `BUILD SUCCESSFUL`.
 
 Een releasebuild vanaf de publieke frontendcommit
-`63f4c45a313468c99eab91572d547e8563d0b924` leverde de hieronder vastgelegde
-AAB op, inclusief de versiegebonden WebRTC-licentie- en notice-assets.
+`a8ec4956e28c464ce5b0058cd0bbbe4848e494c9` leverde de hieronder vastgelegde
+AAB op, inclusief de versiegebonden WebRTC-assets en Android-licentiebundel.
 
 ## Bundlemeting
 
 - bestand: `android/app/build/outputs/bundle/release/app-release.aab`;
-- AAB-grootte: `136471321` bytes (`130.1 MiB`);
+- AAB-grootte: `136790418` bytes (`130.5 MiB`);
 - AAB SHA-256:
-  `8ca7c8fbf9ea53ba47d7b5b81897b4241f8d1cd3428258915655a38c3f0fba0b`;
+  `650b2b86eee05faf691d2bdf80dcbff489900e87be97d538ba20423e17dba676`;
 - ondertekening: aanwezig; `jarsigner -verify` meldt `jar verified`, maar de
   strikte controle eindigt met exitcode `4`;
 - certificaatvervaldatum: `2051-04-22`;
 - ongecomprimeerde native libraries in de AAB: `519769544` bytes;
-- ongecomprimeerde Android-assets in de AAB: `4088474` bytes.
+- ongecomprimeerde Android-assets in de AAB: `8063443` bytes.
 
 Ter vergelijking is de bewaarde `pulse-versionCode-71.aab` `37321570` bytes.
-De huidige meet-AAB is daarmee `99149751` bytes (`94.6 MiB`) groter, oftewel
-`3.66x` de oude bundlegrootte. Omdat tussen versionCode 71 en 80 ook andere
+De huidige meet-AAB is daarmee `99468848` bytes (`94.9 MiB`) groter, oftewel
+`3.67x` de oude bundlegrootte. Omdat tussen versionCode 71 en 80 ook andere
 functionaliteit is toegevoegd, mag dit verschil niet volledig aan E2EE of
 libsignal worden toegeschreven. De native libraries zijn wel de grootste
 zichtbare ongecomprimeerde categorie en verdienen vóór een brede uitrol een
@@ -85,9 +85,9 @@ Bundletool heeft splits berekend voor een aangesloten Samsung `SM-A166B` met:
 
 Resultaat van `bundletool get-size total`:
 
-- minimale download: `45883781` bytes;
-- maximale download: `45883781` bytes;
-- afgerond: `43.8 MiB`.
+- minimale download: `46187385` bytes;
+- maximale download: `46187385` bytes;
+- afgerond: `44.0 MiB`.
 
 Dit is een echte apparaatgerichte schatting, geen universele APK-grootte.
 Andere apparaten, ABI's, talen en toekomstige Play-compressie kunnen een ander
@@ -121,6 +121,8 @@ Geslaagd:
 - de publieke Android-licentiebundel bevat tien gehashte bestanden voor de 174
   componenten, waaronder alle negen in runtime-artifacts aangetroffen
   licentie-exemplaren teruggebracht tot hun relevante versiegebonden teksten;
+- alle tien licentiebundelbestanden zijn uit de release-AAB gelezen en hun
+  hashes komen overeen met het versiegebonden bundelmanifest;
 - `npm run verify:android-release-distribution` faalt bewust zolang de status
   `blocked` is of een blocker resteert.
 

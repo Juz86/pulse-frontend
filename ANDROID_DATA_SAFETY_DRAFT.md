@@ -90,7 +90,12 @@ gespreksmetadata blijven in de conceptverklaring opgenomen.
 ### Dienstverleners en delen
 
 Google Play kan verwerking door een echte dienstverlener buiten `delen` laten.
-Bevestig vóór `Delen: nee` minimaal:
+De actuele publieke voorwaarden zijn technisch beoordeeld: Firebase en
+Cloudflare publiceren een processor/service-providerrol, Railway noemt zichzelf
+processor en verbiedt verkoop of delen in zijn DPA, en Sentry documenteert dat
+het onder een aangegane DPA als processor handelt. Deze publieke basis ondersteunt
+`Delen: nee`, maar bewijst nog niet dat de voorwaarden voor de concrete
+Pulse-accounts zijn aangegaan. Bevestig daarom vóór indiening minimaal:
 
 - actuele verwerkersvoorwaarden/DPA voor Firebase, Sentry, Railway en
   Cloudflare;
@@ -99,6 +104,11 @@ Bevestig vóór `Delen: nee` minimaal:
 - dat FCM-payloads alleen generieke tekst en opaque identifiers bevatten;
 - dat geen gekoppelde Firebase- of Sentry-integratie data voor advertenties of
   eigen doeleinden hergebruikt.
+
+De versiegebonden leveranciersbeoordeling staat in
+`security/android-data-safety/release-1.0.24-v80-service-provider-assessment.json`.
+Daarin blijft `playConsoleNoSharingApproved` bewust `false` totdat het private
+accountbewijs bestaat.
 
 ## Play Console-checklist
 
@@ -162,6 +172,9 @@ komt exact overeen.
 - https://firebase.google.com/support/privacy/
 - https://developers.cloudflare.com/realtime/turn/faq/
 - https://www.cloudflare.com/cloudflare-customer-dpa/
+- https://firebase.google.com/terms/data-processing-terms/
+- https://railway.com/legal/dpa
+- https://sentry.io/astro-assets/resources/legal/how-to-comply-with-gdpr-october-2024.pdf
 
 Google Play houdt de ontwikkelaar verantwoordelijk voor een volledige en
 actuele verklaring. Deze conceptmatrix mag daarom niet automatisch naar

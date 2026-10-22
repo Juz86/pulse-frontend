@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "status": "public_terms_reviewed_account_execution_evidence_pending",
+  "assessedAt": "2026-10-22",
+  "release": {
+    "versionName": "1.0.24",
+    "versionCode": 80,
+    "applicationId": "com.pulsemessenger.chat"
+  },
+  "providers": [
+    {
+      "id": "firebase",
+      "publishedRole": "processor_and_service_provider",
+      "noSharingCandidateSupported": true,
+      "publicTermsStatus": "reviewed",
+      "accountEvidenceStatus": "pending",
+      "remainingAction": "Confirm the active Pulse Firebase services are governed by the referenced Firebase or Google Cloud data-processing terms.",
+      "officialSources": [
+        "https://firebase.google.com/support/privacy/",
+        "https://firebase.google.com/terms/data-processing-terms/"
+      ]
+    },
+    {
+      "id": "sentry",
+      "publishedRole": "processor",
+      "noSharingCandidateSupported": true,
+      "publicTermsStatus": "reviewed",
+      "accountEvidenceStatus": "pending",
+      "remainingAction": "Execute or confirm the Sentry DPA for the Pulse organization and record its data region and optional AI/integration settings.",
+      "officialSources": [
+        "https://sentry.io/astro-assets/resources/legal/how-to-comply-with-gdpr-october-2024.pdf",
+        "https://sentry.io/privacy/"
+      ]
+    },
+    {
+      "id": "railway",
+      "publishedRole": "processor_and_service_provider",
+      "noSharingCandidateSupported": true,
+      "publicTermsStatus": "reviewed",
+      "accountEvidenceStatus": "pending",
+      "remainingAction": "Execute or confirm Railway's DPA for the production workspace and retain the resulting account evidence privately.",
+      "officialSources": [
+        "https://railway.com/legal/dpa",
+        "https://docs.railway.com/enterprise/compliance"
+      ]
+    },
+    {
+      "id": "cloudflare",
+      "publishedRole": "processor_and_service_provider",
+      "noSharingCandidateSupported": true,
+      "publicTermsStatus": "reviewed",
+      "accountEvidenceStatus": "pending",
+      "remainingAction": "Confirm the Pulse Cloudflare account is governed by the current DPA and that production uses the assessed direct Realtime TURN service.",
+      "officialSources": [
+        "https://www.cloudflare.com/cloudflare-customer-dpa/",
+        "https://www.cloudflare.com/trust-hub/us-privacy-compliance/",
+        "https://developers.cloudflare.com/realtime/turn/faq/"
+      ]
+    }
+  ],
+  "conclusion": {
+    "publishedTermsSupportNoSharingCandidate": true,
+    "playConsoleNoSharingApproved": false,
+    "reason": "Public terms support processor or service-provider treatment, but account-specific execution and configuration evidence is not stored in the release record."
+  }
+}

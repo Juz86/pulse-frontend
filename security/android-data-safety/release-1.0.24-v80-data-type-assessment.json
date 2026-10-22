@@ -121,7 +121,7 @@
   "remainingConfirmations": [
     "Confirm all active Play tracks use artifacts built from the reviewed permission history.",
     "Confirm the Pulse Cloudflare account is governed by the current DPA and uses the assessed direct Realtime TURN integration.",
-    "Confirm processor/service-provider status and no-sharing answers for Firebase, Sentry, Railway and Cloudflare."
+    "Add account-specific DPA and configuration evidence for Firebase, Sentry, Railway and Cloudflare before approving no-sharing answers."
   ],
   "primaryPolicySource": "https://support.google.com/googleplay/android-developer/answer/10787469"
 }

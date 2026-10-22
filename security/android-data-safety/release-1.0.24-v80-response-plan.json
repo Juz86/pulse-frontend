@@ -143,7 +143,7 @@
     "Confirm the declaration covers every artifact still active on Google Play.",
     "Confirm all collected data is encrypted in transit in every active artifact.",
     "Test the public and in-app account-deletion mechanisms end to end.",
-    "Confirm Firebase, Sentry, Railway and Cloudflare qualify as service providers for the selected no-sharing answers.",
+    "Add account-specific DPA and configuration evidence for Firebase, Sentry, Railway and Cloudflare before approving the selected no-sharing answers.",
     "Confirm the Pulse Cloudflare account is governed by the current DPA and uses the assessed direct Realtime TURN integration."
   ]
 }

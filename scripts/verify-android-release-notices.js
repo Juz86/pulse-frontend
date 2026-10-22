@@ -283,6 +283,52 @@ for (const finding of dataSafetyMediaAssessment.findings || []) {
     );
   }
 }
+const dataSafetyServiceProviderAssessmentPath =
+  manifest.release.dataSafetyServiceProviderAssessmentPath;
+requireValue(
+  typeof dataSafetyServiceProviderAssessmentPath === 'string' &&
+    fs.existsSync(path.join(root, dataSafetyServiceProviderAssessmentPath)),
+  'Android Data Safety-dienstverlenersbeoordeling ontbreekt.',
+);
+requireValue(
+  sha256(dataSafetyServiceProviderAssessmentPath) ===
+    manifest.release.dataSafetyServiceProviderAssessmentSha256,
+  'Android Data Safety-dienstverlenersbeoordelingshash wijkt af.',
+);
+const dataSafetyServiceProviderAssessment = JSON.parse(
+  read(dataSafetyServiceProviderAssessmentPath),
+);
+requireValue(
+  dataSafetyServiceProviderAssessment.schemaVersion === 1 &&
+    dataSafetyServiceProviderAssessment.status ===
+      'public_terms_reviewed_account_execution_evidence_pending',
+  'Android Data Safety-dienstverlenersbeoordeling heeft een ongeldige status.',
+);
+requireValue(
+  dataSafetyServiceProviderAssessment.release?.versionName === manifest.release.versionName &&
+    dataSafetyServiceProviderAssessment.release?.versionCode === manifest.release.versionCode &&
+    dataSafetyServiceProviderAssessment.release?.applicationId === manifest.release.applicationId,
+  'Android Data Safety-dienstverlenersbeoordeling hoort bij een andere release.',
+);
+const assessedProviders = new Set(
+  dataSafetyServiceProviderAssessment.providers?.map((provider) => provider.id),
+);
+for (const providerId of ['firebase', 'sentry', 'railway', 'cloudflare']) {
+  requireValue(assessedProviders.has(providerId), `Dienstverlener ontbreekt: ${providerId}`);
+}
+requireValue(
+  dataSafetyServiceProviderAssessment.providers.every((provider) =>
+    provider.publicTermsStatus === 'reviewed' &&
+    provider.accountEvidenceStatus === 'pending' &&
+    provider.noSharingCandidateSupported === true &&
+    provider.officialSources?.length > 0),
+  'Dienstverlenersbeoordeling mag zonder accountbewijs niet worden goedgekeurd.',
+);
+requireValue(
+  dataSafetyServiceProviderAssessment.conclusion?.publishedTermsSupportNoSharingCandidate === true &&
+    dataSafetyServiceProviderAssessment.conclusion?.playConsoleNoSharingApproved === false,
+  'Delen-status is zonder accountbewijs onveilig vrijgegeven.',
+);
 const dataSafetyConsoleComparisonPath = manifest.release.dataSafetyConsoleComparisonPath;
 requireValue(
   typeof dataSafetyConsoleComparisonPath === 'string' &&

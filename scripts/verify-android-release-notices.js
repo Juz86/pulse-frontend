@@ -91,6 +91,37 @@ requireValue(
   webrtcNoticeComponentCount === manifest.release.webrtcNoticesComponentCount,
   'Aantal WebRTC-noticesecties wijkt af.',
 );
+const androidLicenseBundleManifestPath = manifest.release.androidLicenseBundleManifestPath;
+requireValue(
+  typeof androidLicenseBundleManifestPath === 'string' &&
+    fs.existsSync(path.join(root, androidLicenseBundleManifestPath)),
+  'Android licentiebundelmanifest ontbreekt.',
+);
+requireValue(
+  sha256(androidLicenseBundleManifestPath) ===
+    manifest.release.androidLicenseBundleManifestSha256,
+  'Android licentiebundelmanifest-hash wijkt af.',
+);
+const androidLicenseBundle = JSON.parse(read(androidLicenseBundleManifestPath));
+requireValue(androidLicenseBundle.schemaVersion === 1, 'Onbekende licentiebundel-schemaVersion.');
+requireValue(
+  androidLicenseBundle.componentCount === manifest.release.resolvedComponentCount,
+  'Licentiebundel hoort bij een andere componentinventaris.',
+);
+requireValue(
+  androidLicenseBundle.files?.length === manifest.release.androidLicenseBundleFileCount,
+  'Aantal bestanden in de Android licentiebundel wijkt af.',
+);
+const androidLicenseBundleDirectory = path.dirname(androidLicenseBundleManifestPath);
+for (const file of androidLicenseBundle.files) {
+  requireValue(
+    typeof file.path === 'string' && path.basename(file.path) === file.path,
+    'Ongeldig bestandspad in Android licentiebundel.',
+  );
+  const bundledPath = path.join(androidLicenseBundleDirectory, file.path);
+  requireValue(fs.existsSync(path.join(root, bundledPath)), `Licentiebestand ontbreekt: ${file.path}`);
+  requireValue(sha256(bundledPath) === file.sha256, `Licentiebestand-hash wijkt af: ${file.path}`);
+}
 const resolvedInventory = JSON.parse(read(resolvedInventoryPath));
 requireValue(resolvedInventory.schemaVersion === 1, 'Onbekende componentinventaris-schemaVersion.');
 requireValue(
@@ -209,6 +240,26 @@ if (releaseMode) {
     sha256Buffer(bundledWebrtcNotices) === manifest.release.webrtcNoticesSha256,
     'WebRTC-noticebestand in de release-AAB wijkt af.',
   );
+  for (const file of androidLicenseBundle.files) {
+    let bundledLicense;
+    try {
+      bundledLicense = execFileSync(
+        'unzip',
+        [
+          '-p',
+          path.join(root, aabPath),
+          `base/assets/public/legal/third-party/android-runtime-1.0.24-v80/${file.path}`,
+        ],
+        { encoding: null, maxBuffer: 16 * 1024 * 1024 },
+      );
+    } catch {
+      fail(`Licentiebestand ontbreekt in de release-AAB: ${file.path}`);
+    }
+    requireValue(
+      sha256Buffer(bundledLicense) === file.sha256,
+      `Licentiebestand in de release-AAB wijkt af: ${file.path}`,
+    );
+  }
   const head = execFileSync('git', ['rev-parse', 'HEAD'], {
     cwd: root,
     encoding: 'utf8',
@@ -227,6 +278,9 @@ if (releaseMode) {
     resolvedNoticesPath,
     webrtcWrapperLicensePath,
     webrtcNoticesPath,
+    androidLicenseBundleManifestPath,
+    ...androidLicenseBundle.files.map((file) =>
+      path.join(androidLicenseBundleDirectory, file.path)),
   ]) {
     try {
       execFileSync('git', ['cat-file', '-e', `HEAD:${releaseFile}`], {

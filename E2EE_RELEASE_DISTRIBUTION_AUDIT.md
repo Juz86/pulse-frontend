@@ -118,6 +118,9 @@ Geslaagd:
   heeft SHA-256
   `2737ac416f91d4ab873c3703da64e7320692b294df6dbde07adfe05271bf6cff`;
 - `npm run verify:android-release-notices` slaagt;
+- de publieke Android-licentiebundel bevat tien gehashte bestanden voor de 174
+  componenten, waaronder alle negen in runtime-artifacts aangetroffen
+  licentie-exemplaren teruggebracht tot hun relevante versiegebonden teksten;
 - `npm run verify:android-release-distribution` faalt bewust zolang de status
   `blocked` is of een blocker resteert.
 

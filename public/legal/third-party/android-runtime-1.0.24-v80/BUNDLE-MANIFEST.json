@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "release": {
+    "versionName": "1.0.24",
+    "versionCode": 80
+  },
+  "componentCount": 174,
+  "files": [
+    {
+      "path": "COMPONENTS.json",
+      "sha256": "67aa84e3dafa99dba18dc012a00ad5cc5a0ad39e21a9b39d3d74638a4c092040",
+      "source": "security/android-release-notices/release-1.0.24-v80-resolved-components.json"
+    },
+    {
+      "path": "COMPONENTS.md",
+      "sha256": "2737ac416f91d4ab873c3703da64e7320692b294df6dbde07adfe05271bf6cff",
+      "source": "security/android-release-notices/release-1.0.24-v80-resolved-components.md"
+    },
+    {
+      "path": "LICENSE-AGPL-3.0.txt",
+      "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0",
+      "source": "LICENSE"
+    },
+    {
+      "path": "LICENSE-APACHE-2.0.txt",
+      "sha256": "809fa1ed21450f59827d1e9aec720bbc4b687434fa22283c6cb5dd82a47ab9c0",
+      "source": "androidx.core:core:1.15.0!/META-INF/androidx/core/core/LICENSE.txt"
+    },
+    {
+      "path": "LICENSE-ENGINE.IO-CLIENT-JAVA-2.1.0.txt",
+      "sha256": "bdf770cb20bb60573772724301636a2e4da21d13dab6bc6c21cea3f2ccb28876",
+      "source": "security/android-release-notices/upstream/engine.io-client-java-2.1.0/LICENSE"
+    },
+    {
+      "path": "LICENSE-GOOGLE-PLAY-APP-UPDATE-2.1.0.txt",
+      "sha256": "bde711044e714375585b59a9d0973d093d6061985a709b8b1f235523ebc8c01e",
+      "source": "com.google.android.play:app-update:2.1.0!/LICENSE"
+    },
+    {
+      "path": "LICENSE-GOOGLE-PLAY-APP-UPDATE-KTX-2.1.0.txt",
+      "sha256": "c2e3d59a90d75c6e039c0125a068fd509d4b386835d04cb1ac32725f418484bb",
+      "source": "com.google.android.play:app-update-ktx:2.1.0!/LICENSE"
+    },
+    {
+      "path": "LICENSE-GOOGLE-PLAY-CORE-COMMON-2.0.3.txt",
+      "sha256": "dad11d2da19198161f392a355c870025157763b1942fc30f789308f678269883",
+      "source": "com.google.android.play:core-common:2.0.3!/LICENSE"
+    },
+    {
+      "path": "LICENSE-GOOGLE-PLAY-INTEGRITY-1.3.0.txt",
+      "sha256": "de99dfafdd1f133400c8d18b57850636f1065c6f0e5051c9dbe6bea2cc317aa4",
+      "source": "com.google.android.play:integrity:1.3.0!/LICENSE"
+    },
+    {
+      "path": "LICENSE-SOCKET.IO-CLIENT-JAVA-2.1.2.txt",
+      "sha256": "94874c427af536bfac950d3c6b88f35488a5e65ff5572bddd05c443318dec4e3",
+      "source": "security/android-release-notices/upstream/socket.io-client-java-2.1.2/LICENSE"
+    }
+  ]
+}

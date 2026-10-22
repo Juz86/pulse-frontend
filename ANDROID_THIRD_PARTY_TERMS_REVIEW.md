@@ -82,10 +82,12 @@ Technisch voltooid:
 - alle Google-runtimecomponenten aan de toepasselijke voorwaardencategorie
   gekoppeld;
 - Play Integrity privacy- en Data Safety-verplichting vastgelegd.
+- een gehashte publieke Android-licentiebundel gegenereerd met de volledige
+  componentencatalogus en alle aangetroffen artifactlicenties.
 
 Nog vereist:
 
-- volledige Android noticecatalogus op leesbaarheid en volledigheid beoordelen;
+- Android licentiebundel juridisch op volledigheid en verenigbaarheid beoordelen;
 - formele aanvaarding van de Google SDK- en servicevoorwaarden vastleggen;
 - Play Console Data Safety-invoer tegen het daadwerkelijke runtimegebruik
   controleren;

@@ -22,7 +22,10 @@
     "webrtcWrapperLicenseSha256": "e6b282fe6c0fb353928923470457f31b44cbab203effd60c0cde4a5bb96c8aec",
     "webrtcNoticesPath": "public/legal/third-party/webrtc-sdk-android-144.7559.15/WEBRTC-NOTICES.md",
     "webrtcNoticesSha256": "d1f9382c6878ac024155fd6d44a5977329108bb8b0a01cea40e4a2f1d7de252e",
-    "webrtcNoticesComponentCount": 30
+    "webrtcNoticesComponentCount": 30,
+    "androidLicenseBundleManifestPath": "public/legal/third-party/android-runtime-1.0.24-v80/BUNDLE-MANIFEST.json",
+    "androidLicenseBundleManifestSha256": "133b6a23f300bcc06453e30b904bebb5cec541a99bcbd0257a0b09621c729f01",
+    "androidLicenseBundleFileCount": 10
   },
   "webRuntime": [
     { "id": "@capacitor/android", "version": "8.3.1", "license": "MIT", "review": "documented" },

@@ -70,6 +70,11 @@ De machineleesbare versie-inventaris staat in
 `security/android-release-notices/release-1.0.24-v80.json`. Controleer de pins
 met `npm run verify:android-release-notices`; de strengere
 `npm run verify:android-release-distribution` moet vóór publicatie slagen.
+De publieke, gehashte licentiebundel voor deze release staat onder
+`public/legal/third-party/android-runtime-1.0.24-v80/`. Deze bevat de volledige
+componentencatalogus, AGPLv3, Apache-2.0, de exacte Socket.IO- en Engine.IO-
+MIT-teksten en alle licentiebestanden die rechtstreeks in de opgeloste Google
+Play- en Integrity-artifacts zijn aangetroffen.
 De volledige opgeloste graph staat in
 `security/android-release-notices/release-1.0.24-v80-resolved-components.json`.
 De bijbehorende leesbare catalogus staat in

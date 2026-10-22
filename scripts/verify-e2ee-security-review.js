@@ -46,6 +46,10 @@ const attestation = JSON.parse(readFileSync(attestationPath, 'utf8'));
 const commitPattern = /^[0-9a-f]{40}$/;
 const hashPattern = /^[0-9a-f]{64}$/;
 requireValue(attestation.status === 'approved', 'De securityreview is niet goedgekeurd.');
+requireValue(
+  reviewSubject.status === 'independent_review_approved',
+  'De bevroren reviewbasis is nog niet als onafhankelijk goedgekeurd gemarkeerd.',
+);
 requireValue(attestation.reviewer?.independent === true, 'De reviewer is niet als onafhankelijk vastgelegd.');
 ['name', 'organization', 'contact'].forEach((field) => {
   requireValue(
@@ -134,6 +138,15 @@ requireValue(
 requireValue(existsSync(reportPath), 'Het inhoudelijke onafhankelijke reviewrapport ontbreekt.');
 requireValue(hashPattern.test(attestation.report?.sha256 || ''), 'De rapporthash is ongeldig.');
 requireValue(sha256(reportPath) === attestation.report.sha256, 'De rapporthash komt niet overeen.');
+const reportText = readFileSync(reportPath, 'utf8');
+requireValue(
+  !reportText.includes('DRAFT_AWAITING_INDEPENDENT_REVIEWER_COMPLETION'),
+  'Het onafhankelijke reviewrapport heeft nog draftstatus.',
+);
+requireValue(
+  !reportText.includes('`REQUIRED`') && !reportText.includes('REQUIRED:'),
+  'Het onafhankelijke reviewrapport bevat nog verplichte invulvelden.',
+);
 
 console.log('Independent E2EE security review evidence: OK');
 console.log(`Reviewer: ${attestation.reviewer.name} (${attestation.reviewer.organization})`);

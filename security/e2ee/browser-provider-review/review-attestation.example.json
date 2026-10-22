@@ -32,7 +32,7 @@
     "openLow": 0
   },
   "report": {
-    "path": "security/e2ee/browser-provider-review/evidence/independent-review.pdf",
+    "path": "security/e2ee/browser-provider-review/evidence/independent-delta-review-report.md",
     "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
   }
 }

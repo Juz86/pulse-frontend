@@ -43,7 +43,10 @@ review.
 6. Maak `review-attestation.json` op basis van
    `review-attestation.example.json` en leg het rapport onder
    `security/e2ee/browser-provider-review/evidence/` vast.
-7. Voer `npm run verify:e2ee:security-review` uit.
+7. Zet `review-subject.json.status` pas na echte goedkeuring op
+   `independent_review_approved` en verwijder alle draft- en invulmarkeringen
+   uit het definitieve rapport.
+8. Voer `npm run verify:e2ee:security-review` uit.
 
 ## Goedkeuringscriteria
 

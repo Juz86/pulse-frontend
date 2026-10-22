@@ -10,6 +10,9 @@ de browsergate formeel is goedgekeurd.
 - `candidate.json`: bron-, toolchain-, test- en artifactprovenance;
 - `review-subject.json`: exact vastgepinde frontend-, backend-, upstream- en
   libsignalcommits plus de te beoordelen artifacthashes;
+- `evidence/independent-delta-review-report.md`: vooraf ingevuld technisch
+  rapport dat de onafhankelijke reviewer moet reproduceren, aanvullen en
+  aftekenen; de huidige draft is nadrukkelijk geen goedkeuring;
 - `libsignal-0.105.1-parity.patch`: minimale wijziging boven op de vastgepinde
   upstreamwrapper;
 - `Cargo.lock`: volledige dependencyresolutie van de geslaagde paritybuild.

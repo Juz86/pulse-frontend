@@ -7,7 +7,7 @@ resterende licentiecontrole.
 
 ## Buildsubject
 
-- frontendcommit: `d21cbb9922f647b9a491f66034658df2252077bb`;
+- frontendcommit: `f18561af91bd76ec1c1d643d833bc19fae93f65c`;
 - package: `com.pulsemessenger.chat`;
 - versie: `1.0.24`;
 - versionCode: `80`;
@@ -29,6 +29,10 @@ GRADLE_USER_HOME=../.gradle-android ./gradlew :app:bundleRelease --console=plain
 De taak bouwde de productie-webapp opnieuw, controleerde de productie-API,
 draaide Android Lint Vital, valideerde signing en eindigde met
 `BUILD SUCCESSFUL`.
+
+Een volledige rebuild vanaf de publieke frontendcommit
+`f18561af91bd76ec1c1d643d833bc19fae93f65c` leverde opnieuw exact dezelfde
+AAB-grootte en SHA-256 op als de eerdere meetbuild.
 
 ## Bundlemeting
 
@@ -119,7 +123,7 @@ Geslaagd:
 
 Anonieme `git ls-remote`-controles bevestigden op de auditdatum publieke toegang
 tot `https://github.com/Juz86/pulse-frontend` op commit
-`36bf715205dbcc4cddaa7ed44a1126d4e5e72a87` en tot
+`f18561af91bd76ec1c1d643d833bc19fae93f65c` en tot
 `https://github.com/Juz86/pulse-backend` op commit
 `38665cb986de58717c0d7364bf666e9c29bd5413`. Beide repositories bevatten de
 officiële AGPLv3-tekst en gebruiken `AGPL-3.0-only` als package-licentie.

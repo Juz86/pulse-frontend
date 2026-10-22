@@ -5,7 +5,7 @@
     "versionName": "1.0.24",
     "versionCode": 80,
     "applicationId": "com.pulsemessenger.chat",
-    "sourceCommit": "d21cbb9922f647b9a491f66034658df2252077bb",
+    "sourceCommit": "f18561af91bd76ec1c1d643d833bc19fae93f65c",
     "aabSha256": "b67c94ed67c91460ecdcfd4393620b154f6aea529866c0ccaf1776998208ca23",
     "packageLockSha256": "8da173b90e2756fe22871c72a20f60dcc3569b01d7be40eaa09b2602b5275d47",
     "androidBuildGradleSha256": "6da54fc5dc4c684ffbbc3bd1fe5747e6e13d28d4df54d69cbfd663d8eb34664a",

@@ -56,7 +56,7 @@ waaronder MIT, ISC, Apache-2.0 en BSD. Aandachtspunten:
 - beide Git-auteursidentiteiten zijn door de eigenaar als dezelfde
   rechthebbende bevestigd;
 - frontend en backend zijn anoniem via HTTPS publiek leesbaar; de geverifieerde
-  publieke commits zijn respectievelijk `36bf715205dbcc4cddaa7ed44a1126d4e5e72a87`
+  publieke commits zijn respectievelijk `f18561af91bd76ec1c1d643d833bc19fae93f65c`
   en `38665cb986de58717c0d7364bf666e9c29bd5413`;
 - beide repositories bevatten de officiële AGPLv3-tekst en gebruiken
   `AGPL-3.0-only` als package-licentie;

@@ -9,7 +9,7 @@ De publieke bronlocatie is:
 `https://github.com/Juz86/pulse-frontend`
 
 Op 22 oktober 2026 is anonieme HTTPS-leestoegang geverifieerd. De publieke
-`HEAD` was toen commit `36bf715205dbcc4cddaa7ed44a1126d4e5e72a87`. De
+`HEAD` was toen commit `f18561af91bd76ec1c1d643d833bc19fae93f65c`. De
 backend is eveneens publiek bereikbaar op
 `https://github.com/Juz86/pulse-backend`, met publieke `HEAD`
 `38665cb986de58717c0d7364bf666e9c29bd5413`.

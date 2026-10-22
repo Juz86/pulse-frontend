@@ -40,6 +40,8 @@
     "dataSafetyMediaAssessmentSha256": "b52e8d3303f08abd7462c558533d9b21010b14189abf58adaacc39f508957730",
     "dataSafetyServiceProviderAssessmentPath": "security/android-data-safety/release-1.0.24-v80-service-provider-assessment.json",
     "dataSafetyServiceProviderAssessmentSha256": "8acfca4874c527857dd33cfb906f846ab1ded512d2ff423e6952223b03d342a1",
+    "dataSafetyProviderEvidenceGuidePath": "PRODUCTION_PROVIDER_DPA_EVIDENCE_V80.md",
+    "dataSafetyProviderEvidenceGuideSha256": "649baa5d446ced667ca07be3215aabd8128c800d81dd10300e8adc8e0b87dbf6",
     "dataSafetyResponsePlanPath": "security/android-data-safety/release-1.0.24-v80-response-plan.json",
     "dataSafetyResponsePlanSha256": "a9f89af422b1f959c4d12edb872155367db1495800b780320744ceb7734c54d9",
     "dataSafetyResponsePlanTypeCount": 14,

@@ -456,6 +456,32 @@ requireValue(
     dataSafetyServiceProviderAssessment.conclusion?.playConsoleNoSharingApproved === false,
   'Delen-status is zonder accountbewijs onveilig vrijgegeven.',
 );
+const dataSafetyProviderEvidenceGuidePath =
+  manifest.release.dataSafetyProviderEvidenceGuidePath;
+requireValue(
+  typeof dataSafetyProviderEvidenceGuidePath === 'string' &&
+    fs.existsSync(path.join(root, dataSafetyProviderEvidenceGuidePath)),
+  'Productiedienstverleners-DPA-bewijsprocedure ontbreekt.',
+);
+requireValue(
+  sha256(dataSafetyProviderEvidenceGuidePath) ===
+    manifest.release.dataSafetyProviderEvidenceGuideSha256,
+  'Productiedienstverleners-DPA-bewijsprocedurehash wijkt af.',
+);
+const dataSafetyProviderEvidenceGuide = read(dataSafetyProviderEvidenceGuidePath);
+for (const expectedText of [
+  'Firebase-project `pulse-messenger-3cb9d`',
+  'organisatie-ID `4511088630366208`',
+  '`api.pulse-messenger.com`',
+  'Realtime TURN-configuratie',
+  '`playConsoleNoSharingApproved=false`',
+]) {
+  requireText(
+    dataSafetyProviderEvidenceGuide,
+    expectedText,
+    'Productiedienstverleners-DPA-bewijsprocedure',
+  );
+}
 const dataSafetyConsoleComparisonPath = manifest.release.dataSafetyConsoleComparisonPath;
 requireValue(
   typeof dataSafetyConsoleComparisonPath === 'string' &&

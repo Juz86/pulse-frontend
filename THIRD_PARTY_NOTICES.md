@@ -28,16 +28,47 @@ toepassing.
 
 ## Android Dependencies
 
-De exacte Android dependencygraph kan worden gegenereerd met:
+De exacte Android dependencygraph en versiegebonden POM-licentiemetadata kunnen
+worden gegenereerd met:
 
 ```bash
-cd android
-./gradlew :app:dependencies --configuration releaseRuntimeClasspath
+npm run generate:android-release-notices
 ```
 
 Daaronder vallen AndroidX, Kotlin, Capacitor, Firebase, Google Play SDK's,
 Socket.IO, OkHttp en de WebRTC-SDK. Hun eigen licenties en gebruiksvoorwaarden
 blijven van toepassing.
+
+Voor de op 22 oktober 2026 gemeten `1.0.24`-AAB zijn onder meer deze directe
+runtimeversies opgelost:
+
+- Capacitor Android volgens de vastgepinde npm-lockfile, MIT;
+- Firebase BoM `34.17.0`, Firebase Auth `24.2.0` en Messaging `25.1.1`;
+- Google Play App Update `2.1.0`, Integrity `1.3.0` en reCAPTCHA `18.6.1`;
+- Socket.IO Java `2.1.2`, MIT;
+- Apache Cordova Android `10.1.1`, Apache-2.0;
+- WebRTC SDK Android `144.7559.15`; de artifact-POM noemt BSD-3-Clause, de
+  exact getagde bronrepository noemt MIT en de AAR bevat geen LICENSE/NOTICE;
+- Signal libsignal `0.105.1`, AGPLv3.
+
+De gegenereerde snapshot bevat alle 174 opgeloste release-runtimecomponenten.
+Voor ieder component zijn versie, artifact-POM-hash, eventueel overgeërfde
+licentiebron, licentiebron-POM-hash en licentiemetadata vastgelegd; geen POM of
+licentievermelding ontbreekt. Daarmee is de technische AndroidX/Kotlin-
+inventaris compleet. Dit is nog geen juridisch akkoord en bevat niet vanzelf
+alle teksten of notices uit gebundelde native binaries. Met name de Google
+SDK/servicevoorwaarden en de in de WebRTC-AAR gebundelde libwebrtc- en
+third-party notices moeten vóór publicatie afzonderlijk worden beoordeeld en
+opgenomen. Zie `E2EE_RELEASE_DISTRIBUTION_AUDIT.md`.
+
+De machineleesbare versie-inventaris staat in
+`security/android-release-notices/release-1.0.24-v80.json`. Controleer de pins
+met `npm run verify:android-release-notices`; de strengere
+`npm run verify:android-release-distribution` moet vóór publicatie slagen.
+De volledige opgeloste graph staat in
+`security/android-release-notices/release-1.0.24-v80-resolved-components.json`.
+De bijbehorende leesbare catalogus staat in
+`security/android-release-notices/release-1.0.24-v80-resolved-components.md`.
 
 ### Signal libsignal
 

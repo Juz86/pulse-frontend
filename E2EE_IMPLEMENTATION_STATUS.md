@@ -620,6 +620,27 @@ een onafhankelijke rebuild, artifacthashes, verplichte tests, open bevindingen
 en de SHA-256 van het inhoudelijke rapport. De check faalt bewust zolang het
 echte externe attestation en rapport ontbreken.
 
+De Android release-omvang is op 22 oktober 2026 eveneens gemeten. De
+ondertekende meet-AAB voor `1.0.24` (`versionCode 80`) is `136405181` bytes;
+Bundletool `1.18.3` berekent voor het aangesloten Samsung `SM-A166B`-profiel
+een Play-download van `45818771` bytes. De open-source geheimencontrole en de
+opgeloste release-runtime dependencygraph slagen. De meetbuild bevat net als de
+bewaarde versionCode-71-AAB geen `PULSE_NATIVE_UPDATE_PUBLIC_KEY`; daarmee staat
+alleen het aparte native web-updatekanaal uit. Het is nog geen E2EE-
+productiekandidaat omdat review-, notice- en pilotgates openstaan. De exacte
+hashes en resterende distributiegates staan in
+`E2EE_RELEASE_DISTRIBUTION_AUDIT.md`.
+
+De versiegebonden Android noticegenerator heeft daarnaast alle 174 opgeloste
+release-runtimecomponenten vastgelegd met POM-hash, licentiebron en
+licentiemetadata. De technische AndroidX/Kotlin-inventaris is daarmee compleet;
+juridische goedkeuring van Google SDK-voorwaarden, WebRTC-binarynotices en de
+uiteindelijke gecombineerde distributie blijft open.
+
+Frontend en backend zijn inmiddels zonder GitHub-authenticatie publiek
+leesbaar. De huidige lokale noticekandidaat moet nog worden gecommit en
+gepusht; de backend mist bovendien nog een eigen expliciete licentie.
+
 ## Praktisch oordeel
 
 De frontend is nu niet "af" qua echte E2EE, maar wel functioneel gekoppeld aan een lokale servicefase voor chatten, bellen en videobellen.

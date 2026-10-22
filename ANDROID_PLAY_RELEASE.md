@@ -2,7 +2,7 @@
 
 This project is prepared as a Capacitor Android app with:
 - App name: `Pulse`
-- App ID / package: `com.pulse.app`
+- App ID / package: `com.pulsemessenger.chat`
 - Web build dir: `build`
 
 ## 1) Build web assets
@@ -22,11 +22,11 @@ npx cap open android
 
 Check:
 - `android/app/build.gradle`
-  - `applicationId "com.pulse.app"`
+  - `applicationId "com.pulsemessenger.chat"`
   - `versionCode` increments every Play upload
   - `versionName` matches release version
 - `android/variables.gradle`
-  - `targetSdkVersion` current (now 35)
+  - `targetSdkVersion` current (now 36)
 
 ## 4) Firebase for Android (if using FCM in app)
 
@@ -55,7 +55,33 @@ Expected output path (typical):
 
 ```bash
 cd android
-./gradlew bundleRelease
+GRADLE_USER_HOME=../.gradle-android ./gradlew :app:bundleRelease
+```
+
+Set `PULSE_NATIVE_UPDATE_PUBLIC_KEY` only when the separately signed native
+web-update channel is part of the release. An empty value disables that channel
+and does not disable Google Play updates. Record this as an explicit release
+decision; never generate a replacement key during a release build.
+
+Record the AAB hash and a Bundletool per-device size measurement in
+`E2EE_RELEASE_DISTRIBUTION_AUDIT.md` before upload.
+
+Verify that the version-bound notice inventory still matches the source:
+
+```bash
+npm run generate:android-release-notices
+npm run verify:android-release-notices
+```
+
+The generation step resolves `releaseRuntimeClasspath` and records every
+component, version, POM hash, inherited license source, and license metadata.
+Review the generated snapshot before changing its hash in the release manifest.
+
+The final upload gate must also pass. It intentionally fails while any legal,
+notice, source-publication, signing, or security-review blocker remains:
+
+```bash
+npm run verify:android-release-distribution
 ```
 
 ## 7) Google Play Console Internal Testing checklist
@@ -83,5 +109,9 @@ cd android
 
 - API base URLs are HTTPS in production
 - No localhost URLs used in production runtime
+- native web-update channel is either deliberately disabled or uses the
+  established `PULSE_NATIVE_UPDATE_PUBLIC_KEY`
 - Login/chat/call/video smoke-tested on real Android device
 - `versionCode` incremented vs previous Play upload
+- Exact Corresponding Source tag and third-party notices are published
+- `npm run verify:android-release-distribution` succeeds

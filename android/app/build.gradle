@@ -235,6 +235,7 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+apply from: '../release-notices.gradle'
 
 try {
     def servicesJSON = file('google-services.json')

@@ -8,6 +8,10 @@ const requiredFiles = [
   'README.md',
   'SOURCE_DISTRIBUTION.md',
   'THIRD_PARTY_NOTICES.md',
+  'E2EE_RELEASE_DISTRIBUTION_AUDIT.md',
+  'security/android-release-notices/release-1.0.24-v80.json',
+  'security/android-release-notices/release-1.0.24-v80-resolved-components.json',
+  'security/android-release-notices/release-1.0.24-v80-resolved-components.md',
 ];
 const forbiddenTrackedFiles = [
   /(^|\/)google-services\.json$/i,

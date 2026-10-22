@@ -4,6 +4,21 @@ De oorspronkelijke code in deze repository valt onder `AGPL-3.0-only`. Dit
 document beschrijft hoe de Corresponding Source bij een uitgegeven Pulse-build
 wordt vastgelegd.
 
+De publieke bronlocatie is:
+
+`https://github.com/Juz86/pulse-frontend`
+
+Op 22 oktober 2026 is anonieme HTTPS-leestoegang geverifieerd. De publieke
+`HEAD` was toen commit `d21cbb9922f647b9a491f66034658df2252077bb`. De
+backend is eveneens publiek bereikbaar op
+`https://github.com/Juz86/pulse-backend`, met publieke `HEAD`
+`b930e2b165e7784778efd333ae1d07d23e1b4d58`.
+
+Publieke zichtbaarheid alleen is niet voldoende: iedere uitgegeven binary moet
+blijven verwijzen naar zijn exacte, openbare releasecommit of tag. De backend
+heeft daarnaast nog geen eigen `LICENSE` of `package.json`-licentieveld en mag
+daarom nog niet als open-source gelicentieerd worden beschreven.
+
 ## Per Release
 
 Voor iedere web- of Android-release:
@@ -22,11 +37,16 @@ Voer vóór publicatie ook uit:
 
 ```bash
 npm run verify:open-source
+npm run generate:android-release-notices
+npm run verify:android-release-distribution
 ```
 
 Deze controle bewaakt de projectlicentie, vereiste distributiedocumenten,
 verboden sleutelbestanden en bekende private-keypatronen. Het is een technische
 vangrail en vervangt geen handmatige of juridische dependencycontrole.
+De noticegenerator legt de daadwerkelijk opgeloste Android release-runtime en
+de hashes van de gebruikte POM-metadata vast. De distributiecontrole blijft
+fail-closed zolang review-, notice-, bronpublicatie- of signingblokkades bestaan.
 
 ## Reproduceerbare Buildinformatie
 
@@ -49,6 +69,7 @@ cd android
 ./gradlew bundleRelease
 ```
 
-De release is niet compliance-gereed zolang de repository niet openbaar is, de
-release-tag ontbreekt, de broncodelocatie niet vanuit product/distributie wordt
-aangeboden of de third-party controle niet is afgerond.
+De release is niet compliance-gereed zolang de exacte releasecommit en -tag
+niet publiek zijn, de broncodelocatie niet vanuit product/distributie wordt
+aangeboden, de backendlicentie ontbreekt of de third-party controle niet is
+afgerond.

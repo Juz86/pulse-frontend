@@ -2,13 +2,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   E2EE_MODE,
   E2EE_TRANSPORT,
+  E2EE_V2_BROWSER_PILOT_ENABLED,
   E2EE_V2_BROWSER_QA_ENABLED,
+  E2EE_V2_PILOT_ENABLED,
   E2EE_V2_QA_BACKEND_URL,
   E2EE_V2_QA_ENABLED,
+  assertBrowserE2eeV2PilotConfiguration,
+  assertE2eeV2PilotConfiguration,
 } from '../lib/e2ee/config';
 import { startAndroidE2eeV2QaRuntime } from '../lib/e2ee/v2/androidQaRuntime';
 import { startBrowserE2eeV2QaRuntime } from '../lib/e2ee/v2/browserQaRuntime';
 import { createBrowserE2eeWorkerClient } from '../lib/e2ee/v2/browserE2eeWorkerClient';
+import { checkE2eeV2PilotEnrollment } from '../lib/e2ee/v2/pilotEnrollment';
+import { createV2ApiClient } from '../lib/e2ee/v2/v2ApiClient';
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
 import { BACKEND_URL, setSocketE2EEDeviceId } from '../services/socket';
 
@@ -17,14 +23,19 @@ const DISABLED_STATE = Object.freeze({
   status: 'disabled',
   binding: null,
   error: null,
+  sendingEnabled: false,
 });
 
 export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
   const [state, setState] = useState(DISABLED_STATE);
   const startupPromiseRef = useRef(null);
   const nativeRuntime = isNativePulseEnvironment();
-  const browserRuntime = !nativeRuntime && E2EE_V2_BROWSER_QA_ENABLED;
-  const runtimeEnabled = E2EE_V2_QA_ENABLED && (nativeRuntime || browserRuntime);
+  const pilotRuntime = E2EE_V2_PILOT_ENABLED;
+  const qaRuntime = E2EE_V2_QA_ENABLED;
+  const browserRuntime = !nativeRuntime && (
+    pilotRuntime ? E2EE_V2_BROWSER_PILOT_ENABLED : E2EE_V2_BROWSER_QA_ENABLED
+  );
+  const runtimeEnabled = (qaRuntime || pilotRuntime) && (nativeRuntime || browserRuntime);
 
   useEffect(() => {
     if (!runtimeEnabled) {
@@ -34,42 +45,106 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
 
     let active = true;
     let activeBinding = null;
-    const browserClient = browserRuntime
-      ? createBrowserE2eeWorkerClient({
-        workerFactory: () => new Worker(
-          new URL('../lib/e2ee/v2/browserE2eeWorker.js', import.meta.url),
-          { type: 'module' },
-        ),
-        configuration: {
-          enabled: E2EE_V2_QA_ENABLED,
-          browserEnabled: E2EE_V2_BROWSER_QA_ENABLED,
-          mode: E2EE_MODE,
-          transport: E2EE_TRANSPORT,
-          backendUrl: E2EE_V2_QA_BACKEND_URL,
+    let browserClient = null;
+    const backendUrl = pilotRuntime ? BACKEND_URL : E2EE_V2_QA_BACKEND_URL;
+    const api = createV2ApiClient({ baseUrl: backendUrl });
+    const assertConfiguration = pilotRuntime
+      ? (browserRuntime
+        ? assertBrowserE2eeV2PilotConfiguration
+        : assertE2eeV2PilotConfiguration)
+      : undefined;
+    const configuration = {
+      enabled: true,
+      qaEnabled: qaRuntime,
+      browserEnabled: browserRuntime,
+      mode: E2EE_MODE,
+      transport: E2EE_TRANSPORT,
+      backendUrl,
+      runtimeBackendUrl: BACKEND_URL,
+    };
+    setState({
+      enabled: qaRuntime,
+      status: pilotRuntime ? 'checking_enrollment' : 'starting',
+      binding: null,
+      error: null,
+      sendingEnabled: qaRuntime,
+    });
+    const startupPromise = (async () => {
+      let enrollment = null;
+      if (pilotRuntime) {
+        assertConfiguration(configuration);
+        enrollment = await checkE2eeV2PilotEnrollment({ user, api });
+        if (!enrollment.enrolled) return null;
+        if (active) {
+          setState({
+            enabled: true,
+            status: 'starting',
+            binding: null,
+            error: null,
+            sendingEnabled: enrollment.sendingEnabled,
+          });
+        }
+      }
+      if (browserRuntime) {
+        browserClient = createBrowserE2eeWorkerClient({
+          workerFactory: () => new Worker(
+            new URL('../lib/e2ee/v2/browserE2eeWorker.js', import.meta.url),
+            { type: 'module' },
+          ),
+          configuration,
+          ...(assertConfiguration ? { assertConfiguration } : {}),
+          ...(pilotRuntime ? { disabledErrorCode: 'e2ee_browser_pilot_disabled' } : {}),
+        });
+        return startBrowserE2eeV2QaRuntime({
+          user,
+          client: browserClient,
+          backendUrl,
           runtimeBackendUrl: BACKEND_URL,
-        },
-      })
-      : null;
-    setState({ enabled: true, status: 'starting', binding: null, error: null });
-    const startupPromise = browserRuntime
-      ? startBrowserE2eeV2QaRuntime({
+          api,
+          bindingNamespace: pilotRuntime ? 'pilot' : 'qa',
+          ...(assertConfiguration ? { assertConfiguration } : {}),
+        });
+      }
+      return startAndroidE2eeV2QaRuntime({
         user,
-        client: browserClient,
-      })
-      : startAndroidE2eeV2QaRuntime({ user });
+        backendUrl,
+        runtimeBackendUrl: BACKEND_URL,
+        api,
+        bindingNamespace: pilotRuntime ? 'pilot' : 'qa',
+        ...(assertConfiguration ? { assertConfiguration } : {}),
+      });
+    })();
     startupPromiseRef.current = startupPromise;
     startupPromise
       .then((binding) => {
+        if (!binding) {
+          if (active) setState({ ...DISABLED_STATE, status: 'not_enrolled' });
+          return;
+        }
         activeBinding = binding;
         if (active) {
-          setState({ enabled: true, status: 'ready', binding, error: null });
+          setState((current) => ({
+            enabled: true,
+            status: 'ready',
+            binding,
+            error: null,
+            sendingEnabled: pilotRuntime ? current.sendingEnabled : true,
+          }));
         } else {
           binding.close?.();
         }
       })
       .catch((error) => {
         browserClient?.close();
-        if (active) setState({ enabled: true, status: 'failed', binding: null, error });
+        if (active) {
+          setState({
+            enabled: false,
+            status: 'failed',
+            binding: null,
+            error,
+            sendingEnabled: false,
+          });
+        }
       });
 
     return () => {
@@ -80,12 +155,13 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
     };
   // Runtime ownership follows the authenticated user and build target.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [browserRuntime, nativeRuntime, runtimeEnabled, user]);
+  }, [browserRuntime, nativeRuntime, pilotRuntime, qaRuntime, runtimeEnabled, user]);
 
   const sendText = useCallback((payload) => {
     if (state.status !== 'ready' || !state.binding?.sendText) {
       throw state.error || new Error('v2_qa_runtime_not_ready');
     }
+    if (!state.sendingEnabled) throw new Error('v2_pilot_sends_paused');
     return state.binding.sendText(payload);
   }, [state]);
 
@@ -122,17 +198,24 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
       payload?.revoked ? 'v2_local_device_revoked' : 'v2_local_identity_invalidated'
     );
     error.code = error.message;
-    setState({ enabled: true, status: 'invalidated', binding: null, error });
+    setState({
+      enabled: true,
+      status: 'invalidated',
+      binding: null,
+      error,
+      sendingEnabled: false,
+    });
     return result;
   }, [state]);
 
   return useMemo(() => ({
-    enabled: runtimeEnabled,
+    enabled: state.enabled,
     status: state.status,
     ready: state.status === 'ready',
     error: state.error,
     localDeviceId: state.binding?.deviceId || null,
     localSignalDeviceId: state.binding?.signalDeviceId || null,
+    sendingEnabled: state.sendingEnabled,
     handleSecurityEvent: state.binding?.handleSecurityEvent || null,
     clearTextMessages,
     fetchTextMessages,
@@ -144,7 +227,6 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
     fetchTextMessages,
     invalidateLocalDevice,
     receiveTextMessage,
-    runtimeEnabled,
     sendText,
     state,
   ]);

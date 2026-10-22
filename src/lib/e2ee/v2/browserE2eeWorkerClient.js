@@ -19,11 +19,13 @@ function requireWorkerFactory(workerFactory) {
 export function createBrowserE2eeWorkerClient({
   workerFactory,
   configuration,
+  assertConfiguration = assertBrowserE2eeV2QaConfiguration,
+  disabledErrorCode = 'e2ee_browser_qa_disabled',
   cryptoImpl = globalThis.crypto,
   timeoutMs = DEFAULT_TIMEOUT_MS,
 } = {}) {
-  if (!assertBrowserE2eeV2QaConfiguration(configuration)) {
-    throw new BrowserE2eeWorkerClientError('e2ee_browser_qa_disabled');
+  if (!assertConfiguration(configuration)) {
+    throw new BrowserE2eeWorkerClientError(disabledErrorCode);
   }
   requireWorkerFactory(workerFactory);
   if (typeof cryptoImpl?.randomUUID !== 'function') {

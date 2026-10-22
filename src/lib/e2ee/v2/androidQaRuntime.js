@@ -15,7 +15,6 @@ import {
 } from './nativeAndroidProvider';
 import { createV2ApiClient } from './v2ApiClient';
 
-const BINDING_PREFIX = 'pulse_e2ee_v2_qa_binding_';
 const DEVICE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 
 function requireUuid(randomUuid) {
@@ -24,8 +23,9 @@ function requireUuid(randomUuid) {
   return value;
 }
 
-function bindingKey(userId) {
-  return `${BINDING_PREFIX}${userId}`;
+function bindingKey(userId, bindingNamespace = 'qa') {
+  if (!['qa', 'pilot'].includes(bindingNamespace)) throw new Error('v2_binding_namespace_invalid');
+  return `pulse_e2ee_v2_${bindingNamespace}_binding_${userId}`;
 }
 
 function isValidBinding(value) {
@@ -42,17 +42,25 @@ function isTemporaryBackendFailure(error) {
   return !Number.isInteger(error?.status) || error.status === 0 || error.status >= 500;
 }
 
-export function readAndroidE2eeV2QaBinding(userId, storage = window.localStorage) {
+export function readAndroidE2eeV2QaBinding(
+  userId,
+  storage = window.localStorage,
+  bindingNamespace = 'qa',
+) {
   try {
-    const value = JSON.parse(storage.getItem(bindingKey(userId)) || 'null');
+    const value = JSON.parse(storage.getItem(bindingKey(userId, bindingNamespace)) || 'null');
     return isValidBinding(value) ? value : null;
   } catch {
     return null;
   }
 }
 
-export function clearAndroidE2eeV2QaBinding(userId, storage = window.localStorage) {
-  storage.removeItem(bindingKey(userId));
+export function clearAndroidE2eeV2QaBinding(
+  userId,
+  storage = window.localStorage,
+  bindingNamespace = 'qa',
+) {
+  storage.removeItem(bindingKey(userId, bindingNamespace));
 }
 
 export function createAndroidE2eeV2QaBinding({
@@ -60,8 +68,9 @@ export function createAndroidE2eeV2QaBinding({
   registeredDevices = [],
   storage = window.localStorage,
   randomUuid = () => window.crypto?.randomUUID?.(),
+  bindingNamespace = 'qa',
 } = {}) {
-  const existing = readAndroidE2eeV2QaBinding(userId, storage);
+  const existing = readAndroidE2eeV2QaBinding(userId, storage, bindingNamespace);
   if (existing) return existing;
 
   const usedSignalDeviceIds = new Set(
@@ -74,13 +83,13 @@ export function createAndroidE2eeV2QaBinding({
   if (!signalDeviceId) throw new Error('v2_signal_device_slots_exhausted');
 
   const binding = {
-    deviceId: `qa-${requireUuid(randomUuid)}`,
+    deviceId: `${bindingNamespace}-${requireUuid(randomUuid)}`,
     signalDeviceId,
   };
   // Public routing metadata is persisted before native bootstrap. If network
   // registration fails, retrying must reuse the Signal device ID already bound
   // inside Android Keystore-backed storage.
-  storage.setItem(bindingKey(userId), JSON.stringify(binding));
+  storage.setItem(bindingKey(userId, bindingNamespace), JSON.stringify(binding));
   return binding;
 }
 
@@ -99,17 +108,19 @@ export async function startAndroidE2eeV2QaRuntime({
   clearStoredMessages = clearNativeE2eeV2TextMessageHistory,
   listStoredMessages = listNativeE2eeV2TextMessages,
   storeMessage = storeNativeE2eeV2TextMessage,
+  bindingNamespace = 'qa',
 } = {}) {
   assertConfiguration({ enabled: true, backendUrl, runtimeBackendUrl });
   if (!user?.uid) throw new Error('v2_auth_required');
 
-  const existingBinding = readAndroidE2eeV2QaBinding(user.uid, storage);
+  const existingBinding = readAndroidE2eeV2QaBinding(user.uid, storage, bindingNamespace);
   const devices = existingBinding ? [] : await api.listDevices(user);
   const binding = createAndroidE2eeV2QaBinding({
     userId: user.uid,
     registeredDevices: devices,
     storage,
     randomUuid,
+    bindingNamespace,
   });
   let registration;
   if (existingBinding) {
@@ -123,10 +134,12 @@ export async function startAndroidE2eeV2QaRuntime({
       registration = await registerDevice({
         user,
         ...binding,
-        deviceLabel: 'Pulse Android E2EE QA',
+        deviceLabel: bindingNamespace === 'pilot'
+          ? 'Pulse Android E2EE Pilot'
+          : 'Pulse Android E2EE QA',
         api,
       });
-      storage.setItem(bindingKey(user.uid), JSON.stringify({
+      storage.setItem(bindingKey(user.uid, bindingNamespace), JSON.stringify({
         ...binding,
         identityVersion: registration.identityVersion,
         registered: true,
@@ -180,7 +193,7 @@ export async function startAndroidE2eeV2QaRuntime({
     ...registration,
     api,
     invalidateLocalDevice({ reason = 'security_event' } = {}) {
-      clearAndroidE2eeV2QaBinding(user.uid, storage);
+      clearAndroidE2eeV2QaBinding(user.uid, storage, bindingNamespace);
       bindSocketDevice(null);
       receivedMessages.clear();
       return { invalidated: true, reason };

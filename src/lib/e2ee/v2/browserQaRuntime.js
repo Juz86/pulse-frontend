@@ -38,6 +38,7 @@ export async function startBrowserE2eeV2QaRuntime({
   registerDevice = registerBrowserE2eeV2Device,
   createMessageOrchestrator = createBrowserE2eeV2MessageOrchestrator,
   handleSecurityEvent = handleBrowserE2eeV2SecurityEvent,
+  bindingNamespace = 'qa',
 } = {}) {
   assertConfiguration({
     enabled: true,
@@ -52,13 +53,14 @@ export async function startBrowserE2eeV2QaRuntime({
     throw new Error('v2_browser_provider_invalid');
   }
 
-  const existing = readBrowserE2eeV2QaBinding(user.uid, storage);
+  const existing = readBrowserE2eeV2QaBinding(user.uid, storage, bindingNamespace);
   const registeredDevices = existing ? [] : await api.listDevices(user);
   const binding = createBrowserE2eeV2QaBinding({
     userId: user.uid,
     registeredDevices,
     storage,
     randomUuid,
+    bindingNamespace,
   });
   const initialized = await client.initialize({ uid: user.uid, ...binding });
   let registration;
@@ -79,7 +81,7 @@ export async function startBrowserE2eeV2QaRuntime({
       ...binding,
       identityVersion: registration.identityVersion,
       registered: true,
-    }, storage);
+    }, storage, bindingNamespace);
   }
   bindSocketDevice(registration.deviceId);
 
@@ -157,7 +159,7 @@ export async function startBrowserE2eeV2QaRuntime({
       return handleSecurityEvent({ ...options, client });
     },
     invalidateLocalDevice({ reason = 'security_event' } = {}) {
-      clearBrowserE2eeV2QaBinding(user.uid, storage);
+      clearBrowserE2eeV2QaBinding(user.uid, storage, bindingNamespace);
       bindSocketDevice(null);
       return { invalidated: true, reason };
     },

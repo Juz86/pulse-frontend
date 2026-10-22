@@ -235,6 +235,19 @@ controleert. TURN mag alleen versleutelde media relayeren.
 8. Zet geselecteerde gesprekken om naar `v2_required`.
 9. Toon pas daarna een E2EE-indicator voor die specifieke gesprekken.
 
+De productiepilot gebruikt daarnaast een server-side cohortgate. Een globale
+buildflag alleen is onvoldoende: user en gesprek moeten beide expliciet zijn
+toegestaan en de deployment moet het review-attestation en de beoordeelde
+frontend- en backendcommits vastpinnen. Nieuwe sends hebben een afzonderlijke
+kill-switch; die mag feed-, decryptie-, acknowledgement- en revokeherstel niet
+uitschakelen. Rollback van `v2_required` naar plaintext is verboden.
+
+De client activeert de productieprovider niet uitsluitend op basis van een
+buildflag. Eerst moet de geauthenticeerde pilotstatus bevestigen dat de server
+correct is geconfigureerd en het account tot de cohort behoort. Deze controle
+vindt plaats vóór workerstart, Keystore-bootstrap en deviceregistratie. QA- en
+productiebindings zijn strikt gescheiden.
+
 Uitvoeringsstatus op 21 oktober 2026:
 
 - stappen 1 tot en met 4 zijn gebouwd en op twee fysieke Android-apparaten

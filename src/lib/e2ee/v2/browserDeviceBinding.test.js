@@ -48,4 +48,17 @@ describe('browser E2EE v2 public device binding', () => {
     clearBrowserE2eeV2QaBinding('user-a', target);
     expect(readBrowserE2eeV2QaBinding('user-a', target)).toBeNull();
   });
+
+  test('isolates production pilot metadata from QA metadata', () => {
+    const target = storage();
+    const pilot = createBrowserE2eeV2QaBinding({
+      userId: 'user-a',
+      storage: target,
+      bindingNamespace: 'pilot',
+      randomUuid: () => '123e4567-e89b-42d3-a456-426614174000',
+    });
+    expect(pilot.deviceId).toBe('browser-pilot-123e4567-e89b-42d3-a456-426614174000');
+    expect(readBrowserE2eeV2QaBinding('user-a', target)).toBeNull();
+    expect(readBrowserE2eeV2QaBinding('user-a', target, 'pilot')).toEqual(pilot);
+  });
 });

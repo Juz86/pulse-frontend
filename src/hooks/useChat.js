@@ -661,7 +661,7 @@ export default function useChat({
           })));
           showErrToast(
             result?.revoked
-              ? 'Dit E2EE QA-apparaat is ingetrokken. Herstart de testapp om opnieuw te registreren.'
+              ? 'Dit E2EE-apparaat is ingetrokken. Herstart Pulse om opnieuw te registreren.'
               : 'De E2EE-identiteit is gewijzigd. Herstart de testapp om veilig opnieuw te registreren.'
           );
         },
@@ -701,7 +701,7 @@ export default function useChat({
               }));
           })
           .catch((error) => {
-            console.warn('[Pulse] E2EE QA hervattingssynchronisatie mislukt:', error?.message || error);
+            console.warn('[Pulse] E2EE hervattingssynchronisatie mislukt:', error?.message || error);
           });
       };
       const onVisibilityChange = () => syncActiveE2eeConversation();

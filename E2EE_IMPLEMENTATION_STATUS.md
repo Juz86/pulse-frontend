@@ -581,6 +581,37 @@ De eerstvolgende implementatiefase is:
 1. het onafhankelijke reviewbewijs vastleggen en pas daarna een productiepilot
    overwegen.
 
+De server-side productiepilotgate is op 22 oktober 2026 als ongeactiveerde
+voorbereiding gebouwd. De gate kent uitsluitend `disabled`, expliciet
+bevestigde `qa` en allowlist-gebaseerde `pilot` als modi. Pilotmodus vereist
+een SHA-256 van het review-attestation, volledige frontend- en backendcommitpins
+en niet-lege user- en conversation-allowlists. Alle device-, keybundle-, send-,
+feed-, acknowledgement- en enveloperoutes controleren de cohort server-side.
+Een afzonderlijke send-kill-switch kan nieuwe verzending onmiddellijk stoppen
+zonder herstel en bevestiging van bestaande ciphertext te blokkeren.
+
+De bijbehorende gestructureerde telemetrie bevat alleen een vaste
+operatienaam, statusklasse, HTTP-status, rolloutmodus en grove tijdsbucket. Ze
+accepteert geen identifiers, URL, ciphertext of berichtinhoud. De volledige
+backendtestset telt na deze stap 30 geslaagde suites en 207 geslaagde tests.
+De gate is niet gedeployed of geactiveerd en vervangt het ontbrekende echte
+reviewbewijs niet.
+
+De productieclient controleert vóór iedere native of browserbootstrap de
+geauthenticeerde `/v2/pilot/status`-response. Alleen `enabled: true` plus
+`enrolled: true` maakt de runtime actief; andere accounts initialiseren geen
+worker, native sleutels of devicebinding. QA- en pilotbindings gebruiken
+gescheiden local-storagekeys en opaque device-ID-prefixes. Een gepauzeerde
+pilot kan bestaande ciphertext blijven ontvangen en bevestigen, maar de client
+weigert nieuwe sends lokaal en de backend weigert ze nogmaals autoritatief.
+
+De client blijft standaard uit. Een pilotbuild vereist expliciet
+`REACT_APP_E2EE_V2_PILOT_ENABLED=true`, `REACT_APP_E2EE_MODE=signal` en
+`REACT_APP_E2EE_TRANSPORT=v2`; browserdeelname vereist daarnaast
+`REACT_APP_E2EE_V2_BROWSER_PILOT_ENABLED=true`. QA- en pilotflags tegelijk
+worden fail-closed geweigerd. Na deze stap slagen 29 frontendtestsuites met 282
+tests, lint en de productiebuild.
+
 De reviewoverdracht is inmiddels machineleesbaar voorbereid in
 `security/e2ee/browser-provider-review`: het handoffdocument, attestation-
 schema, invultemplate en `npm run verify:e2ee:security-review` binden het

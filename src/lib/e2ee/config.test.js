@@ -1,5 +1,7 @@
 import {
   assertBrowserE2eeV2QaConfiguration,
+  assertBrowserE2eeV2PilotConfiguration,
+  assertE2eeV2PilotConfiguration,
   assertE2eeV2QaConfiguration,
 } from './config';
 
@@ -46,6 +48,48 @@ describe('E2EE v2 QA configuration', () => {
       browserEnabled: false,
     })).toBe(false);
     expect(assertBrowserE2eeV2QaConfiguration({
+      ...valid,
+      browserEnabled: true,
+    })).toBe(true);
+  });
+});
+
+describe('E2EE v2 production pilot configuration', () => {
+  const valid = {
+    enabled: true,
+    qaEnabled: false,
+    mode: 'signal',
+    transport: 'v2',
+    backendUrl: 'https://api.pulse-messenger.com',
+    runtimeBackendUrl: 'https://api.pulse-messenger.com',
+  };
+
+  test('accepts only the production API with the v2 transport', () => {
+    expect(assertE2eeV2PilotConfiguration(valid)).toBe(true);
+    expect(() => assertE2eeV2PilotConfiguration({
+      ...valid,
+      backendUrl: 'https://e2ee-qa.example.test',
+      runtimeBackendUrl: 'https://e2ee-qa.example.test',
+    })).toThrow('v2_pilot_backend_not_production');
+    expect(() => assertE2eeV2PilotConfiguration({
+      ...valid,
+      transport: 'socket',
+    })).toThrow('v2_pilot_transport_config_invalid');
+  });
+
+  test('rejects simultaneous QA and production pilot modes', () => {
+    expect(() => assertE2eeV2PilotConfiguration({
+      ...valid,
+      qaEnabled: true,
+    })).toThrow('v2_qa_and_pilot_conflict');
+  });
+
+  test('requires the pilot gate for the browser provider', () => {
+    expect(assertBrowserE2eeV2PilotConfiguration({
+      ...valid,
+      browserEnabled: false,
+    })).toBe(false);
+    expect(assertBrowserE2eeV2PilotConfiguration({
       ...valid,
       browserEnabled: true,
     })).toBe(true);

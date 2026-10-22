@@ -101,6 +101,28 @@ describe('E2EE v2 API client', () => {
     }));
   });
 
+  test('validates production pilot enrollment before device bootstrap', async () => {
+    fetchImpl.mockResolvedValue(response({
+      enabled: true,
+      enrolled: true,
+      mode: 'pilot',
+      sendingEnabled: false,
+    }));
+
+    await expect(client.getPilotStatus(USER)).resolves.toEqual({
+      enabled: true,
+      enrolled: true,
+      mode: 'pilot',
+      sendingEnabled: false,
+    });
+    expect(fetchImpl.mock.calls[0][0]).toBe('https://api.pulse.test/v2/pilot/status');
+
+    fetchImpl.mockResolvedValueOnce(response({ enabled: true, enrolled: true }));
+    await expect(client.getPilotStatus(USER)).rejects.toMatchObject({
+      code: 'v2_pilot_status_invalid',
+    });
+  });
+
   test('claims and validates recipient bundles', async () => {
     fetchImpl.mockResolvedValue(response(claim()));
 

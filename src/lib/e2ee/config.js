@@ -3,6 +3,9 @@ export const E2EE_TRANSPORT = process.env.REACT_APP_E2EE_TRANSPORT || 'socket';
 export const E2EE_V2_QA_ENABLED = process.env.REACT_APP_E2EE_V2_QA_ENABLED === 'true';
 export const E2EE_V2_BROWSER_QA_ENABLED =
   process.env.REACT_APP_E2EE_V2_BROWSER_QA_ENABLED === 'true';
+export const E2EE_V2_PILOT_ENABLED = process.env.REACT_APP_E2EE_V2_PILOT_ENABLED === 'true';
+export const E2EE_V2_BROWSER_PILOT_ENABLED =
+  process.env.REACT_APP_E2EE_V2_BROWSER_PILOT_ENABLED === 'true';
 export const E2EE_V2_QA_BACKEND_URL = String(
   process.env.REACT_APP_E2EE_V2_QA_BACKEND_URL || ''
 ).replace(/\/+$/, '');
@@ -50,6 +53,43 @@ export function assertBrowserE2eeV2QaConfiguration(options = {}) {
   const enabled = options.enabled ?? E2EE_V2_QA_ENABLED;
   assertE2eeV2QaConfiguration({ ...options, browserEnabled, enabled });
   return true;
+}
+
+export function assertE2eeV2PilotConfiguration({
+  enabled = E2EE_V2_PILOT_ENABLED,
+  qaEnabled = E2EE_V2_QA_ENABLED,
+  browserEnabled = E2EE_V2_BROWSER_PILOT_ENABLED,
+  mode = E2EE_MODE,
+  transport = E2EE_TRANSPORT,
+  backendUrl,
+  runtimeBackendUrl = backendUrl,
+} = {}) {
+  if (!enabled) return false;
+  if (qaEnabled) throw new Error('v2_qa_and_pilot_conflict');
+  if (browserEnabled && !enabled) throw new Error('v2_browser_pilot_requires_pilot');
+  if (mode !== 'signal' || transport !== 'v2') {
+    throw new Error('v2_pilot_transport_config_invalid');
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(backendUrl);
+  } catch {
+    throw new Error('v2_pilot_backend_url_invalid');
+  }
+  if (parsed.protocol !== 'https:' || parsed.hostname !== PRODUCTION_BACKEND_HOST) {
+    throw new Error('v2_pilot_backend_not_production');
+  }
+  if (String(runtimeBackendUrl || '').replace(/\/+$/, '') !== parsed.toString().replace(/\/+$/, '')) {
+    throw new Error('v2_pilot_backend_mismatch');
+  }
+  return true;
+}
+
+export function assertBrowserE2eeV2PilotConfiguration(options = {}) {
+  const browserEnabled = options.browserEnabled ?? E2EE_V2_BROWSER_PILOT_ENABLED;
+  if (!browserEnabled) return false;
+  return assertE2eeV2PilotConfiguration({ ...options, browserEnabled, enabled: true });
 }
 
 export function getServiceTransportFallbackBannerState({

@@ -454,12 +454,12 @@ export default function useConversations({
 
   async function sendViaV2Qa({ conv, plaintext }) {
     const recipients = getConversationRecipients(conv);
-    if (!e2eeV2QaRuntime?.ready) throw new Error('E2EE QA is nog niet gereed.');
+    if (!e2eeV2QaRuntime?.ready) throw new Error('E2EE is nog niet gereed.');
     if (!['v2_pending', 'v2_required'].includes(conv?.e2eeState)) {
-      throw new Error('Dit testgesprek is nog niet voor E2EE v2 geactiveerd.');
+      throw new Error('Dit gesprek is nog niet voor E2EE geactiveerd.');
     }
     if (conv?.isGroup || recipients.length !== 1) {
-      throw new Error('E2EE QA ondersteunt nu alleen een-op-een-gesprekken.');
+      throw new Error('E2EE ondersteunt nu alleen een-op-een-gesprekken.');
     }
     const result = await e2eeV2QaRuntime.sendText({
       conversationId: conv.id,
@@ -901,7 +901,7 @@ export default function useConversations({
     const socket = getSocket();
     if (editSubmitting || !editingMsg || !text.trim()) return;
     if (isV2QaEnabled) {
-      showErrToast('Berichten bewerken is nog niet beschikbaar in E2EE QA.');
+      showErrToast('Berichten bewerken is nog niet beschikbaar in E2EE.');
       return;
     }
     if (!socket?.connected) {
@@ -962,19 +962,19 @@ export default function useConversations({
     const sendPreparedMessage = (conv) => {
       const recipientUserIds = getConversationRecipients(conv);
       if (isV2QaEnabled && !e2eeV2QaRuntime?.ready) {
-        showErrToast(e2eeV2QaRuntime?.error?.message || 'E2EE QA is nog niet gereed.');
+        showErrToast(e2eeV2QaRuntime?.error?.message || 'E2EE is nog niet gereed.');
         return false;
       }
       if (isV2QaEnabled && (conv.isGroup || recipientUserIds.length !== 1)) {
-        showErrToast('E2EE QA ondersteunt nu alleen een-op-een-gesprekken.');
+        showErrToast('E2EE ondersteunt nu alleen een-op-een-gesprekken.');
         return false;
       }
       if (isV2QaEnabled && !['v2_pending', 'v2_required'].includes(conv.e2eeState)) {
-        showErrToast('Dit testgesprek is nog niet voor E2EE v2 geactiveerd.');
+        showErrToast('Dit gesprek is nog niet voor E2EE geactiveerd.');
         return false;
       }
       if (isV2QaEnabled && (replyContext || mentions.length > 0)) {
-        showErrToast('Antwoorden en vermeldingen zijn nog niet beschikbaar in E2EE QA.');
+        showErrToast('Antwoorden en vermeldingen zijn nog niet beschikbaar in E2EE.');
         return false;
       }
       if (!isV2QaEnabled && !socket?.connected && !shouldUseServiceTransport(conv)) {
@@ -1087,7 +1087,7 @@ export default function useConversations({
 
     if (activeConv.isDraft) {
       if (isV2QaEnabled) {
-        showErrToast('Maak en activeer dit testgesprek eerst op de E2EE QA-backend.');
+        showErrToast('Maak en activeer dit gesprek eerst voor E2EE.');
         return;
       }
       if (!socket?.connected) {
@@ -1133,7 +1133,7 @@ export default function useConversations({
   function sendContactCardToConversation(conv, sharedContact) {
     const socket = getSocket();
     if (isV2QaEnabled) {
-      showErrToast('Contacten delen is nog niet beschikbaar in E2EE QA.');
+      showErrToast('Contacten delen is nog niet beschikbaar in E2EE.');
       return;
     }
     if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !conv || !sharedContact) return;
@@ -1333,7 +1333,7 @@ export default function useConversations({
     const socket = getSocket();
     if (!activeConv) return;
     if (isV2QaEnabled) {
-      showErrToast('Reacties zijn nog niet beschikbaar in E2EE QA.');
+      showErrToast('Reacties zijn nog niet beschikbaar in E2EE.');
       return;
     }
     const targetText = getMessageDisplayText(messages.find((message) => message.id === msgId));
@@ -1396,7 +1396,7 @@ export default function useConversations({
   async function forwardToConv(conv) {
     const socket = getSocket();
     if (isV2QaEnabled) {
-      showErrToast('Doorsturen is nog niet beschikbaar in E2EE QA.');
+      showErrToast('Doorsturen is nog niet beschikbaar in E2EE.');
       return;
     }
     if ((!socket?.connected && !shouldUseServiceTransport(conv)) || !forwardMsg) return;

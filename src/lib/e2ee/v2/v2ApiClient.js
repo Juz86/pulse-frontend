@@ -75,6 +75,24 @@ export function createV2ApiClient({
   }
 
   return Object.freeze({
+    async getPilotStatus(user) {
+      const payload = await request(user, '/v2/pilot/status');
+      if (
+        typeof payload?.enabled !== 'boolean'
+        || typeof payload?.enrolled !== 'boolean'
+        || typeof payload?.sendingEnabled !== 'boolean'
+        || !['qa', 'pilot'].includes(payload?.mode)
+      ) {
+        throw new V2ApiError('v2_pilot_status_invalid');
+      }
+      return {
+        enabled: payload.enabled,
+        enrolled: payload.enrolled,
+        mode: payload.mode,
+        sendingEnabled: payload.sendingEnabled,
+      };
+    },
+
     async listDevices(user) {
       const payload = await request(user, '/v2/devices');
       return Array.isArray(payload?.devices) ? payload.devices : [];

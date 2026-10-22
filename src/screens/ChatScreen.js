@@ -333,7 +333,7 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
   const e2eeV2QaRuntime = useAndroidE2eeV2QaRuntime({ user });
   useEffect(() => {
     if (e2eeV2QaRuntime.status === 'failed') {
-      showErrToast(e2eeV2QaRuntime.error?.message || 'E2EE QA kon niet worden gestart.');
+      showErrToast(e2eeV2QaRuntime.error?.message || 'E2EE kon niet worden gestart.');
     }
   }, [e2eeV2QaRuntime.error, e2eeV2QaRuntime.status, showErrToast]);
   const {

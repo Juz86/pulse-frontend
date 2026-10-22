@@ -40,6 +40,19 @@ describe('Android E2EE v2 QA runtime', () => {
     expect(readAndroidE2eeV2QaBinding('user-a', storage)).toBeNull();
   });
 
+  test('keeps production pilot bindings separate from QA bindings', () => {
+    const storage = createStorage();
+    const pilot = createAndroidE2eeV2QaBinding({
+      userId: 'user-a',
+      storage,
+      bindingNamespace: 'pilot',
+      randomUuid: () => '123e4567-e89b-42d3-a456-426614174000',
+    });
+    expect(pilot.deviceId).toBe('pilot-123e4567-e89b-42d3-a456-426614174000');
+    expect(readAndroidE2eeV2QaBinding('user-a', storage)).toBeNull();
+    expect(readAndroidE2eeV2QaBinding('user-a', storage, 'pilot')).toEqual(pilot);
+  });
+
   test('invalidates the local binding and disconnects its socket audience', async () => {
     const storage = createStorage();
     const bindSocketDevice = jest.fn();

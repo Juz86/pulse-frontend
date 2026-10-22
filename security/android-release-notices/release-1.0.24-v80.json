@@ -29,12 +29,12 @@
     "androidLicenseBundleManifestSha256": "133b6a23f300bcc06453e30b904bebb5cec541a99bcbd0257a0b09621c729f01",
     "androidLicenseBundleFileCount": 10,
     "dataSafetyDraftPath": "ANDROID_DATA_SAFETY_DRAFT.md",
-    "dataSafetyDraftSha256": "40d2cf9948f19676bb9c45766ee5730a1563a55cdf4b87f1fcc83f5cfd570639",
+    "dataSafetyDraftSha256": "9b6599c0b1f01e7855da0205b2b096a13eb2cd3b9b4a6dd25a8e6fab5afa37ab",
     "dataSafetyResponsePlanPath": "security/android-data-safety/release-1.0.24-v80-response-plan.json",
     "dataSafetyResponsePlanSha256": "9938a4d5ad081bc36c733b2182b434df5bb1e8bfab6f31c57a45bed7a2e20935",
     "dataSafetyResponsePlanTypeCount": 15,
     "dataSafetyConsoleComparisonPath": "security/android-data-safety/release-1.0.24-v80-console-comparison.json",
-    "dataSafetyConsoleComparisonSha256": "e83112e5d20ef09dbb9058fc2c2d72f13ad0e3c817835a6f55025d85b12a2663"
+    "dataSafetyConsoleComparisonSha256": "dc4d892cc37f3d6f1f326e5285f37742e982410776771ee9b245475dcb277e13"
   },
   "webRuntime": [
     { "id": "@capacitor/android", "version": "8.3.1", "license": "MIT", "review": "documented" },
@@ -65,7 +65,6 @@
     "independent_security_review_attestation_missing",
     "google_sdk_terms_owner_acceptance_missing",
     "play_console_data_safety_confirmation_missing",
-    "android_notice_text_and_legal_review_missing",
-    "play_console_upload_certificate_comparison_missing"
+    "android_notice_text_and_legal_review_missing"
   ]
 }

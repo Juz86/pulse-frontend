@@ -218,6 +218,18 @@ requireValue(
   dataSafetyConsoleComparison.candidateComparison?.missingDataTypes?.length > 0,
   'De vastgelegde Console-mismatch mist de openstaande gegevenstypen.',
 );
+requireValue(
+  dataSafetyConsoleComparison.uploadCertificate?.matches === true &&
+    dataSafetyConsoleComparison.uploadCertificate?.localSha256 ===
+      manifest.release.localUploadCertificateSha256 &&
+    dataSafetyConsoleComparison.uploadCertificate?.playConsoleSha256 ===
+      manifest.release.localUploadCertificateSha256,
+  'Play Console-uploadcertificaat is niet bewezen gelijk aan het release-AAB.',
+);
+requireValue(
+  !manifest.blockers.includes('play_console_upload_certificate_comparison_missing'),
+  'De uploadcertificaatblocker is ondanks geslaagde vergelijking nog actief.',
+);
 const resolvedInventory = JSON.parse(read(resolvedInventoryPath));
 requireValue(resolvedInventory.schemaVersion === 1, 'Onbekende componentinventaris-schemaVersion.');
 requireValue(

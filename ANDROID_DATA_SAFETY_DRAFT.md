@@ -147,6 +147,10 @@ conceptplan ontbreken. De ruwe Console-export blijft buiten Git. Deze afwijking
 moet inhoudelijk worden opgelost en opnieuw worden geëxporteerd voordat de
 releasepoort kan slagen.
 
+De SHA-256-fingerprint van het Play Console-uploadsleutelcertificaat is op 22
+oktober 2026 vergeleken met het certificaat in het ondertekende release-AAB en
+komt exact overeen.
+
 ## Openbare primaire bronnen
 
 - https://support.google.com/googleplay/android-developer/answer/10787469

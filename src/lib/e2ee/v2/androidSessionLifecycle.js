@@ -11,9 +11,9 @@ import {
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const INVALIDATING_EVENTS = new Set(['identity_changed', 'device_revoked']);
 
-function requireReleasedProvider(status) {
+function requireReleasedProvider(status, errorCode = 'v2_native_provider_not_released') {
   if (status?.providerAvailable !== true || status?.privateMaterialExportable !== false) {
-    throw new Error('v2_native_provider_not_released');
+    throw new Error(errorCode);
   }
 }
 
@@ -43,9 +43,10 @@ export async function handleAndroidE2eeV2SecurityEvent({
   getStatus = getNativeE2eeV2Status,
   invalidateRemoteDevice = invalidateNativeE2eeV2RemoteDevice,
   clearUserState = clearNativeE2eeV2UserState,
+  providerUnavailableCode,
 } = {}) {
   if (!user?.uid) throw new Error('v2_auth_required');
-  requireReleasedProvider(await getStatus());
+  requireReleasedProvider(await getStatus(), providerUnavailableCode);
   const securityEvent = requireSecurityEvent(event);
 
   if (securityEvent.userId === user.uid && securityEvent.deviceId === localDeviceId) {

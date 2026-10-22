@@ -632,6 +632,9 @@ export default function useChat({
         localDeviceId: e2eeV2QaRuntime.localDeviceId,
         localSignalDeviceId: e2eeV2QaRuntime.localSignalDeviceId,
         receiveMessage: e2eeV2QaRuntime.receiveTextMessage,
+        ...(e2eeV2QaRuntime.handleSecurityEvent
+          ? { handleSecurityEvent: e2eeV2QaRuntime.handleSecurityEvent }
+          : {}),
         onMessage: (message) => onMessageReceived({
           ...message,
           id: message.messageId,

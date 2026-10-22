@@ -414,13 +414,14 @@ en
 
 De browserprovider-selectie is gedocumenteerd in
 [E2EE_BROWSER_PROVIDER_GATE.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_PROVIDER_GATE.md).
-De officiele Node-binding en oude JavaScript-forks vallen af. Een actuele
-third-party WASM-wrapper is alleen als mogelijke QA-kandidaat vastgelegd en
-blijft `NO-GO` voor integratie zolang de paritybron niet onafhankelijk is
-beoordeeld. Een tijdelijke bronprobe tegen dezelfde libsignal `0.105.1` als
-Android bouwde reproduceerbaar in dezelfde omgeving en alle 51 headless
-Chromium-tests slaagden. Er is geen browserdependency geinstalleerd en de
-browser blijft fail-closed voor `v2_required`. Zie
+De officiele Node-binding en oude JavaScript-forks vallen af. De actuele
+third-party WASM-wrapper is na de reproduceerbare parityprobe uitsluitend als
+gehashte, vendored QA-runtime opgenomen. Dit gebeurt onder de expliciete
+aanname dat de externe review voor deze bouwfase is goedgekeurd; vóór productie
+blijft een controleerbaar reviewrapport vereist. De bronprobe tegen dezelfde
+libsignal `0.105.1` als Android bouwde reproduceerbaar en alle 51 headless
+Chromium-tests slaagden. Er is geen signal-WASM npm-dependency geinstalleerd en
+de browser blijft fail-closed voor `v2_required`. Zie
 [E2EE_BROWSER_PROVIDER_PARITY_PROBE.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_PROVIDER_PARITY_PROBE.md).
 De exacte paritypatch, volledige lockfile, provenance en reconstructiestappen
 zijn als review-only bundle vastgelegd in
@@ -428,17 +429,138 @@ zijn als review-only bundle vastgelegd in
 Een verse `--locked`-reconstructie slaagt. Het browseropslag-, CSP- en
 panic-herstelontwerp staat in
 [E2EE_BROWSER_SECURITY_DESIGN.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_SECURITY_DESIGN.md).
-`npm run verify:e2ee:browser-review` bewaakt de reviewhashes, exacte
-libsignal-pin en afwezigheid van een browserprovider in de runtime.
+`npm run verify:e2ee:browser-review` bewaakt de reviewinputs en exacte
+libsignal-pin. `npm run verify:e2ee:browser-runtime` bewaakt de vendored
+QA-artifacthashes en `npm run test:e2ee:browser-worker` bewijst in echt Chromium
+dat twee moduleworkers, WASM en een niet-exporteerbare IndexedDB-wrapping key
+starten. Dezelfde proef genereert per device identity-, signed-prekey-, Kyber-
+en one-time-prekeyrecords, wisselt een echt PQXDH-prekeybericht uit, controleert
+een idempotente encryptieretry, hydrateert beide ratchets na volledige
+workerherstart en wisselt daarna een normaal Signal-ratchetbericht terug uit.
+Sessierecords, remote-devicebindings, operationele ciphertext- en
+plaintextresultaten en verbruikte one-time-prekeys worden daarbij in dezelfde
+IndexedDB-transactie als de operation-ID vastgelegd. De resultaten zelf staan
+uitsluitend als AES-GCM-versleutelde records in IndexedDB.
+
+De browser send/receive-adapter bewaart vóór iedere netwerkverzending het
+volledige netwerkpakket met uitsluitend recipient-ciphertexts in de
+AES-GCM-versleutelde outbox. Een netwerkfout laat dit record staan; een retry
+verzendt exact hetzelfde pakket en verwijdert het pas na een succesvolle
+backendrespons. Ontvangen plaintext wordt na de transactionele decryptie in de
+versleutelde lokale geschiedenis gezet voordat de backend-ack wordt verstuurd.
+De Chromium-proef herstelt outbox en geschiedenis na volledige workerherstart.
+De worker weigert outboxobjecten met een `text`- of `plaintext`-veld, ook als
+dat veld genest is.
+
+Browser-device-registratie gebruikt nu dezelfde gevalideerde v2-contracten met
+`platform: web`. Alleen identity-public-key, signed-prekey, Kyber-public-key en
+one-time-public-prekeys verlaten de worker; de persistente browserbinding bevat
+uitsluitend opaque `deviceId`, `signalDeviceId`, identityversie en
+registratiestatus. Remote `identity_changed` en `device_revoked` verwijderen de
+betrokken sessie transactioneel uit WASM en IndexedDB. Een eigen revoke wist de
+volledige device-store. De Chromium-proef bevestigt dat een verwijderde sessie
+na workerherstart niet terugkeert. Normale ratchetenvelopes gebruiken nu de
+contractwaarde `message` in plaats van de interne WASM-benaming `signal`.
+
+De bestaande chatruntime-hook selecteert nu uitsluitend bij de combinatie
+webomgeving plus `REACT_APP_E2EE_V2_BROWSER_QA_ENABLED=true` de geïsoleerde
+browserprovider. De runtime initialiseert de workerbinding, registreert of
+herstelt het browserdevice, hervat de ciphertextoutbox, levert versleutelde
+lokale geschiedenis bij backenduitval en gebruikt dezelfde socket-lifecycle
+voor message-available, revoke en identity-change. Android blijft de native
+provider gebruiken; webbuilds zonder browserflag blijven disabled. Een echte
+browser-QA-webappbuild bundelt de moduleworker en de 759105-byte WASM succesvol,
+verwijdert de legacy storage bridge en schrijft de strikte QA-CSP.
+
+Op 21 oktober 2026 is de browserprovider vervolgens live tegen het afgescheiden
+Firebase-QA-project getest. Omdat Railway tijdens de proef platformbreed nieuwe
+builds had gepauzeerd, draaide exact dezelfde geteste QA-backend tijdelijk
+lokaal met `E2EE_V2_WEB_PROVIDER_ENABLED=true` en een kortlevende QA-
+serviceaccountsleutel. Twee tijdelijke browser-only accounts en een tijdelijk
+`v2_pending`-gesprek doorliepen in headless Chromium:
+
+- registratie van twee nieuwe `platform: web`-devices met afzonderlijke
+  libsignal-identities en publieke prekeybundels;
+- een live PQXDH-bericht van browser A naar browser B, gevolgd door lokale
+  decryptie en backend-acknowledgement;
+- volledige stop van de B-worker, een tweede ciphertextdelivery terwijl B
+  offline was en herstel van dezelfde IndexedDB-identiteit en ratchetsessie in
+  een nieuwe worker;
+- exact eenmaal ophalen, decrypten en bevestigen van het offline bericht,
+  waarna het bericht niet meer in de pending devicefeed stond;
+- rotatie van browser B naar nieuw lokaal identitymateriaal op dezelfde opaque
+  devicebinding, waarbij de backend `identityChanged: true` teruggaf en de
+  identityversie verhoogde;
+- duurzame verwijdering van de oude A-naar-B-sessie en vernieuwing van de
+  in-memory TOFU-cache, waarna A uitsluitend met de nieuw geclaimde prekeybundle
+  een verse PQXDH-sessie kon opbouwen;
+- versleutelde berichten na de identity-change in beide richtingen, inclusief
+  lokale commit en backend-acknowledgement;
+- intrekking van beide tijdelijke browserdevices en lokale providercleanup.
+
+De twee tijdelijke Firebase Auth-accounts, gebruikersdocumenten, device-
+subcollecties, security-events, prekeyclaims, berichten en het tijdelijke
+gesprek zijn na afloop verwijderd. De lokale backend is gestopt en IAM
+bevestigde met `404` dat de kortlevende QA-serviceaccountsleutel niet meer
+bestaat. Bestaande Android-QA-accounts en hun devices zijn niet gewijzigd.
+
+De voor accountverwijdering benodigde collection-group-index voor
+`contacts.uid` is daarna expliciet aan `firestore.indexes.json` toegevoegd en
+uitsluitend naar het afgescheiden QA-project gedeployed. Firestore rapporteerde
+alle vier indexvarianten als `READY`. Een verse proef met twee tijdelijke
+accounts en een gesprek gaf voor beide echte `DELETE /api/account/:uid`-
+aanroepen status `200`; rechtstreekse controles op beide gebruikersdocumenten
+en het gesprek gaven daarna status `404`. Ook voor deze proef zijn de lokale
+backend en kortlevende IAM-sleutel aansluitend verwijderd.
+
+Op 21 oktober 2026 is ook de eerste echte browser-Android-interoperabiliteits-
+proef geslaagd. Een tijdelijk `platform: web`-device stuurde vanuit headless
+Chromium hetzelfde plaintextbericht als twee afzonderlijke libsignal-
+ciphertexts naar de twee actieve Androiddevices van het ontvangende QA-account.
+De backend accepteerde de verzending alleen met de volledige recipientset. Het
+aangesloten fysieke Androidtoestel haalde uitsluitend zijn eigen envelop op,
+toonde de ontsleutelde tekst in de Pulse-chat en bevestigde de delivery. Een
+native Android-antwoord werd vervolgens voor het tijdelijke browserdevice
+versleuteld, door de WASM-worker ontsleuteld, lokaal gecommit en daarna bij de
+backend bevestigd. Beide berichtinhouden bleven buiten de backendpayloads en
+de server-side previews bleven `Versleuteld bericht`.
+
+Na de proef is het tijdelijke browserdevice ingetrokken. De echte
+accountverwijderingsroute gaf status `200`; controles op het tijdelijke
+gebruikersdocument en gesprek gaven daarna beide status `404`. De bestaande
+Androidaccounts en bindings bleven behouden. De lokale QA-backend is gestopt
+en de kortlevende serviceaccountsleutel is verwijderd.
+
+Een aansluitende cross-platform herstelproef op dezelfde datum is eveneens
+geslaagd. De Android-QA-app was volledig geforceerd gestopt toen een nieuw
+browserdevice een per-device versleuteld bericht naar twee actieve
+Androidbindings verstuurde. Na een volledige appstart hydrateerde Android de
+bestaande native identity en sessiestore, ontsleutelde het pending bericht en
+bevestigde het pas na lokale opslag. Daarna werd de browserworker volledig
+beëindigd voordat Android antwoordde. Een verse moduleworker hydrateerde
+vervolgens dezelfde niet-exporteerbare IndexedDB-binding en ratchetsessie,
+ontsleutelde het wachtende normale Signal-bericht en bevestigde het bij de
+backend. Daarmee zijn offline delivery en sessieherstel over een echte
+Android-appstop en volledige browserworkerstop in beide richtingen bewezen.
+Ook dit tijdelijke browseraccount en gesprek zijn via de echte
+accountverwijderingsroute verwijderd; beide Firestore-controles gaven `404` en
+de kortlevende QA-serviceaccountsleutel is verwijderd.
+
+De cross-platform identity-change-proef is op 21 oktober 2026 vervolgens
+geslaagd. Een tijdelijk browserdevice wisselde op dezelfde opaque binding van
+nieuw identitymateriaal; de backend bevestigde `identityChanged: true` en
+verhoogde `identityVersion` van `1` naar `2`. Het fysieke Androidtoestel
+ontsleutelde zowel het bericht voor als het bericht na deze wisseling. Het
+Androidantwoord na de wisseling werd door de vernieuwde browsersessie eveneens
+ontsleuteld en bevestigd. De proef eindigde met intrekking van het tijdelijke
+browserdevice; account en gesprek zijn via de echte verwijderingsroute
+verwijderd en beide Firestore-controles gaven `404`.
 
 De eerstvolgende implementatiefase is:
 
-1. de Android-implementatie onafhankelijk laten beoordelen;
-2. de browser-reviewkandidaat onafhankelijk herbouwen en beoordelen;
-3. het vastgelegde opslag-, CSP- en panic-herstelontwerp in een geisoleerde
-   browser-QA-build implementeren;
-4. die provider met dezelfde Android-browser-vectors valideren;
-5. pas na beide gates een productiepilot overwegen.
+1. de resterende cross-platform revoke- en manipulatievectors uitvoeren;
+2. het onafhankelijke reviewbewijs vastleggen en pas daarna een productiepilot
+   overwegen.
 
 ## Praktisch oordeel
 
@@ -455,6 +577,8 @@ accountdevices is nu ook in beide berichtrichtingen gevalideerd. Een echte
 identity-change op een bestaand device is eveneens fail-closed verwerkt en na
 sessievernieuwing in beide richtingen gevalideerd. De eerste begrensde interne
 Android-only `v2_pending`-pilot is eveneens geslaagd. De onafhankelijke
-securityreview en een versiegelijkwaardige browserprovider zijn nog niet afgerond; een
-productiepilot blijft daarom geblokkeerd. De huidige mock-serviceflow mag nog
-steeds niet als E2EE worden geactiveerd.
+securityreview en de resterende cross-platform revoke- en
+manipulatietestmatrix zijn nog niet afgerond; de live browser-Android-baseline,
+identity-change en stop/herstartherstel in beide richtingen zijn wel bewezen.
+Een productiepilot blijft daarom geblokkeerd. De huidige mock-serviceflow mag
+nog steeds niet als E2EE worden geactiveerd.

@@ -4,18 +4,21 @@ Datum besluit: 20 oktober 2026
 
 ## Uitkomst
 
-Er wordt nu geen browsercryptoprovider aan Pulse toegevoegd. De browser blijft
-fail-closed voor `v2_required`-gesprekken en er komt geen plaintextfallback of
-server-side decryptie.
+De vastgepinde paritybuild is nu uitsluitend als geisoleerde browser-QA-runtime
+toegevoegd, nadat voor deze bouwfase expliciet is aangenomen dat de externe
+securityreview is goedgekeurd. Die aanname is vastgelegd als procesbasis en is
+geen vervanging voor een zelfstandig controleerbaar reviewrapport vóór een
+productierelease. De browser blijft fail-closed voor `v2_required`-gesprekken
+en er komt geen plaintextfallback of server-side decryptie.
 
 De officiele `@signalapp/libsignal-client`-uitgave is geen browserpakket: de
 TypeScriptbinding laadt native libraries voor Node-platformen. Oude pure
 JavaScript-forks worden niet gebruikt omdat ze de actuele PQXDH-, Kyber- en
 Double Ratchet-contracten niet aantoonbaar volledig en veilig implementeren.
 
-`@getmaapp/signal-wasm@0.6.6` is uitsluitend een mogelijke kandidaat voor een
-afgeschermde browser-QA-proef. Het pakket wordt niet geinstalleerd totdat alle
-voorwaarden hieronder zijn vervuld.
+De gepubliceerde `@getmaapp/signal-wasm@0.6.6` wordt niet als npm-dependency
+gebruikt. Alleen de reproduceerbare parityoutput tegen libsignal `0.105.1` is
+met vaste hashes en licentie als afgeschermd QA-artifact opgenomen.
 
 ## Vastgelegde kandidaat
 
@@ -92,17 +95,46 @@ vectors doorstaan:
 
 - `GO` voor onderzoek: broncode en reproduceerbaarheid van de QA-kandidaat
   controleren en de versiepariteit voorbereiden.
-- `NO-GO` voor dependency-installatie in de productiefrontend.
-- `NO-GO` voor een browser-QA-build zolang versiepariteit en onafhankelijke
-  review ontbreken.
+- `GO` voor de geisoleerde opslag-, worker- en WASM-initialisatie in browser-QA.
+- `NO-GO` voor een npm-dependency of activering in de productiefrontend.
 - `NO-GO` voor een productiepilot en `v2_required` zolang alle bovenstaande
   vectors niet op Android en browser zijn geslaagd.
 
 ## Eerstvolgende stap
 
-Laat de vastgelegde reviewkandidaat onafhankelijk herbouwen en beoordelen. Voeg
-de package pas daarna aan een geisoleerde browser-QA-build toe. Het opslag-,
-CSP- en panic-herstelontwerp staat in
+Bootstrap, persistente storehydratie en transactionele encrypt/decrypt binnen
+de worker zijn nu met echte libsignal-WASM en IndexedDB in Chromium bewezen.
+De browserprovider gebruikt nu ook de bestaande v2 send/receive-orchestrator:
+per-target encryptie heeft een stabiele operation-ID en acknowledgements volgen
+pas na de lokale decryptiecommit. De duurzame ciphertextoutbox en versleutelde
+lokale ontvangstgeschiedenis worden in echt Chromium na workerherstart
+hersteld; de outbox wordt pas na succesvolle verzending verwijderd.
+Browserregistratie en de lokale revoke/identity-change-lifecycle zijn eveneens
+geïmplementeerd en unitgetest; persistente remote sessieverwijdering is in
+Chromium bewezen. De browser-QA-runtime is inmiddels conditioneel aan de
+chatinterface gekoppeld en de echte QA-webappbuild bundelt worker, WASM en
+strikte CSP succesvol. Live browserregistratie, een PQXDH-bericht, offline
+delivery na volledige workerherstart, exact-once acknowledgement en revoke zijn
+op 21 oktober 2026 tegen het afgescheiden Firebase-QA-project geslaagd. Een
+echte browser identity-change op dezelfde devicebinding verhoogde daarna de
+server-side identityversie, verwijderde de oude sessie en TOFU-cache en bouwde
+met de nieuw geclaimde prekeybundle gecontroleerd een verse PQXDH-sessie op.
+Berichten na de rotatie slaagden in beide richtingen. Voer nu de
+Android-browser-vectors uit. De eerste live baseline daarvan is op 21 oktober
+2026 geslaagd: browserciphertext werd afzonderlijk naar twee actieve
+Androiddevices gefan-out, een fysiek Androidtoestel ontsleutelde en bevestigde
+zijn eigen envelop en een native Android-antwoord werd door het tijdelijke
+browserdevice ontsleuteld en bevestigd. Het tijdelijke browseraccount, device
+en gesprek zijn daarna verwijderd. Een aansluitende proef bewees pending
+delivery en sessieherstel na een volledige Android-appstop en volledige
+browserworkerstop in beide richtingen; de verse worker hydrateerde dezelfde
+versleutelde IndexedDB-binding en ratchetsessie voordat hij het Androidantwoord
+ontsleutelde en bevestigde. Een daaropvolgende cross-platform identity-change
+verhoogde de browserbinding van identityversie `1` naar `2`; Android
+ontsleutelde daarna met een vernieuwde sessie en het Androidantwoord werd door
+de browser ontsleuteld en bevestigd. Voer vóór een productiepilot nog de
+cross-platform revoke- en manipulatievectors uit.
+Het opslag-, CSP- en panic-herstelontwerp staat in
 [E2EE_BROWSER_SECURITY_DESIGN.md](/home/yushuaabdulkadir/pulse-frontend/E2EE_BROWSER_SECURITY_DESIGN.md).
 
 ## Primaire bronnen

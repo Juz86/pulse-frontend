@@ -235,15 +235,22 @@ controleert. TURN mag alleen versleutelde media relayeren.
 8. Zet geselecteerde gesprekken om naar `v2_required`.
 9. Toon pas daarna een E2EE-indicator voor die specifieke gesprekken.
 
-Uitvoeringsstatus op 20 oktober 2026:
+Uitvoeringsstatus op 21 oktober 2026:
 
 - stappen 1 tot en met 4 zijn gebouwd en op twee fysieke Android-apparaten
   gevalideerd, inclusief offline herstel, multi-device, revoke en
   identity-change;
 - voor stap 5 zijn providerselectie, technische libsignal-versiepariteit, een
-  reproduceerbare reviewbundle en het browserbeveiligingsontwerp gereed, maar
-  Pulse-integratie en interoperabiliteitsvalidatie blijven geblokkeerd door de
-  onafhankelijke review;
+  reproduceerbare reviewbundle, browserbeveiligingsontwerp en geisoleerde
+  browser-QA-integratie gereed. Live browser-Android-verkeer is in beide
+  richtingen geslaagd, inclusief per-device fan-out naar twee actieve
+  Androidbindings en acknowledgement na decryptie. Volledige Android-appstop,
+  browserworkerstop, pending delivery en sessiehydratie zijn daarna eveneens
+  in beide richtingen geslaagd. Cross-platform identity-change van een
+  browserbinding van identityversie `1` naar `2` is ook in beide richtingen met
+  een fysiek Androidtoestel gevalideerd. De resterende cross-platform revoke-
+  en manipulatievectors en het controleerbare onafhankelijke
+  reviewbewijs blijven open;
 - voor stap 6 is een strikt afgescheiden Android-only QA-pilot met een
   `v2_pending`-gesprek geslaagd. Dit is geen productiepilot en verandert de
   browsergate of productievoorwaarden niet;

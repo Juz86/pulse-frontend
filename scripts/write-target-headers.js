@@ -10,6 +10,7 @@ const firebaseMessagingSwPath = path.join(buildDir, 'firebase-messaging-sw.js');
 const robotsPath = path.join(buildDir, 'robots.txt');
 const sitemapPath = path.join(buildDir, 'sitemap.xml');
 const assetManifestPath = path.join(buildDir, 'asset-manifest.json');
+const browserE2eeQaEnabled = process.env.REACT_APP_E2EE_V2_BROWSER_QA_ENABLED === 'true';
 
 const DEFAULT_MARKETING_URL = 'https://pulse-messenger.com';
 const DEFAULT_WEB_APP_URL = 'https://web.pulse-messenger.com';
@@ -88,6 +89,7 @@ const connectSources = Array.from(new Set([
   signalingWsOrigin,
   'https://*.firebaseio.com',
   'wss://*.firebaseio.com',
+  'https://*.firebaseapp.com',
   'https://*.googleapis.com',
   'wss://firestore.googleapis.com',
   'https://firebasestorage.googleapis.com',
@@ -159,11 +161,37 @@ const webappCsp = [
   'upgrade-insecure-requests',
 ].join('; ');
 
+const browserE2eeQaConnectSources = connectSources.filter((source) => (
+  !source.includes('sentry.io')
+));
+const browserE2eeQaCsp = [
+  "default-src 'self'",
+  "script-src 'self' 'wasm-unsafe-eval'",
+  "script-src-attr 'none'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  `img-src ${imageSources.join(' ')}`,
+  `connect-src ${browserE2eeQaConnectSources.join(' ')}`,
+  "frame-ancestors 'none'",
+  "frame-src 'none'",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'self'",
+  "manifest-src 'self'",
+  `media-src ${mediaSources.join(' ')}`,
+  "worker-src 'self'",
+  'upgrade-insecure-requests',
+].join('; ');
+
+const selectedCsp = target === 'landing'
+  ? landingCsp
+  : (browserE2eeQaEnabled ? browserE2eeQaCsp : webappCsp);
+
 const headers = [
   '/*',
   ...commonHeaders.map((header) => `  ${header}`),
   `  Permissions-Policy: ${target === 'landing' ? landingPermissionsPolicy : webappPermissionsPolicy}`,
-  `  Content-Security-Policy: ${target === 'landing' ? landingCsp : webappCsp}`,
+  `  Content-Security-Policy: ${selectedCsp}`,
   '',
   '/',
   '  Cache-Control: no-cache, no-store, must-revalidate',
@@ -284,7 +312,10 @@ function writeTargetMetadata() {
   fs.writeFileSync(indexHtmlPath, nextHtml);
   console.log(`Wrote ${target} metadata to build/index.html.`);
 
-  if (fs.existsSync(legacyBridgePath)) {
+  if (browserE2eeQaEnabled && fs.existsSync(legacyBridgePath)) {
+    fs.rmSync(legacyBridgePath);
+    console.log('Removed legacy storage bridge from browser E2EE QA build.');
+  } else if (fs.existsSync(legacyBridgePath)) {
     const bridgeHtml = fs.readFileSync(legacyBridgePath, 'utf8')
       .replace(/__PULSE_WEBAPP_ORIGIN__/g, APP_URL);
     fs.writeFileSync(legacyBridgePath, bridgeHtml);

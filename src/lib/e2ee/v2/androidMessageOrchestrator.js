@@ -6,9 +6,9 @@ import {
 } from './nativeAndroidProvider';
 import { v2ApiClient } from './v2ApiClient';
 
-function requireReleasedProvider(status) {
+function requireReleasedProvider(status, errorCode = 'v2_native_provider_not_released') {
   if (status?.providerAvailable !== true || status?.privateMaterialExportable !== false) {
-    throw new Error('v2_native_provider_not_released');
+    throw new Error(errorCode);
   }
 }
 
@@ -98,6 +98,7 @@ async function encryptTargets({
   targets,
   existingEnvelopes = new Map(),
   encryptText,
+  operationIdForTarget,
 }) {
   const envelopes = [];
   for (const target of targets) {
@@ -114,6 +115,7 @@ async function encryptTargets({
       continue;
     }
     const encrypted = await encryptText({
+      operationId: operationIdForTarget(target),
       userId: user.uid,
       localSignalDeviceId,
       remoteUserId: target.userId,
@@ -154,10 +156,13 @@ export async function sendAndroidE2eeV2Text({
   listSessionDevices = listNativeE2eeV2SessionDevices,
   encryptText = encryptNativeE2eeV2Text,
   nextUuid = createUuid,
+  providerUnavailableCode,
+  persistCiphertextOutbox,
+  removeCiphertextOutbox,
 } = {}) {
   if (!user?.uid) throw new Error('v2_auth_required');
   if (!plaintext) throw new Error('v2_plaintext_required');
-  requireReleasedProvider(await getStatus());
+  requireReleasedProvider(await getStatus(), providerUnavailableCode);
 
   const [recipientSessions, ownSessions] = await Promise.all([
     listSessionDevices({
@@ -189,21 +194,42 @@ export async function sendAndroidE2eeV2Text({
   }
 
   const messageId = clientMessageId || nextUuid();
+  const operationIdForTarget = (target) => [
+    'send',
+    messageId,
+    target.userId,
+    target.deviceId,
+  ].join(':');
   let envelopes = await encryptTargets({
     user,
     localSignalDeviceId,
     plaintext,
     targets,
     encryptText,
+    operationIdForTarget,
   });
 
-  const send = () => api.sendMessage(user, {
-    conversationId,
-    clientMessageId: messageId,
-    senderDeviceId: localDeviceId,
-    messageType: 'text',
-    recipientEnvelopes: envelopes,
-  }, targets.map((target) => ({ userId: target.userId, deviceId: target.deviceId })));
+  const send = async () => {
+    const message = {
+      conversationId,
+      clientMessageId: messageId,
+      senderDeviceId: localDeviceId,
+      messageType: 'text',
+      recipientEnvelopes: envelopes,
+    };
+    const expectedRecipientDevices = targets.map((target) => ({
+      userId: target.userId,
+      deviceId: target.deviceId,
+    }));
+    await persistCiphertextOutbox?.({
+      clientMessageId: messageId,
+      message,
+      expectedRecipientDevices,
+    });
+    const result = await api.sendMessage(user, message, expectedRecipientDevices);
+    await removeCiphertextOutbox?.({ clientMessageId: messageId });
+    return result;
+  };
 
   try {
     return await send();
@@ -225,6 +251,7 @@ export async function sendAndroidE2eeV2Text({
       targets,
       existingEnvelopes: previous,
       encryptText,
+      operationIdForTarget,
     });
     return send();
   }
@@ -239,15 +266,17 @@ export async function receiveAndroidE2eeV2Text({
   api = v2ApiClient,
   getStatus = getNativeE2eeV2Status,
   decryptText = decryptNativeE2eeV2Text,
+  providerUnavailableCode,
 } = {}) {
   if (!user?.uid) throw new Error('v2_auth_required');
-  requireReleasedProvider(await getStatus());
+  requireReleasedProvider(await getStatus(), providerUnavailableCode);
   const envelope = await api.fetchEnvelope(user, {
     conversationId,
     messageId,
     deviceId: localDeviceId,
   });
   const decrypted = await decryptText({
+    operationId: `receive:${conversationId}:${messageId}`,
     userId: user.uid,
     localSignalDeviceId,
     remoteUserId: envelope.senderUserId,

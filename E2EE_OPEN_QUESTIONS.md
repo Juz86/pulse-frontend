@@ -43,7 +43,8 @@ Besluit op 17 oktober 2026:
 
 Huidige status:
 
-- web heeft nog geen goedgekeurde protocolprovider
+- web heeft een uitsluitend voor QA vastgepinde WASM-runtime; productie blijft
+  geblokkeerd
 - Web Crypto en IndexedDB kunnen opslag beschermen, maar implementeren geen
   Double Ratchet of sessiebeheer
 - de officiele Node-binding en oude JavaScript-forks zijn afgewezen
@@ -55,10 +56,10 @@ Huidige status:
 
 Open vraag:
 
-- bevestigt een onafhankelijke review de vastgelegde paritybuild en het
-  browserbeveiligingsontwerp?
-- kan de reviewkandidaat daarna achter de bestaande fail-closed providergrens
-  worden geintegreerd zonder de strikte QA-CSP te verruimen?
+- kan het aangenomen reviewresultaat vóór productie als zelfstandig
+  controleerbaar rapport worden vastgelegd?
+- slagen volledige storehydratie, transactionele encrypt/decrypt en alle
+  Android-browser-interoperabiliteitsvectors achter de strikte QA-CSP?
 
 Waarom belangrijk:
 

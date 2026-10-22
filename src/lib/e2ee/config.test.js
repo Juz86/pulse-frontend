@@ -1,4 +1,7 @@
-import { assertE2eeV2QaConfiguration } from './config';
+import {
+  assertBrowserE2eeV2QaConfiguration,
+  assertE2eeV2QaConfiguration,
+} from './config';
 
 describe('E2EE v2 QA configuration', () => {
   const valid = {
@@ -30,5 +33,21 @@ describe('E2EE v2 QA configuration', () => {
       ...valid,
       transport: 'socket',
     })).toThrow('v2_qa_transport_config_invalid');
+  });
+
+  test('requires the isolated v2 QA gate for browser crypto', () => {
+    expect(() => assertE2eeV2QaConfiguration({
+      ...valid,
+      enabled: false,
+      browserEnabled: true,
+    })).toThrow('v2_browser_qa_requires_v2_qa');
+    expect(assertBrowserE2eeV2QaConfiguration({
+      ...valid,
+      browserEnabled: false,
+    })).toBe(false);
+    expect(assertBrowserE2eeV2QaConfiguration({
+      ...valid,
+      browserEnabled: true,
+    })).toBe(true);
   });
 });

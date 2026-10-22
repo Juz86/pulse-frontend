@@ -1,6 +1,6 @@
 # Pulse E2EE Browser Security Design
 
-Status: ontwerp voor geisoleerde QA, niet goedgekeurd voor productie
+Status: opslag-, worker-, bootstrap- en hydratatiebasis geimplementeerd voor geisoleerde QA, niet goedgekeurd voor productie
 
 ## Grenzen
 

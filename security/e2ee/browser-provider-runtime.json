@@ -1,0 +1,21 @@
+{
+  "status": "isolated_qa_only",
+  "reviewBasis": "user_confirmed_external_approval_assumption",
+  "upstreamCommit": "0a5e3cb8bf282efb3521d7cdac5476caf3fb1acd",
+  "libsignalCommit": "1738ead8a12ffe539f6309958123dadb16dc3b95",
+  "artifacts": {
+    "javascript": {
+      "path": "src/vendor/e2ee/signal-wasm/signal_wasm.mjs",
+      "sha256": "42910a893b4a6b585622f38dbe901a307a4db954fc7eda36372153eacbc1e623"
+    },
+    "wasm": {
+      "path": "src/vendor/e2ee/signal-wasm/signal_wasm_bg.wasm",
+      "bytes": 759105,
+      "sha256": "ce473ceb9422a801d1bd48e3764f9e52b06f13191523ba1a944e9fa0985160bc"
+    },
+    "license": {
+      "path": "src/vendor/e2ee/signal-wasm/LICENSE",
+      "sha256": "2b87ae924bd39116783dbb5d33770a9fcd4d62a5578204c6304f572bcdc5f091"
+    }
+  }
+}

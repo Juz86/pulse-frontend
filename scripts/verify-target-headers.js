@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const target = process.env.REACT_APP_SITE_TARGET === 'landing' ? 'landing' : 'webapp';
+const browserE2eeQaEnabled = process.env.REACT_APP_E2EE_V2_BROWSER_QA_ENABLED === 'true';
 const headersPath = path.join(process.cwd(), 'build', '_headers');
 const indexHtmlPath = path.join(process.cwd(), 'build', 'index.html');
 
@@ -54,6 +55,10 @@ if (!cspLine) {
 
 const violations = [];
 
+if (browserE2eeQaEnabled && fs.existsSync(path.join(process.cwd(), 'build', 'e2ee-storage-bridge.html'))) {
+  violations.push('Browser E2EE QA build must not contain the legacy storage bridge');
+}
+
 if (target === 'landing') {
   for (const source of webappOnlySources) {
     if (cspLine.includes(source)) {
@@ -77,6 +82,23 @@ if (target === 'landing') {
   }
   if (!permissionsPolicyLine?.includes('microphone=(self)')) {
     violations.push('Webapp Permissions-Policy must allow microphone=(self)');
+  }
+  if (browserE2eeQaEnabled) {
+    if (cspLine.includes("script-src 'self' 'unsafe-inline'")) {
+      violations.push('Browser E2EE QA CSP must not allow unsafe-inline scripts');
+    }
+    if (!cspLine.includes("script-src 'self' 'wasm-unsafe-eval'")) {
+      violations.push('Browser E2EE QA CSP must allow only the scoped WASM evaluator');
+    }
+    if (!cspLine.includes("worker-src 'self'")) {
+      violations.push('Browser E2EE QA CSP must restrict workers to self');
+    }
+    if (cspLine.includes("worker-src 'self' blob:")) {
+      violations.push('Browser E2EE QA CSP must not allow blob workers');
+    }
+    if (cspLine.includes('sentry.io')) {
+      violations.push('Browser E2EE QA CSP must not allow third-party error telemetry');
+    }
   }
 }
 

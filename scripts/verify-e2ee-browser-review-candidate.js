@@ -84,4 +84,4 @@ console.log('E2EE browser review candidate: OK');
 console.log(`libsignal: ${manifest.libsignal.tag} @ ${manifest.libsignal.commit}`);
 console.log(`Cargo.lock SHA-256: ${manifest.inputs.cargoLockSha256}`);
 console.log(`parity patch SHA-256: ${manifest.inputs.parityPatchSha256}`);
-console.log('runtime dependency: absent');
+console.log('npm runtime dependency: absent');

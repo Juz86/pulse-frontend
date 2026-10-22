@@ -87,6 +87,7 @@ describe('Android E2EE v2 message orchestrator', () => {
 
     expect(encryptText).toHaveBeenCalledTimes(2);
     expect(encryptText).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      operationId: `send:${UUIDS[2]}:user-b:device-b1`,
       remoteUserId: 'user-b',
       remoteDeviceId: 'device-b1',
       remoteSignalDeviceId: 2,
@@ -190,6 +191,7 @@ describe('Android E2EE v2 message orchestrator', () => {
     })).resolves.toMatchObject({ plaintext: 'Hallo', senderSignalDeviceId: 2 });
 
     expect(decryptText).toHaveBeenCalledWith({
+      operationId: 'receive:conversation-1:message-1',
       userId: 'user-a',
       localSignalDeviceId: 1,
       remoteUserId: 'user-b',

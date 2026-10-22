@@ -431,6 +431,26 @@ requireValue(
   !manifest.blockers.includes('play_console_upload_certificate_comparison_missing'),
   'De uploadcertificaatblocker is ondanks geslaagde vergelijking nog actief.',
 );
+const dataSafetyConsoleWorksheetPath = manifest.release.dataSafetyConsoleWorksheetPath;
+requireValue(
+  typeof dataSafetyConsoleWorksheetPath === 'string' &&
+    fs.existsSync(path.join(root, dataSafetyConsoleWorksheetPath)),
+  'Play Console Data Safety-invoerblad ontbreekt.',
+);
+requireValue(
+  sha256(dataSafetyConsoleWorksheetPath) ===
+    manifest.release.dataSafetyConsoleWorksheetSha256,
+  'Play Console Data Safety-invoerbladhash wijkt af.',
+);
+const dataSafetyConsoleWorksheet = read(dataSafetyConsoleWorksheetPath);
+for (const dataTypeId of dataSafetyConsoleComparison.candidateComparison.missingDataTypes) {
+  requireText(dataSafetyConsoleWorksheet, `\`${dataTypeId}\``, 'Play Console Data Safety-invoerblad');
+}
+requireText(
+  dataSafetyConsoleWorksheet,
+  'nog niet indienen',
+  'Play Console Data Safety-invoerblad',
+);
 const resolvedInventory = JSON.parse(read(resolvedInventoryPath));
 requireValue(resolvedInventory.schemaVersion === 1, 'Onbekende componentinventaris-schemaVersion.');
 requireValue(

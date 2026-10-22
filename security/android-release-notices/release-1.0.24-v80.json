@@ -42,7 +42,9 @@
     "dataSafetyResponsePlanSha256": "a9f89af422b1f959c4d12edb872155367db1495800b780320744ceb7734c54d9",
     "dataSafetyResponsePlanTypeCount": 14,
     "dataSafetyConsoleComparisonPath": "security/android-data-safety/release-1.0.24-v80-console-comparison.json",
-    "dataSafetyConsoleComparisonSha256": "b11c7ded8d1015d96beaaf531f72033ffd7b3fa68cc8b502530d5d05cedcd80e"
+    "dataSafetyConsoleComparisonSha256": "b11c7ded8d1015d96beaaf531f72033ffd7b3fa68cc8b502530d5d05cedcd80e",
+    "dataSafetyConsoleWorksheetPath": "PLAY_CONSOLE_DATA_SAFETY_UPDATE_V80.md",
+    "dataSafetyConsoleWorksheetSha256": "9660edd63c4a1103894e44bb662612a5eb706e8b72e685636cbdb5c16e2902e1"
   },
   "webRuntime": [
     { "id": "@capacitor/android", "version": "8.3.1", "license": "MIT", "review": "documented" },

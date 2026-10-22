@@ -30,6 +30,10 @@ function sha256(relativePath) {
     .digest('hex');
 }
 
+function sha256Buffer(value) {
+  return crypto.createHash('sha256').update(value).digest('hex');
+}
+
 function requireText(text, expected, label) {
   requireValue(text.includes(expected), `${label} ontbreekt: ${expected}`);
 }
@@ -179,6 +183,32 @@ if (aabExists) {
 
 if (releaseMode) {
   requireValue(aabExists, 'Release-AAB ontbreekt.');
+  const aabNoticePrefix =
+    'base/assets/public/legal/third-party/webrtc-sdk-android-144.7559.15/';
+  let bundledWebrtcLicense;
+  let bundledWebrtcNotices;
+  try {
+    bundledWebrtcLicense = execFileSync(
+      'unzip',
+      ['-p', path.join(root, aabPath), `${aabNoticePrefix}LICENSE-MIT.txt`],
+      { encoding: null },
+    );
+    bundledWebrtcNotices = execFileSync(
+      'unzip',
+      ['-p', path.join(root, aabPath), `${aabNoticePrefix}WEBRTC-NOTICES.md`],
+      { encoding: null },
+    );
+  } catch {
+    fail('WebRTC-licentie- of noticebestand ontbreekt in de release-AAB.');
+  }
+  requireValue(
+    sha256Buffer(bundledWebrtcLicense) === manifest.release.webrtcWrapperLicenseSha256,
+    'WebRTC-wrapperlicentie in de release-AAB wijkt af.',
+  );
+  requireValue(
+    sha256Buffer(bundledWebrtcNotices) === manifest.release.webrtcNoticesSha256,
+    'WebRTC-noticebestand in de release-AAB wijkt af.',
+  );
   const head = execFileSync('git', ['rev-parse', 'HEAD'], {
     cwd: root,
     encoding: 'utf8',

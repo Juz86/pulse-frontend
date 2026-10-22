@@ -33,7 +33,8 @@ gelden voor libwebrtc en de erin opgenomen componenten.
 Pulse levert daarom zowel de MIT-wrappertekst als de volledige, ongewijzigde
 `Licenses/WEBRTC.md` van deze tag als versiegebonden publieke app-assets. De
 releaseverificatie bewaakt beide hashes en het aantal componentsecties. Een
-nieuwe AAB moet nog aantonen dat deze assets ook in de definitieve binary zitten.
+nieuwe AAB vanaf commit `63f4c45a313468c99eab91572d547e8563d0b924`
+bevat beide assets met exact de vastgelegde hashes.
 
 Primaire bronnen:
 
@@ -84,8 +85,6 @@ Technisch voltooid:
 
 Nog vereist:
 
-- nieuwe release-AAB bouwen en controleren dat de versiegebonden WebRTC-assets
-  in de definitieve binary zitten;
 - volledige Android noticecatalogus op leesbaarheid en volledigheid beoordelen;
 - formele aanvaarding van de Google SDK- en servicevoorwaarden vastleggen;
 - Play Console Data Safety-invoer tegen het daadwerkelijke runtimegebruik

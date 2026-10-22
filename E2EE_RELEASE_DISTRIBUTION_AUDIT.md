@@ -7,7 +7,7 @@ resterende licentiecontrole.
 
 ## Buildsubject
 
-- frontendcommit: `f18561af91bd76ec1c1d643d833bc19fae93f65c`;
+- frontendcommit: `63f4c45a313468c99eab91572d547e8563d0b924`;
 - package: `com.pulsemessenger.chat`;
 - versie: `1.0.24`;
 - versionCode: `80`;
@@ -30,16 +30,16 @@ De taak bouwde de productie-webapp opnieuw, controleerde de productie-API,
 draaide Android Lint Vital, valideerde signing en eindigde met
 `BUILD SUCCESSFUL`.
 
-Een volledige rebuild vanaf de publieke frontendcommit
-`f18561af91bd76ec1c1d643d833bc19fae93f65c` leverde opnieuw exact dezelfde
-AAB-grootte en SHA-256 op als de eerdere meetbuild.
+Een releasebuild vanaf de publieke frontendcommit
+`63f4c45a313468c99eab91572d547e8563d0b924` leverde de hieronder vastgelegde
+AAB op, inclusief de versiegebonden WebRTC-licentie- en notice-assets.
 
 ## Bundlemeting
 
 - bestand: `android/app/build/outputs/bundle/release/app-release.aab`;
-- AAB-grootte: `136405181` bytes (`130.1 MiB`);
+- AAB-grootte: `136471321` bytes (`130.1 MiB`);
 - AAB SHA-256:
-  `b67c94ed67c91460ecdcfd4393620b154f6aea529866c0ccaf1776998208ca23`;
+  `8ca7c8fbf9ea53ba47d7b5b81897b4241f8d1cd3428258915655a38c3f0fba0b`;
 - ondertekening: aanwezig; `jarsigner -verify` meldt `jar verified`, maar de
   strikte controle eindigt met exitcode `4`;
 - certificaatvervaldatum: `2051-04-22`;
@@ -47,8 +47,8 @@ AAB-grootte en SHA-256 op als de eerdere meetbuild.
 - ongecomprimeerde Android-assets in de AAB: `4088474` bytes.
 
 Ter vergelijking is de bewaarde `pulse-versionCode-71.aab` `37321570` bytes.
-De huidige meet-AAB is daarmee `99083611` bytes (`94.5 MiB`) groter, oftewel
-`3.65x` de oude bundlegrootte. Omdat tussen versionCode 71 en 80 ook andere
+De huidige meet-AAB is daarmee `99149751` bytes (`94.6 MiB`) groter, oftewel
+`3.66x` de oude bundlegrootte. Omdat tussen versionCode 71 en 80 ook andere
 functionaliteit is toegevoegd, mag dit verschil niet volledig aan E2EE of
 libsignal worden toegeschreven. De native libraries zijn wel de grootste
 zichtbare ongecomprimeerde categorie en verdienen vóór een brede uitrol een
@@ -85,9 +85,9 @@ Bundletool heeft splits berekend voor een aangesloten Samsung `SM-A166B` met:
 
 Resultaat van `bundletool get-size total`:
 
-- minimale download: `45818771` bytes;
-- maximale download: `45818771` bytes;
-- afgerond: `43.7 MiB`.
+- minimale download: `45883781` bytes;
+- maximale download: `45883781` bytes;
+- afgerond: `43.8 MiB`.
 
 Dit is een echte apparaatgerichte schatting, geen universele APK-grootte.
 Andere apparaten, ABI's, talen en toekomstige Play-compressie kunnen een ander
@@ -170,8 +170,9 @@ notice met 30 componentsecties. Het eerdere vermoeden van een licentieconflict
 is daarmee vervallen. Omdat de AAR die teksten niet zelf bevat, zijn de exacte
 MIT-wrappertekst en volledige samengestelde notice als versiegebonden publieke
 app-assets opgenomen. De releaseverificatie bewaakt hun hashes en de 30
-componentsecties. De definitieve rebuild moet nog aantonen dat ze in de nieuwe
-AAB aanwezig zijn.
+componentsecties. De nieuwe AAB bevat beide bestanden onder
+`base/assets/public/legal/third-party/webrtc-sdk-android-144.7559.15/`; hun
+uit de AAB gelezen hashes zijn gelijk aan de vastgelegde bronhashes.
 
 De Google-controle stelde vast dat Play Core ongewijzigde Redistributable Code
 als onderdeel van de API-client laat distribueren. De overige gesloten SDK's

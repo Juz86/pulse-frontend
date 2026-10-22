@@ -60,8 +60,8 @@ inventaris compleet. Dit is nog geen juridisch akkoord en bevat niet vanzelf
 alle teksten of notices uit gebundelde native binaries. Met name de formele
 aanvaarding van de Google SDK/servicevoorwaarden en de in de WebRTC-AAR
 gebundelde libwebrtc- en third-party notices moeten vóór publicatie worden
-afgerond. De WebRTC-teksten zijn inmiddels als versiegebonden publieke
-app-assets opgenomen; een definitieve rebuild en controle blijven nodig. De
+afgerond. De WebRTC-teksten zijn als versiegebonden publieke app-assets
+opgenomen en hun hashes zijn ook vanuit de release-AAB geverifieerd. De
 technische voorwaardencontrole staat in
 `ANDROID_THIRD_PARTY_TERMS_REVIEW.md`; zie ook
 `E2EE_RELEASE_DISTRIBUTION_AUDIT.md`.

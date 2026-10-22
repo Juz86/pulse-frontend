@@ -174,6 +174,81 @@ requireValue(
     manifest.blockers.includes('google_sdk_terms_owner_acceptance_missing'),
   'Google voorwaardenblocker moet zonder bevoegd aanvaardingsbewijs actief blijven.',
 );
+const androidLegalReviewPath = manifest.release.androidLegalReviewPath;
+requireValue(
+  typeof androidLegalReviewPath === 'string' &&
+    fs.existsSync(path.join(root, androidLegalReviewPath)),
+  'Android juridische licentiebeoordeling ontbreekt.',
+);
+requireValue(
+  sha256(androidLegalReviewPath) === manifest.release.androidLegalReviewSha256,
+  'Android juridische licentiebeoordelingshash wijkt af.',
+);
+const androidLegalReview = JSON.parse(read(androidLegalReviewPath));
+requireValue(
+  androidLegalReview.schemaVersion === 1 &&
+    androidLegalReview.status === 'technical_bundle_verified_legal_decision_pending',
+  'Android juridische licentiebeoordeling heeft een ongeldige status.',
+);
+requireValue(
+  androidLegalReview.release?.versionName === manifest.release.versionName &&
+    androidLegalReview.release?.versionCode === manifest.release.versionCode &&
+    androidLegalReview.release?.applicationId === manifest.release.applicationId &&
+    androidLegalReview.release?.aabSha256 === manifest.release.aabSha256 &&
+    androidLegalReview.release?.componentCount === manifest.release.resolvedComponentCount,
+  'Android juridische licentiebeoordeling hoort bij een andere release.',
+);
+const legalReviewScopeIds = new Set(
+  androidLegalReview.reviewScopes?.map((reviewScope) => reviewScope.id),
+);
+for (const reviewScopeId of [
+  'libsignal_agpl_corresponding_source',
+  'google_sdk_and_service_terms',
+  'webrtc_binary_and_third_party_notices',
+  'permissive_android_runtime_licenses',
+]) {
+  requireValue(
+    legalReviewScopeIds.has(reviewScopeId),
+    `Juridisch beoordelingsgebied ontbreekt: ${reviewScopeId}`,
+  );
+}
+for (const [pathKey, hashKey] of [
+  ['bundleManifestPath', 'bundleManifestSha256'],
+  ['resolvedComponentsPath', 'resolvedComponentsSha256'],
+  ['resolvedNoticesPath', 'resolvedNoticesSha256'],
+  ['googleSdkTermsAssessmentPath', 'googleSdkTermsAssessmentSha256'],
+  ['webrtcNoticesPath', 'webrtcNoticesSha256'],
+]) {
+  const reviewInputPath = androidLegalReview.reviewInputs?.[pathKey];
+  requireValue(
+    typeof reviewInputPath === 'string' && fs.existsSync(path.join(root, reviewInputPath)),
+    `Juridische reviewinput ontbreekt: ${pathKey}`,
+  );
+  requireValue(
+    sha256(reviewInputPath) === androidLegalReview.reviewInputs?.[hashKey],
+    `Juridische reviewinputhash wijkt af: ${pathKey}`,
+  );
+}
+requireValue(
+  androidLegalReview.reviewScopes.every((reviewScope) =>
+    reviewScope.requiredDecision?.length > 0 &&
+    reviewScope.decision === null &&
+    reviewScope.notes === null),
+  'Juridische deelbesluiten mogen zonder beoordelaarsbewijs niet zijn ingevuld.',
+);
+requireValue(
+  androidLegalReview.authorizedLegalReview?.reviewedBy === null &&
+    androidLegalReview.authorizedLegalReview?.organization === null &&
+    androidLegalReview.authorizedLegalReview?.authorityBasis === null &&
+    androidLegalReview.authorizedLegalReview?.reviewedAt === null &&
+    androidLegalReview.authorizedLegalReview?.privateEvidenceReference === null &&
+    androidLegalReview.authorizedLegalReview?.decision === null &&
+    androidLegalReview.releaseDecision?.legalReviewApproved === false &&
+    androidLegalReview.releaseDecision?.blocker ===
+      'android_notice_text_and_legal_review_missing' &&
+    manifest.blockers.includes('android_notice_text_and_legal_review_missing'),
+  'Juridische licentiereviewblocker moet zonder bevoegd bewijs actief blijven.',
+);
 const dataSafetyDraftPath = manifest.release.dataSafetyDraftPath;
 requireValue(
   typeof dataSafetyDraftPath === 'string' && fs.existsSync(path.join(root, dataSafetyDraftPath)),
@@ -609,6 +684,7 @@ if (releaseMode) {
     webrtcWrapperLicensePath,
     webrtcNoticesPath,
     androidLicenseBundleManifestPath,
+    androidLegalReviewPath,
     ...androidLicenseBundle.files.map((file) =>
       path.join(androidLicenseBundleDirectory, file.path)),
     dataSafetyDraftPath,

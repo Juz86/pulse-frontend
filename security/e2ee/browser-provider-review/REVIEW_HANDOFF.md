@@ -20,6 +20,12 @@ noteert daarnaast:
 De verificatie faalt wanneer een geattesteerde commit of artifacthash afwijkt
 van `review-subject.json`.
 
+De huidige kandidaat bevat na de oorspronkelijke cryptografische scope ook de
+productiepilot-allowlists, privacyveilige telemetrie, send-kill-switch en
+client-enrollmentgate. De onafhankelijke deltareview moet deze
+autorisatiegrenzen en rollbackpaden expliciet meenemen voordat de productiepilot
+wordt geactiveerd.
+
 Beide repositories moeten vóór overdracht schoon en gepusht zijn. Een dirty
 worktree, een niet-herleidbaar artifact of een hashafwijking blokkeert de
 review.

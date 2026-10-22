@@ -122,6 +122,23 @@ for (const file of androidLicenseBundle.files) {
   requireValue(fs.existsSync(path.join(root, bundledPath)), `Licentiebestand ontbreekt: ${file.path}`);
   requireValue(sha256(bundledPath) === file.sha256, `Licentiebestand-hash wijkt af: ${file.path}`);
 }
+const dataSafetyDraftPath = manifest.release.dataSafetyDraftPath;
+requireValue(
+  typeof dataSafetyDraftPath === 'string' && fs.existsSync(path.join(root, dataSafetyDraftPath)),
+  'Android Data Safety-concept ontbreekt.',
+);
+requireValue(
+  sha256(dataSafetyDraftPath) === manifest.release.dataSafetyDraftSha256,
+  'Android Data Safety-concepthash wijkt af.',
+);
+const dataSafetyDraft = read(dataSafetyDraftPath);
+for (const expectedSection of [
+  '## Concept voor de Play-verklaring',
+  '## Beslispunten vóór indiening',
+  '## Play Console-checklist',
+]) {
+  requireText(dataSafetyDraft, expectedSection, 'Android Data Safety-concept');
+}
 const resolvedInventory = JSON.parse(read(resolvedInventoryPath));
 requireValue(resolvedInventory.schemaVersion === 1, 'Onbekende componentinventaris-schemaVersion.');
 requireValue(
@@ -281,6 +298,7 @@ if (releaseMode) {
     androidLicenseBundleManifestPath,
     ...androidLicenseBundle.files.map((file) =>
       path.join(androidLicenseBundleDirectory, file.path)),
+    dataSafetyDraftPath,
   ]) {
     try {
       execFileSync('git', ['cat-file', '-e', `HEAD:${releaseFile}`], {

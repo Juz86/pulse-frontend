@@ -1,7 +1,7 @@
 # Android Third-Party Terms Review
 
-Status op 22 oktober 2026: technische controle voltooid; formele juridische
-aanvaarding en de definitieve noticeverpakking blijven releasepoorten.
+Status op 22 oktober 2026: technische controle en noticeverpakking voltooid;
+formele juridische aanvaarding en Play Console-controle blijven releasepoorten.
 
 Dit document koppelt de daadwerkelijk opgeloste Android-runtimecomponenten van
 Pulse `1.0.24` (`versionCode 80`) aan hun primaire licentie- en
@@ -86,12 +86,14 @@ Technisch voltooid:
 - Play Integrity privacy- en Data Safety-verplichting vastgelegd.
 - een gehashte publieke Android-licentiebundel gegenereerd met de volledige
   componentencatalogus en alle aangetroffen artifactlicenties.
+- een broncodegebaseerde Data Safety-conceptmatrix en Play Console-checklist
+  vastgelegd in `ANDROID_DATA_SAFETY_DRAFT.md`.
 
 Nog vereist:
 
 - Android licentiebundel juridisch op volledigheid en verenigbaarheid beoordelen;
 - formele aanvaarding van de Google SDK- en servicevoorwaarden vastleggen;
-- Play Console Data Safety-invoer tegen het daadwerkelijke runtimegebruik
-  controleren;
+- Play Console Data Safety-export tegen `ANDROID_DATA_SAFETY_DRAFT.md`, alle
+  actieve artifacts en het daadwerkelijke runtimegebruik controleren;
 - onafhankelijk securityreviewbewijs en Play-uploadcertificaatvergelijking
   afronden.

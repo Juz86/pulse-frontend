@@ -123,6 +123,8 @@ Geslaagd:
   licentie-exemplaren teruggebracht tot hun relevante versiegebonden teksten;
 - alle tien licentiebundelbestanden zijn uit de release-AAB gelezen en hun
   hashes komen overeen met het versiegebonden bundelmanifest;
+- de technische Data Safety-conceptmatrix is aan het releasebewijs gebonden;
+  Play Console-bevestiging blijft een expliciete blocker;
 - `npm run verify:android-release-distribution` faalt bewust zolang de status
   `blocked` is of een blocker resteert.
 

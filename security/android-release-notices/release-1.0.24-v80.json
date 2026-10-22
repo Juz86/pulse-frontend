@@ -25,7 +25,9 @@
     "webrtcNoticesComponentCount": 30,
     "androidLicenseBundleManifestPath": "public/legal/third-party/android-runtime-1.0.24-v80/BUNDLE-MANIFEST.json",
     "androidLicenseBundleManifestSha256": "133b6a23f300bcc06453e30b904bebb5cec541a99bcbd0257a0b09621c729f01",
-    "androidLicenseBundleFileCount": 10
+    "androidLicenseBundleFileCount": 10,
+    "dataSafetyDraftPath": "ANDROID_DATA_SAFETY_DRAFT.md",
+    "dataSafetyDraftSha256": "cfa8d1aa07f4ca8e2dc52fc02cb3db1c69e63ad13e44570accd3f0079e8120fa"
   },
   "webRuntime": [
     { "id": "@capacitor/android", "version": "8.3.1", "license": "MIT", "review": "documented" },
@@ -55,6 +57,7 @@
   "blockers": [
     "independent_security_review_attestation_missing",
     "google_sdk_terms_owner_acceptance_missing",
+    "play_console_data_safety_confirmation_missing",
     "android_notice_text_and_legal_review_missing",
     "play_console_upload_certificate_comparison_missing"
   ]

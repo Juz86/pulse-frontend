@@ -126,6 +126,17 @@ met SHA-256
 Het plan blijft geblokkeerd zolang `ownerDecisions` niet met Console- en
 contractbewijs zijn afgehandeld; het is dus bewust nog geen importbestand.
 
+De lokale vergelijking draait zonder de private export aan Git toe te voegen:
+
+```bash
+npm run verify:play-console-release-evidence -- \
+  --csv /pad/naar/play-console-export.csv \
+  --upload-cert-sha256 'SHA-256-UIT-PLAY-CONSOLE'
+```
+
+Met `--validate-template` kan eerst alleen de CSV-structuur tegen het
+versiegebonden antwoordplan worden gecontroleerd.
+
 ## Openbare primaire bronnen
 
 - https://support.google.com/googleplay/android-developer/answer/10787469

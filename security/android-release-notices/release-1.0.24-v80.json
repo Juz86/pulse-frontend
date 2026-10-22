@@ -5,6 +5,7 @@
     "versionName": "1.0.24",
     "versionCode": 80,
     "applicationId": "com.pulsemessenger.chat",
+    "localUploadCertificateSha256": "70:24:15:2E:B1:99:D7:B3:59:F3:8F:A3:85:07:84:14:32:C2:74:7D:AD:88:DC:F0:35:B3:12:44:43:A8:88:52",
     "sourceCommit": "a8ec4956e28c464ce5b0058cd0bbbe4848e494c9",
     "aabSha256": "650b2b86eee05faf691d2bdf80dcbff489900e87be97d538ba20423e17dba676",
     "playDownloadDevice": "Samsung SM-A166B, SDK 36, arm64-v8a, 450 dpi, nl-NL",
@@ -27,7 +28,7 @@
     "androidLicenseBundleManifestSha256": "133b6a23f300bcc06453e30b904bebb5cec541a99bcbd0257a0b09621c729f01",
     "androidLicenseBundleFileCount": 10,
     "dataSafetyDraftPath": "ANDROID_DATA_SAFETY_DRAFT.md",
-    "dataSafetyDraftSha256": "3cdf49e1aeb431a5e816b7cf72860592b7ef688a84853802c9dd4fd17eef3a32",
+    "dataSafetyDraftSha256": "1a7ace8eb137b60aa720f4c6db1784320aafbd56d39f201f91c3baf52ca36802",
     "dataSafetyResponsePlanPath": "security/android-data-safety/release-1.0.24-v80-response-plan.json",
     "dataSafetyResponsePlanSha256": "db780565a980b60942445affcbb2891de3388c3f8ee6ffe279a8c503c669654e",
     "dataSafetyResponsePlanTypeCount": 15

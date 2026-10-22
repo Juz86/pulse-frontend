@@ -37,6 +37,8 @@
     "verify:open-source": "node scripts/check-open-source-release.js",
     "verify:android-release-notices": "node scripts/verify-android-release-notices.js",
     "verify:android-release-distribution": "node scripts/verify-android-release-notices.js --release",
+    "verify:play-console-release-evidence": "node scripts/verify-play-console-release-evidence.js",
+    "test:play-console-release-evidence": "node --test scripts/verify-play-console-release-evidence.test.js",
     "generate:android-release-notices": "cd android && GRADLE_USER_HOME=../.gradle-android ./gradlew --no-configuration-cache :app:generateReleaseRuntimeNoticeInventory --console=plain && cd .. && node scripts/generate-android-release-notices.js",
     "package:android-release-licenses": "node scripts/package-android-release-license-bundle.js",
     "verify:e2ee:browser-review": "node scripts/verify-e2ee-browser-review-candidate.js",

@@ -1,9 +1,9 @@
 {
   "status": "awaiting_independent_delta_review",
-  "frozenAt": "2026-10-22",
+  "frozenAt": "2026-10-23",
   "scope": {
-    "frontendCommit": "2904b70ad10fcb49b3967d668bbb4c2f66e3cd9d",
-    "backendCommit": "b930e2b165e7784778efd333ae1d07d23e1b4d58",
+    "frontendCommit": "2f1e7df5238ff44bd54903e6564ed7ebcf7d4e82",
+    "backendCommit": "38665cb986de58717c0d7364bf666e9c29bd5413",
     "upstreamCommit": "0a5e3cb8bf282efb3521d7cdac5476caf3fb1acd",
     "libsignalCommit": "1738ead8a12ffe539f6309958123dadb16dc3b95"
   },

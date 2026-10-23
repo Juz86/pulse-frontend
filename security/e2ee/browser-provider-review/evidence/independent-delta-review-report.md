@@ -2,7 +2,7 @@
 
 Document status: `DRAFT_AWAITING_INDEPENDENT_REVIEWER_COMPLETION`
 
-Prepared on: 2026-10-22
+Prepared on: 2026-10-23
 
 Prepared by: Pulse implementation team
 
@@ -28,8 +28,8 @@ The frozen candidate is defined by
 
 | Component | Frozen value |
 | --- | --- |
-| Frontend | `2904b70ad10fcb49b3967d668bbb4c2f66e3cd9d` |
-| Backend | `b930e2b165e7784778efd333ae1d07d23e1b4d58` |
+| Frontend | `2f1e7df5238ff44bd54903e6564ed7ebcf7d4e82` |
+| Backend | `38665cb986de58717c0d7364bf666e9c29bd5413` |
 | signal-wasm upstream | `0a5e3cb8bf282efb3521d7cdac5476caf3fb1acd` |
 | libsignal | `1738ead8a12ffe539f6309958123dadb16dc3b95` |
 | WASM SHA-256 | `ce473ceb9422a801d1bd48e3764f9e52b06f13191523ba1a944e9fa0985160bc` |
@@ -39,8 +39,8 @@ Previous review basis used for the delta:
 
 | Component | Previous value |
 | --- | --- |
-| Frontend | `b686b7559800c44b736888f6bac9ef88a5411f6b` |
-| Backend | `38c19aad1160492a6a639b14f720a5f95903f48c` |
+| Frontend | `2904b70ad10fcb49b3967d668bbb4c2f66e3cd9d` |
+| Backend | `b930e2b165e7784778efd333ae1d07d23e1b4d58` |
 
 The metadata-only frontend commits after the frozen functional commit are not
 runtime scope. They bind the evidence contract to the functional commits above.
@@ -88,7 +88,11 @@ The frontend delta adds:
   available;
 - validation of the pilot-status response before it reaches runtime state;
 - neutral user-facing E2EE failure text instead of QA-only wording;
-- an exact commit- and artifact-bound review evidence gate.
+- an exact commit- and artifact-bound review evidence gate;
+- a native provider buildgate that permits only debug QA or release pilot
+  builds and rejects every sensitive plugin method otherwise;
+- a pilot-AAB task that binds release assets to `signal`/`v2`, requires the
+  independent review verifier and requires the native-update public key.
 
 Runtime files in scope:
 
@@ -103,6 +107,10 @@ Runtime files in scope:
 - `src/lib/e2ee/v2/pilotEnrollment.js`
 - `src/lib/e2ee/v2/v2ApiClient.js`
 - `src/screens/ChatScreen.js`
+- `android/app/build.gradle`
+- `android/app/src/main/java/com/pulsemessenger/chat/e2ee/v2/PulseE2eeBuildGate.java`
+- `android/app/src/main/java/com/pulsemessenger/chat/e2ee/v2/PulseE2eeV2Plugin.java`
+- `package.json`
 
 Associated tests and E2EE decision/status documents are also in scope.
 
@@ -128,6 +136,8 @@ item and cite evidence.
 | DR-13 | Browser and Android receive/recovery still work while sends are paused. | `REQUIRED` | `REQUIRED` |
 | DR-14 | The production host, mode, transport, and browser gates reject invalid combinations. | `REQUIRED` | `REQUIRED` |
 | DR-15 | Review and artifact hashes remain bound to the frozen candidate. | `REQUIRED` | `REQUIRED` |
+| DR-16 | Native crypto and history methods are unavailable outside debug QA and release pilot builds. | `REQUIRED` | `REQUIRED` |
+| DR-17 | A pilot AAB cannot build without valid review evidence and the native-update public key. | `REQUIRED` | `REQUIRED` |
 
 ## 4. Implementation-Provided Evidence
 

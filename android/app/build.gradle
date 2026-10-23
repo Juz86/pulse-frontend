@@ -7,7 +7,14 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
-def pulseNativeUpdatePublicKey = System.getenv('PULSE_NATIVE_UPDATE_PUBLIC_KEY') ?: ''
+def pulseNativeUpdatePublicKeyFile = new File(
+    rootProject.projectDir.parentFile,
+    'security/native-update/public-key-spki-base64.txt'
+)
+def pulseNativeUpdatePublicKey = System.getenv('PULSE_NATIVE_UPDATE_PUBLIC_KEY')
+    ?: (pulseNativeUpdatePublicKeyFile.exists()
+        ? pulseNativeUpdatePublicKeyFile.getText('UTF-8').trim()
+        : '')
 def pulseE2eeInstrumentedTest = providers.gradleProperty('pulseE2eeInstrumentedTest')
     .map { it.toBoolean() }
     .getOrElse(false)

@@ -23,9 +23,12 @@ Store the output values as follows:
 | Value | Location |
 | --- | --- |
 | `PULSE_NATIVE_UPDATE_SIGNING_PRIVATE_KEY` | Cloudflare Pages **secret** for the `pulse-frontend` production build |
-| `PULSE_NATIVE_UPDATE_PUBLIC_KEY` | secure Android release-build environment variable |
+| `PULSE_NATIVE_UPDATE_PUBLIC_KEY` | `security/native-update/public-key-spki-base64.txt`; an environment variable may override it for an intentional rotation test |
 
 The private value is only for the Pages build; it must never be sent to Android, the browser, GitHub, Railway or chat.
+The public half is deliberately versioned so every Android artifact can be
+traced to the exact update-signing identity it trusts. Rotation metadata and
+the public-key fingerprint live in `security/native-update/key-metadata.json`.
 
 ## Cloudflare Pages build
 
@@ -44,10 +47,10 @@ The packaging script safely skips generation when the signing secret is intentio
 
 ## Android release
 
-Build the next Android release with the public key available only in the build environment:
+Build the next Android release with the versioned public key:
 
 ```bash
-PULSE_NATIVE_UPDATE_PUBLIC_KEY='…public value…' npm run android:build:play
+npm run android:build:play
 ```
 
 This requires a new Google Play release once. After testers install that release, ordinary Pulse web/UI changes can be staged via the signed Pages bundle and take effect after the next cold app start. Native permissions, Capacitor plugins and Android code still require a Play release.

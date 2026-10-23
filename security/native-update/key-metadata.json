@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "ECDSA_P256_SHA256",
+  "publicKeyFormat": "SPKI_DER_BASE64",
+  "publicKeySha256": "d2d35b519dc6f3e1fec85ff9971e652ef1190582f09b00cadd414bc05ce4fae3",
+  "rotatedAt": "2026-10-23",
+  "privateKeyLocation": "cloudflare-pages-secret",
+  "privateKeyPersistedLocally": false
+}

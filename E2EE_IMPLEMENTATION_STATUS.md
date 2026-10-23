@@ -627,6 +627,14 @@ onafhankelijke review-attestation en vereist een
 omdat `review-attestation.json` nog ontbreekt; er is dus geen nieuwe pilot-AAB
 gemaakt.
 
+Het native-update-sleutelpaar is op 23 oktober 2026 geroteerd. De private
+P-256-sleutel is rechtstreeks als afgeschermd Cloudflare Pages-secret
+opgeslagen en is niet naar schijf of Git geschreven. Alleen de publieke
+SPKI-sleutel en zijn SHA-256-vingerafdruk zijn versiegebonden vastgelegd onder
+`security/native-update`. Android gebruikt deze publieke sleutel standaard;
+een expliciete buildvariabele blijft uitsluitend als rotatie-override
+beschikbaar.
+
 De reviewoverdracht is inmiddels machineleesbaar voorbereid in
 `security/e2ee/browser-provider-review`: het handoffdocument, attestation-
 schema, invultemplate en `npm run verify:e2ee:security-review` binden het

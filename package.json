@@ -59,6 +59,7 @@
     "android:version:bump": "node scripts/bumpAndroidVersionCode.js",
     "android:build": "npm run build:webapp:android && npm run android:sync && cd android && GRADLE_USER_HOME=../.gradle-android ./gradlew assembleDebug",
     "android:build:e2ee-qa": "node scripts/build-e2ee-qa-android.js",
+    "android:build:e2ee-pilot": "cd android && GRADLE_USER_HOME=../.gradle-android ./gradlew bundleRelease -PpulseE2eePilot=true --console=plain",
     "android:build:play": "npm run android:version:bump && cd android && GRADLE_USER_HOME=../.gradle-android ./gradlew bundleRelease",
     "android:install": "bash -lc 'export ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}; export PATH=$ANDROID_SDK_ROOT/platform-tools:$PATH; adb install -r android/app/build/outputs/apk/debug/app-debug.apk'",
     "android:run:emulator": "npm run android:build && npm run android:install",

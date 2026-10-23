@@ -27,18 +27,32 @@ public final class PulseE2eeV2Plugin extends Plugin {
     @PluginMethod
     public void getStatus(PluginCall call) {
         try {
+            boolean providerAvailable = isProviderAvailable();
+            if (!providerAvailable) {
+                JSObject response = new JSObject();
+                response.put("ok", true);
+                response.put("protocol", "pulse_e2ee_v2");
+                response.put("protocolVersion", 2);
+                response.put("providerAvailable", false);
+                response.put("provider", "libsignal_android_disabled");
+                response.put("secureStorage", false);
+                response.put("hardwareBackedKeystore", false);
+                response.put("strongBoxBacked", false);
+                response.put("privateMaterialExportable", false);
+                call.resolve(response);
+                return;
+            }
             PulseE2eeSecureStore.Capabilities capabilities = secureStore.capabilities();
             JSObject response = new JSObject();
             response.put("ok", true);
             response.put("protocol", "pulse_e2ee_v2");
             response.put("protocolVersion", 2);
-            boolean qaProviderAvailable = BuildConfig.DEBUG && BuildConfig.PULSE_E2EE_QA_ENABLED;
-            response.put("providerAvailable", qaProviderAvailable);
+            response.put("providerAvailable", true);
             response.put(
                 "provider",
-                qaProviderAvailable
+                BuildConfig.DEBUG
                     ? "libsignal_android_internal_qa"
-                    : "libsignal_android_pending_device_validation"
+                    : "libsignal_android_production_pilot"
             );
             response.put("secureStorage", capabilities.secureStorage);
             response.put("hardwareBackedKeystore", capabilities.hardwareBacked);
@@ -53,6 +67,7 @@ public final class PulseE2eeV2Plugin extends Plugin {
     @PluginMethod
     public void bootstrapDevice(PluginCall call) {
         try {
+            requireProviderAvailable();
             String userId = requiredString(call, "userId", "e2ee_user_id_required");
             int signalDeviceId = requiredInt(
                 call.getInt("signalDeviceId"),
@@ -76,6 +91,7 @@ public final class PulseE2eeV2Plugin extends Plugin {
     @PluginMethod
     public void encryptText(PluginCall call) {
         try {
+            requireProviderAvailable();
             String userId = requiredString(call, "userId", "e2ee_user_id_required");
             int localSignalDeviceId = requiredInt(
                 call.getInt("localSignalDeviceId"),
@@ -122,6 +138,7 @@ public final class PulseE2eeV2Plugin extends Plugin {
     @PluginMethod
     public void decryptText(PluginCall call) {
         try {
+            requireProviderAvailable();
             String userId = requiredString(call, "userId", "e2ee_user_id_required");
             int localSignalDeviceId = requiredInt(
                 call.getInt("localSignalDeviceId"),
@@ -170,6 +187,7 @@ public final class PulseE2eeV2Plugin extends Plugin {
     @PluginMethod
     public void listSessionDevices(PluginCall call) {
         try {
+            requireProviderAvailable();
             String userId = requiredString(call, "userId", "e2ee_user_id_required");
             int localSignalDeviceId = requiredInt(
                 call.getInt("localSignalDeviceId"),
@@ -202,6 +220,7 @@ public final class PulseE2eeV2Plugin extends Plugin {
     @PluginMethod
     public void invalidateRemoteDevice(PluginCall call) {
         try {
+            requireProviderAvailable();
             provider.invalidateRemoteDevice(
                 requiredString(call, "userId", "e2ee_user_id_required"),
                 requiredInt(call.getInt("localSignalDeviceId"), "e2ee_signal_device_id_required"),
@@ -228,6 +247,7 @@ public final class PulseE2eeV2Plugin extends Plugin {
     @PluginMethod
     public void storeTextMessage(PluginCall call) {
         try {
+            requireProviderAvailable();
             String userId = requiredString(call, "userId", "e2ee_user_id_required");
             PulseE2eeMessageHistory.TextMessage message = new PulseE2eeMessageHistory.TextMessage(
                 requiredString(call, "conversationId", "e2ee_conversation_id_required"),
@@ -252,6 +272,7 @@ public final class PulseE2eeV2Plugin extends Plugin {
     @PluginMethod
     public void listTextMessages(PluginCall call) {
         try {
+            requireProviderAvailable();
             String userId = requiredString(call, "userId", "e2ee_user_id_required");
             String conversationId = requiredString(
                 call,
@@ -289,6 +310,7 @@ public final class PulseE2eeV2Plugin extends Plugin {
     @PluginMethod
     public void clearTextMessageHistory(PluginCall call) {
         try {
+            requireProviderAvailable();
             int removedMessages = messageHistory.clear(
                 requiredString(call, "userId", "e2ee_user_id_required"),
                 requiredString(call, "conversationId", "e2ee_conversation_id_required")
@@ -310,6 +332,7 @@ public final class PulseE2eeV2Plugin extends Plugin {
             return;
         }
         try {
+            requireProviderAvailable();
             int removedRecords = secureStore.clearUser(userId);
             JSObject response = new JSObject();
             response.put("ok", true);
@@ -317,6 +340,20 @@ public final class PulseE2eeV2Plugin extends Plugin {
             call.resolve(response);
         } catch (Exception error) {
             call.reject("e2ee_secure_storage_clear_failed", safeMessage(error), error);
+        }
+    }
+
+    private static boolean isProviderAvailable() {
+        return PulseE2eeBuildGate.isProviderAvailable(
+            BuildConfig.DEBUG,
+            BuildConfig.PULSE_E2EE_QA_ENABLED,
+            BuildConfig.PULSE_E2EE_PILOT_ENABLED
+        );
+    }
+
+    private static void requireProviderAvailable() {
+        if (!isProviderAvailable()) {
+            throw new IllegalStateException("e2ee_provider_disabled");
         }
     }
 

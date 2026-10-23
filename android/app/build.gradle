@@ -14,8 +14,14 @@ def pulseE2eeInstrumentedTest = providers.gradleProperty('pulseE2eeInstrumentedT
 def pulseE2eeQa = providers.gradleProperty('pulseE2eeQa')
     .map { it.toBoolean() }
     .getOrElse(false)
+def pulseE2eePilot = providers.gradleProperty('pulseE2eePilot')
+    .map { it.toBoolean() }
+    .getOrElse(false)
 def pulseE2eeQaInstance = providers.gradleProperty('pulseE2eeQaInstance')
     .getOrElse('a')
+if (pulseE2eeQa && pulseE2eePilot) {
+    throw new GradleException('E2EE QA en de productiepilot mogen niet tegelijk actief zijn.')
+}
 if (!(pulseE2eeQaInstance ==~ /[a-z0-9]+/)) {
     throw new GradleException('pulseE2eeQaInstance mag alleen kleine letters en cijfers bevatten.')
 }
@@ -51,6 +57,7 @@ android {
         buildConfigField "String", "PULSE_NATIVE_UPDATE_PUBLIC_KEY", "\"${pulseNativeUpdatePublicKey.replace('\\', '\\\\').replace('"', '\\"')}\""
         buildConfigField "String", "PULSE_NATIVE_UPDATE_MANIFEST_URL", "\"https://web.pulse-messenger.com/native-updates/latest.json\""
         buildConfigField "boolean", "PULSE_E2EE_QA_ENABLED", pulseE2eeQa.toString()
+        buildConfigField "boolean", "PULSE_E2EE_PILOT_ENABLED", pulseE2eePilot.toString()
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
@@ -135,7 +142,23 @@ def buildReleaseWebAssets = tasks.register('buildReleaseWebAssets', Exec) {
     environment 'REACT_APP_BACKEND_URL', 'https://api.pulse-messenger.com'
     environment 'REACT_APP_API_URL', 'https://api.pulse-messenger.com'
     environment 'REACT_APP_NATIVE_API_URL', ''
+    if (pulseE2eePilot) {
+        environment 'REACT_APP_E2EE_MODE', 'signal'
+        environment 'REACT_APP_E2EE_TRANSPORT', 'v2'
+        environment 'REACT_APP_E2EE_V2_PILOT_ENABLED', 'true'
+        environment 'REACT_APP_E2EE_V2_BROWSER_PILOT_ENABLED', 'false'
+    }
     commandLine 'npm', 'run', 'build:webapp'
+}
+
+def verifyE2eePilotReleaseGate = tasks.register('verifyE2eePilotReleaseGate', Exec) {
+    onlyIf { pulseE2eePilot }
+    workingDir pulseProjectDir
+    commandLine 'npm', 'run', 'verify:e2ee:security-review'
+}
+
+buildReleaseWebAssets.configure {
+    dependsOn verifyE2eePilotReleaseGate
 }
 
 def copyReleaseWebAssets = tasks.register('copyReleaseWebAssets', Exec) {
@@ -186,6 +209,13 @@ def verifyReleaseWebAssets = tasks.register('verifyReleaseWebAssets') {
 
 tasks.matching { it.name == 'preReleaseBuild' }.configureEach {
     dependsOn verifyReleaseWebAssets
+    doFirst {
+        if (pulseE2eePilot && pulseNativeUpdatePublicKey.trim().isEmpty()) {
+            throw new GradleException(
+                'E2EE pilot-release geblokkeerd: PULSE_NATIVE_UPDATE_PUBLIC_KEY ontbreekt.'
+            )
+        }
+    }
 }
 
 repositories {

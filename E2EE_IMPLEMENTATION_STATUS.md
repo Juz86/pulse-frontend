@@ -594,8 +594,13 @@ De bijbehorende gestructureerde telemetrie bevat alleen een vaste
 operatienaam, statusklasse, HTTP-status, rolloutmodus en grove tijdsbucket. Ze
 accepteert geen identifiers, URL, ciphertext of berichtinhoud. De volledige
 backendtestset telt na deze stap 30 geslaagde suites en 207 geslaagde tests.
-De gate is niet gedeployed of geactiveerd en vervangt het ontbrekende echte
-reviewbewijs niet.
+De gate is op 23 oktober 2026 als backendcommit
+`38665cb986de58717c0d7364bf666e9c29bd5413` naar de Railway-productieservice
+gedeployed. De productieconfiguratie staat expliciet fail-closed op
+`E2EE_V2_ENABLED=false`, rolloutmodus `disabled`, uitgeschakelde pilot-sends en
+een uitgeschakelde webprovider. `/readyz` rapporteert daarom bewust
+`capabilities.e2eeV2: false`. De deployment activeert geen E2EE en vervangt het
+ontbrekende echte reviewbewijs niet.
 
 De productieclient controleert vóór iedere native of browserbootstrap de
 geauthenticeerde `/v2/pilot/status`-response. Alleen `enabled: true` plus
@@ -611,6 +616,16 @@ De client blijft standaard uit. Een pilotbuild vereist expliciet
 `REACT_APP_E2EE_V2_BROWSER_PILOT_ENABLED=true`. QA- en pilotflags tegelijk
 worden fail-closed geweigerd. Na deze stap slagen 29 frontendtestsuites met 282
 tests, lint en de productiebuild.
+
+De Android-provider heeft daarnaast een afzonderlijke native buildgate. Alleen
+een debugbuild met `pulseE2eeQa=true` of een releasebuild met
+`pulseE2eePilot=true` stelt de provider beschikbaar; alle crypto- en lokale
+geschiedenismethoden weigeren andere builds. `npm run android:build:e2ee-pilot`
+bouwt de release-assets met de productiepilotflags, maar controleert eerst het
+onafhankelijke review-attestation en vereist een
+`PULSE_NATIVE_UPDATE_PUBLIC_KEY`. De poort is getest en stopt momenteel correct
+omdat `review-attestation.json` nog ontbreekt; er is dus geen nieuwe pilot-AAB
+gemaakt.
 
 De reviewoverdracht is inmiddels machineleesbaar voorbereid in
 `security/e2ee/browser-provider-review`: het handoffdocument, attestation-

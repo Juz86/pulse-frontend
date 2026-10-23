@@ -38,6 +38,11 @@ Use this production build command:
 npm ci && npm run build:webapp:native
 ```
 
+The repository's `build:ci` script uses this same signed-update path. Preview
+deployments without the signing secret skip only the native update package;
+production must publish and verify a signed manifest before an Android release
+is built against a rotated public key.
+
 Cloudflare Pages supplies `CF_PAGES_COMMIT_SHA`, which becomes the immutable update version. The build publishes:
 
 - `/native-updates/latest.json` — never cached;

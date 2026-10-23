@@ -28,7 +28,7 @@
     "native-update:package": "node scripts/package-native-update.js",
     "build:webapp:android": "REACT_APP_BACKEND_URL=https://api.pulse-messenger.com REACT_APP_API_URL=https://api.pulse-messenger.com REACT_APP_NATIVE_API_URL= npm run build:webapp",
     "build:webapp:native": "npm run build:webapp:android && npm run native-update:package",
-    "build:ci": "CI=true npm run build:webapp",
+    "build:ci": "CI=true npm run build:webapp:native",
     "verify:landing": "npm run build:landing && node scripts/verify-landing-build.js && REACT_APP_SITE_TARGET=landing node scripts/verify-target-headers.js",
     "verify:webapp": "npm run build:webapp && REACT_APP_SITE_TARGET=webapp node scripts/verify-target-headers.js",
     "deploy:landing": "node scripts/deploy-pages.js landing",

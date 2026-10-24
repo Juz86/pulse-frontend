@@ -19,15 +19,22 @@ class PulseCallMediaSessionController(
     private val signaling: PulseCallSignalingGateway,
     private val engineFactory: PulseCallMediaEngineFactory,
     private val callbacks: PulseCallMediaSessionCallbacks,
+    private val identityBinder: PulseCallE2eeIdentityBinder? = null,
     private val createMessageId: () -> String = { UUID.randomUUID().toString() },
 ) : PulseCallMediaListener {
     private data class ActiveMediaSession(
         val sessionId: String,
         val localUid: String,
         val engine: PulseCallMediaEngine,
+        val serverSession: AtomicReference<PulseServerCallSession>,
+        val localIdentity: AtomicReference<PulseCallE2eeIdentityEnvelope?> = AtomicReference(null),
+        val remoteIdentity: AtomicReference<PulseCallE2eeIdentityEnvelope?> = AtomicReference(null),
         val ready: AtomicBoolean = AtomicBoolean(false),
         val pendingMutex: Mutex = Mutex(),
         val pendingSignals: ArrayDeque<PulseRemoteMediaSignal> = ArrayDeque(),
+        val identityMutex: Mutex = Mutex(),
+        val pendingIdentityCandidates: ArrayDeque<PulseRemoteIceCandidateSignal> = ArrayDeque(),
+        val verifiedRemoteBindings: MutableSet<String> = mutableSetOf(),
     )
 
     private val lifecycleMutex = Mutex()
@@ -39,13 +46,21 @@ class PulseCallMediaSessionController(
     suspend fun start(session: PulseServerCallSession, localUid: String): Boolean =
         lifecycleMutex.withLock {
             val current = active.get()
-            if (current?.sessionId == session.sessionId) return@withLock true
+            if (current?.sessionId == session.sessionId) {
+                current.serverSession.set(session)
+                return@withLock true
+            }
             if (current != null || session.state !in MEDIA_STATES || !session.isParticipant(localUid)) {
                 return@withLock false
             }
 
             val engine = engineFactory.create()
-            val mediaSession = ActiveMediaSession(session.sessionId, localUid, engine)
+            val mediaSession = ActiveMediaSession(
+                session.sessionId,
+                localUid,
+                engine,
+                AtomicReference(session),
+            )
             active.set(mediaSession)
             connectedReported.set(false)
             reconnectingReported.set(false)
@@ -118,16 +133,62 @@ class PulseCallMediaSessionController(
         signal: PulseRemoteMediaSignal,
     ): Boolean {
         return try {
-            when (signal) {
-                is PulseRemoteDescriptionSignal ->
-                    mediaSession.engine.applyRemoteDescription(signal.description)
-                is PulseRemoteIceCandidateSignal ->
-                    mediaSession.engine.addRemoteIceCandidate(signal.candidate)
+            val binder = identityBinder
+            if (binder == null) {
+                applyUnboundRemote(mediaSession, signal)
+            } else {
+                mediaSession.identityMutex.withLock {
+                    when (signal) {
+                        is PulseRemoteDescriptionSignal -> {
+                        val identity = signal.identity
+                            ?: throw IllegalArgumentException("e2ee_call_identity_required")
+                        val bindingHash = binder.verify(
+                            session = mediaSession.serverSession.get(),
+                            remoteUid = signal.senderUid,
+                            description = signal.description,
+                            identity = identity,
+                            localOffer = mediaSession.localIdentity.get(),
+                        )
+                        if (!mediaSession.verifiedRemoteBindings.add(bindingHash)) {
+                            throw IllegalArgumentException("e2ee_call_identity_replay")
+                        }
+                        mediaSession.remoteIdentity.set(identity)
+                            mediaSession.engine.applyRemoteDescription(signal.description)
+                            while (mediaSession.pendingIdentityCandidates.isNotEmpty()) {
+                                mediaSession.engine.addRemoteIceCandidate(
+                                    mediaSession.pendingIdentityCandidates.removeFirst().candidate,
+                                )
+                            }
+                        }
+                        is PulseRemoteIceCandidateSignal -> {
+                            if (mediaSession.remoteIdentity.get() == null) {
+                                if (mediaSession.pendingIdentityCandidates.size >= MAX_PENDING_SIGNALS) {
+                                    throw IllegalStateException("e2ee_call_identity_candidate_limit")
+                                }
+                                mediaSession.pendingIdentityCandidates.addLast(signal)
+                            } else {
+                                mediaSession.engine.addRemoteIceCandidate(signal.candidate)
+                            }
+                        }
+                    }
+                }
             }
             true
         } catch (_: Throwable) {
-            reportFailure(mediaSession.sessionId, MEDIA_ERROR)
+            reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
             false
+        }
+    }
+
+    private suspend fun applyUnboundRemote(
+        mediaSession: ActiveMediaSession,
+        signal: PulseRemoteMediaSignal,
+    ) {
+        when (signal) {
+            is PulseRemoteDescriptionSignal ->
+                mediaSession.engine.applyRemoteDescription(signal.description)
+            is PulseRemoteIceCandidateSignal ->
+                mediaSession.engine.addRemoteIceCandidate(signal.candidate)
         }
     }
 
@@ -164,20 +225,31 @@ class PulseCallMediaSessionController(
             current
         }
         mediaSession?.pendingMutex?.withLock { mediaSession.pendingSignals.clear() }
+        mediaSession?.identityMutex?.withLock { mediaSession.pendingIdentityCandidates.clear() }
         mediaSession?.engine?.close()
     }
 
     override fun onLocalDescription(description: PulseSessionDescription) {
         val mediaSession = active.get() ?: return
         scope.launch {
+            val identity = identityBinder?.sign(
+                session = mediaSession.serverSession.get(),
+                localUid = mediaSession.localUid,
+                description = description,
+                verifiedPeer = mediaSession.remoteIdentity.get(),
+            )
+            if (identity != null) mediaSession.localIdentity.set(identity)
             val response = signaling.sendDescription(
                 sessionId = mediaSession.sessionId,
                 messageId = createMessageId(),
                 description = description,
+                identity = identity,
             )
             if (!response.ok || response.status != PulseSignalingStatus.RELAYED) {
                 reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
             }
+        }.invokeOnCompletion { error ->
+            if (error != null) reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
         }
     }
 

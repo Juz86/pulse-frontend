@@ -42,11 +42,13 @@ object RailwayCallingV2Codec {
         sessionId: String,
         messageId: String,
         description: PulseSessionDescription,
+        identity: PulseCallE2eeIdentityEnvelope? = null,
     ): JSONObject = JSONObject()
         .put("sessionId", sessionId)
         .put("messageId", messageId)
         .put("type", description.type.name.lowercase())
         .put("description", description.value)
+        .apply { if (identity != null) put("identity", encodeCallIdentity(identity)) }
 
     fun encodeIceCandidate(
         sessionId: String,
@@ -123,6 +125,7 @@ object RailwayCallingV2Codec {
                     },
                     value = payload.requireString("description"),
                 ),
+                identity = payload.optJSONObject("identity")?.let(::decodeCallIdentity),
             )
             "candidate" -> {
                 val candidate = payload.optJSONObject("candidate")
@@ -189,6 +192,45 @@ object RailwayCallingV2Codec {
         )
     }
 
+    private fun encodeCallIdentity(value: PulseCallE2eeIdentityEnvelope): JSONObject =
+        JSONObject()
+            .put("protocol", value.protocol)
+            .put("protocolVersion", value.protocolVersion)
+            .put("sessionId", value.sessionId)
+            .put("callerUserId", value.callerUserId)
+            .put("calleeUserId", value.calleeUserId)
+            .put("senderDeviceId", value.senderDeviceId)
+            .put("senderSignalDeviceId", value.senderSignalDeviceId)
+            .put("senderIdentityVersion", value.senderIdentityVersion)
+            .put("mediaType", value.mediaType.name.lowercase())
+            .put("descriptionType", value.descriptionType.name.lowercase())
+            .put("dtlsFingerprintSha256", value.dtlsFingerprintSha256)
+            .put("revision", value.revision)
+            .put("nonce", value.nonce)
+            .put("peerBindingHash", value.peerBindingHash)
+            .put("identityKey", value.identityKey)
+            .put("signature", value.signature)
+
+    private fun decodeCallIdentity(value: JSONObject): PulseCallE2eeIdentityEnvelope =
+        PulseCallE2eeIdentityEnvelope(
+            protocol = value.requireString("protocol"),
+            protocolVersion = value.requirePositiveInt("protocolVersion"),
+            sessionId = value.requireString("sessionId"),
+            callerUserId = value.requireString("callerUserId"),
+            calleeUserId = value.requireString("calleeUserId"),
+            senderDeviceId = value.requireString("senderDeviceId"),
+            senderSignalDeviceId = value.requirePositiveInt("senderSignalDeviceId"),
+            senderIdentityVersion = value.requirePositiveInt("senderIdentityVersion"),
+            mediaType = value.requireEnum("mediaType", uppercase = true),
+            descriptionType = value.requireEnum("descriptionType", uppercase = true),
+            dtlsFingerprintSha256 = value.requireString("dtlsFingerprintSha256"),
+            revision = value.requireNonNegativeLong("revision"),
+            nonce = value.requireString("nonce"),
+            peerBindingHash = value.optString("peerBindingHash"),
+            identityKey = value.requireString("identityKey"),
+            signature = value.requireString("signature"),
+        )
+
     private fun JSONObject.requireString(name: String): String =
         optString(name).takeIf(String::isNotBlank)
             ?: throw IllegalArgumentException("Calling v2 response is missing $name")
@@ -203,6 +245,10 @@ object RailwayCallingV2Codec {
 
     private fun JSONObject.requireNonNegativeInt(name: String): Int =
         optInt(name, -1).takeIf { it >= 0 }
+            ?: throw IllegalArgumentException("Calling v2 response has an invalid $name")
+
+    private fun JSONObject.requireNonNegativeLong(name: String): Long =
+        optLong(name, -1).takeIf { it >= 0 }
             ?: throw IllegalArgumentException("Calling v2 response has an invalid $name")
 
     private inline fun <reified T : Enum<T>> JSONObject.requireEnum(

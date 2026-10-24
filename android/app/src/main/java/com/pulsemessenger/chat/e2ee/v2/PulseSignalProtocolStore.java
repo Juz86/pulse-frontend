@@ -520,6 +520,13 @@ public final class PulseSignalProtocolStore implements SignalProtocolStore {
         }
     }
 
+    public synchronized void deleteSenderKey(
+        SignalProtocolAddress sender,
+        UUID distributionId
+    ) {
+        storage.remove(userId, TYPE_SENDER_KEY, addressId(sender) + ":" + distributionId);
+    }
+
     private Set<Integer> loadIntegerIndex(String indexId) {
         byte[] serialized = get(TYPE_INDEX, indexId);
         Set<Integer> ids = new HashSet<>();

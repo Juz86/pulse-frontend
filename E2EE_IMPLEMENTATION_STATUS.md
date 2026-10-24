@@ -663,6 +663,46 @@ licentiemetadata. De technische AndroidX/Kotlin-inventaris is daarmee compleet;
 juridische goedkeuring van Google SDK-voorwaarden, WebRTC-binarynotices en de
 uiteindelijke gecombineerde distributie blijft open.
 
+## Groepschat- en oproepuitbreiding
+
+Op 24 oktober 2026 is de eerste fail-closed fundering voor de volgende E2EE-
+fase lokaal gebouwd. Android gebruikt libsignal Sender Keys voor een
+afzonderlijke sleutel per groepsepoch en afzenderdevice. De provider kan
+distributies maken en verwerken, groepsberichten versleutelen en ontsleutelen,
+en keys bij een lidmaatschapswijziging intrekken. De persistente context bindt
+distribution-ID, groep, epoch, gebruiker en Signal-device voordat de ratchet
+wordt gewijzigd. Restart, replay, groep/epochverwisseling en invalidatie zijn
+met native unittests afgedekt. Het frontendcontract weigert plaintextvelden en
+eist per actieve doeldevice exact één pairwise versleutelde distributie.
+
+Voor één-op-één audio en video bestaat nu een canonieke call-identitybinding.
+De bestaande libsignal identity key ondertekent sessie-ID, beide deelnemers,
+Pulse-device-ID, Signal-device-ID, identityversie, mediatype, offer/answer,
+SHA-256-DTLS-fingerprint, sessierevisie en nonce. Een answer moet de offer-
+binding hashen. Verificatie vereist al bestaand Signal-vertrouwen en weigert
+gewijzigde fingerprints, andere sessies, onbekende identities en verkeerde
+devices. Zowel JavaScript als native Android extraheren uitsluitend één
+consistente SHA-256-fingerprint uit SDP.
+Na een geslaagde backendregistratie wordt bovendien de bevestigde combinatie
+van Pulse-device-ID, Signal-device-ID en identityversie versleuteld in de
+native store vastgelegd en bij herstart tegen de lokale Signal-identity
+gecontroleerd. Daarmee kan de toekomstige native callbinder uitsluitend met
+de serverbevestigde device-identiteit ondertekenen.
+
+Dit is bewust nog geen runtimeactivatie. Lokaal valideert Railway-signaling het
+call-envelope nu tegen sessie, actor, SDP-fingerprint en de actieve v2-
+devicebinding. De Android media-controller ondertekent lokale SDP, verifieert
+remote SDP met de vertrouwde Signal-identity voordat WebRTC die toepast en houdt
+vroege ICE-candidates vast tot die verificatie is geslaagd. Ontbrekend of
+ongeldig bewijs faalt gesloten; een reeds verwerkte ondertekende binding wordt
+als replay geweigerd voordat een tweede SDP-apply plaatsvindt. Zowel de backendgate
+`PULSE_CALLING_V2_E2EE_REQUIRED` als de Android-buildgate
+`pulseCallE2ee` staat standaard uit; productie accepteert daardoor nog kaal SDP.
+Voor groepen zijn autoritatieve member/device-fan-out, epochrotatie,
+delivery/acknowledgement en UI-orchestratie nog nodig. Daarna volgen
+twee-device-liveproeven, review en een nieuwe AAB. VersionCode 82 bevat deze
+uitbreiding niet.
+
 Frontend en backend zijn inmiddels zonder GitHub-authenticatie publiek
 leesbaar en beide zijn expliciet als `AGPL-3.0-only` gelicentieerd. De
 release-audit en 174-componenten-noticecatalogus staan in de publieke
@@ -687,13 +727,24 @@ browser-Android-baseline, identity-change, device-revoke, stop/herstartherstel
 en negatieve browserprovidervectors zijn nu bewezen. Op 24 oktober 2026 is ook
 versionCode 82 via de interne Play-testtrack op twee fysieke Androidtoestellen
 gevalideerd met de productie-Railwayservice en een enkel allowlisted
-`v2_pending`-gesprek. Berichten slaagden in beide richtingen met HTTP `201`,
+gesprek. Berichten slaagden in beide richtingen met HTTP `201`,
 lokale decryptie en acknowledgement. Firestore bevat voor beide berichten geen
 plaintextveld, alleen de generieke servertekst `Versleuteld bericht` en aparte
 ciphertextenveloppen per actief v2-device. Tijdens de proef is hersteld dat
 oude actieve `signal_v1`-bindings v2-prekeyclaims en v2-fan-out ten onrechte
 blokkeerden; ze worden nu buiten de autoritatieve v2-doelset gehouden, terwijl
 een account zonder actief v2-device nog steeds fail-closed wordt geweigerd.
+Op 24 oktober 2026 is dit ene gesprek daarna transactioneel van `v2_pending`
+naar `v2_required` omgezet. Een directe terugleescontrole bevestigde de nieuwe
+status, beide accounts hadden nog actieve Android-v2-bindings en 41 gerichte
+backendtests voor v2-delivery en legacy-downgradeblokkering slaagden. De live
+proef na deze statuswijziging is vervolgens op twee fysieke Androidtoestellen
+in beide richtingen geslaagd. Beide nieuwe berichten werden lokaal ontsleuteld
+en bevestigd. De server bewaarde uitsluitend `pulse_e2ee_v2`-metadata,
+`Versleuteld bericht` en afzonderlijke ciphertextenveloppen, zonder
+plaintextveld. Enveloppen voor overige offline Yushua-bindings bleven terecht
+pending; die bindings moeten afzonderlijk actief blijven of worden ingetrokken.
 Alleen het onafhankelijke securityreviewbewijs ontbreekt nog; een reguliere of
-openbare productiepilot blijft daarom geblokkeerd. De bestaande mock-
-serviceflow mag nog steeds niet als E2EE worden gepresenteerd.
+openbare productiepilot en iedere bredere cohortuitrol blijven daarom
+geblokkeerd. De bestaande mock-serviceflow mag nog steeds niet als E2EE worden
+gepresenteerd.

@@ -80,6 +80,105 @@ class PulseCallMediaSessionControllerTest {
     }
 
     @Test
+    fun `local SDP carries the signed call identity when binding is enabled`() = runBlocking {
+        val signaling = FakeSignaling()
+        val engine = FakeMediaEngine()
+        val binder = FakeIdentityBinder()
+        val subject = subject(signaling, engine, RecordingCallbacks(), identityBinder = binder)
+        subject.start(session(PulseServerCallState.CONNECTING), "caller")
+
+        engine.listener?.onLocalDescription(
+            PulseSessionDescription(PulseSessionDescriptionType.OFFER, "v=0"),
+        )
+
+        assertEquals(1, binder.signed.size)
+        assertEquals(listOf(identity(PulseSessionDescriptionType.OFFER)), signaling.identities)
+    }
+
+    @Test
+    fun `missing identity rejects remote SDP before it reaches WebRTC`() = runBlocking {
+        val engine = FakeMediaEngine()
+        val callbacks = RecordingCallbacks()
+        val subject = subject(
+            FakeSignaling(),
+            engine,
+            callbacks,
+            identityBinder = FakeIdentityBinder(),
+        )
+        subject.start(session(PulseServerCallState.CONNECTING), "caller")
+        val answer = PulseRemoteDescriptionSignal(
+            sessionId = "session-123",
+            messageId = "message-123",
+            senderUid = "callee",
+            description = PulseSessionDescription(PulseSessionDescriptionType.ANSWER, "v=0"),
+        )
+
+        assertFalse(subject.handleRemote(answer))
+        assertTrue(engine.remoteDescriptions.isEmpty())
+        assertEquals(listOf("session-123" to "signaling_error"), callbacks.failures)
+    }
+
+    @Test
+    fun `ICE waits for verified remote identity before reaching WebRTC`() = runBlocking {
+        val engine = FakeMediaEngine()
+        val binder = FakeIdentityBinder()
+        val subject = subject(
+            FakeSignaling(),
+            engine,
+            RecordingCallbacks(),
+            identityBinder = binder,
+        )
+        subject.start(session(PulseServerCallState.CONNECTING), "callee")
+        val candidate = PulseRemoteIceCandidateSignal(
+            sessionId = "session-123",
+            messageId = "message-456",
+            senderUid = "caller",
+            candidate = PulseIceCandidate("audio", 0, "candidate:value"),
+        )
+        val offer = PulseRemoteDescriptionSignal(
+            sessionId = "session-123",
+            messageId = "message-123",
+            senderUid = "caller",
+            description = PulseSessionDescription(PulseSessionDescriptionType.OFFER, "v=0"),
+            identity = identity(PulseSessionDescriptionType.OFFER),
+        )
+
+        assertTrue(subject.handleRemote(candidate))
+        assertTrue(engine.remoteCandidates.isEmpty())
+        assertTrue(subject.handleRemote(offer))
+
+        assertEquals(1, binder.verified.size)
+        assertEquals(listOf(offer.description), engine.remoteDescriptions)
+        assertEquals(listOf(candidate.candidate), engine.remoteCandidates)
+    }
+
+    @Test
+    fun `replayed signed SDP is rejected before a second WebRTC apply`() = runBlocking {
+        val engine = FakeMediaEngine()
+        val callbacks = RecordingCallbacks()
+        val subject = subject(
+            FakeSignaling(),
+            engine,
+            callbacks,
+            identityBinder = FakeIdentityBinder(),
+        )
+        subject.start(session(PulseServerCallState.CONNECTING), "callee")
+        val offer = PulseRemoteDescriptionSignal(
+            sessionId = "session-123",
+            messageId = "message-123",
+            senderUid = "caller",
+            description = PulseSessionDescription(PulseSessionDescriptionType.OFFER, "v=0"),
+            identity = identity(PulseSessionDescriptionType.OFFER),
+        )
+
+        assertTrue(subject.handleRemote(offer))
+        assertFalse(subject.handleRemote(offer.copy(messageId = "message-456")))
+
+        assertEquals(listOf(offer.description), engine.remoteDescriptions)
+        assertEquals(listOf("session-123" to "signaling_error"), callbacks.failures)
+    }
+
+    @Test
     fun `remote media is session-bound and cannot come from the local user`() = runBlocking {
         val signaling = FakeSignaling()
         val engine = FakeMediaEngine()
@@ -223,12 +322,33 @@ class PulseCallMediaSessionControllerTest {
         engine: FakeMediaEngine,
         callbacks: RecordingCallbacks,
         messageIds: ArrayDeque<String> = ArrayDeque(listOf("message-123", "message-456")),
+        identityBinder: PulseCallE2eeIdentityBinder? = null,
     ) = PulseCallMediaSessionController(
         scope = scope,
         signaling = signaling,
         engineFactory = PulseCallMediaEngineFactory { engine },
         callbacks = callbacks,
+        identityBinder = identityBinder,
         createMessageId = { messageIds.removeFirst() },
+    )
+
+    private fun identity(type: PulseSessionDescriptionType) = PulseCallE2eeIdentityEnvelope(
+        protocol = PULSE_CALL_E2EE_PROTOCOL,
+        protocolVersion = PULSE_CALL_E2EE_VERSION,
+        sessionId = "session-123",
+        callerUserId = "caller",
+        calleeUserId = "callee",
+        senderDeviceId = "device-123",
+        senderSignalDeviceId = 1,
+        senderIdentityVersion = 1,
+        mediaType = PulseCallMediaType.AUDIO,
+        descriptionType = type,
+        dtlsFingerprintSha256 = "AA",
+        revision = 3,
+        nonce = "nonce-123",
+        peerBindingHash = "",
+        identityKey = "identity-key",
+        signature = "signature",
     )
 
     private fun session(
@@ -253,6 +373,7 @@ class PulseCallMediaSessionControllerTest {
     ) : PulseCallSignalingGateway {
         val operations: List<String> get() = sharedOperations
         val descriptions = mutableListOf<Pair<String, PulseSessionDescription>>()
+        val identities = mutableListOf<PulseCallE2eeIdentityEnvelope?>()
         val candidates = mutableListOf<Pair<String, PulseIceCandidate>>()
         var mediaResponse = PulseSignalingResponse(true, PulseSignalingStatus.RELAYED)
         var iceResponse = PulseIceConfigurationResponse(
@@ -297,8 +418,10 @@ class PulseCallMediaSessionControllerTest {
             sessionId: String,
             messageId: String,
             description: PulseSessionDescription,
+            identity: PulseCallE2eeIdentityEnvelope?,
         ): PulseSignalingResponse {
             descriptions += messageId to description
+            identities += identity
             return mediaResponse
         }
 
@@ -312,6 +435,51 @@ class PulseCallMediaSessionControllerTest {
         }
 
         override fun disconnect() = Unit
+    }
+
+    private class FakeIdentityBinder : PulseCallE2eeIdentityBinder {
+        val signed = mutableListOf<PulseSessionDescription>()
+        val verified = mutableListOf<PulseCallE2eeIdentityEnvelope>()
+
+        override suspend fun sign(
+            session: PulseServerCallSession,
+            localUid: String,
+            description: PulseSessionDescription,
+            verifiedPeer: PulseCallE2eeIdentityEnvelope?,
+        ): PulseCallE2eeIdentityEnvelope {
+            signed += description
+            return identity(description.type)
+        }
+
+        override suspend fun verify(
+            session: PulseServerCallSession,
+            remoteUid: String,
+            description: PulseSessionDescription,
+            identity: PulseCallE2eeIdentityEnvelope,
+            localOffer: PulseCallE2eeIdentityEnvelope?,
+        ): String {
+            verified += identity
+            return "verified-binding"
+        }
+
+        private fun identity(type: PulseSessionDescriptionType) = PulseCallE2eeIdentityEnvelope(
+            protocol = PULSE_CALL_E2EE_PROTOCOL,
+            protocolVersion = PULSE_CALL_E2EE_VERSION,
+            sessionId = "session-123",
+            callerUserId = "caller",
+            calleeUserId = "callee",
+            senderDeviceId = "device-123",
+            senderSignalDeviceId = 1,
+            senderIdentityVersion = 1,
+            mediaType = PulseCallMediaType.AUDIO,
+            descriptionType = type,
+            dtlsFingerprintSha256 = "AA",
+            revision = 3,
+            nonce = "nonce-123",
+            peerBindingHash = "",
+            identityKey = "identity-key",
+            signature = "signature",
+        )
     }
 
     private class FakeMediaEngine(

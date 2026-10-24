@@ -185,6 +185,210 @@ public final class PulseE2eeV2Plugin extends Plugin {
     }
 
     @PluginMethod
+    public void createGroupSenderKeyDistribution(PluginCall call) {
+        try {
+            requireProviderAvailable();
+            byte[] distribution = provider.createGroupSenderKeyDistribution(
+                requiredString(call, "userId", "e2ee_user_id_required"),
+                requiredInt(call.getInt("localSignalDeviceId"), "e2ee_signal_device_id_required"),
+                requiredString(call, "groupId", "e2ee_group_id_required"),
+                requiredInt(call.getInt("epoch"), "e2ee_group_epoch_required"),
+                requiredString(
+                    call,
+                    "distributionId",
+                    "e2ee_group_distribution_id_required"
+                )
+            );
+            JSObject response = protocolResponse();
+            response.put("distribution", encodeBase64(distribution));
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("e2ee_group_distribution_create_failed", safeMessage(error), error);
+        }
+    }
+
+    @PluginMethod
+    public void processGroupSenderKeyDistribution(PluginCall call) {
+        try {
+            requireProviderAvailable();
+            provider.processGroupSenderKeyDistribution(
+                requiredString(call, "userId", "e2ee_user_id_required"),
+                requiredInt(call.getInt("localSignalDeviceId"), "e2ee_signal_device_id_required"),
+                requiredString(call, "senderUserId", "e2ee_sender_user_id_required"),
+                requiredInt(
+                    call.getInt("senderSignalDeviceId"),
+                    "e2ee_sender_signal_device_id_required"
+                ),
+                requiredString(call, "groupId", "e2ee_group_id_required"),
+                requiredInt(call.getInt("epoch"), "e2ee_group_epoch_required"),
+                requiredString(
+                    call,
+                    "distributionId",
+                    "e2ee_group_distribution_id_required"
+                ),
+                decodeBase64(requiredString(
+                    call,
+                    "distribution",
+                    "e2ee_group_distribution_required"
+                ))
+            );
+            JSObject response = protocolResponse();
+            response.put("processed", true);
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("e2ee_group_distribution_process_failed", safeMessage(error), error);
+        }
+    }
+
+    @PluginMethod
+    public void encryptGroupText(PluginCall call) {
+        try {
+            requireProviderAvailable();
+            PulseE2eeV2Provider.GroupCiphertext result = provider.encryptGroupText(
+                requiredString(call, "userId", "e2ee_user_id_required"),
+                requiredInt(call.getInt("localSignalDeviceId"), "e2ee_signal_device_id_required"),
+                requiredString(call, "groupId", "e2ee_group_id_required"),
+                requiredInt(call.getInt("epoch"), "e2ee_group_epoch_required"),
+                requiredString(
+                    call,
+                    "distributionId",
+                    "e2ee_group_distribution_id_required"
+                ),
+                requiredString(call, "plaintext", "e2ee_plaintext_required")
+            );
+            JSObject response = protocolResponse();
+            response.put("envelopeType", "sender_key");
+            response.put("distributionId", result.distributionId);
+            response.put("epoch", result.epoch);
+            response.put("ciphertext", encodeBase64(result.ciphertext));
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("e2ee_group_encrypt_failed", safeMessage(error), error);
+        }
+    }
+
+    @PluginMethod
+    public void decryptGroupText(PluginCall call) {
+        try {
+            requireProviderAvailable();
+            String plaintext = provider.decryptGroupText(
+                requiredString(call, "userId", "e2ee_user_id_required"),
+                requiredInt(call.getInt("localSignalDeviceId"), "e2ee_signal_device_id_required"),
+                requiredString(call, "senderUserId", "e2ee_sender_user_id_required"),
+                requiredInt(
+                    call.getInt("senderSignalDeviceId"),
+                    "e2ee_sender_signal_device_id_required"
+                ),
+                requiredString(call, "groupId", "e2ee_group_id_required"),
+                requiredInt(call.getInt("epoch"), "e2ee_group_epoch_required"),
+                requiredString(
+                    call,
+                    "distributionId",
+                    "e2ee_group_distribution_id_required"
+                ),
+                decodeBase64(requiredString(call, "ciphertext", "e2ee_ciphertext_required"))
+            );
+            JSObject response = protocolResponse();
+            response.put("plaintext", plaintext);
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("e2ee_group_decrypt_failed", safeMessage(error), error);
+        }
+    }
+
+    @PluginMethod
+    public void invalidateGroupSenderKey(PluginCall call) {
+        try {
+            requireProviderAvailable();
+            provider.invalidateGroupSenderKey(
+                requiredString(call, "userId", "e2ee_user_id_required"),
+                requiredInt(call.getInt("localSignalDeviceId"), "e2ee_signal_device_id_required"),
+                requiredString(call, "senderUserId", "e2ee_sender_user_id_required"),
+                requiredInt(
+                    call.getInt("senderSignalDeviceId"),
+                    "e2ee_sender_signal_device_id_required"
+                ),
+                requiredString(
+                    call,
+                    "distributionId",
+                    "e2ee_group_distribution_id_required"
+                )
+            );
+            JSObject response = protocolResponse();
+            response.put("invalidated", true);
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("e2ee_group_invalidation_failed", safeMessage(error), error);
+        }
+    }
+
+    @PluginMethod
+    public void signCallIdentityBinding(PluginCall call) {
+        try {
+            requireProviderAvailable();
+            byte[] signature = provider.signCallIdentityBinding(
+                requiredString(call, "userId", "e2ee_user_id_required"),
+                requiredInt(call.getInt("localSignalDeviceId"), "e2ee_signal_device_id_required"),
+                decodeCallIdentityBinding(requiredObject(call, "binding"))
+            );
+            JSObject response = protocolResponse();
+            response.put("signature", encodeBase64(signature));
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("e2ee_call_identity_sign_failed", safeMessage(error), error);
+        }
+    }
+
+    @PluginMethod
+    public void verifyCallIdentityBinding(PluginCall call) {
+        try {
+            requireProviderAvailable();
+            provider.verifyCallIdentityBinding(
+                requiredString(call, "userId", "e2ee_user_id_required"),
+                requiredInt(call.getInt("localSignalDeviceId"), "e2ee_signal_device_id_required"),
+                requiredString(call, "remoteUserId", "e2ee_remote_user_id_required"),
+                requiredString(call, "remoteDeviceId", "e2ee_remote_device_id_required"),
+                requiredInt(
+                    call.getInt("remoteSignalDeviceId"),
+                    "e2ee_remote_signal_device_id_required"
+                ),
+                requiredInt(
+                    call.getInt("remoteIdentityVersion"),
+                    "e2ee_remote_identity_version_required"
+                ),
+                decodeBase64(requiredString(call, "remoteIdentityKey", "e2ee_identity_key_required")),
+                decodeCallIdentityBinding(requiredObject(call, "binding")),
+                decodeBase64(requiredString(call, "signature", "e2ee_call_signature_required"))
+            );
+            JSObject response = protocolResponse();
+            response.put("verified", true);
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("e2ee_call_identity_verify_failed", safeMessage(error), error);
+        }
+    }
+
+    @PluginMethod
+    public void bindLocalDeviceRegistration(PluginCall call) {
+        try {
+            requireProviderAvailable();
+            PulseE2eeV2Provider.LocalDeviceBinding binding = provider.bindLocalDeviceRegistration(
+                requiredString(call, "userId", "e2ee_user_id_required"),
+                requiredString(call, "deviceId", "e2ee_device_id_required"),
+                requiredInt(call.getInt("signalDeviceId"), "e2ee_signal_device_id_required"),
+                requiredInt(call.getInt("identityVersion"), "e2ee_identity_version_required")
+            );
+            JSObject response = protocolResponse();
+            response.put("deviceId", binding.deviceId);
+            response.put("signalDeviceId", binding.signalDeviceId);
+            response.put("identityVersion", binding.identityVersion);
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("e2ee_local_device_binding_failed", safeMessage(error), error);
+        }
+    }
+
+    @PluginMethod
     public void listSessionDevices(PluginCall call) {
         try {
             requireProviderAvailable();
@@ -438,8 +642,37 @@ public final class PulseE2eeV2Plugin extends Plugin {
         );
     }
 
+    private static PulseCallIdentityBinding decodeCallIdentityBinding(JSObject value) {
+        return new PulseCallIdentityBinding(
+            requiredString(value, "sessionId", "e2ee_call_session_id_required"),
+            requiredString(value, "callerUserId", "e2ee_call_caller_id_required"),
+            requiredString(value, "calleeUserId", "e2ee_call_callee_id_required"),
+            requiredString(value, "senderDeviceId", "e2ee_call_sender_device_id_required"),
+            requiredInt(
+                value.getInteger("senderSignalDeviceId"),
+                "e2ee_call_sender_signal_device_id_required"
+            ),
+            requiredInt(
+                value.getInteger("senderIdentityVersion"),
+                "e2ee_call_sender_identity_version_required"
+            ),
+            requiredString(value, "mediaType", "e2ee_call_media_type_required"),
+            requiredString(value, "descriptionType", "e2ee_call_description_type_required"),
+            requiredString(value, "dtlsFingerprintSha256", "e2ee_call_fingerprint_required"),
+            requiredLong(value, "revision", "e2ee_call_revision_required"),
+            requiredString(value, "nonce", "e2ee_call_nonce_required"),
+            optionalString(value, "peerBindingHash")
+        );
+    }
+
     private static JSObject requiredObject(JSObject value, String key) {
         JSObject result = value.getJSObject(key);
+        if (result == null) throw new IllegalArgumentException("e2ee_" + key + "_required");
+        return result;
+    }
+
+    private static JSObject requiredObject(PluginCall call, String key) {
+        JSObject result = call.getObject(key);
         if (result == null) throw new IllegalArgumentException("e2ee_" + key + "_required");
         return result;
     }
@@ -459,6 +692,20 @@ public final class PulseE2eeV2Plugin extends Plugin {
         String value = object.getString(key);
         if (value == null || value.isBlank()) throw new IllegalArgumentException(code);
         return value;
+    }
+
+    private static String optionalString(JSObject object, String key) {
+        String value = object.getString(key);
+        return value == null || value.isBlank() ? null : value;
+    }
+
+    private static long requiredLong(JSObject object, String key, String code) {
+        if (!object.has(key)) throw new IllegalArgumentException(code);
+        try {
+            return object.getLong(key);
+        } catch (Exception error) {
+            throw new IllegalArgumentException(code, error);
+        }
     }
 
     private static int requiredInt(Integer value, String code) {

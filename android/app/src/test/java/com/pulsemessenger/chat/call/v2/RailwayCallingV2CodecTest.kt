@@ -140,6 +140,43 @@ class RailwayCallingV2CodecTest {
     }
 
     @Test
+    fun `call identity round trips with SDP and remains redacted`() {
+        val identity = PulseCallE2eeIdentityEnvelope(
+            protocol = PULSE_CALL_E2EE_PROTOCOL,
+            protocolVersion = PULSE_CALL_E2EE_VERSION,
+            sessionId = "session-123",
+            callerUserId = "caller",
+            calleeUserId = "callee",
+            senderDeviceId = "device-123",
+            senderSignalDeviceId = 7,
+            senderIdentityVersion = 2,
+            mediaType = PulseCallMediaType.VIDEO,
+            descriptionType = PulseSessionDescriptionType.OFFER,
+            dtlsFingerprintSha256 = "AA:BB",
+            revision = 3,
+            nonce = "nonce-123",
+            peerBindingHash = "",
+            identityKey = "private-looking-identity",
+            signature = "private-looking-signature",
+        )
+        val encoded = RailwayCallingV2Codec.encodeDescription(
+            sessionId = "session-123",
+            messageId = "message-123",
+            description = PulseSessionDescription(PulseSessionDescriptionType.OFFER, "v=0 private"),
+            identity = identity,
+        )
+        encoded.put("protocolVersion", PULSE_CALL_PROTOCOL_VERSION)
+        encoded.put("senderUid", "caller")
+
+        val decoded = RailwayCallingV2Codec.decodeMediaSignal(encoded)
+            as PulseRemoteDescriptionSignal
+
+        assertEquals(identity, decoded.identity)
+        assertFalse(identity.toString().contains("private-looking-identity"))
+        assertFalse(identity.toString().contains("private-looking-signature"))
+    }
+
+    @Test
     fun `ICE configuration decodes Cloudflare relay credentials`() {
         val response = RailwayCallingV2Codec.decodeIceConfiguration(
             JSONObject()

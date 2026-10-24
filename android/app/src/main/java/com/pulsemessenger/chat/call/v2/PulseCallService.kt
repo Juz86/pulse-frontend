@@ -23,6 +23,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
+import com.pulsemessenger.chat.BuildConfig
 import androidx.core.graphics.drawable.IconCompat
 import com.pulsemessenger.chat.R
 import java.io.ByteArrayOutputStream
@@ -77,6 +78,11 @@ class PulseCallService : Service() {
             telecom = telecom,
             coordinator = coordinator,
             mediaEngineFactory = PulseCallMediaEngineFactory { WebRtcAudioEngine(this) },
+            mediaIdentityBinder = if (BuildConfig.PULSE_CALL_E2EE_ENABLED) {
+                NativePulseCallE2eeIdentityBinder(this)
+            } else {
+                null
+            },
             beforeMediaStart = ::promoteToMediaForeground,
             onRecoveryRecordChanged = { record ->
                 if (record == null) recoveryStore.clear() else recoveryStore.save(record)

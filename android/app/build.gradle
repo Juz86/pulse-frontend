@@ -30,6 +30,9 @@ def pulseE2eeInternalPlayTest = providers.gradleProperty('pulseE2eeInternalPlayT
 def pulseE2eeQaInstance = providers.gradleProperty('pulseE2eeQaInstance')
     .getOrElse('a')
 def pulseE2eeReleaseProvider = pulseE2eePilot || pulseE2eeInternalPlayTest
+def pulseCallE2ee = providers.gradleProperty('pulseCallE2ee')
+    .map { it.toBoolean() }
+    .getOrElse(false)
 if ([pulseE2eeQa, pulseE2eePilot, pulseE2eeInternalPlayTest].count { it } > 1) {
     throw new GradleException('E2EE QA, interne Play-test en productiepilot zijn onderling exclusief.')
 }
@@ -74,6 +77,7 @@ android {
         buildConfigField "boolean", "PULSE_E2EE_QA_ENABLED", pulseE2eeQa.toString()
         buildConfigField "boolean", "PULSE_E2EE_PILOT_ENABLED", pulseE2eeReleaseProvider.toString()
         buildConfigField "boolean", "PULSE_E2EE_INTERNAL_PLAY_TEST", pulseE2eeInternalPlayTest.toString()
+        buildConfigField "boolean", "PULSE_CALL_E2EE_ENABLED", pulseCallE2ee.toString()
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61

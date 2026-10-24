@@ -210,9 +210,15 @@ apparaten.
 ## Groepen
 
 Groepen blijven buiten fase 1. Het huidige per-user fan-outmodel wordt niet
-opgeschaald als geïmproviseerde groepsencryptie. Voor groepen volgt een apart
-besluit over Sender Keys of MLS, inclusief sleutelrotatie bij iedere
-lidmaatschapswijziging.
+opgeschaald als geïmproviseerde groepsencryptie. Voor de vervolgfase is op 24
+oktober 2026 een geisoleerde Android Sender Keys-kern toegevoegd. Distributies
+worden uitsluitend via bestaande pairwise Signal-sessies ontworpen, iedere
+sender key is gebonden aan groep, epoch, afzender en Signal-device, en replay of
+een verwisselde groep/epoch wordt fail-closed geweigerd. Het wirecontract eist
+precies één versleutelde distributie per actief doeldevice. Deze kern is nog
+niet aan groepslidmaatschap, backendroutes of de chatinterface gekoppeld en is
+dus geen actieve groeps-E2EE. Iedere lidmaatschapswijziging moet een nieuwe
+epoch en nieuwe distributies afdwingen voordat runtimeactivatie is toegestaan.
 
 ## Audio en video
 
@@ -221,6 +227,21 @@ fingerprint nog niet cryptografisch aan de geverifieerde chatidentiteit. Daarom
 blijft de E2EE-claim voor oproepen uit totdat beide clients de sessie en
 fingerprint ondertekenen en de peer deze tegen de bekende identity key
 controleert. TURN mag alleen versleutelde media relayeren.
+
+Op 24 oktober 2026 is hiervoor een geisoleerde Android-primitief toegevoegd die
+een canonieke call-binding met sessie, deelnemers, Pulse- en Signal-device,
+identityversie, media- en SDP-type, SHA-256-DTLS-fingerprint, revisie en nonce
+ondertekent met de bestaande libsignal-identity key. Een antwoord bindt
+daarnaast de ondertekende offer. Verificatie vereist vooraf bestaand Signal-
+vertrouwen en weigert fingerprint-, sessie-, device- en identitywisselingen.
+De native en JavaScript SDP-parsers accepteren alleen een eenduidige SHA-256-
+fingerprint. De lokale Railway-kandidaat controleert het envelope tegen sessie,
+actor, fingerprint en actieve v2-devicebinding. De Android media-controller
+verifieert de Signal-handtekening voordat remote SDP wordt toegepast en laat
+vroege ICE-candidates pas na die verificatie door. Herhaling van dezelfde
+ondertekende binding wordt vóór een tweede SDP-apply geweigerd. Beide kanten blijven achter
+standaard-uitgeschakelde gates en zijn nog niet live op twee apparaten getest;
+audio- en videogesprekken hebben daarom nog geen Pulse-E2EE-claim.
 
 ## Gefaseerde uitvoering
 
@@ -277,8 +298,25 @@ Uitvoeringsstatus op 24 oktober 2026:
   en acknowledgement. De serveropslag bevat geen plaintextveld. Deze
   `internal_play_test` blijft expliciet onbeoordeeld en is geen toestemming
   voor een openbare release;
-- stappen 7 tot en met 9 blijven geblokkeerd totdat de browserprovider en
-  onafhankelijke securityreview zijn afgerond.
+- stap 8 is uitsluitend voor het ene bestaande `internal_play_test`-gesprek
+  uitgevoerd: op 24 oktober 2026 is de status transactioneel naar
+  `v2_required` gezet en teruggelezen. Beide pilotaccounts hadden daarbij een
+  actieve Android-v2-binding en de 41 gerichte delivery- en
+  downgradeblokkadetests slaagden. De live proef na de statuswijziging slaagde
+  daarna op twee fysieke Androidtoestellen in beide richtingen, met lokale
+  decryptie en acknowledgement. De serveraudit bevestigde per nieuw bericht
+  protocol v2, een generieke servertekst, geen plaintextveld en afzonderlijke
+  ciphertextenveloppen. Overige offline Yushua-bindings hielden hun eigen
+  envelope terecht pending;
+- stap 7, stap 9 en iedere bredere of openbare productie-uitrol blijven
+  geblokkeerd totdat het controleerbare onafhankelijke securityreviewbewijs is
+  toegevoegd;
+- groepschat en oproepen zijn afzonderlijke vervolgfases. De Android Sender
+  Keys-kern en het strikte groepswirecontract zijn lokaal gebouwd en negatief
+  getest; backendtransport en lidmaatschap/epoch-autorisatie blijven open. Voor
+  een-op-een calls zijn backendautorisatie en native signalingkoppeling lokaal
+  fail-closed gebouwd, maar live interoperabiliteit, review en een nieuwe AAB
+  blijven open. VersionCode 82 bevat deze wijzigingen niet.
 
 Stap 1 is uitgevoerd in:
 

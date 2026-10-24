@@ -56,6 +56,7 @@ class PulseCallSessionOrchestrator(
     private val telecom: PulseTelecomController,
     private val coordinator: PulseCallCoordinator = PulseCallCoordinator.instance,
     mediaEngineFactory: PulseCallMediaEngineFactory? = null,
+    mediaIdentityBinder: PulseCallE2eeIdentityBinder? = null,
     private val beforeMediaStart: () -> Boolean = { true },
     private val onRecoveryRecordChanged: (PulseCallRecoveryRecord?) -> Unit = {},
     private val onCallFailure: (sessionId: String, reason: String) -> Unit = { _, _ -> },
@@ -72,7 +73,13 @@ class PulseCallSessionOrchestrator(
     private val networkRecoveryInFlight = AtomicBoolean(false)
     private val recovering = AtomicBoolean(false)
     private val mediaSessions = mediaEngineFactory?.let { factory ->
-        PulseCallMediaSessionController(scope, signaling, factory, this)
+        PulseCallMediaSessionController(
+            scope,
+            signaling,
+            factory,
+            this,
+            identityBinder = mediaIdentityBinder,
+        )
     }
     private var telecomJob: Job? = null
 

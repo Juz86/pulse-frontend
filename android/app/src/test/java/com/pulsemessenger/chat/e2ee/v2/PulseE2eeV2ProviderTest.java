@@ -90,6 +90,30 @@ public class PulseE2eeV2ProviderTest {
     }
 
     @Test
+    public void persistsTheBackendConfirmedLocalDeviceBinding() throws Exception {
+        MemoryRecordStorage storage = new MemoryRecordStorage();
+        PulseE2eeV2Provider provider = provider(storage, 57L);
+        provider.bootstrapDevice("alice", 7, 1);
+
+        PulseE2eeV2Provider.LocalDeviceBinding stored = provider.bindLocalDeviceRegistration(
+            "alice", "device-a1", 7, 3
+        );
+        assertEquals("device-a1", stored.deviceId);
+        assertEquals(7, stored.signalDeviceId);
+        assertEquals(3, stored.identityVersion);
+
+        PulseE2eeV2Provider.LocalDeviceBinding restored = provider(storage, 58L)
+            .getLocalDeviceBinding("alice");
+        assertEquals("device-a1", restored.deviceId);
+        assertEquals(7, restored.signalDeviceId);
+        assertEquals(3, restored.identityVersion);
+        assertThrows(
+            IllegalStateException.class,
+            () -> provider.bindLocalDeviceRegistration("alice", "device-a1", 8, 3)
+        );
+    }
+
+    @Test
     public void replacesAStaleSessionAfterRemoteIdentityRotationAndBlocksRevocation()
         throws Exception {
         MemoryRecordStorage aliceStorage = new MemoryRecordStorage();
@@ -145,6 +169,280 @@ public class PulseE2eeV2ProviderTest {
                 "alice", 1, "bob", "bob-device", 2, 2, "Na revoke", publicBundle(rotatedBootstrap)
             )
         );
+    }
+
+    @Test
+    public void exchangesGroupTextAcrossRestartsAndRejectsReplay() throws Exception {
+        MemoryRecordStorage storage = new MemoryRecordStorage();
+        PulseE2eeV2Provider alice = provider(storage, 71L);
+        PulseE2eeV2Provider bob = provider(storage, 72L);
+        alice.bootstrapDevice("alice", 1, 1);
+        bob.bootstrapDevice("bob", 2, 1);
+        String distributionId = "9b3553e9-bbe6-4938-beb5-5cb740412fd0";
+
+        byte[] distribution = alice.createGroupSenderKeyDistribution(
+            "alice",
+            1,
+            "group-1",
+            1,
+            distributionId
+        );
+        bob.processGroupSenderKeyDistribution(
+            "bob",
+            2,
+            "alice",
+            1,
+            "group-1",
+            1,
+            distributionId,
+            distribution
+        );
+        PulseE2eeV2Provider.GroupCiphertext encrypted = alice.encryptGroupText(
+            "alice",
+            1,
+            "group-1",
+            1,
+            distributionId,
+            "Hallo groep"
+        );
+
+        bob = provider(storage, 73L);
+        assertEquals("Hallo groep", bob.decryptGroupText(
+            "bob",
+            2,
+            "alice",
+            1,
+            "group-1",
+            1,
+            distributionId,
+            encrypted.ciphertext
+        ));
+        PulseE2eeV2Provider restartedBob = provider(storage, 74L);
+        assertThrows(
+            Exception.class,
+            () -> restartedBob.decryptGroupText(
+                "bob",
+                2,
+                "alice",
+                1,
+                "group-1",
+                1,
+                distributionId,
+                encrypted.ciphertext
+            )
+        );
+    }
+
+    @Test
+    public void rejectsGroupOrEpochSwapBeforeConsumingCiphertext() throws Exception {
+        MemoryRecordStorage storage = new MemoryRecordStorage();
+        PulseE2eeV2Provider alice = provider(storage, 81L);
+        PulseE2eeV2Provider bob = provider(storage, 82L);
+        alice.bootstrapDevice("alice", 1, 1);
+        bob.bootstrapDevice("bob", 2, 1);
+        String distributionId = "ad112b29-684d-445f-9d66-6ea3da87876d";
+        byte[] distribution = alice.createGroupSenderKeyDistribution(
+            "alice", 1, "group-1", 4, distributionId
+        );
+        bob.processGroupSenderKeyDistribution(
+            "bob", 2, "alice", 1, "group-1", 4, distributionId, distribution
+        );
+        PulseE2eeV2Provider.GroupCiphertext encrypted = alice.encryptGroupText(
+            "alice", 1, "group-1", 4, distributionId, "Gebonden bericht"
+        );
+
+        assertThrows(
+            IllegalStateException.class,
+            () -> bob.decryptGroupText(
+                "bob", 2, "alice", 1, "group-2", 4, distributionId, encrypted.ciphertext
+            )
+        );
+        assertThrows(
+            IllegalStateException.class,
+            () -> bob.decryptGroupText(
+                "bob", 2, "alice", 1, "group-1", 5, distributionId, encrypted.ciphertext
+            )
+        );
+        assertEquals("Gebonden bericht", bob.decryptGroupText(
+            "bob", 2, "alice", 1, "group-1", 4, distributionId, encrypted.ciphertext
+        ));
+    }
+
+    @Test
+    public void invalidatesGroupSenderKeyOnMembershipRotation() throws Exception {
+        MemoryRecordStorage storage = new MemoryRecordStorage();
+        PulseE2eeV2Provider alice = provider(storage, 91L);
+        PulseE2eeV2Provider bob = provider(storage, 92L);
+        alice.bootstrapDevice("alice", 1, 1);
+        bob.bootstrapDevice("bob", 2, 1);
+        String distributionId = "aa187757-86a8-4e4b-ab5f-df539e653f4b";
+        byte[] distribution = alice.createGroupSenderKeyDistribution(
+            "alice", 1, "group-1", 1, distributionId
+        );
+        bob.processGroupSenderKeyDistribution(
+            "bob", 2, "alice", 1, "group-1", 1, distributionId, distribution
+        );
+        bob.invalidateGroupSenderKey("bob", 2, "alice", 1, distributionId);
+        PulseE2eeV2Provider.GroupCiphertext encrypted = alice.encryptGroupText(
+            "alice", 1, "group-1", 1, distributionId, "Na ledenwijziging"
+        );
+
+        assertThrows(
+            IllegalStateException.class,
+            () -> bob.decryptGroupText(
+                "bob", 2, "alice", 1, "group-1", 1, distributionId, encrypted.ciphertext
+            )
+        );
+    }
+
+    @Test
+    public void signsAndVerifiesTheNegotiatedCallFingerprintWithATrustedIdentity()
+        throws Exception {
+        MemoryRecordStorage storage = new MemoryRecordStorage();
+        PulseE2eeV2Provider alice = provider(storage, 101L);
+        PulseE2eeV2Provider bob = provider(storage, 102L);
+        PulseE2eeV2Provider.BootstrapResult aliceBootstrap = alice.bootstrapDevice("alice", 1, 1);
+        PulseE2eeV2Provider.BootstrapResult bobBootstrap = bob.bootstrapDevice("bob", 2, 1);
+        PulseLibsignalSessionEngine.EncryptedEnvelope trustEnvelope = alice.encryptText(
+            "alice", 1, "bob", "bob-device", 2, 1, "Trust setup", publicBundle(bobBootstrap)
+        );
+        assertEquals("Trust setup", bob.decryptText(
+            "bob", 2, "alice", "alice-device", 1, 1, trustEnvelope
+        ));
+
+        PulseCallIdentityBinding offer = callBinding(
+            "call-1",
+            "alice-device",
+            1,
+            "offer",
+            repeat('a', 64),
+            null
+        );
+        byte[] signature = alice.signCallIdentityBinding("alice", 1, offer);
+
+        bob.verifyCallIdentityBinding(
+            "bob",
+            2,
+            "alice",
+            "alice-device",
+            1,
+            1,
+            aliceBootstrap.identityKey,
+            offer,
+            signature
+        );
+
+        PulseCallIdentityBinding changedFingerprint = callBinding(
+            "call-1",
+            "alice-device",
+            1,
+            "offer",
+            repeat('b', 64),
+            null
+        );
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> bob.verifyCallIdentityBinding(
+                "bob", 2, "alice", "alice-device", 1, 1,
+                aliceBootstrap.identityKey, changedFingerprint, signature
+            )
+        );
+
+        PulseCallIdentityBinding changedSession = callBinding(
+            "call-2",
+            "alice-device",
+            1,
+            "offer",
+            repeat('a', 64),
+            null
+        );
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> bob.verifyCallIdentityBinding(
+                "bob", 2, "alice", "alice-device", 1, 1,
+                aliceBootstrap.identityKey, changedSession, signature
+            )
+        );
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> bob.verifyCallIdentityBinding(
+                "bob", 2, "alice", "other-device", 1, 1,
+                aliceBootstrap.identityKey, offer, signature
+            )
+        );
+    }
+
+    @Test
+    public void rejectsCallIdentityThatHasNoExistingTrustedSignalSession() throws Exception {
+        PulseE2eeV2Provider alice = provider(new MemoryRecordStorage(), 111L);
+        PulseE2eeV2Provider bob = provider(new MemoryRecordStorage(), 112L);
+        PulseE2eeV2Provider.BootstrapResult aliceBootstrap = alice.bootstrapDevice("alice", 1, 1);
+        bob.bootstrapDevice("bob", 2, 1);
+        PulseCallIdentityBinding offer = callBinding(
+            "call-untrusted",
+            "alice-device",
+            1,
+            "offer",
+            repeat('c', 64),
+            null
+        );
+        byte[] signature = alice.signCallIdentityBinding("alice", 1, offer);
+
+        IllegalStateException error = assertThrows(
+            IllegalStateException.class,
+            () -> bob.verifyCallIdentityBinding(
+                "bob", 2, "alice", "alice-device", 1, 1,
+                aliceBootstrap.identityKey, offer, signature
+            )
+        );
+        assertEquals("e2ee_call_identity_untrusted", error.getMessage());
+    }
+
+    @Test
+    public void requiresAnswersToBindTheSignedOffer() {
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> callBinding(
+                "call-1", "bob-device", 2, "answer", repeat('d', 64), null
+            )
+        );
+        PulseCallIdentityBinding answer = callBinding(
+            "call-1",
+            "bob-device",
+            2,
+            "answer",
+            repeat('d', 64),
+            repeat('e', 64)
+        );
+        assertEquals("answer", answer.descriptionType);
+    }
+
+    private static PulseCallIdentityBinding callBinding(
+        String sessionId,
+        String senderDeviceId,
+        int senderSignalDeviceId,
+        String descriptionType,
+        String fingerprint,
+        String peerBindingHash
+    ) {
+        return new PulseCallIdentityBinding(
+            sessionId,
+            "alice",
+            "bob",
+            senderDeviceId,
+            senderSignalDeviceId,
+            1,
+            "video",
+            descriptionType,
+            fingerprint,
+            0,
+            "nonce-1",
+            peerBindingHash
+        );
+    }
+
+    private static String repeat(char value, int count) {
+        return String.valueOf(value).repeat(count);
     }
 
     private static PulseE2eeV2Provider provider(MemoryRecordStorage storage, long seed) {

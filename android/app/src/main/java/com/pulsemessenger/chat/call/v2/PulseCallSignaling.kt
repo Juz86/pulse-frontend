@@ -88,7 +88,30 @@ data class PulseRemoteDescriptionSignal(
     override val messageId: String,
     override val senderUid: String,
     val description: PulseSessionDescription,
+    val identity: PulseCallE2eeIdentityEnvelope? = null,
 ) : PulseRemoteMediaSignal
+
+data class PulseCallE2eeIdentityEnvelope(
+    val protocol: String,
+    val protocolVersion: Int,
+    val sessionId: String,
+    val callerUserId: String,
+    val calleeUserId: String,
+    val senderDeviceId: String,
+    val senderSignalDeviceId: Int,
+    val senderIdentityVersion: Int,
+    val mediaType: PulseCallMediaType,
+    val descriptionType: PulseSessionDescriptionType,
+    val dtlsFingerprintSha256: String,
+    val revision: Long,
+    val nonce: String,
+    val peerBindingHash: String,
+    val identityKey: String,
+    val signature: String,
+) {
+    override fun toString(): String =
+        "PulseCallE2eeIdentityEnvelope(protocol=$protocol, identity=<redacted>)"
+}
 
 data class PulseRemoteIceCandidateSignal(
     override val sessionId: String,
@@ -134,6 +157,7 @@ interface PulseCallSignalingGateway {
         sessionId: String,
         messageId: String,
         description: PulseSessionDescription,
+        identity: PulseCallE2eeIdentityEnvelope? = null,
     ): PulseSignalingResponse
 
     suspend fun sendIceCandidate(

@@ -24,6 +24,8 @@ final class PulseE2eeRecordKey {
         "signal_kyber_use",
         "signal_session",
         "signal_sender_key",
+        "group_sender_context",
+        "local_device_binding",
         "signal_index",
         "signal_metadata",
         "message_history",

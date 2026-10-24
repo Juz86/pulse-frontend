@@ -168,12 +168,13 @@ class RailwayCallSignalingClient internal constructor(
         sessionId: String,
         messageId: String,
         description: PulseSessionDescription,
+        identity: PulseCallE2eeIdentityEnvelope?,
     ): PulseSignalingResponse {
         require(sessionId.isNotBlank()) { "sessionId is required" }
         require(messageId.isNotBlank()) { "messageId is required" }
         return emitWithAcknowledgement(
             RailwayCallingV2Codec.EVENT_MEDIA,
-            RailwayCallingV2Codec.encodeDescription(sessionId, messageId, description),
+            RailwayCallingV2Codec.encodeDescription(sessionId, messageId, description, identity),
         )
     }
 

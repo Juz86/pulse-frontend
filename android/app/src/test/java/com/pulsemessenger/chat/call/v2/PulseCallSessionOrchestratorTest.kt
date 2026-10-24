@@ -941,6 +941,7 @@ class PulseCallSessionOrchestratorTest {
             sessionId: String,
             messageId: String,
             description: PulseSessionDescription,
+            identity: PulseCallE2eeIdentityEnvelope?,
         ) = PulseSignalingResponse(true, PulseSignalingStatus.RELAYED)
 
         override suspend fun sendIceCandidate(

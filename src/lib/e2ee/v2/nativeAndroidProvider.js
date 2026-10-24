@@ -27,6 +27,11 @@ export async function bootstrapNativeE2eeV2Device(options) {
   return PulseE2eeV2.bootstrapDevice(options);
 }
 
+export async function bindNativeE2eeV2LocalDeviceRegistration(options) {
+  requireAndroidProvider();
+  return PulseE2eeV2.bindLocalDeviceRegistration(options);
+}
+
 export async function encryptNativeE2eeV2Text(options) {
   requireAndroidProvider();
   return PulseE2eeV2.encryptText(options);
@@ -35,6 +40,41 @@ export async function encryptNativeE2eeV2Text(options) {
 export async function decryptNativeE2eeV2Text(options) {
   requireAndroidProvider();
   return PulseE2eeV2.decryptText(options);
+}
+
+export async function createNativeE2eeV2GroupSenderKeyDistribution(options) {
+  requireAndroidProvider();
+  return PulseE2eeV2.createGroupSenderKeyDistribution(options);
+}
+
+export async function processNativeE2eeV2GroupSenderKeyDistribution(options) {
+  requireAndroidProvider();
+  return PulseE2eeV2.processGroupSenderKeyDistribution(options);
+}
+
+export async function encryptNativeE2eeV2GroupText(options) {
+  requireAndroidProvider();
+  return PulseE2eeV2.encryptGroupText(options);
+}
+
+export async function decryptNativeE2eeV2GroupText(options) {
+  requireAndroidProvider();
+  return PulseE2eeV2.decryptGroupText(options);
+}
+
+export async function invalidateNativeE2eeV2GroupSenderKey(options) {
+  requireAndroidProvider();
+  return PulseE2eeV2.invalidateGroupSenderKey(options);
+}
+
+export async function signNativeE2eeV2CallIdentityBinding(options) {
+  requireAndroidProvider();
+  return PulseE2eeV2.signCallIdentityBinding(options);
+}
+
+export async function verifyNativeE2eeV2CallIdentityBinding(options) {
+  requireAndroidProvider();
+  return PulseE2eeV2.verifyCallIdentityBinding(options);
 }
 
 export async function listNativeE2eeV2SessionDevices(options) {

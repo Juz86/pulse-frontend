@@ -1,5 +1,6 @@
 import {
   bootstrapNativeE2eeV2Device,
+  bindNativeE2eeV2LocalDeviceRegistration,
   getNativeE2eeV2Status,
 } from './nativeAndroidProvider';
 import { v2ApiClient } from './v2ApiClient';
@@ -13,6 +14,7 @@ export async function registerAndroidE2eeV2Device({
   api = v2ApiClient,
   getStatus = getNativeE2eeV2Status,
   bootstrapDevice = bootstrapNativeE2eeV2Device,
+  bindLocalDeviceRegistration = bindNativeE2eeV2LocalDeviceRegistration,
 } = {}) {
   if (!user?.uid) throw new Error('v2_auth_required');
   if (!deviceId) throw new Error('v2_device_id_required');
@@ -38,6 +40,13 @@ export async function registerAndroidE2eeV2Device({
     signedPreKey: registration.signedPreKey,
     kyberPreKey: registration.kyberPreKey,
     oneTimePreKeys: registration.oneTimePreKeys,
+  });
+
+  await bindLocalDeviceRegistration({
+    userId: user.uid,
+    deviceId: result.deviceId,
+    signalDeviceId: registration.signalDeviceId,
+    identityVersion: result.identityVersion,
   });
 
   return {

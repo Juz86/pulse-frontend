@@ -248,7 +248,7 @@ correct is geconfigureerd en het account tot de cohort behoort. Deze controle
 vindt plaats vóór workerstart, Keystore-bootstrap en deviceregistratie. QA- en
 productiebindings zijn strikt gescheiden.
 
-Uitvoeringsstatus op 21 oktober 2026:
+Uitvoeringsstatus op 24 oktober 2026:
 
 - stappen 1 tot en met 4 zijn gebouwd en op twee fysieke Android-apparaten
   gevalideerd, inclusief offline herstel, multi-device, revoke en
@@ -270,7 +270,13 @@ Uitvoeringsstatus op 21 oktober 2026:
   open;
 - voor stap 6 is een strikt afgescheiden Android-only QA-pilot met een
   `v2_pending`-gesprek geslaagd. Dit is geen productiepilot en verandert de
-  browsergate of productievoorwaarden niet;
+  browsergate of productievoorwaarden niet. Daarnaast is versionCode 82 via
+  de interne Play-testtrack op twee fysieke Androidtoestellen tegen een exact
+  allowlisted productiebackendcohort getest. Versleutelde tekstberichten
+  slaagden in beide richtingen, inclusief per-device opslag, lokale decryptie
+  en acknowledgement. De serveropslag bevat geen plaintextveld. Deze
+  `internal_play_test` blijft expliciet onbeoordeeld en is geen toestemming
+  voor een openbare release;
 - stappen 7 tot en met 9 blijven geblokkeerd totdat de browserprovider en
   onafhankelijke securityreview zijn afgerond.
 

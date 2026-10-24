@@ -593,14 +593,14 @@ zonder herstel en bevestiging van bestaande ciphertext te blokkeren.
 De bijbehorende gestructureerde telemetrie bevat alleen een vaste
 operatienaam, statusklasse, HTTP-status, rolloutmodus en grove tijdsbucket. Ze
 accepteert geen identifiers, URL, ciphertext of berichtinhoud. De volledige
-backendtestset telt na deze stap 30 geslaagde suites en 207 geslaagde tests.
-De gate is op 23 oktober 2026 als backendcommit
-`38665cb986de58717c0d7364bf666e9c29bd5413` naar de Railway-productieservice
-gedeployed. De productieconfiguratie staat expliciet fail-closed op
-`E2EE_V2_ENABLED=false`, rolloutmodus `disabled`, uitgeschakelde pilot-sends en
-een uitgeschakelde webprovider. `/readyz` rapporteert daarom bewust
-`capabilities.e2eeV2: false`. De deployment activeert geen E2EE en vervangt het
-ontbrekende echte reviewbewijs niet.
+backendtestset telt na de interne Play-proef 30 geslaagde suites en 211
+geslaagde tests. De gate is op 24 oktober 2026 als backendcommit
+`8fc177fec68716c98d5f350b1587b3fb0200a9ec` naar de Railway-productieservice
+gedeployed. Voor de uitsluitend interne Play-test staat de configuratie op
+`internal_play_test`, begrensd tot twee gebruikers en een gesprek. De
+webprovider blijft uitgeschakeld. Deze expliciet als onbeoordeeld gemarkeerde
+modus vervangt het ontbrekende onafhankelijke reviewbewijs niet en kan niet als
+reguliere productiepilot worden gebruikt.
 
 De productieclient controleert vóór iedere native of browserbootstrap de
 geauthenticeerde `/v2/pilot/status`-response. Alleen `enabled: true` plus
@@ -623,9 +623,12 @@ een debugbuild met `pulseE2eeQa=true` of een releasebuild met
 geschiedenismethoden weigeren andere builds. `npm run android:build:e2ee-pilot`
 bouwt de release-assets met de productiepilotflags, maar controleert eerst het
 onafhankelijke review-attestation en vereist een
-`PULSE_NATIVE_UPDATE_PUBLIC_KEY`. De poort is getest en stopt momenteel correct
-omdat `review-attestation.json` nog ontbreekt; er is dus geen nieuwe pilot-AAB
-gemaakt.
+`PULSE_NATIVE_UPDATE_PUBLIC_KEY`. De reguliere productiepoort blijft correct
+blokkeren zolang `review-attestation.json` ontbreekt. Voor functionele tests is
+daarnaast een afzonderlijk gemarkeerde interne Play-build gemaakt: versie
+`1.0.26-internal-e2ee`, versionCode `82`. Deze build gebruikt de ingebedde
+runtime, kan alleen tegen de server-side `internal_play_test`-allowlist werken
+en mag niet naar een openbare Play-track worden gepromoveerd.
 
 Het native-update-sleutelpaar is op 23 oktober 2026 geroteerd. De private
 P-256-sleutel is rechtstreeks als afgeschermd Cloudflare Pages-secret
@@ -681,7 +684,16 @@ identity-change op een bestaand device is eveneens fail-closed verwerkt en na
 sessievernieuwing in beide richtingen gevalideerd. De eerste begrensde interne
 Android-only `v2_pending`-pilot is eveneens geslaagd. De live
 browser-Android-baseline, identity-change, device-revoke, stop/herstartherstel
-en negatieve browserprovidervectors zijn nu bewezen. Alleen het onafhankelijke
-securityreviewbewijs ontbreekt nog; een productiepilot blijft daarom
-geblokkeerd. De huidige mock-serviceflow mag nog steeds niet als E2EE worden
-geactiveerd.
+en negatieve browserprovidervectors zijn nu bewezen. Op 24 oktober 2026 is ook
+versionCode 82 via de interne Play-testtrack op twee fysieke Androidtoestellen
+gevalideerd met de productie-Railwayservice en een enkel allowlisted
+`v2_pending`-gesprek. Berichten slaagden in beide richtingen met HTTP `201`,
+lokale decryptie en acknowledgement. Firestore bevat voor beide berichten geen
+plaintextveld, alleen de generieke servertekst `Versleuteld bericht` en aparte
+ciphertextenveloppen per actief v2-device. Tijdens de proef is hersteld dat
+oude actieve `signal_v1`-bindings v2-prekeyclaims en v2-fan-out ten onrechte
+blokkeerden; ze worden nu buiten de autoritatieve v2-doelset gehouden, terwijl
+een account zonder actief v2-device nog steeds fail-closed wordt geweigerd.
+Alleen het onafhankelijke securityreviewbewijs ontbreekt nog; een reguliere of
+openbare productiepilot blijft daarom geblokkeerd. De bestaande mock-
+serviceflow mag nog steeds niet als E2EE worden gepresenteerd.

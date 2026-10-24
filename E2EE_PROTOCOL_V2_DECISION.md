@@ -222,9 +222,13 @@ membership-hash, actuele epoch, senderdevicebinding en exacte device-fan-out.
 Iedere lidmaatschapswijziging blokkeert distributie totdat een nieuwe epoch en
 nieuwe distributies zijn vastgelegd. De backend slaat distributie-enveloppen nu
 transactioneel per doeldevice op en markeert ze pas gereed nadat alle devices
-ontvangst hebben bevestigd. Deze routes staan standaard uit. Automatische
-epochrotatie bij groepsmutaties, groepsberichtopslag en clientorchestratie
-blijven vereist voordat runtimeactivatie is toegestaan.
+ontvangst hebben bevestigd. Deze routes staan standaard uit. Nieuwe groepen
+beginnen op epoch 1 en iedere effectieve lidmaatschapsmutatie roteert epoch en
+membership-hash atomisch. Ook groepsberichtopslag, een inhoudsloze pending-feed,
+devicegebonden ciphertext-ophalen en idempotente acknowledgement zijn
+transactioneel gebouwd. Verzenden vereist een volledig bevestigde distributie
+voor exact de actuele actieve doeldevices. Clientorchestratie en live
+apparaatproeven blijven vereist voordat runtimeactivatie is toegestaan.
 
 ## Audio en video
 
@@ -321,8 +325,10 @@ Uitvoeringsstatus op 24 oktober 2026:
   Keys-kern, het strikte groepswirecontract en de backendpolicy voor
   membership, epochs en exact device-fan-out zijn lokaal gebouwd en negatief
   getest. Transactionele sender-key-distributie, offline-feed en per-device-
-  acknowledgement zijn eveneens lokaal gebouwd achter een standaard-uit-gate;
-  epochmutaties, groepsberichtopslag en UI-orchestratie blijven open. Voor
+  acknowledgement zijn eveneens lokaal gebouwd achter een standaard-uit-gate.
+  Groepscreatie en effectieve lidmutaties initialiseren of roteren de epoch nu
+  atomisch; ook ciphertextopslag, pending-feed en message-acknowledgement zijn
+  gebouwd. Client- en UI-orchestratie en live apparaatproeven blijven open. Voor
   een-op-een calls zijn backendautorisatie en native
   signalingkoppeling lokaal fail-closed gebouwd, maar live interoperabiliteit,
   review en een nieuwe AAB blijven open. VersionCode 82 bevat deze wijzigingen

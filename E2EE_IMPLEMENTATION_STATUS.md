@@ -698,9 +698,8 @@ ongeldig bewijs faalt gesloten; een reeds verwerkte ondertekende binding wordt
 als replay geweigerd voordat een tweede SDP-apply plaatsvindt. Zowel de backendgate
 `PULSE_CALLING_V2_E2EE_REQUIRED` als de Android-buildgate
 `pulseCallE2ee` staat standaard uit; productie accepteert daardoor nog kaal SDP.
-Voor groepen zijn autoritatieve member/device-fan-out, epochrotatie,
-delivery/acknowledgement en UI-orchestratie nog nodig. De backend heeft nu wel
-een geisoleerde, standaard-uitgeschakelde beleidslaag die het actuele
+Voor groepen ontbreekt nog de client- en UI-orchestratie. De backend heeft een
+geisoleerde, standaard-uitgeschakelde beleidslaag die het actuele
 lidmaatschap hasht, de epoch controleert, de senderdevicebinding valideert en
 exacte fan-out naar alle andere actieve v2-devices afdwingt. Een
 lidmaatschapswijziging blokkeert distributie totdat de epoch is geroteerd, en
@@ -709,10 +708,14 @@ hash. Sender-key-distributies worden nu transactioneel als afzonderlijke
 ciphertext per doeldevice opgeslagen. De standaard-uitgeschakelde routes bieden
 een inhoudsloze offline-feed, devicegebonden ophalen en idempotente
 acknowledgement; de distributie wordt pas `ready` nadat ieder vereist device
-lokale ontvangst heeft bevestigd. Epochinitialisatie en -rotatie bij de
-bestaande groepsmutaties, opslag van het eigenlijke groepsbericht en
-UI-orchestratie zijn nog niet aangesloten. Daarna volgen twee-device-
-liveproeven, review en een nieuwe AAB. VersionCode 82 bevat deze uitbreiding
+lokale ontvangst heeft bevestigd. Nieuwe groepen krijgen atomisch epoch 1;
+leden toevoegen of verwijderen roteert de epoch en membership-hash in dezelfde
+Firestore-transactie. Een groepsbericht wordt pas opgeslagen wanneer de
+distributie voor exact alle actuele doeldevices gereed is. De backend bewaart
+alleen de Sender Keys-ciphertext en generieke metadata, biedt een inhoudsloze
+offline-feed en verwerkt acknowledgement per device idempotent. Deze routes
+staan eveneens standaard uit. Clientorchestratie, twee-device-liveproeven,
+review en een nieuwe AAB blijven open. VersionCode 82 bevat deze uitbreiding
 niet.
 
 Frontend en backend zijn inmiddels zonder GitHub-authenticatie publiek

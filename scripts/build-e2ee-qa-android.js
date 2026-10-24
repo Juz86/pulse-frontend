@@ -1,10 +1,11 @@
-const { copyFileSync } = require('fs');
+const { copyFileSync, mkdirSync } = require('fs');
 const { spawnSync } = require('child_process');
 const path = require('path');
 
 const projectRoot = path.resolve(__dirname, '..');
 const backendUrl = String(process.env.PULSE_E2EE_QA_BACKEND_URL || '').replace(/\/+$/, '');
 const qaInstance = String(process.env.PULSE_E2EE_QA_INSTANCE || 'a').toLowerCase();
+const groupsEnabled = String(process.env.PULSE_E2EE_QA_GROUPS || '').toLowerCase() === 'true';
 const QA_FIREBASE_CONFIG = Object.freeze({
   apiKey: 'AIzaSyD832WLALBNkGglRGtA_NpmqEofsuyeoJo',
   authDomain: 'pulse-messenger-e2ee-qa.firebaseapp.com',
@@ -46,6 +47,7 @@ const qaEnvironment = {
   REACT_APP_E2EE_MODE: 'signal',
   REACT_APP_E2EE_TRANSPORT: 'v2',
   REACT_APP_E2EE_V2_QA_ENABLED: 'true',
+  REACT_APP_E2EE_V2_GROUPS_ENABLED: groupsEnabled ? 'true' : 'false',
   REACT_APP_E2EE_V2_QA_BACKEND_URL: backendUrl,
   REACT_APP_API_URL: backendUrl,
   REACT_APP_BACKEND_URL: backendUrl,
@@ -77,9 +79,8 @@ run('./gradlew', [
 });
 
 const defaultApk = path.join(projectRoot, 'android/app/build/outputs/apk/debug/app-debug.apk');
-const namedApk = path.join(
-  projectRoot,
-  `android/app/build/outputs/apk/debug/app-e2ee-qa-${qaInstance}-debug.apk`,
-);
+const artifactDirectory = path.join(projectRoot, 'artifacts/e2ee-qa');
+const namedApk = path.join(artifactDirectory, `pulse-e2ee-qa-${qaInstance}-debug.apk`);
+mkdirSync(artifactDirectory, { recursive: true });
 copyFileSync(defaultApk, namedApk);
 console.log(`E2EE QA-APK: ${path.relative(projectRoot, namedApk)}`);

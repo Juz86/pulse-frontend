@@ -13,3 +13,6 @@ firestore-debug.log
 
 # Google Play upload artifacts are generated locally and must not enter Git.
 pulse-versionCode-*.aab
+
+# Local QA install artifacts are reproducible and must not enter Git.
+artifacts/e2ee-qa/

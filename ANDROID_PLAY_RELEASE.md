@@ -92,12 +92,16 @@ For the explicitly unreviewed E2EE evaluation build, use:
 npm run android:build:e2ee-internal-play
 ```
 
-This produces the same-package `versionCode 81` build named
-`1.0.25-internal-e2ee`. It enables the E2EE runtime but does not claim an
+This produces the same-package `versionCode 82` build named
+`1.0.26-internal-e2ee`. It enables the E2EE runtime but does not claim an
 independent review. Upload it only to **Internal testing**. Do not promote this
 artifact to closed, open, or production tracks. A later production candidate
 must be rebuilt through `android:build:e2ee-pilot`, including the independent
 review and release-distribution gates.
+
+The internal build always starts from its embedded web assets and disables
+signed web updates. This prevents an older production web bundle retained from
+versionCode 81 or earlier from silently disabling the E2EE test runtime.
 
 - App details:
   - App name

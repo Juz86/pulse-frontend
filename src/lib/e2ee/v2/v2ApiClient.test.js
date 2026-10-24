@@ -123,6 +123,22 @@ describe('E2EE v2 API client', () => {
     });
   });
 
+  test('accepts bounded internal Play test enrollment', async () => {
+    fetchImpl.mockResolvedValue(response({
+      enabled: true,
+      enrolled: true,
+      mode: 'internal_play_test',
+      sendingEnabled: false,
+    }));
+
+    await expect(client.getPilotStatus(USER)).resolves.toEqual({
+      enabled: true,
+      enrolled: true,
+      mode: 'internal_play_test',
+      sendingEnabled: false,
+    });
+  });
+
   test('claims and validates recipient bundles', async () => {
     fetchImpl.mockResolvedValue(response(claim()));
 

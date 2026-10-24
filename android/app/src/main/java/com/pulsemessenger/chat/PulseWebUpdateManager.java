@@ -44,11 +44,16 @@ final class PulseWebUpdateManager {
     private PulseWebUpdateManager() {}
 
     static boolean isEnabled() {
-        return BuildConfig.PULSE_NATIVE_UPDATE_PUBLIC_KEY != null
+        return !BuildConfig.PULSE_E2EE_INTERNAL_PLAY_TEST
+            && BuildConfig.PULSE_NATIVE_UPDATE_PUBLIC_KEY != null
             && !BuildConfig.PULSE_NATIVE_UPDATE_PUBLIC_KEY.trim().isEmpty();
     }
 
     static synchronized void prepareForAppStart(Context context) {
+        if (BuildConfig.PULSE_E2EE_INTERNAL_PLAY_TEST) {
+            resetToBundledAssets(context);
+            return;
+        }
         if (!isEnabled()) return;
         SharedPreferences prefs = prefs(context);
         String pendingPath = prefs.getString(PENDING_PATH, "");
@@ -69,6 +74,12 @@ final class PulseWebUpdateManager {
             .remove(STAGED_VERSION)
             .apply();
         setCapacitorPath(context, stagedPath);
+    }
+
+    private static void resetToBundledAssets(Context context) {
+        setCapacitorPath(context, "");
+        prefs(context).edit().clear().apply();
+        deleteTree(new File(context.getFilesDir(), UPDATE_DIR));
     }
 
     static synchronized void markHealthy(Context context) {

@@ -63,8 +63,8 @@ android {
         versionCode 80
         versionName "1.0.24"
         if (pulseE2eeInternalPlayTest) {
-            versionCode 81
-            versionName "1.0.25-internal-e2ee"
+            versionCode 82
+            versionName "1.0.26-internal-e2ee"
         }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Public half of the signing key only. The private key is a Cloudflare

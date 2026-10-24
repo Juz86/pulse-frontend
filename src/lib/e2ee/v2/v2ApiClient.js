@@ -81,7 +81,7 @@ export function createV2ApiClient({
         typeof payload?.enabled !== 'boolean'
         || typeof payload?.enrolled !== 'boolean'
         || typeof payload?.sendingEnabled !== 'boolean'
-        || !['qa', 'pilot'].includes(payload?.mode)
+        || !['qa', 'internal_play_test', 'pilot'].includes(payload?.mode)
       ) {
         throw new V2ApiError('v2_pilot_status_invalid');
       }

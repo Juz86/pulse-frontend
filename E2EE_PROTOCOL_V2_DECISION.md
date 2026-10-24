@@ -220,7 +220,10 @@ niet aan backendroutes of de chatinterface gekoppeld en is dus geen actieve
 groeps-E2EE. De geisoleerde backendpolicy valideert inmiddels de autoritatieve
 membership-hash, actuele epoch, senderdevicebinding en exacte device-fan-out.
 Iedere lidmaatschapswijziging blokkeert distributie totdat een nieuwe epoch en
-nieuwe distributies zijn vastgelegd. Transactionele opslag en acknowledgements
+nieuwe distributies zijn vastgelegd. De backend slaat distributie-enveloppen nu
+transactioneel per doeldevice op en markeert ze pas gereed nadat alle devices
+ontvangst hebben bevestigd. Deze routes staan standaard uit. Automatische
+epochrotatie bij groepsmutaties, groepsberichtopslag en clientorchestratie
 blijven vereist voordat runtimeactivatie is toegestaan.
 
 ## Audio en video
@@ -317,8 +320,10 @@ Uitvoeringsstatus op 24 oktober 2026:
 - groepschat en oproepen zijn afzonderlijke vervolgfases. De Android Sender
   Keys-kern, het strikte groepswirecontract en de backendpolicy voor
   membership, epochs en exact device-fan-out zijn lokaal gebouwd en negatief
-  getest; transactionele routes, acknowledgement en UI-orchestratie blijven
-  open. Voor een-op-een calls zijn backendautorisatie en native
+  getest. Transactionele sender-key-distributie, offline-feed en per-device-
+  acknowledgement zijn eveneens lokaal gebouwd achter een standaard-uit-gate;
+  epochmutaties, groepsberichtopslag en UI-orchestratie blijven open. Voor
+  een-op-een calls zijn backendautorisatie en native
   signalingkoppeling lokaal fail-closed gebouwd, maar live interoperabiliteit,
   review en een nieuwe AAB blijven open. VersionCode 82 bevat deze wijzigingen
   niet.

@@ -705,9 +705,15 @@ lidmaatschap hasht, de epoch controleert, de senderdevicebinding valideert en
 exacte fan-out naar alle andere actieve v2-devices afdwingt. Een
 lidmaatschapswijziging blokkeert distributie totdat de epoch is geroteerd, en
 een groepsbericht vereist een actieve distributie voor dezelfde membership-
-hash. Transactionele opslag, routes en acknowledgements zijn nog niet
-aangesloten. Daarna volgen twee-device-liveproeven, review en een nieuwe AAB.
-VersionCode 82 bevat deze uitbreiding niet.
+hash. Sender-key-distributies worden nu transactioneel als afzonderlijke
+ciphertext per doeldevice opgeslagen. De standaard-uitgeschakelde routes bieden
+een inhoudsloze offline-feed, devicegebonden ophalen en idempotente
+acknowledgement; de distributie wordt pas `ready` nadat ieder vereist device
+lokale ontvangst heeft bevestigd. Epochinitialisatie en -rotatie bij de
+bestaande groepsmutaties, opslag van het eigenlijke groepsbericht en
+UI-orchestratie zijn nog niet aangesloten. Daarna volgen twee-device-
+liveproeven, review en een nieuwe AAB. VersionCode 82 bevat deze uitbreiding
+niet.
 
 Frontend en backend zijn inmiddels zonder GitHub-authenticatie publiek
 leesbaar en beide zijn expliciet als `AGPL-3.0-only` gelicentieerd. De

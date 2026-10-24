@@ -215,9 +215,10 @@ oktober 2026 een geisoleerde Android Sender Keys-kern toegevoegd. Distributies
 worden uitsluitend via bestaande pairwise Signal-sessies ontworpen, iedere
 sender key is gebonden aan groep, epoch, afzender en Signal-device, en replay of
 een verwisselde groep/epoch wordt fail-closed geweigerd. Het wirecontract eist
-precies één versleutelde distributie per actief doeldevice. Deze kern is nog
-niet aan backendroutes of de chatinterface gekoppeld en is dus geen actieve
-groeps-E2EE. De geisoleerde backendpolicy valideert inmiddels de autoritatieve
+precies één versleutelde distributie per actief doeldevice. De kern is aan
+standaard-uitgeschakelde backendroutes en een afzonderlijk gegate Android-
+chatruntime gekoppeld, maar is zonder live apparaatvalidatie en vrijgave nog
+geen actieve groeps-E2EE. De geisoleerde backendpolicy valideert de autoritatieve
 membership-hash, actuele epoch, senderdevicebinding en exacte device-fan-out.
 Iedere lidmaatschapswijziging blokkeert distributie totdat een nieuwe epoch en
 nieuwe distributies zijn vastgelegd. De backend slaat distributie-enveloppen nu
@@ -228,10 +229,11 @@ membership-hash atomisch. Ook groepsberichtopslag, een inhoudsloze pending-feed,
 devicegebonden ciphertext-ophalen en idempotente acknowledgement zijn
 transactioneel gebouwd. Verzenden vereist een volledig bevestigde distributie
 voor exact de actuele actieve doeldevices. De geisoleerde Android-
-clientorchestrator bouwt en verwerkt distributies en groepsberichten inmiddels
-met acknowledgement pas na lokale libsignal-commit. Chatruntime- en UI-
-koppeling en live apparaatproeven blijven vereist voordat runtimeactivatie is
-toegestaan.
+clientorchestrator bouwt en verwerkt distributies en groepsberichten met
+acknowledgement pas na lokale libsignal-commit. De Android-chatruntime verwerkt
+realtime-events en offline herstel achter `REACT_APP_E2EE_V2_GROUPS_ENABLED`;
+live apparaatproeven en gecontroleerde vrijgave blijven vereist voordat
+runtimeactivatie is toegestaan.
 
 ## Audio en video
 
@@ -331,9 +333,9 @@ Uitvoeringsstatus op 24 oktober 2026:
   acknowledgement zijn eveneens lokaal gebouwd achter een standaard-uit-gate.
   Groepscreatie en effectieve lidmutaties initialiseren of roteren de epoch nu
   atomisch; ook ciphertextopslag, pending-feed en message-acknowledgement zijn
-  gebouwd. De geisoleerde Android-clientorchestrator is eveneens getest;
-  chatruntime- en UI-koppeling en live apparaatproeven blijven open. Voor
-  een-op-een calls zijn backendautorisatie en native
+  gebouwd. De geisoleerde Android-clientorchestrator is eveneens getest en de
+  gegate Android-chatruntime is aangesloten; live apparaatproeven blijven open.
+  Voor een-op-een calls zijn backendautorisatie en native
   signalingkoppeling lokaal fail-closed gebouwd, maar live interoperabiliteit,
   review en een nieuwe AAB blijven open. VersionCode 82 bevat deze wijzigingen
   niet.
@@ -343,8 +345,8 @@ Stap 1 is uitgevoerd in:
 - [src/lib/e2ee/v2/protocolV2Contract.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/protocolV2Contract.js)
 - [src/lib/e2ee/v2/protocolV2Contract.test.js](/home/yushuaabdulkadir/pulse-frontend/src/lib/e2ee/v2/protocolV2Contract.test.js)
 
-Deze modules zijn bewust nog niet aan runtime, backendroutes of featureflags
-gekoppeld.
+Deze contracten worden door de gegate v2-clients en backendroutes afgedwongen;
+de productieactivatie blijft afzonderlijk gesloten.
 
 Stap 2 is als geisoleerde backendlaag uitgevoerd in:
 

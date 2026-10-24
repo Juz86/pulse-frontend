@@ -30,6 +30,19 @@ const MESSAGE_EVENT = {
   conversationId: 'conversation-1',
   messageId: 'message-1',
 };
+const GROUP_DISTRIBUTION_EVENT = {
+  protocol: 'pulse_group_e2ee_v1',
+  protocolVersion: 1,
+  conversationId: 'group-1',
+  epoch: 2,
+  distributionId: '11111111-1111-4111-8111-111111111111',
+};
+const GROUP_MESSAGE_EVENT = {
+  protocol: 'pulse_group_e2ee_v1',
+  protocolVersion: 1,
+  conversationId: 'group-1',
+  messageId: '22222222-2222-4222-8222-222222222222',
+};
 
 function flushQueue() {
   return new Promise((resolve) => setTimeout(resolve, 0));
@@ -144,5 +157,36 @@ describe('Android E2EE v2 socket lifecycle', () => {
       expect.objectContaining({ requiresRegistration: true }),
       SECURITY_EVENT,
     );
+  });
+
+  test('serializes and deduplicates group distribution and message events', async () => {
+    const socket = createSocket();
+    const calls = [];
+    const receiveGroupDistribution = jest.fn(async () => calls.push('distribution'));
+    const receiveGroupMessage = jest.fn(async () => {
+      calls.push('message');
+      return { plaintext: 'Hallo groep' };
+    });
+    const onGroupMessage = jest.fn();
+
+    const detach = attachAndroidE2eeV2SocketLifecycle({
+      socket,
+      user: { uid: 'user-a' },
+      localDeviceId: 'device-a1',
+      localSignalDeviceId: 1,
+      receiveGroupDistribution,
+      receiveGroupMessage,
+      onGroupMessage,
+    });
+    socket.emitIncoming('e2ee:group:distribution-available', GROUP_DISTRIBUTION_EVENT);
+    socket.emitIncoming('e2ee:group:distribution-available', GROUP_DISTRIBUTION_EVENT);
+    socket.emitIncoming('e2ee:group:message-available', GROUP_MESSAGE_EVENT);
+    socket.emitIncoming('e2ee:group:message-available', GROUP_MESSAGE_EVENT);
+    await flushQueue();
+
+    expect(calls).toEqual(['distribution', 'message']);
+    expect(onGroupMessage).toHaveBeenCalledWith({ plaintext: 'Hallo groep' });
+    detach();
+    expect(socket.handlers.size).toBe(0);
   });
 });

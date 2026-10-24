@@ -11,6 +11,8 @@ function createStorage() {
     getItem: jest.fn((key) => values.get(key) || null),
     setItem: jest.fn((key, value) => values.set(key, value)),
     removeItem: jest.fn((key) => values.delete(key)),
+    key: jest.fn((index) => [...values.keys()][index] || null),
+    get length() { return values.size; },
   };
 }
 
@@ -72,11 +74,14 @@ describe('Android E2EE v2 QA runtime', () => {
       assertConfiguration: jest.fn(),
     });
 
+    storage.setItem('pulse_e2ee_v2_qa_group_user-a_group-1_2', 'distribution-id');
+
     expect(runtime.invalidateLocalDevice({ reason: 'device_revoked' })).toEqual({
       invalidated: true,
       reason: 'device_revoked',
     });
     expect(readAndroidE2eeV2QaBinding('user-a', storage)).toBeNull();
+    expect(storage.getItem('pulse_e2ee_v2_qa_group_user-a_group-1_2')).toBeNull();
     expect(bindSocketDevice).toHaveBeenLastCalledWith(null);
   });
 
@@ -343,5 +348,99 @@ describe('Android E2EE v2 QA runtime', () => {
       messageId: 'message-sent',
       plaintext: 'uitgaand bericht',
     }));
+  });
+
+  test('prepares, sends and catches up a group epoch through the isolated runtime', async () => {
+    const storage = createStorage();
+    storage.setItem('pulse_e2ee_v2_qa_binding_user-a', JSON.stringify({
+      deviceId: 'qa-device-a', signalDeviceId: 1, identityVersion: 2,
+    }));
+    const ids = [
+      '11111111-1111-4111-8111-111111111111',
+      '22222222-2222-4222-8222-222222222222',
+      '33333333-3333-4333-8333-333333333333',
+      '44444444-4444-4444-8444-444444444444',
+      '55555555-5555-4555-8555-555555555555',
+    ];
+    const distributionId = ids[3];
+    const messageId = ids[4];
+    const device = (deviceId, signalDeviceId) => ({
+      deviceId, signalDeviceId, identityVersion: 1, registrationId: 40,
+      identityKey: 'AQIDBA==',
+      signedPreKey: { keyId: 1, publicKey: 'AQIDBA==', signature: 'AQIDBA==' },
+      kyberPreKey: { keyId: 2, publicKey: 'AQIDBA==', signature: 'AQIDBA==' },
+      oneTimePreKey: { keyId: 3, publicKey: 'AQIDBA==' },
+    });
+    const api = {
+      claimRecipientBundles: jest.fn(({ uid }, { recipientUserId }) => Promise.resolve({
+        recipientUserId,
+        devices: [device(`device-${recipientUserId}`, recipientUserId === 'user-b' ? 2 : 3)],
+      })),
+      claimOwnDeviceBundles: jest.fn().mockResolvedValue({
+        recipientUserId: 'user-a', devices: [],
+      }),
+      listGroupDistributions: jest.fn().mockResolvedValue([{
+        conversationId: 'group-1', epoch: 3, distributionId,
+      }]),
+      listGroupMessages: jest.fn().mockResolvedValue([{
+        conversationId: 'group-1', messageId,
+      }]),
+    };
+    const distributeGroupKey = jest.fn().mockResolvedValue({ ok: true });
+    const sendGroupMessage = jest.fn().mockResolvedValue({
+      messageId, clientMessageId: messageId,
+    });
+    const receiveGroupKey = jest.fn().mockResolvedValue({ processed: true });
+    const receiveGroupMessage = jest.fn().mockImplementation(async ({ commitPlaintext }) => {
+      const message = {
+        conversationId: 'group-1', messageId, senderUserId: 'user-b',
+        senderDeviceId: 'device-user-b', messageType: 'text', plaintext: 'groep',
+      };
+      await commitPlaintext(message);
+      return message;
+    });
+    const storeMessage = jest.fn().mockResolvedValue({ stored: true });
+    const runtime = await startAndroidE2eeV2QaRuntime({
+      user: { uid: 'user-a' },
+      backendUrl: 'https://e2ee-qa.example.test',
+      runtimeBackendUrl: 'https://e2ee-qa.example.test',
+      api,
+      storage,
+      randomUuid: () => ids.shift(),
+      bindSocketDevice: jest.fn(),
+      assertConfiguration: jest.fn(),
+      distributeGroupKey,
+      sendGroupMessage,
+      receiveGroupKey,
+      receiveGroupMessage,
+      storeMessage,
+      listStoredMessages: jest.fn().mockResolvedValue([]),
+    });
+
+    const prepared = await runtime.prepareGroupEpoch({
+      conversationId: 'group-1', epoch: 3, memberUserIds: ['user-a', 'user-b', 'user-c'],
+    });
+    expect(prepared.reused).toBe(false);
+    expect(distributeGroupKey).toHaveBeenCalledWith(expect.objectContaining({
+      localIdentityVersion: 2,
+      recipientTargets: expect.arrayContaining([
+        expect.objectContaining({ userId: 'user-b', deviceId: 'device-user-b' }),
+        expect.objectContaining({ userId: 'user-c', deviceId: 'device-user-c' }),
+      ]),
+    }));
+
+    await runtime.sendGroupText({
+      conversationId: 'group-1', epoch: 3, plaintext: 'uitgaand', clientMessageId: messageId,
+    });
+    expect(sendGroupMessage).toHaveBeenCalledWith(expect.objectContaining({
+      distributionId: prepared.distributionId,
+      plaintext: 'uitgaand',
+    }));
+
+    await expect(runtime.fetchGroupMessages({ conversationId: 'group-1', epoch: 3 }))
+      .resolves.toEqual([expect.objectContaining({ plaintext: 'groep' })]);
+    expect(receiveGroupKey.mock.invocationCallOrder[0])
+      .toBeLessThan(receiveGroupMessage.mock.invocationCallOrder[0]);
+    expect(storeMessage).toHaveBeenCalledWith(expect.objectContaining({ plaintext: 'groep' }));
   });
 });

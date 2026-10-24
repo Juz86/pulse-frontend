@@ -13,6 +13,7 @@ import { normalizeSingleUserReaction } from '../lib/e2ee/messageReactions';
 import { isRealtimePopupRelevant } from './useRealtimeSync';
 import { attachAndroidE2eeV2SocketLifecycle } from '../lib/e2ee/v2/androidSocketLifecycle';
 import { PULSE_E2EE_V2_PROTOCOL } from '../lib/e2ee/v2/protocolV2Contract';
+import { PULSE_GROUP_E2EE_PROTOCOL } from '../lib/e2ee/group/groupProtocolContract';
 
 const PRIVATE_NOTIFICATION_BODY = 'Open Pulse om het bericht veilig te bekijken.';
 const PRIVATE_REQUEST_NOTIFICATION_BODY = 'Open Pulse om de uitnodiging te bekijken.';
@@ -632,6 +633,10 @@ export default function useChat({
         localDeviceId: e2eeV2QaRuntime.localDeviceId,
         localSignalDeviceId: e2eeV2QaRuntime.localSignalDeviceId,
         receiveMessage: e2eeV2QaRuntime.receiveTextMessage,
+        ...(e2eeV2QaRuntime.groupsEnabled ? {
+          receiveGroupDistribution: e2eeV2QaRuntime.receiveGroupDistribution,
+          receiveGroupMessage: e2eeV2QaRuntime.receiveGroupMessage,
+        } : {}),
         ...(e2eeV2QaRuntime.handleSecurityEvent
           ? { handleSecurityEvent: e2eeV2QaRuntime.handleSecurityEvent }
           : {}),
@@ -648,6 +653,21 @@ export default function useChat({
           ciphertextAvailable: true,
           transient: true,
         }),
+        ...(e2eeV2QaRuntime.groupsEnabled ? {
+          onGroupMessage: (message) => onMessageReceived({
+            ...message,
+            id: message.messageId,
+            localId: message.clientMessageId,
+            convId: message.conversationId,
+            senderId: message.senderUserId,
+            text: message.plaintext,
+            type: message.messageType,
+            protocol: PULSE_GROUP_E2EE_PROTOCOL,
+            decryptedLocally: true,
+            ciphertextAvailable: true,
+            transient: true,
+          }),
+        } : {}),
         onLocalDeviceInvalidated: (result) => {
           e2eeV2QaRuntime.invalidateLocalDevice(result);
           msgCache.current = {};
@@ -673,13 +693,20 @@ export default function useChat({
       let lastResumeSyncAt = 0;
       const syncActiveE2eeConversation = () => {
         if (document.visibilityState !== 'visible') return;
-        const conversationId = activeConvRef.current?.id;
+        const activeConversation = activeConvRef.current;
+        const conversationId = activeConversation?.id;
         if (!conversationId) return;
         const now = Date.now();
         if (now - lastResumeSyncAt < 1000) return;
         lastResumeSyncAt = now;
 
-        e2eeV2QaRuntime.fetchTextMessages({ conversationId })
+        const fetchMessages = activeConversation.isGroup && e2eeV2QaRuntime.groupsEnabled
+          ? e2eeV2QaRuntime.fetchGroupMessages({
+            conversationId,
+            epoch: Number(activeConversation.e2eeGroupEpoch),
+          })
+          : e2eeV2QaRuntime.fetchTextMessages({ conversationId });
+        fetchMessages
           .then((receivedMessages) => {
             const visibleMessageIds = new Set(
               (messagesRef.current || []).map((message) => message?.id).filter(Boolean)
@@ -694,7 +721,9 @@ export default function useChat({
                 senderId: message.senderUserId,
                 text: message.plaintext,
                 type: message.messageType,
-                protocol: PULSE_E2EE_V2_PROTOCOL,
+                protocol: activeConversation.isGroup
+                  ? PULSE_GROUP_E2EE_PROTOCOL
+                  : PULSE_E2EE_V2_PROTOCOL,
                 decryptedLocally: true,
                 ciphertextAvailable: true,
                 transient: true,
@@ -764,6 +793,7 @@ export default function useChat({
     e2eeV2QaRuntime?.ready,
     e2eeV2QaRuntime?.localDeviceId,
     e2eeV2QaRuntime?.localSignalDeviceId,
+    e2eeV2QaRuntime?.groupsEnabled,
   ]);
   /* eslint-enable react-hooks/exhaustive-deps */
 

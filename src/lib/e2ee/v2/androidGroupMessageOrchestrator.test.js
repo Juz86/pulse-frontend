@@ -108,6 +108,33 @@ describe('Android group E2EE orchestrator', () => {
     }));
   });
 
+  test('retries the same ciphertext while recipient devices confirm the distribution', async () => {
+    const pending = Object.assign(new Error('pending'), {
+      code: 'group_e2ee_distribution_required',
+    });
+    const api = {
+      sendGroupMessage: jest.fn()
+        .mockRejectedValueOnce(pending)
+        .mockResolvedValueOnce({ messageId: MESSAGE_ID }),
+    };
+    const encryptGroupText = jest.fn().mockResolvedValue({
+      epoch: 4, distributionId: DISTRIBUTION_ID, ciphertext: 'Y2lwaGVydGV4dA==',
+    });
+    const wait = jest.fn().mockResolvedValue(undefined);
+
+    await sendAndroidGroupText({
+      user: USER, localDeviceId: 'device-a1', localSignalDeviceId: 1,
+      localIdentityVersion: 1, conversationId: 'group-1', epoch: 4,
+      distributionId: DISTRIBUTION_ID, plaintext: 'Hallo', clientMessageId: MESSAGE_ID,
+      api, getStatus: available, encryptGroupText, wait,
+    });
+
+    expect(encryptGroupText).toHaveBeenCalledTimes(1);
+    expect(api.sendGroupMessage).toHaveBeenCalledTimes(2);
+    expect(api.sendGroupMessage.mock.calls[0][1]).toEqual(api.sendGroupMessage.mock.calls[1][1]);
+    expect(wait).toHaveBeenCalledWith(500);
+  });
+
   test('acknowledges a group message only after native decrypt succeeds', async () => {
     const api = {
       fetchGroupMessage: jest.fn().mockResolvedValue({
@@ -117,13 +144,16 @@ describe('Android group E2EE orchestrator', () => {
       acknowledgeGroupMessage: jest.fn().mockResolvedValue({ ok: true }),
     };
     const decryptGroupText = jest.fn().mockResolvedValue({ plaintext: 'Hallo terug' });
+    const commitPlaintext = jest.fn().mockResolvedValue({ stored: true });
 
     await expect(receiveAndroidGroupText({
       user: USER, localDeviceId: 'device-a1', localSignalDeviceId: 1,
       conversationId: 'group-1', messageId: MESSAGE_ID,
-      api, getStatus: available, decryptGroupText,
+      api, getStatus: available, decryptGroupText, commitPlaintext,
     })).resolves.toMatchObject({ plaintext: 'Hallo terug' });
     expect(decryptGroupText.mock.invocationCallOrder[0])
+      .toBeLessThan(commitPlaintext.mock.invocationCallOrder[0]);
+    expect(commitPlaintext.mock.invocationCallOrder[0])
       .toBeLessThan(api.acknowledgeGroupMessage.mock.invocationCallOrder[0]);
   });
 });

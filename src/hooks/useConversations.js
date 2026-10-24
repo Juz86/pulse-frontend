@@ -30,6 +30,7 @@ import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/
 import { normalizeSingleUserReaction, toggleSingleUserReaction } from '../lib/e2ee/messageReactions';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
 import { PULSE_E2EE_V2_PROTOCOL } from '../lib/e2ee/v2/protocolV2Contract';
+import { PULSE_GROUP_E2EE_PROTOCOL } from '../lib/e2ee/group/groupProtocolContract';
 import {
   clearE2eeV2PlaintextWebStorage,
   readCachedConversations,
@@ -334,11 +335,24 @@ export default function useConversations({
 
   const fetchConversationMessages = useCallback(async (convId, { limit = MSG_LIMIT, offset = 0 } = {}) => {
     if (isV2QaEnabled) {
-      const received = await e2eeV2QaRuntime.fetchTextMessages({
-        conversationId: convId,
-        limit,
-        offset,
-      });
+      const conversation = (conversationsRef.current || []).find(value => value.id === convId);
+      const isGroupE2ee = conversation?.isGroup
+        && e2eeV2QaRuntime?.groupsEnabled
+        && ['v2_pending', 'v2_required'].includes(conversation?.e2eeState)
+        && Number.isSafeInteger(Number(conversation?.e2eeGroupEpoch))
+        && Number(conversation.e2eeGroupEpoch) >= 1;
+      if (conversation?.isGroup && !isGroupE2ee) return [];
+      const received = isGroupE2ee
+        ? await e2eeV2QaRuntime.fetchGroupMessages({
+          conversationId: convId,
+          epoch: Number(conversation.e2eeGroupEpoch),
+          limit,
+        })
+        : await e2eeV2QaRuntime.fetchTextMessages({
+          conversationId: convId,
+          limit,
+          offset,
+        });
       return received.map((message) => ({
         ...message,
         id: message.messageId,
@@ -347,7 +361,7 @@ export default function useConversations({
         senderId: message.senderUserId,
         text: message.plaintext,
         type: message.messageType,
-        protocol: PULSE_E2EE_V2_PROTOCOL,
+        protocol: isGroupE2ee ? PULSE_GROUP_E2EE_PROTOCOL : PULSE_E2EE_V2_PROTOCOL,
         decryptedLocally: true,
         ciphertextAvailable: true,
         transient: true,
@@ -381,7 +395,7 @@ export default function useConversations({
       throw error;
     }
     return legacyRes.json();
-  }, [authFetch, currentDeviceId, e2eeV2QaRuntime, isV2QaEnabled, readJsonResponse]);
+  }, [authFetch, conversationsRef, currentDeviceId, e2eeV2QaRuntime, isV2QaEnabled, readJsonResponse]);
 
   const hydrateMissingConversationPreviews = useCallback(async (serverConversations, localConversations) => {
     const encryptedPreview = getEncryptedMessageDisplayText();
@@ -448,7 +462,9 @@ export default function useConversations({
   }
 
   function resolvePendingMessageProtocol(conv) {
-    if (isV2QaEnabled) return PULSE_E2EE_V2_PROTOCOL;
+    if (isV2QaEnabled) {
+      return conv?.isGroup ? PULSE_GROUP_E2EE_PROTOCOL : PULSE_E2EE_V2_PROTOCOL;
+    }
     return shouldUseServiceTransport(conv) ? ENCRYPTED_MESSAGE_PROTOCOL : SOCKET_FALLBACK_PROTOCOL;
   }
 
@@ -458,14 +474,33 @@ export default function useConversations({
     if (!['v2_pending', 'v2_required'].includes(conv?.e2eeState)) {
       throw new Error('Dit gesprek is nog niet voor E2EE geactiveerd.');
     }
-    if (conv?.isGroup || recipients.length !== 1) {
-      throw new Error('E2EE ondersteunt nu alleen een-op-een-gesprekken.');
+    let result;
+    let protocol = PULSE_E2EE_V2_PROTOCOL;
+    if (conv?.isGroup) {
+      if (!e2eeV2QaRuntime.groupsEnabled) throw new Error('Groeps-E2EE is niet ingeschakeld.');
+      const epoch = Number(conv.e2eeGroupEpoch);
+      if (!Number.isSafeInteger(epoch) || epoch < 1) {
+        throw new Error('De groepssleutel moet veilig worden vernieuwd.');
+      }
+      await e2eeV2QaRuntime.prepareGroupEpoch({
+        conversationId: conv.id,
+        epoch,
+        memberUserIds: conv.members,
+      });
+      result = await e2eeV2QaRuntime.sendGroupText({
+        conversationId: conv.id,
+        epoch,
+        plaintext,
+      });
+      protocol = PULSE_GROUP_E2EE_PROTOCOL;
+    } else {
+      if (recipients.length !== 1) throw new Error('E2EE-ontvanger ontbreekt.');
+      result = await e2eeV2QaRuntime.sendText({
+        conversationId: conv.id,
+        recipientUserId: recipients[0],
+        plaintext,
+      });
     }
-    const result = await e2eeV2QaRuntime.sendText({
-      conversationId: conv.id,
-      recipientUserId: recipients[0],
-      plaintext,
-    });
     return {
       id: result.messageId,
       localId: result.clientMessageId || null,
@@ -477,7 +512,7 @@ export default function useConversations({
       type: 'text',
       messageType: 'text',
       createdAt: result.acceptedAt || new Date().toISOString(),
-      protocol: PULSE_E2EE_V2_PROTOCOL,
+      protocol,
       decryptedLocally: true,
       ciphertextAvailable: true,
       transient: true,
@@ -965,8 +1000,12 @@ export default function useConversations({
         showErrToast(e2eeV2QaRuntime?.error?.message || 'E2EE is nog niet gereed.');
         return false;
       }
-      if (isV2QaEnabled && (conv.isGroup || recipientUserIds.length !== 1)) {
-        showErrToast('E2EE ondersteunt nu alleen een-op-een-gesprekken.');
+      if (isV2QaEnabled && conv.isGroup && !e2eeV2QaRuntime?.groupsEnabled) {
+        showErrToast('Groeps-E2EE is niet ingeschakeld in deze testbuild.');
+        return false;
+      }
+      if (isV2QaEnabled && !conv.isGroup && recipientUserIds.length !== 1) {
+        showErrToast('E2EE-ontvanger ontbreekt.');
         return false;
       }
       if (isV2QaEnabled && !['v2_pending', 'v2_required'].includes(conv.e2eeState)) {

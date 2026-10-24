@@ -4,6 +4,7 @@ import {
   E2EE_TRANSPORT,
   E2EE_V2_BROWSER_PILOT_ENABLED,
   E2EE_V2_BROWSER_QA_ENABLED,
+  E2EE_V2_GROUPS_ENABLED,
   E2EE_V2_PILOT_ENABLED,
   E2EE_V2_QA_BACKEND_URL,
   E2EE_V2_QA_ENABLED,
@@ -36,6 +37,7 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
     pilotRuntime ? E2EE_V2_BROWSER_PILOT_ENABLED : E2EE_V2_BROWSER_QA_ENABLED
   );
   const runtimeEnabled = (qaRuntime || pilotRuntime) && (nativeRuntime || browserRuntime);
+  const groupsEnabled = runtimeEnabled && nativeRuntime && E2EE_V2_GROUPS_ENABLED;
 
   useEffect(() => {
     if (!runtimeEnabled) {
@@ -188,6 +190,13 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
     return state.binding.clearTextMessages(payload);
   }, [state]);
 
+  const callGroupRuntime = useCallback((method, payload) => {
+    if (!groupsEnabled || state.status !== 'ready' || !state.binding?.[method]) {
+      throw state.error || new Error('group_e2ee_runtime_not_ready');
+    }
+    return state.binding[method](payload);
+  }, [groupsEnabled, state]);
+
   const invalidateLocalDevice = useCallback((payload = {}) => {
     if (state.status !== 'ready' || !state.binding?.invalidateLocalDevice) {
       throw state.error || new Error('v2_qa_runtime_not_ready');
@@ -216,18 +225,26 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
     localDeviceId: state.binding?.deviceId || null,
     localSignalDeviceId: state.binding?.signalDeviceId || null,
     sendingEnabled: state.sendingEnabled,
+    groupsEnabled,
     handleSecurityEvent: state.binding?.handleSecurityEvent || null,
     clearTextMessages,
     fetchTextMessages,
     invalidateLocalDevice,
     receiveTextMessage,
     sendText,
+    fetchGroupMessages: payload => callGroupRuntime('fetchGroupMessages', payload),
+    prepareGroupEpoch: payload => callGroupRuntime('prepareGroupEpoch', payload),
+    receiveGroupDistribution: payload => callGroupRuntime('receiveGroupDistribution', payload),
+    receiveGroupMessage: payload => callGroupRuntime('receiveGroupMessage', payload),
+    sendGroupText: payload => callGroupRuntime('sendGroupText', payload),
   }), [
+    callGroupRuntime,
     clearTextMessages,
     fetchTextMessages,
     invalidateLocalDevice,
     receiveTextMessage,
     sendText,
+    groupsEnabled,
     state,
   ]);
 }

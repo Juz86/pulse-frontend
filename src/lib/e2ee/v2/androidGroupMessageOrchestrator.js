@@ -168,6 +168,9 @@ export async function sendAndroidGroupText({
   api = v2ApiClient,
   getStatus = getNativeE2eeV2Status,
   encryptGroupText = encryptNativeE2eeV2GroupText,
+  wait = delay => new Promise(resolve => setTimeout(resolve, delay)),
+  distributionWaitAttempts = 20,
+  distributionWaitDelayMs = 500,
 } = {}) {
   requireUser(user);
   if (!plaintext) throw new Error('v2_plaintext_required');
@@ -183,7 +186,7 @@ export async function sendAndroidGroupText({
   if (encrypted.epoch !== epoch || encrypted.distributionId !== distributionId) {
     throw new Error('group_e2ee_native_context_mismatch');
   }
-  return api.sendGroupMessage(user, groupHeader({
+  const payload = groupHeader({
     conversationId,
     clientMessageId,
     senderDeviceId: localDeviceId,
@@ -193,7 +196,21 @@ export async function sendAndroidGroupText({
     distributionId,
     messageType: 'text',
     ciphertext: encrypted.ciphertext,
-  }));
+  });
+  for (let attempt = 1; attempt <= distributionWaitAttempts; attempt += 1) {
+    try {
+      return await api.sendGroupMessage(user, payload);
+    } catch (error) {
+      if (
+        error?.code !== 'group_e2ee_distribution_required'
+        || attempt === distributionWaitAttempts
+      ) {
+        throw error;
+      }
+      await wait(distributionWaitDelayMs);
+    }
+  }
+  throw new Error('group_e2ee_distribution_required');
 }
 
 export async function receiveAndroidGroupText({
@@ -205,6 +222,7 @@ export async function receiveAndroidGroupText({
   api = v2ApiClient,
   getStatus = getNativeE2eeV2Status,
   decryptGroupText = decryptNativeE2eeV2GroupText,
+  commitPlaintext,
 } = {}) {
   requireUser(user);
   requireProvider(await getStatus());
@@ -221,8 +239,10 @@ export async function receiveAndroidGroupText({
     distributionId: message.distributionId,
     ciphertext: message.ciphertext,
   });
+  const committed = { ...message, plaintext: decrypted.plaintext };
+  await commitPlaintext?.(committed);
   await api.acknowledgeGroupMessage(user, {
     conversationId, messageId, deviceId: localDeviceId,
   });
-  return { ...message, plaintext: decrypted.plaintext };
+  return committed;
 }

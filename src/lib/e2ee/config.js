@@ -6,6 +6,7 @@ export const E2EE_V2_BROWSER_QA_ENABLED =
 export const E2EE_V2_PILOT_ENABLED = process.env.REACT_APP_E2EE_V2_PILOT_ENABLED === 'true';
 export const E2EE_V2_BROWSER_PILOT_ENABLED =
   process.env.REACT_APP_E2EE_V2_BROWSER_PILOT_ENABLED === 'true';
+export const E2EE_V2_GROUPS_ENABLED = process.env.REACT_APP_E2EE_V2_GROUPS_ENABLED === 'true';
 export const E2EE_V2_QA_BACKEND_URL = String(
   process.env.REACT_APP_E2EE_V2_QA_BACKEND_URL || ''
 ).replace(/\/+$/, '');

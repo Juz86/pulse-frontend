@@ -86,6 +86,19 @@ npm run verify:android-release-distribution
 
 ## 7) Google Play Console Internal Testing checklist
 
+For the explicitly unreviewed E2EE evaluation build, use:
+
+```bash
+npm run android:build:e2ee-internal-play
+```
+
+This produces the same-package `versionCode 81` build named
+`1.0.25-internal-e2ee`. It enables the E2EE runtime but does not claim an
+independent review. Upload it only to **Internal testing**. Do not promote this
+artifact to closed, open, or production tracks. A later production candidate
+must be rebuilt through `android:build:e2ee-pilot`, including the independent
+review and release-distribution gates.
+
 - App details:
   - App name
   - Short description
@@ -109,6 +122,11 @@ npm run verify:android-release-distribution
 
 - API base URLs are HTTPS in production
 - No localhost URLs used in production runtime
+- Compare Play's estimated download size with versionCode 81 before publishing.
+  Investigate the native `libsignal` and WebRTC payload per ABI and exclude
+  unsupported or unnecessary ABIs from the release bundle. Do not accept a
+  significant size increase without recording the cause and target-device
+  coverage impact.
 - native web-update channel is either deliberately disabled or uses the
   established `PULSE_NATIVE_UPDATE_PUBLIC_KEY`
 - Login/chat/call/video smoke-tested on real Android device

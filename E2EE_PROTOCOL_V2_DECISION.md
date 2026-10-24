@@ -227,8 +227,11 @@ beginnen op epoch 1 en iedere effectieve lidmaatschapsmutatie roteert epoch en
 membership-hash atomisch. Ook groepsberichtopslag, een inhoudsloze pending-feed,
 devicegebonden ciphertext-ophalen en idempotente acknowledgement zijn
 transactioneel gebouwd. Verzenden vereist een volledig bevestigde distributie
-voor exact de actuele actieve doeldevices. Clientorchestratie en live
-apparaatproeven blijven vereist voordat runtimeactivatie is toegestaan.
+voor exact de actuele actieve doeldevices. De geisoleerde Android-
+clientorchestrator bouwt en verwerkt distributies en groepsberichten inmiddels
+met acknowledgement pas na lokale libsignal-commit. Chatruntime- en UI-
+koppeling en live apparaatproeven blijven vereist voordat runtimeactivatie is
+toegestaan.
 
 ## Audio en video
 
@@ -328,7 +331,8 @@ Uitvoeringsstatus op 24 oktober 2026:
   acknowledgement zijn eveneens lokaal gebouwd achter een standaard-uit-gate.
   Groepscreatie en effectieve lidmutaties initialiseren of roteren de epoch nu
   atomisch; ook ciphertextopslag, pending-feed en message-acknowledgement zijn
-  gebouwd. Client- en UI-orchestratie en live apparaatproeven blijven open. Voor
+  gebouwd. De geisoleerde Android-clientorchestrator is eveneens getest;
+  chatruntime- en UI-koppeling en live apparaatproeven blijven open. Voor
   een-op-een calls zijn backendautorisatie en native
   signalingkoppeling lokaal fail-closed gebouwd, maar live interoperabiliteit,
   review en een nieuwe AAB blijven open. VersionCode 82 bevat deze wijzigingen

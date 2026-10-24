@@ -274,6 +274,78 @@ describe('E2EE v2 API client', () => {
       }),
     );
   });
+
+  test('validates group distribution fan-out before using the group route', async () => {
+    fetchImpl.mockResolvedValue(response({ ok: true, distributionId: UUID }));
+    const distribution = {
+      protocol: 'pulse_group_e2ee_v1',
+      protocolVersion: 1,
+      conversationId: 'group-1',
+      senderDeviceId: 'device-a1',
+      senderSignalDeviceId: 1,
+      senderIdentityVersion: 1,
+      epoch: 3,
+      distributionId: UUID,
+      recipientEnvelopes: [{
+        recipientUserId: 'user-b',
+        recipientDeviceId: 'device-b1',
+        envelopeType: 'prekey',
+        ciphertext: 'ZW5jcnlwdGVk',
+      }],
+    };
+
+    await client.sendGroupDistribution(
+      USER,
+      distribution,
+      [{ userId: 'user-b', deviceId: 'device-b1' }],
+    );
+    expect(fetchImpl.mock.calls[0][0]).toBe(
+      'https://api.pulse.test/v2/groups/sender-key-distributions',
+    );
+
+    await expect(client.sendGroupDistribution(USER, distribution, [
+      { userId: 'user-b', deviceId: 'device-b2' },
+    ])).rejects.toBeInstanceOf(V2ContractValidationError);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  test('binds fetched group ciphertext to the requested message', async () => {
+    fetchImpl.mockResolvedValue(response({
+      protocol: 'pulse_group_e2ee_v1',
+      protocolVersion: 1,
+      conversationId: 'group-1',
+      messageId: UUID,
+      senderUserId: 'user-b',
+      senderDeviceId: 'device-b1',
+      senderSignalDeviceId: 2,
+      senderIdentityVersion: 1,
+      epoch: 3,
+      distributionId: '22222222-2222-4222-8222-222222222222',
+      messageType: 'text',
+      ciphertext: 'ZW5jcnlwdGVk',
+    }));
+
+    await expect(client.fetchGroupMessage(USER, {
+      conversationId: 'group-1',
+      messageId: UUID,
+      deviceId: 'device-a1',
+    })).resolves.toMatchObject({ messageId: UUID, conversationId: 'group-1' });
+    expect(fetchImpl.mock.calls[0][0]).toBe(
+      `https://api.pulse.test/v2/groups/conversations/group-1/messages/${UUID}?deviceId=device-a1`,
+    );
+
+    fetchImpl.mockResolvedValueOnce(response({
+      protocol: 'pulse_group_e2ee_v1',
+      protocolVersion: 1,
+      conversationId: 'group-1',
+      messageId: '33333333-3333-4333-8333-333333333333',
+    }));
+    await expect(client.fetchGroupMessage(USER, {
+      conversationId: 'group-1',
+      messageId: UUID,
+      deviceId: 'device-a1',
+    })).rejects.toMatchObject({ code: 'group_e2ee_response_invalid' });
+  });
 });
 
 test('V2ApiError has a stable fallback code', () => {

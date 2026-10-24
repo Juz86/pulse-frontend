@@ -9,6 +9,12 @@ import {
   validateV2KeyBundleClaimRequest,
   validateV2MessageDelivery,
 } from './protocolV2Contract';
+import {
+  PULSE_GROUP_E2EE_PROTOCOL,
+  PULSE_GROUP_E2EE_VERSION,
+  validateGroupMessageSend,
+  validateGroupSenderKeyDistribution,
+} from '../group/groupProtocolContract';
 
 export class V2ApiError extends Error {
   constructor(code, status = 0) {
@@ -29,6 +35,21 @@ function protocolBody(body = {}) {
 
 function assertContract(result) {
   if (!result.ok) throw new V2ContractValidationError(result.errors);
+}
+
+function assertGroupResponse(payload, expected = {}) {
+  if (
+    payload?.protocol !== PULSE_GROUP_E2EE_PROTOCOL
+    || payload?.protocolVersion !== PULSE_GROUP_E2EE_VERSION
+    || (expected.conversationId && payload?.conversationId !== expected.conversationId)
+    || (expected.epoch && payload?.epoch !== expected.epoch)
+    || (expected.distributionId && payload?.distributionId !== expected.distributionId)
+    || (expected.messageId && payload?.messageId !== expected.messageId)
+    || (expected.deviceId && payload?.recipientDeviceId !== expected.deviceId)
+  ) {
+    throw new V2ApiError('group_e2ee_response_invalid');
+  }
+  return payload;
 }
 
 function requireUser(user) {
@@ -198,6 +219,89 @@ export function createV2ApiClient({
         user,
         `/v2/conversations/${pathSegment(conversationId)}/messages/${pathSegment(messageId)}/ack`,
         { method: 'POST', body },
+      );
+    },
+
+    async sendGroupDistribution(user, distribution, expectedRecipientDevices) {
+      assertContract(validateGroupSenderKeyDistribution(distribution, {
+        authenticatedDeviceId: distribution.senderDeviceId,
+        currentEpoch: distribution.epoch,
+        expectedRecipientDevices,
+        isGroup: true,
+      }));
+      return request(user, '/v2/groups/sender-key-distributions', {
+        method: 'POST',
+        body: distribution,
+      });
+    },
+
+    async listGroupDistributions(user, { conversationId, epoch, deviceId, limit = 50 }) {
+      if (!Number.isSafeInteger(epoch) || epoch < 1) throw new V2ApiError('group_e2ee_epoch_invalid');
+      if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new V2ApiError('v2_limit_invalid');
+      const query = new URLSearchParams({ deviceId: requireId(deviceId), limit: String(limit) });
+      const payload = await request(
+        user,
+        `/v2/groups/conversations/${pathSegment(conversationId)}/epochs/${epoch}/distributions?${query}`,
+      );
+      return Array.isArray(payload?.distributions) ? payload.distributions : [];
+    },
+
+    async fetchGroupDistribution(user, {
+      conversationId, epoch, distributionId, deviceId,
+    }) {
+      if (!Number.isSafeInteger(epoch) || epoch < 1) throw new V2ApiError('group_e2ee_epoch_invalid');
+      const query = new URLSearchParams({ deviceId: requireId(deviceId) });
+      const payload = await request(
+        user,
+        `/v2/groups/conversations/${pathSegment(conversationId)}/epochs/${epoch}/distributions/${pathSegment(distributionId)}/envelope?${query}`,
+      );
+      return assertGroupResponse(payload, { conversationId, epoch, distributionId, deviceId });
+    },
+
+    async acknowledgeGroupDistribution(user, {
+      conversationId, epoch, distributionId, deviceId,
+    }) {
+      if (!Number.isSafeInteger(epoch) || epoch < 1) throw new V2ApiError('group_e2ee_epoch_invalid');
+      return request(
+        user,
+        `/v2/groups/conversations/${pathSegment(conversationId)}/epochs/${epoch}/distributions/${pathSegment(distributionId)}/ack`,
+        { method: 'POST', body: { deviceId: requireId(deviceId) } },
+      );
+    },
+
+    async sendGroupMessage(user, message) {
+      assertContract(validateGroupMessageSend(message, {
+        authenticatedDeviceId: message.senderDeviceId,
+        currentEpoch: message.epoch,
+        isGroup: true,
+      }));
+      return request(user, '/v2/groups/messages/send', { method: 'POST', body: message });
+    },
+
+    async listGroupMessages(user, { conversationId, deviceId, limit = 50 }) {
+      if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new V2ApiError('v2_limit_invalid');
+      const query = new URLSearchParams({ deviceId: requireId(deviceId), limit: String(limit) });
+      const payload = await request(
+        user,
+        `/v2/groups/conversations/${pathSegment(conversationId)}/messages?${query}`,
+      );
+      return Array.isArray(payload?.messages) ? payload.messages : [];
+    },
+
+    async fetchGroupMessage(user, { conversationId, messageId, deviceId }) {
+      const query = new URLSearchParams({ deviceId: requireId(deviceId) });
+      const payload = await request(
+        user,
+        `/v2/groups/conversations/${pathSegment(conversationId)}/messages/${pathSegment(messageId)}?${query}`,
+      );
+      return assertGroupResponse(payload, { conversationId, messageId });
+    },
+
+    async acknowledgeGroupMessage(user, { conversationId, messageId, deviceId }) {
+      return request(
+        user,
+        `/v2/groups/conversations/${pathSegment(conversationId)}/messages/${pathSegment(messageId)}/ack`,
+        { method: 'POST', body: { deviceId: requireId(deviceId) } },
       );
     },
   });

@@ -698,7 +698,7 @@ ongeldig bewijs faalt gesloten; een reeds verwerkte ondertekende binding wordt
 als replay geweigerd voordat een tweede SDP-apply plaatsvindt. Zowel de backendgate
 `PULSE_CALLING_V2_E2EE_REQUIRED` als de Android-buildgate
 `pulseCallE2ee` staat standaard uit; productie accepteert daardoor nog kaal SDP.
-Voor groepen ontbreekt nog de client- en UI-orchestratie. De backend heeft een
+Voor groepen ontbreekt nog de chatruntime- en UI-koppeling. De backend heeft een
 geisoleerde, standaard-uitgeschakelde beleidslaag die het actuele
 lidmaatschap hasht, de epoch controleert, de senderdevicebinding valideert en
 exacte fan-out naar alle andere actieve v2-devices afdwingt. Een
@@ -714,9 +714,12 @@ Firestore-transactie. Een groepsbericht wordt pas opgeslagen wanneer de
 distributie voor exact alle actuele doeldevices gereed is. De backend bewaart
 alleen de Sender Keys-ciphertext en generieke metadata, biedt een inhoudsloze
 offline-feed en verwerkt acknowledgement per device idempotent. Deze routes
-staan eveneens standaard uit. Clientorchestratie, twee-device-liveproeven,
-review en een nieuwe AAB blijven open. VersionCode 82 bevat deze uitbreiding
-niet.
+staan eveneens standaard uit. Een geisoleerde Android-clientorchestrator maakt
+de Sender Key eenmaal aan, versleutelt de distributie afzonderlijk via de
+bestaande pairwise sessie voor elk doeldevice en bevestigt distributies en
+groepsberichten pas na geslaagde lokale libsignal-verwerking. De koppeling met
+de chatruntime, twee-device-liveproeven, review en een nieuwe AAB blijven open.
+VersionCode 82 bevat deze uitbreiding niet.
 
 Frontend en backend zijn inmiddels zonder GitHub-authenticatie publiek
 leesbaar en beide zijn expliciet als `AGPL-3.0-only` gelicentieerd. De

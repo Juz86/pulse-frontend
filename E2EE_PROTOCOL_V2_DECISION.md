@@ -216,9 +216,12 @@ worden uitsluitend via bestaande pairwise Signal-sessies ontworpen, iedere
 sender key is gebonden aan groep, epoch, afzender en Signal-device, en replay of
 een verwisselde groep/epoch wordt fail-closed geweigerd. Het wirecontract eist
 precies één versleutelde distributie per actief doeldevice. Deze kern is nog
-niet aan groepslidmaatschap, backendroutes of de chatinterface gekoppeld en is
-dus geen actieve groeps-E2EE. Iedere lidmaatschapswijziging moet een nieuwe
-epoch en nieuwe distributies afdwingen voordat runtimeactivatie is toegestaan.
+niet aan backendroutes of de chatinterface gekoppeld en is dus geen actieve
+groeps-E2EE. De geisoleerde backendpolicy valideert inmiddels de autoritatieve
+membership-hash, actuele epoch, senderdevicebinding en exacte device-fan-out.
+Iedere lidmaatschapswijziging blokkeert distributie totdat een nieuwe epoch en
+nieuwe distributies zijn vastgelegd. Transactionele opslag en acknowledgements
+blijven vereist voordat runtimeactivatie is toegestaan.
 
 ## Audio en video
 
@@ -312,11 +315,13 @@ Uitvoeringsstatus op 24 oktober 2026:
   geblokkeerd totdat het controleerbare onafhankelijke securityreviewbewijs is
   toegevoegd;
 - groepschat en oproepen zijn afzonderlijke vervolgfases. De Android Sender
-  Keys-kern en het strikte groepswirecontract zijn lokaal gebouwd en negatief
-  getest; backendtransport en lidmaatschap/epoch-autorisatie blijven open. Voor
-  een-op-een calls zijn backendautorisatie en native signalingkoppeling lokaal
-  fail-closed gebouwd, maar live interoperabiliteit, review en een nieuwe AAB
-  blijven open. VersionCode 82 bevat deze wijzigingen niet.
+  Keys-kern, het strikte groepswirecontract en de backendpolicy voor
+  membership, epochs en exact device-fan-out zijn lokaal gebouwd en negatief
+  getest; transactionele routes, acknowledgement en UI-orchestratie blijven
+  open. Voor een-op-een calls zijn backendautorisatie en native
+  signalingkoppeling lokaal fail-closed gebouwd, maar live interoperabiliteit,
+  review en een nieuwe AAB blijven open. VersionCode 82 bevat deze wijzigingen
+  niet.
 
 Stap 1 is uitgevoerd in:
 

@@ -109,7 +109,7 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
 
       await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
     } catch (err) {
-      const msg = {
+      const baseMessage = {
         'auth/user-not-found':     'Gebruikersnaam of wachtwoord klopt niet.',
         'auth/wrong-password':     'Gebruikersnaam of wachtwoord klopt niet.',
         'auth/invalid-credential': 'Gebruikersnaam of wachtwoord klopt niet.',
@@ -118,6 +118,10 @@ export default function AuthScreen({ isModal, inModal, onClose }) {
       }[err.code] || (err.name === 'AbortError'
         ? 'De inlogcontrole duurt te lang. Probeer het opnieuw.'
         : err.message);
+      const qaErrorCode = process.env.REACT_APP_E2EE_V2_QA_ENABLED === 'true'
+        ? ` (${err.code || err.name || 'unknown'})`
+        : '';
+      const msg = `${baseMessage}${qaErrorCode}`;
       setError(msg);
     } finally {
       setLoading(false);

@@ -44,13 +44,22 @@ final class PulseWebUpdateManager {
     private PulseWebUpdateManager() {}
 
     static boolean isEnabled() {
-        return !BuildConfig.PULSE_E2EE_INTERNAL_PLAY_TEST
-            && BuildConfig.PULSE_NATIVE_UPDATE_PUBLIC_KEY != null
-            && !BuildConfig.PULSE_NATIVE_UPDATE_PUBLIC_KEY.trim().isEmpty();
+        return isUpdateAllowed(
+            BuildConfig.PULSE_E2EE_QA_ENABLED,
+            BuildConfig.PULSE_E2EE_INTERNAL_PLAY_TEST,
+            BuildConfig.PULSE_NATIVE_UPDATE_PUBLIC_KEY
+        );
+    }
+
+    static boolean isUpdateAllowed(boolean e2eeQaEnabled, boolean internalPlayTest, String publicKey) {
+        return !e2eeQaEnabled
+            && !internalPlayTest
+            && publicKey != null
+            && !publicKey.trim().isEmpty();
     }
 
     static synchronized void prepareForAppStart(Context context) {
-        if (BuildConfig.PULSE_E2EE_INTERNAL_PLAY_TEST) {
+        if (BuildConfig.PULSE_E2EE_QA_ENABLED || BuildConfig.PULSE_E2EE_INTERNAL_PLAY_TEST) {
             resetToBundledAssets(context);
             return;
         }

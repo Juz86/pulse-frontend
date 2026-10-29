@@ -96,6 +96,16 @@ export function clearAndroidE2eeV2QaBinding(
   storage.removeItem(bindingKey(userId, bindingNamespace));
 }
 
+function matchesActiveServerBinding(binding, device) {
+  return Boolean(
+    binding
+    && device?.deviceId === binding.deviceId
+    && device.status === 'active'
+    && Number(device.signalDeviceId) === binding.signalDeviceId
+    && Number(device.identityVersion || 1) === Number(binding.identityVersion || 1)
+  );
+}
+
 export function createAndroidE2eeV2QaBinding({
   userId,
   registeredDevices = [],
@@ -150,8 +160,22 @@ export async function startAndroidE2eeV2QaRuntime({
   assertConfiguration({ enabled: true, backendUrl, runtimeBackendUrl });
   if (!user?.uid) throw new Error('v2_auth_required');
 
-  const existingBinding = readAndroidE2eeV2QaBinding(user.uid, storage, bindingNamespace);
-  const devices = existingBinding ? [] : await api.listDevices(user);
+  let existingBinding = readAndroidE2eeV2QaBinding(user.uid, storage, bindingNamespace);
+  let devices = [];
+  if (existingBinding) {
+    try {
+      devices = await api.listDevices(user);
+      if (!devices.some(device => matchesActiveServerBinding(existingBinding, device))) {
+        clearAndroidE2eeV2QaBinding(user.uid, storage, bindingNamespace);
+        clearGroupDistributionBindings(user.uid, storage, bindingNamespace);
+        existingBinding = null;
+      }
+    } catch (error) {
+      if (!isTemporaryBackendFailure(error)) throw error;
+    }
+  } else {
+    devices = await api.listDevices(user);
+  }
   const binding = createAndroidE2eeV2QaBinding({
     userId: user.uid,
     registeredDevices: devices,

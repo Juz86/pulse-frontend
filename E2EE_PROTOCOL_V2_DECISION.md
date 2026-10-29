@@ -231,9 +231,14 @@ transactioneel gebouwd. Verzenden vereist een volledig bevestigde distributie
 voor exact de actuele actieve doeldevices. De geisoleerde Android-
 clientorchestrator bouwt en verwerkt distributies en groepsberichten met
 acknowledgement pas na lokale libsignal-commit. De Android-chatruntime verwerkt
-realtime-events en offline herstel achter `REACT_APP_E2EE_V2_GROUPS_ENABLED`;
-live apparaatproeven en gecontroleerde vrijgave blijven vereist voordat
-runtimeactivatie is toegestaan.
+realtime-events en offline herstel achter `REACT_APP_E2EE_V2_GROUPS_ENABLED`.
+Op 25 oktober 2026 is de flow in beide richtingen live geslaagd tussen twee
+afzonderlijk gesandboxte QA-appinstanties op één fysiek Androidtoestel. Daarbij
+werden sender-keydistributies pas na lokale verwerking gereed, bleef een bericht
+voor een volledig gestopte ontvanger pending, volgde acknowledgement pas na
+lokale decryptie en bleef de ontsleutelde geschiedenis na een koude herstart
+beschikbaar. Dit vervangt niet de vereiste proef op twee fysieke toestellen; ook
+gecontroleerde vrijgave blijft vereist voordat runtimeactivatie is toegestaan.
 
 ## Audio en video
 
@@ -254,9 +259,17 @@ fingerprint. De lokale Railway-kandidaat controleert het envelope tegen sessie,
 actor, fingerprint en actieve v2-devicebinding. De Android media-controller
 verifieert de Signal-handtekening voordat remote SDP wordt toegepast en laat
 vroege ICE-candidates pas na die verificatie door. Herhaling van dezelfde
-ondertekende binding wordt vóór een tweede SDP-apply geweigerd. Beide kanten blijven achter
-standaard-uitgeschakelde gates en zijn nog niet live op twee apparaten getest;
-audio- en videogesprekken hebben daarom nog geen Pulse-E2EE-claim.
+ondertekende binding wordt vóór een tweede SDP-apply geweigerd. Een live
+audioproef op twee fysieke Androidtoestellen is op 27 oktober 2026 in beide
+richtingen geslaagd, inclusief geverifieerde identitybinding en ontvangen
+audio-RTP. De videoproef bewees geldige offerverificatie en ontvangst van de
+remote videotrack. Op 29 oktober 2026 is de gecorrigeerde Unified Plan-
+answererflow daarna live in beide belrichtingen op twee fysieke
+Androidtoestellen geslaagd: offer en answer waren `SENDRECV`, beide clients
+verzonden en ontvingen aantoonbaar video-RTP-frames en beide ontvingen audio-
+RTP. Dit bewijs geldt uitsluitend voor de geisoleerde QA-runtime. Beide kanten
+blijven achter standaard-uitgeschakelde gates en audio- en videogesprekken
+hebben nog geen algemene Pulse-E2EE-claim.
 
 ## Gefaseerde uitvoering
 
@@ -284,7 +297,7 @@ correct is geconfigureerd en het account tot de cohort behoort. Deze controle
 vindt plaats vóór workerstart, Keystore-bootstrap en deviceregistratie. QA- en
 productiebindings zijn strikt gescheiden.
 
-Uitvoeringsstatus op 24 oktober 2026:
+Uitvoeringsstatus op 25 oktober 2026:
 
 - stappen 1 tot en met 4 zijn gebouwd en op twee fysieke Android-apparaten
   gevalideerd, inclusief offline herstel, multi-device, revoke en
@@ -334,11 +347,15 @@ Uitvoeringsstatus op 24 oktober 2026:
   Groepscreatie en effectieve lidmutaties initialiseren of roteren de epoch nu
   atomisch; ook ciphertextopslag, pending-feed en message-acknowledgement zijn
   gebouwd. De geisoleerde Android-clientorchestrator is eveneens getest en de
-  gegate Android-chatruntime is aangesloten; live apparaatproeven blijven open.
+  gegate Android-chatruntime is aangesloten. De volledige groepsflow is live in
+  beide richtingen, inclusief offline ontvangst, acknowledgement en koude
+  herstart, geslaagd tussen twee gesandboxte QA-apps op één fysiek
+  Androidtoestel. Validatie op twee fysieke toestellen blijft open.
   Voor een-op-een calls zijn backendautorisatie en native
-  signalingkoppeling lokaal fail-closed gebouwd, maar live interoperabiliteit,
-  review en een nieuwe AAB blijven open. VersionCode 82 bevat deze wijzigingen
-  niet.
+  signalingkoppeling fail-closed gebouwd. Live audio- en video-interoperabiliteit
+  is in beide richtingen op twee fysieke Androidtoestellen in de geisoleerde QA-
+  runtime bewezen. Review, productieactivatie en een nieuwe AAB blijven open;
+  VersionCode 82 bevat deze wijzigingen niet.
 
 Stap 1 is uitgevoerd in:
 

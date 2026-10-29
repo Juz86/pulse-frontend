@@ -23,6 +23,8 @@ import org.webrtc.AudioTrack
 import org.webrtc.Camera2Enumerator
 import org.webrtc.CameraVideoCapturer
 import org.webrtc.DataChannel
+import org.webrtc.DefaultVideoDecoderFactory
+import org.webrtc.DefaultVideoEncoderFactory
 import org.webrtc.IceCandidate
 import org.webrtc.MediaConstraints
 import org.webrtc.MediaStream
@@ -54,6 +56,8 @@ class WebRtcAudioEngine(
     private val closed = AtomicBoolean(false)
     private val remoteTrackReported = AtomicBoolean(false)
     private val remoteAudioReported = AtomicBoolean(false)
+    private val remoteVideoReported = AtomicBoolean(false)
+    private val localVideoReported = AtomicBoolean(false)
     private val statsMonitoringStarted = AtomicBoolean(false)
     private val selectedPathSignature = AtomicReference<String?>(null)
 
@@ -91,9 +95,20 @@ class WebRtcAudioEngine(
                 .createAudioDeviceModule()
             audioDeviceModule = audioModule
 
-            val factory = PeerConnectionFactory.builder()
+            val factoryBuilder = PeerConnectionFactory.builder()
                 .setAudioDeviceModule(audioModule)
-                .createPeerConnectionFactory()
+            if (config.mediaType == PulseCallMediaType.VIDEO) {
+                factoryBuilder
+                    .setVideoEncoderFactory(DefaultVideoEncoderFactory(
+                        PulseCallVideoState.eglContext,
+                        true,
+                        true,
+                    ))
+                    .setVideoDecoderFactory(DefaultVideoDecoderFactory(
+                        PulseCallVideoState.eglContext,
+                    ))
+            }
+            val factory = factoryBuilder.createPeerConnectionFactory()
             peerConnectionFactory = factory
 
             val source = factory.createAudioSource(MediaConstraints())
@@ -145,9 +160,15 @@ class WebRtcAudioEngine(
             checkNotNull(connection.addTrack(track, listOf(MEDIA_STREAM_ID))) {
                 "WebRTC could not add the local audio track"
             }
-            videoTrack?.let { localVideoTrack ->
-                checkNotNull(connection.addTrack(localVideoTrack, listOf(MEDIA_STREAM_ID))) {
-                    "WebRTC could not add the local video track"
+            if (config.role == PulseMediaRole.OFFERER) {
+                videoTrack?.let { localVideoTrack ->
+                    connection.addTransceiver(
+                        localVideoTrack,
+                        org.webrtc.RtpTransceiver.RtpTransceiverInit(
+                            org.webrtc.RtpTransceiver.RtpTransceiverDirection.SEND_RECV,
+                            listOf(MEDIA_STREAM_ID),
+                        ),
+                    )
                 }
             }
 
@@ -177,12 +198,45 @@ class WebRtcAudioEngine(
                 description.type.toWebRtc(),
                 description.value,
             )
+            reportVideoSdpDirection("REMOTE_VIDEO_SDP_DIRECTION", webRtcDescription.description)
             peerConnectionOrThrow().setRemoteDescriptionAwait(webRtcDescription)
-            iceCandidateBuffer.markRemoteDescriptionApplied().forEach {
-                applyRemoteIceCandidate(it)
-            }
+            PulseCallDiagnostics.event(
+                "REMOTE_DESCRIPTION_APPLIED",
+                config?.sessionId,
+                status = description.type.name,
+            )
             if (config?.role == PulseMediaRole.ANSWERER) {
+                PulseCallDiagnostics.event(
+                    "ANSWER_MEDIA_BINDING_STARTED",
+                    config?.sessionId,
+                    status = config?.mediaType?.name,
+                )
+                if (config?.mediaType == PulseCallMediaType.VIDEO) {
+                    val localVideoTrack = checkNotNull(videoTrack) {
+                        "Video answer has no local camera track"
+                    }
+                    checkNotNull(
+                        peerConnectionOrThrow().addTrack(
+                            localVideoTrack,
+                            listOf(MEDIA_STREAM_ID),
+                        ),
+                    ) { "WebRTC could not bind the local camera to the remote video offer" }
+                    PulseCallDiagnostics.event(
+                        "ANSWER_VIDEO_TRACK_BOUND",
+                        config?.sessionId,
+                        status = "BOUND",
+                    )
+                }
                 createAndPublishLocalDescription(SessionDescription.Type.ANSWER)
+            }
+            val bufferedCandidates = iceCandidateBuffer.markRemoteDescriptionApplied()
+            PulseCallDiagnostics.event(
+                "BUFFERED_ICE_APPLY_STARTED",
+                config?.sessionId,
+                status = bufferedCandidates.size.toString(),
+            )
+            bufferedCandidates.forEach {
+                applyRemoteIceCandidate(it)
             }
         }
 
@@ -196,6 +250,8 @@ class WebRtcAudioEngine(
         ensureNegotiating()
         iceCandidateBuffer.clear()
         remoteAudioReported.set(false)
+        remoteVideoReported.set(false)
+        localVideoReported.set(false)
         updateState(PulseMediaState.RECONNECTING)
         peerConnectionOrThrow().restartIce()
         if (config?.role == PulseMediaRole.OFFERER) {
@@ -255,9 +311,10 @@ class WebRtcAudioEngine(
 
     private suspend fun createAndPublishLocalDescription(type: SessionDescription.Type) {
         val connection = peerConnectionOrThrow()
-        val constraints = MediaConstraints().apply {
-            mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
-            mandatory.add(MediaConstraints.KeyValuePair(
+        val constraints = MediaConstraints()
+        if (type == SessionDescription.Type.OFFER) {
+            constraints.mandatory.add(MediaConstraints.KeyValuePair("OfferToReceiveAudio", "true"))
+            constraints.mandatory.add(MediaConstraints.KeyValuePair(
                 "OfferToReceiveVideo",
                 (config?.mediaType == PulseCallMediaType.VIDEO).toString(),
             ))
@@ -267,7 +324,22 @@ class WebRtcAudioEngine(
         } else {
             connection.createAnswerAwait(constraints)
         }
+        if (
+            type == SessionDescription.Type.ANSWER &&
+            config?.mediaType == PulseCallMediaType.VIDEO
+        ) {
+            val direction = videoMediaDirection(description.description)
+            PulseCallDiagnostics.event(
+                "ANSWER_VIDEO_SDP_DIRECTION",
+                config?.sessionId,
+                status = videoSdpSummary(description.description),
+            )
+            check(direction == "SENDRECV") {
+                "Video answer did not negotiate bidirectional media"
+            }
+        }
         connection.setLocalDescriptionAwait(description)
+        reportVideoSdpDirection("LOCAL_VIDEO_SDP_DIRECTION", description.description)
         listener?.onLocalDescription(description.toPulse())
     }
 
@@ -371,6 +443,12 @@ class WebRtcAudioEngine(
         snapshot.inboundAudio
             ?.takeIf(PulseInboundAudioStats::confirmsAudioFlow)
             ?.let(::reportRemoteAudio)
+        snapshot.inboundVideo
+            ?.takeIf(PulseVideoRtpStats::confirmsVideoFlow)
+            ?.let(::reportRemoteVideo)
+        snapshot.outboundVideo
+            ?.takeIf(PulseVideoRtpStats::confirmsVideoFlow)
+            ?.let(::reportLocalVideo)
     }
 
     private fun reportSelectedPath(path: PulseSelectedIcePath) {
@@ -399,6 +477,74 @@ class WebRtcAudioEngine(
             packetsReceived = stats.packetsReceived,
             bytesReceived = stats.bytesReceived,
         )
+    }
+
+    private fun reportRemoteVideo(stats: PulseVideoRtpStats) {
+        if (!remoteVideoReported.compareAndSet(false, true)) return
+        PulseCallDiagnostics.event(
+            "REMOTE_VIDEO_RTP_RECEIVED",
+            config?.sessionId,
+            status = "CONFIRMED",
+            packetsReceived = stats.packets,
+            bytesReceived = stats.bytes,
+            frames = stats.frames,
+        )
+    }
+
+    private fun reportLocalVideo(stats: PulseVideoRtpStats) {
+        if (!localVideoReported.compareAndSet(false, true)) return
+        PulseCallDiagnostics.event(
+            "LOCAL_VIDEO_RTP_SENT",
+            config?.sessionId,
+            status = "CONFIRMED",
+            packetsSent = stats.packets,
+            bytesSent = stats.bytes,
+            frames = stats.frames,
+        )
+    }
+
+    private fun reportVideoSdpDirection(event: String, sdp: String) {
+        if (config?.mediaType != PulseCallMediaType.VIDEO) return
+        PulseCallDiagnostics.event(
+            event,
+            config?.sessionId,
+            status = videoSdpSummary(sdp),
+        )
+    }
+
+    private fun videoSdpSummary(sdp: String): String {
+        val videoSection = sdp.lineSequence()
+            .dropWhile { !it.startsWith("m=video ") }
+            .takeWhile { !it.startsWith("m=") || it.startsWith("m=video ") }
+            .toList()
+        if (videoSection.isEmpty()) return "direction=ABSENT"
+        val port = videoSection.first().split(' ').getOrNull(1) ?: "UNKNOWN"
+        val codecs = videoSection
+            .asSequence()
+            .filter { it.startsWith("a=rtpmap:") }
+            .mapNotNull { it.substringAfter(' ', "").substringBefore('/').takeIf(String::isNotBlank) }
+            .distinct()
+            .sorted()
+            .joinToString("+")
+            .ifEmpty { "NONE" }
+        return "direction=${videoMediaDirection(sdp)},port=$port,codecs=$codecs"
+    }
+
+    private fun videoMediaDirection(sdp: String): String {
+        val videoSection = sdp.lineSequence()
+            .dropWhile { !it.startsWith("m=video ") }
+            .takeWhile { !it.startsWith("m=") || it.startsWith("m=video ") }
+            .toList()
+        if (videoSection.isEmpty()) return "ABSENT"
+        return videoSection.firstNotNullOfOrNull { line ->
+            when (line.trim()) {
+                "a=sendrecv" -> "SENDRECV"
+                "a=sendonly" -> "SENDONLY"
+                "a=recvonly" -> "RECVONLY"
+                "a=inactive" -> "INACTIVE"
+                else -> null
+            }
+        } ?: "UNSPECIFIED"
     }
 
     private fun ensureNegotiating() {

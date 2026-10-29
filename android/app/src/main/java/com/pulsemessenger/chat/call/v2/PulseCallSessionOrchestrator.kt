@@ -732,7 +732,15 @@ class PulseCallSessionOrchestrator(
     }
 
     private suspend fun connectSignaling(localIdentity: PulseCallIdentity): Boolean =
-        runCatching { signaling.connect(localIdentity.authToken, this) }.isSuccess
+        runCatching { signaling.connect(localIdentity.authToken, this) }
+            .onFailure { error ->
+                PulseCallDiagnostics.event(
+                    "SIGNALING_CONNECTION_EXCEPTION",
+                    status = error.javaClass.simpleName,
+                    state = error.cause?.javaClass?.simpleName,
+                )
+            }
+            .isSuccess
 
     private fun startTelecom(request: PulseCallRequest) {
         PulseCallDiagnostics.event(
@@ -785,7 +793,7 @@ class PulseCallSessionOrchestrator(
         onCallFailure(sessionId, reason)
         coordinator.beginEnding(sessionId, remote = false, terminalReason = reason)
         sendCommand(PulseSignalingCommand.FAIL, reason)
-        if (!telecom.disconnect(sessionId, DisconnectCause(DisconnectCause.ERROR))) {
+        if (!telecom.disconnect(sessionId, DisconnectCause(DisconnectCause.LOCAL))) {
             completeCleanup(sessionId)
         }
     }

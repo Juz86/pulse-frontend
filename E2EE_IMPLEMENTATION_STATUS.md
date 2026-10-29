@@ -689,17 +689,18 @@ native store vastgelegd en bij herstart tegen de lokale Signal-identity
 gecontroleerd. Daarmee kan de toekomstige native callbinder uitsluitend met
 de serverbevestigde device-identiteit ondertekenen.
 
-Dit is bewust nog geen runtimeactivatie. Lokaal valideert Railway-signaling het
-call-envelope nu tegen sessie, actor, SDP-fingerprint en de actieve v2-
-devicebinding. De Android media-controller ondertekent lokale SDP, verifieert
+Dit is uitsluitend in de afgescheiden QA-runtime geactiveerd. Railway-signaling
+valideert daar het call-envelope tegen sessie, actor, SDP-fingerprint en de
+actieve v2-devicebinding. De Android media-controller ondertekent lokale SDP, verifieert
 remote SDP met de vertrouwde Signal-identity voordat WebRTC die toepast en houdt
 vroege ICE-candidates vast tot die verificatie is geslaagd. Ontbrekend of
 ongeldig bewijs faalt gesloten; een reeds verwerkte ondertekende binding wordt
 als replay geweigerd voordat een tweede SDP-apply plaatsvindt. Zowel de backendgate
 `PULSE_CALLING_V2_E2EE_REQUIRED` als de Android-buildgate
 `pulseCallE2ee` staat standaard uit; productie accepteert daardoor nog kaal SDP.
-Voor groepen ontbreekt nog live validatie en vrijgave van de chatinterface. De backend heeft een
-geisoleerde, standaard-uitgeschakelde beleidslaag die het actuele
+Voor groepen ontbreekt nog vrijgave van de chatinterface en validatie op twee
+fysieke toestellen. De backend heeft een geisoleerde, standaard-uitgeschakelde
+beleidslaag die het actuele
 lidmaatschap hasht, de epoch controleert, de senderdevicebinding valideert en
 exacte fan-out naar alle andere actieve v2-devices afdwingt. Een
 lidmaatschapswijziging blokkeert distributie totdat de epoch is geroteerd, en
@@ -724,9 +725,57 @@ berichtevents, haalt gemiste items bij hervatten in en schrijft ontsleutelde
 plaintext eerst naar de versleutelde native geschiedenis voordat de backend-
 acknowledgement volgt. Verzenden weigert legacygroepen en groepen zonder geldige
 epoch; tijdens keydistributie wordt exact dezelfde ciphertext begrensd opnieuw
-aangeboden zonder een tweede Sender Keys-ratchet. Twee-device-liveproeven,
-review en een nieuwe AAB blijven open. VersionCode 82 bevat deze uitbreiding
-niet.
+aangeboden zonder een tweede Sender Keys-ratchet.
+
+Op 25 oktober 2026 is deze volledige groepsflow live gevalideerd met twee
+afzonderlijk gesandboxte QA-appinstanties (`QA-A` en `QA-B`) op één fysiek
+Androidtoestel. Beide accounts hadden exact één actieve v2-devicebinding. Een
+sender-keydistribution bleef `distributing` totdat de ontvanger hem lokaal had
+verwerkt en geacknowledged; eerder verzenden faalde gesloten. Daarna zijn
+groepsberichten in beide richtingen lokaal ontsleuteld. Bij de omgekeerde proef
+was de ontvanger volledig gestopt: de backend hield één device-audience pending,
+waarna herstart de plaintext lokaal herstelde en de acknowledgement het pending-
+aantal naar nul bracht. Een tweede koude herstart herstelde beide berichten uit
+de versleutelde native geschiedenis. Dit bewijst de app-, protocol- en offline-
+flow tussen twee geïsoleerde installaties, maar niet het gedrag van twee fysieke
+radio-, OS- en hardwareomgevingen. Die twee-deviceproef, review en een nieuwe AAB
+blijven open. VersionCode 82 bevat deze uitbreiding niet.
+
+Tijdens deze proef bleek dat een lokaal gecachte devicebinding na server-side
+intrekking opnieuw kon worden aangeboden. De QA-runtime vergelijkt een cached
+binding bij online start nu met de actieve serverbindingen. Een ontbrekende,
+ingetrokken of afwijkende binding en de gekoppelde groepsdistributiestatus
+worden verwijderd voordat een nieuwe ongebruikte Signal-device-ID wordt
+geregistreerd. Bij tijdelijke backendonbereikbaarheid blijft de cached binding
+wel beschikbaar voor fail-closed offline herstel. De regressietest en alle 310
+frontendtests slagen. QA-A en QA-B zijn daarna in-place bijgewerkt; beide
+accounts en hun versleutelde groepsgeschiedenis bleven na koude start intact.
+
+De aanvullende apparaatloze verificatie op 25 oktober 2026 is eveneens groen:
+152 native Android-unittests plus release-lint, de echte headless Chromium-
+workerproef voor manipulatie, replay en opslagherstel, en 68 gerichte
+backendtests verdeeld over acht suites voor groepsepochs, exacte device-fan-out,
+delivery/acknowledgement en call-identity-gating. De calltests bewijzen onder
+meer dat remote SDP pas na geldige identitybinding wordt toegepast, replay vóór
+een tweede WebRTC-apply wordt geweigerd en TURN vóór mediastart wordt opgehaald.
+Dit is technisch contractbewijs en geen vervanging voor een live audio- en
+videogesprek tussen twee fysieke toestellen.
+
+Op 27 oktober 2026 is vervolgens een live, ondertekend audiogesprek tussen twee
+fysieke Androidtoestellen in beide richtingen geslaagd. Beide kanten bereikten
+een verbonden ICE/DTLS-SRTP-mediastroom en ontvingen aantoonbaar audio-RTP nadat
+de remote SDP-binding lokaal tegen de vertrouwde Signal-identity was
+geverifieerd. Op 29 oktober 2026 is ook de videoproef in beide richtingen op
+dezelfde twee fysieke Androidtoestellen geslaagd. De offerer publiceerde een
+actieve video-m-line met poort 9 en ondersteunde codecs; de answerer bond zijn
+cameratrack na het toepassen van de geverifieerde remote offer aan de aangeboden
+Unified Plan-sectie. Offer en answer onderhandelden beide `SENDRECV`. QA-A en
+QA-B rapporteerden in beide belrichtingen niet-nul uitgaande en inkomende
+video-RTP-pakketten, bytes en frames, plus ontvangen audio-RTP. De volledige
+Android-unittestsuite en `git diff --check` slagen na deze correctie. Dit is
+live interoperabiliteitsbewijs voor de geisoleerde QA-runtime, geen productie-
+vrijgave of algemene Pulse-E2EE-claim voor videobellen; de gates blijven
+standaard uit en Play-versie 82 bevat deze wijzigingen niet.
 
 Frontend en backend zijn inmiddels zonder GitHub-authenticatie publiek
 leesbaar en beide zijn expliciet als `AGPL-3.0-only` gelicentieerd. De

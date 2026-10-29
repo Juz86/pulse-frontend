@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.messaging.FirebaseMessaging
+import com.pulsemessenger.chat.BuildConfig
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -13,7 +14,6 @@ import java.util.UUID
 import java.util.concurrent.Executors
 
 object PulsePushTokenRegistrar {
-    private const val REGISTRATION_URL = "https://api.pulse-messenger.com/api/fcm-token"
     private const val PREFERENCES_NAME = "pulse_push_device"
     private const val INSTALLATION_ID_KEY = "installation_id"
     private const val TAG = "PulsePushRegistration"
@@ -80,7 +80,8 @@ object PulsePushTokenRegistrar {
                 .put("platform", "android")
                 .toString()
                 .toByteArray(StandardCharsets.UTF_8)
-            connection = (URL(REGISTRATION_URL).openConnection() as HttpURLConnection).apply {
+            val registrationUrl = "${BuildConfig.PULSE_NATIVE_API_URL}/api/fcm-token"
+            connection = (URL(registrationUrl).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
                 connectTimeout = 10_000
                 readTimeout = 10_000

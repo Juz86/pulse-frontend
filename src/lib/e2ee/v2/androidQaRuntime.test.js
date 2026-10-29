@@ -269,7 +269,7 @@ describe('Android E2EE v2 QA runtime', () => {
       .rejects.toBe(forbidden);
   });
 
-  test('starts a legacy device binding offline and restores native history', async () => {
+  test('starts a cached device binding offline and restores native history', async () => {
     const storage = createStorage();
     storage.setItem('pulse_e2ee_v2_qa_binding_user-a', JSON.stringify({
       deviceId: 'qa-123e4567-e89b-42d3-a456-426614174000',
@@ -286,7 +286,7 @@ describe('Android E2EE v2 QA runtime', () => {
       createdAt: '2026-10-19T12:00:00.000Z',
     };
     const api = {
-      listDevices: jest.fn(),
+      listDevices: jest.fn().mockRejectedValue(new TypeError('Failed to fetch')),
       listMessageFeed: jest.fn().mockRejectedValue(new TypeError('Failed to fetch')),
     };
     const registerDevice = jest.fn();
@@ -304,10 +304,55 @@ describe('Android E2EE v2 QA runtime', () => {
     });
 
     expect(runtime.status).toBe('REGISTERED_CACHED');
-    expect(api.listDevices).not.toHaveBeenCalled();
+    expect(api.listDevices).toHaveBeenCalledWith({ uid: 'user-a' });
     expect(registerDevice).not.toHaveBeenCalled();
     await expect(runtime.fetchTextMessages({ conversationId: 'conversation-1' }))
       .resolves.toEqual([storedMessage]);
+  });
+
+  test('replaces a cached binding that is no longer active on the server', async () => {
+    const storage = createStorage();
+    storage.setItem('pulse_e2ee_v2_qa_binding_user-a', JSON.stringify({
+      deviceId: 'qa-revoked-device',
+      signalDeviceId: 1,
+      identityVersion: 1,
+    }));
+    storage.setItem('pulse_e2ee_v2_qa_group_user-a_group-1_2', 'old-distribution');
+    const api = {
+      listDevices: jest.fn().mockResolvedValue([
+        { deviceId: 'qa-revoked-device', signalDeviceId: 1, identityVersion: 1, status: 'revoked' },
+        { deviceId: 'qa-other-device', signalDeviceId: 2, identityVersion: 1, status: 'revoked' },
+      ]),
+    };
+    const registerDevice = jest.fn().mockImplementation(async ({ deviceId, signalDeviceId }) => ({
+      deviceId,
+      signalDeviceId,
+      identityVersion: 1,
+      status: 'REGISTERED',
+    }));
+
+    const runtime = await startAndroidE2eeV2QaRuntime({
+      user: { uid: 'user-a' },
+      backendUrl: 'https://e2ee-qa.example.test',
+      runtimeBackendUrl: 'https://e2ee-qa.example.test',
+      api,
+      registerDevice,
+      storage,
+      randomUuid: () => '123e4567-e89b-42d3-a456-426614174000',
+      bindSocketDevice: jest.fn(),
+      assertConfiguration: jest.fn(),
+    });
+
+    expect(registerDevice).toHaveBeenCalledWith(expect.objectContaining({
+      deviceId: 'qa-123e4567-e89b-42d3-a456-426614174000',
+      signalDeviceId: 3,
+    }));
+    expect(runtime).toMatchObject({
+      deviceId: 'qa-123e4567-e89b-42d3-a456-426614174000',
+      signalDeviceId: 3,
+      status: 'REGISTERED',
+    });
+    expect(storage.getItem('pulse_e2ee_v2_qa_group_user-a_group-1_2')).toBeNull();
   });
 
   test('stores sent plaintext in native encrypted history', async () => {

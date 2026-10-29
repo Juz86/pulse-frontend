@@ -25,9 +25,20 @@ internal data class PulseInboundAudioStats(
         get() = packetsReceived > 0L && bytesReceived > 0L
 }
 
+internal data class PulseVideoRtpStats(
+    val packets: Long,
+    val bytes: Long,
+    val frames: Long,
+) {
+    val confirmsVideoFlow: Boolean
+        get() = packets > 0L && bytes > 0L && frames > 0L
+}
+
 internal data class PulseWebRtcDiagnosticsSnapshot(
     val selectedIcePath: PulseSelectedIcePath?,
     val inboundAudio: PulseInboundAudioStats?,
+    val inboundVideo: PulseVideoRtpStats?,
+    val outboundVideo: PulseVideoRtpStats?,
 )
 
 internal object PulseWebRtcStatsAnalyzer {
@@ -38,6 +49,8 @@ internal object PulseWebRtcStatsAnalyzer {
         return PulseWebRtcDiagnosticsSnapshot(
             selectedIcePath = selectedCandidatePair(stats, byId),
             inboundAudio = inboundAudio(stats),
+            inboundVideo = videoRtp(stats, "inbound-rtp", "packetsReceived", "bytesReceived", "framesDecoded"),
+            outboundVideo = videoRtp(stats, "outbound-rtp", "packetsSent", "bytesSent", "framesEncoded"),
         )
     }
 
@@ -83,6 +96,26 @@ internal object PulseWebRtcStatsAnalyzer {
         return PulseInboundAudioStats(
             packetsReceived = audioStats.sumOf { it.members.long("packetsReceived") },
             bytesReceived = audioStats.sumOf { it.members.long("bytesReceived") },
+        )
+    }
+
+    private fun videoRtp(
+        stats: Collection<PulseRtcStat>,
+        statsType: String,
+        packetsKey: String,
+        bytesKey: String,
+        framesKey: String,
+    ): PulseVideoRtpStats? {
+        val videoStats = stats.filter { stat ->
+            stat.type == statsType &&
+                (stat.members.string("kind") == "video" ||
+                    stat.members.string("mediaType") == "video")
+        }
+        if (videoStats.isEmpty()) return null
+        return PulseVideoRtpStats(
+            packets = videoStats.sumOf { it.members.long(packetsKey) },
+            bytes = videoStats.sumOf { it.members.long(bytesKey) },
+            frames = videoStats.sumOf { it.members.long(framesKey) },
         )
     }
 

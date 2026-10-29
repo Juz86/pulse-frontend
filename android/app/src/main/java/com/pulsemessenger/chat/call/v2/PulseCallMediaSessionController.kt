@@ -71,6 +71,11 @@ class PulseCallMediaSessionController(
                 iceConfiguration.status != PulseSignalingStatus.FOUND ||
                 iceConfiguration.iceServers.isEmpty()
             ) {
+                PulseCallDiagnostics.event(
+                    "MEDIA_ICE_CONFIGURATION_REJECTED",
+                    session.sessionId,
+                    status = iceConfiguration.status.name,
+                )
                 active.compareAndSet(mediaSession, null)
                 runCatching { engine.close() }
                 callbacks.onMediaFailure(session.sessionId, SIGNALING_ERROR)
@@ -99,7 +104,12 @@ class PulseCallMediaSessionController(
                 }
                 pending.forEach { signal -> applyRemote(mediaSession, signal) }
                 true
-            } catch (_: Throwable) {
+            } catch (error: Throwable) {
+                PulseCallDiagnostics.event(
+                    "MEDIA_ENGINE_START_FAILED",
+                    session.sessionId,
+                    status = diagnosticStatus(error),
+                )
                 active.compareAndSet(mediaSession, null)
                 runCatching { engine.close() }
                 callbacks.onMediaFailure(session.sessionId, MEDIA_ERROR)
@@ -174,7 +184,12 @@ class PulseCallMediaSessionController(
                 }
             }
             true
-        } catch (_: Throwable) {
+        } catch (error: Throwable) {
+            PulseCallDiagnostics.event(
+                "MEDIA_REMOTE_SIGNAL_REJECTED",
+                mediaSession.sessionId,
+                status = diagnosticStatus(error),
+            )
             reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
             false
         }
@@ -246,10 +261,22 @@ class PulseCallMediaSessionController(
                 identity = identity,
             )
             if (!response.ok || response.status != PulseSignalingStatus.RELAYED) {
+                PulseCallDiagnostics.event(
+                    "MEDIA_DESCRIPTION_RELAY_REJECTED",
+                    mediaSession.sessionId,
+                    status = response.status.name,
+                )
                 reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
             }
         }.invokeOnCompletion { error ->
-            if (error != null) reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
+            if (error != null) {
+                PulseCallDiagnostics.event(
+                    "MEDIA_DESCRIPTION_PUBLISH_FAILED",
+                    mediaSession.sessionId,
+                    status = diagnosticStatus(error),
+                )
+                reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
+            }
         }
     }
 
@@ -262,6 +289,20 @@ class PulseCallMediaSessionController(
                 candidate = candidate,
             )
             if (!response.ok || response.status != PulseSignalingStatus.RELAYED) {
+                PulseCallDiagnostics.event(
+                    "MEDIA_CANDIDATE_RELAY_REJECTED",
+                    mediaSession.sessionId,
+                    status = response.status.name,
+                )
+                reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
+            }
+        }.invokeOnCompletion { error ->
+            if (error != null) {
+                PulseCallDiagnostics.event(
+                    "MEDIA_CANDIDATE_PUBLISH_FAILED",
+                    mediaSession.sessionId,
+                    status = diagnosticStatus(error),
+                )
                 reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
             }
         }
@@ -297,6 +338,11 @@ class PulseCallMediaSessionController(
 
     private fun PulseServerCallSession.isParticipant(uid: String): Boolean =
         callerUid == uid || calleeUid == uid
+
+    private fun diagnosticStatus(error: Throwable): String {
+        val message = error.message.orEmpty()
+        return if (message.startsWith("e2ee_")) message else error.javaClass.simpleName
+    }
 
     private companion object {
         val MEDIA_STATES = setOf(PulseServerCallState.CONNECTING, PulseServerCallState.ACTIVE)

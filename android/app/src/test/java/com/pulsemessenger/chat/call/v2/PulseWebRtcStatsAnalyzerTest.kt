@@ -115,6 +115,35 @@ class PulseWebRtcStatsAnalyzerTest {
         assertNull(snapshot.selectedIcePath)
     }
 
+    @Test
+    fun `confirms inbound and outbound video only after encoded frames flow`() {
+        val snapshot = PulseWebRtcStatsAnalyzer.analyze(
+            listOf(
+                stat(
+                    "video-in",
+                    "inbound-rtp",
+                    "kind" to "video",
+                    "packetsReceived" to 25L,
+                    "bytesReceived" to 20_000L,
+                    "framesDecoded" to 8L,
+                ),
+                stat(
+                    "video-out",
+                    "outbound-rtp",
+                    "mediaType" to "video",
+                    "packetsSent" to 31L,
+                    "bytesSent" to 24_000L,
+                    "framesEncoded" to 10L,
+                ),
+            ),
+        )
+
+        assertTrue(snapshot.inboundVideo?.confirmsVideoFlow == true)
+        assertEquals(8L, snapshot.inboundVideo?.frames)
+        assertTrue(snapshot.outboundVideo?.confirmsVideoFlow == true)
+        assertEquals(10L, snapshot.outboundVideo?.frames)
+    }
+
     private fun stat(
         id: String,
         type: String,

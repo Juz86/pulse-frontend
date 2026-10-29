@@ -17,6 +17,9 @@ internal object PulseCallDiagnostics {
         remoteCandidateType: String? = null,
         packetsReceived: Long? = null,
         bytesReceived: Long? = null,
+        packetsSent: Long? = null,
+        bytesSent: Long? = null,
+        frames: Long? = null,
     ) {
         val message = buildString {
             append("event=").append(event)
@@ -30,6 +33,9 @@ internal object PulseCallDiagnostics {
             remoteCandidateType?.let { append(" remoteCandidateType=").append(it) }
             packetsReceived?.let { append(" packetsReceived=").append(it) }
             bytesReceived?.let { append(" bytesReceived=").append(it) }
+            packetsSent?.let { append(" packetsSent=").append(it) }
+            bytesSent?.let { append(" bytesSent=").append(it) }
+            frames?.let { append(" frames=").append(it) }
         }
         runCatching { Log.i(TAG, message) }
     }

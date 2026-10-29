@@ -74,7 +74,7 @@ class PulseCallService : Service() {
         orchestrator = PulseCallSessionOrchestrator(
             scope = serviceScope,
             identityProvider = FirebasePulseCallIdentityProvider(this),
-            signaling = RailwayCallSignalingClient(URI.create(CALLING_API_URL)),
+            signaling = RailwayCallSignalingClient(URI.create(BuildConfig.PULSE_NATIVE_API_URL)),
             telecom = telecom,
             coordinator = coordinator,
             mediaEngineFactory = PulseCallMediaEngineFactory { WebRtcAudioEngine(this) },
@@ -925,7 +925,6 @@ class PulseCallService : Service() {
         const val EXTRA_AUDIO_ROUTE_ID = "audio_route_id"
 
         private const val TAG = "PulseCallService"
-        private const val CALLING_API_URL = "https://api.pulse-messenger.com"
         private const val NOTIFICATION_CHANNEL_ID = "pulse_active_calls_v2"
         private const val LEGACY_ACTIVE_NOTIFICATION_CHANNEL_ID = "pulse_active_calls"
         private const val INCOMING_NOTIFICATION_CHANNEL_ID = "pulse_incoming_calls_v3"

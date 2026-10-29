@@ -50,7 +50,7 @@ public class PulseCallPlugin extends Plugin {
     static final String MICROPHONE = "microphone";
     static final String CAMERA = "camera";
     private static final String NATIVE_AUTH_CLAIM_URL =
-        "https://api.pulse-messenger.com/api/calling/v2/native-auth/claim";
+        BuildConfig.PULSE_NATIVE_API_URL + "/api/calling/v2/native-auth/claim";
     private final ExecutorService authExecutor = Executors.newSingleThreadExecutor();
     private BroadcastReceiver callStatusReceiver;
 

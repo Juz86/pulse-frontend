@@ -1,4 +1,11 @@
-const { copyFileSync, mkdirSync } = require('fs');
+const {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} = require('fs');
 const { spawnSync } = require('child_process');
 const path = require('path');
 
@@ -6,6 +13,8 @@ const projectRoot = path.resolve(__dirname, '..');
 const backendUrl = String(process.env.PULSE_E2EE_QA_BACKEND_URL || '').replace(/\/+$/, '');
 const qaInstance = String(process.env.PULSE_E2EE_QA_INSTANCE || 'a').toLowerCase();
 const groupsEnabled = String(process.env.PULSE_E2EE_QA_GROUPS || '').toLowerCase() === 'true';
+const callsEnabled = String(process.env.PULSE_E2EE_QA_CALLS || '').toLowerCase() === 'true';
+const googleServicesPath = String(process.env.PULSE_E2EE_QA_GOOGLE_SERVICES_PATH || '').trim();
 const QA_FIREBASE_CONFIG = Object.freeze({
   apiKey: 'AIzaSyD832WLALBNkGglRGtA_NpmqEofsuyeoJo',
   authDomain: 'pulse-messenger-e2ee-qa.firebaseapp.com',
@@ -33,13 +42,38 @@ function run(command, args, options = {}) {
     stdio: 'inherit',
     ...options,
   });
-  if (result.status !== 0) process.exit(result.status || 1);
+  if (result.status !== 0) {
+    const error = new Error(`${command} is mislukt met exitcode ${result.status || 1}.`);
+    error.exitCode = result.status || 1;
+    throw error;
+  }
+}
+
+function validateGoogleServicesConfig(filePath, expectedPackageName) {
+  if (!filePath || !existsSync(filePath)) {
+    throw new Error(
+      'Stel PULSE_E2EE_QA_GOOGLE_SERVICES_PATH in op de officiele QA google-services.json.',
+    );
+  }
+  const config = JSON.parse(readFileSync(filePath, 'utf8'));
+  if (config?.project_info?.project_id !== QA_FIREBASE_CONFIG.projectId) {
+    throw new Error('De Android Firebase-config hoort niet bij het aparte E2EE QA-project.');
+  }
+  const packages = (config?.client || [])
+    .map((client) => client?.client_info?.android_client_info?.package_name)
+    .filter(Boolean);
+  if (!packages.includes(expectedPackageName)) {
+    throw new Error(`De Android Firebase-config bevat ${expectedPackageName} niet.`);
+  }
 }
 
 requireIsolatedBackend(backendUrl);
 if (!/^[a-z0-9]+$/.test(qaInstance)) {
   throw new Error('PULSE_E2EE_QA_INSTANCE mag alleen kleine letters en cijfers bevatten.');
 }
+const qaPackageSuffix = qaInstance === 'a' ? '' : qaInstance;
+const qaPackageName = `com.pulsemessenger.chat.e2eeqa${qaPackageSuffix}`;
+validateGoogleServicesConfig(googleServicesPath, qaPackageName);
 
 const qaEnvironment = {
   ...process.env,
@@ -65,22 +99,40 @@ run('npm', ['run', 'build:webapp'], { env: qaEnvironment });
 run(path.join(projectRoot, 'node_modules', '.bin', 'cap'), ['copy', 'android'], {
   env: qaEnvironment,
 });
-run('./gradlew', [
-  ':app:assembleDebug',
-  '-PpulseE2eeQa=true',
-  `-PpulseE2eeQaInstance=${qaInstance}`,
-  '--console=plain',
-], {
-  cwd: path.join(projectRoot, 'android'),
-  env: {
-    ...qaEnvironment,
-    GRADLE_USER_HOME: path.join(projectRoot, '.gradle-android'),
-  },
-});
+const googleServicesDestination = path.join(projectRoot, 'android/app/google-services.json');
+const originalGoogleServices = existsSync(googleServicesDestination)
+  ? readFileSync(googleServicesDestination)
+  : null;
+try {
+  copyFileSync(googleServicesPath, googleServicesDestination);
+  run('./gradlew', [
+    ':app:clean',
+    ':app:assembleDebug',
+    '-PpulseE2eeQa=true',
+    `-PpulseE2eeQaInstance=${qaInstance}`,
+    `-PpulseCallE2ee=${callsEnabled}`,
+    '--console=plain',
+  ], {
+    cwd: path.join(projectRoot, 'android'),
+    env: {
+      ...qaEnvironment,
+      GRADLE_USER_HOME: path.join(projectRoot, '.gradle-android'),
+    },
+  });
+} finally {
+  if (originalGoogleServices) {
+    writeFileSync(googleServicesDestination, originalGoogleServices);
+  } else if (existsSync(googleServicesDestination)) {
+    unlinkSync(googleServicesDestination);
+  }
+}
 
 const defaultApk = path.join(projectRoot, 'android/app/build/outputs/apk/debug/app-debug.apk');
 const artifactDirectory = path.join(projectRoot, 'artifacts/e2ee-qa');
 const namedApk = path.join(artifactDirectory, `pulse-e2ee-qa-${qaInstance}-debug.apk`);
 mkdirSync(artifactDirectory, { recursive: true });
 copyFileSync(defaultApk, namedApk);
-console.log(`E2EE QA-APK: ${path.relative(projectRoot, namedApk)}`);
+console.log(
+  `E2EE QA-APK: ${path.relative(projectRoot, namedApk)} `
+  + `(groups=${groupsEnabled}, calls=${callsEnabled})`,
+);

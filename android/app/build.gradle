@@ -33,6 +33,12 @@ def pulseE2eeReleaseProvider = pulseE2eePilot || pulseE2eeInternalPlayTest
 def pulseCallE2ee = providers.gradleProperty('pulseCallE2ee')
     .map { it.toBoolean() }
     .getOrElse(false)
+def pulseNativeApiUrl = [
+    System.getenv('REACT_APP_NATIVE_API_URL'),
+    System.getenv('REACT_APP_BACKEND_URL'),
+].find { value -> value != null && !value.trim().isEmpty() }
+    ?: 'https://api.pulse-messenger.com'
+pulseNativeApiUrl = pulseNativeApiUrl.trim().replaceAll('/+$', '')
 if ([pulseE2eeQa, pulseE2eePilot, pulseE2eeInternalPlayTest].count { it } > 1) {
     throw new GradleException('E2EE QA, interne Play-test en productiepilot zijn onderling exclusief.')
 }
@@ -78,6 +84,7 @@ android {
         buildConfigField "boolean", "PULSE_E2EE_PILOT_ENABLED", pulseE2eeReleaseProvider.toString()
         buildConfigField "boolean", "PULSE_E2EE_INTERNAL_PLAY_TEST", pulseE2eeInternalPlayTest.toString()
         buildConfigField "boolean", "PULSE_CALL_E2EE_ENABLED", pulseCallE2ee.toString()
+        buildConfigField "String", "PULSE_NATIVE_API_URL", "\"${pulseNativeApiUrl.replace('\\', '\\\\').replace('"', '\\"')}\""
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
@@ -123,9 +130,9 @@ android {
     }
 }
 
-if (pulseE2eeInstrumentedTest || pulseE2eeQa) {
+if (pulseE2eeInstrumentedTest) {
     // Secure-store tests do not start Firebase and use an isolated package ID
-    // that intentionally has no production Firebase client registration.
+    // that intentionally has no Firebase client registration.
     tasks.matching { it.name == 'processDebugGoogleServices' }.configureEach {
         enabled = false
     }

@@ -247,29 +247,29 @@ class PulseCallMediaSessionController(
     override fun onLocalDescription(description: PulseSessionDescription) {
         val mediaSession = active.get() ?: return
         scope.launch {
-            val identity = identityBinder?.sign(
-                session = mediaSession.serverSession.get(),
-                localUid = mediaSession.localUid,
-                description = description,
-                verifiedPeer = mediaSession.remoteIdentity.get(),
-            )
-            if (identity != null) mediaSession.localIdentity.set(identity)
-            val response = signaling.sendDescription(
-                sessionId = mediaSession.sessionId,
-                messageId = createMessageId(),
-                description = description,
-                identity = identity,
-            )
-            if (!response.ok || response.status != PulseSignalingStatus.RELAYED) {
-                PulseCallDiagnostics.event(
-                    "MEDIA_DESCRIPTION_RELAY_REJECTED",
-                    mediaSession.sessionId,
-                    status = response.status.name,
+            try {
+                val identity = identityBinder?.sign(
+                    session = mediaSession.serverSession.get(),
+                    localUid = mediaSession.localUid,
+                    description = description,
+                    verifiedPeer = mediaSession.remoteIdentity.get(),
                 )
-                reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
-            }
-        }.invokeOnCompletion { error ->
-            if (error != null) {
+                if (identity != null) mediaSession.localIdentity.set(identity)
+                val response = signaling.sendDescription(
+                    sessionId = mediaSession.sessionId,
+                    messageId = createMessageId(),
+                    description = description,
+                    identity = identity,
+                )
+                if (!response.ok || response.status != PulseSignalingStatus.RELAYED) {
+                    PulseCallDiagnostics.event(
+                        "MEDIA_DESCRIPTION_RELAY_REJECTED",
+                        mediaSession.sessionId,
+                        status = response.status.name,
+                    )
+                    reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
+                }
+            } catch (error: Throwable) {
                 PulseCallDiagnostics.event(
                     "MEDIA_DESCRIPTION_PUBLISH_FAILED",
                     mediaSession.sessionId,
@@ -283,21 +283,21 @@ class PulseCallMediaSessionController(
     override fun onLocalIceCandidate(candidate: PulseIceCandidate) {
         val mediaSession = active.get() ?: return
         scope.launch {
-            val response = signaling.sendIceCandidate(
-                sessionId = mediaSession.sessionId,
-                messageId = createMessageId(),
-                candidate = candidate,
-            )
-            if (!response.ok || response.status != PulseSignalingStatus.RELAYED) {
-                PulseCallDiagnostics.event(
-                    "MEDIA_CANDIDATE_RELAY_REJECTED",
-                    mediaSession.sessionId,
-                    status = response.status.name,
+            try {
+                val response = signaling.sendIceCandidate(
+                    sessionId = mediaSession.sessionId,
+                    messageId = createMessageId(),
+                    candidate = candidate,
                 )
-                reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
-            }
-        }.invokeOnCompletion { error ->
-            if (error != null) {
+                if (!response.ok || response.status != PulseSignalingStatus.RELAYED) {
+                    PulseCallDiagnostics.event(
+                        "MEDIA_CANDIDATE_RELAY_REJECTED",
+                        mediaSession.sessionId,
+                        status = response.status.name,
+                    )
+                    reportFailure(mediaSession.sessionId, SIGNALING_ERROR)
+                }
+            } catch (error: Throwable) {
                 PulseCallDiagnostics.event(
                     "MEDIA_CANDIDATE_PUBLISH_FAILED",
                     mediaSession.sessionId,

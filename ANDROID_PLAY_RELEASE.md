@@ -92,8 +92,9 @@ For the explicitly unreviewed E2EE evaluation build, use:
 npm run android:build:e2ee-internal-play
 ```
 
-This produces the same-package `versionCode 82` build named
-`1.0.26-internal-e2ee`. It enables the E2EE runtime but does not claim an
+This produces the same-package `versionCode 88` build named
+`1.0.32-internal-e2ee`. It enables the E2EE runtime, group Sender Keys and
+call-identity binding for internal testing, but does not claim an
 independent review. Upload it only to **Internal testing**. Do not promote this
 artifact to closed, open, or production tracks. A later production candidate
 must be rebuilt through `android:build:e2ee-pilot`, including the independent
@@ -101,7 +102,20 @@ review and release-distribution gates.
 
 The internal build always starts from its embedded web assets and disables
 signed web updates. This prevents an older production web bundle retained from
-versionCode 81 or earlier from silently disabling the E2EE test runtime.
+versionCode 84 or earlier from silently disabling the E2EE test runtime.
+
+The release gate also verifies that R8 preserves both WebRTC's `org.webrtc`
+surface and the `org.jni_zero` bootstrap classes. VersionCode 87 retained only
+the former; on a real incoming call `JNI_OnLoad` could not find
+`org.jni_zero.JniInit` and terminated the whole app process. VersionCode 88 is
+the first internal artifact containing this corrected native bridge retention.
+
+The same physical-device investigation found that a cached Signal session could
+fail locally with `e2ee_encrypt_failed` before the backend send. VersionCode 88
+refreshes the authoritative device bundles once, rebuilds only sessions whose
+opaque device ID, Signal device ID and identity version are unchanged, and
+continues to reject identity changes fail-closed. Unknown internal error codes
+are no longer shown verbatim in the chat UI.
 
 - App details:
   - App name

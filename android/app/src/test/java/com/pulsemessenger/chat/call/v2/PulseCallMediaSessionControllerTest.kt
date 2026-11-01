@@ -96,6 +96,27 @@ class PulseCallMediaSessionControllerTest {
     }
 
     @Test
+    fun `missing local E2EE binding fails media without escaping the call scope`() = runBlocking {
+        val signaling = FakeSignaling()
+        val engine = FakeMediaEngine()
+        val callbacks = RecordingCallbacks()
+        val subject = subject(
+            signaling,
+            engine,
+            callbacks,
+            identityBinder = FailingIdentityBinder(),
+        )
+        subject.start(session(PulseServerCallState.CONNECTING), "caller")
+
+        engine.listener?.onLocalDescription(
+            PulseSessionDescription(PulseSessionDescriptionType.OFFER, "v=0"),
+        )
+
+        assertTrue(signaling.descriptions.isEmpty())
+        assertEquals(listOf("session-123" to "signaling_error"), callbacks.failures)
+    }
+
+    @Test
     fun `missing identity rejects remote SDP before it reaches WebRTC`() = runBlocking {
         val engine = FakeMediaEngine()
         val callbacks = RecordingCallbacks()
@@ -480,6 +501,25 @@ class PulseCallMediaSessionControllerTest {
             identityKey = "identity-key",
             signature = "signature",
         )
+    }
+
+    private class FailingIdentityBinder : PulseCallE2eeIdentityBinder {
+        override suspend fun sign(
+            session: PulseServerCallSession,
+            localUid: String,
+            description: PulseSessionDescription,
+            verifiedPeer: PulseCallE2eeIdentityEnvelope?,
+        ): PulseCallE2eeIdentityEnvelope = throw IllegalStateException(
+            "e2ee_local_device_binding_missing",
+        )
+
+        override suspend fun verify(
+            session: PulseServerCallSession,
+            remoteUid: String,
+            description: PulseSessionDescription,
+            identity: PulseCallE2eeIdentityEnvelope,
+            localOffer: PulseCallE2eeIdentityEnvelope?,
+        ): String = throw UnsupportedOperationException()
     }
 
     private class FakeMediaEngine(

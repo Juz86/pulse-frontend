@@ -151,4 +151,16 @@ describe('native Android E2EE v2 provider', () => {
       .rejects.toMatchObject({ code: 'e2ee_native_provider_unavailable' });
     expect(mockEncryptText).not.toHaveBeenCalled();
   });
+
+  test('normalizes native encryption failures while retaining diagnostic detail', async () => {
+    mockEncryptText.mockRejectedValue(Object.assign(new Error('e2ee_encrypt_failed'), {
+      code: 'e2ee_session_record_invalid',
+    }));
+
+    await expect(encryptNativeE2eeV2Text({ plaintext: 'Hallo' })).rejects.toMatchObject({
+      message: 'e2ee_encrypt_failed',
+      code: 'e2ee_encrypt_failed',
+      detailCode: 'e2ee_session_record_invalid',
+    });
+  });
 });

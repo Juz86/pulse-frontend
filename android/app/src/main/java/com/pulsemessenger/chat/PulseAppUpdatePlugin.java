@@ -121,11 +121,15 @@ public class PulseAppUpdatePlugin extends Plugin {
                 }
 
                 try {
-                    appUpdateManager.startUpdateFlowForResult(
+                    boolean started = appUpdateManager.startUpdateFlowForResult(
                         info,
                         activityLauncher,
                         com.google.android.play.core.appupdate.AppUpdateOptions.newBuilder(flowType).build()
                     );
+                    if (!started) {
+                        call.reject("update_flow_not_started");
+                        return;
+                    }
                     JSObject payload = new JSObject();
                     payload.put("ok", true);
                     payload.put("flowType", flowType == AppUpdateType.IMMEDIATE ? "immediate" : "flexible");

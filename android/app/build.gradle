@@ -48,6 +48,7 @@ if (!(pulseE2eeQaInstance ==~ /[a-z0-9]+/)) {
 android {
     namespace "com.pulsemessenger.chat"
     compileSdk rootProject.ext.compileSdkVersion
+    ndkVersion "27.2.12479018"
     compileOptions {
         coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_17
@@ -72,8 +73,8 @@ android {
         versionCode 80
         versionName "1.0.24"
         if (pulseE2eeInternalPlayTest) {
-            versionCode 82
-            versionName "1.0.26-internal-e2ee"
+            versionCode 88
+            versionName "1.0.32-internal-e2ee"
         }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Public half of the signing key only. The private key is a Cloudflare
@@ -124,10 +125,62 @@ android {
                 // Upload dit symbolenpakket in Play Console voor betere native crash/ANR analyses.
                 debugSymbolLevel 'SYMBOL_TABLE'
             }
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+}
+
+def verifyReleaseNativeSizeBudget = tasks.register('verifyReleaseNativeSizeBudget', Exec) {
+    dependsOn 'stripReleaseDebugSymbols'
+    workingDir rootProject.projectDir.parentFile
+    commandLine(
+        'node',
+        'scripts/verify-android-native-size.js',
+        layout.buildDirectory
+            .dir('intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib')
+            .get()
+            .asFile
+            .absolutePath,
+    )
+}
+
+def releaseWebRtcR8Mapping = file(
+    "${buildDir}/intermediates/mapping/release/minifyReleaseWithR8/mapping.txt"
+)
+
+def verifyReleaseWebRtcR8Retention = tasks.register('verifyReleaseWebRtcR8Retention') {
+    dependsOn 'minifyReleaseWithR8'
+    doLast {
+        def mappingFile = releaseWebRtcR8Mapping
+        if (!mappingFile.exists()) {
+            throw new GradleException('Release geblokkeerd: R8 mapping.txt ontbreekt.')
+        }
+
+        def mapping = mappingFile.getText('UTF-8')
+        def requiredNativeBridgeClasses = [
+            'org.jni_zero.JniInit',
+            'org.jni_zero.JniUtil',
+            'org.webrtc.PeerConnection',
+            'org.webrtc.PeerConnectionFactory',
+            'org.webrtc.SdpObserver',
+        ]
+        def alteredClasses = requiredNativeBridgeClasses.findAll { className ->
+            !mapping.contains("${className} -> ${className}:")
+        }
+        if (!alteredClasses.isEmpty()) {
+            throw new GradleException(
+                'Release geblokkeerd: R8 heeft native WebRTC/JNI-klassen verwijderd of hernoemd: '
+                    + alteredClasses.join(', ')
+            )
+        }
+    }
+}
+
+tasks.matching { task -> task.name in ['assembleRelease', 'bundleRelease'] }.configureEach {
+    dependsOn verifyReleaseNativeSizeBudget
+    dependsOn verifyReleaseWebRtcR8Retention
 }
 
 if (pulseE2eeInstrumentedTest) {
@@ -174,6 +227,7 @@ def buildReleaseWebAssets = tasks.register('buildReleaseWebAssets', Exec) {
         environment 'REACT_APP_E2EE_TRANSPORT', 'v2'
         environment 'REACT_APP_E2EE_V2_PILOT_ENABLED', 'true'
         environment 'REACT_APP_E2EE_V2_BROWSER_PILOT_ENABLED', 'false'
+        environment 'REACT_APP_E2EE_V2_GROUPS_ENABLED', pulseE2eeInternalPlayTest ? 'true' : 'false'
     }
     commandLine 'npm', 'run', 'build:webapp'
 }

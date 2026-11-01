@@ -92,6 +92,7 @@ public class PulseCallPlugin extends Plugin {
                 getContext().getPackageManager().hasSystemFeature("android.hardware.camera.any")
         );
         result.put("protocolVersion", 2);
+        result.put("e2eeRequired", BuildConfig.PULSE_CALL_E2EE_ENABLED);
         result.put("microphonePermission", getPermissionState(MICROPHONE).toString());
         result.put("cameraPermission", getPermissionState(CAMERA).toString());
         call.resolve(result);

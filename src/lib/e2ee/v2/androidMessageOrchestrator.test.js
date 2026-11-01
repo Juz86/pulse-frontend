@@ -158,6 +158,86 @@ describe('Android E2EE v2 message orchestrator', () => {
     ]);
   });
 
+  test('rebuilds an unchanged cached session once after native encryption fails', async () => {
+    const encryptionFailure = Object.assign(new Error('e2ee_encrypt_failed'), {
+      code: 'e2ee_encrypt_failed',
+    });
+    const api = {
+      claimRecipientBundles: jest.fn().mockResolvedValue(bundleClaim('user-b', [
+        { deviceId: 'device-b1', signalDeviceId: 2 },
+      ])),
+      claimOwnDeviceBundles: jest.fn().mockResolvedValue(bundleClaim('user-a', [])),
+      sendMessage: jest.fn().mockResolvedValue({ ok: true, messageId: UUIDS[2] }),
+    };
+    const listSessionDevices = jest.fn()
+      .mockResolvedValueOnce({
+        devices: [{ deviceId: 'device-b1', signalDeviceId: 2, identityVersion: 1 }],
+      })
+      .mockResolvedValueOnce({ devices: [] });
+    const encryptText = jest.fn()
+      .mockRejectedValueOnce(encryptionFailure)
+      .mockResolvedValueOnce({ envelopeType: 'prekey', ciphertext: 'cmVidWlsdA==' });
+    const invalidateRemoteDevice = jest.fn().mockResolvedValue({ invalidated: true });
+    const nextUuid = jest.fn()
+      .mockReturnValueOnce(UUIDS[0])
+      .mockReturnValueOnce(UUIDS[1])
+      .mockReturnValueOnce(UUIDS[2]);
+
+    await expect(sendAndroidE2eeV2Text(baseSend({
+      api,
+      listSessionDevices,
+      encryptText,
+      invalidateRemoteDevice,
+      nextUuid,
+    }))).resolves.toMatchObject({ messageId: UUIDS[2] });
+
+    expect(invalidateRemoteDevice).toHaveBeenCalledWith({
+      userId: 'user-a',
+      localSignalDeviceId: 1,
+      remoteUserId: 'user-b',
+      remoteDeviceId: 'device-b1',
+      remoteSignalDeviceId: 2,
+      remoteIdentityVersion: 1,
+      revoked: false,
+    });
+    expect(encryptText).toHaveBeenLastCalledWith(expect.objectContaining({
+      remoteDeviceId: 'device-b1',
+      remoteBundle: expect.any(Object),
+    }));
+    expect(api.sendMessage).toHaveBeenCalledTimes(1);
+  });
+
+  test('does not rebuild a cached session across an identity change', async () => {
+    const encryptionFailure = Object.assign(new Error('e2ee_encrypt_failed'), {
+      code: 'e2ee_encrypt_failed',
+    });
+    const changedClaim = bundleClaim('user-b', [
+      { deviceId: 'device-b1', signalDeviceId: 2 },
+    ]);
+    changedClaim.devices[0].identityVersion = 2;
+    const api = {
+      claimRecipientBundles: jest.fn().mockResolvedValue(changedClaim),
+      claimOwnDeviceBundles: jest.fn().mockResolvedValue(bundleClaim('user-a', [])),
+    };
+    const invalidateRemoteDevice = jest.fn();
+
+    await expect(sendAndroidE2eeV2Text(baseSend({
+      api,
+      listSessionDevices: jest.fn()
+        .mockResolvedValueOnce({
+          devices: [{ deviceId: 'device-b1', signalDeviceId: 2, identityVersion: 1 }],
+        })
+        .mockResolvedValueOnce({ devices: [] }),
+      encryptText: jest.fn().mockRejectedValue(encryptionFailure),
+      invalidateRemoteDevice,
+      nextUuid: jest.fn()
+        .mockReturnValueOnce(UUIDS[0])
+        .mockReturnValueOnce(UUIDS[1]),
+    }))).rejects.toThrow('v2_remote_identity_changed');
+
+    expect(invalidateRemoteDevice).not.toHaveBeenCalled();
+  });
+
   test('fetches only the local envelope and supplies sender Signal addressing to native decrypt', async () => {
     const envelope = {
       protocol: 'pulse_e2ee_v2',

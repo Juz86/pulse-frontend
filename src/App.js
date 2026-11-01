@@ -33,7 +33,7 @@ import {
   completeFlexibleUpdate,
   fetchNativeUpdateStatus,
   fetchUpdatePolicy,
-  startFlexibleUpdate,
+  startAvailableUpdate,
   startImmediateUpdate,
 } from './services/appUpdate';
 import { subscribeToFeatureFlags } from './services/featureFlags';
@@ -307,6 +307,8 @@ function MainApp() {
     required: false,
     downloaded: false,
     checking: false,
+    starting: false,
+    error: null,
   });
   const [hideOptionalUpdate, setHideOptionalUpdate] = useState(false);
   const [featureFlags, setFeatureFlags] = useState({});
@@ -410,8 +412,16 @@ function MainApp() {
             downloaded: true,
           }));
         }
-        if (event?.type === 'flowResult' && event?.flowType === 'flexible' && event?.accepted === false) {
+        if (event?.type === 'flowResult' && event?.accepted === false) {
           setHideOptionalUpdate(false);
+          setAppUpdate((prev) => ({
+            ...prev,
+            starting: false,
+            error: 'De update is niet gestart. Probeer het opnieuw of open Pulse in de Play Store.',
+          }));
+        }
+        if (event?.type === 'flowResult' && event?.accepted === true) {
+          setAppUpdate((prev) => ({ ...prev, starting: false, error: null }));
         }
         if (event?.type === 'autoCompleteFailed') {
           setHideOptionalUpdate(false);
@@ -901,9 +911,13 @@ function MainApp() {
               <span>
                 {appUpdate.downloaded
                   ? 'Update is gedownload. Herstart Pulse om te installeren.'
-                  : appUpdate.required
-                    ? 'Deze update is nodig om Pulse veilig te blijven gebruiken.'
-                    : 'De update wordt op de achtergrond gedownload. Zodra de update klaar is, wordt Pulse automatisch opnieuw gestart.'}
+                  : appUpdate.error
+                    ? appUpdate.error
+                    : appUpdate.starting
+                      ? 'De Google Play-update wordt geopend...'
+                      : appUpdate.required
+                        ? 'Deze update is nodig om Pulse veilig te blijven gebruiken.'
+                        : 'De update wordt op de achtergrond gedownload. Zodra de update klaar is, wordt Pulse automatisch opnieuw gestart.'}
               </span>
             </div>
             <div className={`pulse-update-banner-actions${appUpdate.downloaded ? ' is-downloaded' : ''}`}>
@@ -916,21 +930,23 @@ function MainApp() {
                 <button
                   type="button"
                   className="pulse-update-btn pulse-update-btn-primary"
+                  disabled={appUpdate.starting}
                   onClick={async () => {
+                    setAppUpdate((prev) => ({ ...prev, starting: true, error: null }));
                     try {
-                      if (appUpdate.required) await startImmediateUpdate();
-                      else if (appUpdate.canFlexible) {
-                        setHideOptionalUpdate(true);
-                        const result = await startFlexibleUpdate();
-                        if (!result?.ok) throw new Error('flexible_update_not_started');
-                      }
+                      await startAvailableUpdate(appUpdate);
                     } catch (error) {
-                      if (!appUpdate.required) setHideOptionalUpdate(false);
+                      setHideOptionalUpdate(false);
+                      setAppUpdate((prev) => ({
+                        ...prev,
+                        starting: false,
+                        error: 'De update kon niet worden geopend. Open Pulse in de Play Store en werk daar bij.',
+                      }));
                       console.warn('[Pulse][Update] Update-flow starten mislukt:', error?.message || error);
                     }
                   }}
                 >
-                  {appUpdate.required ? 'Nu updaten' : 'Bijwerken'}
+                  {appUpdate.starting ? 'Openen...' : appUpdate.required ? 'Nu updaten' : 'Bijwerken'}
                 </button>
               )}
               {appUpdate.downloaded && (

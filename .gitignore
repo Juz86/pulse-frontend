@@ -5,6 +5,7 @@ fly.toml
 build/
 android/app/build/
 android/.gradle/
+android/.kotlin/
 .gradle-android/
 firebase-debug.log
 firestore-debug.log

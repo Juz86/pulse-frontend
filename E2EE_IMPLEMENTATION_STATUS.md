@@ -698,8 +698,8 @@ ongeldig bewijs faalt gesloten; een reeds verwerkte ondertekende binding wordt
 als replay geweigerd voordat een tweede SDP-apply plaatsvindt. Zowel de backendgate
 `PULSE_CALLING_V2_E2EE_REQUIRED` als de Android-buildgate
 `pulseCallE2ee` staat standaard uit; productie accepteert daardoor nog kaal SDP.
-Voor groepen ontbreekt nog vrijgave van de chatinterface en validatie op twee
-fysieke toestellen. De backend heeft een geisoleerde, standaard-uitgeschakelde
+Voor groepen ontbreekt nog productie-vrijgave van de chatinterface. De backend
+heeft een geisoleerde, standaard-uitgeschakelde
 beleidslaag die het actuele
 lidmaatschap hasht, de epoch controleert, de senderdevicebinding valideert en
 exacte fan-out naar alle andere actieve v2-devices afdwingt. Een
@@ -736,10 +736,26 @@ groepsberichten in beide richtingen lokaal ontsleuteld. Bij de omgekeerde proef
 was de ontvanger volledig gestopt: de backend hield één device-audience pending,
 waarna herstart de plaintext lokaal herstelde en de acknowledgement het pending-
 aantal naar nul bracht. Een tweede koude herstart herstelde beide berichten uit
-de versleutelde native geschiedenis. Dit bewijst de app-, protocol- en offline-
-flow tussen twee geïsoleerde installaties, maar niet het gedrag van twee fysieke
-radio-, OS- en hardwareomgevingen. Die twee-deviceproef, review en een nieuwe AAB
-blijven open. VersionCode 82 bevat deze uitbreiding niet.
+de versleutelde native geschiedenis. Dit bewees de app-, protocol- en offlineflow
+tussen twee geïsoleerde installaties, maar nog niet het gedrag van twee fysieke
+radio-, OS- en hardwareomgevingen. VersionCode 82 bevat deze uitbreiding niet.
+
+Op 29 oktober 2026 is de groepsflow vervolgens op twee fysieke Samsung-
+toestellen (`SM-A166B` en `SM-A266B`) gevalideerd. Een verouderde, niet meer
+aanwezige QA-devicebinding hield de eerste distributie terecht in
+`distributing`; de backend weigerde het groepsbericht fail-closed met
+`group_e2ee_distribution_required`. Na expliciete intrekking van uitsluitend
+die oude binding bevatte de recipient-set per account exact het aanwezige
+fysieke device. In beide richtingen zijn daarna een nieuwe Sender Key-
+distributie (`201`), devicegebonden envelope-ophaalactie (`200`), lokale
+libsignal-verwerking, distributie-acknowledgement (`200`), groepsbericht-
+ophaalactie (`200`) en bericht-acknowledgement (`200`) bewezen. Ten slotte was
+QA-B volledig gestopt terwijl QA-A een groepsbericht verstuurde. De backend
+accepteerde dit met `201`; na herstart haalde QA-B het pending bericht via HTTPS
+op, ontsleutelde het lokaal en bevestigde het pas daarna. Daarmee zijn live
+tweerichtingsverkeer en offline herstel voor groepschat op twee fysieke
+Androidomgevingen aangetoond. Onafhankelijke review en productie-vrijgave
+blijven open.
 
 Tijdens deze proef bleek dat een lokaal gecachte devicebinding na server-side
 intrekking opnieuw kon worden aangeboden. De QA-runtime vergelijkt een cached
@@ -776,6 +792,132 @@ Android-unittestsuite en `git diff --check` slagen na deze correctie. Dit is
 live interoperabiliteitsbewijs voor de geisoleerde QA-runtime, geen productie-
 vrijgave of algemene Pulse-E2EE-claim voor videobellen; de gates blijven
 standaard uit en Play-versie 82 bevat deze wijzigingen niet.
+
+Op 29 oktober 2026 is daarna de uitsluitend voor de interne Google Play-
+testtrack bestemde AAB `pulse-versionCode-83-internal-e2ee.aab` gebouwd en
+gecontroleerd. Het artefact heeft `versionCode 83`, versienaam
+`1.0.27-internal-e2ee`, gebruikt de productie-API en bevat geen QA-API. De
+interne group-Sender-Keys- en call-identitybindings staan in deze build aan;
+de browserpilot blijft uit. De uploadcertificaatvingerafdruk is
+`70:24:15:2E:B1:99:D7:B3:59:F3:8F:A3:85:07:84:14:32:C2:74:7D:AD:88:DC:F0:35:B3:12:44:43:A8:88:52`
+en komt overeen met het eerder in Play Console gecontroleerde certificaat. De
+AAB is `136813085` bytes groot en heeft SHA-256
+`6722bdd71925e6f8f20be1993de8fc1f390e72dfc4daa9a1bbc753711297a3f7`.
+Ten opzichte van versionCode 82 is dit `22085` bytes, ongeveer `0,016%`, groter;
+de nieuwe E2EE-functionaliteit veroorzaakt daarmee geen betekenisvolle extra
+uploadbundelgroei. Deze niet-onafhankelijk beoordeelde AAB mag uitsluitend via
+de interne testtrack worden verspreid en niet naar een gesloten, open of
+productietrack worden gepromoveerd.
+
+De eerste Play-proef met versionCode 83 bracht vervolgens twee native
+callfouten aan het licht. De callservice kon SDP proberen te ondertekenen
+voordat de lokale v2-devicebinding door de WebView-runtime was vastgelegd;
+`e2ee_local_device_binding_missing` ontsnapte uit de coroutine en beeindigde
+het app-proces. Het daaropvolgende foutpad kon bovendien een door Android
+Telecom niet toegestane disconnectcode doorgeven. VersionCode 84 wacht daarom
+begrensd op een gelijktijdige devicebootstrap, vangt iedere identity- of
+signalingfout binnen de mediascope fail-closed af en normaliseert
+disconnectredenen naar de vier door Telecom toegestane waarden. De UI stelt
+native bellen in een call-E2EE-build pas beschikbaar nadat de lokale v2-runtime
+daadwerkelijk `ready` is. Niet-ingeschreven accounts krijgen daardoor geen
+schijnbaar werkende belknop en een ontbrekende binding kan de app niet meer
+laten crashen. De productiebackend blijft call-E2EE nog optioneel accepteren
+totdat versionCode 87 op twee toestellen is gevalideerd; pas daarna mag
+`PULSE_CALLING_V2_E2EE_REQUIRED` voor de interne cohort worden ingeschakeld.
+
+Op 30 oktober 2026 is de interne Play-build daarna verkleind zonder het
+cryptografische of WebRTC-oppervlak te verwijderen. Android NDK
+`27.2.12479018` is vastgepind, zodat Gradle native debugsecties uit de vier
+`libsignal_jni.so`-varianten verwijdert en de symbolen als AAB-metadata bewaart.
+De ARM64-libsignalbinary daalde hierdoor van ongeveer `123 MB` naar `9,4 MB`.
+Releasecode wordt daarnaast met R8 geminificeerd en ongebruikte resources
+worden verwijderd. Een buildpoort weigert voortaan releases wanneer een van de
+vier ABI's ontbreekt of een gestript libsignalbestand groter dan `20 MiB` is.
+
+De resulterende uitsluitend interne AAB
+`pulse-versionCode-85-internal-e2ee.aab` heeft `versionCode 85`, versienaam
+`1.0.29-internal-e2ee`, is `70551996` bytes groot en heeft SHA-256
+`a61cec9d4da0e8bece3ba155c6c5a493d9e7d7fd968815c469007c4c37d98af7`.
+De uploadcertificaatvingerafdruk blijft ongewijzigd. Een officiële Bundletool-
+simulatie voor een ARM64-, SDK 36-, 420-dpi-toestel rapporteert `14,09 MB`
+download en `27,65 MB` aan geleverde split-APK's. Manifestcomponenten,
+Capacitorplugins, Firebase Messaging, native callservices en de E2EE-provider
+zijn in de R8-uitvoer behouden. Runtimevalidatie op twee fysieke toestellen
+blijft vereist voordat deze build buiten de interne Play-testtrack mag worden
+gebruikt.
+
+Na upload van versionCode 85 bleek de zichtbare knop `Bijwerken` geen actie uit
+te voeren wanneer Google Play voor een optionele update alleen het immediate-
+type toestond. De UI koos uitsluitend de flexibele flow en verborg de melding
+voordat Play bevestigde dat de update-UI werkelijk was gestart. VersionCode 86
+kiest nu eerst een door Play toegestaan type, valt voor optionele updates terug
+op immediate, houdt de melding zichtbaar tijdens het openen en toont een
+bruikbare fout met de Play Store als handmatige uitweg. De native plugin geeft
+alleen succes terug wanneer `startUpdateFlowForResult` daadwerkelijk `true`
+retourneert.
+
+De vervangende interne AAB `pulse-versionCode-86-internal-e2ee.aab` heeft
+`versionCode 86`, versienaam `1.0.30-internal-e2ee`, is `70552203` bytes groot
+en heeft SHA-256
+`63870fdfea5e650ce7538b2c032707bc0074df1f5916fffe0ea870cff3528a79`.
+Dit is slechts `207` bytes groter dan versionCode 85. De uploadcertificaat-
+vingerafdruk en de E2EE-, WebRTC- en ABI-configuratie zijn ongewijzigd.
+
+De eerste live callproeven met versionCode 85 bereikten sessieaanmaak, FCM,
+acceptatie en TURN-uitgifte, maar produceerden geen SDP-offer. Oudere interne
+builds bereikten op dezelfde backend wel `OFFER_SENT`. VersionCode 85 was de
+eerste R8-geminificeerde release en het gebruikte WebRTC-AAR levert geen eigen
+consumer-keepregels. De R8-mapping bevestigde dat JNI-kritieke WebRTC-klassen
+waren verwijderd of hernoemd, waardoor de native SDP-callback niet meer naar
+Java terugkeerde. VersionCode 87 bewaart daarom de volledige `org.webrtc`-
+JNI-laag, inclusief callbackmethoden en annotaties. Een nieuwe releasepoort
+weigert de build wanneer `PeerConnection`, `PeerConnectionFactory` of
+`SdpObserver` alsnog ontbreekt of wordt hernoemd.
+
+De gecorrigeerde uitsluitend interne AAB
+`pulse-versionCode-87-internal-e2ee.aab` heeft `versionCode 87`, versienaam
+`1.0.31-internal-e2ee`, is `70857485` bytes groot en heeft SHA-256
+`5bd5eb712e74360191eb3e49d6bd4cf014f24f27bef01db8bcd4b40814c147de`.
+De productie-API is aanwezig, de QA-API afwezig en de interne E2EE-, groeps-
+en callflags staan aan. De uploadcertificaatvingerafdruk is exact
+`70:24:15:2E:B1:99:D7:B3:59:F3:8F:A3:85:07:84:14:32:C2:74:7D:AD:88:DC:F0:35:B3:12:44:43:A8:88:52`.
+De JNI-retentie vergroot de AAB met `305489` bytes, ongeveer `0,43%`, ten
+opzichte van versionCode 85. Live audio- en videovalidatie op twee fysieke
+Play-installaties blijft verplicht voordat call-E2EE als geslaagd of verplicht
+wordt aangeduid.
+
+De fysieke Play-proef met versionCode 87 vond vervolgens een tweede, afzonderlijke
+R8-fout. Na acceptatie van een inkomende call bereikte de client de beveiligde
+media-initialisatie, maar WebRTC's `JNI_OnLoad` kon
+`org.jni_zero.JniInit` niet vinden. De native library beeindigde daarop het
+volledige Pulse-proces met `SIGTRAP`; een bewaarde callsnapshot veroorzaakte bij
+herstart dezelfde crash opnieuw en maakte daardoor ook de chatinterface
+onbruikbaar. VersionCode 88 bewaart naast `org.webrtc` daarom de volledige
+`org.jni_zero`-bridge. De releasepoort leest nu de mapping van de actuele
+`minifyReleaseWithR8`-taak en blokkeert de build wanneer `JniInit`, `JniUtil`,
+`PeerConnection`, `PeerConnectionFactory` of `SdpObserver` ontbreekt of wordt
+hernoemd.
+
+De vervangende uitsluitend interne AAB
+`pulse-versionCode-88-internal-e2ee.aab` heeft `versionCode 88`, versienaam
+`1.0.32-internal-e2ee`, is `70859374` bytes groot en heeft SHA-256
+`1126b4d3dde5fcef0d0c975ff93794ea77f2defdf8c033ce0d10af8335550ec1`.
+De productie-API is aanwezig, de QA-API afwezig en `JniInit` staat aantoonbaar
+in de release-DEX. De uploadcertificaatvingerafdruk blijft exact
+`70:24:15:2E:B1:99:D7:B3:59:F3:8F:A3:85:07:84:14:32:C2:74:7D:AD:88:DC:F0:35:B3:12:44:43:A8:88:52`.
+De fysieke chat-, audio- en videoproef moet na installatie via Play opnieuw op
+beide toestellen worden uitgevoerd; deze buildcontrole alleen is geen live
+bewijs dat de volledige callflow slaagt.
+
+Een afzonderlijke chatproef op beide versionCode-87-installaties faalde ook
+zonder een nieuwe oproep. De retry-interface bevestigde de lokale foutcode
+`e2ee_encrypt_failed`; de request bereikte de backend niet. VersionCode 88
+vernieuwt daarom na precies een native encryptiefout de actuele devicebundels
+en bouwt uitsluitend ongewijzigde device- en identitybindings opnieuw op.
+Gewijzigde identityversies blijven geblokkeerd en worden nooit automatisch
+vertrouwd. De client toont voortaan een bruikbare foutmelding in plaats van een
+interne code. De volledige frontendset telt na deze correctie 34 geslaagde
+suites en 320 tests; de volledige Android-unitsuite en release-lint slagen.
 
 Frontend en backend zijn inmiddels zonder GitHub-authenticatie publiek
 leesbaar en beide zijn expliciet als `AGPL-3.0-only` gelicentieerd. De

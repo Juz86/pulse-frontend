@@ -2,6 +2,7 @@ import {
   decryptNativeE2eeV2Text,
   encryptNativeE2eeV2Text,
   getNativeE2eeV2Status,
+  invalidateNativeE2eeV2RemoteDevice,
   listNativeE2eeV2SessionDevices,
 } from './nativeAndroidProvider';
 import { v2ApiClient } from './v2ApiClient';
@@ -143,6 +144,37 @@ function envelopeMap(targets, envelopes) {
   }]));
 }
 
+async function rebuildCachedTargets({
+  user,
+  localSignalDeviceId,
+  previousTargets,
+  currentTargets,
+  invalidateRemoteDevice,
+}) {
+  const currentByDevice = new Map(
+    currentTargets.map(target => [targetKey(target), target])
+  );
+
+  for (const previous of previousTargets) {
+    const current = currentByDevice.get(targetKey(previous));
+    if (current && (
+      current.signalDeviceId !== previous.signalDeviceId
+      || current.identityVersion !== previous.identityVersion
+    )) {
+      throw new Error('v2_remote_identity_changed');
+    }
+    await invalidateRemoteDevice({
+      userId: user.uid,
+      localSignalDeviceId,
+      remoteUserId: previous.userId,
+      remoteDeviceId: previous.deviceId,
+      remoteSignalDeviceId: previous.signalDeviceId,
+      remoteIdentityVersion: previous.identityVersion,
+      revoked: !current,
+    });
+  }
+}
+
 export async function sendAndroidE2eeV2Text({
   user,
   localDeviceId,
@@ -155,6 +187,7 @@ export async function sendAndroidE2eeV2Text({
   getStatus = getNativeE2eeV2Status,
   listSessionDevices = listNativeE2eeV2SessionDevices,
   encryptText = encryptNativeE2eeV2Text,
+  invalidateRemoteDevice = invalidateNativeE2eeV2RemoteDevice,
   nextUuid = createUuid,
   providerUnavailableCode,
   persistCiphertextOutbox,
@@ -200,14 +233,44 @@ export async function sendAndroidE2eeV2Text({
     target.userId,
     target.deviceId,
   ].join(':');
-  let envelopes = await encryptTargets({
-    user,
-    localSignalDeviceId,
-    plaintext,
-    targets,
-    encryptText,
-    operationIdForTarget,
-  });
+  let envelopes;
+  try {
+    envelopes = await encryptTargets({
+      user,
+      localSignalDeviceId,
+      plaintext,
+      targets,
+      encryptText,
+      operationIdForTarget,
+    });
+  } catch (error) {
+    if (claimed || error?.code !== 'e2ee_encrypt_failed') throw error;
+    const cachedTargets = targets;
+    targets = await claimAllTargets({
+      user,
+      conversationId,
+      recipientUserId,
+      localDeviceId,
+      api,
+      nextUuid,
+    });
+    await rebuildCachedTargets({
+      user,
+      localSignalDeviceId,
+      previousTargets: cachedTargets,
+      currentTargets: targets,
+      invalidateRemoteDevice,
+    });
+    envelopes = await encryptTargets({
+      user,
+      localSignalDeviceId,
+      plaintext,
+      targets,
+      encryptText,
+      operationIdForTarget,
+    });
+    claimed = true;
+  }
 
   const send = async () => {
     const message = {

@@ -70,6 +70,22 @@ describe('nativeCall', () => {
     await expect(getNativeCallCapabilities()).resolves.toEqual({ audio: false, video: false });
   });
 
+  test('reports when native calls require a ready E2EE device binding', async () => {
+    mockGetCapabilities.mockResolvedValueOnce({
+      audio: true,
+      video: true,
+      e2eeRequired: true,
+      protocolVersion: 2,
+    });
+
+    await expect(getNativeCallCapabilities()).resolves.toMatchObject({
+      audio: true,
+      video: true,
+      e2eeRequired: true,
+      protocolVersion: 2,
+    });
+  });
+
   test('starts an audio call with a unique request and normalized target', async () => {
     mockStartAudioCall.mockResolvedValueOnce({ ok: true, status: 'starting' });
 

@@ -34,7 +34,17 @@ export async function bindNativeE2eeV2LocalDeviceRegistration(options) {
 
 export async function encryptNativeE2eeV2Text(options) {
   requireAndroidProvider();
-  return PulseE2eeV2.encryptText(options);
+  try {
+    return await PulseE2eeV2.encryptText(options);
+  } catch (error) {
+    const normalized = new Error('e2ee_encrypt_failed');
+    normalized.code = 'e2ee_encrypt_failed';
+    normalized.detailCode = error?.code && error.code !== 'e2ee_encrypt_failed'
+      ? error.code
+      : null;
+    normalized.cause = error;
+    throw normalized;
+  }
 }
 
 export async function decryptNativeE2eeV2Text(options) {

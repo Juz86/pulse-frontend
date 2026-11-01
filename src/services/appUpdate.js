@@ -45,6 +45,25 @@ export async function startImmediateUpdate() {
   return PulseAppUpdate.startImmediateUpdate();
 }
 
+export function selectUpdateFlow({ required = false, canFlexible = false, canImmediate = false } = {}) {
+  if (required && canImmediate) return 'immediate';
+  if (canFlexible) return 'flexible';
+  if (canImmediate) return 'immediate';
+  return null;
+}
+
+export async function startAvailableUpdate(options = {}) {
+  const flow = selectUpdateFlow(options);
+  if (!flow) throw new Error('play_update_type_not_allowed');
+
+  const result = flow === 'immediate'
+    ? await startImmediateUpdate()
+    : await startFlexibleUpdate();
+
+  if (!result?.ok) throw new Error('play_update_flow_not_started');
+  return result;
+}
+
 export async function completeFlexibleUpdate() {
   return PulseAppUpdate.completeFlexibleUpdate();
 }

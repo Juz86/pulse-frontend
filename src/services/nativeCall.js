@@ -22,6 +22,7 @@ export async function getNativeCallCapabilities() {
     return {
       audio: capabilities?.audio === true,
       video: capabilities?.video === true,
+      e2eeRequired: capabilities?.e2eeRequired === true,
       protocolVersion: Number(capabilities?.protocolVersion || 0),
       microphonePermission: capabilities?.microphonePermission || 'prompt',
       cameraPermission: capabilities?.cameraPermission || 'prompt',

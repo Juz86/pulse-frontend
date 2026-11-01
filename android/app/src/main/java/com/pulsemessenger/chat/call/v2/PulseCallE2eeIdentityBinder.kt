@@ -6,6 +6,7 @@ import com.pulsemessenger.chat.e2ee.v2.PulseCallIdentityBinding
 import com.pulsemessenger.chat.e2ee.v2.PulseE2eeSecureStore
 import com.pulsemessenger.chat.e2ee.v2.PulseE2eeV2Provider
 import java.util.UUID
+import kotlinx.coroutines.delay
 
 const val PULSE_CALL_E2EE_PROTOCOL = "pulse_call_e2ee_v1"
 const val PULSE_CALL_E2EE_VERSION = 1
@@ -38,7 +39,7 @@ class NativePulseCallE2eeIdentityBinder(context: Context) : PulseCallE2eeIdentit
     ): PulseCallE2eeIdentityEnvelope {
         requireParticipant(session, localUid)
         requireDescriptionRole(session, localUid, description.type)
-        val local = provider.getLocalDeviceBinding(localUid)
+        val local = awaitLocalDeviceBinding(localUid)
         val fingerprint = extractSha256DtlsFingerprint(description.value)
             ?: throw IllegalArgumentException("e2ee_call_fingerprint_invalid")
         val peerHash = when (description.type) {
@@ -107,7 +108,7 @@ class NativePulseCallE2eeIdentityBinder(context: Context) : PulseCallE2eeIdentit
         } else {
             require(identity.peerBindingHash == localOffer?.bindingHash())
         }
-        val local = provider.getLocalDeviceBinding(
+        val local = awaitLocalDeviceBinding(
             if (remoteUid == session.callerUid) session.calleeUid else session.callerUid,
         )
         provider.verifyCallIdentityBinding(
@@ -165,5 +166,22 @@ class NativePulseCallE2eeIdentityBinder(context: Context) : PulseCallE2eeIdentit
         Base64.decode(value, Base64.DEFAULT)
     } catch (error: IllegalArgumentException) {
         throw IllegalArgumentException("e2ee_base64_invalid", error)
+    }
+
+    private suspend fun awaitLocalDeviceBinding(userId: String): PulseE2eeV2Provider.LocalDeviceBinding {
+        repeat(LOCAL_BINDING_ATTEMPTS - 1) {
+            try {
+                return provider.getLocalDeviceBinding(userId)
+            } catch (error: IllegalStateException) {
+                if (error.message != "e2ee_local_device_binding_missing") throw error
+            }
+            delay(LOCAL_BINDING_RETRY_MS)
+        }
+        return provider.getLocalDeviceBinding(userId)
+    }
+
+    private companion object {
+        const val LOCAL_BINDING_ATTEMPTS = 40
+        const val LOCAL_BINDING_RETRY_MS = 100L
     }
 }

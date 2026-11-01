@@ -30,6 +30,7 @@ import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/
 import { normalizeSingleUserReaction, toggleSingleUserReaction } from '../lib/e2ee/messageReactions';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
 import { PULSE_E2EE_V2_PROTOCOL } from '../lib/e2ee/v2/protocolV2Contract';
+import { getE2eeSendErrorMessage } from '../lib/e2ee/v2/e2eeErrorCopy';
 import { PULSE_GROUP_E2EE_PROTOCOL } from '../lib/e2ee/group/groupProtocolContract';
 import {
   clearE2eeV2PlaintextWebStorage,
@@ -1076,7 +1077,7 @@ export default function useConversations({
         }).catch((error) => {
           clearTimeout(failTimer);
           patchMessageAsFailed(optimisticMsg.id);
-          showErrToast(error?.message || 'Versleuteld bericht verzenden mislukt');
+          showErrToast(getE2eeSendErrorMessage(error));
         });
       } else if (shouldUseServiceTransport(conv)) {
         sendViaService({
@@ -1310,7 +1311,10 @@ export default function useConversations({
       }).catch((error) => {
         clearTimeout(failTimer);
         patchMessageAsFailed(failedMsg.id);
-        showErrToast(error?.message || 'Opnieuw versleuteld versturen mislukt');
+        showErrToast(getE2eeSendErrorMessage(
+          error,
+          'Opnieuw versleuteld versturen mislukt'
+        ));
       });
     } else if (shouldUseServiceTransport(activeConv)) {
       sendViaService({

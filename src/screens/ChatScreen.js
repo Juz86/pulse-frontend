@@ -696,8 +696,11 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
     };
   }, [contactsByUid, getContactDisplayName]);
   const browserCall = useBrowserCall({ user, resolvePeer: resolveCallPeer });
-  const audioCallingAvailable = nativeCallCapabilities.audio || browserCall.supported;
-  const videoCallingAvailable = nativeCallCapabilities.video || browserCall.supported;
+  const nativeCallE2eeReady = nativeCallCapabilities.e2eeRequired !== true || e2eeV2QaRuntime.ready;
+  const nativeAudioCallingAvailable = nativeCallCapabilities.audio && nativeCallE2eeReady;
+  const nativeVideoCallingAvailable = nativeCallCapabilities.video && nativeCallE2eeReady;
+  const audioCallingAvailable = nativeAudioCallingAvailable || browserCall.supported;
+  const videoCallingAvailable = nativeVideoCallingAvailable || browserCall.supported;
 
   async function handleStartCall(contact = null, mediaType = 'audio') {
     if (callLaunchPending) return;
@@ -717,8 +720,8 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
         photoURL: selectedContact?.photoURL || getConvPhoto(activeConv),
       };
       const nativeCallingAvailable = mediaType === 'video'
-        ? nativeCallCapabilities.video
-        : nativeCallCapabilities.audio;
+        ? nativeVideoCallingAvailable
+        : nativeAudioCallingAvailable;
       if (nativeCallingAvailable) {
         await (mediaType === 'video'
           ? startNativeVideoCall(callTarget)
@@ -728,8 +731,8 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
       }
     } catch (error) {
       const nativeCallingAvailable = mediaType === 'video'
-        ? nativeCallCapabilities.video
-        : nativeCallCapabilities.audio;
+        ? nativeVideoCallingAvailable
+        : nativeAudioCallingAvailable;
       showErrToast(nativeCallingAvailable
         ? nativeCallErrorMessage(error)
         : browserCallErrorMessage(error, mediaType));

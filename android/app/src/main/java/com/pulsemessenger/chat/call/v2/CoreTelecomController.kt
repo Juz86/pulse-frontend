@@ -135,7 +135,8 @@ class CoreTelecomController(context: Context) : PulseTelecomController {
 
     override suspend fun disconnect(sessionId: String, cause: DisconnectCause): Boolean {
         val call = activeCall.get()?.takeIf { it.sessionId == sessionId } ?: return false
-        return call.scope.disconnect(cause) is CallControlResult.Success
+        val safeCause = DisconnectCause(normalizeDisconnectCauseCode(cause.code))
+        return call.scope.disconnect(safeCause) is CallControlResult.Success
     }
 
     private fun toPulseAudioRoute(endpoint: CallEndpointCompat): PulseAudioRoute? {
@@ -152,4 +153,12 @@ class CoreTelecomController(context: Context) : PulseTelecomController {
             type = type,
         )
     }
+}
+
+internal fun normalizeDisconnectCauseCode(code: Int): Int = when (code) {
+    DisconnectCause.LOCAL,
+    DisconnectCause.REMOTE,
+    DisconnectCause.MISSED,
+    DisconnectCause.REJECTED -> code
+    else -> DisconnectCause.LOCAL
 }

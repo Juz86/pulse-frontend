@@ -30,7 +30,8 @@ import { canEditMessage, ENCRYPTED_EDIT_UNAVAILABLE_MESSAGE } from '../lib/e2ee/
 import { normalizeSingleUserReaction, toggleSingleUserReaction } from '../lib/e2ee/messageReactions';
 import { secureKeyStore } from '../lib/e2ee/secureKeyStore';
 import { PULSE_E2EE_V2_PROTOCOL } from '../lib/e2ee/v2/protocolV2Contract';
-import { getE2eeSendErrorMessage } from '../lib/e2ee/v2/e2eeErrorCopy';
+import { getE2eeLoadErrorMessage, getE2eeSendErrorMessage } from '../lib/e2ee/v2/e2eeErrorCopy';
+import { usesV2ConversationProtocol } from '../lib/e2ee/v2/conversationProtocolPolicy';
 import { PULSE_GROUP_E2EE_PROTOCOL } from '../lib/e2ee/group/groupProtocolContract';
 import {
   clearE2eeV2PlaintextWebStorage,
@@ -68,6 +69,9 @@ export default function useConversations({
   e2eeV2QaRuntime = null,
 }) {
   const isV2QaEnabled = e2eeV2QaRuntime?.enabled === true;
+  const usesV2Protocol = useCallback((conversation) => (
+    usesV2ConversationProtocol(isV2QaEnabled, conversation)
+  ), [isV2QaEnabled]);
   const authFetch = useCallback(async (url, options = {}, { forceRefresh = false } = {}) => {
     const token = await user.getIdToken(forceRefresh);
     const response = await fetch(url, {
@@ -335,11 +339,10 @@ export default function useConversations({
   }
 
   const fetchConversationMessages = useCallback(async (convId, { limit = MSG_LIMIT, offset = 0 } = {}) => {
-    if (isV2QaEnabled) {
-      const conversation = (conversationsRef.current || []).find(value => value.id === convId);
+    const conversation = (conversationsRef.current || []).find(value => value.id === convId);
+    if (usesV2Protocol(conversation)) {
       const isGroupE2ee = conversation?.isGroup
         && e2eeV2QaRuntime?.groupsEnabled
-        && ['v2_pending', 'v2_required'].includes(conversation?.e2eeState)
         && Number.isSafeInteger(Number(conversation?.e2eeGroupEpoch))
         && Number(conversation.e2eeGroupEpoch) >= 1;
       if (conversation?.isGroup && !isGroupE2ee) return [];
@@ -396,7 +399,7 @@ export default function useConversations({
       throw error;
     }
     return legacyRes.json();
-  }, [authFetch, conversationsRef, currentDeviceId, e2eeV2QaRuntime, isV2QaEnabled, readJsonResponse]);
+  }, [authFetch, conversationsRef, currentDeviceId, e2eeV2QaRuntime, readJsonResponse, usesV2Protocol]);
 
   const hydrateMissingConversationPreviews = useCallback(async (serverConversations, localConversations) => {
     const encryptedPreview = getEncryptedMessageDisplayText();
@@ -463,7 +466,7 @@ export default function useConversations({
   }
 
   function resolvePendingMessageProtocol(conv) {
-    if (isV2QaEnabled) {
+    if (usesV2Protocol(conv)) {
       return conv?.isGroup ? PULSE_GROUP_E2EE_PROTOCOL : PULSE_E2EE_V2_PROTOCOL;
     }
     return shouldUseServiceTransport(conv) ? ENCRYPTED_MESSAGE_PROTOCOL : SOCKET_FALLBACK_PROTOCOL;
@@ -782,8 +785,8 @@ export default function useConversations({
       if (activeConvRef.current?.id === convId) {
         const qaError = e?.code || e?.message;
         showErrToast(
-          isV2QaEnabled && qaError
-            ? `Berichten laden mislukt (${qaError})`
+          usesV2Protocol(conv) && qaError
+            ? getE2eeLoadErrorMessage(e)
             : 'Berichten laden mislukt',
         );
       }
@@ -936,7 +939,7 @@ export default function useConversations({
   function sendEditedMessage() {
     const socket = getSocket();
     if (editSubmitting || !editingMsg || !text.trim()) return;
-    if (isV2QaEnabled) {
+    if (usesV2Protocol(activeConv)) {
       showErrToast('Berichten bewerken is nog niet beschikbaar in E2EE.');
       return;
     }
@@ -997,27 +1000,24 @@ export default function useConversations({
 
     const sendPreparedMessage = (conv) => {
       const recipientUserIds = getConversationRecipients(conv);
-      if (isV2QaEnabled && !e2eeV2QaRuntime?.ready) {
+      const useV2 = usesV2Protocol(conv);
+      if (useV2 && !e2eeV2QaRuntime?.ready) {
         showErrToast(e2eeV2QaRuntime?.error?.message || 'E2EE is nog niet gereed.');
         return false;
       }
-      if (isV2QaEnabled && conv.isGroup && !e2eeV2QaRuntime?.groupsEnabled) {
+      if (useV2 && conv.isGroup && !e2eeV2QaRuntime?.groupsEnabled) {
         showErrToast('Groeps-E2EE is niet ingeschakeld in deze testbuild.');
         return false;
       }
-      if (isV2QaEnabled && !conv.isGroup && recipientUserIds.length !== 1) {
+      if (useV2 && !conv.isGroup && recipientUserIds.length !== 1) {
         showErrToast('E2EE-ontvanger ontbreekt.');
         return false;
       }
-      if (isV2QaEnabled && !['v2_pending', 'v2_required'].includes(conv.e2eeState)) {
-        showErrToast('Dit gesprek is nog niet voor E2EE geactiveerd.');
-        return false;
-      }
-      if (isV2QaEnabled && (replyContext || mentions.length > 0)) {
+      if (useV2 && (replyContext || mentions.length > 0)) {
         showErrToast('Antwoorden en vermeldingen zijn nog niet beschikbaar in E2EE.');
         return false;
       }
-      if (!isV2QaEnabled && !socket?.connected && !shouldUseServiceTransport(conv)) {
+      if (!useV2 && !socket?.connected && !shouldUseServiceTransport(conv)) {
         showErrToast('Geen verbinding. Controleer je internet en probeer opnieuw.');
         return false;
       }
@@ -1054,14 +1054,14 @@ export default function useConversations({
       setReplyTo(null);
       pendingTempIds.current.add(optimisticMsg.id);
       setMessages(prev => [...prev, optimisticMsg]);
-      if (!isV2QaEnabled) savePending(optimisticMsg.id, conv.id, msg);
+      if (!useV2) savePending(optimisticMsg.id, conv.id, msg);
       setTimeout(() => { if (msgsAreaRef.current) msgsAreaRef.current.scrollTop = msgsAreaRef.current.scrollHeight; }, 50);
       setConversations(prev => applyConversationSummaryToList(prev, conv.id, optimisticMsg, msg.createdAt));
       const failTimer = setTimeout(() => {
         patchMessageAsFailed(optimisticMsg.id);
       }, 20000);
 
-      if (isV2QaEnabled) {
+      if (useV2) {
         sendViaV2Qa({ conv, plaintext: trimmedText }).then((savedMsg) => {
           clearTimeout(failTimer);
           pendingTempIds.current.delete(optimisticMsg.id);
@@ -1126,10 +1126,6 @@ export default function useConversations({
     };
 
     if (activeConv.isDraft) {
-      if (isV2QaEnabled) {
-        showErrToast('Maak en activeer dit gesprek eerst voor E2EE.');
-        return;
-      }
       if (!socket?.connected) {
         showErrToast('Geen verbinding. Controleer je internet en probeer opnieuw.');
         return;
@@ -1172,7 +1168,7 @@ export default function useConversations({
 
   function sendContactCardToConversation(conv, sharedContact) {
     const socket = getSocket();
-    if (isV2QaEnabled) {
+    if (usesV2Protocol(conv)) {
       showErrToast('Contacten delen is nog niet beschikbaar in E2EE.');
       return;
     }
@@ -1285,7 +1281,8 @@ export default function useConversations({
   function retryMessage(failedMsg) {
     const socket = getSocket();
     if (!activeConv) return;
-    if (!isV2QaEnabled && !socket?.connected && !shouldUseServiceTransport(activeConv)) return;
+    const useV2 = usesV2Protocol(activeConv);
+    if (!useV2 && !socket?.connected && !shouldUseServiceTransport(activeConv)) return;
     const retryCount = (failedMsg._retryCount || 0) + 1;
     const recipientUserIds = getConversationRecipients(activeConv);
     const retryPayload = buildRetryServicePayload(failedMsg);
@@ -1298,7 +1295,7 @@ export default function useConversations({
     const failTimer = setTimeout(() => {
       patchMessageAsFailed(failedMsg.id);
     }, 20000);
-    if (isV2QaEnabled) {
+    if (useV2) {
       sendViaV2Qa({ conv: activeConv, plaintext: retryPayload.plaintext }).then((savedMsg) => {
         clearTimeout(failTimer);
         pendingTempIds.current.delete(failedMsg.id);
@@ -1375,7 +1372,7 @@ export default function useConversations({
   function toggleReaction(msgId, emoji) {
     const socket = getSocket();
     if (!activeConv) return;
-    if (isV2QaEnabled) {
+    if (usesV2Protocol(activeConv)) {
       showErrToast('Reacties zijn nog niet beschikbaar in E2EE.');
       return;
     }
@@ -1438,7 +1435,7 @@ export default function useConversations({
 
   async function forwardToConv(conv) {
     const socket = getSocket();
-    if (isV2QaEnabled) {
+    if (usesV2Protocol(conv)) {
       showErrToast('Doorsturen is nog niet beschikbaar in E2EE.');
       return;
     }

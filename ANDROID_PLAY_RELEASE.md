@@ -92,8 +92,8 @@ For the explicitly unreviewed E2EE evaluation build, use:
 npm run android:build:e2ee-internal-play
 ```
 
-This produces the same-package `versionCode 88` build named
-`1.0.32-internal-e2ee`. It enables the E2EE runtime, group Sender Keys and
+This produces the same-package `versionCode 89` build named
+`1.0.33-internal-e2ee`. It enables the E2EE runtime, group Sender Keys and
 call-identity binding for internal testing, but does not claim an
 independent review. Upload it only to **Internal testing**. Do not promote this
 artifact to closed, open, or production tracks. A later production candidate
@@ -116,6 +116,13 @@ refreshes the authoritative device bundles once, rebuilds only sessions whose
 opaque device ID, Signal device ID and identity version are unchanged, and
 continues to reject identity changes fail-closed. Unknown internal error codes
 are no longer shown verbatim in the chat UI.
+
+VersionCode 89 additionally selects v2 per conversation instead of per account.
+Only `v2_pending` and `v2_required` conversations enter the v2 endpoints;
+legacy conversations keep their existing transport, while `v2_required` never
+falls back. Tapping a call button while a native call session already exists now
+reopens that session so the user can inspect or end it instead of becoming stuck
+behind `call_already_active`.
 
 - App details:
   - App name

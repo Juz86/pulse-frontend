@@ -20,9 +20,12 @@ import com.getcapacitor.annotation.PermissionCallback;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.pulsemessenger.chat.call.v2.PulseCallCoordinator;
+import com.pulsemessenger.chat.call.v2.PulseCallActivity;
+import com.pulsemessenger.chat.call.v2.PulseCallDirection;
 import com.pulsemessenger.chat.call.v2.PulseCallFollowUpAction;
 import com.pulsemessenger.chat.call.v2.PulseCallFollowUpStore;
 import com.pulsemessenger.chat.call.v2.PulseCallMediaType;
+import com.pulsemessenger.chat.call.v2.PulseCallSnapshot;
 import com.pulsemessenger.chat.call.v2.PulseCallService;
 import com.pulsemessenger.chat.call.v2.PulseCallState;
 import com.pulsemessenger.chat.call.v2.PulseCallUiEvents;
@@ -301,13 +304,21 @@ public class PulseCallPlugin extends Plugin {
         }
         if (requestId == null) requestId = UUID.randomUUID().toString();
 
-        PulseCallState state = PulseCallCoordinator.Companion
+        PulseCallSnapshot activeSnapshot = PulseCallCoordinator.Companion
             .getInstance()
             .getState()
-            .getValue()
-            .getState();
+            .getValue();
+        PulseCallState state = activeSnapshot.getState();
         if (state != PulseCallState.IDLE && state != PulseCallState.ENDED) {
-            call.reject("A call is already active", "call_already_active");
+            if (openActiveCall(activeSnapshot)) {
+                JSObject result = new JSObject();
+                result.put("ok", true);
+                result.put("requestId", activeSnapshot.getSessionId());
+                result.put("status", "active");
+                call.resolve(result);
+            } else {
+                call.reject("A call is already active", "call_already_active");
+            }
             return;
         }
 
@@ -337,6 +348,29 @@ public class PulseCallPlugin extends Plugin {
         } catch (RuntimeException error) {
             call.reject("Native call service could not start", "call_service_start_failed", error);
         }
+    }
+
+    private boolean openActiveCall(PulseCallSnapshot snapshot) {
+        String sessionId = snapshot.getSessionId();
+        String peerUid = snapshot.getPeerUid();
+        String displayName = snapshot.getDisplayName();
+        PulseCallDirection direction = snapshot.getDirection();
+        PulseCallMediaType mediaType = snapshot.getMediaType();
+        if (sessionId == null || peerUid == null || displayName == null || direction == null) {
+            return false;
+        }
+        Activity activity = getActivity();
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return false;
+        activity.startActivity(PulseCallActivity.Companion.intent(
+            activity,
+            sessionId,
+            peerUid,
+            displayName,
+            snapshot.getPhotoUrl(),
+            direction,
+            mediaType == null ? PulseCallMediaType.AUDIO : mediaType
+        ));
+        return true;
     }
 
     private String normalized(String value, int maxLength) {

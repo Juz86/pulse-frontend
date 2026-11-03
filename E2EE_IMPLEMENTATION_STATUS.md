@@ -919,6 +919,24 @@ vertrouwd. De client toont voortaan een bruikbare foutmelding in plaats van een
 interne code. De volledige frontendset telt na deze correctie 34 geslaagde
 suites en 320 tests; de volledige Android-unitsuite en release-lint slagen.
 
+De daaropvolgende interne versie 89 herstelt de protocolselectie per gesprek.
+Een account dat tot de interne E2EE-cohort behoort probeert daardoor niet meer
+ieder legacygesprek via de v2-pilotendpoint te laden. Alleen gesprekken met
+`v2_pending` of `v2_required` gebruiken v2; `v2_required` valt nooit terug naar
+legacy. Een bestaande native callsessie wordt bij een nieuwe tik op de belknop
+opnieuw geopend, zodat de gebruiker haar kan inspecteren of beeindigen in plaats
+van alleen `call_already_active` te zien.
+
+Het uitsluitend interne artefact
+`pulse-versionCode-89-internal-e2ee.aab` heeft versienaam
+`1.0.33-internal-e2ee`, is `70859969` bytes groot en heeft SHA-256
+`98a3d78ffd84a9dd89a2d9b7f6a87fd1839600f770e02372278d2a7103254022`.
+De productie-API is aanwezig, de QA-API afwezig, call-E2EE en de interne
+pilotprovider staan aan en het uploadcertificaat komt overeen met Play Console.
+Alle 35 frontendsuites met 328 tests, de volledige Android-unitsuite,
+release-lint, de native-groottepoort en de WebRTC/JNI-retentiepoort slagen.
+Live chat-, audio- en videovalidatie op twee Play-installaties blijft vereist.
+
 Frontend en backend zijn inmiddels zonder GitHub-authenticatie publiek
 leesbaar en beide zijn expliciet als `AGPL-3.0-only` gelicentieerd. De
 release-audit en 174-componenten-noticecatalogus staan in de publieke

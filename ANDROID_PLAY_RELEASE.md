@@ -92,8 +92,8 @@ For the explicitly unreviewed E2EE evaluation build, use:
 npm run android:build:e2ee-internal-play
 ```
 
-This produces the same-package `versionCode 89` build named
-`1.0.33-internal-e2ee`. It enables the E2EE runtime, group Sender Keys and
+This produces the same-package `versionCode 90` build named
+`1.0.34-internal-e2ee`. It enables the E2EE runtime, group Sender Keys and
 call-identity binding for internal testing, but does not claim an
 independent review. Upload it only to **Internal testing**. Do not promote this
 artifact to closed, open, or production tracks. A later production candidate
@@ -123,6 +123,15 @@ legacy conversations keep their existing transport, while `v2_required` never
 falls back. Tapping a call button while a native call session already exists now
 reopens that session so the user can inspect or end it instead of becoming stuck
 behind `call_already_active`.
+
+The two-device Play test of versionCode 89 showed that an otherwise valid first
+call could fail with `e2ee_call_identity_untrusted` when no chat session had yet
+stored the peer identity locally. VersionCode 90 pins a missing identity only
+after Railway has matched the signed envelope to the sender's active registered
+v2 device. The signature, opaque device ID, Signal device ID and identity version
+are all checked; an existing different identity remains blocked fail-closed.
+VersionCode 90 also clears terminal foreground-call ownership idempotently so a
+failed or ended call cannot cause later incoming calls to be ignored as duplicates.
 
 - App details:
   - App name

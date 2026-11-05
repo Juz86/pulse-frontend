@@ -111,7 +111,10 @@ class NativePulseCallE2eeIdentityBinder(context: Context) : PulseCallE2eeIdentit
         val local = awaitLocalDeviceBinding(
             if (remoteUid == session.callerUid) session.calleeUid else session.callerUid,
         )
-        provider.verifyCallIdentityBinding(
+        // Railway only relays this envelope after matching its public identity material to the
+        // sender's active registered v2 device. That authorization safely bootstraps a missing
+        // local trust record; existing identity mismatches remain fail-closed in the provider.
+        provider.verifyServerAuthorizedCallIdentityBinding(
             if (remoteUid == session.callerUid) session.calleeUid else session.callerUid,
             local.signalDeviceId,
             remoteUid,

@@ -445,6 +445,57 @@ public final class PulseE2eeV2Provider {
         PulseCallIdentityBinding binding,
         byte[] signature
     ) throws Exception {
+        verifyCallIdentityBinding(
+            userId,
+            localSignalDeviceId,
+            remoteUserId,
+            remoteDeviceId,
+            remoteSignalDeviceId,
+            remoteIdentityVersion,
+            remoteIdentityKey,
+            binding,
+            signature,
+            false
+        );
+    }
+
+    public synchronized void verifyServerAuthorizedCallIdentityBinding(
+        String userId,
+        int localSignalDeviceId,
+        String remoteUserId,
+        String remoteDeviceId,
+        int remoteSignalDeviceId,
+        int remoteIdentityVersion,
+        byte[] remoteIdentityKey,
+        PulseCallIdentityBinding binding,
+        byte[] signature
+    ) throws Exception {
+        verifyCallIdentityBinding(
+            userId,
+            localSignalDeviceId,
+            remoteUserId,
+            remoteDeviceId,
+            remoteSignalDeviceId,
+            remoteIdentityVersion,
+            remoteIdentityKey,
+            binding,
+            signature,
+            true
+        );
+    }
+
+    private void verifyCallIdentityBinding(
+        String userId,
+        int localSignalDeviceId,
+        String remoteUserId,
+        String remoteDeviceId,
+        int remoteSignalDeviceId,
+        int remoteIdentityVersion,
+        byte[] remoteIdentityKey,
+        PulseCallIdentityBinding binding,
+        byte[] signature,
+        boolean trustServerAuthorizedIdentity
+    ) throws Exception {
         PulseSignalProtocolStore store = openStore(userId, localSignalDeviceId);
         if (!remoteUserId.equals(binding.callerUserId) && !remoteUserId.equals(binding.calleeUserId)) {
             throw new IllegalArgumentException("e2ee_call_signer_not_participant");
@@ -465,16 +516,20 @@ public final class PulseE2eeV2Provider {
             remoteIdentityVersion
         );
         SignalProtocolAddress remoteAddress = address(remoteUserId, remoteSignalDeviceId);
-        IdentityKey trustedIdentity = store.getIdentity(remoteAddress);
-        if (trustedIdentity == null) {
-            throw new IllegalStateException("e2ee_call_identity_untrusted");
-        }
         IdentityKey suppliedIdentity = new IdentityKey(remoteIdentityKey);
-        if (!MessageDigest.isEqual(trustedIdentity.serialize(), suppliedIdentity.serialize())) {
-            throw new IllegalStateException("e2ee_call_identity_mismatch");
-        }
         if (!suppliedIdentity.getPublicKey().verifySignature(binding.canonicalBytes(), signature)) {
             throw new IllegalArgumentException("e2ee_call_signature_invalid");
+        }
+        IdentityKey trustedIdentity = store.getIdentity(remoteAddress);
+        if (trustedIdentity == null) {
+            if (!trustServerAuthorizedIdentity) {
+                throw new IllegalStateException("e2ee_call_identity_untrusted");
+            }
+            store.saveIdentity(remoteAddress, suppliedIdentity);
+            trustedIdentity = suppliedIdentity;
+        }
+        if (!MessageDigest.isEqual(trustedIdentity.serialize(), suppliedIdentity.serialize())) {
+            throw new IllegalStateException("e2ee_call_identity_mismatch");
         }
     }
 

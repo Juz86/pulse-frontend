@@ -399,6 +399,59 @@ public class PulseE2eeV2ProviderTest {
     }
 
     @Test
+    public void pinsAValidServerAuthorizedCallIdentityWithoutAnExistingSignalSession()
+        throws Exception {
+        PulseE2eeV2Provider alice = provider(new MemoryRecordStorage(), 113L);
+        PulseE2eeV2Provider bob = provider(new MemoryRecordStorage(), 114L);
+        PulseE2eeV2Provider.BootstrapResult aliceBootstrap = alice.bootstrapDevice("alice", 1, 1);
+        bob.bootstrapDevice("bob", 2, 1);
+        PulseCallIdentityBinding offer = callBinding(
+            "call-authorized",
+            "alice-device",
+            1,
+            "offer",
+            repeat('f', 64),
+            null
+        );
+        byte[] signature = alice.signCallIdentityBinding("alice", 1, offer);
+
+        bob.verifyServerAuthorizedCallIdentityBinding(
+            "bob",
+            2,
+            "alice",
+            "alice-device",
+            1,
+            1,
+            aliceBootstrap.identityKey,
+            offer,
+            signature
+        );
+
+        PulseE2eeV2Provider impostor = provider(new MemoryRecordStorage(), 115L);
+        PulseE2eeV2Provider.BootstrapResult impostorBootstrap = impostor.bootstrapDevice(
+            "alice",
+            1,
+            1
+        );
+        byte[] impostorSignature = impostor.signCallIdentityBinding("alice", 1, offer);
+        IllegalStateException mismatch = assertThrows(
+            IllegalStateException.class,
+            () -> bob.verifyServerAuthorizedCallIdentityBinding(
+                "bob",
+                2,
+                "alice",
+                "alice-device",
+                1,
+                1,
+                impostorBootstrap.identityKey,
+                offer,
+                impostorSignature
+            )
+        );
+        assertEquals("e2ee_call_identity_mismatch", mismatch.getMessage());
+    }
+
+    @Test
     public void requiresAnswersToBindTheSignedOffer() {
         assertThrows(
             IllegalArgumentException.class,

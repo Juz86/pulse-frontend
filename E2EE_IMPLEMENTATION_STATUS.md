@@ -937,6 +937,33 @@ Alle 35 frontendsuites met 328 tests, de volledige Android-unitsuite,
 release-lint, de native-groottepoort en de WebRTC/JNI-retentiepoort slagen.
 Live chat-, audio- en videovalidatie op twee Play-installaties blijft vereist.
 
+De live tweetoestelproef met versionCode 89 bereikte voor audio en video wel
+sessieaanmaak, FCM, acceptatie en het beveiligde offer, maar de ontvanger wees
+het aanbod vóór WebRTC af met `e2ee_call_identity_untrusted`. De identiteit van
+het actieve geregistreerde afzenddevice was geldig en door de productiebackend
+tegen device-ID, Signal-device-ID, identityversie en publieke sleutel
+geautoriseerd, maar er bestond lokaal nog geen chatsessie die dezelfde identiteit
+had opgeslagen. VersionCode 90 gebruikt die serverautorisatie uitsluitend om
+een ontbrekend lokaal trustrecord te initialiseren nadat de Signal-handtekening
+is gecontroleerd. Een reeds bekende afwijkende sleutel blijft fail-closed
+geblokkeerd. Dezelfde proef toonde dat terminale reconciliatie een beëindigde
+sessie soms als foreground-call liet staan, waarna volgende oproepen als
+duplicaat werden genegeerd. De opruiming is nu idempotent en een stale terminale
+foregroundbinding wordt vóór een nieuwe call verwijderd.
+
+Het gecorrigeerde uitsluitend interne artefact
+`pulse-versionCode-90-internal-e2ee.aab` heeft versienaam
+`1.0.34-internal-e2ee`, is `70861724` bytes groot en heeft SHA-256
+`8916a77aab9d17bef6921ef5a67bfd8aaae3c31335c3aaae6b0aae10d75d0944`.
+Dit is `1755` bytes, ongeveer `0,0025%`, groter dan versionCode 89. De
+productie-API is aanwezig, de QA-API afwezig, call-E2EE en de interne
+pilotprovider staan aan en de WebRTC- en JNI-bridges zijn ongewijzigd door R8
+behouden. De uploadcertificaatvingerafdruk komt exact overeen met Play Console.
+Alle 35 frontendsuites met 328 tests, de volledige Android-unitsuite,
+release-lint, de native-groottepoort en de WebRTC/JNI-retentiepoort slagen.
+Live audio- en videovalidatie moet na installatie via de interne Play-testtrack
+op beide toestellen worden herhaald.
+
 Frontend en backend zijn inmiddels zonder GitHub-authenticatie publiek
 leesbaar en beide zijn expliciet als `AGPL-3.0-only` gelicentieerd. De
 release-audit en 174-componenten-noticecatalogus staan in de publieke

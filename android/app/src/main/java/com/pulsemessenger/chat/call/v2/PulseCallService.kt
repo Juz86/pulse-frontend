@@ -275,7 +275,6 @@ class PulseCallService : Service() {
             )
             return
         }
-        val reconciliationOnly = foregroundCallId == null
         if (!startTerminalReconciliationForeground(sessionId)) return
 
         terminalJob?.cancel()
@@ -301,7 +300,9 @@ class PulseCallService : Service() {
                 recoveryStore.clear(sessionId)
             }
             terminalJob = null
-            if (reconciliationOnly) {
+            if (foregroundCallId == sessionId &&
+                coordinator.state.value.state in setOf(PulseCallState.IDLE, PulseCallState.ENDED)
+            ) {
                 stopCallForeground(sessionId)
             }
         }
@@ -447,6 +448,11 @@ class PulseCallService : Service() {
         mediaType: PulseCallMediaType = PulseCallMediaType.AUDIO,
         photoUrl: String? = null,
     ): Boolean {
+        if (foregroundCallId != null &&
+            coordinator.state.value.state in setOf(PulseCallState.IDLE, PulseCallState.ENDED)
+        ) {
+            clearForegroundCallState()
+        }
         if (foregroundCallId != null) {
             Log.i(TAG, "Ignoring duplicate call launch while another call is being handled")
             return false
@@ -702,6 +708,12 @@ class PulseCallService : Service() {
     private fun stopCallForeground(expectedCallId: String? = null) {
         if (expectedCallId != null && foregroundCallId != expectedCallId) return
         stopIncomingAlert(expectedCallId)
+        clearForegroundCallState()
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
+    private fun clearForegroundCallState() {
         foregroundCallId = null
         foregroundDisplayName = null
         foregroundPhotoUrl = null
@@ -711,8 +723,6 @@ class PulseCallService : Service() {
         avatarJob = null
         callUiOpenedForId = null
         pendingNotificationAction = null
-        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-        stopSelf()
     }
 
     private fun stopIfIdle() {

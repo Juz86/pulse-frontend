@@ -350,6 +350,7 @@ public class PulseCallPlugin extends Plugin {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private boolean openActiveCall(PulseCallSnapshot snapshot) {
         String sessionId = snapshot.getSessionId();
         String peerUid = snapshot.getPeerUid();

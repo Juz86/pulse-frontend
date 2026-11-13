@@ -6,6 +6,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 
 import com.pulsemessenger.chat.call.v2.PulseCallFollowUpStore;
+import com.pulsemessenger.chat.call.v2.PulseCallUiResumeRouter;
 import com.pulsemessenger.chat.call.v2.PulseTabletCallPanelHost;
 import com.pulsemessenger.chat.e2ee.v2.PulseE2eeV2Plugin;
 
@@ -34,6 +35,12 @@ public class MainActivity extends BridgeActivity {
     protected void onNewIntent(Intent intent) {
         captureCallContactAction(intent);
         super.onNewIntent(intent);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        PulseCallUiResumeRouter.restoreActiveCall(this);
     }
 
     @Override

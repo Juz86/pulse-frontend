@@ -31,6 +31,7 @@ import org.webrtc.MediaStream
 import org.webrtc.MediaStreamTrack
 import org.webrtc.PeerConnection
 import org.webrtc.PeerConnectionFactory
+import org.webrtc.RtpCapabilities
 import org.webrtc.RtpReceiver
 import org.webrtc.RTCStatsReport
 import org.webrtc.SdpObserver
@@ -58,8 +59,11 @@ class WebRtcAudioEngine(
     private val remoteAudioReported = AtomicBoolean(false)
     private val remoteVideoReported = AtomicBoolean(false)
     private val localVideoReported = AtomicBoolean(false)
+    private val transportConnectedReported = AtomicBoolean(false)
     private val statsMonitoringStarted = AtomicBoolean(false)
     private val selectedPathSignature = AtomicReference<String?>(null)
+    private val publishLocalSignals = AtomicBoolean(false)
+    private val localSignalLock = Any()
 
     private var config: PulseAudioSessionConfig? = null
     private var listener: PulseCallMediaListener? = null
@@ -74,113 +78,209 @@ class WebRtcAudioEngine(
     private var surfaceTextureHelper: SurfaceTextureHelper? = null
     private var usingFrontCamera = true
     private var statsJob: Job? = null
+    private var connectionFailureJob: Job? = null
+    private var preparedLocalOffer: PulseSessionDescription? = null
+    private var cameraCaptureStarted = false
+    private val pendingLocalIceCandidates: ArrayDeque<PulseIceCandidate> = ArrayDeque()
     private val iceCandidateBuffer = PulseIceCandidateBuffer()
 
     override val state: StateFlow<PulseMediaState> = mutableState.asStateFlow()
+
+    override suspend fun prepare(
+        config: PulseAudioSessionConfig,
+        listener: PulseCallMediaListener,
+    ) = onMediaThread {
+        if (mutableState.value == PulseMediaState.PREPARED) {
+            check(this.config == config && this.listener === listener) {
+                "Media engine was prepared for a different session"
+            }
+            return@onMediaThread
+        }
+        check(mutableState.value == PulseMediaState.NEW) { "Media engine was already prepared" }
+        this.config = config
+        this.listener = listener
+
+        try {
+            prepareResources(config)
+            prepareLocalOffer(config)
+            updateState(PulseMediaState.PREPARED)
+        } catch (error: Throwable) {
+            fail("media_prepare_failed")
+            releaseResources()
+            throw error
+        }
+    }
 
     override suspend fun start(
         config: PulseAudioSessionConfig,
         listener: PulseCallMediaListener,
     ) = onMediaThread {
-        check(mutableState.value == PulseMediaState.NEW) { "Media engine was already started" }
+        if (mutableState.value == PulseMediaState.NEW) {
+            this.config = config
+            this.listener = listener
+            try {
+                prepareResources(config)
+                prepareLocalOffer(config)
+                updateState(PulseMediaState.PREPARED)
+            } catch (error: Throwable) {
+                fail("media_prepare_failed")
+                releaseResources()
+                throw error
+            }
+        }
+        check(mutableState.value == PulseMediaState.PREPARED) { "Media engine was already started" }
+        check(this.config == config && this.listener === listener) {
+            "Prepared media session does not match the accepted call"
+        }
         updateState(PulseMediaState.STARTING)
-        this.config = config
-        this.listener = listener
 
         try {
-            initializeWebRtc(applicationContext)
-            val audioModule = JavaAudioDeviceModule.builder(applicationContext)
-                .setUseHardwareAcousticEchoCanceler(true)
-                .setUseHardwareNoiseSuppressor(true)
-                .createAudioDeviceModule()
-            audioDeviceModule = audioModule
-
-            val factoryBuilder = PeerConnectionFactory.builder()
-                .setAudioDeviceModule(audioModule)
-            if (config.mediaType == PulseCallMediaType.VIDEO) {
-                factoryBuilder
-                    .setVideoEncoderFactory(DefaultVideoEncoderFactory(
-                        PulseCallVideoState.eglContext,
-                        true,
-                        true,
-                    ))
-                    .setVideoDecoderFactory(DefaultVideoDecoderFactory(
-                        PulseCallVideoState.eglContext,
-                    ))
+            if (config.role == PulseMediaRole.OFFERER) {
+                // The offer was created during ringing. Start its authenticated relay as soon as
+                // the call is accepted, while local capture is brought online in parallel.
+                publishPreparedLocalOffer()
             }
-            val factory = factoryBuilder.createPeerConnectionFactory()
-            peerConnectionFactory = factory
-
-            val source = factory.createAudioSource(MediaConstraints())
-            audioSource = source
-            val track = factory.createAudioTrack(AUDIO_TRACK_ID, source).apply {
-                setEnabled(true)
-            }
-            audioTrack = track
-
+            audioTrack?.setEnabled(true)
             if (config.mediaType == PulseCallMediaType.VIDEO) {
-                val enumerator = Camera2Enumerator(applicationContext)
-                val cameraName = enumerator.deviceNames.firstOrNull(enumerator::isFrontFacing)
-                    ?: enumerator.deviceNames.firstOrNull()
-                    ?: error("No camera is available")
-                usingFrontCamera = enumerator.isFrontFacing(cameraName)
-                val capturer = checkNotNull(enumerator.createCapturer(cameraName, null)) {
-                    "WebRTC could not create a camera capturer"
-                }
-                val helper = SurfaceTextureHelper.create(
-                    "pulse-webrtc-camera",
-                    PulseCallVideoState.eglContext,
-                )
-                val source = factory.createVideoSource(false)
-                capturer.initialize(helper, applicationContext, source.capturerObserver)
-                capturer.startCapture(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_FPS)
-                val localVideoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, source).apply {
-                    setEnabled(true)
-                }
-                videoCapturer = capturer
-                surfaceTextureHelper = helper
-                videoSource = source
-                videoTrack = localVideoTrack
+                videoTrack?.setEnabled(true)
+                startCameraCaptureIfNeeded(config.sessionId, "ACCEPTED")
+                val localVideoTrack = checkNotNull(videoTrack)
                 PulseCallVideoState.begin(config.sessionId, localVideoTrack, usingFrontCamera)
             }
-
-            val rtcConfiguration = PeerConnection.RTCConfiguration(
-                config.iceServers.map { it.toWebRtc() },
-            ).apply {
-                sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
-                bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
-                rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
-                continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
-                tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.ENABLED
-            }
-            val connection = checkNotNull(
-                factory.createPeerConnection(rtcConfiguration, createPeerObserver()),
-            ) { "WebRTC could not create a PeerConnection" }
-            peerConnection = connection
-            checkNotNull(connection.addTrack(track, listOf(MEDIA_STREAM_ID))) {
-                "WebRTC could not add the local audio track"
-            }
-            if (config.role == PulseMediaRole.OFFERER) {
-                videoTrack?.let { localVideoTrack ->
-                    connection.addTransceiver(
-                        localVideoTrack,
-                        org.webrtc.RtpTransceiver.RtpTransceiverInit(
-                            org.webrtc.RtpTransceiver.RtpTransceiverDirection.SEND_RECV,
-                            listOf(MEDIA_STREAM_ID),
-                        ),
-                    )
+            val connection = peerConnectionOrThrow()
+            if (config.role == PulseMediaRole.ANSWERER) {
+                checkNotNull(connection.addTrack(checkNotNull(audioTrack), listOf(MEDIA_STREAM_ID))) {
+                    "WebRTC could not add the local audio track"
                 }
             }
-
             updateState(PulseMediaState.NEGOTIATING)
-            if (config.role == PulseMediaRole.OFFERER) {
-                createAndPublishLocalDescription(SessionDescription.Type.OFFER)
+            if (config.role == PulseMediaRole.ANSWERER) {
+                publishLocalSignals.set(true)
             }
         } catch (error: Throwable) {
             fail("media_start_failed")
             releaseResources()
             throw error
         }
+    }
+
+    private fun prepareResources(config: PulseAudioSessionConfig) {
+        initializeWebRtc(applicationContext)
+        val audioModule = JavaAudioDeviceModule.builder(applicationContext)
+            .setUseHardwareAcousticEchoCanceler(true)
+            .setUseHardwareNoiseSuppressor(true)
+            .createAudioDeviceModule()
+        audioDeviceModule = audioModule
+
+        val factoryBuilder = PeerConnectionFactory.builder().setAudioDeviceModule(audioModule)
+        if (config.mediaType == PulseCallMediaType.VIDEO) {
+            factoryBuilder
+                .setVideoEncoderFactory(DefaultVideoEncoderFactory(
+                    PulseCallVideoState.eglContext,
+                    true,
+                    true,
+                ))
+                .setVideoDecoderFactory(DefaultVideoDecoderFactory(PulseCallVideoState.eglContext))
+        }
+        val factory = factoryBuilder.createPeerConnectionFactory()
+        peerConnectionFactory = factory
+
+        val source = factory.createAudioSource(MediaConstraints())
+        audioSource = source
+        audioTrack = factory.createAudioTrack(AUDIO_TRACK_ID, source).apply { setEnabled(false) }
+
+        if (config.mediaType == PulseCallMediaType.VIDEO) {
+            val enumerator = Camera2Enumerator(applicationContext)
+            val cameraName = enumerator.deviceNames.firstOrNull(enumerator::isFrontFacing)
+                ?: enumerator.deviceNames.firstOrNull()
+                ?: error("No camera is available")
+            usingFrontCamera = enumerator.isFrontFacing(cameraName)
+            val capturer = checkNotNull(enumerator.createCapturer(cameraName, null)) {
+                "WebRTC could not create a camera capturer"
+            }
+            val helper = SurfaceTextureHelper.create(
+                "pulse-webrtc-camera",
+                PulseCallVideoState.eglContext,
+            )
+            val source = factory.createVideoSource(false)
+            capturer.initialize(helper, applicationContext, source.capturerObserver)
+            videoCapturer = capturer
+            surfaceTextureHelper = helper
+            videoSource = source
+            videoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, source).apply { setEnabled(false) }
+        }
+
+        val rtcConfiguration = PeerConnection.RTCConfiguration(
+            config.iceServers.map { it.toWebRtc() },
+        ).apply {
+            sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
+            bundlePolicy = PeerConnection.BundlePolicy.MAXBUNDLE
+            rtcpMuxPolicy = PeerConnection.RtcpMuxPolicy.REQUIRE
+            continualGatheringPolicy = PeerConnection.ContinualGatheringPolicy.GATHER_CONTINUALLY
+            tcpCandidatePolicy = PeerConnection.TcpCandidatePolicy.ENABLED
+        }
+        peerConnection = checkNotNull(
+            factory.createPeerConnection(rtcConfiguration, createPeerObserver()),
+        ) { "WebRTC could not create a PeerConnection" }
+    }
+
+    private suspend fun prepareLocalOffer(config: PulseAudioSessionConfig) {
+        if (config.role != PulseMediaRole.OFFERER) return
+        val connection = peerConnectionOrThrow()
+        checkNotNull(connection.addTrack(checkNotNull(audioTrack), listOf(MEDIA_STREAM_ID))) {
+            "WebRTC could not add the prepared local audio track"
+        }
+        videoTrack?.let { localVideoTrack ->
+            val transceiver = connection.addTransceiver(
+                localVideoTrack,
+                org.webrtc.RtpTransceiver.RtpTransceiverInit(
+                    org.webrtc.RtpTransceiver.RtpTransceiverDirection.SEND_RECV,
+                    listOf(MEDIA_STREAM_ID),
+                ),
+            )
+            val codecs = checkNotNull(peerConnectionFactory)
+                .getRtpSenderCapabilities(MediaStreamTrack.MediaType.MEDIA_TYPE_VIDEO)
+                .codecs
+            check(transceiver.setCodecPreferences(prioritizeVideoCodecs(codecs)).isSuccess) {
+                "WebRTC could not apply video codec preferences"
+            }
+            PulseCallDiagnostics.event(
+                "VIDEO_CODEC_PREFERENCES_READY",
+                config.sessionId,
+                status = codecs.joinToString("+") { it.name },
+            )
+            // The caller has explicitly initiated a video call. Warming the camera while the
+            // track remains disabled avoids exposing media before acceptance and removes the
+            // camera/encoder startup from the post-answer critical path.
+            startCameraCaptureIfNeeded(config.sessionId, "OUTGOING_PREFETCH")
+        }
+        PulseCallDiagnostics.event("MEDIA_LOCAL_OFFER_PREPARE_STARTED", config.sessionId)
+        preparedLocalOffer = createAndApplyLocalDescription(SessionDescription.Type.OFFER)
+        PulseCallDiagnostics.event("MEDIA_LOCAL_OFFER_PREPARE_READY", config.sessionId)
+    }
+
+    private fun publishPreparedLocalOffer() {
+        val offer = checkNotNull(preparedLocalOffer) { "Prepared caller has no local offer" }
+        preparedLocalOffer = null
+        listener?.onLocalDescription(offer)
+        val candidates = synchronized(localSignalLock) {
+            publishLocalSignals.set(true)
+            pendingLocalIceCandidates.toList().also { pendingLocalIceCandidates.clear() }
+        }
+        PulseCallDiagnostics.event(
+            "MEDIA_PREPARED_ICE_PUBLISHED",
+            config?.sessionId,
+            status = candidates.size.toString(),
+        )
+        candidates.forEach { listener?.onLocalIceCandidate(it) }
+    }
+
+    private fun startCameraCaptureIfNeeded(sessionId: String, phase: String) {
+        if (cameraCaptureStarted) return
+        PulseCallDiagnostics.event("CAMERA_CAPTURE_STARTED", sessionId, status = phase)
+        videoCapturer?.startCapture(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_FPS)
+        cameraCaptureStarted = true
+        PulseCallDiagnostics.event("CAMERA_CAPTURE_READY", sessionId, status = phase)
     }
 
     override suspend fun applyRemoteDescription(description: PulseSessionDescription) =
@@ -199,6 +299,11 @@ class WebRtcAudioEngine(
                 description.value,
             )
             reportVideoSdpDirection("REMOTE_VIDEO_SDP_DIRECTION", webRtcDescription.description)
+            PulseCallDiagnostics.event(
+                "REMOTE_DESCRIPTION_APPLY_STARTED",
+                config?.sessionId,
+                status = description.type.name,
+            )
             peerConnectionOrThrow().setRemoteDescriptionAwait(webRtcDescription)
             PulseCallDiagnostics.event(
                 "REMOTE_DESCRIPTION_APPLIED",
@@ -260,7 +365,11 @@ class WebRtcAudioEngine(
     }
 
     override suspend fun setMuted(muted: Boolean) = onMediaThread {
-        check(mutableState.value !in setOf(PulseMediaState.NEW, PulseMediaState.CLOSED)) {
+        check(mutableState.value !in setOf(
+            PulseMediaState.NEW,
+            PulseMediaState.PREPARED,
+            PulseMediaState.CLOSED,
+        )) {
             "Media engine is not active"
         }
         audioTrack?.setEnabled(!muted)
@@ -298,6 +407,7 @@ class WebRtcAudioEngine(
     override suspend fun close() {
         if (!closed.compareAndSet(false, true)) return
         statsJob?.cancel()
+        connectionFailureJob?.cancel()
         withContext(mediaDispatcher) {
             releaseResources()
             updateState(PulseMediaState.CLOSED)
@@ -310,6 +420,12 @@ class WebRtcAudioEngine(
     }
 
     private suspend fun createAndPublishLocalDescription(type: SessionDescription.Type) {
+        listener?.onLocalDescription(createAndApplyLocalDescription(type))
+    }
+
+    private suspend fun createAndApplyLocalDescription(
+        type: SessionDescription.Type,
+    ): PulseSessionDescription {
         val connection = peerConnectionOrThrow()
         val constraints = MediaConstraints()
         if (type == SessionDescription.Type.OFFER) {
@@ -319,11 +435,21 @@ class WebRtcAudioEngine(
                 (config?.mediaType == PulseCallMediaType.VIDEO).toString(),
             ))
         }
+        PulseCallDiagnostics.event(
+            "LOCAL_DESCRIPTION_CREATE_STARTED",
+            config?.sessionId,
+            status = type.name,
+        )
         val description = if (type == SessionDescription.Type.OFFER) {
             connection.createOfferAwait(constraints)
         } else {
             connection.createAnswerAwait(constraints)
         }
+        PulseCallDiagnostics.event(
+            "LOCAL_DESCRIPTION_CREATE_READY",
+            config?.sessionId,
+            status = type.name,
+        )
         if (
             type == SessionDescription.Type.ANSWER &&
             config?.mediaType == PulseCallMediaType.VIDEO
@@ -338,9 +464,21 @@ class WebRtcAudioEngine(
                 "Video answer did not negotiate bidirectional media"
             }
         }
+        val pulseDescription = description.toPulse()
+        listener?.onLocalDescriptionPrepared(pulseDescription)
+        PulseCallDiagnostics.event(
+            "LOCAL_DESCRIPTION_APPLY_STARTED",
+            config?.sessionId,
+            status = type.name,
+        )
         connection.setLocalDescriptionAwait(description)
+        PulseCallDiagnostics.event(
+            "LOCAL_DESCRIPTION_APPLY_READY",
+            config?.sessionId,
+            status = type.name,
+        )
         reportVideoSdpDirection("LOCAL_VIDEO_SDP_DIRECTION", description.description)
-        listener?.onLocalDescription(description.toPulse())
+        return pulseDescription
     }
 
     private fun applyRemoteIceCandidate(candidate: PulseIceCandidate) {
@@ -358,12 +496,15 @@ class WebRtcAudioEngine(
             when (newState) {
                 PeerConnection.IceConnectionState.CONNECTED,
                 PeerConnection.IceConnectionState.COMPLETED -> {
+                    cancelConnectionFailure()
+                    reportTransportConnected()
                     updateState(PulseMediaState.CONNECTED)
                     startStatsMonitoring()
                 }
                 PeerConnection.IceConnectionState.DISCONNECTED ->
                     updateState(PulseMediaState.RECONNECTING)
-                PeerConnection.IceConnectionState.FAILED -> fail("ice_connection_failed")
+                PeerConnection.IceConnectionState.FAILED ->
+                    scheduleConnectionFailure("ice_connection_failed")
                 PeerConnection.IceConnectionState.CLOSED -> updateState(PulseMediaState.CLOSED)
                 else -> Unit
             }
@@ -372,12 +513,15 @@ class WebRtcAudioEngine(
         override fun onConnectionChange(newState: PeerConnection.PeerConnectionState) {
             when (newState) {
                 PeerConnection.PeerConnectionState.CONNECTED -> {
+                    cancelConnectionFailure()
+                    reportTransportConnected()
                     updateState(PulseMediaState.CONNECTED)
                     startStatsMonitoring()
                 }
                 PeerConnection.PeerConnectionState.DISCONNECTED ->
                     updateState(PulseMediaState.RECONNECTING)
-                PeerConnection.PeerConnectionState.FAILED -> fail("peer_connection_failed")
+                PeerConnection.PeerConnectionState.FAILED ->
+                    scheduleConnectionFailure("peer_connection_failed")
                 PeerConnection.PeerConnectionState.CLOSED -> updateState(PulseMediaState.CLOSED)
                 else -> Unit
             }
@@ -387,9 +531,20 @@ class WebRtcAudioEngine(
         override fun onIceGatheringChange(newState: PeerConnection.IceGatheringState) = Unit
 
         override fun onIceCandidate(candidate: IceCandidate) {
-            listener?.onLocalIceCandidate(
-                PulseIceCandidate(candidate.sdpMid, candidate.sdpMLineIndex, candidate.sdp),
+            val pulseCandidate = PulseIceCandidate(
+                candidate.sdpMid,
+                candidate.sdpMLineIndex,
+                candidate.sdp,
             )
+            val publishNow = synchronized(localSignalLock) {
+                if (publishLocalSignals.get()) {
+                    true
+                } else {
+                    pendingLocalIceCandidates.addLast(pulseCandidate)
+                    false
+                }
+            }
+            if (publishNow) listener?.onLocalIceCandidate(pulseCandidate)
         }
 
         override fun onIceCandidatesRemoved(candidates: Array<out IceCandidate>) = Unit
@@ -426,9 +581,28 @@ class WebRtcAudioEngine(
         statsJob = mediaScope.launch {
             while (isActive && !closed.get()) {
                 runCatching { collectAndReportStats() }
-                delay(STATS_INTERVAL_MS)
+                delay(currentStatsIntervalMillis())
             }
         }
+    }
+
+    private fun currentStatsIntervalMillis(): Long {
+        val videoReady = config?.mediaType != PulseCallMediaType.VIDEO ||
+            (remoteVideoReported.get() && localVideoReported.get())
+        return if (remoteAudioReported.get() && videoReady) {
+            STATS_INTERVAL_MS
+        } else {
+            INITIAL_STATS_INTERVAL_MS
+        }
+    }
+
+    private fun reportTransportConnected() {
+        if (!transportConnectedReported.compareAndSet(false, true)) return
+        PulseCallDiagnostics.event(
+            "MEDIA_TRANSPORT_CONNECTED",
+            config?.sessionId,
+            status = "CONFIRMED",
+        )
     }
 
     private suspend fun collectAndReportStats() {
@@ -519,15 +693,17 @@ class WebRtcAudioEngine(
             .toList()
         if (videoSection.isEmpty()) return "direction=ABSENT"
         val port = videoSection.first().split(' ').getOrNull(1) ?: "UNKNOWN"
-        val codecs = videoSection
+        val codecsInOrder = videoSection
             .asSequence()
             .filter { it.startsWith("a=rtpmap:") }
             .mapNotNull { it.substringAfter(' ', "").substringBefore('/').takeIf(String::isNotBlank) }
             .distinct()
-            .sorted()
-            .joinToString("+")
-            .ifEmpty { "NONE" }
-        return "direction=${videoMediaDirection(sdp)},port=$port,codecs=$codecs"
+            .toList()
+        val codecs = codecsInOrder.joinToString("+").ifEmpty { "NONE" }
+        val preferred = codecsInOrder.firstOrNull {
+            it.lowercase() !in PULSE_AUXILIARY_VIDEO_CODECS
+        } ?: "NONE"
+        return "direction=${videoMediaDirection(sdp)},port=$port,preferred=$preferred,codecs=$codecs"
     }
 
     private fun videoMediaDirection(sdp: String): String {
@@ -569,6 +745,22 @@ class WebRtcAudioEngine(
         listener?.onMediaFailure(reason)
     }
 
+    private fun scheduleConnectionFailure(reason: String) {
+        updateState(PulseMediaState.RECONNECTING)
+        if (connectionFailureJob?.isActive == true) return
+        connectionFailureJob = mediaScope.launch {
+            delay(CONNECTION_FAILURE_GRACE_MILLIS)
+            if (!closed.get() && mutableState.value == PulseMediaState.RECONNECTING) {
+                fail(reason)
+            }
+        }
+    }
+
+    private fun cancelConnectionFailure() {
+        connectionFailureJob?.cancel()
+        connectionFailureJob = null
+    }
+
     private fun releaseResources() {
         val sessionId = config?.sessionId
         audioTrack?.setEnabled(false)
@@ -585,6 +777,13 @@ class WebRtcAudioEngine(
         peerConnectionFactory?.dispose()
         audioDeviceModule?.release()
         iceCandidateBuffer.clear()
+        synchronized(localSignalLock) {
+            pendingLocalIceCandidates.clear()
+            publishLocalSignals.set(false)
+        }
+        preparedLocalOffer = null
+        cameraCaptureStarted = false
+        cancelConnectionFailure()
         peerConnection = null
         audioTrack = null
         audioSource = null
@@ -631,8 +830,10 @@ class WebRtcAudioEngine(
         private const val VIDEO_WIDTH = 720
         private const val VIDEO_HEIGHT = 1280
         private const val VIDEO_FPS = 30
+        private const val INITIAL_STATS_INTERVAL_MS = 250L
         private const val STATS_INTERVAL_MS = 2_000L
         private const val STATS_TIMEOUT_MS = 2_000L
+        private const val CONNECTION_FAILURE_GRACE_MILLIS = 20_000L
         private val initialized = AtomicBoolean(false)
 
         private fun initializeWebRtc(context: Context) {
@@ -651,6 +852,22 @@ class WebRtcAudioEngine(
         }
     }
 }
+
+private val PULSE_VIDEO_CODEC_PRIORITY = listOf("vp8", "h264", "vp9", "av1", "h265")
+private val PULSE_AUXILIARY_VIDEO_CODECS = setOf("rtx", "red", "ulpfec", "flexfec-03")
+
+internal fun prioritizeVideoCodecs(
+    codecs: List<RtpCapabilities.CodecCapability>,
+): List<RtpCapabilities.CodecCapability> = codecs.withIndex()
+    .sortedWith(compareBy<IndexedValue<RtpCapabilities.CodecCapability>>(
+        { codec ->
+            PULSE_VIDEO_CODEC_PRIORITY.indexOf(codec.value.name.lowercase())
+                .takeIf { it >= 0 }
+                ?: PULSE_VIDEO_CODEC_PRIORITY.size
+        },
+        IndexedValue<RtpCapabilities.CodecCapability>::index,
+    ))
+    .map(IndexedValue<RtpCapabilities.CodecCapability>::value)
 
 private suspend fun PeerConnection.createOfferAwait(
     constraints: MediaConstraints,

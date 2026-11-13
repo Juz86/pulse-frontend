@@ -9,6 +9,7 @@ object RailwayCallingV2Codec {
     const val EVENT_SNAPSHOT = "call:v2:snapshot"
     const val EVENT_UPDATED = "call:v2:updated"
     const val EVENT_ICE_CONFIG = "call:v2:ice-config"
+    const val EVENT_IDENTITY_PREFLIGHT = "call:v2:identity-preflight"
     const val EVENT_MEDIA = "call:v2:media"
 
     fun encodeStart(
@@ -37,6 +38,16 @@ object RailwayCallingV2Codec {
 
     fun encodeSnapshotRequest(sessionId: String): JSONObject =
         JSONObject().put("sessionId", sessionId)
+
+    fun encodeIdentityPreflight(
+        sessionId: String,
+        binding: PulseCallE2eeDeviceBinding,
+    ): JSONObject = JSONObject()
+        .put("sessionId", sessionId)
+        .put("senderDeviceId", binding.senderDeviceId)
+        .put("senderSignalDeviceId", binding.senderSignalDeviceId)
+        .put("senderIdentityVersion", binding.senderIdentityVersion)
+        .put("identityKey", binding.identityKey)
 
     fun encodeDescription(
         sessionId: String,

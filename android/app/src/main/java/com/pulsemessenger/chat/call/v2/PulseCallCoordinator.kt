@@ -103,13 +103,36 @@ class PulseCallCoordinator private constructor(
 
     fun onMediaConnected(sessionId: String): PulseCoordinatorResult = synchronized(lock) {
         if (!ownsLocked(sessionId)) return@synchronized PulseCoordinatorResult.REJECTED_SESSION
-        if (localMediaReady) return@synchronized PulseCoordinatorResult.IDEMPOTENT
         if (stateMachine.state !in setOf(PulseCallState.CONNECTING, PulseCallState.ACTIVE)) {
             return@synchronized PulseCoordinatorResult.REJECTED_TRANSITION
         }
+        if (localMediaReady && stateMachine.state == PulseCallState.ACTIVE) {
+            return@synchronized PulseCoordinatorResult.IDEMPOTENT
+        }
         localMediaReady = true
-        publishLocked()
-        PulseCoordinatorResult.APPLIED
+        if (stateMachine.state == PulseCallState.CONNECTING) {
+            applyLocked(sessionId, PulseCallEvent.MEDIA_CONNECTED)
+        } else {
+            publishLocked()
+            PulseCoordinatorResult.APPLIED
+        }
+    }
+
+    fun onMediaReconnecting(sessionId: String): PulseCoordinatorResult = synchronized(lock) {
+        if (!ownsLocked(sessionId)) return@synchronized PulseCoordinatorResult.REJECTED_SESSION
+        if (stateMachine.state !in setOf(PulseCallState.CONNECTING, PulseCallState.ACTIVE)) {
+            return@synchronized PulseCoordinatorResult.REJECTED_TRANSITION
+        }
+        if (!localMediaReady && stateMachine.state == PulseCallState.CONNECTING) {
+            return@synchronized PulseCoordinatorResult.IDEMPOTENT
+        }
+        localMediaReady = false
+        if (stateMachine.state == PulseCallState.ACTIVE) {
+            applyLocked(sessionId, PulseCallEvent.NETWORK_LOST)
+        } else {
+            publishLocked()
+            PulseCoordinatorResult.APPLIED
+        }
     }
 
     fun onMutedChanged(sessionId: String, muted: Boolean): PulseCoordinatorResult = synchronized(lock) {

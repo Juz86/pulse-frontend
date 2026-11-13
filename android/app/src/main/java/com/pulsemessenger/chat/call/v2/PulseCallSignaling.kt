@@ -26,6 +26,7 @@ enum class PulseSignalingStatus {
     APPLIED,
     DUPLICATE,
     FOUND,
+    AUTHORIZED,
     RELAYED,
     CONFLICT,
     BUSY,
@@ -40,6 +41,13 @@ enum class PulseSignalingStatus {
     SERVICE_UNAVAILABLE,
     UNKNOWN,
 }
+
+data class PulseCallE2eeDeviceBinding(
+    val senderDeviceId: String,
+    val senderSignalDeviceId: Int,
+    val senderIdentityVersion: Int,
+    val identityKey: String,
+)
 
 data class PulseServerCallSession(
     val protocolVersion: Int,
@@ -152,6 +160,14 @@ interface PulseCallSignalingGateway {
     suspend fun fetchSnapshot(sessionId: String): PulseSignalingResponse
 
     suspend fun fetchIceConfiguration(sessionId: String): PulseIceConfigurationResponse
+
+    suspend fun preauthorizeIdentity(
+        sessionId: String,
+        binding: PulseCallE2eeDeviceBinding,
+    ): PulseSignalingResponse = PulseSignalingResponse(
+        ok = false,
+        status = PulseSignalingStatus.SERVICE_UNAVAILABLE,
+    )
 
     suspend fun sendDescription(
         sessionId: String,

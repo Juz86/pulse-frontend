@@ -223,7 +223,7 @@ class PulseCallCoordinatorTest {
     }
 
     @Test
-    fun `local media readiness waits for authoritative active snapshot`() {
+    fun `local media connection immediately publishes active state`() {
         val coordinator = PulseCallCoordinator.createForTests()
         coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
         coordinator.onSignalingSnapshot(
@@ -233,13 +233,38 @@ class PulseCallCoordinatorTest {
 
         assertEquals(PulseCoordinatorResult.APPLIED, coordinator.onMediaConnected("session-one"))
         assertEquals(true, coordinator.state.value.localMediaReady)
-        assertEquals(PulseCallState.CONNECTING, coordinator.state.value.state)
+        assertEquals(PulseCallState.ACTIVE, coordinator.state.value.state)
 
         coordinator.onSignalingSnapshot(
             serverSession(state = PulseServerCallState.ACTIVE, revision = 4),
             localUid = "caller",
         )
         assertEquals(PulseCallState.ACTIVE, coordinator.state.value.state)
+    }
+
+    @Test
+    fun `local media callbacks immediately publish reconnecting and recovered state`() {
+        val coordinator = PulseCallCoordinator.createForTests()
+        coordinator.begin(request("session-one", PulseCallDirection.OUTGOING))
+        coordinator.onSignalingSnapshot(
+            serverSession(state = PulseServerCallState.CONNECTING, revision = 3),
+            localUid = "caller",
+        )
+        coordinator.onMediaConnected("session-one")
+
+        assertEquals(
+            PulseCoordinatorResult.APPLIED,
+            coordinator.onMediaReconnecting("session-one"),
+        )
+        assertEquals(PulseCallState.CONNECTING, coordinator.state.value.state)
+        assertFalse(coordinator.state.value.localMediaReady)
+
+        assertEquals(
+            PulseCoordinatorResult.APPLIED,
+            coordinator.onMediaConnected("session-one"),
+        )
+        assertEquals(PulseCallState.ACTIVE, coordinator.state.value.state)
+        assertTrue(coordinator.state.value.localMediaReady)
     }
 
     @Test

@@ -290,12 +290,18 @@ describe('Android E2EE v2 QA runtime', () => {
       listMessageFeed: jest.fn().mockRejectedValue(new TypeError('Failed to fetch')),
     };
     const registerDevice = jest.fn();
+    const bindCachedDevice = jest.fn().mockResolvedValue({
+      deviceId: 'qa-123e4567-e89b-42d3-a456-426614174000',
+      signalDeviceId: 1,
+      identityVersion: 1,
+    });
     const runtime = await startAndroidE2eeV2QaRuntime({
       user: { uid: 'user-a' },
       backendUrl: 'https://e2ee-qa.example.test',
       runtimeBackendUrl: 'https://e2ee-qa.example.test',
       api,
       registerDevice,
+      bindCachedDevice,
       storage,
       bindSocketDevice: jest.fn(),
       assertConfiguration: jest.fn(),
@@ -306,8 +312,45 @@ describe('Android E2EE v2 QA runtime', () => {
     expect(runtime.status).toBe('REGISTERED_CACHED');
     expect(api.listDevices).toHaveBeenCalledWith({ uid: 'user-a' });
     expect(registerDevice).not.toHaveBeenCalled();
+    expect(bindCachedDevice).toHaveBeenCalledWith({
+      userId: 'user-a',
+      deviceId: 'qa-123e4567-e89b-42d3-a456-426614174000',
+      signalDeviceId: 1,
+      identityVersion: 1,
+    });
     await expect(runtime.fetchTextMessages({ conversationId: 'conversation-1' }))
       .resolves.toEqual([storedMessage]);
+  });
+
+  test('fails closed when a cached server binding does not match native secure storage', async () => {
+    const storage = createStorage();
+    storage.setItem('pulse_e2ee_v2_qa_binding_user-a', JSON.stringify({
+      deviceId: 'qa-active-device',
+      signalDeviceId: 6,
+      identityVersion: 1,
+    }));
+    const bindingError = new Error('e2ee_local_device_binding_failed');
+    const bindCachedDevice = jest.fn().mockRejectedValue(bindingError);
+    const bindSocketDevice = jest.fn();
+
+    await expect(startAndroidE2eeV2QaRuntime({
+      user: { uid: 'user-a' },
+      backendUrl: 'https://e2ee-qa.example.test',
+      runtimeBackendUrl: 'https://e2ee-qa.example.test',
+      api: { listDevices: jest.fn().mockResolvedValue([{
+        deviceId: 'qa-active-device',
+        signalDeviceId: 6,
+        identityVersion: 1,
+        status: 'active',
+      }]) },
+      registerDevice: jest.fn(),
+      bindCachedDevice,
+      storage,
+      bindSocketDevice,
+      assertConfiguration: jest.fn(),
+    })).rejects.toBe(bindingError);
+
+    expect(bindSocketDevice).not.toHaveBeenCalled();
   });
 
   test('replaces a cached binding that is no longer active on the server', async () => {
@@ -453,6 +496,9 @@ describe('Android E2EE v2 QA runtime', () => {
       storage,
       randomUuid: () => ids.shift(),
       bindSocketDevice: jest.fn(),
+      bindCachedDevice: jest.fn().mockResolvedValue({
+        deviceId: 'qa-device-a', signalDeviceId: 1, identityVersion: 2,
+      }),
       assertConfiguration: jest.fn(),
       distributeGroupKey,
       sendGroupMessage,

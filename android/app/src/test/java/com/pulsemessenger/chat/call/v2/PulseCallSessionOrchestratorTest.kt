@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -138,7 +139,7 @@ class PulseCallSessionOrchestratorTest {
         assertEquals(listOf("session-123"), telecom.disconnectedSessions)
         assertEquals(PulseCallState.ENDED, coordinator.state.value.state)
         assertEquals(0, engine.startCount)
-        assertEquals(listOf("snapshot"), signaling.operations)
+        assertEquals(listOf("snapshot", "ice"), signaling.operations)
     }
 
     @Test
@@ -559,7 +560,7 @@ class PulseCallSessionOrchestratorTest {
         engine.listener?.onMediaStateChanged(PulseMediaState.CONNECTED)
 
         assertEquals(
-            listOf("snapshot", "command:ACCEPT", "ice", "command:MEDIA_CONNECTED"),
+            listOf("snapshot", "ice", "command:ACCEPT", "command:MEDIA_CONNECTED"),
             signaling.operations,
         )
         assertEquals(PulseCallState.ACTIVE, coordinator.state.value.state)
@@ -698,6 +699,52 @@ class PulseCallSessionOrchestratorTest {
     }
 
     @Test
+    fun `temporary signaling outage retries pending network recovery`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            startResponse = response(session(PulseServerCallState.PREPARING, revision = 1))
+            commandResponses += response(session(PulseServerCallState.RINGING, revision = 2))
+            commandResponses += response(session(PulseServerCallState.ACTIVE, revision = 4))
+            commandResponses += PulseSignalingResponse(
+                ok = false,
+                status = PulseSignalingStatus.SERVICE_UNAVAILABLE,
+            )
+            commandResponses += response(
+                session(
+                    state = PulseServerCallState.CONNECTING,
+                    revision = 5,
+                    iceRestartSequence = 1,
+                ),
+            )
+        }
+        val engine = FakeMediaEngine()
+        val subject = subject(
+            coordinator = coordinator,
+            signaling = signaling,
+            telecom = FakeTelecom(),
+            identityUid = "caller",
+            mediaEngine = engine,
+            networkRecoveryRetryDelayMillis = 1,
+        )
+        subject.startOutgoing(
+            requestId = "request-123",
+            calleeUid = "callee",
+            displayName = "Test contact",
+            mediaType = PulseCallMediaType.AUDIO,
+        )
+        signaling.listener?.onSessionUpdated(
+            session(PulseServerCallState.CONNECTING, revision = 3),
+        )
+        engine.listener?.onMediaStateChanged(PulseMediaState.CONNECTED)
+
+        subject.onNetworkChanged("session-123")
+        delay(25)
+
+        assertEquals(1, engine.restartCount)
+        assertEquals(2, signaling.operations.count { it == "command:NETWORK_LOST" })
+    }
+
+    @Test
     fun `callee accepts caller ICE restart without creating a competing restart`() = runBlocking {
         val coordinator = PulseCallCoordinator.createForTests()
         val signaling = FakeSignaling().apply {
@@ -828,6 +875,7 @@ class PulseCallSessionOrchestratorTest {
         beforeMediaStart: () -> Boolean = { true },
         onRecoveryRecordChanged: (PulseCallRecoveryRecord?) -> Unit = {},
         onCallFailure: (String, String) -> Unit = { _, _ -> },
+        networkRecoveryRetryDelayMillis: Long = 750,
     ) = PulseCallSessionOrchestrator(
         scope = scope,
         identityProvider = PulseCallIdentityProvider {
@@ -846,6 +894,7 @@ class PulseCallSessionOrchestratorTest {
         beforeMediaStart = beforeMediaStart,
         onRecoveryRecordChanged = onRecoveryRecordChanged,
         onCallFailure = onCallFailure,
+        networkRecoveryRetryDelayMillis = networkRecoveryRetryDelayMillis,
     ).also { orchestrator = it }
 
     private fun response(session: PulseServerCallSession) = PulseSignalingResponse(

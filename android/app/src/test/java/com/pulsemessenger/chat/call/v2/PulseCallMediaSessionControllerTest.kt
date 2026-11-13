@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.runBlocking
@@ -28,6 +29,54 @@ class PulseCallMediaSessionControllerTest {
         assertFalse(subject.start(session(PulseServerCallState.RINGING), "caller"))
         assertTrue(signaling.operations.isEmpty())
         assertNull(engine.config)
+    }
+
+    @Test
+    fun `ringing prefetch obtains ICE without starting capture and accepted call reuses it`() = runBlocking {
+        val order = mutableListOf<String>()
+        val signaling = FakeSignaling(order)
+        val engine = FakeMediaEngine(order)
+        val subject = subject(signaling, engine, RecordingCallbacks())
+
+        assertTrue(subject.prefetchIceConfiguration(session(PulseServerCallState.RINGING), "callee"))
+        assertEquals(PulseMediaState.PREPARED, engine.state.value)
+        assertEquals(1, engine.prepareCount)
+        assertEquals(0, engine.startCount)
+        assertEquals(listOf("ice", "engine:prepare"), order)
+
+        assertTrue(subject.start(session(PulseServerCallState.CONNECTING), "callee"))
+        assertEquals(listOf("ice", "engine:prepare", "engine:start"), order)
+        assertEquals(1, signaling.operations.count { it == "ice" })
+    }
+
+    @Test
+    fun `prefetched ICE is discarded when its call is closed`() = runBlocking {
+        val signaling = FakeSignaling()
+        val engine = FakeMediaEngine()
+        val subject = subject(signaling, engine, RecordingCallbacks())
+
+        assertTrue(subject.prefetchIceConfiguration(session(PulseServerCallState.RINGING), "callee"))
+        subject.close("session-123")
+        assertEquals(1, engine.closeCount)
+        assertTrue(subject.start(session(PulseServerCallState.CONNECTING), "callee"))
+
+        assertEquals(2, signaling.operations.count { it == "ice" })
+    }
+
+    @Test
+    fun `failed media preparation falls back to accepted call start`() = runBlocking {
+        val signaling = FakeSignaling()
+        val engine = FakeMediaEngine().apply { failPrepare = true }
+        val subject = subject(signaling, engine, RecordingCallbacks())
+
+        assertTrue(subject.prefetchIceConfiguration(session(PulseServerCallState.RINGING), "callee"))
+        assertEquals(1, engine.closeCount)
+        engine.failPrepare = false
+        assertTrue(subject.start(session(PulseServerCallState.CONNECTING), "callee"))
+
+        assertEquals(1, engine.prepareCount)
+        assertEquals(1, engine.startCount)
+        assertEquals(1, signaling.operations.count { it == "ice" })
     }
 
     @Test
@@ -93,6 +142,29 @@ class PulseCallMediaSessionControllerTest {
 
         assertEquals(1, binder.signed.size)
         assertEquals(listOf(identity(PulseSessionDescriptionType.OFFER)), signaling.identities)
+    }
+
+    @Test
+    fun `prepared local SDP signs once and waits for apply before relay`() = runBlocking {
+        val signaling = FakeSignaling()
+        val engine = FakeMediaEngine()
+        val signGate = CompletableDeferred<Unit>()
+        val binder = FakeIdentityBinder(signGate)
+        val subject = subject(signaling, engine, RecordingCallbacks(), identityBinder = binder)
+        subject.start(session(PulseServerCallState.CONNECTING), "callee")
+        val answer = PulseSessionDescription(PulseSessionDescriptionType.ANSWER, "v=0")
+
+        engine.listener?.onLocalDescriptionPrepared(answer)
+        assertEquals(1, binder.signed.size)
+        assertTrue(signaling.descriptions.isEmpty())
+
+        engine.listener?.onLocalDescription(answer)
+        assertTrue(signaling.descriptions.isEmpty())
+        signGate.complete(Unit)
+        yield()
+
+        assertEquals(1, binder.signed.size)
+        assertEquals(listOf(answer), signaling.descriptions.map { it.second })
     }
 
     @Test
@@ -276,7 +348,7 @@ class PulseCallMediaSessionControllerTest {
     @Test
     fun `signaling failure is reported once without leaking media content`() = runBlocking {
         val signaling = FakeSignaling().apply {
-            mediaResponse = PulseSignalingResponse(false, PulseSignalingStatus.SERVICE_UNAVAILABLE)
+            mediaResponse = PulseSignalingResponse(false, PulseSignalingStatus.FORBIDDEN)
         }
         val engine = FakeMediaEngine()
         val callbacks = RecordingCallbacks()
@@ -293,6 +365,35 @@ class PulseCallMediaSessionControllerTest {
         assertEquals(listOf("session-123" to "signaling_error"), callbacks.failures)
         assertFalse(callbacks.toString().contains("private-sdp"))
         assertFalse(callbacks.toString().contains("private-candidate"))
+    }
+
+    @Test
+    fun `temporary candidate relay outage retries the same acknowledged message`() = runBlocking {
+        val signaling = FakeSignaling().apply {
+            mediaResponses += PulseSignalingResponse(
+                false,
+                PulseSignalingStatus.SERVICE_UNAVAILABLE,
+            )
+            mediaResponses += PulseSignalingResponse(true, PulseSignalingStatus.RELAYED)
+        }
+        val engine = FakeMediaEngine()
+        val callbacks = RecordingCallbacks()
+        val subject = subject(
+            signaling,
+            engine,
+            callbacks,
+            localSignalRetryDelayMillis = 1,
+        )
+        subject.start(session(PulseServerCallState.CONNECTING), "caller")
+
+        engine.listener?.onLocalIceCandidate(
+            PulseIceCandidate("audio", 0, "private-candidate"),
+        )
+        delay(25)
+
+        assertTrue(callbacks.failures.isEmpty())
+        assertEquals(listOf("message-123", "message-123"), signaling.candidates.map { it.first })
+        subject.close("session-123")
     }
 
     @Test
@@ -344,6 +445,7 @@ class PulseCallMediaSessionControllerTest {
         callbacks: RecordingCallbacks,
         messageIds: ArrayDeque<String> = ArrayDeque(listOf("message-123", "message-456")),
         identityBinder: PulseCallE2eeIdentityBinder? = null,
+        localSignalRetryDelayMillis: Long = 750,
     ) = PulseCallMediaSessionController(
         scope = scope,
         signaling = signaling,
@@ -351,6 +453,7 @@ class PulseCallMediaSessionControllerTest {
         callbacks = callbacks,
         identityBinder = identityBinder,
         createMessageId = { messageIds.removeFirst() },
+        localSignalRetryDelayMillis = localSignalRetryDelayMillis,
     )
 
     private fun identity(type: PulseSessionDescriptionType) = PulseCallE2eeIdentityEnvelope(
@@ -397,6 +500,7 @@ class PulseCallMediaSessionControllerTest {
         val identities = mutableListOf<PulseCallE2eeIdentityEnvelope?>()
         val candidates = mutableListOf<Pair<String, PulseIceCandidate>>()
         var mediaResponse = PulseSignalingResponse(true, PulseSignalingStatus.RELAYED)
+        val mediaResponses = ArrayDeque<PulseSignalingResponse>()
         var iceResponse = PulseIceConfigurationResponse(
             ok = true,
             status = PulseSignalingStatus.FOUND,
@@ -435,6 +539,11 @@ class PulseCallMediaSessionControllerTest {
             return iceResponse
         }
 
+        override suspend fun preauthorizeIdentity(
+            sessionId: String,
+            binding: PulseCallE2eeDeviceBinding,
+        ) = PulseSignalingResponse(true, PulseSignalingStatus.AUTHORIZED)
+
         override suspend fun sendDescription(
             sessionId: String,
             messageId: String,
@@ -443,7 +552,7 @@ class PulseCallMediaSessionControllerTest {
         ): PulseSignalingResponse {
             descriptions += messageId to description
             identities += identity
-            return mediaResponse
+            return mediaResponses.removeFirstOrNull() ?: mediaResponse
         }
 
         override suspend fun sendIceCandidate(
@@ -452,15 +561,24 @@ class PulseCallMediaSessionControllerTest {
             candidate: PulseIceCandidate,
         ): PulseSignalingResponse {
             candidates += messageId to candidate
-            return mediaResponse
+            return mediaResponses.removeFirstOrNull() ?: mediaResponse
         }
 
         override fun disconnect() = Unit
     }
 
-    private class FakeIdentityBinder : PulseCallE2eeIdentityBinder {
+    private class FakeIdentityBinder(
+        private val signGate: CompletableDeferred<Unit>? = null,
+    ) : PulseCallE2eeIdentityBinder {
         val signed = mutableListOf<PulseSessionDescription>()
         val verified = mutableListOf<PulseCallE2eeIdentityEnvelope>()
+
+        override suspend fun localDeviceBinding(localUid: String) = PulseCallE2eeDeviceBinding(
+            senderDeviceId = "device-123",
+            senderSignalDeviceId = 1,
+            senderIdentityVersion = 1,
+            identityKey = "identity-key",
+        )
 
         override suspend fun sign(
             session: PulseServerCallSession,
@@ -469,6 +587,7 @@ class PulseCallMediaSessionControllerTest {
             verifiedPeer: PulseCallE2eeIdentityEnvelope?,
         ): PulseCallE2eeIdentityEnvelope {
             signed += description
+            signGate?.await()
             return identity(description.type)
         }
 
@@ -504,6 +623,13 @@ class PulseCallMediaSessionControllerTest {
     }
 
     private class FailingIdentityBinder : PulseCallE2eeIdentityBinder {
+        override suspend fun localDeviceBinding(localUid: String) = PulseCallE2eeDeviceBinding(
+            senderDeviceId = "device-123",
+            senderSignalDeviceId = 1,
+            senderIdentityVersion = 1,
+            identityKey = "identity-key",
+        )
+
         override suspend fun sign(
             session: PulseServerCallSession,
             localUid: String,
@@ -529,6 +655,8 @@ class PulseCallMediaSessionControllerTest {
         override val state: StateFlow<PulseMediaState> = mutableState
         var config: PulseAudioSessionConfig? = null
         var listener: PulseCallMediaListener? = null
+        var prepareCount = 0
+        var failPrepare = false
         var startCount = 0
         var closeCount = 0
         val muteChanges = mutableListOf<Boolean>()
@@ -537,6 +665,18 @@ class PulseCallMediaSessionControllerTest {
         var startGate: CompletableDeferred<Unit>? = null
         val remoteDescriptions = mutableListOf<PulseSessionDescription>()
         val remoteCandidates = mutableListOf<PulseIceCandidate>()
+
+        override suspend fun prepare(
+            config: PulseAudioSessionConfig,
+            listener: PulseCallMediaListener,
+        ) {
+            sharedOperations += "engine:prepare"
+            this.config = config
+            this.listener = listener
+            prepareCount += 1
+            if (failPrepare) throw IllegalStateException("prepare failed")
+            mutableState.value = PulseMediaState.PREPARED
+        }
 
         override suspend fun start(config: PulseAudioSessionConfig, listener: PulseCallMediaListener) {
             sharedOperations += "engine:start"

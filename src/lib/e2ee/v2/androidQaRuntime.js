@@ -15,6 +15,7 @@ import {
   sendAndroidGroupText,
 } from './androidGroupMessageOrchestrator';
 import {
+  bindNativeE2eeV2LocalDeviceRegistration,
   clearNativeE2eeV2TextMessageHistory,
   listNativeE2eeV2TextMessages,
   storeNativeE2eeV2TextMessage,
@@ -142,6 +143,7 @@ export async function startAndroidE2eeV2QaRuntime({
   runtimeBackendUrl = BACKEND_URL,
   api = createV2ApiClient({ baseUrl: backendUrl }),
   registerDevice = registerAndroidE2eeV2Device,
+  bindCachedDevice = bindNativeE2eeV2LocalDeviceRegistration,
   storage = window.localStorage,
   randomUuid = () => window.crypto?.randomUUID?.(),
   bindSocketDevice = setSocketE2EEDeviceId,
@@ -185,6 +187,12 @@ export async function startAndroidE2eeV2QaRuntime({
   });
   let registration;
   if (existingBinding) {
+    await bindCachedDevice({
+      userId: user.uid,
+      deviceId: existingBinding.deviceId,
+      signalDeviceId: existingBinding.signalDeviceId,
+      identityVersion: existingBinding.identityVersion || 1,
+    });
     registration = {
       ...existingBinding,
       identityVersion: existingBinding.identityVersion || 1,

@@ -10,6 +10,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -60,6 +61,7 @@ class PulseCallSessionOrchestrator(
     private val beforeMediaStart: () -> Boolean = { true },
     private val onRecoveryRecordChanged: (PulseCallRecoveryRecord?) -> Unit = {},
     private val onCallFailure: (sessionId: String, reason: String) -> Unit = { _, _ -> },
+    private val networkRecoveryRetryDelayMillis: Long = NETWORK_RECOVERY_RETRY_DELAY_MILLIS,
 ) : PulseCallSignalingListener, PulseTelecomCallbacks, PulseCallMediaSessionCallbacks {
     private val launchMutex = Mutex()
     private val muteMutex = Mutex()
@@ -82,6 +84,7 @@ class PulseCallSessionOrchestrator(
         )
     }
     private var telecomJob: Job? = null
+    private var networkRecoveryRetryJob: Job? = null
 
     suspend fun startOutgoing(
         requestId: String,
@@ -159,6 +162,7 @@ class PulseCallSessionOrchestrator(
         resetNetworkRecovery(session.iceRestartSequence)
         coordinator.onSignalingSnapshot(session, localIdentity.uid)
         publishRecoveryRecord(request, localIdentity.uid)
+        prefetchIceConfiguration(session, localIdentity.uid)
         startTelecom(request)
         PulseCallLaunchResult.STARTED
     }
@@ -235,6 +239,7 @@ class PulseCallSessionOrchestrator(
         resetNetworkRecovery(session.iceRestartSequence)
         coordinator.onSignalingSnapshot(session, localIdentity.uid)
         publishRecoveryRecord(request, localIdentity.uid)
+        prefetchIceConfiguration(session, localIdentity.uid)
         startTelecom(request)
         PulseCallLaunchResult.STARTED
     }
@@ -562,6 +567,7 @@ class PulseCallSessionOrchestrator(
         }
 
         when (coordinator.state.value.state) {
+            PulseCallState.RINGING -> prefetchIceConfiguration(session, localIdentity.uid)
             PulseCallState.CONNECTING, PulseCallState.ACTIVE -> scope.launch(
                 start = CoroutineStart.UNDISPATCHED,
             ) {
@@ -724,6 +730,11 @@ class PulseCallSessionOrchestrator(
     }
 
     override fun onMediaReconnecting(sessionId: String) {
+        if (coordinator.onMediaReconnecting(sessionId) !in setOf(
+                PulseCoordinatorResult.APPLIED,
+                PulseCoordinatorResult.IDEMPOTENT,
+            )
+        ) return
         requestNetworkRecovery(sessionId, attemptImmediately = true)
     }
 
@@ -785,6 +796,13 @@ class PulseCallSessionOrchestrator(
         }
         if (!controller.start(session, localUid) && !terminating.get()) {
             onMediaFailure(session.sessionId, MEDIA_ERROR)
+        }
+    }
+
+    private fun prefetchIceConfiguration(session: PulseServerCallSession, localUid: String) {
+        val controller = mediaSessions ?: return
+        scope.launch {
+            controller.prefetchIceConfiguration(session, localUid)
         }
     }
 
@@ -907,9 +925,33 @@ class PulseCallSessionOrchestrator(
             val response = sendCommand(PulseSignalingCommand.NETWORK_LOST)
             if (response?.status in setOf(PulseSignalingStatus.APPLIED, PulseSignalingStatus.DUPLICATE)) {
                 networkRecoveryAcknowledged.set(true)
+            } else if (response == null || response.status == PulseSignalingStatus.SERVICE_UNAVAILABLE) {
+                scheduleNetworkRecoveryRetry(sessionId)
             }
         } finally {
             networkRecoveryInFlight.set(false)
+        }
+    }
+
+    @Synchronized
+    private fun scheduleNetworkRecoveryRetry(sessionId: String) {
+        if (networkRecoveryRetryJob?.isActive == true) return
+        networkRecoveryRetryJob = scope.launch {
+            try {
+                repeat(NETWORK_RECOVERY_RETRY_ATTEMPTS) {
+                    delay(networkRecoveryRetryDelayMillis)
+                    if (!networkRecoveryPending.get() || networkRecoveryAcknowledged.get()) {
+                        return@launch
+                    }
+                    flushNetworkRecovery(sessionId)
+                }
+            } finally {
+                synchronized(this@PulseCallSessionOrchestrator) {
+                    if (networkRecoveryRetryJob === coroutineContext[Job]) {
+                        networkRecoveryRetryJob = null
+                    }
+                }
+            }
         }
     }
 
@@ -922,6 +964,8 @@ class PulseCallSessionOrchestrator(
     }
 
     private fun resetNetworkRecovery(iceRestartSequence: Long = 0) {
+        networkRecoveryRetryJob?.cancel()
+        networkRecoveryRetryJob = null
         handledIceRestartSequence.set(iceRestartSequence)
         networkRecoveryPending.set(false)
         networkRecoveryAcknowledged.set(false)
@@ -960,6 +1004,8 @@ class PulseCallSessionOrchestrator(
 
     private companion object {
         const val MEDIA_ERROR = "media_error"
+        const val NETWORK_RECOVERY_RETRY_ATTEMPTS = 3
+        const val NETWORK_RECOVERY_RETRY_DELAY_MILLIS = 750L
         const val SIGNALING_ERROR = "signaling_error"
         const val TELECOM_ERROR = "telecom_error"
         val RECOVERABLE_SERVER_STATES = setOf(

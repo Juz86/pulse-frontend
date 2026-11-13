@@ -14,6 +14,7 @@ const backendUrl = String(process.env.PULSE_E2EE_QA_BACKEND_URL || '').replace(/
 const qaInstance = String(process.env.PULSE_E2EE_QA_INSTANCE || 'a').toLowerCase();
 const groupsEnabled = String(process.env.PULSE_E2EE_QA_GROUPS || '').toLowerCase() === 'true';
 const callsEnabled = String(process.env.PULSE_E2EE_QA_CALLS || '').toLowerCase() === 'true';
+const skipWebBuild = String(process.env.PULSE_E2EE_QA_SKIP_WEB_BUILD || '').toLowerCase() === 'true';
 const googleServicesPath = String(process.env.PULSE_E2EE_QA_GOOGLE_SERVICES_PATH || '').trim();
 const QA_FIREBASE_CONFIG = Object.freeze({
   apiKey: 'AIzaSyD832WLALBNkGglRGtA_NpmqEofsuyeoJo',
@@ -95,10 +96,12 @@ const qaEnvironment = {
   REACT_APP_FIREBASE_APP_ID: QA_FIREBASE_CONFIG.appId,
 };
 
-run('npm', ['run', 'build:webapp'], { env: qaEnvironment });
-run(path.join(projectRoot, 'node_modules', '.bin', 'cap'), ['copy', 'android'], {
-  env: qaEnvironment,
-});
+if (!skipWebBuild) {
+  run('npm', ['run', 'build:webapp'], { env: qaEnvironment });
+  run(path.join(projectRoot, 'node_modules', '.bin', 'cap'), ['copy', 'android'], {
+    env: qaEnvironment,
+  });
+}
 const googleServicesDestination = path.join(projectRoot, 'android/app/google-services.json');
 const originalGoogleServices = existsSync(googleServicesDestination)
   ? readFileSync(googleServicesDestination)
@@ -111,6 +114,9 @@ try {
     '-PpulseE2eeQa=true',
     `-PpulseE2eeQaInstance=${qaInstance}`,
     `-PpulseCallE2ee=${callsEnabled}`,
+    '--no-daemon',
+    '--max-workers=1',
+    '-Dorg.gradle.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=512m',
     '--console=plain',
   ], {
     cwd: path.join(projectRoot, 'android'),

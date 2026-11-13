@@ -9,6 +9,7 @@ enum class PulseMediaRole {
 
 enum class PulseMediaState {
     NEW,
+    PREPARED,
     STARTING,
     NEGOTIATING,
     CONNECTED,
@@ -81,6 +82,7 @@ data class PulseAudioSessionConfig(
 }
 
 interface PulseCallMediaListener {
+    fun onLocalDescriptionPrepared(description: PulseSessionDescription) = Unit
     fun onLocalDescription(description: PulseSessionDescription)
     fun onLocalIceCandidate(candidate: PulseIceCandidate)
     fun onMediaStateChanged(state: PulseMediaState)
@@ -90,6 +92,7 @@ interface PulseCallMediaListener {
 interface PulseCallMediaEngine {
     val state: StateFlow<PulseMediaState>
 
+    suspend fun prepare(config: PulseAudioSessionConfig, listener: PulseCallMediaListener) = Unit
     suspend fun start(config: PulseAudioSessionConfig, listener: PulseCallMediaListener)
     suspend fun applyRemoteDescription(description: PulseSessionDescription)
     suspend fun addRemoteIceCandidate(candidate: PulseIceCandidate)

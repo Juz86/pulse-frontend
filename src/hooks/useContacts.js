@@ -197,11 +197,19 @@ export default function useContacts({
 
     const run = (async () => {
     try {
-      const [contactsSnap, nicknamesSnap, backendContactsRes] = await Promise.all([
+      const [contactsResult, nicknamesResult, backendContactsResult] = await Promise.allSettled([
         getDocs(collection(db, 'users', user.uid, 'contacts')),
         getDocs(collection(db, 'users', user.uid, 'nicknames')),
-        authFetch(`${BACKEND_URL}/api/contacts/${user.uid}`).catch(() => null),
+        authFetch(`${BACKEND_URL}/api/contacts/${user.uid}`),
       ]);
+      if (contactsResult.status === 'rejected' && backendContactsResult.status === 'rejected') {
+        throw contactsResult.reason || backendContactsResult.reason;
+      }
+      const contactsSnap = contactsResult.status === 'fulfilled' ? contactsResult.value : { docs: [] };
+      const nicknamesSnap = nicknamesResult.status === 'fulfilled' ? nicknamesResult.value : { docs: [] };
+      const backendContactsRes = backendContactsResult.status === 'fulfilled'
+        ? backendContactsResult.value
+        : null;
       const firestoreContacts = contactsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       const backendContactsData = backendContactsRes ? await backendContactsRes.json().catch(() => []) : [];
       const backendContacts = Array.isArray(backendContactsData) ? backendContactsData : [];
@@ -241,8 +249,10 @@ export default function useContacts({
       const needsPhoto = raw.filter(c => !c.photoURL);
       const photoMap   = {};
       if (needsPhoto.length > 0) {
-        const docs = await Promise.all(needsPhoto.map(c => getDoc(doc(db, 'users', c.uid))));
-        docs.forEach((d, i) => {
+        const docs = await Promise.allSettled(needsPhoto.map(c => getDoc(doc(db, 'users', c.uid))));
+        docs.forEach((result, i) => {
+          if (result.status !== 'fulfilled') return;
+          const d = result.value;
           if (d.exists() && d.data().photoURL) photoMap[needsPhoto[i].uid] = d.data().photoURL;
         });
       }

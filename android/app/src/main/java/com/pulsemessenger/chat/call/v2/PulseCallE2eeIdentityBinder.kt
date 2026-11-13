@@ -5,6 +5,7 @@ import android.util.Base64
 import com.pulsemessenger.chat.e2ee.v2.PulseCallIdentityBinding
 import com.pulsemessenger.chat.e2ee.v2.PulseE2eeSecureStore
 import com.pulsemessenger.chat.e2ee.v2.PulseE2eeV2Provider
+import java.security.MessageDigest
 import java.util.UUID
 import kotlinx.coroutines.delay
 
@@ -12,6 +13,8 @@ const val PULSE_CALL_E2EE_PROTOCOL = "pulse_call_e2ee_v1"
 const val PULSE_CALL_E2EE_VERSION = 1
 
 interface PulseCallE2eeIdentityBinder {
+    suspend fun localDeviceBinding(localUid: String): PulseCallE2eeDeviceBinding? = null
+
     suspend fun sign(
         session: PulseServerCallSession,
         localUid: String,
@@ -31,6 +34,16 @@ interface PulseCallE2eeIdentityBinder {
 class NativePulseCallE2eeIdentityBinder(context: Context) : PulseCallE2eeIdentityBinder {
     private val provider = PulseE2eeV2Provider(PulseE2eeSecureStore(context.applicationContext))
 
+    override suspend fun localDeviceBinding(localUid: String): PulseCallE2eeDeviceBinding {
+        val local = awaitLocalDeviceBinding(localUid)
+        return PulseCallE2eeDeviceBinding(
+            senderDeviceId = local.deviceId,
+            senderSignalDeviceId = local.signalDeviceId,
+            senderIdentityVersion = local.identityVersion,
+            identityKey = encode(provider.getLocalIdentityKey(localUid, local.signalDeviceId)),
+        )
+    }
+
     override suspend fun sign(
         session: PulseServerCallSession,
         localUid: String,
@@ -47,6 +60,19 @@ class NativePulseCallE2eeIdentityBinder(context: Context) : PulseCallE2eeIdentit
             PulseSessionDescriptionType.ANSWER -> verifiedPeer?.bindingHash()
                 ?: throw IllegalStateException("e2ee_call_verified_offer_required")
         }
+        val identityKey = provider.getLocalIdentityKey(localUid, local.signalDeviceId)
+        PulseCallDiagnostics.event(
+            "MEDIA_LOCAL_IDENTITY_BINDING",
+            session.sessionId,
+            status = listOf(
+                local.deviceId,
+                local.signalDeviceId,
+                local.identityVersion,
+                identityKey.publicKeyHash(),
+            ).joinToString(":"),
+            state = session.state.name,
+            revision = session.revision,
+        )
         val nonce = UUID.randomUUID().toString()
         val binding = PulseCallIdentityBinding(
             session.sessionId,
@@ -78,7 +104,7 @@ class NativePulseCallE2eeIdentityBinder(context: Context) : PulseCallE2eeIdentit
             revision = session.revision,
             nonce = nonce,
             peerBindingHash = peerHash,
-            identityKey = encode(provider.getLocalIdentityKey(localUid, local.signalDeviceId)),
+            identityKey = encode(identityKey),
             signature = encode(signature),
         )
     }
@@ -171,6 +197,12 @@ class NativePulseCallE2eeIdentityBinder(context: Context) : PulseCallE2eeIdentit
         throw IllegalArgumentException("e2ee_base64_invalid", error)
     }
 
+    private fun ByteArray.publicKeyHash(): String =
+        MessageDigest.getInstance("SHA-256")
+            .digest(this)
+            .take(PUBLIC_KEY_HASH_BYTES)
+            .joinToString("") { "%02x".format(it) }
+
     private suspend fun awaitLocalDeviceBinding(userId: String): PulseE2eeV2Provider.LocalDeviceBinding {
         repeat(LOCAL_BINDING_ATTEMPTS - 1) {
             try {
@@ -186,5 +218,6 @@ class NativePulseCallE2eeIdentityBinder(context: Context) : PulseCallE2eeIdentit
     private companion object {
         const val LOCAL_BINDING_ATTEMPTS = 40
         const val LOCAL_BINDING_RETRY_MS = 100L
+        const val PUBLIC_KEY_HASH_BYTES = 8
     }
 }

@@ -164,6 +164,17 @@ class RailwayCallSignalingClient internal constructor(
         return unavailableIceConfiguration()
     }
 
+    override suspend fun preauthorizeIdentity(
+        sessionId: String,
+        binding: PulseCallE2eeDeviceBinding,
+    ): PulseSignalingResponse {
+        require(sessionId.isNotBlank()) { "sessionId is required" }
+        return emitWithAcknowledgement(
+            RailwayCallingV2Codec.EVENT_IDENTITY_PREFLIGHT,
+            RailwayCallingV2Codec.encodeIdentityPreflight(sessionId, binding),
+        )
+    }
+
     override suspend fun sendDescription(
         sessionId: String,
         messageId: String,

@@ -1,4 +1,6 @@
 import React from 'react';
+import { ArrowLeftOutline } from './Icons';
+import PulseIconButton from './PulseIconButton';
 
 export function ProfilePageShell({
   panelRef,
@@ -26,17 +28,13 @@ export function ProfilePageShell({
       {...panelProps}
     >
       <div className="contact-profile-topbar">
-        <button
-          type="button"
+        <PulseIconButton
+          Icon={ArrowLeftOutline}
           className="contact-profile-nav-btn"
-          aria-label={backLabel}
+          label={backLabel}
           title="Terug"
           onClick={onBack}
-        >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
+        />
         {!hideTitle && <h2 id={titleId} className="contact-profile-heading">{title}</h2>}
         {headerAction || <span className="contact-profile-topbar-spacer" aria-hidden="true" />}
       </div>

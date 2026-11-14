@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useRef, useState } from 'react';
-import { Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, Message, Phone, Video, Logout } from '../components/Icons';
+import { Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowLeftOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, List, Message, Phone, Video, Logout } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
 import AvatarBuilder from '../components/AvatarBuilder';
@@ -398,7 +398,7 @@ export default function ChatModals({
                           <div className="conv-name share-contact-title-responsive">{getContactDisplayName(c)}</div>
                           <div className="conv-preview">{c.email}</div>
                         </div>
-                        {selected && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>}
+                        {selected && <Check size={18} aria-hidden="true" />}
                       </button>
                     );
                   })}
@@ -1006,9 +1006,7 @@ export default function ChatModals({
                 )}
                 <button type="button" className="contact-profile-row-button" onClick={openSelectionFromProfile}>
                   <span className="contact-profile-row-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                      <path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z" />
-                    </svg>
+                    <List size={18} aria-hidden="true" />
                   </span>
                   <span className="contact-profile-row-copy">
                     <span className="contact-profile-row-title">{messageSelectionMode ? 'Berichten selecteren stoppen' : 'Berichten selecteren'}</span>
@@ -1352,7 +1350,7 @@ export default function ChatModals({
         >
             <div className="contact-profile-topbar group-info-topbar">
               <button type="button" className="contact-profile-nav-btn" aria-label="Terug" title="Terug" onClick={closeGroupInfo}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+                <ArrowLeftOutline size={22} aria-hidden="true" />
               </button>
               <h2 id="group-info-title" className="contact-profile-heading">Groepsinfo</h2>
               {isGroupInfoAdmin ? (
@@ -1640,7 +1638,7 @@ export default function ChatModals({
                 </button>
                 <button type="button" className="group-info-quick-card" onClick={openGroupMessageSelection}>
                   <span className="group-info-quick-icon" aria-hidden="true">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 6h14M5 12h14M5 18h9" /></svg>
+                    <List size={22} aria-hidden="true" />
                   </span>
                   <span>Berichten selecteren</span>
                   <ArrowRight className="group-info-quick-arrow" size={20} aria-hidden="true" />

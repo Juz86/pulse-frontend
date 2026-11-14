@@ -1,7 +1,7 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Phone, PhoneCall, PhoneOutgoing, PhoneMissed, PhoneEnd, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound, ArrowLeft } from '../components/Icons';
+import { Phone, PhoneCall, PhoneOutgoing, PhoneMissed, PhoneEnd, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound, ArrowLeft, ArrowRight, Block, List, User } from '../components/Icons';
 import PulseIconButton from '../components/PulseIconButton';
 import PulseLogo from '../components/PulseLogo';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
@@ -394,7 +394,7 @@ export default function ChatSidebar({
   const profileSections = useMemo(() => ([
     ...(isParent ? [{ id: 'geschiedenis', icon: <Clock size={18} aria-hidden="true" />, label: 'Privacy', description: 'Jij bepaalt' }] : []),
     { id: 'styling', icon: <Palette size={18} aria-hidden="true" />, label: 'Vormgeving', description: 'Chatachtergrond en sfeer' },
-    { id: 'geblokkeerd', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>, label: 'Geblokkeerd', description: 'Beheer geblokkeerde contacten' },
+    { id: 'geblokkeerd', icon: <Block size={18} aria-hidden="true" />, label: 'Geblokkeerd', description: 'Beheer geblokkeerde contacten' },
     { id: 'account', icon: <KeyRound size={18} aria-hidden="true" />, label: 'Wachtwoord wijzigen', description: 'Beveilig je account met een nieuw wachtwoord' },
   ]), [isParent]);
   const activeProfileSection = profileSections.find((section) => section.id === profileTab) || null;
@@ -476,9 +476,7 @@ export default function ChatSidebar({
         <span className="contact-profile-row-copy">
           <span className="contact-profile-row-title">{section.label}</span>
         </span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
-          <path d="M9 18l6-6-6-6" />
-        </svg>
+        <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
       </button>
     );
     return (
@@ -581,9 +579,7 @@ export default function ChatSidebar({
             <span className="contact-profile-row-copy">
               <span className="contact-profile-row-title">Uitloggen</span>
             </span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
+            <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
           </button>
         </section>
 
@@ -597,9 +593,7 @@ export default function ChatSidebar({
             <span className="contact-profile-row-copy">
               <span className="contact-profile-row-title">Account verwijderen</span>
             </span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
+            <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
           </button>
         </section>
       </ProfilePageShell>
@@ -723,9 +717,7 @@ export default function ChatSidebar({
                 <span className="contact-profile-row-title">{action.label}</span>
               </span>
               {action.badge && <span className="unread-badge" aria-label={`${action.badge} openstaand${action.badge === 1 ? ' verzoek' : 'e verzoeken'}`}>{action.badge > 99 ? '99+' : action.badge}</span>}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="contact-profile-row-arrow">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
+              <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
             </button>
           ))}
         </section>
@@ -1241,7 +1233,7 @@ export default function ChatSidebar({
       >
         <section className="contact-profile-card contact-profile-card--action-list">
           <button type="button" role="menuitem" className="chat-header-menu-item" onClick={handleViewContactFromActions} title="Profiel">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
+            <User size={14} aria-hidden="true" />
             <span>Profiel</span>
           </button>
           {!isParentBlocked && (
@@ -1259,7 +1251,7 @@ export default function ChatSidebar({
           {!isProtectedParentContact && <div className="chat-header-menu-divider" />}
           {!isProtectedParentContact && (
             <button type="button" role="menuitem" className={`chat-header-menu-item${isBlocked ? '' : ' danger'}`} onClick={handleBlockContactFromActions} title={isBlocked ? 'Deblokkeren' : 'Blokkeren'}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+              <Block size={14} aria-hidden="true" />
               <span>{isBlocked ? 'Deblokkeren' : 'Blokkeren'}</span>
             </button>
           )}
@@ -2731,7 +2723,7 @@ export default function ChatSidebar({
         {!conv.isGroup && contact && (
           <button type="button" role="menuitem" className="chat-header-menu-item"
             onClick={handleViewContactFromActions} title="Profiel">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M12 14c-6 0-8 2.5-8 4v1h16v-1c0-1.5-2-4-8-4z" /></svg>
+            <User size={14} aria-hidden="true" />
             <span>Profiel</span>
           </button>
         )}
@@ -2780,9 +2772,7 @@ export default function ChatSidebar({
                 onClick={() => { onEnterMessageSelectionForConversation?.(conv); onDone?.(); }}
                 title="Berichten selecteren"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z" />
-                </svg>
+                <List size={14} aria-hidden="true" />
                 <span>Berichten selecteren</span>
               </button>
               <button
@@ -2835,7 +2825,7 @@ export default function ChatSidebar({
             {contact && !isProtectedParentContact && (
               <button type="button" role="menuitem" className={`chat-header-menu-item${isBlocked ? '' : ' danger'}`}
                 onClick={handleBlockContactFromConversationActions} title={isBlocked ? 'Deblokkeren' : 'Blokkeren'}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z"/></svg>
+                <Block size={14} aria-hidden="true" />
                 <span>{isBlocked ? 'Deblokkeren' : 'Blokkeren'}</span>
               </button>
             )}
@@ -3335,9 +3325,7 @@ export default function ChatSidebar({
                     title="Terug"
                     onClick={() => setParentPortalView('menu')}
                   >
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M15 18l-6-6 6-6" />
-                    </svg>
+                    <ArrowLeft size={22} aria-hidden="true" />
                   </button>
                 )}
                 {footerClusterMode === 'settings' && profileTab !== 'overview' && (
@@ -3348,9 +3336,7 @@ export default function ChatSidebar({
                     title="Terug"
                     onClick={() => setProfileTab?.('overview')}
                   >
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M15 18l-6-6 6-6" />
-                    </svg>
+                    <ArrowLeft size={22} aria-hidden="true" />
                   </button>
                 )}
                 {!(footerClusterMode === 'settings' && profileTab === 'overview') && !isLightFooterCluster && (

@@ -14,9 +14,8 @@ import {
   Pin, StarFilled, CheckDouble,
   Forward, Reply, ImageIcon, Palette,
   Clock, Logout, Login,
-  Lightbulb,
+  AtSign, Lightbulb, Send, Smartphone,
 } from '../components/Icons';
-import { MdAlternateEmail, MdSend, MdSmartphone } from 'react-icons/md';
 
 function makeAdventurerAvatar(options) {
   return createAvatar(adventurer, {
@@ -279,10 +278,10 @@ function GroupMockup() {
         </div>
       </div>
       <div className="hp-mock-inputbar">
-        <MdAlternateEmail size={12} color="rgba(255,255,255,0.4)" />
+        <AtSign size={12} color="rgba(255,255,255,0.4)" />
         <span style={{ flex: 1 }}>Bericht…</span>
         <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <MdSend size={11} color="#fff" />
+          <Send size={11} color="#fff" />
         </div>
       </div>
     </PhoneMockup>
@@ -498,7 +497,7 @@ export default function FunctiePagina({ onParentClick }) {
       text: 'Maak groepen aan voor familie of vrienden. Vermeld iemand direct met @naam voor een directe melding.',
       features: [
         { icon: <Users size={15} />, label: 'Groep aanmaken met naam en foto' },
-        { icon: <MdAlternateEmail size={15} />, label: '@ vermeldingen met melding' },
+        { icon: <AtSign size={15} />, label: '@ vermeldingen met melding' },
         { icon: <Users size={15} />, label: 'Groepsleden beheren' },
         { icon: <Bell size={15} />, label: 'Ongelezen badge per gesprek' },
       ],
@@ -525,7 +524,7 @@ export default function FunctiePagina({ onParentClick }) {
       title: 'Persoonlijk',
       text: 'Geef je chat een persoonlijke uitstraling met een eigen foto, avatar of kleur als achtergrond. Alleen jij ziet deze achtergrond.',
       features: [
-        { icon: <MdSmartphone size={15} />, label: 'Foto op chatachtergrond' },
+        { icon: <Smartphone size={15} />, label: 'Foto op chatachtergrond' },
         { icon: <ImageIcon size={15} />, label: 'Profielfoto uploaden' },
         { icon: <User size={15} />, label: 'Avatar kiezen' },
         
@@ -544,7 +543,7 @@ export default function FunctiePagina({ onParentClick }) {
       headerIcon: <Message size={16} />,
       items: [
         { icon: <Message size={18} />, title: 'Real-time berichten', desc: 'Real-time delivery van chatberichten' },
-        { icon: <MdAlternateEmail size={18} />, title: 'Groepen & @mentions', desc: 'Chatgroep maken en met @ iemand direct vermelden' },
+        { icon: <AtSign size={18} />, title: 'Groepen & @mentions', desc: 'Chatgroep maken en met @ iemand direct vermelden' },
         { icon: <ImageIcon size={18} />, title: 'Chatachtergrond', desc: 'Foto of kleur naar keuze' },
         { icon: <StarFilled size={18} />, title: 'Berichten sterren', desc: 'Sla belangrijke berichten op' },
         { icon: <Message size={18} />, title: 'Conceptberichten', desc: 'Bewaard per gesprek' },

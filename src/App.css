@@ -61,6 +61,15 @@ html.pulse-platform-android {
   --pulse-android-navigation-gap: 16px;
 }
 
+/* Android WebView commonly reports a zero top safe-area on phones. Keep the
+   conversation controls below the system status bar after returning from a
+   native call, where the WebView may be resized before its insets update. */
+@media (max-width: 767px) {
+  html.pulse-platform-android .chat-header {
+    padding-top: calc(var(--pulse-android-status-inset) + 8px);
+  }
+}
+
 /* ── Responsive hardening: telefoon + tablet + WebView ───────────────────── */
 
 .chat-header-name,
@@ -4681,6 +4690,50 @@ font-family: 'Inter', sans-serif;
   cursor:pointer; font-size:18px; transition:.22s;
   box-shadow:0 2px 8px rgba(0,0,0,.25);
 }
+
+.pulse-icon-button {
+  width:44px;
+  height:44px;
+  min-width:44px;
+  min-height:44px;
+  padding:0;
+  border:1px solid rgba(67,52,96,.12);
+  border-radius:50%;
+  background:#f7f5f9;
+  color:#251f49;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+  line-height:1;
+  transition:background .16s ease, border-color .16s ease, color .16s ease, transform .16s ease, opacity .16s ease;
+}
+.pulse-icon-button:hover:not(:disabled),
+.pulse-icon-button:focus-visible:not(:disabled) {
+  background:#eee9ff;
+  border-color:#bbaeff;
+  color:#6544d6;
+  transform:translateY(-1px);
+}
+.pulse-icon-button:active:not(:disabled) { transform:translateY(0); }
+.pulse-icon-button:disabled { cursor:not-allowed; opacity:.46; }
+.pulse-icon-button--primary {
+  border-color:#b66cff;
+  background:linear-gradient(135deg,#be67ff,#8b5cf6);
+  color:#fff;
+}
+.pulse-icon-button--primary:hover:not(:disabled),
+.pulse-icon-button--primary:focus-visible:not(:disabled) {
+  border-color:#d3a5ff;
+  background:linear-gradient(135deg,#cc7cff,#9867ff);
+  color:#fff;
+}
+.pulse-icon-button--call { background:#22c55e; border-color:#22c55e; color:#fff; }
+.pulse-icon-button--call:hover:not(:disabled),
+.pulse-icon-button--call:focus-visible:not(:disabled) { background:#16a34a; border-color:#16a34a; color:#fff; }
+.pulse-icon-button--video { background:#eee9ff; border-color:#eee9ff; color:#6d4ee7; }
+.pulse-icon-button--video:hover:not(:disabled),
+.pulse-icon-button--video:focus-visible:not(:disabled) { background:#e3dcff; border-color:#e3dcff; color:#6d4ee7; }
 .icon-btn:hover {
   background:rgba(108,99,255,.18); color:#fff;
   border-color:rgba(108,99,255,.45);

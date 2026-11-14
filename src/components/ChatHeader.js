@@ -1,6 +1,7 @@
 // src/components/ChatHeader.js
 import React, { useMemo } from 'react';
-import { Phone, Video } from '../components/Icons';
+import { ArrowLeftOutline, Phone, Video } from '../components/Icons';
+import PulseIconButton from '../components/PulseIconButton';
 import {
   getServiceTransportFallbackBannerState,
   E2EE_TRANSPORT,
@@ -76,16 +77,20 @@ const ChatHeader = React.memo(function ChatHeader({
   return (
     <>
       <div className="chat-header">
-        <button type="button" className="chat-header-back-btn" onClick={onBack} title="Terug" aria-label={totalUnread > 0 ? `Terug, ${totalUnread} ongelezen ${totalUnread === 1 ? 'bericht' : 'berichten'} in andere gesprekken` : 'Terug'} style={{ position: 'relative' }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
+        <PulseIconButton
+          Icon={ArrowLeftOutline}
+          className="chat-header-back-btn"
+          label={totalUnread > 0 ? `Terug, ${totalUnread} ongelezen ${totalUnread === 1 ? 'bericht' : 'berichten'} in andere gesprekken` : 'Terug'}
+          title="Terug"
+          onClick={onBack}
+          style={{ position: 'relative' }}
+        >
           {totalUnread > 0 && (
             <span aria-hidden="true" className="chat-header-back-badge">
               {totalUnread > 99 ? '99+' : totalUnread}
             </span>
           )}
-        </button>
+        </PulseIconButton>
 
         <div
           className="chat-header-contact"
@@ -108,26 +113,24 @@ const ChatHeader = React.memo(function ChatHeader({
         <div className="chat-header-actions">
           {!activeConv.isGroup && (
             <>
-              <button
-                type="button"
+              <PulseIconButton
+                Icon={Video}
+                variant="primary"
                 className="chat-header-action-btn chat-header-menu-btn"
-                aria-label={`Videobel ${getConvName(activeConv)}`}
+                label={`Videobel ${getConvName(activeConv)}`}
                 title="Videobellen"
                 disabled={callLaunchPending || !videoCallingAvailable}
                 onClick={onStartVideoCall}
-              >
-                <Video size={22} aria-hidden="true" />
-              </button>
-              <button
-                type="button"
+              />
+              <PulseIconButton
+                Icon={Phone}
+                variant="primary"
                 className="chat-header-action-btn chat-header-menu-btn"
-                aria-label={`Bel ${getConvName(activeConv)}`}
+                label={`Bel ${getConvName(activeConv)}`}
                 title="Bellen"
                 disabled={callLaunchPending || !audioCallingAvailable}
                 onClick={onStartAudioCall}
-              >
-                <Phone size={20} aria-hidden="true" />
-              </button>
+              />
             </>
           )}
         </div>

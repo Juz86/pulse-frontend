@@ -2,6 +2,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Phone, PhoneCall, PhoneOutgoing, PhoneMissed, PhoneEnd, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound, ArrowLeft } from '../components/Icons';
+import PulseIconButton from '../components/PulseIconButton';
 import PulseLogo from '../components/PulseLogo';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import UserAvatar from '../components/UserAvatar';
@@ -3225,26 +3226,24 @@ export default function ChatSidebar({
                         <div className="conv-preview">{contact.email}</div>
                       </div>
                       <div className="calls-contact-actions">
-                        <button
-                          type="button"
+                        <PulseIconButton
+                          Icon={Phone}
+                          variant="call"
                           className="calls-contact-call-btn"
-                          aria-label={`Bel ${contactName}`}
+                          label={`Bel ${contactName}`}
                           title={nativeAudioCallingAvailable ? `Bel ${contactName}` : 'Bellen is alleen beschikbaar in de Pulse-app'}
                           disabled={audioCallDisabled}
                           onClick={() => onStartAudioCall?.(contact)}
-                        >
-                          <Phone size={18} aria-hidden="true" />
-                        </button>
-                        <button
-                          type="button"
+                        />
+                        <PulseIconButton
+                          Icon={Video}
+                          variant="video"
                           className="calls-contact-video-btn"
-                          aria-label={`Videobel ${contactName}`}
+                          label={`Videobel ${contactName}`}
                           title={videoCallingAvailable ? `Videobel ${contactName}` : 'Videobellen is alleen beschikbaar in de Pulse-app'}
                           disabled={videoCallDisabled}
                           onClick={() => onStartVideoCall?.(contact)}
-                        >
-                          <Video size={18} aria-hidden="true" />
-                        </button>
+                        />
                       </div>
                     </div>
                   </div>

@@ -815,7 +815,15 @@ class PulseCallService : Service() {
                     person,
                     callActionIntent(ACTION_DISCONNECT, sessionId, 1),
                     callActionIntent(ACTION_ANSWER, sessionId, 2),
-                ),
+                )
+                    // These are hints: Android and the device theme still own
+                    // the CallStyle layout, labels, and final contrast.
+                    .setDeclineButtonColorHint(
+                        ContextCompat.getColor(this, R.color.pulse_call_decline_action),
+                    )
+                    .setAnswerButtonColorHint(
+                        ContextCompat.getColor(this, R.color.pulse_call_answer_action),
+                    ),
             )
         } else if (sessionId != null && snapshot?.telecomRegistered == true &&
             snapshot.state !in setOf(PulseCallState.ENDING, PulseCallState.ENDED)

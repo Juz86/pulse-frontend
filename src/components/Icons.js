@@ -1,5 +1,6 @@
 // src/components/Icons.js
-// WhatsApp-stijl: Material Design Filled + Rounded via react-icons/md
+// Pulse's canonical icon catalog: filled icons for primary actions and
+// outlined icons for secondary navigation and utility actions.
 export { MdAdd           as Plus }          from 'react-icons/md';
 export { MdCall          as Phone }         from 'react-icons/md';
 export { MdCallReceived  as PhoneCall }     from 'react-icons/md';
@@ -58,6 +59,13 @@ export { MdNotifications    as Bell }        from 'react-icons/md';
 export { MdNotificationsOff as BellOff }     from 'react-icons/md';
 export { MdForward          as Forward }     from 'react-icons/md';
 export { MdArrowBack       as ArrowLeft }    from 'react-icons/md';
+export { MdOutlineArrowBack as ArrowLeftOutline } from 'react-icons/md';
+export { MdOutlinePhone as PhoneOutline } from 'react-icons/md';
+export { MdOutlineVideocam as VideoOutline } from 'react-icons/md';
+export { MdOutlineSearch as SearchOutline } from 'react-icons/md';
+export { MdOutlineChatBubble as MessageOutline } from 'react-icons/md';
+export { MdOutlineGroup as UsersOutline } from 'react-icons/md';
+export { MdOutlinePerson as UserOutline } from 'react-icons/md';
 export { MdArrowForward    as ArrowRight }   from 'react-icons/md';
 export { MdAdminPanelSettings as AdminIcon }   from 'react-icons/md';
 export { MdSchool             as School }      from 'react-icons/md';

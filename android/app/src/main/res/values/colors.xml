@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="pulse_notification_color">#7C4DFF</color>
+    <color name="pulse_call_decline_action">#E65D55</color>
+    <color name="pulse_call_answer_action">#35A96B</color>
 </resources>

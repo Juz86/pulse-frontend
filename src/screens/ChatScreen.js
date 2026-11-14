@@ -719,9 +719,19 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
         displayName: selectedContact ? getContactDisplayName(selectedContact) : getConvName(activeConv),
         photoURL: selectedContact?.photoURL || getConvPhoto(activeConv),
       };
-      const nativeCallingAvailable = mediaType === 'video'
-        ? nativeVideoCallingAvailable
-        : nativeAudioCallingAvailable;
+      // The capability probe runs asynchronously after this screen mounts. Refresh it
+      // at the moment of action so an Android call never falls through to WebRTC.
+      const capabilities = await getNativeCallCapabilities();
+      setNativeCallCapabilities(capabilities);
+      const nativeMediaSupported = mediaType === 'video'
+        ? capabilities.video
+        : capabilities.audio;
+      const nativeCallingAvailable = nativeMediaSupported
+        && (capabilities.e2eeRequired !== true || e2eeV2QaRuntime.ready);
+      if (nativeMediaSupported && !nativeCallingAvailable) {
+        showErrToast('Beveiligde oproepen worden nog voorbereid. Probeer het over enkele seconden opnieuw.');
+        return;
+      }
       if (nativeCallingAvailable) {
         await (mediaType === 'video'
           ? startNativeVideoCall(callTarget)

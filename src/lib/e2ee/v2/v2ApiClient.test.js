@@ -116,6 +116,7 @@ describe('E2EE v2 API client', () => {
       sendingEnabled: false,
     });
     expect(fetchImpl.mock.calls[0][0]).toBe('https://api.pulse.test/v2/pilot/status');
+    expect(fetchImpl.mock.calls[0][1]).toEqual(expect.objectContaining({ cache: 'no-store' }));
 
     fetchImpl.mockResolvedValueOnce(response({ enabled: true, enrolled: true }));
     await expect(client.getPilotStatus(USER)).rejects.toMatchObject({

@@ -82,6 +82,9 @@ export function createV2ApiClient({
     const token = await authenticatedUser.getIdToken();
     const response = await fetchImpl(`${root}${path}`, {
       method,
+      // E2EE enrollment and device state must never be fulfilled by a stale
+      // conditional-cache response without a JSON payload.
+      cache: 'no-store',
       headers: {
         Authorization: `Bearer ${token}`,
         ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),

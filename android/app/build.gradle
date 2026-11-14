@@ -27,9 +27,12 @@ def pulseE2eePilot = providers.gradleProperty('pulseE2eePilot')
 def pulseE2eeInternalPlayTest = providers.gradleProperty('pulseE2eeInternalPlayTest')
     .map { it.toBoolean() }
     .getOrElse(false)
+def pulseE2eeGeneralAvailability = providers.gradleProperty('pulseE2eeGeneralAvailability')
+    .map { it.toBoolean() }
+    .getOrElse(false)
 def pulseE2eeQaInstance = providers.gradleProperty('pulseE2eeQaInstance')
     .getOrElse('a')
-def pulseE2eeReleaseProvider = pulseE2eePilot || pulseE2eeInternalPlayTest
+def pulseE2eeReleaseProvider = pulseE2eePilot || pulseE2eeInternalPlayTest || pulseE2eeGeneralAvailability
 def pulseCallE2ee = providers.gradleProperty('pulseCallE2ee')
     .map { it.toBoolean() }
     .getOrElse(false)
@@ -39,8 +42,8 @@ def pulseNativeApiUrl = [
 ].find { value -> value != null && !value.trim().isEmpty() }
     ?: 'https://api.pulse-messenger.com'
 pulseNativeApiUrl = pulseNativeApiUrl.trim().replaceAll('/+$', '')
-if ([pulseE2eeQa, pulseE2eePilot, pulseE2eeInternalPlayTest].count { it } > 1) {
-    throw new GradleException('E2EE QA, interne Play-test en productiepilot zijn onderling exclusief.')
+if ([pulseE2eeQa, pulseE2eePilot, pulseE2eeInternalPlayTest, pulseE2eeGeneralAvailability].count { it } > 1) {
+    throw new GradleException('E2EE QA, interne Play-test, productiepilot en algemene uitrol zijn onderling exclusief.')
 }
 if (!(pulseE2eeQaInstance ==~ /[a-z0-9]+/)) {
     throw new GradleException('pulseE2eeQaInstance mag alleen kleine letters en cijfers bevatten.')
@@ -227,7 +230,8 @@ def buildReleaseWebAssets = tasks.register('buildReleaseWebAssets', Exec) {
         environment 'REACT_APP_E2EE_TRANSPORT', 'v2'
         environment 'REACT_APP_E2EE_V2_PILOT_ENABLED', 'true'
         environment 'REACT_APP_E2EE_V2_BROWSER_PILOT_ENABLED', 'false'
-        environment 'REACT_APP_E2EE_V2_GROUPS_ENABLED', pulseE2eeInternalPlayTest ? 'true' : 'false'
+        environment 'REACT_APP_E2EE_V2_GROUPS_ENABLED',
+            (pulseE2eeInternalPlayTest || pulseE2eeGeneralAvailability) ? 'true' : 'false'
     }
     commandLine 'npm', 'run', 'build:webapp'
 }
@@ -255,9 +259,23 @@ def verifyE2eeInternalPlayTestGate = tasks.register('verifyE2eeInternalPlayTestG
     }
 }
 
+def verifyE2eeGeneralAvailabilityGate = tasks.register('verifyE2eeGeneralAvailabilityGate') {
+    onlyIf { pulseE2eeGeneralAvailability }
+    doLast {
+        if (System.getenv('PULSE_E2EE_GENERAL_AVAILABILITY_ACK') != 'UNREVIEWED_GENERAL_AVAILABILITY') {
+            throw new GradleException(
+                'Algemene E2EE-uitrol geblokkeerd: zet PULSE_E2EE_GENERAL_AVAILABILITY_ACK='
+                    + 'UNREVIEWED_GENERAL_AVAILABILITY. Deze release heeft geen onafhankelijke review.'
+            )
+        }
+        logger.warn('WAARSCHUWING: algemene E2EE-uitrol zonder onafhankelijke review is expliciet bevestigd.')
+    }
+}
+
 buildReleaseWebAssets.configure {
     dependsOn verifyE2eePilotReleaseGate
     dependsOn verifyE2eeInternalPlayTestGate
+    dependsOn verifyE2eeGeneralAvailabilityGate
 }
 
 def copyReleaseWebAssets = tasks.register('copyReleaseWebAssets', Exec) {

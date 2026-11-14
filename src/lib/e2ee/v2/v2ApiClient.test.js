@@ -139,6 +139,22 @@ describe('E2EE v2 API client', () => {
     });
   });
 
+  test('accepts general availability enrollment', async () => {
+    fetchImpl.mockResolvedValue(response({
+      enabled: true,
+      enrolled: true,
+      mode: 'general_availability',
+      sendingEnabled: true,
+    }));
+
+    await expect(client.getPilotStatus(USER)).resolves.toEqual({
+      enabled: true,
+      enrolled: true,
+      mode: 'general_availability',
+      sendingEnabled: true,
+    });
+  });
+
   test('claims and validates recipient bundles', async () => {
     fetchImpl.mockResolvedValue(response(claim()));
 

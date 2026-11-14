@@ -137,7 +137,21 @@ class PulseCallMediaSessionController(
                             session.sessionId,
                             status = it.status.name,
                         )
-                    }.let { it.ok && it.status == PulseSignalingStatus.AUTHORIZED }
+                    }.let {
+                        // Older production signaling nodes do not implement this
+                        // optional early acknowledgement. The signed SDP envelope
+                        // and remote identity verification remain mandatory below.
+                        if (it.status == PulseSignalingStatus.SERVICE_UNAVAILABLE) {
+                            PulseCallDiagnostics.event(
+                                "MEDIA_IDENTITY_PREFLIGHT_DEFERRED",
+                                session.sessionId,
+                                status = it.status.name,
+                            )
+                            true
+                        } else {
+                            it.ok && it.status == PulseSignalingStatus.AUTHORIZED
+                        }
+                    }
                 }
                 ice.await() to identity.await()
             }

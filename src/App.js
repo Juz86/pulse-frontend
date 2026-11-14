@@ -406,6 +406,7 @@ function MainApp() {
     const attachUpdateListener = async () => {
       updateListenerRef.current = await addUpdateStatusListener((event = {}) => {
         if (event?.type === 'installState' && event?.isDownloaded) {
+          setHideOptionalUpdate(false);
           setAppUpdate((prev) => ({
             ...prev,
             available: true,
@@ -903,7 +904,7 @@ function MainApp() {
     <ErrorBoundary>
     <Suspense fallback={<div className="splash"><div className="splash-logo"><PulseLogo size={40} textSize={28} /></div><div className="splash-spinner" /></div>}>
     <div className="app-root">
-      {appUpdate.ready && appUpdate.available && (!hideOptionalUpdate || appUpdate.required) && (
+      {appUpdate.ready && appUpdate.available && !hideOptionalUpdate && (
         <div className="pulse-update-overlay" role="presentation">
           <div className="pulse-update-banner" role="status" aria-live="polite">
             <div className="pulse-update-banner-text">
@@ -932,6 +933,9 @@ function MainApp() {
                   className="pulse-update-btn pulse-update-btn-primary"
                   disabled={appUpdate.starting}
                   onClick={async () => {
+                    // Play owns the download UI after this point. Do not leave a
+                    // blocking Pulse prompt above the active update process.
+                    setHideOptionalUpdate(true);
                     setAppUpdate((prev) => ({ ...prev, starting: true, error: null }));
                     try {
                       await startAvailableUpdate(appUpdate);

@@ -3211,7 +3211,8 @@ export default function ChatSidebar({
                 const contactName = getContactDisplayName(contact);
                 const blocked = parentBlockedUids?.includes(contact.uid)
                   || (blockedContacts || []).some((blockedContact) => blockedContact.uid === contact.uid);
-                const callDisabled = !nativeAudioCallingAvailable || callLaunchPending || blocked;
+                const audioCallDisabled = !nativeAudioCallingAvailable || callLaunchPending || blocked;
+                const videoCallDisabled = !videoCallingAvailable || callLaunchPending || blocked;
                 return (
                   <div key={contact.uid} className="sidebar-contact-card sidebar-contact-card--call-log">
                     <div className="sidebar-contact-row sidebar-contact-row--call-log">
@@ -3223,16 +3224,28 @@ export default function ChatSidebar({
                         <div className="conv-name">{contactName}</div>
                         <div className="conv-preview">{contact.email}</div>
                       </div>
-                      <button
-                        type="button"
-                        className="calls-contact-call-btn"
-                        aria-label={`Bel ${contactName}`}
-                        title={nativeAudioCallingAvailable ? `Bel ${contactName}` : 'Bellen is alleen beschikbaar in de Pulse-app'}
-                        disabled={callDisabled}
-                        onClick={() => onStartAudioCall?.(contact)}
-                      >
-                        <Phone size={18} aria-hidden="true" />
-                      </button>
+                      <div className="calls-contact-actions">
+                        <button
+                          type="button"
+                          className="calls-contact-call-btn"
+                          aria-label={`Bel ${contactName}`}
+                          title={nativeAudioCallingAvailable ? `Bel ${contactName}` : 'Bellen is alleen beschikbaar in de Pulse-app'}
+                          disabled={audioCallDisabled}
+                          onClick={() => onStartAudioCall?.(contact)}
+                        >
+                          <Phone size={18} aria-hidden="true" />
+                        </button>
+                        <button
+                          type="button"
+                          className="calls-contact-video-btn"
+                          aria-label={`Videobel ${contactName}`}
+                          title={videoCallingAvailable ? `Videobel ${contactName}` : 'Videobellen is alleen beschikbaar in de Pulse-app'}
+                          disabled={videoCallDisabled}
+                          onClick={() => onStartVideoCall?.(contact)}
+                        >
+                          <Video size={18} aria-hidden="true" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );

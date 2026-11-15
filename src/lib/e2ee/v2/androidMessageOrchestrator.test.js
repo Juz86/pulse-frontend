@@ -9,6 +9,8 @@ const UUIDS = [
   '11111111-1111-4111-8111-111111111111',
   '22222222-2222-4222-8222-222222222222',
   '33333333-3333-4333-8333-333333333333',
+  '44444444-4444-4444-8444-444444444444',
+  '55555555-5555-4555-8555-555555555555',
 ];
 
 function status(available = true) {
@@ -204,6 +206,50 @@ describe('Android E2EE v2 message orchestrator', () => {
       remoteDeviceId: 'device-b1',
       remoteBundle: expect.any(Object),
     }));
+    expect(api.sendMessage).toHaveBeenCalledTimes(1);
+  });
+
+  test('repairs a failed initial session setup once without user interaction', async () => {
+    const encryptionFailure = Object.assign(new Error('e2ee_encrypt_failed'), {
+      code: 'e2ee_encrypt_failed',
+    });
+    const api = {
+      claimRecipientBundles: jest.fn().mockResolvedValue(bundleClaim('user-b', [
+        { deviceId: 'device-b1', signalDeviceId: 2 },
+      ])),
+      claimOwnDeviceBundles: jest.fn().mockResolvedValue(bundleClaim('user-a', [])),
+      sendMessage: jest.fn().mockResolvedValue({ ok: true, messageId: UUIDS[2] }),
+    };
+    const encryptText = jest.fn()
+      .mockRejectedValueOnce(encryptionFailure)
+      .mockResolvedValueOnce({ envelopeType: 'prekey', ciphertext: 'cmVwYWlyZWQ=' });
+    const invalidateRemoteDevice = jest.fn().mockResolvedValue({ invalidated: true });
+
+    await expect(sendAndroidE2eeV2Text(baseSend({
+      api,
+      listSessionDevices: jest.fn().mockResolvedValue({ devices: [] }),
+      encryptText,
+      invalidateRemoteDevice,
+      nextUuid: jest.fn()
+        .mockReturnValueOnce(UUIDS[0])
+        .mockReturnValueOnce(UUIDS[1])
+        .mockReturnValueOnce(UUIDS[2])
+        .mockReturnValueOnce(UUIDS[3])
+        .mockReturnValueOnce(UUIDS[4]),
+    }))).resolves.toMatchObject({ messageId: UUIDS[2] });
+
+    expect(api.claimRecipientBundles).toHaveBeenCalledTimes(2);
+    expect(api.claimOwnDeviceBundles).toHaveBeenCalledTimes(2);
+    expect(invalidateRemoteDevice).toHaveBeenCalledWith({
+      userId: 'user-a',
+      localSignalDeviceId: 1,
+      remoteUserId: 'user-b',
+      remoteDeviceId: 'device-b1',
+      remoteSignalDeviceId: 2,
+      remoteIdentityVersion: 1,
+      revoked: false,
+    });
+    expect(encryptText).toHaveBeenCalledTimes(2);
     expect(api.sendMessage).toHaveBeenCalledTimes(1);
   });
 

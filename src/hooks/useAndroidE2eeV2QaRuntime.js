@@ -29,6 +29,7 @@ const DISABLED_STATE = Object.freeze({
 
 export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
   const [state, setState] = useState(DISABLED_STATE);
+  const [approvalRefresh, setApprovalRefresh] = useState(0);
   const startupPromiseRef = useRef(null);
   const nativeRuntime = isNativePulseEnvironment();
   const pilotRuntime = E2EE_V2_PILOT_ENABLED;
@@ -48,6 +49,7 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
     let active = true;
     let activeBinding = null;
     let browserClient = null;
+    let approvalPoll = null;
     const backendUrl = pilotRuntime ? BACKEND_URL : E2EE_V2_QA_BACKEND_URL;
     const api = createV2ApiClient({ baseUrl: backendUrl });
     const assertConfiguration = pilotRuntime
@@ -127,11 +129,26 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
         if (active) {
           setState((current) => ({
             enabled: true,
-            status: 'ready',
+            status: binding.approvalPending ? 'pending_approval' : 'ready',
             binding,
-            error: null,
-            sendingEnabled: pilotRuntime ? current.sendingEnabled : true,
+            error: binding.approvalPending
+              ? Object.assign(new Error('v2_device_approval_pending'), { code: 'v2_device_approval_pending' })
+              : null,
+            sendingEnabled: binding.approvalPending
+              ? false
+              : (pilotRuntime ? current.sendingEnabled : true),
           }));
+          if (binding.approvalPending) {
+            approvalPoll = window.setInterval(async () => {
+              try {
+                const devices = await api.listDevices(user);
+                const currentDevice = devices.find(device => device.deviceId === binding.deviceId);
+                if (currentDevice?.status === 'active') setApprovalRefresh(value => value + 1);
+              } catch {
+                // Keep waiting; a temporary backend outage must not erase local keys.
+              }
+            }, 15_000);
+          }
         } else {
           binding.close?.();
         }
@@ -151,13 +168,14 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
 
     return () => {
       active = false;
+      if (approvalPoll) window.clearInterval(approvalPoll);
       activeBinding?.close?.();
       if (startupPromiseRef.current === startupPromise) startupPromiseRef.current = null;
       setSocketE2EEDeviceId(null);
     };
   // Runtime ownership follows the authenticated user and build target.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [browserRuntime, nativeRuntime, pilotRuntime, qaRuntime, runtimeEnabled, user]);
+  }, [approvalRefresh, browserRuntime, nativeRuntime, pilotRuntime, qaRuntime, runtimeEnabled, user]);
 
   const sendText = useCallback((payload) => {
     if (state.status !== 'ready' || !state.binding?.sendText) {

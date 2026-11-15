@@ -336,6 +336,11 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
       showErrToast(e2eeV2QaRuntime.error?.message || 'E2EE kon niet worden gestart.');
     }
   }, [e2eeV2QaRuntime.error, e2eeV2QaRuntime.status, showErrToast]);
+  useEffect(() => {
+    if (e2eeV2QaRuntime.status === 'pending_approval') {
+      showErrToast('Beveiligde functies wachten op goedkeuring van je ouder.');
+    }
+  }, [e2eeV2QaRuntime.status, showErrToast]);
   const {
     conversations, setConversations, activeConv, setActiveConv,
     messages, setMessages, loadingConvs, loadingMsgs, hasMore, loadingMore, currentDeviceId,
@@ -707,6 +712,10 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
     const selectedContact = contact?.uid ? contact : null;
     if (!selectedContact && (!activeConv || activeConv.isGroup)) return;
     const calleeUid = selectedContact?.uid || getOtherUid(activeConv);
+    if (e2eeV2QaRuntime.status === 'pending_approval') {
+      showErrToast('Beveiligde functies wachten op goedkeuring van je ouder.');
+      return;
+    }
     if (!calleeUid || blockedContacts.some((contact) => contact.uid === calleeUid) || parentBlockedUids.includes(calleeUid)) {
       showErrToast('Dit contact kan niet worden gebeld.');
       return;

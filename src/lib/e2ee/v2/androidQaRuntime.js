@@ -97,11 +97,11 @@ export function clearAndroidE2eeV2QaBinding(
   storage.removeItem(bindingKey(userId, bindingNamespace));
 }
 
-function matchesActiveServerBinding(binding, device) {
+function matchesServerBinding(binding, device) {
   return Boolean(
     binding
     && device?.deviceId === binding.deviceId
-    && device.status === 'active'
+    && ['active', 'pending_approval'].includes(device.status)
     && Number(device.signalDeviceId) === binding.signalDeviceId
     && Number(device.identityVersion || 1) === Number(binding.identityVersion || 1)
   );
@@ -167,7 +167,7 @@ export async function startAndroidE2eeV2QaRuntime({
   if (existingBinding) {
     try {
       devices = await api.listDevices(user);
-      if (!devices.some(device => matchesActiveServerBinding(existingBinding, device))) {
+      if (!devices.some(device => matchesServerBinding(existingBinding, device))) {
         clearAndroidE2eeV2QaBinding(user.uid, storage, bindingNamespace);
         clearGroupDistributionBindings(user.uid, storage, bindingNamespace);
         existingBinding = null;
@@ -187,6 +187,7 @@ export async function startAndroidE2eeV2QaRuntime({
   });
   let registration;
   if (existingBinding) {
+    const serverDevice = devices.find(device => matchesServerBinding(existingBinding, device));
     await bindCachedDevice({
       userId: user.uid,
       deviceId: existingBinding.deviceId,
@@ -196,7 +197,9 @@ export async function startAndroidE2eeV2QaRuntime({
     registration = {
       ...existingBinding,
       identityVersion: existingBinding.identityVersion || 1,
-      status: 'REGISTERED_CACHED',
+      status: serverDevice?.status === 'pending_approval'
+        ? 'PENDING_APPROVAL'
+        : 'REGISTERED_CACHED',
     };
   } else {
     try {
@@ -223,6 +226,7 @@ export async function startAndroidE2eeV2QaRuntime({
     }
   }
   bindSocketDevice(registration.deviceId);
+  const approvalPending = registration.status === 'PENDING_APPROVAL';
 
   const receivedMessages = new Map();
   let receiveQueue = Promise.resolve();
@@ -315,6 +319,7 @@ export async function startAndroidE2eeV2QaRuntime({
 
   return Object.freeze({
     ...registration,
+    approvalPending,
     api,
     invalidateLocalDevice({ reason = 'security_event' } = {}) {
       clearAndroidE2eeV2QaBinding(user.uid, storage, bindingNamespace);
@@ -334,6 +339,7 @@ export async function startAndroidE2eeV2QaRuntime({
       return result;
     },
     async sendText({ conversationId, recipientUserId, plaintext, clientMessageId }) {
+      if (approvalPending) throw new Error('v2_device_approval_pending');
       const stableClientMessageId = clientMessageId || requireUuid(randomUuid);
       const result = await sendMessage({
         user,

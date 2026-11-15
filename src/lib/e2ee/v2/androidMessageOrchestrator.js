@@ -214,6 +214,7 @@ export async function sendAndroidE2eeV2Text({
     ...sessionTargets(user.uid, ownSessions),
   ]);
   let claimed = false;
+  let repairedEncryptionFailure = false;
   if (!targets.some((target) => target.userId === recipientUserId)) {
     targets = await claimAllTargets({
       user,
@@ -244,8 +245,8 @@ export async function sendAndroidE2eeV2Text({
       operationIdForTarget,
     });
   } catch (error) {
-    if (claimed || error?.code !== 'e2ee_encrypt_failed') throw error;
-    const cachedTargets = targets;
+    if (repairedEncryptionFailure || error?.code !== 'e2ee_encrypt_failed') throw error;
+    const previousTargets = targets;
     targets = await claimAllTargets({
       user,
       conversationId,
@@ -257,7 +258,7 @@ export async function sendAndroidE2eeV2Text({
     await rebuildCachedTargets({
       user,
       localSignalDeviceId,
-      previousTargets: cachedTargets,
+      previousTargets,
       currentTargets: targets,
       invalidateRemoteDevice,
     });
@@ -269,7 +270,7 @@ export async function sendAndroidE2eeV2Text({
       encryptText,
       operationIdForTarget,
     });
-    claimed = true;
+    repairedEncryptionFailure = true;
   }
 
   const send = async () => {

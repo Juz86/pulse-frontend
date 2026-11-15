@@ -55,6 +55,30 @@ describe('Android E2EE v2 QA runtime', () => {
     expect(readAndroidE2eeV2QaBinding('user-a', storage, 'pilot')).toEqual(pilot);
   });
 
+  test('keeps a pending child device local but blocks secure sends until approval', async () => {
+    const runtime = await startAndroidE2eeV2QaRuntime({
+      user: { uid: 'user-a' },
+      backendUrl: 'https://e2ee-qa.example.test',
+      runtimeBackendUrl: 'https://e2ee-qa.example.test',
+      api: { listDevices: jest.fn().mockResolvedValue([]) },
+      registerDevice: jest.fn().mockResolvedValue({
+        deviceId: 'qa-device-a',
+        signalDeviceId: 1,
+        identityVersion: 1,
+        status: 'PENDING_APPROVAL',
+      }),
+      storage: createStorage(),
+      randomUuid: () => '123e4567-e89b-42d3-a456-426614174000',
+      bindSocketDevice: jest.fn(),
+      assertConfiguration: jest.fn(),
+    });
+
+    expect(runtime.approvalPending).toBe(true);
+    await expect(runtime.sendText({
+      conversationId: 'conversation-1', recipientUserId: 'user-b', plaintext: 'Hallo',
+    })).rejects.toThrow('v2_device_approval_pending');
+  });
+
   test('invalidates the local binding and disconnects its socket audience', async () => {
     const storage = createStorage();
     const bindSocketDevice = jest.fn();

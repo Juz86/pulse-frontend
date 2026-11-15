@@ -2871,7 +2871,13 @@ export default function ChatSidebar({
   const isSidebarPageMode = embeddedSettingsActive
     || parentPortalPageVisible
     || contactActionsPageVisible
-    || conversationActionsPageVisible;
+    || conversationActionsPageVisible
+    || moreActionsSheetVisible
+    || newChatSheetVisible
+    || shareContactPageVisible
+    || addContactSheetVisible
+    || newGroupSheetVisible
+    || requestsSheetVisible;
   const isLightFooterCluster = isMoreFooterCluster;
   const useDetachedFooterCluster = isLightFooterCluster || !footerEmbeddedInCluster;
   const footerClusterSheetClassName = isLightFooterCluster

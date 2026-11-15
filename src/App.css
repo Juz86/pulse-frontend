@@ -3480,7 +3480,12 @@ font-family: 'Inter', sans-serif;
   animation: pulse-navigation-sidebar-out var(--pulse-navigation-exit-duration) var(--pulse-navigation-exit-ease) both;
 }
 .sidebar-footer--more-open {
-  background: linear-gradient(180deg, rgba(248, 244, 255, 0) 0%, rgba(248, 244, 255, 0.4) 58%, rgba(248, 244, 255, 0.78) 100%);
+  /* More is a dark, full-height surface. Keep the area below its floating
+     tab bar in the same palette instead of inheriting the light home fade. */
+  background: linear-gradient(180deg, rgba(45, 40, 96, 0) 0%, rgba(38, 33, 80, 0.82) 58%, #262150 100%);
+}
+.sidebar--light-home.sidebar--more-actions-open > .sidebar-footer {
+  background-color: #262150;
 }
 .sidebar-footer--more-open .sidebar-footer-tabbar {
   border-top: 1px solid rgba(140, 122, 214, 0.08);
@@ -4300,26 +4305,7 @@ font-family: 'Inter', sans-serif;
 .calls-contact-picker-heading > div {
   flex:1 1 auto;
 }
-.calls-contact-call-btn {
-  width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 50%;
-  background: #22c55e;
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.24);
-  transition: background .2s ease, transform .2s ease, opacity .2s ease;
-}
-.calls-contact-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
+.calls-contact-call-btn,
 .calls-contact-video-btn {
   width: 44px;
   height: 44px;
@@ -4335,26 +4321,22 @@ font-family: 'Inter', sans-serif;
   box-shadow: 0 6px 16px rgba(109, 78, 231, 0.16);
   transition: background .2s ease, transform .2s ease, opacity .2s ease;
 }
+.calls-contact-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.calls-contact-call-btn:hover:not(:disabled),
 .calls-contact-video-btn:hover:not(:disabled) {
   background: #e3dcff;
   transform: translateY(-1px);
 }
+.calls-contact-call-btn:active:not(:disabled),
 .calls-contact-video-btn:active:not(:disabled) {
   transform: translateY(0);
 }
+.calls-contact-call-btn:disabled,
 .calls-contact-video-btn:disabled {
-  cursor: not-allowed;
-  opacity: .42;
-  box-shadow: none;
-}
-.calls-contact-call-btn:hover:not(:disabled) {
-  background: #16a34a;
-  transform: translateY(-1px);
-}
-.calls-contact-call-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-.calls-contact-call-btn:disabled {
   cursor: not-allowed;
   opacity: .42;
   box-shadow: none;

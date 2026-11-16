@@ -79,8 +79,8 @@ android {
             versionCode 91
             versionName "1.0.35-internal-e2ee"
         } else if (pulseE2eeGeneralAvailability) {
-            versionCode 93
-            versionName "1.0.37-e2ee-general"
+            versionCode 94
+            versionName "1.0.38-e2ee-general"
         }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Public half of the signing key only. The private key is a Cloudflare

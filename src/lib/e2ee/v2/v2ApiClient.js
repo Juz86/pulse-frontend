@@ -16,6 +16,10 @@ import {
   validateGroupSenderKeyDistribution,
 } from '../group/groupProtocolContract';
 
+// Lets the backend distinguish current clients from releases that already
+// support the v2 protocol but predate the `general_availability` status label.
+const E2EE_STATUS_CAPABILITY_VERSION = '2';
+
 export class V2ApiError extends Error {
   constructor(code, status = 0) {
     super(code || 'v2_request_failed');
@@ -87,6 +91,7 @@ export function createV2ApiClient({
       cache: 'no-store',
       headers: {
         Authorization: `Bearer ${token}`,
+        'X-Pulse-E2EE-Status-Version': E2EE_STATUS_CAPABILITY_VERSION,
         ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),

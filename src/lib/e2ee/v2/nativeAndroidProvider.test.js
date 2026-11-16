@@ -163,4 +163,15 @@ describe('native Android E2EE v2 provider', () => {
       detailCode: 'e2ee_session_record_invalid',
     });
   });
+
+  test('retains a safe native error message when Capacitor uses the generic code', async () => {
+    mockEncryptText.mockRejectedValue(Object.assign(new Error('e2ee_remote_bundle_required'), {
+      code: 'e2ee_encrypt_failed',
+    }));
+
+    await expect(encryptNativeE2eeV2Text({ plaintext: 'Hallo' })).rejects.toMatchObject({
+      code: 'e2ee_encrypt_failed',
+      detailCode: 'e2ee_remote_bundle_required',
+    });
+  });
 });

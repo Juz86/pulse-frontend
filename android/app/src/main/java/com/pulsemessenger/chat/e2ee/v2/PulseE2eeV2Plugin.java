@@ -1,6 +1,7 @@
 package com.pulsemessenger.chat.e2ee.v2;
 
 import android.util.Base64;
+import android.util.Log;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
@@ -12,6 +13,7 @@ import com.pulsemessenger.chat.BuildConfig;
 
 @CapacitorPlugin(name = "PulseE2eeV2")
 public final class PulseE2eeV2Plugin extends Plugin {
+    private static final String LOG_TAG = "PulseE2eeV2";
     private PulseE2eeSecureStore secureStore;
     private PulseE2eeV2Provider provider;
     private PulseE2eeMessageHistory messageHistory;
@@ -131,6 +133,10 @@ public final class PulseE2eeV2Plugin extends Plugin {
             );
             call.resolve(envelopeResponse(envelope));
         } catch (Exception error) {
+            // The error message is an internal protocol code, never plaintext,
+            // ciphertext, or private key material. It is needed to distinguish
+            // a recoverable session rebuild from a device-identity change.
+            Log.w(LOG_TAG, "encrypt_failed code=" + safeMessage(error));
             call.reject("e2ee_encrypt_failed", safeMessage(error), error);
         }
     }

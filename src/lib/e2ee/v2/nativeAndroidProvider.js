@@ -39,9 +39,14 @@ export async function encryptNativeE2eeV2Text(options) {
   } catch (error) {
     const normalized = new Error('e2ee_encrypt_failed');
     normalized.code = 'e2ee_encrypt_failed';
+    // Capacitor exposes the plugin's public error code as `code` and the
+    // native, non-sensitive cause as `message`. Keep that cause available to
+    // the session-recovery layer without ever retaining plaintext or keys.
     normalized.detailCode = error?.code && error.code !== 'e2ee_encrypt_failed'
       ? error.code
-      : null;
+      : (/^e2ee_[a-z0-9_]+$/i.test(String(error?.message || ''))
+        ? error.message
+        : null);
     normalized.cause = error;
     throw normalized;
   }

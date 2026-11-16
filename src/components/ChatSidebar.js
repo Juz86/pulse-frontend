@@ -3224,7 +3224,7 @@ export default function ChatSidebar({
                       <div className="calls-contact-actions">
                         <PulseIconButton
                           Icon={Phone}
-                          variant="call"
+                          variant="video"
                           className="calls-contact-call-btn"
                           label={`Bel ${contactName}`}
                           title={nativeAudioCallingAvailable ? `Bel ${contactName}` : 'Bellen is alleen beschikbaar in de Pulse-app'}

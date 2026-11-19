@@ -507,6 +507,28 @@ class PulseCallSessionOrchestrator(
         }
     }
 
+    fun requestVideoUpgrade(sessionId: String) {
+        scope.launch {
+            val snapshot = coordinator.state.value
+            if (snapshot.sessionId == sessionId && snapshot.state == PulseCallState.ACTIVE &&
+                snapshot.mediaType == PulseCallMediaType.AUDIO
+            ) sendCommand(PulseSignalingCommand.REQUEST_VIDEO_UPGRADE)
+        }
+    }
+
+    fun acceptVideoUpgrade(sessionId: String) {
+        scope.launch {
+            val snapshot = coordinator.state.value
+            if (snapshot.sessionId == sessionId && snapshot.state == PulseCallState.ACTIVE &&
+                snapshot.mediaType == PulseCallMediaType.AUDIO
+            ) sendCommand(PulseSignalingCommand.ACCEPT_VIDEO_UPGRADE)
+        }
+    }
+
+    fun rejectVideoUpgrade(sessionId: String) {
+        scope.launch { sendCommand(PulseSignalingCommand.REJECT_VIDEO_UPGRADE) }
+    }
+
     fun requestSwitchCamera(sessionId: String) {
         scope.launch {
             cameraMutex.withLock {
@@ -555,6 +577,9 @@ class PulseCallSessionOrchestrator(
             scope.launch(start = CoroutineStart.UNDISPATCHED) { endTakenElsewhere(session) }
             return
         }
+        val becameVideoCall = current.mediaType == PulseCallMediaType.AUDIO &&
+            session.mediaType == PulseCallMediaType.VIDEO &&
+            session.state == PulseServerCallState.ACTIVE
         serverSession.set(session)
         val result = coordinator.onSignalingSnapshot(session, localIdentity.uid)
         if (result !in setOf(PulseCoordinatorResult.APPLIED, PulseCoordinatorResult.IDEMPOTENT)) return
@@ -576,6 +601,11 @@ class PulseCallSessionOrchestrator(
                     return@launch
                 }
                 startMedia(session, localIdentity.uid)
+                if (becameVideoCall && mediaSessions?.upgradeToVideo(session.sessionId) != true) {
+                    PulseCallDiagnostics.event("VIDEO_UPGRADE_FAILED", session.sessionId)
+                    onMediaFailure(session.sessionId, MEDIA_ERROR)
+                    return@launch
+                }
                 if (shouldRestartIce && mediaSessions?.restartIce(session.sessionId) != true) {
                     onMediaFailure(session.sessionId, MEDIA_ERROR)
                 }

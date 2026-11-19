@@ -22,6 +22,7 @@ class PulseCallCoordinator private constructor(
     private var wasActive = false
     private var terminalReason: String? = null
     private var finalActiveDurationMs: Long? = null
+    private var videoUpgradeRequestedByUid: String? = null
 
     val state: StateFlow<PulseCallSnapshot> = mutableState.asStateFlow()
 
@@ -53,6 +54,7 @@ class PulseCallCoordinator private constructor(
         wasActive = false
         terminalReason = null
         finalActiveDurationMs = null
+        videoUpgradeRequestedByUid = null
         val result = applyLocked(request.sessionId, event)
         if (result != PulseCoordinatorResult.APPLIED) {
             this.request = null
@@ -176,7 +178,7 @@ class PulseCallCoordinator private constructor(
         }
         if (!ownsLocked(snapshot.sessionId) ||
             localUid != expectedUid ||
-            currentRequest?.mediaType != snapshot.mediaType
+            !isCompatibleMediaUpdate(currentRequest, snapshot)
         ) {
             return@synchronized PulseCoordinatorResult.REJECTED_SESSION
         }
@@ -194,6 +196,10 @@ class PulseCallCoordinator private constructor(
             return@synchronized transitionResult
         }
         signalingRevision = snapshot.revision
+        if (currentRequest?.mediaType != snapshot.mediaType) {
+            request = currentRequest?.copy(mediaType = snapshot.mediaType)
+        }
+        videoUpgradeRequestedByUid = snapshot.videoUpgradeRequestedByUid
         publishLocked()
         PulseCoordinatorResult.APPLIED
     }
@@ -356,6 +362,7 @@ class PulseCallCoordinator private constructor(
             wasActive = wasActive,
             terminalReason = terminalReason,
             finalActiveDurationMs = finalActiveDurationMs,
+            videoUpgradeRequestedByUid = videoUpgradeRequestedByUid,
         )
     }
 
@@ -372,8 +379,17 @@ class PulseCallCoordinator private constructor(
         wasActive = false
         terminalReason = null
         finalActiveDurationMs = null
+        videoUpgradeRequestedByUid = null
         publishLocked()
     }
+
+    private fun isCompatibleMediaUpdate(
+        currentRequest: PulseCallRequest?,
+        snapshot: PulseServerCallSession,
+    ): Boolean = currentRequest?.mediaType == snapshot.mediaType ||
+        (currentRequest?.mediaType == PulseCallMediaType.AUDIO &&
+            snapshot.mediaType == PulseCallMediaType.VIDEO &&
+            snapshot.state == PulseServerCallState.ACTIVE)
 
     private fun freezeActiveDurationLocked() {
         val activeSince = activeSinceElapsedRealtimeMs ?: return

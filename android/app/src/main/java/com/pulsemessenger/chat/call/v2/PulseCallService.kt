@@ -116,6 +116,9 @@ class PulseCallService : Service() {
             ACTION_SELECT_AUDIO_ROUTE -> selectAudioRoute(intent)
             ACTION_TOGGLE_MUTE -> toggleMute(intent)
             ACTION_TOGGLE_VIDEO -> toggleVideo(intent)
+            ACTION_REQUEST_VIDEO_UPGRADE -> requestVideoUpgrade(intent)
+            ACTION_ACCEPT_VIDEO_UPGRADE -> acceptVideoUpgrade(intent)
+            ACTION_REJECT_VIDEO_UPGRADE -> rejectVideoUpgrade(intent)
             ACTION_SWITCH_CAMERA -> switchCamera(intent)
             ACTION_RECONCILE_TERMINAL -> reconcileTerminal(intent)
             ACTION_RECONCILE_TAKEN_ELSEWHERE -> reconcileTakenElsewhere(intent)
@@ -382,6 +385,18 @@ class PulseCallService : Service() {
     private fun toggleVideo(intent: Intent) {
         val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: return
         orchestrator.requestToggleVideo(sessionId)
+    }
+
+    private fun requestVideoUpgrade(intent: Intent) {
+        intent.requiredString(EXTRA_SESSION_ID)?.let(orchestrator::requestVideoUpgrade)
+    }
+
+    private fun acceptVideoUpgrade(intent: Intent) {
+        intent.requiredString(EXTRA_SESSION_ID)?.let(orchestrator::acceptVideoUpgrade)
+    }
+
+    private fun rejectVideoUpgrade(intent: Intent) {
+        intent.requiredString(EXTRA_SESSION_ID)?.let(orchestrator::rejectVideoUpgrade)
     }
 
     private fun switchCamera(intent: Intent) {
@@ -929,6 +944,9 @@ class PulseCallService : Service() {
         const val ACTION_SELECT_AUDIO_ROUTE = "com.pulsemessenger.chat.call.v2.SELECT_AUDIO_ROUTE"
         const val ACTION_TOGGLE_MUTE = "com.pulsemessenger.chat.call.v2.TOGGLE_MUTE"
         const val ACTION_TOGGLE_VIDEO = "com.pulsemessenger.chat.call.v2.TOGGLE_VIDEO"
+        const val ACTION_REQUEST_VIDEO_UPGRADE = "com.pulsemessenger.chat.call.v2.REQUEST_VIDEO_UPGRADE"
+        const val ACTION_ACCEPT_VIDEO_UPGRADE = "com.pulsemessenger.chat.call.v2.ACCEPT_VIDEO_UPGRADE"
+        const val ACTION_REJECT_VIDEO_UPGRADE = "com.pulsemessenger.chat.call.v2.REJECT_VIDEO_UPGRADE"
         const val ACTION_SWITCH_CAMERA = "com.pulsemessenger.chat.call.v2.SWITCH_CAMERA"
         const val ACTION_RECONCILE_TERMINAL = "com.pulsemessenger.chat.call.v2.RECONCILE_TERMINAL"
         const val ACTION_RECONCILE_TAKEN_ELSEWHERE =

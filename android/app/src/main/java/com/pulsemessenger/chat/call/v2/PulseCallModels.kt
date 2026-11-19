@@ -37,6 +37,7 @@ data class PulseCallSnapshot(
     val wasActive: Boolean = false,
     val terminalReason: String? = null,
     val finalActiveDurationMs: Long? = null,
+    val videoUpgradeRequestedByUid: String? = null,
 )
 
 enum class PulseCallTerminalPresentation {

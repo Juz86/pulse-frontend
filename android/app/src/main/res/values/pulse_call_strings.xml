@@ -19,6 +19,8 @@
     <string name="pulse_call_action_muted">Gedempt</string>
     <string name="pulse_call_action_video">Video</string>
     <string name="pulse_call_action_video_on">Camera aan</string>
+    <string name="pulse_call_action_video_waiting">Wachten</string>
+    <string name="pulse_call_video_upgrade_request">%1$s wil een videogesprek starten.</string>
     <string name="pulse_call_action_video_off">Camera uit</string>
     <string name="pulse_call_action_switch_camera">Draaien</string>
     <string name="pulse_call_action_speaker">Speaker</string>

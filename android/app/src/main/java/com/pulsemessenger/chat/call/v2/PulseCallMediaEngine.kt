@@ -98,6 +98,7 @@ interface PulseCallMediaEngine {
     suspend fun addRemoteIceCandidate(candidate: PulseIceCandidate)
     suspend fun restartIce()
     suspend fun setMuted(muted: Boolean)
+    suspend fun upgradeToVideo(): Boolean = false
     suspend fun setVideoEnabled(enabled: Boolean): Boolean = false
     suspend fun switchCamera(): Boolean = false
     suspend fun close()

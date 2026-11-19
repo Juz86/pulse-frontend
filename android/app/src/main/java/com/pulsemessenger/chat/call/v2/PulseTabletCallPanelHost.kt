@@ -156,6 +156,7 @@ class PulseTabletCallPanelHost(private val activity: MainActivity) {
             isMuted = snapshot.isMuted,
             terminalPresentation = terminalPresentation,
             finalActiveDurationMs = snapshot.finalActiveDurationMs,
+            videoUpgradeRequestedByUid = snapshot.videoUpgradeRequestedByUid,
         )
         PulseCallScreen(
             state = uiState,
@@ -165,6 +166,9 @@ class PulseTabletCallPanelHost(private val activity: MainActivity) {
                 ?: PulseVideoTrackSnapshot(),
             onAccept = { sendCallAction(PulseCallService.ACTION_ANSWER, callId) },
             onDecline = { sendCallAction(PulseCallService.ACTION_DISCONNECT, callId) },
+            onRejectVideoUpgrade = {
+                sendCallAction(PulseCallService.ACTION_REJECT_VIDEO_UPGRADE, callId)
+            },
             onHangUp = { sendCallAction(PulseCallService.ACTION_DISCONNECT, callId) },
             onToggleMute = { sendCallAction(PulseCallService.ACTION_TOGGLE_MUTE, callId) },
             onToggleVideo = { sendCallAction(PulseCallService.ACTION_TOGGLE_VIDEO, callId) },

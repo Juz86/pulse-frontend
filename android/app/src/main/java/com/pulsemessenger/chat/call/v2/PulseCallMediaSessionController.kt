@@ -385,6 +385,11 @@ class PulseCallMediaSessionController(
         return runCatching { mediaSession.engine.setVideoEnabled(enabled) }.getOrDefault(false)
     }
 
+    suspend fun upgradeToVideo(sessionId: String): Boolean {
+        val mediaSession = active.get()?.takeIf { it.sessionId == sessionId } ?: return false
+        return runCatching { mediaSession.engine.upgradeToVideo() }.getOrDefault(false)
+    }
+
     suspend fun switchCamera(sessionId: String): Boolean {
         val mediaSession = active.get()?.takeIf { it.sessionId == sessionId } ?: return false
         return runCatching { mediaSession.engine.switchCamera() }.getOrDefault(false)

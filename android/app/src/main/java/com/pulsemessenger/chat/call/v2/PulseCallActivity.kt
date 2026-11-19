@@ -210,6 +210,7 @@ class PulseCallActivity : ComponentActivity() {
                     isMuted = liveSnapshot?.isMuted ?: false,
                     terminalPresentation = liveSnapshot?.terminalPresentation(),
                     finalActiveDurationMs = liveSnapshot?.finalActiveDurationMs,
+                    videoUpgradeRequestedByUid = liveSnapshot?.videoUpgradeRequestedByUid,
                 )
                 PulseCallScreen(
                     state = uiState,
@@ -219,9 +220,22 @@ class PulseCallActivity : ComponentActivity() {
                         ?: PulseVideoTrackSnapshot(),
                     onAccept = { acceptCall(callId, uiState.mediaType) },
                     onDecline = { sendCallAction(PulseCallService.ACTION_DISCONNECT, callId) },
+                    onRejectVideoUpgrade = {
+                        sendCallAction(PulseCallService.ACTION_REJECT_VIDEO_UPGRADE, callId)
+                    },
                     onHangUp = { sendCallAction(PulseCallService.ACTION_DISCONNECT, callId) },
                     onToggleMute = { sendCallAction(PulseCallService.ACTION_TOGGLE_MUTE, callId) },
-                    onToggleVideo = { sendCallAction(PulseCallService.ACTION_TOGGLE_VIDEO, callId) },
+                    onToggleVideo = {
+                        if (uiState.mediaType == PulseCallMediaType.VIDEO) {
+                            sendCallAction(PulseCallService.ACTION_TOGGLE_VIDEO, callId)
+                        } else if (uiState.videoUpgradeRequestedByUid != null &&
+                            uiState.videoUpgradeRequestedByUid == uiState.peerUid
+                        ) {
+                            acceptVideoUpgrade(callId)
+                        } else {
+                            requestVideoUpgrade(callId)
+                        }
+                    },
                     onSwitchCamera = { sendCallAction(PulseCallService.ACTION_SWITCH_CAMERA, callId) },
                     onAudioRouteSelected = { routeId ->
                         sendAudioRouteAction(callId, routeId)
@@ -267,6 +281,31 @@ class PulseCallActivity : ComponentActivity() {
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.CAMERA,
         ))
+    }
+
+    private fun requestVideoUpgrade(callId: String) {
+        if (hasVideoPermissions()) {
+            sendCallAction(PulseCallService.ACTION_REQUEST_VIDEO_UPGRADE, callId)
+            return
+        }
+        pendingVideoPermissionAction = {
+            sendCallAction(PulseCallService.ACTION_REQUEST_VIDEO_UPGRADE, callId)
+        }
+        videoPermissionLauncher.launch(arrayOf(
+            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.CAMERA,
+        ))
+    }
+
+    private fun acceptVideoUpgrade(callId: String) {
+        if (hasVideoPermissions()) {
+            sendCallAction(PulseCallService.ACTION_ACCEPT_VIDEO_UPGRADE, callId)
+            return
+        }
+        pendingVideoPermissionAction = {
+            sendCallAction(PulseCallService.ACTION_ACCEPT_VIDEO_UPGRADE, callId)
+        }
+        videoPermissionLauncher.launch(arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA))
     }
 
     private fun hasVideoPermissions(): Boolean =
@@ -356,6 +395,7 @@ internal data class PulseCallUiState(
     val isMuted: Boolean,
     val terminalPresentation: PulseCallTerminalPresentation?,
     val finalActiveDurationMs: Long?,
+    val videoUpgradeRequestedByUid: String?,
 )
 
 @Composable
@@ -365,6 +405,7 @@ internal fun PulseCallScreen(
     videoSnapshot: PulseVideoTrackSnapshot,
     onAccept: () -> Unit,
     onDecline: () -> Unit,
+    onRejectVideoUpgrade: () -> Unit,
     onHangUp: () -> Unit,
     onToggleMute: () -> Unit,
     onToggleVideo: () -> Unit,
@@ -441,11 +482,22 @@ internal fun PulseCallScreen(
                     state.callState in setOf(PulseCallState.PREPARING, PulseCallState.RINGING)
                 ) {
                     IncomingActions(onDecline = onDecline, onAccept = onAccept)
+                } else if (state.mediaType == PulseCallMediaType.AUDIO &&
+                    state.callState == PulseCallState.ACTIVE &&
+                    state.videoUpgradeRequestedByUid == state.peerUid
+                ) {
+                    VideoUpgradeActions(
+                        requesterName = state.displayName,
+                        onDecline = onRejectVideoUpgrade,
+                        onAccept = onToggleVideo,
+                    )
                 } else {
                     OutgoingActions(
                         isMuted = state.isMuted,
                         isVideoCall = state.mediaType == PulseCallMediaType.VIDEO,
                         isVideoEnabled = videoSnapshot.cameraEnabled,
+                        isVideoUpgradePending = state.mediaType == PulseCallMediaType.AUDIO &&
+                            state.videoUpgradeRequestedByUid == state.peerUid,
                         isSpeakerActive = audioRoutes.currentRoute?.type ==
                             PulseAudioRouteType.SPEAKER,
                         onToggleMute = if (state.callState == PulseCallState.ACTIVE) {
@@ -454,8 +506,8 @@ internal fun PulseCallScreen(
                             null
                         },
                         onHangUp = onHangUp,
-                        onToggleVideo = if (state.mediaType == PulseCallMediaType.VIDEO &&
-                            state.callState in setOf(PulseCallState.CONNECTING, PulseCallState.ACTIVE)
+                        onToggleVideo = if (state.callState == PulseCallState.ACTIVE &&
+                            state.videoUpgradeRequestedByUid == null
                         ) onToggleVideo else null,
                         onSwitchCamera = if (state.mediaType == PulseCallMediaType.VIDEO &&
                             state.callState in setOf(PulseCallState.CONNECTING, PulseCallState.ACTIVE)
@@ -857,10 +909,32 @@ private fun IncomingActions(onDecline: () -> Unit, onAccept: () -> Unit) {
 }
 
 @Composable
+private fun VideoUpgradeActions(
+    requesterName: String,
+    onDecline: () -> Unit,
+    onAccept: () -> Unit,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(R.string.pulse_call_video_upgrade_request, requesterName),
+            color = Color.White.copy(alpha = 0.94f),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 28.dp),
+        )
+        IncomingActions(onDecline = onDecline, onAccept = onAccept)
+    }
+}
+
+@Composable
 private fun OutgoingActions(
     isMuted: Boolean,
     isVideoCall: Boolean,
     isVideoEnabled: Boolean,
+    isVideoUpgradePending: Boolean,
     isSpeakerActive: Boolean,
     onToggleMute: (() -> Unit)?,
     onHangUp: () -> Unit,
@@ -885,7 +959,8 @@ private fun OutgoingActions(
         )
         CallControlButton(
             label = stringResource(
-                if (isVideoEnabled) R.string.pulse_call_action_video_off
+                if (isVideoUpgradePending) R.string.pulse_call_action_video_waiting
+                else if (isVideoEnabled) R.string.pulse_call_action_video_off
                 else R.string.pulse_call_action_video_on,
             ),
             icon = if (isVideoEnabled) Icons.Rounded.Videocam else Icons.Rounded.VideocamOff,

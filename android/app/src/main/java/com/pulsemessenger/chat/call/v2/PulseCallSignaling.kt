@@ -7,6 +7,9 @@ enum class PulseSignalingCommand {
     ACCEPT,
     MEDIA_CONNECTED,
     NETWORK_LOST,
+    REQUEST_VIDEO_UPGRADE,
+    ACCEPT_VIDEO_UPGRADE,
+    REJECT_VIDEO_UPGRADE,
     DECLINE,
     END,
     FAIL,
@@ -63,6 +66,7 @@ data class PulseServerCallSession(
     val terminalByUid: String?,
     val acceptedInstallationId: String? = null,
     val iceRestartSequence: Long = 0,
+    val videoUpgradeRequestedByUid: String? = null,
 )
 
 data class PulseSignalingResponse(

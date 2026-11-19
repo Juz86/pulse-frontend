@@ -176,6 +176,7 @@ object RailwayCallingV2Codec {
             terminalByUid = payload.optionalString("terminalByUid"),
             acceptedInstallationId = payload.optionalString("acceptedInstallationId"),
             iceRestartSequence = payload.optLong("iceRestartSequence", 0).coerceAtLeast(0),
+            videoUpgradeRequestedByUid = payload.optionalString("videoUpgradeRequestedByUid"),
         )
     }
 

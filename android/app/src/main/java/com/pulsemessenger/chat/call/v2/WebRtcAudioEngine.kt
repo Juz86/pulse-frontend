@@ -81,6 +81,7 @@ class WebRtcAudioEngine(
     private var connectionFailureJob: Job? = null
     private var preparedLocalOffer: PulseSessionDescription? = null
     private var cameraCaptureStarted = false
+    private var videoTrackBound = false
     private val pendingLocalIceCandidates: ArrayDeque<PulseIceCandidate> = ArrayDeque()
     private val iceCandidateBuffer = PulseIceCandidateBuffer()
 
@@ -172,16 +173,14 @@ class WebRtcAudioEngine(
             .createAudioDeviceModule()
         audioDeviceModule = audioModule
 
-        val factoryBuilder = PeerConnectionFactory.builder().setAudioDeviceModule(audioModule)
-        if (config.mediaType == PulseCallMediaType.VIDEO) {
-            factoryBuilder
-                .setVideoEncoderFactory(DefaultVideoEncoderFactory(
-                    PulseCallVideoState.eglContext,
-                    true,
-                    true,
-                ))
-                .setVideoDecoderFactory(DefaultVideoDecoderFactory(PulseCallVideoState.eglContext))
-        }
+        val factoryBuilder = PeerConnectionFactory.builder()
+            .setAudioDeviceModule(audioModule)
+            .setVideoEncoderFactory(DefaultVideoEncoderFactory(
+                PulseCallVideoState.eglContext,
+                true,
+                true,
+            ))
+            .setVideoDecoderFactory(DefaultVideoDecoderFactory(PulseCallVideoState.eglContext))
         val factory = factoryBuilder.createPeerConnectionFactory()
         peerConnectionFactory = factory
 
@@ -189,25 +188,10 @@ class WebRtcAudioEngine(
         audioSource = source
         audioTrack = factory.createAudioTrack(AUDIO_TRACK_ID, source).apply { setEnabled(false) }
 
+        // An audio call must not touch the camera. Video resources are created only for
+        // an initial video call or after the peer has accepted an upgrade.
         if (config.mediaType == PulseCallMediaType.VIDEO) {
-            val enumerator = Camera2Enumerator(applicationContext)
-            val cameraName = enumerator.deviceNames.firstOrNull(enumerator::isFrontFacing)
-                ?: enumerator.deviceNames.firstOrNull()
-                ?: error("No camera is available")
-            usingFrontCamera = enumerator.isFrontFacing(cameraName)
-            val capturer = checkNotNull(enumerator.createCapturer(cameraName, null)) {
-                "WebRTC could not create a camera capturer"
-            }
-            val helper = SurfaceTextureHelper.create(
-                "pulse-webrtc-camera",
-                PulseCallVideoState.eglContext,
-            )
-            val source = factory.createVideoSource(false)
-            capturer.initialize(helper, applicationContext, source.capturerObserver)
-            videoCapturer = capturer
-            surfaceTextureHelper = helper
-            videoSource = source
-            videoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, source).apply { setEnabled(false) }
+            prepareVideoResources(factory)
         }
 
         val rtcConfiguration = PeerConnection.RTCConfiguration(
@@ -224,13 +208,32 @@ class WebRtcAudioEngine(
         ) { "WebRTC could not create a PeerConnection" }
     }
 
+    private fun prepareVideoResources(factory: PeerConnectionFactory) {
+        if (videoTrack != null) return
+        val enumerator = Camera2Enumerator(applicationContext)
+        val cameraName = enumerator.deviceNames.firstOrNull(enumerator::isFrontFacing)
+            ?: enumerator.deviceNames.firstOrNull()
+            ?: error("No camera is available")
+        usingFrontCamera = enumerator.isFrontFacing(cameraName)
+        val capturer = checkNotNull(enumerator.createCapturer(cameraName, null)) {
+            "WebRTC could not create a camera capturer"
+        }
+        val helper = SurfaceTextureHelper.create("pulse-webrtc-camera", PulseCallVideoState.eglContext)
+        val source = factory.createVideoSource(false)
+        capturer.initialize(helper, applicationContext, source.capturerObserver)
+        videoCapturer = capturer
+        surfaceTextureHelper = helper
+        videoSource = source
+        videoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, source).apply { setEnabled(false) }
+    }
+
     private suspend fun prepareLocalOffer(config: PulseAudioSessionConfig) {
         if (config.role != PulseMediaRole.OFFERER) return
         val connection = peerConnectionOrThrow()
         checkNotNull(connection.addTrack(checkNotNull(audioTrack), listOf(MEDIA_STREAM_ID))) {
             "WebRTC could not add the prepared local audio track"
         }
-        videoTrack?.let { localVideoTrack ->
+        if (config.mediaType == PulseCallMediaType.VIDEO) videoTrack?.let { localVideoTrack ->
             val transceiver = connection.addTransceiver(
                 localVideoTrack,
                 org.webrtc.RtpTransceiver.RtpTransceiverInit(
@@ -244,6 +247,7 @@ class WebRtcAudioEngine(
             check(transceiver.setCodecPreferences(prioritizeVideoCodecs(codecs)).isSuccess) {
                 "WebRTC could not apply video codec preferences"
             }
+            videoTrackBound = true
             PulseCallDiagnostics.event(
                 "VIDEO_CODEC_PREFERENCES_READY",
                 config.sessionId,
@@ -316,7 +320,7 @@ class WebRtcAudioEngine(
                     config?.sessionId,
                     status = config?.mediaType?.name,
                 )
-                if (config?.mediaType == PulseCallMediaType.VIDEO) {
+                if (config?.mediaType == PulseCallMediaType.VIDEO && !videoTrackBound) {
                     val localVideoTrack = checkNotNull(videoTrack) {
                         "Video answer has no local camera track"
                     }
@@ -326,6 +330,7 @@ class WebRtcAudioEngine(
                             listOf(MEDIA_STREAM_ID),
                         ),
                     ) { "WebRTC could not bind the local camera to the remote video offer" }
+                    videoTrackBound = true
                     PulseCallDiagnostics.event(
                         "ANSWER_VIDEO_TRACK_BOUND",
                         config?.sessionId,
@@ -374,6 +379,45 @@ class WebRtcAudioEngine(
         }
         audioTrack?.setEnabled(!muted)
         Unit
+    }
+
+    override suspend fun upgradeToVideo(): Boolean = onMediaThread {
+        val currentConfig = config ?: return@onMediaThread false
+        if (currentConfig.mediaType == PulseCallMediaType.VIDEO) return@onMediaThread true
+        if (mutableState.value !in setOf(PulseMediaState.NEGOTIATING, PulseMediaState.CONNECTED)) {
+            return@onMediaThread false
+        }
+        val factory = peerConnectionFactory ?: return@onMediaThread false
+        prepareVideoResources(factory)
+        val localVideoTrack = videoTrack ?: return@onMediaThread false
+        // The offerer can announce its new video m-line immediately. The answerer
+        // must wait until the remote offer is applied, then attach its track to
+        // that m-line so the answer remains bidirectional.
+        if (!videoTrackBound && currentConfig.role == PulseMediaRole.OFFERER) {
+            val transceiver = peerConnectionOrThrow().addTransceiver(
+                localVideoTrack,
+                org.webrtc.RtpTransceiver.RtpTransceiverInit(
+                    org.webrtc.RtpTransceiver.RtpTransceiverDirection.SEND_RECV,
+                    listOf(MEDIA_STREAM_ID),
+                ),
+            )
+            val codecs = checkNotNull(peerConnectionFactory)
+                .getRtpSenderCapabilities(MediaStreamTrack.MediaType.MEDIA_TYPE_VIDEO)
+                .codecs
+            check(transceiver.setCodecPreferences(prioritizeVideoCodecs(codecs)).isSuccess) {
+                "WebRTC could not apply video codec preferences"
+            }
+            videoTrackBound = true
+        }
+        config = currentConfig.copy(mediaType = PulseCallMediaType.VIDEO)
+        localVideoTrack.setEnabled(true)
+        startCameraCaptureIfNeeded(currentConfig.sessionId, "AUDIO_UPGRADE")
+        PulseCallVideoState.begin(currentConfig.sessionId, localVideoTrack, usingFrontCamera)
+        PulseCallDiagnostics.event("VIDEO_UPGRADE_READY", currentConfig.sessionId)
+        if (currentConfig.role == PulseMediaRole.OFFERER) {
+            createAndPublishLocalDescription(SessionDescription.Type.OFFER)
+        }
+        true
     }
 
     override suspend fun setVideoEnabled(enabled: Boolean): Boolean = onMediaThread {

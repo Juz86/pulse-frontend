@@ -356,6 +356,36 @@ describe('e2ee message model helpers', () => {
     });
   });
 
+  test('applyConversationSummaryToList clears an older call preview for a realtime text message', () => {
+    const conversations = applyConversationSummaryToList([{
+      id: 'conv-call',
+      updatedAt: '2026-10-01T18:02:00.000Z',
+      lastMessage: 'Oproep geweigerd',
+      lastMessageType: 'call',
+      lastCallEvent: {
+        sessionId: 'session-declined-1',
+        presentations: {
+          callee: { kind: 'incoming_declined', label: 'Oproep geweigerd' },
+        },
+      },
+    }], 'conv-call', {
+      id: 'message-2',
+      convId: 'conv-call',
+      type: 'text',
+      text: 'realtime-lijst-test',
+      createdAt: '2026-10-01T18:03:00.000Z',
+    });
+
+    expect(conversations[0]).toMatchObject({
+      id: 'conv-call',
+      lastMessage: 'realtime-lijst-test',
+      lastMessageType: 'text',
+      lastCallEvent: null,
+    });
+    expect(buildConversationPreviewPresentation(conversations[0], { currentUid: 'callee' }))
+      .toMatchObject({ previewText: 'realtime-lijst-test' });
+  });
+
   test('buildConversationPreviewPresentation includes encrypted storage signal for attachment messages', () => {
     expect(buildConversationPreviewPresentation({
       type: 'attachment',
@@ -1213,6 +1243,7 @@ describe('e2ee attachment helpers', () => {
         lastMessageAt: '2026-01-01T11:00:00.000Z',
         lastMessage: 'Bijlage: rapport.pdf · versleuteld',
         lastMessageType: 'attachment',
+        lastCallEvent: null,
         lastAttachmentName: 'rapport.pdf',
         lastAttachmentTransfer: 'remote',
         lastAttachmentStrategyKey: null,

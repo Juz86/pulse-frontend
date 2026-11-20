@@ -477,6 +477,7 @@ export function buildConversationPreviewPresentation(
 
 export function applyConversationSummaryToList(conversations = [], conversationId, message = {}, updatedAt = null) {
   const summary = normalizeConversationAttachmentSummary(buildConversationSummaryUpdate(message));
+  const messageType = message?.type || message?.messageType || 'text';
   const resolvedUpdatedAt = resolveConversationSummaryUpdatedAt(
     conversations.find((conversation) => conversation.id === conversationId),
     message,
@@ -488,6 +489,8 @@ export function applyConversationSummaryToList(conversations = [], conversationI
       ? {
           ...conversation,
           ...summary,
+          // A newer non-call message must not retain an older call preview.
+          ...(messageType === 'call' ? {} : { lastCallEvent: null }),
           updatedAt: resolvedUpdatedAt,
           lastMessageAt: resolvedUpdatedAt,
           ...buildEmptyConversationReactionSummaryFields(),

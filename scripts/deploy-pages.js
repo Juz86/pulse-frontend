@@ -65,8 +65,8 @@ console.log(`[Pulse] Verifying ${config.label} target before deploy...`);
 run('npm', ['run', config.verifyScript]);
 
 if (target === 'webapp') {
-  console.log('[Pulse] Packaging signed native web update when a signing key is configured...');
-  run('node', ['scripts/package-native-update.js']);
+  console.log('[Pulse] Building the native E2EE runtime and packaging its signed web update...');
+  run('npm', ['run', 'build:webapp:native']);
 }
 
 console.log(`[Pulse] Deploying build/ to Cloudflare Pages project "${config.projectName}"...`);

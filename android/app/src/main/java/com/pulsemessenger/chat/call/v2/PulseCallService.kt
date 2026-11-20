@@ -17,6 +17,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.os.Build
 import android.os.IBinder
+import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -61,6 +62,9 @@ class PulseCallService : Service() {
     private lateinit var incomingCallRinger: PulseIncomingCallRinger
     private var networkMonitorStarted = false
     private var pendingNotificationAction: Pair<String, NotificationAction>? = null
+    private var videoUpgradeGuardSessionId: String? = null
+    private var videoUpgradeNotBeforeElapsedRealtimeMs = 0L
+    private var videoUpgradeActivationGuardSessionId: String? = null
 
     private enum class NotificationAction { ANSWER, DISCONNECT }
 
@@ -388,7 +392,18 @@ class PulseCallService : Service() {
     }
 
     private fun requestVideoUpgrade(intent: Intent) {
-        intent.requiredString(EXTRA_SESSION_ID)?.let(orchestrator::requestVideoUpgrade)
+        val sessionId = intent.requiredString(EXTRA_SESSION_ID) ?: return
+        if (videoUpgradeGuardSessionId == sessionId &&
+            SystemClock.elapsedRealtime() < videoUpgradeNotBeforeElapsedRealtimeMs
+        ) {
+            PulseCallDiagnostics.event(
+                "VIDEO_UPGRADE_REQUEST_SUPPRESSED",
+                sessionId,
+                status = "POST_ANSWER_GUARD",
+            )
+            return
+        }
+        orchestrator.requestVideoUpgrade(sessionId)
     }
 
     private fun acceptVideoUpgrade(intent: Intent) {
@@ -571,10 +586,28 @@ class PulseCallService : Service() {
             stopNetworkMonitoring()
         }
         if (snapshot.state == PulseCallState.ENDED) {
+            if (videoUpgradeGuardSessionId == snapshot.sessionId) {
+                videoUpgradeGuardSessionId = null
+                videoUpgradeNotBeforeElapsedRealtimeMs = 0L
+            }
+            if (videoUpgradeActivationGuardSessionId == snapshot.sessionId) {
+                videoUpgradeActivationGuardSessionId = null
+            }
             stopCallForeground()
             return
         }
         if (snapshot.sessionId == null) return
+
+        if (snapshot.state == PulseCallState.ACTIVE &&
+            videoUpgradeActivationGuardSessionId != snapshot.sessionId
+        ) {
+            // A system answer gesture can be replayed while Compose replaces the incoming
+            // controls with the in-call controls. Prevent it from becoming a camera request.
+            videoUpgradeActivationGuardSessionId = snapshot.sessionId
+            videoUpgradeGuardSessionId = snapshot.sessionId
+            videoUpgradeNotBeforeElapsedRealtimeMs =
+                SystemClock.elapsedRealtime() + VIDEO_UPGRADE_ANSWER_GUARD_MS
+        }
 
         foregroundCallId = snapshot.sessionId
         val displayName = snapshot.displayName ?: foregroundDisplayName ?: return
@@ -948,6 +981,7 @@ class PulseCallService : Service() {
         const val ACTION_ACCEPT_VIDEO_UPGRADE = "com.pulsemessenger.chat.call.v2.ACCEPT_VIDEO_UPGRADE"
         const val ACTION_REJECT_VIDEO_UPGRADE = "com.pulsemessenger.chat.call.v2.REJECT_VIDEO_UPGRADE"
         const val ACTION_SWITCH_CAMERA = "com.pulsemessenger.chat.call.v2.SWITCH_CAMERA"
+        private const val VIDEO_UPGRADE_ANSWER_GUARD_MS = 1_250L
         const val ACTION_RECONCILE_TERMINAL = "com.pulsemessenger.chat.call.v2.RECONCILE_TERMINAL"
         const val ACTION_RECONCILE_TAKEN_ELSEWHERE =
             "com.pulsemessenger.chat.call.v2.RECONCILE_TAKEN_ELSEWHERE"

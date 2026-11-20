@@ -478,19 +478,16 @@ internal fun PulseCallScreen(
                         onClose = onClose,
                         onCallBack = onCallBack,
                     )
-                } else if (state.direction == PulseCallDirection.INCOMING &&
-                    state.callState in setOf(PulseCallState.PREPARING, PulseCallState.RINGING)
-                ) {
-                    IncomingActions(onDecline = onDecline, onAccept = onAccept)
-                } else if (state.mediaType == PulseCallMediaType.AUDIO &&
-                    state.callState == PulseCallState.ACTIVE &&
-                    state.videoUpgradeRequestedByUid == state.peerUid
-                ) {
+                } else if (state.videoUpgradeRequestedByUid == state.peerUid) {
                     VideoUpgradeActions(
                         requesterName = state.displayName,
                         onDecline = onRejectVideoUpgrade,
                         onAccept = onToggleVideo,
                     )
+                } else if (state.direction == PulseCallDirection.INCOMING &&
+                    state.callState in setOf(PulseCallState.PREPARING, PulseCallState.RINGING)
+                ) {
+                    IncomingActions(onDecline = onDecline, onAccept = onAccept)
                 } else {
                     OutgoingActions(
                         isMuted = state.isMuted,

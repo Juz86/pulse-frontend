@@ -245,6 +245,14 @@ export async function sendAndroidE2eeV2Text({
       operationIdForTarget,
     });
   } catch (error) {
+    // Native failures expose only stable protocol codes. Logging them here
+    // lets Android QA distinguish a recoverable session rebuild from a real
+    // device-identity change without exposing message contents or key data.
+    console.warn('[Pulse E2EE] encrypt failed', {
+      code: error?.code || null,
+      detailCode: error?.detailCode || null,
+      nativeCode: error?.cause?.code || null,
+    });
     if (repairedEncryptionFailure || error?.code !== 'e2ee_encrypt_failed') throw error;
     const previousTargets = targets;
     targets = await claimAllTargets({

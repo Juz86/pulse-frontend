@@ -133,6 +133,32 @@ html.pulse-platform-android {
 
 /* Telefoon landscape: compacter, geen clipping bij lage hoogte */
 @media (orientation: landscape) and (max-height: 520px) {
+  /* A phone can have a tablet-wide WebView in landscape. Keep its chat
+     navigation single-pane until the user explicitly returns to the list. */
+  .app-screen { position:relative; overflow:hidden; }
+  .sidebar {
+    width:100%; min-width:100%; max-width:100%;
+    position:absolute; inset:0;
+    height:var(--vvh, 100dvh);
+    z-index:10;
+    transform:translateX(0);
+    transition:transform .25s ease;
+  }
+  .chat-main {
+    width:100%; min-width:100%;
+    flex:0 0 100%;
+    position:absolute; inset:0;
+    height:var(--vvh, 100dvh);
+    z-index:10;
+    transform:translateX(100%);
+    transition:transform .25s ease;
+  }
+  .app-screen:has(.chat-header) .sidebar { transform:translateX(-100%); }
+  .app-screen:has(.chat-header) .chat-main { transform:translateX(0); }
+  .app-screen:has(.chat-header) .sidebar:has(.contact-profile-panel) {
+    z-index:100;
+    transform:translateX(0);
+  }
   .chat-header {
     padding-top: max(6px, env(safe-area-inset-top));
     padding-bottom: 6px;
@@ -4949,8 +4975,9 @@ font-family: 'Inter', sans-serif;
   border-color:#d3a5ff;
   background:linear-gradient(135deg,#cc7cff,#9867ff);
   box-shadow:none;
-  transform:translateY(-1px);
+  transform:none;
 }
+.chat-header-menu-btn:active:not(:disabled) { transform:scale(.96); }
 .chat-header-menu-btn:disabled {
   cursor:not-allowed;
   opacity:.5;

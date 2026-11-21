@@ -16,6 +16,7 @@ import { startBrowserE2eeV2QaRuntime } from '../lib/e2ee/v2/browserQaRuntime';
 import { createBrowserE2eeWorkerClient } from '../lib/e2ee/v2/browserE2eeWorkerClient';
 import { checkE2eeV2PilotEnrollment } from '../lib/e2ee/v2/pilotEnrollment';
 import { createV2ApiClient } from '../lib/e2ee/v2/v2ApiClient';
+import { isRecoverableE2eeBackendFailure } from '../lib/e2ee/v2/backendRecovery';
 import { isNativePulseEnvironment } from '../lib/platform/runtime';
 import { BACKEND_URL, setSocketE2EEDeviceId } from '../services/socket';
 
@@ -27,10 +28,14 @@ const DISABLED_STATE = Object.freeze({
   sendingEnabled: false,
 });
 
+const STARTUP_RETRY_DELAYS_MS = [1_000, 3_000, 7_000];
+
 export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
   const [state, setState] = useState(DISABLED_STATE);
   const [approvalRefresh, setApprovalRefresh] = useState(0);
+  const [startupRetryAttempt, setStartupRetryAttempt] = useState(0);
   const startupPromiseRef = useRef(null);
+  const startupRetryTimerRef = useRef(null);
   const nativeRuntime = isNativePulseEnvironment();
   const pilotRuntime = E2EE_V2_PILOT_ENABLED;
   const qaRuntime = E2EE_V2_QA_ENABLED;
@@ -39,6 +44,10 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
   );
   const runtimeEnabled = (qaRuntime || pilotRuntime) && (nativeRuntime || browserRuntime);
   const groupsEnabled = runtimeEnabled && nativeRuntime && E2EE_V2_GROUPS_ENABLED;
+
+  useEffect(() => {
+    setStartupRetryAttempt(0);
+  }, [user?.uid]);
 
   useEffect(() => {
     if (!runtimeEnabled) {
@@ -50,6 +59,10 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
     let activeBinding = null;
     let browserClient = null;
     let approvalPoll = null;
+    if (startupRetryTimerRef.current) {
+      window.clearTimeout(startupRetryTimerRef.current);
+      startupRetryTimerRef.current = null;
+    }
     const backendUrl = pilotRuntime ? BACKEND_URL : E2EE_V2_QA_BACKEND_URL;
     const api = createV2ApiClient({ baseUrl: backendUrl });
     const assertConfiguration = pilotRuntime
@@ -156,6 +169,21 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
       .catch((error) => {
         browserClient?.close();
         if (active) {
+          if (isRecoverableE2eeBackendFailure(error)
+            && startupRetryAttempt < STARTUP_RETRY_DELAYS_MS.length) {
+            setState({
+              enabled: true,
+              status: 'recovering',
+              binding: null,
+              error: null,
+              sendingEnabled: false,
+            });
+            startupRetryTimerRef.current = window.setTimeout(() => {
+              startupRetryTimerRef.current = null;
+              setStartupRetryAttempt((attempt) => attempt + 1);
+            }, STARTUP_RETRY_DELAYS_MS[startupRetryAttempt]);
+            return;
+          }
           setState({
             enabled: false,
             status: 'failed',
@@ -169,13 +197,26 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
     return () => {
       active = false;
       if (approvalPoll) window.clearInterval(approvalPoll);
+      if (startupRetryTimerRef.current) {
+        window.clearTimeout(startupRetryTimerRef.current);
+        startupRetryTimerRef.current = null;
+      }
       activeBinding?.close?.();
       if (startupPromiseRef.current === startupPromise) startupPromiseRef.current = null;
       setSocketE2EEDeviceId(null);
     };
   // Runtime ownership follows the authenticated user and build target.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [approvalRefresh, browserRuntime, nativeRuntime, pilotRuntime, qaRuntime, runtimeEnabled, user]);
+  }, [
+    approvalRefresh,
+    browserRuntime,
+    nativeRuntime,
+    pilotRuntime,
+    qaRuntime,
+    runtimeEnabled,
+    startupRetryAttempt,
+    user,
+  ]);
 
   const sendText = useCallback((payload) => {
     if (state.status !== 'ready' || !state.binding?.sendText) {

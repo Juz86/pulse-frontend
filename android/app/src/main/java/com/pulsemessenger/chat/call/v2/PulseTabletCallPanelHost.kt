@@ -171,7 +171,19 @@ class PulseTabletCallPanelHost(private val activity: MainActivity) {
             },
             onHangUp = { sendCallAction(PulseCallService.ACTION_DISCONNECT, callId) },
             onToggleMute = { sendCallAction(PulseCallService.ACTION_TOGGLE_MUTE, callId) },
-            onToggleVideo = { sendCallAction(PulseCallService.ACTION_TOGGLE_VIDEO, callId) },
+            onToggleVideo = {
+                when {
+                    uiState.mediaType == PulseCallMediaType.VIDEO -> {
+                        sendCallAction(PulseCallService.ACTION_TOGGLE_VIDEO, callId)
+                    }
+                    uiState.videoUpgradeRequestedByUid == uiState.peerUid -> {
+                        sendCallAction(PulseCallService.ACTION_ACCEPT_VIDEO_UPGRADE, callId)
+                    }
+                    else -> {
+                        sendCallAction(PulseCallService.ACTION_REQUEST_VIDEO_UPGRADE, callId)
+                    }
+                }
+            },
             onSwitchCamera = { sendCallAction(PulseCallService.ACTION_SWITCH_CAMERA, callId) },
             onAudioRouteSelected = { routeId -> sendAudioRouteAction(callId, routeId) },
             onMessage = {

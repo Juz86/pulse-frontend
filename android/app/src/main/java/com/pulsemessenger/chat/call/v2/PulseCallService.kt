@@ -12,9 +12,12 @@ import android.content.pm.ServiceInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.Shader
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
@@ -41,6 +44,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.min
 
 @RequiresApi(Build.VERSION_CODES.O)
 class PulseCallService : Service() {
@@ -740,18 +744,42 @@ class PulseCallService : Service() {
                 while (maxOf(bounds.outWidth, bounds.outHeight) / sampleSize > MAX_AVATAR_DIMENSION) {
                     sampleSize *= 2
                 }
-                BitmapFactory.decodeByteArray(
+                val decoded = BitmapFactory.decodeByteArray(
                     bytes,
                     0,
                     bytes.size,
                     BitmapFactory.Options().apply { inSampleSize = sampleSize },
                 )
+                decoded?.let(::circleCropNotificationAvatar)
             } catch (_: Exception) {
                 null
             } finally {
                 connection.disconnect()
             }
         }
+
+    private fun circleCropNotificationAvatar(source: Bitmap): Bitmap {
+        val sourceSize = min(source.width, source.height)
+        if (sourceSize <= 0) return source
+        val left = (source.width - sourceSize) / 2
+        val top = (source.height - sourceSize) / 2
+        val square = Bitmap.createBitmap(source, left, top, sourceSize, sourceSize)
+        val output = Bitmap.createBitmap(MAX_AVATAR_DIMENSION, MAX_AVATAR_DIMENSION, Bitmap.Config.ARGB_8888)
+        val shader = BitmapShader(square, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP).apply {
+            setLocalMatrix(Matrix().apply {
+                val scale = MAX_AVATAR_DIMENSION.toFloat() / sourceSize
+                setScale(scale, scale)
+            })
+        }
+        Canvas(output).drawCircle(
+            MAX_AVATAR_DIMENSION / 2f,
+            MAX_AVATAR_DIMENSION / 2f,
+            MAX_AVATAR_DIMENSION / 2f,
+            Paint(Paint.ANTI_ALIAS_FLAG).apply { this.shader = shader },
+        )
+        if (square !== source) square.recycle()
+        return output
+    }
 
     private fun stopCallForeground(expectedCallId: String? = null) {
         if (expectedCallId != null && foregroundCallId != expectedCallId) return
@@ -810,7 +838,7 @@ class PulseCallService : Service() {
         val person = Person.Builder()
             .setName(displayName)
             .setImportant(true)
-            .setIcon(IconCompat.createWithBitmap(foregroundAvatar ?: initialsAvatar(displayName)))
+            .setIcon(IconCompat.createWithAdaptiveBitmap(foregroundAvatar ?: initialsAvatar(displayName)))
             .build()
         val useTabletPanel = !isIncomingAlert &&
             PulseTabletCallPanelPolicy.shouldUsePanel(resources.configuration)

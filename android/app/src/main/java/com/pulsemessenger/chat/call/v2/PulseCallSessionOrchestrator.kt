@@ -597,8 +597,14 @@ class PulseCallSessionOrchestrator(
                 start = CoroutineStart.UNDISPATCHED,
             ) {
                 if (!telecom.setActive(session.sessionId)) {
-                    onMediaFailure(session.sessionId, MEDIA_ERROR)
-                    return@launch
+                    // Some Android tablet Telecom implementations reject this transition
+                    // even after they delivered the answer callback. The session is already
+                    // authenticated and accepted, so continue to the media handshake.
+                    PulseCallDiagnostics.event(
+                        "TELECOM_SET_ACTIVE_DEFERRED",
+                        session.sessionId,
+                        direction = coordinator.state.value.direction,
+                    )
                 }
                 startMedia(session, localIdentity.uid)
                 if (becameVideoCall && mediaSessions?.upgradeToVideo(session.sessionId) != true) {

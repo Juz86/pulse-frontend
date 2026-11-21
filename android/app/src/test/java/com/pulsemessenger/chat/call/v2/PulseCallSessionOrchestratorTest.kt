@@ -568,6 +568,33 @@ class PulseCallSessionOrchestratorTest {
     }
 
     @Test
+    fun `accepted incoming call starts media when Telecom defers activation`() = runBlocking {
+        val coordinator = PulseCallCoordinator.createForTests()
+        val signaling = FakeSignaling().apply {
+            snapshotResponse = response(session(PulseServerCallState.RINGING, revision = 2))
+            commandResponses += response(session(PulseServerCallState.CONNECTING, revision = 3))
+        }
+        val engine = FakeMediaEngine()
+        val telecom = FakeTelecom().apply { setActiveSucceeds = false }
+        val subject = subject(
+            coordinator = coordinator,
+            signaling = signaling,
+            telecom = telecom,
+            mediaEngine = engine,
+        )
+
+        assertEquals(
+            PulseCallLaunchResult.STARTED,
+            subject.registerIncoming("session-123", "Test contact"),
+        )
+        telecom.callbacks?.onAnswer("session-123", 0)
+
+        assertEquals(listOf("session-123"), telecom.activatedSessions)
+        assertEquals(PulseMediaRole.ANSWERER, engine.config?.role)
+        assertEquals(PulseCallState.CONNECTING, coordinator.state.value.state)
+    }
+
+    @Test
     fun `microphone foreground rejection fails call before WebRTC capture`() = runBlocking {
         val coordinator = PulseCallCoordinator.createForTests()
         val signaling = FakeSignaling().apply {
@@ -1050,6 +1077,7 @@ class PulseCallSessionOrchestratorTest {
         val activatedSessions = mutableListOf<String>()
         val disconnectedSessions = mutableListOf<String>()
         var dispatchDisconnectCallback = true
+        var setActiveSucceeds = true
         private val lifetime = CompletableDeferred<Unit>()
 
         override fun registerApp() = Unit
@@ -1071,8 +1099,8 @@ class PulseCallSessionOrchestratorTest {
 
         override suspend fun setActive(sessionId: String): Boolean {
             activatedSessions += sessionId
-            callbacks?.onSetActive(sessionId)
-            return true
+            if (setActiveSucceeds) callbacks?.onSetActive(sessionId)
+            return setActiveSucceeds
         }
 
         override suspend fun requestAudioRoute(sessionId: String, routeId: String): Boolean = true

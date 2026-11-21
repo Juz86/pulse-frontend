@@ -30,6 +30,9 @@ def pulseE2eeInternalPlayTest = providers.gradleProperty('pulseE2eeInternalPlayT
 def pulseE2eeGeneralAvailability = providers.gradleProperty('pulseE2eeGeneralAvailability')
     .map { it.toBoolean() }
     .getOrElse(false)
+def pulseUseExistingReleaseWebAssets = providers.gradleProperty('pulseUseExistingReleaseWebAssets')
+    .map { it.toBoolean() }
+    .getOrElse(false)
 def pulseE2eeQaInstance = providers.gradleProperty('pulseE2eeQaInstance')
     .getOrElse('a')
 def pulseE2eeReleaseProvider = pulseE2eePilot || pulseE2eeInternalPlayTest || pulseE2eeGeneralAvailability
@@ -79,8 +82,8 @@ android {
             versionCode 91
             versionName "1.0.35-internal-e2ee"
         } else if (pulseE2eeGeneralAvailability) {
-            versionCode 94
-            versionName "1.0.38-e2ee-general"
+            versionCode 99
+            versionName "1.0.43-e2ee-general"
         }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         // Public half of the signing key only. The private key is a Cloudflare
@@ -128,8 +131,7 @@ android {
                 signingConfig signingConfigs.release
             }
             ndk {
-                // Upload dit symbolenpakket in Play Console voor betere native crash/ANR analyses.
-                debugSymbolLevel 'SYMBOL_TABLE'
+                debugSymbolLevel 'NONE'
             }
             minifyEnabled true
             shrinkResources true
@@ -279,12 +281,14 @@ buildReleaseWebAssets.configure {
     dependsOn verifyE2eePilotReleaseGate
     dependsOn verifyE2eeInternalPlayTestGate
     dependsOn verifyE2eeGeneralAvailabilityGate
+    onlyIf { !pulseUseExistingReleaseWebAssets }
 }
 
 def copyReleaseWebAssets = tasks.register('copyReleaseWebAssets', Exec) {
     dependsOn buildReleaseWebAssets
     workingDir pulseProjectDir
     commandLine file("${pulseProjectDir}/node_modules/.bin/cap"), 'copy', 'android'
+    onlyIf { !pulseUseExistingReleaseWebAssets }
 }
 
 def androidReleasePublicDir = file('src/main/assets/public')

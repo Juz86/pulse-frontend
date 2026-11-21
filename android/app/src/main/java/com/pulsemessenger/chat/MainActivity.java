@@ -26,6 +26,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(PulseCallPlugin.class);
         registerPlugin(PulseE2eeV2Plugin.class);
         registerPlugin(PulseWebUpdatePlugin.class);
+        registerPlugin(PulseNavigationPlugin.class);
         super.onCreate(savedInstanceState);
         tabletCallPanelHost = new PulseTabletCallPanelHost(this);
         tabletCallPanelHost.attach();
@@ -41,6 +42,13 @@ public class MainActivity extends BridgeActivity {
     public void onResume() {
         super.onResume();
         PulseCallUiResumeRouter.restoreActiveCall(this);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void onBackPressed() {
+        if (PulseNavigationPlugin.dispatchBackButton()) return;
+        super.onBackPressed();
     }
 
     @Override

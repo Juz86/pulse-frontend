@@ -29,6 +29,7 @@ import {
   startNativeAudioCall,
   startNativeVideoCall,
 } from '../services/nativeCall';
+import { addNativeChatBackListener, setNativeChatBackEnabled } from '../services/nativeNavigation';
 import { browserCallErrorMessage } from '../services/browserCall';
 import { loadPulseCallHistory } from '../services/callHistory';
 import { clearPulseUserStorage, copyTextToClipboard } from '../utils';
@@ -359,6 +360,26 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
     messageEditingEnabled,
     e2eeV2QaRuntime,
   });
+
+  useEffect(() => {
+    let mounted = true;
+    let listener = null;
+    addNativeChatBackListener(() => {
+      setActiveConv((current) => (current ? null : current));
+    }).then((handle) => {
+      if (mounted) listener = handle;
+      else handle?.remove?.();
+    });
+    return () => {
+      mounted = false;
+      listener?.remove?.();
+      setNativeChatBackEnabled(false);
+    };
+  }, [setActiveConv]);
+
+  useEffect(() => {
+    setNativeChatBackEnabled(Boolean(activeConv?.id));
+  }, [activeConv?.id]);
 
   const callHistoryRefreshKey = useMemo(() => conversations.map((conversation) => (
     [

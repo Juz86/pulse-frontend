@@ -65,13 +65,10 @@ export async function startBrowserE2eeV2QaRuntime({
   const initialized = await client.initialize({ uid: user.uid, ...binding });
   let registration;
   if (existing?.registered && initialized?.bootstrapped) {
-    const serverDevice = registeredDevices.find(device => device?.deviceId === existing.deviceId);
     registration = {
       ...existing,
       identityVersion: existing.identityVersion || 1,
-      status: serverDevice?.status === 'pending_approval'
-        ? 'PENDING_APPROVAL'
-        : 'REGISTERED_CACHED',
+      status: 'REGISTERED_CACHED',
     };
   } else {
     registration = await registerDevice({
@@ -87,8 +84,6 @@ export async function startBrowserE2eeV2QaRuntime({
     }, storage, bindingNamespace);
   }
   bindSocketDevice(registration.deviceId);
-  const approvalPending = registration.status === 'PENDING_APPROVAL';
-
   const messages = createMessageOrchestrator({ client, api, nextUuid: randomUuid });
   try {
     await messages.retryOutbox({ user });
@@ -108,10 +103,8 @@ export async function startBrowserE2eeV2QaRuntime({
 
   return Object.freeze({
     ...registration,
-    approvalPending,
     api,
     async sendText({ conversationId, recipientUserId, plaintext, clientMessageId }) {
-      if (approvalPending) throw new Error('v2_device_approval_pending');
       const result = await messages.sendText({
         user,
         localDeviceId: registration.deviceId,

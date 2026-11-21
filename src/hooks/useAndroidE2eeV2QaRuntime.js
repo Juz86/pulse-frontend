@@ -32,7 +32,6 @@ const STARTUP_RETRY_DELAYS_MS = [1_000, 3_000, 7_000];
 
 export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
   const [state, setState] = useState(DISABLED_STATE);
-  const [approvalRefresh, setApprovalRefresh] = useState(0);
   const [startupRetryAttempt, setStartupRetryAttempt] = useState(0);
   const startupPromiseRef = useRef(null);
   const startupRetryTimerRef = useRef(null);
@@ -58,7 +57,6 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
     let active = true;
     let activeBinding = null;
     let browserClient = null;
-    let approvalPoll = null;
     if (startupRetryTimerRef.current) {
       window.clearTimeout(startupRetryTimerRef.current);
       startupRetryTimerRef.current = null;
@@ -142,26 +140,11 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
         if (active) {
           setState((current) => ({
             enabled: true,
-            status: binding.approvalPending ? 'pending_approval' : 'ready',
+            status: 'ready',
             binding,
-            error: binding.approvalPending
-              ? Object.assign(new Error('v2_device_approval_pending'), { code: 'v2_device_approval_pending' })
-              : null,
-            sendingEnabled: binding.approvalPending
-              ? false
-              : (pilotRuntime ? current.sendingEnabled : true),
+            error: null,
+            sendingEnabled: pilotRuntime ? current.sendingEnabled : true,
           }));
-          if (binding.approvalPending) {
-            approvalPoll = window.setInterval(async () => {
-              try {
-                const devices = await api.listDevices(user);
-                const currentDevice = devices.find(device => device.deviceId === binding.deviceId);
-                if (currentDevice?.status === 'active') setApprovalRefresh(value => value + 1);
-              } catch {
-                // Keep waiting; a temporary backend outage must not erase local keys.
-              }
-            }, 15_000);
-          }
         } else {
           binding.close?.();
         }
@@ -196,7 +179,6 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
 
     return () => {
       active = false;
-      if (approvalPoll) window.clearInterval(approvalPoll);
       if (startupRetryTimerRef.current) {
         window.clearTimeout(startupRetryTimerRef.current);
         startupRetryTimerRef.current = null;
@@ -208,7 +190,6 @@ export default function useAndroidE2eeV2QaRuntime({ user } = {}) {
   // Runtime ownership follows the authenticated user and build target.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    approvalRefresh,
     browserRuntime,
     nativeRuntime,
     pilotRuntime,

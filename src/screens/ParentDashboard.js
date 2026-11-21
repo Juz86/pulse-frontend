@@ -49,9 +49,6 @@ export default function ParentDashboard({
   const [loading,        setLoading]        = useState(true);
   const [activities,     setActivities]     = useState([]);
   const [unreadActivityCount, setUnreadActivityCount] = useState(0);
-  const [pendingDeviceApprovals, setPendingDeviceApprovals] = useState([]);
-  const [deviceApprovalAction, setDeviceApprovalAction] = useState(null);
-  const [deviceApprovalError, setDeviceApprovalError] = useState('');
 
   // Kindaccount aanmaken
   const [childName,      setChildName]      = useState('');
@@ -268,44 +265,6 @@ export default function ParentDashboard({
     } catch (e) { console.warn('[Pulse] Fout:', e.message); }
   }, [activitySeenStorageKey, authFetch]);
 
-  const loadPendingDeviceApprovals = useCallback(async () => {
-    if (!children.length) {
-      setPendingDeviceApprovals([]);
-      return;
-    }
-    const results = await Promise.all(children.map(async (child) => {
-      const response = await authFetch(`${BACKEND}/api/parent/child/${child.uid}/e2ee-devices`);
-      if (!response.ok) return [];
-      const payload = await response.json().catch(() => ({}));
-      return (Array.isArray(payload.devices) ? payload.devices : [])
-        .filter((device) => device.status === 'pending_approval')
-        .map((device) => ({ ...device, childUid: child.uid, childName: child.displayName }));
-    }));
-    setPendingDeviceApprovals(results.flat());
-  }, [authFetch, children]);
-
-  async function resolveDeviceApproval(request, action) {
-    const key = `${request.childUid}:${request.deviceId}`;
-    setDeviceApprovalAction(key);
-    setDeviceApprovalError('');
-    try {
-      const response = await authFetch(
-        `${BACKEND}/api/parent/child/${request.childUid}/e2ee-devices/${request.deviceId}/${action}`,
-        { method: 'POST' },
-      );
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload.error || 'Apparaat bijwerken mislukt.');
-      setPendingDeviceApprovals(current => current.filter((item) => (
-        item.childUid !== request.childUid || item.deviceId !== request.deviceId
-      )));
-      loadActivities();
-    } catch (error) {
-      setDeviceApprovalError(error.message);
-    } finally {
-      setDeviceApprovalAction(null);
-    }
-  }
-
   const loadAnalytics = useCallback(async (childUid) => {
     if (!childUid) { setAnalytics(null); setSelectedChildUid(null); return; }
     setSelectedChildUid(childUid);
@@ -329,7 +288,6 @@ export default function ParentDashboard({
   }, [authFetch]);
 
   useEffect(() => { loadChildren(); loadActivities(); loadCoparentInvitations(); }, [loadChildren, loadActivities, loadCoparentInvitations]);
-  useEffect(() => { loadPendingDeviceApprovals(); }, [loadPendingDeviceApprovals]);
 
   useEffect(() => {
     if (!childDropdownOpen) return;
@@ -604,7 +562,6 @@ export default function ParentDashboard({
     { id: 'children',   icon: <Users     size={16} aria-hidden="true" />, label: 'Mijn kinderen'   },
     { id: 'contacts',   icon: <UserCheck size={16} aria-hidden="true" />, label: 'Contacten'       },
     { id: 'location',   icon: googleMapsTabIcon, label: 'Locatie' },
-    { id: 'devices',    icon: <KeyRound size={16} aria-hidden="true" />, label: 'Apparaten', badge: pendingDeviceApprovals.length || null },
     { id: 'activities', icon: <Activity  size={16} aria-hidden="true" />, label: 'Activiteiten', badge: activityBadgeCount > 0 ? activityTabBadge : null },
   ];
 
@@ -1052,33 +1009,6 @@ export default function ParentDashboard({
                     )}
                   </div>
                 ))}
-              </div>
-            )}
-
-            {activeTab === 'devices' && (
-              <div className="parent-portal-view parent-portal-view--children">
-                <div className="parent-portal-section-header">
-                  <p className="parent-section-sub">Nieuwe apparaten blijven geblokkeerd voor beveiligde berichten en oproepen tot je ze goedkeurt.</p>
-                </div>
-                {deviceApprovalError && <div className="parent-error" role="alert">{deviceApprovalError}</div>}
-                {pendingDeviceApprovals.length === 0 ? (
-                  <div className="parent-portal-empty-state" role="status">Geen apparaten wachten op goedkeuring.</div>
-                ) : pendingDeviceApprovals.map((request) => {
-                  const key = `${request.childUid}:${request.deviceId}`;
-                  const busy = deviceApprovalAction === key;
-                  return (
-                    <div key={key} className="parent-child-row">
-                      <div className="parent-child-copy">
-                        <div className="parent-child-name">Nieuw apparaat voor {request.childName}</div>
-                        <div className="parent-child-username">{request.deviceLabel}</div>
-                      </div>
-                      <div className="pd-child-control-row">
-                        <button type="button" className="parent-btn-outline" disabled={busy} onClick={() => resolveDeviceApproval(request, 'block')}>Blokkeren</button>
-                        <button type="button" className="parent-btn-primary" disabled={busy} onClick={() => resolveDeviceApproval(request, 'approve')}>{busy ? 'Bezig…' : 'Toestaan'}</button>
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             )}
 

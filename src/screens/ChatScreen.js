@@ -782,7 +782,7 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
   const browserCallVisible = browserCall.call?.status === 'call';
 
   return (
-    <div className={`app-screen${browserCallVisible ? ' browser-call-layout-active' : ''}`}>
+    <div className={`app-screen${activeConv ? ' chat-open' : ''}${browserCallVisible ? ' browser-call-layout-active' : ''}`}>
 
       <ChatSidebar
         user={user}

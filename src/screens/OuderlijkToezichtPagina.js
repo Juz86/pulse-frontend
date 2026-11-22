@@ -333,7 +333,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
         </div>
       </section>
 
-      <section className="hp-section" id="dashboard">
+      <section className="hp-section ot-feature-section" id="dashboard">
         <div className="hp-section-inner">
           <SectionRow
             id="kindoverzicht"
@@ -351,7 +351,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
         </div>
       </section>
 
-      <section className="hp-section hp-section--gray">
+      <section className="hp-section hp-section--gray ot-feature-section">
         <div className="hp-section-inner">
           <SectionRow
             id="pauzeren"
@@ -368,7 +368,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
         </div>
       </section>
 
-      <section className="hp-section">
+      <section className="hp-section ot-feature-section">
         <div className="hp-section-inner">
           <SectionRow
             id="activiteiten"
@@ -385,7 +385,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
         </div>
       </section>
 
-      <section className="hp-section hp-section--gray">
+      <section className="hp-section hp-section--gray ot-feature-section">
         <div className="hp-section-inner">
           <SectionRow
             reverse
@@ -401,7 +401,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
         </div>
       </section>
 
-      <section className="hp-section">
+      <section className="hp-section ot-feature-section">
         <div className="hp-section-inner">
           <SectionRow
             mockup={<NotificationMockup />}
@@ -417,7 +417,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
         </div>
       </section>
 
-      <section className="hp-section hp-section--steps" id="stappen">
+      <section className="hp-section hp-section--steps ot-steps-section" id="stappen">
         <div className="hp-section-inner">
           <div className="hp-section-header">
             <h2>In 3 stappen in controle</h2>

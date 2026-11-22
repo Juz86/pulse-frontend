@@ -19778,7 +19778,12 @@ font-family: 'Inter', sans-serif;
 }
 
 .hp-download-options {
-  background:#f5f5f9;
+  background:#fff;
+}
+
+.hp-download-options-inner {
+  padding-top:clamp(36px, 5vw, 64px);
+  border-top:1px solid #ecebf1;
 }
 
 .hp-download-card {
@@ -19942,6 +19947,30 @@ font-family: 'Inter', sans-serif;
 
 .ot-final-cta {
   background:#f5f5f9;
+}
+
+/* Scheiding tussen oudertoezicht-onderdelen, uitgelijnd met de inhoud. */
+.ot-feature-section {
+  padding:0;
+}
+
+.ot-feature-section + .ot-feature-section .hp-section-inner {
+  border-top:1px solid #ecebf1;
+}
+
+.ot-feature-section .hp-feature-row {
+  padding:clamp(36px, 5vw, 64px) 0;
+  border-top:0;
+}
+
+.ot-steps-section {
+  padding:0;
+}
+
+.ot-feature-section + .ot-steps-section .hp-section-inner {
+  padding-top:clamp(36px, 5vw, 64px);
+  padding-bottom:clamp(36px, 5vw, 64px);
+  border-top:1px solid #ecebf1;
 }
 
 /* Functionele marketingpagina's. */

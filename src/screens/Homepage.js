@@ -29,28 +29,28 @@ const downloadOptionCards = [
   },
   {
     title: 'iPhone/iPad',
-    description: 'Chat veilig met familie en vrienden via de iPhone- en iPad-app.',
+    description: 'Chat, bel en videobel veilig met familie en vrienden via de iPhone- en iPad-app.',
     ctaLabel: 'Binnenkort beschikbaar',
     icon: AppleIcon,
     iconClassName: 'hp-download-card-icon--ios',
   },
   {
     title: 'Mobiel/tablet',
-    description: 'Chat veilig met familie en vrienden via de Android-app.',
+    description: 'Chat, bel en videobel veilig met familie en vrienden via de Android-app.',
     ctaLabel: 'Binnenkort beschikbaar',
     icon: AndroidIcon,
     iconClassName: 'hp-download-card-icon--android',
   },
   {
     title: 'Windows',
-    description: 'Chat veilig met familie en vrienden via de Windows-app.',
+    description: 'Chat, bel en videobel veilig met familie en vrienden via de Windows-app.',
     ctaLabel: 'Binnenkort beschikbaar',
     icon: WindowsIcon,
     iconClassName: 'hp-download-card-icon--desktop',
   },
   {
     title: 'Mac',
-    description: 'Chat veilig met familie en vrienden via de Mac-app.',
+    description: 'Chat, bel en videobel veilig met familie en vrienden via de Mac-app.',
     ctaLabel: 'Binnenkort beschikbaar',
     icon: AppleIcon,
     iconClassName: 'hp-download-card-icon--mac',
@@ -230,14 +230,14 @@ export default function Homepage({ onParentClick }) {
           <div className="hp-hero-text">
             <ul className="hp-hero-features hp-hero-features--lead" aria-label="Belangrijkste voordelen">
               <li className="hp-hero-feature"><span aria-hidden="true"><Shield size={16} /></span> Versleuteld &amp; privé</li>
-              <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Veilig chatten</li>
+              <li className="hp-hero-feature"><span aria-hidden="true"><PhoneIcon size={16} /></span> Veilig chatten, bellen en videobellen</li>
               <li className="hp-hero-feature"><span aria-hidden="true"><Users size={16} /></span> Ouderlijk toezicht</li>
             </ul>
             <h1 id="homepage-hero-title" className="hp-hero-title">
               Veilig chatten<br className="hp-hero-title-break" /> voor elk kind
             </h1>
             <p className="hp-hero-sub">
-            Met Pulse kunnen kinderen zonder telefoonnummer en e-mailadres veilig chatten. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
+            Met Pulse kunnen kinderen zonder telefoonnummer en e-mailadres veilig chatten, bellen en videobellen. In contact met wie echt telt, volledig onder ouderlijk toezicht.            </p>
             <div className="hp-hero-cta-row">
               <button type="button" className="hp-cta-btn" onClick={openParentSignup}>
                 Start met Pulse
@@ -302,8 +302,8 @@ export default function Homepage({ onParentClick }) {
             </div>
             <div className="hp-feature-text">
               <div className="hp-feature-tag">Communicatie</div>
-              <h2 id="homepage-feature-communication">Veilig chatten in de app</h2>
-              <p>Blijf veilig verbonden met familie en vrienden in de Pulse app. Chatten zonder telefoonnummer, foto’s, gifs of algoritmes. Pulse is pure communicatie.
+              <h2 id="homepage-feature-communication">Veilig chatten, bellen en videobellen in de app</h2>
+              <p>Blijf veilig verbonden met familie en vrienden in de Pulse app. Chatten, bellen en videobellen zonder telefoonnummer, foto’s, gifs of algoritmes. Pulse is pure communicatie.
               </p>
               <a href="/functies#chatten" className="hp-read-more-btn" aria-label="Lees meer over veilig chatten">
                 Lees meer <span aria-hidden="true">→</span>

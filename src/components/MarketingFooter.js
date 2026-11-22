@@ -21,7 +21,8 @@ export default function MarketingFooter() {
           <nav className="hp-footer-col" aria-labelledby="footer-features-title">
             <h4 id="footer-features-title">Functies</h4>
             <ul className="hp-footer-list">
-              <li><a href="/functies#chatten">Chatten</a></li>
+              <li><a href="/hoe-werkt-het#hoe-werkt-pulse">Hoe werkt het?</a></li>
+              <li><a href="/functies#chatten">Chatten, bellen en video</a></li>
               <li><a href="/ouderlijk-toezicht#dashboard">Ouderlijk toezicht</a></li>
             </ul>
           </nav>
@@ -30,7 +31,6 @@ export default function MarketingFooter() {
             <ul className="hp-footer-list">
               <li><a href="/over-pulse">Pulse</a></li>
               <li><a href="/privacy-first">Privacy-First</a></li>
-              <li><a href="/hoe-werkt-het#hoe-werkt-pulse">Hoe werkt het</a></li>
               <li><a href="/contact">Contact</a></li>
             </ul>
           </nav>

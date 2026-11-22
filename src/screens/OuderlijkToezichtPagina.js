@@ -354,6 +354,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
       <section className="hp-section hp-section--gray">
         <div className="hp-section-inner">
           <SectionRow
+            id="pauzeren"
             reverse
             mockup={<PauseMockup />}
             title="Pauzeer per functie"
@@ -370,6 +371,7 @@ export default function OuderlijkToezichtPagina({ onParentClick }) {
       <section className="hp-section">
         <div className="hp-section-inner">
           <SectionRow
+            id="activiteiten"
             mockup={<ActivityMockup />}
             title="Weet wat je kind doet"
             text="Het activiteitenlog toont alle vriendschapsverzoeken die je kind verstuurt en ontvangt. Jij blijft altijd op de hoogte."

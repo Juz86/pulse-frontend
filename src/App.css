@@ -15266,6 +15266,471 @@ font-family: 'Inter', sans-serif;
   min-height: 340px;
 }
 
+/* Alleen de chatlijst in de functies-hero volgt de huidige lichte appstijl. */
+.fp-hero-chat-phone {
+  background: #ffffff !important;
+  border-color: #d9d4f4 !important;
+  box-shadow: 0 20px 44px rgba(49, 46, 101, 0.16) !important;
+}
+.fp-hero-chat-phone .hp-phone-notch { background: #312e65; }
+.fp-hero-chat-phone .fp-phone-screen {
+  background: #ffffff !important;
+  color: #312e65;
+}
+.fp-hero-chat-topbar,
+.fp-hero-chat-footer,
+.fp-hero-chat-row,
+.fp-hero-chat-tabs,
+.fp-hero-chat-search,
+.fp-hero-chat-filters {
+  display: flex;
+  align-items: center;
+}
+.fp-hero-chat-topbar {
+  gap: 6px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid #eceaf5;
+}
+.fp-hero-chat-topbar-actions {
+  display: flex;
+  gap: 7px;
+  margin-left: auto;
+  color: #777391;
+}
+.fp-hero-chat-search {
+  gap: 6px;
+  margin: 6px 0;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: #f3f1fb;
+  color: #8a86a4;
+  font-size: 10px;
+}
+.fp-hero-chat-tabs {
+  padding: 2px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  background: #f0eef8;
+}
+.fp-hero-chat-tab {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 0;
+  border-radius: 7px;
+  color: #85819e;
+  font-size: 9px;
+}
+.fp-hero-chat-tab--active { background: #7c3aed; color: #fff; font-weight: 700; }
+.fp-hero-chat-filters { gap: 4px; margin-bottom: 8px; }
+.fp-hero-chat-filter {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #f1eff9;
+  color: #777391;
+  font-size: 8px;
+  font-weight: 600;
+}
+.fp-hero-chat-filter--active { background: #7c3aed; color: #fff; }
+.fp-hero-chat-row {
+  gap: 7px;
+  padding: 5px 0;
+  border-bottom: 1px solid #f0eff5;
+}
+.fp-hero-chat-contact { flex: 1; min-width: 0; }
+.fp-hero-chat-name,
+.fp-hero-chat-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fp-hero-chat-name { color: #2d2a4c; font-size: 10px; font-weight: 700; }
+.fp-hero-chat-preview { color: #87839d; font-size: 9px; }
+.fp-hero-chat-unread {
+  display: flex;
+  width: 14px;
+  height: 14px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+}
+.fp-hero-chat-spacer { height: 8px; }
+.fp-hero-chat-footer {
+  gap: 6px;
+  padding-top: 8px;
+  margin-top: 4px;
+  border-top: 1px solid #eceaf5;
+}
+.fp-hero-chat-online { color: #20ad69; font-size: 9px; font-weight: 600; }
+.fp-hero-chat-footer-button {
+  display: flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #f0eef8;
+  color: #726d91;
+  flex-shrink: 0;
+}
+
+/* Chatlijst-uitvoering gebaseerd op de huidige Pulse-app. */
+.fp-hero-chat-phone { width: 274px !important; }
+.fp-hero-chat-phone .fp-phone-screen { gap: 0; padding: 12px 10px 8px; }
+.fp-hero-chat-topbar { min-height: 42px; padding-bottom: 10px; }
+.fp-hero-chat-topbar-actions { gap: 7px; }
+.fp-hero-chat-topbar-action {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e3e0ed;
+  border-radius: 50%;
+  background: #f8f7fc;
+  color: #322f54;
+}
+.fp-hero-chat-topbar-action--active { background: #8b52f7; border-color: #8b52f7; color: #fff; }
+.fp-hero-chat-filters { gap: 5px; padding: 9px 0 10px; margin: 0; overflow: hidden; }
+.fp-hero-chat-filter { padding: 4px 9px; border: 1px solid #dfd9ef; background: #fff; color: #514d68; font-size: 8px; }
+.fp-hero-chat-filter--active { border-color: #7c3aed; background: #f6f2ff; color: #5b2fc5; }
+.fp-hero-chat-list { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+.fp-hero-chat-row { min-height: 41px; gap: 8px; padding: 5px 0; border-bottom: 0; }
+.fp-hero-chat-name { font-size: 11px; }
+.fp-hero-chat-preview { display: flex; align-items: center; gap: 3px; font-size: 9px; }
+.fp-hero-chat-preview svg { color: #37ba77; flex: 0 0 auto; }
+.fp-hero-chat-time { align-self: flex-start; padding-top: 2px; color: #9c98af; font-size: 8px; white-space: nowrap; }
+.fp-hero-chat-meta {
+  display: flex;
+  min-width: 23px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.fp-hero-chat-meta .fp-hero-chat-unread {
+  width: 13px;
+  height: 13px;
+  font-size: 7px;
+}
+.fp-hero-chat-footer {
+  justify-content: space-between;
+  gap: 2px;
+  padding: 7px 3px 0;
+  margin: auto -2px 0;
+  border: 0;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 -5px 18px rgba(55, 42, 103, 0.09);
+}
+.fp-hero-chat-footer > span {
+  display: flex;
+  width: 39px;
+  min-height: 38px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 17px;
+  color: #302c52;
+}
+.fp-hero-chat-footer small { font-size: 6px; font-weight: 700; line-height: 1; }
+.fp-hero-chat-footer-active { background: #ebe8f2; }
+.fp-hero-chat-footer-add strong {
+  display: flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #9754f8;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* Groepsgesprek in de functieslider, in dezelfde lichte appstijl. */
+.fp-group-chat-phone {
+  background: #fff !important;
+  border-color: #d9d4f4 !important;
+  box-shadow: 0 20px 44px rgba(49, 46, 101, 0.16) !important;
+}
+.fp-group-chat-phone .hp-phone-notch { background: #312e65; }
+.fp-group-chat-phone .fp-phone-screen {
+  min-height: 342px;
+  gap: 0;
+  padding: 11px 10px 9px;
+  background: #fbfaff !important;
+  color: #2d2a4c;
+}
+.fp-group-chat-header {
+  display: flex;
+  min-height: 35px;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eceaf5;
+}
+.fp-group-chat-back {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f1eff8;
+  color: #514d6d;
+  font-size: 12px;
+}
+.fp-group-chat-title { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.fp-group-chat-title strong { overflow: hidden; color: #292543; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.fp-group-chat-title span { color: #8c88a1; font-size: 8px; }
+.fp-group-chat-call,
+.fp-group-chat-video {
+  display: inline-flex;
+  width: 23px;
+  height: 23px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #fff;
+}
+.fp-group-chat-call { background: #2fc779; }
+.fp-group-chat-video { background: #8a52f7; }
+.fp-group-chat-messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 14px 0 8px;
+}
+.fp-group-chat-message {
+  max-width: 80%;
+  padding: 7px 8px;
+  border-radius: 8px;
+  background: #f0edfb;
+  color: #3e3a57;
+  font-size: 9px;
+  line-height: 1.35;
+}
+.fp-group-chat-message strong { display: block; margin-bottom: 2px; color: #7250cf; font-size: 8px; }
+.fp-group-chat-message--second strong { color: #16a96b; }
+.fp-group-chat-message--out {
+  align-self: flex-end;
+  background: #e8dbff;
+  color: #40305f;
+}
+.fp-group-chat-message--out span { color: #8055e0; font-weight: 700; }
+.fp-group-chat-message--out svg { margin-left: 3px; color: #7d5ee4; vertical-align: middle; }
+.fp-group-chat-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 29px;
+  padding: 4px 5px 4px 8px;
+  border: 1px solid #e8e5f0;
+  border-radius: 16px;
+  background: #fff;
+  color: #9691a9;
+  font-size: 8px;
+}
+.fp-group-chat-input span { flex: 1; }
+.fp-group-chat-input b {
+  display: inline-flex;
+  width: 21px;
+  height: 21px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #8a52f7;
+  color: #fff;
+}
+
+/* Berichtenbeheer in de functieslider, afgestemd op de actuele chatweergave. */
+.fp-manage-chat-phone {
+  background: #fff !important;
+  border-color: #d9d4f4 !important;
+  box-shadow: 0 20px 44px rgba(49, 46, 101, 0.16) !important;
+}
+.fp-manage-chat-phone .hp-phone-notch { background: #312e65; }
+.fp-manage-chat-phone .fp-phone-screen {
+  min-height: 342px;
+  gap: 0;
+  padding: 11px 10px 9px;
+  background: #fbfaff !important;
+  color: #2d2a4c;
+}
+.fp-manage-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eceaf5;
+}
+.fp-manage-chat-back {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f1eff8;
+  color: #514d6d;
+  font-size: 12px;
+}
+.fp-manage-chat-title { display: flex; flex: 1; min-width: 0; flex-direction: column; }
+.fp-manage-chat-title strong { color: #292543; font-size: 10px; }
+.fp-manage-chat-title span { color: #25ad6b; font-size: 8px; }
+.fp-manage-chat-action {
+  display: inline-flex;
+  width: 23px;
+  height: 23px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #8a52f7;
+  color: #fff;
+}
+.fp-manage-chat-action--video { background: #a15cf8; }
+.fp-manage-chat-messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 15px 0 8px;
+}
+.fp-manage-message {
+  max-width: 81%;
+  padding: 7px 8px;
+  border-radius: 9px;
+  color: #403b58;
+  font-size: 9px;
+  line-height: 1.35;
+}
+.fp-manage-message--in { background: #f0edfa; }
+.fp-manage-message--out { align-self: flex-end; background: #e8dbff; }
+.fp-manage-message--out svg { margin-left: 2px; color: #f2b632; vertical-align: middle; }
+.fp-manage-message--pinned { display: flex; align-items: center; gap: 4px; border-left: 2px solid #8a52f7; }
+.fp-manage-message--pinned svg { margin-left: 0; color: #8055e0; }
+.fp-manage-message--removed {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #f5f3f9;
+  color: #918ca2;
+  font-size: 8px;
+  font-style: italic;
+}
+.fp-manage-chat-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 2px 1px;
+  border-top: 1px solid #eceaf5;
+  color: #9691a9;
+  font-size: 8px;
+}
+.fp-manage-chat-input span { flex: 1; }
+
+/* Persoonlijke achtergrond in de functieslider, binnen de lichte chatinterface. */
+.fp-bg-chat-phone {
+  background: #fff !important;
+  border-color: #d9d4f4 !important;
+  box-shadow: 0 20px 44px rgba(49, 46, 101, 0.16) !important;
+}
+.fp-bg-chat-phone .hp-phone-notch { background: #312e65; }
+.fp-bg-chat-phone .fp-phone-screen {
+  min-height: 342px;
+  gap: 0;
+  padding: 11px 10px 9px;
+  background: #fbfaff !important;
+  color: #2d2a4c;
+}
+.fp-bg-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eceaf5;
+}
+.fp-bg-chat-back {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f1eff8;
+  color: #514d6d;
+  font-size: 12px;
+}
+.fp-bg-chat-title { display: flex; flex: 1; min-width: 0; flex-direction: column; }
+.fp-bg-chat-title strong { color: #292543; font-size: 10px; }
+.fp-bg-chat-title span { color: #25ad6b; font-size: 8px; }
+.fp-bg-chat-action {
+  display: inline-flex;
+  width: 23px;
+  height: 23px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #8a52f7;
+  color: #fff;
+}
+.fp-bg-chat-action--video { background: #a15cf8; }
+.fp-bg-chat-canvas {
+  display: flex;
+  position: relative;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 7px 0;
+  padding: 12px 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #eee8fb;
+}
+.fp-bg-chat-message {
+  position: relative;
+  z-index: 1;
+  max-width: 80%;
+  padding: 7px 8px;
+  border-radius: 9px;
+  color: #403b58;
+  font-size: 9px;
+}
+.fp-bg-chat-message--in { background: #fff; }
+.fp-bg-chat-message--out { align-self: flex-end; background: #d8c4ff; }
+.fp-bg-chat-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 29px;
+  padding: 4px 5px 4px 8px;
+  border: 1px solid #e8e5f0;
+  border-radius: 16px;
+  background: #fff;
+  color: #9691a9;
+  font-size: 8px;
+}
+.fp-bg-chat-input span { flex: 1; }
+.fp-bg-chat-input b {
+  display: inline-flex;
+  width: 21px;
+  height: 21px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #8a52f7;
+  color: #fff;
+}
+
 /* Footer icon knoppen in mockup */
 .fp-footer-icon-btn {
   width: 26px; height: 26px; border-radius: 8px;
@@ -19371,6 +19836,240 @@ font-family: 'Inter', sans-serif;
   font-size:14px;
 }
 
+/* Alle publieke headers gebruiken dezelfde lichte basis als de homepage. */
+.ot-hero,
+.op-hero,
+.legal-hero,
+.contact-hero-section {
+  background:#fcfbff;
+}
+
+.ot-hero-title,
+.ot-hero-title--marketing {
+  color:#1c1a33;
+}
+
+.ot-hero-sub {
+  color:#5f6780;
+}
+
+.op-hero .op-feature-strip {
+  background:#fff;
+  border-color:#dedde6;
+  box-shadow:none;
+  backdrop-filter:none;
+}
+
+.op-hero .op-strip-header { color:#74718a; }
+.op-hero .op-strip-item { color:#34314d; }
+.op-hero .op-strip-item strong { color:#24243e; }
+.op-hero .op-strip-item span { color:#6d7084; }
+.op-hero .op-strip-icon {
+  background:#f0edff;
+  border-color:#d9d1ff;
+  color:#6c63ff;
+}
+.op-hero .op-strip-divider,
+.op-hero .op-strip-footer { border-color:#ecebf2; background:#ecebf2; }
+.op-hero .op-strip-footer { background:transparent; }
+.op-hero .op-strip-footer span { color:#6d7084; }
+
+.contact-cta-btn-login.hp-cta-btn {
+  background:#fff;
+  border:1.5px solid #c7c4df;
+  color:#4f46d8;
+  box-shadow:none;
+}
+
+.contact-cta-btn-login.hp-cta-btn:hover {
+  background:#f3f2ff;
+  color:#4f46d8;
+  box-shadow:none;
+}
+
+.ot-hero-title,
+.fp-hero-title,
+.ot-copy h2,
+.hw-copy h2,
+.pf-section-title {
+  letter-spacing:0;
+}
+
+.ot-dashboard-card,
+.ot-activity-card,
+.ot-stats-card,
+.op-feature-strip,
+.pf-settings-mockup {
+  border-radius:8px;
+  box-shadow:none;
+  backdrop-filter:none;
+}
+
+.ot-child-card,
+.ot-stat-card,
+.pf-settings-panel,
+.pf-settings-select,
+.pf-settings-save {
+  border-radius:8px;
+  box-shadow:none;
+}
+
+.pf-settings-mockup,
+.pf-settings-panel,
+.pf-settings-select {
+  background:#302957;
+}
+
+.pf-settings-save {
+  background:#6c63ff;
+}
+
+.fp-slider-tab:hover,
+.fp-slider-arrow:hover,
+.fp-grid-card:hover {
+  box-shadow:none;
+  transform:none;
+}
+
+.fp-section-header,
+.fp-feature-row,
+.ot-row,
+.hw-row {
+  opacity:1;
+  transform:none;
+  transition:none;
+}
+
+.ot-final-cta {
+  background:#f5f5f9;
+}
+
+/* Functionele marketingpagina's. */
+.contact-info-card,
+.contact-form-card {
+  background:#fff;
+  border-color:#dedde6;
+  border-radius:8px;
+  box-shadow:none;
+}
+
+.contact-brand-name,
+.contact-feature-label,
+.contact-email-link,
+.contact-form-title,
+.contact-success-title {
+  color:#24243e;
+}
+
+.contact-brand-intro,
+.contact-feature-sub,
+.contact-email-eyebrow,
+.contact-label,
+.contact-form-intro,
+.contact-success-text,
+.contact-badge-desktop-label,
+.contact-badge-mobile-label {
+  color:#666981;
+}
+
+.contact-feature-item,
+.contact-email-row,
+.contact-input,
+.contact-dropdown-menu {
+  background:#f8f8fb;
+  border-color:#dedde6;
+  border-radius:8px;
+  color:#24243e;
+}
+
+.contact-input::placeholder,
+.contact-dropdown-trigger--placeholder {
+  color:#777a8c;
+}
+
+.contact-info-card .contact-badge-dot--inactive {
+  background:#d9d9e2;
+}
+
+.sitemap-grid {
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  column-gap:48px;
+}
+
+.sitemap-grid--secondary {
+  margin-top:8px;
+}
+
+.sitemap-section {
+  border-bottom:1px solid #dedde6;
+  padding-bottom:32px;
+  margin-bottom:32px;
+}
+
+.sitemap-section-title {
+  color:#5148c8;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:0;
+  margin-bottom:16px;
+  text-transform:uppercase;
+}
+
+.sitemap-links {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  list-style:none;
+  padding:0;
+}
+
+.sitemap-link {
+  align-items:center;
+  color:#4f46d8;
+  display:inline-flex;
+  font-size:16px;
+  font-weight:500;
+  gap:8px;
+  text-decoration:none;
+}
+
+.sitemap-link:hover {
+  color:#24243e;
+}
+
+.sitemap-link-marker {
+  background:#6c63ff;
+  border-radius:50%;
+  flex:0 0 6px;
+  height:6px;
+  opacity:.5;
+  width:6px;
+}
+
+/* Juridische documenten blijven sober en scanbaar. */
+.legal-root {
+  background:#f8f8fb;
+}
+
+.legal-hero-title,
+.legal-section h2,
+.legal-subsection h2,
+.legal-card h2 {
+  letter-spacing:0;
+}
+
+.legal-section {
+  border-top-color:#dedde6;
+}
+
+.legal-card {
+  background:#fff;
+  border-color:#dedde6;
+  border-radius:8px;
+  box-shadow:none;
+}
+
 @media (max-width:768px) {
   .hp-hero {
     min-height:auto;
@@ -19385,5 +20084,18 @@ font-family: 'Inter', sans-serif;
   .hp-hero-video-frame,
   .hp-download-card {
     border-radius:8px;
+  }
+
+  .sitemap-grid {
+    grid-template-columns:1fr;
+  }
+
+  .sitemap-grid--secondary {
+    margin-top:0;
+  }
+
+  .sitemap-section {
+    margin-bottom:24px;
+    padding-bottom:24px;
   }
 }

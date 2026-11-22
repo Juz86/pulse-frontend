@@ -21,7 +21,7 @@ const splashFallback = (
 );
 
 export default function LandingApp() {
-  const pathname = window.location.pathname;
+  const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
 
   const routes = {
     '/': Homepage,

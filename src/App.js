@@ -231,7 +231,7 @@ function WebAppLoginShell({ activeTab = 'child', onTabChange, parentDefaultTab =
 }
 
 export default function App() {
-  const pathname = window.location.pathname;
+  const pathname = window.location.pathname.replace(/\/+$/, '') || '/';
 
   // Wachtwoord reset via Firebase link
   const urlParams = new URLSearchParams(window.location.search);

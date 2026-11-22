@@ -13,8 +13,8 @@ import {
   Message, Users, User, Search, Bell,
   Pin, StarFilled, CheckDouble,
   Forward, Reply, ImageIcon, Palette,
-  Clock, Logout, Login,
-  AtSign, Lightbulb, Send, Smartphone,
+  Clock, Login,
+  AtSign, Send, Smartphone,
 } from '../components/Icons';
 
 function makeAdventurerAvatar(options) {
@@ -125,9 +125,9 @@ function useFadeIn() {
 }
 
 // ── Phone frame ──────────────────────────────────────────────────────────────
-function PhoneMockup({ children, tall, style }) {
+function PhoneMockup({ children, tall, style, className = '' }) {
   return (
-    <div className={`hp-phone fp-phone${tall ? ' fp-phone--tall' : ''}`} style={style}>
+    <div className={`hp-phone fp-phone${tall ? ' fp-phone--tall' : ''} ${className}`.trim()} style={style}>
       <div className="hp-phone-notch" />
       <div className="hp-phone-screen fp-phone-screen">
         {children}
@@ -137,7 +137,7 @@ function PhoneMockup({ children, tall, style }) {
 }
 
 // ── Avatar helper ────────────────────────────────────────────────────────────
-function MockAvatar({ letter, gradient = 'linear-gradient(135deg,#7c3aed,#a78bfa)', size = 28, online }) {
+function MockAvatar({ letter, gradient = 'linear-gradient(135deg,#7c3aed,#a78bfa)', size = 28, online, ringColor = '#1a1830' }) {
   return (
     <div style={{ position: 'relative', flexShrink: 0 }}>
       <div style={{
@@ -151,108 +151,60 @@ function MockAvatar({ letter, gradient = 'linear-gradient(135deg,#7c3aed,#a78bfa
           position: 'absolute', bottom: 0, right: 0,
           width: size * 0.34, height: size * 0.34,
           borderRadius: '50%', background: '#22c55e',
-          border: '1.5px solid #1a1830',
+          border: `1.5px solid ${ringColor}`,
         }} />
       )}
     </div>
   );
 }
 
-// ── Gedeelde chat-header (terug + avatar + naam + bel/video/zoek knoppen) ────
-function ChatHeader({ letter, name, gradient = 'linear-gradient(135deg,#7c3aed,#a78bfa)', online, isGroup }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
-      {/* Terug */}
-      <div style={{ width: 22, height: 22, borderRadius: 7, background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }}>←</span>
-      </div>
-      {/* Avatar */}
-      <MockAvatar letter={letter} gradient={gradient} size={26} online={online} />
-      {/* Naam */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</div>
-        {online && !isGroup && <div style={{ fontSize: 8, color: '#22c55e' }}>Online</div>}
-        {isGroup && <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)' }}>Groep</div>}
-      </div>
-      {/* Actieknoppen */}
-      <div style={{ width: 24, height: 24, borderRadius: 8, background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <Phone size={12} color="#fff" />
-      </div>
-      <div style={{ width: 24, height: 24, borderRadius: 8, background: '#3730a3', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <Video size={12} color="#fff" />
-      </div>
-      <div style={{ width: 24, height: 24, borderRadius: 8, background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-        <Search size={12} color="rgba(255,255,255,0.6)" />
-      </div>
-    </div>
-  );
-}
-
 // ── Mockup 1: Sidebar (hoofd chatscherm) ─────────────────────────────────────
 function SidebarMockup() {
+  const chats = [
+    { letter: 'N', name: 'Nova', sub: 'Geen antwoord', time: 'Gisteren', gradient: 'linear-gradient(135deg,#fed7df,#f7b267)', online: true },
+    { letter: 'R', name: 'Ravi', sub: 'Ik stuur je later een foto', time: '22 aug', gradient: 'linear-gradient(135deg,#f4d35e,#8b5cf6)', unread: 2 },
+    { letter: 'M', name: 'Mira', sub: 'Dat klinkt goed!', time: '4 aug', gradient: 'linear-gradient(135deg,#8b5cf6,#ec4899)' },
+    { letter: 'S', name: 'Sami', sub: 'Tot vanmiddag', time: '3 aug', gradient: 'linear-gradient(135deg,#8b5cf6,#ec4899)', unread: 1 },
+    { letter: 'W', name: 'Weekendclub', sub: 'Robin: Ik neem snacks mee', time: '1 aug', gradient: 'linear-gradient(135deg,#8b5cf6,#ec4899)', unread: 3 },
+    { letter: 'T', name: 'Thuisgroep', sub: 'Noa: Eten staat klaar', time: '21 jul', gradient: 'linear-gradient(135deg,#8b5cf6,#ec4899)' },
+  ];
+
   return (
-    <PhoneMockup tall style={{ width: 240 }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <PulseLogo size={16} textSize={12} color="#fff" />
-        <div style={{ marginLeft: 'auto', display: 'flex', gap: 7 }}>
-          <Message size={14} color="rgba(255,255,255,0.5)" />
-          <Phone size={14} color="rgba(255,255,255,0.5)" />
-          <Users size={14} color="rgba(255,255,255,0.5)" />
-          <Bell size={14} color="rgba(255,255,255,0.5)" />
+    <PhoneMockup tall className="fp-hero-chat-phone" style={{ width: 240 }}>
+      <div className="fp-hero-chat-topbar">
+        <PulseLogo size={20} textSize={18} color="#312e65" />
+        <div className="fp-hero-chat-topbar-actions">
+          <span className="fp-hero-chat-topbar-action fp-hero-chat-topbar-action--active"><Message size={14} /></span>
+          <span className="fp-hero-chat-topbar-action"><Users size={14} /></span>
+          <span className="fp-hero-chat-topbar-action"><Search size={14} /></span>
         </div>
       </div>
-      {/* Zoekbalk */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '5px 8px', margin: '6px 0' }}>
-        <Search size={11} color="rgba(255,255,255,0.3)" />
-        <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)' }}>Zoeken…</span>
-      </div>
-      {/* Tabs */}
-      <div style={{ display: 'flex', borderRadius: 10, background: 'rgba(255,255,255,0.06)', padding: 2, marginBottom: 6 }}>
-        <div style={{ flex: 1, textAlign: 'center', padding: '4px 0', borderRadius: 8, background: '#7c3aed', fontSize: 9, fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-          <Message size={10} color="#fff" />Chats
-        </div>
-        <div style={{ flex: 1, textAlign: 'center', padding: '4px 0', fontSize: 9, color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-          <Users size={10} color="rgba(255,255,255,0.4)" />Contacten
-        </div>
-      </div>
-      {/* Filter pills */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
-        {['Alles', 'Familie', 'Vrienden', 'Groepen'].map((f, i) => (
-          <div key={f} style={{
-            padding: '2px 7px', borderRadius: 20, fontSize: 8, fontWeight: 600,
-            background: i === 0 ? '#7c3aed' : 'rgba(255,255,255,0.07)',
-            color: i === 0 ? '#fff' : 'rgba(255,255,255,0.5)',
-          }}>{f}</div>
+      <div className="fp-hero-chat-filters">
+        {['Alles', 'Familie', 'Vrienden', 'Groepen 2'].map((f, i) => (
+          <div key={f} className={`fp-hero-chat-filter${i === 0 ? ' fp-hero-chat-filter--active' : ''}`}>{f}</div>
         ))}
       </div>
-      {/* Contact rij */}
-      {[
-        { letter: 'Y', name: 'Yousef', sub: 'Tot straks!', gradient: 'linear-gradient(135deg,#ec4899,#8b5cf6)', online: true, unread: null },
-        { letter: 'S', name: 'Sara', sub: 'Goedemorgen! ☀️', gradient: 'linear-gradient(135deg,#7c3aed,#a78bfa)', online: true, unread: 2 },
-        { letter: 'GR', name: 'Groep Familie', sub: 'Papa: Wij zijn er!', gradient: 'linear-gradient(135deg,#059669,#34d399)', online: false, unread: null },
-      ].map(c => (
-        <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-          <MockAvatar letter={c.letter} gradient={c.gradient} size={28} online={c.online} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.name}</div>
-            <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.sub}</div>
+      <div className="fp-hero-chat-list">
+      {chats.map(c => (
+        <div key={c.name} className="fp-hero-chat-row">
+          <MockAvatar letter={c.letter} gradient={c.gradient} size={28} online={c.online} ringColor="#fff" />
+          <div className="fp-hero-chat-contact">
+            <div className="fp-hero-chat-name">{c.name}</div>
+            <div className="fp-hero-chat-preview">{c.name === 'Nova' && <Phone size={8} />} {c.sub}</div>
           </div>
-          {c.unread && (
-            <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#7c3aed', color: '#fff', fontSize: 8, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{c.unread}</div>
-          )}
+          <div className="fp-hero-chat-meta">
+            <span className="fp-hero-chat-time">{c.time}</span>
+            {c.unread && <span className="fp-hero-chat-unread">{c.unread}</span>}
+          </div>
         </div>
       ))}
-      <div style={{ height: 8 }} />
-      {/* Footer met gebruiker + knoppen */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 8, marginTop: 4 }}>
-        <MockAvatar letter="K" gradient="linear-gradient(135deg,#ec4899,#8b5cf6)" size={26} online />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>Kamilah</div>
-          <div style={{ fontSize: 9, color: '#22c55e', fontWeight: 600 }}>● Online</div>
-        </div>
-        <div className="fp-footer-icon-btn"><Lightbulb size={12} color="rgba(255,255,255,0.6)" /></div>
-        <div className="fp-footer-icon-btn"><Logout size={12} color="rgba(255,255,255,0.6)" /></div>
+      </div>
+      <div className="fp-hero-chat-footer">
+        <span><User size={13} /><small>Jij</small></span>
+        <span className="fp-hero-chat-footer-active"><Message size={13} /><small>Chats</small></span>
+        <span><Phone size={13} /><small>Oproepen</small></span>
+        <span><Bell size={13} /><small>Portaal</small></span>
+        <span className="fp-hero-chat-footer-add"><strong>+</strong><small>Meer</small></span>
       </div>
     </PhoneMockup>
   );
@@ -261,28 +213,35 @@ function SidebarMockup() {
 // ── Mockup 3: Groep ──────────────────────────────────────────────────────────
 function GroupMockup() {
   return (
-    <PhoneMockup style={{ width: 240 }}>
-      <ChatHeader letter="GR" name="Groep Familie" gradient="linear-gradient(135deg,#059669,#34d399)" isGroup />
-      <div className="hp-mock-msgs">
-        <div className="hp-mock-msg hp-mock-msg--in">
-          <span style={{ fontSize: 9, color: '#a78bfa', fontWeight: 700, display: 'block', marginBottom: 2 }}>Sara</span>
-          Wie komt er zondag? 🗓️
+    <PhoneMockup className="fp-group-chat-phone" style={{ width: 240 }}>
+      <div className="fp-group-chat-header">
+        <span className="fp-group-chat-back">←</span>
+        <MockAvatar letter="SP" gradient="linear-gradient(135deg,#12b981,#57d49a)" size={27} ringColor="#fff" />
+        <div className="fp-group-chat-title">
+          <strong>Samen op pad</strong>
+          <span>Groep</span>
         </div>
-        <div className="hp-mock-msg hp-mock-msg--in">
-          <span style={{ fontSize: 9, color: '#34d399', fontWeight: 700, display: 'block', marginBottom: 2 }}>Papa</span>
-          Wij zijn er!
+        <span className="fp-group-chat-call"><Phone size={11} /></span>
+        <span className="fp-group-chat-video"><Video size={11} /></span>
+      </div>
+      <div className="fp-group-chat-messages">
+        <div className="fp-group-chat-message fp-group-chat-message--in">
+          <strong>Noa</strong>
+          Wie gaat er mee wandelen?
         </div>
-        <div className="hp-mock-msg hp-mock-msg--out">
-          <span style={{ color: '#a78bfa', fontWeight: 600 }}>@Sara</span> wij ook!
-          <CheckDouble size={11} color="#60a5fa" style={{ marginLeft: 4 }} />
+        <div className="fp-group-chat-message fp-group-chat-message--in fp-group-chat-message--second">
+          <strong>Robin</strong>
+          Ik ben erbij!
+        </div>
+        <div className="fp-group-chat-message fp-group-chat-message--out">
+          <span>@Noa</span> leuk, ik ook!
+          <CheckDouble size={10} />
         </div>
       </div>
-      <div className="hp-mock-inputbar">
-        <AtSign size={12} color="rgba(255,255,255,0.4)" />
-        <span style={{ flex: 1 }}>Bericht…</span>
-        <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Send size={11} color="#fff" />
-        </div>
+      <div className="fp-group-chat-input">
+        <AtSign size={12} />
+        <span>Typ een bericht</span>
+        <b><Send size={11} /></b>
       </div>
     </PhoneMockup>
   );
@@ -291,24 +250,21 @@ function GroupMockup() {
 // ── Mockup 4: Berichten beheren ──────────────────────────────────────────────
 function ManageMockup() {
   return (
-    <PhoneMockup style={{ width: 240 }}>
-      <ChatHeader letter="S" name="Sara" online />
-      <div className="hp-mock-msgs">
-        <div className="hp-mock-msg hp-mock-msg--out" style={{ position: 'relative' }}>
-          Goedemorgen! ☀️
-          <StarFilled size={10} color="#fbbf24" style={{ position: 'absolute', top: 4, right: 6 }} />
-        </div>
-        <div className="hp-mock-msg hp-mock-msg--in">Morgen! Klaar voor school?</div>
-        <div className="hp-mock-msg hp-mock-msg--out" style={{ borderLeft: '2px solid #7c3aed', paddingLeft: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Pin size={10} color="#a78bfa" />
-          Vergeet je boek niet!
-        </div>
-        <div className="hp-mock-msg hp-mock-msg--in" style={{ display: 'flex', alignItems: 'center', gap: 4, opacity: 0.6, fontStyle: 'italic' }}>
-          <Reply size={10} color="rgba(255,255,255,0.4)" />
-          bericht verwijderd
-        </div>
+    <PhoneMockup className="fp-manage-chat-phone" style={{ width: 240 }}>
+      <div className="fp-manage-chat-header">
+        <span className="fp-manage-chat-back">←</span>
+        <MockAvatar letter="L" gradient="linear-gradient(135deg,#f4d35e,#9a62f5)" size={27} online ringColor="#fff" />
+        <div className="fp-manage-chat-title"><strong>Lina</strong><span>Online</span></div>
+        <span className="fp-manage-chat-action fp-manage-chat-action--video"><Video size={11} /></span>
+        <span className="fp-manage-chat-action"><Phone size={11} /></span>
       </div>
-      <div className="hp-mock-inputbar"><span style={{ flex: 1 }}>Doorzoek berichten…</span><Search size={11} color="rgba(255,255,255,0.3)" /></div>
+      <div className="fp-manage-chat-messages">
+        <div className="fp-manage-message fp-manage-message--out">Goedemorgen! <StarFilled size={9} /></div>
+        <div className="fp-manage-message fp-manage-message--in">Morgen! Klaar voor school?</div>
+        <div className="fp-manage-message fp-manage-message--out fp-manage-message--pinned"><Pin size={9} /> Vergeet je boek niet!</div>
+        <div className="fp-manage-message fp-manage-message--removed"><Reply size={9} /> Bericht verwijderd</div>
+      </div>
+      <div className="fp-manage-chat-input"><span>Doorzoek berichten</span><Search size={11} /></div>
     </PhoneMockup>
   );
 }
@@ -316,27 +272,33 @@ function ManageMockup() {
 // ── Mockup 5: Chatachtergrond ────────────────────────────────────────────────
 function BgMockup() {
   return (
-    <PhoneMockup style={{ width: 240 }}>
-      <ChatHeader letter="S" name="Sara" online />
-      <div style={{ flex: 1, background: 'linear-gradient(135deg,#4c1d95,#7c3aed)', borderRadius: 8, display: 'flex', flexDirection: 'column', padding: 8, gap: 6, margin: '4px 0', position: 'relative', overflow: 'hidden' }}>
+    <PhoneMockup className="fp-bg-chat-phone" style={{ width: 240 }}>
+      <div className="fp-bg-chat-header">
+        <span className="fp-bg-chat-back">←</span>
+        <MockAvatar letter="A" gradient="linear-gradient(135deg,#f4d35e,#9a62f5)" size={27} online ringColor="#fff" />
+        <div className="fp-bg-chat-title"><strong>Alex</strong><span>Online</span></div>
+        <span className="fp-bg-chat-action fp-bg-chat-action--video"><Video size={11} /></span>
+        <span className="fp-bg-chat-action"><Phone size={11} /></span>
+      </div>
+      <div className="fp-bg-chat-canvas">
         <SafeSvgImage
           svg={bgAvatarSvg}
           alt=""
           style={{
             position: 'absolute',
-            right: 18,
-            bottom: 18,
-            opacity: 0.22,
+            right: 16,
+            bottom: 16,
+            opacity: 0.14,
             transform: 'scale(1.7)',
           }}
           aria-hidden="true"
           focusable="false"
         />
-        <div className="hp-mock-msg hp-mock-msg--in" style={{ background: 'rgba(255,255,255,0.18)' }}>Mooie achtergrond! 🎨</div>
-        <div className="hp-mock-msg hp-mock-msg--out" style={{ background: 'rgba(108,99,255,0.7)' }}>Dankjewel 😊</div>
-        <div className="hp-mock-msg hp-mock-msg--in" style={{ background: 'rgba(255,255,255,0.18)' }}>Hoe stel je dat in?</div>
+        <div className="fp-bg-chat-message fp-bg-chat-message--in">Mooie achtergrond!</div>
+        <div className="fp-bg-chat-message fp-bg-chat-message--out">Dankjewel</div>
+        <div className="fp-bg-chat-message fp-bg-chat-message--in">Hoe stel je dat in?</div>
       </div>
-      <div className="hp-mock-inputbar"><span style={{ flex: 1 }}>Bericht…</span></div>
+      <div className="fp-bg-chat-input"><span>Typ een bericht</span><b><Send size={11} /></b></div>
     </PhoneMockup>
   );
 }
@@ -549,6 +511,32 @@ export default function FunctiePagina({ onParentClick }) {
         { icon: <Message size={18} />, title: 'Conceptberichten', desc: 'Bewaard per gesprek' },
       ],
     },
+    {
+      key: 'bellen',
+      label: 'Bellen',
+      tabIcon: <Phone size={16} />,
+      headerIcon: <Phone size={16} />,
+      items: [
+        { icon: <Phone size={18} />, title: 'Audio-oproepen', desc: 'Bel rechtstreeks vanuit een gesprek' },
+        { icon: <Clock size={18} />, title: 'Oproepgeschiedenis', desc: 'Bekijk recente en gemiste oproepen' },
+        { icon: <Bell size={18} />, title: 'Inkomende oproepen', desc: 'Melding wanneer iemand je belt' },
+        { icon: <Clock size={18} />, title: 'Gespreksduur', desc: 'Altijd zichtbaar tijdens een gesprek' },
+        { icon: <Phone size={18} />, title: 'Opnieuw bellen', desc: 'Bel eenvoudig terug vanuit de chat' },
+      ],
+    },
+    {
+      key: 'videobellen',
+      label: 'Videobellen',
+      tabIcon: <Video size={16} />,
+      headerIcon: <Video size={16} />,
+      items: [
+        { icon: <Video size={18} />, title: 'Videogesprekken', desc: 'Zie elkaar direct tijdens een gesprek' },
+        { icon: <Video size={18} />, title: 'Camera aan of uit', desc: 'Jij bepaalt wanneer je in beeld bent' },
+        { icon: <Phone size={18} />, title: 'Van audio naar video', desc: 'Schakel over tijdens een gesprek' },
+        { icon: <Bell size={18} />, title: 'Inkomende videogesprekken', desc: 'Melding wanneer iemand je videobelt' },
+        { icon: <Message size={18} />, title: 'Gesprek minimaliseren', desc: 'Blijf chatten terwijl je belt' },
+      ],
+    },
   ], []);
 
   useEffect(() => {
@@ -705,7 +693,10 @@ export default function FunctiePagina({ onParentClick }) {
           <div className="fp-grid fp-grid--desktop">
             {featureGridGroups.map((group) => (
               <div key={group.key} className="fp-grid-col">
-                <div className="fp-grid-col-header">{group.emoji} {group.label}</div>
+                <div className="fp-grid-col-header">
+                  <span className="fp-grid-col-header-icon" aria-hidden="true">{group.headerIcon}</span>
+                  {group.label}
+                </div>
                 {group.items.map((item) => (
                   <GridCard key={item.title} icon={item.icon} title={item.title} desc={item.desc} />
                 ))}

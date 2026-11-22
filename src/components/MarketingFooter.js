@@ -37,10 +37,10 @@ export default function MarketingFooter() {
           <nav className="hp-footer-col" aria-labelledby="footer-download-title">
             <h4 id="footer-download-title">Download</h4>
             <ul className="hp-footer-list">
-              <li><button type="button" className="hp-footer-link-btn">Android</button></li>
-              <li><button type="button" className="hp-footer-link-btn">iPhone/iPad</button></li>
-              <li><button type="button" className="hp-footer-link-btn">Mac/Windows</button></li>
-              <li><button type="button" className="hp-footer-link-btn">Pulse Web</button></li>
+              <li><span className="hp-footer-link-status">Android - binnenkort</span></li>
+              <li><span className="hp-footer-link-status">iPhone/iPad - binnenkort</span></li>
+              <li><span className="hp-footer-link-status">Mac/Windows - binnenkort</span></li>
+              <li><a href="https://web.pulse-messenger.com/" target="_blank" rel="noopener noreferrer">Pulse Web</a></li>
             </ul>
           </nav>
         </div>

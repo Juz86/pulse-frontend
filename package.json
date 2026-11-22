@@ -23,7 +23,7 @@
     "prestart": "REACT_APP_SITE_TARGET=${REACT_APP_SITE_TARGET:-webapp} node scripts/write-target-entry.js",
     "start": "react-scripts start",
     "build": "npm run build:landing",
-    "build:landing": "REACT_APP_SITE_TARGET=landing node scripts/write-target-entry.js && REACT_APP_SITE_TARGET=landing react-scripts build && REACT_APP_SITE_TARGET=landing node scripts/write-target-headers.js",
+    "build:landing": "REACT_APP_SITE_TARGET=landing node scripts/write-target-entry.js && REACT_APP_SITE_TARGET=landing react-scripts build && REACT_APP_SITE_TARGET=landing node scripts/write-target-headers.js && node scripts/generate-static-marketing-pages.js",
     "build:webapp": "REACT_APP_SITE_TARGET=webapp node scripts/write-target-entry.js && REACT_APP_SITE_TARGET=webapp react-scripts build && REACT_APP_SITE_TARGET=webapp node scripts/write-target-headers.js",
     "native-update:package": "node scripts/package-native-update.js",
     "build:webapp:android": "REACT_APP_BACKEND_URL=https://api.pulse-messenger.com REACT_APP_API_URL=https://api.pulse-messenger.com REACT_APP_NATIVE_API_URL= npm run build:webapp",

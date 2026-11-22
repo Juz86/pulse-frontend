@@ -13727,6 +13727,8 @@ font-family: 'Inter', sans-serif;
   letter-spacing: -0.03em;
   color: #1a1a2e;
   margin-bottom: 14px;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .hp-download-card p {
   font-size: 15px;
@@ -19174,5 +19176,214 @@ font-family: 'Inter', sans-serif;
   .app-screen.chat-open .sidebar:has(.contact-profile-panel) {
     z-index:100;
     transform:translateX(0);
+  }
+}
+
+/* Marketing homepage: quieter product-first presentation. */
+.hp-root {
+  background:#fbfbfd;
+}
+
+.hp-nav {
+  background:rgba(251,251,253,.96);
+  border-bottom-color:#e5e5eb;
+  box-shadow:none;
+}
+
+.hp-nav--scrolled {
+  background:#fff;
+  border-bottom-color:#dedee8;
+  box-shadow:0 2px 10px rgba(25,24,48,.06);
+}
+
+.hp-nav-highlight,
+.hp-nav-signin {
+  border-radius:999px;
+  background:#6c63ff;
+  box-shadow:none;
+}
+
+.hp-nav-highlight-link:hover .hp-nav-highlight,
+.hp-nav-signin:hover {
+  background:#564de6;
+  box-shadow:none;
+  transform:none;
+}
+
+.hp-hero {
+  min-height:720px;
+  align-items:flex-start;
+  background:#f7f7fb;
+}
+
+.hp-hero-inner {
+  padding-top:clamp(104px, 12vh, 144px);
+  padding-bottom:clamp(64px, 8vh, 96px);
+}
+
+.hp-hero-title {
+  color:#252542;
+  background:none;
+  -webkit-text-fill-color:currentColor;
+  letter-spacing:0;
+}
+
+.hp-hero-sub {
+  color:#5f6078;
+}
+
+.hp-hero-feature {
+  border-radius:6px;
+  border-color:#e2e1ea;
+  background:#fff;
+  box-shadow:none;
+  color:#494a61;
+}
+
+.hp-cta-btn {
+  min-height:48px;
+  border-radius:999px;
+  background:#6c63ff;
+  box-shadow:none;
+  letter-spacing:0;
+}
+
+.hp-cta-btn:hover {
+  background:#564de6;
+  box-shadow:none;
+  transform:none;
+}
+
+.hp-cta-btn--secondary {
+  border-color:#c7c4df;
+  background:#fff;
+  color:#4f46d8;
+  box-shadow:none;
+}
+
+.hp-cta-btn--secondary:hover {
+  background:#f3f2ff;
+  box-shadow:none;
+}
+
+.hp-hero-video-card {
+  border-radius:8px;
+  padding:8px;
+  border-color:#dcdbe7;
+  background:#fff;
+  box-shadow:0 16px 36px rgba(28,31,58,.12);
+}
+
+.hp-hero-video-frame {
+  border-radius:4px;
+  background:#201e38;
+}
+
+.hp-section {
+  background:#fff;
+}
+
+.hp-feature-row {
+  gap:clamp(28px, 5vw, 64px);
+  border-top-color:#ecebf1;
+}
+
+.hp-feature-tag {
+  border-radius:4px;
+  background:#eeecff;
+  color:#5148c8;
+}
+
+.hp-feature-text h2,
+.hp-download-options-copy h2 {
+  color:#24243e;
+  letter-spacing:0;
+}
+
+.hp-img-container {
+  border-radius:8px;
+  box-shadow:0 14px 32px rgba(28,31,58,.12);
+}
+
+.hp-img-tilt-left,
+.hp-img-tilt-right,
+.hp-img-tilt-subtle,
+.hp-img-container:hover {
+  transform:none;
+}
+
+.hp-download-options {
+  background:#f5f5f9;
+}
+
+.hp-download-card {
+  border-radius:8px;
+  border-color:#dedde6;
+  background:#fff;
+  box-shadow:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+.hp-download-card *::selection {
+  background:transparent;
+  color:inherit;
+}
+
+.hp-download-card:hover {
+  border-color:#c8c5d9;
+  box-shadow:none;
+  transform:none;
+}
+
+.hp-download-card-icon {
+  border-radius:8px;
+  box-shadow:none;
+}
+
+.hp-download-card-icon--browser { background:#6c63ff; }
+.hp-download-card-icon--ios { background:#5873d8; }
+.hp-download-card-icon--android { background:#2f9f73; }
+.hp-download-card-icon--desktop { background:#4d59b5; }
+.hp-download-card-icon--mac { background:#bd7513; }
+
+.hp-download-card-link {
+  border-radius:999px;
+  border-color:#d4d1eb;
+  background:#f4f3ff;
+  box-shadow:none;
+}
+
+.hp-download-card-link:hover {
+  background:#eceaff;
+  box-shadow:none;
+}
+
+.hp-download-card-link--unavailable {
+  color:#6f7180;
+  border-color:#e2e2e8;
+  background:#f6f6f8;
+  cursor:default;
+}
+
+.hp-footer-link-status {
+  color:rgba(255,255,255,.58);
+  font-size:14px;
+}
+
+@media (max-width:768px) {
+  .hp-hero {
+    min-height:auto;
+  }
+
+  .hp-hero-inner {
+    padding-top:28px;
+    padding-bottom:40px;
+  }
+
+  .hp-hero-video-card,
+  .hp-hero-video-frame,
+  .hp-download-card {
+    border-radius:8px;
   }
 }

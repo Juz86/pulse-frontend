@@ -2,6 +2,13 @@ const fs = require('fs');
 const path = require('path');
 
 const jsDir = path.join(process.cwd(), 'build', 'static', 'js');
+const staticMarketingRoutes = [
+  ['index.html', 'Veilig chatten voor elk kind'],
+  ['functies/index.html', 'Alles voor veilig contact'],
+  ['ouderlijk-toezicht/index.html', 'Overzicht en controle voor ouders'],
+  ['hoe-werkt-het/index.html', 'Zo werkt Pulse'],
+  ['privacy-first/index.html', 'Privacy staat voorop'],
+];
 
 const forbiddenPatterns = [
   'bootstrapDevice',
@@ -41,4 +48,24 @@ if (violations.length) {
   process.exit(1);
 }
 
+const staticPageViolations = [];
+for (const [relativePath, expectedHeading] of staticMarketingRoutes) {
+  const pagePath = path.join(process.cwd(), 'build', relativePath);
+  if (!fs.existsSync(pagePath)) {
+    staticPageViolations.push(`${relativePath} ontbreekt`);
+    continue;
+  }
+  const content = fs.readFileSync(pagePath, 'utf8');
+  if (!content.includes(expectedHeading) || !content.includes('application/ld+json')) {
+    staticPageViolations.push(`${relativePath} bevat geen verwachte statische inhoud of structured data`);
+  }
+}
+
+if (staticPageViolations.length) {
+  console.error('Landing build mist serverleesbare marketingpagina’s:');
+  staticPageViolations.forEach((violation) => console.error(`- ${violation}`));
+  process.exit(1);
+}
+
 console.log('Landing build is clean: no webapp-only auth, E2EE or chat code found.');
+console.log('Landing build contains static marketing content for public routes.');

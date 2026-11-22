@@ -30,32 +30,28 @@ const downloadOptionCards = [
   {
     title: 'iPhone/iPad',
     description: 'Chat veilig met familie en vrienden via de iPhone- en iPad-app.',
-    href: '#',
-    ctaLabel: 'Downloaden',
+    ctaLabel: 'Binnenkort beschikbaar',
     icon: AppleIcon,
     iconClassName: 'hp-download-card-icon--ios',
   },
   {
     title: 'Mobiel/tablet',
     description: 'Chat veilig met familie en vrienden via de Android-app.',
-    href: '#',
-    ctaLabel: 'Downloaden',
+    ctaLabel: 'Binnenkort beschikbaar',
     icon: AndroidIcon,
     iconClassName: 'hp-download-card-icon--android',
   },
   {
     title: 'Windows',
     description: 'Chat veilig met familie en vrienden via de Windows-app.',
-    href: '#',
-    ctaLabel: 'Downloaden',
+    ctaLabel: 'Binnenkort beschikbaar',
     icon: WindowsIcon,
     iconClassName: 'hp-download-card-icon--desktop',
   },
   {
     title: 'Mac',
     description: 'Chat veilig met familie en vrienden via de Mac-app.',
-    href: '#',
-    ctaLabel: 'Downloaden',
+    ctaLabel: 'Binnenkort beschikbaar',
     icon: AppleIcon,
     iconClassName: 'hp-download-card-icon--mac',
   },
@@ -154,7 +150,7 @@ function DownloadOptionsSection() {
           <div className="hp-download-options-track" ref={trackRef}>
             {downloadOptionCards.map((card) => {
               const Icon = card.icon;
-              const opensInNewTab = card.href.startsWith('http');
+              const opensInNewTab = card.href?.startsWith('http');
 
               return (
                 <article className="hp-download-card" key={card.title}>
@@ -163,14 +159,20 @@ function DownloadOptionsSection() {
                   </div>
                   <h3>{card.title}</h3>
                   <p>{card.description}</p>
-                  <a
-                    href={card.href}
-                    className="hp-download-card-link"
-                    target={opensInNewTab ? '_blank' : undefined}
-                    rel={opensInNewTab ? 'noopener noreferrer' : undefined}
-                  >
-                    {card.ctaLabel} <span aria-hidden="true">→</span>
-                  </a>
+                  {card.href ? (
+                    <a
+                      href={card.href}
+                      className="hp-download-card-link"
+                      target={opensInNewTab ? '_blank' : undefined}
+                      rel={opensInNewTab ? 'noopener noreferrer' : undefined}
+                    >
+                      {card.ctaLabel} <span aria-hidden="true">→</span>
+                    </a>
+                  ) : (
+                    <span className="hp-download-card-link hp-download-card-link--unavailable" aria-label={`${card.title}: ${card.ctaLabel}`}>
+                      {card.ctaLabel}
+                    </span>
+                  )}
                 </article>
               );
             })}

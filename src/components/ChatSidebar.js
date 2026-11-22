@@ -583,19 +583,21 @@ export default function ChatSidebar({
           </button>
         </section>
 
-        <section className="contact-profile-card contact-profile-card-danger contact-profile-card--profile-danger">
-          <button
-            type="button"
-            className="contact-profile-row-button danger"
-            onClick={() => handleDeleteAccount?.()}
-          >
-            <span className="contact-profile-row-icon" aria-hidden="true"><Trash2 size={18} /></span>
-            <span className="contact-profile-row-copy">
-              <span className="contact-profile-row-title">Account verwijderen</span>
-            </span>
-            <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
-          </button>
-        </section>
+        {isParent && (
+          <section className="contact-profile-card contact-profile-card-danger contact-profile-card--profile-danger">
+            <button
+              type="button"
+              className="contact-profile-row-button danger"
+              onClick={() => handleDeleteAccount?.()}
+            >
+              <span className="contact-profile-row-icon" aria-hidden="true"><Trash2 size={18} /></span>
+              <span className="contact-profile-row-copy">
+                <span className="contact-profile-row-title">Account verwijderen</span>
+              </span>
+              <ArrowRight size={18} aria-hidden="true" className="contact-profile-row-arrow" />
+            </button>
+          </section>
+        )}
       </ProfilePageShell>
     );
   };
@@ -3474,21 +3476,23 @@ export default function ChatSidebar({
                             </div>
                           </div>
                         </div>
-                        <div className="profile-danger-card">
-                          <div className="profile-danger-title">Account verwijderen</div>
-                          <p className="profile-danger-copy">
-                            Als je je account verwijdert worden al je chats, berichten en gegevens permanent verwijderd.
-                          </p>
-                          <button
-                            type="button"
-                            className="btn-danger profile-danger-btn"
-                            onClick={() => handleDeleteAccount?.()}
-                          >
-                            <span className="profile-danger-btn-icon" aria-hidden="true"><Trash2 size={16} /></span>
-                            <span className="profile-danger-btn-label">Account definitief verwijderen</span>
-                            <span className="profile-danger-btn-spacer" aria-hidden="true" />
-                          </button>
-                        </div>
+                        {isParent && (
+                          <div className="profile-danger-card">
+                            <div className="profile-danger-title">Account verwijderen</div>
+                            <p className="profile-danger-copy">
+                              Als je je account verwijdert worden al je chats, berichten en gegevens permanent verwijderd.
+                            </p>
+                            <button
+                              type="button"
+                              className="btn-danger profile-danger-btn"
+                              onClick={() => handleDeleteAccount?.()}
+                            >
+                              <span className="profile-danger-btn-icon" aria-hidden="true"><Trash2 size={16} /></span>
+                              <span className="profile-danger-btn-label">Account definitief verwijderen</span>
+                              <span className="profile-danger-btn-spacer" aria-hidden="true" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                     ) : profileTab === 'geschiedenis' && isParent ? (

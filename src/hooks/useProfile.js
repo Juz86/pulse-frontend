@@ -230,6 +230,11 @@ export default function useProfile({ user, activeConv, setActiveConv, setConvers
 
   // ── Account verwijderen ───────────────────────────────────────────────────
   function handleDeleteAccount() {
+    if (!isParent) {
+      showErrToast('Een kindaccount kan niet zelf worden verwijderd. Vraag een ouder om dit te regelen.');
+      return;
+    }
+
     setConfirmDialog({
       title: 'Account verwijderen',
       message: 'Weet je zeker dat je je account wilt verwijderen? Al je chats en gegevens worden permanent verwijderd.',

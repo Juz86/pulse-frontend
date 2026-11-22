@@ -1717,6 +1717,24 @@ export default function ChatModals({
                 <Phone size={27} aria-hidden="true" />
                 <span>Bel</span>
               </button>
+              <button
+                type="button"
+                aria-label={`Videobel ${groupMemberAction.name}`}
+                disabled={
+                  callLaunchPending
+                  || !videoCallingAvailable
+                  || blockedContacts?.some((contact) => contact.uid === groupMemberAction.memberId)
+                  || parentBlockedUids?.includes(groupMemberAction.memberId)
+                }
+                onClick={() => {
+                  const contact = groupMemberAction.contact;
+                  closeGroupInfo();
+                  onStartVideoCall?.(contact);
+                }}
+              >
+                <Video size={27} aria-hidden="true" />
+                <span>Video</span>
+              </button>
             </div>
             <div className="group-member-action-list">
               {groupMemberAction.canManageMember && (

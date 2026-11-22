@@ -953,6 +953,8 @@ body {
 /* Nieuwe chat gebruikt dezelfde rijen als Contacten, maar zonder de
    rechterkolom met Meer-acties. */
 .new-chat-page-directory .new-chat-page-contact-list {
+  margin-right:-18px;
+  padding-right:18px;
   padding-bottom:calc(var(--sidebar-footer-clearance, 104px) + 6px);
   scroll-padding-bottom:calc(var(--sidebar-footer-clearance, 104px) + 6px);
 }
@@ -1042,10 +1044,10 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .08);
-  border-radius: 24px;
-  background: rgba(17, 15, 40, .56);
-  box-shadow: 0 18px 38px rgba(10, 8, 28, .18);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .new-group-page-panel .new-group-contact-list .new-group-sheet-result,
 .new-group-page-panel .new-group-contact-list .search-result.new-group-sheet-result {
@@ -1142,15 +1144,21 @@ body {
 .new-group-page-panel .new-group-page-search {
   flex:0 0 auto;
 }
-.new-group-page-panel .new-group-contact-list {
+.new-group-page-list-scroll {
   flex:1 1 auto;
   min-height:0;
   overflow-x:hidden;
   overflow-y:auto;
   overscroll-behavior:contain;
   -webkit-overflow-scrolling:touch;
+  margin-right:-18px;
+  padding-right:18px;
   padding-bottom:6px;
   scroll-padding-bottom:6px;
+}
+.new-group-page-list-scroll .new-group-contact-list {
+  flex:0 0 auto;
+  overflow:visible;
 }
 .contact-profile-edit-btn.new-group-create-header-btn {
   min-width:auto;
@@ -7552,6 +7560,16 @@ font-family: 'Inter', sans-serif;
   padding: 0 0 calc(var(--sidebar-local-sheet-bottom, 96px) + 10px);
   scroll-padding-bottom: calc(var(--sidebar-local-sheet-bottom, 96px) + 10px);
 }
+/* Laat de instellingen-scrollbalk aan de schermrand uitlijnen, terwijl de
+   inhoud dezelfde rustige zijmarge houdt. */
+.settings-profile-page .profile-page-scroll-content {
+  margin-right:-18px;
+  padding-right:18px;
+}
+.parent-dashboard-panel .profile-page-scroll-content {
+  margin-right:-18px;
+  padding-right:18px;
+}
 /* Privacy heeft twee lange instellingenblokken. Reserveer iets extra ruimte
    onderaan zodat de laatste bewaarkeuze altijd volledig boven de tabbar
    bereikt kan worden. */
@@ -8178,6 +8196,26 @@ font-family: 'Inter', sans-serif;
 @media (max-width: 430px) {
   .contact-profile-panel {
     padding-left:14px;
+    padding-right:14px;
+  }
+
+  .settings-profile-page .profile-page-scroll-content {
+    margin-right:-14px;
+    padding-right:14px;
+  }
+
+  .parent-dashboard-panel .profile-page-scroll-content {
+    margin-right:-14px;
+    padding-right:14px;
+  }
+
+  .new-chat-page-directory .new-chat-page-contact-list {
+    margin-right:-14px;
+    padding-right:14px;
+  }
+
+  .new-group-page-list-scroll {
+    margin-right:-14px;
     padding-right:14px;
   }
 
@@ -19413,7 +19451,7 @@ font-family: 'Inter', sans-serif;
   .sidebar--light-home .calls-history-heading { background:#191620; }
   .sidebar--light-home .calls-history-heading h2,
   .sidebar--light-home .calls-history-row-title > span { color:#f7f3ff; }
-  .sidebar--light-home .calls-history-heading span,
+  .sidebar--light-home .calls-history-heading > div > span,
   .sidebar--light-home .calls-history-row-title time { color:#938a9f; }
   .sidebar--light-home .calls-history-call-btn,
   .sidebar--light-home .calls-contact-picker-back {

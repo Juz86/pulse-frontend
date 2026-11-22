@@ -483,6 +483,7 @@ export default function ChatSidebar({
       <ProfilePageShell
         panelRef={profilePanelRef}
         scrollContent
+      className="chat-side-panel contact-profile-panel settings-profile-page"
         titleId="settings-profile-title"
         title="Instellingen"
         description="Bekijk en beheer je instellingen in dezelfde profielopbouw."
@@ -1039,8 +1040,9 @@ export default function ChatSidebar({
             <div className="auth-error">⚠️ Voeg eerst contacten toe.</div>
           </div>
         )}
-        <div className="pulse-sheet-list pulse-sheet-list--new-chat new-group-contact-list">
-          {filteredNewGroupContacts.map((contact) => {
+        <div className="new-group-page-list-scroll">
+          <div className="pulse-sheet-list pulse-sheet-list--new-chat new-group-contact-list">
+            {filteredNewGroupContacts.map((contact) => {
             const selected = groupMembers.find((member) => member.uid === contact.uid);
             const contactTitle = getContactDisplayName(contact)
               || contact.displayName
@@ -1065,10 +1067,11 @@ export default function ChatSidebar({
                 }
               </button>
             );
-          })}
-          {contacts.length > 0 && filteredNewGroupContacts.length === 0 && (
-            <p className="new-group-page-search-empty">Geen contacten gevonden.</p>
-          )}
+            })}
+            {contacts.length > 0 && filteredNewGroupContacts.length === 0 && (
+              <p className="new-group-page-search-empty">Geen contacten gevonden.</p>
+            )}
+          </div>
         </div>
       </section>
     </ProfilePageShell>
@@ -1305,6 +1308,7 @@ export default function ChatSidebar({
     <ProfilePageShell
       panelRef={profilePanelRef}
       scrollContent
+      className="chat-side-panel contact-profile-panel settings-profile-page"
       titleId="settings-account-title"
       title="Wachtwoord wijzigen"
       description="Kies een nieuw wachtwoord voor je Pulse-account."
@@ -1369,7 +1373,7 @@ export default function ChatSidebar({
     <ProfilePageShell
       panelRef={profilePanelRef}
       scrollContent
-      className={`chat-side-panel contact-profile-panel ${pageClassName}`.trim()}
+      className={`chat-side-panel contact-profile-panel settings-profile-page ${pageClassName}`.trim()}
       titleId={`settings-${title.toLowerCase()}-title`}
       title={title}
       description={description}

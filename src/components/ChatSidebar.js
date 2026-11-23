@@ -1,7 +1,7 @@
 // src/components/ChatSidebar.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Phone, PhoneCall, PhoneOutgoing, PhoneMissed, PhoneEnd, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound, ArrowLeft, ArrowRight, Block, List, User } from '../components/Icons';
+import { Phone, PhoneCall, PhoneOutgoing, PhoneMissed, PhoneEnd, Video, Search, Message, Users, Bell, BellOff, Shield, Logout, Pin, MoreHoriz, Plus, XIcon, Trash2, StarOutline, Clock, Palette, Cancel, Heart, Check, Camera, EyeOn, EyeOff, ImageIcon, ColorCircle, LayoutTemplate, KeyRound, ArrowLeft, ArrowRight, Block, List, User, MagicEdit } from '../components/Icons';
 import PulseIconButton from '../components/PulseIconButton';
 import PulseLogo from '../components/PulseLogo';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
@@ -106,6 +106,67 @@ function SidebarHistorySelect({ ariaLabel, value, options, onChange, disabled = 
                 }}
               >
                 {option.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PrivacyAccountPicker({ accounts, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const selectedAccount = accounts.find((account) => account.value === value) || accounts[0];
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const closeOnOutsidePress = (event) => {
+      if (!rootRef.current?.contains(event.target)) setOpen(false);
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('pointerdown', closeOnOutsidePress);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsidePress);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [open]);
+
+  return (
+    <div className="privacy-account-picker" ref={rootRef}>
+      <button
+        type="button"
+        className="privacy-account-picker-trigger"
+        aria-label="Kies account voor privacy-instellingen"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span>{selectedAccount?.label || 'Ouderaccount'}</span>
+        <ArrowRight className="privacy-account-picker-chevron" size={17} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="privacy-account-picker-menu" role="listbox" aria-label="Accounts">
+          {accounts.map((account) => {
+            const isSelected = account.value === value;
+            return (
+              <button
+                key={account.value}
+                type="button"
+                className={`privacy-account-picker-option${isSelected ? ' active' : ''}`}
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => {
+                  onChange(account.value);
+                  setOpen(false);
+                }}
+              >
+                <span>{account.label}</span>
+                {account.description ? <small>{account.description}</small> : null}
               </button>
             );
           })}
@@ -325,6 +386,7 @@ export default function ChatSidebar({
   const [showCallContacts, setShowCallContacts] = useState(false);
   const [requestsTab, setRequestsTab] = useState('ontvangen');
   const [selectedHistoryChildUid, setSelectedHistoryChildUid] = useState('');
+  const [selectedPrivacyAccountUid, setSelectedPrivacyAccountUid] = useState('parent');
   const [pendingColor, setPendingColor] = useState(null);
   const [pendingPhoto, setPendingPhoto] = useState(null);
   const [settingsNameEditing, setSettingsNameEditing] = useState(false);
@@ -402,8 +464,12 @@ export default function ChatSidebar({
   const primaryHistoryChild = historyChildren.find((child) => child.uid === selectedHistoryChildUid) || historyChildren[0] || null;
   const primaryHistoryRules = normalizeHistoryRules(primaryHistoryChild ? childHistoryRulesByUid?.[primaryHistoryChild.uid] : {});
   const canManagePrimaryHistoryChild = !!primaryHistoryChild?.canManageHistory;
+  const selectedPrivacyChild = historyChildren.find((child) => child.uid === selectedPrivacyAccountUid) || null;
+  const selectedPrivacyChildRules = normalizeHistoryRules(selectedPrivacyChild ? childHistoryRulesByUid?.[selectedPrivacyChild.uid] : {});
+  const canManageSelectedPrivacyChild = !!selectedPrivacyChild?.canManageHistory;
   const historySettingRows = [
     { key: 'chatRetentionDays', label: 'Chats' },
+    { key: 'callRetentionDays', label: 'Oproepen' },
   ];
   const settingsDisplayName = user.displayName || user.email?.split('@')[0] || 'Gebruiker';
   const settingsEmail = user.email || '';
@@ -489,26 +555,6 @@ export default function ChatSidebar({
         description="Bekijk en beheer je instellingen in dezelfde profielopbouw."
         onBack={dismissProfileOverviewSheet}
         backLabel="Instellingen sluiten"
-        headerAction={(
-          <button
-            type="button"
-            className={`contact-profile-edit-btn${settingsNameEditing ? ' settings-name-save-header' : ''}`}
-            aria-label={settingsNameEditing ? 'Naam opslaan' : 'Naam bewerken'}
-            title={settingsNameEditing ? 'Opslaan' : 'Bewerk naam'}
-            disabled={settingsNameEditing && profileLoading}
-            onClick={() => {
-              if (settingsNameEditing) {
-                saveProfile?.();
-                setSettingsNameEditing(false);
-                return;
-              }
-              setNewName?.(newName || settingsDisplayName);
-              setSettingsNameEditing(true);
-            }}
-          >
-            {settingsNameEditing ? 'Opslaan' : 'Bewerk'}
-          </button>
-        )}
         hero={(
           <ProfilePageHero
             className="contact-profile-hero contact-profile-hero--main"
@@ -548,8 +594,31 @@ export default function ChatSidebar({
                   onChange={(event) => setNewName?.(event.target.value)}
                   autoFocus
                 />
+                <button
+                  type="submit"
+                  className="contact-profile-name-save"
+                  disabled={profileLoading}
+                >
+                  Opslaan
+                </button>
               </form>
-            ) : null}
+            ) : (
+              <div className="contact-profile-name-row">
+                <div className="contact-profile-name">{settingsDisplayName}</div>
+                <button
+                  type="button"
+                  className="contact-profile-name-edit-trigger"
+                  aria-label="Naam bewerken"
+                  title="Naam bewerken"
+                  onClick={() => {
+                    setNewName?.(newName || settingsDisplayName);
+                    setSettingsNameEditing(true);
+                  }}
+                >
+                  <MagicEdit size={17} aria-hidden="true" />
+                </button>
+              </div>
+            )}
             subtitle={settingsEmail || null}
             status={(
               <div className="contact-profile-status-row">
@@ -1369,7 +1438,7 @@ export default function ChatSidebar({
       )}
     </ProfilePageShell>
   );
-  const renderSettingsSubpageShell = (title, description, children, pageClassName = '') => (
+  const renderSettingsSubpageShell = (title, description, children, pageClassName = '', headerAction = null) => (
     <ProfilePageShell
       panelRef={profilePanelRef}
       scrollContent
@@ -1379,7 +1448,7 @@ export default function ChatSidebar({
       description={description}
       onBack={() => setProfileTab?.('overview')}
       backLabel="Terug naar instellingen"
-      headerAction={(
+      headerAction={headerAction || (
         <button
           type="button"
           className="contact-profile-edit-btn contact-profile-close-btn"
@@ -1394,101 +1463,95 @@ export default function ChatSidebar({
       {children}
     </ProfilePageShell>
   );
-  const renderSettingsHistorySheet = () => renderSettingsSubpageShell(
-    'Privacy',
-    'Bepaal per account hoe lang gegevens bewaard blijven.',
-    <>
-      <section className="privacy-page-section">
-        <div className="contact-profile-field">
-          <div className="parent-dashboard-meta-block">
-            <div className="parent-dashboard-meta-title">Jij bepaalt</div>
-            <div className="parent-dashboard-meta-subtitle">Stel in hoe lang chat-, bel- en videogeschiedenis bewaard blijven.</div>
+  const renderSettingsHistorySheet = () => {
+    const isParentAccount = selectedPrivacyAccountUid === 'parent';
+    const selectedAccount = isParentAccount ? null : selectedPrivacyChild;
+    const selectedRules = isParentAccount ? normalizeHistoryRules(historyRules) : selectedPrivacyChildRules;
+    const savingTarget = isParentAccount ? 'parent' : selectedAccount?.uid;
+    const canManageSelectedAccount = isParentAccount || canManageSelectedPrivacyChild;
+    const selectedAccountUnavailable = !isParentAccount && !selectedAccount;
+    const privacySettingsDisabled = selectedAccountUnavailable
+      || !canManageSelectedAccount
+      || historySettingsLoading
+      || historySettingsSavingTarget === savingTarget;
+    const accountOptions = [
+      { value: 'parent', label: 'Ouderaccount', description: settingsDisplayName },
+      ...historyChildren.map((child) => ({ value: child.uid, label: child.displayName || 'Kindaccount', description: 'Kindaccount' })),
+    ];
+
+    return renderSettingsSubpageShell(
+      'Privacy',
+      'Bepaal per account hoe lang gegevens bewaard blijven.',
+      <>
+        <section className="privacy-page-section">
+          <div className="contact-profile-field">
+            <div className="parent-dashboard-meta-block">
+              <div className="parent-dashboard-meta-title">{isParentAccount ? 'Jij bepaalt' : `Privacy van ${selectedAccount?.displayName || 'kindaccount'}`}</div>
+              <div className="parent-dashboard-meta-subtitle">Stel in hoe lang chat-, bel- en videogeschiedenis bewaard blijven.</div>
+            </div>
           </div>
-        </div>
-      </section>
-      <section className="privacy-page-section">
-        <div className="contact-profile-field">
-          {historySettingRows.map((row) => (
-            <div key={`parent-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced profile-settings-field-stack--inline">
-              <div className="profile-settings-field-label">{row.label}</div>
-              <SidebarHistorySelect
-                ariaLabel={`${row.label} ouderaccount`}
-                value={historyRules?.[row.key] ?? 30}
-                options={HISTORY_RETENTION_OPTIONS}
-                onChange={(nextValue) => setHistoryRules?.((prev) => ({ ...normalizeHistoryRules(prev), [row.key]: Number(nextValue) }))}
-                disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}
-                style={historySelectStyle}
-              />
-            </div>
-          ))}
-          <button type="button" className="btn-primary profile-settings-action" style={{ width: '100%' }} onClick={() => saveHistorySettings?.()} disabled={historySettingsLoading || historySettingsSavingTarget === 'parent'}>
-            {historySettingsSavingTarget === 'parent' ? 'Opslaan…' : 'Opslaan'}
-          </button>
-        </div>
-      </section>
-      <section className="privacy-page-section">
-        <div className="contact-profile-field">
-          <div className="profile-settings-field-stack profile-settings-field-stack--inline">
-            <div className="profile-settings-field-label">Kindaccount</div>
-            <SidebarHistorySelect
-              ariaLabel="Kies kindaccount"
-              value={selectedHistoryChildUid}
-              options={
-                historyChildren.length === 0
-                  ? [{ value: '', label: 'Geen kindaccounts' }]
-                  : historyChildren.map((child) => ({ value: child.uid, label: child.displayName }))
-              }
-              onChange={(nextValue) => setSelectedHistoryChildUid(String(nextValue))}
-              disabled={!historyChildren.length || historySettingsLoading}
-              style={historySelectStyle}
-            />
+        </section>
+        <section className="privacy-page-section">
+          <div className="contact-profile-field">
+            {historySettingRows.map((row) => (
+              <div key={row.key} className="profile-settings-field-stack profile-settings-field-stack--spaced profile-settings-field-stack--inline">
+                <div className="profile-settings-field-label">{row.label}</div>
+                <SidebarHistorySelect
+                  ariaLabel={`${row.label} ${isParentAccount ? 'ouderaccount' : 'kindaccount'}`}
+                  value={selectedRules[row.key] ?? 30}
+                  options={HISTORY_RETENTION_OPTIONS}
+                  onChange={(nextValue) => {
+                    if (isParentAccount) {
+                      setHistoryRules?.((previous) => ({ ...normalizeHistoryRules(previous), [row.key]: Number(nextValue) }));
+                      return;
+                    }
+                    if (!selectedAccount) return;
+                    setChildHistoryRulesByUid?.((previous) => ({
+                      ...previous,
+                      [selectedAccount.uid]: {
+                        ...normalizeHistoryRules(previous?.[selectedAccount.uid]),
+                        [row.key]: Number(nextValue),
+                      },
+                    }));
+                  }}
+                  disabled={privacySettingsDisabled}
+                  style={historySelectStyle}
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              className="btn-primary profile-settings-action"
+              style={{ width: '100%' }}
+              onClick={() => isParentAccount ? saveHistorySettings?.() : selectedAccount && saveChildHistorySettings?.(selectedAccount.uid)}
+              disabled={privacySettingsDisabled}
+            >
+              {historySettingsSavingTarget === savingTarget ? 'Opslaan…' : 'Opslaan'}
+            </button>
+            {selectedAccount && !canManageSelectedAccount && (
+              <div className="profile-settings-helper-copy profile-settings-helper-copy--spaced">
+                Alleen ouder A kan de bewaartermijn voor dit kindaccount aanpassen.
+              </div>
+            )}
+            {historySettingsMsg && (
+              <div className={`profile-settings-inline-message profile-settings-inline-message--stacked profile-settings-inline-message--spaced ${historySettingsMsg.startsWith('Fout:') ? 'is-error' : 'is-success'}`}>
+                {historySettingsMsg}
+              </div>
+            )}
           </div>
-          {historySettingRows.map((row) => (
-            <div key={`child-${row.key}`} className="profile-settings-field-stack profile-settings-field-stack--spaced profile-settings-field-stack--inline">
-              <div className="profile-settings-field-label">{row.label}</div>
-              <SidebarHistorySelect
-                ariaLabel={`${row.label} kindaccount`}
-                value={primaryHistoryRules[row.key]}
-                options={HISTORY_RETENTION_OPTIONS}
-                onChange={(nextValue) => {
-                  if (!primaryHistoryChild) return;
-                  setChildHistoryRulesByUid?.((prev) => ({
-                    ...prev,
-                    [primaryHistoryChild.uid]: {
-                      ...normalizeHistoryRules(prev?.[primaryHistoryChild.uid]),
-                      [row.key]: Number(nextValue),
-                    },
-                  }));
-                }}
-                disabled={!primaryHistoryChild || !canManagePrimaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
-                style={historySelectStyle}
-              />
-            </div>
-          ))}
-          <button
-            type="button"
-            className="btn-primary profile-settings-action"
-            style={{ width: '100%' }}
-            onClick={() => primaryHistoryChild && saveChildHistorySettings?.(primaryHistoryChild.uid)}
-            disabled={!primaryHistoryChild || !canManagePrimaryHistoryChild || historySettingsLoading || historySettingsSavingTarget === primaryHistoryChild?.uid}
-          >
-            {historySettingsSavingTarget === primaryHistoryChild?.uid ? 'Opslaan…' : 'Opslaan'}
-          </button>
-          {primaryHistoryChild && !canManagePrimaryHistoryChild && (
-            <div className="profile-settings-helper-copy profile-settings-helper-copy--spaced">
-              Alleen ouder A kan de bewaartermijn voor dit kindaccount aanpassen.
-            </div>
-          )}
-          {historySettingsMsg && (
-            <div className={`profile-settings-inline-message profile-settings-inline-message--stacked profile-settings-inline-message--spaced ${historySettingsMsg.startsWith('Fout:') ? 'is-error' : 'is-success'}`}>
-              {historySettingsMsg}
-            </div>
-          )}
-        </div>
-      </section>
-    </>,
-    'privacy-page-panel',
-  );
+        </section>
+      </>,
+      'privacy-page-panel',
+      <PrivacyAccountPicker
+        accounts={accountOptions}
+        value={selectedPrivacyAccountUid}
+        onChange={(nextValue) => {
+          setSelectedPrivacyAccountUid(nextValue);
+          if (nextValue !== 'parent') setSelectedHistoryChildUid(nextValue);
+        }}
+      />,
+    );
+  };
   const renderSettingsBlockedSheet = () => {
     const selfBlocked = (blockedContacts || []).filter((c) => !parentBlockedUids?.includes(c.uid));
     const parentBlocked = (blockedContacts || []).filter((c) => parentBlockedUids?.includes(c.uid));
@@ -1729,6 +1792,12 @@ export default function ChatSidebar({
     if (historyChildren.some((child) => child.uid === selectedHistoryChildUid)) return;
     setSelectedHistoryChildUid(historyChildren[0].uid);
   }, [historyChildren, selectedHistoryChildUid]);
+
+  useEffect(() => {
+    if (selectedPrivacyAccountUid === 'parent') return;
+    if (historyChildren.some((child) => child.uid === selectedPrivacyAccountUid)) return;
+    setSelectedPrivacyAccountUid('parent');
+  }, [historyChildren, selectedPrivacyAccountUid]);
 
   useEffect(() => () => {
     if (pendingPhoto?.url) {

@@ -29,6 +29,7 @@ export function normalizeHistoryRetentionDays(value) {
 export function normalizeHistoryRules(rules = {}) {
   return {
     chatRetentionDays: normalizeHistoryRetentionDays(rules?.chatRetentionDays),
+    callRetentionDays: normalizeHistoryRetentionDays(rules?.callRetentionDays),
   };
 }
 

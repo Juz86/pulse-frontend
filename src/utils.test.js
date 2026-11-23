@@ -99,13 +99,15 @@ describe('utils safety helpers', () => {
   test('normalizeHistoryRules keeps defaults when values are absent', () => {
     expect(normalizeHistoryRules({})).toEqual({
       chatRetentionDays: DEFAULT_HISTORY_RETENTION_DAYS,
+      callRetentionDays: DEFAULT_HISTORY_RETENTION_DAYS,
     });
   });
 
   test('stored history rules roundtrip safely', () => {
-    writeStoredHistoryRules('user-1', { chatRetentionDays: 7 });
+    writeStoredHistoryRules('user-1', { chatRetentionDays: 7, callRetentionDays: 1 });
     expect(readStoredHistoryRules('user-1')).toEqual({
       chatRetentionDays: 7,
+      callRetentionDays: 1,
     });
   });
 

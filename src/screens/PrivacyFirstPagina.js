@@ -140,7 +140,7 @@ export default function PrivacyFirstPagina({ onParentClick }) {
         </section>
 
         {/* ── WAAROM PULSE BESTAAT ── */}
-        <section className="hp-section" id="waarom-pulse">
+        <section className="hp-section pf-content-section" id="waarom-pulse">
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
@@ -204,7 +204,7 @@ Beheer per account hoe lang chat-, bel- en videobel geschiedenis wordt bewaard. 
         </section>
 
         {/* ── WAT PRIVACY-FIRST BETEKENT ── */}
-        <section className="hp-section hp-section--gray" id="privacy-first">
+        <section className="hp-section hp-section--gray pf-content-section" id="privacy-first">
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">
@@ -239,7 +239,7 @@ Beheer per account hoe lang chat-, bel- en videobel geschiedenis wordt bewaard. 
         </section>
 
         {/* ── WAT WE WEL OPSLAAN ── */}
-        <section className="hp-section" id="wat-opslaan">
+        <section className="hp-section pf-content-section" id="wat-opslaan">
           <div className="hp-section-inner">
             <div className="hp-feature-tag pf-inline-tag pf-tag-spaced">Wat we wél opslaan en waarom</div>
             <h2 className="pf-section-title">Zo weinig mogelijk. Zo kort mogelijk.</h2>
@@ -276,7 +276,7 @@ Beheer per account hoe lang chat-, bel- en videobel geschiedenis wordt bewaard. 
         </section>
 
         {/* ── BEVEILIGING / E2EE ── */}
-        <section className="hp-section hp-section--gray" id="beveiliging">
+        <section className="hp-section hp-section--gray pf-content-section" id="beveiliging">
           <div className="hp-section-inner">
             <FadeRow className="op-privacy-row">
               <div className="hp-feature-text">

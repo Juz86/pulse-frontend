@@ -394,7 +394,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
         </div>
       </section>
 
-      <section className="hp-section" id="hoe-werkt-pulse">
+      <section className="hp-section hw-content-section" id="hoe-werkt-pulse">
         <div className="hp-section-inner">
           <SectionIntro
             badge="Hoe werkt Pulse?"
@@ -466,7 +466,7 @@ export default function HoeWerktHetPagina({ onParentClick }) {
         </div>
       </section>
 
-      <section className="hp-section hp-section--gray" id="contact-toevoegen">
+      <section className="hp-section hp-section--gray hw-content-section" id="contact-toevoegen">
         <div className="hp-section-inner">
           <SectionIntro
             badge="Contact toevoegen"

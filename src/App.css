@@ -18543,6 +18543,39 @@ font-family: 'Inter', sans-serif;
   border-top: 1px solid #e5e7eb;
 }
 
+/* Aaneengesloten Privacy-First-secties met een rustige, inhoudsbrede scheiding. */
+.pf-content-section {
+  padding: 0;
+}
+
+.pf-content-section .hp-section-inner {
+  padding-top: clamp(36px, 5vw, 64px);
+  padding-bottom: clamp(36px, 5vw, 64px);
+}
+
+.pf-content-section + .pf-content-section .hp-section-inner {
+  border-top: 1px solid #ecebf1;
+}
+
+.pf-content-section .hp-feature-row {
+  padding: 0;
+  border-top: 0;
+}
+
+/* Scheiding tussen de twee stappenreeksen op Hoe werkt het. */
+.hw-content-section {
+  padding: 0;
+}
+
+.hw-content-section .hp-section-inner {
+  padding-top: clamp(36px, 5vw, 64px);
+  padding-bottom: clamp(36px, 5vw, 64px);
+}
+
+.hw-content-section + .hw-content-section .hp-section-inner {
+  border-top: 1px solid #ecebf1;
+}
+
 @media (min-width: 769px) {
   .pf-retention-item--hidden {
     display: flex !important;

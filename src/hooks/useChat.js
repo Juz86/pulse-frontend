@@ -59,7 +59,7 @@ export default function useChat({
   const [typing,         setTyping]         = useState(false);
   const [typingName,     setTypingName]     = useState('');
   const [typingByConv,   setTypingByConv]   = useState({});
-  const [pausedFeatures, setPausedFeatures] = useState({ chat: false });
+  const [pausedFeatures, setPausedFeatures] = useState({ chat: false, call: false, video: false });
   const [mentionToast,   setMentionToast]   = useState(null);
   const typingTimeoutsRef = useRef(new Map());
 
@@ -562,8 +562,16 @@ export default function useChat({
         targetText,
       }));
     };
-    const onAccountPaused   = ({ features } = {})      => setPausedFeatures({ chat: features?.chat !== false });
-    const onAccountResumed  = ({ features } = {})      => setPausedFeatures({ chat: !!features?.chat });
+    const onAccountPaused = ({ features } = {}) => setPausedFeatures({
+      chat: Boolean(features?.chat),
+      call: Boolean(features?.call),
+      video: Boolean(features?.video),
+    });
+    const onAccountResumed = ({ features } = {}) => setPausedFeatures({
+      chat: Boolean(features?.chat),
+      call: Boolean(features?.call),
+      video: Boolean(features?.video),
+    });
 
     const onContactBlockedByParent = ({ targetUid, targetName }) => {
       setBlockedContacts?.(prev => {

@@ -725,6 +725,11 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
 
   async function handleStartCall(contact = null, mediaType = 'audio') {
     if (callLaunchPending) return;
+    const pausedFeature = mediaType === 'video' ? 'video' : 'call';
+    if (pausedFeatures?.[pausedFeature]) {
+      showErrToast(`${mediaType === 'video' ? 'Videobellen' : 'Bellen'} is gepauzeerd door je ouder.`);
+      return;
+    }
     const selectedContact = contact?.uid ? contact : null;
     if (!selectedContact && (!activeConv || activeConv.isGroup)) return;
     const calleeUid = selectedContact?.uid || getOtherUid(activeConv);

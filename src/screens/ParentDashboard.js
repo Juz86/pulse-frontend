@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { getInitials, timeAgo, toMs } from '../utils';
-import { UserCheck, UserPlus2, UserX, PauseCircle, KeyRound, Trash2, Block, Activity, Users, UserPlus, EyeOn, EyeOff, Message, ChevronDown, Check, Cancel, MagicEdit, Search } from '../components/Icons';
+import { UserCheck, UserPlus2, UserX, PauseCircle, KeyRound, Trash2, Block, Activity, Users, UserPlus, EyeOn, EyeOff, Message, Phone, Video, ChevronDown, Check, Cancel, MagicEdit, Search } from '../components/Icons';
 import { BACKEND_URL as BACKEND } from '../services/socket';
 import { db } from '../firebase';
 import { ProfilePageShell } from '../components/ProfilePageShell';
@@ -392,7 +392,7 @@ export default function ParentDashboard({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Aanmaken mislukt.');
-      setChildren(prev => [...prev, { uid: data.uid, displayName: data.displayName, username: data.username, online: false, pausedFeatures: { chat: false } }]);
+      setChildren(prev => [...prev, { uid: data.uid, displayName: data.displayName, username: data.username, online: false, pausedFeatures: { chat: false, call: false, video: false } }]);
       setCreateSuccess(`Account voor ${data.displayName} aangemaakt.`);
       setChildName(''); setChildUsername(''); setChildPassword('');
       setCreateUsernameStatus('');
@@ -795,8 +795,8 @@ export default function ParentDashboard({
                     className={`parent-portal-stack${changingPwUid === child.uid || editingUsernameUid === child.uid || pauseEditorUid === child.uid ? ' parent-portal-stack--editing' : ''}`}
                   >
                     {(() => {
-                      const pf = child.pausedFeatures || { chat: false };
-                      const anyPaused = pf.chat;
+                      const pf = child.pausedFeatures || { chat: false, call: false, video: false };
+                      const anyPaused = pf.chat || pf.call || pf.video;
                       return (
                     <div className={`parent-child-row${anyPaused ? ' paused' : ''}`}>
                       {/* Rij 1: Avatar + naam */}
@@ -989,6 +989,8 @@ export default function ParentDashboard({
                         <div className="parent-child-pause-options" role="group" aria-label={`Functies pauzeren voor ${child.displayName}`}>
                           {[
                             { id: 'chat', label: 'Chatten', icon: Message },
+                            { id: 'call', label: 'Bellen', icon: Phone },
+                            { id: 'video', label: 'Videobellen', icon: Video },
                           ].map(({ id, label, icon: Icon }) => {
                             const paused = Boolean(child.pausedFeatures?.[id]);
                             return (

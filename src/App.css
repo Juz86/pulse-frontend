@@ -132,7 +132,7 @@ html.pulse-platform-android {
 }
 
 /* Telefoon landscape: compacter, geen clipping bij lage hoogte */
-@media (orientation: landscape) and (max-height: 520px) {
+@media (orientation: landscape) and (max-width: 1024px) and (max-height: 520px) {
   /* A phone can have a tablet-wide WebView in landscape. Keep its chat
      navigation single-pane until the user explicitly returns to the list. */
   .app-screen { position:relative; overflow:hidden; }

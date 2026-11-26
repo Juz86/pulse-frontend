@@ -549,7 +549,7 @@ export default function ChatSidebar({
       <ProfilePageShell
         panelRef={profilePanelRef}
         scrollContent
-      className="chat-side-panel contact-profile-panel settings-profile-page"
+      className="chat-side-panel contact-profile-panel settings-profile-page settings-profile-overview-page"
         titleId="settings-profile-title"
         title="Instellingen"
         description="Bekijk en beheer je instellingen in dezelfde profielopbouw."

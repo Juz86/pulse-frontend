@@ -1,6 +1,6 @@
 // src/components/ChatModals.js
 import React, { useEffect, useRef, useState } from 'react';
-import { Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowLeftOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, List, Message, Phone, Video, Logout } from '../components/Icons';
+import { Camera, Delete, Trash2, Search, Users, UserPlus, Check, Cancel, Share, Heart, AdminIcon, StarFilled, StarOutline, ArrowLeftOutline, ArrowRight, Bell, BellOff, Block, InfoIcon, List, Message, Phone, Video, Logout, MagicEdit } from '../components/Icons';
 import { ProfilePageHero, ProfilePageShell } from '../components/ProfilePageShell';
 import { getInitials, formatTime } from '../utils';
 import AvatarBuilder from '../components/AvatarBuilder';
@@ -179,7 +179,6 @@ export default function ChatModals({
   }, [addingMember]);
 
   function openStarredFromProfile(contact) {
-    setShowContactProfile(false);
     const conversation = contact?.uid ? findConvWithUid?.(contact.uid) : null;
     if (conversation) {
       onOpenConversationStarred?.(conversation);
@@ -205,7 +204,6 @@ export default function ChatModals({
   }
 
   function openSelectionFromProfile() {
-    setShowContactProfile(false);
     onEnterMessageSelection?.();
   }
 
@@ -883,18 +881,12 @@ export default function ChatModals({
               description={`Bekijk en bewerk de profielgegevens van ${name}.`}
               onBack={() => { setEditingContactProfileName(false); setShowContactProfile(false); setContactProfileContact?.(null); }}
               backLabel="Profiel sluiten"
-              headerAction={(
+              headerAction={hasPendingProfileChanges ? (
                 <button
                   type="button"
-                  className={`contact-profile-edit-btn${hasPendingProfileChanges ? ' contact-profile-name-save-header' : ''}`}
-                  aria-label={hasPendingProfileChanges ? `Sla ${name} op` : `Bewerk ${name}`}
+                  className="contact-profile-edit-btn contact-profile-name-save-header"
+                  aria-label={`Sla ${name} op`}
                   onClick={() => {
-                    if (!hasPendingProfileChanges) {
-                      contactProfileOriginalNameRef.current = name;
-                      setRenameValue(name);
-                      setEditingContactProfileName(true);
-                      return;
-                    }
                     if (editingContactProfileName) {
                       const updatedName = renameValue.trim();
                       if (!updatedName) return;
@@ -908,9 +900,9 @@ export default function ChatModals({
                     setPendingProfileRelation(undefined);
                   }}
                 >
-                  {hasPendingProfileChanges ? 'Opslaan' : 'Bewerk'}
+                  Opslaan
                 </button>
-              )}
+              ) : null}
               hero={(
                 <ProfilePageHero
                   className="contact-profile-hero contact-profile-hero--main"
@@ -918,7 +910,24 @@ export default function ChatModals({
                     ? <img src={photo} alt={name || 'Profielfoto'} className="profile-avatar-big contact-profile-avatar" style={{ objectFit: 'cover' }} loading="lazy" />
                     : <div className="profile-avatar-big contact-profile-avatar">{getInitials(name)}</div>
                   }
-                  name={name}
+                  name={editingContactProfileName ? null : (
+                    <div className="contact-profile-name-row">
+                      <span className="contact-profile-name">{name}</span>
+                      <button
+                        type="button"
+                        className="contact-profile-name-edit-trigger"
+                        aria-label={`Bewerk ${name}`}
+                        title="Bewerken"
+                        onClick={() => {
+                          contactProfileOriginalNameRef.current = name;
+                          setRenameValue(name);
+                          setEditingContactProfileName(true);
+                        }}
+                      >
+                        <MagicEdit size={18} aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
                   nameEditor={editingContactProfileName ? (
                     <input
                       className="contact-profile-name contact-profile-name-input contact-profile-name-input--hero contact-profile-name-editor"

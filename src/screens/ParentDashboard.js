@@ -1489,7 +1489,6 @@ export default function ParentDashboard({
                   placeholder="Zoek op naam, e-mail of gebruikersnaam"
                   value={inviteContactSearch}
                   onChange={e => setInviteContactSearch(e.target.value)}
-                  autoFocus
                 />
               </div>
               <div className="coparent-contact-results parent-invite-contact-list" aria-live="polite">
@@ -1555,7 +1554,12 @@ export default function ParentDashboard({
         <PulseConfirmSheet
           title="Account verwijderen"
           description={`Weet u zeker dat u het account van ${confirmDelete.displayName} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`}
-          onClose={() => { setConfirmDelete(null); setDeleteError(''); }}
+          onClose={() => {
+            setConfirmDelete(null);
+            setDeleteError('');
+            setActiveTab('children');
+            setPortalView('content');
+          }}
           actions={[
             { label: 'Verwijderen', tone: 'danger', icon: Trash2, onSelect: () => deleteChild(confirmDelete.uid) },
           ]}

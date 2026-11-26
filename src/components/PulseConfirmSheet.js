@@ -58,7 +58,15 @@ export default function PulseConfirmSheet({
         <div className="pulse-confirm-heading">
           <h2 id="pulse-confirm-title">{title}</h2>
           {dismissible && (
-            <button type="button" className="pulse-confirm-close" aria-label="Sluiten" onClick={closeSheet}>
+            <button
+              type="button"
+              className="pulse-confirm-close"
+              aria-label="Sluiten"
+              onPointerDown={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
+              onTouchStart={(event) => event.stopPropagation()}
+              onClick={closeSheet}
+            >
               <Cancel size={28} aria-hidden="true" />
             </button>
           )}

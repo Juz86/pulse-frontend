@@ -282,6 +282,16 @@ body {
   min-width: 0;
 }
 
+/* Pulse behoudt scrollen, maar toont geen browser- of WebView-scrollbalken. */
+.app-root,
+.app-root * {
+  scrollbar-width: none;
+}
+.app-root::-webkit-scrollbar,
+.app-root *::-webkit-scrollbar {
+  display: none;
+}
+
 .conv-item-swipe-shell {
   position: relative;
   overflow: hidden;
@@ -4477,6 +4487,12 @@ font-family: 'Inter', sans-serif;
   -webkit-backdrop-filter: blur(22px);
   pointer-events: auto;
 }
+.sidebar:has(.new-chat-page-panel) .sidebar-footer-tabbar {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 -10px 28px rgba(31, 22, 68, 0.18),
+    0 18px 44px rgba(31, 22, 68, 0.2);
+}
 .sidebar-footer--cluster {
   position: relative;
   z-index: 2;
@@ -7565,6 +7581,14 @@ font-family: 'Inter', sans-serif;
 .settings-profile-page .profile-page-scroll-content {
   margin-right:-18px;
   padding-right:18px;
+  scrollbar-width:none;
+}
+.settings-profile-page .profile-page-scroll-content::-webkit-scrollbar {
+  display:none;
+}
+.settings-profile-overview-page .profile-page-scroll-content {
+  padding-bottom:26px;
+  scroll-padding-bottom:26px;
 }
 .parent-dashboard-panel .profile-page-scroll-content {
   margin-right:-18px;
@@ -7595,8 +7619,8 @@ font-family: 'Inter', sans-serif;
   flex:0 0 auto;
 }
 .privacy-account-picker-trigger {
-  min-width:126px;
-  max-width:154px;
+  min-width:174px;
+  max-width:190px;
   height:50px;
   padding:0 13px 0 16px;
   border:1px solid rgba(214,185,255,.34);
@@ -7685,7 +7709,7 @@ font-family: 'Inter', sans-serif;
 }
 .privacy-page-panel .contact-profile-heading {
   position:absolute;
-  left:50%;
+  left:41%;
   transform:translateX(-50%);
   pointer-events:none;
 }
@@ -8122,6 +8146,10 @@ font-family: 'Inter', sans-serif;
 }
 .contact-profile-relation-options .label-chip {
   min-height:42px;
+  justify-content:center;
+}
+.contact-profile-relation-options .label-chip svg {
+  display:none;
 }
 .contact-profile-card--profile-meta,
 .contact-profile-card--profile-actions,
@@ -19024,6 +19052,15 @@ font-family: 'Inter', sans-serif;
   padding:0;
   background:transparent;
 }
+/* Het profiel gebruikt een portal voor de vaste tabbar. Op Android-tablets
+   is de fysieke viewport hoger dan de zichtbare Pulse-app boven de
+   systeemnavigatie; compenseer dat verschil zodat deze balk exact aansluit
+   op de gewone Chats-, Oproepen- en Portaal-tabbar. */
+@media (min-width:768px) {
+  html.pulse-platform-android .sidebar-footer--contact-profile-floating {
+    bottom:calc(16px + max(0px, 100vh - var(--vvh, 100dvh)));
+  }
+}
 @media (max-width: 767px) {
   .sidebar-footer--contact-profile-floating {
     left:max(18px, env(safe-area-inset-left));
@@ -19150,6 +19187,13 @@ font-family: 'Inter', sans-serif;
     padding-top:calc(10px + var(--pulse-android-status-inset));
   }
 
+  /* De zoek- en sterkolom gebruikt dezelfde bovenruimte als de chatheader,
+     zodat hij niet onder de Android-statusbalk begint. */
+  html.pulse-platform-android .conversation-search-panel__header {
+    min-height:calc(76px + var(--pulse-android-status-inset));
+    padding-top:calc(14px + var(--pulse-android-status-inset));
+  }
+
   /* Lenovo en enkele andere Android-tablets geven in WebView geen onderste
      safe-area door. Houd de vaste navigatie en berichtinvoer daarom los van
      de systeemknoppen, zonder de browser- of telefoonlayout te verschuiven. */
@@ -19158,12 +19202,18 @@ font-family: 'Inter', sans-serif;
   }
 
   html.pulse-platform-android .sidebar > .conv-list {
-    padding-bottom:calc(var(--sidebar-footer-clearance) + max(6px, env(safe-area-inset-bottom)) + var(--pulse-android-navigation-gap));
-    scroll-padding-bottom:calc(var(--sidebar-footer-clearance) + max(6px, env(safe-area-inset-bottom)) + var(--pulse-android-navigation-gap));
+    padding-bottom:calc(var(--sidebar-footer-clearance) - 32px + max(6px, env(safe-area-inset-bottom)) + var(--pulse-android-navigation-gap));
+    scroll-padding-bottom:calc(var(--sidebar-footer-clearance) - 32px + max(6px, env(safe-area-inset-bottom)) + var(--pulse-android-navigation-gap));
   }
 
   html.pulse-platform-android .chat-input-area {
     padding-bottom:calc(max(7px, env(safe-area-inset-bottom)) + var(--pulse-android-navigation-gap));
+  }
+
+  /* Berichtselectie vervangt tijdelijk de invoerbalk en heeft daarom
+     dezelfde Android-onderruimte nodig als een gewoon berichtveld. */
+  html.pulse-platform-android .chat-message-selection-bar {
+    margin-bottom:calc(max(7px, env(safe-area-inset-bottom)) + var(--pulse-android-navigation-gap));
   }
 }
 

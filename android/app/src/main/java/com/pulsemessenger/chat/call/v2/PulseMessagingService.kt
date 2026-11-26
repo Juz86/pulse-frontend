@@ -15,6 +15,13 @@ class PulseMessagingService : MessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        val friendRequest = PulseFriendRequestPushParser.parse(remoteMessage.data)
+        if (friendRequest != null) {
+            if (FirebaseAuth.getInstance().currentUser?.uid == friendRequest.recipientUid) {
+                PulseFriendRequestNotifications.show(applicationContext, friendRequest)
+            }
+            return
+        }
         val incomingMessage = PulseIncomingMessagePushParser.parse(remoteMessage.data)
         if (incomingMessage != null) {
             PulseMessageNotifications.show(applicationContext, incomingMessage)

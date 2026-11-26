@@ -15,6 +15,11 @@
     <string name="pulse_message_you">Jij</string>
     <string name="pulse_notification_call_back">Terugbellen</string>
     <string name="pulse_notification_message">Bericht</string>
+    <string name="pulse_friend_request_title">Nieuw vriendschapsverzoek</string>
+    <string name="pulse_friend_request_accept">Accepteren</string>
+    <string name="pulse_friend_request_decline">Weigeren</string>
+    <string name="pulse_friend_request_accepted_title">Vriendschapsverzoek geaccepteerd</string>
+    <string name="pulse_friend_request_declined_title">Vriendschapsverzoek geweigerd</string>
     <string name="pulse_missed_call_channel_name">Gemiste oproepen</string>
     <string name="pulse_missed_call_channel_description">Meldingen voor gemiste Pulse-oproepen</string>
     <string name="pulse_missed_audio_call">Gemiste spraakoproep</string>

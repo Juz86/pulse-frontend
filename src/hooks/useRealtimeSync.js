@@ -48,7 +48,7 @@ export const REALTIME_EVENT_DOMAINS = Object.freeze({
 // silently; showing a toast for every socket replay is especially noisy after
 // reconnecting.
 export function isRealtimePopupRelevant(eventName, payload = {}, userId = null) {
-  if (eventName === 'friend:request' || eventName === 'friend:accepted') return true;
+  if (eventName === 'friend:request' || eventName === 'friend:accepted' || eventName === 'friend:declined') return true;
   if (eventName === 'conversation:admin_promotion_requested') {
     return !userId || payload?.request?.targetUid === userId;
   }

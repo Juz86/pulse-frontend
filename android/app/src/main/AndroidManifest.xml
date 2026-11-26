@@ -94,6 +94,10 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
+        <receiver
+            android:name=".call.v2.PulseFriendRequestActionReceiver"
+            android:exported="false" />
     </application>
 
     <!-- Permissions -->

@@ -386,6 +386,17 @@ export default function useChat({
       } catch (e) { console.warn('[Pulse] Fout:', e.message); }
     };
 
+    const onFriendDeclined = ({ byName }) => {
+      loadFriendRequests?.();
+      if (isRealtimePopupRelevant('friend:declined', { byName }, user.uid)) {
+        showErrToast?.({
+          title: 'Vriendschapsverzoek geweigerd',
+          text: `${byName || 'Je contactpersoon'} heeft je vriendschapsverzoek geweigerd.`,
+          tone: 'info',
+        });
+      }
+    };
+
     const onFriendRequestCancelled = ({ requestId }) => {
       setFriendRequests(prev => prev.filter(r => r.id !== requestId));
     };
@@ -620,6 +631,7 @@ export default function useChat({
     socket.on('message:status',   onMessageStatus);
     socket.on('friend:request',   onFriendRequest);
     socket.on('friend:accepted',  onFriendAccepted);
+    socket.on('friend:declined',  onFriendDeclined);
     socket.on('friend:request:cancelled', onFriendRequestCancelled);
     socket.on('user:updated',     onUserUpdated);
     socket.on('message:deleted',  onMessageDeleted);
@@ -780,6 +792,7 @@ export default function useChat({
       socket.off('message:status',   onMessageStatus);
       socket.off('friend:request',   onFriendRequest);
       socket.off('friend:accepted',  onFriendAccepted);
+      socket.off('friend:declined',  onFriendDeclined);
       socket.off('friend:request:cancelled', onFriendRequestCancelled);
       socket.off('message:deleted',  onMessageDeleted);
       socket.off('message:edited',   onMessageEdited);

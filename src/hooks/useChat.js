@@ -592,6 +592,14 @@ export default function useChat({
         return isWithTarget ? null : prev;
       });
     };
+    const onContactAccountDeleted = ({ childUid, message }) => {
+      setContacts(prev => prev.filter(c => c.uid !== childUid));
+      setActiveConv(prev => {
+        if (!prev || prev.isGroup) return prev;
+        return prev.members?.includes(childUid) ? null : prev;
+      });
+      showErrToast(message || 'Een contactaccount is door een ouder verwijderd.');
+    };
 
     const onMentionNotify = ({ senderName, groupName, convId }) => {
       if (dndRef.current) return;
@@ -631,6 +639,7 @@ export default function useChat({
     socket.on('contact:blocked-by-parent',   onContactBlockedByParent);
     socket.on('contact:unblocked-by-parent', onContactUnblockedByParent);
     socket.on('contact:removed-by-parent',   onContactRemovedByParent);
+    socket.on('contact:account-deleted',     onContactAccountDeleted);
 
     let detachE2eeV2QaLifecycle = null;
     let detachE2eeV2QaResumeSync = null;
@@ -790,6 +799,7 @@ export default function useChat({
       socket.off('contact:blocked-by-parent',   onContactBlockedByParent);
       socket.off('contact:unblocked-by-parent', onContactUnblockedByParent);
       socket.off('contact:removed-by-parent',   onContactRemovedByParent);
+      socket.off('contact:account-deleted',     onContactAccountDeleted);
       clearTimeout(disconnectTimerRef.current);
       clearInterval(reconnectIntervalRef.current);
       typingTimeoutsRef.current.forEach((timeoutId) => clearTimeout(timeoutId));

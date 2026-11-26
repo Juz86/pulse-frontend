@@ -36,6 +36,7 @@ export const REALTIME_EVENT_DOMAINS = Object.freeze({
   'contact:blocked-by-parent': ['contacts', 'blockedContacts', 'conversations'],
   'contact:unblocked-by-parent': ['contacts', 'blockedContacts', 'conversations'],
   'contact:removed-by-parent': ['contacts', 'blockedContacts', 'conversations'],
+  'contact:account-deleted': ['contacts', 'blockedContacts', 'conversations'],
   'contact:policy_updated': ['contacts', 'blockedContacts', 'conversations'],
 
   'account:paused': ['conversations', 'contacts'],

@@ -337,7 +337,6 @@ export default function ChatModals({
                   value={renameValue}
                   onChange={e => setRenameValue(e.target.value)}
                   placeholder={renamingContact.displayName}
-                  autoFocus
                   onKeyDown={e => { if (e.key === 'Enter') { saveContactNickname(renamingContact.uid, renameValue); setRenamingContact(null); setContacts(prev => [...prev]); } }}
                 />
               </div>
@@ -941,7 +940,6 @@ export default function ChatModals({
                         }
                       }}
                       aria-label="Naam contactpersoon"
-                      autoFocus
                     />
                   ) : null}
                   subtitle={email || null}
@@ -1124,7 +1122,6 @@ export default function ChatModals({
                       placeholder="Zoek in berichten met ster…"
                       value={starredSearch}
                       onChange={e => setStarredSearch(e.target.value)}
-                      autoFocus
                     />
                     {starredSearch && (
                       <button type="button" className="starred-search-clear" aria-label="Zoekopdracht wissen" onClick={() => setStarredSearch('')}>
@@ -1523,7 +1520,7 @@ export default function ChatModals({
                   {editingGroupName ? (
                     <label className="group-info-name-edit" htmlFor="group-name-edit">
                       <span className="sr-only">Groepsnaam</span>
-                      <input id="group-name-edit" className="form-input" value={groupNameDraft} onChange={(event) => setGroupNameDraft(event.target.value)} maxLength={50} autoFocus />
+                      <input id="group-name-edit" className="form-input" value={groupNameDraft} onChange={(event) => setGroupNameDraft(event.target.value)} maxLength={50} />
                     </label>
                   ) : <h2 id="group-info-title" className="group-info-title">{getConvName(activeConv)}</h2>}
                   <p id="group-info-description" className="group-info-subtitle">{activeConv.members.length} deelnemers</p>

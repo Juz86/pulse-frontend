@@ -592,7 +592,6 @@ export default function ChatSidebar({
                   className="form-input contact-profile-name-input"
                   value={newName}
                   onChange={(event) => setNewName?.(event.target.value)}
-                  autoFocus
                 />
                 <button
                   type="submit"
@@ -3020,7 +3019,6 @@ export default function ChatSidebar({
                   <div className="search-box search-box--top">
                     <Search size={18} aria-hidden="true" />
                     <input
-                      autoFocus
                       aria-label={activeTab === 'chats'
                         ? 'Zoeken in gesprekken'
                         : activeTab === 'calls' && !showCallContacts

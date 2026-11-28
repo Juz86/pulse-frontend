@@ -909,7 +909,6 @@ export default function ParentDashboard({
                             }}
                             minLength={3}
                             maxLength={20}
-                            autoFocus
                             autoCapitalize="none"
                             autoCorrect="off"
                           />
@@ -950,7 +949,6 @@ export default function ParentDashboard({
                               value={newPassword}
                               onChange={e => setNewPassword(e.target.value)}
                               minLength={6}
-                              autoFocus
                             />
                             <button
                               type="button"
@@ -990,7 +988,7 @@ export default function ParentDashboard({
                           {[
                             { id: 'chat', label: 'Chatten', icon: Message },
                             { id: 'call', label: 'Bellen', icon: Phone },
-                            { id: 'video', label: 'Videobellen', icon: Video },
+                            { id: 'video', label: 'Video', icon: Video },
                           ].map(({ id, label, icon: Icon }) => {
                             const paused = Boolean(child.pausedFeatures?.[id]);
                             return (

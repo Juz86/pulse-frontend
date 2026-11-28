@@ -7591,8 +7591,14 @@ font-family: 'Inter', sans-serif;
   scroll-padding-bottom:26px;
 }
 .parent-dashboard-panel .profile-page-scroll-content {
-  margin-right:-18px;
-  padding-right:18px;
+  width:100%;
+  max-width:100%;
+  margin-right:0;
+  padding-right:0;
+  box-sizing:border-box;
+  overflow-x:hidden;
+  overflow-x:clip;
+  touch-action:pan-y;
 }
 /* Privacy heeft twee lange instellingenblokken. Reserveer iets extra ruimte
    onderaan zodat de laatste bewaarkeuze altijd volledig boven de tabbar
@@ -12155,6 +12161,9 @@ font-family: 'Inter', sans-serif;
 .parent-dashboard-panel .parent-dashboard-content-card--children .parent-dashboard-content,
 .parent-dashboard-panel .parent-dashboard-content-card--contacts .parent-dashboard-content,
 .parent-dashboard-panel .parent-dashboard-content-card--location .parent-dashboard-content {
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
   padding-right: 0;
   padding-left: 0;
 }
@@ -12162,6 +12171,8 @@ font-family: 'Inter', sans-serif;
 .parent-dashboard-panel .parent-portal-view {
   display: flex;
   flex-direction: column;
+  min-width:0;
+  max-width:100%;
   gap: 18px;
   padding-bottom: 18px;
 }
@@ -12644,6 +12655,36 @@ font-family: 'Inter', sans-serif;
   padding: 18px;
 }
 
+/* Op telefoon en tablet leest een kindkaart rustiger als één gecentreerde
+   profielgroep. De desktopvariant behoudt de compactere links-uitlijning. */
+@media (max-width:1024px) {
+  .parent-dashboard-panel .parent-child-row {
+    align-items:center;
+  }
+  .parent-dashboard-panel .pd-child-head {
+    width:100%;
+    justify-content:center;
+    align-items:center !important;
+  }
+  .parent-dashboard-panel .parent-child-copy,
+  .parent-dashboard-panel .parent-child-title-group {
+    flex:0 1 auto;
+    align-items:center;
+    text-align:center;
+  }
+  .parent-dashboard-panel .parent-child-header-row {
+    justify-content:center;
+  }
+  .parent-dashboard-panel .pd-child-control-row {
+    width:100%;
+    margin-left:0;
+    justify-content:center;
+  }
+  .parent-dashboard-panel .pd-child-top-actions--inline {
+    justify-content:center;
+  }
+}
+
 .parent-dashboard-panel .parent-child-inline-editor {
   display: flex;
   flex-direction: column;
@@ -12731,6 +12772,20 @@ font-family: 'Inter', sans-serif;
   background: rgba(127, 29, 29, 0.3);
   color: #fca5a5;
   text-decoration: line-through;
+}
+
+@media (max-width:1024px) {
+  .parent-dashboard-panel .parent-child-pause-options {
+    flex-wrap:nowrap;
+  }
+  .parent-dashboard-panel .parent-child-pause-option {
+    flex:1 1 0;
+    min-width:0;
+    justify-content:center;
+    gap:5px;
+    padding:0 8px;
+    white-space:nowrap;
+  }
 }
 
 .parent-dashboard-panel .activities-header {

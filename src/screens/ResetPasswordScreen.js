@@ -83,7 +83,6 @@ export default function ResetPasswordScreen({ oobCode }) {
                     aria-invalid={msg ? 'true' : undefined}
                     required minLength={6}
                     style={{ paddingRight:'42px' }}
-                    autoFocus
                   />
                   <button
                     type="button"

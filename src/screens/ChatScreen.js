@@ -1258,7 +1258,7 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
           pinned={pinnedMsgs[activeConv?.id]?.id === contextMenu.msg.id}
           messageEditingEnabled={messageEditingEnabled}
           onClose={() => setContextMenu(null)}
-          onReply={() => { setReplyTo({ id: contextMenu.msg.id, text: contextMenu.msg.text, senderName: contextMenu.msg.senderName }); textareaRef.current?.focus(); }}
+          onReply={() => { setReplyTo({ id: contextMenu.msg.id, text: contextMenu.msg.text, senderName: contextMenu.msg.senderName }); }}
           onCopy={() => {
             copyTextToClipboard(contextMenu.msg.text || '')
               .then(() => showErrToast('📋 Bericht gekopieerd'))
@@ -1281,7 +1281,6 @@ export default function ChatScreen({ user, socket = null, onlineUsers = new Set(
             }
             setEditingMsg({ id: contextMenu.msg.id, text: contextMenu.msg.text, protocol: contextMenu.msg.protocol });
             setText(contextMenu.msg.text);
-            setTimeout(() => textareaRef.current?.focus(), 0);
           }}
           onDeleteRequest={() => handleDeleteRequest(contextMenu.msg)}
           onRetry={() => retryMessage(contextMenu.msg)}

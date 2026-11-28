@@ -103,17 +103,12 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
   const [resendMsg,     setResendMsg]     = useState('');
   const [activeFeature, setActiveFeature] = useState(0);
 
-  const codeInputRefs = useRef([]);
   const loginTabRef = useRef(null);
   const registerTabRef = useRef(null);
   const featureTimerRef = useRef(null);
   const verifyDescriptionIds = verifyError
     ? 'parent-verify-instructions parent-verify-error'
     : 'parent-verify-instructions';
-
-  useEffect(() => {
-    if (step === 'verify') codeInputRefs.current[0]?.focus();
-  }, [step]);
 
   useEffect(() => {
     featureTimerRef.current = setInterval(() => {
@@ -173,13 +168,6 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
     const updated = [...verifyCode];
     updated[index] = value.slice(-1);
     setVerifyCode(updated);
-    if (value && index < 5) codeInputRefs.current[index + 1]?.focus();
-  }
-
-  function handleCodeKeyDown(index, e) {
-    if (e.key === 'Backspace' && !verifyCode[index] && index > 0) {
-      codeInputRefs.current[index - 1]?.focus();
-    }
   }
 
   function handleCodePaste(e) {
@@ -188,8 +176,6 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
     const updated = [...verifyCode];
     pasted.split('').forEach((ch, i) => { updated[i] = ch; });
     setVerifyCode(updated);
-    const nextEmpty = Math.min(pasted.length, 5);
-    codeInputRefs.current[nextEmpty]?.focus();
   }
 
   async function handleVerify(e) {
@@ -238,7 +224,6 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
       setResendCount(c => c + 1);
       setVerifyCode(['', '', '', '', '', '']);
       setResendMsg('Nieuwe code verstuurd.');
-      codeInputRefs.current[0]?.focus();
     } catch (err) {
       setResendMsg(err.message);
     } finally {
@@ -300,7 +285,6 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
               {verifyCode.map((ch, i) => (
                 <input
                   key={i}
-                  ref={el => codeInputRefs.current[i] = el}
                   className="parent-verify-box"
                   type="text"
                   aria-label={`Verificatiecode cijfer ${i + 1}`}
@@ -316,8 +300,6 @@ export default function ParentAuthScreen({ onBack, defaultTab = 'login', isModal
                   maxLength={1}
                   value={ch}
                   onChange={e => handleCodeInput(i, e.target.value)}
-                  onKeyDown={e => handleCodeKeyDown(i, e)}
-                  autoFocus={i === 0}
                 />
               ))}
             </div>

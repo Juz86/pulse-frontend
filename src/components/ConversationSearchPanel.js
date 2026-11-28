@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Search, StarFilled, XIcon } from './Icons';
 import { getMessageDisplayText } from '../lib/e2ee/messageModel';
 
@@ -42,11 +42,6 @@ export default function ConversationSearchPanel({
     ? sourceMessages.filter(message => getMessageDisplayText(message).toLocaleLowerCase().includes(query))
     : (isStarredMode ? sourceMessages : []), [sourceMessages, query, isStarredMode]);
   const currentIndex = matches.length ? chatSearchIdx % matches.length : 0;
-
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => chatSearchRef.current?.focus());
-    return () => window.cancelAnimationFrame(frame);
-  }, [chatSearchRef]);
 
   function close() {
     chatSearchRef.current?.blur();
